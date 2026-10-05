@@ -26,7 +26,13 @@ function twoAppendixForm(): Record<string, unknown> {
       pdfPages: 43,
       blankAppendix: { number: 2, pdfPages: [23] },
       rulesAppendix: { number: 3, pdfPages: [27] },
-      extraction: { method: 'test', ocrSha256: SHA, corrections: [], blankLabelsVerified: 1, note: 'n' },
+      extraction: {
+        method: 'test',
+        ocrSha256: SHA,
+        corrections: [],
+        blankLabelsVerified: 1,
+        note: 'n',
+      },
     },
     sections: [{ id: 'main', title: 'Главное', fieldIds: ['name'] }],
     fields: [

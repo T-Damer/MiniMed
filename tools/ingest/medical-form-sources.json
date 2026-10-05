@@ -82,6 +82,160 @@
           "schemaFile": "ru-minzdrav-519n-057u.json"
         }
       ]
+    },
+    {
+      "eoNumber": "0001202609170010",
+      "orderNumber": "740н",
+      "orderDate": "2026-08-20",
+      "publishedAt": "2026-09-17",
+      "issuer": "Министерство здравоохранения Российской Федерации",
+      "title": "Об утверждении учетной формы № 058/у «Экстренное извещение о случае инфекционной, паразитарной болезни и носительства возбудителей инфекционных болезней, пищевого отравления, укуса или удара, нанесенного животным» и порядка ее ведения",
+      "registration": {
+        "number": "88291",
+        "date": "2026-09-16"
+      },
+      "publicationUrl": "http://publication.pravo.gov.ru/document/0001202609170010",
+      "pdfUrl": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202609170010",
+      "pagesCount": 9,
+      "bytes": 651937,
+      "sha256": "26b298da6bdaa9f1921c86cb046b98d602d8704696f737a6ad56197669be45f1",
+      "retrievedAt": "2026-10-05",
+      "watchTerms": ["Экстренное извещение о случае инфекционной"],
+      "acknowledgedOrders": [],
+      "forms": [
+        {
+          "key": "058u",
+          "formNumber": "058/у",
+          "schemaId": "ru.minzdrav.740n.058u",
+          "schemaFile": "ru-minzdrav-740n-058u.json"
+        }
+      ]
+    },
+    {
+      "eoNumber": "0001202111300131",
+      "orderNumber": "1092н",
+      "orderDate": "2021-11-24",
+      "publishedAt": "2021-11-30",
+      "issuer": "Министерство здравоохранения Российской Федерации",
+      "title": "Об утверждении порядка проведения обязательного медицинского освидетельствования водителей транспортных средств (кандидатов в водители транспортных средств), порядка выдачи и формы медицинского заключения о наличии (об отсутствии) у водителей транспортных средств (кандидатов в водители транспортных средств) медицинских противопоказаний, медицинских показаний или медицинских ограничений к управлению транспортными средствами, а также о признании утратившими силу отдельных приказов Министерства здравоохранения Российской Федерации",
+      "registration": {
+        "number": "66130",
+        "date": "2021-11-30"
+      },
+      "publicationUrl": "http://publication.pravo.gov.ru/document/0001202111300131",
+      "pdfUrl": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202111300131",
+      "pagesCount": 17,
+      "bytes": 1168449,
+      "sha256": "63fd77663077cbf993f49eb093c2a19fd73b86515ecfa893ce1a5a5332244abc",
+      "retrievedAt": "2026-10-05",
+      "watchTerms": [
+        "обязательного медицинского освидетельствования водителей транспортных средств"
+      ],
+      "acknowledgedOrders": [],
+      "forms": [
+        {
+          "key": "003-vu",
+          "formNumber": "003-В/у",
+          "schemaId": "ru.minzdrav.1092n.003-vu",
+          "schemaFile": "ru-minzdrav-1092n-003-vu.json"
+        }
+      ]
+    },
+    {
+      "eoNumber": "0001202206210025",
+      "orderNumber": "395н",
+      "orderDate": "2022-06-09",
+      "publishedAt": "2022-06-21",
+      "issuer": "Министерство здравоохранения Российской Федерации",
+      "title": "Об утверждении формы медицинского заключения о наличии (об отсутствии) у трактористов, машинистов и водителей самоходных машин (кандидатов в трактористы, машинисты и водители самоходных машин) медицинских противопоказаний, медицинских показаний или медицинских ограничений к управлению самоходными машинами",
+      "registration": {
+        "number": "68933",
+        "date": "2022-06-21"
+      },
+      "publicationUrl": "http://publication.pravo.gov.ru/document/0001202206210025",
+      "pdfUrl": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202206210025",
+      "pagesCount": 3,
+      "bytes": 180170,
+      "sha256": "1c39c9e8e6280d1733f073524105b3e474336477fa98d197da3cb5c3d1c8022c",
+      "retrievedAt": "2026-10-05",
+      "watchTerms": ["медицинского заключения о наличии (об отсутствии) у трактористов"],
+      "acknowledgedOrders": [],
+      "forms": [
+        {
+          "key": "071u",
+          "formNumber": "071/у",
+          "schemaId": "ru.minzdrav.395n.071u",
+          "schemaFile": "ru-minzdrav-395n-071u.json"
+        }
+      ]
+    },
+    {
+      "eoNumber": "0001202211100014",
+      "orderNumber": "488н/551н",
+      "orderDate": "2022-08-12",
+      "publishedAt": "2022-11-10",
+      "issuer": "Министерство труда и социальной защиты Российской Федерации и Министерство здравоохранения Российской Федерации",
+      "title": "Об утверждении формы направления на медико-социальную экспертизу медицинской организацией и порядка ее заполнения",
+      "registration": {
+        "number": "70900",
+        "date": "2022-11-10"
+      },
+      "publicationUrl": "http://publication.pravo.gov.ru/document/0001202211100014",
+      "pdfUrl": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202211100014",
+      "pagesCount": 31,
+      "bytes": 1918554,
+      "sha256": "cc6679cc8aa532c34eafc68c8b834a95b67444afa67e20f4af22b887e5d3a96c",
+      "retrievedAt": "2026-10-05",
+      "watchTerms": ["формы направления на медико-социальную экспертизу"],
+      "acknowledgedOrders": [],
+      "forms": [
+        {
+          "key": "088u",
+          "formNumber": "088/у",
+          "schemaId": "ru.mintrud-minzdrav.488n-551n.088u",
+          "schemaFile": "ru-mintrud-minzdrav-488n-551n-088u.json"
+        }
+      ]
+    },
+    {
+      "eoNumber": "0001202111300115",
+      "orderNumber": "1094н",
+      "orderDate": "2021-11-24",
+      "publishedAt": "2021-11-30",
+      "issuer": "Министерство здравоохранения Российской Федерации",
+      "title": "Об утверждении Порядка назначения лекарственных препаратов, форм рецептурных бланков на лекарственные препараты, Порядка оформления указанных бланков, их учета и хранения, форм бланков рецептов, содержащих назначение наркотических средств или психотропных веществ, Порядка их изготовления, распределения, регистрации, учета и хранения, а также Правил оформления бланков рецептов, в том числе в форме электронных документов",
+      "registration": {
+        "number": "66124",
+        "date": "2021-11-30"
+      },
+      "publicationUrl": "http://publication.pravo.gov.ru/document/0001202111300115",
+      "pdfUrl": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202111300115",
+      "pagesCount": 43,
+      "bytes": 2870086,
+      "sha256": "fee584611033934a601644b7423390b201125f917ed85d382b4236b162e83c7e",
+      "retrievedAt": "2026-10-05",
+      "watchTerms": ["рецептурных бланков на лекарственные препараты"],
+      "acknowledgedOrders": [],
+      "forms": [
+        {
+          "key": "107-1u",
+          "formNumber": "107-1/у",
+          "schemaId": "ru.minzdrav.1094n.107-1u",
+          "schemaFile": "ru-minzdrav-1094n-107-1u.json"
+        },
+        {
+          "key": "148-1u-88",
+          "formNumber": "148-1/у-88",
+          "schemaId": "ru.minzdrav.1094n.148-1u-88",
+          "schemaFile": "ru-minzdrav-1094n-148-1u-88.json"
+        },
+        {
+          "key": "148-1u-04l",
+          "formNumber": "148-1/у-04(л)",
+          "schemaId": "ru.minzdrav.1094n.148-1u-04l",
+          "schemaFile": "ru-minzdrav-1094n-148-1u-04l.json"
+        }
+      ]
     }
   ]
 }

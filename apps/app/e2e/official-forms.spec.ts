@@ -275,7 +275,7 @@ test('fills 072/у, 076/у, 079/у and 025-1/у from one patient and previews ev
   await page.getByRole('button', { name: 'Заполнить форму', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Формы', exact: true })).toBeVisible();
   const cards = page.locator('.forms-home__card');
-  await expect(cards).toHaveCount(5);
+  expect(await cards.count()).toBeGreaterThanOrEqual(5);
   for (const number of ['070/у', '072/у', '076/у', '079/у', '025-1/у']) {
     await expect(cards.filter({ hasText: `Форма № ${number}` })).toHaveCount(1);
   }
@@ -320,6 +320,138 @@ test('fills 072/у, 076/у, 079/у and 025-1/у from one patient and previews ev
     await popup.waitForLoadState('domcontentloaded');
     // Two-sided blanks print as two sheets: the reverse side starts on a new page.
     expect(await pdfSheetCount(page)).toBe(form.sheets);
+    await popup.close();
+    await page.getByRole('button', { name: 'Закрыть' }).click();
+  }
+});
+
+test('fills the referral 057/у (order 519н) from one patient: prefill, underlined answers, one printed sheet', async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mountBuiltApp(page, { persistentOrigin: true, skipLargeCompanionPacks: true });
+  await seedClinicianAndPatient(page);
+  await page.getByRole('button', { name: 'Заполнить форму', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Формы', exact: true })).toBeVisible();
+
+  // The card says which order the blank comes from and when it is in force; a coming edition is
+  // never shown as current.
+  const card = page.locator('.forms-home__card').filter({ hasText: 'Форма № 057/у' });
+  await expect(card).toContainText('Приказ Минздрава России от 02.09.2025 № 519н');
+  await expect(card).toContainText('Действует с 27.10.2025.');
+  const coming = page.locator('.forms-home__card').filter({ hasText: 'Форма № 058/у' });
+  await expect(coming).toContainText('Вступает в силу с 01.03.2027.');
+  await expect(coming).not.toContainText('Действует с');
+  await expect(page.locator('.forms-home__card')).toHaveCount(13);
+  await fillButton(page, '057/у').click();
+  await expect(page).toHaveURL(/#\/notes\/forms\/ru\.minzdrav\.519n\.057u\?patient=/u);
+
+  for (const [fieldId, value] of Object.entries({
+    patientFullName: 'Иванов Иван Иванович',
+    omsPolicyNumber: '7700000000000001',
+    omsInsurer: 'СМО «Тест»',
+    residenceStreet: 'Ленина',
+    diagnosis: 'Бронхиальная астма, J45.0',
+    referrerPosition: 'врач-терапевт',
+    referrerName: 'Петров Пётр Петрович',
+    organizationOgrn: '1027700132195',
+  })) {
+    const field = page.locator(`#form-field-${fieldId}`);
+    await expect(field.getByRole('textbox').first()).toHaveValue(value);
+    await expect(field.getByText('подставлено', { exact: true })).toBeVisible();
+  }
+  await expect(
+    page.locator('#form-field-patientSex').getByRole('radio', { name: 'Муж' }),
+  ).toBeChecked();
+
+  // A line the order does not define says so; a defined one quotes the order's own paragraph.
+  const locality = page.locator('#form-field-localityType');
+  await locality.getByRole('button', { name: 'Правило заполнения' }).click();
+  await expect(locality.getByRole('note')).toContainText('не называет строку');
+  const justification = page.locator('#form-field-justification');
+  await justification.scrollIntoViewIfNeeded();
+  await justification.getByRole('button', { name: 'Правило заполнения' }).click();
+  await expect(justification.getByRole('note')).toContainText('9.8.');
+  await expect(justification.getByRole('note')).toContainText('число назначаемых курсов');
+
+  await page.locator('#form-field-formNumber').getByRole('textbox').fill('12');
+  await page.locator('#form-field-purpose').getByRole('textbox').fill('консультация пульмонолога');
+  await page
+    .locator('#form-field-justification')
+    .getByRole('textbox')
+    .fill('Неконтролируемое течение, 1 курс');
+  await page.locator('#form-field-careForm').getByRole('radio', { name: 'Плановая' }).check();
+  await page
+    .locator('#form-field-careConditions')
+    .getByRole('radio', { name: 'Амбулаторно' })
+    .check();
+
+  await page.getByRole('button', { name: 'Предпросмотр и печать' }).click();
+  const frame = page.frameLocator('iframe[title="Предпросмотр бланка"]');
+  const sheet = frame.locator('.form-print');
+  await expect(sheet).toContainText('НАПРАВЛЕНИЕ ДЛЯ ОКАЗАНИЯ МЕДИЦИНСКОЙ ПОМОЩИ №');
+  await expect(sheet).toContainText('Иванов Иван Иванович');
+  await expect(sheet).toContainText('консультация пульмонолога');
+  // The order asks the doctor to underline the chosen answers (п. 6).
+  await expect(
+    frame.locator('.form-print__option--underlined').filter({ hasText: /^плановая – 3$/u }),
+  ).toBeVisible();
+  await expect(
+    frame.locator('.form-print__option--underlined').filter({ hasText: /^амбулаторно – 1$/u }),
+  ).toBeVisible();
+  await expect(
+    frame.locator('.form-print__option--underlined').filter({ hasText: /^экстренная – 1$/u }),
+  ).toHaveCount(0);
+  await capture(page, 'form-057u-preview', true);
+
+  const popupPromise = page.waitForEvent('popup');
+  await page.getByRole('dialog').getByRole('button', { name: 'Печать / PDF' }).click();
+  const popup = await popupPromise;
+  await popup.waitForLoadState('domcontentloaded');
+  // One official sheet, printed at the declared font (the page is not shrunk to fit).
+  expect(await pdfSheetCount(page)).toBe(1);
+  await popup.close();
+});
+
+/** The forms of F3 beyond 057/у: how many sheets the official blank has and what the print shows. */
+const F3_FORMS = [
+  { number: '088/у', sheets: 13, printed: /направление на медико-социальную экспертизу/iu },
+  { number: '107-1/у', sheets: 2, printed: /рецепт/iu },
+  { number: '148-1/у-88', sheets: 2, printed: /рецепт/iu },
+  { number: '148-1/у-04(л)', sheets: 2, printed: /рецепт/iu },
+  { number: '003-В/у', sheets: 1, printed: /медицинское заключение/iu },
+  { number: '071/у', sheets: 2, printed: /заключение/iu },
+  { number: '058/у', sheets: 2, printed: /экстренное извещение/iu },
+] as const;
+
+test('opens 088/у, the prescription blanks, the certificates and 058/у, prefilled, and prints the sheets of the official blank', async ({
+  page,
+}) => {
+  test.setTimeout(300_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mountBuiltApp(page, { persistentOrigin: true, skipLargeCompanionPacks: true });
+  await seedClinicianAndPatient(page);
+  await page.getByRole('button', { name: 'Заполнить форму', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Формы', exact: true })).toBeVisible();
+
+  for (const [index, form] of F3_FORMS.entries()) {
+    if (index > 0) {
+      await page.getByRole('button', { name: 'К карточке пациента' }).click();
+      await page.getByRole('button', { name: 'Заполнить форму', exact: true }).click();
+    }
+    await fillButton(page, form.number).click();
+    await expect(
+      page.locator('#form-field-patientFullName, #form-field-organization').first(),
+    ).toBeVisible();
+    await page.getByRole('button', { name: 'Предпросмотр и печать' }).click();
+    const frame = page.frameLocator('iframe[title="Предпросмотр бланка"]');
+    await expect(frame.locator('.form-print')).toContainText(form.printed);
+    const popupPromise = page.waitForEvent('popup');
+    await page.getByRole('dialog').getByRole('button', { name: 'Печать / PDF' }).click();
+    const popup = await popupPromise;
+    await popup.waitForLoadState('domcontentloaded');
+    expect(await pdfSheetCount(page), form.number).toBe(form.sheets);
     await popup.close();
     await page.getByRole('button', { name: 'Закрыть' }).click();
   }

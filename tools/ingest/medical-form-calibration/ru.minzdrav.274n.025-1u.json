@@ -4,29 +4,29 @@
   "page": {
     "marginMm": {
       "top": 7.5,
-      "right": 12.0,
+      "right": 13.8,
       "bottom": 2,
-      "left": 14.5
+      "left": 13.8
     },
     "fontSizePt": 9.1
   },
   "lineHeight": 1.1,
   "rows": {
-    "final/0/0": 2.75,
-    "final/0/9": 0.86,
-    "header/1/0": 1.1,
-    "items/0/11": 0.44,
-    "items/0/16": 0.78,
-    "items/0/20": 1.9,
-    "items/0/21": 0.0,
-    "items/0/27": 0.09,
-    "items/0/28": 0.12,
-    "items/0/6": 0.9,
-    "operation/0/0": 2.7,
-    "operation/0/2": 1.18,
-    "operation/0/3": 0.56,
-    "operation/0/5": 2.65,
-    "prelim/0/9": 0.67,
-    "title/0/0": 6.15
+    "final/0/0": 2.48,
+    "final/0/9": 0.34,
+    "header/1/0": 1.09,
+    "items/0/11": 0.25,
+    "items/0/15": 0.25,
+    "items/0/16": 0.32,
+    "items/0/19": 0.3,
+    "items/0/21": 0.28,
+    "items/0/27": 0.26,
+    "items/0/28": 0.32,
+    "items/0/6": 0.6,
+    "operation/0/0": 2.5,
+    "operation/0/2": 1.05,
+    "operation/0/3": 0.5,
+    "operation/0/5": 2.5,
+    "title/0/0": 5.77
   }
 }

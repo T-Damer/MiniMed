@@ -27,7 +27,9 @@ describe('rule citation', () => {
       textSha256: 'a'.repeat(64),
     };
     const text = ruleCitation(schema, paragraph);
-    expect(text).toContain('Порядок назначения лекарственных препаратов (приложение № 1 к приказу № ');
+    expect(text).toContain(
+      'Порядок назначения лекарственных препаратов (приложение № 1 к приказу № ',
+    );
     expect(text).toContain('п. 11; стр. 10 официального PDF');
   });
 });

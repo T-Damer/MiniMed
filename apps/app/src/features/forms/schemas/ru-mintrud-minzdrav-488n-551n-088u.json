@@ -6332,9 +6332,9 @@
       "orientation": "portrait",
       "marginMm": {
         "top": 22.5,
-        "right": 8.3,
+        "right": 9.7,
         "bottom": 8,
-        "left": 20.2
+        "left": 20.1
       },
       "fontSizePt": 14.0,
       "lineHeight": 1.1
@@ -6363,7 +6363,7 @@
                   }
                 ],
                 "align": "right",
-                "spaceBeforeMm": 2.57
+                "spaceBeforeMm": 2.42
               },
               {
                 "segments": [
@@ -6375,7 +6375,7 @@
                     "caption": "(наименование медицинской организации)"
                   }
                 ],
-                "spaceBeforeMm": 5.41
+                "spaceBeforeMm": 5.13
               },
               {
                 "segments": [
@@ -6398,7 +6398,7 @@
                   }
                 ],
                 "align": "center",
-                "spaceBeforeMm": 0.62
+                "spaceBeforeMm": 0.27
               },
               {
                 "segments": [
@@ -6409,7 +6409,7 @@
                   }
                 ],
                 "align": "center",
-                "spaceBeforeMm": 3.49
+                "spaceBeforeMm": 3.34
               },
               {
                 "segments": [
@@ -6429,7 +6429,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 8.96
+                "spaceBeforeMm": 8.6
               },
               {
                 "segments": [
@@ -6439,7 +6439,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 0.84
+                "spaceBeforeMm": 0.72
               },
               {
                 "segments": [
@@ -6500,7 +6500,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 1.0
+                "spaceBeforeMm": 0.79
               },
               {
                 "segments": [
@@ -6510,7 +6510,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 0.66
+                "spaceBeforeMm": 0.55
               },
               {
                 "segments": [
@@ -6524,7 +6524,7 @@
                     "inline": true
                   }
                 ],
-                "spaceBeforeMm": 0.6
+                "spaceBeforeMm": 0.49
               },
               {
                 "segments": [
@@ -6538,7 +6538,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 2.87
+                "spaceBeforeMm": 2.72
               },
               {
                 "segments": [
@@ -6547,7 +6547,7 @@
                     "text": "(при нуждаемости в оказании паллиативной медицинской помощи)"
                   }
                 ],
-                "spaceBeforeMm": 0.78
+                "spaceBeforeMm": 0.67
               },
               {
                 "segments": [
@@ -6557,7 +6557,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 1.73
+                "spaceBeforeMm": 1.6
               },
               {
                 "segments": [
@@ -6584,7 +6584,7 @@
                     "text": "(при нуждаемости в первичном протезировании)"
                   }
                 ],
-                "spaceBeforeMm": 1.03
+                "spaceBeforeMm": 0.82
               },
               {
                 "segments": [
@@ -6594,7 +6594,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 1.93
+                "spaceBeforeMm": 1.79
               },
               {
                 "segments": [
@@ -6603,7 +6603,7 @@
                     "text": "отметить):"
                   }
                 ],
-                "spaceBeforeMm": 0.42
+                "spaceBeforeMm": 0.32
               },
               {
                 "segments": [
@@ -6726,7 +6726,7 @@
                     "cellLineHeight": 1.225
                   }
                 ],
-                "spaceBeforeMm": 1.78
+                "spaceBeforeMm": 0.8
               }
             ]
           }
@@ -6872,7 +6872,7 @@
                   }
                 ],
                 "align": "center",
-                "spaceBeforeMm": 4.06
+                "spaceBeforeMm": 0.58
               },
               {
                 "segments": [
@@ -6881,7 +6881,7 @@
                     "text": "6. Фамилия, имя, отчество (при наличии):"
                   }
                 ],
-                "spaceBeforeMm": 4.55
+                "spaceBeforeMm": 4.37
               },
               {
                 "segments": [
@@ -6930,7 +6930,7 @@
                     "text": "г."
                   }
                 ],
-                "spaceBeforeMm": 1.92
+                "spaceBeforeMm": 1.69
               },
               {
                 "segments": [
@@ -6940,7 +6940,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 1.28
+                "spaceBeforeMm": 1.16
               },
               {
                 "segments": [
@@ -6955,7 +6955,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 0.4
+                "spaceBeforeMm": 0.3
               },
               {
                 "segments": [
@@ -6964,7 +6964,7 @@
                     "text": "8. Пол (нужное отметить):"
                   }
                 ],
-                "spaceBeforeMm": 1.25
+                "spaceBeforeMm": 1.13
               },
               {
                 "segments": [
@@ -7114,7 +7114,7 @@
                     "cellLineHeight": 1.225
                   }
                 ],
-                "spaceBeforeMm": 4.07
+                "spaceBeforeMm": 3.2
               },
               {
                 "segments": [
@@ -7216,7 +7216,7 @@
                     "cellLineHeight": 1.225
                   }
                 ],
-                "spaceBeforeMm": 1.86
+                "spaceBeforeMm": 1.05
               },
               {
                 "segments": [
@@ -7243,8 +7243,7 @@
                     "text": "место нахождения пенсионного дела инвалида, выехавшего на постоянное"
                   }
                 ],
-                "align": "stretch",
-                "spaceBeforeMm": 0.3
+                "align": "stretch"
               },
               {
                 "segments": [
@@ -7267,7 +7266,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 1.67
+                "spaceBeforeMm": 0.89
               },
               {
                 "segments": [
@@ -7282,7 +7281,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 1.16
+                "spaceBeforeMm": 1.39
               },
               {
                 "segments": [
@@ -7297,7 +7296,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 1.26
+                "spaceBeforeMm": 1.14
               },
               {
                 "segments": [
@@ -7312,7 +7311,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 1.51
+                "spaceBeforeMm": 1.4
               },
               {
                 "segments": [
@@ -7327,7 +7326,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 1.45
+                "spaceBeforeMm": 1.32
               },
               {
                 "segments": [
@@ -7342,7 +7341,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 1.33
+                "spaceBeforeMm": 1.21
               },
               {
                 "segments": [
@@ -7356,7 +7355,7 @@
                     "length": 14
                   }
                 ],
-                "spaceBeforeMm": 1.75
+                "spaceBeforeMm": 1.33
               },
               {
                 "segments": [
@@ -7370,7 +7369,7 @@
                     "length": 11
                   }
                 ],
-                "spaceBeforeMm": 1.19
+                "spaceBeforeMm": 1.4
               },
               {
                 "segments": [
@@ -7388,7 +7387,7 @@
                     "text": "(в случае если гражданин не имеет"
                   }
                 ],
-                "spaceBeforeMm": 1.47
+                "spaceBeforeMm": 1.34
               },
               {
                 "segments": [
@@ -7397,7 +7396,7 @@
                     "text": "определенного места жительства)"
                   }
                 ],
-                "spaceBeforeMm": 1.56
+                "spaceBeforeMm": 1.44
               },
               {
                 "segments": [
@@ -7406,7 +7405,7 @@
                     "text": "13. Гражданин находится (нужное отметить и указать):"
                   }
                 ],
-                "spaceBeforeMm": 1.48
+                "spaceBeforeMm": 1.1
               },
               {
                 "segments": [
@@ -7561,8 +7560,7 @@
                     },
                     "cellLineHeight": 1.225
                   }
-                ],
-                "spaceBeforeMm": 0.62
+                ]
               }
             ]
           }
@@ -7786,7 +7784,7 @@
                     "text": "14. Контактная информация:"
                   }
                 ],
-                "spaceBeforeMm": 5.24
+                "spaceBeforeMm": 2.94
               },
               {
                 "segments": [
@@ -7801,7 +7799,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 1.04
+                "spaceBeforeMm": 0.92
               },
               {
                 "segments": [
@@ -7816,7 +7814,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 1.76
+                "spaceBeforeMm": 1.63
               },
               {
                 "segments": [
@@ -7826,7 +7824,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 0.8
+                "spaceBeforeMm": 0.69
               },
               {
                 "segments": [
@@ -7835,7 +7833,7 @@
                     "text": "обязательного медицинского страхования:"
                   }
                 ],
-                "spaceBeforeMm": 0.7
+                "spaceBeforeMm": 0.59
               },
               {
                 "segments": [
@@ -7849,7 +7847,7 @@
                     "length": 18
                   }
                 ],
-                "spaceBeforeMm": 1.26
+                "spaceBeforeMm": 1.13
               },
               {
                 "segments": [
@@ -7859,7 +7857,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 1.36
+                "spaceBeforeMm": 1.24
               },
               {
                 "segments": [
@@ -7877,7 +7875,7 @@
                     "text": "16. Документ, удостоверяющий личность:"
                   }
                 ],
-                "spaceBeforeMm": 2.06
+                "spaceBeforeMm": 1.83
               },
               {
                 "segments": [
@@ -7892,7 +7890,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 1.26
+                "spaceBeforeMm": 1.13
               },
               {
                 "segments": [
@@ -7915,7 +7913,7 @@
                     "length": 14
                   }
                 ],
-                "spaceBeforeMm": 1.51
+                "spaceBeforeMm": 1.39
               },
               {
                 "segments": [
@@ -7930,7 +7928,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 1.26
+                "spaceBeforeMm": 1.14
               },
               {
                 "segments": [
@@ -7969,7 +7967,7 @@
                     "text": "г."
                   }
                 ],
-                "spaceBeforeMm": 1.95
+                "spaceBeforeMm": 1.82
               },
               {
                 "segments": [
@@ -7979,7 +7977,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 1.04
+                "spaceBeforeMm": 0.92
               },
               {
                 "segments": [
@@ -7988,7 +7986,7 @@
                     "text": "направляемого на медико-социальную экспертизу:"
                   }
                 ],
-                "spaceBeforeMm": 0.99
+                "spaceBeforeMm": 0.88
               },
               {
                 "segments": [
@@ -8003,7 +8001,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 0.93
+                "spaceBeforeMm": 0.81
               },
               {
                 "segments": [
@@ -8042,7 +8040,7 @@
                     "text": "г."
                   }
                 ],
-                "spaceBeforeMm": 1.52
+                "spaceBeforeMm": 1.4
               },
               {
                 "segments": [
@@ -8052,7 +8050,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 1.23
+                "spaceBeforeMm": 1.11
               },
               {
                 "segments": [
@@ -8061,7 +8059,7 @@
                     "text": "представителя:"
                   }
                 ],
-                "spaceBeforeMm": 0.62
+                "spaceBeforeMm": 0.51
               },
               {
                 "segments": [
@@ -8076,7 +8074,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 0.64
+                "spaceBeforeMm": 0.54
               },
               {
                 "segments": [
@@ -8099,7 +8097,7 @@
                     "length": 14
                   }
                 ],
-                "spaceBeforeMm": 1.49
+                "spaceBeforeMm": 1.36
               },
               {
                 "segments": [
@@ -8114,7 +8112,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 1.3
+                "spaceBeforeMm": 1.18
               },
               {
                 "segments": [
@@ -8153,7 +8151,7 @@
                     "text": "г."
                   }
                 ],
-                "spaceBeforeMm": 1.69
+                "spaceBeforeMm": 1.56
               },
               {
                 "segments": [
@@ -8162,7 +8160,7 @@
                     "text": "17.3. Документ, удостоверяющий личность:"
                   }
                 ],
-                "spaceBeforeMm": 1.3
+                "spaceBeforeMm": 1.18
               }
             ]
           }
@@ -8210,7 +8208,7 @@
                     "length": 14
                   }
                 ],
-                "spaceBeforeMm": 1.92
+                "spaceBeforeMm": 1.33
               },
               {
                 "segments": [
@@ -8225,7 +8223,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 1.54
+                "spaceBeforeMm": 1.42
               },
               {
                 "segments": [
@@ -8264,7 +8262,7 @@
                     "text": "г."
                   }
                 ],
-                "spaceBeforeMm": 1.26
+                "spaceBeforeMm": 1.14
               },
               {
                 "segments": [
@@ -8273,7 +8271,7 @@
                     "text": "17.4. Контактная информация:"
                   }
                 ],
-                "spaceBeforeMm": 1.75
+                "spaceBeforeMm": 1.62
               },
               {
                 "segments": [
@@ -8288,7 +8286,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 1.42
+                "spaceBeforeMm": 1.29
               },
               {
                 "segments": [
@@ -8303,7 +8301,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 1.36
+                "spaceBeforeMm": 1.24
               },
               {
                 "segments": [
@@ -8317,7 +8315,7 @@
                     "length": 14
                   }
                 ],
-                "spaceBeforeMm": 1.01
+                "spaceBeforeMm": 0.89
               },
               {
                 "segments": [
@@ -8327,7 +8325,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 1.77
+                "spaceBeforeMm": 1.64
               },
               {
                 "segments": [
@@ -8336,7 +8334,7 @@
                     "text": "юридическое лицо:"
                   }
                 ],
-                "spaceBeforeMm": 1.02
+                "spaceBeforeMm": 0.9
               },
               {
                 "segments": [
@@ -8351,7 +8349,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 1.08
+                "spaceBeforeMm": 0.97
               },
               {
                 "segments": [
@@ -8366,7 +8364,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 1.48
+                "spaceBeforeMm": 1.35
               },
               {
                 "segments": [
@@ -8380,7 +8378,7 @@
                     "length": 14
                   }
                 ],
-                "spaceBeforeMm": 0.86
+                "spaceBeforeMm": 0.75
               },
               {
                 "segments": [
@@ -8388,8 +8386,7 @@
                     "kind": "text",
                     "text": "18. Гражданин направляется на медико-социальную экспертизу (нужное отметить):"
                   }
-                ],
-                "spaceBeforeMm": 1.3
+                ]
               },
               {
                 "segments": [
@@ -8453,8 +8450,7 @@
                     "text": "19. Сведения из согласия на направление и проведение медико-социальной"
                   }
                 ],
-                "align": "stretch",
-                "spaceBeforeMm": 0.81
+                "align": "stretch"
               },
               {
                 "segments": [
@@ -8462,8 +8458,7 @@
                     "kind": "text",
                     "text": "экспертизы:"
                   }
-                ],
-                "spaceBeforeMm": 1.28
+                ]
               },
               {
                 "segments": [
@@ -8472,8 +8467,7 @@
                     "text": "19.1. Гражданин (его законный или уполномоченный представитель) дал согласие на"
                   }
                 ],
-                "align": "stretch",
-                "spaceBeforeMm": 0.65
+                "align": "stretch"
               },
               {
                 "segments": [
@@ -8482,8 +8476,7 @@
                     "text": "направление и проведение медико-социальной экспертизы"
                   }
                 ],
-                "align": "stretch",
-                "spaceBeforeMm": 0.27
+                "align": "stretch"
               },
               {
                 "segments": [
@@ -8521,8 +8514,7 @@
                     "kind": "text",
                     "text": "г."
                   }
-                ],
-                "spaceBeforeMm": 0.31
+                ]
               },
               {
                 "segments": [
@@ -8531,8 +8523,7 @@
                     "text": "19.2. Предпочтительная форма проведения медико-социальной экспертизы (нужное"
                   }
                 ],
-                "align": "stretch",
-                "spaceBeforeMm": 1.24
+                "align": "stretch"
               },
               {
                 "segments": [
@@ -8540,8 +8531,7 @@
                     "kind": "text",
                     "text": "отметить):"
                   }
-                ],
-                "spaceBeforeMm": 0.89
+                ]
               },
               {
                 "segments": [
@@ -8605,8 +8595,7 @@
                     "text": "19.3. Предпочтительный способ получения уведомления о проведении медико-"
                   }
                 ],
-                "align": "stretch",
-                "spaceBeforeMm": 0.25
+                "align": "stretch"
               },
               {
                 "segments": [
@@ -8821,7 +8810,7 @@
                     "cellLineHeight": 1.225
                   }
                 ],
-                "spaceBeforeMm": 1.8
+                "spaceBeforeMm": 1.22
               },
               {
                 "segments": [
@@ -8831,7 +8820,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 1.08
+                "spaceBeforeMm": 0.87
               },
               {
                 "segments": [
@@ -8870,7 +8859,7 @@
                     "text": "г."
                   }
                 ],
-                "spaceBeforeMm": 0.56
+                "spaceBeforeMm": 0.47
               },
               {
                 "segments": [
@@ -8880,7 +8869,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 2.02
+                "spaceBeforeMm": 1.91
               },
               {
                 "segments": [
@@ -8978,7 +8967,7 @@
                     "cellLineHeight": 1.225
                   }
                 ],
-                "spaceBeforeMm": 1.7
+                "spaceBeforeMm": 1.48
               },
               {
                 "segments": [
@@ -8988,7 +8977,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 1.39
+                "spaceBeforeMm": 1.18
               },
               {
                 "segments": [
@@ -9381,7 +9370,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 8.21
+                "spaceBeforeMm": 4.41
               },
               {
                 "segments": [
@@ -9396,7 +9385,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 0.89
+                "spaceBeforeMm": 0.78
               },
               {
                 "segments": [
@@ -9406,7 +9395,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 0.88
+                "spaceBeforeMm": 0.77
               },
               {
                 "segments": [
@@ -9421,7 +9410,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 0.29
+                "spaceBeforeMm": 0.33
               },
               {
                 "segments": [
@@ -9431,7 +9420,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 1.34
+                "spaceBeforeMm": 1.06
               },
               {
                 "segments": [
@@ -9470,7 +9459,7 @@
                     "text": "г."
                   }
                 ],
-                "spaceBeforeMm": 0.53
+                "spaceBeforeMm": 0.42
               },
               {
                 "segments": [
@@ -9480,7 +9469,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 1.33
+                "spaceBeforeMm": 1.21
               },
               {
                 "segments": [
@@ -9489,8 +9478,7 @@
                     "text": "установленные по повторным несчастным случаям на производстве и"
                   }
                 ],
-                "align": "stretch",
-                "spaceBeforeMm": 0.29
+                "align": "stretch"
               },
               {
                 "segments": [
@@ -9500,7 +9488,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 0.47
+                "spaceBeforeMm": 0.57
               }
             ]
           }
@@ -9550,7 +9538,7 @@
                     "text": "21. Сведения о получении образования (при получении образования):"
                   }
                 ],
-                "spaceBeforeMm": 2.2
+                "spaceBeforeMm": 1.4
               },
               {
                 "segments": [
@@ -9560,7 +9548,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 1.52
+                "spaceBeforeMm": 1.4
               },
               {
                 "segments": [
@@ -9575,7 +9563,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 0.38
+                "spaceBeforeMm": 0.27
               },
               {
                 "segments": [
@@ -9605,7 +9593,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 2.9
+                "spaceBeforeMm": 2.54
               },
               {
                 "segments": [
@@ -9619,8 +9607,7 @@
                     "length": 30,
                     "grow": true
                   }
-                ],
-                "spaceBeforeMm": 0.27
+                ]
               },
               {
                 "segments": [
@@ -9629,7 +9616,7 @@
                     "text": "21.3. Профессия (специальность), для получения которой проводится обучение:"
                   }
                 ],
-                "spaceBeforeMm": 1.34
+                "spaceBeforeMm": 1.44
               },
               {
                 "segments": [
@@ -9658,7 +9645,7 @@
                     "text": "22. Сведения о трудовой деятельности (при осуществлении трудовой деятельности):"
                   }
                 ],
-                "spaceBeforeMm": 2.94
+                "spaceBeforeMm": 2.58
               },
               {
                 "segments": [
@@ -9677,7 +9664,7 @@
                     "text": "22.1. Основная профессия (специальность, должность):"
                   }
                 ],
-                "spaceBeforeMm": 1.63
+                "spaceBeforeMm": 1.41
               },
               {
                 "segments": [
@@ -9696,7 +9683,7 @@
                     "text": "22.2. Квалификация (класс, разряд, категория, звание):"
                   }
                 ],
-                "spaceBeforeMm": 3.02
+                "spaceBeforeMm": 2.77
               },
               {
                 "segments": [
@@ -9721,7 +9708,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 2.55
+                "spaceBeforeMm": 2.31
               },
               {
                 "segments": [
@@ -9731,7 +9718,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 2.22
+                "spaceBeforeMm": 2.08
               },
               {
                 "segments": [
@@ -9784,7 +9771,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 2.78
+                "spaceBeforeMm": 2.22
               },
               {
                 "segments": [
@@ -9819,7 +9806,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 2.03
+                "spaceBeforeMm": 1.69
               },
               {
                 "segments": [
@@ -9854,7 +9841,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 3.28
+                "spaceBeforeMm": 2.91
               },
               {
                 "segments": [
@@ -9892,7 +9879,7 @@
                     "text": "года"
                   }
                 ],
-                "spaceBeforeMm": 17.69
+                "spaceBeforeMm": 16.79
               },
               {
                 "segments": [
@@ -9907,7 +9894,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 1.21
+                "spaceBeforeMm": 1.41
               },
               {
                 "segments": [
@@ -10047,7 +10034,7 @@
                     "text": "25. Анамнез жизни:"
                   }
                 ],
-                "spaceBeforeMm": 3.42
+                "spaceBeforeMm": 1.79
               },
               {
                 "segments": [
@@ -10167,7 +10154,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 3.16
+                "spaceBeforeMm": 1.81
               },
               {
                 "segments": [
@@ -10176,7 +10163,7 @@
                     "text": "12 месяцев):"
                   }
                 ],
-                "spaceBeforeMm": 0.36
+                "spaceBeforeMm": 0.41
               },
               {
                 "segments": [
@@ -10248,7 +10235,7 @@
                     "rowHeightMm": 9.7
                   }
                 ],
-                "spaceBeforeMm": 3.41
+                "spaceBeforeMm": 3.04
               },
               {
                 "segments": [
@@ -10258,7 +10245,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 14.14
+                "spaceBeforeMm": 12.88
               },
               {
                 "segments": [
@@ -10272,7 +10259,7 @@
                     "inline": true
                   }
                 ],
-                "spaceBeforeMm": 0.63
+                "spaceBeforeMm": 0.51
               },
               {
                 "segments": [
@@ -10286,7 +10273,7 @@
                     "length": 16
                   }
                 ],
-                "spaceBeforeMm": 2.64
+                "spaceBeforeMm": 2.49
               },
               {
                 "segments": [
@@ -10296,7 +10283,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 1.06
+                "spaceBeforeMm": 0.93
               },
               {
                 "segments": [
@@ -10306,7 +10293,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 0.62
+                "spaceBeforeMm": 0.51
               },
               {
                 "segments": [
@@ -10376,7 +10363,7 @@
                     "text": "г. (нужное отметить):"
                   }
                 ],
-                "spaceBeforeMm": 0.79
+                "spaceBeforeMm": 0.57
               }
             ]
           }
@@ -10591,7 +10578,7 @@
                     "text": "28. Антропометрические данные и физиологические параметры:"
                   }
                 ],
-                "spaceBeforeMm": 4.71
+                "spaceBeforeMm": 2.72
               },
               {
                 "segments": [
@@ -10706,8 +10693,7 @@
                     },
                     "cellLineHeight": 1.225
                   }
-                ],
-                "spaceBeforeMm": 0.38
+                ]
               },
               {
                 "segments": [
@@ -10766,7 +10752,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 4.26
+                "spaceBeforeMm": 3.29
               },
               {
                 "segments": [
@@ -10781,7 +10767,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 0.58
+                "spaceBeforeMm": 0.48
               },
               {
                 "segments": [
@@ -10880,7 +10866,7 @@
                     "text": "29.1. Жалобы гражданина на состояние своего здоровья:"
                   }
                 ],
-                "spaceBeforeMm": 2.64
+                "spaceBeforeMm": 1.66
               },
               {
                 "segments": [
@@ -10961,7 +10947,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 2.83
+                "spaceBeforeMm": 1.83
               },
               {
                 "segments": [
@@ -10971,7 +10957,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 0.62
+                "spaceBeforeMm": 0.49
               },
               {
                 "segments": [
@@ -10980,7 +10966,7 @@
                     "text": "социальной экспертизы:"
                   }
                 ],
-                "spaceBeforeMm": 0.43
+                "spaceBeforeMm": 0.32
               },
               {
                 "segments": [
@@ -11038,7 +11024,7 @@
                     "rowHeightMm": 11.2
                   }
                 ],
-                "spaceBeforeMm": 3.52
+                "spaceBeforeMm": 3.29
               },
               {
                 "segments": [
@@ -11047,7 +11033,7 @@
                     "text": "31. Диагноз при направлении на медико-социальную экспертизу:"
                   }
                 ],
-                "spaceBeforeMm": 9.56
+                "spaceBeforeMm": 8.76
               },
               {
                 "segments": [
@@ -11062,7 +11048,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 1.05
+                "spaceBeforeMm": 1.19
               },
               {
                 "segments": [
@@ -11102,7 +11088,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 8.54
+                "spaceBeforeMm": 7.93
               },
               {
                 "segments": [
@@ -11112,7 +11098,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 0.67
+                "spaceBeforeMm": 0.3
               },
               {
                 "segments": [
@@ -11131,7 +11117,7 @@
                     "text": "31.3. Осложнения, вызванные основным заболеванием:"
                   }
                 ],
-                "spaceBeforeMm": 1.72
+                "spaceBeforeMm": 1.47
               },
               {
                 "segments": [
@@ -11196,7 +11182,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 3.38
+                "spaceBeforeMm": 2.65
               },
               {
                 "segments": [
@@ -11241,7 +11227,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 8.56
+                "spaceBeforeMm": 7.95
               },
               {
                 "segments": [
@@ -11260,7 +11246,7 @@
                     "text": "31.6. Осложнения, вызванные сопутствующими заболеваниями:"
                   }
                 ],
-                "spaceBeforeMm": 2.32
+                "spaceBeforeMm": 2.05
               },
               {
                 "segments": [
@@ -11350,8 +11336,7 @@
                     "kind": "text",
                     "text": "(нужное подчеркнуть)"
                   }
-                ],
-                "spaceBeforeMm": 0.58
+                ]
               },
               {
                 "segments": [
@@ -11372,7 +11357,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 1.52
+                "spaceBeforeMm": 1.44
               },
               {
                 "segments": [
@@ -11392,7 +11377,7 @@
                     "text": "(нужное подчеркнуть)"
                   }
                 ],
-                "spaceBeforeMm": 0.36
+                "spaceBeforeMm": 0.26
               },
               {
                 "segments": [
@@ -11413,7 +11398,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 1.51
+                "spaceBeforeMm": 1.39
               },
               {
                 "segments": [
@@ -11432,7 +11417,8 @@
                     "kind": "text",
                     "text": "(нужное подчеркнуть)"
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.25
               },
               {
                 "segments": [
@@ -11441,7 +11427,7 @@
                     "text": "35. Рекомендуемые мероприятия по медицинской реабилитации:"
                   }
                 ],
-                "spaceBeforeMm": 1.69
+                "spaceBeforeMm": 1.47
               },
               {
                 "segments": [
@@ -11511,7 +11497,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 3.42
+                "spaceBeforeMm": 2.67
               },
               {
                 "segments": [
@@ -11521,7 +11507,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 0.69
+                "spaceBeforeMm": 0.22
               },
               {
                 "segments": [
@@ -11598,7 +11584,7 @@
                     "text": "36. Рекомендуемые мероприятия по реконструктивной хирургии:"
                   }
                 ],
-                "spaceBeforeMm": 3.09
+                "spaceBeforeMm": 2.26
               },
               {
                 "segments": [
@@ -11668,7 +11654,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 3.86
+                "spaceBeforeMm": 3.11
               },
               {
                 "segments": [
@@ -11746,7 +11732,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 2.97
+                "spaceBeforeMm": 2.14
               },
               {
                 "segments": [
@@ -11755,7 +11741,7 @@
                     "text": "в результате несчастных случаев на производстве и профессиональных заболеваний):"
                   }
                 ],
-                "spaceBeforeMm": 0.28
+                "spaceBeforeMm": 0.44
               },
               {
                 "segments": [
@@ -11826,7 +11812,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 2.27
+                "spaceBeforeMm": 1.5
               },
               {
                 "segments": [
@@ -11836,7 +11822,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 0.5
+                "spaceBeforeMm": 0.38
               },
               {
                 "segments": [
@@ -11845,7 +11831,7 @@
                     "text": "заболеваний):"
                   }
                 ],
-                "spaceBeforeMm": 0.6
+                "spaceBeforeMm": 0.49
               },
               {
                 "segments": [
@@ -11885,7 +11871,7 @@
                   }
                 ],
                 "align": "stretch",
-                "spaceBeforeMm": 2.89
+                "spaceBeforeMm": 2.39
               },
               {
                 "segments": [
@@ -11928,7 +11914,7 @@
                     "text": "г."
                   }
                 ],
-                "spaceBeforeMm": 1.04
+                "spaceBeforeMm": 0.91
               },
               {
                 "segments": [
@@ -11937,7 +11923,7 @@
                     "text": "Председатель врачебной"
                   }
                 ],
-                "spaceBeforeMm": 8.14
+                "spaceBeforeMm": 7.88
               },
               {
                 "segments": [
@@ -12002,7 +11988,7 @@
                     "grow": true
                   }
                 ],
-                "spaceBeforeMm": 2.79
+                "spaceBeforeMm": 2.26
               },
               {
                 "segments": [
@@ -12017,7 +12003,7 @@
                     "indentMm": 3.5
                   }
                 ],
-                "spaceBeforeMm": 0.84
+                "spaceBeforeMm": 0.72
               },
               {
                 "segments": [

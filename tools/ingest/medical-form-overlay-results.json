@@ -11,17 +11,223 @@
     "minRuleRecall": 0.8,
     "maxRuleMedianDyMm": 1.5,
     "maxRuleMedianDxMm": 3.0,
-    "maxPaperDeviationMm": 4.0,
+    "maxPaperDeviationPct": 5.0,
     "maxPrintScaleError": 0.04
   },
   "forms": {
+    "003-vu": {
+      "formNumber": "003-В/у",
+      "schemaId": "ru.minzdrav.1092n.003-vu",
+      "sheet": {
+        "scanPages": 2,
+        "printPages": 1,
+        "paperDeviationPct": 1.5,
+        "orientation": "portrait",
+        "printScale": 1.0
+      },
+      "text": {
+        "printWords": 289,
+        "scanWords": 178,
+        "matchedWords": 153,
+        "wordCoverage": 0.529,
+        "medianDyMm": 4.109,
+        "p90DyMm": 5.999,
+        "maxDyMm": 7.475,
+        "medianLeftMm": 0.865,
+        "fontScale": 1.011,
+        "lineAgreement": 1.0
+      },
+      "rules": {
+        "scan": 60,
+        "print": 75,
+        "recall": 0.333,
+        "precision": 0.267,
+        "medianDyMm": 1.07,
+        "medianEndMm": 4.668
+      },
+      "pages": [
+        {
+          "scanPdfPage": 15,
+          "printPage": 1,
+          "appendixHeaderMm": 44.8,
+          "worstWords": [
+            {
+              "text": "6",
+              "dyMm": -7.5,
+              "scanYMm": 234.3
+            },
+            {
+              "text": "в",
+              "dyMm": -7.5,
+              "scanYMm": 234.3
+            },
+            {
+              "text": "водительского",
+              "dyMm": -7.5,
+              "scanYMm": 234.3
+            },
+            {
+              "text": "удостоверения",
+              "dyMm": -7.5,
+              "scanYMm": 234.3
+            },
+            {
+              "text": "категории",
+              "dyMm": -6.0,
+              "scanYMm": 264.9
+            }
+          ],
+          "lineBreakIssues": [],
+          "medianDyMm": 4.109
+        }
+      ],
+      "violations": [
+        "sheets: print 1 vs scan 2",
+        "word coverage 0.529",
+        "median vertical offset 4.109 mm",
+        "p90 vertical offset 5.999 mm",
+        "rules found in the print 0.333",
+        "rule length offset 4.668 mm"
+      ],
+      "passes": false,
+      "acceptedViolations": {
+        "sheets:": "the scan prints the blank on two pages only because the heading «Приложение № 3 к приказу …» fills the top of the first one; the print is one A4 sheet (the form itself is one sheet)",
+        "word coverage": "page-by-page matching pairs scan page 2 with a print sheet that holds the whole form; measured against the two form areas of the scan stitched into one A4 page (an F3 agent's scratch script, not in the repository) the figures were words 0.87, dy 0.5/1.8/2.1 mm, lines 0.96, rules 0.93",
+        "median vertical offset": "same page mismatch; measured against the two form areas of the scan stitched into one A4 page (an F3 agent's scratch script, not in the repository) the figures were words 0.87, dy 0.5/1.8/2.1 mm, lines 0.96, rules 0.93",
+        "p90 vertical offset": "same page mismatch; measured against the two form areas of the scan stitched into one A4 page (an F3 agent's scratch script, not in the repository) the figures were words 0.87, dy 0.5/1.8/2.1 mm, lines 0.96, rules 0.93",
+        "rules found": "same page mismatch; measured against the two form areas of the scan stitched into one A4 page (an F3 agent's scratch script, not in the repository) the figures were words 0.87, dy 0.5/1.8/2.1 mm, lines 0.96, rules 0.93",
+        "rule length offset": "same page mismatch; measured against the two form areas of the scan stitched into one A4 page (an F3 agent's scratch script, not in the repository) the figures were words 0.87, dy 0.5/1.8/2.1 mm, lines 0.96, rules 0.93"
+      }
+    },
+    "025-1u": {
+      "formNumber": "025-1/у",
+      "schemaId": "ru.minzdrav.274n.025-1u",
+      "sheet": {
+        "scanPages": 2,
+        "printPages": 2,
+        "paperDeviationPct": 1.5,
+        "orientation": "landscape",
+        "printScale": 1.0
+      },
+      "text": {
+        "printWords": 878,
+        "scanWords": 880,
+        "matchedWords": 828,
+        "wordCoverage": 0.943,
+        "medianDyMm": 0.301,
+        "p90DyMm": 2.062,
+        "maxDyMm": 2.999,
+        "medianLeftMm": 1.205,
+        "fontScale": 0.996,
+        "lineAgreement": 0.821
+      },
+      "rules": {
+        "scan": 204,
+        "print": 171,
+        "recall": 0.706,
+        "precision": 0.842,
+        "medianDyMm": 0.847,
+        "medianEndMm": 1.524
+      },
+      "pages": [
+        {
+          "scanPdfPage": 19,
+          "printPage": 1,
+          "appendixHeaderMm": 24.1,
+          "worstWords": [
+            {
+              "text": "пол",
+              "dyMm": 2.1,
+              "scanYMm": 100.4
+            },
+            {
+              "text": "муж",
+              "dyMm": 2.1,
+              "scanYMm": 100.4
+            },
+            {
+              "text": "жен",
+              "dyMm": 2.1,
+              "scanYMm": 100.4
+            },
+            {
+              "text": "от",
+              "dyMm": -1.3,
+              "scanYMm": 50.3
+            },
+            {
+              "text": "13",
+              "dyMm": -1.3,
+              "scanYMm": 50.3
+            }
+          ],
+          "lineBreakIssues": [
+            "y=98: 6 фамилия 7 имя 8 отчество при наличии 9 пол муж 1 жен 2",
+            "y=102: 10 дата рождения г 101 документ удостоверяющий личность серия гражданс"
+          ],
+          "medianDyMm": 0.163
+        },
+        {
+          "scanPdfPage": 20,
+          "printPage": 2,
+          "appendixHeaderMm": 0.0,
+          "worstWords": [
+            {
+              "text": "рецепт",
+              "dyMm": -3.9,
+              "scanYMm": 145.6
+            },
+            {
+              "text": "51",
+              "dyMm": -3.8,
+              "scanYMm": 196.7
+            },
+            {
+              "text": "врач",
+              "dyMm": -3.8,
+              "scanYMm": 196.7
+            },
+            {
+              "text": "должность",
+              "dyMm": -3.8,
+              "scanYMm": 196.7
+            },
+            {
+              "text": "специальность",
+              "dyMm": -3.8,
+              "scanYMm": 196.7
+            }
+          ],
+          "lineBreakIssues": [
+            "y=9: 2 оборотная сторона формы 0251у",
+            "y=34: 27 внешняя причина при наличии травм и отравлений код по мкб",
+            "y=81: 33 внешняя причина при наличии травм и отравлений код по мкб",
+            "y=84: 34 дополнительные сведения о заболевании",
+            "y=99: 37 травма производственная 1 транспортная 2 в том числе дтп 21 спортив",
+            "y=108: 38 наименование операции код",
+            "y=112: 39 анестезия общая 1 местная 2 комбинированная 3",
+            "y=120: 41 врач должность специальность фамилия имя отчество при наличии код",
+            "y=124: 42 иные медицинские вмешательства в том числе с целью исследования кол",
+            "y=137: колво код",
+            "y=140: 43 врач должность специальность фамилия имя отчество при наличии код",
+            "y=152: дата специализированных продуктов лечебного льгота лек форма доза колв"
+          ],
+          "medianDyMm": 0.726
+        }
+      ],
+      "violations": ["rules found in the print 0.706"],
+      "passes": false,
+      "acceptedViolations": {
+        "rules found": "the scan is skewed by about 0.4 degrees: its table grid and long rules are detected in pieces that do not pair with the straight rules of the print (the page-by-page overlay shows every table border in place); recall was 0.84 before the scan was fitted to the A4 sheet"
+      }
+    },
     "057u": {
       "formNumber": "057/у",
       "schemaId": "ru.minzdrav.519n.057u",
       "sheet": {
         "scanPages": 1,
         "printPages": 1,
-        "paperDeviationMm": 0.6,
+        "paperDeviationPct": 0.2,
         "orientation": "portrait",
         "printScale": 1.0
       },
@@ -30,11 +236,11 @@
         "scanWords": 232,
         "matchedWords": 214,
         "wordCoverage": 0.884,
-        "medianDyMm": 0.284,
-        "p90DyMm": 0.842,
-        "maxDyMm": 1.069,
-        "medianLeftMm": 0.889,
-        "fontScale": 1.004,
+        "medianDyMm": 0.271,
+        "p90DyMm": 0.545,
+        "maxDyMm": 0.836,
+        "medianLeftMm": 0.928,
+        "fontScale": 1.003,
         "lineAgreement": 0.938
       },
       "rules": {
@@ -42,46 +248,153 @@
         "print": 34,
         "recall": 0.914,
         "precision": 0.941,
-        "medianDyMm": 0.688,
-        "medianEndMm": 2.286
+        "medianDyMm": 0.492,
+        "medianEndMm": 2.455
       },
       "pages": [
         {
           "scanPdfPage": 2,
           "printPage": 1,
-          "appendixHeaderMm": 33.2,
+          "appendixHeaderMm": 33.3,
           "worstWords": [
             {
               "text": "обучающийся",
-              "dyMm": 3.9,
-              "scanYMm": 175.3
+              "dyMm": 4.2,
+              "scanYMm": 175.7
             },
             {
-              "text": "статистической",
-              "dyMm": -1.1,
-              "scanYMm": 178.6
+              "text": "наименование",
+              "dyMm": -0.8,
+              "scanYMm": 115.9
             },
             {
-              "text": "классификации",
-              "dyMm": -1.1,
-              "scanYMm": 178.6
+              "text": "медицинской",
+              "dyMm": -0.8,
+              "scanYMm": 115.9
             },
             {
-              "text": "болезней",
-              "dyMm": -1.1,
-              "scanYMm": 178.6
+              "text": "организации",
+              "dyMm": -0.8,
+              "scanYMm": 115.9
             },
             {
-              "text": "и",
-              "dyMm": -1.1,
-              "scanYMm": 178.6
+              "text": "куда",
+              "dyMm": -0.8,
+              "scanYMm": 115.9
             }
           ],
           "lineBreakIssues": [
-            "y=171: занятость работает 1 проходит военную службу или приравненную к ней сл",
+            "y=172: занятость работает 1 проходит военную службу или приравненную к ней сл",
             "y=175: 4 не работает 5 прочие 6"
           ],
-          "medianDyMm": 0.284
+          "medianDyMm": 0.271
+        }
+      ],
+      "violations": [],
+      "passes": true
+    },
+    "058u": {
+      "formNumber": "058/у",
+      "schemaId": "ru.minzdrav.740n.058u",
+      "sheet": {
+        "scanPages": 2,
+        "printPages": 2,
+        "paperDeviationPct": 0.2,
+        "orientation": "portrait",
+        "printScale": 1.0
+      },
+      "text": {
+        "printWords": 532,
+        "scanWords": 546,
+        "matchedWords": 526,
+        "wordCoverage": 0.989,
+        "medianDyMm": 0.245,
+        "p90DyMm": 0.796,
+        "maxDyMm": 1.434,
+        "medianLeftMm": 0.775,
+        "fontScale": 0.996,
+        "lineAgreement": 0.963
+      },
+      "rules": {
+        "scan": 90,
+        "print": 88,
+        "recall": 0.967,
+        "precision": 0.989,
+        "medianDyMm": 0.508,
+        "medianEndMm": 2.032
+      },
+      "pages": [
+        {
+          "scanPdfPage": 2,
+          "printPage": 1,
+          "appendixHeaderMm": 35.2,
+          "worstWords": [
+            {
+              "text": "услуг",
+              "dyMm": 5.4,
+              "scanYMm": 271.5
+            },
+            {
+              "text": "4",
+              "dyMm": 5.4,
+              "scanYMm": 271.5
+            },
+            {
+              "text": "740н",
+              "dyMm": -2.9,
+              "scanYMm": 82.2
+            },
+            {
+              "text": "основной",
+              "dyMm": -1.1,
+              "scanYMm": 79.9
+            },
+            {
+              "text": "государственный",
+              "dyMm": -1.1,
+              "scanYMm": 79.9
+            }
+          ],
+          "lineBreakIssues": [
+            "y=86: номер индивидуального предпринимателя от 20 августа 2026 г 740н",
+            "y=266: 10 занятость работает 1 обучающийся 2 отдыхающий 3 получатель социальн",
+            "y=271: не работает 5 прочее 6"
+          ],
+          "medianDyMm": 0.245
+        },
+        {
+          "scanPdfPage": 3,
+          "printPage": 2,
+          "appendixHeaderMm": 0.0,
+          "worstWords": [
+            {
+              "text": "санитарноэпидемиологический",
+              "dyMm": -1.7,
+              "scanYMm": 222.3
+            },
+            {
+              "text": "федеральный",
+              "dyMm": -1.5,
+              "scanYMm": 222.5
+            },
+            {
+              "text": "17",
+              "dyMm": -1.4,
+              "scanYMm": 217.8
+            },
+            {
+              "text": "информирование",
+              "dyMm": -1.4,
+              "scanYMm": 217.8
+            },
+            {
+              "text": "территориального",
+              "dyMm": -1.4,
+              "scanYMm": 217.8
+            }
+          ],
+          "lineBreakIssues": [],
+          "medianDyMm": 0.245
         }
       ],
       "violations": [],
@@ -93,7 +406,7 @@
       "sheet": {
         "scanPages": 1,
         "printPages": 1,
-        "paperDeviationMm": 1.4,
+        "paperDeviationPct": 0.7,
         "orientation": "portrait",
         "printScale": 1.0
       },
@@ -102,51 +415,51 @@
         "scanWords": 290,
         "matchedWords": 270,
         "wordCoverage": 0.947,
-        "medianDyMm": 0.147,
-        "p90DyMm": 0.736,
-        "maxDyMm": 3.874,
-        "medianLeftMm": 1.667,
-        "fontScale": 1.007,
+        "medianDyMm": 0.337,
+        "p90DyMm": 1.11,
+        "maxDyMm": 4.275,
+        "medianLeftMm": 1.567,
+        "fontScale": 1.0,
         "lineAgreement": 0.83
       },
       "rules": {
-        "scan": 48,
+        "scan": 50,
         "print": 51,
-        "recall": 0.896,
-        "precision": 0.843,
-        "medianDyMm": 0.337,
+        "recall": 0.94,
+        "precision": 0.922,
+        "medianDyMm": 0.576,
         "medianEndMm": 1.355
       },
       "pages": [
         {
           "scanPdfPage": 29,
           "printPage": 1,
-          "appendixHeaderMm": 27.6,
+          "appendixHeaderMm": 27.5,
           "worstWords": [
             {
               "text": "основной",
               "dyMm": -7.8,
-              "scanYMm": 55.4
+              "scanYMm": 55.3
             },
             {
               "text": "государственный",
               "dyMm": -7.8,
-              "scanYMm": 55.4
+              "scanYMm": 55.3
             },
             {
               "text": "регистрационный",
               "dyMm": -7.8,
-              "scanYMm": 55.4
-            },
-            {
-              "text": "номер",
-              "dyMm": -4.1,
-              "scanYMm": 55.4
+              "scanYMm": 55.3
             },
             {
               "text": "лечения",
-              "dyMm": -3.9,
-              "scanYMm": 239.5
+              "dyMm": -4.3,
+              "scanYMm": 239.0
+            },
+            {
+              "text": "лечащий",
+              "dyMm": -4.3,
+              "scanYMm": 257.3
             }
           ],
           "lineBreakIssues": [
@@ -156,20 +469,1289 @@
             "y=239: предпочтительное место",
             "y=243: лечения",
             "y=262: лечащий врач должность врачаспециалиста фамилия имя отчество при налич",
-            "y=269: заведующий отделением фамилия имя отчество при наличии подпись",
+            "y=268: заведующий отделением фамилия имя отчество при наличии подпись",
             "y=276: председатель врачебной комиссии фамилия имя отчество при наличии подпи"
           ],
-          "medianDyMm": 0.147
+          "medianDyMm": 0.337
+        }
+      ],
+      "violations": [],
+      "passes": true
+    },
+    "071u": {
+      "formNumber": "071/у",
+      "schemaId": "ru.minzdrav.395n.071u",
+      "sheet": {
+        "scanPages": 2,
+        "printPages": 2,
+        "paperDeviationPct": 1.9,
+        "orientation": "portrait",
+        "printScale": 1.0
+      },
+      "text": {
+        "printWords": 502,
+        "scanWords": 403,
+        "matchedWords": 385,
+        "wordCoverage": 0.767,
+        "medianDyMm": 2.316,
+        "p90DyMm": 3.629,
+        "maxDyMm": 5.812,
+        "medianLeftMm": 1.15,
+        "fontScale": 1.002,
+        "lineAgreement": 0.954
+      },
+      "rules": {
+        "scan": 76,
+        "print": 72,
+        "recall": 0.671,
+        "precision": 0.708,
+        "medianDyMm": 1.27,
+        "medianEndMm": 1.185
+      },
+      "pages": [
+        {
+          "scanPdfPage": 2,
+          "printPage": 1,
+          "appendixHeaderMm": 44.8,
+          "worstWords": [
+            {
+              "text": "постановление",
+              "dyMm": -5.8,
+              "scanYMm": 261.9
+            },
+            {
+              "text": "правительства",
+              "dyMm": -5.8,
+              "scanYMm": 261.9
+            },
+            {
+              "text": "российской",
+              "dyMm": -5.8,
+              "scanYMm": 261.9
+            },
+            {
+              "text": "федерации",
+              "dyMm": -5.8,
+              "scanYMm": 261.9
+            },
+            {
+              "text": "от",
+              "dyMm": -5.8,
+              "scanYMm": 261.9
+            }
+          ],
+          "lineBreakIssues": ["y=72: форма 071у", "y=73: код по окпо"],
+          "medianDyMm": 2.534
+        },
+        {
+          "scanPdfPage": 3,
+          "printPage": 2,
+          "appendixHeaderMm": 0.0,
+          "worstWords": [
+            {
+              "text": "час",
+              "dyMm": -3.9,
+              "scanYMm": 124.3
+            },
+            {
+              "text": "километров",
+              "dyMm": -3.4,
+              "scanYMm": 124.8
+            },
+            {
+              "text": "с",
+              "dyMm": -3.4,
+              "scanYMm": 184.6
+            },
+            {
+              "text": "использованием",
+              "dyMm": -3.4,
+              "scanYMm": 184.6
+            },
+            {
+              "text": "водителем",
+              "dyMm": -3.4,
+              "scanYMm": 184.6
+            }
+          ],
+          "lineBreakIssues": [
+            "y=128: максимальную конструктивную скорость 50 километров в час и менее"
+          ],
+          "medianDyMm": 2.055
+        }
+      ],
+      "violations": [
+        "word coverage 0.767",
+        "median vertical offset 2.316 mm",
+        "rules found in the print 0.671"
+      ],
+      "passes": false,
+      "acceptedViolations": {
+        "word coverage": "the scan's ruled tables and justified lines are read partly by the OCR; with the long rules removed from the OCR input the coverage was 0.92 (dy 0.5/2.1/3.2 mm) — an F3 agent's measurement, not reproducible in the repository",
+        "median vertical offset": "the restrictions table drifts about 4 mm toward its bottom: the scan's A IV row has an extra forced line and its text is justified, the print is ragged-right",
+        "rules found": "the scan's categories table is 2.6 mm narrower and offset against the print's full-width table"
+      }
+    },
+    "072u": {
+      "formNumber": "072/у",
+      "schemaId": "ru.minzdrav.274n.072u",
+      "sheet": {
+        "scanPages": 2,
+        "printPages": 2,
+        "paperDeviationPct": 0.6,
+        "orientation": "portrait",
+        "printScale": 1.0
+      },
+      "text": {
+        "printWords": 455,
+        "scanWords": 448,
+        "matchedWords": 423,
+        "wordCoverage": 0.93,
+        "medianDyMm": 0.284,
+        "p90DyMm": 0.958,
+        "maxDyMm": 1.939,
+        "medianLeftMm": 0.861,
+        "fontScale": 0.999,
+        "lineAgreement": 0.99
+      },
+      "rules": {
+        "scan": 122,
+        "print": 101,
+        "recall": 0.811,
+        "precision": 0.98,
+        "medianDyMm": 0.576,
+        "medianEndMm": 1.185
+      },
+      "pages": [
+        {
+          "scanPdfPage": 37,
+          "printPage": 1,
+          "appendixHeaderMm": 27.5,
+          "worstWords": [
+            {
+              "text": "застрахованным",
+              "dyMm": -1.9,
+              "scanYMm": 152.2
+            },
+            {
+              "text": "лицом",
+              "dyMm": -1.9,
+              "scanYMm": 152.2
+            },
+            {
+              "text": "или",
+              "dyMm": -1.9,
+              "scanYMm": 152.2
+            },
+            {
+              "text": "определенной",
+              "dyMm": -1.9,
+              "scanYMm": 152.2
+            },
+            {
+              "text": "сопутствующие",
+              "dyMm": -1.3,
+              "scanYMm": 280.4
+            }
+          ],
+          "lineBreakIssues": [
+            "y=154: данные о страховой медицинской организации выбранной застрахованным ли"
+          ],
+          "medianDyMm": 0.204
+        },
+        {
+          "scanPdfPage": 38,
+          "printPage": 2,
+          "appendixHeaderMm": 0.0,
+          "worstWords": [
+            {
+              "text": "фамилия",
+              "dyMm": -2.0,
+              "scanYMm": 272.4
+            },
+            {
+              "text": "имя",
+              "dyMm": -2.0,
+              "scanYMm": 272.4
+            },
+            {
+              "text": "отчество",
+              "dyMm": -2.0,
+              "scanYMm": 272.4
+            },
+            {
+              "text": "при",
+              "dyMm": -2.0,
+              "scanYMm": 272.4
+            },
+            {
+              "text": "наличии",
+              "dyMm": -2.0,
+              "scanYMm": 272.4
+            }
+          ],
+          "lineBreakIssues": [],
+          "medianDyMm": 0.403
+        }
+      ],
+      "violations": [],
+      "passes": true
+    },
+    "076u": {
+      "formNumber": "076/у",
+      "schemaId": "ru.minzdrav.274n.076u",
+      "sheet": {
+        "scanPages": 2,
+        "printPages": 2,
+        "paperDeviationPct": 0.8,
+        "orientation": "portrait",
+        "printScale": 1.0
+      },
+      "text": {
+        "printWords": 528,
+        "scanWords": 511,
+        "matchedWords": 483,
+        "wordCoverage": 0.915,
+        "medianDyMm": 0.493,
+        "p90DyMm": 1.145,
+        "maxDyMm": 1.926,
+        "medianLeftMm": 0.648,
+        "fontScale": 0.995,
+        "lineAgreement": 1.0
+      },
+      "rules": {
+        "scan": 124,
+        "print": 110,
+        "recall": 0.855,
+        "precision": 0.964,
+        "medianDyMm": 0.508,
+        "medianEndMm": 1.863
+      },
+      "pages": [
+        {
+          "scanPdfPage": 45,
+          "printPage": 1,
+          "appendixHeaderMm": 27.2,
+          "worstWords": [
+            {
+              "text": "основное",
+              "dyMm": -1.8,
+              "scanYMm": 279.3
+            },
+            {
+              "text": "заболевание",
+              "dyMm": -1.8,
+              "scanYMm": 279.3
+            },
+            {
+              "text": "сопутствующие",
+              "dyMm": -1.6,
+              "scanYMm": 263.1
+            },
+            {
+              "text": "заболевания",
+              "dyMm": -1.6,
+              "scanYMm": 263.1
+            },
+            {
+              "text": "сопутствующие",
+              "dyMm": -1.4,
+              "scanYMm": 283.6
+            }
+          ],
+          "lineBreakIssues": [],
+          "medianDyMm": 0.419
+        },
+        {
+          "scanPdfPage": 46,
+          "printPage": 2,
+          "appendixHeaderMm": 0.0,
+          "worstWords": [
+            {
+              "text": "фамилия",
+              "dyMm": -2.0,
+              "scanYMm": 278.0
+            },
+            {
+              "text": "имя",
+              "dyMm": -2.0,
+              "scanYMm": 278.0
+            },
+            {
+              "text": "отчество",
+              "dyMm": -2.0,
+              "scanYMm": 278.0
+            },
+            {
+              "text": "при",
+              "dyMm": -2.0,
+              "scanYMm": 278.0
+            },
+            {
+              "text": "наличии",
+              "dyMm": -2.0,
+              "scanYMm": 278.0
+            }
+          ],
+          "lineBreakIssues": [],
+          "medianDyMm": 0.545
+        }
+      ],
+      "violations": [],
+      "passes": true
+    },
+    "079u": {
+      "formNumber": "079/у",
+      "schemaId": "ru.minzdrav.274n.079u",
+      "sheet": {
+        "scanPages": 2,
+        "printPages": 2,
+        "paperDeviationPct": 0.8,
+        "orientation": "portrait",
+        "printScale": 1.0
+      },
+      "text": {
+        "printWords": 313,
+        "scanWords": 324,
+        "matchedWords": 305,
+        "wordCoverage": 0.974,
+        "medianDyMm": 0.18,
+        "p90DyMm": 0.618,
+        "maxDyMm": 0.917,
+        "medianLeftMm": 0.897,
+        "fontScale": 0.997,
+        "lineAgreement": 0.958
+      },
+      "rules": {
+        "scan": 74,
+        "print": 76,
+        "recall": 0.932,
+        "precision": 0.908,
+        "medianDyMm": 0.762,
+        "medianEndMm": 1.693
+      },
+      "pages": [
+        {
+          "scanPdfPage": 54,
+          "printPage": 1,
+          "appendixHeaderMm": 29.8,
+          "worstWords": [
+            {
+              "text": "диагноз",
+              "dyMm": -1.9,
+              "scanYMm": 261.8
+            },
+            {
+              "text": "заболевания",
+              "dyMm": -1.9,
+              "scanYMm": 261.8
+            },
+            {
+              "text": "индивидуального",
+              "dyMm": -1.2,
+              "scanYMm": 69.5
+            },
+            {
+              "text": "учетная",
+              "dyMm": -0.9,
+              "scanYMm": 45.8
+            },
+            {
+              "text": "форма",
+              "dyMm": -0.9,
+              "scanYMm": 45.8
+            }
+          ],
+          "lineBreakIssues": [],
+          "medianDyMm": 0.298
+        },
+        {
+          "scanPdfPage": 55,
+          "printPage": 2,
+          "appendixHeaderMm": 0.0,
+          "worstWords": [
+            {
+              "text": "низкий",
+              "dyMm": -5.1,
+              "scanYMm": 56.5
+            },
+            {
+              "text": "лечебного",
+              "dyMm": -0.9,
+              "scanYMm": 44.2
+            },
+            {
+              "text": "питания",
+              "dyMm": -0.9,
+              "scanYMm": 44.2
+            },
+            {
+              "text": "гименолепидоз",
+              "dyMm": 0.8,
+              "scanYMm": 131.2
+            },
+            {
+              "text": "обследование",
+              "dyMm": -0.7,
+              "scanYMm": 129.7
+            }
+          ],
+          "lineBreakIssues": [
+            "y=56: рост масса тела дефицит массы тела избыток массы тела",
+            "y=62: низкий рост высокий рост нужное подчеркнуть"
+          ],
+          "medianDyMm": 0.114
+        }
+      ],
+      "violations": [],
+      "passes": true
+    },
+    "088u": {
+      "formNumber": "088/у",
+      "schemaId": "ru.mintrud-minzdrav.488n-551n.088u",
+      "sheet": {
+        "scanPages": 13,
+        "printPages": 13,
+        "paperDeviationPct": 2.0,
+        "orientation": "portrait",
+        "printScale": 1.0
+      },
+      "text": {
+        "printWords": 1707,
+        "scanWords": 1749,
+        "matchedWords": 1665,
+        "wordCoverage": 0.975,
+        "medianDyMm": 0.215,
+        "p90DyMm": 4.122,
+        "maxDyMm": 7.918,
+        "medianLeftMm": 0.793,
+        "fontScale": 0.997,
+        "lineAgreement": 0.872
+      },
+      "rules": {
+        "scan": 369,
+        "print": 339,
+        "recall": 0.843,
+        "precision": 0.917,
+        "medianDyMm": 0.677,
+        "medianEndMm": 1.355
+      },
+      "pages": [
+        {
+          "scanPdfPage": 2,
+          "printPage": 1,
+          "appendixHeaderMm": 55.7,
+          "worstWords": [
+            {
+              "text": "срока",
+              "dyMm": -5.6,
+              "scanYMm": 256.9
+            },
+            {
+              "text": "времени",
+              "dyMm": 0.8,
+              "scanYMm": 263.3
+            },
+            {
+              "text": "наступления",
+              "dyMm": 0.8,
+              "scanYMm": 263.3
+            },
+            {
+              "text": "инвалидности",
+              "dyMm": 0.6,
+              "scanYMm": 269.0
+            },
+            {
+              "text": "адрес",
+              "dyMm": -0.5,
+              "scanYMm": 112.5
+            }
+          ],
+          "lineBreakIssues": [
+            "y=256: 54 установление 55 установление 56 определение",
+            "y=262: времени наступления срока инвалидности степени утраты"
+          ],
+          "medianDyMm": 0.111
+        },
+        {
+          "scanPdfPage": 3,
+          "printPage": 2,
+          "appendixHeaderMm": 0.0,
+          "worstWords": [
+            {
+              "text": "мобилизации",
+              "dyMm": -11.2,
+              "scanYMm": 122.8
+            },
+            {
+              "text": "военную",
+              "dyMm": -10.8,
+              "scanYMm": 117.2
+            },
+            {
+              "text": "службу",
+              "dyMm": -10.8,
+              "scanYMm": 117.2
+            },
+            {
+              "text": "по",
+              "dyMm": -10.8,
+              "scanYMm": 117.2
+            },
+            {
+              "text": "службу",
+              "dyMm": -9.9,
+              "scanYMm": 112.0
+            }
+          ],
+          "lineBreakIssues": [
+            "y=49: стойкой утраты нуждаемости по нуждаемости по",
+            "y=55: трудоспособности состоянию здоровья в состоянию здоровья в",
+            "y=61: сотрудника органов постоянном постороннем постоянном постороннем",
+            "y=67: внутренних дел уходе помощи надзоре уходе помощи надзоре",
+            "y=73: российской федерации отца матери жены отца матери родного",
+            "y=80: сотрудника органов родного брата родной брата родной сестры",
+            "y=86: принудительного сестры дедушки бабушки дедушки бабушки или",
+            "y=92: исполнения российской или усыновителя усыновителя",
+            "y=98: федерации лица гражданина призываемого государственного",
+            "y=104: проходящего службу в на военную службу гражданского служащего",
+            "y=110: войсках национальной военнослужащего подлежащего назначению",
+            "y=116: гвардии российской проходящего военную на иную должность"
+          ],
+          "medianDyMm": 2.328
+        },
+        {
+          "scanPdfPage": 4,
+          "printPage": 3,
+          "appendixHeaderMm": 0.0,
+          "worstWords": [
+            {
+              "text": "организации",
+              "dyMm": 5.8,
+              "scanYMm": 230.3
+            },
+            {
+              "text": "медицинскую",
+              "dyMm": 3.8,
+              "scanYMm": 234.2
+            },
+            {
+              "text": "помощь",
+              "dyMm": 3.8,
+              "scanYMm": 234.2
+            },
+            {
+              "text": "организации",
+              "dyMm": 3.6,
+              "scanYMm": 228.2
+            },
+            {
+              "text": "оказывающей",
+              "dyMm": 3.6,
+              "scanYMm": 228.2
+            }
+          ],
+          "lineBreakIssues": [
+            "y=218: 131 в медицинской 1311 адрес медицинской 1312 огрн",
+            "y=225: организации оказывающей организации медицинской",
+            "y=257: социального обслуживания социального обслуживания организации",
+            "y=263: оказывающей социальные социального"
+          ],
+          "medianDyMm": 0.439
+        },
+        {
+          "scanPdfPage": 5,
+          "printPage": 4,
+          "appendixHeaderMm": 0.0,
+          "worstWords": [
+            {
+              "text": "территории",
+              "dyMm": 2.9,
+              "scanYMm": 116.6
+            },
+            {
+              "text": "российской",
+              "dyMm": 2.9,
+              "scanYMm": 116.6
+            },
+            {
+              "text": "федерации",
+              "dyMm": 2.9,
+              "scanYMm": 116.6
+            },
+            {
+              "text": "учреждении",
+              "dyMm": 2.6,
+              "scanYMm": 57.8
+            },
+            {
+              "text": "огрн",
+              "dyMm": -2.1,
+              "scanYMm": 47.3
+            }
+          ],
+          "lineBreakIssues": [
+            "y=49: 133 в исправительном 1331 адрес исправительного 1332 огрн",
+            "y=55: учреждении учреждения исправительного",
+            "y=61: учреждения",
+            "y=82: 134 иная организация 1341 адрес организации 1342 огрн"
+          ],
+          "medianDyMm": 0.152
+        },
+        {
+          "scanPdfPage": 6,
+          "printPage": 5,
+          "appendixHeaderMm": 0.0,
+          "worstWords": [
+            {
+              "text": "включая",
+              "dyMm": 5.0,
+              "scanYMm": 217.6
+            },
+            {
+              "text": "функций",
+              "dyMm": -4.9,
+              "scanYMm": 256.2
+            },
+            {
+              "text": "медикосоциальной",
+              "dyMm": -4.7,
+              "scanYMm": 129.1
+            },
+            {
+              "text": "20",
+              "dyMm": -4.6,
+              "scanYMm": 264.4
+            },
+            {
+              "text": "сведения",
+              "dyMm": -4.6,
+              "scanYMm": 264.4
+            }
+          ],
+          "lineBreakIssues": [
+            "y=213: телефонной связи включая документа на бумажном электронного документа ",
+            "y=219: мобильную связь в том носителе заказным использованием",
+            "y=225: числе посредством почтовым отправлением федеральной"
+          ],
+          "medianDyMm": 0.961
+        },
+        {
+          "scanPdfPage": 7,
+          "printPage": 6,
+          "appendixHeaderMm": 0.0,
+          "worstWords": [
+            {
+              "text": "детства",
+              "dyMm": 7.6,
+              "scanYMm": 125.0
+            },
+            {
+              "text": "и",
+              "dyMm": 6.6,
+              "scanYMm": 89.4
+            },
+            {
+              "text": "года",
+              "dyMm": -6.2,
+              "scanYMm": 82.7
+            },
+            {
+              "text": "объединении",
+              "dyMm": -5.3,
+              "scanYMm": 261.6
+            },
+            {
+              "text": "маяк",
+              "dyMm": -5.3,
+              "scanYMm": 261.6
+            }
+          ],
+          "lineBreakIssues": [
+            "y=83: 2031 один год 2032 два года 2033 три 2034 четыре и",
+            "y=89: года более лет",
+            "y=117: заболевание трудовое увечье профессионально инвалидность с детства",
+            "y=123: е заболевание",
+            "y=135: 2045 2046 2047 2048 заболевание",
+            "y=141: инвалидность с военная травма заболевание радиационно"
+          ],
+          "medianDyMm": 0.744
+        },
+        {
+          "scanPdfPage": 8,
+          "printPage": 7,
+          "appendixHeaderMm": 0.0,
+          "worstWords": [
+            {
+              "text": "инвалидности",
+              "dyMm": -8.1,
+              "scanYMm": 158.0
+            },
+            {
+              "text": "указать",
+              "dyMm": -8.1,
+              "scanYMm": 158.0
+            },
+            {
+              "text": "с",
+              "dyMm": -7.9,
+              "scanYMm": 152.3
+            },
+            {
+              "text": "законодательством",
+              "dyMm": -7.9,
+              "scanYMm": 152.3
+            },
+            {
+              "text": "действовавшим",
+              "dyMm": -7.9,
+              "scanYMm": 152.3
+            }
+          ],
+          "lineBreakIssues": [
+            "y=107: действиях федерации территории республики",
+            "y=113: подразделений находившиеся на дагестан",
+            "y=154: 20417 иные 20418 причины инвалидности установленные в соответствии",
+            "y=160: причины с законодательством действовавшим на момент установления",
+            "y=166: установленные инвалидности указать"
+          ],
+          "medianDyMm": 0.833
+        },
+        {
+          "scanPdfPage": 9,
+          "printPage": 8,
+          "appendixHeaderMm": 0.0,
+          "worstWords": [
+            {
+              "text": "раздел",
+              "dyMm": 9.3,
+              "scanYMm": 241.8
+            },
+            {
+              "text": "ii",
+              "dyMm": 9.3,
+              "scanYMm": 241.8
+            },
+            {
+              "text": "клиникофункциональные",
+              "dyMm": 9.3,
+              "scanYMm": 241.8
+            },
+            {
+              "text": "данные",
+              "dyMm": 9.3,
+              "scanYMm": 241.8
+            },
+            {
+              "text": "гражданина",
+              "dyMm": 9.3,
+              "scanYMm": 241.8
+            }
+          ],
+          "lineBreakIssues": [],
+          "medianDyMm": 0.083
+        },
+        {
+          "scanPdfPage": 10,
+          "printPage": 9,
+          "appendixHeaderMm": 0.0,
+          "worstWords": [
+            {
+              "text": "нетрудоспособности",
+              "dyMm": 6.7,
+              "scanYMm": 184.7
+            },
+            {
+              "text": "нетрудоспособности",
+              "dyMm": 6.5,
+              "scanYMm": 184.6
+            },
+            {
+              "text": "временной",
+              "dyMm": 6.2,
+              "scanYMm": 179.3
+            },
+            {
+              "text": "временной",
+              "dyMm": 6.1,
+              "scanYMm": 179.2
+            },
+            {
+              "text": "год",
+              "dyMm": 5.6,
+              "scanYMm": 173.3
+            }
+          ],
+          "lineBreakIssues": [
+            "y=168: дата число месяц дата число месяц год число дней месяцев и",
+            "y=173: год начала временной окончания временной дней временной диагноз",
+            "y=175: пп",
+            "y=178: нетрудоспособности нетрудоспособности нетрудоспособности"
+          ],
+          "medianDyMm": 0.084
+        },
+        {
+          "scanPdfPage": 11,
+          "printPage": 10,
+          "appendixHeaderMm": 0.0,
+          "worstWords": [
+            {
+              "text": "отношении",
+              "dyMm": -3.0,
+              "scanYMm": 185.1
+            },
+            {
+              "text": "детей",
+              "dyMm": -3.0,
+              "scanYMm": 185.1
+            },
+            {
+              "text": "в",
+              "dyMm": -3.0,
+              "scanYMm": 185.1
+            },
+            {
+              "text": "возрасте",
+              "dyMm": -3.0,
+              "scanYMm": 185.1
+            },
+            {
+              "text": "до",
+              "dyMm": -3.0,
+              "scanYMm": 185.1
+            }
+          ],
+          "lineBreakIssues": [],
+          "medianDyMm": 0.605
+        },
+        {
+          "scanPdfPage": 12,
+          "printPage": 11,
+          "appendixHeaderMm": 0.0,
+          "worstWords": [
+            {
+              "text": "код",
+              "dyMm": -3.0,
+              "scanYMm": 69.7
+            },
+            {
+              "text": "при",
+              "dyMm": 2.8,
+              "scanYMm": 75.6
+            },
+            {
+              "text": "наличии",
+              "dyMm": 2.8,
+              "scanYMm": 75.6
+            },
+            {
+              "text": "наименование",
+              "dyMm": -0.6,
+              "scanYMm": 69.5
+            },
+            {
+              "text": "результат",
+              "dyMm": -0.6,
+              "scanYMm": 69.5
+            }
+          ],
+          "lineBreakIssues": [
+            "y=70: дата наименование результат",
+            "y=73: код при наличии",
+            "y=75: пп обследования обследования обследования"
+          ],
+          "medianDyMm": 0.104
+        },
+        {
+          "scanPdfPage": 13,
+          "printPage": 12,
+          "appendixHeaderMm": 0.0,
+          "worstWords": [
+            {
+              "text": "несчастных",
+              "dyMm": -0.3,
+              "scanYMm": 115.3
+            },
+            {
+              "text": "случаев",
+              "dyMm": -0.3,
+              "scanYMm": 115.3
+            },
+            {
+              "text": "на",
+              "dyMm": -0.3,
+              "scanYMm": 115.3
+            },
+            {
+              "text": "производстве",
+              "dyMm": -0.3,
+              "scanYMm": 115.3
+            },
+            {
+              "text": "и",
+              "dyMm": -0.3,
+              "scanYMm": 115.3
+            }
+          ],
+          "lineBreakIssues": [],
+          "medianDyMm": 0.176
+        },
+        {
+          "scanPdfPage": 14,
+          "printPage": 13,
+          "appendixHeaderMm": 0.0,
+          "worstWords": [
+            {
+              "text": "мп",
+              "dyMm": 4.3,
+              "scanYMm": 180.4
+            },
+            {
+              "text": "при",
+              "dyMm": 4.3,
+              "scanYMm": 180.4
+            },
+            {
+              "text": "наличии",
+              "dyMm": 4.3,
+              "scanYMm": 180.4
+            },
+            {
+              "text": "подпись",
+              "dyMm": -4.2,
+              "scanYMm": 166.6
+            },
+            {
+              "text": "расшифровка",
+              "dyMm": -4.2,
+              "scanYMm": 166.6
+            }
+          ],
+          "lineBreakIssues": [],
+          "medianDyMm": 0.089
+        }
+      ],
+      "violations": ["p90 vertical offset 4.122 mm"],
+      "passes": false,
+      "acceptedViolations": {
+        "p90 vertical offset": "4.1 mm against the 4.0 limit: long checkbox cells of the tables on sheets 3-4 and 6-7 wrap one or two words differently from the scan (widening the cell padding made tables grow and the print 14 sheets)"
+      }
+    },
+    "107-1u": {
+      "formNumber": "107-1/у",
+      "schemaId": "ru.minzdrav.1094n.107-1u",
+      "sheet": {
+        "scanPages": 2,
+        "printPages": 2,
+        "paperDeviationPct": 1.9,
+        "orientation": "portrait",
+        "printScale": 1.0
+      },
+      "text": {
+        "printWords": 121,
+        "scanWords": 120,
+        "matchedWords": 110,
+        "wordCoverage": 0.909,
+        "medianDyMm": 0.123,
+        "p90DyMm": 0.954,
+        "maxDyMm": 1.377,
+        "medianLeftMm": 0.276,
+        "fontScale": 1.006,
+        "lineAgreement": 0.981
+      },
+      "rules": {
+        "scan": 20,
+        "print": 18,
+        "recall": 0.8,
+        "precision": 0.889,
+        "medianDyMm": 0.381,
+        "medianEndMm": 0.593
+      },
+      "pages": [
+        {
+          "scanPdfPage": 23,
+          "printPage": 1,
+          "appendixHeaderMm": 0.0,
+          "worstWords": [
+            {
+              "text": "лечащего",
+              "dyMm": -1.4,
+              "scanYMm": 177.2
+            },
+            {
+              "text": "врача",
+              "dyMm": -1.4,
+              "scanYMm": 177.2
+            },
+            {
+              "text": "фельдшера",
+              "dyMm": -1.4,
+              "scanYMm": 177.2
+            },
+            {
+              "text": "акушерки",
+              "dyMm": -1.4,
+              "scanYMm": 177.2
+            },
+            {
+              "text": "подпись",
+              "dyMm": -1.3,
+              "scanYMm": 244.1
+            }
+          ],
+          "lineBreakIssues": ["y=113: индивидуального предпринимателя от 24 ноября 2021 г 1094н"],
+          "medianDyMm": 0.132
+        },
+        {
+          "scanPdfPage": 24,
+          "printPage": 2,
+          "appendixHeaderMm": 0.0,
+          "worstWords": [
+            {
+              "text": "оборотная",
+              "dyMm": -0.4,
+              "scanYMm": 26.5
+            },
+            {
+              "text": "сторона",
+              "dyMm": -0.4,
+              "scanYMm": 26.5
+            },
+            {
+              "text": "проверил",
+              "dyMm": 0.2,
+              "scanYMm": 59.8
+            },
+            {
+              "text": "отпустил",
+              "dyMm": -0.2,
+              "scanYMm": 59.4
+            },
+            {
+              "text": "отметка",
+              "dyMm": -0.1,
+              "scanYMm": 32.2
+            }
+          ],
+          "lineBreakIssues": [],
+          "medianDyMm": 0.115
+        }
+      ],
+      "violations": [],
+      "passes": true
+    },
+    "148-1u-04l": {
+      "formNumber": "148-1/у-04(л)",
+      "schemaId": "ru.minzdrav.1094n.148-1u-04l",
+      "sheet": {
+        "scanPages": 2,
+        "printPages": 2,
+        "paperDeviationPct": 1.9,
+        "orientation": "portrait",
+        "printScale": 1.0
+      },
+      "text": {
+        "printWords": 197,
+        "scanWords": 190,
+        "matchedWords": 179,
+        "wordCoverage": 0.909,
+        "medianDyMm": 0.201,
+        "p90DyMm": 1.436,
+        "maxDyMm": 1.79,
+        "medianLeftMm": 0.89,
+        "fontScale": 1.008,
+        "lineAgreement": 0.924
+      },
+      "rules": {
+        "scan": 92,
+        "print": 100,
+        "recall": 0.88,
+        "precision": 0.81,
+        "medianDyMm": 0.847,
+        "medianEndMm": 1.524
+      },
+      "pages": [
+        {
+          "scanPdfPage": 25,
+          "printPage": 1,
+          "appendixHeaderMm": 0.0,
+          "worstWords": [
+            {
+              "text": "код",
+              "dyMm": 2.1,
+              "scanYMm": 156.7
+            },
+            {
+              "text": "нозологической",
+              "dyMm": 2.1,
+              "scanYMm": 156.7
+            },
+            {
+              "text": "формы",
+              "dyMm": 2.1,
+              "scanYMm": 156.7
+            },
+            {
+              "text": "2021",
+              "dyMm": -1.8,
+              "scanYMm": 102.8
+            },
+            {
+              "text": "3",
+              "dyMm": 1.8,
+              "scanYMm": 172.0
+            }
+          ],
+          "lineBreakIssues": [
+            "y=155: код категории код нозологической формы источник финансирования оплаты",
+            "y=158: граждан по мкб подчеркнуть подчеркнуть",
+            "y=164: 1федеральный бюджет 1 бесплатно",
+            "y=167: 2 бюджет субъекта российской федерации 2 50",
+            "y=170: 3 муниципальный бюджет 3 иной"
+          ],
+          "medianDyMm": 0.164
+        },
+        {
+          "scanPdfPage": 26,
+          "printPage": 2,
+          "appendixHeaderMm": 0.0,
+          "worstWords": [
+            {
+              "text": "корешок",
+              "dyMm": 1.1,
+              "scanYMm": 65.4
+            },
+            {
+              "text": "рецептурного",
+              "dyMm": 1.1,
+              "scanYMm": 65.4
+            },
+            {
+              "text": "бланка",
+              "dyMm": 1.1,
+              "scanYMm": 65.4
+            },
+            {
+              "text": "приготовил",
+              "dyMm": 1.0,
+              "scanYMm": 47.3
+            },
+            {
+              "text": "наименование",
+              "dyMm": 1.0,
+              "scanYMm": 69.5
+            }
+          ],
+          "lineBreakIssues": [],
+          "medianDyMm": 0.341
+        }
+      ],
+      "violations": [],
+      "passes": true
+    },
+    "148-1u-88": {
+      "formNumber": "148-1/у-88",
+      "schemaId": "ru.minzdrav.1094n.148-1u-88",
+      "sheet": {
+        "scanPages": 2,
+        "printPages": 2,
+        "paperDeviationPct": 1.9,
+        "orientation": "portrait",
+        "printScale": 1.0
+      },
+      "text": {
+        "printWords": 124,
+        "scanWords": 118,
+        "matchedWords": 108,
+        "wordCoverage": 0.871,
+        "medianDyMm": 0.172,
+        "p90DyMm": 0.542,
+        "maxDyMm": 1.08,
+        "medianLeftMm": 0.358,
+        "fontScale": 0.995,
+        "lineAgreement": 1.0
+      },
+      "rules": {
+        "scan": 25,
+        "print": 31,
+        "recall": 0.88,
+        "precision": 0.71,
+        "medianDyMm": 0.72,
+        "medianEndMm": 0.677
+      },
+      "pages": [
+        {
+          "scanPdfPage": 24,
+          "printPage": 1,
+          "appendixHeaderMm": 0.0,
+          "worstWords": [
+            {
+              "text": "ноября",
+              "dyMm": -1.4,
+              "scanYMm": 128.2
+            },
+            {
+              "text": "наименование",
+              "dyMm": -1.1,
+              "scanYMm": 137.3
+            },
+            {
+              "text": "органа",
+              "dyMm": -1.1,
+              "scanYMm": 137.3
+            },
+            {
+              "text": "государственной",
+              "dyMm": -1.1,
+              "scanYMm": 137.3
+            },
+            {
+              "text": "власти",
+              "dyMm": -1.1,
+              "scanYMm": 137.3
+            }
+          ],
+          "lineBreakIssues": [],
+          "medianDyMm": 0.172
+        },
+        {
+          "scanPdfPage": 25,
+          "printPage": 2,
+          "appendixHeaderMm": 0.0,
+          "worstWords": [
+            {
+              "text": "оборотная",
+              "dyMm": -0.5,
+              "scanYMm": 22.0
+            },
+            {
+              "text": "сторона",
+              "dyMm": -0.5,
+              "scanYMm": 22.0
+            },
+            {
+              "text": "отметка",
+              "dyMm": -0.4,
+              "scanYMm": 28.7
+            },
+            {
+              "text": "о",
+              "dyMm": -0.4,
+              "scanYMm": 28.7
+            },
+            {
+              "text": "назначении",
+              "dyMm": -0.4,
+              "scanYMm": 28.7
+            }
+          ],
+          "lineBreakIssues": [],
+          "medianDyMm": 0.137
         }
       ],
       "violations": [],
       "passes": true
     }
-  },
-  "pending": {
-    "072u": "F3 in progress: layout not yet calibrated against the scan",
-    "076u": "F3 in progress: layout not yet calibrated against the scan",
-    "079u": "F3 in progress: layout not yet calibrated against the scan",
-    "025-1u": "F3 in progress: layout not yet calibrated against the scan"
   }
 }

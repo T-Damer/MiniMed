@@ -32,6 +32,7 @@ import json
 import re
 import statistics
 import sys
+import tempfile
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -45,6 +46,7 @@ from localmed_ingest.medical_form_calibration import (
     load_calibration,
     row_key,
 )
+from localmed_ingest.medical_forms import load_blueprint
 
 REPO: Final = Path(__file__).resolve().parents[4]
 PT_MM: Final = 25.4 / 72
@@ -71,7 +73,7 @@ TOLERANCES: Final[dict[str, float]] = {
     "minRuleRecall": 0.8,  # scan rules that have a print rule
     "maxRuleMedianDyMm": 1.5,
     "maxRuleMedianDxMm": 3.0,
-    "maxPaperDeviationMm": 4.0,
+    "maxPaperDeviationPct": 5.0,  # scan page size vs the print sheet (scans are not exact A4)
     "maxPrintScaleError": 0.04,
 }
 
@@ -408,10 +410,15 @@ class Rule:
     at: float
 
 
-def gray_pixels(page: pymupdf.Page, dpi: int, rotate: int = 0) -> tuple[int, int, bytes]:
+def gray_pixels(
+    page: pymupdf.Page, dpi: int, rotate: int = 0, stretch: tuple[float, float] = (1.0, 1.0)
+) -> tuple[int, int, bytes]:
+    """The page as 8-bit gray; `stretch` rescales the (rotated) page to the print sheet."""
     matrix = pymupdf.Matrix(dpi / 72, dpi / 72)
     if rotate:
         matrix = matrix.prerotate(rotate)
+    if stretch != (1.0, 1.0):
+        matrix = matrix * pymupdf.Matrix(stretch[0], stretch[1])
     pixmap = page.get_pixmap(matrix=matrix, colorspace=pymupdf.csGRAY, alpha=False)
     return pixmap.width, pixmap.height, bytes(pixmap.samples)
 
@@ -516,7 +523,12 @@ class RuleMetrics:
     dx: list[float]  # difference of the stroke ends (start, end), mm
 
 
-def match_rules(scan: Sequence[Rule], printed: Sequence[Rule], offset: float) -> RuleMetrics:
+def match_rules(
+    scan: Sequence[Rule], printed: Sequence[Rule], offset: float, along: float = 0.0
+) -> RuleMetrics:
+    """Pair the strokes of the scan with the print's; `offset` moves the print across the stroke
+    direction (the appendix header shifts horizontal rules down), `along` moves it along the
+    stroke (the same shift moves vertical rules down)."""
     used: set[int] = set()
     across: list[float] = []
     ends: list[float] = []
@@ -525,7 +537,7 @@ def match_rules(scan: Sequence[Rule], printed: Sequence[Rule], offset: float) ->
         for index, other in enumerate(printed):
             if index in used:
                 continue
-            overlap = min(rule.a1, other.a1) - max(rule.a0, other.a0)
+            overlap = min(rule.a1, other.a1 + along) - max(rule.a0, other.a0 + along)
             if overlap < 0.5 * min(rule.a1 - rule.a0, other.a1 - other.a0):
                 continue
             distance = abs(rule.at - (other.at + offset))
@@ -535,7 +547,7 @@ def match_rules(scan: Sequence[Rule], printed: Sequence[Rule], offset: float) ->
             used.add(best[1])
             other = printed[best[1]]
             across.append(rule.at - (other.at + offset))
-            ends.extend((rule.a0 - other.a0, rule.a1 - other.a1))
+            ends.extend((rule.a0 - (other.a0 + along), rule.a1 - (other.a1 + along)))
     return RuleMetrics(len(scan), len(printed), len(across), len(used), across, ends)
 
 
@@ -632,8 +644,8 @@ def violations(summary: dict[str, Any], tolerances: dict[str, float] = TOLERANCE
         found.append(
             f"print scaled to {sheet['printScale']} of the declared font (a line overflows)"
         )
-    if sheet["paperDeviationMm"] > tolerances["maxPaperDeviationMm"]:
-        found.append(f"paper size deviates by {sheet['paperDeviationMm']} mm")
+    if sheet["paperDeviationPct"] > tolerances["maxPaperDeviationPct"]:
+        found.append(f"paper size deviates by {sheet['paperDeviationPct']} %")
     text = summary["text"]
     checks = (
         (
@@ -702,8 +714,11 @@ def compare_form(
         if rotate:
             sw, sh = sh, sw
         pw, ph = print_page.rect.width * PT_MM, print_page.rect.height * PT_MM
-        paper_deviation = max(paper_deviation, abs(sw - pw), abs(sh - ph))
-        words_scan = scan_words(ocr_pages[pdf_page], sw, sh)
+        paper_deviation = max(paper_deviation, abs(sw / pw - 1) * 100, abs(sh / ph - 1) * 100)
+        # a scan is a photograph of a sheet: its page size is not the sheet's; the scan is fitted
+        # to the print sheet (a real size mismatch, A5 for A4, is reported as paper deviation)
+        stretch = (pw / sw, ph / sh)
+        words_scan = scan_words(ocr_pages[pdf_page], pw, ph)
         words_print = print_words(print_page)
         font_sizes.extend(span_sizes(print_page))
         metrics = text_metrics(words_scan, words_print)
@@ -715,16 +730,16 @@ def compare_form(
         scales.extend(metrics.font_scales)
         agreements.append(metrics.line_agreement)
 
-        w1, h1, g1 = gray_pixels(scan_page, RULE_DPI, rotate)
+        w1, h1, g1 = gray_pixels(scan_page, RULE_DPI, rotate, stretch)
         w2, h2, g2 = gray_pixels(print_page, RULE_DPI)
         scan_h_rules, scan_v_rules = find_rules(w1, h1, g1, RULE_DPI)
         print_h_rules, print_v_rules = find_rules(w2, h2, g2, RULE_DPI)
-        sh_rules = _inside(merge_rules(scan_h_rules), sw, sh, metrics.form_top_mm, True)
-        sv_rules = _inside(merge_rules(scan_v_rules), sw, sh, metrics.form_top_mm, False)
+        sh_rules = _inside(merge_rules(scan_h_rules), pw, ph, metrics.form_top_mm, True)
+        sv_rules = _inside(merge_rules(scan_v_rules), pw, ph, metrics.form_top_mm, False)
         ph_rules = _inside(merge_rules(print_h_rules), pw, ph, 0.0, True)
         pv_rules = _inside(merge_rules(print_v_rules), pw, ph, 0.0, False)
         h_metrics = match_rules(sh_rules, ph_rules, metrics.appendix_header_mm)
-        v_metrics = match_rules(sv_rules, pv_rules, 0.0)
+        v_metrics = match_rules(sv_rules, pv_rules, 0.0, metrics.appendix_header_mm)
         rule_scan += h_metrics.scan + v_metrics.scan
         rule_print += h_metrics.printed + v_metrics.printed
         rule_ms += h_metrics.matched_scan + v_metrics.matched_scan
@@ -744,7 +759,7 @@ def compare_form(
         }
         pages.append(page_info)
         if out_dir is not None:
-            ow, oh, og = gray_pixels(scan_page, IMAGE_DPI, rotate)
+            ow, oh, og = gray_pixels(scan_page, IMAGE_DPI, rotate, stretch)
             pw_px, ph_px, pg = gray_pixels(print_page, IMAGE_DPI)
             shift = round(metrics.appendix_header_mm / 25.4 * IMAGE_DPI)
             aligned = shifted(pg, pw_px, ph_px, shift)
@@ -765,7 +780,7 @@ def compare_form(
         "sheet": {
             "scanPages": len(blank_pages),
             "printPages": len(print_pdf),
-            "paperDeviationMm": round(paper_deviation, 1),
+            "paperDeviationPct": round(paper_deviation, 1),
             "orientation": "landscape" if landscape else "portrait",
             # the print's body font over the declared one; not 1 when Chromium shrank the page
             "printScale": (
@@ -823,7 +838,9 @@ def segment_words(
         return [w for w in str(segment["text"]).split() if normalise_word(w)]
     if kind == "options":
         words: list[str] = []
-        for option in field_options.get(segment["fieldId"], []):
+        all_options = field_options.get(segment["fieldId"], [])
+        lower, upper = segment.get("range", [0, len(all_options)])
+        for option in all_options[lower:upper]:
             words.extend(str(option["label"]).split())
             if segment.get("codes", True):
                 words.append(str(option["value"]))
@@ -835,7 +852,12 @@ def segment_words(
                 words.extend(str(cell["text"]).split())
         for body_row in segment["rows"]:
             for cell in body_row:
-                if isinstance(cell, dict):
+                if not isinstance(cell, dict):
+                    continue
+                if "segments" in cell:  # a running-text cell: text, boxes and blanks
+                    for part in cell["segments"]:
+                        words.extend(segment_words(part, field_options))
+                else:
                     words.extend(str(cell["text"]).split())
         return [w for w in words if normalise_word(w)]
     return []
@@ -1000,7 +1022,8 @@ def calibration_round(
         if rotated:
             sw, sh = sh, sw
         page_rows = [row for row in rows if row.page == index]
-        words_scan = scan_words(ocr_pages[pdf_page], sw, sh)
+        pw_c, ph_c = print_pdf[index].rect.width * PT_MM, print_pdf[index].rect.height * PT_MM
+        words_scan = scan_words(ocr_pages[pdf_page], pw_c, ph_c)
         lefts.extend(w.x0 for w in words_scan if w.edge in ("first", "only"))
         rights.extend(w.x1 for w in words_scan if w.edge in ("last", "only"))
         scales.extend(text_metrics(words_scan, print_words(print_pdf[index])).font_scales)
@@ -1034,6 +1057,21 @@ def _load_ocr(path: Path) -> dict[int, dict[str, Any]]:
     return {int(page["page"]): page for page in data["pages"]}
 
 
+def form_raw_dir(key: str, raw_dir: Path, scratch: list[tempfile.TemporaryDirectory[str]]) -> Path:
+    """Where the scan of one form is read from: the raw directory, or, for blanks that share a scan
+    page with another blank (`blank_regions` of the blueprint), a masked copy that shows only the
+    form's own part of its pages (built on the fly; the committed schema is built from the real raw
+    files)."""
+    blueprint = load_blueprint(key)
+    if not blueprint.blank_regions:
+        return raw_dir
+    from localmed_ingest.medical_form_prescription import mask_scan
+
+    holder = tempfile.TemporaryDirectory()
+    scratch.append(holder)
+    return mask_scan(key, Path(holder.name), raw_dir)
+
+
 def run_check(
     *,
     registry_path: Path,
@@ -1046,21 +1084,22 @@ def run_check(
 ) -> dict[str, Any]:
     registry = json.loads(registry_path.read_text(encoding="utf-8"))
     results: dict[str, Any] = {}
+    scratch: list[tempfile.TemporaryDirectory[str]] = []
     for source in registry["sources"]:
         eo = source["eoNumber"]
-        pdf_path = raw_dir / f"{eo}.pdf"
-        ocr_path = raw_dir / f"{eo}.ocr.json"
-        if not pdf_path.exists() or not ocr_path.exists():
+        if not (raw_dir / f"{eo}.pdf").exists() or not (raw_dir / f"{eo}.ocr.json").exists():
             print(
                 f"skip order {source['orderNumber']}: no raw PDF/OCR in {raw_dir}", file=sys.stderr
             )
             continue
-        scan_pdf = pymupdf.open(pdf_path)
-        ocr_upright = _load_ocr(ocr_path)
         for form in source["forms"]:
             schema = json.loads((schemas_dir / form["schemaFile"]).read_text(encoding="utf-8"))
             if only and form["key"] not in only and schema["id"] not in only:
                 continue
+            form_raw = form_raw_dir(form["key"], raw_dir, scratch)
+            pdf_path = form_raw / f"{eo}.pdf"
+            scan_pdf = pymupdf.open(pdf_path)
+            ocr_upright = _load_ocr(form_raw / f"{eo}.ocr.json")
             print_path = prints_dir / f"{schema['id']}.pdf"
             if not print_path.exists():
                 raise FileNotFoundError(f"render the print first: {print_path}")
@@ -1070,7 +1109,7 @@ def run_check(
             )
             ocr_pages = ocr_upright
             if rotated:
-                rotated_path = raw_dir / f"{eo}.{form['key']}.rot90.ocr.json"
+                rotated_path = form_raw / f"{eo}.{form['key']}.rot90.ocr.json"
                 if not rotated_path.exists():
                     raise FileNotFoundError(
                         f"{rotated_path.name}: run `{prepare_rotated_hint(source, form, pdf_path)}`"
@@ -1090,6 +1129,8 @@ def run_check(
                         rotated,
                     ),
                 }
+    for holder in scratch:
+        holder.cleanup()
     return results
 
 
@@ -1178,14 +1219,16 @@ def run_calibration(args: argparse.Namespace) -> int:
     from localmed_ingest.medical_forms import load_blueprint, prepare_form, write_schema
 
     registry = json.loads(args.registry.read_text(encoding="utf-8"))
+    scratch: list[tempfile.TemporaryDirectory[str]] = []
     chosen = set(args.form)
     for source in registry["sources"]:
         eo = source["eoNumber"]
-        scan_pdf = pymupdf.open(args.raw / f"{eo}.pdf")
         source_record = json.loads((args.raw / f"{eo}.source.json").read_text(encoding="utf-8"))
         for form in source["forms"]:
             if chosen and form["key"] not in chosen:
                 continue
+            form_raw = form_raw_dir(form["key"], args.raw, scratch)
+            scan_pdf = pymupdf.open(form_raw / f"{eo}.pdf")
             blueprint = load_blueprint(form["key"])
             schema_path = args.schemas / form["schemaFile"]
             rotated = blueprint.layout["page"]["orientation"] == "landscape" and any(
@@ -1193,10 +1236,10 @@ def run_calibration(args: argparse.Namespace) -> int:
                 for page in blueprint.blank_pages
             )
             if rotated:
-                rotated_ocr = args.raw / f"{eo}.{form['key']}.rot90.ocr.json"
+                rotated_ocr = form_raw / f"{eo}.{form['key']}.rot90.ocr.json"
                 ocr_pages = _load_ocr(rotated_ocr)
             else:
-                ocr_pages = _load_ocr(args.raw / f"{eo}.ocr.json")
+                ocr_pages = _load_ocr(form_raw / f"{eo}.ocr.json")
             for round_number in range(1, args.rounds + 1):
                 schema = prepare_form(blueprint, source_record, args.raw / f"{eo}.ocr.json")
                 write_schema(schema, schema_path)
@@ -1230,6 +1273,8 @@ def run_calibration(args: argparse.Namespace) -> int:
                     rotated,
                 )
             print(format_results({form["key"]: {"formNumber": form["formNumber"], **final}}))
+    for holder in scratch:
+        holder.cleanup()
     return 0
 
 
@@ -1285,6 +1330,10 @@ def main(argv: list[str] | None = None) -> int:
         if args.results.exists():
             previous = json.loads(args.results.read_text(encoding="utf-8"))
         merged: dict[str, Any] = dict(previous.get("forms", {}))
+        for key, item in results.items():
+            carried = merged.get(key, {}).get("acceptedViolations")
+            if carried:
+                item["acceptedViolations"] = carried
         merged.update(results)
         pending = {k: v for k, v in previous.get("pending", {}).items() if k not in merged}
         payload: dict[str, Any] = {"tolerances": TOLERANCES, "forms": dict(sorted(merged.items()))}

@@ -57,12 +57,44 @@ describe('shipped form schemas', () => {
   it('keeps the route stable: the schema ids are the ones the routes and the tools link carry', () => {
     expect(listFormSchemas().map((form) => form.id)).toEqual([
       'ru.minzdrav.274n.070u',
+      'ru.minzdrav.519n.057u',
+      'ru.mintrud-minzdrav.488n-551n.088u',
+      'ru.minzdrav.1094n.107-1u',
+      'ru.minzdrav.1094n.148-1u-88',
+      'ru.minzdrav.1094n.148-1u-04l',
+      'ru.minzdrav.1092n.003-vu',
+      'ru.minzdrav.395n.071u',
       'ru.minzdrav.274n.072u',
       'ru.minzdrav.274n.076u',
       'ru.minzdrav.274n.079u',
       'ru.minzdrav.274n.025-1u',
-      'ru.minzdrav.519n.057u',
+      'ru.minzdrav.740n.058u',
     ]);
+  });
+
+  it('ships every form of the registry of source orders and nothing else', () => {
+    const ids = new Set(listFormSchemas().map((form) => form.id));
+    expect(ids.size).toBe(13);
+    for (const form of listFormSchemas()) {
+      expect(form.source.publicationUrl).toMatch(
+        /^http:\/\/publication\.pravo\.gov\.ru\/document\/\d{16}$/u,
+      );
+      expect(form.source.sha256).toMatch(/^[a-f0-9]{64}$/u);
+      expect(form.source.extraction.blankLabelsVerified).toBeGreaterThan(0);
+    }
+  });
+
+  it('keeps the draft status of the certificates and prescription blanks in the schema notes', () => {
+    for (const id of [
+      'ru.minzdrav.1092n.003-vu',
+      'ru.minzdrav.395n.071u',
+      'ru.minzdrav.1094n.107-1u',
+      'ru.minzdrav.1094n.148-1u-88',
+      'ru.minzdrav.1094n.148-1u-04l',
+    ]) {
+      const notes = (findFormSchema(id)?.notes ?? []).join(' ');
+      expect(notes, id).toMatch(/Черновик|черновик|не заменяет|предпросмотр/u);
+    }
   });
 
   it('ships 057/у from order 519н with the entry-into-force basis in the edition line', () => {
@@ -78,6 +110,15 @@ describe('shipped form schemas', () => {
       .flatMap((row) => row.segments)
       .filter((segment) => segment.kind === 'options' && segment.mark === 'underline');
     expect(underlined?.length).toBe(5);
+  });
+
+  it('ships 058/у from order 740н as an edition that is not in force yet', () => {
+    const notice = findFormSchema('ru.minzdrav.740n.058u');
+    expect(notice?.formNumber).toBe('058/у');
+    expect(notice?.source.effectiveFrom).toBe('2027-03-01');
+    expect(notice?.source.effectiveUntil).toBe('2033-03-01');
+    expect(notice?.edition).toContain('вступает в силу 01.03.2027');
+    expect(notice?.layout.blocks.some((block) => block.pageBreakBefore)).toBe(true);
   });
 
   it('binds only declared paths: workplace and citizenship are used where a printed line needs them', () => {

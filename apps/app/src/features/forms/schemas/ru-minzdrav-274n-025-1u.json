@@ -4590,9 +4590,9 @@
       "orientation": "landscape",
       "marginMm": {
         "top": 7.5,
-        "right": 12.0,
+        "right": 13.8,
         "bottom": 2,
-        "left": 14.5
+        "left": 13.8
       },
       "fontSizePt": 9.1,
       "lineHeight": 1.1
@@ -4692,7 +4692,7 @@
                 ],
                 "align": "center",
                 "size": "title",
-                "spaceBeforeMm": 1.1
+                "spaceBeforeMm": 1.09
               },
               {
                 "segments": [
@@ -4759,7 +4759,7 @@
                 ],
                 "align": "center",
                 "size": "title",
-                "spaceBeforeMm": 6.15
+                "spaceBeforeMm": 5.77
               }
             ]
           }
@@ -4955,7 +4955,7 @@
                     "separator": ", "
                   }
                 ],
-                "spaceBeforeMm": 0.9
+                "spaceBeforeMm": 0.6
               },
               {
                 "segments": [
@@ -5196,7 +5196,7 @@
                     "length": 17.3
                   }
                 ],
-                "spaceBeforeMm": 0.44
+                "spaceBeforeMm": 0.25
               },
               {
                 "segments": [
@@ -5257,7 +5257,8 @@
                     "fieldId": "disabilityGroup",
                     "separator": ", "
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.25
               },
               {
                 "segments": [
@@ -5272,7 +5273,7 @@
                   }
                 ],
                 "align": "justify",
-                "spaceBeforeMm": 0.78
+                "spaceBeforeMm": 0.32
               },
               {
                 "segments": [
@@ -5308,7 +5309,8 @@
                     ]
                   }
                 ],
-                "align": "stretch"
+                "align": "stretch",
+                "spaceBeforeMm": 0.3
               },
               {
                 "segments": [
@@ -5321,8 +5323,7 @@
                       7
                     ]
                   }
-                ],
-                "spaceBeforeMm": 1.9
+                ]
               },
               {
                 "segments": [
@@ -5333,7 +5334,7 @@
                   }
                 ],
                 "align": "justify",
-                "spaceBeforeMm": 0.0
+                "spaceBeforeMm": 0.28
               },
               {
                 "segments": [
@@ -5408,7 +5409,7 @@
                   }
                 ],
                 "align": "justify",
-                "spaceBeforeMm": 0.09
+                "spaceBeforeMm": 0.26
               },
               {
                 "segments": [
@@ -5428,7 +5429,7 @@
                   }
                 ],
                 "align": "justify",
-                "spaceBeforeMm": 0.12
+                "spaceBeforeMm": 0.32
               },
               {
                 "segments": [
@@ -5887,8 +5888,7 @@
                     "text": ".",
                     "joined": true
                   }
-                ],
-                "spaceBeforeMm": 0.67
+                ]
               },
               {
                 "segments": [
@@ -5961,7 +5961,7 @@
                     "indentMm": 23.8
                   }
                 ],
-                "spaceBeforeMm": 2.75
+                "spaceBeforeMm": 2.48
               },
               {
                 "segments": [
@@ -6299,7 +6299,7 @@
                     "joined": true
                   }
                 ],
-                "spaceBeforeMm": 0.86
+                "spaceBeforeMm": 0.34
               },
               {
                 "segments": [
@@ -6372,7 +6372,7 @@
                     "indentMm": 23.8
                   }
                 ],
-                "spaceBeforeMm": 2.7
+                "spaceBeforeMm": 2.5
               },
               {
                 "segments": [
@@ -6399,7 +6399,7 @@
                     "separator": ", "
                   }
                 ],
-                "spaceBeforeMm": 1.18
+                "spaceBeforeMm": 1.05
               },
               {
                 "segments": [
@@ -6437,7 +6437,7 @@
                     "indentMm": 21.8
                   }
                 ],
-                "spaceBeforeMm": 0.56
+                "spaceBeforeMm": 0.5
               },
               {
                 "segments": [
@@ -6512,7 +6512,7 @@
                     "indentMm": 27.8
                   }
                 ],
-                "spaceBeforeMm": 2.65
+                "spaceBeforeMm": 2.5
               },
               {
                 "segments": [

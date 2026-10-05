@@ -129,6 +129,17 @@ def test_match_rules_applies_the_page_offset_and_counts_misses() -> None:
     assert metrics.scan == 2
 
 
+def test_vertical_rules_shift_along_the_stroke_with_the_appendix_header() -> None:
+    # a vertical stroke of the scan spans y 90..110 (x 40); the print's spans 63..83 before the
+    # 27 mm header offset is added
+    scan = [overlay.Rule(90, 110, 40.0)]
+    printed = [overlay.Rule(63, 83, 40.0)]
+    assert overlay.match_rules(scan, printed, 0.0).matched_scan == 0
+    metrics = overlay.match_rules(scan, printed, 0.0, along=27.0)
+    assert metrics.matched_scan == 1
+    assert max(abs(value) for value in metrics.dx) < 0.01
+
+
 def test_inside_drops_scanner_border_and_strokes_above_the_form() -> None:
     rules = [
         overlay.Rule(10, 200, 0.7),
@@ -142,7 +153,7 @@ def test_inside_drops_scanner_border_and_strokes_above_the_form() -> None:
 
 def summary(**changes: Any) -> dict[str, Any]:
     base: dict[str, Any] = {
-        "sheet": {"scanPages": 1, "printPages": 1, "paperDeviationMm": 1.0, "printScale": 1.0},
+        "sheet": {"scanPages": 1, "printPages": 1, "paperDeviationPct": 1.0, "printScale": 1.0},
         "text": {
             "wordCoverage": 0.95,
             "medianDyMm": 0.5,
