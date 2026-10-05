@@ -33,12 +33,6 @@ export interface SemanticFusion {
   readonly vectorOnlyWeight: number;
   /** Added per unit of semantic score when lexical retrieval found the same chunk. */
   readonly corroborationWeight: number;
-  /**
-   * Multi-symptom complaints: with two or more clauses (`queryClauses`), each clause is embedded
-   * too, and a chunk's strength becomes `(1 − w) × strength + w × coverage`, where coverage is the
-   * share of clauses its document answers. 0 or absent keeps one query vector.
-   */
-  readonly clauseCoverageWeight?: number;
 }
 
 /** The constants the feature-hash development profile was tuned with. */

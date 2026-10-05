@@ -94,6 +94,11 @@ Quality, Q1 real-language queries with КР relevance, all 774 e5 packs mounted,
 | lookup, hybrid `E5_SMALL_FUSION` | 0.449 | 0.282 | 0.479 | 0.429 | 0.364 |
 | **clinical, hybrid `E5_SMALL_FUSION`** | **0.467** | **0.294** | **0.497** | **0.448** | **0.379** |
 
+Measured and rejected (2026-10-05, Q1 dev): embedding each clause of a complaint separately and
+favouring documents that cover several clauses lowered complaint R@5 (0.326 one vector → 0.291 /
+0.267 / 0.267 with coverage weight 0.3 / 0.5 / 0.7); RuMedPrime complaints often list symptoms
+unrelated to the final diagnosis, and coverage pulls towards them. The code was removed.
+
 Test R@5 by source, clinical hybrid: RuMedPrime complaints 0.038 → 0.278, RuCCoD diagnosis
 phrases 0.202 → 0.702. Scope: КР only; complaint labels are the physician's final diagnosis; the
 queries are not the owner's own phrasing, so ADR exit criterion 4 is met only by proxy.
