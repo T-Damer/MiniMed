@@ -1,0 +1,34 @@
+{
+  "formId": "ru.minzdrav.1094n.107-1u",
+  "method": "page margins and font size from the extent and the line widths of the scan text, line height, and the space above each layout row, fitted so the print lands on the official scan (OCR boxes); `medical_form_overlay calibrate`",
+  "page": {
+    "marginMm": {
+      "top": 25,
+      "right": 15.2,
+      "bottom": 10,
+      "left": 29.4
+    },
+    "fontSizePt": 11.5
+  },
+  "lineHeight": 1.166,
+  "rows": {
+    "header-stamps/0/1": 0.3,
+    "header-stamps/0/3": 5.33,
+    "header-stamps/0/4": 0.52,
+    "header-stamps/0/7": 0.7,
+    "header-stamps/1/1": 0.3,
+    "header-stamps/1/2": 0.3,
+    "header-top/0/1": 0.89,
+    "header-top/1/1": 0.51,
+    "people/0/0": 4.11,
+    "recipe-title/0/0": 3.85,
+    "recipe-title/0/1": 0.43,
+    "reverse-table/0/0": 1.58,
+    "reverse-top/1/0": 3.24,
+    "rp1/0/0": 3.48,
+    "rp2/0/0": 1.89,
+    "rp3/0/0": 2.15,
+    "signature/0/0": 2.38,
+    "validity/0/0": 2.85
+  }
+}
