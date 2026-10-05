@@ -1,5 +1,5 @@
 import type { SearchResult, SearchResultCategory, SearchResultGroup } from '@localmed/contracts';
-import { For, type JSX, Show } from 'solid-js';
+import { children, For, type JSX, Show } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
 import { CATEGORY_VISUALS, ClinicalGlyph } from '@/components/ClinicalGlyph';
 import { ClinicalTags } from '@/components/ClinicalTags';
@@ -64,6 +64,8 @@ export function SearchResultGroupCard(props: {
   readonly onOpenDocument: (documentId: string) => void;
   readonly onOpenResult: (result: SearchResult) => void;
 }): JSX.Element {
+  // Resolved once: the first line of the header gives up room to the action only when it shows.
+  const action = children(() => props.action);
   const kind = () => RESULT_KIND_VISUALS[props.group.documentKind ?? 'reference'];
   const contentLabel = () =>
     props.group.terminologyMatch === 'term'
@@ -120,31 +122,36 @@ export function SearchResultGroupCard(props: {
   };
   return (
     <section class="result-group" data-document-id={props.group.documentId}>
-      <button
-        type="button"
-        class="result-group-header"
-        onClick={() => props.onOpenDocument(props.group.documentId)}
+      <div
+        class="result-group__head"
+        classList={{ 'result-group__head--with-action': action() !== undefined }}
       >
-        <span class="result-group-header__index" aria-hidden="true">
-          {String(props.index + 1).padStart(2, '0')}
-        </span>
+        <button
+          type="button"
+          class="result-group-header"
+          onClick={() => props.onOpenDocument(props.group.documentId)}
+        >
+          <span class="result-group-header__index" aria-hidden="true">
+            {String(props.index + 1).padStart(2, '0')}
+          </span>
 
-        <span class="result-group-header__body">
-          <span class="result-group-header__kind">
-            <AppGlyph name={kind().icon} class="result-group-header__kind-icon" />
-            <span class="result-group-header__kind-label">{kind().label}</span>
+          <span class="result-group-header__body">
+            <span class="result-group-header__kind">
+              <AppGlyph name={kind().icon} class="result-group-header__kind-icon" />
+              <span class="result-group-header__kind-label">{kind().label}</span>
+            </span>
+            <span class="result-group-header__content-kind">{contentLabel()}</span>
+            <strong class="result-group-header__title">
+              <IcdText text={props.group.title} />
+            </strong>
+            <ClinicalTags title={props.group.title} specialties={props.specialties} />
+            <span class="result-group-header__note result-minimal-note">
+              {props.group.results[0]?.sectionPath.join(' / ') ?? 'Релевантный источник'}
+            </span>
           </span>
-          <span class="result-group-header__content-kind">{contentLabel()}</span>
-          <strong class="result-group-header__title">
-            <IcdText text={props.group.title} />
-          </strong>
-          <ClinicalTags title={props.group.title} specialties={props.specialties} />
-          <span class="result-group-header__note result-minimal-note">
-            {props.group.results[0]?.sectionPath.join(' / ') ?? 'Релевантный источник'}
-          </span>
-        </span>
-      </button>
-      {props.action}
+        </button>
+        {action()}
+      </div>
       <div class="result-group__snippets">
         <For each={results().slice(0, 1)}>{renderExcerpt}</For>
         <Show when={results().length > 1}>

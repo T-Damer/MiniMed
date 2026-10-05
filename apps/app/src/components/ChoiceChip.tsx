@@ -8,16 +8,27 @@ export interface ChoiceChipProps extends JSX.ButtonHTMLAttributes<HTMLButtonElem
   readonly detail?: JSX.Element | undefined;
   /** Accent chips carry the recommended next step; plain chips are alternatives. */
   readonly accent?: boolean | undefined;
+  /** A one-line chip with a small icon, for a corner of a card header. */
+  readonly compact?: boolean | undefined;
 }
 
 /** A tappable choice that reads as a button, not as inline link text. */
 export function ChoiceChip(props: ChoiceChipProps): JSX.Element {
-  const [local, button] = splitProps(props, ['icon', 'detail', 'accent', 'class', 'children']);
+  const [local, button] = splitProps(props, [
+    'icon',
+    'detail',
+    'accent',
+    'compact',
+    'class',
+    'children',
+  ]);
   return (
     <button
       type="button"
       {...button}
-      class={`choice-chip ${local.accent ? 'choice-chip--accent' : ''} ${local.class ?? ''}`.trim()}
+      class={`choice-chip ${local.accent ? 'choice-chip--accent' : ''} ${local.compact ? 'choice-chip--compact' : ''} ${local.class ?? ''}`
+        .replace(/ {2,}/gu, ' ')
+        .trim()}
     >
       <Show when={local.icon}>{(icon) => <span class="choice-chip__icon">{icon()}</span>}</Show>
       <span class="choice-chip__copy">

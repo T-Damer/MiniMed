@@ -15,6 +15,11 @@ export function SearchDownloadChip(props: {
   readonly modules: readonly ContentModuleCatalogEntry[];
   readonly downloads: SearchSectionDownloads;
   readonly accent?: boolean | undefined;
+  /**
+   * One short line for a card header: the visible text is only the size (or the state), the full
+   * sentence stays in the accessible name and the tooltip.
+   */
+  readonly compact?: boolean | undefined;
 }): JSX.Element {
   const installed = createMemo(() => props.downloads.installedIds(props.modules));
   const pending = createMemo(() => props.modules.filter((module) => !installed().has(module.id)));
@@ -53,11 +58,29 @@ export function SearchDownloadChip(props: {
   };
   const detail = () =>
     [props.subject, active() ? undefined : size()].filter(Boolean).join(' · ') || undefined;
+  /** What a compact chip prints: the size while it offers a download, the state afterwards. */
+  const compactText = () => {
+    if (active() && !running()) return 'В очереди';
+    if (active()) {
+      const fraction = progress().byteProgress;
+      return fraction === null ? 'Скачиваем…' : `${Math.floor(fraction * 100)}%`;
+    }
+    return failed() ? 'Повторить' : (size() ?? 'Скачать');
+  };
+  /** The full sentence of a compact chip: what it does, for which document, how large. */
+  const compactName = () =>
+    active()
+      ? `${label()}${props.subject ? ` · ${props.subject}` : ''}`
+      : [failed() ? 'Повторить загрузку' : props.label, props.subject, size()]
+          .filter(Boolean)
+          .join(' · ');
   return (
     <Show when={props.downloads.ready() && pending().length > 0}>
       <ChoiceChip
         class="search-download-chip"
         accent={props.accent}
+        compact={props.compact}
+        {...(props.compact ? { 'aria-label': compactName(), title: compactName() } : {})}
         icon={
           <Show
             when={active()}
@@ -74,7 +97,7 @@ export function SearchDownloadChip(props: {
             />
           </Show>
         }
-        detail={detail()}
+        detail={props.compact ? undefined : detail()}
         disabled={active()}
         aria-live="polite"
         onClick={(event) => {
@@ -82,7 +105,7 @@ export function SearchDownloadChip(props: {
           void props.downloads.install(pending());
         }}
       >
-        {label()}
+        {props.compact ? compactText() : label()}
       </ChoiceChip>
     </Show>
   );

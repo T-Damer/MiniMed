@@ -29,6 +29,7 @@ export function SearchResultModuleDownload(props: {
             modules={[target()]}
             downloads={props.downloads}
             accent
+            compact
           />
         </div>
       )}

@@ -44,7 +44,7 @@
   align-self: flex-start;
   align-items: center;
   gap: 0.25rem;
-  max-width: 100%;
+  max-width: calc(100% - var(--result-group-action-reserve, 0px));
   padding: 0.1875rem 0.375rem;
   border: 1px solid var(--theme-border);
   border-radius: 999px;

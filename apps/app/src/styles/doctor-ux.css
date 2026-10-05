@@ -1218,9 +1218,23 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
   border-top: 1px dashed var(--theme-border);
 }
 
+/* The compact download button sits in the corner of the card header, over its empty top-right. */
+.result-group__head {
+  /* Room the header's first line leaves for the action (see `result-group-header__kind`). */
+  --result-group-action-reserve: 0px;
+  position: relative;
+}
+
+.result-group__head--with-action {
+  --result-group-action-reserve: 6.5rem;
+}
+
 .result-group__action {
+  position: absolute;
+  z-index: var(--z-raised-2);
+  top: 0.375rem;
+  right: 0.5rem;
   display: flex;
-  padding: 0 0.75rem 0.75rem;
 }
 
 .document-inline-preview__open {
