@@ -105,6 +105,7 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
+| 2026-10-05 20:30 | claude-opus (UX8) | owner 10-05: search core-status spinner → honest status; search header fits with update button (graph + random-note out of the top row); document-pointer download button compact inside the card header | `apps/app/src/features/search/**` (core status, SearchHome, header), `apps/app/src/features/modules/DocumentModulePointer*` + CSS, `apps/app/e2e/**` specs touching them, `docs/CURRENT_STATE.md` |
 
 ## Next (claimed, not started)
 
