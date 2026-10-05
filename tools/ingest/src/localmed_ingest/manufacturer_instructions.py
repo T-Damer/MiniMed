@@ -38,7 +38,7 @@ USER_AGENT = (
 )
 SOURCE_CLASS = "manufacturer-site"
 PUBLISHER_KIND = "manufacturer-site"
-_ROBOTS_TOKEN = "minimed-manufacturer-instructions"
+_ROBOTS_AGENT = "minimed-manufacturer-instructions"
 _MAX_BODY = 40 * 1024 * 1024
 _CAPTCHA_MARKERS = ("captcha", "g-recaptcha", "smartcaptcha", "hcaptcha")
 _DOC_EXTENSION = re.compile(r"\.(pdf|docx?)(?:$|\?)", re.IGNORECASE)
@@ -281,7 +281,7 @@ class RobotsRules:
     rules: tuple[tuple[bool, str], ...]  # (allow, path)
 
     @classmethod
-    def parse(cls, body: str, token: str = _ROBOTS_TOKEN) -> RobotsRules:
+    def parse(cls, body: str, token: str = _ROBOTS_AGENT) -> RobotsRules:
         groups: list[tuple[list[str], list[tuple[bool, str]]]] = []
         agents: list[str] = []
         rules: list[tuple[bool, str]] = []
