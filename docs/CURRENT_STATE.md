@@ -1893,8 +1893,9 @@ described above.
    devices, Bluetooth LE pairing and signalling, WebRTC bulk transfer, background sync and dated
    conflict blocks. First slice: one-way copy to a new device; needs native Android BLE and a
    physical device.
-10. Medical news and research feed (ADR-0020, proposed; plan only): research sources, rate limits,
-    CORS and Russian journal OAI-PMH/RSS coverage before choosing a first slice.
+10. Medical news and research feed: user subscriptions to RSS/Atom/JSON Feed and websites shipped as
+    the «Лента» tab (ADR-0024, NEWS1, section below). The research-API layer (PubMed, Europe PMC,
+    OpenAlex, ClinicalTrials.gov; ADR-0020) is still plan only.
 
 A portable Rust `MedicalCore` and stable JSON CLI are recorded as a `1.1` idea, not a 1.0 release gate.
 No cross-language runtime migration should start before shared golden fixtures demonstrate parity.
@@ -1943,3 +1944,85 @@ Branch-specific next steps (PR #180):
 - Not covered: the unclassified and Allmed packages have no group of their own (only the synthetic
   `none` group when installed substances lack a code); no search inside the tree. E2E:
   `apps/app/e2e/medication-atc-tree.spec.ts` (antiparasitic module, needs the local zstd copy).
+
+### «Лента»: opt-in news feed and site viewer — 2026-10-05 (STATE NEWS1, ADR-0024)
+
+Owner decision: a fourth bottom tab «Лента» (Поиск · Файлы · Лента · Настройки; in the six-section
+layout it sits before «Настройки») with the unread count on the tab icon (`app-nav-badge--news`,
+read from localStorage only). Everything is in `apps/app/src/features/news/`, CSS `styles/news.css`
+(lazy with the tab) and `styles/news-badge.css` (start-up).
+
+- **Network is opt-in.** No request is made until a source is added; suggested sources are offered
+  (`suggested-feeds.json`, data not code), never auto-subscribed. Refresh on opening the tab (only
+  feeds older than 15 min) and on the refresh button; no background polling. Offline the tab shows
+  the cache with the last fetch time; a failing source keeps its items and shows its own error.
+- **Transport port** (`news-transport.ts`): Android uses `CapacitorHttp` (core, no plugin, no config
+  change; no CORS; base64 body decoded with the declared charset; redirects followed by the app;
+  ETag/Last-Modified sent); the web build uses `fetch` and reports a CORS refusal honestly («Этот
+  источник не разрешает чтение из браузера — откройте в приложении для Android или как сайт») with an
+  «Добавить как сайт» fallback. No CORS proxy. Limits: 15 s, 6 MB, 100 items per fetch.
+- **Parsing** (`markup.ts`, `feed-parser.ts`): RSS 2.0, RSS 1.0/RDF (NEJM, Lancet, Nature), Atom,
+  JSON Feed; a small tolerant tokenizer instead of `DOMParser` (no DOM in the unit runner, malformed
+  feeds, no entity expansion — reasons in ADR-0024). Page feed discovery reads
+  `<link rel="alternate" type="application/rss+xml|atom+xml|feed+json">` only; no path guessing.
+- **Sanitization** (`feed-content.ts`, `NewsRichText.tsx`): item HTML becomes a tree of allow-listed
+  elements rendered by element creation (no `innerHTML`); remote images only when «Изображения» is on
+  for that source; links `target=_blank rel="noopener noreferrer"`, no referrer.
+- **Storage** (`news-storage.ts`): subscriptions in localStorage (`minimed.news.subscriptions.v1`),
+  items in IndexedDB `minimed-news` (≤ 200 per feed, ≤ 30 days; memory fallback). First fetch marks
+  only the last 3 days unread. OPML 2.0 export (system share/download) and import in «Источники».
+- **UI**: list grouped by day (Сегодня/Вчера/date) with source, time, title, snippet and unread dot,
+  filter chips per source with counts, «Отметить всё прочитанным», sites strip, empty state with the
+  suggested sources, add page (paste address: feed → preview and «Подписаться»; page → declared feeds
+  or «Добавить как сайт»), sources page (rename, images on/off, remove with confirmation, OPML).
+  Routes: `#/news`, `/add`, `/sources`, `/item/<id>`, `/site/<id>`; `newsParentHash` makes Android
+  Back close the viewer, then the sub-pages, then return to search (`native-back.test.ts`).
+- **Viewer** (`NewsViewer.tsx`, `framing-policy.ts`): «Из ленты» (offline text) / «Страница»
+  (`<iframe sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox">`, no
+  `allow-same-origin`, `referrerpolicy=no-referrer`), address line, «Открыть в браузере». Framing
+  refusal is read from `X-Frame-Options`/CSP `frame-ancestors` where headers are readable (Android,
+  CORS-open hosts) and otherwise caught by a 12 s load timeout plus a standing hint.
+
+Suggested sources, verified by fetching and parsing with the app's own parser on 2026-10-05
+(`webReadable` = host sent `Access-Control-Allow-Origin` for `https://t-damer.github.io`; Android
+reads all of them):
+
+| Source | Format | Items | Browser build |
+| --- | --- | --- | --- |
+| Росздравнадзор — новости | RSS 2.0 (every item twice; deduplicated) | 10 | blocked (CORS) |
+| ВОЗ — новости (на русском) | RSS 2.0 | 25 | readable |
+| Фармвестник — новости | RSS 2.0 | 30 | blocked |
+| Медицинская газета | RSS 2.0 | 10 | blocked |
+| MedPortal — новости медицины | RSS 2.0 | 100 | readable |
+| ДокторПитер | RSS 2.0 | 100 | readable |
+| NEJM — свежий выпуск | RSS 1.0 (RDF) | 52 | blocked |
+| The Lancet — новые статьи | RSS 1.0 (RDF) | 55 | blocked |
+| Nature Medicine | RSS 1.0 (RDF) | 8 | blocked |
+| PLOS Medicine | Atom | 30 | blocked |
+| FDA MedWatch | RSS 2.0 | 20 | blocked |
+| MedPage Today | RSS 2.0 | 20 | readable |
+| STAT | RSS 2.0 | 20 | blocked |
+| Medical Xpress | RSS 2.0 | 30 | blocked |
+
+Left out on purpose: Минздрав (no feed; the site is not reachable without the Russian root CA),
+Медвестник (no feed), Лечащий врач (feed without items), WHO English (newest item from February),
+BMJ (redirects to http-only `feeds.bmj.com`: mixed content in the browser, cleartext on Android),
+JAMA (bot challenge for non-browser clients), RIA/TASS (general news, not medical), Medscape (the
+public feed found is the nurses' one).
+
+Framing of article pages (HEAD with a browser User-Agent, 2026-10-05): refused by Росздравнадзор,
+Медицинская газета, ДокторПитер, WHO, NEJM, The Lancet, Nature, PLOS, FDA, STAT, Medical Xpress,
+PubMed, Vidal, КР Минздрава, BMJ and JAMA (`X-Frame-Options: SAMEORIGIN`/`DENY`, WHO and STAT also
+`frame-ancestors`); allowed by Фармвестник, MedPortal, Медвестник, RLS and Wikipedia; unknown
+(HEAD refused or bot-blocked) for MedPage Today, CyberLeninka and Cochrane Library. Most medical
+publishers therefore need «Открыть в браузере» or the feed's own text.
+
+Not verified: a physical device or the Android emulator (shared, not touched): `CapacitorHttp`
+against the real feeds, system-browser hand-off from the viewer, and whether Android lets an external
+`<iframe src>` load inside the frame (see ADR-0024). The Vite dev/preview servers are cross-origin
+isolated, so real sites cannot be framed there; the e2e fixtures send the opt-in headers.
+Tests: unit (`features/news/*.test.ts`: parsing of every format, malformed and oversized input,
+sanitizer attacks, merge/retention/unread, URL detection, transport, framing policy, OPML, routes,
+service) and `apps/app/e2e/news-feed.spec.ts` (empty tab makes no request, add by address, offline
+cache, unread badge, viewer sandbox, framing-refused and never-loading fallbacks, CORS message,
+images switch, suggested source, rename/remove).
