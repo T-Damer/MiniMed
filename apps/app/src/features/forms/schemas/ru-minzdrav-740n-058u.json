@@ -1,0 +1,3710 @@
+{
+  "schemaVersion": 1,
+  "id": "ru.minzdrav.740n.058u",
+  "formNumber": "058/у",
+  "title": "Экстренное извещение о случае инфекционной, паразитарной болезни и носительства возбудителей инфекционных болезней, пищевого отравления, укуса или удара, нанесенного животным",
+  "edition": "Приказ Минздрава России от 20.08.2026 № 740н, приложение № 1; действует с 01.03.2027 по 01.03.2033 (вступает в силу 01.03.2027 (п. 2 приказа); до этой даты форма не действует)",
+  "source": {
+    "issuer": "Министерство здравоохранения Российской Федерации",
+    "orderNumber": "740н",
+    "orderDate": "2026-08-20",
+    "orderTitle": "Об утверждении учетной формы № 058/у «Экстренное извещение о случае инфекционной, паразитарной болезни и носительства возбудителей инфекционных болезней, пищевого отравления, укуса или удара, нанесенного животным» и порядка ее ведения",
+    "registration": {
+      "authority": "Министерство юстиции Российской Федерации",
+      "number": "88291",
+      "date": "2026-09-16"
+    },
+    "effectiveFrom": "2027-03-01",
+    "effectiveUntil": "2033-03-01",
+    "publicationUrl": "http://publication.pravo.gov.ru/document/0001202609170010",
+    "pdfUrl": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202609170010",
+    "retrievedAt": "2026-10-05",
+    "sha256": "26b298da6bdaa9f1921c86cb046b98d602d8704696f737a6ad56197669be45f1",
+    "pdfPages": 9,
+    "blankAppendix": {
+      "number": 1,
+      "pdfPages": [
+        2,
+        3
+      ]
+    },
+    "rulesAppendix": {
+      "number": 2,
+      "pdfPages": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    "extraction": {
+      "method": "macos-vision-ocr-v1",
+      "ocrSha256": "eb70299fd59b4863a13de87729a3e6ab6541f5b19ebbceef6fc628e8f4d9c6e0",
+      "corrections": [
+        {
+          "pdfPage": 2,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 3,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 4,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 5,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 6,
+          "from": " - ",
+          "to": " – ",
+          "reason": "en dash printed in the running text (checked on the scan), recognised as a hyphen"
+        },
+        {
+          "pdfPage": 6,
+          "from": "в м отношении",
+          "to": "в отношении",
+          "reason": "stray mark of the scan read as a letter"
+        },
+        {
+          "pdfPage": 6,
+          "from": "медицинскаю",
+          "to": "медицинскую",
+          "reason": "OCR confuses у and ю"
+        },
+        {
+          "pdfPage": 7,
+          "from": " - ",
+          "to": " – ",
+          "reason": "en dash printed in the running text (checked on the scan), recognised as a hyphen"
+        },
+        {
+          "pdfPage": 7,
+          "from": "лет) , , неработающих",
+          "to": "лет), неработающих",
+          "reason": "footnote reference mark recognised as punctuation"
+        },
+        {
+          "pdfPage": 8,
+          "from": "23- 27",
+          "to": "23–27",
+          "reason": "en dash printed in the running text (checked on the scan), recognised as a hyphen"
+        },
+        {
+          "pdfPage": 8,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 8,
+          "from": "иное. строке",
+          "to": "иное. В строке",
+          "reason": "short word at the start of a printed line lost by the OCR"
+        },
+        {
+          "pdfPage": 9,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 9,
+          "from": "мероприятия дополнительные",
+          "to": "мероприятия и дополнительные",
+          "reason": "short word at the start of a printed line lost by the OCR"
+        },
+        {
+          "pdfPage": 9,
+          "from": "непищевым сырьем животного происхождения",
+          "to": "непищевым сырьем животного происхождения.",
+          "reason": "period after a footnote reference lost by the OCR"
+        }
+      ],
+      "blankLabelsVerified": 80,
+      "note": "The official PDF is a scan without a text layer. Text recognised by macOS Vision; fragments are regrouped into printed lines (top to bottom, left to right) and footnotes under the per-page limits of the blueprint are dropped. Span line indices count these regrouped lines of each PDF page from 0. Corrections listed here were reviewed against the scan."
+    }
+  },
+  "sections": [
+    {
+      "id": "notice",
+      "title": "Извещение",
+      "description": "Регистрационный номер и дата заполнения указываются на титульном листе (п. 9).",
+      "fieldIds": [
+        "formNumber",
+        "formDate"
+      ]
+    },
+    {
+      "id": "organization",
+      "title": "Организация",
+      "description": "Подставляется из настроек «Врач и организация».",
+      "fieldIds": [
+        "organization",
+        "organizationOgrn"
+      ]
+    },
+    {
+      "id": "diagnosis",
+      "title": "Диагноз и причина подачи",
+      "description": "Строки 1–3 (п. 10.1–10.3).",
+      "fieldIds": [
+        "diagnosis",
+        "diagnosisIcd",
+        "externalCause",
+        "externalCauseIcd",
+        "diagnosisKind",
+        "labConfirmed",
+        "noticeKind",
+        "reason"
+      ]
+    },
+    {
+      "id": "patient",
+      "title": "Пациент",
+      "description": "Строки 4–6, 8, 9: на основании сведений медицинской документации (п. 10.4).",
+      "fieldIds": [
+        "patientFullName",
+        "patientSex",
+        "patientBirthDate",
+        "snils",
+        "patientPhone"
+      ]
+    },
+    {
+      "id": "residence",
+      "title": "Регистрация по месту жительства",
+      "fieldIds": [
+        "residenceSubject",
+        "residenceDistrict",
+        "residenceLocality",
+        "residenceStreet",
+        "residenceHouse",
+        "residenceBuilding",
+        "residenceApartment"
+      ]
+    },
+    {
+      "id": "residenceActual",
+      "title": "Адрес фактического проживания (к регистрации по месту жительства)",
+      "fieldIds": [
+        "residenceActualSubject",
+        "residenceActualDistrict",
+        "residenceActualLocality",
+        "residenceActualStreet",
+        "residenceActualHouse",
+        "residenceActualBuilding",
+        "residenceActualApartment"
+      ]
+    },
+    {
+      "id": "stay",
+      "title": "Регистрация по месту пребывания",
+      "fieldIds": [
+        "staySubject",
+        "stayDistrict",
+        "stayLocality",
+        "stayStreet",
+        "stayHouse",
+        "stayBuilding",
+        "stayApartment"
+      ]
+    },
+    {
+      "id": "stayActual",
+      "title": "Адрес фактического проживания (к регистрации по месту пребывания)",
+      "fieldIds": [
+        "stayActualSubject",
+        "stayActualDistrict",
+        "stayActualLocality",
+        "stayActualStreet",
+        "stayActualHouse",
+        "stayActualBuilding",
+        "stayActualApartment"
+      ]
+    },
+    {
+      "id": "foreign",
+      "title": "Для иностранных граждан",
+      "description": "Строка 7.2 заполняется для иностранных граждан (п. 10.4).",
+      "fieldIds": [
+        "citizenship",
+        "entryDate"
+      ]
+    },
+    {
+      "id": "occupation",
+      "title": "Занятость",
+      "description": "Строка 10 и сведения о месте работы или учёбы (п. 10.6).",
+      "fieldIds": [
+        "occupation",
+        "occupationChild",
+        "workplace",
+        "studyGroup",
+        "jobDuties",
+        "occupationExtra"
+      ]
+    },
+    {
+      "id": "dates",
+      "title": "Даты",
+      "description": "Строка 11 (п. 10.7).",
+      "fieldIds": [
+        "onsetDate",
+        "firstVisitDate",
+        "diagnosisDate",
+        "lastVisitDate",
+        "hospitalizationDate",
+        "hospitalizationPlace",
+        "deathDate"
+      ]
+    },
+    {
+      "id": "animal",
+      "title": "Укус или удар, нанесенный животным",
+      "description": "Строка 12 заполняется при укусе или ударе, в том числе клещом (п. 10.8).",
+      "fieldIds": [
+        "biter",
+        "animalKind",
+        "animalSpecies",
+        "injuryKind",
+        "injuryLocation",
+        "biteLocation"
+      ]
+    },
+    {
+      "id": "food",
+      "title": "Подозрение на пищевое отравление",
+      "description": "Строка 13 (п. 10.9).",
+      "fieldIds": [
+        "foodProduct",
+        "foodPurchase"
+      ]
+    },
+    {
+      "id": "anamnesis",
+      "title": "Пребывание, контакты, мероприятия",
+      "description": "Строки 14–16 (п. 10.10, 10.11).",
+      "fieldIds": [
+        "travelAbroad",
+        "travelPlace",
+        "contactHistory",
+        "measures"
+      ]
+    },
+    {
+      "id": "informing",
+      "title": "Информирование территориального органа",
+      "description": "Строка 17 (п. 10.12).",
+      "fieldIds": [
+        "informedDate",
+        "informedHour",
+        "informedMinute",
+        "sentDate"
+      ]
+    },
+    {
+      "id": "signatories",
+      "title": "Заполнил и принял",
+      "description": "П. 11: сведения о медицинском работнике и о сотруднике территориального органа.",
+      "fieldIds": [
+        "filledByName",
+        "filledByPosition",
+        "acceptedByName",
+        "acceptedRegNumber"
+      ]
+    }
+  ],
+  "fields": [
+    {
+      "id": "organization",
+      "label": "Наименование и адрес медицинской организации (фамилия, имя, отчество (при наличии) индивидуального предпринимателя и адрес осуществления медицинской деятельности)",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "maxLength": 400,
+      "multiline": true,
+      "prefill": {
+        "sources": [
+          "organization.name",
+          "organization.address"
+        ],
+        "join": ", "
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "9"
+        ]
+      }
+    },
+    {
+      "id": "organizationOgrn",
+      "label": "Основной государственный регистрационный номер (Основной государственный регистрационный номер индивидуального предпринимателя)",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "maxLength": 15,
+      "pattern": "^(?:[0-9]{13}|[0-9]{15})$",
+      "patternMessage": "ОГРН — 13 цифр, ОГРНИП — 15 цифр",
+      "prefill": {
+        "sources": [
+          "organization.ogrn"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "9"
+        ]
+      }
+    },
+    {
+      "id": "formNumber",
+      "label": "Регистрационный номер экстренного извещения (№ в заголовке)",
+      "type": "text",
+      "labelPrinted": false,
+      "required": true,
+      "requiredBasis": "source",
+      "maxLength": 40,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "9"
+        ]
+      }
+    },
+    {
+      "id": "formDate",
+      "label": "Дата заполнения экстренного извещения",
+      "type": "date",
+      "required": true,
+      "requiredBasis": "source",
+      "notAfter": "today",
+      "prefill": {
+        "sources": [
+          "today"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "9"
+        ]
+      }
+    },
+    {
+      "id": "diagnosis",
+      "label": "Диагноз",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "maxLength": 300,
+      "multiline": true,
+      "prefill": {
+        "sources": [
+          "episode.diagnosis.text"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.1"
+        ]
+      }
+    },
+    {
+      "id": "diagnosisIcd",
+      "label": "Диагноз: код по МКБ",
+      "type": "icd10",
+      "required": true,
+      "requiredBasis": "source",
+      "pattern": "^[A-Z][0-9]{2}(?:\\.[0-9]{1,2})?$",
+      "patternMessage": "Код МКБ-10 в формате J45.0",
+      "prefill": {
+        "sources": [
+          "episode.diagnosis.icd10"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.1"
+        ]
+      }
+    },
+    {
+      "id": "externalCause",
+      "label": "Внешняя причина (при травмах)",
+      "type": "text",
+      "required": false,
+      "maxLength": 300,
+      "multiline": true,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.1"
+        ]
+      }
+    },
+    {
+      "id": "externalCauseIcd",
+      "label": "Внешняя причина (при травмах): код по МКБ",
+      "type": "icd10",
+      "required": false,
+      "pattern": "^[A-Z][0-9]{2}(?:\\.[0-9]{1,2})?$",
+      "patternMessage": "Код МКБ-10 в формате J45.0",
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.1"
+        ]
+      }
+    },
+    {
+      "id": "diagnosisKind",
+      "label": "Диагноз: предварительный или заключительный (1.1)",
+      "type": "choice",
+      "labelPrinted": false,
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "1",
+          "label": "Предварительный"
+        },
+        {
+          "value": "2",
+          "label": "заключительный"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.1",
+          "5"
+        ]
+      }
+    },
+    {
+      "id": "labConfirmed",
+      "label": "Лабораторное подтверждение",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "1",
+          "label": "да"
+        },
+        {
+          "value": "2",
+          "label": "нет"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.1",
+          "5"
+        ]
+      }
+    },
+    {
+      "id": "noticeKind",
+      "label": "Извещение",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "1",
+          "label": "первичное"
+        },
+        {
+          "value": "2",
+          "label": "повторное"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.2",
+          "5"
+        ]
+      }
+    },
+    {
+      "id": "reason",
+      "label": "Причина подачи экстренного извещения",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "1",
+          "label": "установление диагноза (подозрение)"
+        },
+        {
+          "value": "2",
+          "label": "уточнение диагноза"
+        },
+        {
+          "value": "3",
+          "label": "смерть"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.3",
+          "5"
+        ]
+      }
+    },
+    {
+      "id": "patientFullName",
+      "label": "Фамилия, имя, отчество (при наличии) пациента",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "maxLength": 200,
+      "prefill": {
+        "sources": [
+          "patient.fullName"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.4"
+        ]
+      }
+    },
+    {
+      "id": "patientSex",
+      "label": "Пол",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "1",
+          "label": "мужской"
+        },
+        {
+          "value": "2",
+          "label": "женский"
+        }
+      ],
+      "prefill": {
+        "sources": [
+          "patient.sex"
+        ],
+        "map": {
+          "male": "1",
+          "female": "2"
+        }
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.4",
+          "5"
+        ]
+      }
+    },
+    {
+      "id": "patientBirthDate",
+      "label": "Дата рождения",
+      "type": "date",
+      "required": true,
+      "requiredBasis": "source",
+      "notAfter": "today",
+      "prefill": {
+        "sources": [
+          "patient.birthDate"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.4"
+        ]
+      }
+    },
+    {
+      "id": "residenceSubject",
+      "label": "Регистрация по месту жительства: субъект Российской Федерации",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "editorial",
+      "maxLength": 70,
+      "prefill": {
+        "sources": [
+          "patient.address.subject"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "10.4"
+        ],
+        "note": "Пункт 10.4 называет строку 7 «Регистрация по месту жительства» целиком; её части (район, улица, дом и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "residenceDistrict",
+      "label": "Регистрация по месту жительства: район",
+      "type": "text",
+      "required": false,
+      "maxLength": 52,
+      "prefill": {
+        "sources": [
+          "patient.address.district"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "10.4"
+        ],
+        "note": "Пункт 10.4 называет строку 7 «Регистрация по месту жительства» целиком; её части (район, улица, дом и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "residenceLocality",
+      "label": "Регистрация по месту жительства: населенный пункт",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "editorial",
+      "maxLength": 28,
+      "prefill": {
+        "sources": [
+          "patient.address.locality"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "10.4"
+        ],
+        "note": "Пункт 10.4 называет строку 7 «Регистрация по месту жительства» целиком; её части (район, улица, дом и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "residenceStreet",
+      "label": "Регистрация по месту жительства: улица",
+      "type": "text",
+      "required": false,
+      "maxLength": 27,
+      "prefill": {
+        "sources": [
+          "patient.address.street"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "10.4"
+        ],
+        "note": "Пункт 10.4 называет строку 7 «Регистрация по месту жительства» целиком; её части (район, улица, дом и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "residenceHouse",
+      "label": "Регистрация по месту жительства: дом",
+      "type": "text",
+      "required": false,
+      "maxLength": 10,
+      "prefill": {
+        "sources": [
+          "patient.address.house"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "10.4"
+        ],
+        "note": "Пункт 10.4 называет строку 7 «Регистрация по месту жительства» целиком; её части (район, улица, дом и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "residenceBuilding",
+      "label": "Регистрация по месту жительства: корпус",
+      "type": "text",
+      "required": false,
+      "maxLength": 10,
+      "prefill": {
+        "sources": [
+          "patient.address.building"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "10.4"
+        ],
+        "note": "Пункт 10.4 называет строку 7 «Регистрация по месту жительства» целиком; её части (район, улица, дом и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "residenceApartment",
+      "label": "Регистрация по месту жительства: квартира",
+      "type": "text",
+      "required": false,
+      "maxLength": 10,
+      "prefill": {
+        "sources": [
+          "patient.address.apartment"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "10.4"
+        ],
+        "note": "Пункт 10.4 называет строку 7 «Регистрация по месту жительства» целиком; её части (район, улица, дом и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "residenceActualSubject",
+      "label": "Адрес фактического проживания (к регистрации по месту жительства): субъект Российской Федерации",
+      "type": "text",
+      "required": false,
+      "maxLength": 70,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "10.4"
+        ],
+        "note": "Строка «Адрес фактического проживания» напечатана под строкой 7; п. 10.4 называет только строки 7 и 7.1 целиком, части адреса отдельно порядок не определяет."
+      }
+    },
+    {
+      "id": "residenceActualDistrict",
+      "label": "Адрес фактического проживания (к регистрации по месту жительства): район",
+      "type": "text",
+      "required": false,
+      "maxLength": 52,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "10.4"
+        ],
+        "note": "Строка «Адрес фактического проживания» напечатана под строкой 7; п. 10.4 называет только строки 7 и 7.1 целиком, части адреса отдельно порядок не определяет."
+      }
+    },
+    {
+      "id": "residenceActualLocality",
+      "label": "Адрес фактического проживания (к регистрации по месту жительства): населенный пункт",
+      "type": "text",
+      "required": false,
+      "maxLength": 28,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "10.4"
+        ],
+        "note": "Строка «Адрес фактического проживания» напечатана под строкой 7; п. 10.4 называет только строки 7 и 7.1 целиком, части адреса отдельно порядок не определяет."
+      }
+    },
+    {
+      "id": "residenceActualStreet",
+      "label": "Адрес фактического проживания (к регистрации по месту жительства): улица",
+      "type": "text",
+      "required": false,
+      "maxLength": 27,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "10.4"
+        ],
+        "note": "Строка «Адрес фактического проживания» напечатана под строкой 7; п. 10.4 называет только строки 7 и 7.1 целиком, части адреса отдельно порядок не определяет."
+      }
+    },
+    {
+      "id": "residenceActualHouse",
+      "label": "Адрес фактического проживания (к регистрации по месту жительства): дом",
+      "type": "text",
+      "required": false,
+      "maxLength": 10,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "10.4"
+        ],
+        "note": "Строка «Адрес фактического проживания» напечатана под строкой 7; п. 10.4 называет только строки 7 и 7.1 целиком, части адреса отдельно порядок не определяет."
+      }
+    },
+    {
+      "id": "residenceActualBuilding",
+      "label": "Адрес фактического проживания (к регистрации по месту жительства): корпус",
+      "type": "text",
+      "required": false,
+      "maxLength": 10,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "10.4"
+        ],
+        "note": "Строка «Адрес фактического проживания» напечатана под строкой 7; п. 10.4 называет только строки 7 и 7.1 целиком, части адреса отдельно порядок не определяет."
+      }
+    },
+    {
+      "id": "residenceActualApartment",
+      "label": "Адрес фактического проживания (к регистрации по месту жительства): квартира",
+      "type": "text",
+      "required": false,
+      "maxLength": 10,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "10.4"
+        ],
+        "note": "Строка «Адрес фактического проживания» напечатана под строкой 7; п. 10.4 называет только строки 7 и 7.1 целиком, части адреса отдельно порядок не определяет."
+      }
+    },
+    {
+      "id": "staySubject",
+      "label": "Регистрация по месту пребывания: субъект Российской Федерации",
+      "type": "text",
+      "required": false,
+      "maxLength": 70,
+      "prefill": {
+        "sources": [
+          "patient.stayAddress.subject"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "10.4"
+        ],
+        "note": "Пункт 10.4 называет строку 7.1 «Регистрация по месту пребывания» целиком; её части (район, улица, дом и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "stayDistrict",
+      "label": "Регистрация по месту пребывания: район",
+      "type": "text",
+      "required": false,
+      "maxLength": 52,
+      "prefill": {
+        "sources": [
+          "patient.stayAddress.district"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "10.4"
+        ],
+        "note": "Пункт 10.4 называет строку 7.1 «Регистрация по месту пребывания» целиком; её части (район, улица, дом и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "stayLocality",
+      "label": "Регистрация по месту пребывания: населенный пункт",
+      "type": "text",
+      "required": false,
+      "maxLength": 28,
+      "prefill": {
+        "sources": [
+          "patient.stayAddress.locality"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "10.4"
+        ],
+        "note": "Пункт 10.4 называет строку 7.1 «Регистрация по месту пребывания» целиком; её части (район, улица, дом и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "stayStreet",
+      "label": "Регистрация по месту пребывания: улица",
+      "type": "text",
+      "required": false,
+      "maxLength": 27,
+      "prefill": {
+        "sources": [
+          "patient.stayAddress.street"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "10.4"
+        ],
+        "note": "Пункт 10.4 называет строку 7.1 «Регистрация по месту пребывания» целиком; её части (район, улица, дом и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "stayHouse",
+      "label": "Регистрация по месту пребывания: дом",
+      "type": "text",
+      "required": false,
+      "maxLength": 10,
+      "prefill": {
+        "sources": [
+          "patient.stayAddress.house"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "10.4"
+        ],
+        "note": "Пункт 10.4 называет строку 7.1 «Регистрация по месту пребывания» целиком; её части (район, улица, дом и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "stayBuilding",
+      "label": "Регистрация по месту пребывания: корпус",
+      "type": "text",
+      "required": false,
+      "maxLength": 10,
+      "prefill": {
+        "sources": [
+          "patient.stayAddress.building"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "10.4"
+        ],
+        "note": "Пункт 10.4 называет строку 7.1 «Регистрация по месту пребывания» целиком; её части (район, улица, дом и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "stayApartment",
+      "label": "Регистрация по месту пребывания: квартира",
+      "type": "text",
+      "required": false,
+      "maxLength": 10,
+      "prefill": {
+        "sources": [
+          "patient.stayAddress.apartment"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "10.4"
+        ],
+        "note": "Пункт 10.4 называет строку 7.1 «Регистрация по месту пребывания» целиком; её части (район, улица, дом и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "stayActualSubject",
+      "label": "Адрес фактического проживания (к регистрации по месту пребывания): субъект Российской Федерации",
+      "type": "text",
+      "required": false,
+      "maxLength": 70,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "10.4"
+        ],
+        "note": "Строка «Адрес фактического проживания» напечатана под строкой 7.1; п. 10.4 называет только строки 7 и 7.1 целиком, части адреса отдельно порядок не определяет."
+      }
+    },
+    {
+      "id": "stayActualDistrict",
+      "label": "Адрес фактического проживания (к регистрации по месту пребывания): район",
+      "type": "text",
+      "required": false,
+      "maxLength": 52,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "10.4"
+        ],
+        "note": "Строка «Адрес фактического проживания» напечатана под строкой 7.1; п. 10.4 называет только строки 7 и 7.1 целиком, части адреса отдельно порядок не определяет."
+      }
+    },
+    {
+      "id": "stayActualLocality",
+      "label": "Адрес фактического проживания (к регистрации по месту пребывания): населенный пункт",
+      "type": "text",
+      "required": false,
+      "maxLength": 28,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "10.4"
+        ],
+        "note": "Строка «Адрес фактического проживания» напечатана под строкой 7.1; п. 10.4 называет только строки 7 и 7.1 целиком, части адреса отдельно порядок не определяет."
+      }
+    },
+    {
+      "id": "stayActualStreet",
+      "label": "Адрес фактического проживания (к регистрации по месту пребывания): улица",
+      "type": "text",
+      "required": false,
+      "maxLength": 27,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "10.4"
+        ],
+        "note": "Строка «Адрес фактического проживания» напечатана под строкой 7.1; п. 10.4 называет только строки 7 и 7.1 целиком, части адреса отдельно порядок не определяет."
+      }
+    },
+    {
+      "id": "stayActualHouse",
+      "label": "Адрес фактического проживания (к регистрации по месту пребывания): дом",
+      "type": "text",
+      "required": false,
+      "maxLength": 10,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "10.4"
+        ],
+        "note": "Строка «Адрес фактического проживания» напечатана под строкой 7.1; п. 10.4 называет только строки 7 и 7.1 целиком, части адреса отдельно порядок не определяет."
+      }
+    },
+    {
+      "id": "stayActualBuilding",
+      "label": "Адрес фактического проживания (к регистрации по месту пребывания): корпус",
+      "type": "text",
+      "required": false,
+      "maxLength": 10,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "10.4"
+        ],
+        "note": "Строка «Адрес фактического проживания» напечатана под строкой 7.1; п. 10.4 называет только строки 7 и 7.1 целиком, части адреса отдельно порядок не определяет."
+      }
+    },
+    {
+      "id": "stayActualApartment",
+      "label": "Адрес фактического проживания (к регистрации по месту пребывания): квартира",
+      "type": "text",
+      "required": false,
+      "maxLength": 10,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "10.4"
+        ],
+        "note": "Строка «Адрес фактического проживания» напечатана под строкой 7.1; п. 10.4 называет только строки 7 и 7.1 целиком, части адреса отдельно порядок не определяет."
+      }
+    },
+    {
+      "id": "citizenship",
+      "label": "гражданство (для иностранных граждан)",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.4"
+        ]
+      }
+    },
+    {
+      "id": "entryDate",
+      "label": "дата въезда в Российскую Федерацию",
+      "type": "date",
+      "required": false,
+      "notAfter": "today",
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.4"
+        ]
+      }
+    },
+    {
+      "id": "snils",
+      "label": "Страховой номер индивидуального лицевого счета (при наличии)",
+      "type": "text",
+      "required": false,
+      "maxLength": 14,
+      "pattern": "^[0-9]{3}-[0-9]{3}-[0-9]{3} [0-9]{2}$",
+      "patternMessage": "СНИЛС в формате 123-456-789 01",
+      "prefill": {
+        "sources": [
+          "patient.snils"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.4"
+        ]
+      }
+    },
+    {
+      "id": "patientPhone",
+      "label": "Контактный телефон (при наличии)",
+      "type": "text",
+      "required": false,
+      "maxLength": 60,
+      "prefill": {
+        "sources": [
+          "patient.address.phone"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.5"
+        ]
+      }
+    },
+    {
+      "id": "occupation",
+      "label": "Занятость",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "1",
+          "label": "работает"
+        },
+        {
+          "value": "2",
+          "label": "обучающийся"
+        },
+        {
+          "value": "3",
+          "label": "отдыхающий"
+        },
+        {
+          "value": "4",
+          "label": "получатель социальных услуг"
+        },
+        {
+          "value": "5",
+          "label": "не работает"
+        },
+        {
+          "value": "6",
+          "label": "прочее"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.6",
+          "5"
+        ]
+      }
+    },
+    {
+      "id": "occupationChild",
+      "label": "Для детей",
+      "type": "choice",
+      "required": false,
+      "options": [
+        {
+          "value": "7",
+          "label": "дошкольник, организован"
+        },
+        {
+          "value": "8",
+          "label": "дошкольник, не организован"
+        },
+        {
+          "value": "9",
+          "label": "школьник"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.6",
+          "5"
+        ]
+      }
+    },
+    {
+      "id": "workplace",
+      "label": "Место работы (службы), обучения, отдыха, нахождения в санаторно-курортной организации, в организации, осуществляющей стационарное или полустационарное социальное обслуживание",
+      "type": "text",
+      "required": false,
+      "maxLength": 300,
+      "multiline": true,
+      "prefill": {
+        "sources": [
+          "patient.workplace"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.6"
+        ]
+      }
+    },
+    {
+      "id": "studyGroup",
+      "label": "Факультет, курс, группа, класс, иное",
+      "type": "text",
+      "required": false,
+      "maxLength": 300,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.6"
+        ]
+      }
+    },
+    {
+      "id": "jobDuties",
+      "label": "Выполняемые виды работ (для работающего)",
+      "type": "text",
+      "required": false,
+      "maxLength": 300,
+      "multiline": true,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.6"
+        ]
+      }
+    },
+    {
+      "id": "occupationExtra",
+      "label": "Дополнительные сведения",
+      "type": "text",
+      "required": false,
+      "maxLength": 300,
+      "multiline": true,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.6"
+        ]
+      }
+    },
+    {
+      "id": "onsetDate",
+      "label": "Дата заболевания (со слов пациента/законного представителя пациента)",
+      "type": "date",
+      "required": true,
+      "requiredBasis": "source",
+      "notAfter": "today",
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.7"
+        ]
+      }
+    },
+    {
+      "id": "firstVisitDate",
+      "label": "Дата первичного обращения к врачу-специалисту (фельдшеру, акушеру (акушерке) по поводу данного заболевания (при наличии сведений)",
+      "type": "date",
+      "required": false,
+      "notAfter": "today",
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.7"
+        ]
+      }
+    },
+    {
+      "id": "diagnosisDate",
+      "label": "Дата установления диагноза",
+      "type": "date",
+      "required": true,
+      "requiredBasis": "source",
+      "notAfter": "today",
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.7"
+        ]
+      }
+    },
+    {
+      "id": "lastVisitDate",
+      "label": "Дата последнего посещения места работы (службы), обучения, отдыха, нахождения в санаторно-курортной организации, организации, осуществляющей стационарное или полустационарное социальное обслуживание (со слов пациента/законного представителя пациента)",
+      "type": "date",
+      "required": false,
+      "notAfter": "today",
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.7"
+        ]
+      }
+    },
+    {
+      "id": "hospitalizationDate",
+      "label": "Дата госпитализации (при наличии сведений)",
+      "type": "date",
+      "required": false,
+      "notAfter": "today",
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.7"
+        ]
+      }
+    },
+    {
+      "id": "hospitalizationPlace",
+      "label": "место госпитализации (при наличии сведений)",
+      "type": "text",
+      "required": false,
+      "maxLength": 300,
+      "multiline": true,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.7"
+        ]
+      }
+    },
+    {
+      "id": "deathDate",
+      "label": "Дата смерти",
+      "type": "date",
+      "required": false,
+      "notAfter": "today",
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.7"
+        ]
+      }
+    },
+    {
+      "id": "biter",
+      "label": "кем укушен",
+      "type": "choice",
+      "required": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "животное"
+        },
+        {
+          "value": "2",
+          "label": "клещ"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.8",
+          "5"
+        ]
+      }
+    },
+    {
+      "id": "animalKind",
+      "label": "Животное: домашнее или дикое",
+      "type": "choice",
+      "labelPrinted": false,
+      "required": false,
+      "options": [
+        {
+          "value": "1.1",
+          "label": "домашнее"
+        },
+        {
+          "value": "1.2",
+          "label": "дикое"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.8",
+          "5"
+        ]
+      }
+    },
+    {
+      "id": "animalSpecies",
+      "label": "вид (подвид) животного",
+      "type": "text",
+      "required": false,
+      "maxLength": 300,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.8"
+        ]
+      }
+    },
+    {
+      "id": "injuryKind",
+      "label": "характер травмы",
+      "type": "choice",
+      "required": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "укус"
+        },
+        {
+          "value": "2",
+          "label": "удар"
+        },
+        {
+          "value": "3",
+          "label": "оцарапывание"
+        },
+        {
+          "value": "4",
+          "label": "ослюнение"
+        },
+        {
+          "value": "5",
+          "label": "присасывание"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.8",
+          "5"
+        ]
+      }
+    },
+    {
+      "id": "injuryLocation",
+      "label": "локализация травмы",
+      "type": "text",
+      "required": false,
+      "maxLength": 300,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.8"
+        ]
+      }
+    },
+    {
+      "id": "biteLocation",
+      "label": "где укушен (страна, субъект Российской Федерации, населенный пункт)",
+      "type": "text",
+      "required": false,
+      "maxLength": 300,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.8"
+        ]
+      }
+    },
+    {
+      "id": "foodProduct",
+      "label": "подозрительный продукт (блюдо) при подозрении на пищевое отравление",
+      "type": "text",
+      "required": false,
+      "maxLength": 300,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.9"
+        ]
+      }
+    },
+    {
+      "id": "foodPurchase",
+      "label": "дата и место приобретения",
+      "type": "text",
+      "required": false,
+      "maxLength": 300,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.9"
+        ]
+      }
+    },
+    {
+      "id": "travelAbroad",
+      "label": "Сведения о месте нахождения пациента за последние 30 дней до появления клинических симптомов заболевания за пределами Российской Федерации или за пределами населенного пункта фактического пребывания (при наличии)",
+      "type": "choice",
+      "required": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "да"
+        },
+        {
+          "value": "2",
+          "label": "нет"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.10",
+          "5"
+        ]
+      }
+    },
+    {
+      "id": "travelPlace",
+      "label": "страна/населенный пункт и период пребывания",
+      "type": "text",
+      "required": false,
+      "maxLength": 300,
+      "multiline": true,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.10"
+        ]
+      }
+    },
+    {
+      "id": "contactHistory",
+      "label": "Наличие в анамнезе контакта за последние 30 дней с инфекционным больным (человеком или животным), сырьем животного происхождения (при наличии сведений, перечислить)",
+      "type": "text",
+      "required": false,
+      "maxLength": 300,
+      "multiline": true,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.10"
+        ]
+      }
+    },
+    {
+      "id": "measures",
+      "label": "Проведенные первичные противоэпидемические мероприятия и дополнительные сведения",
+      "type": "text",
+      "required": false,
+      "maxLength": 1000,
+      "multiline": true,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.11"
+        ]
+      }
+    },
+    {
+      "id": "informedDate",
+      "label": "Информирование территориального органа: дата",
+      "type": "date",
+      "required": true,
+      "requiredBasis": "source",
+      "notAfter": "today",
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.12"
+        ]
+      }
+    },
+    {
+      "id": "informedHour",
+      "label": "Информирование территориального органа: час",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "maxLength": 2,
+      "pattern": "^(?:[01]?[0-9]|2[0-3])$",
+      "patternMessage": "Час от 0 до 23",
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.12"
+        ]
+      }
+    },
+    {
+      "id": "informedMinute",
+      "label": "Информирование территориального органа: минута",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "maxLength": 2,
+      "pattern": "^[0-5]?[0-9]$",
+      "patternMessage": "Минута от 0 до 59",
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10.12"
+        ]
+      }
+    },
+    {
+      "id": "sentDate",
+      "label": "отправка экстренного извещения",
+      "type": "date",
+      "required": false,
+      "notAfter": "today",
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Порядок (п. 10.12) описывает только дату и время информирования территориального органа (строка 17); строку «отправка экстренного извещения» он не называет."
+      }
+    },
+    {
+      "id": "filledByName",
+      "label": "Фамилия, имя, отчество (при наличии) лица, заполнившего извещение",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "maxLength": 200,
+      "prefill": {
+        "sources": [
+          "clinician.fullName"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "11"
+        ]
+      }
+    },
+    {
+      "id": "filledByPosition",
+      "label": "Должность лица, заполнившего извещение",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "maxLength": 200,
+      "prefill": {
+        "sources": [
+          "clinician.position"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "11"
+        ]
+      }
+    },
+    {
+      "id": "acceptedByName",
+      "label": "Фамилия, имя, отчество (при наличии) лица, принявшего сообщение",
+      "type": "text",
+      "required": false,
+      "maxLength": 200,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "11"
+        ]
+      }
+    },
+    {
+      "id": "acceptedRegNumber",
+      "label": "Регистрационный № принятого извещения",
+      "type": "text",
+      "required": false,
+      "maxLength": 40,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "11"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "id": "5",
+      "text": "5. Заполнение данных в Извещении на бумажном носителе производится путем внесения медицинским работником необходимых сведений и подчеркивания ответов из предложенных вариантов.",
+      "spans": [
+        {
+          "pdfPage": 5,
+          "firstLine": 21,
+          "lastLine": 23
+        }
+      ],
+      "textSha256": "9bb84c7f45c4916fc92d8d9e7505b7b9c1bbd1f03e32f5efeb5576bc046ad891"
+    },
+    {
+      "id": "9",
+      "text": "9. На титульном листе Извещения указываются наименование и адрес медицинской организации (в соответствии с учредительными документами), основной государственный регистрационный номер (ОГРН) медицинской организации или в отношении индивидуального предпринимателя, осуществляющего медицинскую деятельность, фамилия, имя, отчество (при наличии), адрес осуществления медицинской деятельности и основной государственный регистрационный номер индивидуального предпринимателя (ОГРНИП), а также регистрационный номер Извещения и дата его заполнения.",
+      "spans": [
+        {
+          "pdfPage": 6,
+          "firstLine": 12,
+          "lastLine": 19
+        }
+      ],
+      "textSha256": "62361fdda4c3cdd710716f45d06190d96c1a7c63bb47fafc6f1ab6e1963f5bb5"
+    },
+    {
+      "id": "10.1",
+      "text": "10.1. В строке 1 «Диагноз» указывается диагноз заболевания (состояние), включая его код по Международной статистической классификации болезней и проблем, связанных со здоровьем (далее – МКБ), в строке «Внешняя причина (при травмах)» указывается описание обстоятельств, при которых произошло событие (укус, удар, нанесенный животным, в том числе клещом), включая код по МКБ. В строке 1.1 указывается диагноз предварительный или заключительный. В строке 1.2 «Лабораторное подтверждение» указывается подтверждение диагноза заболевания лабораторными методами либо отсутствие лабораторного подтверждения.",
+      "spans": [
+        {
+          "pdfPage": 6,
+          "firstLine": 21,
+          "lastLine": 30
+        }
+      ],
+      "textSha256": "4d381389051d653af894d4b5acb63a2bdb1f53863528b98efca824b9b098580b"
+    },
+    {
+      "id": "10.2",
+      "text": "10.2. В строке 2 указывается первичность или повторность оформления (формирования) Извещения. В случае, если диагноз заболевания (состояние) или подозрение на заболевание установлены впервые, делается отметка «первичное». При уточнении диагноза, при его лабораторном подтверждении или наступлении у пациента летального исхода заполняется новое Извещение с указанием «повторное».",
+      "spans": [
+        {
+          "pdfPage": 6,
+          "firstLine": 31,
+          "lastLine": 37
+        }
+      ],
+      "textSha256": "0c0a43689e025b7df92fc2de354f901cfd04265bfd4dfef29a42757024997989"
+    },
+    {
+      "id": "10.3",
+      "text": "10.3. В строке 3 указывается причина подачи Извещения: для первично оформленных (сформированных) Извещений – установление диагноза (подозрение на заболевание); для повторно оформленных (сформированных) Извещений – уточнение диагноза или смерть.",
+      "spans": [
+        {
+          "pdfPage": 7,
+          "firstLine": 1,
+          "lastLine": 4
+        }
+      ],
+      "textSha256": "ae6b945a090256ff18462bdc444c76818a4e8db476dc68179c1411aaa858c4f3"
+    },
+    {
+      "id": "10.4",
+      "text": "10.4. Строки 4 «Фамилия, имя, отчество (при наличии)», 5 «Пол», 6 «Дата рождения», 7 «Регистрация по месту жительства», 7.1 «Регистрация по месту пребывания», 8 «Страховой номер индивидуального лицевого счета» (при наличии) заполняются на основании сведений, содержащихся в медицинской документации. В случае, если пациент является несовершеннолетним – на основании паспорта или свидетельства о рождении (для детей в возрасте до 14 лет). В строке 7.2 «Для иностранных граждан» указывается гражданство, страна и дата въезда в Российскую Федерацию (на основании документа, удостоверяющего личность либо со слов пациента).",
+      "spans": [
+        {
+          "pdfPage": 7,
+          "firstLine": 5,
+          "lastLine": 13
+        }
+      ],
+      "textSha256": "f6a912351a84232e0806a747949ce5746e47808875158efae90153a7ddaf2f11"
+    },
+    {
+      "id": "10.5",
+      "text": "10.5. В строке 9 «Контактный телефон» указывается номер телефона пациента или его законного представителя (при наличии).",
+      "spans": [
+        {
+          "pdfPage": 7,
+          "firstLine": 14,
+          "lastLine": 15
+        }
+      ],
+      "textSha256": "45002f5bf6be05701bb632731342c44091d2b647ba4da578ffbbf10e7e7ea27c"
+    },
+    {
+      "id": "10.6",
+      "text": "10.6. В строке 10 «Занятость» указываются сведения о занятости пациента с его слов или со слов его законного представителя, либо иного лица: «работает» указывается для всех лиц, имеющих место работы; «обучающийся» указывается для обучающихся в общеобразовательных организациях, организациях дополнительного образования, профессиональных образовательных организациях, образовательных организациях высшего или среднего профессионального образования, организациях дополнительного профессионального образования; «отдыхающий» указывается для лиц, находящихся в организациях отдыха детей и их оздоровления, санаторно-курортных организациях; «получатель социальных услуг» указывается для лиц, находящихся в организациях, осуществляющих стационарное или полустационарное социальное обслуживание; «не работает» указывается для трудоспособных граждан, которые не имеют работы и заработка, зарегистрированы в органах службы занятости в целях поиска подходящей работы, ищут работу и готовы к ней приступить (за исключением граждан, не достигших возраста 16 лет), неработающих лиц, получающих страховую пенсию (по старости, по инвалидности, по случаю потери кормильца) или социальную пенсию (пенсионеров); «прочее» указывается для лиц, которые заняты домашним хозяйством, и для лиц без определенного места жительства. В строке «Для детей» указывается соответственно «дошкольник, организован», «дошкольник, не организован», «школьник». В строке «Место работы (службы), обучения, отдыха, нахождения в санаторно-курортной организации, в организации, осуществляющей стационарное или полустационарное социальное обслуживание» указывается наименование организации, адрес ее фактического нахождения; наименование и адрес фактического нахождения дошкольной образовательной организации, общеобразовательной организации, организации дополнительного образования, профессиональной образовательной организации, образовательной организации высшего или среднего профессионального образования, организации дополнительного профессионального образования; организации отдыха детей и их оздоровления; санаторно-курортной организации, в организации, осуществляющей стационарное или полустационарное социальное обслуживание. Указывается факультет, курс, группа, класс, иное. В строке «Выполняемые виды работ (для работающего)» указываются наименования выполняемых работником видов работ в соответствии с пунктами 23–27 приложения к Порядку проведения обязательных предварительных и периодических медицинских осмотров работников, предусмотренных частью четвертой статьи 213 Трудового кодекса Российской Федерации, утвержденному приказом Министерства здравоохранения Российской Федерации от 28 января 2021 г. № 29н. В строке «Дополнительные сведения» указываются сведения (при наличии), имеющие значение для определения занятости пациента.",
+      "spans": [
+        {
+          "pdfPage": 7,
+          "firstLine": 16,
+          "lastLine": 43
+        },
+        {
+          "pdfPage": 8,
+          "firstLine": 1,
+          "lastLine": 15
+        }
+      ],
+      "textSha256": "b6b37b3bbe9c2e7738bfefaa226e0436ef4f106fd0a957c3cac29d3923b5b52c"
+    },
+    {
+      "id": "10.7",
+      "text": "10.7. В строке 11 указываются даты (число, месяц, год): заболевания (со слов пациента/законного представителя пациента); первичного обращения к врачу-специалисту (фельдшеру, акушеру (акушерке) по поводу данного заболевания (при наличии сведений); установления диагноза; последнего посещения места работы (службы), обучения, отдыха, нахождения в санаторно-курортной организации, организации, осуществляющей стационарное или полустационарное социальное обслуживание (со слов пациента/законного представителя пациента); госпитализации с указанием ее места (при наличии сведений); смерти (при наступлении летального исхода).",
+      "spans": [
+        {
+          "pdfPage": 8,
+          "firstLine": 16,
+          "lastLine": 26
+        }
+      ],
+      "textSha256": "c7c8d1c48c4c18fac071b75eac217f23702e6187f5c4a883d5b3d1bf0beae577"
+    },
+    {
+      "id": "10.8",
+      "text": "10.8. Строка 12 заполняется при обращении за медицинской помощью в случае укуса или удара, нанесенного животным, в том числе клещом. В строке «кем укушен» указывается животное или клещ; указываются (при наличии сведений): условия содержания животного (домашнее или дикое); конкретный вид (подвид) животного; характер травмы: укус, удар, оцарапывание, ослюнение, нанесенные животным, в том числе укус, присасывание клеща; локализация травмы; место, где произошел контакт с животным или клещом (страна, субъект Российской Федерации, населенный пункт).",
+      "spans": [
+        {
+          "pdfPage": 8,
+          "firstLine": 27,
+          "lastLine": 37
+        }
+      ],
+      "textSha256": "8cb472baa215451d1e4cae1bd3284c85d78fff359d0e4d1280033a02a2282873"
+    },
+    {
+      "id": "10.9",
+      "text": "10.9. В строке 13 в случае подозрения на пищевое отравление указывается наименование подозрительного пищевого продукта (блюда), дата и место приобретения (употребления) (со слов пациента и при наличии сведений).",
+      "spans": [
+        {
+          "pdfPage": 8,
+          "firstLine": 38,
+          "lastLine": 40
+        }
+      ],
+      "textSha256": "c55c450f49041ecf7d61e39c4d8e3e0a621ffc2622ad3f65326891e70a0ee574"
+    },
+    {
+      "id": "10.10",
+      "text": "10.10. В строках 14 и 15 указываются сведения о месте нахождения пациента за последние 30 дней до появления клинических симптомов заболевания за пределами Российской Федерации или за пределами населенного пункта фактического пребывания (при наличии), а также о наличии в анамнезе контакта за последние 30 дней с инфекционным больным (человеком или животным), пищевым и непищевым сырьем животного происхождения.",
+      "spans": [
+        {
+          "pdfPage": 9,
+          "firstLine": 1,
+          "lastLine": 6
+        }
+      ],
+      "textSha256": "c47375ee9190f3c49b2df99804abefd84ca013c58929560005e82980ae38a8ab"
+    },
+    {
+      "id": "10.11",
+      "text": "10.11. В строке 16 «Проведенные первичные противоэпидемические мероприятия и дополнительные сведения» указываются сведения о проведенных первичных противоэпидемических мероприятиях, иные сведения.",
+      "spans": [
+        {
+          "pdfPage": 9,
+          "firstLine": 7,
+          "lastLine": 9
+        }
+      ],
+      "textSha256": "87d7d70ab19172e7dfc9ab4273e59c4a6bd6b0ba54f75ee22ecc11f424ff0507"
+    },
+    {
+      "id": "10.12",
+      "text": "10.12. В строке 17 «Информирование территориального органа федерального органа исполнительной власти, осуществляющего федеральный государственный санитарно-эпидемиологический контроль (надзор)» указывается дата и время информирования территориального органа (по телефону, письменно, электронным способом связи).",
+      "spans": [
+        {
+          "pdfPage": 9,
+          "firstLine": 10,
+          "lastLine": 14
+        }
+      ],
+      "textSha256": "5026c26b0fa78b1d00c8dc3e94935cf9c7f653348b32696b3e82b6a0ca946ef3"
+    },
+    {
+      "id": "11",
+      "text": "11. В строке «Фамилия, имя, отчество (при наличии) лица, заполнившего извещение» указываются фамилия, имя, отчество (при наличии), должность, специальность медицинского работника, заполнившего Извещение. В строке «Фамилия, имя, отчество (при наличии) лица, принявшего сообщение» указываются фамилия, имя, отчество (при наличии) сотрудника территориального органа, принявшего Извещение. В строке «Регистрационный № принятого извещения» указывается регистрационный номер Извещения в территориальном органе.",
+      "spans": [
+        {
+          "pdfPage": 9,
+          "firstLine": 15,
+          "lastLine": 22
+        }
+      ],
+      "textSha256": "0c101b899feef989149556b81ce5d49f0bee01dd74e93d0dc9cbfdea3e017df2"
+    }
+  ],
+  "layout": {
+    "page": {
+      "size": "A4",
+      "orientation": "portrait",
+      "marginMm": {
+        "top": 20,
+        "right": 9.4,
+        "bottom": 10,
+        "left": 19.0
+      },
+      "fontSizePt": 12.0,
+      "lineHeight": 1.1
+    },
+    "blocks": [
+      {
+        "id": "header",
+        "columns": [
+          {
+            "widthPercent": 58,
+            "align": "left",
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Наименование и адрес медицинской организации"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "(фамилия, имя, отчество (при наличии) индивидуального"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "предпринимателя и адрес осуществления медицинской"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "деятельности)"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Основной государственный регистрационный номер"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "(Основной государственный регистрационный"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "номер индивидуального предпринимателя)"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "field",
+                    "fieldId": "organization",
+                    "length": 47,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "field",
+                    "fieldId": "organizationOgrn",
+                    "length": 47,
+                    "grow": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "widthPercent": 36,
+            "align": "left",
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Медицинская документация"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Учетная форма № 058/у"
+                  }
+                ],
+                "spaceBeforeMm": 4.31
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Утверждена приказом"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Министерства здравоохранения"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Российской Федерации"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "от 20 августа 2026 г. № 740н"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "title",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "ЭКСТРЕННОЕ ИЗВЕЩЕНИЕ О СЛУЧАЕ ИНФЕКЦИОННОЙ, ПАРАЗИТАРНОЙ"
+                  }
+                ],
+                "align": "center",
+                "bold": true,
+                "spaceBeforeMm": 5.25
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "БОЛЕЗНИ И НОСИТЕЛЬСТВА ВОЗБУДИТЕЛЕЙ ИНФЕКЦИОННЫХ БОЛЕЗНЕЙ,"
+                  }
+                ],
+                "align": "center",
+                "bold": true,
+                "spaceBeforeMm": 0.53
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "ПИЩЕВОГО ОТРАВЛЕНИЯ, УКУСА ИЛИ УДАРА, НАНЕСЕННОГО ЖИВОТНЫМ №",
+                    "bold": true
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "formNumber",
+                    "length": 5
+                  }
+                ],
+                "align": "center",
+                "spaceBeforeMm": 0.4
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "filled",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Дата заполнения экстренного извещения: число"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "formDate",
+                    "length": 4,
+                    "part": "day"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "месяц"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "formDate",
+                    "length": 8,
+                    "part": "month"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "год"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "formDate",
+                    "length": 4,
+                    "part": "year"
+                  }
+                ],
+                "spaceBeforeMm": 0.44
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "diagnosis",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "1. Диагноз"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "diagnosis",
+                    "length": 47,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "код по МКБ"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "diagnosisIcd",
+                    "length": 16
+                  }
+                ],
+                "spaceBeforeMm": 4.77
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Внешняя причина (при травмах)"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "externalCause",
+                    "length": 29,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "код по МКБ"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "externalCauseIcd",
+                    "length": 16
+                  }
+                ],
+                "spaceBeforeMm": 0.87
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "1.1."
+                  },
+                  {
+                    "kind": "options",
+                    "fieldId": "diagnosisKind",
+                    "separator": ", ",
+                    "mark": "underline"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "1.2. Лабораторное подтверждение:"
+                  },
+                  {
+                    "kind": "options",
+                    "fieldId": "labConfirmed",
+                    "separator": ", ",
+                    "mark": "underline"
+                  }
+                ],
+                "spaceBeforeMm": 0.28
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "2. Извещение:"
+                  },
+                  {
+                    "kind": "options",
+                    "fieldId": "noticeKind",
+                    "separator": ", ",
+                    "mark": "underline"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "3. Причина подачи экстренного извещения: "
+                  },
+                  {
+                    "kind": "options",
+                    "fieldId": "reason",
+                    "separator": ", ",
+                    "mark": "underline"
+                  }
+                ],
+                "align": "justify",
+                "spaceBeforeMm": 0.25
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "patient",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "4. Фамилия, имя, отчество (при наличии) пациента"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "patientFullName",
+                    "length": 40,
+                    "grow": true
+                  }
+                ],
+                "spaceBeforeMm": 0.65
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "5. Пол:"
+                  },
+                  {
+                    "kind": "options",
+                    "fieldId": "patientSex",
+                    "separator": ", ",
+                    "mark": "underline"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "6. Дата рождения: число"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "patientBirthDate",
+                    "length": 11,
+                    "part": "day"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "месяц"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "patientBirthDate",
+                    "length": 18,
+                    "part": "month"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "год"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "patientBirthDate",
+                    "length": 8,
+                    "part": "year"
+                  }
+                ],
+                "spaceBeforeMm": 0.25
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "residence",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "7. Регистрация по месту жительства:"
+                  }
+                ],
+                "spaceBeforeMm": 0.45
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "субъект Российской Федерации"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceSubject",
+                    "length": 13
+                  },
+                  {
+                    "kind": "text",
+                    "text": "район"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceDistrict",
+                    "length": 9
+                  },
+                  {
+                    "kind": "text",
+                    "text": "населенный пункт"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceLocality",
+                    "length": 11,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "улица"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceStreet",
+                    "length": 11
+                  },
+                  {
+                    "kind": "text",
+                    "text": "дом"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceHouse",
+                    "length": 6
+                  },
+                  {
+                    "kind": "text",
+                    "text": "корпус"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceBuilding",
+                    "length": 7
+                  },
+                  {
+                    "kind": "text",
+                    "text": "квартира"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceApartment",
+                    "length": 9
+                  }
+                ],
+                "spaceBeforeMm": 0.76
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Адрес фактического проживания:"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "субъект Российской Федерации"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceActualSubject",
+                    "length": 10
+                  },
+                  {
+                    "kind": "text",
+                    "text": ", район"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceActualDistrict",
+                    "length": 9
+                  },
+                  {
+                    "kind": "text",
+                    "text": ", населенный пункт"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceActualLocality",
+                    "length": 14,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "улица"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceActualStreet",
+                    "length": 19
+                  },
+                  {
+                    "kind": "text",
+                    "text": "дом"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceActualHouse",
+                    "length": 6
+                  },
+                  {
+                    "kind": "text",
+                    "text": "корпус"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceActualBuilding",
+                    "length": 7
+                  },
+                  {
+                    "kind": "text",
+                    "text": "квартира"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceActualApartment",
+                    "length": 9
+                  }
+                ],
+                "spaceBeforeMm": 0.63
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "7.1. Регистрация по месту пребывания:"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "субъект Российской Федерации"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "staySubject",
+                    "length": 10
+                  },
+                  {
+                    "kind": "text",
+                    "text": ", район"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "stayDistrict",
+                    "length": 9
+                  },
+                  {
+                    "kind": "text",
+                    "text": ", населенный пункт"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "stayLocality",
+                    "length": 14,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "улица"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "stayStreet",
+                    "length": 19
+                  },
+                  {
+                    "kind": "text",
+                    "text": "дом"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "stayHouse",
+                    "length": 6
+                  },
+                  {
+                    "kind": "text",
+                    "text": "корпус"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "stayBuilding",
+                    "length": 7
+                  },
+                  {
+                    "kind": "text",
+                    "text": "квартира"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "stayApartment",
+                    "length": 9
+                  }
+                ],
+                "spaceBeforeMm": 0.41
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Адрес фактического проживания:"
+                  }
+                ],
+                "spaceBeforeMm": 0.58
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "субъект Российской Федерации"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "stayActualSubject",
+                    "length": 10
+                  },
+                  {
+                    "kind": "text",
+                    "text": ", район"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "stayActualDistrict",
+                    "length": 9
+                  },
+                  {
+                    "kind": "text",
+                    "text": ", населенный пункт"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "stayActualLocality",
+                    "length": 14,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "улица"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "stayActualStreet",
+                    "length": 19
+                  },
+                  {
+                    "kind": "text",
+                    "text": "дом"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "stayActualHouse",
+                    "length": 6
+                  },
+                  {
+                    "kind": "text",
+                    "text": "корпус"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "stayActualBuilding",
+                    "length": 7
+                  },
+                  {
+                    "kind": "text",
+                    "text": "квартира"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "stayActualApartment",
+                    "length": 9
+                  }
+                ],
+                "spaceBeforeMm": 0.33
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "foreign",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "7.2. Для иностранных граждан:"
+                  }
+                ],
+                "spaceBeforeMm": 0.05
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "гражданство"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "citizenship",
+                    "length": 56,
+                    "grow": true
+                  }
+                ],
+                "spaceBeforeMm": 0.33
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "дата въезда в Российскую Федерацию: число"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "entryDate",
+                    "length": 9,
+                    "part": "day"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "месяц"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "entryDate",
+                    "length": 14,
+                    "part": "month"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "год"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "entryDate",
+                    "length": 12,
+                    "grow": true,
+                    "part": "year"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "contact",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "8. Страховой номер индивидуального лицевого счета (при наличии):"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "snils",
+                    "length": 23
+                  }
+                ],
+                "spaceBeforeMm": 0.48
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "9. Контактный телефон (при наличии)"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "patientPhone",
+                    "length": 49
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "10. Занятость: "
+                  },
+                  {
+                    "kind": "options",
+                    "fieldId": "occupation",
+                    "separator": ", ",
+                    "mark": "underline"
+                  }
+                ],
+                "align": "justify"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Для детей:"
+                  },
+                  {
+                    "kind": "options",
+                    "fieldId": "occupationChild",
+                    "separator": ", ",
+                    "mark": "underline"
+                  }
+                ],
+                "spaceBeforeMm": 0.39
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "workplace",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Место работы (службы), обучения, отдыха, нахождения в санаторно-курортной организации,"
+                  }
+                ],
+                "align": "stretch",
+                "spaceBeforeMm": 2.4
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "в организации, осуществляющей стационарное или полустационарное социальное обслуживание"
+                  }
+                ],
+                "align": "stretch"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "field",
+                    "fieldId": "workplace",
+                    "length": 84,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Факультет, курс, группа, класс, иное"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "studyGroup",
+                    "length": 52,
+                    "grow": true
+                  }
+                ],
+                "spaceBeforeMm": 1.04
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Выполняемые виды работ (для работающего):"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "jobDuties",
+                    "length": 44,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Дополнительные сведения"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "occupationExtra",
+                    "length": 61,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "rule",
+                    "length": 84,
+                    "grow": true
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "pageBreakBefore": true
+      },
+      {
+        "id": "dates",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "11. Дата:"
+                  }
+                ],
+                "spaceBeforeMm": 0.61
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "заболевания (со слов пациента/законного представителя пациента): число"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "onsetDate",
+                    "length": 3,
+                    "part": "day"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "месяц"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "onsetDate",
+                    "length": 4,
+                    "part": "month"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "год"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "onsetDate",
+                    "length": 5,
+                    "grow": true,
+                    "part": "year"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "первичного обращения к врачу-специалисту (фельдшеру, акушеру (акушерке) по поводу данного"
+                  }
+                ],
+                "align": "stretch",
+                "spaceBeforeMm": 1.52
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "заболевания (при наличии сведений): число"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "firstVisitDate",
+                    "length": 8,
+                    "part": "day"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "месяц"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "firstVisitDate",
+                    "length": 9,
+                    "part": "month"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "год"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "firstVisitDate",
+                    "length": 10,
+                    "part": "year"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "установления диагноза: число"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "diagnosisDate",
+                    "length": 6,
+                    "part": "day"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "месяц"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "diagnosisDate",
+                    "length": 6,
+                    "part": "month"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "год"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "diagnosisDate",
+                    "length": 8,
+                    "part": "year"
+                  }
+                ],
+                "spaceBeforeMm": 1.51
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "последнего посещения места работы (службы), обучения, отдыха, нахождения в санаторно-"
+                  }
+                ],
+                "align": "stretch",
+                "spaceBeforeMm": 1.55
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "курортной организации, организации, осуществляющей стационарное или полустационарное"
+                  }
+                ],
+                "align": "stretch"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "социальное обслуживание (со слов пациента/законного представителя пациента):"
+                  }
+                ],
+                "align": "stretch",
+                "spaceBeforeMm": 0.26
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "число"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "lastVisitDate",
+                    "length": 6,
+                    "part": "day"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "месяц"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "lastVisitDate",
+                    "length": 5,
+                    "part": "month"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "год"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "lastVisitDate",
+                    "length": 5,
+                    "part": "year"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "госпитализации (при наличии сведений): число"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "hospitalizationDate",
+                    "length": 4,
+                    "part": "day"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "месяц"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "hospitalizationDate",
+                    "length": 3,
+                    "part": "month"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "год"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "hospitalizationDate",
+                    "length": 6,
+                    "part": "year"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "место госпитализации"
+                  }
+                ],
+                "spaceBeforeMm": 1.31
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "(при наличии сведений)"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "hospitalizationPlace",
+                    "length": 63,
+                    "grow": true
+                  }
+                ],
+                "spaceBeforeMm": 0.65
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "смерти: число"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "deathDate",
+                    "length": 8,
+                    "part": "day"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "месяц"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "deathDate",
+                    "length": 9,
+                    "part": "month"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "год"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "deathDate",
+                    "length": 10,
+                    "part": "year"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "animal",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "12. Если заболевание (травма) связано с укусом или ударом, нанесенным животным, в том числе"
+                  }
+                ],
+                "align": "stretch"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "клещом, указать:"
+                  }
+                ],
+                "spaceBeforeMm": 0.65
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "кем укушен:"
+                  },
+                  {
+                    "kind": "options",
+                    "fieldId": "biter",
+                    "separator": ", ",
+                    "mark": "underline"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "животное"
+                  },
+                  {
+                    "kind": "options",
+                    "fieldId": "animalKind",
+                    "separator": ", ",
+                    "mark": "underline"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "вид (подвид) животного"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "animalSpecies",
+                    "length": 59,
+                    "grow": true
+                  }
+                ],
+                "spaceBeforeMm": 0.45
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "характер травмы"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "("
+                  },
+                  {
+                    "kind": "options",
+                    "fieldId": "injuryKind",
+                    "separator": ", ",
+                    "mark": "underline",
+                    "joined": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": ")",
+                    "joined": true
+                  }
+                ],
+                "align": "justify"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "локализация травмы:"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "injuryLocation",
+                    "length": 64,
+                    "grow": true
+                  }
+                ],
+                "spaceBeforeMm": 0.66
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "где укушен"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "biteLocation",
+                    "length": 72,
+                    "grow": true
+                  }
+                ],
+                "spaceBeforeMm": 0.43
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "(страна, субъект Российской Федерации, населенный пункт)",
+                    "small": true
+                  }
+                ],
+                "align": "center"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "food",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "13. При подозрении на пищевое отравление, указать подозрительный продукт (блюдо)"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "foodProduct",
+                    "length": 8
+                  }
+                ],
+                "align": "stretch"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "дата и место приобретения"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "foodPurchase",
+                    "length": 18
+                  },
+                  {
+                    "kind": "text",
+                    "text": ","
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "anamnesis",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "14. Сведения о месте нахождения пациента за последние 30 дней до появления клинических"
+                  }
+                ],
+                "align": "stretch"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "симптомов заболевания за пределами Российской Федерации или за пределами населенного пункта"
+                  }
+                ],
+                "align": "stretch"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "фактического пребывания (при наличии):"
+                  },
+                  {
+                    "kind": "options",
+                    "fieldId": "travelAbroad",
+                    "separator": ", ",
+                    "mark": "underline"
+                  }
+                ],
+                "spaceBeforeMm": 0.3
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "field",
+                    "fieldId": "travelPlace",
+                    "length": 82,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "(страна/населенный пункт и период пребывания)",
+                    "small": true
+                  }
+                ],
+                "align": "center"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "15. Наличие в анамнезе контакта за последние 30 дней с инфекционным больным (человеком или"
+                  }
+                ],
+                "align": "stretch"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "животным), сырьем животного происхождения (при наличии сведений, перечислить)"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "contactHistory",
+                    "length": 12
+                  }
+                ],
+                "align": "stretch"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "16. Проведенные первичные противоэпидемические мероприятия и дополнительные сведения"
+                  },
+                  {
+                    "kind": "rule",
+                    "length": 3
+                  }
+                ],
+                "align": "stretch"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "field",
+                    "fieldId": "measures",
+                    "length": 84,
+                    "lines": 1,
+                    "grow": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "informing",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "17. Информирование территориального органа федерального органа исполнительной власти,"
+                  }
+                ],
+                "align": "stretch"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "осуществляющего федеральный государственный санитарно-эпидемиологический контроль"
+                  }
+                ],
+                "align": "stretch"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "(надзор):"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "число"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "informedDate",
+                    "length": 3,
+                    "part": "day"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "месяц"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "informedDate",
+                    "length": 5,
+                    "part": "month"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "год"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "informedDate",
+                    "length": 4,
+                    "part": "year"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "час"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "informedHour",
+                    "length": 4
+                  },
+                  {
+                    "kind": "text",
+                    "text": "минута"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "informedMinute",
+                    "length": 5
+                  },
+                  {
+                    "kind": "text",
+                    "text": "(по телефону, письменно, электронным"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "способом связи)"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "отправка экстренного извещения: число"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "sentDate",
+                    "length": 6,
+                    "part": "day"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "месяц"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "sentDate",
+                    "length": 10,
+                    "part": "month"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "год"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "sentDate",
+                    "length": 7,
+                    "part": "year"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "signatories",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Фамилия, имя, отчество (при наличии) лица, заполнившего извещение"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "filledByName",
+                    "length": 21,
+                    "grow": true
+                  }
+                ],
+                "spaceBeforeMm": 4.68
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "должность"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "filledByPosition",
+                    "length": 28
+                  }
+                ],
+                "spaceBeforeMm": 0.47
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Фамилия, имя, отчество (при наличии) лица, принявшего сообщение"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "acceptedByName",
+                    "length": 24
+                  }
+                ],
+                "spaceBeforeMm": 4.75
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Регистрационный № принятого извещения"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "acceptedRegNumber",
+                    "length": 7
+                  }
+                ],
+                "spaceBeforeMm": 5.66
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "notes": [
+    "Приказ от 20.08.2026 № 740н вступает в силу 1 марта 2027 г. и действует до 1 марта 2033 г. (п. 2 приказа, PDF-страница 1). Форма, действующая до этой даты, источника на портале не имеет и в приложении не воспроизводится; схема описывает форму, ещё не вступившую в силу.",
+    "В правом верхнем углу бланка «от … 2026 г. № …» вписаны от руки; в схеме напечатаны реквизиты приказа (от 20 августа 2026 г. № 740н) по тексту самого приказа.",
+    "Бумажная форма заполняется внесением сведений и подчеркиванием ответов из предложенных вариантов (п. 5): выбранные варианты отмечаются подчёркиванием, а не обводкой.",
+    "Если внесение сведений невозможно ввиду их отсутствия, в Извещении делается запись «не установлено» (п. 6); приложение не подставляет эту запись само.",
+    "Адрес фактического проживания напечатан отдельной строкой под строкой 7 и под строкой 7.1; приложение хранит только адрес регистрации и адрес пребывания, поэтому эти строки не подставляются.",
+    "«Гражданство» и «дата въезда» (строка 7.2) относятся к иностранным гражданам (п. 10.4): гражданство из карты пациента не подставляется, чтобы не печатать его в строке для иностранцев гражданам России.",
+    "Строка 10 бланка продолжается строкой «Для детей» с кодами 7–9; это один вопрос о занятости, в схеме — два поля (коды 1–6 и 7–9), как их называет и п. 10.6.",
+    "Часы и минуты информирования территориального органа (строка 17) — отдельные поля; пояснение «(по телефону, письменно, электронным способом связи)» напечатано без поля.",
+    "Форма не печатает подписей: порядок называет только строки с фамилией, именем, отчеством и должностью лица, заполнившего извещение (п. 11); п. 3 говорит об электронном извещении, подписанном усиленной квалифицированной электронной подписью, — приложение таких документов не выпускает.",
+    "Поля, которые порядок не определяет (rule.status = undefined): sentDate."
+  ]
+}
