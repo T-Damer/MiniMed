@@ -41,7 +41,7 @@ export function toolAgeBoundStartDays(bound: ToolAgeBound): number {
 
 /** Last day still inside the limit: «до 16 лет» = until the day before the 17th birthday. */
 export function toolAgeBoundEndDays(bound: ToolAgeBound): number {
-  return Math.ceil((bound.value + 1) * DAYS_PER_UNIT[bound.unit]) - 1;
+  return Math.floor((bound.value + 1) * DAYS_PER_UNIT[bound.unit]) - 1;
 }
 
 export const ToolAgeScopeSchema = z

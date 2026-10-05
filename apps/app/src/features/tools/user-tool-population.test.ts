@@ -37,6 +37,14 @@ describe('user tool population', () => {
         maxAge: { value: 5, unit: 'years' },
       }),
     ).toBe('Нижняя граница возраста больше верхней: поменяйте их местами.');
+    // «от 2 лет» and «до 1 года» never meet, even though both are measured in years.
+    expect(
+      userToolPopulationError({
+        group: 'children',
+        minAge: { value: 2, unit: 'years' },
+        maxAge: { value: 1, unit: 'years' },
+      }),
+    ).toBe('Нижняя граница возраста больше верхней: поменяйте их местами.');
     expect(userToolPopulationError({ group: 'adults', minAge: { value: 10, unit: 'years' } })).toBe(
       'Для взрослых нижняя граница возраста — не меньше 18 лет.',
     );

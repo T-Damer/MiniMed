@@ -98,7 +98,11 @@ describe('tool age scope', () => {
 
   it('measures limits in completed units', () => {
     expect(toolAgeBoundStartDays({ value: 2, unit: 'months' })).toBe(60);
-    expect(toolAgeBoundEndDays({ value: 16, unit: 'years' })).toBe(Math.ceil(17 * 365.25) - 1);
+    expect(toolAgeBoundEndDays({ value: 16, unit: 'years' })).toBe(Math.floor(17 * 365.25) - 1);
+    // «до 1 года» ends before the day «от 2 лет» starts: the two never meet.
+    expect(toolAgeBoundEndDays({ value: 1, unit: 'years' })).toBeLessThan(
+      toolAgeBoundStartDays({ value: 2, unit: 'years' }),
+    );
     expect(toolAgeBoundEndDays({ value: 30, unit: 'days' })).toBe(30);
   });
 });
