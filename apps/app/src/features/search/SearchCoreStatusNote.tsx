@@ -23,7 +23,13 @@ export function SearchCoreStatusNote(props: {
       role={failed() ? 'alert' : 'status'}
       aria-live={failed() ? undefined : 'polite'}
     >
-      <Switch fallback={<span class="search-core-status__spinner" aria-hidden="true" />}>
+      {/* Motion means measurable work: the pie fills with the real download share. Phases with no
+          measurable share, and waiting, show a still mark — never an endless spinner. */}
+      <Switch
+        fallback={
+          <DownloadProgressMark class="search-core-status__mark" state="queued" progress={null} />
+        }
+      >
         <Match when={props.status.kind === 'downloading'}>
           <DownloadProgressMark
             class="search-core-status__mark"
@@ -31,8 +37,9 @@ export function SearchCoreStatusNote(props: {
             progress={searchCoreProgress(props.status)}
           />
         </Match>
-        <Match when={props.status.kind === 'other-tab'}>
-          <DownloadProgressMark class="search-core-status__mark" state="queued" progress={null} />
+        <Match when={props.status.kind === 'verifying' || props.status.kind === 'installing'}>
+          {/* The file is complete; checking and installing it have no share to measure. */}
+          <DownloadProgressMark class="search-core-status__mark" state="running" progress={1} />
         </Match>
         <Match when={failed()}>
           <DownloadProgressMark class="search-core-status__mark" state="failed" progress={1} />

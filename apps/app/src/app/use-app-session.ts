@@ -18,6 +18,7 @@ import { WorkerSearchMedicalCore } from '@/features/search/WorkerSearchMedicalCo
 import {
   coreAutoDownloadAllowed,
   currentNetworkConnection,
+  isCoreStartHeld,
   whenCoreStartReleased,
 } from '@/features/setup/setup-state';
 import {
@@ -100,6 +101,8 @@ export function useAppSession() {
   };
   const [bootSlow, setBootSlow] = createSignal(false);
   const [coreWaitingForOtherTab, setCoreWaitingForOtherTab] = createSignal(false);
+  // True only while a missing core's download is held back for the onboarding: nothing runs then.
+  const [coreWaitingToStart, setCoreWaitingToStart] = createSignal(false);
   const [availableModuleCount, setAvailableModuleCount] = createSignal(0);
   const [downloadedModuleCount, setDownloadedModuleCount] = createSignal(0);
   const [dueReminderCount, setDueReminderCount] = createSignal(0);
@@ -359,7 +362,14 @@ export function useAppSession() {
       await createBrowserCore({
         requestDownload: async (resuming) => {
           // The first launch's onboarding introduces the app before anything is downloaded.
-          await whenCoreStartReleased();
+          if (isCoreStartHeld()) {
+            setCoreWaitingToStart(true);
+            try {
+              await whenCoreStartReleased();
+            } finally {
+              setCoreWaitingToStart(false);
+            }
+          }
           return new Promise<void>((resolve, reject) => {
             if (ready()) {
               reject(
@@ -542,6 +552,7 @@ export function useAppSession() {
     error,
     bootSlow,
     coreWaitingForOtherTab,
+    coreWaitingToStart,
     availableModuleCount,
     setAvailableModuleCount,
     downloadedModuleCount,

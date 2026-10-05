@@ -5,6 +5,7 @@ import {
   searchCoreProgress,
   searchCoreStatus,
   searchCoreStatusDetail,
+  searchCoreStatusHomeNoteVisible,
   searchCoreStatusLabel,
   searchCoreStatusNoteVisible,
 } from '@/features/search/search-core-status';
@@ -79,6 +80,22 @@ describe('search core status', () => {
     expect(searchCoreStatusDetail(connecting)).toBe('Соединяемся с сервером…');
   });
 
+  it('says nothing is running while the first download waits for the onboarding', () => {
+    const waiting = searchCoreStatus({ ...idle, downloadRequired: false, waitingToStart: true });
+    expect(waiting).toEqual({ kind: 'waiting' });
+    if (!waiting) throw new Error('Expected a waiting status.');
+    expect(searchCoreStatusLabel(waiting)).toBe('Поиск откроется после загрузки ядра');
+    expect(searchCoreProgress(waiting)).toBeNull();
+    // A real failure or another tab still wins over the wait.
+    expect(searchCoreStatus({ ...idle, waitingToStart: true, error: 'x' })).toMatchObject({
+      kind: 'error',
+    });
+    // Once the download runs, the status follows it.
+    expect(searchCoreStatus({ ...idle, waitingToStart: false, downloading: true })).toMatchObject({
+      kind: 'downloading',
+    });
+  });
+
   it('keeps a missing core that waits for consent distinct from a running download', () => {
     expect(searchCoreStatus({ ...idle, downloadRequired: true })).toEqual({
       kind: 'download-required',
@@ -93,5 +110,18 @@ describe('searchCoreStatusNoteVisible', () => {
     expect(searchCoreStatusNoteVisible({ kind: 'opening', slow: true }, false)).toBe(true);
     expect(searchCoreStatusNoteVisible({ kind: 'other-tab' }, false)).toBe(true);
     expect(searchCoreStatusNoteVisible({ kind: 'error', message: 'x' }, false)).toBe(true);
+  });
+});
+
+describe('searchCoreStatusHomeNoteVisible', () => {
+  it('shows no note under the field while nothing is happening, whatever the delay', () => {
+    expect(searchCoreStatusHomeNoteVisible({ kind: 'waiting' }, true)).toBe(false);
+    expect(searchCoreStatusHomeNoteVisible({ kind: 'opening', slow: false }, false)).toBe(false);
+    expect(searchCoreStatusHomeNoteVisible({ kind: 'opening', slow: false }, true)).toBe(true);
+    expect(
+      searchCoreStatusHomeNoteVisible({ kind: 'downloading', loaded: 0, total: 0 }, false),
+    ).toBe(true);
+    // Pages that have nothing else to say (document link, knowledge base) still explain the wait.
+    expect(searchCoreStatusNoteVisible({ kind: 'waiting' }, false)).toBe(true);
   });
 });

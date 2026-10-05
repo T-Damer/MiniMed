@@ -28,12 +28,18 @@ for (const viewport of [
       await expect(page.locator('.boot-screen')).toHaveCount(0);
       await expect(page.locator('.app-bottom-nav')).toBeVisible();
       await expect(page.getByTestId('search-input')).toBeDisabled();
-      await expect(
-        coreStatus.locator('.search-core-status__mark, .search-core-status__spinner'),
-      ).toBeVisible();
+      // Real progress or a still mark; nothing spins without work behind it.
+      await expect(coreStatus.locator('.search-core-status__mark')).toBeVisible();
+      await expect(page.locator('.search-core-status__spinner')).toHaveCount(0);
       await expect(page.getByRole('button', { name: 'Все инструменты' })).toBeVisible();
-      // Picking a random record needs the corpus, like the dictionary.
-      await expect(page.getByRole('button', { name: 'Случайная запись' })).toBeDisabled();
+      // Picking a random record needs the corpus, like the dictionary; it sits in the «?» menu.
+      await page.getByRole('button', { name: 'Справка', exact: true }).click();
+      await expect(
+        page.getByRole('dialog', { name: 'Справка' }).getByRole('button', {
+          name: /^Случайная запись/u,
+        }),
+      ).toBeDisabled();
+      await page.keyboard.press('Escape');
       const overflow = await page.evaluate(
         () => document.documentElement.scrollWidth > window.innerWidth + 1,
       );

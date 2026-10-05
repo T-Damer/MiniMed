@@ -3573,16 +3573,6 @@ html.native-print-active #root {
   --download-progress-mark-size: 1.5rem;
 }
 
-.search-core-status__spinner {
-  width: 1.5rem;
-  height: 1.5rem;
-  flex: none;
-  border: 0.125rem solid var(--theme-border);
-  border-top-color: var(--theme-accent);
-  border-radius: 50%;
-  animation: spin 0.9s linear infinite;
-}
-
 .search-core-status__copy {
   display: grid;
   min-width: 0;
@@ -3614,12 +3604,6 @@ html.native-print-active #root {
 
   .search-core-status__action {
     width: 100%;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .search-core-status__spinner {
-    animation-duration: 2.4s;
   }
 }
 

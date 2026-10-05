@@ -142,6 +142,7 @@ export function App(): JSX.Element {
       ready: Boolean(session.ready()),
       error: session.error(),
       waitingForOtherTab: session.coreWaitingForOtherTab(),
+      waitingToStart: session.coreWaitingToStart(),
       downloadRequired: session.coreDownloadRequired(),
       downloading: session.coreDownloading(),
       progress: session.coreProgress(),

@@ -38,6 +38,11 @@ export function releaseCoreStart(): void {
   for (const wake of waiters) wake();
 }
 
+/** Whether the first core download is currently held back for the onboarding. */
+export function isCoreStartHeld(): boolean {
+  return coreStartHeld;
+}
+
 /** Resolves at once unless the start is held; then when it is released. */
 export function whenCoreStartReleased(): Promise<void> {
   if (!coreStartHeld) return Promise.resolve();

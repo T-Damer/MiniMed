@@ -58,8 +58,8 @@ import { SearchWorkspace } from '@/features/search/SearchWorkspace';
 import {
   SEARCH_CORE_NOTE_DELAY_MS,
   type SearchCoreStatus,
+  searchCoreStatusHomeNoteVisible,
   searchCoreStatusLabel,
-  searchCoreStatusNoteVisible,
 } from '@/features/search/search-core-status';
 import { searchSectionFromHash, searchSectionHash } from '@/features/search/search-section-route';
 import {
@@ -117,7 +117,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   );
   onCleanup(() => window.clearTimeout(coreNoteTimer));
   const noteCoreStatus = (): SearchCoreStatus | undefined =>
-    props.coreStatus && searchCoreStatusNoteVisible(props.coreStatus, coreNoteDelayPassed())
+    props.coreStatus && searchCoreStatusHomeNoteVisible(props.coreStatus, coreNoteDelayPassed())
       ? props.coreStatus
       : undefined;
   const [featuresHidden, setFeaturesHidden] = createSignal(getUsefulFeaturesHidden());

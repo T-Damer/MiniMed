@@ -7,6 +7,8 @@ import { formatModuleBytes } from '@/features/modules/module-display';
  */
 export type SearchCoreStatus =
   | { readonly kind: 'opening'; readonly slow: boolean }
+  /** The first download is held back until the onboarding has introduced the app: nothing runs. */
+  | { readonly kind: 'waiting' }
   | { readonly kind: 'other-tab' }
   | { readonly kind: 'downloading'; readonly loaded: number; readonly total: number }
   | { readonly kind: 'verifying' }
@@ -19,6 +21,8 @@ export interface CoreSessionSnapshot {
   readonly ready: boolean;
   readonly error: string | undefined;
   readonly waitingForOtherTab: boolean;
+  /** The missing core's download is held for the onboarding (no work is happening). */
+  readonly waitingToStart?: boolean;
   readonly downloadRequired: boolean;
   readonly downloading: boolean;
   readonly progress:
@@ -36,6 +40,7 @@ export function searchCoreStatus(session: CoreSessionSnapshot): SearchCoreStatus
   if (session.ready) return undefined;
   if (session.error) return { kind: 'error', message: session.error };
   if (session.waitingForOtherTab) return { kind: 'other-tab' };
+  if (session.waitingToStart) return { kind: 'waiting' };
   const phase = session.progress?.phase;
   if (phase === 'verifying') return { kind: 'verifying' };
   if (phase === 'installing') return { kind: 'installing' };
@@ -49,8 +54,11 @@ export function searchCoreStatus(session: CoreSessionSnapshot): SearchCoreStatus
   return { kind: 'opening', slow: session.slow };
 }
 
-/** An open that finishes sooner than this shows only the field's placeholder. */
-export const SEARCH_CORE_NOTE_DELAY_MS = 400;
+/**
+ * An open that finishes sooner than this shows only the field's placeholder. Opening an installed
+ * core takes about a second, so a shorter delay made the note flash in and out.
+ */
+export const SEARCH_CORE_NOTE_DELAY_MS = 1200;
 
 /**
  * Whether the note under the field is worth showing. A quick open finishes before the delay and
@@ -61,6 +69,17 @@ export function searchCoreStatusNoteVisible(
   delayPassed: boolean,
 ): boolean {
   return status.kind !== 'opening' || status.slow || delayPassed;
+}
+
+/**
+ * The note under the search field. Nothing is shown while the first download only waits for the
+ * onboarding (the field's placeholder says so): a status line with nothing behind it is noise.
+ */
+export function searchCoreStatusHomeNoteVisible(
+  status: SearchCoreStatus,
+  delayPassed: boolean,
+): boolean {
+  return status.kind !== 'waiting' && searchCoreStatusNoteVisible(status, delayPassed);
 }
 
 /** Share downloaded, 0–1, or null when there is nothing to measure. */
@@ -74,6 +93,8 @@ export function searchCoreStatusLabel(status: SearchCoreStatus): string {
   switch (status.kind) {
     case 'opening':
       return 'Подготавливаем поиск…';
+    case 'waiting':
+      return 'Поиск откроется после загрузки ядра';
     case 'other-tab':
       return 'MiniMed открыт в другой вкладке';
     case 'downloading': {
@@ -100,6 +121,8 @@ export function searchCoreStatusDetail(status: SearchCoreStatus): string {
       return status.slow
         ? 'Подготовка базы продолжается. Инструменты, свои файлы и настройки уже доступны.'
         : 'Инструменты, свои файлы и настройки уже доступны.';
+    case 'waiting':
+      return 'Загрузка ядра начнётся, как только вы пройдёте приветствие.';
     case 'other-tab':
       return 'Локальную базу одновременно открывает только одна вкладка. Закройте другую — поиск откроется здесь автоматически.';
     case 'downloading':
