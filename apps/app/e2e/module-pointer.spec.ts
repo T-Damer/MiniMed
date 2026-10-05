@@ -87,8 +87,11 @@ test('a preview medication package has no download action when experiments are d
   await page.goto(
     `${E2E_ASSET_ORIGIN}/#/modules/documents/d/${Buffer.from(id).toString('base64url')}`,
   );
+  // The core opens first («Загружаем базу…»), which under a parallel run takes longer than the
+  // default expectation timeout.
   await expect(page.locator('.document-module-pointer__title')).toHaveText(
     'Полный документ пока недоступен',
+    { timeout: 60_000 },
   );
   await expect(page.locator('.document-module-pointer__action')).toHaveCount(0);
 });
