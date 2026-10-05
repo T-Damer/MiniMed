@@ -19,20 +19,21 @@ and the list is updated when the proposal is better. How search works today:
 
 | Query kind | Set | Lexical | With e5 | Status |
 |---|---|---:|---:|---|
-| Exact names, codes (app path) | `benchmark:real:release` lookup | R@1 0.803, R@5 0.934 | — (lexical by design) | S2 in progress |
+| Exact names, codes (app path) | `benchmark:real:release` lookup; `benchmark:doctor-lookup` | R@1 0.803, R@5 0.934; doctor R@5 0.7 → 0.9 | — (lexical by design) | S2 done |
 | Diagnosis phrase → КР | Q1 RuCCoD, test | R@5 0.20 | 0.70 | shipped 0.6.48 |
 | Complaint → КР | Q1 RuMedPrime, test | R@5 0.04 | 0.28 | weakest area |
-| Drug by indication («от головы») | `drug-indication-queries.json`, 45 | hit@5 0.36 | 0.91 | E3, in main |
-| Description → term / symptoms → disease | Q1 МКБ cards + reverse set | measuring | measuring | E5 (this file, item 2) |
+| Drug by indication («от головы») | `drug-indication-queries.json`, 45 | hit@1 0.16, hit@5 0.47 | hit@1 0.62, hit@5 0.91 | E3 shipped to main |
+| Drug names | 100 ГРЛС trade names | top-1 0.99 | 1.00 | E3 gate |
+| Description → term («воспаление слизистой желудка» → гастрит) | `reverse-term-queries.json`, 35 | hit@5 0.80 | 0.49 | lexical kept (E5 rejected) |
+| Diagnosis / complaint → МКБ card | Q1, «Болезни» scope | R@5 0.28 / 0.03 | 0.39 / 0.02 | see item 4 |
 
 ## Ordered plan
 
-1. **Exact-lookup misses** (S2). Go through every miss of the release lookup set and the drug name
+1. **Exact-lookup misses** (S2, done 2026-10-05; remaining: narrative cases need the clinical parser). Go through every miss of the release lookup set and the drug name
    sets; fix causes such as a query word matching inside another word («головной» → «Болиголов»),
    service words («от», «таблетки») acting as the subject, and generic form words outranking it.
-2. **Description → term, symptoms → disease** (E5). e5 vectors for the МКБ card names/synonyms and
-   the short description, overview and symptom sections of the disease articles (≈26 000 chunks,
-   ≈10 MB); `auto` in «Болезни» if name lookup holds.
+2. **Description → term, symptoms → disease** (E5) — measured, not shipped: see the rejected table.
+   Lexical search after S2 already answers description queries (hit@5 0.80).
 3. **Keyboard layout and transliteration for names.** «ьуеащкьшт» → «метформин», «nurofen» →
    «нурофен»: deterministic, cheap, common on phones; only as a fallback when the typed form finds
    nothing exact.
@@ -61,6 +62,7 @@ and the list is updated when the proposal is better. How search works today:
 | Feature-hash fusion constants for e5 | R@5 0.166 vs 0.497 calibrated | 2026-10-05 |
 | One vector per complaint clause + document coverage | complaint R@5 0.326 → 0.27–0.29 | 2026-10-05 |
 | Rule list «от X / при X» → indication search | not needed: indication vectors answer it without rules | 2026-10-05 |
+| e5 on МКБ card names/synonyms + disease-article overview/symptoms in «Болезни» | description → term hit@5 0.80 → 0.49; diagnosis → card R@5 0.28 → 0.39; short МКБ rows attract unrelated cards | 2026-10-05 |
 
 ## Open owner decisions
 
