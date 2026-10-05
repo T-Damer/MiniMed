@@ -31,13 +31,15 @@ The UI never touches SQL. Every store implements the `MedicalStore` port
 
 `SearchWorkspace.tsx` (the `core.search({…})` call) sends:
 
-| UI scope | `mode` | `analysisMode` | suggestions |
+| UI scope | `mode` (`searchModeForScope`) | `analysisMode` | suggestions |
 |---|---|---|---|
 | `diagnosis` («Клинический разбор») | `auto` | `clinical` | yes |
-| everything else (`all`, `guidelines`, `medications`, `legal`, `conditions`, …) | `lexical` | `lookup` | no |
+| `guidelines` | `auto` | `lookup` | no |
+| everything else (`all`, `medications`, `legal`, `conditions`, …) | `lexical` | `lookup` | no |
 
-So the semantic path runs **only** in the clinical-analysis scope today; ordinary lookup is
-lexical by request. `patient-notes.ts` also searches with `mode: 'auto'`.
+`auto` adds e5 semantic candidates only when the e5 model is downloaded and the mounted КР modules
+carry the e5 profile; otherwise it is the same lexical search. `patient-notes.ts` also searches
+with `mode: 'auto'`.
 
 `ScopedMedicalCore.ts` wraps the core per scope: `documentMatchesSearchScope` maps a scope to
 source types (`SOURCE_TYPES_BY_SCOPE`) and catalog pointers (`catalogFamily`), turns that into a
@@ -86,20 +88,30 @@ always survive.
 ## 4. Semantic path (ADR 0008)
 
 Runs when `mode !== 'lexical'` and `createMedicalCore({embedder})` was given a `QueryEmbedder`
-(`packages/search-semantic`: `{ profile, embedQuery(text) → {profileId, values: Int8Array, norm} }`).
+(`packages/search-semantic`: `{ profile, input?, fusion?, embedQuery(text) → {profileId, values,
+norm} }`). The app passes `E5_QUERY_EMBEDDER` (`apps/app/src/features/semantic`), a
+`NeuralQueryEmbedder` over `E5_SMALL_PROFILE` with `E5_SMALL_FUSION`; details and numbers in
+[`SEMANTIC_RETRIEVAL.md`](SEMANTIC_RETRIEVAL.md).
 
-1. `store.listEmbeddingProfiles()` → the first profile `profilesCompatible` with the embedder's
-   profile (same id, dimensions, format, normalisation, generator, generator version, fingerprint).
-2. `embedder.embedQuery(semanticQueryText(analysis))` — note the text is the **joined normalised
-   positive facts** (or the clinical branch's normalised query), not the raw query.
+1. `store.listEmbeddingProfiles()` (cached per open pack) → the first profile `profilesCompatible`
+   with the embedder's (same id, dimensions, format, normalisation, generator, generator version,
+   fingerprint).
+2. `embedQuery(text)`: `input: 'original-query'` (neural) sends the user's wording with the
+   profile's `query: ` prefix; the default sends `semanticQueryText(analysis)` (joined normalised
+   positive facts), which the feature-hash profile was tuned for. The e5 embedder runs in a worker
+   and rejects with `semantic-model-not-installed` until the model is downloaded.
 3. `store.searchVector({profileId, vector, norm, filters, limit: max(limit × 5, 50)})`.
-   `SqliteMedicalStore.searchVector` scans every `chunk_embeddings` row of that profile (with
-   filter joins), keeps a top-`min(500, max(limit × 10, 100))` window by cosine, then hydrates
-   chunks. `MultiMedicalStore.searchVector` multiplies by `searchWeight` and keeps each chunk's best.
-4. `fuseSemanticResults`:
+   `MultiMedicalStore` is two-phase when every mount implements it: `scoreVectors` per pack
+   (scores only, top window = `min(500, max(limit × 10, 100))`), global top window, then
+   `hydrateVectorHits` per pack for the chosen chunks only. `SqliteMedicalStore.scoreVectors`
+   scans an in-memory index (chunk ids, document ids, section types, Int8 vectors, norms) built on
+   the first query; specialty/age filters fall back to a SQL join scan.
+4. `fuseSemanticResults` with the embedder's `SemanticFusion` (`LEGACY_SEMANTIC_FUSION` without one):
    - `semantic` mode: vector hits only, `finalScore = cosine`;
-   - `hybrid`: lexical scores normalised to the best lexical score ×0.78; vector-only hits
-     cosine ×0.62; a chunk found by both gets `+0.22 × cosine + 0.04`.
+   - `hybrid`: lexical score / best lexical × `lexicalWeight`; semantic strength = cosine relative
+     to the query's best cosine within `band` (0…1; raw cosine without a band); vector-only hit =
+     strength × `vectorOnlyWeight`; found by both = lexical part + strength × `corroborationWeight`
+     + 0.04. e5: band 0.10, weights 0.5 / 0.8 / 0.3. Legacy: no band, 0.78 / 0.62 / 0.22.
    Exact-alias documents and the exact subject title survive the cut as in lexical fusion.
 
 Any failure falls back to lexical and is reported in `diagnostics.semantic` (`status`,
@@ -109,11 +121,11 @@ Any failure falls back to lexical and is reported in `diagnostics.semantic` (`st
 Data: `embedding_profiles(id, dimensions, vector_format='int8', normalization='l2', generator,
 generator_version, fingerprint UNIQUE, metadata_json)` and `chunk_embeddings(profile_id, chunk_id,
 vector BLOB, vector_norm)`. Vectors are L2-normalised, ×127, rounded half away from zero
-(`portable-hash.ts` `quantize`). The browser composition (`create-browser-core.ts`) currently wires
-`PortableHashEmbedder` — the deterministic `localmed.feature-hash.384.v1` development profile
-carried by КР packs, not a neural model. The Capacitor native store answers `searchVector` only if
-the plugin exposes `searchVectors`; installed modules are mounted through the browser runtime
-(WASM/OPFS `SqliteMedicalStore`), so they use the JS scan above.
+(`quantizeEmbedding`). КР modules carry `localmed.e5-small.384.int8.v1` since mirror tag
+`clinical-e5-2026.10.05`; other packs carry no vectors (or the old feature-hash scaffold, which the
+e5 embedder ignores). The Capacitor native store answers `scoreVectors` only if the plugin exposes
+`searchVectors`; installed modules are mounted through the browser runtime (WASM/OPFS
+`SqliteMedicalStore`), so they use the JS scan above.
 
 ## 5. After fusion: identities and grouping
 
@@ -157,12 +169,14 @@ the plugin exposes `searchVectors`; installed modules are mounted through the br
 | `bun run benchmark:search-latency` | latency over the app path |
 | `tools/benchmarks/src/export-retrieval-candidates.ts` + `embedding_eval.py` | offline lexical vs embedding comparison ([research](research/embeddings-kr-2026-10-02.md)) |
 | `tools/benchmarks/retrieval-icd-queries.json` | Q1 real-language queries with ICD-based КР relevance |
+| `tools/benchmarks/src/run-semantic-kr.ts` | Q1 over the e5 КР packs through MedicalCore: lexical / semantic / hybrid fusion grid |
 
 ## Pitfalls
 
 - Cross-pack lexical scores are RRF positions, so a weak hit at position 1 of a tiny pack ties with
   a strong hit at position 1 of a large one.
-- `semanticQueryText` feeds normalised facts, not the user's wording; a neural model may prefer the
-  raw query.
-- The vector scan is linear in the number of embedded chunks across every mounted pack.
-- Lookup scopes request `lexical`; changing the default mode changes every search tab.
+- A neural embedder must set `input: 'original-query'`; the default feeds normalised facts.
+- The vector scan is linear in the embedded chunks of every mounted pack (95 827 for all КР:
+  ~37 MB of Int8 in memory once warmed).
+- `rankSearchGroupsByQuery` reorders after fusion, so fusion weights must be tuned end to end
+  (`run-semantic-kr.ts`), not on raw cosine rankings.
