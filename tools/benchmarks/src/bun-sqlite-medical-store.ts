@@ -129,6 +129,68 @@ function readHealth(database: NativeDatabase, databasePath: string): NativeDatab
   };
 }
 
+interface ProfileVectors {
+  readonly chunkIds: readonly string[];
+  readonly values: Int8Array;
+  readonly norms: Float64Array;
+}
+
+// One read per profile and file: the scan then runs over memory, like a warm native adapter.
+const vectorCache = new WeakMap<NativeDatabase, Map<string, ProfileVectors>>();
+
+function loadVectors(database: NativeDatabase, profileId: string): ProfileVectors {
+  const byProfile = vectorCache.get(database) ?? new Map<string, ProfileVectors>();
+  vectorCache.set(database, byProfile);
+  const cached = byProfile.get(profileId);
+  if (cached) return cached;
+  const rows = database
+    .query(
+      'SELECT chunk_id, vector, vector_norm FROM chunk_embeddings WHERE profile_id = ? ORDER BY chunk_id',
+    )
+    .all(profileId) as { chunk_id: string; vector: Uint8Array; vector_norm: number }[];
+  const dimensions = rows[0]?.vector.length ?? 0;
+  const values = new Int8Array(rows.length * dimensions);
+  rows.forEach((row, index) => {
+    values.set(
+      new Int8Array(row.vector.buffer, row.vector.byteOffset, dimensions),
+      index * dimensions,
+    );
+  });
+  const loaded = {
+    chunkIds: rows.map((row) => row.chunk_id),
+    values,
+    norms: Float64Array.from(rows, (row) => row.vector_norm),
+  };
+  byProfile.set(profileId, loaded);
+  return loaded;
+}
+
+function allowedChunkIds(
+  database: NativeDatabase,
+  options: NativeVectorSearchOptions,
+): ReadonlySet<string> | null {
+  if (!options.documentIds?.length && !options.sectionTypes?.length) return null;
+  const clauses: string[] = [];
+  const parameters: NativeSqlValue[] = [];
+  if (options.documentIds?.length) {
+    clauses.push('d.id IN (SELECT value FROM json_each(?))');
+    parameters.push(JSON.stringify(options.documentIds));
+  }
+  if (options.sectionTypes?.length) {
+    clauses.push('s.section_type IN (SELECT value FROM json_each(?))');
+    parameters.push(JSON.stringify(options.sectionTypes));
+  }
+  const rows = database
+    .query(
+      `SELECT c.id AS id FROM chunks c
+       JOIN sections s ON s.id = c.section_id
+       JOIN documents d ON d.current_version_id = c.document_version_id
+       WHERE ${clauses.join(' AND ')}`,
+    )
+    .all(...parameters) as { id: string }[];
+  return new Set(rows.map((row) => row.id));
+}
+
 export async function createBunFileMedicalStore(
   databasePathValue: string,
 ): Promise<CapacitorMedicalStore> {
@@ -164,8 +226,33 @@ export async function createBunFileMedicalStore(
       return { rows: asRows(database.query(options.sql).all(...args)) };
     },
 
-    async searchVectors(_options: NativeVectorSearchOptions): Promise<NativeVectorSearchResult> {
-      throw new Error('Vector search is unsupported: the ESKLP benchmark pack has no embeddings.');
+    async searchVectors(options: NativeVectorSearchOptions): Promise<NativeVectorSearchResult> {
+      if (!database) throw new Error('The Bun benchmark SQLite database is not open.');
+      if (options.specialties?.length || options.ageGroups?.length) {
+        throw new Error('The Bun benchmark vector scan does not apply metadata filters.');
+      }
+      const vectors = loadVectors(database, options.profileId);
+      const allowed = allowedChunkIds(database, options);
+      const query = new Int8Array(Buffer.from(options.vectorBase64, 'base64'));
+      const hits: { chunkId: string; score: number }[] = [];
+      for (const [index, chunkId] of vectors.chunkIds.entries()) {
+        if (allowed && !allowed.has(chunkId)) continue;
+        const norm = vectors.norms[index] ?? 0;
+        if (norm === 0 || options.vectorNorm === 0) continue;
+        let dot = 0;
+        const offset = index * query.length;
+        for (let dimension = 0; dimension < query.length; dimension += 1) {
+          dot += (query[dimension] ?? 0) * (vectors.values[offset + dimension] ?? 0);
+        }
+        hits.push({ chunkId, score: dot / (options.vectorNorm * norm) });
+      }
+      return {
+        hits: hits
+          .toSorted(
+            (left, right) => right.score - left.score || left.chunkId.localeCompare(right.chunkId),
+          )
+          .slice(0, options.limit),
+      };
     },
 
     async close(): Promise<void> {

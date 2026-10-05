@@ -48,6 +48,40 @@ fixed FNV-1a feature space. Python and TypeScript share golden vectors. This pro
 complete local vector pipeline, spelling/surface proximity, compact persistence, profile matching,
 and fallback behavior. It is **not** evidence of medical semantic understanding.
 
+## Neural profile: e5-small for clinical recommendations (STATE E2, 2026-10-05)
+
+| Field | Value |
+|---|---|
+| Profile | `localmed.e5-small.384.int8.v1` (`E5_SMALL_PROFILE`) |
+| Passage model | `intfloat/multilingual-e5-small` @ `614241f6…` (MIT), PyTorch fp32 |
+| Query model | `Xenova/multilingual-e5-small` @ `761b726d…`, `onnx/model_quantized.onnx` (q8) |
+| Passage text | `passage: ` + title + `. ` + section path + `. ` + chunk text, 1 200 chars, 256 tokens |
+| Query text | `query: ` + the user's original wording (`QueryEmbedder.input = 'original-query'`) |
+| Pooling | mean, L2, then the int8 quantisation above |
+| Packs | the 774 single-КР modules, mirror tag `clinical-e5-2026.10.05` (95 827 chunks) |
+| Download | optional, Settings → «Поиск по смыслу», 135 MB, IndexedDB, SHA-256 per file |
+
+Build: `uv run tools/ingest/scripts/embed_clinical_modules_e5.py` (decodes the published modules,
+checks their catalog SHA-256, replaces only `embedding_profiles`/`chunk_embeddings`), then
+`bun scripts/reframe-clinical-e5.ts` (framed zstd, new tag, catalog URLs/checksums, version `.e5`).
+The vectors add 31 MB (657 → 688 MB) to the whole КР download because dense e5 vectors compress
+worse than the sparse feature-hash ones.
+
+Parity: query vectors from the q8 ONNX export (transformers.js) and the fp32 reference model have
+cosine 0.996–0.998 on five Russian clinical queries; tolerance ≥ 0.99.
+
+Runtime: the query is embedded in a dedicated worker (`apps/app/src/features/semantic/e5.worker.ts`)
+that reads only the pinned, verified files from IndexedDB and never fetches. Without the model the
+embedder rejects with `semantic-model-not-installed` and search stays lexical.
+
+Scanning hundreds of small packs is two-phase (`scoreVectors` → global top window →
+`hydrateVectorHits`, `MultiMedicalStore`), and `SqliteMedicalStore` keeps each profile's vectors in
+memory after the first query. Measured over all 774 packs in Bun: semantic stage 150–250 ms per
+query (was 1.6–2.2 s with per-pack hydration).
+
+Fusion calibration lives on the embedder (`SemanticFusion`): e5 cosines sit in a narrow 0.8–0.9
+band, so a hit's strength is its distance below the query's best cosine within `band`.
+
 ## Search modes
 
 - `lexical` — deterministic analysis, aliases, FTS5, and BM25 only;
