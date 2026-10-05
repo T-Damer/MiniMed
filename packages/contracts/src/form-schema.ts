@@ -193,8 +193,11 @@ export const FormSegmentSchema = z.discriminatedUnion('kind', [
     fieldId: identifier,
     /** Approximate blank length in printed characters, measured on the official blank. */
     length: z.number().positive(),
-    /** A date prints as «day» month 20year2 on the blank: one field, three blanks. */
-    part: z.enum(['day', 'month', 'year2']).optional(),
+    /**
+     * A date prints as «day» month 20year2 on the blank: one field, three blanks. `year` is the
+     * whole year (`год ______`) where the blank prints no «20» before the blank.
+     */
+    part: z.enum(['day', 'month', 'year', 'year2']).optional(),
     caption: z.string().min(1).optional(),
     grow: z.boolean().optional(),
     /** A long entry printed on several ruled lines (anamnesis, epicrisis). */
@@ -205,12 +208,23 @@ export const FormSegmentSchema = z.discriminatedUnion('kind', [
     kind: z.literal('options'),
     fieldId: identifier,
     separator: z.string(),
+    /** Separators between neighbouring options when they differ (`, ` then `; `); length n - 1. */
+    separators: z.array(z.string()).optional(),
     /** False when the blank prints only the words and the person marks the applicable one. */
     codes: z.boolean().optional(),
     /** How a picked option is marked: circled (default) or underlined («нужное подчеркнуть»). */
     mark: z.enum(['circle', 'underline']).optional(),
   }),
   z.object({ kind: z.literal('check'), fieldId: identifier }),
+  /**
+   * A ruled line the blank prints with nothing to fill in (the continuation line under a long
+   * entry). Holds no field; kept so the sheet has the lines of the official blank.
+   */
+  z.object({
+    kind: z.literal('rule'),
+    length: z.number().positive(),
+    grow: z.boolean().optional(),
+  }),
   z.object({
     kind: z.literal('signature'),
     fieldId: identifier,
@@ -247,10 +261,17 @@ export type FormSegment = z.infer<typeof FormSegmentSchema>;
 
 export const FormRowSchema = z.object({
   segments: z.array(FormSegmentSchema).min(1),
-  align: z.enum(['left', 'center', 'right', 'justify']).optional(),
+  /** `justify` wraps a paragraph justified; `stretch` spreads one printed line over the width. */
+  align: z.enum(['left', 'center', 'right', 'justify', 'stretch']).optional(),
   bold: z.boolean().optional(),
   size: z.enum(['small', 'normal', 'title']).optional(),
   gap: z.enum(['none', 'small', 'medium', 'large']).optional(),
+  /**
+   * Space above the row in mm; replaces `gap`. Measured against the official scan by the layout
+   * calibration (tools/ingest, `medical_form_overlay calibrate`), so the printed rows keep the
+   * vertical positions of the original blank.
+   */
+  spaceBeforeMm: z.number().min(0).max(80).optional(),
   /** `outline` boxes the row; `split` boxes two cells: the first segment, then the rest. */
   box: z.enum(['outline', 'split']).optional(),
   splitPercent: z.number().min(10).max(90).optional(),
@@ -283,6 +304,8 @@ export const FormLayoutSchema = z.object({
       left: z.number().nonnegative(),
     }),
     fontSizePt: z.number().min(7).max(16),
+    /** Line height as a multiple of the font size (1.3 when omitted); measured on the scan. */
+    lineHeight: z.number().min(1).max(2).optional(),
   }),
   blocks: z.array(FormLayoutBlockSchema).min(1),
 });
@@ -400,7 +423,7 @@ export const FormSchemaSchema = z
       for (const column of block.columns) {
         for (const row of column.rows) {
           for (const segment of row.segments) {
-            if (segment.kind === 'text') continue;
+            if (segment.kind === 'text' || segment.kind === 'rule') continue;
             const cited =
               segment.kind === 'table'
                 ? segment.rows.flat().filter((cell): cell is string => typeof cell === 'string')

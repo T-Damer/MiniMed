@@ -12,10 +12,12 @@ every applied OCR correction is recorded in the schema.
 from __future__ import annotations
 
 import argparse
+import copy
 import difflib
 import hashlib
 import importlib
 import json
+import pkgutil
 import re
 import subprocess
 import urllib.parse
@@ -26,6 +28,12 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Final
 
+from localmed_ingest.medical_form_calibration import apply_calibration, load_calibration
+
+REPO: Final = Path(__file__).resolve().parents[4]
+DEFAULT_REGISTRY: Final = REPO / "tools/ingest/medical-form-sources.json"
+DEFAULT_RAW: Final = REPO / "data/raw/medical-forms"
+DEFAULT_SCHEMAS: Final = REPO / "apps/app/src/features/forms/schemas"
 PRAVO_API: Final = "http://publication.pravo.gov.ru/api"
 PRAVO_PDF: Final = "http://publication.pravo.gov.ru/file/pdf?eoNumber="
 PRAVO_PAGE: Final = "http://publication.pravo.gov.ru/document/"
@@ -375,7 +383,7 @@ class FormBlueprint:
     order_title: str
     registration: dict[str, str]
     effective_from: str
-    effective_until: str
+    effective_until: str | None
     blank_appendix: int
     blank_pages: tuple[int, ...]
     rules_appendix: int
@@ -394,6 +402,9 @@ class FormBlueprint:
     # Printed captions the OCR dropped from the blank (a short word such as «дом» on a crowded
     # line) that a reviewer confirmed on the scan; each is recorded in the schema.
     scan_reviewed_captions: tuple[str, ...] = ()
+    # Who issued the order (a joint order names both ministries) and what the edition line calls it.
+    issuer: str = "Министерство здравоохранения Российской Федерации"
+    issuer_short: str = "Минздрава России"
 
     @property
     def schema_filename(self) -> str:
@@ -524,13 +535,13 @@ def prepare_form(
         {(c.page, c.source, c.replacement, c.reason) for c in applied},
     )
     source_block: dict[str, Any] = {
-        "issuer": "Министерство здравоохранения Российской Федерации",
+        "issuer": blueprint.issuer,
         "orderNumber": blueprint.order_number,
         "orderDate": blueprint.order_date,
         "orderTitle": blueprint.order_title,
         "registration": blueprint.registration,
         "effectiveFrom": blueprint.effective_from,
-        "effectiveUntil": blueprint.effective_until,
+        **({"effectiveUntil": blueprint.effective_until} if blueprint.effective_until else {}),
         "publicationUrl": source["publicationUrl"],
         "pdfUrl": source["pdfUrl"],
         "retrievedAt": source["retrievedAt"],
@@ -574,15 +585,18 @@ def prepare_form(
         "formNumber": blueprint.form_number,
         "title": blueprint.title,
         "edition": (
-            f"Приказ Минздрава России от {_ru_date(blueprint.order_date)} "
+            f"Приказ {blueprint.issuer_short} от {_ru_date(blueprint.order_date)} "
             f"№ {blueprint.order_number}, приложение № {blueprint.blank_appendix}; действует с "
-            f"{_ru_date(blueprint.effective_from)} по {_ru_date(blueprint.effective_until)}"
+            f"{_ru_date(blueprint.effective_from)}"
+            + (f" по {_ru_date(blueprint.effective_until)}" if blueprint.effective_until else "")
         ),
         "source": source_block,
         "sections": blueprint.sections,
         "fields": fields,
         "rules": rules,
-        "layout": blueprint.layout,
+        "layout": apply_calibration(
+            copy.deepcopy(blueprint.layout), load_calibration(blueprint.form_id)
+        ),
         "notes": notes,
     }
 
@@ -612,14 +626,20 @@ def _ru_date(iso: str) -> str:
 # ------------------------------------------------------------------------------------- CLI
 
 
-# Reviewed blueprints by short key; every one is built from the same order (see the registry).
-FORM_BLUEPRINT_MODULES: Final[Mapping[str, str]] = {
-    "070u": "localmed_ingest.medical_form_070u",
-    "072u": "localmed_ingest.medical_form_072u",
-    "076u": "localmed_ingest.medical_form_076u",
-    "079u": "localmed_ingest.medical_form_079u",
-    "025-1u": "localmed_ingest.medical_form_025_1u",
-}
+def _discover_blueprints() -> Mapping[str, str]:
+    """Blueprint modules by form key: `medical_form_070u` is `070u`, `medical_form_025_1u` is
+    `025-1u`. A new form is one new module; the registry (medical-form-sources.json) says which
+    official order each key is built from."""
+    found: dict[str, str] = {}
+    package = importlib.import_module("localmed_ingest")
+    for module in pkgutil.iter_modules(package.__path__):
+        match = re.fullmatch(r"medical_form_(\d[0-9a-z_]*)", module.name)
+        if match:
+            found[match.group(1).replace("_", "-")] = f"localmed_ingest.{module.name}"
+    return dict(sorted(found.items()))
+
+
+FORM_BLUEPRINT_MODULES: Final[Mapping[str, str]] = _discover_blueprints()
 
 
 def load_blueprint(name: str) -> FormBlueprint:
@@ -647,14 +667,13 @@ def main(argv: list[str] | None = None) -> int:
     ocr.add_argument("--pdf", type=Path, required=True)
     ocr.add_argument("--out", type=Path, required=True)
     ocr.add_argument("--swift", type=Path, default=Path("tools/ingest/macos_vision_ocr.swift"))
-    prepare = sub.add_parser("prepare", help="build the form schema JSON")
-    prepare.add_argument("--form", default="070u", help="form key, or `all`")
-    prepare.add_argument(
-        "--out-dir", type=Path, help="with --form all: directory of the schema files"
+    prepare = sub.add_parser(
+        "prepare", help="build the form schema JSON files from the registry and the raw files"
     )
-    prepare.add_argument("--source", type=Path, required=True, help="<eoNumber>.source.json")
-    prepare.add_argument("--ocr", type=Path, required=True)
-    prepare.add_argument("--out", type=Path)
+    prepare.add_argument("--form", default="all", help="form key (registry), or `all`")
+    prepare.add_argument("--registry", type=Path, default=DEFAULT_REGISTRY)
+    prepare.add_argument("--raw", type=Path, default=DEFAULT_RAW)
+    prepare.add_argument("--out-dir", type=Path, default=DEFAULT_SCHEMAS)
     args = parser.parse_args(argv)
     if args.command == "fetch":
         record = fetch_official_order(args.out, number=args.number, date=args.date)
@@ -662,20 +681,21 @@ def main(argv: list[str] | None = None) -> int:
     elif args.command == "ocr":
         run_ocr(args.pdf, args.out, args.swift)
     else:
-        source = json.loads(args.source.read_text(encoding="utf-8"))
-        if args.form == "all":
-            if args.out_dir is None:
-                parser.error("--form all needs --out-dir")
-            for key in FORM_BLUEPRINT_MODULES:
-                blueprint = load_blueprint(key)
-                target = args.out_dir / blueprint.schema_filename
-                write_schema(prepare_form(blueprint, source, args.ocr), target)
+        registry = json.loads(args.registry.read_text(encoding="utf-8"))
+        built = 0
+        for entry in registry["sources"]:
+            eo_number = entry["eoNumber"]
+            source = json.loads((args.raw / f"{eo_number}.source.json").read_text(encoding="utf-8"))
+            ocr_path = args.raw / f"{eo_number}.ocr.json"
+            for form in entry["forms"]:
+                if args.form not in ("all", form["key"]):
+                    continue
+                target = args.out_dir / form["schemaFile"]
+                write_schema(prepare_form(load_blueprint(form["key"]), source, ocr_path), target)
                 print(f"wrote {target}")
-        else:
-            if args.out is None:
-                parser.error("--form <key> needs --out")
-            write_schema(prepare_form(load_blueprint(args.form), source, args.ocr), args.out)
-            print(f"wrote {args.out}")
+                built += 1
+        if built == 0:
+            parser.error(f"no form {args.form!r} in {args.registry}")
     return 0
 
 

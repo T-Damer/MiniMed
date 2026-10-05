@@ -27,11 +27,12 @@ export function escapeHtml(value: string): string {
 }
 
 /** `2026-10-05` printed in the three blanks of «__» ______ 20__ г.; empty when not a date. */
-export function datePart(value: string, part: 'day' | 'month' | 'year2'): string {
+export function datePart(value: string, part: 'day' | 'month' | 'year' | 'year2'): string {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/u.exec(value);
   if (!match) return '';
   const [, year = '', month = '', day = ''] = match;
   if (part === 'day') return day;
+  if (part === 'year') return year;
   if (part === 'year2') return year.slice(2);
   return MONTHS_GENITIVE[Number(month) - 1] ?? '';
 }
@@ -45,14 +46,15 @@ export function displayDate(value: string): string {
 const FORM_PRINT_STYLES = `
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; background: #fff; color: #000; }
-  .form-print { font-family: "Times New Roman", Times, serif; line-height: 1.3; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .form-print__block { display: flex; align-items: flex-start; column-gap: 6mm; margin-top: 1.5mm; }
+  .form-print { --form-lh: 1.3; font-family: "Times New Roman", Times, serif; line-height: var(--form-lh); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .form-print__block { display: flex; align-items: flex-start; justify-content: space-between; column-gap: 6mm; }
   .form-print__column { flex: 0 0 auto; min-width: 0; }
   .form-print__column--center { text-align: center; }
   .form-print__row { display: flex; flex-wrap: wrap; align-items: flex-end; column-gap: 0.45em; }
   .form-print__row--center { justify-content: center; }
   .form-print__row--right { justify-content: flex-end; }
   .form-print__row--justify { text-align: justify; }
+  .form-print__row--stretch > .form-print__text:first-child { flex: 1 1 auto; text-align: justify; text-align-last: justify; }
   .form-print__row--gap-small { margin-top: 1.2mm; }
   .form-print__row--gap-medium { margin-top: 3mm; }
   .form-print__row--gap-large { margin-top: 7mm; }
@@ -66,17 +68,18 @@ const FORM_PRINT_STYLES = `
   .form-print__text { flex: 0 1 auto; }
   .form-print__text--bold { font-weight: bold; }
   .form-print__text--small { font-size: 0.85em; }
-  .form-print__field { display: inline-flex; flex-direction: column; flex: 0 0 auto; }
+  .form-print__field { display: inline-flex; flex-direction: column; flex: 0 1 auto; min-width: 0; }
   .form-print__field--grow { flex: 1 1 auto; }
   .form-print__field--lines { flex: 1 1 100%; }
   .form-print__blank {
     display: block;
-    min-height: 1.3em;
+    min-height: calc(1em * var(--form-lh));
     padding: 0 0.3em;
     border-bottom: 0.2mm solid #000;
     overflow-wrap: anywhere;
   }
   .form-print__blank--centered { text-align: center; }
+  .form-print__rule { display: block; min-height: calc(1em * var(--form-lh)); border-bottom: 0.2mm solid #000; }
   .form-print__caption { font-size: 0.72em; text-align: center; line-height: 1.1; }
   .form-print__option { white-space: nowrap; }
   .form-print__option--picked { border: 0.25mm solid #000; border-radius: 1em; padding: 0 0.3em; }
@@ -116,14 +119,23 @@ const FORM_PRINT_STYLES = `
   .form-print__table-caption, .form-print__cell-caption { text-align: left; }
 `;
 
-function blank(value: string, length: number, centered: boolean, lines?: number): string {
+/**
+ * A blank keeps its printed length (`length` characters of the font); a growing one shares what is
+ * left of the line with the other growing blanks in proportion to its length, so a line never
+ * wraps because the page margins differ a little from the official sheet.
+ */
+function fieldFlex(length: number, grow: boolean): string {
+  return grow ? `flex:${length} 1 0%;min-width:3ch` : `flex:0 0 ${length}ch`;
+}
+
+function blank(value: string, centered: boolean, lines?: number): string {
   const classes = [
     'form-print__blank',
     ...(centered ? ['form-print__blank--centered'] : []),
     ...(lines ? ['form-print__blank--lines'] : []),
   ];
-  const height = lines ? `;min-height:${lines * 1.55}em` : '';
-  return `<span class="${classes.join(' ')}" style="min-width:${length}ch${height}">${escapeHtml(value)}</span>`;
+  const height = lines ? ` style="min-height:${lines * 1.55}em"` : '';
+  return `<span class="${classes.join(' ')}"${height}>${escapeHtml(value)}</span>`;
 }
 
 function fieldById(schema: FormSchema, id: string): FormField {
@@ -188,6 +200,9 @@ function segmentHtml(schema: FormSchema, values: FormValues, segment: FormSegmen
   if (segment.kind === 'stamp') {
     return `<span class="form-print__stamp">${escapeHtml(segment.text)}</span>`;
   }
+  if (segment.kind === 'rule') {
+    return `<span class="form-print__rule" style="${fieldFlex(segment.length, segment.grow === true)}"></span>`;
+  }
   if (segment.kind === 'table') return tableHtml(schema, values, segment);
   const field = fieldById(schema, segment.fieldId);
   const value = values[field.id];
@@ -195,7 +210,7 @@ function segmentHtml(schema: FormSchema, values: FormValues, segment: FormSegmen
     return `<span class="form-print__check" aria-label="${escapeHtml(field.label)}">${value === true ? '✓' : ''}</span>`;
   }
   if (segment.kind === 'signature') {
-    return `<span class="form-print__field" style="min-width:${segment.length}ch">${blank('', segment.length, false)}<span class="form-print__caption">${escapeHtml(segment.caption)}</span></span>`;
+    return `<span class="form-print__field" style="${fieldFlex(segment.length, false)}">${blank('', false)}<span class="form-print__caption">${escapeHtml(segment.caption)}</span></span>`;
   }
   if (segment.kind === 'options') {
     const picked = new Set(listValue(value));
@@ -207,12 +222,17 @@ function segmentHtml(schema: FormSchema, values: FormValues, segment: FormSegmen
       (option) =>
         `<span class="form-print__option${picked.has(option.value) ? ` ${mark}` : ''}">${escapeHtml(option.label)}${segment.codes === false ? '' : ` – ${escapeHtml(option.value)}`}</span>`,
     );
-    return `<span class="form-print__options">${items.join(`<span class="form-print__separator">${escapeHtml(segment.separator)}</span>`)}</span>`;
+    const separated = items.map((item, index) => {
+      if (index === items.length - 1) return item;
+      const separator = segment.separators?.[index] ?? segment.separator;
+      return `${item}<span class="form-print__separator">${escapeHtml(separator)}</span>`;
+    });
+    return `<span class="form-print__options">${separated.join('')}</span>`;
   }
   const text = textValue(value);
   const shown = segment.part ? datePart(text, segment.part) : displayFieldValue(field, value);
   const centered = segment.part !== undefined;
-  const inner = blank(shown, segment.length, centered, segment.lines);
+  const inner = blank(shown, centered, segment.lines);
   const classes = [
     'form-print__field',
     ...(segment.grow ? ['form-print__field--grow'] : []),
@@ -221,7 +241,7 @@ function segmentHtml(schema: FormSchema, values: FormValues, segment: FormSegmen
   const caption = segment.caption
     ? `<span class="form-print__caption">${escapeHtml(segment.caption)}</span>`
     : '';
-  return `<span class="${classes.join(' ')}" style="${segment.grow && !segment.lines ? `flex-basis:${segment.length}ch;` : ''}min-width:${segment.length}ch">${inner}${caption}</span>`;
+  return `<span class="${classes.join(' ')}" style="${segment.lines ? '' : fieldFlex(segment.length, segment.grow === true)}">${inner}${caption}</span>`;
 }
 
 function displayFieldValue(field: FormField, value: FormValues[string] | undefined): string {
@@ -241,13 +261,14 @@ function rowHtml(schema: FormSchema, values: FormValues, row: FormRow): string {
     ...(row.gap && row.gap !== 'none' ? [`form-print__row--gap-${row.gap}`] : []),
     ...(row.box ? [`form-print__row--${row.box}`] : []),
   ];
+  const style = row.spaceBeforeMm === undefined ? '' : ` style="margin-top:${row.spaceBeforeMm}mm"`;
   const parts = row.segments.map((segment) => segmentHtml(schema, values, segment));
   if (row.box === 'split') {
     const [first = '', ...rest] = parts;
     const width = row.splitPercent ?? 30;
-    return `<div class="${classes.join(' ')}"><div class="form-print__cell" style="width:${width}%">${first}</div><div class="form-print__cell form-print__cell--grow">${rest.join('')}</div></div>`;
+    return `<div class="${classes.join(' ')}"${style}><div class="form-print__cell" style="width:${width}%">${first}</div><div class="form-print__cell form-print__cell--grow">${rest.join('')}</div></div>`;
   }
-  return `<div class="${classes.join(' ')}">${parts.join('')}</div>`;
+  return `<div class="${classes.join(' ')}"${style}>${parts.join('')}</div>`;
 }
 
 /**
@@ -282,7 +303,7 @@ export function renderFormPrintHtml(schema: FormSchema, values: FormValues): str
 <title>${escapeHtml(title)}</title>
 <style>@page { size: A4 ${page.orientation}; margin: ${margin.top}mm ${margin.right}mm ${margin.bottom}mm ${margin.left}mm; }
 ${FORM_PRINT_STYLES}
-.form-print { font-size: ${page.fontSizePt}pt; }
+.form-print { font-size: ${page.fontSizePt}pt;${page.lineHeight === undefined ? '' : ` --form-lh: ${page.lineHeight};`} }
 @media screen { body { padding: ${margin.top}mm ${margin.right}mm ${margin.bottom}mm ${margin.left}mm; } .form-print__block--page-break { margin-top: 8mm; padding-top: 5mm; border-top: 0.3mm dashed #888; } }</style>
 </head>
 <body><article class="form-print" aria-label="${escapeHtml(title)}">${blocks}</article></body>

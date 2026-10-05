@@ -1918,37 +1918,78 @@
       "orientation": "portrait",
       "marginMm": {
         "top": 10,
-        "right": 10,
+        "right": 13.4,
         "bottom": 10,
-        "left": 15
+        "left": 20.3
       },
-      "fontSizePt": 10
+      "fontSizePt": 10.0,
+      "lineHeight": 1.1
     },
     "blocks": [
       {
         "id": "header",
         "columns": [
           {
-            "widthPercent": 56,
+            "widthPercent": 51,
             "align": "left",
             "rows": [
               {
                 "segments": [
                   {
                     "kind": "text",
-                    "text": "Наименование и адрес медицинской организации (фамилия, имя, отчество (при наличии) индивидуального предпринимателя и адрес осуществления медицинской деятельности)"
+                    "text": "Наименование и адрес медицинской организации"
                   }
-                ],
-                "size": "small"
+                ]
               },
               {
                 "segments": [
                   {
                     "kind": "text",
-                    "text": "Основной государственный регистрационный номер (Основной государственный регистрационный номер индивидуального предпринимателя)"
+                    "text": "(фамилия, имя, отчество (при наличии) индивидуального"
                   }
                 ],
-                "size": "small"
+                "spaceBeforeMm": 0.35
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "предпринимателя и адрес осуществления медицинской"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "деятельности)"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Основной государственный регистрационный номер"
+                  }
+                ],
+                "spaceBeforeMm": 4.14
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "(Основной государственный регистрационный"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "номер индивидуального предпринимателя)"
+                  }
+                ]
               },
               {
                 "segments": [
@@ -1974,7 +2015,7 @@
             ]
           },
           {
-            "widthPercent": 44,
+            "widthPercent": 36,
             "align": "center",
             "rows": [
               {
@@ -1983,8 +2024,7 @@
                     "kind": "text",
                     "text": "Медицинская документация"
                   }
-                ],
-                "size": "small"
+                ]
               },
               {
                 "segments": [
@@ -1992,18 +2032,33 @@
                     "kind": "text",
                     "text": "Учетная форма № 070/у"
                   }
-                ],
-                "size": "small"
+                ]
               },
               {
                 "segments": [
                   {
                     "kind": "text",
-                    "text": "Утверждена приказом Министерства здравоохранения Российской Федерации от 13 мая 2025 г. № 274н"
+                    "text": "Утверждена приказом Министерства"
                   }
                 ],
-                "size": "small",
-                "gap": "small"
+                "spaceBeforeMm": 4.97
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "здравоохранения Российской Федерации"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "от 13 мая 2025 г. № 274н"
+                  }
+                ],
+                "spaceBeforeMm": 0.32
               }
             ]
           }
@@ -2031,7 +2086,7 @@
                 ],
                 "align": "center",
                 "size": "title",
-                "gap": "large"
+                "spaceBeforeMm": 5.12
               },
               {
                 "segments": [
@@ -2042,7 +2097,8 @@
                   }
                 ],
                 "align": "center",
-                "size": "title"
+                "size": "title",
+                "spaceBeforeMm": 1.13
               },
               {
                 "segments": [
@@ -2083,7 +2139,8 @@
                   }
                 ],
                 "align": "center",
-                "size": "title"
+                "size": "title",
+                "spaceBeforeMm": 0.65
               }
             ]
           }
@@ -2103,7 +2160,7 @@
                   }
                 ],
                 "align": "justify",
-                "gap": "medium"
+                "spaceBeforeMm": 0.84
               }
             ]
           }
@@ -2128,7 +2185,7 @@
                     "grow": true
                   }
                 ],
-                "gap": "medium"
+                "spaceBeforeMm": 4.69
               },
               {
                 "segments": [
@@ -2179,7 +2236,8 @@
                     "fieldId": "patientSex",
                     "separator": ", "
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.64
               },
               {
                 "segments": [
@@ -2217,7 +2275,8 @@
                     "length": 28,
                     "grow": true
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.48
               },
               {
                 "segments": [
@@ -2268,7 +2327,8 @@
                     "length": 20,
                     "grow": true
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.61
               },
               {
                 "segments": [
@@ -2357,7 +2417,8 @@
                     "length": 20,
                     "grow": true
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.29
               }
             ]
           }
@@ -2429,7 +2490,17 @@
                 "segments": [
                   {
                     "kind": "text",
-                    "text": "данные о страховой медицинской организации, выбранной застрахованным лицом или определенной застрахованному лицу"
+                    "text": "данные о страховой медицинской организации, выбранной застрахованным лицом или определенной"
+                  }
+                ],
+                "align": "justify",
+                "spaceBeforeMm": 0.48
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "застрахованному лицу"
                   },
                   {
                     "kind": "field",
@@ -2473,7 +2544,8 @@
                     "fieldId": "climateCode",
                     "length": 5
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.33
               },
               {
                 "segments": [
@@ -2486,7 +2558,8 @@
                     "fieldId": "climateFactorsCode",
                     "length": 6
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.28
               },
               {
                 "segments": [
@@ -2499,7 +2572,8 @@
                     "fieldId": "socialSupportCode",
                     "length": 27
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.34
               },
               {
                 "segments": [
@@ -2520,7 +2594,8 @@
                     "kind": "text",
                     "text": "Документ, подтверждающий право на получение мер социальной поддержки в виде набора социальных услуг:"
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.8
               },
               {
                 "segments": [
@@ -2626,7 +2701,8 @@
                     "kind": "text",
                     "text": "код по Международной статистической"
                   }
-                ]
+                ],
+                "spaceBeforeMm": 1.09
               },
               {
                 "segments": [
@@ -2709,8 +2785,8 @@
                     "fieldId": "noContraindications"
                   }
                 ],
-                "gap": "medium",
-                "box": "outline"
+                "box": "outline",
+                "spaceBeforeMm": 2.61
               },
               {
                 "segments": [
@@ -2724,7 +2800,7 @@
                     "separator": "; "
                   }
                 ],
-                "gap": "medium"
+                "spaceBeforeMm": 4.31
               },
               {
                 "segments": [
@@ -2739,9 +2815,9 @@
                     "grow": true
                   }
                 ],
-                "gap": "medium",
                 "box": "split",
-                "splitPercent": 30
+                "splitPercent": 30,
+                "spaceBeforeMm": 5.09
               },
               {
                 "segments": [
@@ -2755,7 +2831,7 @@
                     "separator": ", "
                   }
                 ],
-                "gap": "medium"
+                "spaceBeforeMm": 3.58
               }
             ]
           }
@@ -2808,7 +2884,8 @@
                     "length": 14,
                     "caption": "подпись"
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.4
               },
               {
                 "segments": [
@@ -2829,7 +2906,8 @@
                     "length": 14,
                     "caption": "подпись"
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.48
               },
               {
                 "segments": [
@@ -2839,7 +2917,7 @@
                     "text": "М.П. (при наличии)"
                   }
                 ],
-                "gap": "large"
+                "spaceBeforeMm": 7.35
               }
             ]
           }

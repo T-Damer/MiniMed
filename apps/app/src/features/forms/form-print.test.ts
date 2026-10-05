@@ -98,6 +98,57 @@ describe('form print', () => {
     expect(html).toContain('J45.0');
   });
 
+  it('prints a whole-year date, ruled lines, stretched rows and mixed option separators', () => {
+    const base = findFormSchema('ru.minzdrav.274n.070u');
+    if (!base) throw new Error('schema missing');
+    const schema = {
+      ...base,
+      layout: {
+        ...base.layout,
+        blocks: [
+          {
+            id: 'probe',
+            columns: [
+              {
+                widthPercent: 100,
+                rows: [
+                  {
+                    align: 'stretch' as const,
+                    spaceBeforeMm: 2.5,
+                    segments: [{ kind: 'text' as const, text: 'Строка по ширине' }],
+                  },
+                  {
+                    segments: [
+                      {
+                        kind: 'field' as const,
+                        fieldId: 'patientBirthDate',
+                        length: 6,
+                        part: 'year' as const,
+                      },
+                      { kind: 'rule' as const, length: 12, grow: true },
+                      {
+                        kind: 'options' as const,
+                        fieldId: 'patientSex',
+                        separator: ', ',
+                        separators: ['; '],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    };
+    const html = renderFormPrintHtml(schema, { patientBirthDate: '1980-03-04', patientSex: ['2'] });
+    expect(html).toContain('form-print__row form-print__row--stretch" style="margin-top:2.5mm"');
+    expect(html).toContain('>1980<');
+    expect(html).toContain('<span class="form-print__rule" style="flex:12 1 0%;min-width:3ch">');
+    expect(html).toContain('муж. – 1</span><span class="form-print__separator">; </span>');
+    expect(datePart('1980-03-04', 'year')).toBe('1980');
+  });
+
   it('underlines the applicable words when the blank says «нужное подчеркнуть»', () => {
     const certificate = findFormSchema('ru.minzdrav.274n.079u');
     if (!certificate) throw new Error('schema missing');

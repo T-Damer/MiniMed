@@ -3,12 +3,22 @@ import Foundation
 import PDFKit
 import Vision
 
-guard CommandLine.arguments.count == 2 else {
-    fputs("usage: macos_vision_ocr.swift <pdf>\n", stderr)
+// usage: macos_vision_ocr.swift <pdf> [--pages 19,20] [--rotate 90]
+// `--rotate` turns each page clockwise by that many degrees before recognition (a scan stored
+// sideways); the page size and the boxes then describe the rotated page.
+let arguments = Array(CommandLine.arguments.dropFirst())
+guard let pdfArgument = arguments.first, !pdfArgument.hasPrefix("--") else {
+    fputs("usage: macos_vision_ocr.swift <pdf> [--pages 19,20] [--rotate 90]\n", stderr)
     exit(64)
 }
+func option(_ name: String) -> String? {
+    guard let at = arguments.firstIndex(of: name), at + 1 < arguments.count else { return nil }
+    return arguments[at + 1]
+}
+let onlyPages: Set<Int>? = option("--pages").map { Set($0.split(separator: ",").compactMap { Int($0) }) }
+let rotation = Int(option("--rotate") ?? "0") ?? 0
 
-let source = URL(fileURLWithPath: CommandLine.arguments[1])
+let source = URL(fileURLWithPath: pdfArgument)
 guard let document = PDFDocument(url: source) else {
     fputs("cannot open PDF: \(source.path)\n", stderr)
     exit(65)
@@ -17,11 +27,28 @@ guard let document = PDFDocument(url: source) else {
 var pages: [[String: Any]] = []
 for index in 0..<document.pageCount {
     guard let page = document.page(at: index) else { continue }
-    let bounds = page.bounds(for: .mediaBox)
+    if let only = onlyPages, !only.contains(index + 1) { continue }
+    var bounds = page.bounds(for: .mediaBox)
     let scale = 1800.0 / max(bounds.width, 1)
-    let image = page.thumbnail(
+    var image = page.thumbnail(
         of: NSSize(width: 1800, height: max(1, bounds.height * scale)), for: .mediaBox
     )
+    if rotation != 0 {
+        let radians = CGFloat(-rotation) * .pi / 180
+        let turned = rotation % 180 == 90
+        let size = turned ? NSSize(width: image.size.height, height: image.size.width) : image.size
+        let target = NSImage(size: size)
+        target.lockFocus()
+        let transform = NSAffineTransform()
+        transform.translateX(by: size.width / 2, yBy: size.height / 2)
+        transform.rotate(byRadians: radians)
+        transform.translateX(by: -image.size.width / 2, yBy: -image.size.height / 2)
+        transform.concat()
+        image.draw(in: NSRect(origin: .zero, size: image.size))
+        target.unlockFocus()
+        image = target
+        if turned { bounds = NSRect(x: 0, y: 0, width: bounds.height, height: bounds.width) }
+    }
     var rect = NSRect(origin: .zero, size: image.size)
     guard let cgImage = image.cgImage(forProposedRect: &rect, context: nil, hints: nil) else { continue }
 

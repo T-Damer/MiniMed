@@ -288,4 +288,49 @@ describe('form schema contract', () => {
       }
     });
   });
+  it('accepts the layout vocabulary of F3: rules, whole-year dates, option separators, stretched rows, calibration', () => {
+    const form = minimalForm() as { layout: { page: Record<string, unknown>; blocks: unknown[] } };
+    form.layout.page['lineHeight'] = 1.15;
+    form.layout.blocks = [
+      {
+        id: 'body',
+        columns: [
+          {
+            widthPercent: 100,
+            rows: [
+              {
+                align: 'stretch',
+                spaceBeforeMm: 4.5,
+                segments: [{ kind: 'text', text: 'Фамилия' }],
+              },
+              {
+                segments: [
+                  { kind: 'field', fieldId: 'name', length: 10, part: 'year', caption: 'год' },
+                  { kind: 'rule', length: 20, grow: true },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ];
+    expect(FormSchemaSchema.safeParse(form).success).toBe(true);
+    form.layout.page['lineHeight'] = 3;
+    expect(FormSchemaSchema.safeParse(form).success).toBe(false);
+  });
+
+  it('does not require a field for a ruled line and rejects an unknown date part', () => {
+    const form = minimalForm() as { layout: { blocks: { columns: { rows: unknown[] }[] }[] } };
+    const column = form.layout.blocks[0]?.columns[0];
+    if (!column) throw new Error('layout missing');
+    column.rows = [
+      {
+        segments: [
+          { kind: 'field', fieldId: 'name', length: 5, part: 'decade' },
+          { kind: 'rule', length: 20 },
+        ],
+      },
+    ];
+    expect(FormSchemaSchema.safeParse(form).success).toBe(false);
+  });
 });
