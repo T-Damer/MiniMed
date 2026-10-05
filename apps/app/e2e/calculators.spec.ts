@@ -77,7 +77,7 @@ test('calculates body surface area and writes the result to a patient note', asy
     .getByRole('button', { name: 'Калькуляторы', exact: true })
     .click();
   await expect(page).toHaveURL(/#\/calculators$/u);
-  await expect(page.getByRole('heading', { name: 'Калькуляторы' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Калькуляторы', exact: true })).toBeVisible();
 
   await page.getByRole('button', { name: 'Открыть раздел «Антропометрия»' }).click();
   const anthropometryDownload = page.getByRole('button', {

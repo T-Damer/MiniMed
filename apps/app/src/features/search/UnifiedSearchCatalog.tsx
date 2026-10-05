@@ -49,6 +49,7 @@ export function UnifiedSearchCatalog(props: {
               <div class="unified-catalog__tool-shell">
                 <a
                   class="unified-catalog__tool catalog-card paper-card"
+                  classList={{ 'unified-catalog__tool--create': entry.createsNew === true }}
                   href={entry.href}
                   aria-label={entry.title}
                   onClick={props.onOpenTool}
@@ -64,10 +65,12 @@ export function UnifiedSearchCatalog(props: {
                   </Show>
                 </a>
                 {/* Siblings of the link, layered over its corner: buttons cannot nest in <a>. */}
-                <div class="unified-catalog__tool-pins">
-                  <ItemFavoriteButton item={toolItem(entry.id, entry.title)} />
-                  <ItemCollectionMenu item={toolItem(entry.id, entry.title)} />
-                </div>
+                <Show when={!entry.createsNew}>
+                  <div class="unified-catalog__tool-pins">
+                    <ItemFavoriteButton item={toolItem(entry.id, entry.title)} />
+                    <ItemCollectionMenu item={toolItem(entry.id, entry.title)} />
+                  </div>
+                </Show>
               </div>
             )}
           </LayoutVirtualizedGrid>

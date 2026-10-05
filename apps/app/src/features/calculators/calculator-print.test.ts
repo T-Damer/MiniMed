@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { printCalculationRecord } from '@/features/calculators/calculator-print';
+import {
+  calculationRecordOutputs,
+  formatCalculationRecord,
+  printCalculationRecord,
+} from '@/features/calculators/calculator-print';
 import type { CalculationRecord } from '@/state/calculation-history';
 
 function buildRecord(): CalculationRecord {
@@ -78,6 +82,47 @@ describe('calculator print layout', () => {
     expect(markup).not.toContain('Пациент / случай:');
     expect(markup).toContain('href="https://t-damer.github.io/MiniMed/app/"');
     expect(markup).not.toContain('#/calculators/private-result');
+  });
+
+  it('prints the inputs, formula, result, interpretation and limits of an authored calculator', () => {
+    const record: CalculationRecord = {
+      id: 'user-calculator-print-test',
+      calculatorId: 'user-calculator:uc-print0000001',
+      subjectLabel: '',
+      createdAt: '2026-10-05T10:00:00.000Z',
+      inputSummary: 'Масса 49 кг, Рост 170 см',
+      result: {
+        ok: true,
+        calculatorId: 'user-calculator:uc-print0000001',
+        formula: 'масса / (рост / 100) ^ 2',
+        trace: [],
+        warnings: [
+          { code: 'user-disclaimer', message: 'Авторский калькулятор.' },
+          { code: 'interpretation', message: 'Дефицит. ИМТ ниже нормы.' },
+        ],
+        value: 16.96,
+        unit: 'кг/м²',
+        label: 'Индекс массы тела',
+        displayPrecision: 1,
+      },
+    };
+    const text = formatCalculationRecord(record);
+    expect(text).toContain('Входные данные: Масса 49 кг, Рост 170 см');
+    expect(text).toContain('Формула: масса / (рост / 100) ^ 2');
+    expect(text).toContain('Индекс массы тела: 17 кг/м²');
+    expect(calculationRecordOutputs(record)).toEqual([
+      { label: 'Индекс массы тела', display: '17 кг/м²' },
+    ]);
+    // A result saved before labels were recorded still reads «Результат».
+    expect(
+      formatCalculationRecord({
+        ...buildRecord(),
+        result: { ...buildRecord().result },
+      }),
+    ).toContain('\n1,82 м²');
+    expect(text).toContain('Интерпретация:\nДефицит. ИМТ ниже нормы.');
+    expect(text).toContain('Ограничения:\n- Авторский калькулятор.');
+    expect(text).not.toContain('- Дефицит');
   });
 
   it('reports a blocked print popup instead of throwing', () => {

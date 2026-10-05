@@ -8,7 +8,11 @@ for (const width of [375, 1280]) {
     await mountBuiltApp(page, { splitNavigation: true, skipLargeCompanionPacks: true });
     await openHomeSection(page, 'Калькуляторы');
 
-    const card = page.locator('.unified-catalog__tool-shell').first();
+    // The «create your own» card comes first in the list and is no tool to star.
+    const card = page
+      .locator('.unified-catalog__tool-shell')
+      .filter({ hasNot: page.locator('.unified-catalog__tool--create') })
+      .first();
     await expect(card).toBeVisible();
     const title = (await card.locator('.catalog-card__title').textContent())?.trim() ?? '';
     const href = await card.locator('.unified-catalog__tool').getAttribute('href');

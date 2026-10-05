@@ -31,6 +31,8 @@ export const CalculatorCategorySchema = z.enum([
   'hematology',
   'neonatology',
   'pediatrics',
+  /** Calculators the doctor made in the app («Мои калькуляторы»); never shipped in a content module. */
+  'custom',
 ]);
 
 export const CalculatorSourceReferenceSchema = z.object({

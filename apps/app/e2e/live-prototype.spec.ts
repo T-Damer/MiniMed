@@ -29,7 +29,7 @@ test.describe('published MiniMed prototype', () => {
     await expect(page.getByText('Психология и психодиагностика').first()).toBeVisible();
 
     await nav.getByRole('button', { name: 'Калькуляторы', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'Калькуляторы' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Калькуляторы', exact: true })).toBeVisible();
     await expect(page.getByLabel('Поиск калькуляторов')).toBeVisible();
   });
 });

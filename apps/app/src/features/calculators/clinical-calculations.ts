@@ -74,6 +74,8 @@ export interface NumericCalculationResult {
   readonly value: number;
   readonly unit: string;
   readonly outputId?: string;
+  /** The schema's name for the value; results saved before it was recorded read «Результат». */
+  readonly label?: string;
   readonly displayPrecision: number;
   readonly trace: readonly CalculationTraceStep[];
   readonly warnings: readonly CalculatorWarning[];

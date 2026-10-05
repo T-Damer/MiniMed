@@ -5,8 +5,14 @@ import {
   type ToolDefinitionRecord,
 } from '@localmed/contracts';
 import {
+  CALCULATOR_PACKS_EVENT,
+  USER_CALCULATORS_EVENT,
+} from '@/features/calculators/calculator-events';
+import {
   clearDownloadedCalculatorSchemas,
+  clearUserCalculatorSchemas,
   registerDownloadedCalculatorSchema,
+  registerUserCalculatorSchema,
 } from '@/features/calculators/calculator-schema-catalog';
 import { validateCalculatorSchema } from '@/features/calculators/calculator-schema-validate';
 import type {
@@ -14,10 +20,21 @@ import type {
   CalculatorDefinition,
 } from '@/features/calculators/calculator-types';
 
+import {
+  userCalculatorBlockingError,
+  userCalculatorToSchema,
+} from '@/features/calculators/user-calculator/user-calculator-schema';
 import { TOOL_CATALOG } from '@/features/modules/module-catalog-shell';
 import { toolAgeBadge } from '@/features/tools/tool-age-scope';
+import {
+  listUserCalculators,
+  USER_CALCULATORS_STORAGE_KEY,
+  type UserCalculator,
+} from '@/state/user-calculators';
 
 const DOWNLOADED_CALCULATORS = new Map<string, AvailableCalculatorDefinition>();
+/** The doctor's own calculators: kept apart from the downloaded ones, which a module refresh clears. */
+const USER_CALCULATORS = new Map<string, AvailableCalculatorDefinition>();
 
 export const ECG_PHOTO_CALIPER_ID = 'ecg-photo-caliper';
 
@@ -155,9 +172,12 @@ const CORE_CALCULATOR_CATALOG = TOOL_CATALOG.filter((entry) => entry.kind === 'c
 export function getCalculatorRegistry(): readonly CalculatorDefinition[] {
   return [
     ...new Map<string, CalculatorDefinition>(
-      [...CALCULATOR_REGISTRY, ...CORE_CALCULATOR_CATALOG, ...DOWNLOADED_CALCULATORS.values()].map(
-        (definition) => [definition.id, definition],
-      ),
+      [
+        ...CALCULATOR_REGISTRY,
+        ...CORE_CALCULATOR_CATALOG,
+        ...DOWNLOADED_CALCULATORS.values(),
+        ...USER_CALCULATORS.values(),
+      ].map((definition) => [definition.id, definition]),
     ).values(),
   ];
 }
@@ -174,6 +194,58 @@ export function registerDownloadedCalculator(record: ToolDefinitionRecord): void
     record.id,
     calculatorCatalogDefinition(record, schema, schema.ageScope),
   );
+}
+
+/**
+ * Makes the doctor's calculators part of the registry and the schema catalog, replacing whatever was
+ * registered before. Only finished calculators are registered: a draft with a formula error or no
+ * population is listed on «Мои калькуляторы» but cannot run, so it never reaches the generic form.
+ */
+export function registerUserCalculators(models: readonly UserCalculator[]): void {
+  clearUserCalculators();
+  for (const model of models) {
+    if (userCalculatorBlockingError(model) !== null) continue;
+    const schema = userCalculatorToSchema(model);
+    registerUserCalculatorSchema(schema);
+    USER_CALCULATORS.set(
+      schema.id,
+      calculatorCatalogDefinition(
+        {
+          id: schema.id,
+          // The edit time doubles as the version a saved result records.
+          version: model.updatedAt,
+          slug: schema.slug,
+          title: schema.title,
+          shortTitle: schema.shortTitle,
+          aliases: schema.aliases,
+        },
+        schema,
+        schema.ageScope,
+      ),
+    );
+  }
+}
+
+export function clearUserCalculators(): void {
+  USER_CALCULATORS.clear();
+  clearUserCalculatorSchemas();
+}
+
+function syncUserCalculators(): void {
+  registerUserCalculators(listUserCalculators());
+}
+
+// The registry holds the doctor's calculators from the first read on and follows every change made
+// here or in another tab, so lists and search never need to know where a calculator came from.
+if (typeof window !== 'undefined') {
+  syncUserCalculators();
+  window.addEventListener(USER_CALCULATORS_EVENT, syncUserCalculators);
+  window.addEventListener('storage', (event) => {
+    if (event.key === null || event.key === USER_CALCULATORS_STORAGE_KEY) {
+      window.dispatchEvent(new Event(USER_CALCULATORS_EVENT));
+      window.dispatchEvent(new Event(CALCULATOR_PACKS_EVENT));
+    }
+  });
 }
 
 function calculatorCatalogDefinition(

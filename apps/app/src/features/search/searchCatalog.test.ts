@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { getAssessmentCatalog } from '@/features/assessments/assessment-catalog';
-import { matchingCatalogTools, searchCatalogSections, searchCatalogTools } from './searchCatalog';
+import {
+  CUSTOM_CALCULATOR,
+  CUSTOM_QUESTIONNAIRE,
+  matchingCatalogTools,
+  searchCatalogSections,
+  searchCatalogTools,
+} from './searchCatalog';
 
 describe('unified tool catalog', () => {
   it('counts real tools and keeps the creation action searchable within subsections', () => {
@@ -14,7 +20,35 @@ describe('unified tool catalog', () => {
     );
     const matches = matchingCatalogTools(tools, 'assessments', 'pediatrics', 'создать свое');
     expect(matches.map((entry) => entry.href)).toEqual(['#/assessments/mine/new']);
-    expect(matchingCatalogTools(tools, 'calculators', undefined, 'создать свое')).toEqual([]);
+    expect(
+      matchingCatalogTools(tools, 'calculators', undefined, 'создать свое').map(
+        (entry) => entry.href,
+      ),
+    ).toEqual(['#/calculators/mine/new']);
+  });
+  it('offers the create-your-own calculator card in the calculators list and in a search', () => {
+    const tools = searchCatalogTools();
+    const calculators = matchingCatalogTools(tools, 'calculators', undefined, '');
+    expect(calculators[0]).toBe(CUSTOM_CALCULATOR);
+    expect(CUSTOM_CALCULATOR).toMatchObject({
+      scope: 'calculators',
+      title: 'Создать свой калькулятор',
+      href: '#/calculators/mine/new',
+      createsNew: true,
+    });
+    // No age filter hides an action card, and the questionnaire card stays out of this list.
+    expect(matchingCatalogTools(tools, 'calculators', undefined, '', 'adults')[0]).toBe(
+      CUSTOM_CALCULATOR,
+    );
+    expect(calculators).not.toContain(CUSTOM_QUESTIONNAIRE);
+    expect(matchingCatalogTools(tools, 'assessments', undefined, '')).not.toContain(
+      CUSTOM_CALCULATOR,
+    );
+    const searched = matchingCatalogTools(tools, 'all', undefined, 'создать свое');
+    expect(searched).toEqual(expect.arrayContaining([CUSTOM_CALCULATOR, CUSTOM_QUESTIONNAIRE]));
+    // Without a query the all-sources list stays a list of real tools.
+    expect(matchingCatalogTools(tools, 'all', undefined, '')).not.toContain(CUSTOM_CALCULATOR);
+    expect(matchingCatalogTools(tools, 'legal', undefined, '')).not.toContain(CUSTOM_CALCULATOR);
   });
   it('combines document and tool counts and filters the same unified specialty', () => {
     const tools = searchCatalogTools();

@@ -1,4 +1,8 @@
 import { findCalculator } from '@/features/calculators/calculator-registry';
+import {
+  parseUserCalculatorRoute,
+  userCalculatorsPath,
+} from '@/features/calculators/user-calculator/user-calculator-routing';
 
 export interface CalculatorCrumb {
   readonly label: string;
@@ -15,6 +19,8 @@ function decodeRoutePart(value: string | undefined): string | undefined {
 }
 
 export function calculatorSectionPath(sectionId: string): string {
+  // The doctor's own calculators have a list of their own rather than a downloadable section page.
+  if (sectionId === 'custom') return userCalculatorsPath();
   return `#/calculators/section/${encodeURIComponent(sectionId)}`;
 }
 
@@ -39,6 +45,9 @@ export function calculatorParentHash(route: string): string | null {
   const parts = route.split('/');
   if (parts.length <= 1 || parts[0] !== 'calculators') return null;
   if (!parts[1]) return null;
+
+  const userRoute = parseUserCalculatorRoute(route);
+  if (userRoute) return userRoute.kind === 'list' ? '#/calculators' : userCalculatorsPath();
 
   if (parts[1] === 'section') {
     return parts[2] ? '#/calculators' : null;

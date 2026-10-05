@@ -25,6 +25,7 @@ import { QueryEmptyState } from '@/components/QueryEmptyState';
 import { SearchField } from '@/components/SearchField';
 import { Heading } from '@/components/Text';
 import { CalculatorChart } from '@/features/calculators/CalculatorChart';
+import { USER_CALCULATORS_EVENT } from '@/features/calculators/calculator-events';
 import { consumeCalculatorLaunchDraft } from '@/features/calculators/calculator-launch-draft';
 import type {
   CalculatorInstallationState,
@@ -87,6 +88,15 @@ import {
   type QuantityFamily,
   unitsForFamily,
 } from '@/features/calculators/unit-conversion';
+import { MyCalculatorsCard } from '@/features/calculators/user-calculator/MyCalculatorsCard';
+import { UserCalculatorEditorPage } from '@/features/calculators/user-calculator/UserCalculatorEditorPage';
+import { UserCalculatorsPage } from '@/features/calculators/user-calculator/UserCalculatorsPage';
+import {
+  parseUserCalculatorRoute,
+  userCalculatorEditPath,
+  userCalculatorNewPath,
+  userCalculatorsPath,
+} from '@/features/calculators/user-calculator/user-calculator-routing';
 import {
   contentModuleNeedsInstall,
   isModuleReleased,
@@ -99,6 +109,7 @@ import {
   snapshotCalculationForNote,
 } from '@/features/notes/note-attached-results';
 import { ItemFavoriteButton, toolItem } from '@/features/search/ToolPinControls';
+import { PatientAgeNotice } from '@/features/tools/PatientAgeNotice';
 import { ToolAgeBadge } from '@/features/tools/ToolAgeBadge';
 import { ToolAgeFilterBar } from '@/features/tools/ToolAgeFilterBar';
 import { filterByAge, type ToolAgeFilter } from '@/features/tools/tool-age-filter';
@@ -129,6 +140,11 @@ import {
   readPatientVault,
 } from '@/state/patient-vault';
 import { leaveTool, returnFromTool } from '@/state/tool-navigation';
+import {
+  createUserCalculator,
+  listUserCalculators,
+  type UserCalculator,
+} from '@/state/user-calculators';
 
 function currentRoute(): string {
   return window.location.hash.replace(/^#\/?/u, '');
@@ -181,7 +197,13 @@ function CalculatorCard(props: {
     <Card class={`calculator-card${disabled() ? ' calculator-card--disabled' : ''}`}>
       <div class="calculator-card-meta" classList={{ 'calculator-card__muted': disabled() }}>
         <ToolAgeBadge scope={definition.ageScope} />
-        <span>{definition.clinical ? 'Клинический' : 'Служебный'}</span>
+        <span>
+          {definition.category === 'custom'
+            ? 'Авторский'
+            : definition.clinical
+              ? 'Клинический'
+              : 'Служебный'}
+        </span>
         <span>
           {definition.state === 'planned'
             ? 'В плане'
@@ -751,6 +773,10 @@ function CalculatorForm(props: {
           patientRefreshRequest += 1;
           setPatientSnapshot(snapshot);
         }}
+      />
+      <PatientAgeNotice
+        scope={props.definition.ageScope}
+        birthDate={selectedPatient()?.birthDate}
       />
 
       <Show when={selectedPatient()}>
@@ -1435,6 +1461,14 @@ export function CalculatorsView(): JSX.Element {
   const refreshInstallation = (): void => {
     setInstallation(loadCalculatorInstallationState(calculatorRegistry()));
   };
+  const [userCalculatorCount, setUserCalculatorCount] = createSignal(listUserCalculators().length);
+  // The registry already follows the doctor's calculators; this view only has to re-read it.
+  const refreshUserCalculators = (): void => {
+    const next = getCalculatorRegistry();
+    setCalculatorRegistry(next);
+    setInstallation(loadCalculatorInstallationState(next));
+    setUserCalculatorCount(listUserCalculators().length);
+  };
   let downloadedToolsRefresh: Promise<void> | undefined;
   const refreshDownloadedTools = (): Promise<void> => {
     if (downloadedToolsRefresh) return downloadedToolsRefresh;
@@ -1478,6 +1512,7 @@ export function CalculatorsView(): JSX.Element {
     window.addEventListener('hashchange', refresh);
     window.addEventListener('storage', handleStorage);
     window.addEventListener(CALCULATOR_PACKS_EVENT, refreshInstallation);
+    window.addEventListener(USER_CALCULATORS_EVENT, refreshUserCalculators);
     window.addEventListener(PATIENT_VAULT_LOCK_EVENT, clearProtectedResult);
     unsubscribeToolTasks = getContentModuleRuntime(MODULE_CATALOG).subscribe((task) => {
       if (task.state === 'completed')
@@ -1491,6 +1526,7 @@ export function CalculatorsView(): JSX.Element {
   onCleanup(() => window.removeEventListener('hashchange', refresh));
   onCleanup(() => window.removeEventListener('storage', handleStorage));
   onCleanup(() => window.removeEventListener(CALCULATOR_PACKS_EVENT, refreshInstallation));
+  onCleanup(() => window.removeEventListener(USER_CALCULATORS_EVENT, refreshUserCalculators));
   onCleanup(() => window.removeEventListener(PATIENT_VAULT_LOCK_EVENT, clearProtectedResult));
   onCleanup(() => unsubscribeToolTasks?.());
   onCleanup(() => unsubscribeAppPreferences?.());
@@ -1499,6 +1535,40 @@ export function CalculatorsView(): JSX.Element {
   };
 
   const slug = createMemo(() => route().split('/')[1] ?? '');
+  const userRoute = createMemo(() => parseUserCalculatorRoute(route()));
+  // `#/calculators/mine/new` makes a draft and continues in its editor; replacing the entry keeps
+  // «back» from creating a second draft.
+  createEffect(
+    on(
+      () => userRoute()?.kind,
+      (kind) => {
+        if (kind !== 'new') return;
+        // `on` keeps the body untracked: saving fires events whose handlers read other signals, and
+        // tracking those would run this effect again before the new hash arrives (a second draft).
+        try {
+          const created = createUserCalculator();
+          window.location.replace(
+            `${window.location.pathname}${window.location.search}${userCalculatorEditPath(created.id)}`,
+          );
+        } catch (cause) {
+          notify(cause instanceof Error ? cause.message : 'Не удалось создать калькулятор.');
+          window.location.hash = userCalculatorsPath();
+        }
+      },
+    ),
+  );
+  const openUserCalculator = (model: UserCalculator): void => {
+    setActiveRecord(undefined);
+    window.location.hash = `#/calculators/${encodeURIComponent(model.id)}`;
+  };
+  const showMyCalculatorsCard = (): boolean => {
+    const needle = query().trim().toLocaleLowerCase('ru-RU');
+    return (
+      needle === '' ||
+      'мои калькуляторы'.includes(needle) ||
+      searched().some((definition) => definition.category === 'custom')
+    );
+  };
   const selectedSection = createMemo(() => {
     const parts = route().split('/');
     if (parts[1] !== 'section') return undefined;
@@ -1684,260 +1754,328 @@ export function CalculatorsView(): JSX.Element {
   return (
     <section class="calculators-page page-surface page-grain" aria-label="Медицинские калькуляторы">
       <Show
-        when={selected()}
+        when={userRoute()}
+        keyed
         fallback={
           <Show
-            when={selectedSection()}
+            when={selected()}
             fallback={
               <Show
-                when={
-                  routeDefinition()?.state === 'available' &&
-                  !installation().installedIds.has(routeDefinition()?.id ?? '')
-                    ? routeDefinition()
-                    : undefined
-                }
+                when={selectedSection()}
                 fallback={
-                  <>
-                    <header class="subpage-heading calculators-heading">
-                      <div>
-                        <p class="archive-kicker">Разделы инструментов</p>
-                        <Heading depth={1}>Калькуляторы</Heading>
-                        <p>
-                          Откройте нужный калькулятор — установленные инструменты работают без сети.
-                          Дополнительные инструменты можно скачать. Результат сохраняется на
-                          устройстве вместе с формулой и границами применения.
-                        </p>
-                      </div>
-                    </header>
+                  <Show
+                    when={
+                      routeDefinition()?.state === 'available' &&
+                      !installation().installedIds.has(routeDefinition()?.id ?? '')
+                        ? routeDefinition()
+                        : undefined
+                    }
+                    fallback={
+                      <>
+                        <header class="subpage-heading calculators-heading">
+                          <div>
+                            <p class="archive-kicker">Разделы инструментов</p>
+                            <Heading depth={1}>Калькуляторы</Heading>
+                            <p>
+                              Откройте нужный калькулятор — установленные инструменты работают без
+                              сети. Дополнительные инструменты можно скачать. Результат сохраняется
+                              на устройстве вместе с формулой и границами применения.
+                            </p>
+                          </div>
+                        </header>
 
-                    <SearchField
-                      class="calculator-search"
-                      value={query()}
-                      onInput={setQuery}
-                      label="Поиск калькуляторов"
-                      hideLabel
-                      placeholder="Например: СКФ, 4-2-1, ППТ"
-                    />
-
-                    <ToolAgeFilterBar
-                      class="calculators-heading__age-filter"
-                      value={ageFilter()}
-                      onChange={setAgeFilter}
-                      hidden={searched().length - filtered().length}
-                    />
-
-                    <Show
-                      when={filtered().length > 0}
-                      fallback={
-                        <QueryEmptyState
-                          {...(searched().length > 0
-                            ? {
-                                message:
-                                  'Для выбранного возраста ничего не найдено. Выберите «Все», чтобы увидеть остальные.',
-                              }
-                            : {})}
+                        <SearchField
+                          class="calculator-search"
+                          value={query()}
+                          onInput={setQuery}
+                          label="Поиск калькуляторов"
+                          hideLabel
+                          placeholder="Например: СКФ, 4-2-1, ППТ"
                         />
-                      }
-                    >
-                      <div class="calculator-section-list">
-                        <For
-                          each={CALCULATOR_SECTIONS.filter(
-                            (section) => calculatorsInSection(section.id, filtered()).length > 0,
-                          )}
-                        >
-                          {(section) => (
-                            <CalculatorSectionCard
-                              section={section}
-                              installation={installation()}
-                              definitions={calculatorRegistry()}
-                              downloadableModules={downloadableModulesForSection(section.id)}
-                              downloadLabel={sectionDownloadLabel(section.id)}
-                              onOpenSection={openSection}
-                              onInstall={installSection}
-                              onRemove={removeSection}
-                            />
-                          )}
-                        </For>
-                      </div>
-                    </Show>
 
-                    <Show when={history().length > 0}>
-                      <section class="calculator-history">
-                        <h2>Последние расчёты</h2>
-                        <div>
-                          <For each={history()}>
-                            {(record) => (
-                              <button type="button" onClick={() => openHistoryRecord(record)}>
-                                <strong>
-                                  {findCalculator(record.calculatorId, calculatorRegistry())
-                                    ?.title ?? record.calculatorId}
-                                </strong>
-                                <span>{record.subjectLabel || record.inputSummary}</span>
-                                <small>
-                                  {new Intl.DateTimeFormat('ru-RU', {
-                                    dateStyle: 'short',
-                                    timeStyle: 'short',
-                                  }).format(new Date(record.createdAt))}
-                                </small>
-                              </button>
-                            )}
-                          </For>
-                        </div>
-                      </section>
-                    </Show>
-                  </>
+                        <ToolAgeFilterBar
+                          class="calculators-heading__age-filter"
+                          value={ageFilter()}
+                          onChange={setAgeFilter}
+                          hidden={searched().length - filtered().length}
+                        />
+
+                        <Show
+                          when={filtered().length > 0 || showMyCalculatorsCard()}
+                          fallback={
+                            <QueryEmptyState
+                              {...(searched().length > 0
+                                ? {
+                                    message:
+                                      'Для выбранного возраста ничего не найдено. Выберите «Все», чтобы увидеть остальные.',
+                                  }
+                                : {})}
+                            />
+                          }
+                        >
+                          <div class="calculator-section-list">
+                            <Show when={showMyCalculatorsCard()}>
+                              <MyCalculatorsCard
+                                count={userCalculatorCount()}
+                                onOpen={() => {
+                                  setQuery('');
+                                  window.location.hash = userCalculatorsPath();
+                                }}
+                              />
+                            </Show>
+                            <For
+                              each={CALCULATOR_SECTIONS.filter(
+                                (section) =>
+                                  section.id !== 'custom' &&
+                                  calculatorsInSection(section.id, filtered()).length > 0,
+                              )}
+                            >
+                              {(section) => (
+                                <CalculatorSectionCard
+                                  section={section}
+                                  installation={installation()}
+                                  definitions={calculatorRegistry()}
+                                  downloadableModules={downloadableModulesForSection(section.id)}
+                                  downloadLabel={sectionDownloadLabel(section.id)}
+                                  onOpenSection={openSection}
+                                  onInstall={installSection}
+                                  onRemove={removeSection}
+                                />
+                              )}
+                            </For>
+                          </div>
+                        </Show>
+
+                        <Show when={history().length > 0}>
+                          <section class="calculator-history">
+                            <h2>Последние расчёты</h2>
+                            <div>
+                              <For each={history()}>
+                                {(record) => (
+                                  <button type="button" onClick={() => openHistoryRecord(record)}>
+                                    <strong>
+                                      {findCalculator(record.calculatorId, calculatorRegistry())
+                                        ?.title ?? record.calculatorId}
+                                    </strong>
+                                    <span>{record.subjectLabel || record.inputSummary}</span>
+                                    <small>
+                                      {new Intl.DateTimeFormat('ru-RU', {
+                                        dateStyle: 'short',
+                                        timeStyle: 'short',
+                                      }).format(new Date(record.createdAt))}
+                                    </small>
+                                  </button>
+                                )}
+                              </For>
+                            </div>
+                          </section>
+                        </Show>
+                      </>
+                    }
+                  >
+                    {(definition) => {
+                      const section = CALCULATOR_SECTIONS.find(
+                        (candidate) => candidate.id === definition().category,
+                      );
+                      return (
+                        <section class="calculator-pack-required paper-card" role="status">
+                          <Show
+                            when={toolsReady() && !toolsError()}
+                            fallback={
+                              <>
+                                <h1 class="calculator-pack-required__title">
+                                  {toolsError()
+                                    ? 'Не удалось открыть калькулятор'
+                                    : 'Подключаем калькулятор'}
+                                </h1>
+                                <p class="calculator-pack-required__text">
+                                  {toolsError() ||
+                                    'Проверяем локальные пакеты и открываем калькулятор.'}
+                                </p>
+                              </>
+                            }
+                          >
+                            <p class="archive-kicker">{section?.title ?? 'Раздел калькуляторов'}</p>
+                            <Heading depth={3}>{definition().title}</Heading>
+                            <p>
+                              Этот инструмент входит в скачиваемый раздел. Сначала скачайте раздел,
+                              затем откройте калькулятор без сети.
+                            </p>
+                            <div>
+                              <Button
+                                icon={<AppGlyph name="download" />}
+                                onClick={() => installSection(definition().category)}
+                              >
+                                Скачать
+                              </Button>
+                              <Button
+                                variant="quiet"
+                                icon={<AppGlyph name="arrow-left" />}
+                                onClick={backToCatalog}
+                              >
+                                К разделам
+                              </Button>
+                            </div>
+                          </Show>
+                        </section>
+                      );
+                    }}
+                  </Show>
                 }
               >
-                {(definition) => {
-                  const section = CALCULATOR_SECTIONS.find(
-                    (candidate) => candidate.id === definition().category,
-                  );
-                  return (
-                    <section class="calculator-pack-required paper-card" role="status">
-                      <Show
-                        when={toolsReady() && !toolsError()}
-                        fallback={
-                          <>
-                            <h1 class="calculator-pack-required__title">
-                              {toolsError()
-                                ? 'Не удалось открыть калькулятор'
-                                : 'Подключаем калькулятор'}
-                            </h1>
-                            <p class="calculator-pack-required__text">
-                              {toolsError() ||
-                                'Проверяем локальные пакеты и открываем калькулятор.'}
-                            </p>
-                          </>
-                        }
-                      >
-                        <p class="archive-kicker">{section?.title ?? 'Раздел калькуляторов'}</p>
-                        <Heading depth={3}>{definition().title}</Heading>
-                        <p>
-                          Этот инструмент входит в скачиваемый раздел. Сначала скачайте раздел,
-                          затем откройте калькулятор без сети.
-                        </p>
-                        <div>
-                          <Button
-                            icon={<AppGlyph name="download" />}
-                            onClick={() => installSection(definition().category)}
-                          >
-                            Скачать
-                          </Button>
-                          <Button
-                            variant="quiet"
-                            icon={<AppGlyph name="arrow-left" />}
-                            onClick={backToCatalog}
-                          >
-                            К разделам
-                          </Button>
-                        </div>
-                      </Show>
-                    </section>
-                  );
-                }}
+                {(section) => (
+                  <CalculatorSectionPage
+                    section={section()}
+                    installation={installation()}
+                    definitions={calculatorRegistry()}
+                    downloadableModules={downloadableModulesForSection(section().id)}
+                    downloadLabel={sectionDownloadLabel(section().id)}
+                    ageFilter={ageFilter()}
+                    onAgeFilter={setAgeFilter}
+                    onOpen={openCalculator}
+                    onBack={backToCatalog}
+                    onInstall={installSection}
+                    onInstallCalculator={requestInstallCalculator}
+                    onRemove={removeSection}
+                  />
+                )}
               </Show>
             }
           >
-            {(section) => (
-              <CalculatorSectionPage
-                section={section()}
-                installation={installation()}
-                definitions={calculatorRegistry()}
-                downloadableModules={downloadableModulesForSection(section().id)}
-                downloadLabel={sectionDownloadLabel(section().id)}
-                ageFilter={ageFilter()}
-                onAgeFilter={setAgeFilter}
-                onOpen={openCalculator}
-                onBack={backToCatalog}
-                onInstall={installSection}
-                onInstallCalculator={requestInstallCalculator}
-                onRemove={removeSection}
-              />
+            {(definition) => (
+              <Show
+                when={definition().id !== ECG_PHOTO_CALIPER_ID}
+                fallback={
+                  // The ECG editor is a full-screen flow with no description page behind it.
+                  <EcgPhotoCaliper onExit={leaveTool} />
+                }
+              >
+                <div class="calculator-workspace">
+                  <header class="calculator-subpage-header">
+                    <NavBack
+                      class="knowledge-back-button"
+                      aria-label="Назад"
+                      onClick={backFromCalculator}
+                    />
+                    <div class="calculator-subpage-header__content">
+                      <AppBreadcrumbs
+                        items={calculatorWorkspaceCrumbs({
+                          title: definition().title,
+                          sectionId: definition().category,
+                          sectionTitle:
+                            CALCULATOR_SECTIONS.find(
+                              (section) => section.id === definition().category,
+                            )?.title ?? 'Раздел калькуляторов',
+                        })}
+                        onNavigate={(href) => {
+                          window.location.hash = href;
+                        }}
+                      />
+                      <Heading depth={3} class="calculator-subpage-title">
+                        {definition().title}
+                      </Heading>
+                      <p class="calculator-subpage-summary">{definition().summary}</p>
+                      <Show when={definition().category === 'custom'}>
+                        <Button
+                          type="button"
+                          variant="quiet"
+                          class="calculator-subpage-edit"
+                          data-testid="calculator-edit-own"
+                          icon={<AppGlyph name="edit" />}
+                          onClick={() => {
+                            window.location.hash = userCalculatorEditPath(definition().slug);
+                          }}
+                        >
+                          Изменить калькулятор
+                        </Button>
+                      </Show>
+                      <Disclosure
+                        variant="inline"
+                        class="calculator-subpage-sources"
+                        title={`Источники (${definition().sources.length})`}
+                      >
+                        <ul class="calculator-subpage-sources__list">
+                          <For each={definition().sources}>
+                            {(source) => (
+                              <li class="calculator-subpage-sources__item">
+                                <Show
+                                  when={source.url}
+                                  fallback={
+                                    <span class="calculator-subpage-sources__link">
+                                      {source.title} · {source.publisher}
+                                    </span>
+                                  }
+                                >
+                                  <a
+                                    class="calculator-subpage-sources__link"
+                                    href={source.url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    {source.title}
+                                  </a>
+                                </Show>
+                              </li>
+                            )}
+                          </For>
+                        </ul>
+                      </Disclosure>
+                    </div>
+                  </header>
+
+                  <CalculatorForm
+                    definition={definition()}
+                    onMessage={notify}
+                    onRecord={(record) => {
+                      setActiveRecord(record);
+                      setHistory(loadCalculationHistory());
+                    }}
+                  />
+
+                  <Show when={activeRecord()}>
+                    {(record) => (
+                      <CalculationResultPanel
+                        record={record()}
+                        definition={definition()}
+                        onMessage={notify}
+                        onDelete={() => {
+                          requestDeleteRecord(record());
+                        }}
+                      />
+                    )}
+                  </Show>
+                </div>
+              </Show>
             )}
           </Show>
         }
       >
-        {(definition) => (
-          <Show
-            when={definition().id !== ECG_PHOTO_CALIPER_ID}
-            fallback={
-              // The ECG editor is a full-screen flow with no description page behind it.
-              <EcgPhotoCaliper onExit={leaveTool} />
-            }
-          >
-            <div class="calculator-workspace">
-              <header class="calculator-subpage-header">
-                <NavBack
-                  class="knowledge-back-button"
-                  aria-label="Назад"
-                  onClick={backFromCalculator}
-                />
-                <div class="calculator-subpage-header__content">
-                  <AppBreadcrumbs
-                    items={calculatorWorkspaceCrumbs({
-                      title: definition().title,
-                      sectionId: definition().category,
-                      sectionTitle:
-                        CALCULATOR_SECTIONS.find((section) => section.id === definition().category)
-                          ?.title ?? 'Раздел калькуляторов',
-                    })}
-                    onNavigate={(href) => {
-                      window.location.hash = href;
-                    }}
-                  />
-                  <Heading depth={3} class="calculator-subpage-title">
-                    {definition().title}
-                  </Heading>
-                  <p class="calculator-subpage-summary">{definition().summary}</p>
-                  <Disclosure
-                    variant="inline"
-                    class="calculator-subpage-sources"
-                    title={`Источники (${definition().sources.length})`}
-                  >
-                    <ul class="calculator-subpage-sources__list">
-                      <For each={definition().sources}>
-                        {(source) => (
-                          <li class="calculator-subpage-sources__item">
-                            <a
-                              class="calculator-subpage-sources__link"
-                              href={source.url}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              {source.title}
-                            </a>
-                          </li>
-                        )}
-                      </For>
-                    </ul>
-                  </Disclosure>
-                </div>
-              </header>
-
-              <CalculatorForm
-                definition={definition()}
-                onMessage={notify}
-                onRecord={(record) => {
-                  setActiveRecord(record);
-                  setHistory(loadCalculationHistory());
-                }}
-              />
-
-              <Show when={activeRecord()}>
-                {(record) => (
-                  <CalculationResultPanel
-                    record={record()}
-                    definition={definition()}
-                    onMessage={notify}
-                    onDelete={() => {
-                      requestDeleteRecord(record());
-                    }}
-                  />
-                )}
-              </Show>
-            </div>
-          </Show>
-        )}
+        {(current) =>
+          current.kind === 'edit' ? (
+            <UserCalculatorEditorPage
+              id={current.id}
+              onBack={() => {
+                window.location.hash = userCalculatorsPath();
+              }}
+              onOpen={openUserCalculator}
+              onMessage={notify}
+            />
+          ) : current.kind === 'new' ? null : (
+            <UserCalculatorsPage
+              onBack={() => {
+                window.location.hash = '#/calculators';
+              }}
+              onCreate={() => {
+                window.location.hash = userCalculatorNewPath();
+              }}
+              onOpen={openUserCalculator}
+              onEdit={(id) => {
+                window.location.hash = userCalculatorEditPath(id);
+              }}
+              onMessage={notify}
+            />
+          )
+        }
       </Show>
 
       <ConfirmationDialog

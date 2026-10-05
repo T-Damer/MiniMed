@@ -10,6 +10,7 @@ import {
 } from '@/features/assessments/assessment-routing';
 import { CALCULATOR_SECTIONS } from '@/features/calculators/calculator-packs';
 import { getCalculatorRegistry } from '@/features/calculators/calculator-registry';
+import { userCalculatorNewPath } from '@/features/calculators/user-calculator/user-calculator-routing';
 import {
   medicationDocumentGroups,
   medicationGroupLabel,
@@ -161,6 +162,18 @@ export const CUSTOM_QUESTIONNAIRE: SearchCatalogTool = {
   ageScope: anyAgeScope('Создание своего инструмента: возраст не применим.'),
   createsNew: true,
 };
+export const CUSTOM_CALCULATOR: SearchCatalogTool = {
+  id: 'create-custom-calculator',
+  icon: 'plus',
+  scope: 'calculators',
+  title: 'Создать свой калькулятор',
+  description: 'Составьте собственный калькулятор: входные данные, формула и диапазоны результата.',
+  aliases: ['создать свое', 'мой калькулятор', 'новый', 'конструктор', 'формула'],
+  group: '',
+  href: userCalculatorNewPath(),
+  ageScope: anyAgeScope('Создание своего инструмента: возраст не применим.'),
+  createsNew: true,
+};
 // The source catalog combines obstetrics and gynecology under one specialty.
 export function unifiedSearchSpecialty(group: string): string {
   return group === 'obstetrics' ? 'gynecology' : group;
@@ -181,8 +194,11 @@ export function matchingCatalogTools(
   ageFilter: ToolAgeFilter = 'all',
 ): readonly SearchCatalogTool[] {
   // The «create your own» card is an action, not a tool for a patient: no age filter hides it.
-  const custom =
-    scope === 'assessments' || (scope === 'all' && query.trim()) ? [CUSTOM_QUESTIONNAIRE] : [];
+  const searching = scope === 'all' && query.trim() !== '';
+  const custom = [
+    ...(scope === 'assessments' || searching ? [CUSTOM_QUESTIONNAIRE] : []),
+    ...(scope === 'calculators' || searching ? [CUSTOM_CALCULATOR] : []),
+  ];
   const candidates = [...custom, ...filterByAge(rows, ageFilter)];
   return candidates.filter(
     (entry) =>

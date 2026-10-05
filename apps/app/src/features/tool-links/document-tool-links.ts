@@ -33,7 +33,9 @@ function buildMatcher() {
       phrases: [assessment.title, assessment.shortTitle, ...assessment.aliases],
     })),
     ...getCalculatorRegistry()
+      // The doctor's own calculators are named freely: their titles are not phrases to link in sources.
       .filter((calculator) => calculator.state === 'available')
+      .filter((calculator) => calculator.category !== 'custom')
       .map((calculator) => ({
         id: calculator.id,
         kind: 'calculator' as const,

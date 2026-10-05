@@ -577,6 +577,7 @@ export function toStoredCalculationResult(
       value: output.value,
       unit: output.unit,
       outputId: output.id,
+      label: output.label,
       displayPrecision: output.displayPrecision,
     };
     return result;

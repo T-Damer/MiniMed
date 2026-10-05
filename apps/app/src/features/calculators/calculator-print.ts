@@ -33,7 +33,7 @@ export function calculationRecordOutputs(
   if ('value' in result) {
     return [
       {
-        label: 'Результат',
+        label: result.label ?? 'Результат',
         display: `${formatCalculatorNumber(result.value, result.displayPrecision)} ${result.unit}`,
       },
     ];
@@ -75,8 +75,20 @@ export function formatCalculationRecord(record: CalculationRecord, noteTitle = '
       ? calculationRecordOutputs(record)
           .map((item) => `${item.label}: ${item.display}`)
           .join('\n')
-      : (calculationRecordOutputs(record)[0]?.display ?? '');
-  const warnings = record.result.warnings.map((warning) => `- ${warning.message}`).join('\n');
+      : calculationRecordOutputs(record)
+          .map((item) =>
+            item.label === 'Результат' ? item.display : `${item.label}: ${item.display}`,
+          )
+          .join('\n');
+  // The range an author or a source attached to the result reads as its interpretation, not as a limit.
+  const interpretation = record.result.warnings
+    .filter((warning) => warning.code === 'interpretation')
+    .map((warning) => warning.message)
+    .join('\n');
+  const warnings = record.result.warnings
+    .filter((warning) => warning.code !== 'interpretation')
+    .map((warning) => `- ${warning.message}`)
+    .join('\n');
   const subject =
     !linkedTitle && record.subjectLabel ? `Пациент / случай: ${record.subjectLabel}\n` : '';
   const date = new Intl.DateTimeFormat('ru-RU', {
@@ -91,6 +103,7 @@ export function formatCalculationRecord(record: CalculationRecord, noteTitle = '
     `Формула: ${record.result.formula}`,
     '',
     outputs,
+    interpretation ? `\nИнтерпретация:\n${interpretation}` : '',
     warnings ? `\nОграничения:\n${warnings}` : '',
     '\nРезультат является расчётной поддержкой и должен интерпретироваться в клиническом контексте.',
   ]

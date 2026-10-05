@@ -35,6 +35,27 @@ describe('search section downloads', () => {
     expect(blocks.has('diagnosis/')).toBe(false);
   });
 
+  it("treats the doctor's own calculators as local, never as a missing download", () => {
+    const own = {
+      id: 'user-calculator:uc-abcdef123456',
+      scope: 'calculators' as const,
+      icon: 'calculator' as const,
+      title: 'ИМТ',
+      description: 'Индекс массы тела',
+      aliases: [],
+      group: 'custom',
+      href: '#/calculators/uc-abcdef123456',
+      ageScope: { groups: ['adults' as const], basis: 'Указано автором инструмента.' },
+    };
+    const blocks = searchSectionDownloadBlocks([], [own], MODULE_CATALOG);
+    expect(blocks.get('calculators/custom')).toMatchObject({
+      local: true,
+      unavailable: false,
+      modules: [],
+    });
+    expect(blocks.get('calculators/')).toMatchObject({ unavailable: false });
+  });
+
   it('requires a verified index target for pointer downloads, not just matching specialty', () => {
     const module = MODULE_CATALOG.modules.find(
       (entry) => entry.releaseState === 'published' && entry.documents.length > 0,

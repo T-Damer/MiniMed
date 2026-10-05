@@ -1,7 +1,8 @@
 /**
- * A restricted expression language for calculator formulas. Deliberately not `eval`/`new Function`:
- * expressions are data (parsed into an AST and interpreted), so a downloaded or LLM-authored calculator
- * schema can never gain arbitrary code execution — only the operations declared below are reachable.
+ * A restricted expression language for calculator formulas. Deliberately never handed to the host
+ * language's own code evaluation: expressions are data (parsed into an AST and interpreted), so a
+ * downloaded or LLM-authored calculator schema can never gain arbitrary code execution — only the
+ * operations declared below are reachable.
  */
 
 import {

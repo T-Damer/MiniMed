@@ -4,6 +4,7 @@ import type {
   MedicalDocumentSummary,
 } from '@localmed/contracts';
 import { CALCULATOR_REGISTRY } from '@/features/calculators/calculator-registry';
+import { isUserCalculatorId } from '@/features/calculators/user-calculator/user-calculator-ids';
 import { medicationDocumentGroups } from '@/features/medications/medicationGroups';
 import { isModuleReleased } from '@/features/modules/local-packaged-modules';
 import {
@@ -128,7 +129,8 @@ export function searchSectionDownloadBlocks(
       byTool.get(`${tool.scope === 'assessments' ? 'assessment' : 'calculator'}/${tool.id}`) ?? [];
     const module = candidates.find(isModuleReleased);
     const local =
-      tool.scope === 'calculators' && CALCULATOR_REGISTRY.some((entry) => entry.id === tool.id);
+      tool.scope === 'calculators' &&
+      (CALCULATOR_REGISTRY.some((entry) => entry.id === tool.id) || isUserCalculatorId(tool.id));
     add(tool.scope, [tool.group], module, local);
     add('all', [unifiedSearchSpecialty(tool.group)], module, local);
   }

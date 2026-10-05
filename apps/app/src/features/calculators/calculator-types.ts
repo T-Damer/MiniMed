@@ -14,7 +14,8 @@ export type CalculatorCategory =
   | 'gastroenterology'
   | 'hematology'
   | 'pediatrics'
-  | 'neonatology';
+  | 'neonatology'
+  | 'custom';
 
 export interface CalculatorSourceReference {
   readonly title: string;

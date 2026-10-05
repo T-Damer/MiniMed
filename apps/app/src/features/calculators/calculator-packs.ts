@@ -1,5 +1,6 @@
 import type { ContentModuleCatalog } from '@localmed/contracts';
 
+import { CALCULATOR_PACKS_EVENT } from '@/features/calculators/calculator-events';
 import {
   CALCULATOR_REGISTRY,
   ECG_PHOTO_CALIPER_ID,
@@ -10,6 +11,7 @@ import type {
   CalculatorDefinition,
 } from '@/features/calculators/calculator-types';
 import { PEDIATRIC_FEEDING_PLAN_ID } from '@/features/calculators/pediatric-feeding-plan';
+import { isUserCalculatorId } from '@/features/calculators/user-calculator/user-calculator-ids';
 
 import { loadedModuleCatalog } from '@/features/modules/module-catalog-state';
 
@@ -49,9 +51,11 @@ const SECTION_IDS = new Set<CalculatorSectionId>([
   'hematology',
   'pediatrics',
   'neonatology',
+  'custom',
 ]);
 
-export const CALCULATOR_PACKS_EVENT = 'minimed:calculator-packs-changed';
+export { CALCULATOR_PACKS_EVENT };
+
 let databaseCalculatorIds: ReadonlySet<string> = new Set();
 
 export function setDatabaseCalculatorIds(ids: readonly string[]): void {
@@ -68,6 +72,19 @@ export const CORE_CALCULATOR_IDS: ReadonlySet<string> = new Set([
   ECG_PHOTO_CALIPER_ID,
   PEDIATRIC_FEEDING_PLAN_ID,
 ]);
+
+/**
+ * Usable without any download: the bundled core tools and the doctor's own calculators, which exist
+ * only on this device and belong to no downloadable section.
+ */
+export function isAlwaysAvailableCalculator(id: string): boolean {
+  return CORE_CALCULATOR_IDS.has(id) || isUserCalculatorId(id);
+}
+
+/** «Мои калькуляторы» is a place for the doctor's own tools, never a section to install or remove. */
+function isUserSection(sectionId: CalculatorSectionId): boolean {
+  return sectionId === 'custom';
+}
 
 /** Maps calculator sections to downloadable tool-module catalog ids. */
 export const CALCULATOR_SECTION_MODULE_IDS: Readonly<Partial<Record<CalculatorSectionId, string>>> =
@@ -138,6 +155,7 @@ export const CALCULATOR_SECTION_CATEGORY_IDS: Readonly<
   hematology: [],
   pediatrics: ['minimed.clinical.pediatrics.gastro-nutrition'],
   neonatology: ['minimed.clinical.neonatology.ru'],
+  custom: [],
 };
 
 export const CALCULATOR_SECTIONS: readonly CalculatorSectionDefinition[] = [
@@ -206,6 +224,11 @@ export const CALCULATOR_SECTIONS: readonly CalculatorSectionDefinition[] = [
     title: 'Педиатрия',
     description: 'Кормления, прикорм и дневной рацион для детей до 3 лет.',
   },
+  {
+    id: 'custom',
+    title: 'Мои калькуляторы',
+    description: 'Калькуляторы, которые вы составили сами: данные, формула и диапазоны результата.',
+  },
 ];
 
 function storage(): Storage | null {
@@ -270,7 +293,7 @@ function installedIdsFromSections(
           definition.state === 'available' &&
           (CALCULATOR_REGISTRY.some((entry) => entry.id === definition.id) ||
             getCalculatorSchema(definition.id) !== undefined) &&
-          (CORE_CALCULATOR_IDS.has(definition.id) ||
+          (isAlwaysAvailableCalculator(definition.id) ||
             [...sectionIds].some((sectionId) => belongsToSection(definition, sectionId)) ||
             calculatorIds.has(definition.id) ||
             databaseCalculatorIds.has(definition.id)),
@@ -348,7 +371,8 @@ export function isCalculatorSectionCore(
 ): boolean {
   const available = availableDefinitions(definitions, sectionId);
   return (
-    available.length > 0 && available.every((definition) => CORE_CALCULATOR_IDS.has(definition.id))
+    available.length > 0 &&
+    available.every((definition) => isAlwaysAvailableCalculator(definition.id))
   );
 }
 
@@ -385,7 +409,11 @@ export function installCalculatorSection(
   sectionId: CalculatorSectionId,
   definitions: readonly CalculatorDefinition[] = CALCULATOR_REGISTRY,
 ): CalculatorInstallationState {
-  if (!SECTION_IDS.has(sectionId) || availableDefinitions(definitions, sectionId).length === 0) {
+  if (
+    isUserSection(sectionId) ||
+    !SECTION_IDS.has(sectionId) ||
+    availableDefinitions(definitions, sectionId).length === 0
+  ) {
     return loadCalculatorInstallationState(definitions);
   }
   const current = loadCalculatorInstallationState(definitions);
@@ -405,7 +433,9 @@ export function installCalculator(
   const definition = definitions.find(
     (candidate) => candidate.id === calculatorId && candidate.state === 'available',
   );
-  if (!definition) return loadCalculatorInstallationState(definitions);
+  if (!definition || isUserCalculatorId(definition.id)) {
+    return loadCalculatorInstallationState(definitions);
+  }
 
   const current = loadCalculatorInstallationState(definitions);
   const sectionIds = new Set(current.sectionIds);
@@ -430,6 +460,7 @@ export function removeCalculatorSection(
   definitions: readonly CalculatorDefinition[] = CALCULATOR_REGISTRY,
 ): CalculatorInstallationState {
   const current = loadCalculatorInstallationState(definitions);
+  if (isUserSection(sectionId)) return current;
   const sectionIds = new Set(current.sectionIds);
   const calculatorIds = new Set(current.calculatorIds);
   sectionIds.delete(sectionId);
