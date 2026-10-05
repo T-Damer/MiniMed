@@ -162,4 +162,26 @@ describe('form prefill', () => {
     expect(values['snils']).toBe('123-456-789 01');
     expect(values['treatmentDone']).toBeUndefined();
   });
+  it('prefills the referral 057/у: policy, patient, address without a phone, diagnosis and the referring doctor', () => {
+    const referral = findFormSchema('ru.minzdrav.519n.057u');
+    if (!referral) throw new Error('schema missing');
+    const context = buildFormPrefillContext({ profile, episode, clinician, now });
+    const { values, prefilled } = prefillFormValues(referral, context);
+    expect(values['formDate']).toBe('2026-10-05');
+    expect(values['omsPolicyNumber']).toBe('7700000000000001');
+    expect(values['omsPolicyIssueDate']).toBe('2020-01-15');
+    expect(values['omsInsurer']).toBe('СМО «Тест»');
+    expect(values['patientSex']).toBe('1');
+    expect(values['residenceStreet']).toBe('Ленина');
+    expect(values['diagnosis']).toBe('Бронхиальная астма, J45.0');
+    expect(values['referrerPosition']).toBe('врач-терапевт');
+    expect(values['referrerName']).toBe('Петров Пётр Петрович');
+    // what the app does not store stays empty and is never invented
+    for (const id of ['localityType', 'employment', 'purpose', 'justification', 'formNumber']) {
+      expect(values[id]).toBeUndefined();
+    }
+    // paper-only fields are not bound
+    expect(prefilled.has('referrerSignature')).toBe(false);
+    expect(prefilled.has('stamp')).toBe(false);
+  });
 });

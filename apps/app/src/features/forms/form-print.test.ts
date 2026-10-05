@@ -142,7 +142,9 @@ describe('form print', () => {
       },
     };
     const html = renderFormPrintHtml(schema, { patientBirthDate: '1980-03-04', patientSex: ['2'] });
-    expect(html).toContain('form-print__row form-print__row--stretch" style="margin-top:2.5mm"');
+    expect(html).toContain(
+      'form-print__row form-print__row--stretch form-print__row--flow" style="margin-top:2.5mm"',
+    );
     expect(html).toContain('>1980<');
     expect(html).toContain('<span class="form-print__rule" style="flex:12 1 0%;min-width:3ch">');
     expect(html).toContain('муж. – 1</span><span class="form-print__separator">; </span>');

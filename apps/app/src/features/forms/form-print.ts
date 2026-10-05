@@ -46,11 +46,15 @@ export function displayDate(value: string): string {
 const FORM_PRINT_STYLES = `
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; background: #fff; color: #000; }
-  .form-print { --form-lh: 1.3; font-family: "Times New Roman", Times, serif; line-height: var(--form-lh); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .form-print { overflow-x: clip; --form-lh: 1.3; font-family: "Times New Roman", Times, serif; line-height: var(--form-lh); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .form-print__block { display: flex; align-items: flex-start; justify-content: space-between; column-gap: 6mm; }
   .form-print__column { flex: 0 0 auto; min-width: 0; }
   .form-print__column--center { text-align: center; }
   .form-print__row { display: flex; flex-wrap: wrap; align-items: flex-end; column-gap: 0.45em; }
+  .form-print__row--flow { display: block; }
+  .form-print__row--flow.form-print__row--center { text-align: center; }
+  .form-print__row--flow.form-print__row--right { text-align: right; }
+  .form-print__row--flow.form-print__row--stretch { text-align: justify; text-align-last: justify; white-space: nowrap; }
   .form-print__row--center { justify-content: center; }
   .form-print__row--right { justify-content: flex-end; }
   .form-print__row--justify { text-align: justify; }
@@ -82,9 +86,9 @@ const FORM_PRINT_STYLES = `
   .form-print__blank--centered { text-align: center; }
   .form-print__rule { display: block; min-height: calc(1em * var(--form-lh)); border-bottom: 0.2mm solid #000; }
   .form-print__caption { font-size: 0.72em; text-align: center; line-height: 1.1; }
-  .form-print__option { white-space: nowrap; }
+  .form-print__option { white-space: normal; }
   .form-print__option--picked { border: 0.25mm solid #000; border-radius: 1em; padding: 0 0.3em; }
-  .form-print__separator { white-space: pre; }
+  .form-print__separator { white-space: pre-wrap; }
   .form-print__check {
     display: inline-block;
     width: 4mm;
@@ -254,6 +258,13 @@ function displayFieldValue(field: FormField, value: FormValues[string] | undefin
   return textValue(value);
 }
 
+/** A row of words and choices only reads as running text: it flows and wraps like a paragraph. */
+function isFlowRow(row: FormRow): boolean {
+  return (
+    !row.box && row.segments.every((segment) => ['text', 'options', 'stamp'].includes(segment.kind))
+  );
+}
+
 function rowHtml(schema: FormSchema, values: FormValues, row: FormRow): string {
   const classes = [
     'form-print__row',
@@ -262,9 +273,13 @@ function rowHtml(schema: FormSchema, values: FormValues, row: FormRow): string {
     ...(row.bold ? ['form-print__row--bold'] : []),
     ...(row.gap && row.gap !== 'none' ? [`form-print__row--gap-${row.gap}`] : []),
     ...(row.box ? [`form-print__row--${row.box}`] : []),
+    ...(isFlowRow(row) ? ['form-print__row--flow'] : []),
   ];
   const style = row.spaceBeforeMm === undefined ? '' : ` style="margin-top:${row.spaceBeforeMm}mm"`;
   const parts = row.segments.map((segment) => segmentHtml(schema, values, segment));
+  if (isFlowRow(row)) {
+    return `<div class="${classes.join(' ')}"${style}>${parts.join(' ')}</div>`;
+  }
   if (row.box === 'split') {
     const [first = '', ...rest] = parts;
     const width = row.splitPercent ?? 30;

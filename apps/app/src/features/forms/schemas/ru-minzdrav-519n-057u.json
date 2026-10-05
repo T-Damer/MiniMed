@@ -1,0 +1,1874 @@
+{
+  "schemaVersion": 1,
+  "id": "ru.minzdrav.519n.057u",
+  "formNumber": "057/у",
+  "title": "Направление для оказания медицинской помощи",
+  "edition": "Приказ Минздрава России от 02.09.2025 № 519н, приложение № 1; действует с 27.10.2025 (срок вступления в силу приказом не установлен; дата — по общему правилу, через 10 дней после официального опубликования 16.10.2025)",
+  "source": {
+    "issuer": "Министерство здравоохранения Российской Федерации",
+    "orderNumber": "519н",
+    "orderDate": "2025-09-02",
+    "orderTitle": "Об утверждении учетной формы «Направление для оказания медицинской помощи» и порядка ее ведения",
+    "registration": {
+      "authority": "Министерство юстиции Российской Федерации",
+      "number": "83857",
+      "date": "2025-10-16"
+    },
+    "effectiveFrom": "2025-10-27",
+    "publicationUrl": "http://publication.pravo.gov.ru/document/0001202510160032",
+    "pdfUrl": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202510160032",
+    "retrievedAt": "2026-10-05",
+    "sha256": "b9f956c78c023e26275ec1583c8dde85e475d817ecafb23bc818168725077f20",
+    "pdfPages": 5,
+    "blankAppendix": {
+      "number": 1,
+      "pdfPages": [
+        2
+      ]
+    },
+    "rulesAppendix": {
+      "number": 2,
+      "pdfPages": [
+        3,
+        4,
+        5
+      ]
+    },
+    "extraction": {
+      "method": "macos-vision-ocr-v1",
+      "ocrSha256": "5084205ede1e65066787d44f8a7f1ad569a0eb84667caefb249874becf2c01b6",
+      "corrections": [
+        {
+          "pdfPage": 2,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 3,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 4,
+          "from": "номер Основной государственный",
+          "to": "номер (Основной государственный",
+          "reason": "opening parenthesis of a printed bracket lost by the OCR"
+        },
+        {
+          "pdfPage": 5,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 5,
+          "from": "которые не / имеют",
+          "to": "которые не имеют",
+          "reason": "stray mark of the scan read as «/»"
+        }
+      ],
+      "blankLabelsVerified": 36,
+      "captionsReviewedOnScan": [
+        "Основной государственный регистрационный номер"
+      ],
+      "note": "The official PDF is a scan without a text layer. Text recognised by macOS Vision; fragments are regrouped into printed lines (top to bottom, left to right) and footnotes under the per-page limits of the blueprint are dropped. Span line indices count these regrouped lines of each PDF page from 0. Corrections listed here were reviewed against the scan."
+    }
+  },
+  "sections": [
+    {
+      "id": "organization",
+      "title": "Организация и номер направления",
+      "fieldIds": [
+        "organization",
+        "organizationOgrn",
+        "formNumber",
+        "formDate",
+        "destinationOrganization"
+      ]
+    },
+    {
+      "id": "insurance",
+      "title": "Полис обязательного медицинского страхования",
+      "fieldIds": [
+        "omsPolicyNumber",
+        "omsPolicyIssueDate",
+        "omsInsurer"
+      ]
+    },
+    {
+      "id": "patient",
+      "title": "Пациент",
+      "description": "Заполняется по сведениям формы № 025/у (п. 9.4).",
+      "fieldIds": [
+        "patientFullName",
+        "patientBirthDate",
+        "patientSex",
+        "residenceSubject",
+        "residenceDistrict",
+        "residenceLocality",
+        "residenceStreet",
+        "residenceHouse",
+        "residenceBuilding",
+        "residenceApartment",
+        "staySubject",
+        "stayDistrict",
+        "stayLocality",
+        "stayStreet",
+        "stayHouse",
+        "stayBuilding",
+        "stayApartment",
+        "localityType",
+        "employment"
+      ]
+    },
+    {
+      "id": "referral",
+      "title": "Направление",
+      "fieldIds": [
+        "diagnosis",
+        "purpose",
+        "careForm",
+        "careKind",
+        "careConditions",
+        "justification"
+      ]
+    },
+    {
+      "id": "referrer",
+      "title": "Направивший медицинский работник",
+      "description": "Подпись и печать ставятся на бумажной форме.",
+      "fieldIds": [
+        "referrerPosition",
+        "referrerName"
+      ]
+    }
+  ],
+  "fields": [
+    {
+      "id": "organization",
+      "label": "Наименование и адрес медицинской организации (фамилия, имя, отчество (при наличии) индивидуального предпринимателя и адрес осуществления медицинской деятельности)",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "multiline": true,
+      "maxLength": 400,
+      "prefill": {
+        "sources": [
+          "organization.name",
+          "organization.address"
+        ],
+        "join": ", "
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "8",
+          "9.2"
+        ]
+      }
+    },
+    {
+      "id": "organizationOgrn",
+      "label": "Основной государственный регистрационный номер (Основной государственный регистрационный номер индивидуального предпринимателя)",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "pattern": "^(?:[0-9]{13}|[0-9]{15})$",
+      "patternMessage": "ОГРН — 13 цифр, ОГРНИП — 15 цифр",
+      "prefill": {
+        "sources": [
+          "organization.ogrn"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "8",
+          "9.2"
+        ]
+      }
+    },
+    {
+      "id": "formNumber",
+      "label": "Направление для оказания медицинской помощи №",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "maxLength": 40,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "8"
+        ]
+      }
+    },
+    {
+      "id": "formDate",
+      "label": "Дата заполнения направления",
+      "type": "date",
+      "required": true,
+      "requiredBasis": "source",
+      "prefill": {
+        "sources": [
+          "today"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "9.1"
+        ]
+      }
+    },
+    {
+      "id": "destinationOrganization",
+      "label": "наименование медицинской организации, куда направлен пациент",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "maxLength": 300,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9.2"
+        ],
+        "note": "Пункт 9.2 относит «куда направлен пациент» к строке с наименованием и адресом организации в шапке бланка; сам бланк печатает отдельную строку с подписью «(наименование медицинской организации, куда направлен пациент)». Поле заполняется по этой подписи."
+      }
+    },
+    {
+      "id": "omsPolicyNumber",
+      "label": "Полис обязательного медицинского страхования",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "maxLength": 60,
+      "prefill": {
+        "sources": [
+          "patient.omsPolicy.number"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "9.3"
+        ]
+      }
+    },
+    {
+      "id": "omsPolicyIssueDate",
+      "label": "дата выдачи полиса обязательного медицинского страхования",
+      "type": "date",
+      "required": true,
+      "requiredBasis": "source",
+      "notAfter": "today",
+      "prefill": {
+        "sources": [
+          "patient.omsPolicy.issuedAt"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "9.3"
+        ]
+      }
+    },
+    {
+      "id": "omsInsurer",
+      "label": "данные о страховой медицинской организации, выбранной застрахованным лицом или определенной застрахованному лицу",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "multiline": true,
+      "maxLength": 300,
+      "prefill": {
+        "sources": [
+          "patient.omsPolicy.insurer"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "9.3"
+        ]
+      }
+    },
+    {
+      "id": "patientFullName",
+      "label": "Фамилия, имя, отчество (при наличии) пациента",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "maxLength": 200,
+      "prefill": {
+        "sources": [
+          "patient.fullName"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "9.4"
+        ]
+      }
+    },
+    {
+      "id": "patientBirthDate",
+      "label": "Дата рождения",
+      "type": "date",
+      "required": true,
+      "requiredBasis": "source",
+      "notAfter": "today",
+      "prefill": {
+        "sources": [
+          "patient.birthDate"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "9.4"
+        ]
+      }
+    },
+    {
+      "id": "patientSex",
+      "label": "Пол",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "1",
+          "label": "муж"
+        },
+        {
+          "value": "2",
+          "label": "жен"
+        }
+      ],
+      "prefill": {
+        "sources": [
+          "patient.sex"
+        ],
+        "map": {
+          "male": "1",
+          "female": "2"
+        }
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "6",
+          "9.4"
+        ]
+      }
+    },
+    {
+      "id": "residenceSubject",
+      "label": "субъект Российской Федерации",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "editorial",
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.subject"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9.4"
+        ],
+        "note": "Пункт 9.4 называет строки «Регистрация по месту жительства» и «Регистрация по месту пребывания» целиком (заполняются по учетной форме № 025/у); их части порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "residenceDistrict",
+      "label": "район",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.district"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9.4"
+        ],
+        "note": "Пункт 9.4 называет строки «Регистрация по месту жительства» и «Регистрация по месту пребывания» целиком (заполняются по учетной форме № 025/у); их части порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "residenceLocality",
+      "label": "населенный пункт",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "editorial",
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.locality"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9.4"
+        ],
+        "note": "Пункт 9.4 называет строки «Регистрация по месту жительства» и «Регистрация по месту пребывания» целиком (заполняются по учетной форме № 025/у); их части порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "residenceStreet",
+      "label": "улица",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.street"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9.4"
+        ],
+        "note": "Пункт 9.4 называет строки «Регистрация по месту жительства» и «Регистрация по месту пребывания» целиком (заполняются по учетной форме № 025/у); их части порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "residenceHouse",
+      "label": "дом",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.house"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9.4"
+        ],
+        "note": "Пункт 9.4 называет строки «Регистрация по месту жительства» и «Регистрация по месту пребывания» целиком (заполняются по учетной форме № 025/у); их части порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "residenceBuilding",
+      "label": "строение/корпус",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.building"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9.4"
+        ],
+        "note": "Пункт 9.4 называет строки «Регистрация по месту жительства» и «Регистрация по месту пребывания» целиком (заполняются по учетной форме № 025/у); их части порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "residenceApartment",
+      "label": "квартира",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.apartment"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9.4"
+        ],
+        "note": "Пункт 9.4 называет строки «Регистрация по месту жительства» и «Регистрация по месту пребывания» целиком (заполняются по учетной форме № 025/у); их части порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "staySubject",
+      "label": "субъект Российской Федерации",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "editorial",
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.stayAddress.subject"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9.4"
+        ],
+        "note": "Пункт 9.4 называет строки «Регистрация по месту жительства» и «Регистрация по месту пребывания» целиком (заполняются по учетной форме № 025/у); их части порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "stayDistrict",
+      "label": "район",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.stayAddress.district"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9.4"
+        ],
+        "note": "Пункт 9.4 называет строки «Регистрация по месту жительства» и «Регистрация по месту пребывания» целиком (заполняются по учетной форме № 025/у); их части порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "stayLocality",
+      "label": "населенный пункт",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "editorial",
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.stayAddress.locality"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9.4"
+        ],
+        "note": "Пункт 9.4 называет строки «Регистрация по месту жительства» и «Регистрация по месту пребывания» целиком (заполняются по учетной форме № 025/у); их части порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "stayStreet",
+      "label": "улица",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.stayAddress.street"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9.4"
+        ],
+        "note": "Пункт 9.4 называет строки «Регистрация по месту жительства» и «Регистрация по месту пребывания» целиком (заполняются по учетной форме № 025/у); их части порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "stayHouse",
+      "label": "дом",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.stayAddress.house"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9.4"
+        ],
+        "note": "Пункт 9.4 называет строки «Регистрация по месту жительства» и «Регистрация по месту пребывания» целиком (заполняются по учетной форме № 025/у); их части порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "stayBuilding",
+      "label": "строение/корпус",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.stayAddress.building"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9.4"
+        ],
+        "note": "Пункт 9.4 называет строки «Регистрация по месту жительства» и «Регистрация по месту пребывания» целиком (заполняются по учетной форме № 025/у); их части порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "stayApartment",
+      "label": "квартира",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.stayAddress.apartment"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9.4"
+        ],
+        "note": "Пункт 9.4 называет строки «Регистрация по месту жительства» и «Регистрация по месту пребывания» целиком (заполняются по учетной форме № 025/у); их части порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "localityType",
+      "label": "Местность",
+      "type": "choice",
+      "required": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "городская"
+        },
+        {
+          "value": "2",
+          "label": "сельская"
+        }
+      ],
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Порядок не называет строку «Местность»: п. 9.4 перечисляет строки, заполняемые по форме № 025/у, и в этот перечень она не входит; ответ подчеркивается (п. 6)."
+      }
+    },
+    {
+      "id": "employment",
+      "label": "Занятость",
+      "type": "choice",
+      "required": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "работает"
+        },
+        {
+          "value": "2",
+          "label": "проходит военную службу или приравненную к ней службу"
+        },
+        {
+          "value": "3",
+          "label": "пенсионер"
+        },
+        {
+          "value": "4",
+          "label": "обучающийся"
+        },
+        {
+          "value": "5",
+          "label": "не работает"
+        },
+        {
+          "value": "6",
+          "label": "прочие"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "6",
+          "9.5"
+        ]
+      }
+    },
+    {
+      "id": "diagnosis",
+      "label": "Код диагноза по Международной статистической классификации болезней и проблем, связанных со здоровьем",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "multiline": true,
+      "maxLength": 400,
+      "prefill": {
+        "sources": [
+          "episode.diagnosis.text",
+          "episode.diagnosis.icd10"
+        ],
+        "join": ", "
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "9.6"
+        ]
+      }
+    },
+    {
+      "id": "purpose",
+      "label": "Направляется для оказания медицинской помощи",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "multiline": true,
+      "maxLength": 300,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "9.7"
+        ]
+      }
+    },
+    {
+      "id": "careForm",
+      "label": "форма",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "1",
+          "label": "экстренная"
+        },
+        {
+          "value": "2",
+          "label": "неотложная"
+        },
+        {
+          "value": "3",
+          "label": "плановая"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "6",
+          "9.7"
+        ]
+      }
+    },
+    {
+      "id": "careKind",
+      "label": "вид",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "1",
+          "label": "первичная медико-санитарная помощь, в том числе специализированная"
+        },
+        {
+          "value": "2",
+          "label": "специализированная, в том числе высокотехнологичная медицинская помощь"
+        },
+        {
+          "value": "3",
+          "label": "паллиативная медицинская помощь"
+        },
+        {
+          "value": "4",
+          "label": "скорая специализированная медицинская помощь"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "6",
+          "9.7"
+        ]
+      }
+    },
+    {
+      "id": "careConditions",
+      "label": "условия",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "1",
+          "label": "амбулаторно"
+        },
+        {
+          "value": "2",
+          "label": "в дневном стационаре"
+        },
+        {
+          "value": "3",
+          "label": "стационарно"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "6",
+          "9.7"
+        ]
+      }
+    },
+    {
+      "id": "justification",
+      "label": "Обоснование (показания) направления с указанием числа назначаемых курсов (циклов) лечения",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "multiline": true,
+      "maxLength": 800,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "9.8"
+        ]
+      }
+    },
+    {
+      "id": "referrerPosition",
+      "label": "Должность, специальность медицинского работника, направившего пациента",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "multiline": true,
+      "maxLength": 300,
+      "prefill": {
+        "sources": [
+          "clinician.position"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "9.9"
+        ]
+      }
+    },
+    {
+      "id": "referrerSignature",
+      "label": "(подпись)",
+      "type": "signature",
+      "required": false,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "9.9"
+        ]
+      }
+    },
+    {
+      "id": "referrerName",
+      "label": "Фамилия, имя, отчество (при наличии)",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "maxLength": 200,
+      "prefill": {
+        "sources": [
+          "clinician.fullName"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "9.9"
+        ]
+      }
+    },
+    {
+      "id": "stamp",
+      "label": "М.П. (при наличии)",
+      "type": "stamp",
+      "required": false,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "10"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "id": "6",
+      "text": "6. Заполнение данных в Направлении на бумажном носителе производится путем внесения лечащим врачом (врачом-терапевтом участковым, врачом-педиатром участковым, врачом общей практики (семейным врачом), фельдшером, акушером (акушеркой), врачом-специалистом) необходимых сведений и подчеркивания ответов из предложенных вариантов.",
+      "spans": [
+        {
+          "pdfPage": 4,
+          "firstLine": 14,
+          "lastLine": 18
+        }
+      ],
+      "textSha256": "3eb47fe184093a86d2486899a48a5ffc3a6abac196e8fd0ce68fc853c69373f3"
+    },
+    {
+      "id": "8",
+      "text": "8. На Направлении указываются наименование и адрес медицинской организации (в соответствии с учредительными документами), основной государственный регистрационный номер (ОГРН) медицинской организации или в отношении индивидуального предпринимателя, осуществляющего медицинскую деятельность, фамилия, имя, отчество (при наличии), адрес осуществления медицинской деятельности и основной государственный регистрационный номер индивидуального предпринимателя (ОГРНИП), а также номер Направления.",
+      "spans": [
+        {
+          "pdfPage": 4,
+          "firstLine": 22,
+          "lastLine": 28
+        }
+      ],
+      "textSha256": "65256cbe708f9d2a6d744c9c9021731cd8b9752ec9c7353c90d012a87e461fd5"
+    },
+    {
+      "id": "9.1",
+      "text": "9.1. В строке «Дата заполнения направления» указывается дата формирования (оформления) Направления.",
+      "spans": [
+        {
+          "pdfPage": 4,
+          "firstLine": 30,
+          "lastLine": 31
+        }
+      ],
+      "textSha256": "9acc0eefd12b7f08476af147886e4e4bfe633b02fe80f60ab966128b1fde87ce"
+    },
+    {
+      "id": "9.2",
+      "text": "9.2. В строке «Наименование и адрес медицинской организации в пределах места нахождения (фамилия, имя, отчество (при наличии) индивидуального предпринимателя и адрес осуществления медицинской деятельности) Основной государственный регистрационный номер (Основной государственный регистрационный номер индивидуального предпринимателя)» указывается полное наименование и адрес медицинской организации (в соответствии с учредительными документами), куда направлен пациент.",
+      "spans": [
+        {
+          "pdfPage": 4,
+          "firstLine": 32,
+          "lastLine": 38
+        }
+      ],
+      "textSha256": "45b80ab3f8d2f1dd41abe8861a11fed843f640ae724ad5880793aaec99e186b6"
+    },
+    {
+      "id": "9.3",
+      "text": "9.3. В строке «Полис обязательного медицинского страхования» указываются сведения о полисе обязательного медицинского страхования застрахованного лица, данные о страховой медицинской организации, выбранной застрахованным лицом или определенной застрахованному лицу, дата выдачи полиса обязательного медицинского страхования.",
+      "spans": [
+        {
+          "pdfPage": 4,
+          "firstLine": 39,
+          "lastLine": 43
+        }
+      ],
+      "textSha256": "bc3c643ad1082944eb83f893ea88303cf339dd5ae972c93f814ed613c3816c78"
+    },
+    {
+      "id": "9.4",
+      "text": "9.4. Строки «Фамилия, имя, отчество (при наличии) пациента», «Дата рождения», «Пол», «Регистрация по месту жительства», «Регистрация по месту пребывания» заполняются на основе сведений учетной формы № 025/у «Медицинская карта пациента, получающего медицинскую помощь в амбулаторных условиях», утвержденной приказом Министерства здравоохранения Российской Федерации от 13 мая 2025 г. № 274н «Об утверждении унифицированных форм медицинской документации, используемых в медицинских организациях, оказывающих медицинскую помощь в амбулаторных условиях, и порядков их ведения»",
+      "spans": [
+        {
+          "pdfPage": 5,
+          "firstLine": 1,
+          "lastLine": 8
+        }
+      ],
+      "textSha256": "6d3e7ace910872fde0ac436fb8a4b4f78406b9e2804a48c7c12f610f16aef129"
+    },
+    {
+      "id": "9.5",
+      "text": "9.5. В строке «Занятость» указываются сведения о занятости пациента с его слов или со слов его законного представителя либо иного лица: «работает» указывается для всех лиц, имеющих место работы; «проходит военную службу или приравненную к ней службу» указывается для лица, проходящего военную службу или приравненную к ней службу; «пенсионер» указывается для неработающих лиц, получающих страховую пенсию (по старости, по инвалидности, по случаю потери кормильца) или социальную пенсию; «обучающийся» указывается для обучающихся в образовательных организациях высшего или среднего профессионального образования; «не работает» указывается для трудоспособных гражданах, которые не имеют работы и заработка, зарегистрированы в органах службы занятости в целях поиска подходящей работы, ищут работу и готовы приступить к ней; «прочие» указывается для лиц, которые заняты домашним хозяйством, и для лиц без определенного места жительства.",
+      "spans": [
+        {
+          "pdfPage": 5,
+          "firstLine": 9,
+          "lastLine": 22
+        }
+      ],
+      "textSha256": "c8b02416b9f9151b3c14eade3026a9bfdd04abffdd95fa46080ab9f41607d073"
+    },
+    {
+      "id": "9.6",
+      "text": "9.6. В строке «Код диагноза по Международной статистической классификации болезней и проблем, связанных со здоровьем» указывается наименование диагноза и код диагноза по Международной статистической классификации болезней и проблем, связанных со здоровьем (далее - МКБ), а в случае травмы (в том числе при дорожно-транспортном происшествии, отравлении) - причина и обстоятельство травмы (отравления), код МКБ.",
+      "spans": [
+        {
+          "pdfPage": 5,
+          "firstLine": 23,
+          "lastLine": 28
+        }
+      ],
+      "textSha256": "c4d4ff586684c9bddda17c2a6122372474e78e215d6eab8d5da4e18fe1ad5e8f"
+    },
+    {
+      "id": "9.7",
+      "text": "9.7. В строке «Направляется для оказания медицинской помощи» указывается цель направления (консультация, обследование, госпитализация и иное), форма, вид, условия оказания медицинской помощи.",
+      "spans": [
+        {
+          "pdfPage": 5,
+          "firstLine": 29,
+          "lastLine": 31
+        }
+      ],
+      "textSha256": "1be52103cd4cf2252b277a5aa065d392dd0b92d09ca4bd76fa4ace554b73c064"
+    },
+    {
+      "id": "9.8",
+      "text": "9.8. В строке «Обоснование (показания) направления с указанием числа назначаемых курсов (циклов) лечения» указывается основная причина, послужившая поводом для Направления и число назначаемых курсов (циклов) лечения.",
+      "spans": [
+        {
+          "pdfPage": 5,
+          "firstLine": 32,
+          "lastLine": 34
+        }
+      ],
+      "textSha256": "91f529daf710d81b4addbc74cee81706233dbfdff4668fb186b6599e18d8be06"
+    },
+    {
+      "id": "9.9",
+      "text": "9.9. В строке «Должность, специальность медицинского работника, направившего пациента» указывается должность, специальность, фамилия, имя, отчество (при наличии), подпись медицинского работника, направившего пациента.",
+      "spans": [
+        {
+          "pdfPage": 5,
+          "firstLine": 35,
+          "lastLine": 38
+        }
+      ],
+      "textSha256": "ad7e649e38a04450cc9873a0c25b29a6fb554f3fa2361d9d639825fca398105e"
+    },
+    {
+      "id": "10",
+      "text": "10. В месте печати Направления при оформлении на бумажном носителе проставляется печать медицинской организации (при наличии), на оттиске которой идентифицируется полное наименование медицинской организации.",
+      "spans": [
+        {
+          "pdfPage": 5,
+          "firstLine": 39,
+          "lastLine": 41
+        }
+      ],
+      "textSha256": "73c3506e930c9dc35670aa6077ac1793029795ab4103f675ea333d3cc9b509e0"
+    }
+  ],
+  "layout": {
+    "page": {
+      "size": "A4",
+      "orientation": "portrait",
+      "marginMm": {
+        "top": 10,
+        "right": 6.8,
+        "bottom": 10,
+        "left": 20.2
+      },
+      "fontSizePt": 10.0,
+      "lineHeight": 1.153
+    },
+    "blocks": [
+      {
+        "id": "header",
+        "columns": [
+          {
+            "widthPercent": 48,
+            "align": "left",
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Наименование и адрес медицинской организации"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "в пределах места нахождения"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "(фамилия, имя, отчество (при наличии)"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "индивидуального предпринимателя и адрес"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "осуществления медицинской деятельности)"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Основной государственный регистрационный номер"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "(Основной государственный регистрационный"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "номер индивидуального предпринимателя)"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "field",
+                    "fieldId": "organization",
+                    "length": 40,
+                    "grow": true
+                  }
+                ],
+                "gap": "small"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "field",
+                    "fieldId": "organizationOgrn",
+                    "length": 40,
+                    "grow": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "widthPercent": 36,
+            "align": "center",
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Медицинская документация"
+                  }
+                ],
+                "align": "center"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Учетная форма № 057/у"
+                  }
+                ],
+                "align": "center"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Утверждена приказом Министерства"
+                  }
+                ],
+                "align": "center",
+                "spaceBeforeMm": 3.57
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "здравоохранения Российской Федерации"
+                  }
+                ],
+                "align": "center",
+                "spaceBeforeMm": 0.52
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "от «02» сентября 2025 г. № 519н"
+                  }
+                ],
+                "align": "center"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "title",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "НАПРАВЛЕНИЕ ДЛЯ ОКАЗАНИЯ МЕДИЦИНСКОЙ ПОМОЩИ №",
+                    "bold": true
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "formNumber",
+                    "length": 8
+                  }
+                ],
+                "align": "center",
+                "bold": true,
+                "spaceBeforeMm": 9.73
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "date",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Дата заполнения направления:"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "число"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "formDate",
+                    "length": 6,
+                    "part": "day"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "месяц"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "formDate",
+                    "length": 12,
+                    "part": "month"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "год"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "formDate",
+                    "length": 10,
+                    "part": "year"
+                  }
+                ],
+                "spaceBeforeMm": 6.39
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "field",
+                    "fieldId": "destinationOrganization",
+                    "length": 60,
+                    "grow": true
+                  }
+                ],
+                "gap": "small"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "(наименование медицинской организации, куда направлен пациент)"
+                  }
+                ],
+                "align": "center"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "insurance",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Полис обязательного медицинского страхования:"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "omsPolicyNumber",
+                    "length": 40,
+                    "grow": true
+                  }
+                ],
+                "spaceBeforeMm": 0.87
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "дата выдачи полиса обязательного медицинского страхования:"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "число"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "omsPolicyIssueDate",
+                    "length": 6,
+                    "part": "day"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "месяц"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "omsPolicyIssueDate",
+                    "length": 10,
+                    "part": "month"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "год"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "omsPolicyIssueDate",
+                    "length": 8,
+                    "part": "year"
+                  }
+                ],
+                "spaceBeforeMm": 0.78
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "данные о страховой медицинской организации, выбранной застрахованным лицом или определенной застрахованному"
+                  }
+                ],
+                "align": "stretch",
+                "spaceBeforeMm": 0.34
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "лицу"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "omsInsurer",
+                    "length": 60,
+                    "grow": true
+                  }
+                ],
+                "spaceBeforeMm": 0.0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "patient",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Фамилия, имя, отчество (при наличии) пациента"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "patientFullName",
+                    "length": 60,
+                    "grow": true
+                  }
+                ],
+                "spaceBeforeMm": 0.0
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "rule",
+                    "length": 60,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Дата рождения: «"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "patientBirthDate",
+                    "length": 4,
+                    "part": "day"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "»"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "patientBirthDate",
+                    "length": 14,
+                    "part": "month"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "patientBirthDate",
+                    "length": 8,
+                    "part": "year"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "г."
+                  },
+                  {
+                    "kind": "text",
+                    "text": "Пол:"
+                  },
+                  {
+                    "kind": "options",
+                    "fieldId": "patientSex",
+                    "separator": ", "
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Регистрация по месту жительства: субъект Российской Федерации"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceSubject",
+                    "length": 30,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "район"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceDistrict",
+                    "length": 20,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "населенный пункт"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceLocality",
+                    "length": 30,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "улица"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceStreet",
+                    "length": 30,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "дом"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceHouse",
+                    "length": 4
+                  },
+                  {
+                    "kind": "text",
+                    "text": "строение/корпус"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceBuilding",
+                    "length": 4
+                  },
+                  {
+                    "kind": "text",
+                    "text": "квартира"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceApartment",
+                    "length": 4
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Регистрация по месту пребывания: субъект Российской Федерации"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "staySubject",
+                    "length": 30,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "район"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "stayDistrict",
+                    "length": 20,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "населенный пункт"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "stayLocality",
+                    "length": 30,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "улица"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "stayStreet",
+                    "length": 30,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "дом"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "stayHouse",
+                    "length": 4
+                  },
+                  {
+                    "kind": "text",
+                    "text": "строение/корпус"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "stayBuilding",
+                    "length": 4
+                  },
+                  {
+                    "kind": "text",
+                    "text": "квартира"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "stayApartment",
+                    "length": 4
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Местность:"
+                  },
+                  {
+                    "kind": "options",
+                    "fieldId": "localityType",
+                    "separator": ", ",
+                    "mark": "underline"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Занятость:"
+                  },
+                  {
+                    "kind": "options",
+                    "fieldId": "employment",
+                    "separator": ", ",
+                    "mark": "underline"
+                  }
+                ],
+                "align": "justify"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "referral",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Код диагноза по Международной статистической классификации болезней и проблем, связанных со здоровьем"
+                  }
+                ],
+                "align": "stretch"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "field",
+                    "fieldId": "diagnosis",
+                    "length": 60,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "rule",
+                    "length": 60,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Направляется для оказания медицинской помощи:"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "purpose",
+                    "length": 60,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": ","
+                  }
+                ],
+                "spaceBeforeMm": 0.0
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "форма:"
+                  },
+                  {
+                    "kind": "options",
+                    "fieldId": "careForm",
+                    "separator": ", ",
+                    "mark": "underline"
+                  },
+                  {
+                    "kind": "text",
+                    "text": ";"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "вид:"
+                  },
+                  {
+                    "kind": "options",
+                    "fieldId": "careKind",
+                    "separator": ", ",
+                    "mark": "underline",
+                    "separators": [
+                      ", ",
+                      ", ",
+                      "; "
+                    ]
+                  },
+                  {
+                    "kind": "text",
+                    "text": ";"
+                  }
+                ],
+                "align": "justify"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "условия:"
+                  },
+                  {
+                    "kind": "options",
+                    "fieldId": "careConditions",
+                    "separator": "; ",
+                    "mark": "underline"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "."
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Обоснование (показания) направления с указанием числа назначаемых курсов (циклов) лечения"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "justification",
+                    "length": 20,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "rule",
+                    "length": 60,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "rule",
+                    "length": 60,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Должность, специальность медицинского работника, направившего пациента"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "referrerPosition",
+                    "length": 30,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "rule",
+                    "length": 60,
+                    "grow": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "signatures",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "signature",
+                    "fieldId": "referrerSignature",
+                    "length": 20,
+                    "caption": "(подпись)"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "referrerName",
+                    "length": 40,
+                    "grow": true,
+                    "caption": "Фамилия, имя, отчество (при наличии)"
+                  }
+                ],
+                "spaceBeforeMm": 3.98
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "stamp",
+                    "fieldId": "stamp",
+                    "text": "М.П. (при наличии)"
+                  }
+                ],
+                "spaceBeforeMm": 7.27
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "notes": [
+    "Приказ № 519н не содержит срока вступления в силу; в схеме действует с 27.10.2025 — по общему правилу (10 дней после официального опубликования 16.10.2025), срок окончания не установлен. Прежняя форма № 057/у-04 (приказ 2004 г. № 255) признана утратившей силу.",
+    "Пункт 6 порядка: на бумажном носителе врач вносит сведения и подчеркивает ответы из предложенных вариантов — выбранные варианты на печати подчеркиваются.",
+    "Пункт 9.2 относит «куда направлен пациент» к шапке бланка; бланк печатает отдельную строку «(наименование медицинской организации, куда направлен пациент)» — поле создано по этой подписи (rule.status = by-line).",
+    "Строка «Местность» порядком не описана (п. 9.4 её не перечисляет): rule.status = undefined.",
+    "Обязательность полей (required) порядок прямо не задаёт: basis = source — пункт говорит, что в строке «указывается»/«заполняется» значение; basis = editorial — вывод по виду бланка. Незаполненные обязательные поля подсвечиваются, печать не блокируется.",
+    "Направление формируется на бумажном носителе в случае направления пациента для оказания первичной, специализированной, паллиативной помощи, скорой специализированной помощи (п. 2); электронный документ с усиленной квалифицированной подписью приложение не создаёт.",
+    "Поля, которые порядок не определяет (rule.status = undefined): localityType."
+  ]
+}

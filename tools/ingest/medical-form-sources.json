@@ -54,6 +54,34 @@
         }
       ],
       "watchRequire": ["амбулаторных условиях"]
+    },
+    {
+      "eoNumber": "0001202510160032",
+      "orderNumber": "519н",
+      "orderDate": "2025-09-02",
+      "publishedAt": "2025-10-16",
+      "issuer": "Министерство здравоохранения Российской Федерации",
+      "title": "Об утверждении учетной формы «Направление для оказания медицинской помощи» и порядка ее ведения",
+      "registration": {
+        "number": "83857",
+        "date": "2025-10-16"
+      },
+      "publicationUrl": "http://publication.pravo.gov.ru/document/0001202510160032",
+      "pdfUrl": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202510160032",
+      "pagesCount": 5,
+      "bytes": 364669,
+      "sha256": "b9f956c78c023e26275ec1583c8dde85e475d817ecafb23bc818168725077f20",
+      "retrievedAt": "2026-10-05",
+      "watchTerms": ["Направление для оказания медицинской помощи"],
+      "acknowledgedOrders": [],
+      "forms": [
+        {
+          "key": "057u",
+          "formNumber": "057/у",
+          "schemaId": "ru.minzdrav.519n.057u",
+          "schemaFile": "ru-minzdrav-519n-057u.json"
+        }
+      ]
     }
   ]
 }

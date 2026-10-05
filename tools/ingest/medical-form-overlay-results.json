@@ -11,9 +11,82 @@
     "minRuleRecall": 0.8,
     "maxRuleMedianDyMm": 1.5,
     "maxRuleMedianDxMm": 3.0,
-    "maxPaperDeviationMm": 4.0
+    "maxPaperDeviationMm": 4.0,
+    "maxPrintScaleError": 0.04
   },
   "forms": {
+    "057u": {
+      "formNumber": "057/у",
+      "schemaId": "ru.minzdrav.519n.057u",
+      "sheet": {
+        "scanPages": 1,
+        "printPages": 1,
+        "paperDeviationMm": 0.6,
+        "orientation": "portrait",
+        "printScale": 1.0
+      },
+      "text": {
+        "printWords": 242,
+        "scanWords": 232,
+        "matchedWords": 214,
+        "wordCoverage": 0.884,
+        "medianDyMm": 0.284,
+        "p90DyMm": 0.842,
+        "maxDyMm": 1.069,
+        "medianLeftMm": 0.889,
+        "fontScale": 1.004,
+        "lineAgreement": 0.938
+      },
+      "rules": {
+        "scan": 35,
+        "print": 34,
+        "recall": 0.914,
+        "precision": 0.941,
+        "medianDyMm": 0.688,
+        "medianEndMm": 2.286
+      },
+      "pages": [
+        {
+          "scanPdfPage": 2,
+          "printPage": 1,
+          "appendixHeaderMm": 33.2,
+          "worstWords": [
+            {
+              "text": "обучающийся",
+              "dyMm": 3.9,
+              "scanYMm": 175.3
+            },
+            {
+              "text": "статистической",
+              "dyMm": -1.1,
+              "scanYMm": 178.6
+            },
+            {
+              "text": "классификации",
+              "dyMm": -1.1,
+              "scanYMm": 178.6
+            },
+            {
+              "text": "болезней",
+              "dyMm": -1.1,
+              "scanYMm": 178.6
+            },
+            {
+              "text": "и",
+              "dyMm": -1.1,
+              "scanYMm": 178.6
+            }
+          ],
+          "lineBreakIssues": [
+            "y=171: занятость работает 1 проходит военную службу или приравненную к ней сл",
+            "y=175: 4 не работает 5 прочие 6"
+          ],
+          "medianDyMm": 0.284
+        }
+      ],
+      "violations": [],
+      "passes": true
+    },
     "070u": {
       "formNumber": "070/у",
       "schemaId": "ru.minzdrav.274n.070u",
@@ -21,7 +94,8 @@
         "scanPages": 1,
         "printPages": 1,
         "paperDeviationMm": 1.4,
-        "orientation": "portrait"
+        "orientation": "portrait",
+        "printScale": 1.0
       },
       "text": {
         "printWords": 285,
@@ -32,7 +106,7 @@
         "p90DyMm": 0.736,
         "maxDyMm": 3.874,
         "medianLeftMm": 1.667,
-        "fontScale": 1.006,
+        "fontScale": 1.007,
         "lineAgreement": 0.83
       },
       "rules": {

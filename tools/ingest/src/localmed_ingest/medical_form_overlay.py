@@ -72,6 +72,7 @@ TOLERANCES: Final[dict[str, float]] = {
     "maxRuleMedianDyMm": 1.5,
     "maxRuleMedianDxMm": 3.0,
     "maxPaperDeviationMm": 4.0,
+    "maxPrintScaleError": 0.04,
 }
 
 # Justified lines of the scan are wider than the same words set ragged, so the font scale is read
@@ -154,6 +155,18 @@ def scan_words(ocr_page: dict[str, Any], width_mm: float, height_mm: float) -> l
         for row in _rows(words, key=lambda word: word.cy, tolerance=ROW_MM)
         for w in sorted(row, key=lambda word: word.x0)
     ]
+
+
+def span_sizes(page: pymupdf.Page) -> list[float]:
+    """Font sizes (pt) of the text spans of a print page."""
+    sizes: list[float] = []
+    text = cast("dict[str, Any]", page.get_text("dict"))
+    for block in text["blocks"]:
+        for line in block.get("lines", []):
+            for span in line["spans"]:
+                if str(span["text"]).strip():
+                    sizes.append(float(span["size"]))
+    return sizes
 
 
 def print_words(page: pymupdf.Page) -> list[Word]:
@@ -615,6 +628,10 @@ def violations(summary: dict[str, Any], tolerances: dict[str, float] = TOLERANCE
     sheet = summary["sheet"]
     if sheet["printPages"] != sheet["scanPages"]:
         found.append(f"sheets: print {sheet['printPages']} vs scan {sheet['scanPages']}")
+    if abs(sheet["printScale"] - 1.0) > tolerances["maxPrintScaleError"]:
+        found.append(
+            f"print scaled to {sheet['printScale']} of the declared font (a line overflows)"
+        )
     if sheet["paperDeviationMm"] > tolerances["maxPaperDeviationMm"]:
         found.append(f"paper size deviates by {sheet['paperDeviationMm']} mm")
     text = summary["text"]
@@ -674,6 +691,7 @@ def compare_form(
     rule_ends: list[float] = []
     pages: list[dict[str, Any]] = []
     paper_deviation = 0.0
+    font_sizes: list[float] = []
     for index, pdf_page in enumerate(blank_pages):
         if index >= len(print_pdf):
             break
@@ -687,6 +705,7 @@ def compare_form(
         paper_deviation = max(paper_deviation, abs(sw - pw), abs(sh - ph))
         words_scan = scan_words(ocr_pages[pdf_page], sw, sh)
         words_print = print_words(print_page)
+        font_sizes.extend(span_sizes(print_page))
         metrics = text_metrics(words_scan, words_print)
         printed_total += metrics.print_words
         scan_total += metrics.scan_words
@@ -748,6 +767,12 @@ def compare_form(
             "printPages": len(print_pdf),
             "paperDeviationMm": round(paper_deviation, 1),
             "orientation": "landscape" if landscape else "portrait",
+            # the print's body font over the declared one; not 1 when Chromium shrank the page
+            "printScale": (
+                statistics.median(font_sizes) / schema["layout"]["page"]["fontSizePt"]
+                if font_sizes
+                else 0.0
+            ),
         },
         "text": {
             "printWords": printed_total,

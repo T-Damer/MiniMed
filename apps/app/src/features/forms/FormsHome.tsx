@@ -7,6 +7,7 @@ import { Page } from '@/components/Page';
 import { Heading } from '@/components/Text';
 import { displayDate } from '@/features/forms/form-print';
 import { listFormSchemas } from '@/features/forms/form-registry';
+import { localToday, orderReference, validityLine } from '@/features/forms/form-source-line';
 import { notesFormsPath, notesPath, notesPatientsPath } from '@/features/notes/notes-routing';
 import { getPluralMessage } from '@/i18n/browser-i18n';
 import '@/styles/forms.css';
@@ -47,10 +48,9 @@ export function FormsHome(props: {
                 {schema.title}
               </Heading>
               <p class="forms-home__edition">
-                Приказ Минздрава России от {displayDate(schema.source.orderDate)} №{' '}
-                {schema.source.orderNumber}, зарегистрирован Минюстом{' '}
+                {orderReference(schema.source)}, зарегистрирован Минюстом{' '}
                 {displayDate(schema.source.registration.date)} № {schema.source.registration.number}
-                . Действует с {displayDate(schema.source.effectiveFrom)}.
+                . {validityLine(schema.source, localToday())}
               </p>
               <div class="forms-home__actions">
                 <Button

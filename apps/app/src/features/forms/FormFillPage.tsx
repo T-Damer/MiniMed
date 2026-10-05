@@ -14,8 +14,9 @@ import {
   localIsoDate,
   prefillFormValues,
 } from '@/features/forms/form-prefill';
-import { displayDate } from '@/features/forms/form-print';
 import { formSessionKey, readFormSession, writeFormSession } from '@/features/forms/form-session';
+import { displayDate } from '@/features/forms/form-print';
+import { localToday, orderReference, validityLine } from '@/features/forms/form-source-line';
 import { validateForm } from '@/features/forms/form-validation';
 import { type FormValue, type FormValues, fillableFields } from '@/features/forms/form-values';
 import { defaultEpisode, sectionFields } from '@/features/forms/form-view-model';
@@ -158,9 +159,9 @@ export function FormFillPage(props: FormFillPageProps): JSX.Element {
 
       <section class="forms-workspace__source paper-card" aria-label="Официальный источник">
         <p class="forms-workspace__source-line">
-          Приказ Минздрава России от {displayDate(props.schema.source.orderDate)} №{' '}
-          {props.schema.source.orderNumber}, приложение № {props.schema.source.blankAppendix.number}
-          . Действует с {displayDate(props.schema.source.effectiveFrom)}.
+          {orderReference(props.schema.source)}, приложение №{' '}
+          {props.schema.source.blankAppendix.number}.{' '}
+          {validityLine(props.schema.source, localToday())}
         </p>
         <a
           class="forms-workspace__source-link"

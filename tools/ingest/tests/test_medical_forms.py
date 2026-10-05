@@ -315,11 +315,14 @@ def schema_for(key: str) -> dict[str, Any]:
 
 
 def test_every_blueprint_has_a_committed_schema_and_a_registry_entry() -> None:
-    assert set(FORMS) == set(FORM_BLUEPRINT_MODULES)
     registry = json.loads((REPO / "tools/ingest/medical-form-sources.json").read_text("utf-8"))
     registered = {form["key"] for source in registry["sources"] for form in source["forms"]}
-    assert registered == set(FORMS)
-    assert registry["sources"][0]["sha256"] == SOURCE_SHA
+    # every blueprint module (discovered by file name) is registered, and the other way round
+    assert registered == set(FORM_BLUEPRINT_MODULES)
+    order_274 = registry["sources"][0]
+    assert order_274["orderNumber"] == "274н"
+    assert {form["key"] for form in order_274["forms"]} == set(FORMS)
+    assert order_274["sha256"] == SOURCE_SHA
 
 
 @pytest.mark.parametrize("key", sorted(FORMS))

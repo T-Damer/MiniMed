@@ -142,7 +142,7 @@ def test_inside_drops_scanner_border_and_strokes_above_the_form() -> None:
 
 def summary(**changes: Any) -> dict[str, Any]:
     base: dict[str, Any] = {
-        "sheet": {"scanPages": 1, "printPages": 1, "paperDeviationMm": 1.0},
+        "sheet": {"scanPages": 1, "printPages": 1, "paperDeviationMm": 1.0, "printScale": 1.0},
         "text": {
             "wordCoverage": 0.95,
             "medianDyMm": 0.5,
@@ -163,9 +163,16 @@ def summary(**changes: Any) -> dict[str, Any]:
 def test_violations_name_every_figure_outside_the_standard() -> None:
     assert overlay.violations(summary()) == []
     found = overlay.violations(
-        summary(sheet__printPages=2, text__medianDyMm=3.0, text__fontScale=1.2, rules__recall=0.5)
+        summary(
+            sheet__printPages=2,
+            sheet__printScale=0.7,
+            text__medianDyMm=3.0,
+            text__fontScale=1.2,
+            rules__recall=0.5,
+        )
     )
     assert any("sheets" in item for item in found)
+    assert any("print scaled" in item for item in found)
     assert any("median vertical" in item for item in found)
     assert any("font scale" in item for item in found)
     assert any("rules found" in item for item in found)

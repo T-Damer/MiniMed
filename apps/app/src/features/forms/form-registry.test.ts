@@ -35,7 +35,7 @@ describe('shipped form schemas', () => {
   });
 
   it('ships the five forms of order 274н, all from the one official file', () => {
-    const forms = listFormSchemas();
+    const forms = listFormSchemas().filter((form) => form.source.orderNumber === '274н');
     expect(forms.map((form) => form.formNumber)).toEqual([
       '070/у',
       '072/у',
@@ -61,7 +61,23 @@ describe('shipped form schemas', () => {
       'ru.minzdrav.274n.076u',
       'ru.minzdrav.274n.079u',
       'ru.minzdrav.274n.025-1u',
+      'ru.minzdrav.519n.057u',
     ]);
+  });
+
+  it('ships 057/у from order 519н with the entry-into-force basis in the edition line', () => {
+    const referral = findFormSchema('ru.minzdrav.519n.057u');
+    expect(referral?.formNumber).toBe('057/у');
+    expect(referral?.source.orderNumber).toBe('519н');
+    expect(referral?.source.registration.number).toBe('83857');
+    expect(referral?.source.effectiveUntil).toBeUndefined();
+    expect(referral?.edition).toContain('срок вступления в силу приказом не установлен');
+    // the employment, form, kind and conditions answers are underlined on paper (п. 6)
+    const underlined = referral?.layout.blocks
+      .flatMap((block) => block.columns.flatMap((column) => column.rows))
+      .flatMap((row) => row.segments)
+      .filter((segment) => segment.kind === 'options' && segment.mark === 'underline');
+    expect(underlined?.length).toBe(5);
   });
 
   it('binds only declared paths: workplace and citizenship are used where a printed line needs them', () => {
