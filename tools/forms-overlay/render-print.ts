@@ -33,6 +33,9 @@ try {
   for (const file of readdirSync(schemaDirectory)
     .filter((name) => name.endsWith('.json'))
     .sort()) {
+    // a selected form is read by its file name (the id with dots turned into dashes), so a schema
+    // another author is still building cannot stop the print of this one
+    if (only.length > 0 && !only.some((id) => file === `${id.replaceAll('.', '-')}.json`)) continue;
     const schema = parseFormSchema(
       JSON.parse(readFileSync(resolve(schemaDirectory, file), 'utf8')),
     );

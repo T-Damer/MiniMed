@@ -58,12 +58,13 @@ const FORM_PRINT_STYLES = `
   .form-print__row--center { justify-content: center; }
   .form-print__row--right { justify-content: flex-end; }
   .form-print__row--justify { text-align: justify; }
-  .form-print__row--stretch > .form-print__text:first-child { flex: 1 1 auto; text-align: justify; text-align-last: justify; }
+  .form-print__row--stretch > .form-print__text--stretchy { flex: 1 1 auto; text-align: justify; text-align-last: justify; }
   .form-print__row--gap-small { margin-top: 1.2mm; }
   .form-print__row--gap-medium { margin-top: 3mm; }
   .form-print__row--gap-large { margin-top: 7mm; }
   .form-print__row--small { font-size: 0.85em; }
   .form-print__row--title { font-size: 1.2em; }
+  .form-print__row--caption { font-size: 0.72em; }
   .form-print__row--bold { font-weight: bold; }
   .form-print__row--outline { border: 0.25mm solid #000; padding: 0.8mm 1.5mm; }
   .form-print__row--split { align-items: stretch; column-gap: 0; }
@@ -194,10 +195,16 @@ function tableHtml(schema: FormSchema, values: FormValues, segment: TableSegment
   return `<table class="form-print__table">${colgroup}<thead>${head}</thead><tbody>${body}</tbody></table>`;
 }
 
-function segmentHtml(schema: FormSchema, values: FormValues, segment: FormSegment): string {
+function segmentHtml(
+  schema: FormSchema,
+  values: FormValues,
+  segment: FormSegment,
+  stretchy = false,
+): string {
   if (segment.kind === 'text') {
     const classes = [
       'form-print__text',
+      ...(stretchy ? ['form-print__text--stretchy'] : []),
       ...(segment.bold ? ['form-print__text--bold'] : []),
       ...(segment.small ? ['form-print__text--small'] : []),
       ...(segment.joined ? ['form-print__joined'] : []),
@@ -277,7 +284,13 @@ function rowHtml(schema: FormSchema, values: FormValues, row: FormRow): string {
     ...(isFlowRow(row) ? ['form-print__row--flow'] : []),
   ];
   const style = row.spaceBeforeMm === undefined ? '' : ` style="margin-top:${row.spaceBeforeMm}mm"`;
-  const parts = row.segments.map((segment) => segmentHtml(schema, values, segment));
+  // the first text of a stretched row is the one spread over the width, whether or not a blank
+  // comes before it (`______ код по Международной статистической классификации`)
+  const stretched =
+    row.align === 'stretch' ? row.segments.findIndex((segment) => segment.kind === 'text') : -1;
+  const parts = row.segments.map((segment, index) =>
+    segmentHtml(schema, values, segment, index === stretched),
+  );
   if (isFlowRow(row)) {
     return `<div class="${classes.join(' ')}"${style}>${parts.join(' ')}</div>`;
   }
@@ -310,7 +323,12 @@ export function renderFormPrintHtml(schema: FormSchema, values: FormValues): str
         ...(block.framed ? ['form-print__block--framed'] : []),
         ...(block.pageBreakBefore ? ['form-print__block--page-break'] : []),
       ];
-      return `<section class="${classes.join(' ')}" data-block="${escapeHtml(block.id)}">${columns}</section>`;
+      const blockStyle = [
+        ...(block.insetMm?.left === undefined ? [] : [`padding-left:${block.insetMm.left}mm`]),
+        ...(block.insetMm?.right === undefined ? [] : [`padding-right:${block.insetMm.right}mm`]),
+      ];
+      const gap = blockStyle.length === 0 ? '' : ` style="${blockStyle.join(';')}"`;
+      return `<section class="${classes.join(' ')}" data-block="${escapeHtml(block.id)}"${gap}>${columns}</section>`;
     })
     .join('');
   const title = `Форма № ${schema.formNumber} — ${schema.title}`;

@@ -278,7 +278,8 @@ export const FormRowSchema = z.object({
   /** `justify` wraps a paragraph justified; `stretch` spreads one printed line over the width. */
   align: z.enum(['left', 'center', 'right', 'justify', 'stretch']).optional(),
   bold: z.boolean().optional(),
-  size: z.enum(['small', 'normal', 'title']).optional(),
+  /** `caption` is the small print of a header block (0.72 of the body font). */
+  size: z.enum(['small', 'normal', 'title', 'caption']).optional(),
   gap: z.enum(['none', 'small', 'medium', 'large']).optional(),
   /**
    * Space above the row in mm; replaces `gap`. Measured against the official scan by the layout
@@ -304,6 +305,16 @@ export const FormLayoutBlockSchema = z.object({
   pageBreakBefore: z.boolean().optional(),
   /** Draws the printed frame around the whole block (a boxed group of lines). */
   framed: z.boolean().optional(),
+  /**
+   * Space added inside the page margins on the left and/or right of the block, mm: the two sides
+   * of one sheet are scanned with different margins, and the print keeps each side's text edges.
+   */
+  insetMm: z
+    .object({
+      left: z.number().min(0).max(40).optional(),
+      right: z.number().min(0).max(40).optional(),
+    })
+    .optional(),
   columns: z.array(FormLayoutColumnSchema).min(1).max(3),
 });
 
