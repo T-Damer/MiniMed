@@ -726,11 +726,12 @@ def prepare_form(
         },
     }
     undefined = [field["id"] for field in fields if field["rule"]["status"] == "undefined"]
-    notes.append(
-        "Поля, которые порядок не определяет (rule.status = undefined): "
-        + ", ".join(undefined)
-        + "."
-    )
+    if undefined:
+        notes.append(
+            "Поля, которые порядок не определяет (rule.status = undefined): "
+            + ", ".join(undefined)
+            + "."
+        )
     return {
         "schemaVersion": 1,
         "id": blueprint.form_id,

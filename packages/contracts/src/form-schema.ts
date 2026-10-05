@@ -66,7 +66,15 @@ export const FormPrefillSchema = z.object({
   words: z
     .object({ from: z.number().int().min(0).max(5), count: z.number().int().min(1).optional() })
     .optional(),
-  /** Maps a source value to the printed value, e.g. `male` → `1`. Unmapped values prefill nothing. */
+  /**
+   * `initials` prints a full name as «Иванов И. И.» (surname and the initials of the other words),
+   * the form of the «Фамилия, инициалы имени и отчества» lines; applied to each source value.
+   */
+  format: z.enum(['initials']).optional(),
+  /**
+   * Maps a source value to the printed value, e.g. `male` → `1`; for a checkbox field the mapped
+   * value `true` ticks the box. Unmapped values prefill nothing.
+   */
   map: z.record(z.string(), z.string()).optional(),
 });
 export type FormPrefill = z.infer<typeof FormPrefillSchema>;
@@ -194,61 +202,149 @@ export const FormRuleParagraphSchema = z.object({
 });
 export type FormRuleParagraph = z.infer<typeof FormRuleParagraphSchema>;
 
-export const FormSegmentSchema = z.discriminatedUnion('kind', [
-  z.object({
-    kind: z.literal('text'),
-    text: z.string(),
-    bold: z.boolean().optional(),
-    small: z.boolean().optional(),
-    /** No gap before the segment: it continues the previous one (`(` + options + `)`). */
-    joined: z.boolean().optional(),
-  }),
-  z.object({
-    kind: z.literal('field'),
-    fieldId: identifier,
-    /** Approximate blank length in printed characters, measured on the official blank. */
-    length: z.number().positive(),
-    /**
-     * A date prints as «day» month 20year2 on the blank: one field, three blanks. `year` is the
-     * whole year (`год ______`) where the blank prints no «20» before the blank.
-     */
-    part: z.enum(['day', 'month', 'year', 'year2']).optional(),
-    caption: z.string().min(1).optional(),
-    grow: z.boolean().optional(),
-    /** A long entry printed on several ruled lines (anamnesis, epicrisis). */
-    lines: z.number().int().min(1).max(12).optional(),
-  }),
-  /** The choices as printed (`муж. – 1, жен. – 2`) with the picked ones marked. */
-  z.object({
-    kind: z.literal('options'),
-    fieldId: identifier,
-    separator: z.string(),
-    /** Separators between neighbouring options when they differ (`, ` then `; `); length n - 1. */
-    separators: z.array(z.string()).optional(),
-    /** False when the blank prints only the words and the person marks the applicable one. */
-    codes: z.boolean().optional(),
-    /** How a picked option is marked: circled (default) or underlined («нужное подчеркнуть»). */
-    mark: z.enum(['circle', 'underline']).optional(),
-    /** No gap before the options: they continue the previous segment (`характер травмы (укус – 1`). */
-    joined: z.boolean().optional(),
-  }),
-  z.object({ kind: z.literal('check'), fieldId: identifier }),
+/** Space before a segment on its printed line, mm (a caption that sits under a given column). */
+const indentMm = z.number().min(0).max(160).optional();
+
+const FormTextSegmentSchema = z.object({
+  kind: z.literal('text'),
+  /** A line feed in the text is a printed line break (a boxed caption broken at a given word). */
+  text: z.string(),
+  bold: z.boolean().optional(),
+  small: z.boolean().optional(),
+  /** The words are underlined as printed (a value the blank already carries on its ruled blank). */
+  underline: z.boolean().optional(),
+  /** Set larger than the running text (a heading word inside a line: «РЕЦЕПТ»). */
+  large: z.boolean().optional(),
+  /** No gap before the segment: it continues the previous one (`(` + options + `)`). */
+  joined: z.boolean().optional(),
+  indentMm,
+});
+
+const FormFieldSegmentSchema = z.object({
+  kind: z.literal('field'),
+  fieldId: identifier,
+  /** Approximate blank length in printed characters, measured on the official blank. */
+  length: z.number().positive(),
   /**
-   * A ruled line the blank prints with nothing to fill in (the continuation line under a long
-   * entry). Holds no field; kept so the sheet has the lines of the official blank.
+   * A date prints as «day» month 20year2 on the blank: one field, three blanks. `year` is the
+   * whole year (`год ______`) where the blank prints no «20» before the blank.
    */
-  z.object({
-    kind: z.literal('rule'),
-    length: z.number().positive(),
-    grow: z.boolean().optional(),
-  }),
+  part: z.enum(['day', 'month', 'monthNumber', 'year', 'year2']).optional(),
+  caption: z.string().min(1).optional(),
+  grow: z.boolean().optional(),
+  /** A long entry printed on several ruled lines (anamnesis, epicrisis). */
+  lines: z.number().int().min(1).max(12).optional(),
+  /**
+   * A value placed in an area the blank leaves unruled (the stamp of the organisation): printed
+   * as plain running text, no line under it.
+   */
+  plain: z.boolean().optional(),
+  /** The line under the blank (or under each of its `lines`) is dotted or dashed, as printed. */
+  lineStyle: z.enum(['dotted', 'dashed']).optional(),
+  /**
+   * Distance between the ruled `lines`: `text` is one text line, a number is mm (the default pitch
+   * is 1.55 text heights).
+   */
+  pitch: z.union([z.literal('text'), z.number().min(2).max(20)]).optional(),
+  /**
+   * The value is written one character per ruled cell («заполняется путем занесения каждой цифры
+   * в пустые ячейки»): `count` boxes of `widthMm`; extra characters are cut, missing ones left blank.
+   */
+  charCells: z
+    .object({
+      count: z.number().int().min(1).max(30),
+      widthMm: z.number().min(2).max(20),
+      heightMm: z.number().min(3).max(20).optional(),
+      /** The cells sit this far below the line they belong to, mm (a comb taller than its text). */
+      dropMm: z.number().min(-10).max(10).optional(),
+      /** Only the digits of the value go into the cells (`123-456-789 01` fills eleven cells). */
+      digitsOnly: z.boolean().optional(),
+    })
+    .optional(),
+  indentMm,
+});
+
+/**
+ * A ruled line the blank prints with nothing to fill in (the continuation line under a long
+ * entry). Holds no field; kept so the sheet has the lines of the official blank.
+ */
+const FormRuleSegmentSchema = z.object({
+  kind: z.literal('rule'),
+  length: z.number().positive(),
+  grow: z.boolean().optional(),
+  /** Dotted or dashed as printed (the lines of a prescription, the cut-off line). */
+  lineStyle: z.enum(['dotted', 'dashed']).optional(),
+  indentMm,
+});
+
+const FormCheckSegmentSchema = z.object({
+  kind: z.literal('check'),
+  fieldId: identifier,
+  /**
+   * The box sits right after the text before it (`на дому □`) instead of at the end of the line;
+   * in a table cell it always follows the text.
+   */
+  inline: z.boolean().optional(),
+});
+
+/** The choices as printed (`муж. – 1, жен. – 2`) with the picked ones marked. */
+const FormOptionsSegmentSchema = z.object({
+  kind: z.literal('options'),
+  fieldId: identifier,
+  separator: z.string(),
+  /** Separators between neighbouring options when they differ (`, ` then `; `); length n - 1. */
+  separators: z.array(z.string()).optional(),
+  /** False when the blank prints only the words and the person marks the applicable one. */
+  codes: z.boolean().optional(),
+  /** How a picked option is marked: circled (default) or underlined («нужное подчеркнуть»). */
+  mark: z.enum(['circle', 'underline']).optional(),
+  /**
+   * Prints only the options `[from, to)`: a list the blank breaks over two printed lines is two
+   * segments of one field, each with its share of the options.
+   */
+  range: z.tuple([z.number().int().min(0), z.number().int().min(1)]).optional(),
+  /** No gap before the options: they continue the previous segment (`характер травмы (укус – 1`). */
+  joined: z.boolean().optional(),
+});
+
+/** What a table cell may hold besides a field value: text, boxes, blanks, ruled lines. */
+const FormCellSegmentSchema = z.discriminatedUnion('kind', [
+  FormTextSegmentSchema,
+  FormFieldSegmentSchema,
+  FormOptionsSegmentSchema,
+  FormCheckSegmentSchema,
+  FormRuleSegmentSchema,
+]);
+export type FormCellSegment = z.infer<typeof FormCellSegmentSchema>;
+
+/** Empty ruled cells the blank prints with no field of their own (a comb the person leaves blank). */
+const FormBoxesSegmentSchema = z.object({
+  kind: z.literal('boxes'),
+  count: z.number().int().min(1).max(30),
+  widthMm: z.number().min(2).max(20),
+  heightMm: z.number().min(2).max(20).optional(),
+  indentMm,
+});
+
+export const FormSegmentSchema = z.discriminatedUnion('kind', [
+  FormTextSegmentSchema,
+  FormFieldSegmentSchema,
+  FormOptionsSegmentSchema,
+  FormBoxesSegmentSchema,
+  FormCheckSegmentSchema,
+  FormRuleSegmentSchema,
   z.object({
     kind: z.literal('signature'),
     fieldId: identifier,
     length: z.number().positive(),
     caption: z.string().min(1),
   }),
-  z.object({ kind: z.literal('stamp'), fieldId: identifier, text: z.string().min(1) }),
+  z.object({
+    kind: z.literal('stamp'),
+    fieldId: identifier,
+    text: z.string().min(1),
+    indentMm,
+  }),
   /**
    * A printed grid whose body cells are fields (the prescriptions table of a talon). `header` is
    * the printed header cells row by row; `rows` holds one field id per body cell.
@@ -266,14 +362,46 @@ export const FormSegmentSchema = z.discriminatedUnion('kind', [
         )
         .min(1),
     ),
-    /** A body cell is a field id, or `{ text }` for a printed caption cell. */
+    /**
+     * A body cell is a field id, `{ text }` for a printed caption cell, or `{ segments }` for a
+     * cell the blank fills with running text, boxes and blanks (`5.1. □ Установление группы`).
+     */
     rows: z
-      .array(z.array(z.union([identifier, z.object({ text: z.string().min(1) })])).min(1))
+      .array(
+        z
+          .array(
+            z.union([
+              identifier,
+              z.object({ text: z.string().min(1) }),
+              z.object({
+                segments: z.array(FormCellSegmentSchema).min(1),
+                colSpan: z.number().int().min(1).max(12).optional(),
+                rowSpan: z.number().int().min(1).max(12).optional(),
+                /** Text of the cell is justified or centred (the headings of a boxed table). */
+                align: z.enum(['left', 'justify', 'center']).optional(),
+              }),
+            ]),
+          )
+          .min(1),
+      )
       .min(1),
     /** Relative column widths (any positive numbers), one per body column. */
     columnWeights: z.array(z.number().positive()).optional(),
+    /** Padding inside the cells of the grid, mm; measured on the official blank. */
+    cellPaddingMm: z
+      .object({
+        x: z.number().min(0).max(8),
+        y: z.number().min(0).max(8),
+        /** Space above the text of a running-text cell when it differs from `y` (the space below). */
+        top: z.number().min(0).max(8).optional(),
+        /** Space right of the text of a running-text cell when it differs from `x` (the left one). */
+        right: z.number().min(0).max(8).optional(),
+      })
+      .optional(),
     /** Height of a body row, mm, as ruled on the official blank (a taller entry grows the row). */
     rowHeightMm: z.number().positive().max(60).optional(),
+    /** Height of each header row, mm, as ruled on the official blank (the header text is centred). */
+    headHeightMm: z.number().positive().max(60).optional(),
     /** Line height inside the cells as a multiple of the font size; measured on the blank. */
     cellLineHeight: z.number().min(1).max(2).optional(),
   }),
@@ -294,6 +422,17 @@ export const FormRowSchema = z.object({
    * vertical positions of the original blank.
    */
   spaceBeforeMm: z.number().min(0).max(80).optional(),
+  /** Least height of the row, mm: a boxed area the blank leaves for a stamp or a note. */
+  minHeightMm: z.number().min(0).max(120).optional(),
+  /**
+   * Exact height of the row, mm, when the blank sets its lines closer than a text line (the
+   * content may overhang the row; the next row starts below the height).
+   */
+  heightMm: z.number().min(0).max(120).optional(),
+  /** Font size of the row as a multiple of the page font (a table set in a smaller type). */
+  fontScale: z.number().min(0.5).max(1.5).optional(),
+  /** Space between the top edge of a boxed row and its text, mm (the blank's box padding). */
+  paddingTopMm: z.number().min(0).max(30).optional(),
   /** `outline` boxes the row; `split` boxes two cells: the first segment, then the rest. */
   box: z.enum(['outline', 'split']).optional(),
   splitPercent: z.number().min(10).max(90).optional(),
@@ -312,6 +451,8 @@ export const FormLayoutBlockSchema = z.object({
   pageBreakBefore: z.boolean().optional(),
   /** Draws the printed frame around the whole block (a boxed group of lines). */
   framed: z.boolean().optional(),
+  /** Least space between the columns of the block, mm (6 when omitted). */
+  columnGapMm: z.number().min(0).max(30).optional(),
   /**
    * Space added inside the page margins on the left and/or right of the block, mm: the two sides
    * of one sheet are scanned with different margins, and the print keeps each side's text edges.
@@ -406,6 +547,23 @@ export const FormSourceSchema = z.object({
 });
 export type FormSource = z.infer<typeof FormSourceSchema>;
 
+/** Field ids a table's body cells print: value cells and the fields of running-text cells. */
+function tableFieldIds(rows: readonly (readonly unknown[])[]): string[] {
+  const ids: string[] = [];
+  for (const cell of rows.flat()) {
+    if (typeof cell === 'string') {
+      ids.push(cell);
+    } else if (typeof cell === 'object' && cell !== null && 'segments' in cell) {
+      for (const segment of (cell as { segments: FormCellSegment[] }).segments) {
+        if (segment.kind === 'field' || segment.kind === 'check' || segment.kind === 'options') {
+          ids.push(segment.fieldId);
+        }
+      }
+    }
+  }
+  return ids;
+}
+
 export const FormSchemaSchema = z
   .object({
     schemaVersion: z.literal(FORM_SCHEMA_VERSION),
@@ -462,11 +620,11 @@ export const FormSchemaSchema = z
       for (const column of block.columns) {
         for (const row of column.rows) {
           for (const segment of row.segments) {
-            if (segment.kind === 'text' || segment.kind === 'rule') continue;
+            if (segment.kind === 'text' || segment.kind === 'rule' || segment.kind === 'boxes') {
+              continue;
+            }
             const cited =
-              segment.kind === 'table'
-                ? segment.rows.flat().filter((cell): cell is string => typeof cell === 'string')
-                : [segment.fieldId];
+              segment.kind === 'table' ? tableFieldIds(segment.rows) : [segment.fieldId];
             for (const id of cited) {
               if (!fieldIds.has(id)) {
                 context.addIssue({ code: 'custom', message: `layout cites unknown field ${id}` });

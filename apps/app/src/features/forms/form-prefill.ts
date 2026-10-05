@@ -88,6 +88,20 @@ function pickWords(
   return parts.slice(words.from, end).join(' ');
 }
 
+/** «Иванов Иван Иванович» as «Иванов И.И.»: the surname and the initials of the other words. */
+export function surnameWithInitials(fullName: string): string {
+  const [surname = '', ...rest] = fullName.split(/\s+/u).filter((word) => word !== '');
+  const initials = rest
+    .map((word) =>
+      word
+        .split('-')
+        .map((part) => (part === '' ? '' : `${[...part][0]?.toUpperCase() ?? ''}.`))
+        .join('-'),
+    )
+    .join('');
+  return `${surname}${initials === '' ? '' : ` ${initials}`}`;
+}
+
 /** The value a field's binding resolves to, or `undefined` when nothing usable is known. */
 export function resolveFieldPrefill(
   field: FormField,
@@ -99,7 +113,8 @@ export function resolveFieldPrefill(
   for (const path of binding.sources) {
     const whole = context[path];
     if (whole === undefined) continue;
-    const raw = binding.words ? pickWords(whole, binding.words) : whole;
+    const picked = binding.words ? pickWords(whole, binding.words) : whole;
+    const raw = binding.format === 'initials' ? surnameWithInitials(picked) : picked;
     if (raw === '') continue;
     const mapped = binding.map ? binding.map[raw] : raw;
     if (mapped !== undefined && mapped !== '') parts.push(mapped);
@@ -112,7 +127,8 @@ export function resolveFieldPrefill(
     return field.multiple ? [joined] : joined;
   }
   if (field.type === 'date' && !/^\d{4}-\d{2}-\d{2}$/u.test(joined)) return undefined;
-  if (field.type === 'checkbox') return undefined;
+  // A box is ticked by a mapped value of `true` (`sex: male` → the «Мужской» box); nothing else ticks it.
+  if (field.type === 'checkbox') return joined === 'true' ? true : undefined;
   return joined;
 }
 
