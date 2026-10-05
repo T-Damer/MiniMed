@@ -85,6 +85,67 @@ export function VaccinationWorkspace(props: {
       .map((row) => ({ value: row.id, label: `${row.number}. ${row.category}` })),
   ];
   const filtersVisible = (): boolean => part() === 'national' || part() === 'epidemic';
+  /** «Все · любой возраст», «Дети · 3. Дети 1 месяц», «Взрослые · «грипп»». */
+  const filterSummary = (): string => {
+    const current = filter();
+    const parts: string[] = [
+      POPULATION_OPTIONS.find((option) => option.value === current.population)?.label ?? 'Все',
+    ];
+    if (part() === 'national') {
+      parts.push(
+        ageOptions.find((option) => option.value === current.age)?.label ?? 'Любой возраст',
+      );
+    } else if (current.query.trim()) {
+      parts.push(`«${current.query.trim()}»`);
+    }
+    return parts.join(' · ').toLocaleLowerCase('ru-RU');
+  };
+  const filters = (): JSX.Element => (
+    <fieldset class="vax__filters" aria-label="Фильтры">
+      <SegmentedControl
+        class="vax__population"
+        label="Кому"
+        options={POPULATION_OPTIONS}
+        value={filter().population}
+        onChange={(value) => patch({ population: value })}
+      />
+      <Show when={part() === 'national'}>
+        <SegmentedControl
+          class="vax__layout"
+          label="Вид таблицы"
+          options={LAYOUT_OPTIONS}
+          value={layout()}
+          onChange={setLayout}
+        />
+        <SelectField
+          class="vax__age"
+          label="Возраст"
+          options={ageOptions}
+          value={filter().age}
+          onChange={(event) => patch({ age: event.currentTarget.value })}
+        />
+      </Show>
+      <Show when={part() === 'epidemic'}>
+        <SearchField
+          class="vax__query"
+          label="Инфекция или категория"
+          placeholder="Например: клещевой энцефалит"
+          value={filter().query}
+          onInput={(value) => patch({ query: value })}
+          onClear={() => patch({ query: '' })}
+        />
+      </Show>
+      <Button
+        type="button"
+        variant="quiet"
+        class="vax__reset"
+        disabled={JSON.stringify(filter()) === JSON.stringify(DEFAULT_FILTER)}
+        onClick={() => setFilter(DEFAULT_FILTER)}
+      >
+        Сбросить фильтры
+      </Button>
+    </fieldset>
+  );
 
   return (
     <section class="vax" aria-label="Календарь прививок">
@@ -155,50 +216,13 @@ export function VaccinationWorkspace(props: {
         onChange={setPart}
       />
       <Show when={filtersVisible()}>
-        <fieldset class="vax__filters" aria-label="Фильтры">
-          <SegmentedControl
-            class="vax__population"
-            label="Кому"
-            options={POPULATION_OPTIONS}
-            value={filter().population}
-            onChange={(value) => patch({ population: value })}
-          />
-          <Show when={part() === 'national'}>
-            <SegmentedControl
-              class="vax__layout"
-              label="Вид таблицы"
-              options={LAYOUT_OPTIONS}
-              value={layout()}
-              onChange={setLayout}
-            />
-            <SelectField
-              class="vax__age"
-              label="Возраст"
-              options={ageOptions}
-              value={filter().age}
-              onChange={(event) => patch({ age: event.currentTarget.value })}
-            />
-          </Show>
-          <Show when={part() === 'epidemic'}>
-            <SearchField
-              class="vax__query"
-              label="Инфекция или категория"
-              placeholder="Например: клещевой энцефалит"
-              value={filter().query}
-              onInput={(value) => patch({ query: value })}
-              onClear={() => patch({ query: '' })}
-            />
-          </Show>
-          <Button
-            type="button"
-            variant="quiet"
-            class="vax__reset"
-            disabled={JSON.stringify(filter()) === JSON.stringify(DEFAULT_FILTER)}
-            onClick={() => setFilter(DEFAULT_FILTER)}
-          >
-            Сбросить фильтры
-          </Button>
-        </fieldset>
+        <Show when={narrow()} fallback={filters()}>
+          {/* On a phone the filters fold into one line that names the current choice, so the
+              table starts on the first screen. */}
+          <Disclosure variant="inline" title={`Фильтры: ${filterSummary()}`} defaultOpen={false}>
+            {filters()}
+          </Disclosure>
+        </Show>
       </Show>
       <Switch>
         <Match when={part() === 'national'}>
