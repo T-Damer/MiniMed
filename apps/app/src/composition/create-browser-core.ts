@@ -1,6 +1,5 @@
 import { Capacitor } from '@capacitor/core';
 import { createMedicalCore } from '@localmed/core';
-import { PortableHashEmbedder } from '@localmed/search-semantic';
 import { type MedicalStore, type MedicalStoreMount, MultiMedicalStore } from '@localmed/storage';
 import { CapacitorMedicalStore, LocalMedDatabase } from '@localmed/storage-capacitor';
 import {
@@ -15,6 +14,7 @@ import { WorkerOpfsMedicalStore } from '@/composition/worker-opfs-medical-store'
 import { getDownloadQueue } from '@/features/downloads/download-service';
 import { loadInstalledModuleMounts } from '@/features/modules/browser-module-runtime';
 import { downloadFileWithRetry, hasRetainedFileDownload } from '@/features/network/download-retry';
+import { E5_QUERY_EMBEDDER } from '@/features/semantic/e5-query-embedder';
 
 interface PackBuildReport {
   readonly outputChecksum: string;
@@ -28,7 +28,8 @@ interface CompanionStores {
   referenceStore?: MedicalStore;
 }
 
-const QUERY_EMBEDDER = new PortableHashEmbedder();
+// e5-small query vectors against the КР modules' passage vectors (ADR 0008); lexical without it.
+const QUERY_EMBEDDER = E5_QUERY_EMBEDDER;
 
 const PACK_DATABASE_NAME = 'core.db';
 const MKB_DATABASE_NAME = 'mkb.db';

@@ -38,6 +38,10 @@
   margin: 0;
 }
 
+.semantic-search-settings__notice {
+  margin: 0;
+}
+
 .ecg-model-settings__option {
   display: grid;
   gap: 0.2rem;

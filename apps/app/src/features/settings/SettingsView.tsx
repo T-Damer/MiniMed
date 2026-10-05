@@ -12,6 +12,7 @@ import { AsrSettings } from '@/features/asr/AsrSettings';
 import { DownloadsPage } from '@/features/downloads/DownloadsPage';
 import { ContentDownloadStatus } from '@/features/modules/ContentDownloadStatus';
 import { restartOnboarding } from '@/features/onboarding/onboarding-state';
+import { SemanticSearchSettings } from '@/features/semantic/SemanticSearchSettings';
 import { AppUpdateChecker } from '@/features/settings/AppUpdateChecker';
 import { EcgModelSettings } from '@/features/settings/EcgModelSettings';
 import { PackagingImagesSettings } from '@/features/settings/PackagingImagesSettings';
@@ -346,6 +347,7 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
             Скачиваются по желанию и дальше работают без интернета.
           </p>
         </div>
+        <SemanticSearchSettings />
         <EcgModelSettings />
         <ReferenceImagesSettings />
         <AsrSettings />

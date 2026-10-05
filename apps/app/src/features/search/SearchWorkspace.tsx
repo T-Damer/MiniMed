@@ -64,7 +64,7 @@ import {
   parseCalculatorToolMention,
   replaceCalculatorToolTrigger,
 } from '@/features/search/calculator-tool-mention';
-import type { SearchScope } from '@/features/search/ScopedMedicalCore';
+import { type SearchScope, searchModeForScope } from '@/features/search/ScopedMedicalCore';
 import { SearchExamples } from '@/features/search/SearchExamples';
 import { type SearchMeaning, SearchMeaningChoices } from '@/features/search/SearchMeaningChoices';
 import { SearchResultGroupCard } from '@/features/search/SearchResultGroupCard';
@@ -656,7 +656,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
 
     const result = await core.search({
       query: trimmed,
-      mode: props.scope === 'diagnosis' ? 'auto' : 'lexical',
+      mode: searchModeForScope(props.scope),
       analysisMode: props.scope === 'diagnosis' ? 'clinical' : 'lookup',
       filters: props.filters ?? {},
       limit: 20,

@@ -42,6 +42,15 @@ export type SearchScope =
 export type SearchAudience = 'children' | 'adults';
 export type SearchResultDocumentKind = NonNullable<SearchResultGroup['documentKind']>;
 
+/**
+ * Scopes whose answers are clinical recommendations add e5 semantic candidates when the model is
+ * installed (ADR 0008 `auto`: lexical without it). Lookup scopes for drugs, law or names stay
+ * lexical so an exact name is never outranked by a paraphrase.
+ */
+export function searchModeForScope(scope: SearchScope): 'auto' | 'lexical' {
+  return scope === 'diagnosis' || scope === 'guidelines' ? 'auto' : 'lexical';
+}
+
 const EMPTY_SCOPE_DOCUMENT_ID = '__minimed_empty_search_scope__';
 
 const SOURCE_TYPES_BY_SCOPE: Readonly<Partial<Record<SearchScope, ReadonlySet<string>>>> = {
