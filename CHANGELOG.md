@@ -4,6 +4,25 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.48] - 2026-10-05
+
+- Search by meaning for clinical recommendations: an optional on-device model (multilingual-e5-small,
+  129 MB, Settings → «Поиск по смыслу») finds recommendations from complaints, symptoms or a
+  diagnosis in your own words. «Клинический разбор» and «Рекомендации» combine it with word search;
+  on held-out real queries the right recommendation reaches the top 5 in 50% of cases instead of
+  12%. Without the model search works exactly as before. The 774 recommendation modules were
+  re-published with the matching vectors (+31 MB in total) and show as updates.
+- Official drug instructions: ГРЛС instruction texts as 15 downloadable modules by ATC group
+  (8 944 documents, 231 MB) and the Allmed reference as its own module (49 MB). The drug screen
+  shows the Allmed summary on top and the official instruction below with its kind, revision, ГРЛС
+  link and an OCR warning; without an official text a note offers the group download.
+- Drugs: country of manufacture next to trade names («Ибупрофен (Россия)»), a trade-name accordion
+  with an explicit chevron and compact chips, and a browse-by-ATC-group tree; names keep the drug
+  screen's letter case.
+- An installed recommendation opens in 0.9 s instead of 5.9 s; one edition per recommendation in
+  result lists; long download titles are clipped at a word boundary.
+- New modules need this version (minimum app version 0.6.48).
+
 ## [0.6.47] - 2026-10-02
 
 - Clinical recommendations refreshed to the Минздрав rubricator of 2026-10-02: 30 new editions
