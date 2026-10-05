@@ -82,6 +82,22 @@ query (was 1.6–2.2 s with per-pack hydration).
 Fusion calibration lives on the embedder (`SemanticFusion`): e5 cosines sit in a narrow 0.8–0.9
 band, so a hit's strength is its distance below the query's best cosine within `band`.
 
+Quality, Q1 real-language queries with КР relevance, all 774 e5 packs mounted, through MedicalCore
+(`bun tools/benchmarks/src/run-semantic-kr.ts`). Fusion chosen on dev; test is held out:
+
+| Configuration | dev R@5 | test R@1 | test R@5 | test strict R@5 | test MRR@10 |
+|---|---:|---:|---:|---:|---:|
+| lookup, lexical | 0.090 | 0.061 | 0.117 | 0.098 | 0.088 |
+| clinical, lexical | 0.096 | 0.067 | 0.123 | 0.104 | 0.090 |
+| lookup, semantic only | 0.449 | 0.270 | 0.479 | 0.436 | 0.358 |
+| clinical, hybrid, feature-hash constants | 0.138 | 0.092 | 0.166 | 0.141 | 0.118 |
+| lookup, hybrid `E5_SMALL_FUSION` | 0.449 | 0.282 | 0.479 | 0.429 | 0.364 |
+| **clinical, hybrid `E5_SMALL_FUSION`** | **0.467** | **0.294** | **0.497** | **0.448** | **0.379** |
+
+Test R@5 by source, clinical hybrid: RuMedPrime complaints 0.038 → 0.278, RuCCoD diagnosis
+phrases 0.202 → 0.702. Scope: КР only; complaint labels are the physician's final diagnosis; the
+queries are not the owner's own phrasing, so ADR exit criterion 4 is met only by proxy.
+
 ## Search modes
 
 - `lexical` — deterministic analysis, aliases, FTS5, and BM25 only;

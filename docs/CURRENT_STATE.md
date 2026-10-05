@@ -1,6 +1,6 @@
 # Current state
 
-> Updated: 2 October 2026
+> Updated: 5 October 2026
 > Released version: `0.6.47` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
@@ -19,6 +19,21 @@ Detailed history, moved verbatim on 2026-09-24:
   baseline and runtime benchmark up to the 0.6.39 release.
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
+
+## Semantic search over clinical recommendations — 2026-10-05 (STATE E2)
+
+- Optional on-device e5-small (`Xenova/multilingual-e5-small` q8, 129 MB, pinned revision and
+  SHA-256 per file) from Settings → «Поиск по смыслу»; queries are embedded in a worker from
+  IndexedDB only. Without it every search is lexical, as before.
+- The 774 single-КР modules carry e5 passage vectors (profile `localmed.e5-small.384.int8.v1`)
+  instead of the feature-hash scaffold: mirror tag `clinical-e5-2026.10.05`, 688 MB in total
+  (+31 MB). Installed modules show as updates (version suffix `.e5`).
+- «Клинический разбор» and «Рекомендации» search in `auto` mode (hybrid when the model and e5
+  packs are present); drugs, law, conditions and «Все» stay lexical.
+- Q1 held-out test, КР only: R@5 0.123 → 0.497, R@1 0.067 → 0.294
+  ([SEMANTIC_RETRIEVAL.md](SEMANTIC_RETRIEVAL.md)). Two-phase vector scan: 150–250 ms for all 774
+  packs on the host. Not yet measured on a phone; ESKLP, МКБ and core packs have no e5 vectors.
+- Code map of the whole search path: [SEARCH_ARCHITECTURE.md](SEARCH_ARCHITECTURE.md).
 
 ## Discovery core 0.6.47 — 2026-10-02 (STATE CORE2)
 
