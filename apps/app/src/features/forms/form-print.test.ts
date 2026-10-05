@@ -58,4 +58,53 @@ describe('form print', () => {
     expect(empty).toContain('Лечащий врач, должность врача-специалиста');
     expect(empty).toContain('подпись');
   });
+
+  it('starts the reverse side on a new page and keeps «обратная сторона» out of the first sheet', () => {
+    const card = findFormSchema('ru.minzdrav.274n.072u');
+    if (!card) throw new Error('schema missing');
+    const html = renderFormPrintHtml(card, { complaints: 'Боли в суставах' });
+    expect(html).toContain(
+      'form-print__block form-print__block--page-break" data-block="clinical"',
+    );
+    expect(html).toContain('Боли в суставах');
+    expect(html).toContain('оборотная сторона ф. № 072/у');
+    expect(html).toContain('form-print__blank--lines');
+    expect(html).toContain('size: A4 portrait');
+  });
+
+  it('prints the talon on a landscape sheet with framed groups and the tables of the blank', () => {
+    const talon = findFormSchema('ru.minzdrav.274n.025-1u');
+    if (!talon) throw new Error('schema missing');
+    const html = renderFormPrintHtml(talon, {
+      visitDate1: '2026-10-05',
+      visitDate9: '2026-10-07',
+      prescription1Name: 'Амоксициллин',
+      prescription1Date: '2026-10-05',
+      visitPurposeDisease: ['1', '1.2'],
+      prelimDiagnosisIcd: 'J45.0',
+    });
+    expect(html).toContain('size: A4 landscape');
+    expect(html).toContain('form-print__block form-print__block--framed');
+    expect(html).toContain('<table class="form-print__table">');
+    expect(html).toContain('25. Даты посещений');
+    expect(html).toContain('>05.10.2026<');
+    expect(html).toContain('>07.10.2026<');
+    expect(html).toContain('Амоксициллин');
+    expect(html).toContain('colspan="2"');
+    expect(html).toContain('rowspan="2"');
+    expect(html).toContain(
+      'form-print__option form-print__option--picked">активное посещение – 1.2',
+    );
+    expect(html).toContain('J45.0');
+  });
+
+  it('underlines the applicable words when the blank says «нужное подчеркнуть»', () => {
+    const certificate = findFormSchema('ru.minzdrav.274n.079u');
+    if (!certificate) throw new Error('schema missing');
+    const html = renderFormPrintHtml(certificate, { anthropometryNote: ['2'] });
+    expect(html).toContain(
+      'form-print__option form-print__option--underlined">избыток массы тела<',
+    );
+    expect(html).not.toContain('избыток массы тела – 2');
+  });
 });

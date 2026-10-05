@@ -102,4 +102,64 @@ describe('form prefill', () => {
     );
     expect(unknownSex.values['patientSex']).toBe('2');
   });
+
+  it('splits the full name into surname, name and patronymic by declared word bindings', () => {
+    const talon = findFormSchema('ru.minzdrav.274n.025-1u');
+    if (!talon) throw new Error('schema missing');
+    const context = buildFormPrefillContext({
+      profile: {
+        ...profile,
+        fullName: 'Иванов Иван Иванович оглы',
+        workplace: 'ООО «Тест»',
+        citizenship: 'Российская Федерация',
+      },
+      episode,
+      clinician,
+      now: new Date(2026, 9, 5),
+    });
+    const { values, prefilled } = prefillFormValues(talon, context);
+    expect(values['surname']).toBe('Иванов');
+    expect(values['firstName']).toBe('Иван');
+    expect(values['patronymic']).toBe('Иванович оглы');
+    expect(values['workplace']).toBe('ООО «Тест»');
+    expect(values['citizenship']).toBe('Российская Федерация');
+    expect(values['patientSex']).toBe('1');
+    expect(values['prelimDiagnosisIcd']).toBe('J45.0');
+    expect(values['openDate']).toBe('2026-10-05');
+    expect(values['doctorPosition']).toBe('врач-терапевт');
+    expect(prefilled.has('surname')).toBe(true);
+    expect(values['visitDate1']).toBeUndefined();
+  });
+
+  it('leaves a name part empty when the full name has too few words', () => {
+    const talon = findFormSchema('ru.minzdrav.274n.025-1u');
+    if (!talon) throw new Error('schema missing');
+    const context = buildFormPrefillContext({
+      profile: { ...profile, fullName: 'Мононим' },
+      now: new Date(2026, 9, 5),
+    });
+    const { values } = prefillFormValues(talon, context);
+    expect(values['surname']).toBe('Мононим');
+    expect(values['firstName']).toBeUndefined();
+    expect(values['patronymic']).toBeUndefined();
+  });
+
+  it('fills the sanatorium cards: referral diagnosis, filler and the shared patient lines', () => {
+    const card = findFormSchema('ru.minzdrav.274n.072u');
+    if (!card) throw new Error('schema missing');
+    const context = buildFormPrefillContext({
+      profile,
+      episode,
+      clinician,
+      now: new Date(2026, 9, 5),
+    });
+    const { values } = prefillFormValues(card, context);
+    expect(values['mainDiagnosis']).toBe('Бронхиальная астма');
+    expect(values['mainDiagnosisIcd']).toBe('J45.0');
+    expect(values['referralMain']).toBe('Бронхиальная астма');
+    expect(values['filledBy']).toBe('Петров Пётр Петрович');
+    expect(values['residenceLocality']).toBe('Химки');
+    expect(values['snils']).toBe('123-456-789 01');
+    expect(values['treatmentDone']).toBeUndefined();
+  });
 });

@@ -69,6 +69,8 @@ export interface PatientProfileData {
   readonly omsPolicy?: PatientOmsPolicy;
   /** Workplace or place of study. */
   readonly workplace?: string;
+  /** Citizenship as the person states it (the «Гражданство» line of some forms). */
+  readonly citizenship?: string;
 }
 
 /** A patch: a key set to `undefined` or an empty value removes that field. */
@@ -503,6 +505,7 @@ function normalizeProfileData(source: object): PatientProfileData {
   const snils = normalizeSnilsField(record);
   const omsPolicy = normalizeOmsPolicy(record['omsPolicy']);
   const workplace = trimmedOptional(record, 'workplace', 'место работы или учёбы');
+  const citizenship = trimmedOptional(record, 'citizenship', 'гражданство');
   return {
     ...(fullName ? { fullName } : {}),
     ...(address ? { address } : {}),
@@ -510,6 +513,7 @@ function normalizeProfileData(source: object): PatientProfileData {
     ...(snils ? { snils } : {}),
     ...(omsPolicy ? { omsPolicy } : {}),
     ...(workplace ? { workplace } : {}),
+    ...(citizenship ? { citizenship } : {}),
   };
 }
 
@@ -520,6 +524,7 @@ const PROFILE_DATA_KEYS = [
   'snils',
   'omsPolicy',
   'workplace',
+  'citizenship',
 ] as const satisfies readonly (keyof PatientProfileData)[];
 
 /**

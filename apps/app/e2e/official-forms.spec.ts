@@ -1,26 +1,55 @@
 import { mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-import { expect, type Page, test } from '@playwright/test';
+import { expect, type Locator, type Page, test } from '@playwright/test';
 
 import { mountBuiltApp } from './mount-built-app';
 
 const SCREENS = resolve(import.meta.dirname, '../../../output/f1-screens');
 const CAPTURE = process.env['F1_CAPTURE_SCREENS'] === '1';
+const SCREENS_F2 = resolve(import.meta.dirname, '../../../output/f2-screens');
+const CAPTURE_F2 = process.env['F2_CAPTURE_SCREENS'] === '1';
 
 /** Saves the current screen at 390 px in both colour schemes (F1_CAPTURE_SCREENS=1). */
-async function capture(page: Page, name: string): Promise<void> {
-  if (!CAPTURE) return;
-  mkdirSync(SCREENS, { recursive: true });
+async function capture(page: Page, name: string, f2 = false): Promise<void> {
+  if (f2 ? !CAPTURE_F2 : !CAPTURE) return;
+  const directory = f2 ? SCREENS_F2 : SCREENS;
+  mkdirSync(directory, { recursive: true });
   await page.evaluate(() => {
     for (const toast of document.querySelectorAll('[data-sonner-toast]')) toast.remove();
   });
   for (const scheme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme: scheme });
     await page.waitForTimeout(300);
-    await page.screenshot({ path: `${SCREENS}/${name}-${scheme}.png`, fullPage: false });
+    await page.screenshot({ path: `${directory}/${name}-${scheme}.png`, fullPage: false });
   }
   await page.emulateMedia({ colorScheme: 'light' });
+}
+
+/**
+ * Number of sheets in the PDF Chromium makes from the print page (real pagination). The page is
+ * the same HTML the preview shows and the print popup receives; the popup closes itself after
+ * printing, so the markup is taken from the preview frame.
+ */
+async function pdfSheetCount(page: Page): Promise<number> {
+  const html = await page.locator('iframe[title="Предпросмотр бланка"]').getAttribute('srcdoc');
+  expect(html).toContain('class="form-print"');
+  const sheet = await page.context().newPage();
+  try {
+    await sheet.setContent(html ?? '');
+    const pdf = await sheet.pdf({ preferCSSPageSize: true });
+    return (pdf.toString('latin1').match(/\/Type\s*\/Page(?![a-z])/gu) ?? []).length;
+  } finally {
+    await sheet.close();
+  }
+}
+
+/** The «Заполнить форму» button of one card of the forms list. */
+function fillButton(page: Page, formNumber: string): Locator {
+  return page
+    .locator('.forms-home__card')
+    .filter({ hasText: `Форма № ${formNumber}` })
+    .getByRole('button', { name: 'Заполнить форму', exact: true });
 }
 
 async function openPatientVault(page: Page): Promise<void> {
@@ -30,13 +59,8 @@ async function openPatientVault(page: Page): Promise<void> {
   await page.getByRole('button', { name: /^(Понятно, продолжить|Открыть)$/u }).click();
 }
 
-test('fills form 070/у from a patient card, shows the rule behind a field and previews the print', async ({
-  page,
-}) => {
-  test.setTimeout(180_000);
-  await page.setViewportSize({ width: 390, height: 844 });
-  await mountBuiltApp(page, { persistentOrigin: true, skipLargeCompanionPacks: true });
-
+/** «Врач и организация» in Settings, then a patient with the data forms need and one episode. */
+async function seedClinicianAndPatient(page: Page): Promise<void> {
   // 1. «Врач и организация» in Settings — device-local, filled into every form.
   await page.getByRole('button', { name: 'Настройки', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Врач и организация' }).first()).toBeVisible();
@@ -64,6 +88,8 @@ test('fills form 070/у from a patient card, shows the rule behind a field and p
   await page.getByRole('button', { name: /Данные для справок и форм/u }).click();
   await page.getByLabel('ФИО полностью').fill('Иванов Иван Иванович');
   await page.getByLabel('СНИЛС').fill('123-456-789 01');
+  await page.getByLabel('Место работы / учёбы').fill('ООО «Тест»');
+  await page.getByLabel('Гражданство').fill('Российская Федерация');
   await page.getByLabel('Номер полиса').fill('7700000000000001');
   await page.getByLabel('Страховая медицинская организация').fill('СМО «Тест»');
   await page.getByLabel('Субъект Российской Федерации').first().fill('г. Москва');
@@ -81,12 +107,22 @@ test('fills form 070/у from a patient card, shows the rule behind a field and p
   await page.getByLabel('Код МКБ-10').fill('j45.0');
   await page.getByRole('button', { name: 'Сохранить диагноз', exact: true }).click();
   await expect(page.getByLabel('Код МКБ-10')).toHaveValue('J45.0');
+}
+
+test('fills form 070/у from a patient card, shows the rule behind a field and previews the print', async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mountBuiltApp(page, { persistentOrigin: true, skipLargeCompanionPacks: true });
+
+  await seedClinicianAndPatient(page);
 
   // 3. «Заполнить форму» from the patient card opens the list, then the form.
   await page.getByRole('button', { name: 'Заполнить форму', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Формы', exact: true })).toBeVisible();
   await capture(page, 'forms-list');
-  await page.getByRole('button', { name: 'Заполнить форму', exact: true }).click();
+  await fillButton(page, '070/у').click();
   await expect(page).toHaveURL(/#\/notes\/forms\/ru\.minzdrav\.274n\.070u\?patient=/u);
 
   const fullName = page.locator('#form-field-patientFullName');
@@ -168,6 +204,8 @@ test('fills form 070/у from a patient card, shows the rule behind a field and p
   const popup = await popupPromise;
   await popup.waitForLoadState('domcontentloaded');
   await expect(popup.locator('.form-print')).toContainText('Иванов Иван Иванович');
+  // The official 070/у is one sheet, and so is the printed page.
+  expect(await pdfSheetCount(page)).toBe(1);
   await popup.close();
 
   // Typed values survive leaving the screen and coming back.
@@ -175,8 +213,114 @@ test('fills form 070/у from a patient card, shows the rule behind a field and p
   await page.getByRole('button', { name: 'К карточке пациента' }).click();
   await expect(page.getByRole('heading', { name: 'Пациент для справки' })).toBeVisible();
   await page.getByRole('button', { name: 'Заполнить форму', exact: true }).click();
-  await page.getByRole('button', { name: 'Заполнить форму', exact: true }).click();
+  await fillButton(page, '070/у').click();
   await expect(page.locator('#form-field-formNumber').getByRole('textbox')).toHaveValue('17');
+});
+
+/** Per form: how it is reached, what the patient data fills in, and the printed sheets. */
+const NEW_FORMS = [
+  {
+    id: 'ru.minzdrav.274n.072u',
+    slug: '072u',
+    ruleField: 'patientFullName',
+    title: /Санаторно-курортная карта$/u,
+    prefilled: { patientFullName: 'Иванов Иван Иванович', mainDiagnosisIcd: 'J45.0' },
+    printed: ['Санаторно-курортная карта №', 'Иванов Иван Иванович', 'Обратный талон'],
+    sheets: 2,
+  },
+  {
+    id: 'ru.minzdrav.274n.076u',
+    slug: '076u',
+    ruleField: 'patientFullName',
+    title: /Санаторно-курортная карта для детей/u,
+    prefilled: { patientFullName: 'Иванов Иван Иванович', mainDiagnosisIcd: 'J45.0' },
+    printed: ['Санаторно-курортная карта для детей №', 'Образовательная организация', 'прививки'],
+    sheets: 2,
+  },
+  {
+    id: 'ru.minzdrav.274n.079u',
+    slug: '079u',
+    ruleField: 'patientFullName',
+    title: /Медицинская справка о состоянии здоровья ребенка/u,
+    prefilled: { patientFullName: 'Иванов Иван Иванович', citizenship: 'Российская Федерация' },
+    printed: ['Гражданство', 'Российская Федерация', 'Отсутствие медицинских противопоказаний'],
+    sheets: 2,
+  },
+  {
+    id: 'ru.minzdrav.274n.025-1u',
+    slug: '025-1u',
+    ruleField: 'surname',
+    title: /Талон пациента, получающего медицинскую помощь/u,
+    prefilled: {
+      surname: 'Иванов',
+      firstName: 'Иван',
+      patronymic: 'Иванович',
+      workplace: 'ООО «Тест»',
+      prelimDiagnosisIcd: 'J45.0',
+    },
+    printed: ['ТАЛОН ПАЦИЕНТА', 'ООО «Тест»', '25. Даты посещений', 'Рецепты на лекарственные'],
+    sheets: 2,
+  },
+] as const;
+
+test('fills 072/у, 076/у, 079/у and 025-1/у from one patient and previews every blank', async ({
+  page,
+}) => {
+  test.setTimeout(240_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mountBuiltApp(page, { persistentOrigin: true, skipLargeCompanionPacks: true });
+  await seedClinicianAndPatient(page);
+  await page.getByRole('button', { name: 'Заполнить форму', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Формы', exact: true })).toBeVisible();
+  const cards = page.locator('.forms-home__card');
+  await expect(cards).toHaveCount(5);
+  for (const number of ['070/у', '072/у', '076/у', '079/у', '025-1/у']) {
+    await expect(cards.filter({ hasText: `Форма № ${number}` })).toHaveCount(1);
+  }
+  await capture(page, 'forms-list', true);
+
+  for (const [index, form] of NEW_FORMS.entries()) {
+    if (index > 0) {
+      // Back to the patient card and the list; a reload would lock the vault again.
+      await page.getByRole('button', { name: 'К карточке пациента' }).click();
+      await page.getByRole('button', { name: 'Заполнить форму', exact: true }).click();
+    }
+    await fillButton(page, form.slug.replace('u', '/у')).click();
+    await expect(page).toHaveURL(
+      new RegExp(`#/notes/forms/${form.id.replaceAll('.', '\\.')}\\?`, 'u'),
+    );
+    await expect(page.getByRole('heading', { name: form.title }).first()).toBeVisible();
+
+    for (const [fieldId, value] of Object.entries(form.prefilled)) {
+      const field = page.locator(`#form-field-${fieldId}`);
+      await expect(field.getByRole('textbox').first()).toHaveValue(value);
+      await expect(field.getByText('подставлено', { exact: true })).toBeVisible();
+    }
+    // A rule is one tap away and the order's own paragraph is quoted.
+    const ruled = page.locator(`#form-field-${form.ruleField}`);
+    await ruled.scrollIntoViewIfNeeded();
+    await ruled.getByRole('button', { name: 'Правило заполнения' }).click();
+    await expect(ruled.getByRole('note')).toContainText('приказу № 274н');
+    await page.locator('.forms-workspace__chrome').scrollIntoViewIfNeeded();
+    await capture(page, `form-${form.slug}-fill`, true);
+
+    await page.getByRole('button', { name: 'Предпросмотр и печать' }).click();
+    const frame = page.frameLocator('iframe[title="Предпросмотр бланка"]');
+    for (const phrase of form.printed) {
+      await expect(frame.locator('.form-print')).toContainText(phrase);
+    }
+    await expect(frame.locator('.form-print__block--page-break')).toHaveCount(1);
+    await capture(page, `form-${form.slug}-preview`, true);
+
+    const popupPromise = page.waitForEvent('popup');
+    await page.getByRole('dialog').getByRole('button', { name: 'Печать / PDF' }).click();
+    const popup = await popupPromise;
+    await popup.waitForLoadState('domcontentloaded');
+    // Two-sided blanks print as two sheets: the reverse side starts on a new page.
+    expect(await pdfSheetCount(page)).toBe(form.sheets);
+    await popup.close();
+    await page.getByRole('button', { name: 'Закрыть' }).click();
+  }
 });
 
 test('«Мои файлы» opens the official forms from a pinned «Формы» folder', async ({ page }) => {
@@ -194,7 +338,7 @@ test('«Мои файлы» opens the official forms from a pinned «Формы�
   await folder.click();
   await expect(page.getByRole('heading', { name: 'Формы', exact: true })).toBeVisible();
   await expect(page).toHaveURL(/#\/notes\/forms$/u);
-  await page.getByRole('button', { name: 'Заполнить форму', exact: true }).click();
+  await fillButton(page, '070/у').click();
 
   // Without a patient the blank is still filled from «Врач и организация» and today's date.
   await expect(page.getByRole('heading', { name: /Справка для получения путевки/u })).toBeVisible();

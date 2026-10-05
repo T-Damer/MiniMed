@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "note": "Registry of the official orders the form schemas are built from (docs/FORMS_PLAN.md). Read by `bun run forms:check-updates`; `acknowledgedOrders` lists related orders a human has already reviewed.",
+  "sources": [
+    {
+      "eoNumber": "0001202505300033",
+      "orderNumber": "274н",
+      "orderDate": "2025-05-13",
+      "publishedAt": "2025-05-30",
+      "issuer": "Министерство здравоохранения Российской Федерации",
+      "title": "Об утверждении унифицированных форм медицинской документации, используемых в медицинских организациях, оказывающих медицинскую помощь в амбулаторных условиях, и порядков их ведения",
+      "registration": {
+        "number": "82433",
+        "date": "2025-05-30"
+      },
+      "publicationUrl": "http://publication.pravo.gov.ru/document/0001202505300033",
+      "pdfUrl": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202505300033",
+      "pagesCount": 59,
+      "bytes": 3616092,
+      "sha256": "e385d12af60d1aa9a54f4e493addd10d21b764413c697d8eba43358f58a5dd3c",
+      "retrievedAt": "2026-10-05",
+      "watchTerms": ["унифицированных форм медицинской документации"],
+      "acknowledgedOrders": [],
+      "forms": [
+        {
+          "key": "070u",
+          "formNumber": "070/у",
+          "schemaId": "ru.minzdrav.274n.070u",
+          "schemaFile": "ru-minzdrav-274n-070u.json"
+        },
+        {
+          "key": "072u",
+          "formNumber": "072/у",
+          "schemaId": "ru.minzdrav.274n.072u",
+          "schemaFile": "ru-minzdrav-274n-072u.json"
+        },
+        {
+          "key": "076u",
+          "formNumber": "076/у",
+          "schemaId": "ru.minzdrav.274n.076u",
+          "schemaFile": "ru-minzdrav-274n-076u.json"
+        },
+        {
+          "key": "079u",
+          "formNumber": "079/у",
+          "schemaId": "ru.minzdrav.274n.079u",
+          "schemaFile": "ru-minzdrav-274n-079u.json"
+        },
+        {
+          "key": "025-1u",
+          "formNumber": "025-1/у",
+          "schemaId": "ru.minzdrav.274n.025-1u",
+          "schemaFile": "ru-minzdrav-274n-025-1u.json"
+        }
+      ],
+      "watchRequire": ["амбулаторных условиях"]
+    }
+  ]
+}

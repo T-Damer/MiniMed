@@ -22,7 +22,14 @@
    title; a baseline is keyed by the databases mounted (`recommendations×7`).
 7. Review the generated benchmark and integrity reports.
 8. Confirm no real patient data, source PDFs, or API keys are tracked.
-9. Push a release commit only from a clean working tree; the release workflow creates the tag and
+9. Run `bun run forms:check-updates` (local, needs the network; `--rebuild` re-fetches and rebuilds a
+   changed source on macOS). It compares the official file of every order the form schemas come from
+   (`tools/ingest/medical-form-sources.json`) with the registry and looks for amending or repealing
+   orders on publication.pravo.gov.ru; the report is `data/build/forms-update-check.json`. `unchanged`
+   is the only clean result: `new`, `changed` or «HUMAN REVIEW REQUIRED» means the form schemas need a
+   review (docs/FORMS_PLAN.md «Update check») before the release; a network `error` is not a pass —
+   repeat it. List reviewed related orders in `acknowledgedOrders`.
+10. Push a release commit only from a clean working tree; the release workflow creates the tag and
    prerelease after all gates pass.
 
 Application and downloadable-corpus versions are independent. An app-only release may reuse the current

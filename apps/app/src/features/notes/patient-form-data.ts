@@ -16,6 +16,7 @@ export interface PatientFormDraft {
   readonly omsIssuedAt: string;
   readonly omsInsurer: string;
   readonly workplace: string;
+  readonly citizenship: string;
   readonly address: Readonly<Record<keyof PatientAddress, string>>;
   readonly stayAddress: Readonly<Record<keyof PatientAddress, string>>;
 }
@@ -39,6 +40,7 @@ export function profileToDraft(profile: PatientProfile): PatientFormDraft {
     omsIssuedAt: profile.omsPolicy?.issuedAt?.slice(0, 10) ?? '',
     omsInsurer: profile.omsPolicy?.insurer ?? '',
     workplace: profile.workplace ?? '',
+    citizenship: profile.citizenship ?? '',
     address: addressDraft(profile.address),
     stayAddress: addressDraft(profile.stayAddress),
   };
@@ -95,6 +97,7 @@ export function draftToPatch(
           }
         : undefined,
       workplace: draft.workplace,
+      citizenship: draft.citizenship,
       address: { ...draft.address },
       stayAddress: { ...draft.stayAddress },
     },

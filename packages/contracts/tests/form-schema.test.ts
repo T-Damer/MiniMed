@@ -182,4 +182,110 @@ describe('form schema contract', () => {
       false,
     );
   });
+
+  describe('layout extensions of the sanatorium cards and the talon', () => {
+    function withBlocks(blocks: unknown[]): unknown {
+      const form = minimalForm();
+      const layout = form['layout'] as Record<string, unknown>;
+      return { ...form, layout: { ...layout, blocks } };
+    }
+    const nameRow = {
+      segments: [{ kind: 'field', fieldId: 'name', length: 30, lines: 3 }],
+    };
+
+    it('accepts a page break, a frame, ruled lines and a table whose cells are fields or captions', () => {
+      const parsed = FormSchemaSchema.safeParse(
+        withBlocks([
+          {
+            id: 'front',
+            columns: [{ widthPercent: 100, rows: [nameRow] }],
+          },
+          {
+            id: 'back',
+            pageBreakBefore: true,
+            framed: true,
+            columns: [
+              {
+                widthPercent: 100,
+                rows: [
+                  {
+                    segments: [
+                      {
+                        kind: 'table',
+                        header: [],
+                        rows: [[{ text: '25. Даты посещений' }, 'name']],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ]),
+      );
+      expect(parsed.success).toBe(true);
+    });
+
+    it('rejects a table that cites a field the form does not have', () => {
+      const bad = withBlocks([
+        {
+          id: 'back',
+          columns: [
+            {
+              widthPercent: 100,
+              rows: [
+                { segments: [{ kind: 'table', header: [[{ text: 'Дата' }]], rows: [['ghost']] }] },
+              ],
+            },
+          ],
+        },
+        { id: 'front', columns: [{ widthPercent: 100, rows: [nameRow] }] },
+      ]);
+      expect(FormSchemaSchema.safeParse(bad).success).toBe(false);
+    });
+
+    it('rejects zero ruled lines', () => {
+      const oneLine = withBlocks([
+        {
+          id: 'front',
+          columns: [
+            {
+              widthPercent: 100,
+              rows: [{ segments: [{ kind: 'field', fieldId: 'name', length: 30, lines: 0 }] }],
+            },
+          ],
+        },
+      ]);
+      expect(FormSchemaSchema.safeParse(oneLine).success).toBe(false);
+    });
+
+    it('accepts a words binding on a full name and records captions confirmed on the scan', () => {
+      const form = withField(minimalForm(), {
+        prefill: { sources: ['patient.fullName'], words: { from: 1, count: 1 } },
+      }) as Record<string, unknown>;
+      const source = form['source'] as Record<string, unknown>;
+      const extraction = source['extraction'] as Record<string, unknown>;
+      const parsed = FormSchemaSchema.safeParse({
+        ...form,
+        source: { ...source, extraction: { ...extraction, captionsReviewedOnScan: ['дом'] } },
+      });
+      expect(parsed.success).toBe(true);
+      expect(
+        FormSchemaSchema.safeParse(
+          withField(minimalForm(), {
+            prefill: { sources: ['patient.fullName'], words: { from: -1 } },
+          }),
+        ).success,
+      ).toBe(false);
+    });
+
+    it('knows the citizenship and workplace bindings', () => {
+      for (const path of ['patient.citizenship', 'patient.workplace']) {
+        expect(
+          FormSchemaSchema.safeParse(withField(minimalForm(), { prefill: { sources: [path] } }))
+            .success,
+        ).toBe(true);
+      }
+    });
+  });
 });

@@ -1,0 +1,4053 @@
+{
+  "schemaVersion": 1,
+  "id": "ru.minzdrav.274n.072u",
+  "formNumber": "072/у",
+  "title": "Санаторно-курортная карта",
+  "edition": "Приказ Минздрава России от 13.05.2025 № 274н, приложение № 7; действует с 01.09.2025 по 01.09.2031",
+  "source": {
+    "issuer": "Министерство здравоохранения Российской Федерации",
+    "orderNumber": "274н",
+    "orderDate": "2025-05-13",
+    "orderTitle": "Об утверждении унифицированных форм медицинской документации, используемых в медицинских организациях, оказывающих медицинскую помощь в амбулаторных условиях, и порядков их ведения",
+    "registration": {
+      "authority": "Министерство юстиции Российской Федерации",
+      "number": "82433",
+      "date": "2025-05-30"
+    },
+    "effectiveFrom": "2025-09-01",
+    "effectiveUntil": "2031-09-01",
+    "publicationUrl": "http://publication.pravo.gov.ru/document/0001202505300033",
+    "pdfUrl": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202505300033",
+    "retrievedAt": "2026-10-05",
+    "sha256": "e385d12af60d1aa9a54f4e493addd10d21b764413c697d8eba43358f58a5dd3c",
+    "pdfPages": 59,
+    "blankAppendix": {
+      "number": 7,
+      "pdfPages": [
+        37,
+        38
+      ]
+    },
+    "rulesAppendix": {
+      "number": 8,
+      "pdfPages": [
+        39,
+        40,
+        41,
+        42,
+        43,
+        44
+      ]
+    },
+    "extraction": {
+      "method": "macos-vision-ocr-v1",
+      "ocrSha256": "fcce7766022c14ed0c4664dce05c3d94864f0269d7d0973089d398b058523de4",
+      "corrections": [
+        {
+          "pdfPage": 37,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 38,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 39,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 40,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 40,
+          "from": "Код субъекта . Российской",
+          "to": "Код субъекта Российской",
+          "reason": "footnote reference mark recognised as punctuation"
+        },
+        {
+          "pdfPage": 40,
+          "from": "Федерации , в котором",
+          "to": "Федерации, в котором",
+          "reason": "footnote reference mark recognised as punctuation"
+        },
+        {
+          "pdfPage": 41,
+          "from": "область - Кузбасс",
+          "to": "область – Кузбасс",
+          "reason": "typographic dash printed in the list, recognised as a hyphen"
+        },
+        {
+          "pdfPage": 42,
+          "from": "<97»",
+          "to": "«97»",
+          "reason": "OCR renders the opening « of «97» as <"
+        },
+        {
+          "pdfPage": 42,
+          "from": "«7]»",
+          "to": "«71»",
+          "reason": "OCR lookalike in a code"
+        },
+        {
+          "pdfPage": 42,
+          "from": "«б»",
+          "to": "«6»",
+          "reason": "OCR lookalike in a code"
+        },
+        {
+          "pdfPage": 42,
+          "from": "Осетия - Алания",
+          "to": "Осетия – Алания",
+          "reason": "typographic dash printed in the list, recognised as a hyphen"
+        },
+        {
+          "pdfPage": 42,
+          "from": "морской - континентальный",
+          "to": "морской – континентальный",
+          "reason": "typographic dash printed in the list, recognised as a hyphen"
+        },
+        {
+          "pdfPage": 42,
+          "from": "округ- Югра",
+          "to": "округ – Югра",
+          "reason": "spacing of the dash in the printed list"
+        },
+        {
+          "pdfPage": 43,
+          "from": "CCCP",
+          "to": "СССР",
+          "reason": "Latin letters recognised for the Cyrillic ones of the same shape"
+        },
+        {
+          "pdfPage": 43,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 43,
+          "from": "«I»",
+          "to": "«1»",
+          "reason": "OCR lookalike in a code"
+        },
+        {
+          "pdfPage": 43,
+          "from": "«б»",
+          "to": "«6»",
+          "reason": "OCR lookalike in a code"
+        },
+        {
+          "pdfPage": 43,
+          "from": "Ф3",
+          "to": "ФЗ",
+          "reason": "OCR renders the Cyrillic З of «ФЗ» as 3"
+        },
+        {
+          "pdfPage": 43,
+          "from": "услуго:",
+          "to": "услуг:",
+          "reason": "footnote reference mark recognised as punctuation"
+        },
+        {
+          "pdfPage": 44,
+          "from": "025/y",
+          "to": "025/у",
+          "reason": "Latin y recognised for the Cyrillic у"
+        },
+        {
+          "pdfPage": 44,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 44,
+          "from": "имеющих 1 группу",
+          "to": "имеющих I группу",
+          "reason": "Roman numeral I recognised as the digit 1"
+        }
+      ],
+      "blankLabelsVerified": 89,
+      "captionsReviewedOnScan": [
+        "дом"
+      ],
+      "note": "The official PDF is a scan without a text layer. Text recognised by macOS Vision; fragments are regrouped into printed lines (top to bottom, left to right) and footnotes under the per-page limits of the blueprint are dropped. Span line indices count these regrouped lines of each PDF page from 0. Corrections listed here were reviewed against the scan."
+    }
+  },
+  "sections": [
+    {
+      "id": "certificate",
+      "title": "Карта",
+      "fieldIds": [
+        "formNumber",
+        "formDate"
+      ]
+    },
+    {
+      "id": "organization",
+      "title": "Организация",
+      "description": "Подставляется из настроек «Врач и организация».",
+      "fieldIds": [
+        "organization",
+        "organizationOgrn"
+      ]
+    },
+    {
+      "id": "patient",
+      "title": "Пациент",
+      "fieldIds": [
+        "patientFullName",
+        "patientBirthDate",
+        "patientSex",
+        "snils"
+      ]
+    },
+    {
+      "id": "residence",
+      "title": "Регистрация по месту жительства",
+      "fieldIds": [
+        "residenceSubject",
+        "residenceDistrict",
+        "residenceLocality",
+        "residenceStreet",
+        "residenceHouse",
+        "residenceBuilding",
+        "residenceApartment",
+        "residencePhone"
+      ]
+    },
+    {
+      "id": "stay",
+      "title": "Регистрация по месту пребывания",
+      "fieldIds": [
+        "staySubject",
+        "stayDistrict",
+        "stayLocality",
+        "stayStreet",
+        "stayHouse",
+        "stayBuilding",
+        "stayApartment",
+        "stayPhone"
+      ]
+    },
+    {
+      "id": "oms",
+      "title": "Полис обязательного медицинского страхования",
+      "fieldIds": [
+        "omsPolicyNumber",
+        "omsPolicyIssueDate",
+        "omsInsurer"
+      ]
+    },
+    {
+      "id": "social",
+      "title": "Набор социальных услуг",
+      "description": "Заполняется только на граждан, имеющих право на набор социальных услуг (п. 7.3).",
+      "fieldIds": [
+        "regionCode",
+        "climateCode",
+        "climateFactorsCode",
+        "socialSupportCode",
+        "escort",
+        "socialDocSeries",
+        "socialDocNumber",
+        "socialDocIssueDate"
+      ]
+    },
+    {
+      "id": "clinical",
+      "title": "Состояние здоровья",
+      "description": "Заполняется по данным формы № 025/у, код по МКБ указывается обязательно (п. 7.11).",
+      "fieldIds": [
+        "complaints",
+        "anamnesis",
+        "examinations",
+        "mainDiagnosis",
+        "mainDiagnosisIcd",
+        "complications",
+        "complicationsIcd",
+        "externalCause",
+        "externalCauseIcd",
+        "comorbidity1",
+        "comorbidity1Icd",
+        "comorbidity2",
+        "comorbidity2Icd",
+        "comorbidity3",
+        "comorbidity3Icd",
+        "additionalInfo",
+        "disabilityCause",
+        "disabilityCauseIcd"
+      ]
+    },
+    {
+      "id": "conclusion",
+      "title": "Заключение",
+      "description": "По представленной путёвке (п. 7.12).",
+      "fieldIds": [
+        "conclusionOrgName",
+        "treatmentSetting",
+        "courseDays",
+        "voucherNumber",
+        "filledBy",
+        "headOfDepartment"
+      ]
+    },
+    {
+      "id": "returnFront",
+      "title": "Обратный талон: направление и диагноз",
+      "description": "Все строки обратного талона заполняет лечащий врач санаторно-курортной организации (п. 9); при необходимости их можно заполнить заранее.",
+      "fieldIds": [
+        "returnOrgName",
+        "returnOrgOgrn",
+        "returnPatientName",
+        "periodFrom",
+        "periodTo",
+        "referralMain",
+        "referralMainIcd",
+        "referralComplications",
+        "referralComplicationsIcd",
+        "referralComorbidities",
+        "referralComorbiditiesIcd",
+        "referralExternalCause",
+        "referralExternalCauseIcd",
+        "referralDisabilityCause",
+        "referralDisabilityCauseIcd",
+        "dischargeMain",
+        "dischargeMainIcd",
+        "dischargeComorbidities",
+        "dischargeComorbiditiesIcd"
+      ]
+    },
+    {
+      "id": "returnBack",
+      "title": "Обратный талон: результат лечения",
+      "fieldIds": [
+        "treatmentDone",
+        "epicrisis",
+        "treatmentResult",
+        "exacerbations",
+        "recommendations",
+        "treatingDoctor",
+        "chiefDoctor"
+      ]
+    }
+  ],
+  "fields": [
+    {
+      "id": "formNumber",
+      "label": "Санаторно-курортная карта №",
+      "type": "text",
+      "required": false,
+      "maxLength": 40,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Порядок не определяет нумерацию карт."
+      }
+    },
+    {
+      "id": "formDate",
+      "label": "Дата карты",
+      "type": "date",
+      "labelPrinted": false,
+      "required": true,
+      "requiredBasis": "editorial",
+      "prefill": {
+        "sources": [
+          "today"
+        ]
+      },
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Порядок не определяет дату карты на бумажном бланке."
+      }
+    },
+    {
+      "id": "organization",
+      "label": "Наименование и адрес медицинской организации (фамилия, имя, отчество (при наличии) индивидуального предпринимателя и адрес осуществления медицинской деятельности)",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "editorial",
+      "multiline": true,
+      "maxLength": 400,
+      "prefill": {
+        "sources": [
+          "organization.name",
+          "organization.address"
+        ],
+        "join": ", "
+      },
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Порядок не описывает заполнение шапки."
+      }
+    },
+    {
+      "id": "organizationOgrn",
+      "label": "Основной государственный регистрационный номер (Основной государственный регистрационный номер индивидуального предпринимателя)",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "editorial",
+      "pattern": "^(?:[0-9]{13}|[0-9]{15})$",
+      "patternMessage": "ОГРН — 13 цифр, ОГРНИП — 15 цифр",
+      "prefill": {
+        "sources": [
+          "organization.ogrn"
+        ]
+      },
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Порядок не описывает заполнение шапки."
+      }
+    },
+    {
+      "id": "patientFullName",
+      "label": "Фамилия, имя, отчество (при наличии) пациента",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "maxLength": 200,
+      "prefill": {
+        "sources": [
+          "patient.fullName"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.1"
+        ]
+      }
+    },
+    {
+      "id": "patientBirthDate",
+      "label": "Дата рождения",
+      "type": "date",
+      "required": true,
+      "requiredBasis": "source",
+      "notAfter": "today",
+      "prefill": {
+        "sources": [
+          "patient.birthDate"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.1"
+        ]
+      }
+    },
+    {
+      "id": "patientSex",
+      "label": "Пол",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "1",
+          "label": "муж."
+        },
+        {
+          "value": "2",
+          "label": "жен."
+        }
+      ],
+      "prefill": {
+        "sources": [
+          "patient.sex"
+        ],
+        "map": {
+          "male": "1",
+          "female": "2"
+        }
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.1"
+        ]
+      }
+    },
+    {
+      "id": "residenceSubject",
+      "label": "субъект Российской Федерации",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "editorial",
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.subject"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "7.1"
+        ],
+        "note": "Пункт 7.1 называет строку «Регистрация по месту жительства» целиком; её части (район, улица, телефон и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "residenceDistrict",
+      "label": "район",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.district"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "7.1"
+        ],
+        "note": "Пункт 7.1 называет строку «Регистрация по месту жительства» целиком; её части (район, улица, телефон и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "residenceLocality",
+      "label": "населенный пункт",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "editorial",
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.locality"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "7.1"
+        ],
+        "note": "Пункт 7.1 называет строку «Регистрация по месту жительства» целиком; её части (район, улица, телефон и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "residenceStreet",
+      "label": "улица",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.street"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "7.1"
+        ],
+        "note": "Пункт 7.1 называет строку «Регистрация по месту жительства» целиком; её части (район, улица, телефон и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "residenceHouse",
+      "label": "дом",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.house"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "7.1"
+        ],
+        "note": "Пункт 7.1 называет строку «Регистрация по месту жительства» целиком; её части (район, улица, телефон и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "residenceBuilding",
+      "label": "строение/корпус",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.building"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "7.1"
+        ],
+        "note": "Пункт 7.1 называет строку «Регистрация по месту жительства» целиком; её части (район, улица, телефон и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "residenceApartment",
+      "label": "квартира",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.apartment"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "7.1"
+        ],
+        "note": "Пункт 7.1 называет строку «Регистрация по месту жительства» целиком; её части (район, улица, телефон и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "residencePhone",
+      "label": "тел.",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.phone"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "7.1"
+        ],
+        "note": "Пункт 7.1 называет строку «Регистрация по месту жительства» целиком; её части (район, улица, телефон и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "staySubject",
+      "label": "субъект Российской Федерации",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "editorial",
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.stayAddress.subject"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "7.1"
+        ],
+        "note": "Пункт 7.1 называет строку «Регистрация по месту пребывания» целиком; её части (район, улица, телефон и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "stayDistrict",
+      "label": "район",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.stayAddress.district"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "7.1"
+        ],
+        "note": "Пункт 7.1 называет строку «Регистрация по месту пребывания» целиком; её части (район, улица, телефон и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "stayLocality",
+      "label": "населенный пункт",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "editorial",
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.stayAddress.locality"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "7.1"
+        ],
+        "note": "Пункт 7.1 называет строку «Регистрация по месту пребывания» целиком; её части (район, улица, телефон и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "stayStreet",
+      "label": "улица",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.stayAddress.street"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "7.1"
+        ],
+        "note": "Пункт 7.1 называет строку «Регистрация по месту пребывания» целиком; её части (район, улица, телефон и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "stayHouse",
+      "label": "дом",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.stayAddress.house"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "7.1"
+        ],
+        "note": "Пункт 7.1 называет строку «Регистрация по месту пребывания» целиком; её части (район, улица, телефон и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "stayBuilding",
+      "label": "строение/корпус",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.stayAddress.building"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "7.1"
+        ],
+        "note": "Пункт 7.1 называет строку «Регистрация по месту пребывания» целиком; её части (район, улица, телефон и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "stayApartment",
+      "label": "квартира",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.stayAddress.apartment"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "7.1"
+        ],
+        "note": "Пункт 7.1 называет строку «Регистрация по месту пребывания» целиком; её части (район, улица, телефон и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "stayPhone",
+      "label": "тел.",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.stayAddress.phone"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "7.1"
+        ],
+        "note": "Пункт 7.1 называет строку «Регистрация по месту пребывания» целиком; её части (район, улица, телефон и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "omsPolicyNumber",
+      "label": "Полис обязательного медицинского страхования",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "maxLength": 60,
+      "prefill": {
+        "sources": [
+          "patient.omsPolicy.number"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.2"
+        ]
+      }
+    },
+    {
+      "id": "omsPolicyIssueDate",
+      "label": "дата выдачи полиса обязательного медицинского страхования",
+      "type": "date",
+      "required": true,
+      "requiredBasis": "source",
+      "notAfter": "today",
+      "prefill": {
+        "sources": [
+          "patient.omsPolicy.issuedAt"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.2"
+        ]
+      }
+    },
+    {
+      "id": "omsInsurer",
+      "label": "данные о страховой медицинской организации, выбранной застрахованным лицом или определенной застрахованному лицу",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "multiline": true,
+      "maxLength": 300,
+      "prefill": {
+        "sources": [
+          "patient.omsPolicy.insurer"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.2"
+        ]
+      }
+    },
+    {
+      "id": "regionCode",
+      "label": "Код субъекта Российской Федерации",
+      "type": "choice",
+      "required": false,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.3",
+          "7.4"
+        ]
+      },
+      "options": [
+        {
+          "value": "01",
+          "label": "Алтайский край"
+        },
+        {
+          "value": "03",
+          "label": "Краснодарский край"
+        },
+        {
+          "value": "04",
+          "label": "Красноярский край"
+        },
+        {
+          "value": "05",
+          "label": "Приморский край"
+        },
+        {
+          "value": "07",
+          "label": "Ставропольский край"
+        },
+        {
+          "value": "08",
+          "label": "Хабаровский край"
+        },
+        {
+          "value": "10",
+          "label": "Амурская область"
+        },
+        {
+          "value": "11",
+          "label": "Архангельская область"
+        },
+        {
+          "value": "12",
+          "label": "Астраханская область"
+        },
+        {
+          "value": "14",
+          "label": "Белгородская область"
+        },
+        {
+          "value": "15",
+          "label": "Брянская область"
+        },
+        {
+          "value": "17",
+          "label": "Владимирская область"
+        },
+        {
+          "value": "18",
+          "label": "Волгоградская область"
+        },
+        {
+          "value": "19",
+          "label": "Вологодская область"
+        },
+        {
+          "value": "20",
+          "label": "Воронежская область"
+        },
+        {
+          "value": "21",
+          "label": "Донецкая народная Республика"
+        },
+        {
+          "value": "22",
+          "label": "Нижегородская область"
+        },
+        {
+          "value": "23",
+          "label": "Запорожская область"
+        },
+        {
+          "value": "24",
+          "label": "Ивановская область"
+        },
+        {
+          "value": "25",
+          "label": "Иркутская область"
+        },
+        {
+          "value": "26",
+          "label": "Республика Ингушетия"
+        },
+        {
+          "value": "27",
+          "label": "Калининградская область"
+        },
+        {
+          "value": "28",
+          "label": "Тверская область"
+        },
+        {
+          "value": "29",
+          "label": "Калужская область"
+        },
+        {
+          "value": "30",
+          "label": "Камчатский край"
+        },
+        {
+          "value": "32",
+          "label": "Кемеровская область – Кузбасс"
+        },
+        {
+          "value": "33",
+          "label": "Кировская область"
+        },
+        {
+          "value": "34",
+          "label": "Костромская область"
+        },
+        {
+          "value": "35",
+          "label": "Республика Крым"
+        },
+        {
+          "value": "36",
+          "label": "Самарская область"
+        },
+        {
+          "value": "37",
+          "label": "Курганская область"
+        },
+        {
+          "value": "38",
+          "label": "Курская область"
+        },
+        {
+          "value": "40",
+          "label": "г. Санкт-Петербург"
+        },
+        {
+          "value": "41",
+          "label": "Ленинградская область"
+        },
+        {
+          "value": "42",
+          "label": "Липецкая область"
+        },
+        {
+          "value": "43",
+          "label": "Луганская Народная Республика"
+        },
+        {
+          "value": "44",
+          "label": "Магаданская область"
+        },
+        {
+          "value": "45",
+          "label": "г. Москва"
+        },
+        {
+          "value": "46",
+          "label": "Московская область"
+        },
+        {
+          "value": "47",
+          "label": "Мурманская область"
+        },
+        {
+          "value": "49",
+          "label": "Новгородская область"
+        },
+        {
+          "value": "50",
+          "label": "Новосибирская область"
+        },
+        {
+          "value": "52",
+          "label": "Омская область"
+        },
+        {
+          "value": "53",
+          "label": "Оренбургская область"
+        },
+        {
+          "value": "54",
+          "label": "Орловская область"
+        },
+        {
+          "value": "56",
+          "label": "Пензенская область"
+        },
+        {
+          "value": "57",
+          "label": "Пермский край"
+        },
+        {
+          "value": "58",
+          "label": "Псковская область"
+        },
+        {
+          "value": "60",
+          "label": "Ростовская область"
+        },
+        {
+          "value": "61",
+          "label": "Рязанская область"
+        },
+        {
+          "value": "63",
+          "label": "Саратовская область"
+        },
+        {
+          "value": "64",
+          "label": "Сахалинская область"
+        },
+        {
+          "value": "65",
+          "label": "Свердловская область"
+        },
+        {
+          "value": "66",
+          "label": "Смоленская область"
+        },
+        {
+          "value": "67",
+          "label": "г. Севастополь"
+        },
+        {
+          "value": "68",
+          "label": "Тамбовская область"
+        },
+        {
+          "value": "69",
+          "label": "Томская область"
+        },
+        {
+          "value": "70",
+          "label": "Тульская область"
+        },
+        {
+          "value": "71",
+          "label": "Тюменская область"
+        },
+        {
+          "value": "73",
+          "label": "Ульяновская область"
+        },
+        {
+          "value": "74",
+          "label": "Херсонская область"
+        },
+        {
+          "value": "75",
+          "label": "Челябинская область"
+        },
+        {
+          "value": "76",
+          "label": "Забайкальский край"
+        },
+        {
+          "value": "77",
+          "label": "Чукотский автономный округ"
+        },
+        {
+          "value": "78",
+          "label": "Ярославская область"
+        },
+        {
+          "value": "79",
+          "label": "Республика Адыгея (Адыгея)"
+        },
+        {
+          "value": "80",
+          "label": "Республика Башкортостан"
+        },
+        {
+          "value": "81",
+          "label": "Республика Бурятия"
+        },
+        {
+          "value": "82",
+          "label": "Республика Дагестан"
+        },
+        {
+          "value": "83",
+          "label": "Кабардино-Балкарская Республика"
+        },
+        {
+          "value": "84",
+          "label": "Республика Алтай"
+        },
+        {
+          "value": "85",
+          "label": "Республика Калмыкия"
+        },
+        {
+          "value": "86",
+          "label": "Республика Карелия"
+        },
+        {
+          "value": "87",
+          "label": "Республика Коми"
+        },
+        {
+          "value": "88",
+          "label": "Республика Марий Эл"
+        },
+        {
+          "value": "89",
+          "label": "Республика Мордовия"
+        },
+        {
+          "value": "90",
+          "label": "Республика Северная Осетия – Алания"
+        },
+        {
+          "value": "91",
+          "label": "Карачаево-Черкесская Республика"
+        },
+        {
+          "value": "92",
+          "label": "Республика Татарстан (Татарстан)"
+        },
+        {
+          "value": "93",
+          "label": "Республика Тыва"
+        },
+        {
+          "value": "94",
+          "label": "Удмуртская Республика"
+        },
+        {
+          "value": "95",
+          "label": "Республика Хакасия"
+        },
+        {
+          "value": "96",
+          "label": "Чеченская Республика"
+        },
+        {
+          "value": "97",
+          "label": "Чувашская Республика"
+        },
+        {
+          "value": "98",
+          "label": "Республика Саха (Якутия)"
+        },
+        {
+          "value": "99",
+          "label": "Еврейская автономная область"
+        },
+        {
+          "value": "111",
+          "label": "Ненецкий автономный округ"
+        },
+        {
+          "value": "71 100",
+          "label": "Ханты-Мансийский автономный округ – Югра"
+        },
+        {
+          "value": "71 150",
+          "label": "Ямало-Ненецкий автономный округ"
+        }
+      ]
+    },
+    {
+      "id": "climateCode",
+      "label": "Климат в месте проживания пациента (код)",
+      "type": "choice",
+      "required": false,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.3",
+          "7.5"
+        ]
+      },
+      "options": [
+        {
+          "value": "1",
+          "label": "Влажный субтропический"
+        },
+        {
+          "value": "2",
+          "label": "Континентальный умеренных широт"
+        },
+        {
+          "value": "3",
+          "label": "Морской"
+        },
+        {
+          "value": "4",
+          "label": "Муссонный умеренных широт"
+        },
+        {
+          "value": "5",
+          "label": "Переходный морской – континентальный"
+        },
+        {
+          "value": "6",
+          "label": "Резко континентальный умеренный"
+        },
+        {
+          "value": "7",
+          "label": "Средиземноморский"
+        },
+        {
+          "value": "8",
+          "label": "Субарктический"
+        },
+        {
+          "value": "9",
+          "label": "Сухой субтропический"
+        }
+      ]
+    },
+    {
+      "id": "climateFactorsCode",
+      "label": "Климатические факторы в месте проживания пациента (код)",
+      "type": "choice",
+      "required": false,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.3",
+          "7.6"
+        ]
+      },
+      "options": [
+        {
+          "value": "1",
+          "label": "Горный"
+        },
+        {
+          "value": "2",
+          "label": "Климат полупустынь"
+        },
+        {
+          "value": "3",
+          "label": "Климат пустынь"
+        },
+        {
+          "value": "4",
+          "label": "Лесной"
+        },
+        {
+          "value": "5",
+          "label": "Лесостепной"
+        },
+        {
+          "value": "6",
+          "label": "Морской"
+        },
+        {
+          "value": "7",
+          "label": "Предгорный"
+        },
+        {
+          "value": "8",
+          "label": "Приморский"
+        },
+        {
+          "value": "9",
+          "label": "Степной"
+        }
+      ]
+    },
+    {
+      "id": "socialSupportCode",
+      "label": "Код меры социальной поддержки",
+      "type": "choice",
+      "required": false,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.3",
+          "7.7"
+        ]
+      },
+      "options": [
+        {
+          "value": "1",
+          "label": "инвалиды войны"
+        },
+        {
+          "value": "2",
+          "label": "участники Великой Отечественной войны"
+        },
+        {
+          "value": "3",
+          "label": "ветераны боевых действий из числа лиц, указанных в подпунктах 1 - 4 пункта 1 статьи 3 Федерального закона от 12 января 1995 г. № 5-ФЗ «О ветеранах»"
+        },
+        {
+          "value": "4",
+          "label": "военнослужащие, проходившие военную службу в воинских частях, учреждениях, военно-учебных заведениях, не входивших в состав действующей армии, в период с 22 июня 1941 года по 3 сентября 1945 года не менее шести месяцев, военнослужащие, награжденные орденами или медалями СССР за службу в указанный период"
+        },
+        {
+          "value": "5",
+          "label": "лица, награжденные знаком «Жителю блокадного Ленинграда», лица, награжденные знаком «Житель осажденного Севастополя», лица, награжденные знаком «Житель осажденного Сталинграда»"
+        },
+        {
+          "value": "6",
+          "label": "лица, работавшие в период Великой Отечественной войны на объектах противовоздушной обороны, местной противовоздушной обороны, на строительстве оборонительных сооружений, военно-морских баз, аэродромов и других военных объектов в пределах тыловых границ действующих фронтов, операционных зон действующих флотов, на прифронтовых участках железных и автомобильных дорог, а также члены экипажей судов транспортного флота, интернированных в начале Великой Отечественной войны в портах других государств"
+        },
+        {
+          "value": "7",
+          "label": "члены семей погибших (умерших) инвалидов войны, участников Великой Отечественной войны и ветеранов боевых действий, члены семей погибших в Великой Отечественной войне лиц из числа личного состава групп самозащиты объектовых и аварийных команд местной противовоздушной обороны, а также члены семей погибших работников госпиталей и больниц города Ленинграда"
+        },
+        {
+          "value": "8",
+          "label": "инвалиды"
+        },
+        {
+          "value": "9",
+          "label": "дети-инвалиды"
+        },
+        {
+          "value": "10",
+          "label": "лица, подвергшиеся воздействию радиации вследствие катастрофы на Чернобыльской АЭС, а также вследствие ядерных испытаний на Семипалатинском полигоне, и приравненные к ним категории граждан"
+        }
+      ]
+    },
+    {
+      "id": "escort",
+      "label": "Сопровождение",
+      "type": "choice",
+      "required": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "да"
+        },
+        {
+          "value": "2",
+          "label": "нет"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.3",
+          "7.8"
+        ]
+      }
+    },
+    {
+      "id": "socialDocSeries",
+      "label": "Документ, подтверждающий право на получение мер социальной поддержки в виде набора социальных услуг: серия",
+      "type": "text",
+      "required": false,
+      "maxLength": 40,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.3",
+          "7.9"
+        ]
+      }
+    },
+    {
+      "id": "socialDocNumber",
+      "label": "номер",
+      "type": "text",
+      "required": false,
+      "maxLength": 40,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.3",
+          "7.9"
+        ]
+      }
+    },
+    {
+      "id": "socialDocIssueDate",
+      "label": "дата выдачи",
+      "type": "date",
+      "required": false,
+      "notAfter": "today",
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.3",
+          "7.9"
+        ]
+      }
+    },
+    {
+      "id": "snils",
+      "label": "Страховой номер индивидуального лицевого счета",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "pattern": "^[0-9]{3}-[0-9]{3}-[0-9]{3} [0-9]{2}$",
+      "patternMessage": "СНИЛС в формате 123-456-789 01",
+      "prefill": {
+        "sources": [
+          "patient.snils"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.10"
+        ]
+      }
+    },
+    {
+      "id": "returnOrgName",
+      "label": "Наименование санаторно-курортной организации (обратный талон)",
+      "type": "text",
+      "required": false,
+      "maxLength": 200,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9"
+        ],
+        "note": "Пункт 9 относит все строки обратного талона к заполнению лечащим врачом санаторно-курортной организации; содержание отдельной строки порядок не описывает."
+      }
+    },
+    {
+      "id": "returnOrgOgrn",
+      "label": "Основной государственный регистрационный номер санаторно-курортной организации",
+      "type": "text",
+      "required": false,
+      "pattern": "^(?:[0-9]{13}|[0-9]{15})$",
+      "patternMessage": "ОГРН — 13 цифр, ОГРНИП — 15 цифр",
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9"
+        ],
+        "note": "Пункт 9 относит все строки обратного талона к заполнению лечащим врачом санаторно-курортной организации; содержание отдельной строки порядок не описывает."
+      }
+    },
+    {
+      "id": "returnPatientName",
+      "label": "Фамилия, имя, отчество (при наличии) пациента (обратный талон)",
+      "type": "text",
+      "required": false,
+      "maxLength": 200,
+      "prefill": {
+        "sources": [
+          "patient.fullName"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9"
+        ],
+        "note": "Пункт 9 относит все строки обратного талона к заполнению лечащим врачом санаторно-курортной организации; содержание отдельной строки порядок не описывает."
+      }
+    },
+    {
+      "id": "periodFrom",
+      "label": "Период санаторно-курортного лечения: с",
+      "type": "date",
+      "required": false,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9"
+        ],
+        "note": "Пункт 9 относит все строки обратного талона к заполнению лечащим врачом санаторно-курортной организации; содержание отдельной строки порядок не описывает."
+      }
+    },
+    {
+      "id": "periodTo",
+      "label": "по",
+      "type": "date",
+      "required": false,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9"
+        ],
+        "note": "Пункт 9 относит все строки обратного талона к заполнению лечащим врачом санаторно-курортной организации; содержание отдельной строки порядок не описывает."
+      }
+    },
+    {
+      "id": "referralMain",
+      "label": "Основное заболевание (диагноз, установленный направившей медицинской организацией)",
+      "type": "text",
+      "required": false,
+      "multiline": true,
+      "maxLength": 300,
+      "prefill": {
+        "sources": [
+          "episode.diagnosis.text"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9"
+        ],
+        "note": "Пункт 9 относит все строки обратного талона к заполнению лечащим врачом санаторно-курортной организации; содержание отдельной строки порядок не описывает."
+      }
+    },
+    {
+      "id": "referralMainIcd",
+      "label": "код по МКБ (основное заболевание, направившая организация)",
+      "type": "icd10",
+      "required": false,
+      "pattern": "^[A-Z][0-9]{2}(?:\\.[0-9]{1,2})?$",
+      "patternMessage": "Код МКБ-10 в формате J45.0",
+      "prefill": {
+        "sources": [
+          "episode.diagnosis.icd10"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9"
+        ],
+        "note": "Пункт 9 относит все строки обратного талона к заполнению лечащим врачом санаторно-курортной организации; содержание отдельной строки порядок не описывает."
+      }
+    },
+    {
+      "id": "referralComplications",
+      "label": "Осложнения основного заболевания (направившая организация)",
+      "type": "text",
+      "required": false,
+      "multiline": true,
+      "maxLength": 300,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9"
+        ],
+        "note": "Пункт 9 относит все строки обратного талона к заполнению лечащим врачом санаторно-курортной организации; содержание отдельной строки порядок не описывает."
+      }
+    },
+    {
+      "id": "referralComplicationsIcd",
+      "label": "код по МКБ (осложнения, направившая организация)",
+      "type": "icd10",
+      "required": false,
+      "pattern": "^[A-Z][0-9]{2}(?:\\.[0-9]{1,2})?$",
+      "patternMessage": "Код МКБ-10 в формате J45.0",
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9"
+        ],
+        "note": "Пункт 9 относит все строки обратного талона к заполнению лечащим врачом санаторно-курортной организации; содержание отдельной строки порядок не описывает."
+      }
+    },
+    {
+      "id": "referralComorbidities",
+      "label": "Сопутствующие заболевания (направившая организация)",
+      "type": "text",
+      "required": false,
+      "multiline": true,
+      "maxLength": 300,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9"
+        ],
+        "note": "Пункт 9 относит все строки обратного талона к заполнению лечащим врачом санаторно-курортной организации; содержание отдельной строки порядок не описывает."
+      }
+    },
+    {
+      "id": "referralComorbiditiesIcd",
+      "label": "код по МКБ (сопутствующие заболевания, направившая организация)",
+      "type": "icd10",
+      "required": false,
+      "pattern": "^[A-Z][0-9]{2}(?:\\.[0-9]{1,2})?$",
+      "patternMessage": "Код МКБ-10 в формате J45.0",
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9"
+        ],
+        "note": "Пункт 9 относит все строки обратного талона к заполнению лечащим врачом санаторно-курортной организации; содержание отдельной строки порядок не описывает."
+      }
+    },
+    {
+      "id": "referralExternalCause",
+      "label": "Внешняя причина (при травмах, отравлениях) (направившая организация)",
+      "type": "text",
+      "required": false,
+      "multiline": true,
+      "maxLength": 300,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9"
+        ],
+        "note": "Пункт 9 относит все строки обратного талона к заполнению лечащим врачом санаторно-курортной организации; содержание отдельной строки порядок не описывает."
+      }
+    },
+    {
+      "id": "referralExternalCauseIcd",
+      "label": "код по МКБ (внешняя причина, направившая организация)",
+      "type": "icd10",
+      "required": false,
+      "pattern": "^[A-Z][0-9]{2}(?:\\.[0-9]{1,2})?$",
+      "patternMessage": "Код МКБ-10 в формате J45.0",
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9"
+        ],
+        "note": "Пункт 9 относит все строки обратного талона к заполнению лечащим врачом санаторно-курортной организации; содержание отдельной строки порядок не описывает."
+      }
+    },
+    {
+      "id": "referralDisabilityCause",
+      "label": "Заболевание, явившееся причиной инвалидности (направившая организация)",
+      "type": "text",
+      "required": false,
+      "multiline": true,
+      "maxLength": 300,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9"
+        ],
+        "note": "Пункт 9 относит все строки обратного талона к заполнению лечащим врачом санаторно-курортной организации; содержание отдельной строки порядок не описывает."
+      }
+    },
+    {
+      "id": "referralDisabilityCauseIcd",
+      "label": "код по МКБ (причина инвалидности, направившая организация)",
+      "type": "icd10",
+      "required": false,
+      "pattern": "^[A-Z][0-9]{2}(?:\\.[0-9]{1,2})?$",
+      "patternMessage": "Код МКБ-10 в формате J45.0",
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9"
+        ],
+        "note": "Пункт 9 относит все строки обратного талона к заполнению лечащим врачом санаторно-курортной организации; содержание отдельной строки порядок не описывает."
+      }
+    },
+    {
+      "id": "dischargeMain",
+      "label": "Основное заболевание (диагноз при выписке из санаторно-курортной организации)",
+      "type": "text",
+      "required": false,
+      "multiline": true,
+      "maxLength": 300,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9"
+        ],
+        "note": "Пункт 9 относит все строки обратного талона к заполнению лечащим врачом санаторно-курортной организации; содержание отдельной строки порядок не описывает."
+      }
+    },
+    {
+      "id": "dischargeMainIcd",
+      "label": "код по МКБ (основное заболевание при выписке)",
+      "type": "icd10",
+      "required": false,
+      "pattern": "^[A-Z][0-9]{2}(?:\\.[0-9]{1,2})?$",
+      "patternMessage": "Код МКБ-10 в формате J45.0",
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9"
+        ],
+        "note": "Пункт 9 относит все строки обратного талона к заполнению лечащим врачом санаторно-курортной организации; содержание отдельной строки порядок не описывает."
+      }
+    },
+    {
+      "id": "dischargeComorbidities",
+      "label": "Сопутствующие заболевания (при выписке)",
+      "type": "text",
+      "required": false,
+      "multiline": true,
+      "maxLength": 300,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9"
+        ],
+        "note": "Пункт 9 относит все строки обратного талона к заполнению лечащим врачом санаторно-курортной организации; содержание отдельной строки порядок не описывает."
+      }
+    },
+    {
+      "id": "dischargeComorbiditiesIcd",
+      "label": "код по МКБ (сопутствующие заболевания при выписке)",
+      "type": "icd10",
+      "required": false,
+      "pattern": "^[A-Z][0-9]{2}(?:\\.[0-9]{1,2})?$",
+      "patternMessage": "Код МКБ-10 в формате J45.0",
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9"
+        ],
+        "note": "Пункт 9 относит все строки обратного талона к заполнению лечащим врачом санаторно-курортной организации; содержание отдельной строки порядок не описывает."
+      }
+    },
+    {
+      "id": "complaints",
+      "label": "Жалобы",
+      "type": "text",
+      "required": false,
+      "multiline": true,
+      "maxLength": 1000,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.11"
+        ]
+      }
+    },
+    {
+      "id": "anamnesis",
+      "label": "Анамнез заболевания (включая данные о предшествующем лечении, в том числе санаторно-курортном)",
+      "type": "text",
+      "required": false,
+      "multiline": true,
+      "maxLength": 2000,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.11"
+        ]
+      }
+    },
+    {
+      "id": "examinations",
+      "label": "Данные клинического, лабораторного, рентгенологического и других исследований (даты проведения исследований)",
+      "type": "text",
+      "required": false,
+      "multiline": true,
+      "maxLength": 3000,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.11"
+        ]
+      }
+    },
+    {
+      "id": "mainDiagnosis",
+      "label": "Диагноз основного заболевания",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "multiline": true,
+      "maxLength": 300,
+      "prefill": {
+        "sources": [
+          "episode.diagnosis.text"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.11"
+        ]
+      }
+    },
+    {
+      "id": "mainDiagnosisIcd",
+      "label": "код по МКБ (основное заболевание)",
+      "type": "icd10",
+      "required": true,
+      "requiredBasis": "source",
+      "pattern": "^[A-Z][0-9]{2}(?:\\.[0-9]{1,2})?$",
+      "patternMessage": "Код МКБ-10 в формате J45.0",
+      "prefill": {
+        "sources": [
+          "episode.diagnosis.icd10"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.11"
+        ]
+      }
+    },
+    {
+      "id": "complications",
+      "label": "Осложнения основного заболевания",
+      "type": "text",
+      "required": false,
+      "multiline": true,
+      "maxLength": 300,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.11"
+        ]
+      }
+    },
+    {
+      "id": "complicationsIcd",
+      "label": "код по МКБ (осложнения)",
+      "type": "icd10",
+      "required": false,
+      "pattern": "^[A-Z][0-9]{2}(?:\\.[0-9]{1,2})?$",
+      "patternMessage": "Код МКБ-10 в формате J45.0",
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.11"
+        ]
+      }
+    },
+    {
+      "id": "externalCause",
+      "label": "Внешняя причина при травмах, отравлениях",
+      "type": "text",
+      "required": false,
+      "multiline": true,
+      "maxLength": 300,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.11"
+        ]
+      }
+    },
+    {
+      "id": "externalCauseIcd",
+      "label": "код по МКБ (внешняя причина)",
+      "type": "icd10",
+      "required": false,
+      "pattern": "^[A-Z][0-9]{2}(?:\\.[0-9]{1,2})?$",
+      "patternMessage": "Код МКБ-10 в формате J45.0",
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.11"
+        ]
+      }
+    },
+    {
+      "id": "comorbidity1",
+      "label": "Сопутствующие заболевания (1)",
+      "type": "text",
+      "required": false,
+      "multiline": true,
+      "maxLength": 300,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.11"
+        ]
+      }
+    },
+    {
+      "id": "comorbidity1Icd",
+      "label": "код по МКБ (сопутствующие заболевания 1)",
+      "type": "icd10",
+      "required": false,
+      "pattern": "^[A-Z][0-9]{2}(?:\\.[0-9]{1,2})?$",
+      "patternMessage": "Код МКБ-10 в формате J45.0",
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.11"
+        ]
+      }
+    },
+    {
+      "id": "comorbidity2",
+      "label": "Сопутствующие заболевания (2)",
+      "type": "text",
+      "required": false,
+      "multiline": true,
+      "maxLength": 300,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.11"
+        ]
+      }
+    },
+    {
+      "id": "comorbidity2Icd",
+      "label": "код по МКБ (сопутствующие заболевания 2)",
+      "type": "icd10",
+      "required": false,
+      "pattern": "^[A-Z][0-9]{2}(?:\\.[0-9]{1,2})?$",
+      "patternMessage": "Код МКБ-10 в формате J45.0",
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.11"
+        ]
+      }
+    },
+    {
+      "id": "comorbidity3",
+      "label": "Сопутствующие заболевания (3)",
+      "type": "text",
+      "required": false,
+      "multiline": true,
+      "maxLength": 300,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.11"
+        ]
+      }
+    },
+    {
+      "id": "comorbidity3Icd",
+      "label": "код по МКБ (сопутствующие заболевания 3)",
+      "type": "icd10",
+      "required": false,
+      "pattern": "^[A-Z][0-9]{2}(?:\\.[0-9]{1,2})?$",
+      "patternMessage": "Код МКБ-10 в формате J45.0",
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.11"
+        ]
+      }
+    },
+    {
+      "id": "additionalInfo",
+      "label": "Дополнительные сведения о заболевании",
+      "type": "text",
+      "required": false,
+      "multiline": true,
+      "maxLength": 1000,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.11"
+        ]
+      }
+    },
+    {
+      "id": "disabilityCause",
+      "label": "Заболевание, явившееся причиной инвалидности",
+      "type": "text",
+      "required": false,
+      "multiline": true,
+      "maxLength": 300,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.11"
+        ]
+      }
+    },
+    {
+      "id": "disabilityCauseIcd",
+      "label": "код по МКБ (причина инвалидности)",
+      "type": "icd10",
+      "required": false,
+      "pattern": "^[A-Z][0-9]{2}(?:\\.[0-9]{1,2})?$",
+      "patternMessage": "Код МКБ-10 в формате J45.0",
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.11"
+        ]
+      }
+    },
+    {
+      "id": "conclusionOrgName",
+      "label": "Наименование санаторно-курортной организации (заключение)",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "maxLength": 200,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.12"
+        ]
+      }
+    },
+    {
+      "id": "treatmentSetting",
+      "label": "Лечение",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "1",
+          "label": "в условиях пребывания в санаторно-курортной организации"
+        },
+        {
+          "value": "2",
+          "label": "амбулаторно"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.12"
+        ]
+      }
+    },
+    {
+      "id": "courseDays",
+      "label": "Продолжительность курса лечения",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "pattern": "^[0-9]{1,3}$",
+      "patternMessage": "Число дней, например 21",
+      "maxLength": 3,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.12"
+        ]
+      }
+    },
+    {
+      "id": "voucherNumber",
+      "label": "Путевка №",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "maxLength": 40,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "7.12"
+        ]
+      }
+    },
+    {
+      "id": "filledBy",
+      "label": "Фамилия, имя, отчество (при наличии) и подпись лица, заполнившего карту",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "editorial",
+      "maxLength": 200,
+      "prefill": {
+        "sources": [
+          "clinician.fullName"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "8"
+        ],
+        "note": "Пункт 8 говорит, что бумажная карта заверяется медицинским работником; строку «лица, заполнившего карту» порядок отдельно не описывает."
+      }
+    },
+    {
+      "id": "filledBySignature",
+      "label": "подпись лица, заполнившего карту",
+      "type": "signature",
+      "required": false,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "8"
+        ]
+      }
+    },
+    {
+      "id": "headOfDepartment",
+      "label": "Заведующий отделением (председатель врачебной комиссии)",
+      "type": "text",
+      "required": false,
+      "maxLength": 200,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "8"
+        ]
+      }
+    },
+    {
+      "id": "headOfDepartmentSignature",
+      "label": "подпись заведующего отделением (председателя врачебной комиссии)",
+      "type": "signature",
+      "required": false,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "8"
+        ]
+      }
+    },
+    {
+      "id": "stamp",
+      "label": "М.П. (при наличии)",
+      "type": "stamp",
+      "required": false,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "8"
+        ]
+      }
+    },
+    {
+      "id": "treatmentDone",
+      "label": "Проведено лечение (виды лечения, количество процедур, их переносимость, даты проведения санаторно-курортного лечения)",
+      "type": "text",
+      "required": false,
+      "multiline": true,
+      "maxLength": 1500,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9"
+        ],
+        "note": "Пункт 9 относит все строки обратного талона к заполнению лечащим врачом санаторно-курортной организации; содержание отдельной строки порядок не описывает."
+      }
+    },
+    {
+      "id": "epicrisis",
+      "label": "Эпикриз (включая данные обследования)",
+      "type": "text",
+      "required": false,
+      "multiline": true,
+      "maxLength": 2000,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9"
+        ],
+        "note": "Пункт 9 относит все строки обратного талона к заполнению лечащим врачом санаторно-курортной организации; содержание отдельной строки порядок не описывает."
+      }
+    },
+    {
+      "id": "treatmentResult",
+      "label": "Результат санаторно-курортного лечения",
+      "type": "choice",
+      "required": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "значительное улучшение"
+        },
+        {
+          "value": "2",
+          "label": "улучшение"
+        },
+        {
+          "value": "3",
+          "label": "без перемен"
+        },
+        {
+          "value": "4",
+          "label": "ухудшение"
+        }
+      ],
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9"
+        ],
+        "note": "Пункт 9 относит все строки обратного талона к заполнению лечащим врачом санаторно-курортной организации; содержание отдельной строки порядок не описывает."
+      }
+    },
+    {
+      "id": "exacerbations",
+      "label": "Наличие обострений, потребовавших отмену процедур",
+      "type": "choice",
+      "required": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "да"
+        },
+        {
+          "value": "2",
+          "label": "нет"
+        }
+      ],
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9"
+        ],
+        "note": "Пункт 9 относит все строки обратного талона к заполнению лечащим врачом санаторно-курортной организации; содержание отдельной строки порядок не описывает."
+      }
+    },
+    {
+      "id": "recommendations",
+      "label": "Рекомендации по дальнейшему лечению",
+      "type": "text",
+      "required": false,
+      "multiline": true,
+      "maxLength": 1500,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "9"
+        ],
+        "note": "Пункт 9 относит все строки обратного талона к заполнению лечащим врачом санаторно-курортной организации; содержание отдельной строки порядок не описывает."
+      }
+    },
+    {
+      "id": "treatingDoctor",
+      "label": "Лечащий врач, должность врача-специалиста",
+      "type": "text",
+      "required": false,
+      "maxLength": 200,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "9"
+        ]
+      }
+    },
+    {
+      "id": "treatingDoctorSignature",
+      "label": "подпись лечащего врача",
+      "type": "signature",
+      "required": false,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "9"
+        ]
+      }
+    },
+    {
+      "id": "chiefDoctor",
+      "label": "Главный врач санаторно-курортной организации",
+      "type": "text",
+      "required": false,
+      "maxLength": 200,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "9"
+        ]
+      }
+    },
+    {
+      "id": "chiefDoctorSignature",
+      "label": "подпись главного врача",
+      "type": "signature",
+      "required": false,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "9"
+        ]
+      }
+    },
+    {
+      "id": "returnStamp",
+      "label": "М.П. (при наличии) (обратный талон)",
+      "type": "stamp",
+      "required": false,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "9"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "id": "7.1",
+      "text": "7.1. Строки «Фамилия, имя, отчество (при наличии) пациента», «Пол», «Дата рождения пациента», «Регистрация по месту жительства», «Регистрация по месту пребывания» заполняются на основе сведений учетной формы № 025/у «Медицинская карта пациента, получающего медицинскую помощь в амбулаторных условиях», утвержденной настоящим приказом.",
+      "spans": [
+        {
+          "pdfPage": 40,
+          "firstLine": 17,
+          "lastLine": 21
+        }
+      ],
+      "textSha256": "2bc07fac91714b4c53e0a8565c3ce5ed1c4f35cbf22e0f877b9cc6b872798c80"
+    },
+    {
+      "id": "7.2",
+      "text": "7.2. В строке «Полис обязательного медицинского страхования» указываются сведения о полисе обязательного медицинского страхования застрахованного лица, данные о страховой медицинской организации, выбранной застрахованным лицом или определенной застрахованному лицу, дата выдачи полиса обязательного медицинского страхования.",
+      "spans": [
+        {
+          "pdfPage": 40,
+          "firstLine": 22,
+          "lastLine": 26
+        }
+      ],
+      "textSha256": "0f5e91bfef11f61e03574cc4ab5d7087131157c18020ae30b3f1c3f767f20b8f"
+    },
+    {
+      "id": "7.3",
+      "text": "7.3. Строки «Код субъекта Российской Федерации», «Климат в месте проживания пациента», «Климатические факторы в месте проживания пациента», «Код меры социальной поддержки», «Сопровождение», «Документ, подтверждающий право на получение мер социальной поддержки в виде набора социальных услуг» заполняются только на граждан, имеющих право на получение набора социальных услуг.",
+      "spans": [
+        {
+          "pdfPage": 40,
+          "firstLine": 27,
+          "lastLine": 32
+        }
+      ],
+      "textSha256": "022a63a0ca1805ce47272f3342eacdc931519de8b80107708dbb6bfec36d4128"
+    },
+    {
+      "id": "7.4",
+      "listItemCount": 89,
+      "text": "7.4. В строке «Код субъекта Российской Федерации» указывается код субъекта Российской Федерации, в котором проживает пациент:",
+      "spans": [
+        {
+          "pdfPage": 40,
+          "firstLine": 33,
+          "lastLine": 42
+        },
+        {
+          "pdfPage": 41,
+          "firstLine": 1,
+          "lastLine": 46
+        },
+        {
+          "pdfPage": 42,
+          "firstLine": 1,
+          "lastLine": 36
+        }
+      ],
+      "textSha256": "88ad24993ee5495ea3960949cbad627e6907ed17404780a9bd9cadc4a89ff0a7"
+    },
+    {
+      "id": "7.5",
+      "listItemCount": 9,
+      "text": "7.5. В строке «Климат в месте проживания пациента» указывается код климата в месте проживания пациента:",
+      "spans": [
+        {
+          "pdfPage": 42,
+          "firstLine": 37,
+          "lastLine": 46
+        },
+        {
+          "pdfPage": 43,
+          "firstLine": 0,
+          "lastLine": 0
+        }
+      ],
+      "textSha256": "1eb41a86aee931b5615b6810287dd9b37fce5b6680ef26a928ad4d1db17d8fe0"
+    },
+    {
+      "id": "7.6",
+      "listItemCount": 9,
+      "text": "7.6. В строке «Климатические факторы в месте проживания пациента» указывается код климатических факторов в месте проживания пациента:",
+      "spans": [
+        {
+          "pdfPage": 43,
+          "firstLine": 1,
+          "lastLine": 11
+        }
+      ],
+      "textSha256": "047774c661a74c650663241e594d1de18691d1c48b84468dfbe17f27223dd253"
+    },
+    {
+      "id": "7.7",
+      "listItemCount": 10,
+      "text": "7.7. В строке «Код меры социальной поддержки» указывается код меры социальной поддержки в соответствии с категориями граждан, имеющих право на получение государственной социальной помощи в виде набора социальных услуг:",
+      "spans": [
+        {
+          "pdfPage": 43,
+          "firstLine": 12,
+          "lastLine": 43
+        },
+        {
+          "pdfPage": 44,
+          "firstLine": 1,
+          "lastLine": 4
+        }
+      ],
+      "textSha256": "58cc4430d579639eb86d9068149b207a5e39384af2085d79910438d924278cf2"
+    },
+    {
+      "id": "7.8",
+      "text": "7.8. В строке «Сопровождение» указывается необходимость в сопровождении, данная строка заполняется только в отношении граждан, имеющих I группу инвалидности.",
+      "spans": [
+        {
+          "pdfPage": 44,
+          "firstLine": 5,
+          "lastLine": 7
+        }
+      ],
+      "textSha256": "7768e3fc3ab0f364783487f3a1970cb2dc812b3437f5c8ab53b1ff3e5b0a16aa"
+    },
+    {
+      "id": "7.9",
+      "text": "7.9. В строке «Документ, подтверждающий право на получение мер социальной поддержки в виде набора социальных услуг» указываются серия, номер и дата выдачи документа, подтверждающий право на получение мер социальной поддержки в виде набора социальных услуг.",
+      "spans": [
+        {
+          "pdfPage": 44,
+          "firstLine": 8,
+          "lastLine": 11
+        }
+      ],
+      "textSha256": "726d0842fe0d26856e62f932e16f652f552e98f0a326807794878a65394f37ee"
+    },
+    {
+      "id": "7.10",
+      "text": "7.10. В строке «Страховой номер индивидуального лицевого счета» указывается страховой номер индивидуального лицевого счета пациента.",
+      "spans": [
+        {
+          "pdfPage": 44,
+          "firstLine": 12,
+          "lastLine": 13
+        }
+      ],
+      "textSha256": "ee3d8de284433b13a159f9ed430ab87010e9d6866a7f01894a37b5c2ed422ee6"
+    },
+    {
+      "id": "7.11",
+      "text": "7.11. Строки «Жалобы», «Анамнез заболевания», «Данные клинического, лабораторного, рентгенологического и других исследований», «Диагноз основного заболевания», «Осложнения основного заболевания», «Внешняя причина при травмах, отравлениях», «Сопутствующие заболевания», «Дополнительные сведения о заболевании», «Заболевание, явившееся причиной инвалидности» Карты заполняются на основании данных учетной формы № 025/у «Медицинская карта пациента, получающего медицинскую помощь в амбулаторных условиях», утвержденной настоящим приказом, с обязательным указанием кода диагнозов по Международной статистической классификации болезней и проблем, связанных со здоровьем. При оформлении Карты могут использоваться результаты, полученные при прохождении диспансеризации (медицинского осмотра).",
+      "spans": [
+        {
+          "pdfPage": 44,
+          "firstLine": 14,
+          "lastLine": 25
+        }
+      ],
+      "textSha256": "7ae02614879b5048782f5b1dad2b005486ed6e45e0120b69ce6751856b1b9c4f"
+    },
+    {
+      "id": "7.12",
+      "text": "7.12. Строки «Наименование санаторно-курортной организации», «Лечение», «Продолжительность курса лечения», «Путевка №» заполняются на основании представленной путевки на санаторно-курортное лечение.",
+      "spans": [
+        {
+          "pdfPage": 44,
+          "firstLine": 26,
+          "lastLine": 28
+        }
+      ],
+      "textSha256": "77e21c23bcd7baefae12e5a808a9042158f9113a147d0dcbee03c61536f3e8f9"
+    },
+    {
+      "id": "8",
+      "text": "8. Карта на бумажном носителе заверяется медицинским работником и заверяется подписью заведующего отделением или председателя врачебной комиссии и печатью медицинской организации (при наличии), на оттиске которой идентифицируется полное наименование медицинской организации.",
+      "spans": [
+        {
+          "pdfPage": 44,
+          "firstLine": 29,
+          "lastLine": 32
+        }
+      ],
+      "textSha256": "adaa76f853330d0eb4ad232edff5b6141a44d4a507eb1505f5fd470e40d16bf8"
+    },
+    {
+      "id": "9",
+      "text": "9. Все строки обратного талона Карты заполняются лечащим врачом санаторно-курортной организации. При ведении Карты на бумажном носителе, обратный талон Карты заверяется подписями лечащего врача и главного врача санаторно-курортной организации и заверяется печатью медицинской организации (при наличии), на оттиске которой идентифицируется полное наименование медицинской организации в строках «Лечащий врач», «Главный врач санаторно-курортной организации».",
+      "spans": [
+        {
+          "pdfPage": 44,
+          "firstLine": 33,
+          "lastLine": 39
+        }
+      ],
+      "textSha256": "71768cbc2ada57904d22b7db34cd6bd45f138367192aa752cf04470256265df9"
+    }
+  ],
+  "layout": {
+    "page": {
+      "size": "A4",
+      "orientation": "portrait",
+      "marginMm": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 15
+      },
+      "fontSizePt": 9.5
+    },
+    "blocks": [
+      {
+        "id": "header",
+        "columns": [
+          {
+            "widthPercent": 56,
+            "align": "left",
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Наименование и адрес медицинской организации (фамилия, имя, отчество (при наличии) индивидуального предпринимателя и адрес осуществления медицинской деятельности)"
+                  }
+                ],
+                "size": "small"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Основной государственный регистрационный номер (Основной государственный регистрационный номер индивидуального предпринимателя)"
+                  }
+                ],
+                "size": "small"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "field",
+                    "fieldId": "organization",
+                    "length": 40,
+                    "grow": true
+                  }
+                ],
+                "gap": "small"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "field",
+                    "fieldId": "organizationOgrn",
+                    "length": 40,
+                    "grow": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "widthPercent": 44,
+            "align": "center",
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Медицинская документация"
+                  }
+                ],
+                "size": "small"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Учетная форма № 072/у"
+                  }
+                ],
+                "size": "small"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Утверждена приказом Министерства здравоохранения Российской Федерации от 13 мая 2025 г. № 274н"
+                  }
+                ],
+                "size": "small",
+                "gap": "small"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "title",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Санаторно-курортная карта №",
+                    "bold": true
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "formNumber",
+                    "length": 12
+                  }
+                ],
+                "align": "center",
+                "size": "title",
+                "gap": "large"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "«"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "formDate",
+                    "length": 3,
+                    "part": "day"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "»"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "formDate",
+                    "length": 12,
+                    "part": "month"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "20"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "formDate",
+                    "length": 3,
+                    "part": "year2"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "года",
+                    "bold": true
+                  }
+                ],
+                "align": "center",
+                "size": "title"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "patient",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Выдается при предъявлении путевки на санаторно-курортное лечение. Без настоящей карты путевка недействительна"
+                  }
+                ],
+                "align": "justify",
+                "gap": "medium"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Фамилия, имя, отчество (при наличии) пациента"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "patientFullName",
+                    "length": 40,
+                    "grow": true
+                  }
+                ],
+                "gap": "medium"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Дата рождения:"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "«"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "patientBirthDate",
+                    "length": 3,
+                    "part": "day"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "»"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "patientBirthDate",
+                    "length": 10,
+                    "part": "month"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "20"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "patientBirthDate",
+                    "length": 3,
+                    "part": "year2"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "г."
+                  },
+                  {
+                    "kind": "text",
+                    "text": "Пол:"
+                  },
+                  {
+                    "kind": "options",
+                    "fieldId": "patientSex",
+                    "separator": ", "
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Регистрация по месту жительства: субъект Российской Федерации"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceSubject",
+                    "length": 30,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "район"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceDistrict",
+                    "length": 52,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "населенный пункт"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceLocality",
+                    "length": 28,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "улица"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceStreet",
+                    "length": 27,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "дом"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceHouse",
+                    "length": 4
+                  },
+                  {
+                    "kind": "text",
+                    "text": "строение/корпус"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceBuilding",
+                    "length": 4
+                  },
+                  {
+                    "kind": "text",
+                    "text": "квартира"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceApartment",
+                    "length": 6
+                  },
+                  {
+                    "kind": "text",
+                    "text": "тел."
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residencePhone",
+                    "length": 20,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Регистрация по месту пребывания: субъект Российской Федерации"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "staySubject",
+                    "length": 30,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "район"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "stayDistrict",
+                    "length": 48,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "населенный пункт"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "stayLocality",
+                    "length": 28,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "улица"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "stayStreet",
+                    "length": 28,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "дом"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "stayHouse",
+                    "length": 4
+                  },
+                  {
+                    "kind": "text",
+                    "text": "строение/корпус"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "stayBuilding",
+                    "length": 4
+                  },
+                  {
+                    "kind": "text",
+                    "text": "квартира"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "stayApartment",
+                    "length": 6
+                  },
+                  {
+                    "kind": "text",
+                    "text": "тел."
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "stayPhone",
+                    "length": 20,
+                    "grow": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "insurance",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Полис обязательного медицинского страхования:"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "omsPolicyNumber",
+                    "length": 40,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "дата выдачи полиса обязательного медицинского страхования"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "«"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "omsPolicyIssueDate",
+                    "length": 3,
+                    "part": "day"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "»"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "omsPolicyIssueDate",
+                    "length": 12,
+                    "part": "month"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "20"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "omsPolicyIssueDate",
+                    "length": 6,
+                    "part": "year2"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "г."
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "данные о страховой медицинской организации, выбранной застрахованным лицом или определенной застрахованному лицу"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "omsInsurer",
+                    "length": 40,
+                    "grow": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "social",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Код субъекта Российской Федерации"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "regionCode",
+                    "length": 6
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Климат в месте проживания пациента (код)"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "climateCode",
+                    "length": 5
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Климатические факторы в месте проживания пациента (код)"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "climateFactorsCode",
+                    "length": 8
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Код меры социальной поддержки"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "socialSupportCode",
+                    "length": 8
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Сопровождение: да – 1, нет - 2"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "escort",
+                    "length": 10
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Документ, подтверждающий право на получение мер социальной поддержки в виде набора социальных услуг:"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "серия"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "socialDocSeries",
+                    "length": 11
+                  },
+                  {
+                    "kind": "text",
+                    "text": "номер"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "socialDocNumber",
+                    "length": 17
+                  },
+                  {
+                    "kind": "text",
+                    "text": "дата выдачи"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "«"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "socialDocIssueDate",
+                    "length": 3,
+                    "part": "day"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "»"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "socialDocIssueDate",
+                    "length": 11,
+                    "part": "month"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "20"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "socialDocIssueDate",
+                    "length": 3,
+                    "part": "year2"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "г."
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Страховой номер индивидуального лицевого счета:"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "snils",
+                    "length": 36
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "return-front",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "линия отреза"
+                  }
+                ],
+                "align": "center",
+                "size": "small",
+                "gap": "medium"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Подлежит возврату в медицинскую организацию, выдавшую санаторно-курортную карту"
+                  }
+                ],
+                "align": "center",
+                "size": "small"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Обратный талон"
+                  }
+                ],
+                "align": "center",
+                "gap": "medium"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Наименование санаторно-курортной организации"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "returnOrgName",
+                    "length": 40,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Основной государственный регистрационный номер санаторно-курортной организации"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "returnOrgOgrn",
+                    "length": 20,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Фамилия, имя, отчество (при наличии) пациента"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "returnPatientName",
+                    "length": 40,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Период санаторно-курортного лечения: с"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "«"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "periodFrom",
+                    "length": 3,
+                    "part": "day"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "»"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "periodFrom",
+                    "length": 11,
+                    "part": "month"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "20"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "periodFrom",
+                    "length": 3,
+                    "part": "year2"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "г. по"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "«"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "periodTo",
+                    "length": 3,
+                    "part": "day"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "»"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "periodTo",
+                    "length": 11,
+                    "part": "month"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "20"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "periodTo",
+                    "length": 3,
+                    "part": "year2"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "г."
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Диагноз, установленный направившей медицинской организацией:"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Основное заболевание"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "referralMain",
+                    "length": 40,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "код по Международной статистической классификации болезней и проблем, связанных со здоровьем (далее – МКБ)"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "referralMainIcd",
+                    "length": 20
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Осложнения основного заболевания"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "referralComplications",
+                    "length": 30,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "код по МКБ"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "referralComplicationsIcd",
+                    "length": 16
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Сопутствующие заболевания:"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "referralComorbidities",
+                    "length": 30,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "код по МКБ"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "referralComorbiditiesIcd",
+                    "length": 16
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Внешняя причина (при травмах, отравлениях)"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "referralExternalCause",
+                    "length": 30,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "код по МКБ"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "referralExternalCauseIcd",
+                    "length": 16
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Заболевание, явившееся причиной инвалидности:"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "referralDisabilityCause",
+                    "length": 22,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "код по МКБ"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "referralDisabilityCauseIcd",
+                    "length": 16
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Диагноз при выписке из санаторно-курортной организации:"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Основное заболевание"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "dischargeMain",
+                    "length": 30,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "код по МКБ"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "dischargeMainIcd",
+                    "length": 16
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Сопутствующие заболевания:"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "dischargeComorbidities",
+                    "length": 30,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "код по МКБ"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "dischargeComorbiditiesIcd",
+                    "length": 16
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "clinical",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "оборотная сторона ф. № 072/у",
+                    "small": true
+                  }
+                ],
+                "align": "right",
+                "size": "small"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Жалобы"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "complaints",
+                    "length": 40,
+                    "lines": 1,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Анамнез заболевания (включая данные о предшествующем лечении, в том числе санаторно-курортном)"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "anamnesis",
+                    "length": 10,
+                    "lines": 2,
+                    "grow": true
+                  }
+                ],
+                "gap": "small"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Данные клинического, лабораторного, рентгенологического и других исследований (даты проведения исследований)"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "examinations",
+                    "length": 10,
+                    "lines": 7,
+                    "grow": true
+                  }
+                ],
+                "gap": "small"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Диагноз основного заболевания:"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "mainDiagnosis",
+                    "length": 30,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "код по МКБ"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "mainDiagnosisIcd",
+                    "length": 16
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Осложнения основного заболевания"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "complications",
+                    "length": 30,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "код по МКБ"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "complicationsIcd",
+                    "length": 16
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Внешняя причина при травмах, отравлениях"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "externalCause",
+                    "length": 30,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "код по МКБ"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "externalCauseIcd",
+                    "length": 16
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Сопутствующие заболевания:"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "comorbidity1",
+                    "length": 30,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "код по МКБ"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "comorbidity1Icd",
+                    "length": 16
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "field",
+                    "fieldId": "comorbidity2",
+                    "length": 30,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "код по МКБ"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "comorbidity2Icd",
+                    "length": 16
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "field",
+                    "fieldId": "comorbidity3",
+                    "length": 30,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "код по МКБ"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "comorbidity3Icd",
+                    "length": 16
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Дополнительные сведения о заболевании"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "additionalInfo",
+                    "length": 20,
+                    "lines": 3,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Заболевание, явившееся причиной инвалидности:"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "disabilityCause",
+                    "length": 22,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "код по МКБ"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "disabilityCauseIcd",
+                    "length": 16
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "pageBreakBefore": true
+      },
+      {
+        "id": "conclusion",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "ЗАКЛЮЧЕНИЕ"
+                  }
+                ],
+                "align": "center",
+                "gap": "medium"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Наименование санаторно-курортной организации"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "conclusionOrgName",
+                    "length": 40,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Лечение: в условиях пребывания в санаторно-курортной организации – 1, амбулаторно – 2"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "treatmentSetting",
+                    "length": 4
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Продолжительность курса лечения"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "courseDays",
+                    "length": 12
+                  },
+                  {
+                    "kind": "text",
+                    "text": "дней"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Путевка №"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "voucherNumber",
+                    "length": 20
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Фамилия, имя, отчество (при наличии) и подпись лица, заполнившего карту"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "filledBy",
+                    "length": 24,
+                    "grow": true
+                  },
+                  {
+                    "kind": "signature",
+                    "fieldId": "filledBySignature",
+                    "length": 14,
+                    "caption": "подпись"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Заведующий отделением (председатель врачебной комиссии)"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "headOfDepartment",
+                    "length": 20,
+                    "grow": true,
+                    "caption": "(фамилия, имя, отчество (при наличии)"
+                  },
+                  {
+                    "kind": "signature",
+                    "fieldId": "headOfDepartmentSignature",
+                    "length": 14,
+                    "caption": "подпись"
+                  }
+                ],
+                "gap": "small"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "stamp",
+                    "fieldId": "stamp",
+                    "text": "М.П. (при наличии)"
+                  }
+                ],
+                "gap": "medium"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "return-back",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "линия отреза"
+                  }
+                ],
+                "align": "center",
+                "size": "small",
+                "gap": "medium"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Проведено лечение"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "treatmentDone",
+                    "length": 40,
+                    "lines": 1,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "(виды лечения, количество процедур, их переносимость, даты проведения санаторно-курортного лечения)",
+                    "small": true
+                  }
+                ],
+                "align": "center",
+                "size": "small"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Эпикриз (включая данные обследования)"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "epicrisis",
+                    "length": 30,
+                    "lines": 2,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Результат санаторно-курортного лечения: значительное улучшение – 1, улучшение – 2, без перемен – 3, ухудшение – 4"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "treatmentResult",
+                    "length": 4
+                  }
+                ],
+                "gap": "medium"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Наличие обострений, потребовавших отмену процедур: да – 1, нет – 2"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "exacerbations",
+                    "length": 4
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Рекомендации по дальнейшему лечению:"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "recommendations",
+                    "length": 30,
+                    "lines": 1,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Лечащий врач, должность врача-специалиста"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "treatingDoctor",
+                    "length": 24,
+                    "grow": true,
+                    "caption": "(фамилия, имя, отчество (при наличии)"
+                  },
+                  {
+                    "kind": "signature",
+                    "fieldId": "treatingDoctorSignature",
+                    "length": 14,
+                    "caption": "подпись"
+                  }
+                ],
+                "gap": "small"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Главный врач санаторно-курортной организации"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "chiefDoctor",
+                    "length": 24,
+                    "grow": true,
+                    "caption": "(фамилия, имя, отчество (при наличии)"
+                  },
+                  {
+                    "kind": "signature",
+                    "fieldId": "chiefDoctorSignature",
+                    "length": 14,
+                    "caption": "подпись"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "stamp",
+                    "fieldId": "returnStamp",
+                    "text": "М.П. (при наличии)"
+                  }
+                ],
+                "gap": "medium"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "notes": [
+    "Подписи полей в повторяющихся строках («(1)», «(2)»), пояснения в скобках и уточнения «обратный талон»/«заключение» добавлены для различения полей; напечатанные подписи проверяются по OCR бланка (blankLabelsVerified).",
+    "Бланк 072/у (приложение № 7) двусторонний: лицевая сторона с обратным талоном и оборотная сторона (клиническая часть, заключение, отрывной талон); на печати оборотная сторона начинается с новой страницы.",
+    "Обратный талон заполняет лечащий врач санаторно-курортной организации (п. 9): его строки не обязательны и описаны порядком только как группа (rule.status = by-line).",
+    "Обязательность полей (required) порядок прямо не задаёт: basis = source — пункт говорит, что строка «заполняется»/«указывается»; basis = editorial — вывод по виду бланка. Незаполненные обязательные поля подсвечиваются, печать не блокируется.",
+    "Перечень кодов субъектов Российской Федерации в п. 7.4 печатного текста повторяет код 82 (Республика Дагестан) дважды; в схеме он указан один раз.",
+    "Подписи на бумажном бланке по п. 8 ставит заведующий отделением или председатель врачебной комиссии, по п. 9 — лечащий и главный врач санаторно-курортной организации; печать организации проставляется на оттиск (при наличии).",
+    "Поля, которые порядок не определяет (rule.status = undefined): formNumber, formDate, organization, organizationOgrn."
+  ]
+}

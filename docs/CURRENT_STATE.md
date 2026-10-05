@@ -51,6 +51,31 @@ Detailed history, moved verbatim on 2026-09-24:
   existing path); ICD-10 codes are format-checked, not looked up in the МКБ module; the OCR-derived
   code lists were compared with the scan by eye only.
 
+## Official forms — the rest of order 274н, update check — 2026-10-05 (STATE F2)
+
+- «Формы» now lists five forms of Минздрав order № 274н of 13.05.2025: 070/у, 072/у «Санаторно-курортная
+  карта», 076/у «…для детей», 079/у «Медицинская справка о состоянии здоровья ребенка, направляемого в
+  организацию отдыха детей и их оздоровления» and 025-1/у «Талон пациента, получающего медицинскую помощь
+  в амбулаторных условиях» (landscape, both sides, with the prescription and visit-date tables). Same
+  official file (eoNumber `0001202505300033`), same preparer and review method; schemas
+  `apps/app/src/features/forms/schemas/ru-minzdrav-274n-{070u,072u,076u,079u,025-1u}.json`
+  (`bun run forms:prepare` builds all). 025/у (the full outpatient card) is not built, on purpose; reasons
+  in [FORMS_PLAN.md](FORMS_PLAN.md).
+- Prefill: the existing patient, ОМС, address, diagnosis and clinician bindings, `patient.workplace` where
+  a printed line needs it (025-1/у line 14), a new `patient.citizenship` (patient vault profile + editor)
+  and a `words` binding that takes surname, name and patronymic of the talon from the full name.
+  Schema contract extensions are generic (page break, framed block, ruled lines, table, underline
+  marks); the UI still knows no form number. Two-sided blanks print the reverse side on a new sheet.
+- Every cited page was reviewed against the scan (four independent reviewers plus a zoomed pass over the
+  rotated talon); corrections are logged in each schema. Not verified: hyphen vs en dash in running
+  text, print on a physical printer, the Android shell.
+- `bun run forms:check-updates` (local; `--rebuild`, `--metadata-only`): compares the registry
+  `tools/ingest/medical-form-sources.json` with publication.pravo.gov.ru (file SHA-256, size, pages;
+  amending/repealing orders; possible replacement sets), writes `data/build/forms-update-check.json`,
+  reports network failures, and on `--rebuild` re-runs OCR and the blueprints and asks for a human review
+  when anything no longer matches. A step before releases (docs/RELEASES.md). A shortlist of other common
+  forms with their verified orders («Candidates for the owner») is in FORMS_PLAN.md; none is built.
+
 ## Search loading skeleton — 2026-10-05 (STATE UX6)
 
 - The skeleton (`SearchResultsSkeleton.tsx`, `search-results-skeleton.css`) is drawn with the real result

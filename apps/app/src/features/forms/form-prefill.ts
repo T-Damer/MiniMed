@@ -51,6 +51,7 @@ export function buildFormPrefillContext(input: FormPrefillInput): FormPrefillCon
     put(context, 'patient.sex', profile.biologicalSex);
     put(context, 'patient.snils', profile.snils);
     put(context, 'patient.workplace', profile.workplace);
+    put(context, 'patient.citizenship', profile.citizenship);
     for (const part of PATIENT_ADDRESS_PARTS) {
       put(context, `patient.address.${part}`, profile.address?.[part]);
       put(context, `patient.stayAddress.${part}`, profile.stayAddress?.[part]);
@@ -78,6 +79,15 @@ export function buildFormPrefillContext(input: FormPrefillInput): FormPrefillCon
   return context;
 }
 
+function pickWords(
+  value: string,
+  words: { readonly from: number; readonly count?: number | undefined },
+): string {
+  const parts = value.split(/\s+/u).filter((part) => part !== '');
+  const end = words.count === undefined ? undefined : words.from + words.count;
+  return parts.slice(words.from, end).join(' ');
+}
+
 /** The value a field's binding resolves to, or `undefined` when nothing usable is known. */
 export function resolveFieldPrefill(
   field: FormField,
@@ -87,8 +97,10 @@ export function resolveFieldPrefill(
   if (!binding) return undefined;
   const parts: string[] = [];
   for (const path of binding.sources) {
-    const raw = context[path];
-    if (raw === undefined) continue;
+    const whole = context[path];
+    if (whole === undefined) continue;
+    const raw = binding.words ? pickWords(whole, binding.words) : whole;
+    if (raw === '') continue;
     const mapped = binding.map ? binding.map[raw] : raw;
     if (mapped !== undefined && mapped !== '') parts.push(mapped);
   }

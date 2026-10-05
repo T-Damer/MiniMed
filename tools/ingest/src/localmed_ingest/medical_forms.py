@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import difflib
 import hashlib
+import importlib
 import json
 import re
 import subprocess
@@ -31,7 +32,7 @@ PRAVO_PAGE: Final = "http://publication.pravo.gov.ru/document/"
 OCR_METHOD: Final = "macos-vision-ocr-v1"
 # Rows of one printed line differ in height by less than this fraction of the page.
 ROW_TOLERANCE: Final = 0.009
-PAGE_NUMBER_MIN_Y: Final = 0.93
+PAGE_NUMBER_MIN_Y: Final = 0.955
 
 
 class FormSourceError(RuntimeError):
@@ -211,6 +212,21 @@ def apply_corrections(rows: list[Row], applied: list[Correction]) -> list[Row]:
     return result
 
 
+def apply_row_corrections(
+    rows: list[Row], reviewed: tuple[Correction, ...], applied: list[Correction]
+) -> list[Row]:
+    """Apply the reviewed line-level substitutions that belong to the page of each row."""
+    result: list[Row] = []
+    for row in rows:
+        text = row.text
+        for correction in reviewed:
+            if correction.page == row.page and correction.source in text:
+                text = text.replace(correction.source, correction.replacement)
+                applied.append(correction)
+        result.append(Row(row.page, row.index, text, row.x, row.y, row.confidence))
+    return result
+
+
 def correct_text(
     text: str,
     pages: set[int],
@@ -302,6 +318,7 @@ CODE_LOOKALIKES: Final = str.maketrans(
         "б": "6",
         "Б": "6",
         "/": "7",
+        "]": "1",
     }
 )
 
@@ -371,6 +388,16 @@ class FormBlueprint:
     sections: list[dict[str, Any]]
     layout: dict[str, Any]
     notes: list[str]
+    # Reviewed fixes of whole printed lines (a garbled line, a lost dot after a paragraph number),
+    # applied to the OCR rows of their page before the text is cut into paragraphs.
+    row_corrections: tuple[Correction, ...] = ()
+    # Printed captions the OCR dropped from the blank (a short word such as «дом» on a crowded
+    # line) that a reviewer confirmed on the scan; each is recorded in the schema.
+    scan_reviewed_captions: tuple[str, ...] = ()
+
+    @property
+    def schema_filename(self) -> str:
+        return f"{self.form_id.replace('.', '-')}.json"
 
 
 def _letters(value: str) -> str:
@@ -407,17 +434,30 @@ def prepare_form(
     for page in (*blueprint.blank_pages, *blueprint.rules_pages):
         if page not in fragments:
             raise FormSourceError(f"page {page} is missing from the OCR text")
-        rows_by_page[page] = apply_corrections(build_rows(page, fragments[page]), applied)
+        rows = apply_corrections(build_rows(page, fragments[page]), applied)
+        rows_by_page[page] = apply_row_corrections(rows, blueprint.row_corrections, applied)
+
+    unused = [correction for correction in blueprint.row_corrections if correction not in applied]
+    if unused:
+        raise FormSourceError(
+            "reviewed line correction no longer applies (the source text changed?): "
+            + "; ".join(f"p.{c.page} {c.source!r}" for c in unused)
+        )
 
     blank_text = "\n".join(row.text for page in blueprint.blank_pages for row in rows_by_page[page])
     verified = 0
+    scan_reviewed: list[str] = []
     for field in blueprint.fields:
         anchor = field.get("_anchor")
         if anchor is None:
             continue
-        if not anchor_found(str(anchor), blank_text):
+        if anchor_found(str(anchor), blank_text):
+            verified += 1
+        elif str(anchor) in blueprint.scan_reviewed_captions:
+            if str(anchor) not in scan_reviewed:
+                scan_reviewed.append(str(anchor))
+        else:
             raise FormSourceError(f"printed caption not found on the blank: {anchor!r}")
-        verified += 1
 
     body: list[Row] = []
     for page in blueprint.rules_pages:
@@ -512,6 +552,7 @@ def prepare_form(
                 for page, src, dst, reason in corrections
             ],
             "blankLabelsVerified": verified,
+            **({"captionsReviewedOnScan": scan_reviewed} if scan_reviewed else {}),
             "note": (
                 "The official PDF is a scan without a text layer. Text recognised by macOS Vision; "
                 "fragments are regrouped into printed lines (top to bottom, left to right) and "
@@ -571,12 +612,28 @@ def _ru_date(iso: str) -> str:
 # ------------------------------------------------------------------------------------- CLI
 
 
-def _load_blueprint(name: str) -> FormBlueprint:
-    if name == "070u":
-        from localmed_ingest.medical_form_070u import BLUEPRINT
+# Reviewed blueprints by short key; every one is built from the same order (see the registry).
+FORM_BLUEPRINT_MODULES: Final[Mapping[str, str]] = {
+    "070u": "localmed_ingest.medical_form_070u",
+    "072u": "localmed_ingest.medical_form_072u",
+    "076u": "localmed_ingest.medical_form_076u",
+    "079u": "localmed_ingest.medical_form_079u",
+    "025-1u": "localmed_ingest.medical_form_025_1u",
+}
 
-        return BLUEPRINT
-    raise FormSourceError(f"unknown form {name!r}")
+
+def load_blueprint(name: str) -> FormBlueprint:
+    module = FORM_BLUEPRINT_MODULES.get(name)
+    if module is None:
+        raise FormSourceError(f"unknown form {name!r}")
+    # Duck-typed: when this file runs as `__main__` the dataclass is a distinct class object.
+    blueprint: FormBlueprint = importlib.import_module(module).BLUEPRINT
+    return blueprint
+
+
+def write_schema(schema: dict[str, Any], path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(schema, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -591,10 +648,13 @@ def main(argv: list[str] | None = None) -> int:
     ocr.add_argument("--out", type=Path, required=True)
     ocr.add_argument("--swift", type=Path, default=Path("tools/ingest/macos_vision_ocr.swift"))
     prepare = sub.add_parser("prepare", help="build the form schema JSON")
-    prepare.add_argument("--form", default="070u")
+    prepare.add_argument("--form", default="070u", help="form key, or `all`")
+    prepare.add_argument(
+        "--out-dir", type=Path, help="with --form all: directory of the schema files"
+    )
     prepare.add_argument("--source", type=Path, required=True, help="<eoNumber>.source.json")
     prepare.add_argument("--ocr", type=Path, required=True)
-    prepare.add_argument("--out", type=Path, required=True)
+    prepare.add_argument("--out", type=Path)
     args = parser.parse_args(argv)
     if args.command == "fetch":
         record = fetch_official_order(args.out, number=args.number, date=args.date)
@@ -603,12 +663,19 @@ def main(argv: list[str] | None = None) -> int:
         run_ocr(args.pdf, args.out, args.swift)
     else:
         source = json.loads(args.source.read_text(encoding="utf-8"))
-        schema = prepare_form(_load_blueprint(args.form), source, args.ocr)
-        args.out.parent.mkdir(parents=True, exist_ok=True)
-        args.out.write_text(
-            json.dumps(schema, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-        )
-        print(f"wrote {args.out}")
+        if args.form == "all":
+            if args.out_dir is None:
+                parser.error("--form all needs --out-dir")
+            for key in FORM_BLUEPRINT_MODULES:
+                blueprint = load_blueprint(key)
+                target = args.out_dir / blueprint.schema_filename
+                write_schema(prepare_form(blueprint, source, args.ocr), target)
+                print(f"wrote {target}")
+        else:
+            if args.out is None:
+                parser.error("--form <key> needs --out")
+            write_schema(prepare_form(load_blueprint(args.form), source, args.ocr), args.out)
+            print(f"wrote {args.out}")
     return 0
 
 

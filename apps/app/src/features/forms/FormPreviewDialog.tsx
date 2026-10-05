@@ -11,8 +11,8 @@ import { PrintManager } from '@/features/printing/print-manager';
 import { getPluralMessage } from '@/i18n/browser-i18n';
 
 /** The blank is laid out on a 210 mm sheet and scaled down to the screen, never reflowed. */
-const A4_WIDTH_PX = 794;
-const A4_HEIGHT_PX = 1123;
+const A4_SHORT_PX = 794;
+const A4_LONG_PX = 1123;
 
 export interface FormPreviewDialogProps {
   readonly open: boolean;
@@ -25,11 +25,14 @@ export interface FormPreviewDialogProps {
 
 /** The filled blank as it will print, with the print / save-as-PDF action. */
 export function FormPreviewDialog(props: FormPreviewDialogProps): JSX.Element {
+  const landscape = (): boolean => props.schema.layout.page.orientation === 'landscape';
+  const sheetWidthPx = (): number => (landscape() ? A4_LONG_PX : A4_SHORT_PX);
+  const sheetMinHeightPx = (): number => (landscape() ? A4_SHORT_PX : A4_LONG_PX);
   const [scale, setScale] = createSignal(1);
-  const [sheetHeight, setSheetHeight] = createSignal(A4_HEIGHT_PX);
+  const [sheetHeight, setSheetHeight] = createSignal(sheetMinHeightPx());
   const watchWidth = (host: HTMLElement): void => {
     const update = (): void => {
-      setScale(Math.min(1, host.clientWidth / A4_WIDTH_PX));
+      setScale(Math.min(1, host.clientWidth / sheetWidthPx()));
     };
     update();
     const observer = new ResizeObserver(update);
@@ -76,7 +79,7 @@ export function FormPreviewDialog(props: FormPreviewDialogProps): JSX.Element {
       <div class="form-preview__viewport" ref={watchWidth}>
         <div
           class="form-preview__sheet"
-          style={{ width: `${A4_WIDTH_PX * scale()}px`, height: `${sheetHeight() * scale()}px` }}
+          style={{ width: `${sheetWidthPx() * scale()}px`, height: `${sheetHeight() * scale()}px` }}
         >
           {/* Same-origin, no scripts: the page is built from escaped values and is only measured. */}
           <iframe
@@ -85,13 +88,13 @@ export function FormPreviewDialog(props: FormPreviewDialogProps): JSX.Element {
             sandbox="allow-same-origin"
             srcdoc={html()}
             style={{
-              width: `${A4_WIDTH_PX}px`,
+              width: `${sheetWidthPx()}px`,
               height: `${sheetHeight()}px`,
               transform: `scale(${scale()})`,
             }}
             onLoad={(event) => {
               const height = event.currentTarget.contentDocument?.documentElement.scrollHeight;
-              if (height) setSheetHeight(Math.max(height, A4_HEIGHT_PX));
+              if (height) setSheetHeight(Math.max(height, sheetMinHeightPx()));
             }}
           />
         </div>

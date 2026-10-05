@@ -728,6 +728,7 @@ describe('patient domain', () => {
           snils: '12345678901',
           omsPolicy: { number: ' 1234567890123456 ', issuedAt: '2020-05-17', insurer: '' },
           workplace: 'ООО «Ромашка»',
+          citizenship: '  Российская Федерация ',
         },
         '2025-03-01T00:00:00.000Z',
       );
@@ -739,6 +740,7 @@ describe('patient domain', () => {
         snils: '123-456-789 01',
         omsPolicy: { number: '1234567890123456', issuedAt: '2020-05-17' },
         workplace: 'ООО «Ромашка»',
+        citizenship: 'Российская Федерация',
         updatedAt: '2025-03-01T00:00:00.000Z',
       });
       expect(profile?.address).not.toHaveProperty('street');
@@ -750,12 +752,14 @@ describe('patient domain', () => {
         fullName: undefined,
         address: {},
         workplace: '   ',
+        citizenship: '',
         omsPolicy: { number: '' },
       });
       const after = cleared.profiles[0];
       expect(after).not.toHaveProperty('fullName');
       expect(after).not.toHaveProperty('address');
       expect(after).not.toHaveProperty('workplace');
+      expect(after).not.toHaveProperty('citizenship');
       expect(after).not.toHaveProperty('omsPolicy');
       expect(after?.stayAddress).toEqual({ phone: '+7 900 000-00-00' });
       expect(after?.snils).toBe('123-456-789 01');

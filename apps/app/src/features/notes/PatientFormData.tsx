@@ -75,7 +75,14 @@ export function PatientFormData(props: {
   );
 
   const setField = (
-    key: 'fullName' | 'snils' | 'omsNumber' | 'omsIssuedAt' | 'omsInsurer' | 'workplace',
+    key:
+      | 'fullName'
+      | 'snils'
+      | 'omsNumber'
+      | 'omsIssuedAt'
+      | 'omsInsurer'
+      | 'workplace'
+      | 'citizenship',
     value: string,
   ): void => {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -116,7 +123,7 @@ export function PatientFormData(props: {
     <Disclosure
       class="patient-form-data paper-card"
       title="Данные для справок и форм"
-      description="ФИО, СНИЛС, полис ОМС, адрес, место работы"
+      description="ФИО, СНИЛС, полис ОМС, адрес, место работы, гражданство"
     >
       <div class="patient-form-data__body">
         <p class="patient-form-data__note">
@@ -147,6 +154,13 @@ export function PatientFormData(props: {
             autocomplete="off"
             value={draft().workplace}
             onInput={(event) => setField('workplace', event.currentTarget.value)}
+          />
+          <TextField
+            class="patient-form-data__field"
+            label="Гражданство"
+            autocomplete="off"
+            value={draft().citizenship}
+            onInput={(event) => setField('citizenship', event.currentTarget.value)}
           />
         </div>
 

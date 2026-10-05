@@ -37,6 +37,7 @@ export const FORM_PREFILL_PATHS = [
   'patient.sex',
   'patient.snils',
   'patient.workplace',
+  'patient.citizenship',
   ...PATIENT_ADDRESS_PARTS.map((part) => `patient.address.${part}` as const),
   ...PATIENT_ADDRESS_PARTS.map((part) => `patient.stayAddress.${part}` as const),
   ...PATIENT_OMS_PARTS.map((part) => `patient.omsPolicy.${part}` as const),
@@ -58,6 +59,13 @@ export const FormPrefillSchema = z.object({
   sources: z.array(FormPrefillPathSchema).min(1),
   /** Separator between joined sources; `, ` when omitted. */
   join: z.string().optional(),
+  /**
+   * Takes whitespace-separated words of each source value: `{ from: 1, count: 1 }` is the second
+   * word (the first name of «Иванов Иван Иванович»); without `count` all words from `from` on.
+   */
+  words: z
+    .object({ from: z.number().int().min(0).max(5), count: z.number().int().min(1).optional() })
+    .optional(),
   /** Maps a source value to the printed value, e.g. `male` → `1`. Unmapped values prefill nothing. */
   map: z.record(z.string(), z.string()).optional(),
 });
@@ -189,9 +197,19 @@ export const FormSegmentSchema = z.discriminatedUnion('kind', [
     part: z.enum(['day', 'month', 'year2']).optional(),
     caption: z.string().min(1).optional(),
     grow: z.boolean().optional(),
+    /** A long entry printed on several ruled lines (anamnesis, epicrisis). */
+    lines: z.number().int().min(1).max(12).optional(),
   }),
   /** The choices as printed (`муж. – 1, жен. – 2`) with the picked ones marked. */
-  z.object({ kind: z.literal('options'), fieldId: identifier, separator: z.string() }),
+  z.object({
+    kind: z.literal('options'),
+    fieldId: identifier,
+    separator: z.string(),
+    /** False when the blank prints only the words and the person marks the applicable one. */
+    codes: z.boolean().optional(),
+    /** How a picked option is marked: circled (default) or underlined («нужное подчеркнуть»). */
+    mark: z.enum(['circle', 'underline']).optional(),
+  }),
   z.object({ kind: z.literal('check'), fieldId: identifier }),
   z.object({
     kind: z.literal('signature'),
@@ -200,6 +218,30 @@ export const FormSegmentSchema = z.discriminatedUnion('kind', [
     caption: z.string().min(1),
   }),
   z.object({ kind: z.literal('stamp'), fieldId: identifier, text: z.string().min(1) }),
+  /**
+   * A printed grid whose body cells are fields (the prescriptions table of a talon). `header` is
+   * the printed header cells row by row; `rows` holds one field id per body cell.
+   */
+  z.object({
+    kind: z.literal('table'),
+    header: z.array(
+      z
+        .array(
+          z.object({
+            text: z.string().min(1),
+            colSpan: z.number().int().min(1).max(12).optional(),
+            rowSpan: z.number().int().min(1).max(4).optional(),
+          }),
+        )
+        .min(1),
+    ),
+    /** A body cell is a field id, or `{ text }` for a printed caption cell. */
+    rows: z
+      .array(z.array(z.union([identifier, z.object({ text: z.string().min(1) })])).min(1))
+      .min(1),
+    /** Relative column widths (any positive numbers), one per body column. */
+    columnWeights: z.array(z.number().positive()).optional(),
+  }),
 ]);
 export type FormSegment = z.infer<typeof FormSegmentSchema>;
 
@@ -223,6 +265,10 @@ export const FormLayoutColumnSchema = z.object({
 
 export const FormLayoutBlockSchema = z.object({
   id: identifier,
+  /** Starts a new sheet: the reverse side of a two-sided blank. */
+  pageBreakBefore: z.boolean().optional(),
+  /** Draws the printed frame around the whole block (a boxed group of lines). */
+  framed: z.boolean().optional(),
   columns: z.array(FormLayoutColumnSchema).min(1).max(3),
 });
 
@@ -291,6 +337,8 @@ export const FormSourceSchema = z.object({
     corrections: z.array(FormOcrCorrectionSchema),
     /** Printed labels of the blank that were located in the OCR text of the blank page. */
     blankLabelsVerified: z.number().int().nonnegative(),
+    /** Captions the OCR dropped that a reviewer confirmed on the scan (listed, never silent). */
+    captionsReviewedOnScan: z.array(z.string().min(1)).optional(),
     note: z.string().min(1),
   }),
 });
@@ -353,13 +401,16 @@ export const FormSchemaSchema = z
         for (const row of column.rows) {
           for (const segment of row.segments) {
             if (segment.kind === 'text') continue;
-            if (!fieldIds.has(segment.fieldId)) {
-              context.addIssue({
-                code: 'custom',
-                message: `layout cites unknown field ${segment.fieldId}`,
-              });
+            const cited =
+              segment.kind === 'table'
+                ? segment.rows.flat().filter((cell): cell is string => typeof cell === 'string')
+                : [segment.fieldId];
+            for (const id of cited) {
+              if (!fieldIds.has(id)) {
+                context.addIssue({ code: 'custom', message: `layout cites unknown field ${id}` });
+              }
+              printed.add(id);
             }
-            printed.add(segment.fieldId);
           }
         }
       }
