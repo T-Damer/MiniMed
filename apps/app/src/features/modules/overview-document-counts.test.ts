@@ -17,6 +17,11 @@ describe('overviewBucketForSourceType', () => {
     expect(overviewBucketForSourceType('medical_reference')).toBe('reference');
   });
 
+  it('keeps the optional ICD-11 pack out of the discovery core count', () => {
+    expect(overviewBucketForSourceType('who_icd11_reference')).toBe('reference');
+    expect(overviewBucketForSourceType('rls_mkb_reference')).toBe('core');
+  });
+
   it('counts only recommendation source types as clinical', () => {
     expect(overviewBucketForSourceType('clinical_recommendation')).toBe('clinical');
     expect(overviewBucketForSourceType('clinical_recommendation_summary')).toBe('clinical');

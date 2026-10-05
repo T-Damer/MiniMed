@@ -26,4 +26,13 @@ describe('homeDocumentOrder', () => {
     ]);
     expect(ordered.map((entry) => entry.id)).toEqual(['guideline', 'icd', 'drug', 'chemical']);
   });
+
+  it('puts the optional ICD-11 pack after every other source', () => {
+    const ordered = homeDocumentOrder([
+      document('icd11', '1A00 Холера, МКБ-11 (ВОЗ)', 'who_icd11_reference'),
+      document('drug', 'Метформин', 'official_registry_summary'),
+      document('guideline', 'Пневмония', 'clinical_recommendation'),
+    ]);
+    expect(ordered.map((entry) => entry.id)).toEqual(['guideline', 'drug', 'icd11']);
+  });
 });

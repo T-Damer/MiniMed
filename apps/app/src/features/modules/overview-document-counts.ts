@@ -1,5 +1,6 @@
 import type { MedicalDocumentSummary } from '@localmed/contracts';
 
+import { ICD11_SOURCE_TYPE } from '@/features/icd11/icd11-document';
 import { documentMatchesSearchScope } from '@/features/search/ScopedMedicalCore';
 
 export type DocumentOverviewBucket =
@@ -28,7 +29,8 @@ export function overviewBucketForSourceType(sourceType: string): DocumentOvervie
   ) {
     return 'clinical';
   }
-  if (sourceType === 'medical_reference') return 'reference';
+  // ICD-11 is an optional reference pack: it must not inflate the discovery core's count.
+  if (sourceType === 'medical_reference' || sourceType === ICD11_SOURCE_TYPE) return 'reference';
   return 'core';
 }
 

@@ -34,6 +34,7 @@ import {
   CALCULATOR_SECTIONS,
 } from '@/features/calculators/calculator-packs';
 import { buildConditionCatalog } from '@/features/conditions/condition-catalog';
+import { ICD11_COLLECTION, ICD11_SECTION_LABEL } from '@/features/icd11/icd11-document';
 import { DocumentLibrary } from '@/features/library/DocumentLibrary';
 import { openUserLibraryCatalog } from '@/features/library/user-library-routing';
 import { ContentModuleCard } from '@/features/modules/ContentModuleCard';
@@ -348,9 +349,14 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     regularModules().filter(
       (module) =>
         module.collection === section ||
-        (module.kind === section && module.collection !== 'conditions'),
+        (module.kind === section &&
+          module.collection !== 'conditions' &&
+          module.collection !== ICD11_COLLECTION),
     );
   const singleRegularSectionModule = (section: string): ContentModuleCatalogEntry | null => {
+    // The ICD-11 pack lists no documents in the catalog (no core pointer targets it) and has tens of
+    // thousands of cards: its section shows the module card, not a document list.
+    if (section === ICD11_COLLECTION) return null;
     const modules = regularSectionModules(section);
     return modules.length === 1 ? (modules[0] ?? null) : null;
   };
@@ -363,6 +369,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     ({
       core: 'Ядро',
       reference: 'Нормы и расчёты',
+      [ICD11_COLLECTION]: ICD11_SECTION_LABEL,
       regulatory: 'Законы и нормативные акты',
       tool: 'Калькуляторы и опросники',
     })[section] ?? collectionLabel(section);
@@ -1150,7 +1157,13 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
           <section class="module-collection">
             <div class="module-collection-heading">
               <h2 class="module-collection-heading__title">Наборы документов</h2>
-              <CountBadge value={6 + (regularSectionModules('tool').length > 0 ? 1 : 0)} />
+              <CountBadge
+                value={
+                  6 +
+                  (regularSectionModules('tool').length > 0 ? 1 : 0) +
+                  (regularSectionModules(ICD11_COLLECTION).length > 0 ? 1 : 0)
+                }
+              />
             </div>
             <div class="recommendation-section-grid recommendation-section-grid-compact">
               <Show
@@ -1218,7 +1231,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                   {sectionDownloadControls('medications', 'Лекарства', medicationCatalogModules)}
                 </article>
               </Show>
-              <For each={['reference', 'regulatory', 'tool']}>
+              <For each={['reference', 'regulatory', 'tool', ICD11_COLLECTION]}>
                 {(section) => {
                   const modules = () => regularSectionModules(section);
                   const stats = () => moduleCollectionStats(modules(), installedById());
@@ -1229,7 +1242,11 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                   };
                   return (
                     <Show
-                      when={matchesCatalogQuery(catalogQuery(), [regularSectionLabel(section)])}
+                      when={
+                        // The optional ICD-11 pack has its own card, shown only when it is published.
+                        (section !== ICD11_COLLECTION || modules().length > 0) &&
+                        matchesCatalogQuery(catalogQuery(), [regularSectionLabel(section)])
+                      }
                     >
                       <article
                         class="recommendation-section-card paper-card recommendation-section-card-compact recommendation-section-card--downloadable"
@@ -1246,7 +1263,9 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                               ? 'calculator'
                               : section === 'regulatory'
                                 ? 'folder-open'
-                                : 'archive'
+                                : section === ICD11_COLLECTION
+                                  ? 'book-open'
+                                  : 'archive'
                           }
                           class="recommendation-section-card-icon"
                         />

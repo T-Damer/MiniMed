@@ -1,4 +1,5 @@
 import type { MedicalDocumentSummary } from '@localmed/contracts';
+import { isIcd11Document } from '@/features/icd11/icd11-document';
 import {
   type SearchResultDocumentKind,
   searchResultDocumentKind,
@@ -13,6 +14,8 @@ const KIND_RANK: Readonly<Record<SearchResultDocumentKind, number>> = {
   assessment: 4,
 };
 
+const ICD11_RANK = 5;
+
 /** Browsing order for the unfiltered home catalog: guidelines first, chemical-name noise last. */
 export function homeDocumentOrder(
   documents: readonly MedicalDocumentSummary[],
@@ -21,7 +24,8 @@ export function homeDocumentOrder(
     .map((document, index) => ({
       document,
       index,
-      kind: KIND_RANK[searchResultDocumentKind(document)],
+      // The optional WHO ICD-11 pack (tens of thousands of code cards) never leads the catalog.
+      kind: isIcd11Document(document) ? ICD11_RANK : KIND_RANK[searchResultDocumentKind(document)],
       // Titles such as “1-(4-БРОМФЕНИЛ)…” sort before every word under COLLATE NOCASE.
       symbolic: /^\P{L}/u.test(document.title.trim()) ? 1 : 0,
     }))

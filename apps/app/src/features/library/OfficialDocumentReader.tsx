@@ -29,6 +29,8 @@ import {
   ReaderActionsMenu,
   ReaderTitleRow,
 } from '@/features/collections/ReaderItemActions';
+import { Icd11CardPanel } from '@/features/icd11/Icd11CardPanel';
+import { isIcd11Document } from '@/features/icd11/icd11-document';
 import { ClinicalEditionNoticeLine } from '@/features/library/ClinicalEditionNotice';
 import { DocumentFindBar, type DocumentFindResultState } from '@/features/library/DocumentFindBar';
 import { DocumentModulePointer } from '@/features/library/DocumentModulePointer';
@@ -1319,6 +1321,10 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                 </Show>
 
                 <RlsMedicationPackagingPanel document={documentValue()} />
+
+                <Show when={isIcd11Document(documentValue())}>
+                  <Icd11CardPanel document={documentValue()} />
+                </Show>
 
                 <Show when={props.medicationProduct}>
                   {(product) => (

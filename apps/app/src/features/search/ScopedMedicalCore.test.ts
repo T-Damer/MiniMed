@@ -1131,3 +1131,60 @@ it('filters legacy full ICD documents by the same entity rules as source pointer
   const injury = { ...cough, metadata: { mkbCode: 'S00' } };
   expect(documentMatchesConditionGroup(injury, 'kind:condition')).toBe(true);
 });
+
+describe('WHO ICD-11 reference documents', () => {
+  const icd11 = document('who.icd11.mms.257068234', 'who_icd11_reference');
+
+  it('belong to the «Все» scope only, never to a clinical or ICD-10 section', () => {
+    expect(documentMatchesSearchScope(icd11, 'all')).toBe(true);
+    for (const scope of [
+      'diagnosis',
+      'guidelines',
+      'medications',
+      'legal',
+      'conditions',
+      'calculators',
+      'assessments',
+      'personal',
+    ] as const) {
+      expect(documentMatchesSearchScope(icd11, scope)).toBe(false);
+    }
+    expect(documentMatchesConditionGroup(icd11, 'kind:icd')).toBe(false);
+    expect(documentMatchesConditionGroup(icd11, 'kind:disease')).toBe(false);
+  });
+
+  it('is searched in «Все» but dropped from the diagnosis scope that searches the whole core', async () => {
+    const mkb = document('rls.mkb.node.a00', 'rls_mkb_reference');
+    const value: SearchResponse = {
+      ...response(),
+      groups: [
+        searchGroup(icd11.id, [searchResult(icd11.id, 'Код МКБ-11: 1A00.')], '1A00 Холера'),
+        searchGroup(mkb.id, [searchResult(mkb.id, 'A00 Холера')], 'A00 Холера'),
+      ],
+    };
+    const all = coreWithDocuments([icd11, mkb]);
+    all.search.mockResolvedValueOnce({ ok: true, value });
+    const diagnosis = coreWithDocuments([icd11, mkb]);
+    diagnosis.search.mockResolvedValueOnce({ ok: true, value });
+
+    const inAll = await new ScopedMedicalCore(all.core, 'all').search(request());
+    const inDiagnosis = await new ScopedMedicalCore(diagnosis.core, 'diagnosis').search(request());
+
+    expect(inAll.ok && inAll.value.groups.map((group) => group.documentId)).toEqual([
+      icd11.id,
+      mkb.id,
+    ]);
+    expect(inDiagnosis.ok && inDiagnosis.value.groups.map((group) => group.documentId)).toEqual([
+      mkb.id,
+    ]);
+  });
+
+  it('never enters the document filter of a scope with a source-type list', async () => {
+    const mkb = document('rls.mkb.node.a00', 'rls_mkb_reference');
+    const base = coreWithDocuments([icd11, mkb]);
+
+    await new ScopedMedicalCore(base.core, 'conditions').search(request());
+
+    expect(base.search.mock.calls[0]?.[0].filters.documentIds).toEqual([mkb.id]);
+  });
+});

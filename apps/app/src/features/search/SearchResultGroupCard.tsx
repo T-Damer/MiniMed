@@ -6,6 +6,7 @@ import { ClinicalTags } from '@/components/ClinicalTags';
 import { Disclosure } from '@/components/Disclosure';
 import { HighlightedText } from '@/components/HighlightedText';
 import { IcdText } from '@/components/IcdText';
+import { ICD11_RESULT_LABEL, isIcd11DocumentId } from '@/features/icd11/icd11-document';
 import { RESULT_KIND_VISUALS } from '@/features/search/searchResultKindVisuals';
 import { pluralRu } from '@/i18n/labels';
 import '@/features/search/search-result-group.css';
@@ -66,7 +67,10 @@ export function SearchResultGroupCard(props: {
 }): JSX.Element {
   // Resolved once: the first line of the header gives up room to the action only when it shows.
   const action = children(() => props.action);
-  const kind = () => RESULT_KIND_VISUALS[props.group.documentKind ?? 'reference'];
+  const kind = () =>
+    isIcd11DocumentId(props.group.documentId)
+      ? { icon: RESULT_KIND_VISUALS.reference.icon, label: ICD11_RESULT_LABEL }
+      : RESULT_KIND_VISUALS[props.group.documentKind ?? 'reference'];
   const contentLabel = () =>
     props.group.terminologyMatch === 'term'
       ? 'Медицинский термин'

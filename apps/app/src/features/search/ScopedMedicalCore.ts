@@ -29,6 +29,7 @@ import {
   searchSubjectText,
   tokenize,
 } from '@localmed/search-lexical';
+import { isIcd11Document, isIcd11DocumentId } from '@/features/icd11/icd11-document';
 
 export type SearchScope =
   | 'diagnosis'
@@ -81,6 +82,9 @@ export function documentMatchesSearchScope(
   scope: SearchScope,
 ): boolean {
   if (scope === 'personal') return false;
+  // WHO ICD-11 is an optional reference: ICD-10 stays the default coding system, so ICD-11 cards
+  // are searched only in «Все» (where they carry their own label), never in a clinical section.
+  if (isIcd11Document(document)) return scope === 'all';
   if (scope === 'calculators') return searchResultDocumentKind(document) === 'calculator';
   if (scope === 'assessments') return searchResultDocumentKind(document) === 'assessment';
   // Questionnaires and calculators have sections of their own; a tool document whose source type is
@@ -294,6 +298,15 @@ function isMedicationSearchDocument(document: SearchDocumentDescriptor): boolean
   if (document.sourceType !== 'rls_mkb_reference') return false;
   const metadata = document.metadata as SearchDocumentKindMetadata | undefined;
   return metadata?.catalogFamily === 'medication' || metadata?.entityType === 'medication';
+}
+
+function dropIcd11Groups(response: SearchResponse): SearchResponse {
+  return response.groups.some((group) => isIcd11DocumentId(group.documentId))
+    ? {
+        ...response,
+        groups: response.groups.filter((group) => !isIcd11DocumentId(group.documentId)),
+      }
+    : response;
 }
 
 function filterMedicationDocuments(
@@ -664,9 +677,11 @@ export class ScopedMedicalCore implements MedicalCore {
       });
     }
     if (!result.ok) return result;
+    // Scopes without a source-type list (diagnosis) search the whole core: ICD-11 is dropped here.
+    const withoutIcd11 = this.scope === 'all' ? result.value : dropIcd11Groups(result.value);
 
     const explicitMedicationResponse =
-      this.scope === 'medications' ? keepExplicitMedicationMatches(result.value) : result.value;
+      this.scope === 'medications' ? keepExplicitMedicationMatches(withoutIcd11) : withoutIcd11;
     const scopedResponse = filterMedicationDocuments(
       explicitMedicationResponse,
       documents.value,
