@@ -1,4 +1,9 @@
 import {
+  CLINICAL_DOCUMENT_ROUTE,
+  installClinicalModule,
+  routeClinicalModule,
+} from '@localmed/app/e2e/clinical-module-fixture';
+import {
   E2E_ASSET_ORIGIN,
   hasLocalCompanionPack,
   mountBuiltApp,
@@ -484,6 +489,8 @@ test('keeps an inline document preview inside the viewport', async ({ page }) =>
 test('opens a document tool in a route-owned window even when mini-windows are disabled', async ({
   page,
 }) => {
+  test.setTimeout(240_000);
+  await routeClinicalModule(page);
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
   const documentRoute =
     '#/modules/documents/d/cmVmZXJlbmNlLm1pbmltZWQuYXNzZXNzbWVudC50ZWFtLXJvbGVz';
@@ -511,7 +518,9 @@ test('opens a document tool in a route-owned window even when mini-windows are d
   });
   await expect(toolWindow).toHaveCount(0);
 
-  const calculatorDocumentRoute = '#/modules/documents/d/a3IucmYuNzU1XzEucm90YXZpcnVz';
+  // An installed recommendation whose text names calculators (CHA2DS2-VASc, ankle-brachial index).
+  await installClinicalModule(page);
+  const calculatorDocumentRoute = new URL(CLINICAL_DOCUMENT_ROUTE).hash;
   await page.evaluate((route) => {
     window.location.hash = route;
   }, calculatorDocumentRoute);
