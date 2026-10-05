@@ -4,6 +4,26 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.50] - 2026-10-05
+
+- Official forms: 070/у, 072/у, 076/у, 079/у and 025-1/у from Минздрав order 274н (official text from
+  publication.pravo.gov.ru). Fill them from a patient card with prefilled patient, diagnosis, clinician and
+  organization data, see the filling rule behind every field, and print or save a PDF laid out like the
+  official blank. New patient fields «Данные для справок и форм» and Settings → «Врач и организация».
+- Tools are the app's own features: conversation recording, ECG by photo, forms, notes, image viewer and
+  calculators. Calculators and questionnaires can be starred into the quick-access row. The image
+  viewer opens empty with «Открыть из моих файлов» / «Открыть новый файл» and accepts dropped files.
+- Recording a conversation shows an app-wide «Идёт запись беседы» bar that opens a window with the live
+  text and a stop button.
+- Onboarding: the intro waits for «Далее» and the core download starts after it; a new core-loading
+  animation, clearer arrow, spacing and shadows; notices no longer cover the tour buttons; the files step
+  is compact. «Что умеет MiniMed» slides open the real pages.
+- Search page: «Назад к разделам» when a section is open, a loading skeleton that matches the results
+  and stays in place, primary-style tool and help buttons.
+- Buttons rise on hover and press in on click without the hover flicker at the edges; one slider style
+  everywhere; a «⋯» button reveals the context menu on file cards; dialogs that failed to open inside
+  some screens (e.g. «Новый шаблон») open again.
+
 ## [0.6.49] - 2026-10-05
 
 - Drugs by what they treat: with «Поиск по смыслу» downloaded, «Препараты» finds medicines from
