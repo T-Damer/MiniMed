@@ -326,6 +326,11 @@
   z-index: var(--z-raised);
 }
 
+/* The star sits above the card's full-size open button. */
+.calculator-card > .calculator-card__pins {
+  z-index: var(--z-raised-3);
+}
+
 .calculator-section {
   position: relative;
 }

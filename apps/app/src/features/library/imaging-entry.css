@@ -1,0 +1,116 @@
+.imaging-entry {
+  display: grid;
+  gap: 1rem;
+  color: var(--theme-text);
+}
+
+.imaging-entry__drop {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem 1rem;
+  border: 2px dashed var(--theme-border);
+  border-radius: var(--theme-radius-panel);
+  background: var(--theme-surface-muted);
+  text-align: center;
+  transition:
+    border-color var(--theme-motion-control, 140ms ease-out),
+    background-color var(--theme-motion-control, 140ms ease-out);
+}
+
+.imaging-entry__drop--active {
+  border-color: var(--theme-accent);
+  background: var(--theme-accent-soft);
+}
+
+.imaging-entry__icon {
+  width: 2rem;
+  height: 2rem;
+  color: var(--theme-accent);
+}
+
+.imaging-entry__lead {
+  margin: 0;
+  font-weight: 700;
+}
+
+.imaging-entry__hint,
+.imaging-entry__empty {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.imaging-entry__problem {
+  margin: 0;
+  color: var(--theme-danger);
+  font-size: 0.85rem;
+}
+
+.imaging-entry__studies {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.imaging-entry__heading {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.imaging-entry__list {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.imaging-entry__study {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.imaging-entry__study-icon {
+  width: 1.2rem;
+  height: 1.2rem;
+  flex: none;
+  color: var(--theme-accent);
+}
+
+.imaging-entry__study-copy {
+  display: grid;
+  min-width: 0;
+}
+
+.imaging-entry__study-title {
+  overflow: hidden;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.imaging-entry__study-meta {
+  overflow: hidden;
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .imaging-entry__drop {
+    transition: none;
+  }
+}

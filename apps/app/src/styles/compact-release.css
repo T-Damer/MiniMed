@@ -618,7 +618,12 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   width: max-content;
   min-width: 100%;
   gap: 0.3125rem;
-  padding-inline: 0.5rem;
+  /* Room for the hovered chip's shadow inside the clipping viewport; the frame gives it back. */
+  padding: 0.25rem 0.75rem 1.4rem;
+}
+
+.search-workspace-main .example-scroll {
+  margin-block: -0.25rem -1.4rem;
 }
 
 .search-workspace-main .example-scroll-content__chip {
@@ -1351,9 +1356,24 @@ html.app-chrome-hidden .app-bottom-nav {
   transform: scale(1.05);
 }
 
-.search-history-fab svg {
+.search-history-fab__glyph {
   width: 1.125rem;
   height: 1.125rem;
+  grid-area: 1 / 1;
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.search-history-fab__glyph--off {
+  opacity: 0;
+  transform: scale(0.7);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-history-fab__glyph {
+    transition: none;
+  }
 }
 
 .search-history-drawer-backdrop {
@@ -2645,11 +2665,11 @@ html.native-print-active #root {
 
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   .patient-card:hover {
-    transform: rotate(-1deg) scale(1.012);
+    transform: scale(1.012);
   }
 
   .patient-card:nth-child(2n):hover {
-    transform: rotate(1deg) scale(1.012);
+    transform: scale(1.012);
   }
 }
 

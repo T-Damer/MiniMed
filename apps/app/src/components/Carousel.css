@@ -57,6 +57,9 @@
   grid-auto-columns: 100%;
   grid-auto-flow: column;
   column-gap: 0.75rem;
+  /* Room inside the clipping track for a card's elevated shadow, given back by the margin. */
+  padding-block: 0 1.25rem;
+  margin-block: 0 -1.25rem;
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;

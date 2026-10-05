@@ -125,16 +125,8 @@ export function MedicalImageViewerToolbar(props: {
             aria-label="Вернуться к навигации (Backspace)"
             title="Вернуться к навигации (Backspace)"
             onClick={props.onBack}
-            icon={
-              <>
-                <AppGlyph name="arrow-left" class="medical-image-viewer__tool-icon" />
-                <Show when={props.showShortcuts}>
-                  <span class="medical-image-viewer__tool-shortcut" aria-hidden="true">
-                    (⌫)
-                  </span>
-                </Show>
-              </>
-            }
+            data-shortcut={props.showShortcuts ? '⌫' : undefined}
+            icon={<AppGlyph name="arrow-left" class="medical-image-viewer__tool-icon" />}
           />
           <MedicalImageTitle title={props.title} />
         </div>
@@ -160,16 +152,8 @@ export function MedicalImageViewerToolbar(props: {
                 aria-pressed={props.detailsOpen}
                 aria-expanded={props.detailsOpen}
                 onClick={props.onDetailsToggle}
-                icon={
-                  <>
-                    <AppGlyph name="info" class="medical-image-viewer__tool-icon" />
-                    <Show when={props.showShortcuts}>
-                      <span class="medical-image-viewer__tool-shortcut" aria-hidden="true">
-                        (i)
-                      </span>
-                    </Show>
-                  </>
-                }
+                data-shortcut={props.showShortcuts ? 'i' : undefined}
+                icon={<AppGlyph name="info" class="medical-image-viewer__tool-icon" />}
               />
               <Button
                 class="medical-image-viewer__tool medical-image-viewer__tool--icon"
@@ -187,18 +171,12 @@ export function MedicalImageViewerToolbar(props: {
                 title="Сбросить вид (R)"
                 disabled={props.loading}
                 onClick={props.onReset}
+                data-shortcut={props.showShortcuts ? 'r' : undefined}
                 icon={
-                  <>
-                    <AppGlyph
-                      name="arrow-counter-clockwise"
-                      class="medical-image-viewer__tool-icon"
-                    />
-                    <Show when={props.showShortcuts}>
-                      <span class="medical-image-viewer__tool-shortcut" aria-hidden="true">
-                        (r)
-                      </span>
-                    </Show>
-                  </>
+                  <AppGlyph
+                    name="arrow-counter-clockwise"
+                    class="medical-image-viewer__tool-icon"
+                  />
                 }
               />
             </div>

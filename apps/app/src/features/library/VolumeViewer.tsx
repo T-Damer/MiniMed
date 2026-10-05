@@ -1411,16 +1411,8 @@ export default function VolumeViewer(props: VolumeViewerProps): JSX.Element {
             aria-pressed={contrastActive()}
             disabled={loading() || activeView() === 'render'}
             onClick={toggleContrastTool}
-            icon={
-              <>
-                <AppGlyph name="circle-half" class="medical-image-viewer__tool-icon" />
-                <Show when={showShortcuts}>
-                  <span class="medical-image-viewer__tool-shortcut" aria-hidden="true">
-                    (c)
-                  </span>
-                </Show>
-              </>
-            }
+            data-shortcut={showShortcuts ? 'c' : undefined}
+            icon={<AppGlyph name="circle-half" class="medical-image-viewer__tool-icon" />}
           />
           <Button
             class="medical-image-viewer__tool medical-image-viewer__tool--icon"

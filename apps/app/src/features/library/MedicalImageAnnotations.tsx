@@ -51,6 +51,7 @@ export function MedicalImageAnnotationToolbar(props: {
             props.tool === 'pen' && props.color === 'red',
         }}
         type="button"
+        data-shortcut={props.showShortcuts !== false ? 'D' : undefined}
         aria-label="Режим: красный карандаш (D)"
         title="Режим: красный карандаш (D)"
         aria-pressed={props.tool === 'pen' && props.color === 'red'}
@@ -61,11 +62,6 @@ export function MedicalImageAnnotationToolbar(props: {
           name={props.tool === 'pen' && props.color === 'red' ? 'edit-fill' : 'edit'}
           class="medical-image-viewer__annotation-color-icon"
         />
-        <Show when={props.showShortcuts !== false}>
-          <span class="medical-image-viewer__tool-shortcut" aria-hidden="true">
-            (d)
-          </span>
-        </Show>
       </button>
       <button
         class="medical-image-viewer__annotation-color medical-image-viewer__annotation-color--blue"
@@ -74,6 +70,7 @@ export function MedicalImageAnnotationToolbar(props: {
             props.tool === 'pen' && props.color === 'blue',
         }}
         type="button"
+        data-shortcut={props.showShortcuts !== false ? 'D' : undefined}
         aria-label="Режим: синий карандаш (D)"
         title="Режим: синий карандаш (D)"
         aria-pressed={props.tool === 'pen' && props.color === 'blue'}
@@ -84,11 +81,6 @@ export function MedicalImageAnnotationToolbar(props: {
           name={props.tool === 'pen' && props.color === 'blue' ? 'edit-fill' : 'edit'}
           class="medical-image-viewer__annotation-color-icon"
         />
-        <Show when={props.showShortcuts !== false}>
-          <span class="medical-image-viewer__tool-shortcut" aria-hidden="true">
-            (d)
-          </span>
-        </Show>
       </button>
       <Button
         class="medical-image-viewer__tool medical-image-viewer__tool--icon"
@@ -98,16 +90,8 @@ export function MedicalImageAnnotationToolbar(props: {
         aria-pressed={props.tool === 'eraser'}
         disabled={props.disabled}
         onClick={() => props.onToolChange(props.tool === 'eraser' ? 'none' : 'eraser')}
-        icon={
-          <>
-            <AppGlyph name="eraser" class="medical-image-viewer__tool-icon" />
-            <Show when={props.showShortcuts !== false}>
-              <span class="medical-image-viewer__tool-shortcut" aria-hidden="true">
-                (e)
-              </span>
-            </Show>
-          </>
-        }
+        data-shortcut={props.showShortcuts !== false ? 'E' : undefined}
+        icon={<AppGlyph name="eraser" class="medical-image-viewer__tool-icon" />}
       />
     </fieldset>
   );

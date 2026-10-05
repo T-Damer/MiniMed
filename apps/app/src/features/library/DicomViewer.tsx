@@ -958,16 +958,8 @@ export default function DicomViewer(props: DicomViewerProps): JSX.Element {
             title="Режим: настройка контраста (C)"
             aria-pressed={activeTool() === 'window'}
             onClick={() => setPrimaryTool('window')}
-            icon={
-              <>
-                {toolIcon('circle-half')}
-                <Show when={showShortcuts}>
-                  <span class="medical-image-viewer__tool-shortcut" aria-hidden="true">
-                    (c)
-                  </span>
-                </Show>
-              </>
-            }
+            data-shortcut={showShortcuts ? 'C' : undefined}
+            icon={toolIcon('circle-half')}
           >
             Контраст
           </Button>
@@ -978,16 +970,8 @@ export default function DicomViewer(props: DicomViewerProps): JSX.Element {
             title="Режим: перемещение изображения (P)"
             aria-pressed={activeTool() === 'pan'}
             onClick={() => setPrimaryTool('pan')}
-            icon={
-              <>
-                {toolIcon('hand')}
-                <Show when={showShortcuts}>
-                  <span class="medical-image-viewer__tool-shortcut" aria-hidden="true">
-                    (p)
-                  </span>
-                </Show>
-              </>
-            }
+            data-shortcut={showShortcuts ? 'P' : undefined}
+            icon={toolIcon('hand')}
           >
             Перемещение
           </Button>
@@ -998,16 +982,8 @@ export default function DicomViewer(props: DicomViewerProps): JSX.Element {
             title="Режим: масштаб изображения (Z)"
             aria-pressed={activeTool() === 'zoom'}
             onClick={() => setPrimaryTool('zoom')}
-            icon={
-              <>
-                {toolIcon('magnifying-glass-plus')}
-                <Show when={showShortcuts}>
-                  <span class="medical-image-viewer__tool-shortcut" aria-hidden="true">
-                    (z)
-                  </span>
-                </Show>
-              </>
-            }
+            data-shortcut={showShortcuts ? 'Z' : undefined}
+            icon={toolIcon('magnifying-glass-plus')}
           >
             Масштаб
           </Button>

@@ -694,12 +694,11 @@
     border-color: var(--theme-accent);
     background: var(--theme-accent-soft);
     box-shadow: var(--theme-card-hover-shadow);
-    transform: translateY(-1px);
   }
 }
 
 .assessment-methodology-trigger:active {
-  transform: translateY(1px);
+  box-shadow: inset 0 0.05rem 0.15rem 0 rgb(0 0 0 / 18%);
 }
 
 .assessment-methodology-body__link {

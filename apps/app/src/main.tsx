@@ -41,6 +41,7 @@ import '@/styles/library-polish.css';
 import '@/styles/notes-polish.css';
 import '@/styles/reader-polish.css';
 import '@/styles/floating-windows.css';
+import '@/styles/primary-depth.css';
 
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element.');

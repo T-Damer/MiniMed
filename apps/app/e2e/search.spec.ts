@@ -116,11 +116,11 @@ test('the tool row holds «Все инструменты» and only the tools th
   for (const group of ['Приём', 'Расчёты', 'Справочное', 'Файлы']) {
     await expect(sheet.getByRole('heading', { name: group, exact: true })).toBeVisible();
   }
-  await sheet.getByRole('button', { name: 'Добавить «Пациенты» в избранное' }).click();
+  await sheet.getByRole('button', { name: 'Добавить «Формы» в избранное' }).click();
   await page.keyboard.press('Escape');
   await expect(sheet).toHaveCount(0);
-  await row.getByRole('button', { name: 'Пациенты', exact: true }).click();
-  await expect(page).toHaveURL(/#\/notes\/patients$/u);
+  await row.getByRole('button', { name: 'Формы', exact: true }).click();
+  await expect(page).toHaveURL(/#\/notes\/forms$/u);
 });
 
 /** The active position dot names the slide in view: «Функция 2 из 4» → 2. */

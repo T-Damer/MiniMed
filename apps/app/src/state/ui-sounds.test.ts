@@ -103,6 +103,30 @@ describe('UiSoundController', () => {
     expect(mockPlayer.play).toHaveBeenCalledWith('hover', { volume: 0.2 });
   });
 
+  it('plays hover once while the pointer flutters along a control edge', async () => {
+    const { uiSounds } = await import('@/state/ui-sounds');
+    const button = { id: 'edge' } as unknown as Element;
+    // Pointer moves along the edge: over, out, over, out... as the box jitters under the cursor.
+    for (let move = 0; move < 20; move += 1) {
+      uiSounds.hover(button, 'mouse');
+      uiSounds.clearHover(button);
+    }
+    expect(mockPlayer.play).toHaveBeenCalledTimes(1);
+  });
+
+  it('plays hover again for a real re-entry after the replay window', async () => {
+    const { uiSounds, HOVER_REPLAY_MS } = await import('@/state/ui-sounds');
+    const button = { id: 'again' } as unknown as Element;
+    const now = vi.spyOn(performance, 'now');
+    now.mockReturnValue(1_000);
+    uiSounds.hover(button, 'mouse');
+    uiSounds.clearHover(button);
+    now.mockReturnValue(1_000 + HOVER_REPLAY_MS + 1);
+    uiSounds.hover(button, 'mouse');
+    expect(mockPlayer.play).toHaveBeenCalledTimes(2);
+    now.mockRestore();
+  });
+
   it('applies per-cue gain relative to master volume', async () => {
     const { uiSounds } = await import('@/state/ui-sounds');
     uiSounds.play('press');

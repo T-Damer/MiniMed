@@ -1,7 +1,6 @@
 import { createEffect, createMemo, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
-import { Button } from '@/components/Button';
 import { MriSliceViewer } from '@/features/onboarding/MriSliceViewer';
 
 /**
@@ -318,68 +317,13 @@ export function ToolsDemo(props: TourDemoProps): JSX.Element {
 }
 
 /**
- * The image viewer on real frames: sagittal head-MRI slices captured from MiniMed's viewer on the
- * downloadable MRI example, which the button adds to «Мои файлы» to open in the viewer itself.
+ * The image viewer on real frames: sagittal head-MRI slices captured from MiniMed's viewer. The
+ * slide's own actions (FeatureTour) open the real viewer or the research folder.
  */
 export function ImagingDemo(_props: TourDemoProps): JSX.Element {
-  const [example, setExample] = createSignal<
-    | { state: 'idle' }
-    | { state: 'loading'; progress: number }
-    | { state: 'added' }
-    | { state: 'error'; message: string }
-  >({ state: 'idle' });
-  const addExample = (): void => {
-    setExample({ state: 'loading', progress: 0 });
-    // The user library loads only when asked, so the setup screen stays light.
-    import('@/state/user-library')
-      .then(({ downloadUserLibraryExample, USER_LIBRARY_EXAMPLE_SLOTS }) => {
-        const mri = USER_LIBRARY_EXAMPLE_SLOTS.find((slot) => slot.id === 'mri');
-        if (!mri) throw new Error('Пример МРТ недоступен в этой сборке.');
-        return downloadUserLibraryExample(mri, (progress) =>
-          setExample({ state: 'loading', progress }),
-        );
-      })
-      .then(
-        () => setExample({ state: 'added' }),
-        (cause: unknown) =>
-          setExample({
-            state: 'error',
-            message: cause instanceof Error ? cause.message : 'Не удалось скачать пример.',
-          }),
-      );
-  };
   return (
     <div class="tour-demo tour-demo--imaging">
-      <MriSliceViewer compact>
-        <Button
-          class="tour-imaging__action"
-          variant="secondary"
-          disabled={example().state === 'loading' || example().state === 'added'}
-          onClick={addExample}
-          title="Пример МРТ появится в «Моих файлах»"
-          icon={<AppGlyph name="download" />}
-        >
-          {(() => {
-            const state = example();
-            if (state.state === 'loading')
-              return `Скачиваем · ${Math.round(state.progress * 100)}%`;
-            if (state.state === 'added') return 'Пример МРТ в «Моих файлах»';
-            return 'Скачать пример МРТ';
-          })()}
-        </Button>
-      </MriSliceViewer>
-      <Show
-        when={(() => {
-          const state = example();
-          return state.state === 'error' ? state.message : undefined;
-        })()}
-      >
-        {(message) => (
-          <p class="tour-imaging__error" role="alert">
-            {message()}
-          </p>
-        )}
-      </Show>
+      <MriSliceViewer compact />
     </div>
   );
 }

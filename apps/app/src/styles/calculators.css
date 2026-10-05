@@ -493,6 +493,12 @@ html.calculator-route-open body {
   color: var(--theme-text-muted);
 }
 
+.calculator-card__pins {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto;
+}
+
 .calculator-card__actions {
   display: flex;
   justify-content: flex-end;
@@ -522,7 +528,6 @@ html.calculator-route-open body {
 .calculator-card__download:hover {
   border-color: var(--theme-accent);
   background: color-mix(in srgb, var(--theme-accent) 86%, black);
-  transform: translateY(-1px);
 }
 
 .calculator-card__download-icon {

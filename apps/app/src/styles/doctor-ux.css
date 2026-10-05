@@ -1337,7 +1337,6 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
 @media (hover: hover) and (pointer: fine) {
   .document-library-card:hover {
     border-color: var(--stamp);
-    transform: translateY(-1px);
   }
 }
 

@@ -98,6 +98,7 @@ import {
   attachedResultNoteTitle,
   snapshotCalculationForNote,
 } from '@/features/notes/note-attached-results';
+import { ItemFavoriteButton, toolItem } from '@/features/search/ToolPinControls';
 import {
   getExperimentalModulesEnabled,
   getSplitNavigation,
@@ -204,6 +205,11 @@ function CalculatorCard(props: {
             if (available) props.onOpen(available);
           }}
         />
+      </Show>
+      <Show when={definition.state === 'available'}>
+        <div class="calculator-card__pins">
+          <ItemFavoriteButton item={toolItem(definition.id, definition.title)} />
+        </div>
       </Show>
       {definition.state === 'available' ? (
         !props.installed ? (

@@ -22,6 +22,7 @@ import {
   isAssessmentSectionFromDatabase,
 } from '@/features/assessments/assessment-packs';
 import { assessmentCatalogCrumbs } from '@/features/assessments/assessment-routing';
+import { ItemFavoriteButton, toolItem } from '@/features/search/ToolPinControls';
 import { assessmentCountLabel } from '@/i18n/labels';
 
 export type AssessmentCatalogEntry = ReturnType<typeof searchAssessments>[number];
@@ -64,6 +65,7 @@ export function AssessmentCard(props: {
           </Show>
         </div>
         <div class="assessment-card-icon-actions">
+          <ItemFavoriteButton item={toolItem(props.definition.id, props.definition.title)} />
           <Show when={!props.installed}>
             <Button
               type="button"

@@ -103,6 +103,18 @@
   --theme-weight-emphasis: 750;
   --theme-weight-strong: 800;
   --theme-motion-control: 140ms ease-out;
+  /* Primary (filled accent) control depth: rests on a ledge, lifts on hover, presses in on click. */
+  --theme-primary-edge: color-mix(in srgb, var(--theme-accent) 55%, black);
+  --theme-primary-hover-background: color-mix(in srgb, var(--theme-accent) 86%, white);
+  --theme-primary-active-background: color-mix(in srgb, var(--theme-accent) 92%, black);
+  --theme-primary-rest-shadow:
+    inset 0 0.05rem 0 0 rgb(255 255 255 / 18%), 0 0.14rem 0 0 var(--theme-primary-edge),
+    0 0.25rem 0.5rem rgb(0 0 0 / 22%);
+  --theme-primary-hover-shadow:
+    inset 0 0.08rem 0 0 rgb(255 255 255 / 38%), 0 0.22rem 0 0 var(--theme-primary-edge),
+    0 0.6rem 1.1rem rgb(0 0 0 / 28%);
+  --theme-primary-active-shadow:
+    inset 0 0.2rem 0.4rem 0 rgb(0 0 0 / 38%), inset 0 0 0 1px rgb(0 0 0 / 14%);
   --theme-motion-standard: 180ms ease;
   --theme-control-height-large: 3.5rem;
   --theme-control-icon-size: 2.1rem;

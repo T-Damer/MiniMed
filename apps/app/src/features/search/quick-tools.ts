@@ -20,6 +20,8 @@ export interface QuickTool {
   readonly group?: QuickToolGroupId;
   /** Set while the tool cannot open yet; shown instead of opening. */
   readonly unavailableReason?: string;
+  /** Present when the tool takes files: its row accepts a drop and hands the files here. */
+  readonly dropFiles?: (files: readonly File[]) => void;
 }
 
 export type QuickToolGroupId = 'reception' | 'calculations' | 'reference' | 'files';
@@ -47,26 +49,22 @@ export function groupQuickTools(tools: readonly QuickTool[]): readonly {
   });
 }
 
-/** Stable ids for app-level tools that are not catalog entries. */
+/**
+ * Stable ids for app-level tools that are not catalog entries. «Все инструменты» lists only these
+ * real app features; calculators and questionnaires are starred from their own pages instead.
+ */
 export const APP_TOOL_IDS = {
   conversation: 'minimed.app.conversation',
-  reference: 'minimed.app.reference',
-  patients: 'minimed.app.patients',
+  ecgPhoto: 'ecg-photo-caliper',
+  forms: 'minimed.app.forms',
+  notes: 'minimed.app.notes',
+  imaging: 'minimed.app.imaging',
   calculators: 'minimed.app.calculators',
+  reference: 'minimed.app.reference',
+  /** Not listed any more; kept so tools starred in older versions still open. */
+  patients: 'minimed.app.patients',
   assessments: 'minimed.app.assessments',
-  graph: 'minimed.app.graph',
-  randomRecord: 'minimed.app.random-record',
-  files: 'minimed.app.files',
-  noteTemplates: 'minimed.app.note-templates',
-  ctExample: 'minimed.app.ct-example',
 } as const;
-
-/** Catalog tools also offered among built-in tools (they have their own home entry). */
-export const FEATURED_CATALOG_TOOL_IDS: readonly string[] = ['ecg-photo-caliper'];
-
-export function featuredCatalogTools(tools: readonly QuickTool[]): readonly QuickTool[] {
-  return FEATURED_CATALOG_TOOL_IDS.flatMap((id) => tools.filter((tool) => tool.id === id));
-}
 
 export function quickToolsFromCatalog(tools: readonly SearchCatalogTool[]): readonly QuickTool[] {
   return tools.map((tool) => ({

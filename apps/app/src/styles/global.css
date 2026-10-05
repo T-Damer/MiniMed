@@ -175,7 +175,8 @@ button:disabled {
     .clinical-edition-notice__link,
     .recommendation-row__edition-link
   ):hover {
-    transform: translateY(-1px);
+    /* Hover never moves the button: a transform would slide it from under the pointer at its
+       edge, ending the hover, and the loop would replay the hover sound. Shadow only. */
     box-shadow: var(--theme-control-hover-shadow);
   }
 
@@ -776,13 +777,11 @@ main {
 }
 
 .search-button:hover:not(:disabled) {
-  transform: translateY(-1px);
   box-shadow: 0 0.2rem 0 color-mix(in srgb, var(--theme-accent) 55%, black);
 }
 
 .search-button:active:not(:disabled) {
   box-shadow: inset 0 0.05rem 0.15rem 0 rgb(0 0 0 / 25%);
-  transform: translateY(0.1rem);
 }
 
 .search-button__icon {
@@ -1744,7 +1743,6 @@ main {
 .document-folder.selected {
   z-index: var(--z-raised);
   background: #e0c98a;
-  transform: translateX(0.3125rem);
 }
 
 .document-folder.selected {

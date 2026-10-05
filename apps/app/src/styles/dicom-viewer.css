@@ -166,10 +166,7 @@
   border-color: color-mix(in srgb, var(--theme-accent) 74%, white);
   color: var(--theme-accent-contrast);
   background: var(--theme-accent);
-  box-shadow:
-    inset 0 0.05rem 0 rgb(255 255 255 / 20%),
-    0 0.12rem 0 color-mix(in srgb, var(--theme-accent) 52%, black),
-    0 0.2rem 0.45rem rgb(0 0 0 / 24%);
+  box-shadow: var(--theme-primary-rest-shadow);
 }
 
 .medical-image-viewer__tool--icon.ui-button {
@@ -183,16 +180,35 @@
   height: 1rem;
 }
 
-.medical-image-viewer__tool-shortcut {
+.medical-image-viewer__tool[data-shortcut]::after,
+.medical-image-viewer__annotation-color[data-shortcut]::after {
   position: absolute;
-  top: 0.16rem;
-  right: 0.2rem;
-  color: currentColor;
-  font-size: var(--type-micro);
+  z-index: 1;
+  right: -0.3rem;
+  bottom: -0.3rem;
+  min-width: 0.95rem;
+  padding: 0.08rem 0.2rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.28rem;
+  color: var(--theme-text-muted);
+  background: var(--theme-surface);
+  box-shadow: 0 0.06rem 0 var(--theme-border);
+  content: attr(data-shortcut);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
   font-weight: 800;
   line-height: 1;
+  text-align: center;
+  text-transform: uppercase;
   pointer-events: none;
-  opacity: 0.8;
+}
+
+/* A keycap hint is for a keyboard: touch screens do not show it. */
+@media (hover: none), (pointer: coarse) {
+  .medical-image-viewer__tool[data-shortcut]::after,
+  .medical-image-viewer__annotation-color[data-shortcut]::after {
+    display: none;
+  }
 }
 
 .medical-image-viewer__slice {
@@ -635,9 +651,10 @@ body:has(.app-shell--medical-image) {
     transform: none;
   }
 
-  .medical-image-viewer__tool.ui-button--primary:hover:not(:disabled) {
+  .medical-image-viewer__tool.ui-button--primary:hover:not(:disabled, :active) {
     color: var(--theme-accent-contrast);
-    background: color-mix(in srgb, var(--theme-accent) 88%, white);
+    background: var(--theme-primary-hover-background);
+    box-shadow: var(--theme-primary-hover-shadow);
   }
 
   .medical-image-viewer__annotation-color:hover:not(:disabled) {

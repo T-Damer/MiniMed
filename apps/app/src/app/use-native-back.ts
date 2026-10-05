@@ -31,6 +31,12 @@ export function useNativeBack(options: {
         window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
         return;
       }
+      // An open search section returns to the section list, like its back arrow.
+      const searchBack = document.querySelector<HTMLButtonElement>('[data-search-back]');
+      if (searchBack) {
+        searchBack.click();
+        return;
+      }
       const nativePrintBack = document.querySelector<HTMLButtonElement>('[data-native-print-back]');
       if (nativePrintBack) {
         nativePrintBack.click();

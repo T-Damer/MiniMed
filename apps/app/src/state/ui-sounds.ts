@@ -6,6 +6,9 @@ import {
   subscribeAppPreferences,
 } from '@/state/app-preferences';
 
+/** The same control does not replay its hover cue within this window (layout jitter, edge flutter). */
+export const HOVER_REPLAY_MS = 400;
+
 const FINE_HOVER_QUERY = '(hover: hover) and (pointer: fine)';
 
 const CUE_GAIN: Partial<Record<CueName, number>> = {
@@ -21,6 +24,7 @@ export class UiSoundController {
   private unlocked = false;
   private preferencesSubscribed = false;
   private hoverTarget: Element | null = null;
+  private readonly hoverPlayedAt = new WeakMap<Element, number>();
 
   constructor(player?: UISFXPlayer) {
     const preferences = loadAppPreferences();
@@ -62,6 +66,10 @@ export class UiSoundController {
     if (!this.allowsHover()) return;
     if (this.hoverTarget === target) return;
     this.hoverTarget = target;
+    const now = performance.now();
+    const previous = this.hoverPlayedAt.get(target);
+    if (previous !== undefined && now - previous < HOVER_REPLAY_MS) return;
+    this.hoverPlayedAt.set(target, now);
     this.play(cue);
   }
 

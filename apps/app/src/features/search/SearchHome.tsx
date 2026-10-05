@@ -12,12 +12,12 @@ import {
 import { toast } from 'solid-sonner';
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
-import { notifyWithOpen } from '@/components/notify';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { SheetPopover } from '@/components/SheetPopover';
 import { useStickySurface } from '@/components/sticky-surface';
 import { ASSESSMENT_PACKS_EVENT } from '@/features/assessments/assessment-packs';
 import { CALCULATOR_PACKS_EVENT } from '@/features/calculators/calculator-packs';
+import { ECG_PHOTO_CALIPER_ID } from '@/features/calculators/calculator-registry';
 import { EcgHomeEntry } from '@/features/calculators/EcgHomeEntry';
 import {
   conversationSession,
@@ -25,18 +25,20 @@ import {
 } from '@/features/conversations/conversation-session';
 import { SearchHistoryPanel } from '@/features/history/SearchHistoryPanel';
 import { preferReadableDocuments } from '@/features/library/document-display';
+import { ImagingViewerEntry } from '@/features/library/ImagingViewerEntry';
+import {
+  createUserLibraryDocuments,
+  findExampleStudy,
+  importAndOpenImagingFiles,
+  openImagingStudy,
+} from '@/features/library/imaging-entry';
 import { KnowledgeGraph } from '@/features/library/KnowledgeGraph';
 import { selectGraphNeighborhood } from '@/features/library/knowledge-graph-model';
 import { medicationDocumentGroups } from '@/features/medications/medicationGroups';
 import { DefinitionReferencePanel } from '@/features/reference/DefinitionReferencePanel';
 import { HomeFeatureCard } from '@/features/search/HomeFeatureCard';
 import { homeDocumentOrder } from '@/features/search/homeDocumentOrder';
-import {
-  APP_TOOL_IDS,
-  featuredCatalogTools,
-  type QuickTool,
-  quickToolsFromCatalog,
-} from '@/features/search/quick-tools';
+import { APP_TOOL_IDS, type QuickTool, quickToolsFromCatalog } from '@/features/search/quick-tools';
 import { pickRandomDocument } from '@/features/search/random-document';
 import {
   documentMatchesConditionGroup,
@@ -78,6 +80,7 @@ import {
   loadIgnoredAppUpdates,
 } from '@/state/ignored-app-updates';
 import { appendSearchHistory, replaySearch, type SearchHistoryEntry } from '@/state/search-history';
+import { USER_LIBRARY_EXAMPLE_MRI_FILE_NAME } from '@/state/user-library';
 
 import '@/features/search/search-help-sheet.css';
 
@@ -196,28 +199,57 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   const catalogDocuments = createMemo(() =>
     scope() === 'all' ? homeDocumentOrder(visibleDocuments()) : visibleDocuments(),
   );
-  /** Why tools that read the corpus cannot open yet; undefined once they can. */
-  const corpusUnavailable = (): string | undefined =>
-    !props.baseCore || catalogLoading() || visibleDocuments().length === 0
-      ? 'Откроется, когда база будет готова'
-      : undefined;
-  /** Everything in «Все инструменты»: app tools by section, plus the featured catalog tool. */
+  /** Library documents: they tell whether the MRI example is already in «Мои файлы». */
+  const libraryDocuments = createUserLibraryDocuments();
+  const mriExample = createMemo(() =>
+    findExampleStudy(libraryDocuments(), 'mri', USER_LIBRARY_EXAMPLE_MRI_FILE_NAME),
+  );
+  const [imagingOpen, setImagingOpen] = createSignal(false);
+  /** Everything in «Все инструменты»: the app's real features by section, nothing else. */
   const builtInTools = createMemo((): readonly QuickTool[] => [
     {
       id: APP_TOOL_IDS.conversation,
-      title: 'Записать беседу',
+      title: 'Запись беседы',
       kindLabel: 'Запись и расшифровка',
       icon: 'microphone',
       group: 'reception',
       run: () => void startConversation(),
     },
     {
-      id: APP_TOOL_IDS.patients,
-      title: 'Пациенты',
-      kindLabel: 'Карточки и дневники',
-      icon: 'users',
+      id: APP_TOOL_IDS.ecgPhoto,
+      title: 'ЭКГ по фото',
+      kindLabel: 'Интервалы и QTc по снимку ленты',
+      icon: 'heartbeat',
       group: 'reception',
-      href: '#/notes/patients',
+      href: `#/calculators/${ECG_PHOTO_CALIPER_ID}`,
+    },
+    {
+      id: APP_TOOL_IDS.forms,
+      title: 'Формы',
+      kindLabel: 'Официальные формы',
+      icon: 'file-text',
+      group: 'reception',
+      href: '#/notes/forms',
+    },
+    {
+      id: APP_TOOL_IDS.notes,
+      title: 'Заметки',
+      kindLabel: 'Заметки, PDF и исследования',
+      icon: 'notes',
+      group: 'files',
+      href: '#/notes',
+    },
+    {
+      id: APP_TOOL_IDS.imaging,
+      title: 'Просмотр снимков',
+      kindLabel: 'DICOM и NIfTI',
+      icon: 'image',
+      group: 'files',
+      run: () => setImagingOpen(true),
+      dropFiles: (files) =>
+        void importAndOpenImagingFiles(files).then((problem) => {
+          if (problem) toast.error(problem);
+        }),
     },
     {
       id: APP_TOOL_IDS.calculators,
@@ -227,18 +259,22 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       group: 'calculations',
       href: '#/calculators',
     },
+    // No `group`: not listed in «Все инструменты», but a star from an older version still opens it.
+    {
+      id: APP_TOOL_IDS.patients,
+      title: 'Пациенты',
+      kindLabel: 'Карточки и дневники',
+      icon: 'users',
+      href: '#/notes/patients',
+    },
     {
       id: APP_TOOL_IDS.assessments,
       title: 'Опросники',
       kindLabel: 'Шкалы и анкеты',
       icon: 'list-checks',
-      group: 'calculations',
       href: '#/assessments',
     },
-    ...featuredCatalogTools(catalogQuickTools()).map(
-      (tool): QuickTool => ({ ...tool, group: 'calculations' }),
-    ),
-    // The draft dictionary and the relation map are experimental modules.
+    // The draft dictionary is an experimental module.
     ...(experimentalModulesEnabled()
       ? [
           {
@@ -250,87 +286,11 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             run: () => setReferenceOpen(true),
             ...(props.baseCore ? {} : { unavailableReason: 'Откроется, когда база будет готова' }),
           },
-          {
-            id: APP_TOOL_IDS.graph,
-            title: 'Карта связей',
-            kindLabel: 'Связи источников',
-            icon: 'graph' as const,
-            group: 'reference' as const,
-            run: () => {
-              setGraphShowAll(false);
-              setGraphOpen(true);
-            },
-            ...(corpusUnavailable() ? { unavailableReason: corpusUnavailable() as string } : {}),
-          },
         ]
       : []),
-    {
-      id: APP_TOOL_IDS.randomRecord,
-      title: 'Случайная запись',
-      kindLabel: 'Из текущего раздела',
-      icon: 'dice',
-      group: 'reference',
-      run: () => {
-        const document = pickRandomDocument(visibleDocuments());
-        if (document) openDocumentOverlay(document.id);
-      },
-      ...(corpusUnavailable() ? { unavailableReason: corpusUnavailable() as string } : {}),
-    },
-    {
-      id: APP_TOOL_IDS.files,
-      title: 'Мои файлы',
-      kindLabel: 'PDF, заметки, исследования',
-      icon: 'folder-open',
-      group: 'files',
-      href: '#/notes',
-    },
-    {
-      id: APP_TOOL_IDS.noteTemplates,
-      title: 'Шаблоны заметок',
-      kindLabel: 'Готовые формы',
-      icon: 'file-text',
-      group: 'files',
-      href: '#/notes/templates',
-    },
-    {
-      id: APP_TOOL_IDS.ctExample,
-      title: 'Пример КТ',
-      kindLabel: 'Скачать в «Мои файлы»',
-      icon: 'image',
-      group: 'files',
-      run: () => void addImagingExample('ct'),
-    },
   ]);
-  /** The CT and MRI examples (the tour offers the MRI one too); the user library loads on demand. */
-  const addImagingExample = async (id: 'ct' | 'mri'): Promise<void> => {
-    const label = id === 'ct' ? 'КТ' : 'МРТ';
-    const [
-      { downloadUserLibraryExample, USER_LIBRARY_EXAMPLE_SLOTS },
-      { openUserLibraryDocument },
-    ] = await Promise.all([
-      import('@/state/user-library'),
-      import('@/features/library/user-library-routing'),
-    ]);
-    const slot = USER_LIBRARY_EXAMPLE_SLOTS.find((entry) => entry.id === id);
-    if (!slot) {
-      toast.error(`Пример ${label} недоступен в этой сборке.`);
-      return;
-    }
-    const pending = toast.loading(`Скачиваем пример ${label}…`);
-    try {
-      const saved = await downloadUserLibraryExample(slot);
-      notifyWithOpen(
-        `Пример ${label} добавлен в «Мои файлы».`,
-        () => openUserLibraryDocument({ documentId: saved.id, title: saved.title }),
-        { id: pending },
-      );
-    } catch (cause) {
-      toast.error(cause instanceof Error ? cause.message : `Не удалось скачать пример ${label}.`, {
-        id: pending,
-      });
-    }
-  };
-  /** «Полезные функции» above the empty search field, starting from today's capability. */
+  /** «Полезные функции» above the empty search field, starting from today's capability. The relation
+   * map and the random record are not repeated here: both have buttons in the page header. */
   const homeFeatures = createMemo((): readonly HomeFeature[] => [
     { id: 'ecg-photo', render: () => <EcgHomeEntry /> },
     {
@@ -340,12 +300,19 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           icon="image"
           kicker="КТ и МРТ"
           title="Просмотр исследований"
-          text="DICOM и NIfTI открываются на устройстве: срезы в трёх плоскостях, 3D и контраст. Попробуйте на примере МРТ головы."
-          action={{
-            label: 'Скачать пример МРТ',
-            icon: 'download',
-            run: () => void addImagingExample('mri'),
-          }}
+          text="DICOM и NIfTI открываются на устройстве: срезы в трёх плоскостях, 3D и контраст. Откройте свой снимок или перетащите файл."
+          action={
+            mriExample()
+              ? {
+                  label: 'Открыть пример МРТ',
+                  icon: 'image',
+                  run: () => {
+                    const example = mriExample();
+                    if (example) openImagingStudy(example);
+                  },
+                }
+              : { label: 'Просмотр снимков', icon: 'image', run: () => setImagingOpen(true) }
+          }
           secondary={{ label: 'Мои файлы', icon: 'folder-open', href: '#/notes' }}
         />
       ),
@@ -368,33 +335,6 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
         />
       ),
     },
-    // The relation map is an experimental module.
-    ...(experimentalModulesEnabled()
-      ? [
-          {
-            id: 'graph',
-            render: () => (
-              <HomeFeatureCard
-                icon="graph"
-                kicker="Карта связей"
-                title="Связи между источниками"
-                text="Диагнозы, коды МКБ, рекомендации и препараты на одной карте: видно, что с чем связано."
-                action={{
-                  label: 'Открыть карту',
-                  icon: 'graph',
-                  run: () => {
-                    setGraphShowAll(false);
-                    setGraphOpen(true);
-                  },
-                  ...(corpusUnavailable()
-                    ? { unavailableReason: corpusUnavailable() as string }
-                    : {}),
-                }}
-              />
-            ),
-          },
-        ]
-      : []),
   ]);
   /** Every tool that can be starred: app tools first, then the whole catalog. */
   const quickTools = createMemo(() => {
@@ -472,6 +412,16 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     if (on) setSourceScope(scope());
     setScope(on ? 'diagnosis' : sourceScope());
   };
+  /** A section (or one of its groups) is open and the field is empty: the way up is the section list. */
+  const sectionOpen = () =>
+    scope() !== 'diagnosis' &&
+    (scope() !== 'all' || Boolean(specialty())) &&
+    catalogQuery().trim().length === 0;
+  const backToSections = (): void => {
+    setGroups({});
+    setSourceScope('all');
+    setScope('all');
+  };
   const [hasSearchScroll, setHasSearchScroll] = createSignal(false);
   const [fieldForm, setFieldForm] = createSignal<HTMLFormElement>();
   /** The field has scrolled up behind the sticky row: the row offers a way back to it. */
@@ -503,6 +453,16 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     updateSearchScroll();
     window.addEventListener('scroll', updateSearchScroll, { passive: true });
     onCleanup(() => window.removeEventListener('scroll', updateSearchScroll));
+    // Escape does what the back arrow does, unless something above the page owns the key.
+    const handleEscape = (event: KeyboardEvent): void => {
+      if (event.key !== 'Escape' || event.defaultPrevented || !props.active || !sectionOpen())
+        return;
+      if (document.querySelector('[aria-modal="true"], .search-history-drawer-backdrop')) return;
+      event.preventDefault();
+      backToSections();
+    };
+    window.addEventListener('keydown', handleEscape);
+    onCleanup(() => window.removeEventListener('keydown', handleEscape));
   });
 
   onCleanup(() => {
@@ -551,7 +511,10 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
         }}
       >
         <Show when={props.active}>
-          <SearchHistoryPanel onReplay={replayHistory} />
+          <SearchHistoryPanel
+            onReplay={replayHistory}
+            back={sectionOpen() ? { label: 'Назад к разделам', onBack: backToSections } : undefined}
+          />
         </Show>
         <Show when={fieldAway()}>
           <button
@@ -620,7 +583,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           onOpenChange={setHelpMenuOpen}
           title="Справка"
           placement="bottom-end"
-          triggerClass="search-mode-help"
+          triggerClass="ui-button ui-button--icon search-mode-help"
           triggerLabel="Справка"
           triggerTitle="Справка"
           trigger="?"
@@ -818,12 +781,20 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
         </OverlayDialog>
       </Show>
       <OverlayDialog
+        open={imagingOpen()}
+        title="Просмотр снимков"
+        class="imaging-entry-dialog"
+        onClose={() => setImagingOpen(false)}
+      >
+        <ImagingViewerEntry onOpened={() => setImagingOpen(false)} />
+      </OverlayDialog>
+      <OverlayDialog
         open={tourOpen()}
         title="Что умеет MiniMed"
         class="feature-tour-dialog"
         onClose={() => setTourOpen(false)}
       >
-        <FeatureTour />
+        <FeatureTour onNavigate={() => setTourOpen(false)} />
       </OverlayDialog>
       <OverlayDialog
         open={helpOpen()}

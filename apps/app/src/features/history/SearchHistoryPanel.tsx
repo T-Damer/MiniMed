@@ -20,6 +20,8 @@ const HISTORY_EDGE_WIDTH_PX = 52;
 
 interface SearchHistoryPanelProps {
   readonly onReplay: (entry: SearchHistoryEntry) => void;
+  /** While set, the button in the history position is a back arrow that runs this instead. */
+  readonly back?: { readonly label: string; readonly onBack: () => void } | undefined;
 }
 
 const MODE_LABELS: Readonly<Record<SearchHistoryEntry['modeUsed'], string>> = {
@@ -136,14 +138,30 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
       <button
         class="search-history-fab"
         type="button"
-        aria-label={open() ? 'Скрыть историю поиска' : 'Показать историю поиска'}
-        aria-expanded={open()}
+        data-search-back={props.back ? '' : undefined}
+        aria-label={
+          props.back
+            ? props.back.label
+            : open()
+              ? 'Скрыть историю поиска'
+              : 'Показать историю поиска'
+        }
+        aria-expanded={props.back ? undefined : open()}
         onClick={() => {
-          if (open()) close();
+          if (props.back) props.back.onBack();
+          else if (open()) close();
           else setOpen(true);
         }}
       >
-        <AppGlyph name="history" />
+        {/* Both icons share one grid cell, so the swap cross-fades without moving anything. */}
+        <AppGlyph
+          name="history"
+          class={`search-history-fab__glyph${props.back ? ' search-history-fab__glyph--off' : ''}`}
+        />
+        <AppGlyph
+          name="arrow-left"
+          class={`search-history-fab__glyph${props.back ? '' : ' search-history-fab__glyph--off'}`}
+        />
       </button>
 
       <Show when={open()}>

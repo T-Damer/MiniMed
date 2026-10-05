@@ -7,12 +7,17 @@
   margin-block: 0;
 }
 
+/* The scroll viewport clips what it contains, so the elevated chip's shadow needs room inside it:
+   the list carries the padding and the frame takes it back as negative margin, so nothing
+   around the row shifts. */
 .search-quick-access__row {
   min-width: 0;
   flex: 1 1 auto;
+  margin: -0.25rem -0.75rem -1.6rem;
 }
 
-/* The one fixed entry of the row: everything else in the row is the doctor's own favourites. */
+/* The one fixed entry of the row, a primary control (depth comes from styles/primary-depth.css);
+   everything else in the row is the doctor's own favourites. */
 .search-quick-access__all {
   display: inline-flex;
   flex: none;
@@ -20,10 +25,10 @@
   gap: 0.4rem;
   min-height: 2.25rem;
   padding: 0.3rem 0.8rem;
-  border: 1px dashed var(--theme-accent);
+  border: 1px solid var(--theme-primary-edge);
   border-radius: 999px;
-  color: var(--theme-accent);
-  background: transparent;
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
   font: inherit;
   font-size: 0.8125rem;
   font-weight: 700;
@@ -55,7 +60,7 @@
   min-width: 0;
   gap: 0.4rem;
   margin: 0;
-  padding: 0.1rem 0;
+  padding: 0.25rem 0.75rem 1.6rem;
   overflow-x: auto;
   list-style: none;
   scrollbar-width: none;
@@ -72,14 +77,46 @@
   max-width: 14rem;
   min-height: 2.25rem;
   padding: 0.3rem 0.7rem;
-  border: 1px solid transparent;
+  border: 1px solid color-mix(in srgb, var(--theme-accent) 35%, var(--theme-border));
   border-radius: 999px;
   color: var(--theme-text);
-  background: var(--theme-accent-soft);
+  background: var(--theme-surface-raised);
+  box-shadow:
+    inset 0 0.05rem 0 0 rgb(255 255 255 / 30%),
+    0 0.14rem 0 0 color-mix(in srgb, var(--theme-border) 75%, black),
+    0 0.25rem 0.5rem rgb(0 0 0 / 14%);
   font: inherit;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
+  transition:
+    background-color var(--theme-motion-control, 140ms ease-out),
+    box-shadow var(--theme-motion-control, 140ms ease-out);
+}
+
+.search-quick-access__chip:active:not(:disabled) {
+  box-shadow: inset 0 0.18rem 0.35rem 0 rgb(0 0 0 / 22%);
+}
+
+.search-quick-access__chip:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .search-quick-access__chip:hover:not(:disabled, :active) {
+    background: color-mix(in srgb, var(--theme-surface-raised) 80%, white);
+    box-shadow:
+      inset 0 0.08rem 0 0 rgb(255 255 255 / 45%),
+      0 0.22rem 0 0 color-mix(in srgb, var(--theme-border) 75%, black),
+      0 0.6rem 1rem rgb(0 0 0 / 22%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-quick-access__chip {
+    transition: none;
+  }
 }
 
 .search-quick-access__chip-icon {
@@ -87,6 +124,11 @@
   height: 0.9rem;
   flex: none;
   color: var(--theme-accent);
+}
+
+/* On the filled primary button the icon takes the label colour, not the accent it sits on. */
+.search-quick-access__chip-icon--on-primary {
+  color: currentColor;
 }
 
 .search-quick-access__chip-label {
@@ -357,7 +399,6 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .search-quick-access__all:hover,
   .quick-tool-row__open:not(:disabled):hover,
   .tool-collection-row__toggle:hover,
   .tool-collection-row__action:hover,
@@ -378,4 +419,16 @@
 
 .search-quick-access__sheet {
   width: min(34rem, 100%);
+}
+
+/* A file is being dragged over a tool that takes files. */
+.quick-tool-row--drop {
+  outline: 2px dashed var(--theme-accent);
+  outline-offset: -2px;
+  background: var(--theme-accent-soft);
+}
+
+.search-quick-access__chip--drop {
+  border-color: var(--theme-accent);
+  background: var(--theme-accent-soft);
 }

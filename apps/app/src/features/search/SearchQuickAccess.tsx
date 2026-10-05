@@ -5,6 +5,7 @@ import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { FolderFigure } from '@/components/FolderFigure';
 import { HorizontalScroller } from '@/components/HorizontalScroller';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import { dragCarriesFiles } from '@/features/library/imaging-entry';
 import {
   groupQuickTools,
   openQuickTool,
@@ -31,14 +32,57 @@ import {
 
 import './search-quick-access.css';
 
+/**
+ * Drop handling for a tool that takes files (data on the tool, never a check of its id): the
+ * element lights up while a file is over it and hands the dropped files to the tool.
+ */
+function createFileDrop(tool: () => QuickTool | undefined) {
+  const [over, setOver] = createSignal(false);
+  const accepts = (event: DragEvent): boolean =>
+    Boolean(tool()?.dropFiles) && dragCarriesFiles(event.dataTransfer);
+  return {
+    over,
+    handlers: {
+      onDragEnter: (event: DragEvent) => {
+        if (!accepts(event)) return;
+        event.preventDefault();
+        setOver(true);
+      },
+      onDragOver: (event: DragEvent) => {
+        if (!accepts(event)) return;
+        event.preventDefault();
+        setOver(true);
+      },
+      onDragLeave: (event: DragEvent) => {
+        if ((event.currentTarget as Node).contains(event.relatedTarget as Node | null)) return;
+        setOver(false);
+      },
+      onDrop: (event: DragEvent) => {
+        if (!accepts(event)) return;
+        event.preventDefault();
+        setOver(false);
+        tool()?.dropFiles?.(Array.from(event.dataTransfer?.files ?? []));
+      },
+    },
+  };
+}
+
 /** One pinned tool; a tool no longer in the catalog stays visible and marked unavailable. */
 function QuickToolRow(props: {
   readonly entry: ResolvedToolRef;
   readonly onOpen: (tool: QuickTool) => void;
   readonly trailing: JSX.Element;
 }): JSX.Element {
+  const drop = createFileDrop(() => props.entry.tool);
   return (
-    <li class="quick-tool-row" classList={{ 'quick-tool-row--unavailable': !props.entry.tool }}>
+    <li
+      class="quick-tool-row"
+      classList={{
+        'quick-tool-row--unavailable': !props.entry.tool,
+        'quick-tool-row--drop': drop.over(),
+      }}
+      {...drop.handlers}
+    >
       <Show
         when={props.entry.tool}
         fallback={
@@ -69,6 +113,26 @@ function QuickToolRow(props: {
         )}
       </Show>
       {props.trailing}
+    </li>
+  );
+}
+
+/** A starred tool in the row under the search field. */
+function QuickToolChip(props: { readonly tool: QuickTool }): JSX.Element {
+  const drop = createFileDrop(() => props.tool);
+  return (
+    <li class="search-quick-access__chip-item" {...drop.handlers}>
+      <button
+        type="button"
+        class="search-quick-access__chip"
+        classList={{ 'search-quick-access__chip--drop': drop.over() }}
+        disabled={Boolean(props.tool.unavailableReason)}
+        title={props.tool.unavailableReason}
+        onClick={() => openQuickTool(props.tool)}
+      >
+        <AppGlyph name={props.tool.icon} class="search-quick-access__chip-icon" />
+        <span class="search-quick-access__chip-label">{props.tool.title}</span>
+      </button>
     </li>
   );
 }
@@ -169,26 +233,14 @@ export function SearchQuickAccess(props: {
               aria-haspopup="dialog"
               onClick={() => setOpen(true)}
             >
-              <AppGlyph name="squares-four" class="search-quick-access__chip-icon" />
+              <AppGlyph
+                name="squares-four"
+                class="search-quick-access__chip-icon search-quick-access__chip-icon--on-primary"
+              />
               <span class="search-quick-access__chip-label">Все инструменты</span>
             </button>
           </li>
-          <For each={chips()}>
-            {(tool) => (
-              <li class="search-quick-access__chip-item">
-                <button
-                  type="button"
-                  class="search-quick-access__chip"
-                  disabled={Boolean(tool.unavailableReason)}
-                  title={tool.unavailableReason}
-                  onClick={() => openQuickTool(tool)}
-                >
-                  <AppGlyph name={tool.icon} class="search-quick-access__chip-icon" />
-                  <span class="search-quick-access__chip-label">{tool.title}</span>
-                </button>
-              </li>
-            )}
-          </For>
+          <For each={chips()}>{(tool) => <QuickToolChip tool={tool} />}</For>
           <Show when={chips().length === 0}>
             <li class="search-quick-access__hint">★ — добавить сюда</li>
           </Show>

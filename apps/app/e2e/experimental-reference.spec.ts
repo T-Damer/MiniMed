@@ -37,7 +37,9 @@ for (const width of [375, 1280]) {
       .getByRole('button', { name: 'Поиск', exact: true })
       .click();
     await allTools.click();
-    await expect(sheet.getByRole('heading', { name: 'Справочное' })).toBeVisible();
+    // «Справочное» holds only the draft dictionary, so the section goes with it.
+    await expect(sheet.getByRole('heading', { name: 'Приём' })).toBeVisible();
+    await expect(sheet.getByRole('heading', { name: 'Справочное' })).toHaveCount(0);
     await expect(sheet.getByText('Словарь терминов', { exact: true })).toHaveCount(0);
   });
 }

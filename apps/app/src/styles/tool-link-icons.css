@@ -54,7 +54,6 @@
 
 .assessment-section--link:hover {
   border-color: var(--theme-accent);
-  transform: translateY(-0.125rem);
 }
 
 .assessment-section--link:focus-visible {

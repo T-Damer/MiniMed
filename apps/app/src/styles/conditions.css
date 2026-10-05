@@ -243,7 +243,6 @@
   .condition-catalog-card:hover,
   .condition-source-card:hover {
     border-color: var(--theme-accent);
-    transform: translateY(-0.125rem);
   }
 }
 

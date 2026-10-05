@@ -33,6 +33,15 @@
     --theme-info-soft: rgb(145 196 228 / 16%);
     --theme-note: #302d25;
     --theme-graph-stroke: #c4a882;
+    --theme-primary-hover-background: color-mix(in srgb, var(--theme-accent) 82%, white);
+    --theme-primary-rest-shadow:
+      inset 0 0.05rem 0 0 rgb(255 255 255 / 22%), 0 0.14rem 0 0 var(--theme-primary-edge),
+      0 0.25rem 0.5rem rgb(0 0 0 / 40%);
+    --theme-primary-hover-shadow:
+      inset 0 0.08rem 0 0 rgb(255 255 255 / 42%), 0 0.22rem 0 0 var(--theme-primary-edge),
+      0 0.6rem 1.1rem rgb(0 0 0 / 55%);
+    --theme-primary-active-shadow:
+      inset 0 0.2rem 0.4rem 0 rgb(0 0 0 / 50%), inset 0 0 0 1px rgb(0 0 0 / 25%);
     --theme-control-hover-shadow:
       inset 0 0.05rem 0 rgb(255 255 255 / 8%), inset 0 -0.08rem 0 rgb(0 0 0 / 14%),
       0 0.16rem 0.3rem rgb(0 0 0 / 32%), 0 0.5rem 1rem rgb(0 0 0 / 24%);
