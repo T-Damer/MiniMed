@@ -1,5 +1,5 @@
 import QRCode from 'qrcode';
-import { createSignal, For, Index, type JSX, onCleanup, Show } from 'solid-js';
+import { createResource, createSignal, For, Index, type JSX, onCleanup, Show } from 'solid-js';
 import { toast } from 'solid-sonner';
 import { Button } from '@/components/Button';
 import { Checkbox } from '@/components/Checkbox';
@@ -13,10 +13,26 @@ import { TextField } from '@/components/TextField';
 import { captureStartErrorMessage } from '@/features/conversations/recording-errors';
 import {
   DiaryPartCollector,
+  decodeDiaryResultsText,
   diaryInvitationLink,
   parseDiaryPart,
 } from '@/features/diary/diary-codec';
-import { applyDiaryImport, diaryImportEvents } from '@/features/diary/diary-import';
+import {
+  applyDiaryImport,
+  type DiaryImportPreview,
+  diaryEventOwner,
+  diaryImportEvents,
+  previewDiaryImport,
+} from '@/features/diary/diary-import';
+import {
+  findLedgerOwner,
+  type IssuedDiary,
+  loadLedger,
+  saveLedger,
+  withImport,
+  withIssued,
+  withoutIssued,
+} from '@/features/diary/diary-ledger';
 import { diaryPageUrl } from '@/features/diary/diary-links';
 import {
   createDiaryId,
@@ -38,17 +54,20 @@ import { diaryPrintHtml } from '@/features/diary/diary-print';
 import { decodeQrFromSource } from '@/features/diary/qr-decode';
 import { PrintManager } from '@/features/printing/print-manager';
 import type { PatientVaultSnapshot } from '@/state/patient-domain';
-import { updatePatientVault } from '@/state/patient-vault';
+import { readPatientVault, updatePatientVault } from '@/state/patient-vault';
 import '@/styles/patient-diary.css';
 
 const MAX_QR_PHOTOS = 40;
 const MAX_QR_PHOTO_BYTES = 20 * 1024 * 1024;
+const MAX_TEXT_FILE_BYTES = 2 * 1024 * 1024;
 
 function errorMessage(cause: unknown, fallback: string): string {
   return cause instanceof Error ? cause.message : fallback;
 }
 
 interface PlanDraft {
+  /** Id of an item already issued: kept when the diary is re-issued so entries still point at it. */
+  readonly id?: string;
   readonly name: string;
   readonly dose: string;
   readonly schedule: string;
@@ -104,21 +123,113 @@ function customFields(drafts: readonly FieldDraft[]): DiaryField[] {
     });
 }
 
-function IssueDiaryDialog(props: { readonly onClose: () => void }): JSX.Element {
-  const [templateId, setTemplateId] = createSignal<string>(DIARY_TEMPLATES[0]?.id ?? CUSTOM);
-  const [customTitle, setCustomTitle] = createSignal('');
-  const [fields, setFields] = createSignal<readonly FieldDraft[]>([EMPTY_FIELD]);
-  const [doctor, setDoctor] = createSignal('');
-  const [note, setNote] = createSignal('');
-  const [plan, setPlan] = createSignal<readonly PlanDraft[]>([EMPTY_PLAN]);
+/** Next free plan id for an item added to an already issued diary (`p1`, `p2`, …). */
+function nextPlanId(taken: ReadonlySet<string>): string {
+  let number = 1;
+  while (taken.has(`p${number}`)) number += 1;
+  return `p${number}`;
+}
+
+function IssuedView(props: {
+  readonly invitation: DiaryInvitation;
+  readonly updated: boolean;
+  readonly onClose: () => void;
+}): JSX.Element {
   const [link, setLink] = createSignal('');
   const [code, setCode] = createSignal('');
+  const [error, setError] = createSignal('');
+
+  void diaryInvitationLink(props.invitation, diaryPageUrl())
+    .then(async (next) => {
+      setCode(await QRCode.toDataURL(next, { errorCorrectionLevel: 'M', margin: 2, width: 360 }));
+      setLink(next);
+    })
+    .catch((cause: unknown) => setError(errorMessage(cause, 'Не удалось создать ссылку.')));
+
+  const copy = async (): Promise<void> => {
+    try {
+      await navigator.clipboard.writeText(link());
+      toast.success('Ссылка скопирована.');
+    } catch (cause) {
+      toast.error(errorMessage(cause, 'Не удалось скопировать ссылку.'));
+    }
+  };
+
+  return (
+    <div class="patient-diary__issued">
+      <Show when={error()}>
+        <p class="patient-diary__error" role="alert">
+          {error()}
+        </p>
+      </Show>
+      <Show when={link()}>
+        <img class="patient-diary__code" src={code()} alt="QR-код дневника для пациента" />
+        <p class="patient-diary__hint">
+          {props.updated
+            ? 'Это тот же дневник с новыми данными. Если пациент откроет новую ссылку, его записи сохранятся, обновится только назначение. '
+            : ''}
+          Попросите пациента отсканировать код камерой телефона. Имя пациента в ссылку не входит,
+          записи хранятся только у пациента.
+        </p>
+        <a class="patient-diary__link" href={link()} target="_blank" rel="noreferrer">
+          {link()}
+        </a>
+        <div class="patient-diary__actions">
+          <Button onClick={() => void copy()}>Копировать ссылку</Button>
+          <Button
+            onClick={() =>
+              PrintManager.html(diaryPrintHtml(props.invitation, [], 24), props.invitation.title)
+            }
+          >
+            Распечатать бланк
+          </Button>
+          <Button variant="primary" onClick={props.onClose}>
+            Готово
+          </Button>
+        </div>
+      </Show>
+    </div>
+  );
+}
+
+function IssueDiaryDialog(props: {
+  readonly patientId: string;
+  /** Set when an already issued diary is being updated: same id, same fields, new plan or note. */
+  readonly editing?: IssuedDiary;
+  readonly onIssued: () => void;
+  readonly onClose: () => void;
+}): JSX.Element {
+  const editing = props.editing?.invitation;
+  const [templateId, setTemplateId] = createSignal<string>(
+    editing?.template && editing.template !== CUSTOM
+      ? editing.template
+      : (DIARY_TEMPLATES[0]?.id ?? CUSTOM),
+  );
+  const [customTitle, setCustomTitle] = createSignal('');
+  const [fields, setFields] = createSignal<readonly FieldDraft[]>([EMPTY_FIELD]);
+  const [doctor, setDoctor] = createSignal(editing?.doctor ?? '');
+  const [note, setNote] = createSignal(editing?.note ?? '');
+  const [plan, setPlan] = createSignal<readonly PlanDraft[]>(
+    editing?.plan?.length
+      ? editing.plan.map((item) => ({
+          id: item.id,
+          name: item.name,
+          dose: item.dose ?? '',
+          schedule: item.schedule ?? '',
+        }))
+      : [EMPTY_PLAN],
+  );
+  const [issued, setIssued] = createSignal<DiaryInvitation | null>(null);
   const [error, setError] = createSignal('');
 
   const template = () => diaryTemplate(templateId());
   const custom = () => templateId() === CUSTOM;
   const hasPlan = () =>
-    custom() ? fields().some((field) => field.type === 'plan') : Boolean(template()?.planTitle);
+    editing
+      ? Boolean(editing.planTitle || editing.plan?.length)
+      : custom()
+        ? fields().some((field) => field.type === 'plan')
+        : Boolean(template()?.planTitle);
 
   const updatePlan = (index: number, patch: Partial<PlanDraft>): void => {
     setPlan((current) =>
@@ -131,19 +242,50 @@ function IssueDiaryDialog(props: { readonly onClose: () => void }): JSX.Element 
     );
   };
 
+  const planItems = (): { id: string; name: string; dose?: string; schedule?: string }[] => {
+    if (!hasPlan()) return [];
+    const taken = new Set<string>(plan().flatMap((item) => (item.id ? [item.id] : [])));
+    return plan()
+      .filter((item) => item.name.trim())
+      .map((item, index) => {
+        // A new draft keeps its position-based id on a first issue; on an update an existing
+        // item keeps its id and a new one gets a free id, so earlier entries still match.
+        const id = item.id ?? (editing ? nextPlanId(taken) : `p${index + 1}`);
+        taken.add(id);
+        return {
+          id,
+          name: item.name,
+          ...(item.dose.trim() ? { dose: item.dose } : {}),
+          ...(item.schedule.trim() ? { schedule: item.schedule } : {}),
+        };
+      });
+  };
+
   const invitation = (): DiaryInvitation => {
-    const planItems = hasPlan()
-      ? plan()
-          .filter((item) => item.name.trim())
-          .map((item, index) => ({
-            id: `p${index + 1}`,
-            name: item.name,
-            ...(item.dose.trim() ? { dose: item.dose } : {}),
-            ...(item.schedule.trim() ? { schedule: item.schedule } : {}),
-          }))
-      : [];
-    if (!custom() && template()?.planRequired && planItems.length === 0) {
+    const items = planItems();
+    if (!editing && !custom() && template()?.planRequired && items.length === 0) {
       throw new Error('Добавьте хотя бы один пункт назначения.');
+    }
+    if (editing) {
+      if (editing.template === 'medication' && items.length === 0) {
+        throw new Error('Добавьте хотя бы один пункт назначения.');
+      }
+      // The next link must sort after the one the patient already has.
+      const issuedAt = new Date(
+        Math.max(Date.now(), Date.parse(editing.issuedAt) + 1000),
+      ).toISOString();
+      return parseDiaryInvitation({
+        v: DIARY_FORMAT_VERSION,
+        id: editing.id,
+        template: editing.template,
+        title: editing.title,
+        issuedAt,
+        fields: editing.fields,
+        ...(items.length ? { plan: items } : {}),
+        ...(editing.planTitle ? { planTitle: editing.planTitle } : {}),
+        ...(doctor().trim() ? { doctor: doctor() } : {}),
+        ...(note().trim() ? { note: note() } : {}),
+      });
     }
     const base = template();
     return parseDiaryInvitation({
@@ -153,7 +295,7 @@ function IssueDiaryDialog(props: { readonly onClose: () => void }): JSX.Element 
       title: custom() ? customTitle() : (base?.title ?? ''),
       issuedAt: new Date().toISOString(),
       fields: custom() ? customFields(fields()) : (base?.fields ?? []),
-      ...(planItems.length ? { plan: planItems } : {}),
+      ...(items.length ? { plan: items } : {}),
       ...(hasPlan() ? { planTitle: custom() ? 'Назначение врача' : base?.planTitle } : {}),
       ...(doctor().trim() ? { doctor: doctor() } : {}),
       ...(note().trim() ? { note: note() } : {}),
@@ -164,9 +306,10 @@ function IssueDiaryDialog(props: { readonly onClose: () => void }): JSX.Element 
     event.preventDefault();
     setError('');
     try {
-      const next = await diaryInvitationLink(invitation(), diaryPageUrl());
-      setCode(await QRCode.toDataURL(next, { errorCorrectionLevel: 'M', margin: 2, width: 360 }));
-      setLink(next);
+      const next = invitation();
+      await saveLedger(props.patientId, withIssued(await loadLedger(props.patientId), next));
+      props.onIssued();
+      setIssued(next);
     } catch (cause) {
       setError(errorMessage(cause, 'Не удалось создать дневник.'));
     }
@@ -182,65 +325,60 @@ function IssueDiaryDialog(props: { readonly onClose: () => void }): JSX.Element 
     }
   };
 
-  const copy = async (): Promise<void> => {
-    try {
-      await navigator.clipboard.writeText(link());
-      toast.success('Ссылка скопирована.');
-    } catch (cause) {
-      toast.error(errorMessage(cause, 'Не удалось скопировать ссылку.'));
-    }
-  };
-
   return (
     <OverlayDialog
       open
-      title="Выдать дневник"
-      subtitle="Онлайн в браузере пациента или на бумаге"
+      title={editing ? 'Обновить дневник' : 'Выдать дневник'}
+      subtitle={
+        editing
+          ? 'Тот же дневник: записи пациента сохранятся'
+          : 'Онлайн в браузере пациента или на бумаге'
+      }
       class="patient-diary-dialog"
       onClose={props.onClose}
     >
       <Show
-        when={!link()}
+        when={!issued()}
         fallback={
-          <div class="patient-diary__issued">
-            <img class="patient-diary__code" src={code()} alt="QR-код дневника для пациента" />
-            <p class="patient-diary__hint">
-              Попросите пациента отсканировать код камерой телефона. Имя пациента в ссылку не
-              входит, записи хранятся только у пациента.
-            </p>
-            <a class="patient-diary__link" href={link()} target="_blank" rel="noreferrer">
-              {link()}
-            </a>
-            <div class="patient-diary__actions">
-              <Button onClick={() => void copy()}>Копировать ссылку</Button>
-              <Button onClick={printBlank}>Распечатать бланк</Button>
-              <Button variant="primary" onClick={props.onClose}>
-                Готово
-              </Button>
-            </div>
-          </div>
+          <Show when={issued()}>
+            {(current) => (
+              <IssuedView
+                invitation={current()}
+                updated={Boolean(editing)}
+                onClose={props.onClose}
+              />
+            )}
+          </Show>
         }
       >
         <form class="patient-diary__form" onSubmit={(event) => void create(event)}>
-          <ChoiceGroup
-            legend="Какой дневник"
-            name="diary-template"
-            value={templateId()}
-            options={[
-              ...DIARY_TEMPLATES.map((option) => ({
-                value: option.id,
-                label: option.title,
-                hint: option.summary,
-              })),
-              {
-                value: CUSTOM,
-                label: 'Свой дневник',
-                hint: 'Задайте поля сами: числа, варианты, отметки, текст.',
-              },
-            ]}
-            onChange={setTemplateId}
-          />
-          <Show when={custom()}>
+          <Show when={editing}>
+            <p class="patient-diary__hint">
+              {editing?.title}. Поля дневника остаются прежними. Пациент, открыв новую ссылку, не
+              потеряет свои записи: обновится только назначение и инструкция.
+            </p>
+          </Show>
+          <Show when={!editing}>
+            <ChoiceGroup
+              legend="Какой дневник"
+              name="diary-template"
+              value={templateId()}
+              options={[
+                ...DIARY_TEMPLATES.map((option) => ({
+                  value: option.id,
+                  label: option.title,
+                  hint: option.summary,
+                })),
+                {
+                  value: CUSTOM,
+                  label: 'Свой дневник',
+                  hint: 'Задайте поля сами: числа, варианты, отметки, текст.',
+                },
+              ]}
+              onChange={setTemplateId}
+            />
+          </Show>
+          <Show when={custom() && !editing}>
             <div class="patient-diary__builder">
               <TextField
                 label="Название дневника"
@@ -323,9 +461,13 @@ function IssueDiaryDialog(props: { readonly onClose: () => void }): JSX.Element 
           <Show when={hasPlan()}>
             <div class="patient-diary__medications">
               <Heading depth={3}>
-                {custom() ? 'Назначение врача' : (template()?.planTitle ?? 'Назначение врача')}
+                {editing
+                  ? (editing.planTitle ?? 'Назначение врача')
+                  : custom()
+                    ? 'Назначение врача'
+                    : (template()?.planTitle ?? 'Назначение врача')}
               </Heading>
-              <Show when={!custom() && template()?.planHint}>
+              <Show when={!editing && !custom() && template()?.planHint}>
                 <p class="patient-diary__hint">{template()?.planHint}</p>
               </Show>
               <Index each={plan()}>
@@ -354,6 +496,17 @@ function IssueDiaryDialog(props: { readonly onClose: () => void }): JSX.Element 
                         updatePlan(index, { schedule: event.currentTarget.value })
                       }
                     />
+                    <Show when={plan().length > 1}>
+                      <Button
+                        type="button"
+                        variant="quiet"
+                        onClick={() =>
+                          setPlan((current) => current.filter((_, position) => position !== index))
+                        }
+                      >
+                        Убрать пункт
+                      </Button>
+                    </Show>
                   </div>
                 )}
               </Index>
@@ -391,7 +544,7 @@ function IssueDiaryDialog(props: { readonly onClose: () => void }): JSX.Element 
               Распечатать бланк
             </Button>
             <Button type="submit" variant="primary">
-              Создать QR-код
+              {editing ? 'Получить новую ссылку' : 'Создать QR-код'}
             </Button>
           </div>
         </form>
@@ -415,6 +568,10 @@ function ImportDiaryDialog(props: {
   const [startingCamera, setStartingCamera] = createSignal(false);
   const [attach, setAttach] = createSignal(Boolean(props.episodeId));
   const [saving, setSaving] = createSignal(false);
+  const [preview, setPreview] = createSignal<DiaryImportPreview | null>(null);
+  const [otherCard, setOtherCard] = createSignal<string | undefined>(undefined);
+  const [confirmOther, setConfirmOther] = createSignal(false);
+  const [pasted, setPasted] = createSignal('');
   let video: HTMLVideoElement | undefined;
   let stream: MediaStream | undefined;
   let frame: number | undefined;
@@ -454,12 +611,56 @@ function ImportDiaryDialog(props: {
     stopCamera();
     void collector
       .results()
-      .then(setResults)
+      .then(show)
       .catch((cause: unknown) => {
         collector.reset();
         setProgress({ received: 0, total: 0 });
         setStatus(errorMessage(cause, 'Не удалось прочитать дневник.'));
       });
+  };
+
+  /**
+   * Shows what is about to be saved: how many records are new, corrected or already in the card,
+   * and whether the diary was issued to another card (the likeliest mix-up at the desk).
+   */
+  const show = async (current: DiaryResults): Promise<void> => {
+    const vault = await readPatientVault();
+    const events = diaryImportEvents(current, props.patientId, undefined);
+    setPreview(previewDiaryImport(vault, events));
+    const others = vault.profiles.filter((profile) => profile.id !== props.patientId);
+    const ownerId =
+      diaryEventOwner(vault, current.invitation.id) ??
+      (await findLedgerOwner(
+        others.map((profile) => profile.id),
+        current.invitation.id,
+      ));
+    const owner = ownerId && ownerId !== props.patientId ? ownerId : undefined;
+    setOtherCard(
+      owner
+        ? (vault.profiles.find((profile) => profile.id === owner)?.displayName ?? 'другая карточка')
+        : undefined,
+    );
+    setConfirmOther(false);
+    setResults(current);
+  };
+
+  const readText = async (source: string): Promise<void> => {
+    setStatus('');
+    try {
+      await show(await decodeDiaryResultsText(source));
+    } catch (cause) {
+      setStatus(errorMessage(cause, 'Не удалось прочитать дневник.'));
+    }
+  };
+
+  const readFile = async (files: FileList | null): Promise<void> => {
+    const file = files?.[0];
+    if (!file) return;
+    if (file.size > MAX_TEXT_FILE_BYTES) {
+      setStatus('Файл слишком большой для дневника.');
+      return;
+    }
+    await readText(await file.text());
   };
 
   const scanLoop = (time: number): void => {
@@ -538,6 +739,7 @@ function ImportDiaryDialog(props: {
   const save = async (): Promise<void> => {
     const current = results();
     if (!current || saving()) return;
+    if (otherCard() && !confirmOther()) return;
     setSaving(true);
     try {
       const events = diaryImportEvents(
@@ -545,17 +747,38 @@ function ImportDiaryDialog(props: {
         props.patientId,
         attach() ? props.episodeId : undefined,
       );
-      let outcome = { added: 0, alreadyPresent: 0 };
+      let outcome = { added: 0, updated: 0, alreadyPresent: 0, blocked: 0 };
       const snapshot = await updatePatientVault((vault) => {
         const applied = applyDiaryImport(vault, events);
         outcome = applied;
         return applied.snapshot;
       });
-      toast.success(
-        outcome.alreadyPresent > 0
-          ? `Добавлено записей: ${outcome.added}. Уже были в карте: ${outcome.alreadyPresent}.`
-          : `Добавлено записей: ${outcome.added}.`,
-      );
+      // Remember the hand-over on the card's list of issued diaries (if this card issued it).
+      try {
+        const ledger = await loadLedger(props.patientId);
+        if (ledger.some((item) => item.invitation.id === current.invitation.id)) {
+          await saveLedger(
+            props.patientId,
+            withImport(
+              ledger,
+              current.invitation.id,
+              new Date().toISOString(),
+              current.entries.length,
+            ),
+          );
+        }
+      } catch (cause) {
+        toast.error(
+          errorMessage(cause, 'Записи сохранены, но отметку о получении сделать не удалось.'),
+        );
+      }
+      const parts = [
+        `Добавлено записей: ${outcome.added}.`,
+        outcome.updated > 0 ? `Исправлено пациентом и обновлено: ${outcome.updated}.` : '',
+        outcome.alreadyPresent > 0 ? `Уже были в карте: ${outcome.alreadyPresent}.` : '',
+        outcome.blocked > 0 ? `Не обновлено (осмотр закрыт): ${outcome.blocked}.` : '',
+      ].filter(Boolean);
+      toast.success(parts.join(' '));
       props.onSaved(snapshot);
       props.onClose();
     } catch (cause) {
@@ -624,6 +847,30 @@ function ImportDiaryDialog(props: {
                 Выбрать фото кодов
               </FileButton>
             </div>
+            <details class="patient-diary__text-import">
+              <summary class="patient-diary__summary">Пациент прислал файл или текст</summary>
+              <FileButton
+                accept=".txt,text/plain"
+                onChange={(event) => {
+                  void readFile(event.currentTarget.files);
+                  event.currentTarget.value = '';
+                }}
+              >
+                Выбрать файл
+              </FileButton>
+              <TextArea
+                label="Или вставьте текст из сообщения"
+                value={pasted()}
+                onInput={(event) => setPasted(event.currentTarget.value)}
+              />
+              <Button
+                variant="primary"
+                disabled={!pasted().trim()}
+                onClick={() => void readText(pasted())}
+              >
+                Прочитать текст
+              </Button>
+            </details>
           </div>
         }
       >
@@ -651,8 +898,33 @@ function ImportDiaryDialog(props: {
                 )}
               </For>
             </ul>
+            <Show when={preview()}>
+              {(counts) => (
+                <p class="patient-diary__hint" role="status">
+                  В карте появятся: новых записей {counts().added}
+                  {counts().updated > 0 ? `, исправленных пациентом ${counts().updated}` : ''}
+                  {counts().alreadyPresent > 0 ? `, уже есть ${counts().alreadyPresent}` : ''}.
+                </p>
+              )}
+            </Show>
+            <Show when={otherCard()}>
+              {(name) => (
+                <div class="patient-diary__warning" role="alert">
+                  <p class="patient-diary__hint">
+                    Этот дневник уже связан с другой карточкой: «{name()}». Проверьте, что пациент
+                    тот.
+                  </p>
+                  <Checkbox
+                    label="Всё равно сохранить в эту карточку"
+                    checked={confirmOther()}
+                    onChange={(event) => setConfirmOther(event.currentTarget.checked)}
+                  />
+                </div>
+              )}
+            </Show>
             <p class="patient-diary__hint">
               Записи сохранятся как данные самоконтроля пациента, отдельно от ваших измерений.
+              Записи, которые пациент удалил у себя, в карте остаются.
             </p>
             <Show when={props.episodeId}>
               <Checkbox
@@ -668,7 +940,11 @@ function ImportDiaryDialog(props: {
             </Show>
             <div class="patient-diary__actions">
               <Button onClick={props.onClose}>Отмена</Button>
-              <Button variant="primary" disabled={saving()} onClick={() => void save()}>
+              <Button
+                variant="primary"
+                disabled={saving() || (Boolean(otherCard()) && !confirmOther())}
+                onClick={() => void save()}
+              >
                 {saving() ? 'Сохраняем…' : 'Сохранить в карту'}
               </Button>
             </div>
@@ -679,12 +955,59 @@ function ImportDiaryDialog(props: {
   );
 }
 
+function formatShort(iso: string): string {
+  return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+}
+
 export function PatientDiaryPanel(props: {
   readonly patientId: string;
   readonly episodeId: string | undefined;
   readonly onSaved: (snapshot: PatientVaultSnapshot) => void;
 }): JSX.Element {
-  const [dialog, setDialog] = createSignal<'issue' | 'import' | null>(null);
+  const [dialog, setDialog] = createSignal<
+    | { readonly kind: 'issue' }
+    | { readonly kind: 'import' }
+    | { readonly kind: 'update'; readonly diary: IssuedDiary }
+    | { readonly kind: 'show'; readonly diary: IssuedDiary }
+    | null
+  >(null);
+  const [ledger, { refetch }] = createResource(
+    () => props.patientId,
+    async (patientId) => {
+      try {
+        return await loadLedger(patientId);
+      } catch (cause) {
+        toast.error(errorMessage(cause, 'Не удалось прочитать список выданных дневников.'));
+        return [];
+      }
+    },
+  );
+  const issued = (): readonly IssuedDiary[] => ledger() ?? [];
+
+  const forget = async (diary: IssuedDiary): Promise<void> => {
+    if (
+      !window.confirm(
+        `Убрать «${diary.invitation.title}» из списка выданных? Записи пациента в карте останутся, а пациент сможет продолжать вести дневник.`,
+      )
+    ) {
+      return;
+    }
+    try {
+      await saveLedger(
+        props.patientId,
+        withoutIssued(await loadLedger(props.patientId), diary.invitation.id),
+      );
+      await refetch();
+    } catch (cause) {
+      toast.error(errorMessage(cause, 'Не удалось убрать дневник из списка.'));
+    }
+  };
+
+  const close = (): void => {
+    setDialog(null);
+    void refetch();
+  };
+
   return (
     <section class="patient-diary paper-card">
       <Heading depth={3}>Дневник самоконтроля</Heading>
@@ -693,18 +1016,81 @@ export function PatientDiaryPanel(props: {
         его в браузере телефона или на распечатанном бланке и на приёме показывает QR-коды.
       </p>
       <div class="patient-diary__actions">
-        <Button onClick={() => setDialog('issue')}>Выдать дневник</Button>
-        <Button onClick={() => setDialog('import')}>Принять данные</Button>
+        <Button onClick={() => setDialog({ kind: 'issue' })}>Выдать дневник</Button>
+        <Button onClick={() => setDialog({ kind: 'import' })}>Принять данные</Button>
       </div>
-      <Show when={dialog() === 'issue'}>
-        <IssueDiaryDialog onClose={() => setDialog(null)} />
+      <Show when={issued().length > 0}>
+        <ul class="patient-diary__issued-list" aria-label="Выданные дневники">
+          <For each={issued()}>
+            {(diary) => (
+              <li class="patient-diary__issued-item">
+                <strong class="patient-diary__issued-title">{diary.invitation.title}</strong>
+                <span class="patient-diary__hint">
+                  Выдан {formatShort(diary.firstIssuedAt)}
+                  {diary.invitation.issuedAt !== diary.firstIssuedAt
+                    ? `, обновлён ${formatShort(diary.invitation.issuedAt)}`
+                    : ''}
+                  {diary.lastImport
+                    ? `. Получено ${formatShort(diary.lastImport.at)}: записей ${diary.lastImport.entries}`
+                    : '. Данных от пациента ещё не получали'}
+                </span>
+                <div class="patient-diary__actions">
+                  <Button onClick={() => setDialog({ kind: 'show', diary })}>Ссылка и QR</Button>
+                  <Button onClick={() => setDialog({ kind: 'update', diary })}>Обновить</Button>
+                  <Button variant="quiet" onClick={() => void forget(diary)}>
+                    Убрать
+                  </Button>
+                </div>
+              </li>
+            )}
+          </For>
+        </ul>
       </Show>
-      <Show when={dialog() === 'import'}>
+      <Show when={dialog()?.kind === 'issue'}>
+        <IssueDiaryDialog
+          patientId={props.patientId}
+          onIssued={() => void refetch()}
+          onClose={close}
+        />
+      </Show>
+      <Show when={dialog()}>
+        {(current) => (
+          <>
+            <Show when={current().kind === 'update'}>
+              <IssueDiaryDialog
+                patientId={props.patientId}
+                editing={(current() as { readonly diary: IssuedDiary }).diary}
+                onIssued={() => void refetch()}
+                onClose={close}
+              />
+            </Show>
+            <Show when={current().kind === 'show'}>
+              <OverlayDialog
+                open
+                title="Ссылка на дневник"
+                subtitle={(current() as { readonly diary: IssuedDiary }).diary.invitation.title}
+                class="patient-diary-dialog"
+                onClose={close}
+              >
+                <IssuedView
+                  invitation={(current() as { readonly diary: IssuedDiary }).diary.invitation}
+                  updated={false}
+                  onClose={close}
+                />
+              </OverlayDialog>
+            </Show>
+          </>
+        )}
+      </Show>
+      <Show when={dialog()?.kind === 'import'}>
         <ImportDiaryDialog
           patientId={props.patientId}
           episodeId={props.episodeId}
-          onSaved={props.onSaved}
-          onClose={() => setDialog(null)}
+          onSaved={(snapshot) => {
+            props.onSaved(snapshot);
+            void refetch();
+          }}
+          onClose={close}
         />
       </Show>
     </section>

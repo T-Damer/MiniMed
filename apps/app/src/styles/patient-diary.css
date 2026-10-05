@@ -121,3 +121,43 @@
   justify-content: space-between;
   gap: 0.5rem;
 }
+
+.patient-diary__issued-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: 0.5rem;
+  list-style: none;
+}
+
+.patient-diary__issued-item {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  background: var(--theme-surface-raised);
+}
+
+.patient-diary__issued-title {
+  font-size: 0.95rem;
+}
+
+.patient-diary__warning {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--theme-warning);
+  border-radius: var(--theme-radius-control);
+  background: var(--theme-warning-soft);
+}
+
+.patient-diary__text-import {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.patient-diary__summary {
+  cursor: pointer;
+  font-weight: 600;
+}

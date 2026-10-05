@@ -1147,6 +1147,9 @@ function PatientDetail(props: {
                 </time>
                 <strong class="patient-workspace__event-title">{event.title}</strong>
                 <span class="patient-workspace__event-description">{eventDescription(event)}</span>
+                <Show when={event.text}>
+                  <small class="patient-workspace__event-text">{event.text}</small>
+                </Show>
                 <For each={event.observations}>
                   {(observation) => (
                     <>

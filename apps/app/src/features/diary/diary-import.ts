@@ -147,22 +147,164 @@ export function diaryImportEvents(
 
 export interface DiaryImportOutcome {
   readonly snapshot: PatientVaultSnapshot;
+  /** Records that were not in the card yet. */
   readonly added: number;
+  /** Records the patient corrected after an earlier import; the card now shows the corrected one. */
+  readonly updated: number;
+  /** Records identical to what the card already holds. */
   readonly alreadyPresent: number;
+  /** Corrected records that could not be updated because their visit is closed. */
+  readonly blocked: number;
 }
+
+function observationKey(event: PatientEvent): string {
+  return event.observations
+    .map(
+      (observation) =>
+        `${observation.metricId}=${observation.value}${observation.unit}@${observation.observedAt}`,
+    )
+    .toSorted()
+    .join('|');
+}
+
+/** Same content regardless of which visit the record is attached to. */
+function sameDiaryRecord(left: PatientEvent, right: PatientEvent): boolean {
+  return (
+    left.kind === right.kind &&
+    left.occurredAt === right.occurredAt &&
+    left.title === right.title &&
+    (left.text ?? '') === (right.text ?? '') &&
+    (left.medicationKind ?? '') === (right.medicationKind ?? '') &&
+    observationKey(left) === observationKey(right)
+  );
+}
+
+const REVISION_MARKER = 'Исправлено пациентом, ранее:';
+
+/** Text of a record without the trailing «corrected by the patient» history. */
+function baseText(event: PatientEvent): string {
+  const text = event.text ?? '';
+  const cut = text.indexOf(REVISION_MARKER);
+  return cut < 0 ? text : text.slice(0, cut).replace(/\. $/u, '');
+}
+
+function describeRecord(event: PatientEvent): string {
+  const values = event.observations.map(
+    (observation) =>
+      `${observation.source.kind === 'manual' ? observation.source.label : observation.metricId}: ${observation.value} ${observation.unit}`,
+  );
+  return [event.kind === 'medication' ? event.title : undefined, ...values, baseText(event)]
+    .filter(Boolean)
+    .join('; ');
+}
+
+/** The card's own copy of a diary record, replaced by the patient's corrected version. */
+function reviseDiaryRecord(
+  snapshot: PatientVaultSnapshot,
+  existing: PatientEvent,
+  incoming: PatientEvent,
+): PatientVaultSnapshot {
+  const episode = existing.episodeId
+    ? snapshot.episodes.find((candidate) => candidate.id === existing.episodeId)
+    : undefined;
+  if (episode && episode.status !== 'open') throw new DiaryRecordLockedError();
+  const previous = describeRecord(existing);
+  const text = [incoming.text, `${REVISION_MARKER} ${previous}`].filter(Boolean).join('. ');
+  const oldObservationIds = new Set(existing.observations.map((observation) => observation.id));
+  const base: PatientVaultSnapshot = {
+    ...snapshot,
+    events: snapshot.events.filter((candidate) => candidate.id !== existing.id),
+    observations: snapshot.observations.filter(
+      (observation) => !oldObservationIds.has(observation.id),
+    ),
+    episodes: snapshot.episodes.map((candidate) =>
+      candidate.id === existing.episodeId
+        ? { ...candidate, eventIds: candidate.eventIds.filter((id) => id !== existing.id) }
+        : candidate,
+    ),
+  };
+  const { episodeId: _ignored, ...withoutEpisode } = incoming;
+  return appendEvent(base, {
+    ...withoutEpisode,
+    ...(existing.episodeId ? { episodeId: existing.episodeId } : {}),
+    text,
+  });
+}
+
+class DiaryRecordLockedError extends Error {}
 
 export function applyDiaryImport(
   snapshot: PatientVaultSnapshot,
   events: readonly PatientEvent[],
 ): DiaryImportOutcome {
   let next = snapshot;
+  let added = 0;
+  let updated = 0;
   let alreadyPresent = 0;
+  let blocked = 0;
   for (const event of events) {
-    if (next.events.some((candidate) => candidate.id === event.id)) {
+    const existing = next.events.find((candidate) => candidate.id === event.id);
+    if (!existing) {
+      next = appendEvent(next, event);
+      added += 1;
+      continue;
+    }
+    if (existing.immutable || sameDiaryRecord(existing, event) || isRevised(existing, event)) {
       alreadyPresent += 1;
       continue;
     }
-    next = appendEvent(next, event);
+    try {
+      next = reviseDiaryRecord(next, existing, event);
+      updated += 1;
+    } catch (cause) {
+      if (!(cause instanceof DiaryRecordLockedError)) throw cause;
+      blocked += 1;
+    }
   }
-  return { snapshot: next, added: events.length - alreadyPresent, alreadyPresent };
+  return { snapshot: next, added, updated, alreadyPresent, blocked };
+}
+
+/** A corrected record carries «Исправлено пациентом» text; the same correction is not applied twice. */
+function isRevised(existing: PatientEvent, incoming: PatientEvent): boolean {
+  if (!(existing.text ?? '').includes(REVISION_MARKER)) return false;
+  return (
+    existing.kind === incoming.kind &&
+    existing.occurredAt === incoming.occurredAt &&
+    existing.title === incoming.title &&
+    baseText(existing) === (incoming.text ?? '') &&
+    observationKey(existing) === observationKey(incoming)
+  );
+}
+
+export interface DiaryImportPreview {
+  readonly added: number;
+  readonly updated: number;
+  readonly alreadyPresent: number;
+}
+
+/** What importing would do, without changing the card. */
+export function previewDiaryImport(
+  snapshot: PatientVaultSnapshot,
+  events: readonly PatientEvent[],
+): DiaryImportPreview {
+  let added = 0;
+  let updated = 0;
+  let alreadyPresent = 0;
+  for (const event of events) {
+    const existing = snapshot.events.find((candidate) => candidate.id === event.id);
+    if (!existing) added += 1;
+    else if (existing.immutable || sameDiaryRecord(existing, event) || isRevised(existing, event)) {
+      alreadyPresent += 1;
+    } else updated += 1;
+  }
+  return { added, updated, alreadyPresent };
+}
+
+/** The card (if any) that already holds records of this diary, from event ids and its issue ledger. */
+export function diaryEventOwner(
+  snapshot: PatientVaultSnapshot,
+  diaryId: string,
+): string | undefined {
+  const prefix = `diary-${diaryId}-`;
+  return snapshot.events.find((event) => event.id.startsWith(prefix))?.patientId;
 }
