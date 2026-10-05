@@ -152,12 +152,12 @@
     "benchmark:search-coverage-observations": "bun run --filter @localmed/benchmarks benchmark:search-coverage-observations"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.8",
-    "@playwright/test": "1.62.1",
-    "@types/node": "26.2.0",
+    "@biomejs/biome": "2.5.15",
+    "@playwright/test": "1.63.0",
+    "@types/node": "26.6.4",
     "clsx": "2.1.1",
     "replicate": "1.4.0",
-    "tsx": "4.23.12",
+    "tsx": "4.23.15",
     "typescript": "5.9.3",
     "vitest": "4.1.10"
   },
