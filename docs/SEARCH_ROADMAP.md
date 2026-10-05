@@ -61,6 +61,7 @@ and the list is updated when the proposal is better. How search works today:
 | rubert-tiny2, USER-base instead of e5-small | lower R@5 on КР (E1) | 2026-10-02 |
 | Feature-hash fusion constants for e5 | R@5 0.166 vs 0.497 calibrated | 2026-10-05 |
 | One vector per complaint clause + document coverage | complaint R@5 0.326 → 0.27–0.29 | 2026-10-05 |
+| Aleph Alpha Kolibri-1 (78B MoE chat LLM) for search | not an embedder/reranker; English/German only, 47–78 GB; [note](research/kolibri-1-2026-10-05.md) | 2026-10-05 |
 | Rule list «от X / при X» → indication search | not needed: indication vectors answer it without rules | 2026-10-05 |
 | e5 on МКБ card names/synonyms + disease-article overview/symptoms in «Болезни» | description → term hit@5 0.80 → 0.49; diagnosis → card R@5 0.28 → 0.39; short МКБ rows attract unrelated cards | 2026-10-05 |
 
