@@ -4,6 +4,23 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.49] - 2026-10-05
+
+- Drugs by what they treat: with «Поиск по смыслу» downloaded, «Препараты» finds medicines from
+  queries such as «таблетки от головы», «от изжоги» or «жаропонижающее для ребенка» using the
+  «Показания» sections of the official ГРЛС instructions and Allmed (right drug in the top 5 for 91%
+  of 45 test queries instead of 47%); exact drug names still come first. The drug modules were
+  re-published with these vectors (+4 MB).
+- Exact search is stricter: a word no longer matches inside another word («головной» no longer finds
+  «Болиголов»), words like «таблетки» or «у ребёнка» no longer count as the subject, and documents
+  naming every searched word rank above partial matches (doctor lookup top 5: 70% → 90%).
+- Download by specialty: onboarding and Settings → Загрузки offer whole sections such as
+  «Психиатрия» — its clinical recommendations plus the drug groups those recommendations name — with
+  counts and size before downloading.
+- «Что умеет MiniMed» and the onboarding show real sagittal MRI frames from the built-in viewer and
+  offer the MRI example; the tour dialog has its styling back.
+- Search documentation: a one-page overview and a measured roadmap in the repository.
+
 ## [0.6.48] - 2026-10-05
 
 - Search by meaning for clinical recommendations: an optional on-device model (multilingual-e5-small,
