@@ -68,6 +68,7 @@ const FORM_PRINT_STYLES = `
   .form-print__text { flex: 0 1 auto; }
   .form-print__text--bold { font-weight: bold; }
   .form-print__text--small { font-size: 0.85em; }
+  .form-print__joined { margin-left: -0.45em; }
   .form-print__field { display: inline-flex; flex-direction: column; flex: 0 1 auto; min-width: 0; }
   .form-print__field--grow { flex: 1 1 auto; }
   .form-print__field--lines { flex: 1 1 100%; }
@@ -194,6 +195,7 @@ function segmentHtml(schema: FormSchema, values: FormValues, segment: FormSegmen
       'form-print__text',
       ...(segment.bold ? ['form-print__text--bold'] : []),
       ...(segment.small ? ['form-print__text--small'] : []),
+      ...(segment.joined ? ['form-print__joined'] : []),
     ];
     return `<span class="${classes.join(' ')}">${escapeHtml(segment.text)}</span>`;
   }
@@ -227,7 +229,7 @@ function segmentHtml(schema: FormSchema, values: FormValues, segment: FormSegmen
       const separator = segment.separators?.[index] ?? segment.separator;
       return `${item}<span class="form-print__separator">${escapeHtml(separator)}</span>`;
     });
-    return `<span class="form-print__options">${separated.join('')}</span>`;
+    return `<span class="form-print__options${segment.joined ? ' form-print__joined' : ''}">${separated.join('')}</span>`;
   }
   const text = textValue(value);
   const shown = segment.part ? datePart(text, segment.part) : displayFieldValue(field, value);

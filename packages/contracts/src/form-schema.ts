@@ -197,6 +197,8 @@ export const FormSegmentSchema = z.discriminatedUnion('kind', [
     text: z.string(),
     bold: z.boolean().optional(),
     small: z.boolean().optional(),
+    /** No gap before the segment: it continues the previous one (`(` + options + `)`). */
+    joined: z.boolean().optional(),
   }),
   z.object({
     kind: z.literal('field'),
@@ -224,6 +226,8 @@ export const FormSegmentSchema = z.discriminatedUnion('kind', [
     codes: z.boolean().optional(),
     /** How a picked option is marked: circled (default) or underlined («нужное подчеркнуть»). */
     mark: z.enum(['circle', 'underline']).optional(),
+    /** No gap before the options: they continue the previous segment (`характер травмы (укус – 1`). */
+    joined: z.boolean().optional(),
   }),
   z.object({ kind: z.literal('check'), fieldId: identifier }),
   /**
