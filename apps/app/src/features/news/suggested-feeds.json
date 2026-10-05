@@ -1,0 +1,147 @@
+{
+  "version": 1,
+  "verifiedAt": "2026-10-05",
+  "verifiedNote": "Each address returned a valid feed with fresh items on 2026-10-05 and was parsed by the app's own parser. webReadable records whether the host sent Access-Control-Allow-Origin for https://t-damer.github.io (the browser build); the Android app reads every source, CORS or not.",
+  "feeds": [
+    {
+      "id": "roszdravnadzor-news",
+      "title": "Росздравнадзор — новости",
+      "description": "Новости надзора: качество и безопасность медицинской деятельности и препаратов.",
+      "url": "https://roszdravnadzor.gov.ru/rss",
+      "siteUrl": "https://roszdravnadzor.gov.ru/",
+      "language": "ru",
+      "group": "ru",
+      "webReadable": false
+    },
+    {
+      "id": "who-news-ru",
+      "title": "ВОЗ — новости (на русском)",
+      "description": "Новости Всемирной организации здравоохранения на русском языке.",
+      "url": "https://www.who.int/rss-feeds/news-russian.xml",
+      "siteUrl": "https://www.who.int/ru/news",
+      "language": "ru",
+      "group": "ru",
+      "webReadable": true
+    },
+    {
+      "id": "pharmvestnik-news",
+      "title": "Фармвестник — новости",
+      "description": "Фармрынок, регулирование, препараты, клинические исследования.",
+      "url": "https://pharmvestnik.ru/rss.xml",
+      "siteUrl": "https://pharmvestnik.ru/",
+      "language": "ru",
+      "group": "ru",
+      "webReadable": false
+    },
+    {
+      "id": "mgzt-news",
+      "title": "Медицинская газета",
+      "description": "Новости здравоохранения и профессионального сообщества.",
+      "url": "https://mgzt.ru/rss.xml",
+      "siteUrl": "https://mgzt.ru/",
+      "language": "ru",
+      "group": "ru",
+      "webReadable": false
+    },
+    {
+      "id": "medportal-news",
+      "title": "MedPortal — новости медицины",
+      "description": "Новости медицины и здоровья для широкой аудитории.",
+      "url": "https://medportal.ru/mednovosti.rss",
+      "siteUrl": "https://medportal.ru/",
+      "language": "ru",
+      "group": "ru",
+      "webReadable": true
+    },
+    {
+      "id": "doctorpiter-news",
+      "title": "ДокторПитер",
+      "description": "Медицинские новости и разборы для пациентов и врачей.",
+      "url": "https://doctorpiter.ru/rss/",
+      "siteUrl": "https://doctorpiter.ru/",
+      "language": "ru",
+      "group": "ru",
+      "webReadable": true
+    },
+    {
+      "id": "nejm-current",
+      "title": "NEJM — свежий выпуск",
+      "description": "Оглавление текущего выпуска The New England Journal of Medicine.",
+      "url": "https://www.nejm.org/action/showFeed?jc=nejm&type=etoc&feed=rss",
+      "siteUrl": "https://www.nejm.org/",
+      "language": "en",
+      "group": "international",
+      "webReadable": false
+    },
+    {
+      "id": "lancet-online",
+      "title": "The Lancet — новые статьи",
+      "description": "Статьи The Lancet, опубликованные онлайн.",
+      "url": "https://www.thelancet.com/rssfeed/lancet_online.xml",
+      "siteUrl": "https://www.thelancet.com/",
+      "language": "en",
+      "group": "international",
+      "webReadable": false
+    },
+    {
+      "id": "nature-medicine",
+      "title": "Nature Medicine",
+      "description": "Новые статьи журнала Nature Medicine.",
+      "url": "https://www.nature.com/nm.rss",
+      "siteUrl": "https://www.nature.com/nm/",
+      "language": "en",
+      "group": "international",
+      "webReadable": false
+    },
+    {
+      "id": "plos-medicine",
+      "title": "PLOS Medicine",
+      "description": "Журнал открытого доступа PLOS Medicine (Atom).",
+      "url": "https://journals.plos.org/plosmedicine/feed/atom",
+      "siteUrl": "https://journals.plos.org/plosmedicine/",
+      "language": "en",
+      "group": "international",
+      "webReadable": false
+    },
+    {
+      "id": "fda-medwatch",
+      "title": "FDA MedWatch — предупреждения о безопасности",
+      "description": "Сообщения FDA о безопасности препаратов и изделий.",
+      "url": "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/medwatch/rss.xml",
+      "siteUrl": "https://www.fda.gov/safety/medwatch-fda-safety-information-and-adverse-event-reporting-program",
+      "language": "en",
+      "group": "international",
+      "webReadable": false
+    },
+    {
+      "id": "medpage-today",
+      "title": "MedPage Today",
+      "description": "Новости для практикующих врачей.",
+      "url": "https://www.medpagetoday.com/rss/headlines.xml",
+      "siteUrl": "https://www.medpagetoday.com/",
+      "language": "en",
+      "group": "international",
+      "webReadable": true
+    },
+    {
+      "id": "stat-news",
+      "title": "STAT",
+      "description": "Новости здравоохранения, биомедицины и науки.",
+      "url": "https://www.statnews.com/feed/",
+      "siteUrl": "https://www.statnews.com/",
+      "language": "en",
+      "group": "international",
+      "webReadable": false
+    },
+    {
+      "id": "medical-xpress",
+      "title": "Medical Xpress",
+      "description": "Новости медицинских исследований.",
+      "url": "https://medicalxpress.com/rss-feed/",
+      "siteUrl": "https://medicalxpress.com/",
+      "language": "en",
+      "group": "international",
+      "webReadable": false
+    }
+  ]
+}
