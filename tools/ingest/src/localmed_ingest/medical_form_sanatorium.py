@@ -19,7 +19,6 @@ from localmed_ingest.medical_form_kit import (
     ICD10_PATTERN,
     SNILS_PATTERN,
     address_fields,
-    address_rows,
     blank,
     check,
     code_field,
@@ -28,7 +27,6 @@ from localmed_ingest.medical_form_kit import (
     field_rule,
     options,
     row,
-    signature,
     text,
 )
 
@@ -976,6 +974,101 @@ def build_sections(v: Variant) -> list[dict[str, Any]]:
 
 
 # ------------------------------------------------------------------------------- print layout
+#
+# The print follows the official scan line by line (docs/FORMS_PLAN.md «Layout fidelity»): every
+# row is one printed line of the blank, a justified line is a `stretch` row, a line the blank
+# rules out under a label is a `rule` segment, and the continuation lines of a long entry are the
+# ruled `lines` of the entry field one row below. The two sides of the sheet are scanned with
+# different margins (the text of the front starts 4.8 mm further right than the reverse), so the
+# blocks of each side carry an `insetMm` that keeps both sides on the edges of the scan.
+
+
+def _rule(*, dotted: bool = False) -> dict[str, Any]:
+    segment: dict[str, Any] = {"kind": "rule", "length": 10, "grow": True}
+    if dotted:
+        segment["lineStyle"] = "dotted"
+    return segment
+
+
+def _ruled(field_id: str, count: int) -> dict[str, Any]:
+    """`count` ruled lines (one text line apart) for a long entry, the lines under its label."""
+    return row({**blank(field_id, 10, grow=True, lines=count), "pitch": "text"})
+
+
+def _plain_block(block_id: str, rows: list[dict[str, Any]], **extra: Any) -> dict[str, Any]:
+    return {"id": block_id, "columns": [{"widthPercent": 100, "rows": rows}], **extra}
+
+
+def _pair_row(
+    label: str, field_id: str, length: float = 30, icd_length: float = 14
+) -> dict[str, Any]:
+    return row(
+        text(label),
+        blank(field_id, length, grow=True),
+        text("код по МКБ"),
+        blank(f"{field_id}Icd", icd_length),
+    )
+
+
+def _stub(field_id: str) -> dict[str, Any]:
+    """The signature line of a form whose scan prints no «подпись» caption of its own.
+
+    The scan runs one rule for the name and the signature and captions both under it; the signature
+    segment is a stub at the end of that rule (no caption: a blank caption takes no height) so the
+    field stays on the printed blank while the captions are the text row below.
+    """
+    return {"kind": "signature", "fieldId": field_id, "length": 1, "caption": " "}
+
+
+def _date(
+    field_id: str, *, month_length: float, year_length: float = 3, day_length: float = 3
+) -> list[dict[str, Any]]:
+    """`«__» ______ 20__` with the closing quote and the century set tight against their blanks."""
+    segments = date_blanks(field_id, month_length=month_length, year_length=year_length)
+    result: list[dict[str, Any]] = []
+    for segment in segments:
+        if segment.get("text") in ("»", "20"):
+            segment = {**segment, "joined": True}
+        elif segment.get("part") == "day":
+            segment = {**segment, "length": day_length}
+        result.append(segment)
+    return result
+
+
+def _caption(value: str, indent_mm: float) -> dict[str, Any]:
+    """A small caption that starts `indent_mm` from the left edge of its printed line."""
+    return {**text(value, small=True), "indentMm": indent_mm}
+
+
+def _lines(*texts: str) -> list[dict[str, Any]]:
+    """Text rows, one per printed line of the original."""
+    return [row(text(value)) for value in texts]
+
+
+def _address_rows(
+    prefix: str, caption: str, district_length: float, locality_length: float
+) -> list[dict[str, Any]]:
+    return [
+        row(text(caption), blank(f"{prefix}Subject", 30, grow=True)),
+        row(
+            text("район"),
+            blank(f"{prefix}District", district_length, grow=True),
+            text("населенный пункт"),
+            blank(f"{prefix}Locality", locality_length, grow=True),
+        ),
+        row(
+            text("улица"),
+            blank(f"{prefix}Street", 35, grow=True),
+            text("дом"),
+            blank(f"{prefix}House", 4),
+            text("строение/корпус"),
+            blank(f"{prefix}Building", 4),
+            text("квартира"),
+            blank(f"{prefix}Apartment", 6),
+            text("тел."),
+            blank(f"{prefix}Phone", 20, grow=True),
+        ),
+    ]
 
 
 def _header_block(form_number: str) -> dict[str, Any]:
@@ -983,92 +1076,67 @@ def _header_block(form_number: str) -> dict[str, Any]:
         "id": "header",
         "columns": [
             {
-                "widthPercent": 56,
+                "widthPercent": 44,
                 "align": "left",
                 "rows": [
-                    row(
-                        text(
-                            "Наименование и адрес медицинской организации (фамилия, имя, "
-                            "отчество (при наличии) индивидуального предпринимателя и адрес "
-                            "осуществления медицинской деятельности)"
-                        ),
-                        size="small",
+                    *_lines(
+                        "Наименование и адрес медицинской организации",
+                        "(фамилия, имя, отчество (при наличии)",
+                        "индивидуального предпринимателя и адрес",
+                        "осуществления медицинской деятельности)",
                     ),
-                    row(
-                        text(
-                            "Основной государственный регистрационный номер (Основной "
-                            "государственный регистрационный номер индивидуального "
-                            "предпринимателя)"
-                        ),
-                        size="small",
+                    row(text("Основной государственный регистрационный"), align="stretch"),
+                    *_lines(
+                        "номер",
+                        "(Основной государственный регистрационный",
+                        "номер индивидуального предпринимателя)",
                     ),
                     row(blank("organization", 40, grow=True), gap="small"),
                     row(blank("organizationOgrn", 40, grow=True)),
                 ],
             },
             {
-                "widthPercent": 44,
+                "widthPercent": 38,
                 "align": "center",
                 "rows": [
-                    row(text("Медицинская документация"), size="small"),
-                    row(text(f"Учетная форма № {form_number}"), size="small"),
-                    row(
-                        text(
-                            "Утверждена приказом Министерства здравоохранения Российской "
-                            "Федерации от 13 мая 2025 г. № 274н"
-                        ),
-                        size="small",
-                        gap="small",
-                    ),
+                    row(text("Медицинская документация")),
+                    row(text(f"Учетная форма № {form_number}")),
+                    row(text("Утверждена приказом Министерства"), gap="small"),
+                    row(text("здравоохранения Российской Федерации")),
+                    row(text("от 13 мая 2025 г. № 274н")),
                 ],
             },
         ],
     }
 
 
-def _code(field_id: str, label: str, length: float) -> dict[str, Any]:
-    return row(text(label), blank(field_id, length))
-
-
-def _pair_row(label: str, field_id: str, length: float = 30) -> dict[str, Any]:
-    return row(
-        text(label),
-        blank(field_id, length, grow=True),
-        text("код по МКБ"),
-        blank(f"{field_id}Icd", 16),
-    )
-
-
-def _plain_block(block_id: str, rows: list[dict[str, Any]], **extra: Any) -> dict[str, Any]:
-    return {"id": block_id, "columns": [{"widthPercent": 100, "rows": rows}], **extra}
-
-
-def build_layout(v: Variant, form_number: str) -> dict[str, Any]:
+def _front_rows(v: Variant, form_number: str) -> dict[str, list[dict[str, Any]]]:
     person = "ребенка" if v.child else "пациента"
-    front_rows: list[dict[str, Any]] = [
+    title = [
         row(
             text(v.form_label, bold=True),
-            blank("formNumber", 12),
+            blank("formNumber", 9),
             align="center",
             size="title",
             gap="large",
         ),
         row(
-            *date_blanks("formDate", month_length=12),
+            *_date("formDate", month_length=22, day_length=5.5),
             text("года", bold=True),
             align="center",
             size="title",
         ),
     ]
-    patient_rows: list[dict[str, Any]] = [
+    patient: list[dict[str, Any]] = [
         row(
             text(
                 "Выдается при предъявлении путевки на санаторно-курортное лечение. Без "
-                "настоящей карты путевка недействительна"
+                "настоящей карты путевка"
             ),
-            align="justify",
+            align="stretch",
             gap="medium",
         ),
+        row(text("недействительна." if v.child else "недействительна")),
         row(
             text(f"Фамилия, имя, отчество (при наличии) {person}"),
             blank("patientFullName", 40, grow=True),
@@ -1076,26 +1144,20 @@ def build_layout(v: Variant, form_number: str) -> dict[str, Any]:
         ),
         row(
             text("Дата рождения:"),
-            *date_blanks("patientBirthDate", month_length=10),
+            *_date("patientBirthDate", month_length=10),
             text("г."),
             text("Пол:"),
             options("patientSex"),
         ),
-        *address_rows(
-            "residence",
-            "Регистрация по месту жительства: субъект Российской Федерации",
-            52,
-            27,
+        *_address_rows(
+            "residence", "Регистрация по месту жительства: субъект Российской Федерации", 62, 38
         ),
-        *address_rows(
-            "stay",
-            "Регистрация по месту пребывания: субъект Российской Федерации",
-            48,
-            28,
+        *_address_rows(
+            "stay", "Регистрация по месту пребывания: субъект Российской Федерации", 48, 28
         ),
     ]
     if v.child:
-        patient_rows.append(
+        patient.append(
             row(
                 text("Образовательная организация: тип"),
                 blank("educationType", 20, grow=True),
@@ -1105,35 +1167,36 @@ def build_layout(v: Variant, form_number: str) -> dict[str, Any]:
                 blank("educationUnit", 8),
             )
         )
-    insurance_rows = [
+    insurance = [
         row(
             text("Полис обязательного медицинского страхования:"),
             blank("omsPolicyNumber", 40, grow=True),
         ),
         row(
             text("дата выдачи полиса обязательного медицинского страхования"),
-            *date_blanks("omsPolicyIssueDate", month_length=12, year_length=6),
+            *_date("omsPolicyIssueDate", month_length=12, year_length=6),
             text("г."),
         ),
         row(
             text(
-                "данные о страховой медицинской организации, выбранной застрахованным "
-                "лицом или определенной застрахованному лицу"
+                "данные о страховой медицинской организации, выбранной застрахованным лицом "
+                "или определенной"
             ),
-            blank("omsInsurer", 40, grow=True),
+            align="stretch",
         ),
+        row(text("застрахованному лицу"), blank("omsInsurer", 40, grow=True)),
     ]
     factors_caption = (
         "Климатические факторы в месте проживания"
         if v.child
         else "Климатические факторы в месте проживания пациента (код)"
     )
-    social_rows = [
-        _code("regionCode", "Код субъекта Российской Федерации", 6),
-        _code("climateCode", "Климат в месте проживания пациента (код)", 5),
-        _code("climateFactorsCode", factors_caption, 8),
-        _code("socialSupportCode", "Код меры социальной поддержки", 8),
-        row(text("Сопровождение: да – 1, нет - 2"), blank("escort", 10)),
+    social = [
+        row(text("Код субъекта Российской Федерации"), blank("regionCode", 6)),
+        row(text("Климат в месте проживания пациента (код)"), blank("climateCode", 5)),
+        row(text(factors_caption), blank("climateFactorsCode", 8 if v.child else 6)),
+        row(text("Код меры социальной поддержки"), blank("socialSupportCode", 8)),
+        row(text("Сопровождение: да – 1, нет - 2"), blank("escort", 11)),
         row(
             text(
                 "Документ, подтверждающий право на получение мер социальной поддержки в "
@@ -1146,32 +1209,33 @@ def build_layout(v: Variant, form_number: str) -> dict[str, Any]:
             text("номер"),
             blank("socialDocNumber", 17),
             text("дата выдачи"),
-            *date_blanks("socialDocIssueDate", month_length=11),
+            *_date("socialDocIssueDate", month_length=11),
             text("г."),
         ),
-        row(text(f"{SNILS_LABEL}:"), blank("snils", 36)),
+        row(text(f"{SNILS_LABEL}:"), blank("snils", 44)),
     ]
     if v.child:
-        social_rows += [
+        social += [
             row(
                 text("Нуждаемость в условиях доступной среды: да – 1, нет - 2"),
                 blank("accessibleEnvironment", 10),
             ),
             row(blank("accessibleEnvironmentDetails", 40, grow=True)),
         ]
-    cut_rows = [
-        row(
-            text("линия отреза"),
-            align="center",
-            size="small",
-            gap="medium",
-        ),
+    del form_number
+    return {"title": title, "patient": patient, "insurance": insurance, "social": social}
+
+
+def _coupon_front_rows(v: Variant) -> list[dict[str, Any]]:
+    return [
+        row(_rule(dotted=True)),
+        row(text("линия отреза"), align="center", size="small"),
         row(
             text("Подлежит возврату в медицинскую организацию, выдавшую санаторно-курортную карту"),
             align="center",
             size="small",
         ),
-        row(text("Обратный талон", bold=False), align="center", gap="medium"),
+        row(text("Обратный талон"), align="center", gap="medium"),
         row(
             text("Наименование санаторно-курортной организации"),
             blank("returnOrgName", 40, grow=True),
@@ -1186,9 +1250,9 @@ def build_layout(v: Variant, form_number: str) -> dict[str, Any]:
         ),
         row(
             text("Период санаторно-курортного лечения: с"),
-            *date_blanks("periodFrom", month_length=11),
+            *_date("periodFrom", month_length=12),
             text("г. по"),
-            *date_blanks("periodTo", month_length=11),
+            *_date("periodTo", month_length=12),
             text("г."),
         ),
         row(text("Диагноз, установленный направившей медицинской организацией:")),
@@ -1196,89 +1260,93 @@ def build_layout(v: Variant, form_number: str) -> dict[str, Any]:
         row(
             text(
                 "код по Международной статистической классификации болезней и проблем, "
-                "связанных со здоровьем (далее – МКБ)"
+                "связанных со здоровьем"
             ),
-            blank("referralMainIcd", 20),
+            align="stretch",
         ),
-        _pair_row("Осложнения основного заболевания", "referralComplications"),
-        _pair_row("Сопутствующие заболевания:", "referralComorbidities"),
-        _pair_row("Внешняя причина (при травмах, отравлениях)", "referralExternalCause"),
-        _pair_row("Заболевание, явившееся причиной инвалидности:", "referralDisabilityCause", 22),
+        row(text("(далее – МКБ)"), blank("referralMainIcd", 27 if v.child else 12)),
+        _pair_row("Осложнения основного заболевания", "referralComplications", icd_length=20),
+        _pair_row("Сопутствующие заболевания:", "referralComorbidities", icd_length=20),
+        _pair_row(
+            "Внешняя причина (при травмах, отравлениях)", "referralExternalCause", icd_length=19
+        ),
+        _pair_row(
+            "Заболевание, явившееся причиной инвалидности:", "referralDisabilityCause", 22, 19
+        ),
         row(text("Диагноз при выписке из санаторно-курортной организации:")),
-        _pair_row("Основное заболевание", "dischargeMain"),
-        _pair_row("Сопутствующие заболевания:", "dischargeComorbidities"),
+        _pair_row("Основное заболевание", "dischargeMain", icd_length=20),
+        _pair_row("Сопутствующие заболевания:", "dischargeComorbidities", icd_length=20),
     ]
-    clinical_rows: list[dict[str, Any]] = [
-        row(
-            text("оборотная сторона ф. № " + form_number, small=True),
-            align="right",
-            size="small",
-        ),
-        row(text("Жалобы"), blank("complaints", 40, grow=True, lines=1)),
+
+
+def _clinical_rows(v: Variant, form_number: str) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = [
+        row(text("оборотная сторона ф. № " + form_number, small=True), align="right", size="small"),
+        row(text("Жалобы"), _rule()),
+        _ruled("complaints", 1),
         row(
             text(
                 "Анамнез заболевания (включая данные о предшествующем лечении, в том числе "
                 "санаторно-курортном)"
             ),
-            blank("anamnesis", 10, grow=True, lines=2),
-            gap="small",
+            _rule(),
         ),
+        _ruled("anamnesis", 3 if v.child else 2),
     ]
     if v.child:
-        clinical_rows += [
+        rows += [
             row(
                 text(
                     "Аллергические заболевания (пищевая, лекарственная, бытовая аллергия), "
                     "аллергические реакции:"
                 ),
-                blank("allergies", 14, grow=True, lines=1),
-                gap="small",
+                _rule(),
             ),
-            row(text("Проведенные профилактические прививки:"), gap="small"),
+            _ruled("allergies", 1),
+            row(text("Проведенные профилактические прививки:")),
         ]
         for index in (1, 2, 3):
-            clinical_rows.append(
+            rows.append(
                 row(
                     text("наименование вакцинации:"),
                     blank(f"vaccine{index}Name", 30, grow=True),
                     text("дата:"),
-                    *date_blanks(f"vaccine{index}Date", month_length=10),
+                    *_date(f"vaccine{index}Date", month_length=10),
                     text("г."),
                 )
             )
-        clinical_rows += [
-            row(text("Результаты обследований в целях выявления туберкулеза"), gap="small"),
+        rows += [
+            row(text("Результаты обследований в целях выявления туберкулеза")),
             row(
                 text("наименование исследования"),
                 blank("tuberculosisExamName", 30, grow=True),
                 text("дата:"),
-                *date_blanks("tuberculosisExamDate", month_length=10),
+                *_date("tuberculosisExamDate", month_length=10),
                 text("г."),
             ),
         ]
-    clinical_rows += [
+    rows += [
         row(
             text(
                 "Данные клинического, лабораторного, рентгенологического и других "
-                "исследований (даты проведения исследований)"
+                "исследований (даты проведения"
             ),
-            blank("examinations", 10, grow=True, lines=2 if v.child else 7),
-            gap="small",
+            align="stretch",
         ),
+        row(text("исследований)"), _rule()),
+        _ruled("examinations", 2 if v.child else 8),
         _pair_row("Диагноз основного заболевания:", "mainDiagnosis"),
         _pair_row("Осложнения основного заболевания", "complications"),
         _pair_row("Внешняя причина при травмах, отравлениях", "externalCause"),
         _pair_row("Сопутствующие заболевания:", "comorbidity1"),
-        row(blank("comorbidity2", 30, grow=True), text("код по МКБ"), blank("comorbidity2Icd", 16)),
-        row(blank("comorbidity3", 30, grow=True), text("код по МКБ"), blank("comorbidity3Icd", 16)),
-        row(
-            text("Дополнительные сведения о заболевании"),
-            blank("additionalInfo", 20, grow=True, lines=2 if v.child else 3),
-        ),
+        row(blank("comorbidity2", 30, grow=True), text("код по МКБ"), blank("comorbidity2Icd", 14)),
+        row(blank("comorbidity3", 30, grow=True), text("код по МКБ"), blank("comorbidity3Icd", 14)),
+        row(text("Дополнительные сведения о заболевании"), _rule()),
+        _ruled("additionalInfo", 2 if v.child else 3),
         _pair_row("Заболевание, явившееся причиной инвалидности:", "disabilityCause", 22),
     ]
     if v.child:
-        clinical_rows += [
+        rows += [
             row(
                 text("Отсутствие контакта с больными инфекционными заболеваниями"),
                 blank("noInfectionContact", 20, grow=True),
@@ -1289,7 +1357,29 @@ def build_layout(v: Variant, form_number: str) -> dict[str, Any]:
                 blank("helminthExam", 20, grow=True),
             ),
         ]
-    conclusion_rows: list[dict[str, Any]] = [
+    return rows
+
+
+def _conclusion_rows(v: Variant) -> list[dict[str, Any]]:
+    # 072/у: a justified title line with the name line under it; 076/у: the title and the name
+    # line share one printed line. The captions sit under the line in both.
+    head = (
+        [
+            row(
+                text(v.head_label),
+                blank("headOfDepartment", 30, grow=True),
+                _stub("headOfDepartmentSignature"),
+            ),
+            row(_caption(FAMILY_CAPTION, 93.6), _caption("подпись", 3.5)),
+        ]
+        if v.child
+        else [
+            row(text(v.head_label), align="stretch"),
+            row(blank("headOfDepartment", 47), _stub("headOfDepartmentSignature")),
+            row(_caption(FAMILY_CAPTION, 93.6), _caption("подпись", 3.5)),
+        ]
+    )
+    return [
         row(text("ЗАКЛЮЧЕНИЕ"), align="center", gap="medium"),
         row(
             text("Наименование санаторно-курортной организации"),
@@ -1302,24 +1392,24 @@ def build_layout(v: Variant, form_number: str) -> dict[str, Any]:
             ),
             blank("treatmentSetting", 4),
         ),
-        row(text("Продолжительность курса лечения"), blank("courseDays", 12), text("дней")),
-        row(text("Путевка №"), blank("voucherNumber", 20)),
+        row(text("Продолжительность курса лечения"), blank("courseDays", 15), text("дней")),
+        row(text("Путевка №"), blank("voucherNumber", 18)),
         row(
             text("Фамилия, имя, отчество (при наличии) и подпись лица, заполнившего карту"),
             blank("filledBy", 24, grow=True),
-            signature("filledBySignature"),
         ),
-        row(
-            text(v.head_label),
-            blank("headOfDepartment", 20, grow=True, caption=FAMILY_CAPTION),
-            signature("headOfDepartmentSignature"),
-            gap="small",
-        ),
+        row(_rule(), _stub("filledBySignature")),
+        *head,
         row({"kind": "stamp", "fieldId": "stamp", "text": "М.П. (при наличии)"}, gap="medium"),
     ]
-    talon_back_rows: list[dict[str, Any]] = [
+
+
+def _coupon_back_rows(v: Variant) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = [
+        row(_rule(dotted=True)),
         row(text("линия отреза"), align="center", size="small", gap="medium"),
-        row(text("Проведено лечение"), blank("treatmentDone", 40, grow=True, lines=1)),
+        row(text("Проведено лечение"), _rule()),
+        _ruled("treatmentDone", 1),
         row(
             text(
                 "(виды лечения, количество процедур, их переносимость, даты проведения "
@@ -1329,67 +1419,75 @@ def build_layout(v: Variant, form_number: str) -> dict[str, Any]:
             align="center",
             size="small",
         ),
-        row(
-            text("Эпикриз (включая данные обследования)"),
-            blank("epicrisis", 30, grow=True, lines=2),
-        ),
+        row(text("Эпикриз (включая данные обследования)"), _rule()),
+        _ruled("epicrisis", 2 if v.child else 3),
         row(
             text(
                 "Результат санаторно-курортного лечения: значительное улучшение – 1, улучшение "
-                "– 2, без перемен – 3, ухудшение – 4"
+                "– 2, без перемен – 3,"
             ),
-            blank("treatmentResult", 4),
-            gap="medium",
+            align="stretch",
         ),
+        row(text("ухудшение – 4"), blank("treatmentResult", 4)),
         row(
             text("Наличие обострений, потребовавших отмену процедур: да – 1, нет – 2"),
             blank("exacerbations", 4),
         ),
-        row(
-            text("Рекомендации по дальнейшему лечению:"),
-            blank("recommendations", 30, grow=True, lines=1),
-        ),
+        row(text("Рекомендации по дальнейшему лечению:"), _rule()),
+        _ruled("recommendations", 1 if v.child else 3),
     ]
     if v.child:
-        talon_back_rows.append(
+        rows.append(
             row(
                 text("Контакт с пациентами, больными инфекционными заболеваниями"),
                 blank("talonInfectionContact", 20, grow=True),
-                gap="small",
             )
         )
-    talon_back_rows += [
+    rows += [
         row(
             text("Лечащий врач, должность врача-специалиста"),
-            blank("treatingDoctor", 24, grow=True, caption=FAMILY_CAPTION),
-            signature("treatingDoctorSignature"),
-            gap="small",
+            blank("treatingDoctor", 24, grow=True),
+            _stub("treatingDoctorSignature"),
         ),
+        row(_caption(FAMILY_CAPTION, 76.5), _caption("подпись", 11.7)),
         row(
             text("Главный врач санаторно-курортной организации"),
-            blank("chiefDoctor", 24, grow=True, caption=FAMILY_CAPTION),
-            signature("chiefDoctorSignature"),
+            blank("chiefDoctor", 24, grow=True),
+            _stub("chiefDoctorSignature"),
         ),
+        row(_caption(FAMILY_CAPTION + " подпись", 76.9)),
         row(
             {"kind": "stamp", "fieldId": "returnStamp", "text": "М.П. (при наличии)"}, gap="medium"
         ),
     ]
+    return rows
+
+
+def build_layout(v: Variant, form_number: str) -> dict[str, Any]:
+    front = _front_rows(v, form_number)
+    front_inset = {"left": 5.7}
+    back_inset = {"left": 0.9, "right": 4.2}
     return {
         "page": {
             "size": "A4",
             "orientation": "portrait",
-            "marginMm": {"top": 10, "right": 10, "bottom": 10, "left": 15},
-            "fontSizePt": 9 if v.child else 9.5,
+            "marginMm": {"top": 10, "right": 14, "bottom": 6, "left": 16.7},
+            "fontSizePt": 10,
         },
         "blocks": [
-            _header_block(form_number),
-            _plain_block("title", front_rows),
-            _plain_block("patient", patient_rows),
-            _plain_block("insurance", insurance_rows),
-            _plain_block("social", social_rows),
-            _plain_block("return-front", cut_rows),
-            _plain_block("clinical", clinical_rows, pageBreakBefore=True),
-            _plain_block("conclusion", conclusion_rows),
-            _plain_block("return-back", talon_back_rows),
+            {**_header_block(form_number), "insetMm": front_inset},
+            _plain_block("title", front["title"], insetMm=front_inset),
+            _plain_block("patient", front["patient"], insetMm=front_inset),
+            _plain_block("insurance", front["insurance"], insetMm=front_inset),
+            _plain_block("social", front["social"], insetMm=front_inset),
+            _plain_block("return-front", _coupon_front_rows(v), insetMm=front_inset),
+            _plain_block(
+                "clinical",
+                _clinical_rows(v, form_number),
+                pageBreakBefore=True,
+                insetMm=back_inset,
+            ),
+            _plain_block("conclusion", _conclusion_rows(v), insetMm=back_inset),
+            _plain_block("return-back", _coupon_back_rows(v), insetMm=back_inset),
         ],
     }

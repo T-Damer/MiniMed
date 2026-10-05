@@ -1,0 +1,48 @@
+{
+  "formId": "ru.minzdrav.274n.076u",
+  "method": "page margins and font size from the extent and the line widths of the scan text, line height, and the space above each layout row, fitted so the print lands on the official scan (OCR boxes); `medical_form_overlay calibrate`",
+  "page": {
+    "marginMm": {
+      "top": 10,
+      "right": 13.1,
+      "bottom": 6,
+      "left": 16.4
+    },
+    "fontSizePt": 10.0
+  },
+  "lineHeight": 1.134,
+  "rows": {
+    "clinical/0/1": 5.29,
+    "clinical/0/11": 4.15,
+    "clinical/0/13": 4.62,
+    "clinical/0/19": 0.52,
+    "clinical/0/21": 0.28,
+    "clinical/0/26": 0.72,
+    "clinical/0/3": 0.52,
+    "conclusion/0/0": 4.09,
+    "conclusion/0/1": 4.17,
+    "conclusion/0/3": 0.35,
+    "conclusion/0/5": 0.26,
+    "conclusion/0/9": 1.31,
+    "header/0/7": 0.49,
+    "header/1/2": 4.94,
+    "insurance/0/3": 0.44,
+    "patient/0/0": 5.13,
+    "patient/0/2": 5.73,
+    "patient/0/4": 0.47,
+    "patient/0/6": 0.71,
+    "return-back/0/1": 3.48,
+    "return-back/0/17": 0.01,
+    "return-back/0/2": 1.7,
+    "return-back/0/4": 2.01,
+    "return-back/0/7": 0.27,
+    "return-front/0/13": 0.38,
+    "return-front/0/17": 0.33,
+    "return-front/0/3": 3.29,
+    "return-front/0/7": 0.57,
+    "social/0/5": 0.52,
+    "social/0/6": 0.36,
+    "title/0/0": 3.72,
+    "title/0/1": 2.16
+  }
+}
