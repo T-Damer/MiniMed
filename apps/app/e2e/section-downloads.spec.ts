@@ -59,8 +59,14 @@ test('the tour offers the same section list and its step needs no network to ren
   await page.route('**/core.db', () => new Promise(() => {}));
   await page.goto(`${ORIGIN}/#/search`, { waitUntil: 'domcontentloaded' });
   await expect(page.getByText('Привет', { exact: true })).toBeVisible({ timeout: 30_000 });
-  for (let press = 0; press < 6; press += 1) await page.keyboard.press('ArrowRight');
+  // The intro has its own steps (greeting, welcome, core) before the tour; advance until the
+  // sections step instead of counting presses.
   const card = page.locator('.onboarding-hint');
-  await expect(card.getByRole('heading', { name: 'Скачать по специальности' })).toBeVisible();
+  const heading = card.getByRole('heading', { name: 'Скачать по специальности' });
+  for (let press = 0; press < 12 && !(await heading.isVisible()); press += 1) {
+    await page.keyboard.press('ArrowRight');
+    await page.waitForTimeout(400);
+  }
+  await expect(heading).toBeVisible();
   await expect(card.locator('.section-downloads__item').first()).toBeVisible({ timeout: 60_000 });
 });

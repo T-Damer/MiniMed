@@ -159,7 +159,9 @@ function InlineDocumentLink(props: {
   return (
     <Popover
       open={open()}
-      onOpenChange={setOpen}
+      // A wrapper, not the bare setter: since 94c3a5d9 the bare setter let the preview close again
+      // right after opening (e2e reader-lookups); the Kobalte-side cause is not identified.
+      onOpenChange={(value) => setOpen(value)}
       placement="bottom-start"
       gutter={7}
       flip
