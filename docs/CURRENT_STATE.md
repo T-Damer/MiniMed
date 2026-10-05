@@ -327,6 +327,40 @@ on the list searches titles, descriptions and card keywords.
   existing path); ICD-10 codes are format-checked, not looked up in the МКБ module; the OCR-derived
   code lists were compared with the scan by eye only.
 
+## Official forms — layout-fidelity check and thirteen forms — 2026-10-05/06 (STATE F3)
+
+- **«Формы» now lists thirteen forms** (order of the list: the most used first): 070/у, 057/у «Направление для
+  оказания медицинской помощи» (519н, from the general rule 27.10.2025), 088/у «Направление на
+  медико-социальную экспертизу» (joint 488н/551н, 13 sheets, 216 fields), 107-1/у, 148-1/у-88, 148-1/у-04(л)
+  (рецептурные бланки, 1094н), 003-В/у (1092н) and 071/у (395н) — **drafts**, the organisation prints its own
+  (protected) stock —, 072/у, 076/у, 079/у, 025-1/у (274н) and 058/у (740н) which is **in force only from
+  01.03.2027** and is shown as «Вступает в силу с 01.03.2027» (`validityLine`, from `source.effectiveFrom`).
+  Orders, eoNumbers, in-force dates and field statistics: [FORMS_PLAN.md](FORMS_PLAN.md) «Done — F3». All
+  sit in the registry `tools/ingest/medical-form-sources.json`, so `bun run forms:check-updates` watches
+  them (seven source orders, run clean on 2026-10-05); the regional-order noise of its «possible
+  replacement» search was removed (only the federal Минздрав counts).
+- **Layout fidelity is measured**, `bun run forms:overlay`: the empty print of each form (Chromium PDF of
+  the print HTML, at the declared paper size) is aligned with the official scan page (words by OCR boxes,
+  ruled strokes by raster, sheets, paper size, whether Chromium shrank the page), images in
+  `output/f3-screens/<form>/`; `bun run forms:calibrate` fits margins, font, line height and the space
+  above each row from the scan into `tools/ingest/medical-form-calibration/*.json`, merged by the preparer.
+  Figures of the last run are committed (`tools/ingest/medical-form-overlay-results.json`, tested): nine of
+  thirteen forms are inside every tolerance (median vertical offset 0.1–0.5 mm, p90 ≤ 1.4 mm); 088/у
+  (p90 4.1 mm), 025-1/у (rule recall 0.71), 071/у and 003-В/у (scan layout) carry written reasons —
+  details and the before/after table in FORMS_PLAN.md. A form's print is now one layout row per printed
+  line; text-only rows flow like paragraphs; blanks keep their length and share the rest of a line.
+- Code: contract additions (optional; `rule`, whole-year date part, option `separators`/`range`/`joined`,
+  `stretch` rows, `spaceBeforeMm`/`minHeightMm`, page `lineHeight`, `insetMm`, running-text table cells,
+  `charCells`, …), prefill `format: initials`, a checkbox ticked by a mapped value, the order/validity line
+  (`form-source-line.ts`), blueprints discovered by file name, registry-driven `forms:prepare`, rules from
+  several appendices of one order, joint orders (issuer), a form whose order has no filling rules.
+- Tests: python 1 210 (overlay metrics, calibration, per-form schema/rebuild, registry, results), vitest
+  forms/contracts, Playwright `official-forms.spec.ts` (070/у, the F2 four, 057/у with prefill and
+  underlined answers, the seven new forms prefilled with the printed sheet count of the official blank).
+- Not verified: print on a physical printer and the Android shell; Latin/Cyrillic letters inside the scans;
+  the stitched measurement of 003-В/у (an agent's scratch script, not in the repository); the filled
+  print of a very long entry (it flows to another sheet).
+
 ## Official forms — the rest of order 274н, update check — 2026-10-05 (STATE F2)
 
 - «Формы» now lists five forms of Минздрав order № 274н of 13.05.2025: 070/у, 072/у «Санаторно-курортная

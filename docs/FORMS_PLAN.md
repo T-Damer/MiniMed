@@ -1,4 +1,4 @@
-# Official medical forms with prefill — plan (STATE F1, F2)
+# Official medical forms with prefill — plan (STATE F1, F2, F3)
 
 Owner request 2026-10-05: put an official form into the app (e.g. 070/у) and get it filled from the
 patient's data; the list of forms should come from official sources.
@@ -158,7 +158,7 @@ patient → print. Then 072/у, then the owner's priority list (076/у, 086/у, 
   on demand, preview text, real sheet count). Screenshots (390 px, light and dark) are in
   `output/f2-screens/`.
 
-### Candidates for the owner
+### Candidates for the owner (status after F3: see «Done — F3»)
 
 Forms that are **not** in 274н, checked on `publication.pravo.gov.ru` on 2026-10-05 (eoNumbers are
 verified against the API: number, date, Минюст registration). Every one of these official PDFs is an
@@ -197,6 +197,139 @@ until the owner supplies an official source for them. Not verified in this pass:
 base order (checked by title over the 2 375 Минздрав documents of the portal, plus the text of 327н),
 and the effort figures (estimates, not measured).
 
+## Done — F3: layout-fidelity check and thirteen new forms (2026-10-05/06)
+
+### Layout-fidelity check (`bun run forms:overlay`, `bun run forms:calibrate`)
+
+- **Render.** `tools/forms-overlay/render-print.ts` renders the *empty* print of every schema to a PDF
+  with Chromium, from the same HTML the print manager receives, at the paper size the schema declares.
+- **Compare.** `localmed_ingest.medical_form_overlay check` (PyMuPDF, pure Python, no new dependency)
+  puts the official scan page (rotated and, since the scan is a photograph of a sheet, fitted to the
+  print sheet; a size mismatch beyond 5 % is a violation) under the print:
+  - **text** — the words of the print (PDF text layer) and the OCR words of the scan are aligned as two
+    sequences, then the leftovers by position; per word the vertical and left offsets (mm), per line
+    the font scale (identical lines' width, narrow end, because justified lines are wider), the
+    agreement of line breaks; the page offset of the appendix heading («Приложение № N …», not part of
+    the form) is taken from the first form line;
+  - **rules** — long strokes (blank underlines, box and table borders) found in both rasters with one
+    detector (150 dpi): recall of the scan's strokes, their vertical/length offset;
+  - **sheet** — sheet count, paper deviation, `printScale` (the body font in the PDF over the declared
+    one: when a line overflows, Chromium silently shrinks the whole page — that is a violation);
+  - images in `output/f3-screens/<key>/` (`-overlay.png`: scan cyan, print red, both black;
+    `-side-by-side.png`).
+  Tolerances (`TOLERANCES` in the module): word coverage ≥ 0.85, median vertical offset ≤ 2 mm, p90 ≤ 4
+  mm, p98 ≤ 8 mm, median left offset ≤ 2 mm, font scale 0.95–1.05, line-break agreement ≥ 0.8, rule
+  recall ≥ 0.8, rule offset ≤ 1.5 mm vertical / 3 mm length, paper deviation ≤ 5 %, print scale ±4 %.
+- **Calibrate.** `medical_form_overlay calibrate` fits, from the scan alone: side margins (extent of the
+  scan text), font size (quarter points), line height (down to 1.1 while the print is taller than the
+  scan) and the space above each layout row; the result is a committed file per form
+  (`tools/ingest/medical-form-calibration/<form id>.json`) that the preparer merges into the schema
+  (`page.lineHeight`, rows' `spaceBeforeMm`, margins/font). A calibrated row that no longer exists in
+  the blueprint fails the build. What calibration cannot fix is the structure and is done in the
+  blueprints: **one layout row per printed line** (`stretch` rows spread one line over the width,
+  `justify` rows wrap paragraphs), column widths, blank lengths, boxes, tables.
+- **Result file.** `tools/ingest/medical-form-overlay-results.json` holds the figures of the last run
+  per form; a pytest checks that every registered form is there, that the figures still satisfy
+  `TOLERANCES`, and that any violation carries a written reason (`acceptedViolations`). After a layout
+  change run `bun run forms:overlay -- --update-results`, then `bunx biome format --write` on the file.
+  Blanks that share a scan page with another blank (prescription blanks) are measured on a masked copy
+  built from `blank_regions` of the blueprint.
+- **Contract additions** (optional, generic): row `spaceBeforeMm`, `minHeightMm`, `align: stretch`;
+  page `lineHeight`; segment kinds `rule` (empty ruled line), whole-year date part, option
+  `separators`/`range`/`joined`, `indentMm`, `lineStyle`, `charCells`, running-text table cells,
+  block `insetMm`, and more (see `packages/contracts/src/form-schema.ts`).
+
+Results (median / p90 / p98 vertical offset of the print against the scan, mm; line breaks = share of
+print lines broken where the scan breaks; rules = share of the scan's strokes found in the print):
+
+| Form | before F3 (median / p90 / max) | now | words | lines | rules | sheets |
+| --- | --- | --- | --- | --- | --- | --- |
+| 070/у | 4.4 / 9.9 / 16.0 | 0.3 / 1.1 / 4.3 | 0.95 | 0.83 | 0.94 | 1 |
+| 072/у | 11.5 / 26.3 / 32.6 | 0.3 / 1.0 / 1.9 | 0.93 | 0.99 | 0.81 | 2 |
+| 076/у | 27.1 / 63.5 / 67.5 | 0.5 / 1.1 / 1.9 | 0.92 | 1.00 | 0.85 | 2 |
+| 079/у | 32.5 / 65.1 / 74.6 | 0.2 / 0.6 / 0.9 | 0.97 | 0.96 | 0.93 | 2 |
+| 025-1/у | 27.7 / 46.6 / 50.6 | 0.3 / 2.1 / 3.0 | 0.94 | 0.82 | **0.71** | 2 |
+| 057/у | new | 0.3 / 0.5 / 0.8 | 0.88 | 0.94 | 0.91 | 1 |
+| 058/у | new | 0.2 / 0.8 / 1.4 | 0.99 | 0.96 | 0.97 | 2 |
+| 088/у | new | 0.2 / **4.1** / 7.9 | 0.97 | 0.87 | 0.84 | 13 |
+| 107-1/у | new | 0.1 / 1.0 / 1.4 | 0.91 | 0.98 | 0.80 | 2 |
+| 148-1/у-88 | new | 0.2 / 0.5 / 1.1 | 0.87 | 1.00 | 0.88 | 2 |
+| 148-1/у-04(л) | new | 0.2 / 1.4 / 1.8 | 0.91 | 0.92 | 0.88 | 2 |
+| 003-В/у | new | not measurable page by page (below) | 0.53 | 1.00 | 0.33 | 1 (scan 2) |
+| 071/у | new | 2.3 / 3.6 / 5.8 | 0.77 | 0.95 | 0.67 | 2 |
+
+«Before» are the first runs of the tool on the F2 print (scan taken at its own page size, first version of
+the metric); 070/у was then tuned by the coordinator, the other four forms by separate fitting passes. The first printed layout of F1/F2 was a flowing reconstruction (10 pt, 15 mm margins); the scans use
+10–14 pt, justified lines and explicit breaks, which is what the fit reproduces now.
+
+Remaining differences, honestly (all in `acceptedViolations` of the results file with the reason):
+
+- **088/у** — p90 4.1 mm against 4.0: long checkbox cells in the tables on sheets 3–4 and 6–7 wrap one or
+  two words differently; the signature block on sheet 13 is about 5 mm off.
+- **025-1/у** — rule recall 0.71 against 0.80: the scan is skewed by about 0.4°, its table grid and long
+  rules are detected in pieces; every border is in place on the overlay (recall was 0.84 before the scan
+  was fitted to the sheet). The signature slot prints a «подпись» caption the scan does not have; the print
+  title is 10 % narrower (only three row sizes exist).
+- **003-В/у** — the official page 15 carries the appendix heading, the blank continues on page 16; the print
+  is one A4 sheet (the form is one sheet). Page-by-page matching therefore pairs scan page 2 with a sheet
+  that holds the whole form: figures meaningless. Measured by the agent against the two form areas
+  stitched into one page (scratch script, not in the repository): words 0.87, dy 0.5 / 1.8 / 2.1 mm, line
+  breaks 0.96, rules 0.93. Restriction row 2 breaks after another word than the scan.
+- **071/у** — word coverage 0.77 (the OCR reads the ruled tables partly; 0.92 with the long rules removed
+  from the OCR input, agent measurement), restrictions table drifts about 4 mm down (scan lines justified,
+  print ragged-right, an extra forced line in row A IV), the scan's categories table is 2.6 mm narrower.
+- **Everywhere** — signature segments always print their caption/stub (a field must appear on the blank), the
+  scan draws one long rule for name and signature; dashed lines on the scan detect only as short pieces;
+  handwritten dates in the appendix heading («от «13» мая 2025 г.») are printed as text where the form
+  itself carries them (057/у, 058/у), a stub «подпись» differs by 5–10 mm in caption rows; Latin/Cyrillic
+  letters on the scans are not distinguishable.
+
+### Forms added (each from the official order text on publication.pravo.gov.ru, recorded in the registry)
+
+| Form | Order | eoNumber | In force | Fields (defined / by-line / undefined) | Sheets |
+| --- | --- | --- | --- | --- | --- |
+| 057/у Направление для оказания медицинской помощи | 519н of 02.09.2025, Минюст 83857 of 16.10.2025 | `0001202510160032` | the order names no date: **27.10.2025** by the general rule (10 days after the publication of 16.10.2025; stated in the edition line and in the notes), no expiry | 37 (21 / 15 / 1) | 1 |
+| 058/у Экстренное извещение о случае инфекционной, паразитарной болезни … | 740н of 20.08.2026, Минюст 88291 of 16.09.2026 | `0001202609170010` | **from 01.03.2027 to 01.03.2033** (clause 2 of the order); shown as «Вступает в силу с 01.03.2027» | 80 (51 / 28 / 1) | 2 |
+| 088/у Направление на медико-социальную экспертизу медицинской организацией | joint Минтруд 488н / Минздрав 551н of 12.08.2022, Минюст 70900 of 10.11.2022 | `0001202211100014` | 10 days after publication (21.11.2022), no expiry | 216 (181 / 35 / 0) | 13 |
+| 107-1/у Рецептурный бланк | 1094н of 24.11.2021, Минюст 66124 of 30.11.2021 | `0001202111300115` | 01.03.2022–01.03.2028 | 20 (13 / 1 / 6) | 2 |
+| 148-1/у-88 | same | same | same | 17 (11 / 0 / 6) | 2 |
+| 148-1/у-04(л) | same | same | same | 40 (27 / 2 / 11) | 2 |
+| 003-В/у Медицинское заключение (водитель, кандидат в водители) | 1092н of 24.11.2021, Минюст 66130 of 30.11.2021 | `0001202111300131` | 01.03.2022–01.03.2028 (item 5 of the order) | 57 (47 / 10 / 0) | 1 |
+| 071/у Медицинское заключение (тракторист, машинист, водитель самоходных машин) | 395н of 09.06.2022, Минюст 68933 of 21.06.2022 | `0001202206210025` | 03.07.2022–01.03.2028 | 56 (0 / 0 / 56: the order has no filling rules) | 2 |
+
+Notes per form:
+
+- The user's «057/у-04» is the old form of order 255 of 2004, repealed; its successor is the new 057/у of 519н.
+- **058/у** is registered but not in force until 01.03.2027; the list and the fill screen say so
+  (`validityLine`), and the form in use today has no source on the portal and is not built.
+- **Prescription blanks** and the two driver/machine certificates are **drafts**: the order requires the
+  organisation's own (some protected) printed stock; the schema notes say so. The three prescription blanks
+  share scan pages (a blank starts under the reverse side of the previous one) and are reproduced as printed
+  on the order's pages.
+- **003-В/у**: the scan splits the blank over two pages because of the appendix heading; the print is one
+  sheet. The category codes are Latin on purpose (Latin and Cyrillic look the same on the scan).
+- **071/у** has no «Порядок заполнения»; the order's own clauses 1–2 are kept as the schema's rules, every
+  field is `undefined`.
+- New prefill capabilities: patient name as «Иванов И.И.» (`format: initials`), checkbox ticked by a mapped
+  value (`sex: male` → the «Мужской» box).
+
+### Forms checked and not built
+
+Verified on 2026-10-05 on the portal (API + OCR of the orders) by a research pass:
+
+| Form | Verdict |
+| --- | --- |
+| 086/у, 086-2/у (справка профессионально-консультативная) | **not in force**: both were appendices of 834н, repealed from 01.09.2025 by 274н, which carries only 025/у, 025-1/у, 070/у, 072/у, 076/у, 079/у; no successor order; certificates are free form since 286н of 15.04.2026 (eo `0001202605290025`, 01.09.2026–01.09.2032) unless a law fixes the form |
+| 030/у, 030-13/у, 032/у, 043 | same: 834н repealed, no successor on the portal |
+| 027/у, 063/у, 095/у | **no official text on the portal** (the Soviet order 1030 of 04.10.1980 is not there); the only basis is a Минздрав letter of 31.10.2023 № 13-2/3106565-159 saying the forms of 1030 stay in use until new ones are approved — not an approved current form; a paper выписка is free form (order 789н of 31.07.2020, eo `0001202009240027`); 530н (inpatient, eo `0001202210190009`) has no стандалон выписка/справка form |
+| 025-2/у талон (761н of 27.08.2026, eo `0001202609240042`) | exists, in force from 01.03.2027 to 01.03.2033; niche, not built (2–3 days) |
+| 002-О/у, 003-О/у (1104н, `0001202111300144`) | in force 01.03.2022–01.03.2028; not built (weapon-owner certificates, not common; 1 day each) |
+
+Other current forms found by the pass, not built: 106/у medical death certificate and 106-2/у (352н, `0001202105310022`, valid to 01.09.2027,
+2–3 days), 131/у (271н, `0001202605270017`, from 01.09.2026), 030-ПО/у (211н, `0001202505230032`), 030/у-Д/с (212н,
+`0001202505290026`), паспорт врачебного участка (671н, `0001202608140006`), извещение о профзаболевании (258н,
+`0001202506020063`), 315-1/у and 316-1/у (196н, `0001202505190024`). Not on the portal at all: 112/у, 026/у, 111/у, 156/у-93.
+
 ### Update check (`bun run forms:check-updates`)
 
 Local, never a scheduled job (repository policy: content builds run locally). Registry:
@@ -231,7 +364,7 @@ it in step with the blueprints and the committed schemas.
 
 ## Next steps
 
-- Pick forms from «Candidates for the owner».
+- Pick further forms from the lists above (025-2/у from 2027, the weapon certificates, 106/у).
 - Add the orders and their «Порядок» to the regulatory corpus (search finds the filling rules).
 - ICD-10 against the МКБ module: `validateForm` takes an `icdKnown` hook; the format check runs now,
   the module lookup is not wired (the МКБ module is a large optional download).
@@ -240,13 +373,12 @@ it in step with the blueprints and the committed schemas.
 - Human review of the OCR-derived code lists (89 subjects of the Russian Federation) against the scan
   once more before the form is called verified; a second recogniser would catch residual slips.
 
-## Owner requirement: layout fidelity (2026-10-05)
+## Owner requirement: layout fidelity (2026-10-05) — measured since F3
 
 The printed blank must preserve the layout of the original form file: block order, line breaks,
-field positions, boxed rows and the one- or two-sided sheet structure as on the official scan.
-Next check (not done yet): render each form's print preview to PDF/PNG and overlay it on the
-official scan page at the same scale; differences beyond line-length rounding are bugs. Add this
-as an e2e/visual test per form.
+field positions, boxed rows, table grids and the one- or two-sided sheet structure as on the official
+scan. Since F3 this is **checked automatically** (see «Done — F3»); a new form is held to the same
+`TOLERANCES` by `bun run forms:overlay` and a committed result file.
 
 ## Open questions for the owner
 

@@ -189,7 +189,7 @@ def find_related_orders(
             if (
                 item["eoNumber"] == source["eoNumber"]
                 or item["eoNumber"] in acknowledged
-                or "Министерства здравоохранения" not in complex_name
+                or "Министерства здравоохранения Российской Федерации" not in complex_name
                 or any(
                     phrase.lower() not in complex_name.lower()
                     for phrase in source.get("watchRequire", [])

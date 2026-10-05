@@ -28,7 +28,10 @@
    orders on publication.pravo.gov.ru; the report is `data/build/forms-update-check.json`. `unchanged`
    is the only clean result: `new`, `changed` or «HUMAN REVIEW REQUIRED» means the form schemas need a
    review (docs/FORMS_PLAN.md «Update check») before the release; a network `error` is not a pass —
-   repeat it. List reviewed related orders in `acknowledgedOrders`.
+   repeat it. List reviewed related orders in `acknowledgedOrders`. After any change of a form's
+   layout or of the print CSS run `bun run forms:overlay` (renders every form and compares it with the
+   official scan; the figures of the last run are committed in
+   `tools/ingest/medical-form-overlay-results.json`, a violation needs a written reason).
 10. Push a release commit only from a clean working tree; the release workflow creates the tag and
    prerelease after all gates pass.
 
