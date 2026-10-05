@@ -2005,6 +2005,52 @@ released), the native Android transcriber, and the Android high-refresh display 
   lookup-quality metrics. Readers are unchanged, so old packs keep working. See
   `research/core-db-size-2026-09-24.md`.
 
+## МКБ-11 (ВОЗ) as an optional separate module — 2026-10-06 (ICD11)
+
+Owner decision 2026-10-05: МКБ-11 may be a separate pack, Russia uses МКБ-10. Source and licence
+findings, the Russian status and what the public files lack are in
+`docs/research/icd11-2026-10-05.md`. Summary: WHO publishes the MMS **Russian** linearization
+(release 2026-01) and the ICD-10↔ICD-11 mapping tables as public downloads (no account); licence
+CC BY-ND 3.0 IGO; the public file has titles, hierarchy and coding notes but **no definitions,
+inclusions, exclusions or index terms** (ICD-API only, owner decision pending); Russian has no
+official status (Минздрав suspended the transition 2024-02).
+
+- **Numbers**: 37 052 documents (28 chapters, 1 360 blocks, 35 664 categories), 1 494 titles without a Russian
+  translation in WHO's file (English kept, marked), 633 coding notes; 76.3 MB download, 479 MB installed;
+  release asset `reference-icd11-2026.10.5` (pre-release) uploaded, catalog preview entry added
+  (no per-document table: no core pointer targets it).
+- **Module** `minimed.reference.icd11.ru`, collection `icd11`, title «МКБ-11 (ВОЗ), справочно; в РФ
+  действует МКБ-10», `preview`, `minAppVersion` 0.6.51. Never replaces or mixes with МКБ-10 (own id,
+  collection, document prefix `who.icd11.mms.`, source type `who_icd11_reference`, none of
+  `mkbCode`/`icd10Codes`/`entityType`; the packager refuses a document with one).
+- **Pipeline** (`bun run content:fetch:icd11`, `bun run content:module:icd11`):
+  `medbase fetch-icd11` (SHA-256 manifest in `data/raw/icd11/<release>/MANIFEST.json`) →
+  `prepare-icd11` (one Markdown document per WHO row; every paragraph carries a `localmed:source`
+  marker with the entity's browser URL and the raw file line / mapping rows) → `build` →
+  `package-icd11` → `scripts/upsert-catalog-module.ts`. Ids are WHO linearization ids (residual rows
+  `…/other`, `…/unspecified` keep their own). A title WHO has not translated stays WHO's English
+  title and the card says so; nothing is translated or generated.
+- **Mapping tables** (WHO's own, unchanged): ICD-11 → closest ICD-10, ICD-10 → ICD-11 (one and several
+  categories), cluster targets such as `A00.0 → 1A00&XN8P1` shown as text with the extension titles
+  (the only postcoordination data in the public files). ICD-10 links open the МКБ-10 card only when
+  that exact card exists in the МКБ-10 module (`rls.mkb.node.<code>`), otherwise the code is plain
+  text. WHO's redistribution terms for the mapping tables are not explicit (the licence puts
+  crosswalks outside the classification licence): recorded as an owner publication decision.
+- **App**: `apps/app/src/features/icd11/` (`icd11-document.ts`, `Icd11CardPanel`); ICD-11 documents are
+  searched only in «Все источники» (`documentMatchesSearchScope`), dropped from the whole-core
+  «Клинический разбор» scope, absent from the МКБ/состояния section, the condition catalog and the
+  inline term links, ordered last in the home catalog and counted outside the «Ядро» card;
+  result cards carry the label «МКБ-11 (ВОЗ), справочно», the card title ends «МКБ-11 (ВОЗ)», and the
+  reader shows the practice note («В Российской Федерации действует МКБ-10…»), WHO hierarchy as
+  links, children and the crosswalk; the modules page lists it in its own «МКБ-11 (ВОЗ), справочно»
+  card, not under «Нормы и расчёты» or «Заболевания и состояния», so no section download queues it.
+- **Not done**: definitions/inclusions/exclusions (need ICD-API or WHO's local container, see the research
+  note), a dedicated ICD-11 search section and ICD-10 → ICD-11 links on the МКБ-10 cards (they would
+  need `SearchWorkspace`/`contracts`, owned by other tasks), a zstd-framed re-pack (gzip transport only).
+- Tests: `tools/ingest/tests/test_icd11_prepare.py`, unit (`icd11-document`, `ScopedMedicalCore`,
+  `homeDocumentOrder`, `overview-document-counts`), `apps/app/e2e/icd11-module.spec.ts` (installs the
+  module from the local release bytes, skipped when they are absent).
+
 ## Known limits
 
 

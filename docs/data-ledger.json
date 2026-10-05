@@ -588,6 +588,15 @@
       "note": "Per-site files/ (PDF/DOCX), pages/ (HTML evidence), text/ (extraction cache, rebuildable), state.jsonl (fetch ledger) and manifest.jsonl (matches with provenance, derived by rebuild-manifest). Never mixed with data/raw/grls-instructions-active; GRLS files untouched.",
       "bytes": 423354000,
       "modified": "2026-10-02"
+    },
+    {
+      "path": "data/build/icd11-module",
+      "class": "RELEASED",
+      "producer": "bun run content:module:icd11",
+      "consumers": ["apps/app/e2e/icd11-module.spec.ts"],
+      "release": "reference-icd11-2026.10.5 (.db.gz asset); the SQLite and release/ copies are the local release copy",
+      "bytes": 555674954,
+      "modified": "2026-10-06"
     }
   ]
 }
