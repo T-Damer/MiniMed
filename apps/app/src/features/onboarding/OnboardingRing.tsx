@@ -1,9 +1,6 @@
 import type { JSX } from 'solid-js';
 
-import { growRect, type Rect } from './onboarding-geometry';
-
-/** Space between the control and its highlight ring. */
-const RING_PAD = 6;
+import { growRect, type Rect, RING_PAD } from './onboarding-geometry';
 
 /**
  * A soft ring around the control a step explains. A spotlight ring also dims the rest of the

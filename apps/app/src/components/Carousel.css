@@ -4,19 +4,24 @@
   gap: 0.375rem;
 }
 
-/* Arrows are layered over the slide's edges, so the slide keeps the full width. */
+/* The track keeps the full width: the arrows live under it, beside the dots, where nothing clips
+   them and they never cover the card's text. */
 .carousel__viewport {
-  position: relative;
   min-width: 0;
 }
 
+.carousel__controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
 .carousel__arrow {
-  position: absolute;
-  z-index: var(--z-raised);
-  top: 50%;
   display: inline-grid;
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
   place-items: center;
   padding: 0;
   border: 1px solid var(--theme-border);
@@ -25,18 +30,9 @@
   background: color-mix(in srgb, var(--theme-surface-raised) 88%, transparent);
   box-shadow: 0 0.125rem 0.375rem rgb(29 27 22 / 12%);
   cursor: pointer;
-  transform: translateY(-50%);
   transition:
     color 160ms ease-out,
     background-color 160ms ease-out;
-}
-
-.carousel__arrow--previous {
-  left: -0.5rem;
-}
-
-.carousel__arrow--next {
-  right: -0.5rem;
 }
 
 .carousel__arrow:hover {
@@ -50,15 +46,17 @@
 }
 
 .carousel__arrow-icon {
-  width: 0.75rem;
-  height: 0.75rem;
+  width: 0.875rem;
+  height: 0.875rem;
 }
 
-/* One slide per track width, no gap: the scroll position maps straight to a slide index. */
+/* One slide per track width and a gap between slides: slide n starts at n × (width + gap), which
+   is what Carousel.tsx's slideStride() measures. */
 .carousel__track {
   display: grid;
   grid-auto-columns: 100%;
   grid-auto-flow: column;
+  column-gap: 0.75rem;
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
@@ -69,12 +67,41 @@
   display: none;
 }
 
-/* Grid rows stretch every slide, and the card inside it, to the tallest slide's height. */
+/* Grid rows stretch every slide, its frame and the card inside to the tallest slide's height. */
 .carousel__slide {
   display: grid;
   min-width: 0;
   scroll-snap-align: start;
   scroll-snap-stop: always;
+}
+
+.carousel__frame {
+  display: grid;
+  min-width: 0;
+  transform-origin: center;
+}
+
+/* Scrolling: a slide is full size and opacity while it fills the track and shrinks a little as it
+   leaves or arrives. The scroll timeline runs off the main thread and only touches transform and
+   opacity. Without support the slides just snap, which is fine. */
+@supports (animation-timeline: view(inline)) {
+  .carousel__frame {
+    animation: carousel-frame-scale linear both;
+    animation-timeline: view(inline);
+  }
+}
+
+@keyframes carousel-frame-scale {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.92);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .carousel__dots {
@@ -111,5 +138,9 @@
   .carousel__arrow,
   .carousel__dot {
     transition: none;
+  }
+
+  .carousel__frame {
+    animation: none;
   }
 }

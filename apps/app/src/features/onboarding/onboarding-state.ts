@@ -47,3 +47,15 @@ export async function handOffToOnboarding(removeSurface: () => void): Promise<bo
   }
   return registered ? registered(removeSurface) : false;
 }
+
+const [onScreen, setOnScreen] = createSignal(false);
+
+/**
+ * True while the onboarding (intro or tour) is on screen. Things that move or pop up by
+ * themselves, such as the home carousel's autoplay, hold still while it is.
+ */
+export const onboardingOnScreen = onScreen;
+
+export function setOnboardingOnScreen(value: boolean): void {
+  setOnScreen(value);
+}

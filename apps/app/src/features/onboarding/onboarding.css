@@ -137,8 +137,8 @@
 .onboarding-intro__scenes {
   display: grid;
   width: 100%;
-  min-height: 9.5rem;
-  place-items: center;
+  min-height: 11.5rem;
+  place-items: start center;
 }
 
 .onboarding-intro__scene {
@@ -172,27 +172,107 @@
   letter-spacing: -0.02em;
 }
 
-.onboarding-intro__mark {
+.onboarding-intro__logo {
+  position: relative;
+  flex: none;
   width: 6.5rem;
   height: 6.5rem;
-  max-height: 6.5rem;
-  margin-bottom: 1rem;
+  /* Headroom above the icon: the documents rise out of it into this space. */
+  margin: 3.75rem 0 1rem;
+}
+
+.onboarding-intro__mark {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   /* The real app icon, sharp: nothing but its own fade ever touches it. */
   filter: none;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-  transition:
-    max-height 520ms var(--onboarding-ease),
-    margin 520ms var(--onboarding-ease),
-    opacity 420ms ease;
 }
 
-/* Once the core explanation takes the screen the icon steps aside. */
+/* Once the core download takes the screen the wallet opens: its documents come out and it fades. */
 .onboarding-intro__mark--away {
-  max-height: 0;
-  margin-bottom: 0;
   opacity: 0;
+  transform: translate3d(0, 0.75rem, 0) scale(0.94);
+  transition:
+    opacity 620ms ease 620ms,
+    transform 620ms var(--onboarding-ease) 620ms;
+}
+
+/* ---- the documents of the icon (OnboardingDocuments) ---- */
+
+.onboarding-docs {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+}
+
+.onboarding-docs__sheet {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  display: block;
+  width: 4.6rem;
+  height: 3.3rem;
+  margin-left: -2.3rem;
+  border-radius: 0.4rem;
+  box-shadow: 0 0.35rem 0.8rem rgb(0 0 0 / 22%);
+  /* Packed into the wallet: small, low and unseen. */
+  opacity: 0;
+  transform: translate3d(0, 1.8rem, 0) scale(0.7);
+  transition:
+    transform 900ms var(--onboarding-ease),
+    opacity 360ms ease;
+}
+
+.onboarding-docs__art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 0.4rem;
+}
+
+/* Out of the wallet: a fan of three, the middle sheet the highest. They then drift slowly. */
+.onboarding-docs__sheet--out {
+  opacity: 1;
+}
+
+.onboarding-docs__sheet--left.onboarding-docs__sheet--out {
+  transform: translate3d(-3.9rem, -2.3rem, 0) rotate(-9deg);
+  transition-delay: 120ms;
+  animation: onboarding-doc-float 2600ms ease-in-out 1600ms infinite alternate;
+}
+
+.onboarding-docs__sheet--center.onboarding-docs__sheet--out {
+  z-index: 2;
+  width: 5.4rem;
+  height: 3.8rem;
+  margin-left: -2.7rem;
+  transform: translate3d(0, -4.1rem, 0);
+  transition-delay: 0ms;
+  animation: onboarding-doc-float 3000ms ease-in-out 1300ms infinite alternate;
+}
+
+.onboarding-docs__sheet--right.onboarding-docs__sheet--out {
+  transform: translate3d(3.9rem, -2.3rem, 0) rotate(9deg);
+  transition-delay: 220ms;
+  animation: onboarding-doc-float 2800ms ease-in-out 1900ms infinite alternate;
+}
+
+/* The drift uses the separate «translate» property, so it adds to the fan's own transform. */
+@keyframes onboarding-doc-float {
+  from {
+    translate: 0 0;
+  }
+
+  to {
+    translate: 0 -0.35rem;
+  }
 }
 
 .onboarding-intro__title {
@@ -209,13 +289,12 @@
   text-wrap: balance;
 }
 
-.onboarding-intro__scene--core {
-  align-self: center;
-  transform: translateY(-4vh);
-}
-
-.onboarding-intro__scene--core.onboarding-intro__scene--shown {
-  transform: translateY(-4vh);
+.onboarding-intro__about {
+  max-width: 24rem;
+  margin: 0.25rem 0 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  text-wrap: balance;
 }
 
 .onboarding-intro__core {
@@ -237,33 +316,21 @@
   font-size: 1rem;
   line-height: 1.45;
   text-wrap: balance;
-  visibility: hidden;
-  opacity: 0;
-  transition:
-    opacity 480ms ease,
-    visibility 0s linear 480ms;
-}
-
-.onboarding-intro__hint--shown {
-  visibility: visible;
-  opacity: 1;
-  transition:
-    opacity 480ms ease,
-    visibility 0s;
 }
 
 .onboarding-intro__download {
   pointer-events: auto;
 }
 
+/* The footer clears the core progress label in the bottom corner (a 2.75 rem strip). */
 .onboarding-intro__footer {
   position: absolute;
   right: 0;
-  bottom: calc(var(--safe-bottom, 0px) + 1.5rem);
+  bottom: calc(var(--safe-bottom, 0px) + 3.25rem);
   left: 0;
   display: grid;
   justify-items: center;
-  gap: 0.25rem;
+  gap: 1.25rem;
   pointer-events: none;
 }
 
@@ -291,11 +358,15 @@
 }
 
 .onboarding-intro__skip {
-  --ui-button-height: 2.75rem;
+  --ui-button-height: 2.5rem;
   --ui-button-padding-inline: 1.25rem;
   border-radius: 999px;
+  color: var(--theme-text-muted);
   font-size: 0.9rem;
   font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.25em;
   pointer-events: none;
   visibility: hidden;
   opacity: 0;
@@ -356,7 +427,8 @@
   z-index: 2;
   display: grid;
   width: min(26rem, calc(100vw - 1.5rem));
-  max-height: calc(100dvh - 4rem - var(--safe-top, 0px) - var(--safe-bottom, 0px));
+  /* Keeps clear of the bottom strip (2.75 rem) and a 0.75 rem margin on both sides. */
+  max-height: calc(100dvh - 4.5rem - var(--safe-top, 0px) - var(--safe-bottom, 0px));
   grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 0.75rem;
   padding: 0.875rem 1rem 0.75rem;
@@ -439,8 +511,14 @@
 .onboarding-hint__body {
   display: grid;
   min-height: 0;
+  grid-template-columns: minmax(0, 1fr);
   align-content: start;
   gap: 0.625rem;
+  /* The body scrolls, so it clips: the padding is room for the raised shadows of its buttons
+     (they reach about 0.75 rem below and 0.5 rem aside), and the negative margin takes the
+     room back, so layout stays where it was and nothing is cut square. */
+  margin: -0.25rem -0.75rem -1rem;
+  padding: 0.25rem 0.75rem 1rem;
   overflow-y: auto;
   overscroll-behavior: contain;
   animation: onboarding-body-in 360ms var(--onboarding-ease);
@@ -464,6 +542,7 @@
 
 .onboarding-hint__text {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.5rem;
 }
 
@@ -484,6 +563,57 @@
 
 .onboarding-hint__item {
   padding-left: 0.1rem;
+}
+
+.onboarding-hint__more {
+  border: 1px solid var(--theme-border);
+  border-radius: 0.65rem;
+  background: color-mix(in srgb, var(--theme-surface) 55%, transparent);
+}
+
+.onboarding-hint__more-summary {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.65rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  list-style: none;
+  cursor: pointer;
+}
+
+.onboarding-hint__more-summary::-webkit-details-marker {
+  display: none;
+}
+
+.onboarding-hint__more-summary:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 2px;
+}
+
+.onboarding-hint__more-text {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.onboarding-hint__more-icon {
+  width: 1rem;
+  height: 1rem;
+  flex: none;
+  transition: rotate 200ms var(--onboarding-ease);
+}
+
+.onboarding-hint__more-icon--open {
+  rotate: 180deg;
+}
+
+.onboarding-hint__more-body {
+  padding: 0 0.75rem 0.75rem 0.5rem;
 }
 
 .onboarding-hint__notice {
@@ -528,6 +658,10 @@
   line-height: 1.4;
 }
 
+.onboarding-extra__hint--error {
+  color: var(--theme-danger);
+}
+
 /* ---- ring and arrows ---- */
 
 /* One group per step, so a new step redraws its ring and arrow from scratch. */
@@ -542,7 +676,7 @@
   border: 2px solid rgb(var(--onboarding-accent));
   box-shadow:
     0 0 0 4px rgb(var(--onboarding-accent) / 18%),
-    0 0 1.5rem rgb(var(--onboarding-accent) / 55%);
+    0 0 1rem rgb(var(--onboarding-accent) / 45%);
   pointer-events: none;
   animation:
     onboarding-ring-in 420ms var(--onboarding-ease) both,
@@ -553,7 +687,7 @@
 .onboarding-ring--spotlight {
   box-shadow:
     0 0 0 4px rgb(var(--onboarding-accent) / 22%),
-    0 0 1.5rem rgb(var(--onboarding-accent) / 55%),
+    0 0 1rem rgb(var(--onboarding-accent) / 45%),
     0 0 0 200vmax rgb(0 0 0 / 22%);
   animation:
     onboarding-ring-in 420ms var(--onboarding-ease) both,
@@ -564,7 +698,7 @@
   50% {
     box-shadow:
       0 0 0 9px rgb(var(--onboarding-accent) / 12%),
-      0 0 2.5rem rgb(var(--onboarding-accent) / 75%),
+      0 0 1.5rem rgb(var(--onboarding-accent) / 60%),
       0 0 0 200vmax rgb(0 0 0 / 22%);
   }
 }
@@ -580,7 +714,7 @@
   50% {
     box-shadow:
       0 0 0 7px rgb(var(--onboarding-accent) / 10%),
-      0 0 2.25rem rgb(var(--onboarding-accent) / 70%);
+      0 0 1.5rem rgb(var(--onboarding-accent) / 55%);
   }
 }
 
@@ -654,6 +788,11 @@
 }
 
 .core-progress-line--leaving {
+  opacity: 0;
+}
+
+/* Before the app has been introduced there is nothing to report yet. */
+.core-progress-line--waiting {
   opacity: 0;
 }
 
@@ -735,6 +874,14 @@
   cursor: pointer;
 }
 
+/* ---- notices ---- */
+
+/* A toast never lands on the tour's card or buttons: while the onboarding is open the notices
+   slip under it (the tour reports its own download problems inside its card). */
+:root[data-onboarding="open"] [data-sonner-toaster].app-notification-host {
+  z-index: calc(var(--z-overlay) + 40);
+}
+
 /* ---- reduced motion ---- */
 
 @media (prefers-reduced-motion: reduce) {
@@ -742,9 +889,19 @@
   .onboarding__veil--edge,
   .onboarding-intro__scene,
   .onboarding-intro__scene--shown,
+  .onboarding-intro__mark--away,
+  .onboarding-docs__sheet,
   .onboarding-hint {
     transition-duration: 0.01ms;
     transition-delay: 0s;
+  }
+
+  /* The documents rest where they came out, a static triplet. */
+  .onboarding-docs__sheet--left.onboarding-docs__sheet--out,
+  .onboarding-docs__sheet--center.onboarding-docs__sheet--out,
+  .onboarding-docs__sheet--right.onboarding-docs__sheet--out {
+    transition-delay: 0s;
+    animation: none;
   }
 
   .onboarding-hint__body,

@@ -15,7 +15,11 @@ import {
   startQueuedAndroidApkDownload,
 } from '@/features/downloads/native-apk-download';
 import { WorkerSearchMedicalCore } from '@/features/search/WorkerSearchMedicalCore';
-import { coreAutoDownloadAllowed, currentNetworkConnection } from '@/features/setup/setup-state';
+import {
+  coreAutoDownloadAllowed,
+  currentNetworkConnection,
+  whenCoreStartReleased,
+} from '@/features/setup/setup-state';
 import {
   APP_UPDATE_READY_EVENT,
   type AppUpdateProgress,
@@ -353,8 +357,10 @@ export function useAppSession() {
   const createSessionCore = async () =>
     new RetirableMedicalCore(
       await createBrowserCore({
-        requestDownload: (resuming) =>
-          new Promise<void>((resolve, reject) => {
+        requestDownload: async (resuming) => {
+          // The first launch's onboarding introduces the app before anything is downloaded.
+          await whenCoreStartReleased();
+          return new Promise<void>((resolve, reject) => {
             if (ready()) {
               reject(
                 new Error(
@@ -371,7 +377,8 @@ export function useAppSession() {
               setCoreDownloadDeferred(true);
               beginCoreDownload = resolve;
             }
-          }),
+          });
+        },
         onProgress: setCoreProgress,
         onWaitingForOtherTab: setCoreWaitingForOtherTab,
       }),

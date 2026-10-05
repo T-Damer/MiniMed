@@ -5,8 +5,12 @@ import { type Accessor, createSignal } from 'solid-js';
  * it runs without a DOM; {@link createOnboardingController} wraps it in a signal.
  */
 
-/** `wait`: the splash is still leaving; `hello`..`ready`: the full-screen intro (step 1). */
-export type IntroPhase = 'wait' | 'hello' | 'welcome' | 'core' | 'ready';
+/**
+ * `wait`: the splash is still leaving; `hello`: the logo and the greeting; `welcome`: a few words
+ * about the app; `core`: the core download (the last phase, whose «Далее» begins the tour).
+ * Nothing moves on by itself: every phase waits for the user.
+ */
+export type IntroPhase = 'wait' | 'hello' | 'welcome' | 'core';
 
 export type OnboardingState =
   | { readonly kind: 'intro'; readonly phase: IntroPhase }
@@ -16,21 +20,22 @@ export type OnboardingState =
 export type OnboardingEvent =
   /** The splash is gone: the greeting may begin. */
   | { readonly type: 'start' }
-  /** A timer or the keyboard moves the intro on one phase; ignored once the intro is over. */
-  | { readonly type: 'advance' }
   | { readonly type: 'next' }
   | { readonly type: 'back' }
   | { readonly type: 'skip' };
 
-const INTRO_ORDER: readonly IntroPhase[] = ['wait', 'hello', 'welcome', 'core', 'ready'];
+const INTRO_ORDER: readonly IntroPhase[] = ['wait', 'hello', 'welcome', 'core'];
 
 export function initialOnboardingState(): OnboardingState {
   return { kind: 'intro', phase: 'wait' };
 }
 
-/** Intro phases that a timer moves on by itself (the last one waits for the user). */
-export function introPhaseAdvances(phase: IntroPhase): boolean {
-  return phase === 'hello' || phase === 'welcome' || phase === 'core';
+/** The intro phase from which «Далее» begins the tour. */
+export const LAST_INTRO_PHASE: IntroPhase = 'core';
+
+/** From this phase on the core download may begin: the user has read what it is and gone on. */
+export function coreDownloadMayStart(state: OnboardingState): boolean {
+  return state.kind !== 'intro' || state.phase === 'core';
 }
 
 export function reduceOnboarding(
@@ -45,16 +50,13 @@ export function reduceOnboarding(
     switch (event.type) {
       case 'start':
         return state.phase === 'wait' ? { kind: 'intro', phase: 'hello' } : state;
-      case 'advance':
-        if (state.phase === 'wait' || state.phase === 'ready') return state;
-        return { kind: 'intro', phase: INTRO_ORDER[position + 1] ?? 'ready' };
       case 'next':
         if (state.phase === 'wait') return state;
-        // «Далее» from the last intro phase begins the tour; earlier it skips ahead one phase.
-        if (state.phase === 'ready') {
+        // «Далее» from the last intro phase begins the tour; earlier it shows the next phase.
+        if (state.phase === LAST_INTRO_PHASE) {
           return stepCount > 0 ? { kind: 'tour', index: 0 } : { kind: 'done', reason: 'finished' };
         }
-        return { kind: 'intro', phase: INTRO_ORDER[position + 1] ?? 'ready' };
+        return { kind: 'intro', phase: INTRO_ORDER[position + 1] ?? LAST_INTRO_PHASE };
       case 'back':
         return state;
     }

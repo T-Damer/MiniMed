@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+  coreDownloadMayStart,
   createOnboardingController,
   dismissesPermanently,
   initialOnboardingState,
-  introPhaseAdvances,
   type OnboardingEvent,
   type OnboardingState,
   reduceOnboarding,
@@ -22,26 +22,30 @@ function run(events: readonly OnboardingEvent[], from = initialOnboardingState()
 describe('onboarding controller', () => {
   it('waits for the splash, then greets', () => {
     expect(initialOnboardingState()).toEqual({ kind: 'intro', phase: 'wait' });
-    expect(run([{ type: 'advance' }, { type: 'next' }])).toEqual({ kind: 'intro', phase: 'wait' });
+    expect(run([{ type: 'next' }])).toEqual({ kind: 'intro', phase: 'wait' });
     expect(run([{ type: 'start' }])).toEqual({ kind: 'intro', phase: 'hello' });
   });
 
-  it('walks the intro phases by timer and stops at the button', () => {
+  it('waits for the user at every intro phase and starts the tour from the last one', () => {
     const phases: string[] = [];
     let state: OnboardingState = run([{ type: 'start' }]);
-    for (let turn = 0; turn < 5; turn += 1) {
+    for (let press = 0; press < 3; press += 1) {
       if (state.kind === 'intro') phases.push(state.phase);
-      state = reduceOnboarding(state, { type: 'advance' }, COUNT);
+      state = reduceOnboarding(state, { type: 'next' }, COUNT);
     }
-    expect(phases).toEqual(['hello', 'welcome', 'core', 'ready', 'ready']);
-    expect(introPhaseAdvances('hello')).toBe(true);
-    expect(introPhaseAdvances('ready')).toBe(false);
+    expect(phases).toEqual(['hello', 'welcome', 'core']);
+    expect(state).toEqual({ kind: 'tour', index: 0 });
+    // The greeting does not move on by itself: only «Далее» does.
+    expect(run([{ type: 'start' }])).toEqual({ kind: 'intro', phase: 'hello' });
   });
 
-  it('lets «Далее» skip ahead through the intro and then start the tour', () => {
-    const state = run([{ type: 'start' }, { type: 'next' }, { type: 'next' }, { type: 'next' }]);
-    expect(state).toEqual({ kind: 'intro', phase: 'ready' });
-    expect(reduceOnboarding(state, { type: 'next' }, COUNT)).toEqual({ kind: 'tour', index: 0 });
+  it('lets the core download begin only after the app has been introduced', () => {
+    expect(coreDownloadMayStart({ kind: 'intro', phase: 'wait' })).toBe(false);
+    expect(coreDownloadMayStart({ kind: 'intro', phase: 'hello' })).toBe(false);
+    expect(coreDownloadMayStart({ kind: 'intro', phase: 'welcome' })).toBe(false);
+    expect(coreDownloadMayStart({ kind: 'intro', phase: 'core' })).toBe(true);
+    expect(coreDownloadMayStart({ kind: 'tour', index: 0 })).toBe(true);
+    expect(coreDownloadMayStart({ kind: 'done', reason: 'skipped' })).toBe(true);
   });
 
   it('moves through the steps and finishes on the last one', () => {

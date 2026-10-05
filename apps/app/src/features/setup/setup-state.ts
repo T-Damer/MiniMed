@@ -19,6 +19,31 @@ export function dismissSetup(): void {
   }
 }
 
+let coreStartHeld = false;
+let coreStartWaiters: Array<() => void> = [];
+
+/**
+ * Keeps the first core download from beginning until the onboarding has introduced the app (the
+ * user pressed «Далее» past the greeting). Held at start-up when the onboarding is to open and
+ * released once it moves on, ends or is closed, so the download never waits forever.
+ */
+export function holdCoreStart(): void {
+  coreStartHeld = true;
+}
+
+export function releaseCoreStart(): void {
+  coreStartHeld = false;
+  const waiters = coreStartWaiters;
+  coreStartWaiters = [];
+  for (const wake of waiters) wake();
+}
+
+/** Resolves at once unless the start is held; then when it is released. */
+export function whenCoreStartReleased(): Promise<void> {
+  if (!coreStartHeld) return Promise.resolve();
+  return new Promise<void>((resolve) => coreStartWaiters.push(resolve));
+}
+
 /** Subset of the Network Information API; absent in Safari/Firefox. */
 export interface NetworkConnectionHint {
   readonly saveData?: boolean;

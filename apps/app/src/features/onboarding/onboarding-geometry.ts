@@ -57,6 +57,15 @@ export function rectOnScreen(rect: Rect, viewport: Size): boolean {
   );
 }
 
+/** Space between a control and its highlight ring. */
+export const RING_PAD = 6;
+/** The ring's border (2 px) and its widest pulse halo (9 px) reach this far past the ring's box. */
+export const RING_REACH = 11;
+/** Clear space between the arrow's tip and the outer edge of the ring's halo. */
+export const ARROW_RING_GAP = 7;
+/** How far outside the control the arrow ends, so its tip never lands on the ring. */
+export const ARROW_OUTSET = RING_PAD + RING_REACH + ARROW_RING_GAP;
+
 /** The rectangle grown by `pad` on every side (the highlight ring around a control). */
 export function growRect(rect: Rect, pad: number): Rect {
   return {
@@ -90,6 +99,8 @@ export interface PlaceCardOptions {
 
 const DEFAULT_MARGIN = 12;
 const DEFAULT_GAP = 76;
+/** Used when a card does not fit with the default gap: the arrow is short but still drawn. */
+const TIGHT_GAP = 56;
 /** Side placement needs a screen wide enough for the card next to the target. */
 const SIDE_PLACEMENT_MIN_WIDTH = 720;
 
@@ -105,7 +116,6 @@ export function placeCard(
   options: PlaceCardOptions = {},
 ): CardPlacement {
   const margin = options.margin ?? DEFAULT_MARGIN;
-  const gap = options.gap ?? DEFAULT_GAP;
   const maxLeft = viewport.width - margin - card.width;
   const maxTop = viewport.height - margin - card.height;
   if (!target) {
@@ -116,19 +126,23 @@ export function placeCard(
     };
   }
   const centre = rectCenter(target);
+  const gaps = gapsToTry(options);
+  // The first (roomiest) gap with a side that fits wins; if none does, the tightest gap decides.
+  let gap = gaps[gaps.length - 1] ?? DEFAULT_GAP;
+  let fitting: CardSide | undefined;
+  for (const candidate of gaps) {
+    const sides = fittingSides(viewport, target, card, margin, candidate);
+    if (sides[0]) {
+      gap = candidate;
+      fitting = sides[0];
+      break;
+    }
+  }
   const room = {
     below: viewport.height - margin - rectBottom(target) - gap,
     above: target.top - gap - margin,
-    right: viewport.width - margin - rectRight(target) - gap,
-    left: target.left - gap - margin,
   };
-  const wide = viewport.width >= SIDE_PLACEMENT_MIN_WIDTH;
-  const fits: CardSide[] = [];
-  if (room.below >= card.height) fits.push('below');
-  if (room.above >= card.height) fits.push('above');
-  if (wide && room.right >= card.width) fits.push('right');
-  if (wide && room.left >= card.width) fits.push('left');
-  const side: CardSide = fits[0] ?? (room.below >= room.above ? 'below' : 'above');
+  const side: CardSide = fitting ?? (room.below >= room.above ? 'below' : 'above');
   const horizontal = clamp(centre.x - card.width / 2, margin, maxLeft);
   const vertical = clamp(centre.y - card.height / 2, margin, maxTop);
   switch (side) {
@@ -149,6 +163,56 @@ export function placeCard(
         side: 'left',
       };
   }
+}
+
+/** The gaps tried, roomiest first: an explicit gap is the only one; by default a tight one follows. */
+function gapsToTry(options: PlaceCardOptions): readonly number[] {
+  return options.gap === undefined ? [DEFAULT_GAP, TIGHT_GAP] : [options.gap];
+}
+
+/** The sides of `target` on which a card of this size fits with `gap` for the arrow. */
+function fittingSides(
+  viewport: Size,
+  target: Rect,
+  card: Size,
+  margin: number,
+  gap: number,
+): CardSide[] {
+  const wide = viewport.width >= SIDE_PLACEMENT_MIN_WIDTH;
+  const sides: CardSide[] = [];
+  if (viewport.height - margin - rectBottom(target) - gap >= card.height) sides.push('below');
+  if (target.top - gap - margin >= card.height) sides.push('above');
+  if (wide && viewport.width - margin - rectRight(target) - gap >= card.width) sides.push('right');
+  if (wide && target.left - gap - margin >= card.width) sides.push('left');
+  return sides;
+}
+
+/**
+ * How far to scroll the page so the card has a side to stand on. When the card fits below the
+ * target, above it, or (on wide screens) beside it, the answer is 0. Otherwise the page is moved
+ * by the smaller of two distances that give the card room — positive: scroll down (content moves
+ * up) so it fits below; negative: scroll up so it fits above — provided the target stays on the
+ * screen; 0 when no scrolling helps (the card then simply overlaps, as placeCard documents). The
+ * roomier gap is tried first, the tight one after it, like placeCard does.
+ */
+export function scrollDeltaToFit(
+  viewport: Size,
+  target: Rect,
+  card: Size,
+  options: PlaceCardOptions = {},
+): number {
+  const margin = options.margin ?? DEFAULT_MARGIN;
+  const gaps = gapsToTry(options);
+  if (gaps.some((gap) => fittingSides(viewport, target, card, margin, gap).length > 0)) return 0;
+  for (const gap of gaps) {
+    const down = rectBottom(target) + gap + card.height + margin - viewport.height;
+    const up = card.height + gap + margin - target.top;
+    const downKeepsTarget = target.top - down >= margin;
+    const upKeepsTarget = rectBottom(target) + up <= viewport.height - margin;
+    if (downKeepsTarget && (!upKeepsTarget || down <= up)) return down;
+    if (upKeepsTarget) return -up;
+  }
+  return 0;
 }
 
 /**

@@ -14,11 +14,18 @@ export interface CarouselSlide {
   readonly render: () => JSX.Element;
 }
 
+/** Distance between the starts of two neighbouring slides: a slide's width plus the track's gap. */
+function slideStride(track: HTMLElement): number {
+  const gap = Number.parseFloat(getComputedStyle(track).columnGap);
+  return track.clientWidth + (Number.isFinite(gap) ? gap : 0);
+}
+
 /**
- * One slide at a time on a native scroll-snap track: swipe, arrows on the slide's edges, position
- * dots underneath, equal slide heights. The label names the carousel for assistive tech. Optional
- * autoplay waits while the pointer or focus is inside, stops for good once the user takes over,
- * and never runs with reduced motion or on a hidden page.
+ * One slide at a time on a native scroll-snap track: swipe, equal slide heights, a gap between
+ * slides (the neighbours scale as they come and go), and under the track the previous and next
+ * arrows either side of the position dots. The label names the carousel for assistive tech.
+ * Optional autoplay waits while the pointer or focus is inside or while `autoplayPaused` says so,
+ * stops for good once the user takes over, and never runs with reduced motion or on a hidden page.
  */
 export function Carousel(props: {
   readonly class?: string;
@@ -28,6 +35,8 @@ export function Carousel(props: {
   readonly slides: readonly CarouselSlide[];
   readonly startIndex?: number;
   readonly autoplayMs?: number;
+  /** Autoplay holds still while this returns true (something else is drawing the user's eye). */
+  readonly autoplayPaused?: () => boolean;
 }): JSX.Element {
   let track: HTMLDivElement | undefined;
   const [index, setIndex] = createSignal(0);
@@ -44,7 +53,7 @@ export function Carousel(props: {
     target = next;
     setIndex(next);
     track.scrollTo({
-      left: next * track.clientWidth,
+      left: next * slideStride(track),
       behavior: smooth && !reducedMotion.matches ? 'smooth' : 'auto',
     });
   };
@@ -65,7 +74,7 @@ export function Carousel(props: {
     show(start, false);
     // Keep the current slide in place when the width changes (rotation, split view).
     const resize = new ResizeObserver(() => {
-      element.scrollTo({ left: index() * element.clientWidth });
+      element.scrollTo({ left: index() * slideStride(element) });
     });
     resize.observe(element);
     onCleanup(() => resize.disconnect());
@@ -74,7 +83,7 @@ export function Carousel(props: {
       const mayAdvance = carouselAutoplayMayAdvance({
         reducedMotion: reducedMotion.matches,
         takenOver: takenOver(),
-        held: held(),
+        held: held() || props.autoplayPaused?.() === true,
         pageHidden: document.hidden,
       });
       if (mayAdvance && count() > 1) show(carouselStep(index(), count(), 1), true);
@@ -99,10 +108,10 @@ export function Carousel(props: {
           onScroll={(event) => {
             const element = event.currentTarget;
             if (target !== undefined) {
-              if (Math.abs(element.scrollLeft - target * element.clientWidth) > 1) return;
+              if (Math.abs(element.scrollLeft - target * slideStride(element)) > 1) return;
               target = undefined;
             }
-            setIndex(carouselIndexAt(element.scrollLeft, element.clientWidth, count()));
+            setIndex(carouselIndexAt(element.scrollLeft, slideStride(element), count()));
           }}
           onPointerDown={() => {
             target = undefined;
@@ -123,44 +132,44 @@ export function Carousel(props: {
                 aria-roledescription="слайд"
                 aria-label={`${itemLabel()} ${position() + 1} из ${count()}`}
               >
-                {slide.render()}
+                <div class="carousel__frame">{slide.render()}</div>
               </div>
             )}
           </For>
         </div>
-        <Show when={count() > 1}>
+      </div>
+      <Show when={count() > 1}>
+        <div class="carousel__controls">
           <button
             type="button"
-            class="carousel__arrow carousel__arrow--previous"
+            class="carousel__arrow"
             aria-label="Предыдущая"
             onClick={() => step(-1)}
           >
             <AppGlyph class="carousel__arrow-icon" name="caret-left" />
           </button>
+          <div class="carousel__dots">
+            <For each={props.slides}>
+              {(_, position) => (
+                <button
+                  type="button"
+                  class="carousel__dot"
+                  classList={{ 'carousel__dot--active': position() === index() }}
+                  aria-label={`${itemLabel()} ${position() + 1} из ${count()}`}
+                  aria-current={position() === index() ? 'true' : undefined}
+                  onClick={() => goTo(position())}
+                />
+              )}
+            </For>
+          </div>
           <button
             type="button"
-            class="carousel__arrow carousel__arrow--next"
+            class="carousel__arrow"
             aria-label="Следующая"
             onClick={() => step(1)}
           >
             <AppGlyph class="carousel__arrow-icon" name="caret-right" />
           </button>
-        </Show>
-      </div>
-      <Show when={count() > 1}>
-        <div class="carousel__dots">
-          <For each={props.slides}>
-            {(_, position) => (
-              <button
-                type="button"
-                class="carousel__dot"
-                classList={{ 'carousel__dot--active': position() === index() }}
-                aria-label={`${itemLabel()} ${position() + 1} из ${count()}`}
-                aria-current={position() === index() ? 'true' : undefined}
-                onClick={() => goTo(position())}
-              />
-            )}
-          </For>
         </div>
       </Show>
     </section>

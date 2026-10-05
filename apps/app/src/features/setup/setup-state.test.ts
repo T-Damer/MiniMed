@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { coreAutoDownloadAllowed, downloadPercent } from './setup-state';
+import {
+  coreAutoDownloadAllowed,
+  downloadPercent,
+  holdCoreStart,
+  releaseCoreStart,
+  whenCoreStartReleased,
+} from './setup-state';
 
 describe('download percent', () => {
   it('uses indeterminate progress when total is not known', () => {
@@ -61,5 +67,27 @@ describe('onboarding dismissal', () => {
     expect(isSetupDismissed()).toBe(false);
     dismissSetup();
     expect(isSetupDismissed()).toBe(true);
+  });
+});
+
+describe('core start hold', () => {
+  afterEach(() => releaseCoreStart());
+
+  it('lets the download begin at once when nothing holds it', async () => {
+    await expect(whenCoreStartReleased()).resolves.toBeUndefined();
+  });
+
+  it('keeps the download waiting until the onboarding releases it', async () => {
+    holdCoreStart();
+    let started = false;
+    const waiting = whenCoreStartReleased().then(() => {
+      started = true;
+    });
+    await Promise.resolve();
+    expect(started).toBe(false);
+    releaseCoreStart();
+    await waiting;
+    expect(started).toBe(true);
+    await expect(whenCoreStartReleased()).resolves.toBeUndefined();
   });
 });

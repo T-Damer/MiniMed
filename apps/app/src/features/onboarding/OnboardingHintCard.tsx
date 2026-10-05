@@ -1,8 +1,52 @@
-import { createEffect, createUniqueId, For, type JSX, on, onCleanup, Show } from 'solid-js';
+import {
+  createEffect,
+  createSignal,
+  createUniqueId,
+  For,
+  type JSX,
+  on,
+  onCleanup,
+  Show,
+} from 'solid-js';
 
+import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import type { CardPlacement, Size } from './onboarding-geometry';
 import type { OnboardingStep } from './onboarding-steps';
+
+function BulletList(props: { readonly items: readonly string[] }): JSX.Element {
+  return (
+    <ul class="onboarding-hint__list">
+      <For each={props.items}>{(item) => <li class="onboarding-hint__item">{item}</li>}</For>
+    </ul>
+  );
+}
+
+/** A long list folded under a one-line summary; collapsed until the user opens it. */
+function BulletAccordion(props: {
+  readonly summary: string;
+  readonly items: readonly string[];
+}): JSX.Element {
+  const [open, setOpen] = createSignal(false);
+  return (
+    <details
+      class="onboarding-hint__more"
+      classList={{ 'onboarding-hint__more--open': open() }}
+      onToggle={(event) => setOpen(event.currentTarget.open)}
+    >
+      <summary class="onboarding-hint__more-summary">
+        <span class="onboarding-hint__more-text">{props.summary}</span>
+        <AppGlyph
+          class={`onboarding-hint__more-icon${open() ? ' onboarding-hint__more-icon--open' : ''}`}
+          name="caret-down"
+        />
+      </summary>
+      <div class="onboarding-hint__more-body">
+        <BulletList items={props.items} />
+      </div>
+    </details>
+  );
+}
 
 /**
  * The floating hint card of the tour. It glides to its place next to the control it explains and
@@ -105,11 +149,9 @@ export function OnboardingHintCard(props: {
               </For>
               <Show when={step.bullets}>
                 {(bullets) => (
-                  <ul class="onboarding-hint__list">
-                    <For each={bullets()}>
-                      {(item) => <li class="onboarding-hint__item">{item}</li>}
-                    </For>
-                  </ul>
+                  <Show when={step.bulletsSummary} fallback={<BulletList items={bullets()} />}>
+                    {(summary) => <BulletAccordion summary={summary()} items={bullets()} />}
+                  </Show>
                 )}
               </Show>
               <Show when={step.notice}>

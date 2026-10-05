@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  ARROW_OUTSET,
   arrowAnchors,
   arrowGeometry,
   arrowWorthDrawing,
@@ -8,9 +9,12 @@ import {
   needsScroll,
   placeCard,
   type Rect,
+  RING_PAD,
+  RING_REACH,
   rectBottom,
   rectOnScreen,
   rectRight,
+  scrollDeltaToFit,
 } from './onboarding-geometry';
 
 const PHONE = { width: 390, height: 844 };
@@ -121,6 +125,15 @@ describe('arrowAnchors', () => {
     expect(to.y).toBe(rectBottom(target) + 8);
   });
 
+  it('ends clear of the highlight ring: its box, border and widest halo', () => {
+    const card: Rect = { left: 25, top: 400, width: 340, height: 260 };
+    const target: Rect = { left: 140, top: 770, width: 110, height: 56 };
+    const { to } = arrowAnchors(card, target, ARROW_OUTSET);
+    const halo = target.top - RING_PAD - RING_REACH;
+    expect(to.y).toBeLessThan(halo);
+    expect(halo - to.y).toBeGreaterThanOrEqual(6);
+  });
+
   it('uses the facing sides when the card is beside the target', () => {
     const target: Rect = { left: 40, top: 40, width: 400, height: 720 };
     const card: Rect = { left: 500, top: 300, width: 340, height: 260 };
@@ -208,5 +221,52 @@ describe('arrowWorthDrawing', () => {
   it('skips an arrow that would be a smudge', () => {
     expect(arrowWorthDrawing({ x: 0, y: 0 }, { x: 4, y: 3 })).toBe(false);
     expect(arrowWorthDrawing({ x: 0, y: 0 }, { x: 0, y: 60 })).toBe(true);
+  });
+});
+
+describe('placeCard with a tight gap', () => {
+  it('shortens the arrow room before it lets the card cover the target', () => {
+    const phone = { width: 360, height: 712 };
+    const card = { width: 340, height: 355 };
+    // Room for the card either side only at the tight gap: 265 + 355 + 56 + 24 = 700 ≤ 712.
+    const target: Rect = { left: 10, top: 20, width: 340, height: 265 };
+    const placement = placeCard(phone, target, card);
+    expect(placement.side).toBe('below');
+    expect(overlaps(asRect(placement, card), target)).toBe(false);
+    expect(placement.top - rectBottom(target)).toBe(56);
+  });
+});
+
+describe('scrollDeltaToFit', () => {
+  const phone = { width: 360, height: 756 };
+  const card = { width: 340, height: 300 };
+
+  it('leaves the page alone when the card fits below, above or beside', () => {
+    expect(scrollDeltaToFit(phone, { left: 10, top: 40, width: 340, height: 60 }, card)).toBe(0);
+    expect(scrollDeltaToFit(phone, { left: 10, top: 600, width: 340, height: 60 }, card)).toBe(0);
+    expect(scrollDeltaToFit(DESKTOP, { left: 40, top: 300, width: 300, height: 200 }, CARD)).toBe(
+      0,
+    );
+  });
+
+  it('scrolls the content up so the card fits below a target stuck in the middle', () => {
+    const target: Rect = { left: 10, top: 270, width: 340, height: 215 };
+    const delta = scrollDeltaToFit(phone, target, card);
+    expect(delta).toBeGreaterThan(0);
+    const moved: Rect = { ...target, top: target.top - delta };
+    expect(placeCard(phone, moved, card).side).toBe('below');
+    expect(overlaps(asRect(placeCard(phone, moved, card), card), moved)).toBe(false);
+  });
+
+  it('takes the shorter way: content down when the card then fits above', () => {
+    const target: Rect = { left: 10, top: 330, width: 340, height: 215 };
+    const delta = scrollDeltaToFit(phone, target, card);
+    expect(delta).toBeLessThan(0);
+    const moved: Rect = { ...target, top: target.top - delta };
+    expect(placeCard(phone, moved, card).side).toBe('above');
+  });
+
+  it('gives up when the target is too tall for any card beside it', () => {
+    expect(scrollDeltaToFit(phone, { left: 10, top: 20, width: 340, height: 700 }, card)).toBe(0);
   });
 });

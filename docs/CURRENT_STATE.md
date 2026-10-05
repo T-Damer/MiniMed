@@ -647,6 +647,31 @@ date, sha256, version/date as printed, OCR flag and match evidence.
   core ready / downloading / failing; dark theme re-checked step by step) and by `e2e/onboarding.spec.ts`; not verified on a physical
   Android device or WebView build (View Transitions there).
 
+### Onboarding polish (UX5) — 2026-10-05
+
+- The intro no longer advances by timer: «Привет» (logo) → «Далее» → short text about the app →
+  «Далее» → core screen → «Далее» → tour (`IntroPhase`: `wait | hello | welcome | core`). The core
+  download starts only on that second «Далее» (`holdCoreStart()` in `setup-state.ts`, set in
+  `App.tsx` when the onboarding will open, released by the onboarding on `core`/tour/done/unmount;
+  `use-app-session` awaits `whenCoreStartReleased()` before asking for consent). The progress line is
+  hidden until then. The core screen plays the icon: vector documents (`OnboardingDocuments`) leave
+  the wallet, it fades, three sheets drift, the middle one higher (transform/opacity only; reduced
+  motion = static triplet).
+- The «notification over the button» was the wide metered-connection caption of the progress line
+  («Мобильная сеть: загрузка ядра около …» + «Скачать», centred above the navigation, z-index above the
+  tour): while the onboarding is open it is a compact pill in the bottom corner (`compact`), the tour
+  card keeps a 44 px strip clear of it, the intro footer sits above it. Toasts slip under the tour
+  (`:root[data-onboarding]`); the speech-model failure shows inside the card.
+- Tour card respects the safe area (`safe-insets.ts`), falls back to a tighter arrow gap and scrolls the
+  page (`scrollDeltaToFit`) when neither side has room; the arrow ends `ARROW_OUTSET` from the control,
+  clear of the ring; `data-tour` slides are re-revealed (900 ms) after the carousel restores itself.
+  Tour body padding stops the buttons' shadows being cut square. «Мои файлы»: the list is a collapsed
+  accordion (`bulletsSummary`), the MRI source is behind a «?» (`MriSliceViewer variant="badge"`).
+- Home «Полезные функции» (`components/Carousel`): 12 px gap, scroll-driven scale/opacity on slides
+  (`animation-timeline: view(inline)`, snaps without support), arrows moved under the slides beside the
+  dots (no longer clipped), autoplay paused while the onboarding is on screen.
+- Not verified on the Android emulator, a physical phone or HyperOS WebView.
+
 ## Release 0.6.45 — 2026-09-30
 
 - **Published application and corpus.** The signed Android APK, core `13f238f…`, and RLS MKB

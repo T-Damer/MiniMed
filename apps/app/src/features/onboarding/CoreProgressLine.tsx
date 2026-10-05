@@ -7,6 +7,13 @@ import { currentSpeed, nextSpeed, startSpeed } from './download-speed';
 
 export type CoreProgressLineProps = Omit<CoreLineInput, 'speed'> & {
   readonly onDownload: () => void;
+  /** The download has not been allowed to begin yet (the app is still being introduced): hidden. */
+  readonly waiting?: boolean;
+  /**
+   * The onboarding is on screen: the caption stays a small pill in the bottom corner, where the
+   * tour keeps clear, instead of a wide message over the middle of the screen.
+   */
+  readonly compact?: boolean;
   /** The line has finished and faded: nothing of the core download remains on screen. */
   readonly onGone?: () => void;
 };
@@ -53,6 +60,8 @@ export function CoreProgressLine(props: CoreProgressLineProps): JSX.Element {
     }),
   );
 
+  const wide = () => !props.compact && (state().kind === 'deferred' || state().kind === 'error');
+
   createEffect(() => {
     if (!props.ready) return;
     const hold = setTimeout(() => setLeaving(true), READY_HOLD_MS);
@@ -87,7 +96,9 @@ export function CoreProgressLine(props: CoreProgressLineProps): JSX.Element {
           classList={{
             [`core-progress-line--${state().kind}`]: true,
             'core-progress-line--leaving': leaving(),
+            'core-progress-line--waiting': props.waiting === true,
           }}
+          aria-hidden={props.waiting ? 'true' : undefined}
         >
           <div
             class="core-progress-line__track"
@@ -113,13 +124,10 @@ export function CoreProgressLine(props: CoreProgressLineProps): JSX.Element {
           </div>
           <div
             class="core-progress-line__caption"
-            classList={{
-              'core-progress-line__caption--wide':
-                state().kind === 'deferred' || state().kind === 'error',
-            }}
+            classList={{ 'core-progress-line__caption--wide': wide() }}
           >
             <span class="core-progress-line__label" aria-hidden="true">
-              {state().label}
+              {props.compact ? state().compactLabel : state().label}
             </span>
             <Show when={state().kind === 'deferred'}>
               <button class="core-progress-line__action" type="button" onClick={props.onDownload}>

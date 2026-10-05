@@ -11,7 +11,7 @@ import {
 import { Portal } from 'solid-js/web';
 
 import { afterBootReveal } from '@/app/boot-surface';
-import { dismissSetup } from '@/features/setup/setup-state';
+import { dismissSetup, releaseCoreStart } from '@/features/setup/setup-state';
 import { motionMs } from '@/state/motion';
 import { CoreProgressLine } from './CoreProgressLine';
 import { OnboardingArrow } from './OnboardingArrow';
@@ -20,25 +20,29 @@ import { OnboardingHintCard } from './OnboardingHintCard';
 import { OnboardingIntro } from './OnboardingIntro';
 import { OnboardingRing } from './OnboardingRing';
 import {
+  coreDownloadMayStart,
   createOnboardingController,
   dismissesPermanently,
   type IntroPhase,
-  introPhaseAdvances,
+  LAST_INTRO_PHASE,
 } from './onboarding-controller';
 import {
+  ARROW_OUTSET,
   arrowAnchors,
   arrowWorthDrawing,
   coversMostOfViewport,
   placeCard,
   type Size,
+  scrollDeltaToFit,
 } from './onboarding-geometry';
-import { registerOnboardingHandOff } from './onboarding-state';
+import { registerOnboardingHandOff, setOnboardingOnScreen } from './onboarding-state';
 import {
   ONBOARDING_STEPS,
   ONBOARDING_TOTAL,
   type OnboardingStep,
   type OnboardingView,
 } from './onboarding-steps';
+import { readSafeInsets, type SafeInsets, usableSize } from './safe-insets';
 import { createTourTarget } from './use-tour-target';
 import './onboarding.css';
 
@@ -63,18 +67,10 @@ export interface OnboardingProps {
   readonly onClose: () => void;
 }
 
-/** How long each self-advancing intro phase stays (ms): greeting, welcome, core explanation. */
-const INTRO_PHASE_MS: Readonly<Record<IntroPhase, number>> = {
-  wait: 0,
-  hello: 1_500,
-  welcome: 4_200,
-  core: 3_200,
-  ready: 0,
-};
 /** The card needs this long to glide to its place before an arrow is drawn from it. */
 const CARD_GLIDE_MS = 420;
-/** Height of the bottom strip kept free for the core progress label (px). */
-const BOTTOM_STRIP = 40;
+/** Height of the bottom strip kept free for the core progress label (px), above the bottom inset. */
+const BOTTOM_STRIP = 44;
 /** The blur recedes and the intro leaves in about this long (matches onboarding.css). */
 const LEAVE_MS = 520;
 
@@ -110,13 +106,14 @@ export function Onboarding(props: OnboardingProps): JSX.Element {
   });
   const [lineGone, setLineGone] = createSignal(!startedWithoutCore);
   const [animated, setAnimated] = createSignal(!reducedMotion());
+  const [insets, setInsets] = createSignal<SafeInsets>({ top: 0, bottom: 0 });
   let root: HTMLDivElement | undefined;
   let introGone: ReturnType<typeof setTimeout> | undefined;
   onCleanup(() => clearTimeout(introGone));
 
   const introPhase = (): IntroPhase => {
     const current = state();
-    return current.kind === 'intro' ? current.phase : 'ready';
+    return current.kind === 'intro' ? current.phase : LAST_INTRO_PHASE;
   };
   const touring = () => state().kind === 'tour';
   const step = (): OnboardingStep | undefined => {
@@ -132,6 +129,23 @@ export function Onboarding(props: OnboardingProps): JSX.Element {
     return current.kind === 'tour' ? current.index + 2 : 1;
   };
 
+  // ---- the core download waits for the user to get past the greeting and the welcome ----
+  createEffect(() => {
+    if (coreDownloadMayStart(state())) releaseCoreStart();
+  });
+  onCleanup(releaseCoreStart);
+
+  // ---- while on screen: the page holds still, and notices slip under the tour ----
+  createEffect(() => {
+    if (!active()) return;
+    setOnboardingOnScreen(true);
+    document.documentElement.dataset['onboarding'] = 'open';
+    onCleanup(() => {
+      setOnboardingOnScreen(false);
+      delete document.documentElement.dataset['onboarding'];
+    });
+  });
+
   // ---- the page behind: inert while the tour is up, and a tour that is only a veil on top ----
   createEffect(() => {
     if (!active()) return;
@@ -142,7 +156,9 @@ export function Onboarding(props: OnboardingProps): JSX.Element {
   onMount(() => {
     const resize = (): void => {
       setViewport({ width: window.innerWidth, height: window.innerHeight });
+      setInsets(readSafeInsets());
     };
+    setInsets(readSafeInsets());
     window.addEventListener('resize', resize, { passive: true });
     onCleanup(() => window.removeEventListener('resize', resize));
     const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -201,15 +217,6 @@ export function Onboarding(props: OnboardingProps): JSX.Element {
     });
   });
 
-  // ---- intro phases advance by timer; the greeting is skipped when animations are off ----
-  createEffect(() => {
-    const current = state();
-    if (current.kind !== 'intro' || !introPhaseAdvances(current.phase)) return;
-    const duration = current.phase === 'hello' && !animated() ? 0 : INTRO_PHASE_MS[current.phase];
-    const timer = setTimeout(() => controller.send({ type: 'advance' }), duration);
-    onCleanup(() => clearTimeout(timer));
-  });
-
   // ---- the tour: switch screens, follow the control ----
   let shownView: OnboardingView | undefined;
   createEffect(
@@ -230,16 +237,60 @@ export function Onboarding(props: OnboardingProps): JSX.Element {
   );
   const placement = createMemo(() => {
     const size = cardSize();
-    // The strip along the bottom edge belongs to the core progress label: keep the card off it.
-    const usable = { width: viewport().width, height: viewport().height - BOTTOM_STRIP };
-    return step() && size ? placeCard(usable, target()?.rect, size) : undefined;
+    if (!step() || !size) return undefined;
+    // The status bar above and the gesture bar below are not the tour's to cover, and the strip
+    // along the bottom edge belongs to the core progress label: place the card in what is left.
+    const inset = insets();
+    const free = { top: inset.top, bottom: inset.bottom + BOTTOM_STRIP };
+    const found = target();
+    const spot = placeCard(
+      usableSize(viewport(), free),
+      found ? { ...found.rect, top: found.rect.top - free.top } : undefined,
+      size,
+    );
+    return { ...spot, top: spot.top + free.top };
+  });
+  // The card needs a side to stand on: when the highlighted control sits where neither side has
+  // room (a card in the middle of the home page), the page is scrolled just far enough. Waits for
+  // the target, the card and any scrolling already under way to settle, and tries a few times only.
+  let fitAttempts = 0;
+  createEffect(
+    on(step, () => {
+      fitAttempts = 0;
+    }),
+  );
+  createEffect(() => {
+    const found = target();
+    const size = cardSize();
+    if (!step() || !size || !found || found.pinned) return;
+    // Track what the settle timer depends on, so any change restarts it.
+    const { left, top, width, height } = found.rect;
+    const here = viewport();
+    const inset = insets();
+    const settle = setTimeout(() => {
+      if (fitAttempts >= 3 || coversMostOfViewport(found.rect, here)) return;
+      const free = { top: inset.top, bottom: inset.bottom + BOTTOM_STRIP };
+      const delta = scrollDeltaToFit(
+        usableSize(here, free),
+        { left, top: top - free.top, width, height },
+        size,
+      );
+      if (delta === 0) return;
+      fitAttempts += 1;
+      window.scrollBy({ top: delta, behavior: animated() ? 'smooth' : 'auto' });
+    }, 450);
+    onCleanup(() => clearTimeout(settle));
   });
   const anchors = createMemo(() => {
     const spot = placement();
     const size = cardSize();
     const found = target();
     if (!spot || !size || !found || coversMostOfViewport(found.rect, viewport())) return undefined;
-    const points = arrowAnchors({ left: spot.left, top: spot.top, ...size }, found.rect);
+    const points = arrowAnchors(
+      { left: spot.left, top: spot.top, ...size },
+      found.rect,
+      ARROW_OUTSET,
+    );
     return arrowWorthDrawing(points.from, points.to) ? points : undefined;
   });
   const ringed = () => {
@@ -279,7 +330,7 @@ export function Onboarding(props: OnboardingProps): JSX.Element {
   };
   const next = (button?: HTMLElement): void => {
     const current = state();
-    if (current.kind === 'intro' && current.phase === 'ready') startTour(button);
+    if (current.kind === 'intro' && current.phase === LAST_INTRO_PHASE) startTour(button);
     else controller.send({ type: 'next' });
   };
   const skip = (): void => controller.send({ type: 'skip' });
@@ -472,6 +523,8 @@ export function Onboarding(props: OnboardingProps): JSX.Element {
           deferred={props.coreDeferred}
           error={props.coreError}
           progress={props.coreProgress}
+          waiting={!coreDownloadMayStart(state())}
+          compact={active()}
           onDownload={props.onDownloadCore}
           onGone={() => setLineGone(true)}
         />

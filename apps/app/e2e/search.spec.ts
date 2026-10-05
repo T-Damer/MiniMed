@@ -156,6 +156,16 @@ for (const width of [375, 1280]) {
       elements.map((element) => Math.round(element.getBoundingClientRect().height)),
     );
     expect(new Set(heights).size).toBe(1);
+    // A gap between slides, and arrows that are fully on the screen, under the slides.
+    expect(
+      await carousel
+        .locator('.carousel__track')
+        .evaluate((track) => Number.parseFloat(getComputedStyle(track).columnGap)),
+    ).toBeGreaterThan(0);
+    for (const name of ['Предыдущая', 'Следующая']) {
+      const arrow = await carousel.getByRole('button', { name }).boundingBox();
+      expect(arrow && arrow.x >= 0 && arrow.x + arrow.width <= width).toBe(true);
+    }
     const dots = carousel.locator('.carousel__dot');
     await expect(dots).toHaveCount(total);
     await expect(carousel.locator('.carousel__dot--active')).toHaveAttribute(
@@ -167,7 +177,8 @@ for (const width of [375, 1280]) {
     const settledSlide = () =>
       carousel.evaluate((element) => {
         const track = element.querySelector('.carousel__track') as HTMLElement;
-        const index = Math.round(track.scrollLeft / track.clientWidth);
+        const gap = Number.parseFloat(getComputedStyle(track).columnGap) || 0;
+        const index = Math.round(track.scrollLeft / (track.clientWidth + gap));
         const title = element.querySelectorAll('.carousel__slide')[index]?.querySelector('h2');
         return { index, title: title?.textContent?.trim() ?? '' };
       });
@@ -186,11 +197,7 @@ for (const width of [375, 1280]) {
     await carousel.getByRole('button', { name: `Функция 1 из ${total}` }).click();
     await expect.poll(() => activeFeature(page)).toBe(1);
     await expect
-      .poll(() =>
-        carousel
-          .locator('.carousel__track')
-          .evaluate((track) => track.scrollLeft / track.clientWidth),
-      )
+      .poll(() => carousel.locator('.carousel__track').evaluate((track) => track.scrollLeft))
       .toBe(0);
 
     // «Как это работает» is a round «?»; a second action is a button beside the first.

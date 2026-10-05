@@ -2,10 +2,18 @@ import { createEffect, createSignal, type JSX, on, onCleanup, Show } from 'solid
 import { Button } from '@/components/Button';
 import { CORE_DOWNLOAD_SIZE_LABEL } from '@/composition/core-download';
 import { OnboardingArrow } from './OnboardingArrow';
+import { OnboardingDocuments } from './OnboardingDocuments';
 import type { IntroPhase } from './onboarding-controller';
 import type { Point } from './onboarding-geometry';
 
-/** Where the arrow of the intro starts and ends, in viewport pixels. */
+/** Clear space between the arrow's tip and the progress label it points at. */
+const LABEL_GAP = 10;
+
+/**
+ * Where the arrow of the intro starts and ends, in viewport pixels. It ends just above the
+ * progress label along the bottom edge, measured from the label itself so the arrow follows it
+ * whatever its text, width or the device's bottom inset.
+ */
 function introArrow(
   text: HTMLElement,
   viewport: { width: number; height: number },
@@ -14,16 +22,22 @@ function introArrow(
   readonly to: Point;
 } {
   const box = text.getBoundingClientRect();
-  return {
-    from: { x: box.left + box.width * 0.72, y: box.bottom + 16 },
-    // The progress label sits in the bottom right corner, right above its thin line.
-    to: { x: viewport.width - 64, y: viewport.height - 24 },
-  };
+  const label = document
+    .querySelector<HTMLElement>('.core-progress-line__caption')
+    ?.getBoundingClientRect();
+  // Point at the right end of the label: the footer's buttons sit in the middle, and the arrow
+  // must come down beside them, never across.
+  const to = label
+    ? { x: label.right - Math.min(36, label.width / 2), y: label.top - LABEL_GAP }
+    : { x: viewport.width - 48, y: viewport.height - 48 };
+  return { from: { x: Math.min(box.right - 8, to.x - 6), y: box.bottom + 16 }, to };
 }
 
 /**
- * Step 1: the full-screen intro over the blurred app. Three scenes crossfade — the greeting, the
- * welcome, and the core download (with an arrow to the progress line along the bottom edge).
+ * Step 1: the full-screen intro over the blurred app. Three scenes crossfade, each moving on only
+ * when the user presses «Далее» — the greeting over the app icon, a few words about the app, and
+ * the core download (the icon opens up and its documents float; an arrow points to the progress
+ * line along the bottom edge).
  */
 export function OnboardingIntro(props: {
   readonly phase: IntroPhase;
@@ -37,7 +51,7 @@ export function OnboardingIntro(props: {
   const [arrow, setArrow] = createSignal<{ readonly from: Point; readonly to: Point }>();
   let coreText: HTMLElement | undefined;
 
-  const coreVisible = () => props.phase === 'core' || props.phase === 'ready';
+  const coreVisible = () => props.phase === 'core';
   const arrowWanted = () => coreVisible() && !props.coreReady;
 
   const placeArrow = (): void => {
@@ -56,6 +70,16 @@ export function OnboardingIntro(props: {
   );
   window.addEventListener('resize', placeArrow, { passive: true });
   onCleanup(() => window.removeEventListener('resize', placeArrow));
+  // The label grows and shrinks with its text («37 % · 4,2 МБ/с»): keep the arrow on it.
+  const labelWatcher = new ResizeObserver(() => placeArrow());
+  createEffect(() => {
+    if (!arrow()) return;
+    const label = document.querySelector('.core-progress-line__caption');
+    if (!label) return;
+    labelWatcher.observe(label);
+    onCleanup(() => labelWatcher.unobserve(label));
+  });
+  onCleanup(() => labelWatcher.disconnect());
 
   const coreHeadline = (): string => {
     if (props.coreReady) return 'Ядро знаний уже на месте';
@@ -70,6 +94,7 @@ export function OnboardingIntro(props: {
     props.coreReady
       ? 'Нажми «Далее» — покажу, что умеет приложение'
       : 'Нажми «Далее», чтобы продолжить изучать приложение, пока идёт загрузка';
+  const footerShown = () => props.phase !== 'wait';
 
   return (
     <div
@@ -80,16 +105,19 @@ export function OnboardingIntro(props: {
       tabindex="-1"
     >
       <div class="onboarding-intro__stage">
-        {/* The anchor of the intro from the first moment: the splash icon flies onto it. */}
-        <img
-          class="onboarding-intro__mark"
-          classList={{ 'onboarding-intro__mark--away': coreVisible() }}
-          src={`${import.meta.env.BASE_URL}boot-icon.png`}
-          alt=""
-          width="104"
-          height="104"
-          decoding="async"
-        />
+        <div class="onboarding-intro__logo">
+          <OnboardingDocuments out={coreVisible()} />
+          {/* The anchor of the intro from the first moment: the splash icon flies onto it. */}
+          <img
+            class="onboarding-intro__mark"
+            classList={{ 'onboarding-intro__mark--away': coreVisible() }}
+            src={`${import.meta.env.BASE_URL}boot-icon.png`}
+            alt=""
+            width="104"
+            height="104"
+            decoding="async"
+          />
+        </div>
         <div class="onboarding-intro__scenes" aria-live="polite">
           <section
             class="onboarding-intro__scene onboarding-intro__scene--hello"
@@ -106,6 +134,10 @@ export function OnboardingIntro(props: {
           >
             <h1 class="onboarding-intro__title">Добро пожаловать в MiniMed</h1>
             <p class="onboarding-intro__subtitle">Твой персональный помощник по медицине</p>
+            <p class="onboarding-intro__about">
+              Поиск по справочникам и рекомендациям, опросники, калькуляторы и личные файлы — всё
+              хранится и работает на твоём устройстве, без интернета.
+            </p>
           </section>
 
           <section
@@ -129,13 +161,7 @@ export function OnboardingIntro(props: {
                   Скачать · ~{CORE_DOWNLOAD_SIZE_LABEL}
                 </Button>
               </Show>
-              <p
-                class="onboarding-intro__hint"
-                classList={{ 'onboarding-intro__hint--shown': props.phase === 'ready' }}
-                aria-hidden={props.phase === 'ready' ? undefined : 'true'}
-              >
-                {nextHint()}
-              </p>
+              <p class="onboarding-intro__hint">{nextHint()}</p>
             </div>
           </section>
         </div>
@@ -158,23 +184,21 @@ export function OnboardingIntro(props: {
         <Button
           class="onboarding-intro__next"
           classList={{
-            'onboarding-intro__next--shown': props.phase === 'ready',
-            'onboarding-intro__next--ready': props.coreReady,
+            'onboarding-intro__next--shown': footerShown(),
+            'onboarding-intro__next--ready': props.coreReady && coreVisible(),
           }}
           variant="primary"
-          tabindex={props.phase === 'ready' ? undefined : -1}
-          aria-hidden={props.phase === 'ready' ? undefined : 'true'}
+          tabindex={footerShown() ? undefined : -1}
+          aria-hidden={footerShown() ? undefined : 'true'}
           onClick={(event) => props.onNext(event.currentTarget)}
         >
           Далее
         </Button>
         <Button
           class="onboarding-intro__skip"
-          classList={{
-            'onboarding-intro__skip--shown': props.phase !== 'wait' && props.phase !== 'hello',
-          }}
-          variant="secondary"
-          tabindex={props.phase === 'wait' || props.phase === 'hello' ? -1 : undefined}
+          classList={{ 'onboarding-intro__skip--shown': footerShown() }}
+          variant="quiet"
+          tabindex={footerShown() ? undefined : -1}
           onClick={props.onSkip}
         >
           Пропустить обучение

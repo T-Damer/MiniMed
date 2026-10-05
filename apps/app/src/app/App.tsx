@@ -36,7 +36,7 @@ import {
   onboardingRestartRequests,
 } from '@/features/onboarding/onboarding-state';
 import { searchCoreStatus } from '@/features/search/search-core-status';
-import { isSetupDismissed } from '@/features/setup/setup-state';
+import { holdCoreStart, isSetupDismissed, releaseCoreStart } from '@/features/setup/setup-state';
 import {
   getFloatingWindowsEnabled,
   getSplitNavigation,
@@ -114,6 +114,9 @@ export function App(): JSX.Element {
     embeddedFloatingWindow && floatingWindowParams.get('minimed-floating-scale') !== '0';
   const session = useAppSession();
   const [onboardingOpen, setOnboardingOpen] = createSignal(!isSetupDismissed());
+  // The first launch's onboarding introduces the app before the core download begins; the
+  // onboarding lets it go, and so does any path on which the onboarding is not going to show.
+  if (onboardingOpen() && !embeddedFloatingWindow) holdCoreStart();
   const navigation = useRootNavigation();
   const [shellReady, setShellReady] = createSignal(document.readyState === 'complete');
   const [splitNavigation, setSplitNavigation] = createSignal(getSplitNavigation());
@@ -151,6 +154,9 @@ export function App(): JSX.Element {
   // owns the screen (the real search page under its blur), including the consent to download;
   // the boot screen never layers under it.
   const onboardingVisible = () => shellReady() && !embeddedFloatingWindow && onboardingOpen();
+  createEffect(() => {
+    if (!onboardingVisible() && (shellReady() || !onboardingOpen())) releaseCoreStart();
+  });
   const showingBootScreen = () =>
     !shellReady() ||
     (!onboardingVisible() &&

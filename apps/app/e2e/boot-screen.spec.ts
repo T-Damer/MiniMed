@@ -179,6 +179,10 @@ test('the first run on a cellular connection waits for the user inside the onboa
   await page.goto(`${process.env.MINIMED_LIVE_URL ?? 'http://127.0.0.1:4173'}/#/search`);
   const onboarding = page.getByRole('dialog', { name: 'Добро пожаловать в MiniMed' });
   await expect(onboarding).toBeAttached();
+  // The greeting and the welcome wait for the user; the consent to download comes after them.
+  await expect(page.getByText('Привет', { exact: true })).toBeVisible({ timeout: 30_000 });
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('ArrowRight');
   // The consent to download belongs to the onboarding; no boot card may layer under it.
   await expect(onboarding).toContainText(/Загрузка ядра знаний — около \d+ МБ/u, {
     timeout: 30_000,

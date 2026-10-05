@@ -7,6 +7,8 @@ export interface TourTarget {
   readonly rect: Rect;
   /** Corner radius of the control in pixels, so the ring follows its shape. */
   readonly radius: number;
+  /** The control sits in fixed or sticky chrome: scrolling the page never moves it. */
+  readonly pinned: boolean;
 }
 
 /** After a step begins the target may still be loading or scrolling: keep looking this long. */
@@ -55,7 +57,11 @@ export function findTourTarget(
       const box = element.getBoundingClientRect();
       const rect = { left: box.left, top: box.top, width: box.width, height: box.height };
       if (rectOnScreen(rect, viewport)) {
-        return { element, target: { rect, radius: radiusOf(element, rect) }, index };
+        return {
+          element,
+          target: { rect, radius: radiusOf(element, rect), pinned: inPinnedLayer(element) },
+          index,
+        };
       }
     }
   }
@@ -84,8 +90,12 @@ export function findOffscreenTourTarget(
   return undefined;
 }
 
-/** Re-revealing a hidden slide at most this often, so an autoplaying carousel is not fought. */
-const REVEAL_EVERY_MS = 3_000;
+/**
+ * Re-revealing a hidden slide at most this often. The home carousel does not autoplay while the
+ * tour is open, but it restores its own slide when its screen is shown again, and that restore can
+ * land on top of the first scroll toward the highlighted slide; asking again settles it.
+ */
+const REVEAL_EVERY_MS = 900;
 /** How long a fallback waits for a preferred control that is being scrolled into view. */
 const REVEAL_PATIENCE_MS = 1_500;
 
@@ -135,7 +145,7 @@ export function createTourTarget(
       if (
         !scrolled &&
         needsScroll(found.target.rect, viewport, SCROLL_INSETS) &&
-        !inPinnedLayer(found.element)
+        !found.target.pinned
       ) {
         scrolled = true;
         found.element.scrollIntoView({

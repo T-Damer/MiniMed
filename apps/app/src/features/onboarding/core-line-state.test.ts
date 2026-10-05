@@ -17,7 +17,12 @@ describe('coreLineState', () => {
       progress: { loaded: 37, total: 100, phase: 'downloading' },
       speed: 4.2 * 1024 * 1024,
     });
-    expect(state).toEqual({ kind: 'downloading', fraction: 0.37, label: '37 % · 4,2 МБ/с' });
+    expect(state).toEqual({
+      kind: 'downloading',
+      fraction: 0.37,
+      label: '37 % · 4,2 МБ/с',
+      compactLabel: '37 % · 4,2 МБ/с',
+    });
   });
 
   it('leaves the speed out until it is known', () => {
@@ -47,6 +52,16 @@ describe('coreLineState', () => {
 
   it('offers the decision on a metered connection', () => {
     expect(coreLineState({ ...base, downloading: false, deferred: true }).kind).toBe('deferred');
+  });
+
+  it('keeps long messages short where they would cover the onboarding', () => {
+    const deferred = coreLineState({ ...base, downloading: false, deferred: true });
+    expect(deferred.label).toContain('Мобильная сеть: загрузка ядра около');
+    expect(deferred.compactLabel).toBe('Мобильная сеть');
+    expect(coreLineState({ ...base, error: 'x' }).compactLabel).toBe('Ядро не скачано');
+    expect(coreLineState({ ...base, progress: { loaded: 50, total: 100 } }).compactLabel).toBe(
+      '50 %',
+    );
   });
 
   it('reports an error and a finished install', () => {

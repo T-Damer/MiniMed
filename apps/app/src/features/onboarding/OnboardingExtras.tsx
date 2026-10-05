@@ -1,5 +1,4 @@
 import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
-import { toast } from 'solid-sonner';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -35,7 +34,7 @@ export function OnboardingExtraContent(props: {
     case 'speech-download':
       return <SpeechModelAction />;
     case 'mri-viewer':
-      return <MriSliceViewer />;
+      return <MriSliceViewer variant="badge" />;
   }
 }
 
@@ -101,6 +100,8 @@ function SpeechModelAction(): JSX.Element {
   const [percent, setPercent] = createSignal<number>();
   const [busy, setBusy] = createSignal(false);
   const [cached, setCached] = createSignal(false);
+  // The failure is told in the card itself: a toast would land on top of the tour.
+  const [failure, setFailure] = createSignal<string>();
   const refreshCached = async (): Promise<void> => {
     if (SPEECH_MODEL) setCached(await isAsrModelCached(SPEECH_MODEL.id));
   };
@@ -130,12 +131,13 @@ function SpeechModelAction(): JSX.Element {
     const model = SPEECH_MODEL;
     if (!model || busy() || ready()) return;
     setBusy(true);
+    setFailure(undefined);
     pauseAsrDownloads();
     try {
       await activateAsrModel(model.id);
     } catch (cause) {
       if (!(cause instanceof AsrCancelledError)) {
-        toast.error(cause instanceof Error ? cause.message : 'Не удалось скачать модель.');
+        setFailure(cause instanceof Error ? cause.message : 'Не удалось скачать модель.');
       }
     } finally {
       setBusy(false);
@@ -152,6 +154,7 @@ function SpeechModelAction(): JSX.Element {
         ? 'Скачиваем модель…'
         : `Скачиваем модель · ${Math.floor(value)} %`;
     }
+    if (failure()) return 'Повторить';
     return cached() ? 'Включить модель' : 'Скачать модель (в фоне)';
   };
 
@@ -171,6 +174,13 @@ function SpeechModelAction(): JSX.Element {
         <p class="onboarding-extra__hint" role="status" aria-live="polite">
           Загрузка идёт в фоне: можно продолжать обучение.
         </p>
+      </Show>
+      <Show when={failure()}>
+        {(message) => (
+          <p class="onboarding-extra__hint onboarding-extra__hint--error" role="alert">
+            {message()}
+          </p>
+        )}
       </Show>
     </div>
   );

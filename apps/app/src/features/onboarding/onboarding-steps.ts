@@ -18,6 +18,11 @@ export interface OnboardingStep {
   readonly title: string;
   readonly paragraphs: readonly string[];
   readonly bullets?: readonly string[];
+  /**
+   * A one-line summary of the bullets: when set, the list sits in a collapsed accordion headed by
+   * it, so a long list does not take over the card.
+   */
+  readonly bulletsSummary?: string;
   /** A short line under the text that must not be missed (consent, limits). */
   readonly notice?: string;
   readonly view: OnboardingView;
@@ -90,7 +95,8 @@ export const ONBOARDING_STEPS: readonly OnboardingStep[] = [
   {
     id: 'files',
     title: 'Мои файлы',
-    paragraphs: ['Твоё личное пространство:'],
+    paragraphs: ['Твоё личное пространство.'],
+    bulletsSummary: 'Книги, заметки, МРТ и КТ, пациенты, формы, печать, трекеры',
     bullets: [
       'храни свои книги и ищи по ним;',
       'читай и делай заметки;',

@@ -1,6 +1,7 @@
 import type { JSX } from 'solid-js';
 
 import { Carousel, type CarouselSlide } from '@/components/Carousel';
+import { onboardingOnScreen } from '@/features/onboarding/onboarding-state';
 import { featureOfDayIndex } from '@/features/search/feature-of-day';
 
 import './search-home-intro.css';
@@ -12,7 +13,8 @@ const USEFUL_FEATURES_AUTOPLAY_MS = 7000;
 
 /**
  * Under the empty search field: the tool row, then useful capabilities one card at a time. The
- * carousel opens on today's capability so a returning doctor sees something new each day.
+ * carousel opens on today's capability so a returning doctor sees something new each day. It
+ * holds still while the onboarding is open, so a capability the tour points at stays in view.
  */
 export function SearchHomeIntro(props: {
   readonly quickAccess: JSX.Element;
@@ -29,6 +31,7 @@ export function SearchHomeIntro(props: {
           slides={props.features}
           startIndex={featureOfDayIndex(props.features.length, new Date())}
           autoplayMs={USEFUL_FEATURES_AUTOPLAY_MS}
+          autoplayPaused={onboardingOnScreen}
         />
       </div>
     </div>
