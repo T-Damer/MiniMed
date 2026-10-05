@@ -64,6 +64,13 @@ SQLite (see SEARCH.md, «Personal overlay»).
 specialty/age/section filters: exact identity hits from the core's identity table shown above the
 groups (`identities` in the response).
 
+Lookup plans (`buildLookupQueryPlan`, option `boundShortTerms`) also carry `lookupTermGroups` (each
+typed word with its stem and the stems of the alias names it begins) and, for a query that names an
+audience, `lookupTitleRescue` (a `title : (subject AND audience)` FTS query run as one extra branch).
+`lookup-subject.ts` decides which words are subject words. Short Cyrillic terms become exact
+inflection lists in the FTS expression (`ftsLookupToken`); `hasWordPrefix`/`findWordPrefixMatches`
+(`normalize.ts`) implement the same word-start rule for `matchedTerms`.
+
 ## 3. Lexical retrieval
 
 `runBranchSearches` calls `store.search({ftsQuery, terms, filters, limit, diversifyDocuments})`
@@ -143,6 +150,11 @@ e5 embedder ignores). The Capacitor native store answers `scoreVectors` only if 
   (`CURRENT_EDITION_QUERY` / `HISTORICAL_EDITION_QUERY`), instruction and registry intents,
   navigation aliases, generic-word stop list. **This step can override a better semantic order**;
   measure semantic changes after it, not on raw `fuseSemanticResults` output.
+- Lexical lookup only: `rankSearchGroupsByQuery` gets `lookupTermGroups` and prefers groups with every
+  subject word (`everyWord`); `dropGroupsWithoutSubject` then removes groups that share no subject
+  word (protected: exact identities, spelling candidates, terminology matches). `ScopedMedicalCore`
+  `rankSearchGroupsByAudience` gets the query and lets an audience tag help only titles that name the
+  subject.
 - `filterSuffixFallbackGroups`, then `TerminologySearchIndex.rank`, then a stable sort that puts
   exact title, secondary identity (navigation alias / short title) and spelling documents first,
   then `collapseGroupsByTargetDocument` (a pointer and its installed full document become one
@@ -168,6 +180,7 @@ e5 embedder ignores). The Capacitor native store answers `scoreVectors` only if 
 | `bun run benchmark:lookup-quality`, `benchmark:doctor-lookup` | lookup ranking suites |
 | `bun run benchmark:search-latency` | latency over the app path |
 | `tools/benchmarks/src/export-retrieval-candidates.ts` + `embedding_eval.py` | offline lexical vs embedding comparison ([research](research/embeddings-kr-2026-10-02.md)) |
+| `tools/benchmarks/src/probe-exact-lookup.ts` | S2 probe: top-5 titles of every lookup miss (release + doctor-lookup sets) and of «nonsense» probes («от головной боли», «таблетки от головы») in the «Все» and «Лекарства» scopes; `--query="…"` adds queries |
 | `tools/benchmarks/retrieval-icd-queries.json` | Q1 real-language queries with ICD-based КР relevance |
 | `tools/benchmarks/src/run-semantic-kr.ts` | Q1 over the e5 КР packs through MedicalCore: lexical / semantic / hybrid fusion grid |
 

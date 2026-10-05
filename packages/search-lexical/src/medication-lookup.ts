@@ -1,6 +1,10 @@
 import type { AliasRecord } from '@localmed/domain';
 import type { AliasExpansion } from './aliases';
-import { type ClinicalQueryPlan, buildLookupQueryPlan as originalLookup } from './analysis';
+import {
+  type ClinicalQueryPlan,
+  type LookupPlanOptions,
+  buildLookupQueryPlan as originalLookup,
+} from './analysis';
 import { createMedicationSpellingMatcher } from './medication-spelling';
 
 // The key is the immutable vocabulary supplied by the current core, not a query or a global edition.
@@ -28,8 +32,9 @@ export function buildLookupQueryPlan(
   query: string,
   aliases: readonly AliasRecord[],
   preparedExpansion?: AliasExpansion,
+  options?: LookupPlanOptions,
 ): MedicationLookupPlan {
-  const original = originalLookup(query, aliases, preparedExpansion);
+  const original = originalLookup(query, aliases, preparedExpansion, options);
   let match = matchers.get(aliases);
   if (!match) {
     match = createMedicationSpellingMatcher(aliases);
@@ -37,6 +42,7 @@ export function buildLookupQueryPlan(
   }
   const candidates = match(query);
   if (!candidates.length) return original;
+  const { lookupTitleRescue: _titleRescue, ...withoutTitleRescue } = original;
   const branches = [...original.branches];
   const seen = new Set<string>();
   for (const candidate of candidates) {
@@ -60,7 +66,9 @@ export function buildLookupQueryPlan(
   }
   const terms = [...new Set(branches.flatMap((branch) => branch.terms))];
   return {
-    ...original,
+    ...withoutTitleRescue,
+    // A misspelled name is covered by its corrected spelling, which a typed-word group cannot see.
+    lookupTermGroups: [],
     medicationSpelling: { subject: candidates[0]?.matchedText ?? '', withoutSpelling: original },
     medicationSpellingNames: [
       ...new Set(candidates.flatMap((candidate) => [candidate.name, ...candidate.canonicalTerms])),

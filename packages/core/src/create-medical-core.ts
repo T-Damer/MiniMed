@@ -30,7 +30,9 @@ import {
   DILUTED_DIAGNOSIS_ALIAS_BRANCH_ID,
   findNormalizedPhraseIndex,
   fuzzyPhraseSpan,
+  hasWordPrefix,
   type LexicalQueryBranchPlan,
+  type LookupTermGroup,
   lightStemRussian,
   MIN_FUZZY_TOKEN_LENGTH,
   normalizeSurfaceText,
@@ -59,7 +61,11 @@ import {
   toMedicalSection,
 } from './mappers';
 import { QueryDocumentIndex } from './query-document-index';
-import { collapseGroupsByTargetDocument, rankSearchGroupsByQuery } from './query-group-ranking';
+import {
+  collapseGroupsByTargetDocument,
+  dropGroupsWithoutSubject,
+  rankSearchGroupsByQuery,
+} from './query-group-ranking';
 import {
   resolveSearchResultContext,
   type SearchResultContextHint,
@@ -99,11 +105,23 @@ function asLocalMedError(error: unknown): LocalMedError {
   return localMedError('UNKNOWN', 'Unknown LocalMed core error.');
 }
 
-function matchedTerms(hit: LexicalHit, terms: readonly string[]): readonly string[] {
+/**
+ * Query terms found in the hit's text. `wordStart` (lexical lookup) requires a term to begin a word
+ * and a short word to end it («боли» is not in «болиголов»); otherwise any substring counts, as the
+ * hybrid ranking was tuned with.
+ */
+function matchedTerms(
+  hit: LexicalHit,
+  terms: readonly string[],
+  wordStart = false,
+): readonly string[] {
   const haystack = normalizeSurfaceText(
     `${hit.document.title} ${hit.section.sectionPath.join(' ')} ${hit.chunk.originalText}`,
   );
-  return terms.filter((term) => haystack.includes(normalizeSurfaceText(term)));
+  return terms.filter((term) => {
+    const normalized = normalizeSurfaceText(term);
+    return wordStart ? hasWordPrefix(haystack, normalized) : haystack.includes(normalized);
+  });
 }
 
 const PRESENTATION_FIELD_PATTERN =
@@ -190,9 +208,9 @@ function resultCategory(sectionType: string | null): SearchResultCategory {
   }
 }
 
-function toSearchResult(aggregate: AggregatedHit): SearchResult {
+function toSearchResult(aggregate: AggregatedHit, wordStart = false): SearchResult {
   const terms = [...aggregate.terms];
-  const matches = matchedTerms(aggregate.hit, terms);
+  const matches = matchedTerms(aggregate.hit, terms, wordStart);
   const snippet = buildQueryAlignedSnippet(aggregate.hit, matches.length > 0 ? matches : terms);
   const conceptId = conceptIdFromMetadata(aggregate.hit.document.metadata);
   return {
@@ -495,6 +513,7 @@ function groupResults(
   aliases: MedicalAliasRecords,
   documents: readonly Pick<MedicalDocumentSummary, 'id' | 'sourceType' | 'metadata'>[],
   analysis: QueryAnalysis,
+  lookupTermGroups?: readonly LookupTermGroup[],
 ): readonly SearchResultGroup[] {
   const medicationAliasCandidates = exactMedicationAliasCandidates(query, aliases);
   const normalizedQuery = normalizeSurfaceText(query);
@@ -563,7 +582,7 @@ function groupResults(
         : 0;
       return preferredDifference || right.bestScore - left.bestScore;
     });
-  return rankSearchGroupsByQuery(groups, query, documents, analysis);
+  return rankSearchGroupsByQuery(groups, query, documents, analysis, lookupTermGroups);
 }
 
 function filterSupersededSummaryResults(
@@ -705,12 +724,19 @@ function requestId(): string {
   return globalThis.crypto?.randomUUID?.() ?? `search-${Date.now()}-${Math.random()}`;
 }
 
-function branchSectionBoost(branch: LexicalQueryBranchPlan, hit: LexicalHit): number {
-  const titleTokens = normalizeSurfaceText(hit.document.title).split(' ');
+function branchSectionBoost(
+  branch: LexicalQueryBranchPlan,
+  hit: LexicalHit,
+  wordStart: boolean,
+): number {
+  const title = normalizeSurfaceText(hit.document.title);
+  const titleTokens = title.split(' ');
   const titleBoost = branch.terms.some(
     (term) =>
       term.length >= 4 &&
-      titleTokens.some((titleToken) => titleToken.startsWith(normalizeSurfaceText(term))),
+      (wordStart
+        ? hasWordPrefix(title, normalizeSurfaceText(term))
+        : titleTokens.some((titleToken) => titleToken.startsWith(normalizeSurfaceText(term)))),
   )
     ? 0.3
     : 0;
@@ -734,6 +760,7 @@ function fuseBranchHits(
   limit: number,
   query: string,
   exactAliasDocumentIds: ReadonlySet<string>,
+  wordStart: boolean,
 ): readonly SearchResult[] {
   const aggregateByChunk = new Map<string, AggregatedHit>();
 
@@ -758,7 +785,10 @@ function fuseBranchHits(
       const branchScore = branch.weight * (relativeLexicalScore * 0.82 + rankPositionSignal * 0.18);
 
       existing.branchContributions.push({ branchId: branch.id, score: branchScore });
-      existing.sectionBoost = Math.max(existing.sectionBoost, branchSectionBoost(branch, hit));
+      existing.sectionBoost = Math.max(
+        existing.sectionBoost,
+        branchSectionBoost(branch, hit, wordStart),
+      );
       existing.bestLexicalScore = Math.max(existing.bestLexicalScore, hit.rank);
       existing.branchIds.add(branch.id);
       existing.branchLabels.add(branch.label);
@@ -795,7 +825,7 @@ function fuseBranchHits(
         exactAliasDocumentIds.has(aggregate.hit.document.id) ||
         normalizeSurfaceText(aggregate.hit.document.title) === subject,
     )
-    .map(toSearchResult);
+    .map((aggregate) => toSearchResult(aggregate, wordStart));
 }
 
 function vectorResult(
@@ -1176,12 +1206,16 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
             expand: createAliasExpander(aliasesResult.value),
           };
         }
+        // Subject-based pruning of lookup results is a lexical-search rule: a hybrid result often
+        // reaches a document whose title lacks the typed words, by meaning.
+        const lexicalOnly = parsed.data.mode === 'lexical' || !options.embedder;
         let plan: ReturnType<typeof buildLookupQueryPlan> =
           parsed.data.analysisMode === 'lookup'
             ? buildLookupQueryPlan(
                 parsed.data.query,
                 aliasesResult.value,
                 lookupExpansion?.expand(parsed.data.query),
+                { boundShortTerms: lexicalOnly },
               )
             : analyzeClinicalQuery(
                 parsed.data.query,
@@ -1275,7 +1309,19 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
             );
           }
         }
-        const branchSearches = [...baseSearches, ...spellingSearches, ...terminologyBranchSearches];
+        // A query that names an audience («менингит у ребёнка») also asks the title column for the
+        // subject and the audience together («Вирусные менингиты у детей»): the body text of hundreds
+        // of other mentions would otherwise leave that title out of the candidate window.
+        const titleRescue = lexicalOnly ? plan.lookupTitleRescue : undefined;
+        const titleSearches = titleRescue
+          ? await runBranchSearches([{ branch: titleRescue.branch, filters: parsed.data.filters }])
+          : [];
+        const branchSearches = [
+          ...baseSearches,
+          ...spellingSearches,
+          ...terminologyBranchSearches,
+          ...titleSearches,
+        ];
         const branchHits = branchSearches.map(({ branch, hits }) => ({ branch, hits }));
         const branchDiagnostics = branchSearches.map(({ diagnostics }) => diagnostics);
 
@@ -1309,6 +1355,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           perBranchLimit,
           parsed.data.query,
           exactAliasDocumentIds,
+          lexicalOnly && parsed.data.analysisMode === 'lookup',
         );
         const requestedMode = parsed.data.mode;
         let modeUsed: SearchResponse['modeUsed'] = 'lexical';
@@ -1430,11 +1477,24 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
               return document ? [document] : [];
             }),
             plan.analysis,
+            lexicalOnly ? plan.lookupTermGroups : undefined,
           ),
           plan.analysis.normalizedQuery,
           aliasesResult.value,
           new Set([...exactIdentityDocumentIds, ...spellingDocumentIds]),
         );
+        const subjectGroups =
+          parsed.data.analysisMode === 'lookup' && lexicalOnly && !terminologyMatch
+            ? dropGroupsWithoutSubject(
+                groupedResults,
+                plan.lookupTermGroups,
+                new Set([
+                  ...exactIdentityDocumentIds,
+                  ...spellingDocumentIds,
+                  ...exactAliasDocumentIds,
+                ]),
+              )
+            : groupedResults;
         return ok({
           requestId: requestId(),
           identities,
@@ -1445,7 +1505,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           suggestions: plan.analysis.suggestions,
           groups: collapseGroupsByTargetDocument(
             termIndex
-              .rank(groupedResults, terminologyMatch)
+              .rank(subjectGroups, terminologyMatch)
               .toSorted(
                 (left, right) =>
                   Number(exactTitleDocumentIds.has(right.documentId)) -

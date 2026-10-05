@@ -1,12 +1,22 @@
 export * from './aliases';
-export type { ClinicalQueryPlan, LexicalQueryBranchPlan } from './analysis';
-export { DILUTED_DIAGNOSIS_ALIAS_BRANCH_ID } from './analysis';
+export type {
+  ClinicalQueryPlan,
+  LexicalQueryBranchPlan,
+  LookupPlanOptions,
+  LookupTermGroup,
+  LookupTitleRescue,
+} from './analysis';
+export {
+  DILUTED_DIAGNOSIS_ALIAS_BRANCH_ID,
+  lookupGroupCovered,
+} from './analysis';
 export { analyzeClinicalQuery } from './clinical-query';
 export * from './definition-description';
 export * from './definition-name-variants';
 export * from './definition-question';
 export * from './html-markup';
 export * from './intent';
+export * from './lookup-subject';
 export { buildLookupQueryPlan } from './medication-lookup';
 export * from './medication-spelling';
 export * from './normalize';

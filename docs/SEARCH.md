@@ -1,6 +1,6 @@
 # Search design — 0.3.0 alpha
 
-Code map of the query path (files, functions, scoring constants): [`SEARCH_ARCHITECTURE.md`](SEARCH_ARCHITECTURE.md).
+Code map of the query path (files, functions, scoring constants): [`SEARCH_ARCHITECTURE.md`](SEARCH_ARCHITECTURE.md). Ordered improvement plan: [`SEARCH_ROADMAP.md`](SEARCH_ROADMAP.md).
 
 ## Default offline path
 
@@ -133,6 +133,30 @@ After grouping by document, query-aware ranking prefers a title containing a spe
 over a document that only mentions the term frequently in body text. Exact name/form matches still
 beat combination products; terms that describe a failed prior treatment do not become the answer
 solely because that treatment appears in a title.
+
+### Exact lookup: subject words (S2, 2026-10-05)
+
+Source lookup (`analysisMode: 'lookup'`, lexical) separates the words of a query that name its
+subject from words that name a form, a strength, an audience or the kind of answer wanted
+(`таблетки`, `капли`, `ребёнка`, `лекарство`, `инструкция`; `packages/search-lexical/src/lookup-subject.ts`).
+Rules, none of which uses a symptom → drug dictionary:
+
+- A word never matches inside a longer word. A short Cyrillic word (3–4 letters, `боли`, `боль`, `рак`)
+  is searched as itself and its inflections, not as an FTS prefix, so «от головной боли» no longer
+  finds `БОЛИГОЛОВ…`; longer terms remain stem prefixes (`голов*`). `matchedTerms` use the same
+  word-start rule instead of a substring test. Clinical branches keep plain prefixes.
+- A result group that shares no subject word with the query is dropped («таблетки от головы» no
+  longer lists every `… таблетки` product). A vocabulary alias stands for the typed word only when
+  the document has most of the alias name, not one shared word of it. Exact identities, spelling
+  candidates and terminology matches are never dropped. Without any subject word nothing is dropped.
+- A group that has every subject word of the query outranks one that has only some of them.
+- A query naming an audience («менингит у ребёнка») also runs a title-only query for the subject and
+  the audience together (the one extra store call of a lookup), so «Вирусные менингиты у детей» is
+  found although hundreds of other documents mention the disease. In the UI the audience tag of a
+  source raises it only when its title names the subject; a pediatric textbook that merely mentions
+  the word no longer outranks the disease's own sources.
+- All of this applies when the result is lexical (`modeUsed === 'lexical'`); hybrid/semantic results
+  keep their ranking, because a semantic match often lacks the typed words in its title.
 
 Small transparent section boosts are applied only when branch intent matches section type, for
 example investigation → diagnostics and medication → treatment. Each result exposes:

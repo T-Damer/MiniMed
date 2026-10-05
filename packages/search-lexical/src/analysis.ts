@@ -20,11 +20,53 @@ import type { AliasRecord } from '@localmed/domain';
 
 import { expandAliases, findNormalizedPhraseIndex } from './aliases';
 import { classifyMedicalQueryIntent } from './intent';
-import { lightStemRussian, normalizeSurfaceText, searchSubjectText, tokenize } from './normalize';
+import { audienceOfToken, isLookupSubjectToken } from './lookup-subject';
+import {
+  hasWordPrefix,
+  isShortCyrillicTerm,
+  lightStemRussian,
+  normalizeSurfaceText,
+  searchSubjectText,
+  shortTermInflections,
+  tokenize,
+} from './normalize';
 import symptomExpressions from './symptom-expressions.ru.json';
 
 export interface LexicalQueryBranchPlan extends QueryBranch {
   readonly ftsQuery: string;
+}
+
+/**
+ * One word the user typed in a lookup query with the search terms that stand for it: the word, its
+ * light stem and the terms of the vocabulary alias it begins (`нурофен` → `ибупрофен`). A document
+ * covers the word when any of those terms occurs in it as a word.
+ */
+export interface LookupTermGroup {
+  readonly token: string;
+  /** Every term that may find a document for the word: the word, its stem and the alias terms. */
+  readonly terms: readonly string[];
+  /** The word and its light stem: a document that has one of them covers the word outright. */
+  readonly literalTerms: readonly string[];
+  /**
+   * Per vocabulary alias the word begins: the alias name's stems. A document covers the word through
+   * an alias only when it has most of that name (`lookupGroupCovered`), not one shared word of it.
+   */
+  readonly aliasStems: readonly (readonly string[])[];
+}
+
+/** Share of an alias name's words a document must have to stand for the word that begins it. */
+const ALIAS_COVERAGE_SHARE = 0.6;
+const ALIAS_BOILERPLATE_STEMS = new Set(['мкб']);
+
+/** Does a document whose matched terms are `matched` cover the typed word of `group`? */
+export function lookupGroupCovered(group: LookupTermGroup, matched: ReadonlySet<string>): boolean {
+  if (group.literalTerms.some((term) => matched.has(term))) return true;
+  return group.aliasStems.some(
+    (stems) =>
+      stems.length > 0 &&
+      stems.filter((stem) => matched.has(stem)).length >=
+        Math.ceil(stems.length * ALIAS_COVERAGE_SHARE),
+  );
 }
 
 export interface ClinicalQueryPlan {
@@ -33,6 +75,23 @@ export interface ClinicalQueryPlan {
   readonly aliasMatches: readonly string[];
   readonly terms: readonly string[];
   readonly ftsQuery: string;
+  /** Lookup plans only: the typed words and their terms, for word-coverage ranking. */
+  readonly lookupTermGroups?: readonly LookupTermGroup[];
+  /** Lookup plans only: the follow-up title query for when no hit's title names the subject. */
+  readonly lookupTitleRescue?: LookupTitleRescue;
+}
+
+/**
+ * A second, title-only FTS query that a lookup naming an audience («у ребёнка») runs besides the
+ * main one. A long pointer chunk ranks below the body text of hundreds of documents that merely
+ * mention the word, so its own title never reaches the candidates.
+ */
+export interface LookupTitleRescue {
+  readonly branch: LexicalQueryBranchPlan;
+  /** The typed subject words (no forms, strengths, audience or meta words). */
+  readonly subjectGroups: readonly LookupTermGroup[];
+  /** Title words of the audience the query names («у ребёнка» → «детей», «детск», …). */
+  readonly audienceTerms: readonly string[];
 }
 
 const MAX_FTS_TERMS = 34;
@@ -1506,6 +1565,19 @@ function ftsToken(term: string): string {
   return `"${escaped}"*`;
 }
 
+/**
+ * One FTS5 term of a source lookup. Terms are prefixes (`"голов"*` finds «головного»), except a
+ * short Cyrillic word: `"боли"*` would also find «болиголов», so it lists the word and its inflected
+ * forms exactly. Clinical branches keep plain prefixes (their recall is tuned on whole narratives).
+ */
+function ftsLookupToken(term: string): string {
+  if (isShortCyrillicTerm(term))
+    return `(${shortTermInflections(term)
+      .map((form) => `"${form}"`)
+      .join(' OR ')})`;
+  return ftsToken(term);
+}
+
 const ICD10_CODE_PATTERN =
   /(?<![A-ZА-Я0-9])(?<code>[A-ZА-Я]?\d{2}(?:[.\-\s]\s*\d+|\d+)?)(?![A-ZА-Я0-9])/giu;
 
@@ -1561,9 +1633,13 @@ function buildFtsQuery(
   query: string,
   terms: readonly string[],
   excludedNumericTerms?: ReadonlySet<string>,
+  lookup = false,
 ): string {
   return [
-    ...new Set([...terms.map(ftsToken), ...icd10LegacyFtsQueries(query, excludedNumericTerms)]),
+    ...new Set([
+      ...terms.map(lookup ? ftsLookupToken : ftsToken),
+      ...icd10LegacyFtsQueries(query, excludedNumericTerms),
+    ]),
   ].join(' OR ');
 }
 
@@ -1659,6 +1735,7 @@ function makeBranch(
   values: readonly string[],
   weight: number,
   excludedNumericTerms?: ReadonlySet<string>,
+  lookup = false,
 ): LexicalQueryBranchPlan | null {
   const terms = termsWithStems(values, excludedNumericTerms);
   if (terms.length === 0) return null;
@@ -1670,7 +1747,7 @@ function makeBranch(
     normalizedQuery: normalizeSurfaceText(query),
     terms,
     weight,
-    ftsQuery: buildFtsQuery(query, terms, excludedNumericTerms),
+    ftsQuery: buildFtsQuery(query, terms, excludedNumericTerms, lookup),
   };
 }
 
@@ -2126,12 +2203,104 @@ function splitAliasExpansionTerms(matchedAliases: readonly AliasRecord[]): {
   };
 }
 
+/** Branch id of the title-and-audience rescue query of `LookupTitleRescue`. */
+export const LOOKUP_TITLE_BRANCH_ID = 'lookup-title';
+const MAX_TITLE_BRANCH_GROUP_TERMS = 12;
+
+/** Title words that name a patient population, as FTS prefix/exact terms. */
+const AUDIENCE_TITLE_TERMS: Readonly<Record<'children' | 'adults', readonly string[]>> = {
+  children: ['детей', 'дети', 'детям', 'детск', 'ребенк', 'ребенок', 'новорожденн', 'младенц'],
+  adults: ['взросл'],
+};
+
+function lookupTitleRescue(
+  query: string,
+  groups: readonly LookupTermGroup[],
+): LookupTitleRescue | null {
+  const subjectGroups = groups.filter((group) => isLookupSubjectToken(group.token));
+  if (subjectGroups.length === 0) return null;
+  const subject = subjectGroups.map((group) =>
+    group.terms.slice(0, MAX_TITLE_BRANCH_GROUP_TERMS).filter((term) => term.length >= 2),
+  );
+  const audience = groups
+    .map((group) => audienceOfToken(group.token))
+    .find((kind) => kind !== undefined);
+  if (!audience) return null;
+  const audienceTerms = AUDIENCE_TITLE_TERMS[audience];
+  const subjectExpression = subject
+    .map((terms) => `(${terms.map(ftsLookupToken).join(' OR ')})`)
+    .join(' AND ');
+  return {
+    subjectGroups,
+    audienceTerms,
+    branch: {
+      id: LOOKUP_TITLE_BRANCH_ID,
+      kind: 'original',
+      label: 'Поиск по названию и возрасту',
+      query,
+      normalizedQuery: normalizeSurfaceText(query),
+      terms: [...new Set([...subject.flat(), ...audienceTerms])],
+      weight: 1.05,
+      ftsQuery: `title : (${subjectExpression} AND (${audienceTerms.map(ftsLookupToken).join(' OR ')}))`,
+    },
+  };
+}
+
+function lookupTermGroups(
+  query: string,
+  expansion: ReturnType<typeof expandAliases>,
+): readonly LookupTermGroup[] {
+  const normalized = normalizeSurfaceText(query);
+  const groups = new Map<
+    string,
+    { terms: Set<string>; literal: Set<string>; aliasStems: string[][] }
+  >();
+  let from = 0;
+  for (const token of tokenize(normalized)) {
+    const start = normalized.indexOf(token, from);
+    if (start < 0) continue;
+    from = start + token.length;
+    const end = from;
+    const literal = new Set([token, lightStemRussian(token)]);
+    const group = groups.get(token) ?? { terms: new Set(literal), literal, aliasStems: [] };
+    for (const span of expansion.matchSpans) {
+      if (span.range.start >= end || span.range.end <= start) continue;
+      const stems = new Set<string>();
+      for (const term of tokenize(span.alias.canonicalTerm)) {
+        group.terms.add(term);
+        group.terms.add(lightStemRussian(term));
+        const stem = lightStemRussian(term);
+        if (!/^\d+$/u.test(stem) && !ALIAS_BOILERPLATE_STEMS.has(stem)) stems.add(stem);
+      }
+      group.aliasStems.push([...stems]);
+    }
+    groups.set(token, group);
+  }
+  return [...groups].map(([token, group]) => ({
+    token,
+    terms: [...group.terms],
+    literalTerms: [...group.literal],
+    aliasStems: group.aliasStems,
+  }));
+}
+
+export interface LookupPlanOptions {
+  /**
+   * Match a short Cyrillic word as itself and its inflections instead of as an FTS prefix
+   * («боли» must not find «болиголов»). Default on; hybrid search keeps plain prefixes because its
+   * semantic gate was tuned with them.
+   */
+  readonly boundShortTerms?: boolean;
+}
+
 /** Source lookup keeps vocabulary expansion but does not interpret a patient's clinical case. */
 export function buildLookupQueryPlan(
   query: string,
   aliases: readonly AliasRecord[],
   preparedExpansion?: ReturnType<typeof expandAliases>,
+  options: LookupPlanOptions = {},
 ): ClinicalQueryPlan {
+  const boundShortTerms = options.boundShortTerms ?? true;
   const expansion = preparedExpansion ?? expandAliases(query, aliases);
   const { strongTerms, dilutedTerms } = splitAliasExpansionTerms(expansion.matchedAliases);
   const branch = makeBranch(
@@ -2141,6 +2310,8 @@ export function buildLookupQueryPlan(
     query,
     [query, ...strongTerms],
     1,
+    undefined,
+    boundShortTerms,
   );
   const dilutedBranch =
     dilutedTerms.length > 0
@@ -2151,11 +2322,15 @@ export function buildLookupQueryPlan(
           query,
           dilutedTerms,
           AMBIGUOUS_ALIAS_BRANCH_WEIGHT,
+          undefined,
+          boundShortTerms,
         )
       : null;
+  const termGroups = lookupTermGroups(query, expansion);
   const branches = [branch, dilutedBranch].filter(
     (candidate): candidate is LexicalQueryBranchPlan => candidate !== null,
   );
+  const titleRescue = lookupTitleRescue(query, termGroups);
   return {
     analysis: {
       originalQuery: query,
@@ -2166,6 +2341,8 @@ export function buildLookupQueryPlan(
       warnings: [],
     },
     branches,
+    lookupTermGroups: termGroups,
+    ...(titleRescue ? { lookupTitleRescue: titleRescue } : {}),
     aliasMatches: expansion.matches,
     terms: [...new Set(branches.flatMap((item) => item.terms))],
     ftsQuery: branches.map((item) => item.ftsQuery).join(' || '),

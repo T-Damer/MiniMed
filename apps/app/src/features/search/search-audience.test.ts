@@ -97,6 +97,30 @@ describe('age-aware result ordering', () => {
     expect(ranked.map((item) => item.documentId)).toEqual(['mixed', 'adult', 'child']);
   });
 
+  it('does not let a pediatric source that only mentions the subject outrank titles that name it', () => {
+    const textbook = document('textbook', ['children']);
+    const named = document('named', []);
+    const titled = (documentId: string, title: string): SearchResultGroup => ({
+      ...group(documentId),
+      title,
+      results: [{ matchedTerms: ['менингит'] } as unknown as SearchResultGroup['results'][number]],
+    });
+    const ranked = rankSearchGroupsByAudience(
+      [titled('named', 'G00 Бактериальный менингит'), titled('textbook', 'Педиатрия')],
+      [textbook, named],
+      'children',
+      'менингит у ребенка',
+    );
+    expect(ranked.map((item) => item.documentId)).toEqual(['named', 'textbook']);
+    // Without the query the audience tag alone decides, as before.
+    const untouched = rankSearchGroupsByAudience(
+      [titled('named', 'G00 Бактериальный менингит'), titled('textbook', 'Педиатрия')],
+      [textbook, named],
+      'children',
+    );
+    expect(untouched.map((item) => item.documentId)).toEqual(['textbook', 'named']);
+  });
+
   it('preserves score order when no audience is expressed', () => {
     const ranked = rankSearchGroupsByAudience(
       [group('adult'), group('child'), group('unknown')],

@@ -23,6 +23,7 @@ import type {
   SearchResultGroup,
 } from '@localmed/contracts';
 import {
+  hasWordPrefix,
   lightStemRussian,
   normalizeSurfaceText,
   searchSubjectText,
@@ -415,11 +416,36 @@ export function searchResultDocumentKind(
   return 'reference';
 }
 
+/**
+ * True when the group's title carries a subject word of the query (not an audience word): the
+ * disease or drug is the document's own topic, not a passing mention in a textbook.
+ */
+function titleNamesSubject(group: SearchResultGroup, subjectStems: readonly string[]): boolean {
+  if (subjectStems.length === 0) return false;
+  const title = normalizeSurfaceText(group.title);
+  return subjectStems.some((stem) => hasWordPrefix(title, stem));
+}
+
+function subjectStemsOf(query: string): readonly string[] {
+  return tokenize(query)
+    .filter((token) => token.length >= 4 && !AUDIENCE_TERM.test(token))
+    .map((token) => lightStemRussian(token))
+    .filter((stem) => stem.length >= 4);
+}
+
+/**
+ * Audience orders sources among subject matches. Only a source whose title names the subject
+ * («Вирусные менингиты у детей») gains from a matching audience tag: a pediatric textbook that
+ * merely mentions the word does not outrank the disease's own sources for it. A source that matched
+ * only audience words follows every subject match.
+ */
 export function rankSearchGroupsByAudience(
   groups: readonly SearchResultGroup[],
   documents: readonly SearchDocumentDescriptor[],
   audience: SearchAudience | undefined,
+  query?: string,
 ): readonly SearchResultGroup[] {
+  const subjectStems = query ? subjectStemsOf(query) : [];
   const documentsById = new Map(documents.map((document) => [document.id, document]));
   const annotated = groups.map((group) => {
     const document = documentsById.get(group.documentId);
@@ -436,13 +462,20 @@ export function rankSearchGroupsByAudience(
 
   // Audience decides order only among sources that match the subject; a source that matched
   // nothing but «ребёнка»/«детей» follows every subject match, whatever its age tag.
+  const effectivePriority = (entry: { group: SearchResultGroup; titleSubject: boolean }) => {
+    const priority = audiencePriority(entry.group.ageGroups ?? [], audience);
+    return entry.titleSubject || subjectStems.length === 0 ? priority : Math.min(priority, 1);
+  };
   return annotated
-    .map((group, index) => ({ group, index, audienceOnly: matchesOnlyAudience(group) }))
+    .map((group, index) => ({
+      group,
+      index,
+      audienceOnly: matchesOnlyAudience(group),
+      titleSubject: titleNamesSubject(group, subjectStems),
+    }))
     .toSorted((left, right) => {
       const subjectDifference = Number(left.audienceOnly) - Number(right.audienceOnly);
-      const priorityDifference =
-        audiencePriority(right.group.ageGroups ?? [], audience) -
-        audiencePriority(left.group.ageGroups ?? [], audience);
+      const priorityDifference = effectivePriority(right) - effectivePriority(left);
       return subjectDifference || priorityDifference || left.index - right.index;
     })
     .map((entry) => entry.group);
@@ -638,6 +671,10 @@ export class ScopedMedicalCore implements MedicalCore {
       scopedResponse.groups,
       documents.value,
       requestedAudience,
+      // Narrative cases and hybrid results keep the plain audience order; a lexical lookup names its subject.
+      request.analysisMode === 'lookup' && scopedResponse.modeUsed === 'lexical'
+        ? request.query
+        : undefined,
     );
     const summaries = new Map(documents.value.map((document) => [document.id, document]));
     const ranked =

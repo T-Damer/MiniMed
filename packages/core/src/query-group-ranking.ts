@@ -1,26 +1,18 @@
 import type { MedicalDocumentSummary, QueryAnalysis, SearchResultGroup } from '@localmed/contracts';
 import {
   findNormalizedPhraseIndex,
+  GENERIC_QUERY_TERMS,
+  isFormOrStrengthToken,
+  isLookupSubjectToken,
+  isTitleQueryTerm,
+  type LookupTermGroup,
   lightStemRussian,
+  lookupGroupCovered,
   normalizeSurfaceText,
+  PATIENT_CONTEXT_STEMS,
   searchSubjectText,
   tokenize,
 } from '@localmed/search-lexical';
-
-const GENERIC_QUERY_TERMS = new Set([
-  'какой',
-  'какая',
-  'какие',
-  'который',
-  'пациент',
-  'ребенок',
-  'ребёнок',
-  'взрослый',
-  'нужно',
-  'можно',
-  'приказ',
-  'закон',
-]);
 
 const CURRENT_EDITION_QUERY =
   /(?:действующ|актуальн|текущ|сейчас|на\s+сегодня|вместо|замен(?:ил|яет|ен|ён|ить))/u;
@@ -111,44 +103,6 @@ function editionStatusBoost(query: string, text: string): number {
   return 0;
 }
 
-const TITLE_FORM_STEMS = new Set([
-  'таблетк',
-  'порошк',
-  'раствор',
-  'капсул',
-  'сироп',
-  'суппозитор',
-  'маз',
-  'гел',
-  'крем',
-  'капл',
-  'спре',
-  'инъекц',
-  'приготовлен',
-  'прием',
-  'внутрь',
-  'назальн',
-  'наружн',
-  'глазн',
-  'ректальн',
-  'лиофилизат',
-  'суспенз',
-  'гранул',
-  'пастил',
-  'шипуч',
-  'пленк',
-  'покрыт',
-  'оболочк',
-  'действующ',
-  'веществ',
-  'доз',
-  'внутримышечн',
-  'внутривенн',
-  'мг',
-  'мл',
-  'шт',
-]);
-
 function stemToken(token: string): string {
   return lightStemRussian(token);
 }
@@ -168,16 +122,6 @@ function tokensMatch(queryToken: string, titleToken: string): boolean {
     (Math.min(titleStem.length, queryStem.length) >= 5 &&
       (titleStem.startsWith(queryStem) || queryStem.startsWith(titleStem)))
   );
-}
-
-function isFormOrStrengthToken(token: string): boolean {
-  if (/^\d/.test(token) || token.length <= 2) return true;
-  const stem = stemToken(token);
-  if (TITLE_FORM_STEMS.has(stem)) return true;
-  for (const formStem of TITLE_FORM_STEMS) {
-    if (stem.startsWith(formStem) || formStem.startsWith(stem)) return true;
-  }
-  return false;
 }
 
 function isCombinationTitle(title: string, leftoverTerms: readonly string[]): boolean {
@@ -221,20 +165,6 @@ function exactTitleMatchBoost(query: string, title: string): number {
   return headedByQuery ? 4.5 : 3.5;
 }
 
-const PATIENT_CONTEXT_STEMS = new Set(
-  [
-    'ребенок',
-    'ребенк',
-    'дети',
-    'детский',
-    'взрослый',
-    'мужчина',
-    'женщина',
-    'мужской',
-    'женский',
-  ].map(stemToken),
-);
-
 const CHILD_POPULATION_STEMS = new Set(
   ['ребенок', 'ребенк', 'дети', 'детей', 'детям', 'детьми', 'детях', 'детский'].map(stemToken),
 );
@@ -249,27 +179,29 @@ function explicitAgePopulation(text: string): 'child' | 'adult' | undefined {
   return child === adult ? undefined : child ? 'child' : 'adult';
 }
 
-const TITLE_CONTEXT_STEMS = new Set(
-  [
-    ...[...GENERIC_QUERY_TERMS],
-    ...PATIENT_CONTEXT_STEMS,
-    'вес',
-    'год',
-    'лет',
-    'первый',
-    'второй',
-    'третий',
-    'заболевание',
-    'инфекция',
-    'мочевой',
-    'мочевых',
-    'путь',
-    'путей',
-  ].map(stemToken),
-);
+function coveredGroupCount(
+  group: SearchResultGroup,
+  subjectGroups: readonly LookupTermGroup[],
+): number {
+  const matched = new Set(group.results.flatMap((result) => result.matchedTerms));
+  return subjectGroups.filter((word) => lookupGroupCovered(word, matched)).length;
+}
 
-function isTitleQueryTerm(term: string): boolean {
-  return term.length >= 3 && !TITLE_CONTEXT_STEMS.has(stemToken(term));
+/**
+ * Lookup only. A hit that shares no subject word with the query (only «таблетки», «ребёнка», a word
+ * of an unrelated name) is not a result for it. Never removes the documents in `protectedIds`
+ * (exact identities), and keeps everything when the query has no subject word at all.
+ */
+export function dropGroupsWithoutSubject(
+  groups: readonly SearchResultGroup[],
+  termGroups: readonly LookupTermGroup[] | undefined,
+  protectedIds: ReadonlySet<string>,
+): readonly SearchResultGroup[] {
+  const subjectGroups = (termGroups ?? []).filter((word) => isLookupSubjectToken(word.token));
+  if (subjectGroups.length === 0) return groups;
+  return groups.filter(
+    (group) => protectedIds.has(group.documentId) || coveredGroupCount(group, subjectGroups) > 0,
+  );
 }
 
 function hasImmediateFailureContext(query: string, term: string): boolean {
@@ -530,7 +462,9 @@ export function rankSearchGroupsByQuery(
   query: string,
   documents: readonly SearchDocumentDescriptor[] = [],
   analysis?: QueryAnalysis,
+  lookupTermGroups?: readonly LookupTermGroup[],
 ): readonly SearchResultGroup[] {
+  const subjectWords = (lookupTermGroups ?? []).filter((word) => isLookupSubjectToken(word.token));
   const failedTreatmentTerms = failedTreatmentStems(query, analysis);
   const originalQuery = query;
   const extractedSubject = searchSubjectText(originalQuery);
@@ -657,6 +591,10 @@ export function rankSearchGroupsByQuery(
         index,
         exactTitle: matchesExactDocumentTitle(query, group),
         exactAlias: matchesNavigationAlias(query, documentsById.get(group.documentId)),
+        // Lookup: the document has every subject word the user typed, not just one of them.
+        everyWord:
+          subjectWords.length >= 2 &&
+          coveredGroupCount(group, subjectWords) === subjectWords.length,
         subjectMatch,
         // Unspecified/combined source ages stay compatible; an unrelated title never gains a tier.
         populationRank:
@@ -708,6 +646,7 @@ export function rankSearchGroupsByQuery(
         right.populationRank - left.populationRank ||
         Number(right.sourcePhrase) - Number(left.sourcePhrase) ||
         Number(right.subjectMatch) - Number(left.subjectMatch) ||
+        Number(right.everyWord) - Number(left.everyWord) ||
         coverageTier(right.positiveFindingCoverage) - coverageTier(left.positiveFindingCoverage) ||
         coverageTier(right.failedTreatmentContextCoverage) -
           coverageTier(left.failedTreatmentContextCoverage) ||

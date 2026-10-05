@@ -200,6 +200,149 @@ export function lightStemRussian(token: string): string {
   return token;
 }
 
+/**
+ * A letters-only Cyrillic term this short is a whole word («боль», «боли», «рак»), not the stem of
+ * a longer one. FTS prefix matching would find it inside unrelated words («боли» → «болиголов»),
+ * so such a term matches only its own inflected forms (`shortTermInflections`).
+ */
+const MAX_SHORT_TERM_LENGTH = 4;
+const MIN_SHORT_TERM_LENGTH = 3;
+const SHORT_CYRILLIC_TERM = /^[а-я]+$/u;
+/** Endings (at most three letters) that inflect a short Russian noun or adjective stem. */
+const SHORT_TERM_ENDINGS = [
+  'а',
+  'я',
+  'у',
+  'ю',
+  'е',
+  'ы',
+  'и',
+  'ой',
+  'ей',
+  'ом',
+  'ем',
+  'ам',
+  'ям',
+  'ах',
+  'ях',
+  'ов',
+  'ев',
+  'ью',
+] as const;
+
+export function isShortCyrillicTerm(term: string): boolean {
+  return (
+    term.length >= MIN_SHORT_TERM_LENGTH &&
+    term.length <= MAX_SHORT_TERM_LENGTH &&
+    SHORT_CYRILLIC_TERM.test(term)
+  );
+}
+
+const shortTermFormsCache = new Map<string, readonly string[]>();
+
+/**
+ * The short term and its inflected forms, for exact (non-prefix) matching. A soft sign is dropped
+ * before the endings: «боль» also gives «боли», «болей», «болью»; «кровь» gives «крови».
+ */
+export function shortTermInflections(term: string): readonly string[] {
+  const cached = shortTermFormsCache.get(term);
+  if (cached) return cached;
+  const stem = term.endsWith('ь') ? term.slice(0, -1) : term;
+  const forms = [
+    ...new Set([
+      term,
+      ...SHORT_TERM_ENDINGS.map((ending) => `${term}${ending}`),
+      ...(stem === term ? [] : SHORT_TERM_ENDINGS.map((ending) => `${stem}${ending}`)),
+    ]),
+  ];
+  shortTermFormsCache.set(term, forms);
+  return forms;
+}
+
+const WORD_CHARACTER = /[0-9a-zа-я]/u;
+const shortTermPatternCache = new Map<string, string>();
+
+/**
+ * A stem of 5–6 letters («голов», «печен») is shared by many derived words («головокружение»,
+ * «печеночный»). Found in a document it counts as that word only up to an inflection ending of
+ * `MAX_STEM_ENDING` letters («головы», «головного»).
+ */
+const MIN_STEM_LENGTH = 5;
+const MAX_STEM_LENGTH = 6;
+const MAX_STEM_ENDING = 4;
+const STEM_TERM = /^[а-я]+$/u;
+const stemPatternCache = new Map<string, RegExp>();
+
+function isBoundedStem(term: string): boolean {
+  return term.length >= MIN_STEM_LENGTH && term.length <= MAX_STEM_LENGTH && STEM_TERM.test(term);
+}
+
+function stemPattern(term: string): RegExp {
+  const cached = stemPatternCache.get(term);
+  if (cached) return cached;
+  const pattern = new RegExp(
+    `(?<![0-9a-zа-я])${term}[а-я]{0,${MAX_STEM_ENDING}}(?![0-9a-zа-я])`,
+    'gu',
+  );
+  stemPatternCache.set(term, pattern);
+  return pattern;
+}
+
+function shortTermPattern(term: string): string {
+  const cached = shortTermPatternCache.get(term);
+  if (cached) return cached;
+  const pattern = `(?<![0-9a-zа-я])(?:${shortTermInflections(term).join('|')})(?![0-9a-zа-я])`;
+  shortTermPatternCache.set(term, pattern);
+  return pattern;
+}
+
+/**
+ * Every place where normalized `term` starts a word of normalized `text` — never the inside of a
+ * longer word. A short Cyrillic term only matches one of its inflected forms, so «боли» is found in
+ * «боли в животе» and «болью», never in «болиголов». Longer terms stay prefixes (stems such as
+ * «голов» find «головного»), as FTS5 prefix tokens do; their range covers the term only.
+ */
+export function findWordPrefixMatches(
+  text: string,
+  term: string,
+): readonly { readonly start: number; readonly end: number }[] {
+  if (term.length === 0) return [];
+  const matches: { start: number; end: number }[] = [];
+  if (isBoundedStem(term)) {
+    for (const match of text.matchAll(stemPattern(term)))
+      matches.push({ start: match.index, end: match.index + term.length });
+    return matches;
+  }
+  if (isShortCyrillicTerm(term)) {
+    for (const match of text.matchAll(new RegExp(shortTermPattern(term), 'gu')))
+      matches.push({ start: match.index, end: match.index + match[0].length });
+    return matches;
+  }
+  let from = 0;
+  while (from <= text.length - term.length) {
+    const index = text.indexOf(term, from);
+    if (index < 0) break;
+    if (index === 0 || !WORD_CHARACTER.test(text[index - 1] ?? ''))
+      matches.push({ start: index, end: index + term.length });
+    from = index + term.length;
+  }
+  return matches;
+}
+
+export function hasWordPrefix(text: string, term: string): boolean {
+  if (term.length === 0) return false;
+  if (isBoundedStem(term)) return new RegExp(stemPattern(term).source, 'u').test(text);
+  if (isShortCyrillicTerm(term)) return new RegExp(shortTermPattern(term), 'u').test(text);
+  let from = 0;
+  while (from <= text.length - term.length) {
+    const index = text.indexOf(term, from);
+    if (index < 0) return false;
+    if (index === 0 || !WORD_CHARACTER.test(text[index - 1] ?? '')) return true;
+    from = index + 1;
+  }
+  return false;
+}
+
 export function normalizeForIndex(value: string): string {
   const forms = new Set<string>();
   for (const token of tokenize(value)) {

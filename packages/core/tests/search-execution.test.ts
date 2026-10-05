@@ -50,13 +50,39 @@ it('uses one lexical branch for source lookup without interpreting a clinical ca
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value.groups.length).toBeGreaterThan(0);
-    expect(store.searchCalls).toBe(1);
+    // One analysis branch; the audience word adds a single title-only follow-up query for the
+    // subject and the audience together in a title.
+    expect(result.value.analysis.branches).toHaveLength(1);
+    expect(store.searchCalls).toBe(2);
+    expect(
+      store.searchRequests.filter((request) => !request.ftsQuery.startsWith('title :')),
+    ).toHaveLength(1);
     expect(store.searchRequests.every((request) => request.diversifyDocuments === true)).toBe(true);
     expect(documentReads).toHaveBeenCalledTimes(readsBeforeSearch);
     expect(result.value.analysis.facts).toEqual([]);
     expect(result.value.analysis.suggestions).toEqual([]);
     expect(result.value.analysis.clinicalContext).toBeUndefined();
     expect(result.value.diagnostics.semantic.status).toBe('disabled');
+  } finally {
+    await core.close();
+  }
+});
+
+it('runs a single store query for a lookup that names no audience', async () => {
+  const store = new ObservedStore();
+  const core = createMedicalCore({ store, seed: CORE_SLICE_PACK, platform: 'test' });
+  try {
+    await core.initialize();
+    const result = await core.search({
+      query: 'кашель пневмония',
+      mode: 'lexical',
+      analysisMode: 'lookup',
+      filters: {},
+      limit: 10,
+      includeSuggestions: false,
+    });
+    expect(result.ok).toBe(true);
+    expect(store.searchCalls).toBe(1);
   } finally {
     await core.close();
   }
