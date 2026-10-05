@@ -20,6 +20,55 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Tools: age scope, «Дети / Взрослые / Все» filter, own questionnaires and calculators — 2026-10-06 (STATE TOOLS1)
+
+- **Age scope in every schema.** `ageScope` (`packages/contracts/src/tool-age-scope.ts`: groups
+  `neonates`/`children`/`adults`, optional `minAge`/`maxAge` in completed days/months/years, `basis` = the
+  definition wording the declaration rests on) is required in calculator and questionnaire definitions
+  and in the catalog entry; it replaced the calculator `audience` enum (the free-text `audience` of a
+  questionnaire stays: who fills it in). The schema rejects missing scope and contradictions. All 69
+  module tools were audited from their own wording (`content/tool-modules/*.json`, modules rebuilt as
+  new versions: core-clinical preview.4, emergency preview.3, gastroenterology preview.4, neonatology
+  preview.4, obstetrics-gynecology preview.5, pediatrics preview.3, pediatrics-growth 0.3.1,
+  psychology preview.4; catalog digests/sizes updated, old DB files kept for older catalogs). Summary and
+  the uncertain tools: `docs/ASSESSMENTS.md`. The built-in unit converter and ECG caliper declare any
+  age (the ECG tool's stale «только взрослые» population text was corrected). **Publishing note:** an
+  installed pre-0.6.49 tool module has no `ageScope` and fails the new definition parse until it is
+  updated to the new versions.
+- **Filter and badge.** `features/tools/` (`tool-age-filter.ts`, `ToolAgeFilterBar`, `ToolAgeBadge`):
+  the choice is `toolAgeFilter` in app preferences and applies in «Все инструменты» (favourites, tool
+  row, groups; collections stay as the doctor made them), the «Калькуляторы»/«Опросники» sections and
+  the search catalog, the calculator and test pages and «Мои опросники». «Скрыто по возрасту: N»
+  explains short lists; the «create your own» card is never hidden. The patient default is **not**
+  implemented: there is no app-wide open patient (the vault is per-tool), so a selected patient outside a tool's
+  scope only gets a warning under the patient field in questionnaires (`PatientAgeNotice`).
+- **Own questionnaires** (`minimed-questionnaire` v2, v1 still opens): population, sections, per-section
+  or total scores, interpretation ranges, plain-Russian issues (`state/user-questionnaire-rules.ts`), pure edit
+  operations (`features/assessments/user-questionnaire-edit.ts`), copy/delete/import/export/print.
+  `interpretationMode: 'per-scale'` in the engine shows one range per section. Fixed on the way: typing
+  lost spaces/focus (saved copy was written back), plural of «Осталось N пунктов», English «incomplete»
+  tag, errors with wrong grammatical gender.
+- **Own calculators («Мои калькуляторы»)**: file `minimed-calculator` v1 (`.minimed-calculator`), stored in
+  `localStorage` `minimed.user-calculators.v1` (not in the user library; unreadable text is kept under
+  `….corrupt`), `state/user-calculators.ts`. Numeric inputs (name used in the formula, label, unit,
+  limits, integer), a formula typed as text, a result (label, unit, decimals) and result ranges (open-ended
+  allowed, compared on the rounded result), population. The formula never reaches `eval`/`new Function`:
+  `user-calculator/user-formula.ts` tokenises the text itself (`.`/`,` decimals, `;` between arguments,
+  `×÷−`, Cyrillic names, whitelisted functions, ≤ 500 characters, nesting ≤ 30, plain-Russian errors
+  with the position) and emits the restricted expression the schema engine already parses;
+  `user-calculator-schema.ts` builds a validated `CalculatorSchema` (category `custom`) that is registered
+  next to the downloaded ones, so the ordinary form, result panel, print, share, notes and patient
+  recording work unchanged. Routes `#/calculators/mine[/new|/<id>/edit]`; editor with input and range
+  cards (copy/move/delete), live preview on sample values, range tester, import/export, copy, delete. Side
+  effects in generic code: a single numeric result is labelled with the step's own label (older saved
+  results still read «Результат»), print puts range messages under «Интерпретация:», a source without
+  an address is plain text. `searchCatalog` has the «Создать свой калькулятор» card (`createsNew`, no
+  star/collection buttons, never age-filtered).
+- Tests: `tool-age-scope.test.ts`, `tool-age-scope-audit.test.ts` (all tools), filter/badge/population/
+  patient-age units, questionnaire model/rules/edit units, formula/model/schema/registry/edit units of the
+  calculator builder (incl. a scan that no source uses `eval`/`new Function`); e2e `tools-age-filter`,
+  `user-questionnaire-builder`, `user-calculators`. Not tested: Android WebView, physical device.
+
 ## Patient diary: finding it again, sync, home screen — 2026-10-05 (STATE DIARY2)
 
 Walked the whole flow (doctor issues → patient opens, enters readings, closes the tab, reopens by the
