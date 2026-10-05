@@ -8,9 +8,7 @@
       "style": "rush",
       "intent": "guideline",
       "query": "пневмония взр лечение",
-      "expectedTargets": [
-        "kr.rf.654_2"
-      ],
+      "expectedTargets": ["kr.rf.654_2"],
       "forbiddenTargets": []
     },
     {
@@ -18,9 +16,7 @@
       "style": "thoughtful",
       "intent": "guideline",
       "query": "Мужчина 52 года, лихорадка 38,9, кашель с гнойной мокротой, крепитация справа внизу — амбулаторная антибактериальная терапия",
-      "expectedTargets": [
-        "kr.rf.654_2"
-      ],
+      "expectedTargets": ["kr.rf.654_2"],
       "forbiddenTargets": []
     },
     {
@@ -28,9 +24,7 @@
       "style": "rush",
       "intent": "guideline",
       "query": "пневм у ребенка",
-      "expectedTargets": [
-        "kr.rf.714_2"
-      ],
+      "expectedTargets": ["kr.rf.714_2"],
       "forbiddenTargets": []
     },
     {
@@ -38,9 +32,7 @@
       "style": "thoughtful",
       "intent": "guideline",
       "query": "Ребёнок 4 года, температура третий день, одышка, ослабленное дыхание слева — что назначить",
-      "expectedTargets": [
-        "kr.rf.714_2"
-      ],
+      "expectedTargets": ["kr.rf.714_2"],
       "forbiddenTargets": []
     },
     {
@@ -48,10 +40,7 @@
       "style": "rush",
       "intent": "code",
       "query": "J18.9",
-      "expectedTargets": [
-        "kr.rf.654_2",
-        "kr.rf.714_2"
-      ],
+      "expectedTargets": ["kr.rf.654_2", "kr.rf.714_2"],
       "forbiddenTargets": [],
       "note": "МКБ code typed alone"
     },
@@ -60,34 +49,23 @@
       "style": "rush",
       "intent": "guideline",
       "query": "аг лечение",
-      "expectedTargets": [
-        "kr.rf.62_3"
-      ],
-      "forbiddenTargets": [
-        "kr.rf.159_2",
-        "kr.rf.939_1"
-      ]
+      "expectedTargets": ["kr.rf.62_3"],
+      "forbiddenTargets": ["kr.rf.159_2", "kr.rf.939_1"]
     },
     {
       "id": "ah.case",
       "style": "thoughtful",
       "intent": "guideline",
       "query": "Стартовая комбинированная терапия артериальной гипертензии у пациента 60 лет",
-      "expectedTargets": [
-        "kr.rf.62_3"
-      ],
-      "forbiddenTargets": [
-        "kr.rf.159_2"
-      ]
+      "expectedTargets": ["kr.rf.62_3"],
+      "forbiddenTargets": ["kr.rf.159_2"]
     },
     {
       "id": "ah.icd",
       "style": "rush",
       "intent": "code",
       "query": "I10",
-      "expectedTargets": [
-        "kr.rf.62_3"
-      ],
+      "expectedTargets": ["kr.rf.62_3"],
       "forbiddenTargets": []
     },
     {
@@ -121,9 +99,7 @@
       "style": "rush",
       "intent": "guideline",
       "query": "сд 2 типа",
-      "expectedTargets": [
-        "kr.rf.290_2"
-      ],
+      "expectedTargets": ["kr.rf.290_2"],
       "forbiddenTargets": []
     },
     {
@@ -131,9 +107,7 @@
       "style": "thoughtful",
       "intent": "guideline",
       "query": "Гликированный гемоглобин 8,5% на метформине — что добавить при диабете 2 типа",
-      "expectedTargets": [
-        "kr.rf.290_2"
-      ],
+      "expectedTargets": ["kr.rf.290_2"],
       "forbiddenTargets": []
     },
     {
@@ -168,9 +142,7 @@
       "style": "rush",
       "intent": "guideline",
       "query": "ангина у ребенка",
-      "expectedTargets": [
-        "kr.rf.306_3"
-      ],
+      "expectedTargets": ["kr.rf.306_3"],
       "forbiddenTargets": []
     },
     {
@@ -178,9 +150,7 @@
       "style": "thoughtful",
       "intent": "guideline",
       "query": "Боль в горле, налёты на миндалинах, лихорадка, нет кашля — когда назначать антибиотик",
-      "expectedTargets": [
-        "kr.rf.306_3"
-      ],
+      "expectedTargets": ["kr.rf.306_3"],
       "forbiddenTargets": []
     },
     {
@@ -188,11 +158,7 @@
       "style": "rush",
       "intent": "guideline",
       "query": "орви",
-      "expectedTargets": [
-        "kr.rf.724_2",
-        "kr.rf.25_3",
-        "kr.rf.25_2"
-      ],
+      "expectedTargets": ["kr.rf.724_2", "kr.rf.25_3", "kr.rf.25_2"],
       "forbiddenTargets": []
     },
     {
@@ -200,11 +166,7 @@
       "style": "thoughtful",
       "intent": "guideline",
       "query": "Насморк, першение в горле, субфебрильная температура второй день у взрослого",
-      "expectedTargets": [
-        "kr.rf.724_2",
-        "kr.rf.25_3",
-        "kr.rf.25_2"
-      ],
+      "expectedTargets": ["kr.rf.724_2", "kr.rf.25_3", "kr.rf.25_2"],
       "forbiddenTargets": []
     },
     {
@@ -212,9 +174,7 @@
       "style": "rush",
       "intent": "guideline",
       "query": "пиелонефрит",
-      "expectedTargets": [
-        "kr.rf.9_3"
-      ],
+      "expectedTargets": ["kr.rf.9_3"],
       "forbiddenTargets": []
     },
     {
@@ -222,9 +182,7 @@
       "style": "thoughtful",
       "intent": "guideline",
       "query": "Боль в пояснице справа, температура 39, дизурия у женщины 30 лет",
-      "expectedTargets": [
-        "kr.rf.9_3"
-      ],
+      "expectedTargets": ["kr.rf.9_3"],
       "forbiddenTargets": []
     },
     {
@@ -232,9 +190,7 @@
       "style": "rush",
       "intent": "guideline",
       "query": "хсн",
-      "expectedTargets": [
-        "kr.rf.156_2"
-      ],
+      "expectedTargets": ["kr.rf.156_2"],
       "forbiddenTargets": []
     },
     {
@@ -242,9 +198,7 @@
       "style": "thoughtful",
       "intent": "guideline",
       "query": "Одышка при нагрузке, отёки голеней, фракция выброса 35% — какая терапия",
-      "expectedTargets": [
-        "kr.rf.156_2"
-      ],
+      "expectedTargets": ["kr.rf.156_2"],
       "forbiddenTargets": []
     },
     {
@@ -265,9 +219,7 @@
       "style": "thoughtful",
       "intent": "guideline",
       "query": "Фибрилляция предсердий у пациентки 72 лет с гипертонией — выбор антикоагулянта",
-      "expectedTargets": [
-        "kr.rf.382_2"
-      ],
+      "expectedTargets": ["kr.rf.382_2"],
       "forbiddenTargets": []
     },
     {
@@ -275,9 +227,7 @@
       "style": "rush",
       "intent": "guideline",
       "query": "окс без подъема st",
-      "expectedTargets": [
-        "kr.rf.154_4"
-      ],
+      "expectedTargets": ["kr.rf.154_4"],
       "forbiddenTargets": []
     },
     {
@@ -285,10 +235,7 @@
       "style": "thoughtful",
       "intent": "guideline",
       "query": "Давящая боль за грудиной 30 минут, на ЭКГ депрессия сегмента ST",
-      "expectedTargets": [
-        "kr.rf.154_4",
-        "kr.rf.157_5"
-      ],
+      "expectedTargets": ["kr.rf.154_4", "kr.rf.157_5"],
       "forbiddenTargets": []
     },
     {
@@ -296,9 +243,7 @@
       "style": "rush",
       "intent": "guideline",
       "query": "инсульт тромболизис",
-      "expectedTargets": [
-        "kr.rf.814_1"
-      ],
+      "expectedTargets": ["kr.rf.814_1"],
       "forbiddenTargets": []
     },
     {
@@ -306,9 +251,7 @@
       "style": "thoughtful",
       "intent": "guideline",
       "query": "Внезапная слабость в правой руке и нарушение речи два часа назад",
-      "expectedTargets": [
-        "kr.rf.814_1"
-      ],
+      "expectedTargets": ["kr.rf.814_1"],
       "forbiddenTargets": []
     },
     {
@@ -316,11 +259,7 @@
       "style": "rush",
       "intent": "guideline",
       "query": "анафилаксия адреналин доза",
-      "expectedTargets": [
-        "kr.rf.263_2",
-        "esklp.mnn.эпинефрин",
-        "drug.allmed.2440"
-      ],
+      "expectedTargets": ["kr.rf.263_2", "esklp.mnn.эпинефрин", "drug.allmed.2440"],
       "forbiddenTargets": []
     },
     {
@@ -328,9 +267,7 @@
       "style": "thoughtful",
       "intent": "guideline",
       "query": "После укола антибиотика упало давление, отёк губ и сыпь — что делать",
-      "expectedTargets": [
-        "kr.rf.263_2"
-      ],
+      "expectedTargets": ["kr.rf.263_2"],
       "forbiddenTargets": []
     },
     {
@@ -338,11 +275,7 @@
       "style": "rush",
       "intent": "guideline",
       "query": "астма ребенок ингалятор",
-      "expectedTargets": [
-        "kr.rf.359_3",
-        "esklp.mnn.сальбутамол",
-        "drug.allmed.115"
-      ],
+      "expectedTargets": ["kr.rf.359_3", "esklp.mnn.сальбутамол", "drug.allmed.115"],
       "forbiddenTargets": []
     },
     {
@@ -350,9 +283,7 @@
       "style": "thoughtful",
       "intent": "guideline",
       "query": "Приступы свистящего дыхания по ночам у ребёнка 7 лет",
-      "expectedTargets": [
-        "kr.rf.359_3"
-      ],
+      "expectedTargets": ["kr.rf.359_3"],
       "forbiddenTargets": []
     },
     {
@@ -360,9 +291,7 @@
       "style": "rush",
       "intent": "guideline",
       "query": "хобл",
-      "expectedTargets": [
-        "kr.rf.603_3"
-      ],
+      "expectedTargets": ["kr.rf.603_3"],
       "forbiddenTargets": []
     },
     {
@@ -370,9 +299,7 @@
       "style": "thoughtful",
       "intent": "guideline",
       "query": "Курильщик 60 лет, хронический кашель и одышка, ОФВ1/ФЖЕЛ 0,6",
-      "expectedTargets": [
-        "kr.rf.603_3"
-      ],
+      "expectedTargets": ["kr.rf.603_3"],
       "forbiddenTargets": []
     },
     {
@@ -380,9 +307,7 @@
       "style": "rush",
       "intent": "guideline",
       "query": "жда препараты железа",
-      "expectedTargets": [
-        "kr.rf.669_2"
-      ],
+      "expectedTargets": ["kr.rf.669_2"],
       "forbiddenTargets": []
     },
     {
@@ -390,9 +315,7 @@
       "style": "thoughtful",
       "intent": "guideline",
       "query": "Слабость, ферритин 8, гемоглобин 95 г/л у женщины 35 лет",
-      "expectedTargets": [
-        "kr.rf.669_2"
-      ],
+      "expectedTargets": ["kr.rf.669_2"],
       "forbiddenTargets": []
     },
     {
@@ -400,10 +323,7 @@
       "style": "rush",
       "intent": "guideline",
       "query": "мигрень",
-      "expectedTargets": [
-        "kr.rf.295_4",
-        "kr.rf.169_2"
-      ],
+      "expectedTargets": ["kr.rf.295_4", "kr.rf.169_2"],
       "forbiddenTargets": []
     },
     {
@@ -411,10 +331,7 @@
       "style": "thoughtful",
       "intent": "guideline",
       "query": "Пульсирующая односторонняя головная боль с тошнотой и светобоязнью",
-      "expectedTargets": [
-        "kr.rf.295_4",
-        "kr.rf.169_2"
-      ],
+      "expectedTargets": ["kr.rf.295_4", "kr.rf.169_2"],
       "forbiddenTargets": []
     },
     {
@@ -422,9 +339,7 @@
       "style": "rush",
       "intent": "guideline",
       "query": "гипотиреоз",
-      "expectedTargets": [
-        "kr.rf.531_4"
-      ],
+      "expectedTargets": ["kr.rf.531_4"],
       "forbiddenTargets": []
     },
     {
@@ -445,9 +360,7 @@
       "style": "rush",
       "intent": "guideline",
       "query": "депрессия",
-      "expectedTargets": [
-        "kr.rf.301_3"
-      ],
+      "expectedTargets": ["kr.rf.301_3"],
       "forbiddenTargets": []
     },
     {
@@ -455,9 +368,7 @@
       "style": "thoughtful",
       "intent": "guideline",
       "query": "Сниженное настроение и потеря интереса больше двух недель, нарушение сна",
-      "expectedTargets": [
-        "kr.rf.301_3"
-      ],
+      "expectedTargets": ["kr.rf.301_3"],
       "forbiddenTargets": []
     },
     {
@@ -465,9 +376,7 @@
       "style": "rush",
       "intent": "guideline",
       "query": "атопический дерматит",
-      "expectedTargets": [
-        "kr.rf.265_3"
-      ],
+      "expectedTargets": ["kr.rf.265_3"],
       "forbiddenTargets": []
     },
     {
@@ -475,9 +384,7 @@
       "style": "thoughtful",
       "intent": "guideline",
       "query": "Сухая зудящая сыпь на сгибах локтей у ребёнка 2 лет",
-      "expectedTargets": [
-        "kr.rf.265_3"
-      ],
+      "expectedTargets": ["kr.rf.265_3"],
       "forbiddenTargets": []
     },
     {
@@ -485,9 +392,7 @@
       "style": "rush",
       "intent": "guideline",
       "query": "острый панкреатит",
-      "expectedTargets": [
-        "kr.rf.903_1"
-      ],
+      "expectedTargets": ["kr.rf.903_1"],
       "forbiddenTargets": []
     },
     {
@@ -495,9 +400,7 @@
       "style": "thoughtful",
       "intent": "guideline",
       "query": "Опоясывающая боль в животе после алкоголя, амилаза повышена",
-      "expectedTargets": [
-        "kr.rf.903_1"
-      ],
+      "expectedTargets": ["kr.rf.903_1"],
       "forbiddenTargets": []
     },
     {
@@ -505,9 +408,7 @@
       "style": "rush",
       "intent": "guideline",
       "query": "ковид",
-      "expectedTargets": [
-        "kr.rf.1024_1"
-      ],
+      "expectedTargets": ["kr.rf.1024_1"],
       "forbiddenTargets": []
     },
     {
@@ -515,9 +416,7 @@
       "style": "rush",
       "intent": "legal",
       "query": "больничный",
-      "expectedTargets": [
-        "regulatory.rf.minzdrav.1089n-2021"
-      ],
+      "expectedTargets": ["regulatory.rf.minzdrav.1089n-2021"],
       "forbiddenTargets": []
     },
     {
@@ -536,10 +435,7 @@
       "style": "rush",
       "intent": "medication",
       "query": "цефтриаксн",
-      "expectedTargets": [
-        "esklp.mnn.цефтриаксон",
-        "drug.allmed.525"
-      ],
+      "expectedTargets": ["esklp.mnn.цефтриаксон", "drug.allmed.525"],
       "forbiddenTargets": []
     },
     {
@@ -547,11 +443,7 @@
       "style": "rush",
       "intent": "medication",
       "query": "nurofen",
-      "expectedTargets": [
-        "esklp.mnn.ибупрофен",
-        "drug.allmed.11",
-        "drug.allmed.1292"
-      ],
+      "expectedTargets": ["esklp.mnn.ибупрофен", "drug.allmed.11", "drug.allmed.1292"],
       "forbiddenTargets": [],
       "note": "trade name in Latin letters"
     },

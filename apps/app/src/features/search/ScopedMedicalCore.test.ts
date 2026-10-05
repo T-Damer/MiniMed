@@ -453,7 +453,9 @@ describe('ScopedMedicalCore', () => {
     expect(documentMatchesSearchScope(assessment, 'all')).toBe(true);
     expect(documentMatchesSearchScope(calculator, 'guidelines')).toBe(false);
     expect(documentMatchesSearchScope(calculator, 'calculators')).toBe(true);
-    expect(documentMatchesSearchScope({ sourceType: 'medical_reference' }, 'guidelines')).toBe(true);
+    expect(documentMatchesSearchScope({ sourceType: 'medical_reference' }, 'guidelines')).toBe(
+      true,
+    );
   });
 
   it('routes core catalog pointers by catalog family and entity type', () => {
