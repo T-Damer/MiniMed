@@ -107,6 +107,7 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 | 2026-10-05 22:30 | claude-opus (NEWS1) | owner 10-05: 4th bottom tab «Лента» — opt-in RSS/Atom/JSON Feed subscriptions + website viewer (sandboxed iframe), unread count on the tab, cached offline, suggested feeds as data, ADR-0024; no search/core/benchmark edits | `apps/app/src/features/news/**`, `apps/app/e2e/news-feed.spec.ts`, root nav / bottom nav / native-back / root-view wiring, news CSS, `docs/adr/0024-*`, `docs/CURRENT_STATE.md` (news section) |
 | 2026-10-05 22:00 | claude-opus (S3) | search roadmap items 3+4: keyboard-layout/transliteration fallback for names; diagnosis → МКБ card → КР bridge; each measured before/after, shipped only without gate regressions | `packages/core/**`, `packages/search-*/**`, `packages/storage*/**` search code, `tools/benchmarks/**`, `docs/SEARCH_*.md`, `docs/CURRENT_STATE.md` (search lines) |
+| 2026-10-05 22:40 | claude-opus (GAP1) | owner 10-05 «what do we lack?»: read-only gap audit (coverage, content/feature gaps, ranked top 10); writes only the report | `docs/research/gap-audit-2026-10-05.md` |
 
 ## Next (claimed, not started)
 
