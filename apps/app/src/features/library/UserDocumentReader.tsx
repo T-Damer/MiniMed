@@ -6,6 +6,7 @@ import {
   For,
   type JSX,
   lazy,
+  on,
   onCleanup,
   onMount,
   Show,
@@ -42,10 +43,8 @@ import {
   useDocumentBookReadingMode,
 } from '@/features/library/document-reading-mode';
 import { MediaViewer } from '@/features/library/document-rich-block';
-import { LazyPdfCanvas } from '@/features/library/LazyPdfCanvas';
 import { PaginatedTextEditor } from '@/features/library/PaginatedTextEditor';
 import { PinchZoomSurface } from '@/features/library/PinchZoomSurface';
-import { PINCH_ZOOM_MAX, PINCH_ZOOM_MIN } from '@/features/library/pinch-zoom-math';
 import { isRichDocumentMime, RichDocumentRenderer } from '@/features/library/RichDocumentRenderer';
 import {
   type ParsedMarkdownDocument,
@@ -55,7 +54,6 @@ import {
 } from '@/features/library/SafeMarkdown';
 import { sheetAnchorId } from '@/features/library/SpreadsheetRenderer';
 import { UserDocumentHighlights } from '@/features/library/UserDocumentHighlights';
-import { usePinchZoom } from '@/features/library/use-pinch-zoom';
 import {
   buildUserDocumentOutlineItems,
   buildUserDocumentPrintHtml,
@@ -69,10 +67,14 @@ import {
   USER_LIBRARY_CATALOG_HASH,
 } from '@/features/library/user-library-routing';
 import { NoteMarkdownEditor } from '@/features/notes/NoteMarkdownEditor';
+import { PdfThumbnails } from '@/features/pdf-viewer/PdfThumbnails';
+import { PdfViewer } from '@/features/pdf-viewer/PdfViewer';
+import { openPdfInSystem } from '@/features/pdf-viewer/pdf-actions';
+import { pdfPageIndexFromUnitId } from '@/features/pdf-viewer/pdf-find-state';
+import { createPdfViewerModel } from '@/features/pdf-viewer/pdf-viewer-model';
 import { PrintManager } from '@/features/printing/print-manager';
 import type { DocumentTrail } from '@/state/document-trail';
 import { setMedicalImageStatusBar } from '@/state/native-system-ui';
-import { loadPdfJsDocument, type PdfDocumentProxy } from '@/state/pdfjs-document';
 import {
   addUserLibraryFile,
   getUserLibraryDocument,
@@ -204,8 +206,6 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
   const origin = props.origin;
   const [libraryDocument, setLibraryDocument] = createSignal<UserLibraryDocument | null>(null);
   const [pages, setPages] = createSignal<readonly UserLibraryPage[]>([]);
-  const [pdfPageCount, setPdfPageCount] = createSignal(0);
-  const [pdfDocument, setPdfDocument] = createSignal<PdfDocumentProxy | null>(null);
   const [imageUrl, setImageUrl] = createSignal<string | null>(null);
   const [loadError, setLoadError] = createSignal<string | null>(null);
   const [findState, setFindState] = createSignal<DocumentFindResultState>(emptyFindState);
@@ -230,11 +230,13 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
   );
   let navigateEpub: ((href: string) => void) | null = null;
   const [parsedMarkdown, setParsedMarkdown] = createSignal<ParsedMarkdownDocument | null>(null);
-  let activePdf: PdfDocumentProxy | null = null;
-  let pdfLoadGeneration = 0;
   let markdownParseGeneration = 0;
   let draftFileInput: HTMLInputElement | undefined;
-  const pdfZoom = usePinchZoom({ expandScrollPort: true, lockHorizontalPan: true });
+  const pdfModel = createPdfViewerModel({
+    resumeKey: () => `user:${props.documentId}`,
+    initialPage: () =>
+      props.initialPageIndex === undefined ? undefined : props.initialPageIndex + 1,
+  });
 
   const meta = (): UserLibraryDocument | null => libraryDocument();
   const readerCapability = createMemo(() => {
@@ -336,7 +338,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
       current.mimeType,
       pages(),
       isUserLibraryPdfMime(current.mimeType)
-        ? { documentId: current.id, visualPageCount: pdfPageCount() }
+        ? { documentId: current.id, visualPageCount: pdfModel.pageCount() }
         : { documentId: current.id },
     );
   });
@@ -354,24 +356,27 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
         })),
       ];
     }
-    if (isUserLibraryPdfMime(current.mimeType) || isUserLibraryImageMime(current.mimeType)) {
-      const units: DocumentFindUnit[] = [titleUnit];
-      const pageIndexes =
-        isUserLibraryPdfMime(current.mimeType) && pdfPageCount() > 0
-          ? Array.from({ length: pdfPageCount() }, (_, index) => index)
-          : [0];
-      const pagesByIndex = new Map<number, UserLibraryPage>();
+    if (isUserLibraryPdfMime(current.mimeType)) {
+      // Whole pages of the PDF's own text (phrases match across lines); scanned pages without a
+      // text layer fall back to the recognised words, which the OCR overlay highlights.
+      const units: DocumentFindUnit[] = [titleUnit, ...pdfModel.findUnits()];
+      const textless = pdfModel.textlessPages();
       for (const page of pages()) {
-        if (!pagesByIndex.has(page.pageIndex)) pagesByIndex.set(page.pageIndex, page);
-      }
-      for (const pageIndex of pageIndexes) {
-        const anchor = pageAnchorId(current.id, pageIndex);
-        const page = pagesByIndex.get(pageIndex);
-        const words = page?.words ?? [];
-        words.forEach((word, wordIndex) => {
+        if (!textless.has(page.pageIndex)) continue;
+        const anchor = pageAnchorId(current.id, page.pageIndex);
+        (page.words ?? []).forEach((word, wordIndex) => {
           units.push({ id: wordUnitId(anchor, wordIndex), text: word.text });
         });
       }
+      return units;
+    }
+    if (isUserLibraryImageMime(current.mimeType)) {
+      const units: DocumentFindUnit[] = [titleUnit];
+      const words = pages().find((page) => page.pageIndex === 0)?.words ?? [];
+      const anchor = pageAnchorId(current.id, 0);
+      words.forEach((word, wordIndex) => {
+        units.push({ id: wordUnitId(anchor, wordIndex), text: word.text });
+      });
       return units;
     }
     return [titleUnit];
@@ -382,6 +387,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     if (!current) return false;
     const searchKind = readerCapability().reader.search;
     if (searchKind === 'none') return false;
+    if (isUserLibraryPdfMime(current.mimeType)) return pdfModel.pageCount() > 0;
     if (searchKind === 'text') {
       return pages().some((page) => page.text.trim().length > 0);
     }
@@ -406,13 +412,6 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
   );
 
   createEffect(() => {
-    if (!isPdf()) return;
-    pdfDocument();
-    readingMode.twoPageMode();
-    pdfZoom.reset();
-  });
-
-  createEffect(() => {
     if (!fullscreen()) return;
     const closeOnEscape = (event: KeyboardEvent): void => {
       if (event.key !== 'Escape') return;
@@ -428,7 +427,10 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     sectionSelector: '[data-user-doc-anchor]',
     outlineItemAttr: 'data-outline-anchor',
     scrollSpyWhen: () =>
-      Boolean(meta()) && readerCapability().reader.renderer !== 'epub' && outlineItems().length > 0,
+      Boolean(meta()) &&
+      !isPdf() &&
+      readerCapability().reader.renderer !== 'epub' &&
+      outlineItems().length > 0,
   });
 
   const handleSheetNamesChange = (names: readonly string[]): void => {
@@ -493,26 +495,14 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
         });
         return;
       }
+      // Matches on a PDF's own text are placed by the viewer; only recognised words scroll here.
+      if (pdfPageIndexFromUnitId(match.unitId) !== undefined) return;
       const word = globalThis.document.querySelector<HTMLElement>(
         '.user-document-reader__word--current',
       );
       word?.scrollIntoView({ behavior: 'auto', block: 'center' });
     });
   });
-
-  const replacePdf = async (blob: Blob): Promise<void> => {
-    const generation = ++pdfLoadGeneration;
-    const next = await loadPdfJsDocument(blob);
-    if (generation !== pdfLoadGeneration) {
-      await next.destroy();
-      return;
-    }
-    const previous = activePdf;
-    activePdf = next;
-    setPdfDocument(next);
-    setPdfPageCount(next.numPages);
-    if (previous && previous !== next) await previous.destroy();
-  };
 
   const refresh = async (reloadFile = false): Promise<void> => {
     const loadedMeta = await getUserLibraryDocument(props.documentId);
@@ -538,14 +528,14 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     }
 
     if (!isUserLibraryPdfMime(loadedMeta.mimeType)) return;
-    if (!reloadFile && activePdf) return;
+    if (!reloadFile && (pdfModel.pdf() || pdfModel.loading())) return;
 
     const blob = await getUserLibraryFile(props.documentId);
     if (!blob) {
       setLoadError('Файл личного документа недоступен.');
       return;
     }
-    await replacePdf(blob);
+    await pdfModel.load(blob);
   };
 
   onMount(() => {
@@ -559,15 +549,15 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     };
     window.addEventListener(USER_LIBRARY_EVENT, handleChange);
     onCleanup(() => {
-      pdfLoadGeneration += 1;
       window.removeEventListener(USER_LIBRARY_EVENT, handleChange);
       const url = imageUrl();
       if (url) URL.revokeObjectURL(url);
-      const pdf = activePdf;
-      activePdf = null;
-      setPdfDocument(null);
-      if (pdf) void pdf.destroy();
     });
+  });
+
+  createEffect(() => {
+    const message = pdfModel.error();
+    if (message) setLoadError(message);
   });
 
   createEffect(() => {
@@ -679,15 +669,34 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
 
   createEffect(() => {
     const pageIndex = props.initialPageIndex;
-    if (pageIndex === undefined) return;
+    if (pageIndex === undefined || isPdf()) return;
     pages();
     markdownText();
-    pdfPageCount();
     requestAnimationFrame(() => {
       const element = globalThis.document.getElementById(pageAnchorId(props.documentId, pageIndex));
       element?.scrollIntoView({ block: 'start' });
     });
   });
+
+  // A PDF opens at the page itself (the viewer waits for the page sizes); a later change of the
+  // requested page, e.g. from another search hit, moves the open document.
+  createEffect(
+    on(
+      () => props.initialPageIndex,
+      (pageIndex, previous) => {
+        if (
+          !isPdf() ||
+          pageIndex === undefined ||
+          previous === undefined ||
+          pageIndex === previous
+        ) {
+          return;
+        }
+        pdfModel.goToPage(pageIndex + 1);
+      },
+      { defer: true },
+    ),
+  );
 
   const banner = (): string => {
     const current = meta();
@@ -813,17 +822,11 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     ];
   });
 
-  const visualPageIndexes = createMemo(() => {
-    const current = meta();
-    if (!current || !isUserLibraryPdfMime(current.mimeType)) return [];
-    return Array.from({ length: pdfPageCount() }, (_, index) => index);
-  });
-
   const isPdf = (): boolean => {
     const current = meta();
     return current ? isUserLibraryPdfMime(current.mimeType) : false;
   };
-  const pdfReady = createMemo(() => isPdf() && pdfDocument() !== null && pdfPageCount() > 0);
+  const pdfReady = createMemo(() => isPdf() && pdfModel.pageCount() > 0);
   createEffect(() => {
     markUserDocumentPdf(isPdf());
   });
@@ -860,6 +863,17 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     });
   };
 
+  const openPdfExternally = (): void => {
+    const current = meta();
+    const file = pdfModel.blob();
+    if (!current || !file) return;
+    void openPdfInSystem(file, current.title)
+      .then((opened) => {
+        if (!opened) toast.error('Не удалось открыть файл в системе.');
+      })
+      .catch(() => toast.error('Не удалось открыть файл в системе.'));
+  };
+
   const readerMenuActions = (): readonly AppContextMenuAction[] => {
     const actions: AppContextMenuAction[] = [];
     if (hasReaderAction('print')) {
@@ -870,6 +884,22 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
         disabled: draftOpen(),
         onSelect: printDocument,
       });
+    }
+    if (isPdf() && pdfReady()) {
+      actions.push(
+        {
+          id: 'pdf-thumbnails',
+          label: 'Миниатюры страниц',
+          icon: chrome.outlineOpen() ? 'check' : 'squares-four',
+          onSelect: chrome.toggleOutline,
+        },
+        {
+          id: 'pdf-open-system',
+          label: 'Открыть в системе',
+          icon: 'arrow-square-out',
+          onSelect: openPdfExternally,
+        },
+      );
     }
     if (hasReaderAction('fullscreen')) {
       actions.push({
@@ -980,9 +1010,16 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
             <DocumentFindBar
               class="document-page__header-search"
               units={findUnits}
+              busy={pdfModel.findBusy}
               disabled={!findSearchable()}
-              onOpenChange={setFindOpen}
-              onResult={setFindState}
+              onOpenChange={(open) => {
+                setFindOpen(open);
+                if (open && isPdf()) pdfModel.beginFind();
+              }}
+              onResult={(state) => {
+                setFindState(state);
+                pdfModel.setFindState(state);
+              }}
             />
           </Show>
         }
@@ -1026,48 +1063,64 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
             )}
           </Show>
         }
+        outlineTitle={isPdf() ? 'Страницы' : 'Оглавление'}
         outlineNav={
           <Show
-            when={outlineItems().length > 0}
+            when={isPdf() && pdfReady()}
             fallback={
-              <p class="document-overlay-outline-empty">
-                {meta()?.status === 'inspecting'
-                  ? 'Документ обрабатывается — оглавление появится после извлечения текста.'
-                  : 'Нет разделов для отображения.'}
-              </p>
+              <Show
+                when={outlineItems().length > 0}
+                fallback={
+                  <p class="document-overlay-outline-empty">
+                    {meta()?.status === 'inspecting'
+                      ? 'Документ обрабатывается — оглавление появится после извлечения текста.'
+                      : 'Нет разделов для отображения.'}
+                  </p>
+                }
+              >
+                <For each={outlineItems()}>
+                  {(item) => (
+                    <button
+                      type="button"
+                      data-outline-anchor={item.anchor}
+                      class="document-overlay-outline-item"
+                      classList={{
+                        'document-overlay-outline-item--depth-2': item.depth === 2,
+                        'document-overlay-outline-item--depth-3': item.depth >= 3,
+                        'document-overlay-outline-item--active':
+                          chrome.activeAnchor() === item.anchor,
+                      }}
+                      aria-current={chrome.activeAnchor() === item.anchor ? 'location' : undefined}
+                      onClick={() => {
+                        if (readerCapability().reader.renderer === 'epub') {
+                          chrome.setActiveAnchor(item.anchor);
+                          if (!isDesktopReaderLayout()) chrome.closeOutline();
+                          navigateEpub?.(item.anchor);
+                          return;
+                        }
+                        if (!isSheet()) {
+                          chrome.scrollTo(item.anchor);
+                          return;
+                        }
+                        setActiveSheetName(item.label);
+                        requestAnimationFrame(() => chrome.scrollTo(item.anchor));
+                      }}
+                    >
+                      <span class="document-overlay-outline-item__label">{item.label}</span>
+                    </button>
+                  )}
+                </For>
+              </Show>
             }
           >
-            <For each={outlineItems()}>
-              {(item) => (
-                <button
-                  type="button"
-                  data-outline-anchor={item.anchor}
-                  class="document-overlay-outline-item"
-                  classList={{
-                    'document-overlay-outline-item--depth-2': item.depth === 2,
-                    'document-overlay-outline-item--depth-3': item.depth >= 3,
-                    'document-overlay-outline-item--active': chrome.activeAnchor() === item.anchor,
-                  }}
-                  aria-current={chrome.activeAnchor() === item.anchor ? 'location' : undefined}
-                  onClick={() => {
-                    if (readerCapability().reader.renderer === 'epub') {
-                      chrome.setActiveAnchor(item.anchor);
-                      if (!isDesktopReaderLayout()) chrome.closeOutline();
-                      navigateEpub?.(item.anchor);
-                      return;
-                    }
-                    if (!isSheet()) {
-                      chrome.scrollTo(item.anchor);
-                      return;
-                    }
-                    setActiveSheetName(item.label);
-                    requestAnimationFrame(() => chrome.scrollTo(item.anchor));
-                  }}
-                >
-                  <span class="document-overlay-outline-item__label">{item.label}</span>
-                </button>
-              )}
-            </For>
+            <Show when={chrome.outlineOpen()}>
+              <PdfThumbnails
+                model={pdfModel}
+                onSelected={() => {
+                  if (!isDesktopReaderLayout()) chrome.closeOutline();
+                }}
+              />
+            </Show>
           </Show>
         }
         content={
@@ -1181,91 +1234,35 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
               fallback={
                 <>
                   <Show when={isPdf()}>
-                    <Show when={hasReaderAction('zoom') && pdfReady()}>
-                      <div class="user-document-reader__pdf-zoom-controls">
-                        <button
-                          type="button"
-                          class="user-document-reader__pdf-zoom-button"
-                          aria-label="Уменьшить"
-                          title="Уменьшить"
-                          disabled={pdfZoom.scale() <= PINCH_ZOOM_MIN}
-                          onClick={pdfZoom.zoomOut}
-                        >
-                          <AppGlyph name="minus" class="user-document-reader__pdf-zoom-icon" />
-                        </button>
-                        <button
-                          type="button"
-                          class="user-document-reader__pdf-zoom-value"
-                          aria-label="Вернуть масштаб 100%"
-                          title="Вернуть масштаб 100%"
-                          disabled={pdfZoom.scale() <= PINCH_ZOOM_MIN}
-                          onClick={() => pdfZoom.reset()}
-                        >
-                          {String(Math.round(pdfZoom.scale() * 100))}%
-                        </button>
-                        <button
-                          type="button"
-                          class="user-document-reader__pdf-zoom-button"
-                          aria-label="Увеличить"
-                          title="Увеличить"
-                          disabled={pdfZoom.scale() >= PINCH_ZOOM_MAX}
-                          onClick={pdfZoom.zoomIn}
-                        >
-                          <AppGlyph name="plus" class="user-document-reader__pdf-zoom-icon" />
-                        </button>
-                      </div>
-                    </Show>
-                    <PinchZoomSurface
-                      pinch={pdfZoom}
-                      expandScrollPort
-                      class="pinch-zoom-surface user-document-reader__document-pinch user-document-reader__document-pinch--pdf"
-                      contentClass="pinch-zoom-surface__content user-document-reader__document-pinch-content"
-                    >
-                      <div
-                        class="user-document-reader__pages"
-                        classList={{
-                          'user-document-reader__pages--two': readingMode.twoPageMode(),
-                        }}
-                      >
-                        <For each={visualPageIndexes()}>
-                          {(pageIndex) => {
-                            const page = (): UserLibraryPage | undefined => pageByIndex(pageIndex);
-                            const words = (): readonly UserLibraryWordBox[] => page()?.words ?? [];
-                            const anchor = () => pageAnchorId(props.documentId, pageIndex);
-                            return (
-                              <div
-                                id={anchor()}
-                                data-user-doc-anchor=""
-                                class="user-document-reader__page"
-                              >
-                                <LazyPdfCanvas
-                                  id={pageCanvasId(props.documentId, pageIndex)}
-                                  pageNumber={pageIndex + 1}
-                                  pdf={pdfDocument}
-                                  class="user-document-reader__canvas"
-                                  onError={(cause) => {
-                                    setLoadError(
-                                      cause instanceof Error
-                                        ? cause.message
-                                        : 'Не удалось отобразить страницу PDF.',
-                                    );
-                                  }}
-                                />
-                                <Show when={words().length > 0}>
-                                  <WordOverlay
-                                    pageAnchor={anchor()}
-                                    words={words()}
-                                    interactive={page()?.kind !== 'native'}
-                                    hitUnitIds={hitUnitIds}
-                                    activeUnitId={() => activeMatch()?.unitId}
-                                  />
-                                </Show>
-                              </div>
-                            );
-                          }}
-                        </For>
-                      </div>
-                    </PinchZoomSurface>
+                    <PdfViewer
+                      model={pdfModel}
+                      twoPage={readingMode.twoPageMode()}
+                      pageId={(pageIndex) => pageAnchorId(props.documentId, pageIndex)}
+                      canvasId={(pageIndex) => pageCanvasId(props.documentId, pageIndex)}
+                      anchorAttribute="data-user-doc-anchor"
+                      onPageError={(cause) => {
+                        setLoadError(
+                          cause instanceof Error
+                            ? cause.message
+                            : 'Не удалось отобразить страницу PDF.',
+                        );
+                      }}
+                      pageOverlay={(pageIndex) => {
+                        const page = (): UserLibraryPage | undefined => pageByIndex(pageIndex);
+                        const words = (): readonly UserLibraryWordBox[] => page()?.words ?? [];
+                        return (
+                          <Show when={page()?.kind !== 'native' && words().length > 0}>
+                            <WordOverlay
+                              pageAnchor={pageAnchorId(props.documentId, pageIndex)}
+                              words={words()}
+                              interactive
+                              hitUnitIds={hitUnitIds}
+                              activeUnitId={() => activeMatch()?.unitId}
+                            />
+                          </Show>
+                        );
+                      }}
+                    />
                   </Show>
 
                   <Show when={isImage()}>

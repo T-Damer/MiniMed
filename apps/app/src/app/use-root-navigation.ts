@@ -10,6 +10,7 @@ import {
 } from '@/app/root-view';
 import { medicalImageViewerActive } from '@/features/library/document-reading-mode';
 import { isDocumentReadRoute } from '@/state/document-route';
+import { READER_CHROME_HOLD_EVENT } from '@/state/reader-chrome-hold';
 import { trackToolNavigation } from '@/state/tool-navigation';
 
 type RootNavigationDirection = 'forward' | 'backward';
@@ -45,6 +46,7 @@ export function useRootNavigation() {
   let rootNavigationMotionEndFrame: number | undefined;
   let scrollFrame: number | undefined;
   let lastScrollTop = window.scrollY;
+  let chromeHoldUntil = 0;
   let rootNavigationIncomingListener:
     | { readonly element: HTMLElement; readonly handler: (event: AnimationEvent) => void }
     | undefined;
@@ -305,7 +307,7 @@ export function useRootNavigation() {
       finishRootNavigationMotionIfActive();
     }
     const canHideChrome = documentReadActive() && !medicalImageViewerActive();
-    if (!canHideChrome) {
+    if (!canHideChrome || performance.now() < chromeHoldUntil) {
       if (chromeHidden()) setChromeHidden(false);
     } else if (scrollTop <= CHROME_DIRECTION_THRESHOLD || direction < -CHROME_DIRECTION_THRESHOLD) {
       setChromeHidden(false);
@@ -317,6 +319,13 @@ export function useRootNavigation() {
       scrollFrame = undefined;
       setShowScrollTop(scrollTop > 48);
     });
+  };
+
+  const handleChromeHold = (event: Event): void => {
+    const duration =
+      event instanceof CustomEvent && typeof event.detail === 'number' ? event.detail : 600;
+    chromeHoldUntil = performance.now() + Math.min(Math.max(duration, 0), 3000);
+    if (chromeHidden()) setChromeHidden(false);
   };
 
   const handleVisibilityChange = (): void => {
@@ -339,6 +348,7 @@ export function useRootNavigation() {
     window.addEventListener('hashchange', handleHashChange);
     window.addEventListener('scroll', handleScroll, { passive: true });
     document.addEventListener('scroll', handleScroll, { capture: true, passive: true });
+    window.addEventListener(READER_CHROME_HOLD_EVENT, handleChromeHold);
     document.addEventListener('visibilitychange', handleVisibilityChange);
     handleScroll();
   });
@@ -347,6 +357,7 @@ export function useRootNavigation() {
     window.removeEventListener('hashchange', handleHashChange);
     window.removeEventListener('scroll', handleScroll);
     document.removeEventListener('scroll', handleScroll, { capture: true });
+    window.removeEventListener(READER_CHROME_HOLD_EVENT, handleChromeHold);
     document.documentElement.classList.remove('app-chrome-hidden');
     document.removeEventListener('visibilitychange', handleVisibilityChange);
     cancelRootNavigationMotionEnd();

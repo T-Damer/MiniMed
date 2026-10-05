@@ -37,6 +37,10 @@ export interface DocumentFindBarProps {
   readonly hideLabel?: boolean;
   readonly allowWorker?: boolean;
   readonly disabled?: boolean;
+  /** A close button next to the step buttons, for hosts without a back arrow that closes find. */
+  readonly closable?: boolean;
+  /** The units are still being read (PDF page text): a search waits instead of answering early. */
+  readonly busy?: () => boolean;
   readonly onOpenChange?: (open: boolean) => void;
   readonly onResult: (state: DocumentFindResultState) => void;
 }
@@ -109,58 +113,76 @@ export function DocumentFindBar(props: DocumentFindBarProps): JSX.Element {
     if (open()) client.setUnits(props.units());
   });
 
+  const [retryRevision, setRetryRevision] = createSignal(0);
   createEffect(
-    on(debouncedQuery, (query) => {
-      const currentMode = mode();
-      if (props.disabled) {
-        setMatches([]);
-        setActiveIndex(0);
-        setLoading(false);
-        untrack(() =>
+    on(
+      () => props.busy?.() ?? false,
+      (busy, wasBusy) => {
+        if (wasBusy === true && !busy) setRetryRevision((value) => value + 1);
+      },
+      { defer: true },
+    ),
+  );
+
+  createEffect(
+    on(
+      // A new search for the same text when the units finished loading (see `busy`).
+      () => `${String(retryRevision())}:${debouncedQuery()}`,
+      () => {
+        const query = debouncedQuery();
+        const busy = props.busy?.() ?? false;
+        const currentMode = mode();
+        if (props.disabled) {
+          setMatches([]);
+          setActiveIndex(0);
+          setLoading(false);
+          untrack(() =>
+            props.onResult({
+              query: '',
+              mode: currentMode,
+              matches: [],
+              activeIndex: 0,
+              loading: false,
+            }),
+          );
+          return;
+        }
+        if (!query.trim()) {
+          setMatches([]);
+          setActiveIndex(0);
+          setLoading(false);
+          untrack(() =>
+            props.onResult({
+              query: '',
+              mode: currentMode,
+              matches: [],
+              activeIndex: 0,
+              loading: false,
+            }),
+          );
+          return;
+        }
+        setLoading(true);
+        if (busy) return;
+        let cancelled = false;
+        void client.find(query, currentMode).then((result) => {
+          if (cancelled) return;
+          setMatches(result);
+          setActiveIndex(0);
+          setLoading(false);
           props.onResult({
-            query: '',
+            query,
             mode: currentMode,
-            matches: [],
+            matches: result,
             activeIndex: 0,
             loading: false,
-          }),
-        );
-        return;
-      }
-      if (!query.trim()) {
-        setMatches([]);
-        setActiveIndex(0);
-        setLoading(false);
-        untrack(() =>
-          props.onResult({
-            query: '',
-            mode: currentMode,
-            matches: [],
-            activeIndex: 0,
-            loading: false,
-          }),
-        );
-        return;
-      }
-      setLoading(true);
-      let cancelled = false;
-      void client.find(query, currentMode).then((result) => {
-        if (cancelled) return;
-        setMatches(result);
-        setActiveIndex(0);
-        setLoading(false);
-        props.onResult({
-          query,
-          mode: currentMode,
-          matches: result,
-          activeIndex: 0,
-          loading: false,
+          });
         });
-      });
-      onCleanup(() => {
-        cancelled = true;
-      });
-    }),
+        onCleanup(() => {
+          cancelled = true;
+        });
+      },
+    ),
   );
 
   const step = (delta: number): void => {
@@ -250,6 +272,8 @@ export function DocumentFindBar(props: DocumentFindBarProps): JSX.Element {
           onKeyDown={(event) => {
             if (event.key === 'Escape') {
               event.preventDefault();
+              // The find box consumed it: a dialog or reader around it must stay open.
+              event.stopPropagation();
               closeFind();
               return;
             }
@@ -277,6 +301,16 @@ export function DocumentFindBar(props: DocumentFindBarProps): JSX.Element {
             onClick={() => step(1)}
             icon={<AppGlyph name="caret-down" class="document-find__step-icon" />}
           />
+          <Show when={props.closable}>
+            <Button
+              type="button"
+              variant="icon"
+              class="document-find__step"
+              aria-label="Закрыть поиск"
+              onClick={closeFind}
+              icon={<AppGlyph name="close" class="document-find__step-icon" />}
+            />
+          </Show>
         </div>
       </Show>
     </div>

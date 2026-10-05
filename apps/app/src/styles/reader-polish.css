@@ -63,13 +63,6 @@
   }
 }
 
-.user-document-reader__canvas {
-  display: block;
-  width: 100%;
-  aspect-ratio: 0.7071;
-  background: #fff;
-}
-
 .safe-markdown {
   --safe-markdown-heading-margin: 1.8em 0 0.65em;
   --safe-markdown-paragraph-margin: 0.8rem 0;

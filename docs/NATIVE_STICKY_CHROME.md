@@ -35,6 +35,14 @@ Official and personal document readers do not use backdrop blur.
 - Scrolling up, or returning near the top, restores both controls.
 - While reader controls are hidden, the document paper supplies the opaque status-bar fill and sticky
   document headings move to the safe-area edge.
+- Controls that float over the pages follow the same rule: the PDF page dock (`.pdf-viewer__dock`:
+  page box and zoom) sits above the bottom navigation while it is shown and slides out with it
+  (`html.app-chrome-hidden`). Inside a dialog (note attachment) there is no bottom navigation, so
+  the dock stays at the dialog's bottom edge.
+- A jump the reader makes by itself (find next/previous, go to page, a thumbnail, a restored
+  position) is not the user scrolling on: the viewer calls `holdReaderChrome()`
+  (`state/reader-chrome-hold.ts`, event `minimed:reader-chrome-hold`) and `use-root-navigation.ts`
+  keeps the controls visible for that moment. The user's own scrolling still hides and reveals.
 
 This behavior is controlled by `use-root-navigation.ts`, `.app-chrome-hidden`, and the reader styles.
 Do not add blur to document readers and do not offset their whole header below `--safe-top`.
@@ -65,5 +73,6 @@ The WebView reader contract above remains separate from the native Compose imple
 - the WebView blur/grain covers the status bar and the full sticky element, with a masked lower edge
   (WebView only; native uses the opaque strip above);
 - reader chrome starts at the viewport top, has an opaque fill, and pads controls below the safe area;
-- reader controls hide on downward scroll and return on upward scroll;
+- reader controls hide on downward scroll and return on upward scroll (`pdf-viewer.spec.ts` checks
+  the same for the PDF page dock, and that a go-to-page jump keeps the controls);
 - routes without transparent sticky chrome do not show the status-bar blur.

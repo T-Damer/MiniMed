@@ -349,6 +349,8 @@ export interface DocumentReaderChromeShellProps {
   readonly showLayout: boolean;
   readonly outlineEnabled?: boolean;
   readonly outlineSearchSlot?: JSX.Element;
+  /** Heading of the side panel; «Оглавление» unless the panel lists something else (PDF pages). */
+  readonly outlineTitle?: string;
   readonly outlineNav: JSX.Element;
   readonly outlineFooter?: JSX.Element;
   readonly content: JSX.Element;
@@ -456,7 +458,7 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
               }}
             />
             <header class="document-overlay-outline-header">
-              <strong>Оглавление</strong>
+              <strong>{props.outlineTitle ?? 'Оглавление'}</strong>
               <button
                 type="button"
                 class="document-overlay-outline-header__close-button"
