@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import { scoreAssessment } from '@/features/assessments/assessment-engine';
-import { userQuestionnaireReadinessError } from '@/state/user-questionnaire-rules';
+import {
+  userQuestionnaireIssues,
+  userQuestionnaireReadinessError,
+} from '@/state/user-questionnaire-rules';
 import {
   duplicateUserQuestionnaireQuestion,
   parseUserQuestionnaire,
@@ -350,6 +353,18 @@ describe('questionnaire sections, scores and ranges', () => {
       bands: [{ id: 't1', scope: 'total', min: 0, max: 1, headline: 'Низкий', message: '' }],
     });
     expect(userQuestionnaireReadinessError(gap)).toBeNull();
+    // Scores run 0–5; the range 0–1 leaves 2–5 without an explanation.
+    expect(userQuestionnaireIssues(gap).map((issue) => issue.message)).toContain(
+      'Баллы 2–5 не входят ни в один диапазон: для них результат останется без пояснения.',
+    );
+    const unreachable = sectioned({
+      scoreBySection: false,
+      bands: [{ id: 't1', scope: 'total', min: 20, max: 30, headline: 'Высокий', message: '' }],
+    });
+    expect(userQuestionnaireIssues(unreachable).map((issue) => issue.severity)).toContain(
+      'warning',
+    );
+    expect(userQuestionnaireReadinessError(unreachable)).toBeNull();
   });
 
   it('refuses a question that points at a section the file does not have', () => {

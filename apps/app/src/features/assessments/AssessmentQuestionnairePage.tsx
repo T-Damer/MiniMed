@@ -31,6 +31,7 @@ import type {
   AssessmentResponseValue,
   IncompleteAssessmentRecord,
 } from '@/features/assessments/assessment-types';
+import { PatientAgeNotice } from '@/features/tools/PatientAgeNotice';
 import { pluralRu } from '@/i18n/labels';
 import {
   createCompletedAssessmentRecord,
@@ -475,6 +476,11 @@ export function AssessmentQuestionnairePage(props: {
           </label>
         </Show>
       </div>
+
+      <PatientAgeNotice
+        scope={props.definition.ageScope}
+        birthDate={selectedPatient()?.birthDate}
+      />
 
       <AssessmentDefinitionNotice
         definition={props.definition}

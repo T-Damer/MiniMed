@@ -23,7 +23,7 @@ import type { AssessmentRecord } from '@/features/assessments/assessment-types';
 import { ToolAgeBadge } from '@/features/tools/ToolAgeBadge';
 import { ToolAgeFilterBar } from '@/features/tools/ToolAgeFilterBar';
 import { type ToolAgeFilter, toolMatchesAgeFilter } from '@/features/tools/tool-age-filter';
-import { assessmentCountLabel } from '@/i18n/labels';
+import { assessmentCountLabel, pluralRu } from '@/i18n/labels';
 import { userQuestionnaireReadinessError } from '@/state/user-questionnaire-rules';
 import {
   type StoredUserQuestionnaire,
@@ -40,8 +40,7 @@ function formatDate(value: string): string {
 }
 
 function questionCountLabel(count: number): string {
-  const plural = new Intl.PluralRules('ru-RU').select(count);
-  return `${count} ${plural === 'one' ? 'вопрос' : plural === 'few' ? 'вопроса' : 'вопросов'}`;
+  return `${count} ${pluralRu(count, 'вопрос', 'вопроса', 'вопросов')}`;
 }
 
 export function AssessmentSpecialtyIndexPage(props: {
@@ -65,6 +64,8 @@ export function AssessmentSpecialtyIndexPage(props: {
   readonly onOpenUserQuestionnaire: (fileId: string) => void;
   readonly onEditUserQuestionnaire: (fileId: string) => void;
   readonly onExportUserQuestionnaire: (fileId: string) => void;
+  readonly onDuplicateUserQuestionnaire: (fileId: string) => void;
+  readonly onDeleteUserQuestionnaire: (fileId: string) => void;
   readonly onImportUserQuestionnaire: (file: File) => void;
   readonly onOpenRecord: (
     definition: ReturnType<typeof searchAssessments>[number],
@@ -263,13 +264,14 @@ export function AssessmentSpecialtyIndexPage(props: {
             <div class="assessment-import-dialog__format">
               <p class="assessment-import-dialog__text">
                 Подходит файл, который вы или коллега выгрузили кнопкой «Экспорт» у своего
-                опросника. Это JSON-файл: название, описание, вопросы с вариантами ответов и баллами
-                за каждый вариант.
+                опросника. Это JSON-файл: название, для кого опросник, разделы, вопросы с вариантами
+                ответов, баллы и диапазоны результата.
               </p>
               <pre class="assessment-import-dialog__example">{`{
   "format": "minimed-questionnaire",
-  "version": 1,
+  "version": 2,
   "title": "Мой опросник",
+  "population": { "group": "adults" },
   "questions": [
     { "prompt": "Вопрос 1",
       "options": [
@@ -279,10 +281,20 @@ export function AssessmentSpecialtyIndexPage(props: {
   ]
 }`}</pre>
               <p class="assessment-import-dialog__text">
-                Импортированный опросник появится в списке, его можно будет изменить.
+                Импортированный опросник появится в списке и откроется для правки. Если в файле не
+                указано, для кого он, выберите возраст пациентов — без этого опросник не откроется.
               </p>
             </div>
           </OverlayDialog>
+          <Show when={visibleUserQuestionnaires().length === 0}>
+            <p class="assessment-user-questionnaires__empty" role="status">
+              {props.userQuestionnaires.length > 0 && !hasQuery()
+                ? 'Для выбранного возраста своих опросников нет. Выберите «Все», чтобы увидеть остальные.'
+                : hasQuery()
+                  ? 'По этому запросу своих опросников не найдено.'
+                  : 'Своих опросников пока нет. Создайте первый кнопкой «+» или импортируйте файл.'}
+            </p>
+          </Show>
           <div class="assessment-user-questionnaires__grid">
             <For each={visibleUserQuestionnaires()}>
               {(stored) => {
@@ -312,6 +324,31 @@ export function AssessmentSpecialtyIndexPage(props: {
                           onClick={() => props.onExportUserQuestionnaire(stored.file.id)}
                           icon={
                             <AppGlyph name="share" class="assessment-user-questionnaire__icon" />
+                          }
+                        />
+                        <Button
+                          type="button"
+                          variant="icon"
+                          class="assessment-user-questionnaire__action"
+                          aria-label={`Создать копию «${stored.file.title}»`}
+                          title="Создать копию"
+                          onClick={() => props.onDuplicateUserQuestionnaire(stored.file.id)}
+                          icon={
+                            <AppGlyph
+                              name="squares-four"
+                              class="assessment-user-questionnaire__icon"
+                            />
+                          }
+                        />
+                        <Button
+                          type="button"
+                          variant="icon"
+                          class="assessment-user-questionnaire__action"
+                          aria-label={`Удалить «${stored.file.title}»`}
+                          title="Удалить"
+                          onClick={() => props.onDeleteUserQuestionnaire(stored.file.id)}
+                          icon={
+                            <AppGlyph name="trash" class="assessment-user-questionnaire__icon" />
                           }
                         />
                       </div>

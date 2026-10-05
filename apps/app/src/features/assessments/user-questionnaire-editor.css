@@ -1,0 +1,395 @@
+/* The page of the questionnaire editor and the blocks it is built from. */
+
+.user-questionnaire-editor {
+  gap: var(--theme-space-4);
+}
+
+.user-questionnaire-editor__actions {
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.user-questionnaire-editor__icon {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.user-questionnaire-editor__details {
+  display: grid;
+  gap: var(--theme-space-3);
+  padding: var(--theme-space-4);
+}
+
+.user-questionnaire-editor__section-title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+}
+
+.user-questionnaire-editor__hint {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+}
+
+.user-questionnaire-editor__save-state {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: var(--theme-type-caption);
+}
+
+.user-questionnaire-editor__save-state--error {
+  color: var(--theme-danger);
+}
+
+.user-questionnaire-editor__hero {
+  display: grid;
+  gap: var(--theme-space-2);
+  padding: var(--theme-space-4);
+}
+
+.user-questionnaire-editor__hero-header,
+.user-questionnaire-editor__questions-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--theme-space-2);
+}
+
+.user-questionnaire-editor__hero-copy {
+  min-width: 0;
+}
+
+.user-questionnaire-editor__hero-preview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  margin: 0;
+  overflow: hidden;
+  border: var(--theme-border-hairline) solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  background: var(--theme-surface-muted);
+}
+
+.user-questionnaire-editor__hero-image {
+  display: block;
+  grid-column: 1 / -1;
+  width: 100%;
+  max-height: 20rem;
+  object-fit: cover;
+}
+
+.user-questionnaire-editor__hero-caption {
+  min-width: 0;
+  padding: var(--theme-space-2) var(--theme-space-3);
+  overflow: hidden;
+  color: var(--theme-text-muted);
+  font-size: var(--theme-type-caption);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-questionnaire-editor__hero-remove {
+  align-self: center;
+  margin-right: var(--theme-space-2);
+}
+
+.user-questionnaire-editor__image-input {
+  display: none;
+}
+
+.user-questionnaire-editor__questions {
+  display: grid;
+  gap: var(--theme-space-3);
+}
+
+.user-questionnaire-editor__group {
+  display: grid;
+  gap: var(--theme-space-3);
+}
+
+.user-questionnaire-editor__group-title {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.95rem;
+}
+
+.user-questionnaire-editor__add-question {
+  width: fit-content;
+}
+
+/* What still has to be fixed before the questionnaire can run. */
+
+.questionnaire-issues {
+  display: grid;
+  gap: var(--theme-space-2);
+  padding: var(--theme-space-3) var(--theme-space-4);
+  border-left: 0.25rem solid var(--theme-danger);
+}
+
+.questionnaire-issues__title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.questionnaire-issues__list {
+  display: grid;
+  gap: var(--theme-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.questionnaire-issues__link {
+  padding: 0;
+  border: 0;
+  color: var(--theme-danger);
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.questionnaire-issues__link--warning {
+  color: var(--theme-text-muted);
+}
+
+.questionnaire-issues__more {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+}
+
+/* A section of the questionnaire with its questions. */
+
+.questionnaire-section {
+  display: grid;
+  gap: var(--theme-space-3);
+  padding: var(--theme-space-4);
+}
+
+.questionnaire-section__header,
+.questionnaire-question__header,
+.questionnaire-question__subheader,
+.questionnaire-bands__scope-header,
+.questionnaire-bands__band-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--theme-space-2);
+}
+
+.questionnaire-section__title,
+.questionnaire-question__title,
+.questionnaire-question__subtitle,
+.questionnaire-bands__title,
+.questionnaire-bands__scope-title,
+.questionnaire-bands__band-title {
+  margin: 0;
+  font-family: var(--font-serif);
+}
+
+.questionnaire-section__actions,
+.questionnaire-question__actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--theme-space-1);
+}
+
+.questionnaire-section__add-question {
+  width: fit-content;
+}
+
+/* One question: wording, pictures, answers and their scores. */
+
+.questionnaire-question {
+  display: grid;
+  gap: var(--theme-space-3);
+  padding: var(--theme-space-4);
+}
+
+.questionnaire-question--invalid {
+  border-color: var(--theme-danger);
+}
+
+.questionnaire-question__title {
+  font-size: 1.05rem;
+}
+
+.questionnaire-question__subtitle {
+  font-size: 0.95rem;
+}
+
+.questionnaire-question__hint {
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+}
+
+.questionnaire-question__icon {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.questionnaire-question__media,
+.questionnaire-question__answers {
+  display: grid;
+  gap: var(--theme-space-2);
+}
+
+.questionnaire-question__images {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+  gap: var(--theme-space-2);
+}
+
+.questionnaire-question__image-card {
+  display: grid;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  border: var(--theme-border-hairline) solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  background: var(--theme-surface-muted);
+}
+
+.questionnaire-question__image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.questionnaire-question__image-remove {
+  justify-self: end;
+}
+
+.questionnaire-question__option {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(5rem, 7rem) auto;
+  align-items: end;
+  gap: var(--theme-space-2);
+}
+
+.questionnaire-question__remove-option {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+}
+
+.questionnaire-question__add-option,
+.questionnaire-question__add-image {
+  width: fit-content;
+}
+
+.questionnaire-question__issues {
+  display: grid;
+  gap: var(--theme-space-1);
+  margin: 0;
+  padding: 0;
+  color: var(--theme-danger);
+  font-size: 0.875rem;
+  list-style: none;
+}
+
+/* Score ranges and the check of one score. */
+
+.questionnaire-bands {
+  display: grid;
+  gap: var(--theme-space-3);
+  padding: var(--theme-space-4);
+}
+
+.questionnaire-bands__header {
+  display: grid;
+  gap: var(--theme-space-1);
+}
+
+.questionnaire-bands__text,
+.questionnaire-bands__empty,
+.questionnaire-bands__hint {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+}
+
+.questionnaire-bands__scope {
+  display: grid;
+  gap: var(--theme-space-3);
+}
+
+.questionnaire-bands__band {
+  display: grid;
+  gap: var(--theme-space-2);
+  padding: var(--theme-space-3);
+  border: var(--theme-border-hairline) solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  background: var(--theme-surface-muted);
+}
+
+.questionnaire-bands__band--invalid {
+  border-color: var(--theme-danger);
+}
+
+.questionnaire-bands__numbers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--theme-space-2);
+}
+
+.questionnaire-bands__issues {
+  display: grid;
+  gap: var(--theme-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.questionnaire-bands__issue {
+  color: var(--theme-danger);
+  font-size: 0.875rem;
+}
+
+.questionnaire-bands__issue--warning {
+  color: var(--theme-text-muted);
+}
+
+.questionnaire-bands__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--theme-space-3);
+}
+
+.questionnaire-bands__tester {
+  display: grid;
+  gap: var(--theme-space-1);
+}
+
+.questionnaire-bands__tester-result {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.questionnaire-bands__icon {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+@media (max-width: 760px) {
+  .user-questionnaire-editor__details,
+  .questionnaire-question,
+  .questionnaire-section,
+  .questionnaire-bands {
+    padding: var(--theme-space-3);
+  }
+
+  .questionnaire-question__option {
+    grid-template-columns: minmax(0, 1fr) 5rem auto;
+  }
+
+  .user-questionnaire-editor__add-question,
+  .questionnaire-section__add-question {
+    width: 100%;
+  }
+}

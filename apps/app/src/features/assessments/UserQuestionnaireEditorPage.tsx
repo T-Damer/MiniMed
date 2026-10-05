@@ -1,47 +1,73 @@
-import { createEffect, createMemo, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  Index,
+  type JSX,
+  onCleanup,
+  Show,
+} from 'solid-js';
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { Page } from '@/components/Page';
 import { Heading } from '@/components/Text';
+import { TextArea } from '@/components/TextArea';
+import { TextField } from '@/components/TextField';
 import { printBlankAssessment } from '@/features/assessments/assessment-print';
+import { UserQuestionnaireBandsEditor } from '@/features/assessments/UserQuestionnaireBandsEditor';
+import { UserQuestionnaireQuestionCard } from '@/features/assessments/UserQuestionnaireQuestionCard';
 import {
-  createUserQuestionnaireOption,
-  createUserQuestionnaireQuestion,
-  duplicateUserQuestionnaireQuestion,
+  addQuestion,
+  addSection,
+  canAddQuestion,
+  canAddSection,
+  canMoveQuestion,
+  duplicateQuestion,
+  moveQuestion,
+  moveQuestionToSection,
+  moveSection,
+  removeQuestion,
+  removeSection,
+  updateQuestion,
+  updateSection,
+} from '@/features/assessments/user-questionnaire-edit';
+import { ToolPopulationField } from '@/features/tools/ToolPopulationField';
+import { pluralRu } from '@/i18n/labels';
+import {
+  formatScoreRange,
+  orderedQuestions,
+  type QuestionnaireIssue,
+  questionnaireIsScored,
+  questionnaireScoreRange,
+  userQuestionnaireIssues,
+} from '@/state/user-questionnaire-rules';
+import {
   readUserQuestionnaireImages,
   type StoredUserQuestionnaire,
   saveUserQuestionnaire,
   type UserQuestionnaire,
   type UserQuestionnaireImage,
-  type UserQuestionnaireOption,
-  type UserQuestionnaireQuestion,
   userQuestionnaireToAssessmentDefinition,
 } from '@/state/user-questionnaires';
-import { userQuestionnaireReadinessError } from '@/state/user-questionnaire-rules';
 
-function replaceQuestion(
-  questionnaire: UserQuestionnaire,
-  questionId: string,
-  update: (question: UserQuestionnaireQuestion) => UserQuestionnaireQuestion,
-): UserQuestionnaire {
-  return {
-    ...questionnaire,
-    questions: questionnaire.questions.map((question) =>
-      question.id === questionId ? update(question) : question,
-    ),
-  };
+import '@/features/assessments/user-questionnaire-editor.css';
+
+const MAX_IMAGES = 24;
+
+function questionCount(count: number): string {
+  return `${count} ${pluralRu(count, 'вопрос', 'вопроса', 'вопросов')}`;
 }
 
-function replaceOption(
-  question: UserQuestionnaireQuestion,
-  optionId: string,
-  update: (option: UserQuestionnaireOption) => UserQuestionnaireOption,
-): UserQuestionnaireQuestion {
-  return {
-    ...question,
-    options: question.options.map((option) => (option.id === optionId ? update(option) : option)),
-  };
+function sectionCount(count: number): string {
+  return `${count} ${pluralRu(count, 'раздел', 'раздела', 'разделов')}`;
+}
+
+function scrollToPart(part: QuestionnaireIssue['part']): void {
+  const target = document.getElementById(`user-questionnaire-${part ?? 'questions'}`);
+  target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 export function UserQuestionnaireEditorPage(props: {
@@ -50,11 +76,16 @@ export function UserQuestionnaireEditorPage(props: {
   readonly onRun: () => void;
   readonly onSaved: (stored: StoredUserQuestionnaire) => void;
   readonly onMessage: (message: string) => void;
+  readonly onExport: () => void;
+  readonly onDuplicate: () => void;
+  readonly onDelete: () => void;
 }): JSX.Element {
   const [draft, setDraft] = createSignal(props.stored.questionnaire);
   const [saveState, setSaveState] = createSignal<'saved' | 'saving' | 'error'>('saved');
   const [error, setError] = createSignal('');
+  /** The question whose pictures are being picked; null picks the background of the questionnaire. */
   const [imageTarget, setImageTarget] = createSignal<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = createSignal(false);
   let fileId = props.stored.file.id;
   let pending: UserQuestionnaire | undefined;
   let saving = false;
@@ -74,6 +105,11 @@ export function UserQuestionnaireEditorPage(props: {
     disposed = true;
   });
 
+  /**
+   * The draft on screen is the source of truth while the doctor types: a saved copy is trimmed and
+   * normalised, and writing it back would eat a space typed a moment ago. Only a title the library
+   * had to change is taken over.
+   */
   const persist = (next: UserQuestionnaire): void => {
     setDraft(next);
     pending = next;
@@ -88,9 +124,12 @@ export function UserQuestionnaireEditorPage(props: {
         try {
           const saved = await saveUserQuestionnaire(fileId, current);
           if (disposed) continue;
-          setDraft(saved.questionnaire);
+          const typedTitle = draft().title.trim();
+          if (typedTitle && saved.questionnaire.title !== typedTitle) {
+            setDraft((value) => ({ ...value, title: saved.questionnaire.title }));
+          }
           props.onSaved(saved);
-          setSaveState('saved');
+          if (!pending) setSaveState('saved');
         } catch (cause) {
           if (disposed) continue;
           setSaveState('error');
@@ -101,7 +140,35 @@ export function UserQuestionnaireEditorPage(props: {
     })();
   };
 
-  const readinessError = createMemo(() => userQuestionnaireReadinessError(draft()));
+  const issues = createMemo(() => userQuestionnaireIssues(draft()));
+  const errors = () => issues().filter((issue) => issue.severity === 'error');
+  const warnings = () => issues().filter((issue) => issue.severity === 'warning');
+  const issueMessagesFor = (questionId: string): readonly string[] =>
+    issues()
+      .filter((issue) => issue.questionId === questionId)
+      .map((issue) => issue.message);
+  const ordered = createMemo(() => orderedQuestions(draft()));
+  const questionsOf = (sectionId: string | undefined) =>
+    ordered().filter((question) => question.sectionId === sectionId);
+  const numberOf = (questionId: string): number =>
+    ordered().findIndex((question) => question.id === questionId) + 1;
+  const scored = () => questionnaireIsScored(draft());
+  const totalRange = () => questionnaireScoreRange(draft(), 'total');
+  const summary = (): string => {
+    const parts = [questionCount(draft().questions.length)];
+    if (draft().sections.length > 0) parts.push(sectionCount(draft().sections.length));
+    const range = totalRange();
+    if (range) parts.push(`баллы ${formatScoreRange(range.min, range.max)}`);
+    return parts.join(' · ');
+  };
+  const runTitle = (): string =>
+    errors()[0]?.message ??
+    (saveState() === 'saving'
+      ? 'Дождитесь сохранения черновика'
+      : saveState() === 'error'
+        ? error()
+        : 'Открыть опросник');
+
   const printBlank = (): void => {
     if (
       !printBlankAssessment(
@@ -114,6 +181,7 @@ export function UserQuestionnaireEditorPage(props: {
       props.onMessage('Не удалось открыть окно печати.');
     }
   };
+
   const totalImageCount = () =>
     draft().images.length +
     draft().questions.reduce((sum, question) => sum + question.images.length, 0);
@@ -122,9 +190,9 @@ export function UserQuestionnaireEditorPage(props: {
       target === null
         ? totalImageCount() - draft().images.length + Math.min(images.length, 1)
         : totalImageCount() + images.length;
-    if (imageCount > 24) {
+    if (imageCount > MAX_IMAGES) {
       setSaveState('error');
-      setError('В одном опроснике может быть не более 24 изображений.');
+      setError(`В одном опроснике может быть не более ${MAX_IMAGES} изображений.`);
       return;
     }
     if (target === null) {
@@ -132,7 +200,7 @@ export function UserQuestionnaireEditorPage(props: {
       return;
     }
     persist(
-      replaceQuestion(draft(), target, (question) => ({
+      updateQuestion(draft(), target, (question) => ({
         ...question,
         images: [...question.images, ...images],
       })),
@@ -148,37 +216,45 @@ export function UserQuestionnaireEditorPage(props: {
       return;
     }
     persist(
-      replaceQuestion(draft(), target, (question) => ({
+      updateQuestion(draft(), target, (question) => ({
         ...question,
         images: question.images.filter((image) => image.id !== imageId),
       })),
     );
   };
 
-  const ImageList = (imageProps: {
-    readonly target: string;
-    readonly images: readonly UserQuestionnaireImage[];
-  }): JSX.Element => (
-    <Show when={imageProps.images.length > 0}>
-      <div class="user-questionnaire-editor__image-list">
-        <For each={imageProps.images}>
-          {(image) => (
-            <article class="user-questionnaire-editor__image-card">
-              <img class="user-questionnaire-editor__image" src={image.dataUrl} alt={image.name} />
-              <Button
-                type="button"
-                variant="icon"
-                class="user-questionnaire-editor__image-remove"
-                aria-label={`Удалить изображение «${image.name}»`}
-                onClick={() => removeImage(imageProps.target, image.id)}
-                icon={<AppGlyph name="trash" class="user-questionnaire-editor__button-icon" />}
-              />
-            </article>
-          )}
-        </For>
-      </div>
-    </Show>
-  );
+  /**
+   * The card of the question in a list slot. Slots are keyed by position, so the id is read
+   * through an accessor: after a move the same card shows the question that took its place.
+   */
+  const renderQuestion = (questionId: () => string): JSX.Element => {
+    const question = () => draft().questions.find((item) => item.id === questionId());
+    return (
+      <Show when={question()}>
+        {(current) => (
+          <UserQuestionnaireQuestionCard
+            question={current()}
+            number={numberOf(questionId())}
+            sections={draft().sections}
+            scored={scored()}
+            issues={issueMessagesFor(questionId())}
+            canMoveUp={canMoveQuestion(draft(), questionId(), -1)}
+            canMoveDown={canMoveQuestion(draft(), questionId(), 1)}
+            canDuplicate={canAddQuestion(draft())}
+            onChange={(update) => persist(updateQuestion(draft(), questionId(), update))}
+            onMove={(direction) => persist(moveQuestion(draft(), questionId(), direction))}
+            onDuplicate={() => persist(duplicateQuestion(draft(), questionId()))}
+            onRemove={() => persist(removeQuestion(draft(), questionId()))}
+            onMoveToSection={(sectionId) =>
+              persist(moveQuestionToSection(draft(), questionId(), sectionId))
+            }
+            onAddImages={() => openImagePicker(questionId())}
+            onRemoveImage={(imageId) => removeImage(questionId(), imageId)}
+          />
+        )}
+      </Show>
+    );
+  };
 
   return (
     <div class="assessment-workspace user-questionnaire-editor">
@@ -192,7 +268,7 @@ export function UserQuestionnaireEditorPage(props: {
             aria-label="Назад"
             title="Назад"
             onClick={props.onBack}
-            icon={<AppGlyph name="arrow-left" class="user-questionnaire-editor__button-icon" />}
+            icon={<AppGlyph name="arrow-left" class="user-questionnaire-editor__icon" />}
           />
         }
         breadcrumbs={
@@ -200,7 +276,7 @@ export function UserQuestionnaireEditorPage(props: {
             items={[
               { label: 'Тесты', href: '#/assessments' },
               { label: 'Мои опросники', href: '#/assessments/mine' },
-              { label: draft().title },
+              { label: draft().title.trim() || 'Без названия' },
             ]}
             onNavigate={(href) => {
               window.location.hash = href;
@@ -213,33 +289,58 @@ export function UserQuestionnaireEditorPage(props: {
             Редактирование опросника
           </Heading>
         }
-        description={draft().description}
+        description={summary()}
         actions={
           <div class="assessment-subpage-header-actions user-questionnaire-editor__actions">
             <Button
               type="button"
               variant="icon"
               class="user-questionnaire-editor__action"
-              aria-label="Распечатать опросник"
-              title="Распечатать опросник"
+              data-testid="questionnaire-print"
+              aria-label="Распечатать бланк опросника"
+              title="Распечатать бланк"
               onClick={printBlank}
-              icon={<AppGlyph name="printer" class="user-questionnaire-editor__button-icon" />}
+              icon={<AppGlyph name="printer" class="user-questionnaire-editor__icon" />}
+            />
+            <Button
+              type="button"
+              variant="icon"
+              class="user-questionnaire-editor__action"
+              data-testid="questionnaire-export"
+              aria-label="Экспортировать опросник в файл"
+              title="Экспорт в файл"
+              onClick={props.onExport}
+              icon={<AppGlyph name="share" class="user-questionnaire-editor__icon" />}
+            />
+            <Button
+              type="button"
+              variant="icon"
+              class="user-questionnaire-editor__action"
+              data-testid="questionnaire-duplicate"
+              aria-label="Создать копию опросника"
+              title="Создать копию"
+              onClick={props.onDuplicate}
+              icon={<AppGlyph name="squares-four" class="user-questionnaire-editor__icon" />}
+            />
+            <Button
+              type="button"
+              variant="icon"
+              class="user-questionnaire-editor__action"
+              data-testid="questionnaire-delete"
+              aria-label="Удалить опросник"
+              title="Удалить опросник"
+              onClick={() => setConfirmDelete(true)}
+              icon={<AppGlyph name="trash" class="user-questionnaire-editor__icon" />}
             />
             <Button
               type="button"
               variant="primary"
               class="user-questionnaire-editor__run"
-              disabled={Boolean(readinessError()) || saveState() !== 'saved'}
-              title={
-                readinessError() ??
-                (saveState() === 'saving'
-                  ? 'Дождитесь сохранения черновика'
-                  : saveState() === 'error'
-                    ? error()
-                    : 'Открыть опросник')
-              }
+              data-testid="questionnaire-run"
+              disabled={errors().length > 0 || saveState() !== 'saved'}
+              title={runTitle()}
               onClick={props.onRun}
-              icon={<AppGlyph name="list-checks" class="user-questionnaire-editor__button-icon" />}
+              icon={<AppGlyph name="list-checks" class="user-questionnaire-editor__icon" />}
             >
               Пройти
             </Button>
@@ -247,59 +348,114 @@ export function UserQuestionnaireEditorPage(props: {
         }
       />
 
-      <section class="user-questionnaire-editor__details paper-card">
-        <label class="user-questionnaire-editor__field">
-          <span class="user-questionnaire-editor__label">Название файла и опросника</span>
-          <input
-            class="user-questionnaire-editor__input"
-            value={draft().title}
-            onInput={(event) => persist({ ...draft(), title: event.currentTarget.value })}
-          />
-          <small class="user-questionnaire-editor__hint">
-            Переименование файла в «Моих файлах» меняет это название.
-          </small>
-        </label>
-        <label class="user-questionnaire-editor__field">
-          <span class="user-questionnaire-editor__label">Вводный текст</span>
-          <textarea
-            class="user-questionnaire-editor__textarea"
-            value={draft().description}
-            placeholder="Для кого этот опросник и как его заполнять"
-            onInput={(event) => persist({ ...draft(), description: event.currentTarget.value })}
-          />
-        </label>
-        <label class="user-questionnaire-editor__field">
-          <span class="user-questionnaire-editor__label">Ограничение</span>
-          <textarea
-            class="user-questionnaire-editor__textarea"
-            value={draft().disclaimer}
-            onInput={(event) => persist({ ...draft(), disclaimer: event.currentTarget.value })}
-          />
-        </label>
+      <p
+        class="user-questionnaire-editor__save-state"
+        classList={{ 'user-questionnaire-editor__save-state--error': saveState() === 'error' }}
+        role="status"
+        data-testid="questionnaire-save-state"
+      >
+        {saveState() === 'saving'
+          ? 'Сохраняем…'
+          : saveState() === 'error'
+            ? error()
+            : 'Все изменения сохранены'}
+      </p>
+
+      <Show when={issues().length > 0}>
+        <section
+          class="questionnaire-issues paper-card"
+          aria-label="Что нужно исправить"
+          data-testid="questionnaire-issues"
+        >
+          <h2 class="questionnaire-issues__title">
+            {errors().length > 0
+              ? `Чтобы пройти опросник, исправьте: ${errors().length}`
+              : 'Опросник готов. Советы:'}
+          </h2>
+          <ul class="questionnaire-issues__list">
+            <For each={[...errors(), ...warnings()].slice(0, 8)}>
+              {(issue) => (
+                <li class="questionnaire-issues__item">
+                  <button
+                    type="button"
+                    class="questionnaire-issues__link"
+                    classList={{
+                      'questionnaire-issues__link--warning': issue.severity === 'warning',
+                    }}
+                    onClick={() => scrollToPart(issue.part)}
+                  >
+                    {issue.message}
+                  </button>
+                </li>
+              )}
+            </For>
+          </ul>
+          <Show when={issues().length > 8}>
+            <p class="questionnaire-issues__more">И ещё {issues().length - 8}.</p>
+          </Show>
+        </section>
+      </Show>
+
+      <section
+        class="user-questionnaire-editor__details paper-card"
+        id="user-questionnaire-details"
+      >
+        <h2 class="user-questionnaire-editor__section-title">Основное</h2>
+        <TextField
+          label="Название"
+          hint="Так опросник называется в списке и в «Моих файлах»."
+          data-testid="questionnaire-title"
+          value={draft().title}
+          onInput={(event) => persist({ ...draft(), title: event.currentTarget.value })}
+        />
+        <TextArea
+          label="Вводный текст"
+          rows={3}
+          placeholder="Для кого этот опросник и как его заполнять"
+          data-testid="questionnaire-description"
+          value={draft().description}
+          onInput={(event) => persist({ ...draft(), description: event.currentTarget.value })}
+        />
+        <TextArea
+          label="Ограничение"
+          rows={2}
+          hint="Показывается рядом с результатом."
+          data-testid="questionnaire-disclaimer"
+          value={draft().disclaimer}
+          onInput={(event) => persist({ ...draft(), disclaimer: event.currentTarget.value })}
+        />
       </section>
 
-      <section class="user-questionnaire-editor__hero" aria-label="Фон опросника">
+      <section
+        class="user-questionnaire-editor__details paper-card"
+        id="user-questionnaire-population"
+      >
+        <ToolPopulationField
+          value={draft().population}
+          error={issues().find((issue) => issue.part === 'population')?.message}
+          onChange={(population) => persist({ ...draft(), population })}
+        />
+      </section>
+
+      <section class="user-questionnaire-editor__hero paper-card" aria-label="Фон опросника">
         <header class="user-questionnaire-editor__hero-header">
           <div class="user-questionnaire-editor__hero-copy">
-            <h2 class="user-questionnaire-editor__hero-title">Фон опросника</h2>
-            <p class="user-questionnaire-editor__hero-text">
+            <h2 class="user-questionnaire-editor__section-title">Фон опросника</h2>
+            <p class="user-questionnaire-editor__hint">
               Одно изображение в начале опросника: PNG, JPEG, GIF или WebP до 5 МБ.
             </p>
           </div>
           <Button
             type="button"
-            variant="primary"
+            variant="secondary"
             class="user-questionnaire-editor__hero-action"
             onClick={() => openImagePicker(null)}
-            icon={<AppGlyph name="image" class="user-questionnaire-editor__button-icon" />}
+            icon={<AppGlyph name="image" class="user-questionnaire-editor__icon" />}
           >
             {draft().images.length > 0 ? 'Изменить фон' : 'Добавить фон'}
           </Button>
         </header>
-        <Show
-          when={draft().images[0]}
-          fallback={<p class="user-questionnaire-editor__hero-empty">Фон пока не добавлен.</p>}
-        >
+        <Show when={draft().images[0]}>
           {(image) => (
             <figure class="user-questionnaire-editor__hero-preview">
               <img
@@ -317,7 +473,7 @@ export function UserQuestionnaireEditorPage(props: {
                 aria-label={`Удалить фон «${image().name}»`}
                 title="Удалить фон"
                 onClick={() => removeImage(null, image().id)}
-                icon={<AppGlyph name="trash" class="user-questionnaire-editor__button-icon" />}
+                icon={<AppGlyph name="trash" class="user-questionnaire-editor__icon" />}
               />
             </figure>
           )}
@@ -344,223 +500,158 @@ export function UserQuestionnaireEditorPage(props: {
         }}
       />
 
-      <section class="user-questionnaire-editor__questions" aria-label="Вопросы">
-        <For each={draft().questions}>
-          {(question, index) => (
-            <article class="user-questionnaire-editor__question paper-card">
-              <header class="user-questionnaire-editor__question-header">
-                <h2 class="user-questionnaire-editor__question-title">Вопрос {index() + 1}</h2>
-                <div class="user-questionnaire-editor__question-actions">
-                  <Button
-                    type="button"
-                    variant="primary"
-                    class="user-questionnaire-editor__duplicate-question"
-                    disabled={draft().questions.length >= 50}
-                    title="Копировать вопрос"
-                    onClick={() =>
-                      persist({
-                        ...draft(),
-                        questions: draft().questions.flatMap((item) =>
-                          item.id === question.id
-                            ? [item, duplicateUserQuestionnaireQuestion(item)]
-                            : [item],
-                        ),
-                      })
-                    }
-                    icon={
-                      <AppGlyph
-                        name="squares-four"
-                        class="user-questionnaire-editor__button-icon"
-                      />
-                    }
-                  >
-                    Копировать
-                  </Button>
+      <section
+        class="user-questionnaire-editor__questions"
+        id="user-questionnaire-questions"
+        aria-label="Вопросы"
+      >
+        <header class="user-questionnaire-editor__questions-header">
+          <h2 class="user-questionnaire-editor__section-title">Вопросы</h2>
+          <Button
+            type="button"
+            variant="secondary"
+            class="user-questionnaire-editor__add-section"
+            data-testid="questionnaire-add-section"
+            disabled={!canAddSection(draft())}
+            onClick={() => persist(addSection(draft()))}
+            icon={<AppGlyph name="plus" class="user-questionnaire-editor__icon" />}
+          >
+            Добавить раздел
+          </Button>
+        </header>
+        <p class="user-questionnaire-editor__hint">
+          Разделы группируют вопросы под заголовком и, если нужно, считают баллы отдельно.
+        </p>
+
+        <Show when={questionsOf(undefined).length > 0}>
+          <div class="user-questionnaire-editor__group">
+            <Show when={draft().sections.length > 0}>
+              <h3 class="user-questionnaire-editor__group-title">Вопросы без раздела</h3>
+            </Show>
+            <Index each={questionsOf(undefined)}>
+              {(question) => renderQuestion(() => question().id)}
+            </Index>
+          </div>
+        </Show>
+
+        <Index each={draft().sections}>
+          {(section, sectionIndex) => (
+            <section
+              class="questionnaire-section paper-card"
+              data-testid="questionnaire-section"
+              aria-label={`Раздел ${sectionIndex + 1}`}
+            >
+              <header class="questionnaire-section__header">
+                <h3 class="questionnaire-section__title">Раздел {sectionIndex + 1}</h3>
+                <div class="questionnaire-section__actions">
                   <Button
                     type="button"
                     variant="icon"
-                    class="user-questionnaire-editor__remove-question"
-                    aria-label={`Удалить вопрос ${index() + 1}`}
-                    title="Удалить вопрос"
-                    onClick={() =>
-                      persist({
-                        ...draft(),
-                        questions: draft().questions.filter((item) => item.id !== question.id),
-                      })
-                    }
-                    icon={<AppGlyph name="trash" class="user-questionnaire-editor__button-icon" />}
+                    class="questionnaire-section__action"
+                    aria-label={`Поднять раздел ${sectionIndex + 1} выше`}
+                    title="Выше"
+                    disabled={sectionIndex === 0}
+                    onClick={() => persist(moveSection(draft(), section().id, -1))}
+                    icon={<AppGlyph name="caret-up" class="user-questionnaire-editor__icon" />}
+                  />
+                  <Button
+                    type="button"
+                    variant="icon"
+                    class="questionnaire-section__action"
+                    aria-label={`Опустить раздел ${sectionIndex + 1} ниже`}
+                    title="Ниже"
+                    disabled={sectionIndex === draft().sections.length - 1}
+                    onClick={() => persist(moveSection(draft(), section().id, 1))}
+                    icon={<AppGlyph name="caret-down" class="user-questionnaire-editor__icon" />}
+                  />
+                  <Button
+                    type="button"
+                    variant="icon"
+                    class="questionnaire-section__action"
+                    aria-label={`Удалить раздел ${sectionIndex + 1}`}
+                    title="Удалить раздел (вопросы останутся)"
+                    onClick={() => persist(removeSection(draft(), section().id))}
+                    icon={<AppGlyph name="trash" class="user-questionnaire-editor__icon" />}
                   />
                 </div>
               </header>
-              <label class="user-questionnaire-editor__field">
-                <span class="user-questionnaire-editor__label">Формулировка</span>
-                <textarea
-                  class="user-questionnaire-editor__textarea"
-                  value={question.prompt}
-                  onInput={(event) =>
-                    persist(
-                      replaceQuestion(draft(), question.id, (current) => ({
-                        ...current,
-                        prompt: event.currentTarget.value,
-                      })),
-                    )
-                  }
-                />
-              </label>
-              <label class="user-questionnaire-editor__field">
-                <span class="user-questionnaire-editor__label">Текст перед ответами</span>
-                <textarea
-                  class="user-questionnaire-editor__textarea"
-                  value={question.text}
-                  placeholder="Необязательное пояснение"
-                  onInput={(event) =>
-                    persist(
-                      replaceQuestion(draft(), question.id, (current) => ({
-                        ...current,
-                        text: event.currentTarget.value,
-                      })),
-                    )
-                  }
-                />
-              </label>
-              <section class="user-questionnaire-editor__question-media">
-                <header class="user-questionnaire-editor__section-header">
-                  <h3 class="user-questionnaire-editor__media-title">Изображения к вопросу</h3>
-                  <Button
-                    type="button"
-                    variant="primary"
-                    class="user-questionnaire-editor__add-image"
-                    onClick={() => openImagePicker(question.id)}
-                    icon={<AppGlyph name="image" class="user-questionnaire-editor__button-icon" />}
-                  >
-                    Добавить
-                  </Button>
-                </header>
-                <ImageList target={question.id} images={question.images} />
-              </section>
-              <section class="user-questionnaire-editor__options" aria-label="Варианты ответа">
-                <h3 class="user-questionnaire-editor__options-title">Варианты ответов</h3>
-                <p class="user-questionnaire-editor__options-hint">
-                  Веса необязательны. Оставьте их пустыми, если не нужен подсчёт баллов.
-                </p>
-                <For each={question.options}>
-                  {(option) => (
-                    <div class="user-questionnaire-editor__option">
-                      <label class="user-questionnaire-editor__option-field">
-                        <span class="user-questionnaire-editor__option-label">Ответ</span>
-                        <input
-                          class="user-questionnaire-editor__input"
-                          value={option.label}
-                          onInput={(event) =>
-                            persist(
-                              replaceQuestion(draft(), question.id, (current) =>
-                                replaceOption(current, option.id, (currentOption) => ({
-                                  ...currentOption,
-                                  label: event.currentTarget.value,
-                                })),
-                              ),
-                            )
-                          }
-                        />
-                      </label>
-                      <label class="user-questionnaire-editor__weight-field">
-                        <span class="user-questionnaire-editor__option-label">Вес</span>
-                        <input
-                          class="user-questionnaire-editor__input"
-                          type="number"
-                          min="-1000"
-                          max="1000"
-                          step="1"
-                          value={option.weight ?? ''}
-                          onInput={(event) => {
-                            const value = event.currentTarget.value.trim();
-                            const weight = value ? Number(value) : undefined;
-                            if (weight !== undefined && !Number.isFinite(weight)) return;
-                            persist(
-                              replaceQuestion(draft(), question.id, (current) =>
-                                replaceOption(current, option.id, (currentOption) => {
-                                  const { weight: _weight, ...withoutWeight } = currentOption;
-                                  return weight === undefined
-                                    ? withoutWeight
-                                    : { ...withoutWeight, weight };
-                                }),
-                              ),
-                            );
-                          }}
-                        />
-                      </label>
-                      <Show when={question.options.length > 2}>
-                        <Button
-                          type="button"
-                          variant="icon"
-                          class="user-questionnaire-editor__remove-option"
-                          aria-label={`Удалить вариант «${option.label}»`}
-                          onClick={() =>
-                            persist(
-                              replaceQuestion(draft(), question.id, (current) => ({
-                                ...current,
-                                options: current.options.filter((item) => item.id !== option.id),
-                              })),
-                            )
-                          }
-                          icon={
-                            <AppGlyph name="minus" class="user-questionnaire-editor__button-icon" />
-                          }
-                        />
-                      </Show>
-                    </div>
-                  )}
-                </For>
-                <Button
-                  type="button"
-                  variant="primary"
-                  class="user-questionnaire-editor__add-option"
-                  disabled={question.options.length >= 12}
-                  onClick={() =>
-                    persist(
-                      replaceQuestion(draft(), question.id, (current) => ({
-                        ...current,
-                        options: [...current.options, createUserQuestionnaireOption()],
-                      })),
-                    )
-                  }
-                  icon={<AppGlyph name="plus" class="user-questionnaire-editor__button-icon" />}
-                >
-                  Вариант ответа
-                </Button>
-              </section>
-            </article>
+              <TextField
+                label="Название раздела"
+                placeholder="Например, «Тревога»"
+                data-testid="questionnaire-section-title"
+                value={section().title}
+                onInput={(event) => {
+                  const title = event.currentTarget.value;
+                  persist(
+                    updateSection(draft(), section().id, (current) => ({ ...current, title })),
+                  );
+                }}
+              />
+              <TextArea
+                label="Описание раздела"
+                rows={2}
+                placeholder="Необязательно: как отвечать на вопросы этого раздела"
+                value={section().description}
+                onInput={(event) => {
+                  const description = event.currentTarget.value;
+                  persist(
+                    updateSection(draft(), section().id, (current) => ({
+                      ...current,
+                      description,
+                    })),
+                  );
+                }}
+              />
+              <Index each={questionsOf(section().id)}>
+                {(question) => renderQuestion(() => question().id)}
+              </Index>
+              <Button
+                type="button"
+                variant="secondary"
+                class="questionnaire-section__add-question"
+                disabled={!canAddQuestion(draft())}
+                onClick={() => persist(addQuestion(draft(), section().id))}
+                icon={<AppGlyph name="plus" class="user-questionnaire-editor__icon" />}
+              >
+                Добавить вопрос в раздел
+              </Button>
+            </section>
           )}
-        </For>
+        </Index>
+
+        <Button
+          type="button"
+          variant="primary"
+          class="user-questionnaire-editor__add-question"
+          data-testid="questionnaire-add-question"
+          disabled={!canAddQuestion(draft())}
+          onClick={() => persist(addQuestion(draft()))}
+          icon={<AppGlyph name="plus" class="user-questionnaire-editor__icon" />}
+        >
+          Добавить вопрос
+        </Button>
       </section>
 
-      <Button
-        type="button"
-        variant="primary"
-        class="user-questionnaire-editor__add-question"
-        disabled={draft().questions.length >= 50}
-        onClick={() =>
-          persist({
-            ...draft(),
-            questions: [...draft().questions, createUserQuestionnaireQuestion()],
-          })
-        }
-        icon={<AppGlyph name="plus" class="user-questionnaire-editor__button-icon" />}
-      >
-        Добавить вопрос
-      </Button>
+      <div id="user-questionnaire-bands">
+        <UserQuestionnaireBandsEditor
+          questionnaire={draft()}
+          issues={issues()}
+          onChange={persist}
+        />
+      </div>
 
-      <p
-        class="user-questionnaire-editor__save-state"
-        classList={{ 'user-questionnaire-editor__save-state--error': saveState() === 'error' }}
-        role="status"
-      >
-        {saveState() === 'saving'
-          ? 'Сохраняем черновик…'
-          : saveState() === 'error'
-            ? error()
-            : (readinessError() ?? 'Черновик сохранён')}
-      </p>
+      <ConfirmationDialog
+        open={confirmDelete()}
+        title="Удалить опросник?"
+        description={`«${draft().title.trim() || 'Без названия'}» будет удалён вместе с файлом. Сохранённые результаты не изменятся.`}
+        confirmLabel="Удалить"
+        danger
+        onConfirm={() => {
+          setConfirmDelete(false);
+          props.onDelete();
+        }}
+        onOpenChange={setConfirmDelete}
+      />
     </div>
   );
 }

@@ -84,3 +84,13 @@
   color: var(--theme-danger, #a03a2a);
   font-size: 0.875rem;
 }
+
+.patient-age-notice {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border-left: 0.2rem solid var(--theme-danger);
+  border-radius: var(--theme-radius-control);
+  color: var(--theme-text);
+  background: var(--theme-surface-muted);
+  font-size: 0.875rem;
+}

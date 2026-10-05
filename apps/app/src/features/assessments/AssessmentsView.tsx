@@ -85,8 +85,11 @@ import {
 import { acknowledgePatientVaultUiCleared, PATIENT_VAULT_LOCK_EVENT } from '@/state/patient-vault';
 import { returnFromTool } from '@/state/tool-navigation';
 import { USER_LIBRARY_EVENT } from '@/state/user-library';
+import { userQuestionnaireReadinessError } from '@/state/user-questionnaire-rules';
 import {
   createUserQuestionnaire,
+  deleteUserQuestionnaire,
+  duplicateUserQuestionnaire,
   ensureUserQuestionnaireSample,
   exportUserQuestionnaire,
   importUserQuestionnaire,
@@ -95,7 +98,6 @@ import {
   type StoredUserQuestionnaire,
   userQuestionnaireToAssessmentDefinition,
 } from '@/state/user-questionnaires';
-import { userQuestionnaireReadinessError } from '@/state/user-questionnaire-rules';
 
 function filterAssessments(
   query: string,
@@ -150,7 +152,7 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
     onCleanup(() => window.clearTimeout(timer));
   });
   const [pendingDeletion, setPendingDeletion] = createSignal<{
-    readonly kind: 'assessment' | 'section' | 'result';
+    readonly kind: 'assessment' | 'section' | 'result' | 'questionnaire';
     readonly id: string;
     readonly title: string;
   } | null>(null);
@@ -549,6 +551,7 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
     if (!pending) return;
     if (pending.kind === 'assessment') removeDefinition(pending.id);
     if (pending.kind === 'section') removeSection(pending.id as AssessmentSectionId);
+    if (pending.kind === 'questionnaire') deleteUserQuestionnaireFile(pending.id);
     if (pending.kind === 'result') {
       removeAssessmentRecord(pending.id);
       if (transientRecord()?.id === pending.id) setTransientRecord(undefined);
@@ -590,6 +593,33 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
       .catch((cause: unknown) => {
         setMessage(cause instanceof Error ? cause.message : 'Не удалось экспортировать опросник.');
       });
+  };
+  const duplicateUserQuestionnaireFile = (fileId: string): void => {
+    void duplicateUserQuestionnaire(fileId)
+      .then((stored) => {
+        setUserQuestionnaires((items) => [stored, ...items]);
+        setMessage('Копия создана. Её можно менять, не затрагивая исходный опросник.');
+        navigate(userQuestionnaireEditPath(stored.file.id));
+      })
+      .catch((cause: unknown) => {
+        setMessage(cause instanceof Error ? cause.message : 'Не удалось создать копию опросника.');
+      });
+  };
+  const deleteUserQuestionnaireFile = (fileId: string): void => {
+    void deleteUserQuestionnaire(fileId)
+      .then(() => {
+        setUserQuestionnaires((items) => items.filter((item) => item.file.id !== fileId));
+        setMessage('Опросник удалён. Сохранённые результаты не изменены.');
+        navigate(userQuestionnaireHomePath());
+      })
+      .catch((cause: unknown) => {
+        setMessage(cause instanceof Error ? cause.message : 'Не удалось удалить опросник.');
+      });
+  };
+  const requestDeleteUserQuestionnaire = (fileId: string): void => {
+    const title =
+      userQuestionnaires().find((item) => item.file.id === fileId)?.file.title ?? 'Опросник';
+    setPendingDeletion({ kind: 'questionnaire', id: fileId, title });
   };
   const importUserQuestionnaireFile = (file: File): void => {
     void importUserQuestionnaire(file)
@@ -642,6 +672,8 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
           onOpenUserQuestionnaire={(fileId) => navigate(userQuestionnairePath(fileId))}
           onEditUserQuestionnaire={(fileId) => navigate(userQuestionnaireEditPath(fileId))}
           onExportUserQuestionnaire={exportUserQuestionnaireFile}
+          onDuplicateUserQuestionnaire={duplicateUserQuestionnaireFile}
+          onDeleteUserQuestionnaire={requestDeleteUserQuestionnaire}
           onImportUserQuestionnaire={importUserQuestionnaireFile}
           onOpenRecord={(selected, selectedRecord) =>
             navigate(
@@ -787,6 +819,9 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
             }}
             onRun={() => navigate(userQuestionnairePath(stored().file.id))}
             onMessage={setMessage}
+            onExport={() => exportUserQuestionnaireFile(stored().file.id)}
+            onDuplicate={() => duplicateUserQuestionnaireFile(stored().file.id)}
+            onDelete={() => deleteUserQuestionnaireFile(stored().file.id)}
             onSaved={(saved) => {
               setLoadedUserQuestionnaire(saved);
               setUserQuestionnaires((items) => [
@@ -1015,7 +1050,11 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
       <ConfirmationDialog
         open={pendingDeletion() !== null}
         title="Удалить?"
-        description={`«${pendingDeletion()?.title ?? ''}» будет удалён. Сохранённые результаты не изменятся.`}
+        description={
+          pendingDeletion()?.kind === 'questionnaire'
+            ? `«${pendingDeletion()?.title ?? ''}» будет удалён вместе с файлом. Сохранённые результаты не изменятся.`
+            : `«${pendingDeletion()?.title ?? ''}» будет удалён. Сохранённые результаты не изменятся.`
+        }
         confirmLabel="Удалить"
         danger
         onConfirm={confirmDeletion}
