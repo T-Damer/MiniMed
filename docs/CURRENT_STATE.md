@@ -698,6 +698,47 @@ date, sha256, version/date as printed, OCR flag and match evidence.
   dots (no longer clipped), autoplay paused while the onboarding is on screen.
 - Not verified on the Android emulator, a physical phone or HyperOS WebView.
 
+### Tools, tour, recording activity and button depth (UX6) — 2026-10-05
+
+- **«Все инструменты»** lists only real app features (`APP_TOOL_IDS`, `quick-tools.ts`): «Запись беседы»,
+  «ЭКГ по фото» (id `ecg-photo-caliper`), «Формы» (`#/notes/forms`), «Заметки», «Просмотр снимков»,
+  «Калькуляторы» (+ the experimental dictionary). Calculators and questionnaires are starred from
+  their own pages (star on every calculator and questionnaire card, same `item-collections`
+  favourites as before, shown in the quick row). Patients/questionnaires entries are no longer
+  listed but still resolve for stars from older versions. `QuickTool.dropFiles` makes a tool row a drop
+  target (data, not an id check).
+- **«Просмотр снимков»**: an empty state (`ImagingViewerEntry`) with «Открыть из моих файлов» (DICOM and
+  NIfTI already in the library), «Открыть новый файл» (`userLibraryFileAccept()`, imports into
+  «Исследования») and a drop target; a file dropped on the tool row imports and opens directly.
+- **Home «Полезные функции»** no longer repeats header actions (graph card removed; ECG, imaging,
+  recording stay). The imaging card and the tour's imaging slide offer «Открыть пример МРТ» when the
+  example is already in the library, otherwise a link to «Исследования»; nothing downloads from them.
+- **«Что умеет MiniMed»**: every slide has a navigation action (search, patients, record, notes,
+  research folder / MRI example, calculators + questionnaires); navigating closes the dialog; the dialog
+  clips (`overflow-x: clip`, `contain: inline-size`) instead of letting the track widen it.
+- **Search page**: «Все инструменты» is a primary button (icon takes the label colour), pinned tools are
+  raised secondary buttons, «?» is a `ui-button`; while a section is open with an empty field the history
+  button becomes a «Назад к разделам» arrow (Escape and Android back do the same via `[data-search-back]`).
+  Scroll rows (quick access, examples, carousel) carry padding with a compensating negative margin so
+  hover shadows are not clipped.
+- **Recording activity**: the bar «Идёт запись беседы» (time, level meter) opens a window built on the
+  `.floating-window` frame with a full-screen toggle, live text, a note when no speech model is loaded, and
+  «Стоп»; it lives in `ConversationRecorderHost`, so it survives tab switches. Live text
+  (`live-transcription.ts`) recognises the newest 6–28 s of the in-memory recording with the loaded browser
+  Whisper model every 7 s, skips silence, stays in memory, is cleared on stop and never logged. Not saved
+  into the patient record (only the audio is). No model: timer and meter only.
+- **Button depth** (`--theme-primary-*` tokens in `theme.css`/`theme-dark.css`, `Button.css`,
+  `primary-depth.css`): hover = lighter face, bright top edge, larger shadow; press = inset shadow and the
+  label sinks. **No control transforms on hover or press** (a moving box slides from under the pointer at its
+  edge, ends the hover and loops, replaying the hover sound): the global `button:hover` lift, card lifts and tilt
+  were replaced by shadow-only states; `UiSoundController.hover` also ignores a re-entry of the same control within
+  400 ms. Reduced motion: no transitions, states still visible.
+- Viewer keyboard hints are keycaps outside the icon (`data-shortcut`, hidden on touch).
+- Range sliders share one style (`RangeSlider`, separate commit) and the search loading skeleton matches the result
+  groups (separate commit).
+- Not verified: live text with a real Russian speech model on a device; Android hardware back for the section
+  arrow; physical touch devices; Firefox/Safari.
+
 ## Release 0.6.45 — 2026-09-30
 
 - **Published application and corpus.** The signed Android APK, core `13f238f…`, and RLS MKB

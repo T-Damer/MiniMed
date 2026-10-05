@@ -1,6 +1,11 @@
 import { createSignal } from 'solid-js';
 
 import { formatRecordingDuration } from '@/features/asr/visit-recording';
+import {
+  type LiveStatus,
+  type LiveTranscriber,
+  startLiveTranscriber,
+} from '@/features/conversations/live-transcription';
 import { recordingStartErrorMessage } from '@/features/conversations/recording-errors';
 import {
   type ConversationRecorder,
@@ -20,6 +25,12 @@ const [level, setLevel] = createSignal(0);
 const [starting, setStarting] = createSignal(false);
 const [error, setError] = createSignal('');
 const [finished, setFinished] = createSignal<ConversationRecording | null>(null);
+/** The live text window: expanded from the bar, optionally over the whole screen. */
+const [windowOpen, setWindowOpen] = createSignal(false);
+const [windowFullscreen, setWindowFullscreen] = createSignal(false);
+/** Live recognised text; memory only, cleared when the recording stops, never logged. */
+const [liveLines, setLiveLines] = createSignal<readonly string[]>([]);
+const [liveStatus, setLiveStatus] = createSignal<LiveStatus>('unavailable');
 
 export const conversationSession = {
   recorder,
@@ -28,12 +39,50 @@ export const conversationSession = {
   starting,
   error,
   finished,
+  windowOpen,
+  windowFullscreen,
+  liveLines,
+  liveStatus,
+  openWindow: () => setWindowOpen(true),
+  closeWindow: () => {
+    setWindowOpen(false);
+    setWindowFullscreen(false);
+  },
+  toggleFullscreen: () => setWindowFullscreen((value) => !value),
   dismissFinished: () => setFinished(null),
   openFinished: (recording: ConversationRecording) => setFinished(recording),
   clearError: () => setError(''),
 };
 
 let ticker: number | undefined;
+let live: LiveTranscriber | undefined;
+
+/** Live text needs the speech model; it loads on demand so the app's first screen stays light. */
+async function beginLiveText(snapshot: () => Blob): Promise<void> {
+  setLiveLines([]);
+  setLiveStatus('unavailable');
+  try {
+    const asr = await import('@/features/asr/asr-models');
+    if (!recorder()) return;
+    live = startLiveTranscriber({
+      available: asr.liveRecognitionReady,
+      snapshot,
+      decode: asr.decodeToPcm16k,
+      recognise: asr.recogniseLivePcm,
+      onLines: setLiveLines,
+      onStatus: setLiveStatus,
+    });
+  } catch {
+    setLiveStatus('unavailable');
+  }
+}
+
+function endLiveText(): void {
+  live?.stop();
+  live = undefined;
+  setLiveLines([]);
+  setLiveStatus('unavailable');
+}
 
 export async function startConversation(): Promise<void> {
   if (recorder() || starting()) return;
@@ -47,6 +96,7 @@ export async function startConversation(): Promise<void> {
       setElapsedMs(Date.now() - next.startedAt);
       setLevel(next.level());
     }, 200);
+    void beginLiveText(() => next.snapshot());
   } catch (cause) {
     setError(recordingStartErrorMessage(cause));
   } finally {
@@ -59,6 +109,9 @@ export async function stopConversation(): Promise<void> {
   if (!current) return;
   if (ticker !== undefined) window.clearInterval(ticker);
   ticker = undefined;
+  endLiveText();
+  setWindowOpen(false);
+  setWindowFullscreen(false);
   setRecorder(null);
   setLevel(0);
   try {

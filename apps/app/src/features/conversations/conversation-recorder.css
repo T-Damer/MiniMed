@@ -15,6 +15,28 @@
   animation: conversation-bar-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
+/* The tappable part of the bar: everything but «Стоп». */
+.conversation-bar__expand {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.conversation-bar__expand:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 0.2rem;
+  border-radius: 999px;
+}
+
 .conversation-bar__dot {
   width: 0.65rem;
   height: 0.65rem;
@@ -67,6 +89,103 @@
   height: 1rem;
 }
 
+/* The expanded activity: the floating-window frame, positioned bottom-right above the tab bar. */
+.conversation-live.floating-window {
+  top: auto;
+  right: max(0.75rem, var(--safe-right, 0px));
+  bottom: calc(var(--safe-bottom, 0px) + 5rem);
+  left: auto;
+  width: min(22rem, calc(100vw - 1.5rem));
+  height: min(28rem, calc(100dvh - 7rem));
+  min-height: 0;
+}
+
+.conversation-live.floating-window.floating-window--fullscreen {
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+}
+
+.conversation-live__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.75rem;
+  overflow: hidden;
+  background: var(--theme-surface);
+}
+
+.conversation-live__status {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.conversation-live__dot {
+  width: 0.65rem;
+  height: 0.65rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #e5484d;
+  animation: conversation-dot 1.2s ease-in-out infinite;
+}
+
+.conversation-live__time {
+  font-variant-numeric: tabular-nums;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.conversation-live__meter {
+  display: flex;
+  height: 1.2rem;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 0.12rem;
+  color: var(--theme-accent);
+}
+
+.conversation-live__meter-bar {
+  flex: 1 1 0;
+  height: 100%;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.8;
+  transform: scaleY(var(--conversation-level, 0.15));
+  transition: transform 180ms ease-out;
+}
+
+.conversation-live__lines {
+  display: grid;
+  min-height: 3rem;
+  flex: 1 1 auto;
+  align-content: start;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.5rem 0.6rem;
+  overflow-y: auto;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  background: var(--theme-surface-raised);
+  list-style: none;
+}
+
+.conversation-live__line {
+  line-height: 1.45;
+}
+
+.conversation-live__note,
+.conversation-live__hint {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.conversation-live__stop {
+  align-self: stretch;
+}
+
 .conversation-dialog__body {
   display: grid;
   align-content: start;
@@ -116,11 +235,13 @@
 
 @media (prefers-reduced-motion: reduce) {
   .conversation-bar,
-  .conversation-bar__dot {
+  .conversation-bar__dot,
+  .conversation-live__dot {
     animation: none;
   }
 
-  .conversation-bar__meter-bar {
+  .conversation-bar__meter-bar,
+  .conversation-live__meter-bar {
     transition: none;
   }
 }

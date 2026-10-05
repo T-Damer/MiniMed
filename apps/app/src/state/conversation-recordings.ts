@@ -173,6 +173,8 @@ export interface ConversationRecorder {
   readonly startedAt: number;
   /** 0–1 microphone level for a live meter. */
   level(): number;
+  /** Everything recorded so far as one playable file, for live recognition. Held in memory only. */
+  snapshot(): Blob;
   stop(): Promise<ConversationRecording>;
 }
 
@@ -243,7 +245,11 @@ export async function startConversationRecording(
       )
       .catch(() => onFailure('Не удалось сохранить часть записи на устройство.'));
   };
-  recorder.ondataavailable = (event) => persist(event.data, false);
+  const liveChunks: Blob[] = [];
+  recorder.ondataavailable = (event) => {
+    if (event.data.size > 0) liveChunks.push(event.data);
+    persist(event.data, false);
+  };
   recorder.onerror = () => onFailure('Запись с микрофона прервалась. Сохранённая часть осталась.');
   recorder.start(SLICE_MS);
 
@@ -260,6 +266,9 @@ export async function startConversationRecording(
       let peak = 0;
       for (const sample of samples) peak = Math.max(peak, Math.abs(sample - 128));
       return Math.min(1, peak / 64);
+    },
+    snapshot() {
+      return new Blob(liveChunks, { type: mimeType || 'audio/webm' });
     },
     stop() {
       return new Promise((resolve, reject) => {

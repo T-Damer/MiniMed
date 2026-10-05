@@ -494,7 +494,7 @@ async function readAudioDurationSeconds(audio: Blob): Promise<number | null> {
   }
 }
 
-async function decodeToPcm16k(audio: Blob): Promise<Float32Array> {
+export async function decodeToPcm16k(audio: Blob): Promise<Float32Array> {
   const bytes = await audio.arrayBuffer();
   const decodeContext = new OfflineAudioContext(1, 1, TARGET_SAMPLE_RATE);
   const decoded = await decodeContext.decodeAudioData(bytes);
@@ -554,6 +554,29 @@ function makeEngine(instance: Worker, modelId: string) {
       ...(speakerTurns.diarized ? { diarized: true } : {}),
     };
   };
+}
+
+/** True while a speech model is loaded in the worker, so audio can be recognised right now. */
+export function liveRecognitionReady(): boolean {
+  return worker !== null && readyModels.size > 0;
+}
+
+/**
+ * Recognises one short stretch of speech (mono 16 kHz PCM) with the loaded model, skipping the
+ * speaker split: for live text during a recording. The text is returned, never logged.
+ */
+export async function recogniseLivePcm(pcm: Float32Array): Promise<string> {
+  const instance = worker;
+  const modelId = [...readyModels][0];
+  if (!instance || !modelId) throw new Error('Речевая модель не загружена.');
+  requestCounter += 1;
+  const requestId = `asr-live-${requestCounter}`;
+  const promise = new Promise<TranscriptionOutput>((resolve, reject) => {
+    pendingResults.set(requestId, { resolve, reject });
+  });
+  const message: AsrTranscribeMessage = { type: 'transcribe', requestId, audio: pcm, modelId };
+  instance.postMessage(message satisfies AsrWorkerInMessage, [pcm.buffer]);
+  return (await promise).text;
 }
 
 interface ActivateAsrModelOptions {

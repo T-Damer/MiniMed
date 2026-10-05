@@ -26,32 +26,50 @@ import {
 
 import './conversation-recorder.css';
 
-/** Floating bar over every screen while a conversation is being recorded. */
-function RecordingBar(): JSX.Element {
+/** The level meter, shared by the bar and the live window. */
+function LevelMeter(props: { readonly class: string; readonly barClass: string }): JSX.Element {
   const bars = Array.from({ length: 12 }, (_, index) => index);
   return (
-    <Show when={conversationSession.recorder()}>
+    <span class={props.class} aria-hidden="true">
+      <For each={bars}>
+        {(index) => (
+          <span
+            class={props.barClass}
+            style={{
+              '--conversation-level': String(
+                Math.max(0.15, conversationSession.level() * (0.6 + ((index * 7) % 5) / 10)),
+              ),
+            }}
+          />
+        )}
+      </For>
+    </span>
+  );
+}
+
+/**
+ * Floating bar over every screen while a conversation is being recorded: the app-level activity
+ * indicator. Tapping it expands the live window; «Стоп» ends the recording.
+ */
+function RecordingBar(): JSX.Element {
+  return (
+    <Show when={conversationSession.recorder() && !conversationSession.windowOpen()}>
       <Portal>
         <div class="conversation-bar" role="status" aria-live="polite">
-          <span class="conversation-bar__dot" aria-hidden="true" />
-          <span class="conversation-bar__label">Запись беседы</span>
-          <span class="conversation-bar__time">
-            {formatRecordingDuration(conversationSession.elapsedMs())}
-          </span>
-          <span class="conversation-bar__meter" aria-hidden="true">
-            <For each={bars}>
-              {(index) => (
-                <span
-                  class="conversation-bar__meter-bar"
-                  style={{
-                    '--conversation-level': String(
-                      Math.max(0.15, conversationSession.level() * (0.6 + ((index * 7) % 5) / 10)),
-                    ),
-                  }}
-                />
-              )}
-            </For>
-          </span>
+          <button
+            type="button"
+            class="conversation-bar__expand"
+            aria-label="Идёт запись беседы. Открыть окно с текстом"
+            title="Открыть окно с текстом"
+            onClick={() => conversationSession.openWindow()}
+          >
+            <span class="conversation-bar__dot" aria-hidden="true" />
+            <span class="conversation-bar__label">Идёт запись беседы</span>
+            <span class="conversation-bar__time">
+              {formatRecordingDuration(conversationSession.elapsedMs())}
+            </span>
+            <LevelMeter class="conversation-bar__meter" barClass="conversation-bar__meter-bar" />
+          </button>
           <Button
             class="conversation-bar__stop"
             variant="danger"
@@ -63,6 +81,125 @@ function RecordingBar(): JSX.Element {
         </div>
       </Portal>
     </Show>
+  );
+}
+
+const LIVE_NOTES: Readonly<Record<'unavailable' | 'listening' | 'working', string>> = {
+  unavailable:
+    'Распознавание речи не включено: речевая модель не загружена. Запись идёт, звук сохраняется; модель можно загрузить в настройках.',
+  listening: 'Слушаем… текст появится через несколько секунд.',
+  working: 'Распознаём последние секунды…',
+};
+
+/**
+ * The expanded activity: the shared floating-window frame (toolbar, full-screen toggle) around the
+ * timer, the level meter, the live text as it appears and the stop control.
+ */
+function RecordingWindow(): JSX.Element {
+  let lines: HTMLOListElement | undefined;
+  const fullscreen = () => conversationSession.windowFullscreen();
+  createEffect(() => {
+    conversationSession.liveLines();
+    requestAnimationFrame(() => lines?.scrollTo({ top: lines.scrollHeight }));
+  });
+  onMount(() => {
+    const onKey = (event: KeyboardEvent): void => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return;
+      if (document.querySelector('[aria-modal="true"]')) return;
+      if (fullscreen()) conversationSession.toggleFullscreen();
+      else conversationSession.closeWindow();
+    };
+    window.addEventListener('keydown', onKey);
+    onCleanup(() => window.removeEventListener('keydown', onKey));
+  });
+  return (
+    <Portal>
+      <section
+        class="floating-windows-layer"
+        classList={{ 'floating-windows-layer--fullscreen': fullscreen() }}
+        aria-label="Запись беседы"
+      >
+        <section
+          class="floating-window floating-window--active conversation-live"
+          classList={{
+            'floating-window--fullscreen': fullscreen(),
+            'conversation-live--fullscreen': fullscreen(),
+          }}
+          role="dialog"
+          aria-label="Идёт запись беседы"
+          data-testid="conversation-live"
+        >
+          <header
+            class="floating-window__toolbar"
+            classList={{ 'floating-window__toolbar--fullscreen': fullscreen() }}
+          >
+            <button
+              class="floating-window__button"
+              type="button"
+              aria-label="Свернуть в строку записи"
+              title="Свернуть в строку записи"
+              onClick={() => conversationSession.closeWindow()}
+            >
+              <AppGlyph name="caret-down" class="floating-window__icon" />
+            </button>
+            <strong class="floating-window__title">Идёт запись беседы</strong>
+            <div class="floating-window__actions">
+              <button
+                class="floating-window__button floating-window__button--fullscreen"
+                type="button"
+                aria-label={fullscreen() ? 'Свернуть в маленькое окно' : 'Открыть на весь экран'}
+                title={fullscreen() ? 'Свернуть в маленькое окно' : 'На весь экран'}
+                onClick={() => conversationSession.toggleFullscreen()}
+              >
+                <AppGlyph
+                  name={fullscreen() ? 'arrows-in' : 'arrows-out'}
+                  class="floating-window__icon"
+                />
+              </button>
+            </div>
+          </header>
+          <div class="floating-window__content conversation-live__body">
+            <div class="conversation-live__status" role="timer" aria-live="off">
+              <span class="conversation-live__dot" aria-hidden="true" />
+              <span class="conversation-live__time">
+                {formatRecordingDuration(conversationSession.elapsedMs())}
+              </span>
+              <LevelMeter
+                class="conversation-live__meter"
+                barClass="conversation-live__meter-bar"
+              />
+            </div>
+            <ol
+              class="conversation-live__lines"
+              ref={(element) => {
+                lines = element;
+              }}
+              aria-label="Текст беседы"
+              aria-live="polite"
+            >
+              <For each={conversationSession.liveLines()}>
+                {(line) => <li class="conversation-live__line">{line}</li>}
+              </For>
+            </ol>
+            <p class="conversation-live__note" data-status={conversationSession.liveStatus()}>
+              {LIVE_NOTES[conversationSession.liveStatus()]}
+            </p>
+            <p class="conversation-live__hint">
+              Текст виден только во время записи и нигде не сохраняется. В карту пациента попадает
+              аудио.
+            </p>
+            <Button
+              class="conversation-live__stop"
+              variant="danger"
+              icon={<AppGlyph name="stop-circle" class="conversation-bar__stop-icon" />}
+              onClick={() => void stopConversation()}
+            >
+              Стоп
+            </Button>
+          </div>
+        </section>
+      </section>
+    </Portal>
   );
 }
 
@@ -230,6 +367,9 @@ export function ConversationRecorderHost(): JSX.Element {
   return (
     <>
       <RecordingBar />
+      <Show when={conversationSession.recorder() && conversationSession.windowOpen()}>
+        <RecordingWindow />
+      </Show>
       <Show when={conversationSession.finished()}>
         {(recording) => (
           <ConversationAttachDialog
