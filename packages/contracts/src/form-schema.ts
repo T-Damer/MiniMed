@@ -400,6 +400,8 @@ export const FormSegmentSchema = z.discriminatedUnion('kind', [
       .optional(),
     /** Height of a body row, mm, as ruled on the official blank (a taller entry grows the row). */
     rowHeightMm: z.number().positive().max(60).optional(),
+    /** Least height of a row of running-text cells, mm (a row ruled taller than its text). */
+    minRowHeightMm: z.number().positive().max(60).optional(),
     /** Height of each header row, mm, as ruled on the official blank (the header text is centred). */
     headHeightMm: z.number().positive().max(60).optional(),
     /** Line height inside the cells as a multiple of the font size; measured on the blank. */
@@ -429,6 +431,8 @@ export const FormRowSchema = z.object({
    * content may overhang the row; the next row starts below the height).
    */
   heightMm: z.number().min(0).max(120).optional(),
+  /** Where the items of a row with blanks, boxes and cells sit across its height (bottom when omitted). */
+  valign: z.enum(['top', 'center', 'bottom']).optional(),
   /** Font size of the row as a multiple of the page font (a table set in a smaller type). */
   fontScale: z.number().min(0.5).max(1.5).optional(),
   /** Space between the top edge of a boxed row and its text, mm (the blank's box padding). */
@@ -440,7 +444,7 @@ export const FormRowSchema = z.object({
 export type FormRow = z.infer<typeof FormRowSchema>;
 
 export const FormLayoutColumnSchema = z.object({
-  widthPercent: z.number().min(10).max(100),
+  widthPercent: z.number().min(2).max(100),
   align: z.enum(['left', 'center', 'right']).optional(),
   rows: z.array(FormRowSchema).min(1),
 });

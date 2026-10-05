@@ -130,6 +130,10 @@ const FORM_PRINT_STYLES = `
   }
   .form-print__option--underlined { text-decoration: underline; }
   .form-print__row--tall { align-content: flex-start; align-items: flex-start; }
+  .form-print__row--fixed { align-content: flex-end; }
+  .form-print__row--valign-top { align-items: flex-start; align-content: flex-start; }
+  .form-print__row--valign-center { align-items: center; align-content: center; }
+  .form-print__row--valign-bottom { align-items: flex-end; align-content: flex-end; }
   .form-print__blank--plain { border-bottom: 0; }
   .form-print__line--dotted { border-bottom: 0; background: radial-gradient(circle at 50% 50%, #000 0.13mm, transparent 0.16mm) repeat-x left bottom / 0.9mm 0.4mm; }
   .form-print__line--dashed { border-bottom: 0; background: linear-gradient(to right, #000 1.4mm, transparent 1.4mm) repeat-x left bottom / 2.2mm 0.25mm; }
@@ -185,7 +189,8 @@ const FORM_PRINT_STYLES = `
   .form-print__cell-head { font-size: 0.95em; height: var(--head-h, auto); vertical-align: middle; }
   .form-print__cell-body { min-height: var(--cell-h, 1.5em); height: var(--cell-h, 1.6em); vertical-align: var(--cell-va, middle); line-height: var(--cell-lh, inherit); text-align: left; }
   .form-print__table-caption, .form-print__cell-caption { text-align: left; }
-  .form-print__cell-flow { text-align: left; vertical-align: top; padding: var(--cell-pt, var(--cell-py, 0.3mm)) var(--cell-pr, var(--cell-px, 0.8mm)) var(--cell-py, 0.3mm) var(--cell-px, 0.8mm); height: auto; }
+  .form-print__cell-blank--plain { border-bottom: 0; }
+  .form-print__cell-flow { text-align: left; vertical-align: top; padding: var(--cell-pt, var(--cell-py, 0.3mm)) var(--cell-pr, var(--cell-px, 0.8mm)) var(--cell-py, 0.3mm) var(--cell-px, 0.8mm); height: var(--flow-h, auto); }
   .form-print__cell-flow--justify { text-align: justify; }
   .form-print__cell-flow--center { text-align: center; }
   .form-print__check--in-cell { margin: 0 0.35em 0 0.15em; vertical-align: baseline; }
@@ -311,6 +316,7 @@ function tableHtml(schema: FormSchema, values: FormValues, segment: TableSegment
   const padding = segment.cellPaddingMm;
   const custom = [
     ...(segment.headHeightMm === undefined ? [] : [`--head-h:${segment.headHeightMm}mm`]),
+    ...(segment.minRowHeightMm === undefined ? [] : [`--flow-h:${segment.minRowHeightMm}mm`]),
     ...(padding
       ? [
           `--cell-px:${padding.x}mm`,
@@ -370,7 +376,7 @@ function cellSegmentHtml(schema: FormSchema, values: FormValues, segment: FormCe
   const shown = segment.part ? datePart(text, segment.part) : displayFieldValue(field, value);
   if (segment.charCells) return charCellsHtml(shown, segment.charCells);
   if (segment.lines) return blank(shown, false, segment.lines);
-  const block = segment.grow ? ' form-print__cell-blank--block' : '';
+  const block = `${segment.grow ? ' form-print__cell-blank--block' : ''}${segment.plain ? ' form-print__cell-blank--plain' : ''}`;
   const width = segment.grow ? '' : ` style="min-width:${segment.length}ch"`;
   return `<span class="form-print__cell-blank${block}"${width}>${escapeHtml(shown)}</span>`;
 }
@@ -497,6 +503,8 @@ function rowHtml(schema: FormSchema, values: FormValues, row: FormRow): string {
   ];
   const style = rowStyle.length > 0 ? ` style="${rowStyle.join(';')}"` : '';
   if (row.minHeightMm !== undefined) classes.push('form-print__row--tall');
+  if (row.heightMm !== undefined) classes.push('form-print__row--fixed');
+  if (row.valign) classes.push(`form-print__row--valign-${row.valign}`);
   // the first text of a stretched row is the one spread over the width, whether or not a blank
   // comes before it (`______ код по Международной статистической классификации`)
   const stretched =
