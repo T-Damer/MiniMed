@@ -45,6 +45,10 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Камера нужна, чтобы сфотографировать ЭКГ или документ. Снимок остаётся на этом устройстве.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Микрофон нужен для записи беседы на приёме. Запись хранится только на этом устройстве.</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
 </dict>
