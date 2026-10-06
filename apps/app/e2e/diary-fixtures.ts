@@ -84,6 +84,9 @@ export const IPHONE_SAFARI =
 /** A messenger's built-in web view on iOS: no «Version/… Safari/…» tail. */
 export const IPHONE_MESSENGER =
   'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148';
+/** iPadOS 13+ Safari: a desktop-class user agent, told apart only by touch points on a Mac platform. */
+export const IPAD_SAFARI =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15';
 export const ANDROID_CHROME =
   'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36';
 

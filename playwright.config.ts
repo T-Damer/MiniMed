@@ -37,5 +37,18 @@ export default defineConfig({
         launchOptions: chromiumExecutable ? { executablePath: chromiumExecutable } : undefined,
       },
     },
+    // Opt-in (`PLAYWRIGHT_WEBKIT=1 bunx playwright test --project=webkit-ios`, after
+    // `bunx playwright install webkit`): the engine of Safari and of the iOS app's web view, on
+    // iPad mini. Headless WebKit paints no backdrop-filter blur, so blur is judged in the
+    // simulator; these specs cover layout, the first-run veil and the patient diary on iOS.
+    ...(process.env['PLAYWRIGHT_WEBKIT']
+      ? [
+          {
+            name: 'webkit-ios',
+            testMatch: ['**/ios-layout.spec.ts', '**/diary-install.spec.ts'],
+            use: { ...devices['iPad Mini'], viewport: { width: 744, height: 1133 } },
+          },
+        ]
+      : []),
   ],
 });
