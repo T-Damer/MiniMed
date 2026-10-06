@@ -5,6 +5,7 @@ import {
   existsSync,
   mkdirSync,
   readdirSync,
+  readFileSync,
   rmSync,
   statSync,
 } from 'node:fs';
@@ -228,6 +229,57 @@ function katexWoff2Only(): Plugin {
   };
 }
 
+const EXCALIDRAW_CJK_FONT_URL_DIR = '/excalidraw/fonts/Xiaolai/';
+
+/**
+ * Excalidraw falls back to its Xiaolai CJK family for Chinese/Japanese/Korean text and requests
+ * one `Xiaolai-Regular-<hash>.woff2` per unicode range; when the file is missing it silently
+ * retries on esm.sh. The 12 MiB family is not shipped (Russian app), so every file name is served
+ * as the same 312-byte font that maps no CJK code point: the request succeeds locally, no third-party host is
+ * contacted, and the characters fall through to the system font.
+ */
+function excalidrawCjkFontStubs(): Plugin {
+  const stub = readFileSync(new URL('./src/dev-server/empty-glyph-font.woff2', import.meta.url));
+  const fontNames = (): string[] =>
+    readdirSync(
+      fileURLToPath(
+        new URL(
+          '../../node_modules/@excalidraw/excalidraw/dist/prod/fonts/Xiaolai',
+          import.meta.url,
+        ),
+      ),
+    ).filter((name) => name.endsWith('.woff2'));
+  const middleware: Connect.NextHandleFunction = (request, response, next) => {
+    const path = (request.url ?? '').split('?')[0] ?? '';
+    if (!path.includes(EXCALIDRAW_CJK_FONT_URL_DIR) || !path.endsWith('.woff2')) {
+      next();
+      return;
+    }
+    response.statusCode = 200;
+    response.setHeader('Content-Type', 'font/woff2');
+    response.setHeader('Content-Length', String(stub.length));
+    response.end(request.method === 'HEAD' ? undefined : stub);
+  };
+  return {
+    name: 'excalidraw-cjk-font-stubs',
+    configureServer(server) {
+      server.middlewares.use(middleware);
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use(middleware);
+    },
+    generateBundle() {
+      for (const name of fontNames()) {
+        this.emitFile({
+          type: 'asset',
+          fileName: `excalidraw/fonts/Xiaolai/${name}`,
+          source: stub,
+        });
+      }
+    },
+  };
+}
+
 function excludeOptionalPublicAssets(): Plugin {
   let outDir = 'dist';
 
@@ -259,6 +311,7 @@ export default defineConfig({
   plugins: [
     solid(),
     katexWoff2Only(),
+    excalidrawCjkFontStubs(),
     ensureTessdataAssets(),
     ensurePdfJsAssets(),
     ensureCornerstoneCodecAssets(),
