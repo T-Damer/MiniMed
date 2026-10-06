@@ -27,6 +27,8 @@ test.describe('patient diary: keeping it one tap away', () => {
     await page.goto(await testInvitationLink(testInvitation()));
     const card = page.getByRole('region', { name: 'Добавить дневник на экран телефона' });
     await expect(card).toContainText('«Поделиться»');
+    // Safari on iOS 26 keeps «Поделиться» inside the «⋯» menu at the bottom.
+    await expect(card).toContainText('«⋯»');
     await expect(card).toContainText('На экран «Домой»');
     await expect(card).toContainText('до первой записи');
 
@@ -57,7 +59,7 @@ test.describe('patient diary: keeping it one tap away', () => {
     const card = page.getByRole('region', { name: 'Добавить дневник на экран телефона' });
     await expect(card).toContainText('«Поделиться»');
     await expect(card).toContainText('в верхней панели');
-    await expect(card).not.toContainText('внизу экрана');
+    await expect(card).not.toContainText('«⋯»');
     await context.close();
   });
 

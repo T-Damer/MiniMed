@@ -88,8 +88,17 @@ export function InstallCard(props: {
         <Show when={advice() === 'ios'}>
           <ol class="diary-card__steps">
             <li class="diary-card__step">
-              Нажмите «Поделиться» — квадрат со стрелкой{' '}
-              {onIpad() ? 'в верхней панели' : 'внизу экрана'} Safari.
+              <Show
+                when={onIpad()}
+                fallback={
+                  <>
+                    Нажмите «⋯» внизу экрана Safari и выберите «Поделиться» (в прежних версиях —
+                    квадрат со стрелкой внизу экрана).
+                  </>
+                }
+              >
+                Нажмите «Поделиться» — квадрат со стрелкой в верхней панели Safari.
+              </Show>
             </li>
             <li class="diary-card__step">Выберите «На экран «Домой»».</li>
             <li class="diary-card__step">Нажмите «Добавить».</li>
