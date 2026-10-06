@@ -166,6 +166,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-10-07 claude-opus (SIZE1b): OCR language pack (19.6 MB) downloads on first OCR with consent + SHA-256, offline afterwards; ECG worker shares transformers' ONNX Runtime (−27 MB raw JSEP wasm); see `docs/CURRENT_STATE.md` «Smaller APK»
 - 2026-10-07 claude-opus (SIZE1): APK ≈ −13 MiB — Xiaolai CJK fonts as glyph-less stubs (no esm.sh fetch), 16 stale bundled module dbs removed, KaTeX woff2 only; core stays a download (reasoning in `docs/CURRENT_STATE.md` «Smaller APK»); next: tessdata on demand, CPU-only onnxruntime
 - 2026-10-07 claude-opus (ICD11-MAP): «В МКБ-11» on every ICD-10-coded card from WHO's 10→11 mapping tables + Russian WHO titles (no translation), derived labels (split/merged/cluster/other chapter), opens ICD-11 cards or offers the module; asset `features/icd11/icd10-icd11-map.json` via `bun run content:icd10-icd11-map`; see `docs/CURRENT_STATE.md`
 - 2026-10-07 claude-opus (UX9): search/reader polish from the owner's screenshots — one definition preview instead of duplicate dictionary cards, background re-runs behind «Обновить», the field usable while the core opens (spinner in the send button, status line inside the block), plain result cards (no duplicate icons or catalogue wording), technical sections last in the reader, one-row download block, inline-link contrast token, «⋯» reader menu, «Сравнение препаратов» in «Полезные функции», AGENTS.md «Motion»; see `docs/CURRENT_STATE.md` «Search and reader polish»

@@ -590,8 +590,16 @@ Owner 2026-10-07: «shrink the app; bundle the core or not?». Measured on the 0
   the entry transformers.js already uses, and still runs on the `wasm` (CPU) backend; the 27 MB
   JSEP build is no longer emitted. Checked with `ecg-success-path.spec.ts` (published model, the app's
   own example photo): local segmentation and editable points as before.
-- Next, by size: OCR language data on first OCR use instead of bundled (19.6 MiB; consent UI, Android
-  path check), on-demand wasm for ASR/e5, a lite build without the llama stack (≈7 MiB), R8 minify
+- OCR language pack on demand (≈19.6 MB more): Tesseract eng + rus (tessdata 4.0.0) is no longer
+  bundled. «Распознать текст» without it opens a sheet with the size and «Скачать» (nothing is fetched
+  before that), progress, «Повторить» on failure, and OCR starts by itself afterwards; Settings →
+  Функции ИИ has the card (Скачать / Отменить / Удалить). Files from the pinned naptha/tessdata commit
+  806cd9ad (jsDelivr, then raw.githubusercontent), size + SHA-256 checked
+  (`features/ocr/ocr-language-pack-catalog.ts`), stored in one IndexedDB transaction in tesseract.js's
+  own cache layout (`cacheMethod: 'readOnly'`), offline from then on; a download-queue job (`ocr`).
+  E2E `ocr-language-pack.spec.ts`. Not tested on an Android device. Follow-up: a project release
+  mirror of the two files as the first source (needs the owner's OK to publish).
+- Next, by size: on-demand wasm for ASR/e5, a lite build without the llama stack (≈7 MiB), R8 minify
   (≈2 MiB).
 
 ## «В МКБ-11» on ICD-10 cards — 2026-10-07 (STATE ICD11-MAP)
