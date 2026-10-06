@@ -1,0 +1,456 @@
+{
+  "version": 1,
+  "description": "SAFE1 (2026-10-06): questions about pregnancy, lactation and child age, each with the card the search must show (ЕСКЛП МНН slug) and what the card must hold. Hand labels; a separate set from owner-queries.json. Run: bun run benchmark:safe1 (needs SAFE1_DECODED_DIR, see the runner).",
+  "queries": [
+    {
+      "id": "lact-ibuprofen-gv",
+      "kind": "lactation",
+      "query": "ибупрофен разрешён ли во время ГВ",
+      "card": "ибупрофен",
+      "intents": ["lactation"],
+      "expect": {
+        "lactation": "quotes",
+        "quotePattern": "груд"
+      }
+    },
+    {
+      "id": "lact-amoxicillin",
+      "kind": "lactation",
+      "query": "Амоксициллин при грудном вскармливании",
+      "card": "амоксициллин",
+      "intents": ["lactation"],
+      "expect": {
+        "lactation": "quotes",
+        "quotePattern": "груд|лактац"
+      }
+    },
+    {
+      "id": "lact-paracetamol-nursing",
+      "kind": "lactation",
+      "query": "парацетамол можно кормящей",
+      "card": "парацетамол",
+      "intents": ["lactation"],
+      "expect": {
+        "lactation": "quotes",
+        "quotePattern": "груд|лактац"
+      }
+    },
+    {
+      "id": "lact-cetirizine",
+      "kind": "lactation",
+      "query": "цетиризин и лактация",
+      "card": "цетиризин",
+      "intents": ["lactation"],
+      "expect": {
+        "lactation": "quotes",
+        "quotePattern": "не следует применять"
+      }
+    },
+    {
+      "id": "lact-metformin-gv",
+      "kind": "lactation",
+      "query": "метформин при ГВ (грудное вскармливание)",
+      "card": "метформин",
+      "intents": ["lactation"],
+      "expect": {
+        "lactation": "quotes",
+        "quotePattern": "груд|лактац"
+      }
+    },
+    {
+      "id": "lact-omeprazole",
+      "kind": "lactation",
+      "query": "омепразол кормящей маме",
+      "card": "омепразол",
+      "intents": ["lactation"],
+      "expect": {
+        "lactation": "quotes",
+        "quotePattern": "груд|лактац"
+      }
+    },
+    {
+      "id": "lact-nurofen-trade",
+      "kind": "lactation",
+      "query": "Нурофен разрешён при ГВ",
+      "card": "ибупрофен",
+      "intents": ["lactation"],
+      "expect": {
+        "lactation": "quotes",
+        "quotePattern": "груд"
+      }
+    },
+    {
+      "id": "lact-loratadine",
+      "kind": "lactation",
+      "query": "лоратадин при кормлении грудью",
+      "card": "лоратадин",
+      "intents": ["lactation"],
+      "expect": {
+        "lactation": "quotes",
+        "quotePattern": "груд|лактац"
+      }
+    },
+    {
+      "id": "lact-ciprofloxacin",
+      "kind": "lactation",
+      "query": "ципрофлоксацин во время грудного вскармливания",
+      "card": "ципрофлоксацин",
+      "intents": ["lactation"],
+      "expect": {
+        "lactation": "quotes",
+        "quotePattern": "противопоказан"
+      }
+    },
+    {
+      "id": "lact-ambroxol",
+      "kind": "lactation",
+      "query": "кормящей можно ли амброксол",
+      "card": "амброксол",
+      "intents": ["lactation"],
+      "expect": {
+        "lactation": "quotes",
+        "quotePattern": "груд|лактац"
+      }
+    },
+    {
+      "id": "preg-ibuprofen",
+      "kind": "pregnancy",
+      "query": "ибупрофен при беременности",
+      "card": "ибупрофен",
+      "intents": ["pregnancy"],
+      "expect": {
+        "pregnancy": "quotes",
+        "quotePattern": "беремен"
+      }
+    },
+    {
+      "id": "preg-paracetamol",
+      "kind": "pregnancy",
+      "query": "парацетамол беременным",
+      "card": "парацетамол",
+      "intents": ["pregnancy"],
+      "expect": {
+        "pregnancy": "quotes",
+        "quotePattern": "беремен"
+      }
+    },
+    {
+      "id": "preg-metformin",
+      "kind": "pregnancy",
+      "query": "метформин при беременности",
+      "card": "метформин",
+      "intents": ["pregnancy"],
+      "expect": {
+        "pregnancy": "quotes",
+        "quotePattern": "беремен"
+      }
+    },
+    {
+      "id": "preg-enalapril",
+      "kind": "pregnancy",
+      "query": "эналаприл при беременности",
+      "card": "эналаприл",
+      "intents": ["pregnancy"],
+      "expect": {
+        "pregnancy": "quotes",
+        "quotePattern": "противопоказан"
+      }
+    },
+    {
+      "id": "preg-warfarin",
+      "kind": "pregnancy",
+      "query": "варфарин при беременности",
+      "card": "варфарин",
+      "intents": ["pregnancy"],
+      "expect": {
+        "pregnancy": "quotes",
+        "quotePattern": "тератоген"
+      }
+    },
+    {
+      "id": "preg-losartan-trimester",
+      "kind": "pregnancy",
+      "query": "лозартан беременность 2 триместр",
+      "card": "лозартан",
+      "intents": ["pregnancy"],
+      "expect": {
+        "pregnancy": "quotes",
+        "quotePattern": "беремен|триместр"
+      }
+    },
+    {
+      "id": "preg-nimesulide-trimester",
+      "kind": "pregnancy",
+      "query": "нимесулид в III триместре беременности",
+      "card": "нимесулид",
+      "intents": ["pregnancy"],
+      "expect": {
+        "pregnancy": "quotes",
+        "quotePattern": "беремен|триместр"
+      }
+    },
+    {
+      "id": "preg-azithromycin",
+      "kind": "pregnancy",
+      "query": "азитромицин при беременности",
+      "card": "азитромицин",
+      "intents": ["pregnancy"],
+      "expect": {
+        "pregnancy": "quotes",
+        "quotePattern": "беремен"
+      }
+    },
+    {
+      "id": "preg-ceftriaxone",
+      "kind": "pregnancy",
+      "query": "цефтриаксон беременным можно",
+      "card": "цефтриаксон",
+      "intents": ["pregnancy"],
+      "expect": {
+        "pregnancy": "quotes",
+        "quotePattern": "беремен"
+      }
+    },
+    {
+      "id": "preg-amoxicillin",
+      "kind": "pregnancy",
+      "query": "амоксициллин при беременности",
+      "card": "амоксициллин",
+      "intents": ["pregnancy"],
+      "expect": {
+        "pregnancy": "quotes",
+        "quotePattern": "беремен"
+      }
+    },
+    {
+      "id": "preg-aspirin-lact",
+      "kind": "pregnancy",
+      "query": "ацетилсалициловая кислота при беременности и лактации",
+      "card": "ацетилсалициловая-кислота",
+      "intents": ["pregnancy", "lactation"],
+      "expect": {
+        "pregnancy": "quotes",
+        "lactation": "quotes"
+      }
+    },
+    {
+      "id": "preg-loratadine-both",
+      "kind": "pregnancy",
+      "query": "лоратадин при беременности и ГВ",
+      "card": "лоратадин",
+      "intents": ["pregnancy", "lactation"],
+      "expect": {
+        "pregnancy": "quotes",
+        "lactation": "quotes"
+      }
+    },
+    {
+      "id": "age-ciprofloxacin-3",
+      "kind": "age",
+      "query": "ципрофлоксацин ребёнку 3 лет",
+      "card": "ципрофлоксацин",
+      "intents": ["age"],
+      "expect": {
+        "age": "quotes",
+        "quotePattern": "18 лет",
+        "calcRelation": "below"
+      }
+    },
+    {
+      "id": "age-nimesulide-from",
+      "kind": "age",
+      "query": "с какого возраста нимесулид",
+      "card": "нимесулид",
+      "intents": ["age"],
+      "expect": {
+        "age": "quotes",
+        "quotePattern": "12 лет"
+      }
+    },
+    {
+      "id": "age-ibuprofen-6m",
+      "kind": "age",
+      "query": "ибупрофен ребёнку 6 месяцев",
+      "card": "ибупрофен",
+      "intents": ["age"],
+      "expect": {
+        "age": "quotes",
+        "quotePattern": "месяц|лет"
+      }
+    },
+    {
+      "id": "age-ibuprofen-from",
+      "kind": "age",
+      "query": "ибупрофен детям с какого возраста",
+      "card": "ибупрофен",
+      "intents": ["age"],
+      "expect": {
+        "age": "quotes",
+        "quotePattern": "до 6 лет"
+      }
+    },
+    {
+      "id": "age-loperamide-5",
+      "kind": "age",
+      "query": "лоперамид ребенку 5 лет",
+      "card": "лоперамид",
+      "intents": ["age"],
+      "expect": {
+        "age": "quotes",
+        "quotePattern": "6 лет",
+        "calcRelation": "below"
+      }
+    },
+    {
+      "id": "age-levofloxacin",
+      "kind": "age",
+      "query": "левофлоксацин детям",
+      "card": "левофлоксацин",
+      "intents": ["age"],
+      "expect": {
+        "age": "quotes",
+        "quotePattern": "18 лет"
+      }
+    },
+    {
+      "id": "age-ketoprofen-10",
+      "kind": "age",
+      "query": "кетопрофен ребенку 10 лет",
+      "card": "кетопрофен",
+      "intents": ["age"],
+      "expect": {
+        "age": "quotes",
+        "quotePattern": "15 лет"
+      }
+    },
+    {
+      "id": "age-ambroxol-2",
+      "kind": "age",
+      "query": "амброксол ребёнку до 2 лет",
+      "card": "амброксол",
+      "intents": ["age"],
+      "expect": {
+        "age": "quotes",
+        "quotePattern": "лет"
+      }
+    },
+    {
+      "id": "age-doxycycline",
+      "kind": "age",
+      "query": "доксициклин с какого возраста можно",
+      "card": "доксициклин",
+      "intents": ["age"],
+      "expect": {
+        "age": "quotes",
+        "quotePattern": "8 лет|18 лет"
+      }
+    },
+    {
+      "id": "age-drotaverine-4",
+      "kind": "age",
+      "query": "дротаверин ребенку 4 года",
+      "card": "дротаверин",
+      "intents": ["age"],
+      "expect": {
+        "age": "quotes",
+        "quotePattern": "лет"
+      }
+    },
+    {
+      "id": "age-nospa-trade-3",
+      "kind": "age",
+      "query": "но-шпа ребенку 3 года",
+      "card": "дротаверин",
+      "intents": ["age"],
+      "expect": {
+        "age": "quotes",
+        "quotePattern": "лет"
+      }
+    },
+    {
+      "id": "age-diclofenac",
+      "kind": "age",
+      "query": "диклофенак с какого возраста",
+      "card": "диклофенак",
+      "intents": ["age"],
+      "expect": {
+        "age": "quotes",
+        "quotePattern": "18 лет"
+      }
+    },
+    {
+      "id": "age-meloxicam",
+      "kind": "age",
+      "query": "мелоксикам детям",
+      "card": "мелоксикам",
+      "intents": ["age"],
+      "expect": {
+        "age": "quotes",
+        "quotePattern": "12 лет"
+      }
+    },
+    {
+      "id": "age-xylometazoline-1",
+      "kind": "age",
+      "query": "ксилометазолин ребёнку 1 год",
+      "card": "ксилометазолин",
+      "intents": ["age"],
+      "expect": {
+        "age": "quotes",
+        "quotePattern": "2 лет"
+      }
+    },
+    {
+      "id": "neg-pressure-pregnancy",
+      "kind": "negative",
+      "query": "давление при беременности",
+      "card": null,
+      "intents": ["pregnancy"]
+    },
+    {
+      "id": "neg-cough-child",
+      "kind": "negative",
+      "query": "кашель у ребёнка 3 лет",
+      "card": null,
+      "intents": ["age"]
+    },
+    {
+      "id": "neg-fever-nursing",
+      "kind": "negative",
+      "query": "температура у кормящей",
+      "card": null,
+      "intents": ["lactation"]
+    },
+    {
+      "id": "neg-headache-pregnancy",
+      "kind": "negative",
+      "query": "головная боль при беременности",
+      "card": null,
+      "intents": ["pregnancy"]
+    },
+    {
+      "id": "neg-exact-ibuprofen",
+      "kind": "negative",
+      "query": "ибупрофен",
+      "card": null
+    },
+    {
+      "id": "neg-exact-nurofen-kids",
+      "kind": "negative",
+      "query": "нурофен детский",
+      "card": null
+    },
+    {
+      "id": "neg-exact-paracetamol-dose",
+      "kind": "negative",
+      "query": "парацетамол 500 мг",
+      "card": null
+    },
+    {
+      "id": "neg-pregnancy-alone",
+      "kind": "negative",
+      "query": "беременность 12 недель",
+      "card": null
+    }
+  ]
+}

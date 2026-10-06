@@ -27,6 +27,7 @@ and the list is updated when the proposal is better. How search works today:
 | Complaint → КР | Q1 RuMedPrime, test | R@5 0.04 (0.10 with the pointers) , unchanged by the bridge | 0.28 (0.19 in the S3 re-run) | weakest area |
 | Drug by indication («от головы») | `drug-indication-queries.json`, 45 | hit@1 0.16, hit@5 0.47 | hit@1 0.62, hit@5 0.91 | E3 shipped to main |
 | Drug names | 100 ГРЛС trade names | top-1 0.99 | 1.00 | E3 gate |
+| Drug safety questions («X при беременности / при ГВ / ребёнку 3 лет») | `safe1-queries.json`, 44 (card, not ranking) | card correct 44/44, see item 15 | — | SAFE1, answer card above the results |
 | Description → term («воспаление слизистой желудка» → гастрит) | `reverse-term-queries.json`, 35 | hit@5 0.80 | 0.49 | lexical kept (E5 rejected) |
 | Diagnosis / complaint → МКБ card | Q1, «Болезни» scope | R@5 0.28 / 0.03 | 0.39 / 0.02 | cards are the bridge's input (item 4); e5 on cards rejected |
 
@@ -80,6 +81,23 @@ hit@5 0.444 (rush 0.581, thoughtful 0.261), and with S3 0.278 / 0.574 (0.774, 0.
     names one letter shorter than a registered name (`medication-spelling.ts` starts at five letters).
 14. **Case vignettes** («Внезапная слабость в правой руке и нарушение речи два часа назад»): route
     long case-like queries to the clinical analysis / e5 path automatically; same ground as item 5 and 8.
+
+15. **Questions about a drug in pregnancy, lactation and a child's age** (SAFE1, 2026-10-06; owner
+    request, gap audit item 5). Compared with the list first: it is not ranking work (items 1–5, 8 stay
+    as they are) and not a drug-by-indication search (E3): the drug is named, the question is what its
+    own instruction says. Closest items: 6 (related documents from source data) and the INT1 card
+    «Проверить взаимодействие». Shipped as a **card above the results** («Все источники», «Препараты»),
+    the ranking and every exact-name gate untouched. A deterministic parser
+    (`medication-safety/safety-query.ts`: intent words, an age, the rest is the name) →
+    the app's own medication search with the S3 name-variant fallback → the build-time index of
+    offsets and checksums (`scripts/build-medication-safety.ts`, no instruction text) → the sentences
+    quoted from the installed instruction with their section, source and «Открыть в инструкции».
+    No verdict is worded by the app; «В инструкции об этом не сказано» names the instruction that was
+    read. Measured on its own set (`bun run benchmark:safe1`) and the exact-name gates before/after:
+    [`research/medication-safety-2026-10-06.md`](research/medication-safety-2026-10-06.md).
+    Left: the substance's other manufacturers' instructions are one switch away, not compared; trade
+    names inside quoted text are not matched; a symptom or disease question («давление при
+    беременности») shows no card by design (no hand-written symptom→drug dictionary).
 
 ## Measured and rejected
 
