@@ -104,6 +104,20 @@
   font-size: 1.1rem;
 }
 
+/* iOS draws date and time fields as a native control wider than its card; the picker still opens
+   on tap. The diary page does not load global.css, so the same rule is repeated here. */
+@supports (-webkit-touch-callout: none) {
+  .diary-form__input[type="datetime-local"],
+  .diary-form__input[type="date"],
+  .diary-form__input[type="time"] {
+    min-width: 0;
+    max-width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    text-align: left;
+  }
+}
+
 .diary-button {
   --ui-button-height: 3rem;
   --ui-button-padding-block: 0.5rem;

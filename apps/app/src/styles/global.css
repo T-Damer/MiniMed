@@ -58,6 +58,20 @@ select {
   textarea {
     font-size: max(1rem, 16px) !important;
   }
+
+  /* iOS draws date and time fields as a native control with an intrinsic width and height: left
+     alone it pokes out of its card and is taller than the text fields beside it. The picker still
+     opens on tap. */
+  input[type="date"],
+  input[type="time"],
+  input[type="datetime-local"],
+  input[type="month"],
+  input[type="week"] {
+    min-width: 0;
+    max-width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+  }
 }
 
 button {
