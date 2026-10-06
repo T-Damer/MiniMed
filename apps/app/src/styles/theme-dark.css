@@ -15,8 +15,6 @@
     --theme-accent-contrast: #1c1712;
     --theme-accent-soft: rgb(130 168 141 / 15%);
     --theme-link: #9bc7a7;
-    --theme-inline-link: #9bc7a7;
-    --theme-inline-link-hover: color-mix(in srgb, #9bc7a7 80%, white);
     --theme-search-surface: #243029;
     --theme-search-surface-muted: #2c3a31;
     --theme-floating-surface: #456452;

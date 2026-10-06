@@ -1,3 +1,24 @@
+/* App-only tokens, outside the theme files the native design tokens are generated from.
+   Motion (AGENTS.md «Motion»): iOS curves at a quick pace; the AnimationManager still retimes
+   every transition for the «Анимации» setting. Inline links: a token, so the colour of links in
+   documents never depends on the order lazily loaded CSS chunks arrive in. */
+:root {
+  --motion-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-fast: 120ms;
+  --motion-base: 180ms;
+  --motion-slow: 260ms;
+  --inline-link: #355b69;
+  --inline-link-hover: #244652;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --inline-link: #9bc7a7;
+    --inline-link-hover: #afd2b9;
+  }
+}
+
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;

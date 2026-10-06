@@ -174,7 +174,7 @@ were not tested.
   filled, pending → «Обновить») cross-fade or move rather than jump, sheets rise from below,
   pressed controls give a short scale feedback (≈0.96).
 - Keep them quick: 120–260 ms through the theme tokens `--motion-fast`, `--motion-base`,
-  `--motion-slow` and the curves `--motion-ease` / `--motion-ease-out` (`styles/theme.css`); nothing
+  `--motion-slow` and the curves `--motion-ease` / `--motion-ease-out` (`styles/global.css`); nothing
   longer than ~300 ms unless it follows a gesture.
 - Animate through CSS or `Element.animate` so the AnimationManager (`state/motion.ts`, Settings →
   «Анимации») retimes it; timers use `motionMs()`. With animations off, end states still apply.

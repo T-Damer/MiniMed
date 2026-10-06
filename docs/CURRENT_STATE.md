@@ -599,10 +599,10 @@ Presentation only: ranking, the core and every benchmark set are unchanged.
   disease card opens on «Краткое описание». The download block is one row: «Полная версия — в наборе
   «…»» (up to two lines on a phone) and a button with the size that fills with the download's
   progress. Inline links start at their icon (a `<button>` centred wrapped text), long addresses wrap,
-  and their colour is a theme token (`--theme-inline-link`) — the dark override used to lose to the
+  and their colour is an app token (`--inline-link`, `global.css`) — the dark override used to lose to the
   lazily loaded light rule in the production bundle. The header's «Меню действий» is «⋯».
 - «Сравнение препаратов» is the fourth «Полезные функции» card (with «Взаимодействие»).
-- Motion tokens `--motion-*` (iOS curves, 120–260 ms) and the AGENTS.md «Motion» rule (owner).
+- Motion tokens `--motion-*` (iOS curves, 120–260 ms, `global.css`: the theme files feed the native token generator) and the AGENTS.md «Motion» rule (owner).
 - E2E: `core-identities` (one preview, «ещё 1 …»), `boot-screen`, `startup-shell`, `search`, and the
   readiness checks of 13 specs moved from «field enabled» to `data-search-ready`.
 

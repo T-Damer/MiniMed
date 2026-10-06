@@ -14,14 +14,6 @@
 }
 
 :root {
-  /* Motion (AGENTS.md «Motion»): iOS curves at a quick pace. The AnimationManager still retimes
-     every transition for the «Анимации» setting. */
-  --motion-ease: cubic-bezier(0.32, 0.72, 0, 1);
-  --motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --motion-fast: 120ms;
-  --motion-base: 180ms;
-  --motion-slow: 260ms;
-
   color-scheme: light;
   font-family: Arial, Helvetica, sans-serif;
   color: var(--theme-text);
@@ -42,9 +34,6 @@
   --theme-accent-contrast: #f8f0dd;
   --theme-accent-soft: rgb(64 91 78 / 12%);
   --theme-link: #355b49;
-  /* Links inside document text; a token, so theme order never depends on CSS chunk order. */
-  --theme-inline-link: #355b69;
-  --theme-inline-link-hover: #244652;
   --theme-search-surface: #f7edcf;
   --theme-search-surface-muted: #eadfbe;
   --theme-floating-surface: #344d41;

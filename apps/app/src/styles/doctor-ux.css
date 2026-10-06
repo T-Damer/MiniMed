@@ -1041,7 +1041,7 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
   white-space: normal;
   padding: 0;
   border: 0;
-  color: var(--theme-inline-link);
+  color: var(--inline-link);
   background: transparent;
   /* A <button> centres its text; a wrapped link reads from its icon like the text around it. */
   text-align: start;
@@ -1060,12 +1060,12 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
 
 @media (hover: hover) and (pointer: fine) {
   .document-inline-link:hover {
-    color: var(--theme-inline-link-hover);
+    color: var(--inline-link-hover);
   }
 }
 
 .document-inline-link:focus-visible {
-  color: var(--theme-inline-link-hover);
+  color: var(--inline-link-hover);
 }
 
 .document-inline-preview {
