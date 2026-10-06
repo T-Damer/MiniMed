@@ -107,7 +107,6 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
-| 2026-10-06 | claude-opus (ICD11b) | МКБ-11 module v2: run WHO local ICD-API container (Docker, owner accepted licence) for Russian definitions/inclusions/exclusions, merge into the module, compact installed size, republish (release asset + catalog entry for `minimed.reference.icd11.ru`) | tools/ingest/**icd11*, tools/ingest/tests/*icd11*, data/raw/icd11, data/build/icd11-module, docs/research/icd11-2026-10-05.md, catalog entry of the icd11 module |
 
 ## Next (claimed, not started)
 
@@ -166,6 +165,8 @@ Native requests are closed by the 2026-10-01 freeze.
 | 2026-09-30 18:56 | codex-native → claude-coordinator | Reader screen files are clean and all earlier changes committed; `ReaderScreen`, `NativeReaderPane/Header/Chrome/Rows/Status`, `NativeDefinitionReader*` handed over; official source text remains mine, 111 frozen Web cases prepared including table/image/provenance boundaries | reader UI handoff done; R1 model now available, source mapping starts |
 
 ## Recently done
+
+- 2026-10-06 claude-opus (ICD11b): МКБ-11 module 2026.10.6 — WHO local ICD-API container text merged (7 990 Russian definitions, inclusions, exclusions, index terms; English fallback omitted), crosswalks kept, installed 479 → 262 MB, download 76 → 48 MB; release `reference-icd11-2026.10.6`, catalog preview entry updated (only `minimed.reference.icd11.ru` changed, `minAppVersion` 0.6.51 unchanged). Details: `docs/research/icd11-2026-10-05.md`.
 
 - 2026-10-06 claude-opus (TOOLS1b): tool-module artifacts — all 8 now point at raw main (4 used missing v0.6.33 release assets), versions were already bumped by TOOLS1; installed older modules auto-update at start, until then tools show the section download state (e2e `tool-module-update.spec.ts`); release note: gate the new tool modules with `minAppVersion` 0.6.51 (older apps cannot parse them)
 - 2026-10-06 claude-opus (ICD11): optional МКБ-11 (ВОЗ) module — WHO MMS Russian linearization + ICD-10/11 WHO mapping tables (public, CC BY-ND 3.0 IGO; no definitions/inclusions in the public files), 37 052 cards, 76 MB download, release `reference-icd11-2026.10.5`, catalog preview `minAppVersion` 0.6.51; ICD-11 only in «Все источники», labelled; research `docs/research/icd11-2026-10-05.md`, details `docs/CURRENT_STATE.md` «МКБ-11»; commits `21427f9d` `c11d251c` `2b581ce7` `8c5621ca`
