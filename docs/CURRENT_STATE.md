@@ -572,6 +572,21 @@ on the list searches titles, descriptions and card keywords.
   opens the app settings. Not verified on a physical phone (HyperOS may add its own audio-record
   gate).
 
+## Stable library cards — 2026-10-06 (STATE LIB-KEY)
+
+- «Ваши документы» keeps one DOM node per card while its document is read, previewed or patched:
+  documents and folders live in a Solid store reconciled by `id`, entries keep their identity
+  (`features/library/user-library-entries.ts`), and `LayoutVirtualizedGrid` reuses unchanged row
+  arrays (`chunkLayoutRows(…, previous)`) because virtua keys rows by reference. Keyboard focus on
+  «⋯» and an open card menu survive ingest; before, every refresh rebuilt all cards (found in the
+  0.6.52 release run).
+- Processing state (inspection, page counts, OCR progress, processing failures) is written with
+  `patchUserLibraryDocumentProcessing`, which keeps `updatedAt`: «изменён» and the time order no
+  longer move a file while it is read. User edits (rename, colour, move, OCR request) still touch it.
+- Inserting or reordering files still moves cards between virtualized rows and re-creates the moved
+  ones. E2E: `user-library-doc-menu.spec.ts` holds the PDF reader, focuses «⋯» and checks the card
+  node stays connected and focused through ingest.
+
 ## Discoverable item menu — 2026-10-05
 
 - Document and folder cards in «Мои файлы» (the only list items that carry the right-click /
