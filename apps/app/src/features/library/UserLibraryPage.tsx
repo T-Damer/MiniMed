@@ -1,4 +1,5 @@
 import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import { createStore, reconcile } from 'solid-js/store';
 import { Portal } from 'solid-js/web';
 import { toast } from 'solid-sonner';
 import { AppContextMenu, type AppContextMenuAction } from '@/components/AppContextMenu';
@@ -14,6 +15,12 @@ import { SearchField } from '@/components/SearchField';
 import { useStickySurface } from '@/components/sticky-surface';
 import { userQuestionnairePath } from '@/features/assessments/assessment-routing';
 import { createLibraryDropHandlers, FOLDER_DRAG_TYPE } from '@/features/library/user-library-drag';
+import {
+  type LibraryEntry,
+  type LibrarySortMode,
+  reuseLibraryEntries,
+  sortLibraryEntries,
+} from '@/features/library/user-library-entries';
 import {
   openUserLibraryDocument,
   parseUserLibraryFolderRoute,
@@ -91,13 +98,37 @@ const KNOWLEDGE_BASE_FOLDER_ID = 'knowledge-base-entry';
 const FORMS_FOLDER_ID = 'official-forms-entry';
 const KNOWLEDGE_BASE_HASH = '#/modules/documents';
 
+/** Root entries that open another section; constant records keep their cards' identity. */
+const KNOWLEDGE_BASE_FOLDER: UserLibraryFolder = {
+  id: KNOWLEDGE_BASE_FOLDER_ID,
+  title: 'База знаний',
+  parentId: null,
+  isSystem: true,
+  createdAt: '',
+  updatedAt: '',
+};
+const PATIENTS_FOLDER: UserLibraryFolder = {
+  id: PATIENTS_FOLDER_ID,
+  title: 'Пациенты',
+  parentId: null,
+  isSystem: true,
+  createdAt: '',
+  updatedAt: '',
+};
+const FORMS_FOLDER: UserLibraryFolder = {
+  id: FORMS_FOLDER_ID,
+  title: 'Формы',
+  parentId: null,
+  isSystem: true,
+  createdAt: '',
+  updatedAt: '',
+};
+
 /** Root entries that open another section instead of holding files. */
 const isEntryFolder = (id: string): boolean =>
   id === PATIENTS_FOLDER_ID || id === KNOWLEDGE_BASE_FOLDER_ID || id === FORMS_FOLDER_ID;
 
-type SortMode = 'time' | 'name' | 'type';
-
-const SORT_MODE_LABEL: Record<SortMode, string> = {
+const SORT_MODE_LABEL: Record<LibrarySortMode, string> = {
   time: 'По времени',
   name: 'По названию',
   type: 'По типу',
@@ -195,26 +226,6 @@ const FILE_KIND_GLYPHS: Record<UserLibraryFileKind, AppGlyphName> = {
   binary: 'binary',
 };
 
-/** Folders lead, then Office colors-first kinds, everything else follows. */
-const FILE_KIND_SORT_RANK: Record<UserLibraryFileKind | 'folder', number> = {
-  folder: 0,
-  presentation: 1,
-  sheet: 2,
-  doc: 3,
-  pdf: 4,
-  dicom: 5,
-  volume: 6,
-  ebook: 7,
-  image: 8,
-  text: 9,
-  code: 10,
-  audio: 11,
-  video: 12,
-  archive: 13,
-  binary: 14,
-  questionnaire: 15,
-};
-
 const USER_LIBRARY_FOLDER_GLYPHS: Readonly<Record<string, AppGlyphName>> = {
   [USER_LIBRARY_BOOKS_FOLDER_ID]: 'book-open',
   [USER_LIBRARY_RESEARCH_FOLDER_ID]: 'microscope',
@@ -225,20 +236,6 @@ const USER_LIBRARY_FOLDER_GLYPHS: Readonly<Record<string, AppGlyphName>> = {
   [KNOWLEDGE_BASE_FOLDER_ID]: 'modules',
   [FORMS_FOLDER_ID]: 'file-text',
 };
-
-/** Reference-stability guard: keeps virtualizer rows from re-measuring when a
- * refresh brings back an identical list (e.g. unrelated library writes). */
-function libraryListsEqual<T extends { readonly id: string; readonly updatedAt: string }>(
-  previous: readonly T[],
-  next: readonly T[],
-): boolean {
-  if (previous === next) return true;
-  if (previous.length !== next.length) return false;
-  return previous.every((item, index) => {
-    const other = next[index];
-    return other && item.id === other.id && item.updatedAt === other.updatedAt;
-  });
-}
 
 function activeOcrDocumentId(documents: readonly UserLibraryDocument[]): string | null {
   return (
@@ -287,16 +284,6 @@ function isExampleSlotFilled(
   return documents.some(
     (document) => document.exampleId === slot.id || document.fileName === slot.fileName,
   );
-}
-
-interface LibraryEntry {
-  readonly key: string;
-  readonly kind: 'folder' | 'document';
-  readonly title: string;
-  readonly updatedAt: string;
-  readonly folder?: UserLibraryFolder;
-  readonly document?: UserLibraryDocument;
-  readonly example?: UserLibraryExampleSlot;
 }
 
 interface ExampleUploadState {
@@ -412,9 +399,15 @@ export function UserLibraryPage(props: {
     const folderId = parseUserLibraryFolderRoute(window.location.hash.replace(/^#\/?/u, ''));
     return folderId === USER_LIBRARY_TEMPLATES_FOLDER_ID ? null : folderId;
   };
-  const [documents, setDocuments] = createSignal<readonly UserLibraryDocument[]>([]);
+  // Records are reconciled by id: a refresh updates the fields of the same record object, so cards
+  // keep their DOM (and keyboard focus) while a file is read, previewed or patched.
+  const [library, setLibrary] = createStore<{
+    documents: UserLibraryDocument[];
+    folders: UserLibraryFolder[];
+  }>({ documents: [], folders: [] });
+  const documents = (): readonly UserLibraryDocument[] => library.documents;
+  const folders = (): readonly UserLibraryFolder[] => library.folders;
   const [vaultEncrypted, setVaultEncrypted] = createSignal(false);
-  const [folders, setFolders] = createSignal<readonly UserLibraryFolder[]>([]);
   const [exampleUploads, setExampleUploads] = createSignal<
     Partial<Record<UserLibraryExampleId, ExampleUploadState>>
   >({});
@@ -433,7 +426,7 @@ export function UserLibraryPage(props: {
   const [confirmBulkDelete, setConfirmBulkDelete] = createSignal(false);
   const [creatingPdf, setCreatingPdf] = createSignal(false);
   const [viewMode, setViewMode] = createSignal<'grid' | 'list'>(initialViewMode());
-  const [sortMode, setSortMode] = createSignal<SortMode>(initialSortMode());
+  const [sortMode, setSortMode] = createSignal<LibrarySortMode>(initialSortMode());
   const [dragPreview, setDragPreview] = createSignal<{
     title: string;
     kind: 'document' | 'folder';
@@ -451,7 +444,7 @@ export function UserLibraryPage(props: {
       return 'grid';
     }
   }
-  function initialSortMode(): SortMode {
+  function initialSortMode(): LibrarySortMode {
     try {
       const stored = localStorage.getItem('minimed.librarySort');
       return stored === 'name' || stored === 'type' ? stored : 'time';
@@ -467,7 +460,7 @@ export function UserLibraryPage(props: {
       // ignore
     }
   };
-  const applySortMode = (mode: SortMode): void => {
+  const applySortMode = (mode: LibrarySortMode): void => {
     setSortMode(mode);
     try {
       localStorage.setItem('minimed.librarySort', mode);
@@ -499,10 +492,8 @@ export function UserLibraryPage(props: {
         listUserLibraryFolders(),
       ]);
       if (generation !== refreshGeneration) return;
-      setDocuments((previous) =>
-        libraryListsEqual(previous, nextDocuments) ? previous : nextDocuments,
-      );
-      setFolders((previous) => (libraryListsEqual(previous, nextFolders) ? previous : nextFolders));
+      setLibrary('documents', reconcile([...nextDocuments], { key: 'id' }));
+      setLibrary('folders', reconcile([...nextFolders], { key: 'id' }));
       const current = currentFolderId();
       if (current && !nextFolders.some((folder) => folder.id === current)) {
         setCurrentFolderId(null);
@@ -710,38 +701,8 @@ export function UserLibraryPage(props: {
   const visibleFolders = createMemo(() => [
     ...folders().filter((folder) => folder.parentId === currentFolderId()),
     // With separate tabs off, the knowledge base has no tab of its own: it opens from here.
-    ...(currentFolderId() === null && props.knowledgeBaseEntry
-      ? [
-          {
-            id: KNOWLEDGE_BASE_FOLDER_ID,
-            title: 'База знаний',
-            parentId: null,
-            isSystem: true,
-            createdAt: '',
-            updatedAt: '',
-          } satisfies UserLibraryFolder,
-        ]
-      : []),
-    ...(currentFolderId() === null
-      ? [
-          {
-            id: PATIENTS_FOLDER_ID,
-            title: 'Пациенты',
-            parentId: null,
-            isSystem: true,
-            createdAt: '',
-            updatedAt: '',
-          } satisfies UserLibraryFolder,
-          {
-            id: FORMS_FOLDER_ID,
-            title: 'Формы',
-            parentId: null,
-            isSystem: true,
-            createdAt: '',
-            updatedAt: '',
-          } satisfies UserLibraryFolder,
-        ]
-      : []),
+    ...(currentFolderId() === null && props.knowledgeBaseEntry ? [KNOWLEDGE_BASE_FOLDER] : []),
+    ...(currentFolderId() === null ? [PATIENTS_FOLDER, FORMS_FOLDER] : []),
   ]);
   const visibleDocuments = createMemo(() => {
     const query = searchQuery().trim();
@@ -771,59 +732,25 @@ export function UserLibraryPage(props: {
     return childDocuments;
   };
 
-  /** Folders and files interleaved in one list, ordered by the chosen sort. */
-  const visibleEntries = createMemo<readonly LibraryEntry[]>(() => {
+  /**
+   * Folders and files interleaved in one list, ordered by the chosen sort. Entries of unchanged
+   * records stay the same objects, so the grid keeps their cards.
+   */
+  const visibleEntries = createMemo<readonly LibraryEntry[]>((previous = []) => {
     const query = searchQuery().trim();
     const folderEntries = visibleFolders()
       .filter((folder) => !query || matchesFuzzyQuery(query, [folder.title]))
-      .map(
-        (folder): LibraryEntry => ({
-          key: folder.id,
-          kind: 'folder',
-          title: folder.title,
-          updatedAt: folder.updatedAt,
-          folder,
-        }),
-      );
+      .map((folder): LibraryEntry => ({ key: folder.id, kind: 'folder', folder }));
     const documentEntries = visibleDocuments().map(
-      (document): LibraryEntry => ({
-        key: document.id,
-        kind: 'document',
-        title: document.title,
-        updatedAt: document.updatedAt,
-        document,
-      }),
+      (document): LibraryEntry => ({ key: document.id, kind: 'document', document }),
     );
     const exampleEntries = visibleExampleSlots().map(
-      (example): LibraryEntry => ({
-        key: `example:${example.id}`,
-        kind: 'document',
-        title: example.title,
-        updatedAt: '9999-12-31T23:59:59.999Z',
-        example,
-      }),
+      (example): LibraryEntry => ({ key: `example:${example.id}`, kind: 'document', example }),
     );
-    const mode = sortMode();
-    return [...folderEntries, ...documentEntries, ...exampleEntries].toSorted((left, right) => {
-      if (mode === 'name') return left.title.localeCompare(right.title, 'ru-RU');
-      if (mode === 'type') {
-        const rankOf = (entry: LibraryEntry): number => {
-          if (entry.kind === 'folder') return FILE_KIND_SORT_RANK.folder;
-          const kind = entry.example
-            ? userLibraryFileKind(entry.example.mimeType, entry.example.fileName)
-            : entry.document
-              ? userLibraryFileKind(entry.document.mimeType, entry.document.fileName)
-              : 'binary';
-          return FILE_KIND_SORT_RANK[kind];
-        };
-        const leftRank = rankOf(left);
-        const rightRank = rankOf(right);
-        if (leftRank !== rightRank) return leftRank - rightRank;
-        return left.title.localeCompare(right.title, 'ru-RU');
-      }
-      const byTime = right.updatedAt.localeCompare(left.updatedAt);
-      return byTime !== 0 ? byTime : left.title.localeCompare(right.title, 'ru-RU');
-    });
+    return reuseLibraryEntries(
+      previous,
+      sortLibraryEntries([...folderEntries, ...documentEntries, ...exampleEntries], sortMode()),
+    );
   });
 
   const folderTrail = createMemo(() => {
@@ -1460,6 +1387,9 @@ export function UserLibraryPage(props: {
     const selected = (): boolean => selectedIds().has(props.document.id);
     const kind = (): UserLibraryFileKind =>
       userLibraryFileKind(props.document.mimeType, props.document.fileName);
+    // Recomputed only when a field the menu reads changes, not on every progress update, so an
+    // open menu keeps its items.
+    const actions = createMemo(() => documentActions(props.document));
     const openDocumentCard = (): void => {
       if (lastInteractedKey === props.document.id) {
         lastInteractedKey = null;
@@ -1494,7 +1424,7 @@ export function UserLibraryPage(props: {
     return (
       <AppContextMenu
         class={`user-library-card-menu user-library-card-menu--${viewMode()}`}
-        actions={documentActions(props.document)}
+        actions={actions()}
         discoverLabel="Действия с документом"
         hideButton
       >
@@ -1552,7 +1482,10 @@ export function UserLibraryPage(props: {
               data-library-color={props.document.color}
               aria-hidden="true"
             >
-              <UserLibraryAttachmentPreview document={props.document} />
+              {/* The card outlives a file replacement; a new content version reloads its preview. */}
+              <Show when={`v:${props.document.contentVersion ?? ''}`} keyed>
+                <UserLibraryAttachmentPreview document={props.document} />
+              </Show>
               <AppGlyph
                 name={FILE_KIND_GLYPHS[kind()]}
                 class={`user-library-card__figure-glyph user-library-card__figure-glyph--${kind()}`}

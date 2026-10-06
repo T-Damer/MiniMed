@@ -47,4 +47,22 @@ describe('chunkLayoutRows', () => {
   it('returns no rows for an empty list', () => {
     expect(chunkLayoutRows([], 2)).toEqual([]);
   });
+
+  it('returns unchanged rows of a previous chunking as the same arrays', () => {
+    const [a, b, c, d, e] = [{ id: 'a' }, { id: 'b' }, { id: 'c' }, { id: 'd' }, { id: 'e' }];
+    const first = chunkLayoutRows([a, b, c, d], 2);
+    const same = chunkLayoutRows([a, b, c, d], 2, first);
+    expect(same[0]).toBe(first[0]);
+    expect(same[1]).toBe(first[1]);
+
+    const grown = chunkLayoutRows([a, b, c, d, e], 2, first);
+    expect(grown[0]).toBe(first[0]);
+    expect(grown[1]).toBe(first[1]);
+    expect(grown[2]).toEqual([e]);
+
+    const changed = chunkLayoutRows([a, b, d, c], 2, first);
+    expect(changed[0]).toBe(first[0]);
+    expect(changed[1]).not.toBe(first[1]);
+    expect(changed[1]).toEqual([d, c]);
+  });
 });

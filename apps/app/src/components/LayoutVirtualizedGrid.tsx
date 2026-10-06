@@ -28,7 +28,10 @@ export function LayoutVirtualizedGrid<T>(props: LayoutVirtualizedGridProps<T>): 
     ),
   );
   const columns = (): number => props.columns ?? responsiveColumns();
-  const rows = createMemo(() => chunkLayoutRows(props.data, columns()));
+  // Rows keep their identity while their items do, so the virtualizer reuses their DOM.
+  const rows = createMemo<readonly (readonly T[])[]>((previous) =>
+    chunkLayoutRows(props.data, columns(), previous),
+  );
 
   onMount(() => {
     if (props.columns !== undefined || !container) return;

@@ -21,15 +21,31 @@ export function layoutColumnCount(
   return 1;
 }
 
+/**
+ * Splits items into rows of `columns`. A row whose items are the same references, in the same
+ * order, as a row of `previous` is returned as that previous array: virtualizers key their rows by
+ * reference, so an update to one item's fields keeps every row's DOM (and focus inside it) alive.
+ */
 export function chunkLayoutRows<T>(
   items: readonly T[],
   columns: number,
+  previous: readonly (readonly T[])[] = [],
 ): readonly (readonly T[])[] {
   const cols = Math.max(1, Math.floor(columns));
   if (items.length === 0) return [];
-  const rows: T[][] = [];
+  const previousByFirst = new Map<T, readonly T[]>();
+  for (const row of previous) {
+    if (row.length > 0) previousByFirst.set(row[0] as T, row);
+  }
+  const rows: (readonly T[])[] = [];
   for (let index = 0; index < items.length; index += cols) {
-    rows.push(items.slice(index, index + cols));
+    const row = items.slice(index, index + cols);
+    const kept = previousByFirst.get(row[0] as T);
+    rows.push(kept && sameRow(kept, row) ? kept : row);
   }
   return rows;
+}
+
+function sameRow<T>(left: readonly T[], right: readonly T[]): boolean {
+  return left.length === right.length && left.every((item, index) => item === right[index]);
 }
