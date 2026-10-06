@@ -7,6 +7,7 @@ import { TextArea } from '@/components/TextArea';
 import { TextField } from '@/components/TextField';
 import { isAsrReady } from '@/features/asr/asr-models';
 import { transcriptTextMatchesSegments } from '@/features/notes/transcript-edit-alignment';
+import { saveBlobAsFile } from '@/state/native-share';
 import type { NoteFile } from '@/state/note-files';
 import {
   deleteTranscript,
@@ -165,15 +166,7 @@ export function NoteTranscriptPanel(props: {
     }
     const baseName = props.file.name.replace(/\.[^.]+$/u, '').trim() || 'Расшифровка';
     const blob = new Blob([value, '\n'], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = `${baseName} — расшифровка.txt`;
-    anchor.rel = 'noopener';
-    document.body.append(anchor);
-    anchor.click();
-    anchor.remove();
-    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    void saveBlobAsFile(blob, `${baseName} — расшифровка.txt`);
   };
 
   const save = async (): Promise<void> => {

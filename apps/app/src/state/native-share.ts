@@ -77,3 +77,26 @@ export async function shareSystemFile(input: {
     throw cause;
   }
 }
+
+/**
+ * Whether saving a file goes through the system share sheet («Сохранить в Файлы», AirDrop, Mail).
+ * The iOS web view ignores `<a download>` for blob URLs (nothing happens, no error), while the
+ * share sheet works there, also on iPad where it opens as a popover.
+ */
+export function savesThroughShareSheet(platform: string = Capacitor.getPlatform()): boolean {
+  return platform === 'ios';
+}
+
+/** Saves a file for the user: a browser download, or the share sheet inside the iOS app. */
+export async function saveBlobAsFile(blob: Blob, fileName: string, title?: string): Promise<void> {
+  if (!savesThroughShareSheet()) {
+    downloadFile(blob, fileName);
+    return;
+  }
+  await shareSystemFile({
+    title: title ?? fileName,
+    fileName,
+    mimeType: blob.type || 'application/octet-stream',
+    blob,
+  });
+}

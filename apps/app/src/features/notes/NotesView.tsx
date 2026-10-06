@@ -66,6 +66,7 @@ import { useNotesRoute } from '@/features/notes/use-notes-route';
 import { pluralRu } from '@/i18n/labels';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentOverlay } from '@/state/document-navigation';
+import { saveBlobAsFile } from '@/state/native-share';
 import {
   addNoteFiles,
   deleteNoteFile,
@@ -147,15 +148,7 @@ function safeNotesBackupName(value: string): string {
 
 function downloadNotesBackup(value: unknown, fileName: string): void {
   const blob = new Blob([JSON.stringify(value)], { type: 'application/json;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = fileName;
-  anchor.rel = 'noopener';
-  document.body.append(anchor);
-  anchor.click();
-  anchor.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 0);
+  void saveBlobAsFile(blob, fileName);
 }
 
 function formatDate(value: string): string {

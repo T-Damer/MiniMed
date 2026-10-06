@@ -10,7 +10,7 @@ vi.mock('@capacitor/core', () => ({
   registerPlugin: () => ({ shareFile: mocks.shareFile, shareText: vi.fn() }),
 }));
 
-import { shareSystemFile } from '@/state/native-share';
+import { saveBlobAsFile, savesThroughShareSheet, shareSystemFile } from '@/state/native-share';
 
 describe('shareSystemFile', () => {
   beforeEach(() => {
@@ -76,5 +76,51 @@ describe('shareSystemFile', () => {
     expect(click).toHaveBeenCalledOnce();
     expect(remove).toHaveBeenCalledOnce();
     expect(revokeObjectUrl).toHaveBeenCalledWith('blob:minimed-share');
+  });
+});
+
+describe('saveBlobAsFile', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    mocks.platform.mockReturnValue('android');
+  });
+
+  it('uses the share sheet only inside the iOS app', () => {
+    expect(savesThroughShareSheet('ios')).toBe(true);
+    expect(savesThroughShareSheet('android')).toBe(false);
+    expect(savesThroughShareSheet('web')).toBe(false);
+  });
+
+  it('hands the file to the iOS share sheet instead of a silent anchor download', async () => {
+    mocks.platform.mockReturnValue('ios');
+    const share = vi.fn(async () => undefined);
+    const createElement = vi.fn();
+    vi.stubGlobal('navigator', { canShare: vi.fn(() => true), share });
+    vi.stubGlobal('document', { createElement });
+
+    await saveBlobAsFile(new Blob(['{}'], { type: 'application/json' }), 'копия.json');
+
+    expect(share).toHaveBeenCalledOnce();
+    const payload = (share.mock.calls[0] as unknown as [{ files: File[] }])[0];
+    expect(payload.files[0]?.name).toBe('копия.json');
+    expect(createElement).not.toHaveBeenCalled();
+  });
+
+  it('downloads through an anchor on the web', async () => {
+    mocks.platform.mockReturnValue('web');
+    const click = vi.fn();
+    vi.stubGlobal('setTimeout', (callback: () => void) => {
+      callback();
+      return 0;
+    });
+    vi.stubGlobal('URL', { createObjectURL: vi.fn(() => 'blob:x'), revokeObjectURL: vi.fn() });
+    vi.stubGlobal('document', {
+      body: { append: vi.fn() },
+      createElement: vi.fn(() => ({ click, download: '', href: '', remove: vi.fn() })),
+    });
+
+    await saveBlobAsFile(new Blob(['a']), 'a.txt');
+
+    expect(click).toHaveBeenCalledOnce();
   });
 });

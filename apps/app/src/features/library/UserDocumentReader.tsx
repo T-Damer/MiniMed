@@ -74,6 +74,7 @@ import { pdfPageIndexFromUnitId } from '@/features/pdf-viewer/pdf-find-state';
 import { createPdfViewerModel } from '@/features/pdf-viewer/pdf-viewer-model';
 import { PrintManager } from '@/features/printing/print-manager';
 import type { DocumentTrail } from '@/state/document-trail';
+import { saveBlobAsFile } from '@/state/native-share';
 import { setMedicalImageStatusBar } from '@/state/native-system-ui';
 import {
   addUserLibraryFile,
@@ -1360,14 +1361,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                                 onClick={() => {
                                   void getUserLibraryFile(current.id).then((blob) => {
                                     if (!blob) return;
-                                    const url = URL.createObjectURL(blob);
-                                    const link = document.createElement('a');
-                                    link.href = url;
-                                    link.download = current.fileName || current.title;
-                                    document.body.append(link);
-                                    link.click();
-                                    link.remove();
-                                    window.setTimeout(() => URL.revokeObjectURL(url), 4000);
+                                    void saveBlobAsFile(blob, current.fileName || current.title);
                                   });
                                 }}
                               >

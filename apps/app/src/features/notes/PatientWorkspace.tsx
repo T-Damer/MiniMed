@@ -74,6 +74,7 @@ import {
   updatePatientVault,
 } from '@/state/patient-vault';
 import type { PatientAvatar as Avatar } from '@/state/patientAvatar';
+import { saveBlobAsFile } from '@/state/native-share';
 import '@/styles/patient-workspace.css';
 
 export type PatientRoute = Extract<
@@ -112,15 +113,7 @@ function safeExportFilePart(value: string): string {
 function downloadJsonFile(value: unknown, fileName: string): void {
   const data = JSON.stringify(value, null, 2);
   const blob = new Blob([data, '\n'], { type: 'application/json;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = fileName;
-  anchor.rel = 'noopener';
-  document.body.append(anchor);
-  anchor.click();
-  anchor.remove();
-  URL.revokeObjectURL(url);
+  void saveBlobAsFile(blob, fileName);
 }
 
 function observationSourceLabel(source: PatientObservation['source']): string {

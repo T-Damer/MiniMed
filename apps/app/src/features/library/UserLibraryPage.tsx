@@ -26,7 +26,7 @@ import {
 } from '@/features/notes/notes-routing';
 import { getPluralMessage } from '@/i18n/browser-i18n';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
-import { shareSystemFile } from '@/state/native-share';
+import { saveBlobAsFile, shareSystemFile } from '@/state/native-share';
 import { syncPatientNotesToUserLibrary } from '@/state/note-library-sync';
 import { PATIENT_VAULT_EVENT, patientVaultStorageMode } from '@/state/patient-vault';
 import {
@@ -612,14 +612,7 @@ export function UserLibraryPage(props: {
     try {
       const blob = await getUserLibraryFile(record.id);
       if (!blob) throw new Error('Файл недоступен.');
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement('a');
-      anchor.href = url;
-      anchor.download = record.fileName || record.title;
-      document.body.append(anchor);
-      anchor.click();
-      anchor.remove();
-      window.setTimeout(() => URL.revokeObjectURL(url), 4000);
+      await saveBlobAsFile(blob, record.fileName || record.title);
     } catch {
       toast.error(`Не удалось сохранить «${record.title}».`);
     }

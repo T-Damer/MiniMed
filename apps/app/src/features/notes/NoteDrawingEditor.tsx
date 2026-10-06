@@ -24,6 +24,7 @@ import {
   NOTE_LINK_KIND_LABEL,
   type NoteLinkTarget,
 } from '@/features/notes/note-link-targets';
+import { saveBlobAsFile } from '@/state/native-share';
 import '@/styles/note-drawing.css';
 
 declare global {
@@ -463,14 +464,7 @@ export function NoteDrawingPreview(props: {
 }
 
 function downloadBlob(blob: Blob, name: string): void {
-  const url = URL.createObjectURL(blob);
-  const anchor = window.document.createElement('a');
-  anchor.href = url;
-  anchor.download = name;
-  window.document.body.append(anchor);
-  anchor.click();
-  anchor.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 0);
+  void saveBlobAsFile(blob, name);
 }
 
 export function NoteDrawingEditor(props: {
