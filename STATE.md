@@ -106,6 +106,7 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
+| 2026-10-06 | claude-opus (UX9) | owner 10-06 search/reader polish: one definition preview instead of duplicate definition cards; no blocking while results update («Обновить» when new ones arrive); no duplicate icons or technical wording («Объявленные алиасы», revisions) in results; pointer page: one-line «download the set» row with size/progress in the button, collapsed/menu-hidden blocks, contrast and icon+text links; reader header «⋯» instead of the settings icon | `apps/app/src/features/search/**`, `apps/app/src/features/library/DocumentModulePointer.tsx`, reader header, related CSS |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 
 ## Next (claimed, not started)
