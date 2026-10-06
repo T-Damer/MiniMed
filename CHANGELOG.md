@@ -4,6 +4,13 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.53] - 2026-10-06
+
+- «Ваши документы»: cards no longer flicker or jump while added files are read — reading progress no
+  longer changes a file's «изменён» time or its place in the list, and a card, its «⋯» button and an
+  open menu stay the same element through reading, thumbnails, metadata updates and new files
+  pushing it into another row, so keyboard focus on «⋯» is kept.
+
 ## [0.6.52] - 2026-10-06
 
 - «Сравнение препаратов»: 2–4 drugs side by side — МНН, ATC group, forms and strengths, dispensing
