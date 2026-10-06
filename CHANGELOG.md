@@ -4,6 +4,54 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.51] - 2026-10-06
+
+- Android microphone: recording no longer reports «доступ запрещён» when the permission is granted
+  (the WebView also needs MODIFY_AUDIO_SETTINGS); «Открыть настройки приложения» appears only when
+  Android really refused.
+- «Лента» — a fourth tab with news: subscribe to RSS/Atom/JSON feeds or sites (14 checked medical
+  sources suggested, nothing connects by itself), cached items readable offline, unread count, a site
+  viewer with «Открыть в браузере» for sites that refuse embedding, OPML import/export.
+- «Взаимодействие препаратов»: add 2–10 drugs (and alcohol) and see, for every pair, the sentences of
+  the official instructions that name the other drug or its class (ATC), with a link into the
+  instruction; «в инструкциях упоминаний не найдено» when nothing is found, never «безопасно».
+  Search: «X взаимодействие с Y, Z», «совместимость X и Y», «X и алкоголь».
+- Settings in an iOS-style list: rows with status («Есть обновление», «Заполнено 2 из 5», sizes) and
+  sub-pages; the reference-images page shows examples.
+- Tools: every calculator and questionnaire declares its age scope; a «Дети / Взрослые / Все» filter and
+  an age badge on every tool list. «Мои калькуляторы» — build your own calculator with units, a safe
+  formula and result ranges; the own-questionnaire editor gained sections, scored ranges, copy, import
+  and export. The tool modules need this version.
+- «Календарь прививок»: the national calendar and the calendar by epidemic indications of order 1122н
+  (ред. 677н), transcribed from the official scans with a link to every source page; summary by age,
+  a child's plan from a birth date, and a print of the whole order on A4 landscape. Not yet checked by
+  a clinician.
+- Forms: 057/у, 058/у (с 01.03.2027), 088/у, prescription blanks 107-1/у, 148-1/у-88, 148-1/у-04(л),
+  003-В/у and 071/у; all forms are now checked against the official scan and fitted to it.
+- Drugs: a product without its own instruction shows another manufacturer's instruction of the same
+  substance and form, clearly labelled, with a warning when the strength or form differs (an official
+  text reachable for 97% of registry positions instead of 44%); a new module of instructions from
+  holders' sites (240 registrations).
+- Search: «ьуеащкьшт», «nurofen» and other wrong-layout or Latin spellings of names find the drug or
+  disease; diagnosis phrases bring up the recommendations of the matching МКБ code; questionnaires no
+  longer appear among clinical recommendations; the field no longer jumps when the search button
+  appears.
+- PDF: one viewer for your files and note attachments with find, page strip, go-to-page, zoom, print and
+  resume where you stopped.
+- Patient diary: a diary is kept as soon as its link opens, a new link merges into the same diary,
+  «Передать врачу» shows what was sent, «add to home screen» help, offline after the first visit; on
+  iPhone and iPad the home-screen icon opens the patient's own diary and an empty list accepts the
+  doctor's link pasted in; the doctor sees patient corrections, re-shows or updates an issued diary and
+  imports files.
+- iPad and iPhone: the iOS app builds and runs (full-width iPad portrait layout, inputs no longer zoom,
+  files are saved through the share sheet, camera and microphone permission texts, cream launch screen)
+  and is called MiniMed on the home screen.
+- Home and search: smoother suggestions carousel, an open section is its own page with back navigation,
+  «Скрыть» for «Полезные функции», an explanation of «Клинический разбор», no spinner while nothing
+  loads, random record and relation map in the «?» menu, a compact download button on source cards.
+- Optional МКБ-11 (ВОЗ) module, reference only — МКБ-10 stays the coding system; WHO's Russian titles,
+  definitions, inclusions, exclusions and index terms (48 MB download).
+
 ## [0.6.50] - 2026-10-05
 
 - Official forms: 070/у, 072/у, 076/у, 079/у and 025-1/у from Минздрав order 274н (official text from
