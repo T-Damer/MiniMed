@@ -1308,6 +1308,57 @@ tags `manufacturer-site`, `official-instruction`, `instructions`, `minAppVersion
   sections, onboarding). **Not verified:** installing the module in a browser/Android profile, the drug-screen wording for this source
   class (MED3 UI), search ranking over the mounted module, text overlap with the ГРЛС version of the same drug.
 
+## Drug comparison: tool, index and search card — 2026-10-06 (STATE CMP1)
+
+Owner request 2026-10-06: «Compare drugs by parameters» (release 0.6.52). Details, numbers and the hand check:
+[`research/drug-comparison-2026-10-06.md`](research/drug-comparison-2026-10-06.md); roadmap item 16 of
+[`SEARCH_ROADMAP.md`](SEARCH_ROADMAP.md).
+
+- **Tool «Сравнение препаратов»** (`#/notes/drug-comparison?c=<slug|slug|Trade name>&d=<typed name>`, 2–4 drugs, substance or
+  product chosen with the app's own drug search, `apps/app/src/features/drug-comparison/`). Columns per drug, rows per
+  parameter, the first column pinned on a wide screen, every row stacked with the drug's name on a phone. Rows: МНН, ATC code
+  and НСИ group names, registry pharmacotherapeutic group, forms and strengths (ЕСКЛП), conditions of dispensing (ГРЛС
+  register), ЖНВЛП per form, counts of registrations / trade names / manufacturers / holders; the instruction's own
+  pharmacotherapeutic-group and dispensing lines quoted; age and weight, pregnancy, breastfeeding from the SAFE1 extraction
+  run on the open instruction; six quoted sections (Показания, Противопоказания, Способ применения и дозы, Побочное
+  действие, Особые указания и «С осторожностью», Передозировка) declared in `SECTION_ROWS`; the INT1 sentences and INT2
+  DDInter label for the pairs (the same panel as the interaction tool, `InteractionPairs.tsx`).
+- **Deterministic marks, no generated text.** Sections are split into sentences and list items (plain substrings of the
+  instruction), normalised (case, punctuation, light stems, numbers kept, the drug's own names ignored) and matched across
+  the drugs: «у обоих» / «у всех» (identical), «формулировки различаются» (Jaccard ≥ 0.6, or ≥ 85 % of a ≥ 4-word statement
+  inside a longer unit; differing words and numbers marked), «только у X». «Показать только различия», «Показать полностью»,
+  «Открыть в инструкции» per statement. The notice «Сравнение текстов инструкций, а не клиническая рекомендация» is on the
+  screen, the print and the share text; no summary, no «лучше / хуже».
+- **Which instruction is read.** The index lists every instruction with the sections it has: the most sections, ГРЛС before a
+  holder's site, professional before leaflet; a product asked for keeps its own instruction; otherwise one dosage-form class
+  is read for every drug where each has one. Another instruction of the substance is one `<select>` in the column head; the
+  ADR-0023 wording and the leaflet note are shown; missing modules are offered once.
+- **Index** `apps/app/src/features/drug-comparison/data/comparison-index.json` (2.5 MB, 541 kB gzip, lazy chunk; registry facts
+  per card and a section map per instruction, **no text**), built by `bun run content:drug-comparison`
+  (`scripts/build-drug-comparison.ts`: instruction modules checked against the catalog SHA-256 like INT1 / SAFE1, ЕСКЛП
+  cards, ГРЛС register `data/raw/official-grls-registry/catalog-02.10.2026.json` for the conditions of dispensing; report
+  `data/build/drug-comparison/report.json`). Rebuild it with every instruction-module or register refresh.
+- **Search entry.** «X или Y», «X vs Y», «сравнить X и Y», «чем отличается X от Y», «разница между X и Y» (`parseComparisonQuery`)
+  → a card «Сравнить: X, Y» above the results of «Все источники» and «Препараты», only when every part names a drug in the
+  ordinary drug search (S3 layout / transliteration included, genitive names re-looked-up as their stem). Diseases and
+  symptoms get no card. No search code, ranking or alias changed.
+- **Entry points.** The search card; «Сравнить с…» in the quick links of a substance card and of a trade-name screen
+  (`links.compare` in `drug-screen.ts`); «Сравнить эти препараты» in the interaction tool; «Все инструменты» and the tool search
+  (`DRUG_COMPARISON_TOOL`, `ageScope` «any»); print and share like the interaction tool.
+- **Refactor.** The pairs block of the interaction tool (quotes, severity labels, offers, summary) moved from
+  `DrugInteractionWorkspace.tsx` to `InteractionPairs.tsx` (`InteractionPairsPanel`) so both tools show the same text; classes
+  and test ids unchanged. `QuoteBlock` of `SafetyBlocks.tsx` is exported; `endsSentenceAt` / `isUpperStart` of
+  `interaction-text.ts` are exported.
+- **Measured** (research note): 198 of the 200 most common substances (99 %) have all six quoted sections in the instruction read
+  first; marks hand-checked on 62 statements 95.2 % and on 63 after the containment rule 100 % (sample in
+  `research/data/cmp1-precision-sample.json`; two known error classes left); 4-drug comparison computes in 66–86 ms (desktop,
+  bun + SQLite); `bun run benchmark:cmp1` 35/35; exact-lookup gates unchanged.
+- **Not verified:** Android / WebView, devices, emulators; print on paper; recall of shared statements; statements on one topic in
+  different words are not matched (a «только у X» can be shown for a topic the other drug also covers).
+- Tests: unit (`comparison-*.test.ts`, 50 cases: units, normalisation and matching, view and instruction choice, registry rows,
+  build, query parsing, routing) and e2e `apps/app/e2e/drug-comparison.spec.ts` (instruction module from local bytes; screenshots
+  `output/cmp1-screens/`).
+
 ## Pregnancy, lactation and child-age questions in search — 2026-10-06 (STATE SAFE1)
 
 Owner request 2026-10-06: «X разрешён ли во время ГВ», «X при беременности», «X можно кормящей», «X ребёнку до Y лет / ребёнку 3 лет /

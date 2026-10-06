@@ -28,6 +28,7 @@ and the list is updated when the proposal is better. How search works today:
 | Drug by indication («от головы») | `drug-indication-queries.json`, 45 | hit@1 0.16, hit@5 0.47 | hit@1 0.62, hit@5 0.91 | E3 shipped to main |
 | Drug names | 100 ГРЛС trade names | top-1 0.99 | 1.00 | E3 gate |
 | Drug safety questions («X при беременности / при ГВ / ребёнку 3 лет») | `safe1-queries.json`, 44 (card, not ranking) | card correct 44/44, see item 15 | — | SAFE1, answer card above the results |
+| Drug comparison queries («X или Y», «X vs Y», «сравнить X и Y», «чем отличается X от Y») | `cmp1-queries.json`, 35 (card, not ranking) | card correct 35/35, see item 16 | — | CMP1, comparison card above the results |
 | Description → term («воспаление слизистой желудка» → гастрит) | `reverse-term-queries.json`, 35 | hit@5 0.80 | 0.49 | lexical kept (E5 rejected) |
 | Diagnosis / complaint → МКБ card | Q1, «Болезни» scope | R@5 0.28 / 0.03 | 0.39 / 0.02 | cards are the bridge's input (item 4); e5 on cards rejected |
 
@@ -98,6 +99,20 @@ hit@5 0.444 (rush 0.581, thoughtful 0.261), and with S3 0.278 / 0.574 (0.774, 0.
     Left: the substance's other manufacturers' instructions are one switch away, not compared; trade
     names inside quoted text are not matched; a symptom or disease question («давление при
     беременности») shows no card by design (no hand-written symptom→drug dictionary).
+
+16. **Comparing drugs** (CMP1, 2026-10-06; owner request «compare drugs by parameters»). Compared with the list first: not
+    ranking work (items 1–5, 8 stay as they are) and not a drug-by-indication search (E3): the drugs are named and the
+    question is how their own registry rows and instructions differ. Closest items: 6 (related documents from source
+    data), the INT1 card «Проверить взаимодействие» and the SAFE1 card (item 15); same shape, shipped as a **card above the
+    results** and a tool, with the ranking and every exact-name gate untouched. A deterministic parser
+    (`drug-comparison/comparison-query.ts`: a cue phrase, or «или» / «vs» between names) → the app's own medication search
+    (S3 variants, whole-word match, genitive names re-looked-up as their stem) → the card appears only if every part of the
+    query names a drug (so «менингит или энцефалит» has none) → the tool: registry rows, six instruction sections quoted
+    and matched across the drugs with deterministic marks («у обоих» / «только у X», threshold and rules in the research
+    note), no generated text, no «лучше / хуже». Measured on its own set (`bun run benchmark:cmp1`) and the exact-name gates
+    before / after: [`research/drug-comparison-2026-10-06.md`](research/drug-comparison-2026-10-06.md). Left: statements on
+    one topic worded differently are not matched; the first instruction of each substance is read, other manufacturers'
+    are one switch away; a disease or symptom pair gets no card by design.
 
 ## Measured and rejected
 
