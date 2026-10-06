@@ -7,6 +7,7 @@ import {
   type InstallAdvice,
   installAdvice,
   isInAppBrowser,
+  isIpad,
 } from '@/features/diary/diary-install';
 
 interface InstallPromptEvent extends Event {
@@ -48,6 +49,10 @@ export function listenForInstallPrompt(): void {
 
 export function platform(): DiaryPlatform {
   return detectPlatform(browserFacts());
+}
+
+export function onIpad(): boolean {
+  return isIpad(browserFacts());
 }
 
 export function insideMessenger(): boolean {

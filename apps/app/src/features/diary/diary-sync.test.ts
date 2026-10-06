@@ -11,6 +11,7 @@ import {
   installAdvice,
   installCardDismissed,
   isInAppBrowser,
+  isIpad,
 } from '@/features/diary/diary-install';
 import {
   entryFingerprint,
@@ -329,6 +330,11 @@ describe('keeping the diary on the phone screen', () => {
       detectPlatform({ userAgent: 'Macintosh', platform: 'MacIntel', maxTouchPoints: 5 }),
     ).toBe('ios');
     expect(detectPlatform({ userAgent: chromeAndroid })).toBe('android');
+    // An iPad keeps the share button in the top toolbar; iPadOS in desktop mode says «Macintosh».
+    expect(isIpad({ userAgent: 'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X)' })).toBe(true);
+    expect(isIpad({ userAgent: 'Macintosh', platform: 'MacIntel', maxTouchPoints: 5 })).toBe(true);
+    expect(isIpad({ userAgent: iphone })).toBe(false);
+    expect(isIpad({ userAgent: 'Macintosh', platform: 'MacIntel', maxTouchPoints: 0 })).toBe(false);
     expect(detectPlatform({ userAgent: 'Mozilla/5.0 (Windows NT 10.0) Chrome/126' })).toBe('other');
     expect(isInAppBrowser({ userAgent: iphone })).toBe(false);
     expect(isInAppBrowser({ userAgent: telegramIos })).toBe(true);

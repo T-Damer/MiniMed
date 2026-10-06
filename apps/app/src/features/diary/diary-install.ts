@@ -19,6 +19,15 @@ export function detectPlatform(facts: BrowserFacts): DiaryPlatform {
 }
 
 /**
+ * An iPad (including iPadOS in its desktop-class mode, which reports itself as a Mac). Its Safari
+ * keeps the share button in the top toolbar, not at the bottom of the screen as on an iPhone.
+ */
+export function isIpad(facts: BrowserFacts): boolean {
+  if (/iPad/u.test(facts.userAgent)) return true;
+  return facts.platform === 'MacIntel' && (facts.maxTouchPoints ?? 0) > 1;
+}
+
+/**
  * A messenger's built-in browser. It cannot add a page to the home screen and keeps its own
  * storage that the real browser never sees, so entries made there are easy to lose.
  */

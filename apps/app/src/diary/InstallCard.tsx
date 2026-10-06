@@ -1,7 +1,12 @@
 import { createSignal, type JSX, Show } from 'solid-js';
 
 import { Button } from '@/components/Button';
-import { currentInstallAdvice, insideMessenger, requestInstall } from '@/diary/install-state';
+import {
+  currentInstallAdvice,
+  insideMessenger,
+  onIpad,
+  requestInstall,
+} from '@/diary/install-state';
 import { installCardDismissed } from '@/features/diary/diary-install';
 import type { DiaryStore } from '@/features/diary/diary-storage';
 
@@ -83,7 +88,8 @@ export function InstallCard(props: {
         <Show when={advice() === 'ios'}>
           <ol class="diary-card__steps">
             <li class="diary-card__step">
-              Нажмите «Поделиться» — квадрат со стрелкой внизу экрана Safari.
+              Нажмите «Поделиться» — квадрат со стрелкой{' '}
+              {onIpad() ? 'в верхней панели' : 'внизу экрана'} Safari.
             </li>
             <li class="diary-card__step">Выберите «На экран «Домой»».</li>
             <li class="diary-card__step">Нажмите «Добавить».</li>
@@ -93,9 +99,9 @@ export function InstallCard(props: {
             fallback={<p class="diary-card__text">Лучше сделать это сейчас, до первой записи.</p>}
           >
             <p class="diary-card__text">
-              Значок на экране «Домой» на iPhone открывает отдельный пустой дневник. Чтобы перенести
-              записи, нажмите «Передать врачу» → «Сохранить файл», а в дневнике с экрана «Домой»
-              выберите «Восстановить записи».
+              Значок на экране «Домой» на {onIpad() ? 'iPad' : 'iPhone'} открывает отдельный пустой
+              дневник. Чтобы перенести записи, нажмите «Передать врачу» → «Сохранить файл», а в
+              дневнике с экрана «Домой» выберите «Восстановить записи».
             </p>
           </Show>
           <div class="diary-card__actions">
