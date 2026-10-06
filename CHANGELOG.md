@@ -4,6 +4,23 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.54] - 2026-10-07
+
+- Search: one definition line instead of a card per dictionary entry — «**Эпилепсия** — …» with
+  «Подробнее», «ещё N источника» and other matching names; without the dictionary installed, the
+  definition is quoted from a found document of that name.
+- Search never blocks: results stay usable while a background re-run checks newly installed
+  documents, and new results wait behind «Обновить». While the base opens, the field takes a query
+  (it runs once the base is ready), the send button shows a spinner, and the status is one small line
+  inside the search block instead of a separate card.
+- Result cards without duplicate icons or catalogue wording («Карточка источника», «Объявленные
+  алиасы», identifiers); a card's own text comes before its technical details.
+- Reader: technical sections («Сведения МКБ-10», «Классификационный контекст», «Сведения о
+  документе») at the end in small print; the download block is one row with the size and progress in
+  its button; readable, left-aligned links; «⋯» instead of the settings icon.
+- «Сравнение препаратов» in «Полезные функции»; quicker, iOS-like transitions.
+- Library: cards keep their place and keyboard focus while files are added or read.
+
 ## [0.6.53] - 2026-10-06
 
 - «Ваши документы»: cards no longer flicker or jump while added files are read — reading progress no
