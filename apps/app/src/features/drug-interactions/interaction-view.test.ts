@@ -2,14 +2,24 @@ import type { MedicalDocument } from '@localmed/contracts';
 import { describe, expect, it } from 'vitest';
 
 import { checkPair, type DrugItem } from './interaction-check';
+import {
+  SPAN_FLAG_CAUTION,
+  SPAN_FLAG_CONTRAINDICATIONS,
+  SPAN_FLAG_INTERACTIONS,
+  SPAN_FLAG_LEAFLET_BODY,
+  SPAN_FLAG_SPECIAL,
+} from './interaction-extract';
 import { interactionShareText, renderInteractionPrintHtml } from './interaction-print';
+import type { SeverityLookup } from './interaction-severity';
 import { buildFixtureIndex, SECTION_TEXT } from './interaction-test-fixtures';
 import {
   type DocumentState,
+  otherSectionsLabel,
   pairStatusText,
   pairView,
   printPairs,
   sideNote,
+  splitQuotes,
 } from './interaction-view';
 
 const index = buildFixtureIndex();
@@ -143,5 +153,121 @@ describe('pairView', () => {
     const text = interactionShareText(pairs);
     expect(text).toContain('Упоминание найдено: 2 предложения');
     expect(text).toContain('ибупрофеном');
+  });
+
+  describe('severity label (INT2)', () => {
+    const lookup = (level: 'major' | null): SeverityLookup => ({
+      provenance: {
+        source: 'DDInter 2.0',
+        retrievedOn: '2026-10-06',
+        license: 'CC BY-NC-SA 4.0',
+        licenseUrl: 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
+        siteUrl: 'https://ddinter2.scbdd.com/',
+        labelledPairs: 1,
+      },
+      levelOf: (first, second) =>
+        level && [first, second].sort().join('|') === 'варфарин|ибупрофен' ? level : null,
+    });
+
+    it('labels a pair with quotable sentences, naming the source', () => {
+      const view = pairView(
+        index,
+        checkPair(index, warfarin, ibuprofen),
+        states,
+        [],
+        lookup('major'),
+      );
+      expect(view.severity?.label).toBe('Серьёзное по DDInter');
+      expect(view.severity?.note).toContain('не из инструкции');
+    });
+
+    it('does not label a pair whose instructions are not installed (nothing to quote)', () => {
+      const none = new Map<string, DocumentState>([
+        ['drug.rf.aaaa.instruction', 'missing'],
+        ['drug.rf.bbbb.instruction', 'missing'],
+      ]);
+      const view = pairView(
+        index,
+        checkPair(index, warfarin, ibuprofen),
+        none,
+        [],
+        lookup('major'),
+      );
+      expect(view.status).toBe('found');
+      expect(view.severity).toBeNull();
+    });
+
+    it('does not label a pair without an instruction sentence, even when DDInter knows it', () => {
+      const view = pairView(index, checkPair(index, ibuprofen, omeprazole), states, [], {
+        ...lookup('major'),
+        levelOf: () => 'major',
+      });
+      expect(view.found).toBe(0);
+      expect(view.severity).toBeNull();
+    });
+
+    it('shows no label without the module, and none for alcohol', () => {
+      expect(
+        pairView(index, checkPair(index, warfarin, ibuprofen), states, [], null).severity,
+      ).toBeNull();
+      const alcohol: DrugItem = { id: 'alcohol', kind: 'alcohol', card: null, label: 'Алкоголь' };
+      const view = pairView(index, checkPair(index, warfarin, alcohol), states, [], {
+        ...lookup('major'),
+        levelOf: () => 'major',
+      });
+      expect(view.severity).toBeNull();
+    });
+
+    it('prints and shares the label with its source', () => {
+      const view = pairView(
+        index,
+        checkPair(index, warfarin, ibuprofen),
+        states,
+        [],
+        lookup('major'),
+      );
+      const pairs = printPairs([view]);
+      expect(pairs[0]?.severity).toContain('Серьёзное по DDInter');
+      expect(renderInteractionPrintHtml(pairs, '06.10.2026')).toContain('CC BY-NC-SA 4.0');
+      expect(interactionShareText(pairs)).toContain('Серьёзное по DDInter');
+      const plain = printPairs([
+        pairView(index, checkPair(index, warfarin, ibuprofen), states, []),
+      ]);
+      expect(interactionShareText(plain)).not.toContain('DDInter');
+    });
+  });
+});
+
+describe('splitQuotes (INT2)', () => {
+  const quote = (flags: number) => ({
+    key: String(flags),
+    text: '',
+    segments: [],
+    anchor: null,
+    flags,
+    sectionTitle: '',
+  });
+
+  it('keeps the interaction section and leaflet text in view and folds the other sections', () => {
+    const { main, other } = splitQuotes([
+      quote(SPAN_FLAG_SPECIAL),
+      quote(SPAN_FLAG_INTERACTIONS),
+      quote(SPAN_FLAG_CONTRAINDICATIONS),
+      quote(SPAN_FLAG_LEAFLET_BODY),
+      quote(SPAN_FLAG_CAUTION),
+    ]);
+    expect(main.map((entry) => entry.flags)).toEqual([
+      SPAN_FLAG_INTERACTIONS,
+      SPAN_FLAG_LEAFLET_BODY,
+    ]);
+    expect(other.map((entry) => entry.flags)).toEqual([
+      SPAN_FLAG_SPECIAL,
+      SPAN_FLAG_CONTRAINDICATIONS,
+      SPAN_FLAG_CAUTION,
+    ]);
+  });
+
+  it('words the fold with the count', () => {
+    expect(otherSectionsLabel(3)).toBe('ещё из других разделов (3)');
   });
 });

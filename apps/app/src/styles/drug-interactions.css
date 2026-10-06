@@ -337,9 +337,80 @@
   display: flex;
 }
 
-.drug-interactions__offer-button {
+.drug-interactions__offer-button,
+.drug-interactions__severity-offer-button {
   max-width: 100%;
   white-space: normal;
+}
+
+.drug-interactions__severity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem 0.6rem;
+  margin-top: 0.15rem;
+}
+
+.drug-interactions__severity-label {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.6rem;
+  border: var(--theme-border-hairline, 1px) solid var(--theme-border);
+  border-radius: 999px;
+  background: var(--theme-surface-muted);
+  color: var(--theme-text);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.drug-interactions__severity-label--major {
+  border-color: var(--theme-danger);
+  background: color-mix(in srgb, var(--theme-danger) 14%, transparent);
+}
+
+.drug-interactions__severity-label--moderate {
+  border-color: var(--theme-warning);
+  background: var(--theme-warning-soft);
+}
+
+.drug-interactions__severity-label--minor {
+  border-color: var(--theme-info);
+  background: var(--theme-info-soft);
+}
+
+.drug-interactions__severity-note {
+  flex: 1 1 14rem;
+  min-width: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.drug-interactions__severity-offer {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.8rem 1rem;
+}
+
+.drug-interactions__severity-source {
+  display: grid;
+  gap: 0.3rem;
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.drug-interactions__severity-source-text {
+  margin: 0;
+}
+
+.drug-interactions__fold {
+  margin-top: 0.1rem;
+}
+
+.drug-interactions__fold-body {
+  display: grid;
+  gap: 0.5rem;
 }
 
 @media print {

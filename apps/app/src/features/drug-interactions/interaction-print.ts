@@ -28,6 +28,8 @@ export interface PrintSide {
 export interface PrintPair {
   readonly title: string;
   readonly status: string;
+  /** «Серьёзное по DDInter. Оценка из международной базы…», only for a pair with a label. */
+  readonly severity: string | null;
   readonly sides: readonly PrintSide[];
 }
 
@@ -46,6 +48,7 @@ const PRINT_STYLES = `
   .ddi-print__pair { margin: 0 0 5mm; break-inside: avoid-page; }
   .ddi-print__pair-title { margin: 0 0 1mm; font-size: 12pt; }
   .ddi-print__status { margin: 0 0 2mm; font-weight: bold; }
+  .ddi-print__severity { margin: 0 0 2mm; font-size: 9.5pt; }
   .ddi-print__side { margin: 0 0 2.5mm; }
   .ddi-print__heading { margin: 0; font-weight: bold; }
   .ddi-print__source, .ddi-print__note { margin: 0 0 1mm; font-size: 9pt; color: #333; }
@@ -54,6 +57,9 @@ const PRINT_STYLES = `
   .ddi-print__date { margin: 4mm 0 0; font-size: 8.5pt; color: #333; }
 `;
 
+export const SEVERITY_PRINT_SOURCE =
+  'Метки степени риска: DDInter 2.0 (https://ddinter2.scbdd.com/), лицензия CC BY-NC-SA 4.0; международная база данных, не инструкции препаратов. Использование некоммерческое.';
+
 export function renderInteractionPrintHtml(pairs: readonly PrintPair[], printedOn: string): string {
   const body = pairs
     .map(
@@ -61,6 +67,7 @@ export function renderInteractionPrintHtml(pairs: readonly PrintPair[], printedO
     <section class="ddi-print__pair">
       <h2 class="ddi-print__pair-title">${escapeHtml(pair.title)}</h2>
       <p class="ddi-print__status">${escapeHtml(pair.status)}</p>
+      ${pair.severity ? `<p class="ddi-print__severity">${escapeHtml(pair.severity)}</p>` : ''}
       ${pair.sides
         .map(
           (side) => `
@@ -80,7 +87,7 @@ export function renderInteractionPrintHtml(pairs: readonly PrintPair[], printedO
     </section>`,
     )
     .join('');
-  return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>${escapeHtml(INTERACTION_PRINT_TITLE)}</title><style>${PRINT_STYLES}</style></head><body><main class="ddi-print"><h1 class="ddi-print__title">Взаимодействие препаратов</h1><p class="ddi-print__notice">${escapeHtml(INTERACTION_NOTICE)}</p>${body}<p class="ddi-print__date">Составлено ${escapeHtml(printedOn)} в приложении MiniMed по установленным текстам инструкций.</p></main></body></html>`;
+  return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>${escapeHtml(INTERACTION_PRINT_TITLE)}</title><style>${PRINT_STYLES}</style></head><body><main class="ddi-print"><h1 class="ddi-print__title">Взаимодействие препаратов</h1><p class="ddi-print__notice">${escapeHtml(INTERACTION_NOTICE)}</p>${body}${pairs.some((pair) => pair.severity) ? `<p class="ddi-print__date">${escapeHtml(SEVERITY_PRINT_SOURCE)}</p>` : ''}<p class="ddi-print__date">Составлено ${escapeHtml(printedOn)} в приложении MiniMed по установленным текстам инструкций.</p></main></body></html>`;
 }
 
 /** The same content as plain text, for sharing or copying. */
@@ -93,6 +100,7 @@ export function interactionShareText(pairs: readonly PrintPair[]): string {
   ];
   for (const pair of pairs) {
     lines.push(pair.title, pair.status);
+    if (pair.severity) lines.push(pair.severity);
     for (const side of pair.sides) {
       lines.push('', side.heading, side.source);
       if (side.note) lines.push(side.note);
@@ -100,5 +108,6 @@ export function interactionShareText(pairs: readonly PrintPair[]): string {
     }
     lines.push('');
   }
+  if (pairs.some((pair) => pair.severity)) lines.push(SEVERITY_PRINT_SOURCE);
   return lines.join('\n').trimEnd();
 }

@@ -13,9 +13,11 @@ import {
 import type { ClassPhrase } from './class-phrases';
 import type { DrugItem, PairCheck, SideCheck } from './interaction-check';
 import { itemTargets } from './interaction-check';
+import { SPAN_FLAG_INTERACTIONS, SPAN_FLAG_LEAFLET_BODY } from './interaction-extract';
 import type { InteractionIndex } from './interaction-index';
 import type { PrintPair, PrintSide } from './interaction-print';
 import { type Quote, resolveQuotes, sentenceSectionLabel } from './interaction-quotes';
+import { type PairSeverity, pairSeverity, type SeverityLookup } from './interaction-severity';
 import { highlightPatterns, highlightSegments } from './mention-highlight';
 
 export type DocumentState = 'loading' | 'missing' | { readonly document: MedicalDocument };
@@ -53,6 +55,8 @@ export interface PairView {
   readonly status: PairStatus;
   readonly found: number;
   readonly sides: readonly SideView[];
+  /** The DDInter label, only while the optional module is installed and a sentence is quotable. */
+  readonly severity: PairSeverity | null;
 }
 
 function sideView(
@@ -104,6 +108,7 @@ export function pairView(
   pair: PairCheck,
   documents: ReadonlyMap<string, DocumentState>,
   phrases: readonly ClassPhrase[],
+  severity: SeverityLookup | null = null,
 ): PairView {
   const sides = [pair.aReadsB, pair.bReadsA]
     .map((check) => sideView(index, check, documents, phrases))
@@ -116,7 +121,37 @@ export function pairView(
     status: found > 0 ? 'found' : missing ? 'incomplete' : 'none',
     found,
     sides,
+    severity: pairSeverity(severity, {
+      firstId: pair.a.id,
+      secondId: pair.b.id,
+      quotable: pair.a.kind === 'drug' && pair.b.kind === 'drug' ? quotableCount(sides) : 0,
+    }),
   };
+}
+
+function quotableCount(sides: readonly SideView[]): number {
+  return sides.reduce((total, side) => total + side.quotes.length, 0);
+}
+
+/**
+ * The sentences a side shows at once and those folded behind «ещё из других разделов»: the
+ * interaction section (and a leaflet's general text, which has no typed interaction section) stay
+ * in view, «Особые указания», «Противопоказания» and «С осторожностью» are folded (INT2).
+ */
+export function splitQuotes(quotes: readonly Quote[]): {
+  readonly main: readonly Quote[];
+  readonly other: readonly Quote[];
+} {
+  const inMain = (quote: Quote): boolean =>
+    (quote.flags & (SPAN_FLAG_INTERACTIONS | SPAN_FLAG_LEAFLET_BODY)) !== 0;
+  return {
+    main: quotes.filter(inMain),
+    other: quotes.filter((quote) => !inMain(quote)),
+  };
+}
+
+export function otherSectionsLabel(count: number): string {
+  return `ещё из других разделов (${count})`;
 }
 
 export function pairTitle(pair: Pick<PairView, 'a' | 'b'>): string {
@@ -187,6 +222,7 @@ export function printPairs(views: readonly PairView[]): readonly PrintPair[] {
     (view): PrintPair => ({
       title: pairTitle(view),
       status: pairStatusText(view),
+      severity: view.severity ? `${view.severity.label}. ${view.severity.note}` : null,
       sides: view.sides.map(
         (side): PrintSide => ({
           heading: sideHeading(side),

@@ -42,7 +42,17 @@ import {
 import { ALCOHOL_QUERY_NAME } from './interaction-query';
 import { sentenceSectionLabel } from './interaction-quotes';
 import {
+  SEVERITY_LICENSE_URL,
+  type SeverityLevel,
+  type SeverityLookup,
+  type SeverityProvenance,
+  severityAttribution,
+  severityDocumentId,
+} from './interaction-severity';
+import { loadSeverityPartners, loadSeverityProvenance } from './interaction-severity-load';
+import {
   type DocumentState,
+  otherSectionsLabel,
   type PairView,
   pairStatusText,
   pairTitle,
@@ -54,7 +64,9 @@ import {
   sideHeading,
   sideNote,
   sideSourceLine,
+  splitQuotes,
 } from './interaction-view';
+import { SeverityDownloadOffer } from './SeverityDownloadOffer';
 import '@/styles/drug-interactions.css';
 
 const MAX_ITEMS = 10;
@@ -127,6 +139,7 @@ function QuoteBlock(props: {
 function SideBlock(props: { readonly side: SideView }): JSX.Element {
   const note = () => sideNote(props.side);
   const source = () => sideSourceLine(props.side);
+  const split = createMemo(() => splitQuotes(props.side.quotes));
   return (
     <section class="drug-interactions__side" data-state={props.side.state}>
       <h4 class="drug-interactions__side-title">{sideHeading(props.side)}</h4>
@@ -162,9 +175,27 @@ function SideBlock(props: { readonly side: SideView }): JSX.Element {
             </p>
           }
         >
-          <For each={props.side.quotes}>
+          <For each={split().main}>
             {(quote) => <QuoteBlock documentId={props.side.documentId ?? ''} quote={quote} />}
           </For>
+          <Show when={split().main.length === 0}>
+            <p class="drug-interactions__side-status" data-testid="interaction-main-empty">
+              {`В разделе о взаимодействии с другими лекарственными средствами упоминаний «${props.side.to.label}» нет.`}
+            </p>
+          </Show>
+          <Show when={split().other.length > 0}>
+            <Disclosure
+              variant="inline"
+              class="drug-interactions__fold"
+              title={otherSectionsLabel(split().other.length)}
+            >
+              <div class="drug-interactions__fold-body" data-testid="interaction-fold-body">
+                <For each={split().other}>
+                  {(quote) => <QuoteBlock documentId={props.side.documentId ?? ''} quote={quote} />}
+                </For>
+              </div>
+            </Disclosure>
+          </Show>
           <Show when={props.side.changed > 0}>
             <p class="drug-interactions__side-note">{note()}</p>
           </Show>
@@ -189,6 +220,22 @@ function PairCard(props: { readonly view: PairView }): JSX.Element {
         <p class="drug-interactions__pair-status" data-testid="interaction-pair-status">
           {pairStatusText(props.view)}
         </p>
+        <Show when={props.view.severity}>
+          {(severity) => (
+            <div class="drug-interactions__severity" data-testid="interaction-severity">
+              <span
+                class="drug-interactions__severity-label"
+                classList={{
+                  [`drug-interactions__severity-label--${severity().level}`]: true,
+                }}
+                data-level={severity().level}
+              >
+                {severity().label}
+              </span>
+              <span class="drug-interactions__severity-note">{severity().note}</span>
+            </div>
+          )}
+        </Show>
       </header>
       <For each={props.view.sides}>{(side) => <SideBlock side={side} />}</For>
     </article>
@@ -220,6 +267,10 @@ export function DrugInteractionWorkspace(props: {
   const [candidates, setCandidates] = createSignal<readonly DrugCandidate[]>([]);
   const [documents, setDocuments] = createSignal<ReadonlyMap<string, DocumentState>>(new Map());
   const [resolving, setResolving] = createSignal(props.initialNames.length > 0);
+  const [contentRevision, setContentRevision] = createSignal(0);
+  const [severityDocuments, setSeverityDocuments] = createSignal<
+    ReadonlyMap<string, ReadonlyMap<string, SeverityLevel> | 'loading'>
+  >(new Map());
 
   const hasItem = (id: string): boolean => items().some((item) => item.id === id);
   const addItem = (item: DrugItem): void => {
@@ -291,9 +342,13 @@ export function DrugInteractionWorkspace(props: {
 
   // Installed instructions: read once per document; a reconnected core or a content change starts over.
   let requested = new Set<string>();
+  let severityRequested = new Set<string>();
   const forgetDocuments = (): void => {
     requested = new Set();
     setDocuments(new Map());
+    severityRequested = new Set();
+    setSeverityDocuments(new Map());
+    setContentRevision((value) => value + 1);
   };
   createEffect(on(() => props.core, forgetDocuments, { defer: true }));
   createEffect(() => {
@@ -318,14 +373,63 @@ export function DrugInteractionWorkspace(props: {
   window.addEventListener(CONTENT_CHANGED_EVENT, forgetDocuments);
   onCleanup(() => window.removeEventListener(CONTENT_CHANGED_EVENT, forgetDocuments));
 
+  const pairChecks = createMemo(() => {
+    const loaded = index();
+    return loaded ? checkAllPairs(loaded, items()) : [];
+  });
+
+  // The optional DDInter module: its manifest says it is installed, and which source and licence.
+  const [provenance] = createResource(
+    () => (props.core ? { core: props.core, revision: contentRevision() } : false),
+    ({ core }): Promise<SeverityProvenance | null> =>
+      loadSeverityProvenance(core).catch(() => null),
+  );
+  // The severity document of each pair that has instruction sentences, read once.
+  createEffect(() => {
+    const core = props.core;
+    if (!core || !provenance()) return;
+    const generation = severityRequested;
+    for (const pair of pairChecks()) {
+      if (pair.found === 0 || pair.a.kind !== 'drug' || pair.b.kind !== 'drug') continue;
+      const { documentId } = severityDocumentId(pair.a.id, pair.b.id);
+      if (generation.has(documentId)) continue;
+      generation.add(documentId);
+      setSeverityDocuments((current) => new Map(current).set(documentId, 'loading'));
+      void loadSeverityPartners(core, documentId)
+        .catch(() => new Map<string, SeverityLevel>())
+        .then((partners) => {
+          if (generation !== severityRequested) return;
+          setSeverityDocuments((current) => new Map(current).set(documentId, partners));
+        });
+    }
+  });
+  const severityLookup = createMemo<SeverityLookup | null>(() => {
+    const installed = provenance();
+    if (!installed) return null;
+    const read = severityDocuments();
+    return {
+      provenance: installed,
+      levelOf: (first, second) => {
+        const { documentId, partner } = severityDocumentId(first, second);
+        const partners = read.get(documentId);
+        return partners && partners !== 'loading' ? (partners.get(partner) ?? null) : null;
+      },
+    };
+  });
+
   const views = createMemo<readonly PairView[]>(() => {
     const loaded = index();
     if (!loaded) return [];
     const read = documents();
     const classes = phrases() ?? [];
-    return checkAllPairs(loaded, items()).map((pair) => pairView(loaded, pair, read, classes));
+    const severity = severityLookup();
+    return pairChecks().map((pair) => pairView(loaded, pair, read, classes, severity));
   });
   const foundCount = () => views().filter((view) => view.status === 'found').length;
+  const labelledCount = () => views().filter((view) => view.severity !== null).length;
+  /** Pairs with a sentence that can be quoted now: only those could carry a severity label. */
+  const quotablePairCount = () =>
+    views().filter((view) => view.sides.some((side) => side.quotes.length > 0)).length;
   /** The instruction modules the pairs need and the device does not have: one offer for each. */
   const missingModules = createMemo(() => [
     ...new Set(
@@ -391,6 +495,16 @@ export function DrugInteractionWorkspace(props: {
             <p>
               Если у препарата несколько инструкций, читается одна из них; тексты других
               производителей могут отличаться. Торговые названия в тексте не ищутся.
+            </p>
+            <p>
+              Предложения из раздела «Взаимодействие с другими лекарственными средствами» показаны
+              сразу; предложения из «Особых указаний», «Противопоказаний» и «С осторожностью»
+              свёрнуты под строкой «ещё из других разделов».
+            </p>
+            <p>
+              Если скачан необязательный модуль меток, рядом с парой, у которой есть предложение из
+              инструкции, показана степень риска по международной базе DDInter. Это метка базы, а не
+              текст инструкции.
             </p>
           </div>
         </Disclosure>
@@ -566,9 +680,37 @@ export function DrugInteractionWorkspace(props: {
             </For>
           </section>
         </Show>
+        <Show
+          when={quotablePairCount() > 0 && provenance.state === 'ready' && provenance() === null}
+        >
+          <SeverityDownloadOffer onContentChanged={onContentChanged} />
+        </Show>
         <div class="drug-interactions__pairs" data-testid="interaction-pairs">
           <For each={views()}>{(view) => <PairCard view={view} />}</For>
         </div>
+        <Show when={severityLookup()}>
+          {(lookup) => (
+            <aside class="drug-interactions__severity-source" data-testid="severity-source">
+              <p class="drug-interactions__severity-source-text">
+                {severityAttribution(lookup().provenance)} Показаны только метки; описаний базы в
+                приложении нет.
+              </p>
+              <p class="drug-interactions__severity-source-text">
+                {labelledCount() === 0
+                  ? 'Для выбранных пар меток нет: метка показывается только там, где в инструкции есть предложение, и база DDInter знает пару.'
+                  : `Меток на экране: ${labelledCount()}.`}{' '}
+                <a
+                  class="drug-interactions__vidal"
+                  href={lookup().provenance.licenseUrl || SEVERITY_LICENSE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Лицензия {lookup().provenance.license}
+                </a>
+              </p>
+            </aside>
+          )}
+        </Show>
       </Show>
     </section>
   );
