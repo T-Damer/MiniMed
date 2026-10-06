@@ -13,7 +13,7 @@ test.beforeAll(async () => {
 });
 test.afterAll(cleanupCoreIdentityFixture);
 
-test('exact stopword meanings offer the verified package and open their own source card', async ({
+test('exact stopword meanings fold into one preview that opens each own source card', async ({
   page,
 }) => {
   test.setTimeout(180_000);
@@ -21,23 +21,24 @@ test('exact stopword meanings offer the verified package and open their own sour
   await page.route('**/content/regulatory.db', (route) => route.abort());
   await mountBuiltApp(page, { splitNavigation: false, skipLargeCompanionPacks: true });
   const input = page.getByTestId('search-input');
-  const identities = page.locator('section[aria-label="Точные названия в источниках"]');
-  const cards = identities.locator('.core-identity-matches__card');
+  const identities = page.locator('section[aria-label="Определение термина"]');
+  const cards = identities.getByTestId('definition-preview');
   await expect
     .poll(
       async () => {
         const error = page.locator('.search-core-status--error');
         if (await error.isVisible()) return await error.innerText();
-        return (await input.isEnabled()) ? 'ready' : 'waiting';
+        return (await input.getAttribute('data-search-ready')) === 'true' ? 'ready' : 'waiting';
       },
       { timeout: 60_000 },
     )
     .toBe('ready');
   await input.fill('НА');
   await page.getByTestId('search-submit').click();
-  await expect(cards).toHaveCount(2);
+  // Two dictionary entries of one name are one preview; the second waits behind «ещё 1 …».
+  await expect(cards).toHaveCount(1);
   await expect(page.locator('.error-card')).toHaveCount(0);
-  await cards.first().getByRole('button', { name: 'Открыть запись' }).click();
+  await cards.getByRole('button', { name: 'Подробнее', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'НА', exact: true });
   await expect(dialog).toContainText('Новый справочник пока не подключён');
   await dialog.getByText('Пакеты справочника', { exact: true }).click();
@@ -54,7 +55,10 @@ test('exact stopword meanings offer the verified package and open their own sour
   );
   await page.keyboard.press('Escape');
   await expect(dialog).toBeHidden();
-  await cards.nth(1).getByRole('button', { name: 'Открыть запись' }).click();
+  // With the dictionary installed the preview quotes its first definition.
+  await expect(cards.locator('.definition-preview__definition')).toBeVisible();
+  await cards.getByRole('button', { name: /^ещё 1 / }).click();
+  await cards.locator('.definition-preview__other-link').first().click();
   await expect(dialog.locator('.reference-card__text')).toHaveText(fixture.expected[1]?.text ?? '');
   await expect(dialog.locator('.reference-card__text')).not.toHaveText(
     fixture.expected[0]?.text ?? '',
@@ -70,7 +74,7 @@ test('exact stopword meanings offer the verified package and open their own sour
   await expect(cards).toHaveCount(0);
   await selectSearchSection(page, 'Все источники');
   await page.getByTestId('search-submit').click();
-  await expect(cards).toHaveCount(2);
+  await expect(cards).toHaveCount(1);
   await setClinicalAnalysis(page, true);
   await page.getByTestId('search-submit').click();
   await expect(cards).toHaveCount(0);
@@ -88,16 +92,16 @@ test('an exact document identity rejects a local copy with the wrong raw-source 
       async () => {
         const error = page.locator('.search-core-status--error');
         if (await error.isVisible()) return await error.innerText();
-        return (await input.isEnabled()) ? 'ready' : 'waiting';
+        return (await input.getAttribute('data-search-ready')) === 'true' ? 'ready' : 'waiting';
       },
       { timeout: 60_000 },
     )
     .toBe('ready');
   await input.fill(fixture.document.title);
   await page.getByTestId('search-submit').click();
-  const identities = page.locator('section[aria-label="Точные названия в источниках"]');
-  await expect(identities.locator('.core-identity-matches__card')).toHaveCount(1);
-  await identities.getByRole('button', { name: 'Открыть запись' }).click();
+  const identities = page.locator('section[aria-label="Определение термина"]');
+  await expect(identities.getByTestId('definition-preview')).toHaveCount(1);
+  await identities.getByRole('button', { name: 'Подробнее', exact: true }).click();
   await expect(identities.getByRole('alert')).toContainText(
     'Установленный документ другой редакции',
   );
@@ -117,17 +121,17 @@ test('a fresh exact document route installs its source and rejects a wrong editi
   await page.route('**/content/regulatory.db', (route) => route.abort());
   await mountBuiltApp(page, { splitNavigation: false, skipLargeCompanionPacks: true });
   const input = page.getByTestId('search-input');
-  await expect(input).toBeEnabled({ timeout: 60_000 });
+  await expect(input).toHaveAttribute('data-search-ready', 'true', { timeout: 60_000 });
   await input.fill(fixture.document.title);
   await page.getByTestId('search-submit').click();
-  const identities = page.locator('section[aria-label="Точные названия в источниках"]');
-  await expect(identities.locator('.core-identity-matches__card')).toHaveCount(1);
-  await identities.getByRole('button', { name: 'Открыть запись' }).click();
+  const identities = page.locator('section[aria-label="Определение термина"]');
+  await expect(identities.getByTestId('definition-preview')).toHaveCount(1);
+  await identities.getByRole('button', { name: 'Подробнее', exact: true }).click();
   await expect(page).toHaveURL(/\?exact=/u);
   const exactUrl = page.url();
   const pointer = page.locator('.document-module-pointer');
   await expect(pointer).toContainText(fixture.documentModule.title);
-  await pointer.getByRole('button', { name: 'Скачать набор', exact: true }).click();
+  await pointer.getByRole('button', { name: /^Скачать набор/u }).click();
   await expect(page.locator('.document-text-chunk').first()).toBeVisible({ timeout: 60_000 });
   await expect(pointer).toBeHidden();
   expect(page.url()).toBe(exactUrl);
@@ -144,7 +148,9 @@ test('a fresh exact document route installs its source and rejects a wrong editi
     await routeCoreIdentityFixture(copied, fixture);
     await copied.route('**/content/regulatory.db', (route) => route.abort());
     await mountBuiltApp(copied, { splitNavigation: false, skipLargeCompanionPacks: true });
-    await expect(copied.getByTestId('search-input')).toBeEnabled({ timeout: 60_000 });
+    await expect(copied.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
+      timeout: 60_000,
+    });
     await copied.evaluate((url) => {
       window.location.hash = new URL(url).hash;
     }, exactUrl);
