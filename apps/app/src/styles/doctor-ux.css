@@ -1041,14 +1041,18 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
   white-space: normal;
   padding: 0;
   border: 0;
-  color: #355b69;
+  color: var(--theme-inline-link);
   background: transparent;
+  /* A <button> centres its text; a wrapped link reads from its icon like the text around it. */
+  text-align: start;
   cursor: pointer;
   font: inherit;
   text-decoration: none;
 }
 
 .document-inline-link__label {
+  /* Long addresses wrap inside the column instead of running off the page. */
+  overflow-wrap: anywhere;
   text-decoration: underline wavy;
   text-decoration-thickness: 0.0625rem;
   text-underline-offset: var(--theme-text-underline-offset);
@@ -1056,12 +1060,12 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
 
 @media (hover: hover) and (pointer: fine) {
   .document-inline-link:hover {
-    color: #244652;
+    color: var(--theme-inline-link-hover);
   }
 }
 
 .document-inline-link:focus-visible {
-  color: #244652;
+  color: var(--theme-inline-link-hover);
 }
 
 .document-inline-preview {

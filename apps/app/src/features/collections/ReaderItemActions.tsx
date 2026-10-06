@@ -7,7 +7,7 @@ import type { ItemRefInput } from '@/state/item-collections';
 import './reader-item-actions.css';
 
 /** The reader's action menu glyph: a dropdown mark, not three dots next to the ☰ outline button. */
-export const READER_ACTIONS_ICON: AppGlyphName = 'sliders-horizontal';
+export const READER_ACTIONS_ICON: AppGlyphName = 'dots-three';
 
 /** One collections panel per reader: the title row owns the button, the header menu can open it. */
 export interface ReaderBookmark {
