@@ -205,6 +205,29 @@ function contentArchiveServing(): Plugin {
   };
 }
 
+const KATEX_STYLESHEET = /[\\/]katex[\\/]dist[\\/]katex\.css(?:\?|$)/u;
+const KATEX_LEGACY_FONT_SOURCE = /,\s*url\([^)]*\.(?:woff|ttf)\)\s*format\("(?:woff|truetype)"\)/gu;
+
+/**
+ * KaTeX declares every face as woff2, woff and ttf and Vite would emit all three. The Android
+ * WebView (Chrome 36+) and WKWebView (Safari 10+) read woff2, so the legacy sources are dropped
+ * from the stylesheet before Vite resolves its `url()` references (the `?inline` print copy too).
+ */
+function katexWoff2Only(): Plugin {
+  return {
+    name: 'katex-woff2-only',
+    enforce: 'pre',
+    transform(code, id) {
+      if (!KATEX_STYLESHEET.test(id)) return undefined;
+      const stripped = code.replace(KATEX_LEGACY_FONT_SOURCE, '');
+      if (!stripped.includes('.woff2)') || /\.(?:woff|ttf)\)/u.test(stripped)) {
+        this.error('katex.css no longer matches the woff2-only filter; update katexWoff2Only().');
+      }
+      return { code: stripped, map: null };
+    },
+  };
+}
+
 function excludeOptionalPublicAssets(): Plugin {
   let outDir = 'dist';
 
@@ -235,6 +258,7 @@ export default defineConfig({
   base: './',
   plugins: [
     solid(),
+    katexWoff2Only(),
     ensureTessdataAssets(),
     ensurePdfJsAssets(),
     ensureCornerstoneCodecAssets(),
