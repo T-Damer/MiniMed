@@ -1176,6 +1176,41 @@ tags `manufacturer-site`, `official-instruction`, `instructions`, `minAppVersion
   sections, onboarding). **Not verified:** installing the module in a browser/Android profile, the drug-screen wording for this source
   class (MED3 UI), search ranking over the mounted module, text overlap with the ГРЛС version of the same drug.
 
+## Pregnancy, lactation and child-age questions in search — 2026-10-06 (STATE SAFE1)
+
+Owner request 2026-10-06: «X разрешён ли во время ГВ», «X при беременности», «X можно кормящей», «X ребёнку до Y лет / ребёнку 3 лет /
+с какого возраста X». Design, rules, measurements and what is not done:
+[research/medication-safety-2026-10-06.md](research/medication-safety-2026-10-06.md); roadmap item 15 in
+[SEARCH_ROADMAP.md](SEARCH_ROADMAP.md).
+
+- **Index** (`scripts/build-medication-safety.ts`, `bun run content:medication-safety`, rebuild after every instruction-module refresh):
+  same inputs and SHA-256 checks as the INT1 build; writes `apps/app/src/features/medication-safety/data/safety-index.json` (1.8 MB,
+  592 kB gzip, lazy chunk) and `data/build/medication-safety/report.json`. It holds offsets into the canonical text of each section plus a
+  4-hex checksum — no instruction text. Per МНН card the best instruction of each of up to five dosage forms (3 201 of 9 186 instructions).
+  Per sentence: topic (pregnancy / lactation), origin section, dosage forms named; per age limit: operator, bounds (days / tenths of kg),
+  the words it was read from.
+- **Query parsing** (`safety-query.ts`, syntactic): intents lactation / pregnancy (trimester) / age (typed age or «до N лет»); the
+  rest, minus frame words, is the name; looked up with the app's own medication search (S3 layout / transliteration fallback included).
+  A name that no result group carries (a symptom, a disease) shows no card.
+- **Card** (`MedicationSafetyCard`, above the results of «Все источники» and «Препараты», not shown for the interaction query): quotes of the
+  installed instruction without change, grouped (the pregnancy section; «Противопоказания» and «С осторожностью»; other sections folded),
+  each with its section, the source line (kind, edition, ГРЛС / holder's site, fetch date, form), dosage forms named in the sentence and
+  «Открыть в инструкции». Age: limits by section, weight limits apart, and for a typed age «Рассчитано: 3 года — меньше верхней границы
+  12 лет» lines (labelled as the app's arithmetic). Never «можно / разрешён / безопасно» in the app's own words. States: not installed
+  (download offer through the module runtime), no instruction in the sources, «В инструкции об этом не сказано» (the instruction read is
+  named, with a link to open it), changed section (reported). The instruction read is «одна из инструкций по этому веществу» (ADR-0023
+  wording) unless the doctor typed the product; the other dosage forms of the substance are a switch.
+- **On the open instruction**: «Беременность, ГВ, дети» folded block in `OfficialDocumentReader` (`DrugSafetyBlock`), the same extraction run
+  on the open text (so every registration has it, not only the instructions the index keeps).
+- **Measured**: coverage (2 398 МНН cards have an instruction; 74.6 % a pregnancy section, 93.0 % / 90.6 % ≥ 1 pregnancy / lactation
+  sentence anywhere, 88.1 % a numeric age limit); hand-checked precision 98.3 % (age), 100 % (weight), 94 % (age group without a number),
+  98.3 % (section sentences), 94.5 % (mentions outside the section) on 50–60 sentences each; recall ≈ 99 % of the number + unit +
+  child-word sentences. Separate set `tools/benchmarks/safe1-queries.json` (44 questions): 44/44 with and without the module installed;
+  `benchmark:real:release`, `benchmark:doctor-lookup`, `benchmark:owner-queries` unchanged (no search code changed).
+- **Not done / not verified**: comparing the substance's other manufacturers' instructions; trade names inside quoted text; print / share of
+  the card; Android / WebView / devices (desktop Chromium only); limits worded without a number or in sections the section splitter typed
+  wrongly.
+
 ## Drug interactions: tool, index and search entry — 2026-10-06 (STATE INT1)
 
 Owner request 2026-10-06: a drug-interaction «calculator» (UI idea from vidal.ru; Vidal's data is proprietary and is
@@ -1202,8 +1237,47 @@ recommendation: [research/drug-interactions-2026-10-06.md](research/drug-interac
 - **Measured**: 12.2 % of the 19 900 pairs among the 200 most common substances have ≥ 1 sentence in either instruction; 1 484 of
   3 324 МНН have an indexed interaction section (2 398 have any instruction). Hand-checked precision (50 sentences): all
   targets right 96 %, relevant to a pair 86 % (interaction section 27/27, «Особые указания» 6/12).
-- **Not done / not verified**: severity layer (owner decision, research §4); trade names in instruction text; Android/WebView;
-  products as items (a drug is picked as a substance); `benchmark:*` unchanged by design (no core change).
+- **Not done / not verified**: trade names in instruction text; Android/WebView; products as items (a drug is picked as a
+  substance); `benchmark:*` unchanged by design (no core change). The severity layer is INT2 below.
+
+### INT2: optional DDInter severity labels and the fold — 2026-10-06 (STATE INT2)
+
+Owner decisions of 2026-10-06 (recorded in `docs/research/drug-interactions-2026-10-06.md` §5): a severity layer is wanted as an
+optional, separately downloadable module from DDInter 2.0 (CC BY-NC-SA 4.0, personal non-commercial app), **labels only**
+(no English text, no machine translation); a label only on a pair that already has an instruction sentence, naming the source;
+sentences outside the interaction section folded; INT1's best-instruction-per-substance rule kept.
+
+- **Source and licence checked** (`docs/research/drug-interactions-2026-10-06.md` §6.1): terms page states CC BY-NC-SA 4.0; the bulk
+  download has no login or CAPTCHA; its CSV files hold only `DDInterID_A, Drug_A, DDInterID_B, Drug_B, Level` (no ATC codes, no text);
+  14 files, six of them (C, G, J, M, N, S) not linked from the download page but served from the same path. Raw files and
+  `MANIFEST.json` (SHA-256 per file) in `data/raw/ddinter/` (33 MB, local, git-ignored).
+- **Join** (`tools/ingest/src/localmed_ingest/ddinter_severity.py`, CLI `tools/ingest/scripts/build_ddinter_severity_module.py
+  manifest|report|build`, 13 pytest cases): DDInter English name → НСИ «АТХ» level-5 English name (exact, salt-stripped, 21 listed USAN → INN
+  spellings, each checked against НСИ) → ЕСКЛП single-substance card (НСИ Russian name equals МНН, or the card's own code with the same first
+  word). 815 of 1 971 DDInter drugs and 811 of 2 020 single-substance cards joined; **79 884 labelled card pairs**, of which **19 213** also
+  have an instruction sentence (the only ones the tool shows); 1 071 of the 2 430 pairs with a sentence among the 200 most common substances.
+- **Module** `minimed.reference.ddinter-severity.ru` (`kind: reference`, collection `ddinter-severity`, preview, `minAppVersion` 0.6.52,
+  `capabilities.search: false`): 799 documents (one per card that is the smaller slug of a labelled pair: `<partner slug> TAB <level code>`;
+  a manifest document with source, licence, date), documents flagged `definitionReference` so they stay out of the search index, 6.5 MB
+  installed, 243 KB download, reproducible build. Packaged with `bun scripts/package-instruction-modules.ts --family ddinter` (tag
+  `ddinter-severity-2026.10.06-51ff325a7659`, mirrored through the `datasets/<tag>/modules/` branch like the other medication modules;
+  `artifact-url.ts` maps the tag). The installer accepts an empty search index only for a module that declares no search
+  (`module-search-index.ts`).
+- **Tool**: `interaction-severity.ts` (levels, rules, labels «Серьёзное / Умеренное / Слабое / Степень не определена по DDInter»),
+  `interaction-severity-load.ts` (reads the manifest and one document per pair through `core.getDocument`), a badge with the note «Оценка из
+  международной базы DDInter … а не из инструкции» under the pair status, a source block (source, licence link, retrieval date, count),
+  `SeverityDownloadOffer` («Скачать метки степени риска (DDInter), 243 КБ», shown only when a quotable sentence exists and the module is not
+  installed), the label and attribution in print and share text. **A label needs a level for the pair and at least one sentence quotable now**
+  (instruction installed): alcohol and pairs without sentences get none. No module: nothing changes.
+- **Fold**: per side, interaction-section sentences (and a leaflet's general-text sentences, which have no typed interaction section) stay visible;
+  «Особые указания», «Противопоказания», «С осторожностью» sit behind the shared `Disclosure` «ещё из других разделов (N)», closed by default; a
+  side with only folded sentences says so. Print and share keep every sentence with its section name.
+- **Tests**: `test_ddinter_severity.py` (name matching, aliases refused when not НСИ names, card codes, most-severe rule, pack content, raw checksum
+  manifest), `interaction-severity.test.ts`, `interaction-view.test.ts` (label rules, print, `splitQuotes`), `module-search-index.test.ts`,
+  `catalog.preview.test.ts`, `artifact-url.test.ts`; e2e `drug-interactions-severity.spec.ts` (module installed from its local bytes with the
+  catalog chunk's minimum version lowered, `severity-module-fixture.ts`; fold; no label without a sentence; no leak into search).
+- **Not verified**: Android/WebView, a phone, the module card in the knowledge-base catalog UI (not looked at under load), the app on the real catalog URL (the mirror branch and the pre-release are published; the catalog entry reaches `main` with the app code),
+  the module on old apps (they hide it by `minAppVersion`), clinical accuracy of DDInter levels (shown as the source's label, never as advice).
 
 ## Same-substance instruction fallback (MED3) — 2026-10-05
 

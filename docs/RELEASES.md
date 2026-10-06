@@ -113,6 +113,9 @@ instructions) go through
 `grls-instructions-…`, `allmed-…` and `manufacturer-instructions-…` resolve to `datasets/<tag>/modules/`, like
 `esklp-…`). `--family grls` leaves `minimed.medications.instructions.manufacturer-site.ru` alone: that module is its
 own family and collection (`manufacturer-instructions`). A blob must stay below 100 MB.
+`--family ddinter` packages the optional DDInter severity-label module (INT2, tag `ddinter-severity-…`, built by
+`tools/ingest/scripts/build_ddinter_severity_module.py build`; CC BY-NC-SA 4.0, see `docs/research/drug-interactions-2026-10-06.md` §6).
+After a ЕСКЛП or instruction-module refresh rebuild it as well as the interaction index (`bun run content:drug-interactions`).
 After such a module refresh, rebuild the same-substance fallback asset (`bun run content:substance-fallback`, ADR-0023) so
 registrations that gained or lost a document get current donors.
 

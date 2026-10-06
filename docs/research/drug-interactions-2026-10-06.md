@@ -1,7 +1,7 @@
 # Drug interactions: what the app shows, and whether a severity layer is lawful and useful (INT1, 2026-10-06)
 
-Status: research and measurements. The tool described in section 1 is implemented; the severity layer of
-section 3 is **not** implemented and waits for an owner decision (section 4).
+Status: research and measurements. The tool described in section 1 is implemented (INT1). The owner decided
+on 2026-10-06 (section 5) and the severity layer of section 3 is implemented as an optional module (INT2, section 6).
 
 ## 0. Summary
 
@@ -160,3 +160,89 @@ sentences, after the owner accepts the licence consequence. Decisions:
 
 Not done: official requests (D3), machine translation (D5), any scraping of Vidal or other proprietary
 checkers (only the «Проверить на vidal.ru» link-out, which sends nothing), Android/WebView testing.
+
+## 5. Owner decisions (2026-10-06, answers to section 4)
+
+1. **Severity layer: yes**, as an optional, separately downloadable module from DDInter 2.0 (CC BY-NC-SA 4.0:
+   attribution and licence are shown in the module and in the tool's source block; the app is personal and
+   non-commercial). **Labels only**: «Серьёзное / Умеренное / Слабое / Степень не определена по DDInter»
+   (DDInter's Major / Moderate / Minor / Unknown). No English description or mechanism text is stored or shown;
+   the owner declined machine translation.
+2. **A label only on a pair that already has at least one instruction sentence** (never a label without a
+   quotable source), named «по DDInter», with the note that it comes from an international database and not
+   from the instruction. Implemented as: the pair needs a sentence that is quotable now (the instruction is
+   installed and the sentence resolves), so a pair whose instruction is not downloaded yet shows no label.
+3. **Sentences from «Особые указания» and the other non-interaction sections are folded** behind «ещё из других
+   разделов (N)», collapsed by default; interaction-section sentences stay visible. Folded sections:
+   «Особые указания», «Противопоказания», «С осторожностью». A leaflet's general-text sentences (the leaflet has
+   no typed interaction section; they are filtered for sentences about taking drugs together, 4/4 relevant in the
+   round-4 sample) stay visible: this is the one place where the rule was read as «interaction content», a
+   judgement call recorded here.
+4. **INT1's single best-instruction-per-substance rule is kept** for leaflet-only substances (no second text).
+
+## 6. INT2: the severity module
+
+### 6.1 Licence and download check (2026-10-06)
+
+- `https://ddinter2.scbdd.com/terms/`, «Data licensing»: «made available under a Creative Commons
+  Attribution-NonCommercial-ShareAlike 4.0 International license»; the site may be used «for your own personal,
+  non-commercial, informational or scholarly use». The terms page also disclaims accuracy and says that the absence of
+  an interaction does not mean there is none.
+- **Bulk download**: `https://ddinter2.scbdd.com/download/` offers plain static links, no login, no CAPTCHA. It lists
+  eight files (ATC letters A, B, D, H, L, P, R, V); the other six letters (C, G, J, M, N, S) are served from the same
+  path (`/static/media/download/ddinter_downloads_code_<letter>.csv`) with the same format and were downloaded too, as the
+  eight listed files alone lack the cardiovascular, nervous-system, anti-infective and musculoskeletal drugs. A pair
+  appears in the file of each of its two ATC letters; the files agree on every pair (0 conflicts).
+- **Content of the files**: five columns only: `DDInterID_A, Drug_A, DDInterID_B, Drug_B, Level`. **No ATC codes, no
+  descriptions, no mechanism or management text.** Levels: Major / Moderate / Minor / Unknown. 507 655 rows, 1 971 drugs,
+  234 981 distinct pairs (Moderate 143 748, Unknown 42 415, Major 39 082, Minor 9 736).
+- The per-drug pages carry ATC codes but would need ~2 300 page fetches of ~90 kB (~200 MB): not done (that is
+  scraping, not the bulk download). The join therefore uses English names (below).
+- Raw files and a checksum manifest: `data/raw/ddinter/` (33 MB, below the data-ledger threshold; local, git-ignored like
+  all `data/raw`), `MANIFEST.json` lists the URL, SHA-256 and size of the 14 files and the retrieval date.
+
+### 6.2 Join key and match rate
+
+Join chain (all of it in `tools/ingest/src/localmed_ingest/ddinter_severity.py`, deterministic, 13 pytest cases):
+
+1. **DDInter English name → ATC level-5 code** through the English names of the НСИ «АТХ» dictionary
+   (`ATC_NAME_ENG`, v3.8, already in `data/raw/nsi/atc`): exact normalised name (1 422 drugs), then salt words
+   dropped on both sides (29), then 21 listed USAN → INN spellings such as acetaminophen → paracetamol, each checked
+   against НСИ at build time (15 used). Names with a qualifier in parentheses («Dexamethasone (topical)», 231) are route or
+   formulation variants and are not joined. No name matched: 274.
+2. **ATC code → ЕСКЛП МНН card of one substance** (no combinations; 2 020 of 3 324 cards). A card lists the ATC codes of every
+   registration it groups and that list carries neighbours' codes (a caffeine card with a dexamethasone code produced
+   false joins in a first attempt), so a code counts only when the НСИ Russian name equals the card's МНН, or, failing that,
+   when the card's own level-5 code names a substance with the same first word.
+3. A DDInter pair becomes a card pair when both ends reach a card; several DDInter pairs for one card pair keep the
+   most severe level (0 such conflicts remain with the strict card rule).
+
+Measured on the 2026-10-06 ЕСКЛП release and НСИ 3.8:
+
+| What | Number |
+|---|---|
+| DDInter drugs joined to ≥ 1 card | 815 of 1 971 (41.3 %); most of the rest are not marketed in the RF (prednisone, oxycodone, nortriptyline, …) |
+| Single-substance cards with ≥ 1 label | 811 of 2 020 (40.2 %) |
+| DDInter pairs joined to card pairs | 78 675 of 234 981 (33.5 %) |
+| **Labelled card pairs in the module** | **79 884** (Moderate 36 984, Unknown 28 861, Major 11 713, Minor 2 326) |
+| Labelled pairs that also have ≥ 1 instruction sentence (the only ones the tool can show) | **19 213** (Moderate 10 640, Major 3 912, Unknown 3 988, Minor 673) |
+| 200 most common substances: with a label | 117 of 200 |
+| Their pairs that have an instruction sentence (2 430) and a label | 1 071 (44 %) |
+
+Known gaps (kept visible): names the НСИ dictionary does not have (НСИ v3.8 lacks rabeprazole A02BC04 and posaconazole)
+or spells differently from DDInter beyond the 21 listed aliases (the report lists the unmatched drugs by pair count);
+combination products are not joined; a substance with several cards (an ester, a prodrug) is labelled only through the
+card whose МНН matches.
+
+### 6.3 What shipped
+
+- Preparer `ddinter_severity.py`, CLI `tools/ingest/scripts/build_ddinter_severity_module.py manifest|report|build`.
+- Module `minimed.reference.ddinter-severity.ru` (version `ddinter-2.0.2026.10.06`, `kind: reference`, collection
+  `ddinter-severity`, `releaseState: preview`, `minAppVersion` 0.6.52, `capabilities.search: false`): 799 documents (one per
+  card that is the smaller slug of a labelled pair, plus a manifest document with source, licence and date), 6.5 MB
+  installed, **243 KB download**; documents are flagged out of the ordinary search index. Built reproducibly
+  (identical SHA-256 on a second build).
+- App: `features/drug-interactions/interaction-severity*.ts`, `SeverityDownloadOffer.tsx`, label and fold in the workspace,
+  label and source line in the print and share text, `module-search-index.ts` (the installer accepts an empty search index
+  for a module that declares no search).
+
