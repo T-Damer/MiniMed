@@ -4,9 +4,10 @@ import { diaryInvitationLink } from '../src/features/diary/diary-codec';
 import {
   addReading,
   DIARY_PAGE,
-  ENTRY_ROWS,
+  expectRecordCount,
   invitationIdInAddress,
   localInput,
+  openDiaryList,
   testInvitation,
   testInvitationLink,
 } from './diary-fixtures';
@@ -54,7 +55,7 @@ test.describe('patient diary: pasting the doctor link', () => {
     const first = testInvitation({ issuedAt: new Date(Date.now() - 7_200_000).toISOString() });
     await page.goto(await testInvitationLink(first));
     await addReading(page, { systolic: 130, diastolic: 80, at: localInput(0, 8) });
-    await page.getByRole('button', { name: /Мои дневники/u }).click();
+    await openDiaryList(page);
     await page.getByText('Добавить дневник по ссылке врача').click();
     const older = await diaryInvitationLink(
       { ...first, issuedAt: new Date(Date.now() - 10_800_000).toISOString() },
@@ -63,7 +64,7 @@ test.describe('patient diary: pasting the doctor link', () => {
     await page.getByLabel('Ссылка от врача').fill(older);
     await page.getByRole('button', { name: 'Открыть дневник' }).click();
     await expect(page.locator('.diary-notice')).toContainText('старее');
-    await expect(page.locator(ENTRY_ROWS)).toHaveCount(1);
+    await expectRecordCount(page, 1);
   });
 
   test('saved entries pasted as a doctor link are sent to «Восстановить записи»', async ({

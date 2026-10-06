@@ -4,6 +4,7 @@ import {
   ANDROID_CHROME,
   addReading,
   DIARY_PAGE,
+  expectRecordCount,
   IPAD_SAFARI,
   IPHONE_MESSENGER,
   IPHONE_SAFARI,
@@ -38,7 +39,7 @@ test.describe('patient diary: keeping it one tap away', () => {
 
     await addReading(page, { systolic: 130, diastolic: 80, at: localInput(0, 8) });
     await expect(card).toContainText('без записей, сделанных сейчас в Safari');
-    await expect(card).toContainText('Сохранить файл');
+    await expect(card).toContainText('Отправить файлом');
     await expect(card).toContainText('Восстановить записи');
 
     await card.getByRole('button', { name: /Понятно/u }).click();
@@ -106,7 +107,7 @@ test.describe('patient diary: keeping it one tap away', () => {
     const install = page.getByRole('button', { name: 'Добавить на экран', exact: true });
     await expect(install).toBeVisible();
     const box = await install.boundingBox();
-    expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+    expect(box?.height ?? 0).toBeGreaterThanOrEqual(48);
     await install.click();
     await expect
       .poll(() =>
@@ -244,6 +245,6 @@ test.describe('patient diary: keeping it one tap away', () => {
     await addReading(page, { systolic: 126, diastolic: 82, at: localInput(0, 7, 30) });
     await context.setOffline(false);
     await page.reload();
-    await expect(page.locator('.diary-entries__item')).toHaveCount(1);
+    await expectRecordCount(page, 1);
   });
 });

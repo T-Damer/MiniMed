@@ -49,6 +49,8 @@ export default defineConfig({
               '**/ios-layout.spec.ts',
               '**/diary-install.spec.ts',
               '**/diary-paste.spec.ts',
+              '**/diary-patient.spec.ts',
+              '**/diary-screens.spec.ts',
             ],
             use: { ...devices['iPad Mini'], viewport: { width: 744, height: 1133 } },
           },

@@ -62,17 +62,59 @@ export interface BloodPressure {
   readonly at?: string;
 }
 
-/** Fills the patient's entry form for a blood-pressure diary and saves it. */
+/**
+ * Writes one reading from the diary home: «Записать показания», the fields, «Сохранить». Lands on
+ * the home again with the green confirmation showing the saved entry.
+ */
 export async function addReading(page: Page, reading: BloodPressure): Promise<void> {
+  await page.getByRole('button', { name: 'Записать показания', exact: true }).click();
   await page.getByLabel(/^Верхнее/u).fill(String(reading.systolic));
   await page.getByLabel(/^Нижнее/u).fill(String(reading.diastolic));
   if (reading.pulse !== undefined) await page.getByLabel(/^Пульс/u).fill(String(reading.pulse));
-  if (reading.at) await page.getByLabel('Дата и время').fill(reading.at);
-  await page.getByRole('button', { name: 'Записать', exact: true }).click();
+  if (reading.at) await setEntryTime(page, reading.at);
+  await page.getByRole('button', { name: 'Сохранить', exact: true }).click();
   await expect(page.locator('.diary-saved')).toBeVisible();
 }
 
-export const ENTRY_ROWS = '.diary-entries__item';
+/** Opens the date and time field of the entry form and sets it. */
+export async function setEntryTime(page: Page, value: string): Promise<void> {
+  await page.getByRole('button', { name: 'Изменить время', exact: true }).click();
+  await page.getByLabel('Дата и время').fill(value);
+}
+
+/** One row of «Мои записи». */
+export const ENTRY_ROWS = '.diary-record';
+
+/** From the diary home to «Мои записи». */
+export async function openRecords(page: Page): Promise<void> {
+  await page.getByRole('button', { name: /^Мои записи \(/u }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Мои записи' })).toBeVisible();
+}
+
+/** From any step back to the diary home. */
+export async function backToHome(page: Page): Promise<void> {
+  await page.getByRole('button', { name: 'На главную', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Записать показания', exact: true })).toBeVisible();
+}
+
+/** The home shows the number of records on its «Мои записи» button. */
+export async function expectRecordCount(page: Page, count: number): Promise<void> {
+  await expect(
+    page.getByRole('button', { name: `Мои записи (${count})`, exact: true }),
+  ).toBeVisible();
+}
+
+/** To the list of diaries: the button on the home when there are several, else through «Ещё». */
+export async function openDiaryList(page: Page): Promise<void> {
+  const top = page.getByRole('button', { name: 'Мои дневники', exact: true });
+  if ((await top.count()) === 0) {
+    await page.getByRole('button', { name: /^Ещё/u }).click();
+    await page.getByRole('button', { name: 'Мои дневники', exact: true }).click();
+  } else {
+    await top.click();
+  }
+  await expect(page.getByRole('heading', { level: 1, name: 'Мои дневники' })).toBeVisible();
+}
 
 /** True when the diary page is the built one (service worker active), false on the dev server. */
 export async function isBuiltDiary(page: Page): Promise<boolean> {
@@ -90,16 +132,16 @@ export const IPAD_SAFARI =
 export const ANDROID_CHROME =
   'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36';
 
-/** Hands the diary to the doctor as a file and returns the text of that file. */
+/** Sends the diary to the doctor as a file, says the doctor has it, and returns the file text. */
 export async function patientFileText(page: Page): Promise<string> {
-  await page.getByRole('button', { name: 'Передать врачу', exact: true }).click();
+  await page.getByRole('button', { name: 'Отправить врачу', exact: true }).click();
   const download = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Отправить файлом' }).click();
+  await page.getByRole('button', { name: 'Отправить файлом', exact: true }).click();
   const path = await (await download).path();
   const { readFileSync } = await import('node:fs');
   const text = readFileSync(path, 'utf8');
-  await page.getByRole('button', { name: 'Врач получил' }).click();
-  await page.getByRole('button', { name: 'Назад к дневнику' }).click();
+  await page.getByRole('button', { name: 'Да, врач получил' }).click();
+  await page.getByRole('button', { name: 'На главную', exact: true }).click();
   return text;
 }
 

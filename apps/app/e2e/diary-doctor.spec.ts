@@ -2,8 +2,12 @@ import { expect, type Page, test } from '@playwright/test';
 
 import {
   addReading,
+  backToHome,
   createDoctorCard,
+  ENTRY_ROWS,
+  expectRecordCount,
   localInput,
+  openRecords,
   patientFileText,
   testInvitation,
   testInvitationLink,
@@ -85,13 +89,15 @@ test.describe('diary: doctor and patient round trip', () => {
     await expect(DIARY_EVENTS(page)).toHaveCount(3);
 
     // 5. The patient corrects a typo and adds a newer reading; the doctor gets both, once.
+    await openRecords(patient);
     await patient
-      .locator('.diary-entries__item')
-      .last()
-      .getByRole('button', { name: 'Изменить запись' })
+      .locator(ENTRY_ROWS)
+      .first()
+      .getByRole('button', { name: /^Изменить/u })
       .click();
     await patient.getByLabel(/^Верхнее/u).fill('145');
     await patient.getByRole('button', { name: 'Сохранить изменения' }).click();
+    await backToHome(patient);
     await addReading(patient, { systolic: 130, diastolic: 80, at: localInput(0, 18, 0) });
     const secondFile = await patientFileText(patient);
     await importText(page, secondFile);
@@ -126,14 +132,14 @@ test.describe('diary: doctor and patient round trip', () => {
     await expect(patient.locator('.diary-header__note')).toHaveText(
       'Теперь измеряйте только утром',
     );
-    await expect(patient.locator('.diary-entries__item')).toHaveCount(4);
+    await expectRecordCount(patient, 4);
     // The very first link still opens the same diary and does not roll it back.
     await patient.goto(link);
     await expect(patient.locator('.diary-header__note')).toHaveText(
       'Теперь измеряйте только утром',
     );
     await patient.goto(link.split('#')[0] ?? '');
-    await expect(patient.locator('.diary-entries__item')).toHaveCount(4);
+    await expectRecordCount(patient, 4);
 
     // 7. Results of this diary offered to another card are flagged before anything is saved.
     await createDoctorCard(page, 'Другой пациент', false);
