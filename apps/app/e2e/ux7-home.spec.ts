@@ -19,6 +19,18 @@ for (const width of [390, 1280]) {
     // Scroll the chips so both arrows show.
     await chips.nth(1).hover();
     await chips.nth(2).scrollIntoViewIfNeeded();
+    // The row scrolls smoothly; an arrow counted mid-scroll can vanish when the end is reached, so
+    // wait until the scroll position stops changing before reading the arrows.
+    const viewport = page.locator('.example-scroll__viewport [data-overlayscrollbars-viewport]');
+    let lastLeft = -1;
+    await expect
+      .poll(async () => {
+        const left = await viewport.evaluate((element) => element.scrollLeft).catch(() => 0);
+        const settled = left === lastLeft;
+        lastLeft = left;
+        return settled;
+      })
+      .toBe(true);
     const next = page.locator('.horizontal-scroll-control.next');
     const previous = page.locator('.horizontal-scroll-control.previous');
     // Wide screens fit every chip, so there is nothing to scroll and no arrow to measure.

@@ -110,6 +110,20 @@ test.describe('desktop pointer', () => {
     const card = page.locator('.user-library-card').filter({ hasText: 'second-book' });
     const wrapper = page.locator('.user-library-card-menu').filter({ has: card });
     const button = wrapper.getByRole('button', { name: DISCOVER_NAME });
+    // Freshly added files are still being read, and the library re-renders their cards meanwhile,
+    // which would drop keyboard focus from a replaced «⋯». Wait until the card stays the same node.
+    await expect
+      .poll(
+        async () =>
+          card.evaluate(async (element) => {
+            const marked = element as HTMLElement & { e2eStable?: boolean };
+            marked.e2eStable = true;
+            await new Promise((resolve) => setTimeout(resolve, 800));
+            return marked.isConnected && marked.e2eStable === true;
+          }),
+        { timeout: 30_000 },
+      )
+      .toBe(true);
     await page.mouse.move(2, 2);
     // Cards are not tab stops themselves; the «⋯» button is. Tab from the card before this one
     // (or the page controls) until it is reached.
