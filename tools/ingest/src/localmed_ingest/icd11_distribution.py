@@ -7,9 +7,12 @@ no core membership check to run.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from urllib.parse import urlsplit
 
+from .icd11_api_fetch import API_DIRECTORY, API_MANIFEST_NAME
+from .icd11_fetch import MANIFEST_NAME
 from .icd11_prepare import CITATION, DOCUMENT_PREFIX, LICENCE_ID, SOURCE_TYPE
 from .module_distribution import (
     ModuleDescriptor,
@@ -26,12 +29,37 @@ SOURCE_HOST = "icd.who.int"
 TITLE = "МКБ-11 (ВОЗ), справочно; в РФ действует МКБ-10"
 
 
+def raw_sources(raw_root: Path) -> dict[str, object]:
+    """Checksums of the raw inputs, recorded once in the release report (not in every document)."""
+    files = json.loads((raw_root / MANIFEST_NAME).read_text(encoding="utf-8"))
+    api = json.loads((raw_root / API_DIRECTORY / API_MANIFEST_NAME).read_text(encoding="utf-8"))
+    return {
+        "release": files["release"],
+        "fetchedAt": files["fetchedAt"],
+        "files": [
+            {"name": item["name"], "url": item["url"], "sha256": item["sha256"]}
+            for item in files["files"]
+        ],
+        "icdApi": {
+            "containerImage": api["containerImage"],
+            "dataRelease": api["dataRelease"],
+            "apiVersions": api["apiVersions"],
+            "language": api["acceptLanguage"],
+            "fetchedAt": api["fetchedAt"],
+            "archive": api["archive"],
+            "entityCount": api["entityCount"],
+            "missing": api["missing"],
+        },
+    }
+
+
 def package_icd11_module(
     database: Path,
     output_dir: Path,
     *,
     version: str,
     min_app_version: str,
+    raw_root: Path | None = None,
 ) -> dict[str, object]:
     kinds: dict[str, int] = {}
     english_only = 0
@@ -71,12 +99,13 @@ def package_icd11_module(
         f"{plural_ru(codes, 'рубрика', 'рубрики', 'рубрик')} с кодами, "
         f"{plural_ru(kinds.get('block', 0), 'блок', 'блока', 'блоков')} и "
         f"{plural_ru(kinds.get('chapter', 0), 'глава', 'главы', 'глав')}: названия, иерархия, "
-        "указания по кодированию и соответствие кодам МКБ-10 по таблицам ВОЗ. "
+        "определения, включения, исключения и термины указателя (русский текст, как его отдаёт "
+        "ICD-API ВОЗ; если русского текста у ВОЗ нет, поле опущено, английский текст не "
+        "подставляется), указания по кодированию и соответствие кодам МКБ-10 по таблицам ВОЗ. "
         f"У {plural_ru(english_only, 'рубрики', 'рубрик', 'рубрик')} в русской версии ВОЗ нет "
         "перевода названия — показано английское название ВОЗ. "
         "В Российской Федерации действует МКБ-10; этот набор необязательный, справочный и "
-        "не заменяет МКБ-10. Определения, включения и исключения в публичных файлах ВОЗ "
-        f"отсутствуют. Лицензия ВОЗ CC BY-ND 3.0 IGO; {CITATION}. Таблицы соответствия — "
+        f"не заменяет МКБ-10. Лицензия ВОЗ CC BY-ND 3.0 IGO; {CITATION}. Таблицы соответствия — "
         "таблицы ВОЗ без изменений; перевод и сопоставления ВОЗ вне лицензии на классификацию."
     )
     return package_module(
@@ -100,5 +129,6 @@ def package_icd11_module(
             "icd11Release": release,
             "classKinds": dict(sorted(kinds.items())),
             "englishOnlyTitles": english_only,
+            **({"rawSources": raw_sources(raw_root)} if raw_root is not None else {}),
         },
     )

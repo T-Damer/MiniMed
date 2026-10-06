@@ -91,6 +91,10 @@ test('installs the optional МКБ-11 module, labels its results and opens a car
   await expect(page.locator('.document-overlay-paper')).toContainText(
     'Название ВОЗ на английском: Cholera',
   );
+  // WHO's Russian definition, inclusions and index terms come from the ICD-API (merged text).
+  await expect(page.locator('.document-overlay-paper')).toContainText('Определение: Холера');
+  await expect(page.locator('.document-overlay-paper')).toContainText('Термины указателя');
+  await expect(page.locator('.document-overlay-paper')).toContainText('азиатская холера');
 
   const parent = panel.getByRole('navigation', { name: 'Вышестоящие рубрики МКБ-11' });
   await parent.getByRole('link').first().click();
@@ -98,6 +102,22 @@ test('installs the optional МКБ-11 module, labels its results and opens a car
   await expect(page.locator('.document-overlay-paper__title')).toContainText('(МКБ-11)');
   await expect(page.locator('.document-overlay-paper__title')).not.toContainText('1A00 Холера');
   await expect(page.getByTestId('icd11-card-panel')).toBeVisible();
+});
+
+test('finds a card through a WHO Russian index term that is not in its title', async ({ page }) => {
+  test.setTimeout(300_000);
+  await routeIcd11Module(page);
+  await mountBuiltApp(page, { persistentOrigin: true });
+  await installIcd11Module(page);
+
+  await search(page, 'азиатская холера');
+  const group = page
+    .getByTestId('search-results')
+    .locator('.result-group')
+    .filter({ has: page.locator('.result-group-header__kind-label', { hasText: RESULT_LABEL }) })
+    .filter({ has: page.locator('.result-group-header__title', { hasText: '1A00' }) })
+    .first();
+  await expect(group).toBeVisible({ timeout: 60_000 });
 });
 
 test('never offers ICD-11 cards in the ICD-10 section or as an ICD-10 code', async ({ page }) => {

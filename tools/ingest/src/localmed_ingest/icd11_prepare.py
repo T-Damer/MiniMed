@@ -27,6 +27,8 @@ from urllib.parse import quote
 
 import yaml
 
+from .icd11_api_fetch import API_ARCHIVE_NAME, API_DIRECTORY
+from .icd11_api_text import ApiEntityText, ApiText, ApiTextArchive, load_api_text
 from .icd11_fetch import MANIFEST_NAME, MAPPING_NAME, TABULATION_NAME
 from .publication import PublicationDecision
 
@@ -65,7 +67,9 @@ _TABULATION_COLUMNS = (
 )
 _YAML_DUMPER = getattr(yaml, "CSafeDumper", yaml.SafeDumper)
 _DASHES = re.compile(r"^(?:- )+")
-_CHILD_CHUNK = 100
+MAIN_SECTION = "Рубрика МКБ-11"
+CROSSWALK_SECTION = "Соответствие МКБ-10 (таблицы ВОЗ)"
+PROVISIONAL_NOTE = " (пометка ВОЗ: possible translation)"
 _KINDS = frozenset({"chapter", "block", "category"})
 
 
@@ -109,6 +113,7 @@ class Icd11PrepareReport:
     russian_titles: int = 0
     english_only_titles: int = 0
     coding_notes: int = 0
+    coding_notes_api_only: int = 0
     entities_with_icd10_closest: int = 0
     entities_with_icd10_sources: int = 0
     mapping_rows_unmatched: dict[str, int] = field(default_factory=dict)
@@ -116,6 +121,13 @@ class Icd11PrepareReport:
     icd10_links_unresolved: int = 0
     tabulation_sha256: str = ""
     mapping_sha256: str = ""
+    api_archive_sha256: str = ""
+    api_container_image: str = ""
+    api_data_release: str = ""
+    api_entities: int = 0
+    # property -> {served, kept, englishFallbackOmitted, unmarkedEnglishOmitted, provisional}
+    api_text: dict[str, dict[str, int]] = field(default_factory=dict)
+    documents_with_api_text: dict[str, int] = field(default_factory=dict)
     output: str = ""
 
 
@@ -295,12 +307,6 @@ def icd10_document_id(code: str) -> str:
     return f"{ICD10_DOCUMENT_PREFIX}{code.lower().replace('.', '-')}"
 
 
-def _source_marker(url: str, **values: object) -> str:
-    payload = {"sourceUrl": url, **values}
-    encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-    return f"<!-- localmed:source {encoded} -->"
-
-
 class _Names:
     """Display titles; an English-only title is marked wherever it is shown as a name."""
 
@@ -327,6 +333,35 @@ class _Names:
         ]
 
 
+def _flagged(item: ApiText) -> str:
+    return item.text + (PROVISIONAL_NOTE if item.provisional else "")
+
+
+class _Paragraphs:
+    """Markdown body of one section; a paragraph that cites WHO rows carries its source marker."""
+
+    def __init__(self) -> None:
+        self.lines: list[str] = []
+
+    def add(self, text: str, marker: str | None = None) -> None:
+        if marker:
+            self.lines.append(marker)
+        self.lines.extend([text, ""])
+
+
+def _api_marker(entity_id: str, entry: str, selector: str, kind: str, release: str) -> str:
+    del entity_id
+    return _source_marker_compact(
+        f"icd11/{release}/{API_DIRECTORY}/{API_ARCHIVE_NAME}", f"{entry}#{selector}", kind
+    )
+
+
+def _source_marker_compact(raw_path: str, selector: str, kind: str) -> str:
+    payload = {"rawPath": raw_path, "selector": selector, "sourceKind": kind}
+    encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return f"<!-- localmed:source {encoded} -->"
+
+
 def _entity_document(
     entity: Icd11Entity,
     *,
@@ -340,6 +375,8 @@ def _entity_document(
     tabulation_member: str,
     tabulation_sha256: str,
     mapping_sha256: str,
+    api: ApiEntityText | None,
+    api_archive_sha256: str | None,
     fetched_at: str,
     publication: PublicationDecision,
     counters: Icd11PrepareReport,
@@ -348,18 +385,17 @@ def _entity_document(
     raw_path = f"icd11/{release}/{tabulation_member}"
     mapping_path = f"icd11/{release}/mapping"
 
-    def marker(kind: str, **extra: object) -> str:
-        return _source_marker(
-            url, rawPath=raw_path, selector=f"line:{entity.line}", sourceKind=kind, **extra
-        )
+    def marker(kind: str) -> str:
+        return _source_marker_compact(raw_path, f"line:{entity.line}", kind)
 
     def mapping_marker(kind: str, table: str, lines: list[int]) -> str:
-        return _source_marker(
-            url,
-            rawPath=f"{mapping_path}/{table}",
-            selector="lines:" + ",".join(str(line) for line in lines),
-            sourceKind=kind,
+        return _source_marker_compact(
+            f"{mapping_path}/{table}", "lines:" + ",".join(str(line) for line in lines), kind
         )
+
+    def api_marker(selector: str, kind: str) -> str:
+        assert api is not None
+        return _api_marker(entity.entity_id, api.entry, selector, kind, release)
 
     path: list[Icd11Entity] = []
     parent = entities_by_uri.get(entity.parent_uri) if entity.parent_uri else None
@@ -368,12 +404,7 @@ def _entity_document(
         parent = entities_by_uri.get(parent.parent_uri) if parent.parent_uri else None
     # path[0] is the nearest ancestor (same order as the ICD-10 module's classificationPath).
     classification_path = [
-        {
-            "code": item.code or item.block_id or f"Глава {item.chapter}",
-            "title": names.title(item),
-            "documentId": document_id(item.entity_id),
-        }
-        for item in path
+        {"title": names.title(item), "documentId": document_id(item.entity_id)} for item in path
     ]
 
     title = names.title(entity)
@@ -395,47 +426,68 @@ def _entity_document(
         if (entity.residual)
         else ""
     )
-    body: list[str] = [
-        "# Код и название",
-        "",
-        marker("classification"),
-        f"{identity} {language_note}{english}{residual}",
-        "",
-    ]
-    if path:
-        body.extend(
-            [
-                "# Положение в классификации",
-                "",
-                marker("hierarchy", parentUri=entity.parent_uri),
-                *(f"- {names.label(item)}" for item in reversed(path)),
-                "",
-            ]
-        )
-    # A residual row (".../other", ".../unspecified") shares its parent's foundation URI: only
-    # the entity's main row lists the children.
+    # The hierarchy and the children are stored once, as links in the document metadata (the card
+    # panel shows them); repeating them as searchable text only multiplied rows.
     is_main = entity.entity_id == entity.foundation_uri.rsplit("/", 1)[-1]
     kids = [
         item
         for item in (children.get(entity.foundation_uri, []) if is_main else [])
         if item.entity_id != entity.entity_id
     ]
-    if kids:
-        body.extend(["# Нижестоящие рубрики", ""])
-        for start in range(0, len(kids), _CHILD_CHUNK):
-            body.extend(
-                [
-                    marker("children", childrenOf=entity.foundation_uri, firstChild=start + 1),
-                    *(f"- {names.label(item)}" for item in kids[start : start + _CHILD_CHUNK]),
-                    "",
-                ]
+
+    main = _Paragraphs()
+    main.add(f"{identity} {language_note}{english}{residual}", marker("classification"))
+    if api is not None:
+        if api.fully_specified_name is not None:
+            main.add(
+                f"Полное название ВОЗ: {_flagged(api.fully_specified_name)}",
+                api_marker("fullySpecifiedName", "fully-specified-name"),
             )
+        for label, kind, selector, text in (
+            ("Определение", "definition", "definition", api.definition),
+            ("Подробное определение", "long-definition", "longDefinition", api.long_definition),
+        ):
+            if text is None:
+                continue
+            lines = [line for line in _flagged(text).split("\n") if line.strip()]
+            span = api_marker(selector, kind)
+            main.add(f"{label}: {lines[0].strip()}", span)
+            for line in lines[1:]:
+                main.add(line.strip(), span)
+        for label, kind, selector, items in (
+            ("Включения", "inclusion", "inclusion", api.inclusions),
+            ("Исключения", "exclusion", "exclusion", api.exclusions),
+            ("Термины указателя", "index-term", "indexTerm", _distinct_terms(api, title)),
+            (
+                "Дочерние понятия, которые ВОЗ размещает в других рубриках",
+                "foundation-child-elsewhere",
+                "foundationChildElsewhere",
+                api.elsewhere,
+            ),
+        ):
+            if items:
+                main.add(f"{label}:")
+                main.add(
+                    "\n".join(f"- {_flagged(item)}" for item in items), api_marker(selector, kind)
+                )
     if entity.coding_note:
         counters.coding_notes += 1
-        body.extend(["# Указание по кодированию", ""])
-        for paragraph in entity.coding_note.split("\n"):
+        for index, paragraph in enumerate(entity.coding_note.split("\n")):
             if paragraph.strip():
-                body.extend([marker("coding-note"), paragraph.strip(), ""])
+                prefix = "Указание по кодированию: " if index == 0 else ""
+                main.add(f"{prefix}{paragraph.strip()}", marker("coding-note"))
+    elif api is not None and api.coding_note is not None:
+        counters.coding_notes_api_only += 1
+        lines = [line for line in _flagged(api.coding_note).split("\n") if line.strip()]
+        span = api_marker("codingNote", "coding-note")
+        main.add(f"Указание по кодированию: {lines[0].strip()}", span)
+        for line in lines[1:]:
+            main.add(line.strip(), span)
+    main.add(
+        f"Источник: ВОЗ, МКБ-11 (MMS), выпуск {release}, русская версия. "
+        "ICD-11 © ВОЗ 2019, лицензия CC BY-ND 3.0 IGO."
+    )
+    body: list[str] = [f"# {MAIN_SECTION}", "", *main.lines]
 
     crosswalk: list[dict[str, object]] = []
 
@@ -458,21 +510,14 @@ def _entity_document(
             entry["icd11Cluster"] = cluster
         return entry
 
+    crosswalk_body = _Paragraphs()
     if closest is not None:
         line, code, title_en = closest
         crosswalk.append(link_entry("closest", code, title_en, None, "unknown"))
-        body.extend(
-            [
-                "# Соответствие МКБ-10 (таблицы ВОЗ)",
-                "",
-                mapping_marker("crosswalk-11-to-10", "11To10MapToOneCategory.txt", [line]),
-                f"Ближайшее соответствие в МКБ-10 по таблице ВОЗ «МКБ-11 → МКБ-10»: {code} "
-                f"(название ВОЗ на английском: {title_en}).",
-                "",
-            ]
+        crosswalk_body.add(
+            f"Ближайшее соответствие в МКБ-10 по таблице ВОЗ «МКБ-11 → МКБ-10»: {code}.",
+            mapping_marker("crosswalk-11-to-10", "11To10MapToOneCategory.txt", [line]),
         )
-    elif sources:
-        body.extend(["# Соответствие МКБ-10 (таблицы ВОЗ)", ""])
     for relation, table, heading in (
         (
             "mapped-into-this",
@@ -498,13 +543,15 @@ def _entity_document(
             picked = [link for link in picked if (link.icd10_code, link.icd11_code) not in shown]
         if not picked:
             continue
-        lines = [heading]
+        lines = []
         for link in picked:
             cluster = link.icd11_code if re.search(r"[&/]", link.icd11_code) else None
             crosswalk.append(
                 link_entry(relation, link.icd10_code, link.icd10_title_en, cluster, link.icd10_kind)
             )
-            text = f"- {link.icd10_code} (название ВОЗ на английском: {link.icd10_title_en})"
+            # The English ICD-10 titles of WHO's tables stay in the metadata (the card panel shows
+            # them); the searchable text carries the codes only.
+            text = f"- {link.icd10_code}"
             if cluster:
                 described = "; ".join(
                     f"{part} — {title_text}" if title_text else part
@@ -512,22 +559,13 @@ def _entity_document(
                 )
                 text += f"; код МКБ-11 с расширением: {cluster} ({described})"
             lines.append(text)
-        body.extend(
-            [
-                mapping_marker(f"crosswalk-{relation}", table, [link.line for link in picked]),
-                *lines,
-                "",
-            ]
+        crosswalk_body.add(heading)
+        crosswalk_body.add(
+            "\n".join(lines),
+            mapping_marker(f"crosswalk-{relation}", table, [link.line for link in picked]),
         )
-    body.extend(
-        [
-            "# Источник",
-            "",
-            marker("source"),
-            f"ВОЗ, МКБ-11 (MMS), выпуск {release}, русская версия; {entity.foundation_uri}; "
-            "ICD-11 © ВОЗ 2019, лицензия CC BY-ND 3.0 IGO.",
-        ]
-    )
+    if crosswalk_body.lines:
+        body.extend([f"# {CROSSWALK_SECTION}", "", *crosswalk_body.lines])
 
     if entity.kind == "category":
         doc_title = f"{entity.code} {title}, МКБ-11 (ВОЗ)"
@@ -538,8 +576,8 @@ def _entity_document(
     else:
         doc_title = f"Глава {entity.chapter}. {title}, МКБ-11 (ВОЗ)"
         short_title = f"Глава {entity.chapter}. {title} (МКБ-11)"
-    # Identity of the exact source rows (the paragraphs cite the same lines).
-    source_basis = {
+    # Identity of the exact source rows (the paragraphs cite the same rows).
+    source_basis: dict[str, object] = {
         "tabulationLine": entity.line,
         "tabulationSha256": tabulation_sha256,
         "mappingLines": sorted(
@@ -548,34 +586,34 @@ def _entity_document(
         ),
         "mappingSha256": mapping_sha256,
     }
+    if api is not None:
+        source_basis["apiEntry"] = api.entry
+        source_basis["apiEntrySha256"] = api.entry_sha256
+        source_basis["apiArchiveSha256"] = api_archive_sha256
     checksum = hashlib.sha256(
         json.dumps(source_basis, ensure_ascii=False, sort_keys=True).encode()
     ).hexdigest()
+    # Raw-file checksums and the fetch time are recorded once, in the module's release report and
+    # in the raw manifests; the per-entity `source_checksum` above binds the entity to them.
     metadata: dict[str, object] = {
         "id": document_id(entity.entity_id),
         "title": doc_title,
         "short_title": short_title,
-        "version_label": f"who-{release}-{checksum[:12]}",
+        "version_label": f"who-{release}",
         "source_type": SOURCE_TYPE,
         "status": "active",
         "specialties": ["medical-reference"],
-        "source_file": raw_path,
+        "source_file": f"icd11/{release}",
         "source_checksum": f"sha256:{checksum}",
         "synthetic_fixture": False,
         "metadata": {
-            "publisher": "Всемирная организация здравоохранения (ВОЗ)",
+            "publisher": "ВОЗ (WHO)",
             "officialSourceUrl": url,
-            "sourceKind": "icd-11-mms",
             "codingSystem": "icd-11",
             "icd11Release": release,
             "icd11Code": entity.code or None,
-            "icd11BlockId": entity.block_id or None,
             "icd11ClassKind": entity.kind,
             "icd11Chapter": entity.chapter,
-            "icd11Residual": entity.residual,
-            "icd11FoundationUri": entity.foundation_uri,
-            "icd11LinearizationUri": LINEARIZATION_BASE + entity.entity_id,
-            "icd11TitleEn": entity.title_en,
             "icd11TitleLanguage": "ru" if entity.title_ru else "en-source-only",
             "classificationPath": classification_path,
             "childDocuments": [
@@ -583,23 +621,20 @@ def _entity_document(
                 for item in kids
             ],
             "crosswalkIcd10": crosswalk,
-            "rawPath": raw_path,
-            "tabulationSha256": tabulation_sha256,
-            "mappingSha256": mapping_sha256,
-            "tabulationLine": entity.line,
-            "fetchedAt": fetched_at,
             "requiresReview": True,
             "rightsStatus": LICENCE_ID,
-            "rights": {
-                "licenseId": LICENCE_ID,
-                "allowsOfflineStorage": True,
-                "allowsDerivativeProcessing": False,
-                "allowsRedistribution": True,
-            },
             "publicationState": publication.state,
             "publicationDecision": publication.metadata(),
         },
     }
+    # Derivable or empty values are left out: the foundation entity is the id's first part, the
+    # English title is in the card text, and a false flag says nothing.
+    extra: dict[str, object] = {}
+    if entity.block_id:
+        extra["icd11BlockId"] = entity.block_id
+    if entity.residual:
+        extra["icd11Residual"] = True
+    metadata["metadata"].update(extra)  # type: ignore[attr-defined]
     front_matter = yaml.dump(
         metadata,
         Dumper=_YAML_DUMPER,
@@ -608,6 +643,43 @@ def _entity_document(
         default_flow_style=False,
     ).rstrip()
     return document_id(entity.entity_id), f"---\n{front_matter}\n---\n\n" + "\n".join(body) + "\n"
+
+
+def _distinct_terms(api: ApiEntityText, title: str) -> tuple[ApiText, ...]:
+    """Index terms without the entity's own title (it is already the card's name)."""
+    return tuple(item for item in api.index_terms if item.text.casefold() != title.casefold())
+
+
+def _count_api_text(report: Icd11PrepareReport, api: ApiEntityText, title: str) -> None:
+    for prop, count in api.served.items():
+        bucket = report.api_text.setdefault(
+            prop,
+            {
+                "served": 0,
+                "kept": 0,
+                "englishFallbackOmitted": 0,
+                "unmarkedEnglishOmitted": 0,
+                "provisional": 0,
+            },
+        )
+        bucket["served"] += count
+        bucket["kept"] += api.kept[prop]
+        bucket["englishFallbackOmitted"] += api.omitted_fallback[prop]
+        bucket["unmarkedEnglishOmitted"] += api.omitted_unmarked_foreign[prop]
+        bucket["provisional"] += api.provisional[prop]
+    present = {
+        "definition": api.definition,
+        "longDefinition": api.long_definition,
+        "fullySpecifiedName": api.fully_specified_name,
+        "codingNote": api.coding_note,
+        "inclusion": api.inclusions,
+        "exclusion": api.exclusions,
+        "indexTerm": _distinct_terms(api, title),
+        "foundationChildElsewhere": api.elsewhere,
+    }
+    for prop, value in present.items():
+        if value:
+            report.documents_with_api_text[prop] = report.documents_with_api_text.get(prop, 0) + 1
 
 
 def _read_member(archive: Path, member: str) -> bytes:
@@ -634,6 +706,7 @@ def prepare_icd11(
     publication: PublicationDecision,
     *,
     mkb10_database: Path | None = None,
+    with_api_text: bool = True,
 ) -> Icd11PrepareReport:
     manifest, tabulation_zip, mapping_zip = _verified_files(raw_root)
     release = str(manifest["release"])
@@ -685,6 +758,16 @@ def prepare_icd11(
     report = Icd11PrepareReport(release=release, mapping_rows_unmatched=unmatched)
     report.tabulation_sha256 = tabulation_sha256
     report.mapping_sha256 = mapping_sha256
+    api_archive: ApiTextArchive | None = None
+    if with_api_text:
+        api_archive = load_api_text(raw_root, release)
+        absent = ids - set(api_archive.entities)
+        if absent:
+            raise ValueError(f"{len(absent)} tabulation entities have no cached ICD-API answer")
+        report.api_archive_sha256 = api_archive.archive_sha256
+        report.api_container_image = api_archive.container_image
+        report.api_data_release = api_archive.data_release
+        report.api_entities = len(api_archive.entities)
     fetched_at = str(manifest["fetchedAt"])
 
     prepared: list[tuple[str, str]] = []
@@ -701,10 +784,14 @@ def prepare_icd11(
             tabulation_member=TABULATION_MEMBER,
             tabulation_sha256=tabulation_sha256,
             mapping_sha256=mapping_sha256,
+            api=api_archive.entities[entity.entity_id] if api_archive else None,
+            api_archive_sha256=api_archive.archive_sha256 if api_archive else None,
             fetched_at=fetched_at,
             publication=publication,
             counters=report,
         )
+        if api_archive:
+            _count_api_text(report, api_archive.entities[entity.entity_id], names.title(entity))
         prepared.append((f"{name}.md", markdown))
         report.documents += 1
         report.chapters += entity.kind == "chapter"

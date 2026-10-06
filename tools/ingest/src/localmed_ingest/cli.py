@@ -23,6 +23,7 @@ from .catalog_module_builder import (
 )
 from .clinical_queries import import_real_pocqi_benchmark
 from .drug_sources import collect_drug_sources
+from .icd11_api_fetch import fetch_icd11_api
 from .icd11_distribution import package_icd11_module
 from .icd11_fetch import fetch_icd11_release
 from .icd11_prepare import prepare_icd11
@@ -380,6 +381,31 @@ def fetch_icd11_command(
     typer.echo(json.dumps(manifest, ensure_ascii=False, indent=2))
 
 
+@app.command("fetch-icd11-api")
+def fetch_icd11_api_command(
+    raw_root: Annotated[Path, typer.Option("--raw-root", exists=True, file_okay=False)],
+    release: Annotated[str, typer.Option("--release", help="WHO release, e.g. 2026-01.")],
+    container_image: Annotated[
+        str, typer.Option("--container-image", help="Image reference with digest, for provenance.")
+    ],
+    data_release: Annotated[
+        str, typer.Option("--data-release", help="Data release the container logged at start.")
+    ],
+    base_url: Annotated[str, typer.Option("--base-url")] = "http://127.0.0.1:8382",
+    concurrency: Annotated[int, typer.Option("--concurrency", min=1, max=8)] = 4,
+) -> None:
+    """Cache the Russian entity text served by the local WHO ICD-API container (loopback only)."""
+    report = fetch_icd11_api(
+        raw_root,
+        release=release,
+        base_url=base_url,
+        container_image=container_image,
+        data_release=data_release,
+        concurrency=concurrency,
+    )
+    typer.echo(json.dumps(report.__dict__, ensure_ascii=False, indent=2))
+
+
 @app.command("prepare-icd11")
 def prepare_icd11_command(
     raw_input: Annotated[Path, typer.Option("--raw-input", exists=True, file_okay=False)],
@@ -395,6 +421,13 @@ def prepare_icd11_command(
             help="ICD-10 module database; only used to check which ICD-10 cards exist for links.",
         ),
     ] = None,
+    api_text: Annotated[
+        bool,
+        typer.Option(
+            "--api-text/--no-api-text",
+            help="Merge the cached Russian ICD-API entity text (run fetch-icd11-api first).",
+        ),
+    ] = True,
 ) -> None:
     """Prepare the WHO ICD-11 MMS (Russian) workspace; ICD-10 data is never modified."""
     report = prepare_icd11(
@@ -406,6 +439,7 @@ def prepare_icd11_command(
             basis=publication_decision_basis,
         ),
         mkb10_database=mkb10_database,
+        with_api_text=api_text,
     )
     typer.echo(json.dumps(report.__dict__, ensure_ascii=False, indent=2))
 
@@ -416,10 +450,19 @@ def package_icd11_command(
     output: Annotated[Path, typer.Option("--output", file_okay=False)],
     version: Annotated[str, typer.Option("--version")],
     min_app_version: Annotated[str, typer.Option("--min-app-version")],
+    raw_root: Annotated[
+        Path | None,
+        typer.Option(
+            "--raw-root",
+            exists=True,
+            file_okay=False,
+            help="Raw ICD-11 directory; its checksums are recorded in the release report.",
+        ),
+    ] = None,
 ) -> None:
     """Gzip the built ICD-11 pack and write its catalog entry."""
     report = package_icd11_module(
-        database, output, version=version, min_app_version=min_app_version
+        database, output, version=version, min_app_version=min_app_version, raw_root=raw_root
     )
     typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
 
