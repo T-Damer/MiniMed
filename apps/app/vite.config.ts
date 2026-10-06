@@ -1,7 +1,6 @@
 import {
   copyFileSync,
   createReadStream,
-  createWriteStream,
   existsSync,
   mkdirSync,
   readdirSync,
@@ -9,7 +8,6 @@ import {
   rmSync,
   statSync,
 } from 'node:fs';
-import { get } from 'node:https';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
@@ -42,9 +40,6 @@ const LARGE_COMPANION_PATHS = [
   'content/ambulatory.db',
 ] as const;
 
-const TESSDATA_LANGS = ['eng', 'rus'] as const;
-const TESSDATA_VERSION = '4.0.0';
-const TESSDATA_BASE = `https://cdn.jsdelivr.net/gh/naptha/tessdata@gh-pages/${TESSDATA_VERSION}/`;
 const PDFJS_STATIC_DIRECTORIES = ['wasm', 'standard_fonts', 'cmaps', 'iccs'] as const;
 const CORNERSTONE_CODEC_ASSETS = [
   ['@cornerstonejs/codec-charls/decodewasm', 'charlswasm_decode.wasm'],
@@ -52,50 +47,6 @@ const CORNERSTONE_CODEC_ASSETS = [
   ['@cornerstonejs/codec-openjpeg/decodewasm', 'openjpegwasm_decode.wasm'],
   ['@cornerstonejs/codec-openjph/wasm', 'openjphjs.wasm'],
 ] as const;
-
-function downloadFile(url: string, destination: string): Promise<void> {
-  if (existsSync(destination)) return Promise.resolve();
-  return new Promise((resolve, reject) => {
-    const request = get(url, (response) => {
-      if (response.statusCode && response.statusCode >= 300 && response.statusCode < 400) {
-        const redirect = response.headers.location;
-        if (!redirect) {
-          reject(new Error(`Redirect without location for ${url}`));
-          return;
-        }
-        downloadFile(redirect, destination).then(resolve).catch(reject);
-        return;
-      }
-      if (response.statusCode !== 200) {
-        reject(new Error(`Failed to download ${url}: HTTP ${response.statusCode ?? 'unknown'}`));
-        return;
-      }
-      const file = createWriteStream(destination);
-      response.pipe(file);
-      file.on('finish', () => file.close(() => resolve()));
-      file.on('error', reject);
-    });
-    request.on('error', reject);
-  });
-}
-
-function ensureTessdataAssets(): Plugin {
-  const tessdataDir = fileURLToPath(new URL('./public/tessdata', import.meta.url));
-  return {
-    name: 'ensure-tessdata-assets',
-    async buildStart() {
-      mkdirSync(tessdataDir, { recursive: true });
-      await Promise.all(
-        TESSDATA_LANGS.map((lang) =>
-          downloadFile(
-            `${TESSDATA_BASE}${lang}.traineddata.gz`,
-            join(tessdataDir, `${lang}.traineddata.gz`),
-          ),
-        ),
-      );
-    },
-  };
-}
 
 function copyDirectoryFiles(sourceDir: string, targetDir: string): void {
   mkdirSync(targetDir, { recursive: true });
@@ -291,6 +242,9 @@ function excludeOptionalPublicAssets(): Plugin {
     closeBundle() {
       // The unreviewed local reference is installed explicitly in DEV, never bundled for release.
       rmSync(join(outDir, 'content/definition-reference'), { recursive: true, force: true });
+      // OCR language data is a verified on-demand download (features/ocr), never bundled; this
+      // also drops a `public/tessdata` left in a checkout by the former build-time download.
+      rmSync(join(outDir, 'tessdata'), { recursive: true, force: true });
       // Illustrations are verified optional downloads; keep their small manifest in the app.
       rmSync(join(outDir, 'content/reference-images/assets'), { recursive: true, force: true });
       const packageLarge = process.env['VITE_PACKAGE_LARGE_COMPANIONS'] === 'true';
@@ -312,7 +266,6 @@ export default defineConfig({
     solid(),
     katexWoff2Only(),
     excalidrawCjkFontStubs(),
-    ensureTessdataAssets(),
     ensurePdfJsAssets(),
     ensureCornerstoneCodecAssets(),
     excludeOptionalPublicAssets(),

@@ -56,18 +56,13 @@ const config = await loadConfigFromFile(
   resolve(appRoot, 'vite.config.ts'),
 );
 assert(config);
-// Viewer/OCR assets are outside this browser slice. Keep the real App, Solid transform, aliases,
-// SQLite worker and headers; omit unrelated asset preparation instead of downloading OCR models.
+// Viewer assets are outside this browser slice. Keep the real App, Solid transform, aliases,
+// SQLite worker and headers; omit unrelated asset preparation.
 const plugins = config.config.plugins
   .flat(Infinity)
   .filter(
     (plugin) =>
-      !plugin ||
-      ![
-        'ensure-tessdata-assets',
-        'ensure-pdfjs-assets',
-        'ensure-cornerstone-codec-assets',
-      ].includes(plugin.name),
+      !plugin || !['ensure-pdfjs-assets', 'ensure-cornerstone-codec-assets'].includes(plugin.name),
   );
 plugins.push({
   name: 'reference-check-receipt-bound-test-server',
