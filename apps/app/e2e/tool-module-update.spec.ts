@@ -136,8 +136,14 @@ async function reloadWithShippedCatalog(page: Page): Promise<void> {
         body: shippedCatalog(),
       }),
   );
-  await page.evaluate(() => {
-    window.localStorage.removeItem('minimed.content-module-catalog.preview.v1');
+  await page.evaluate(async () => {
+    // The device's cached catalog is the old one; forget it so the shipped one is what it sees.
+    await new Promise<void>((resolveDelete, rejectDelete) => {
+      const request = indexedDB.deleteDatabase('minimed-module-catalog');
+      request.onsuccess = () => resolveDelete();
+      request.onerror = () => rejectDelete(request.error);
+      request.onblocked = () => rejectDelete(new Error('The catalog cache database stayed open.'));
+    });
     window.location.hash = '#/search';
   });
   await page.reload();

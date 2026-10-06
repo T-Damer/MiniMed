@@ -508,9 +508,12 @@ export function useAppSession() {
         .then(() => import('@/features/modules/catalog-service'))
         .then(({ refreshContentModuleCatalog }) => refreshContentModuleCatalog())
         .then((result) => {
+          if (disposed) return;
           setAvailableModuleCount(countPublishedCatalogModules(result.catalog.modules));
         })
-        .catch(() => undefined);
+        .catch((cause: unknown) => {
+          console.warn('The module catalog could not be refreshed at start-up.', cause);
+        });
     } catch (cause) {
       const initialized = await initializedPromise.catch(() => undefined);
       if (initialized) await initialized.core.close();

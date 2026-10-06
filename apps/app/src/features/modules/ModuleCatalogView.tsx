@@ -528,7 +528,8 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     if (refreshing()) return;
     setRefreshing(true);
     try {
-      const result = await refreshContentModuleCatalog();
+      // Opening the catalog is the user asking for it: this refresh may download on a metered link.
+      const result = await refreshContentModuleCatalog({ userInitiated: true });
       setCatalog(result.catalog);
       setWarning(result.warning);
       bindRuntime(result.catalog);

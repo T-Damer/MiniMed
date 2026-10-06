@@ -20,6 +20,55 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Module catalog cache — 2026-10-06 (STATE CAT1)
+
+The remote catalog (`catalog.preview.json` on raw.githubusercontent.com) is 7.54 MB, 2.19 MB gzip on
+the wire. Its cache used to be one `localStorage` value; the serialized record is about 6.3 MB, over
+the quota, so `setItem` threw and the error was swallowed: no validators were ever stored, every
+start downloaded the whole catalog, and an offline start used the older bundled catalog.
+
+- **Cache** (`apps/app/src/features/modules/catalog-cache.ts`): IndexedDB database
+  `minimed-module-catalog`, store `records`, one record under `preview`. The catalog travels as JSON
+  text and is schema-validated by the core on read; a record of the wrong shape or with damaged JSON
+  is deleted and reported (`onCacheFailure`), never silently ignored. The old localStorage key
+  `minimed.content-module-catalog.preview.v1` is removed on the first refresh, not migrated.
+- **Record** (core, `CONTENT_MODULE_CATALOG_CACHE_FORMAT = 2`): format, `appVersion`, `publishedAt`,
+  validators, `catalog`. The catalog body is kept only when the remote was strictly newer than the
+  bundled one at that time; when the remote merely equals the shipped catalog only the validators and
+  `publishedAt` are stored, so the usual state right after a release costs no storage and no parse.
+- **Resolution** (`loadContentModuleCatalog`): always the newest of bundled, cached and remote by
+  `publishedAt` (ties: bundled, then a freshly fetched remote, then the cache), also on 304 and on
+  fetch failure. A record from another app version, or whose body is absent while the bundled
+  catalog is older than the remote it describes, loses its validators (a full revalidation); a record
+  of another format or one that fails the schema is dropped. Results carry `network`
+  (`downloaded`, `not-modified`, `skipped-metered`, `failed`).
+- **Transport** (`catalog-fetcher.ts`): raw.githubusercontent does not expose `ETag` to a page and
+  its CORS preflight answers 403 to `If-None-Match`, so a page cannot send validators there. Android
+  uses the native HTTP client (`CapacitorHttp`: validators sent and read back, 304 passes through);
+  the browser uses `fetch` with `cache: 'no-cache'`, so its own HTTP cache revalidates. Not tested on
+  a device: the 7.5 MB text response through the Capacitor bridge.
+- **Metered connections**: the start-up refresh on a cellular or data-saving connection
+  (`coreAutoDownloadAllowed`) contacts the remote only when the cache holds trusted validators (a
+  304 costs about 1 KB); without them it uses the local catalogs and does not download. Opening the
+  module catalog screen counts as the user asking and may download.
+- The start-up refresh no longer ends in `.catch(() => undefined)`: a failure is logged with
+  `console.warn` (no clinical text). Offline or HTTP failures stay a `warning` on the result, shown by
+  the module catalog screen.
+
+Bytes per start (GitHub, measured with `curl`): before, every start 2 194 392 B on the wire (7 537 011
+B decoded, then JSON.parse 15 ms + zod 95 ms on a desktop). After: first start with no record 2.19 MB
+once; every later start a 304 of 514 B response headers and no body (cellular: 0 B for the first start).
+Size by part: `documentTable` rows 5.85 MB (77.7 %; 1.94 MB gzip) in 795 modules, two ICD reference
+modules alone 3.3 MB; `artifacts` 0.48 MB; `tools` previews 0.19 MB; the rest (titles, tags, sizes,
+compatibility) about 1 MB. Not changed here: the document table is what lets a pointer open a
+document without installing the module, so trimming it is a catalog-format task.
+
+Tests: `packages/core/tests/content-module-catalog-client.test.ts` (newest of three, stale cache on 304 /
+failure, other app version / format / schema, metered, cache failures reported),
+`apps/app/src/features/modules/catalog-cache.test.ts`, `catalog-fetcher.test.ts`,
+`apps/app/e2e/module-catalog-cache.spec.ts` (cached → reload → conditional 304, offline start, newer
+bundled catalog after an app update, other app version).
+
 ## iOS on iPad mini and iPhone simulators — 2026-10-06 (STATE IOS1)
 
 First time anything ran on iOS. Tested on the **iPad mini (A17 Pro) simulator** (744 × 1133 pt, iOS 26.5)
