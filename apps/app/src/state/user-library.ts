@@ -1352,6 +1352,26 @@ export async function patchUserLibraryDocument(
   id: string,
   patch: UserLibraryDocumentPatch,
 ): Promise<UserLibraryDocument | null> {
+  return await writeUserLibraryDocumentPatch(id, patch, true);
+}
+
+/**
+ * Records processing state (inspection, page counts, OCR progress, a processing failure). It is
+ * not a change of the document itself, so `updatedAt` — the «изменён» time and the library's
+ * time order — stays put and cards do not jump while a file is being read.
+ */
+export async function patchUserLibraryDocumentProcessing(
+  id: string,
+  patch: UserLibraryDocumentPatch,
+): Promise<UserLibraryDocument | null> {
+  return await writeUserLibraryDocumentPatch(id, patch, false);
+}
+
+async function writeUserLibraryDocumentPatch(
+  id: string,
+  patch: UserLibraryDocumentPatch,
+  touch: boolean,
+): Promise<UserLibraryDocument | null> {
   const database = await openDatabase();
   try {
     const existing = await getUserLibraryDocument(id);
@@ -1359,7 +1379,7 @@ export async function patchUserLibraryDocument(
     const updated: UserLibraryDocument = {
       ...existing,
       ...patch,
-      updatedAt: new Date().toISOString(),
+      updatedAt: touch ? new Date().toISOString() : existing.updatedAt,
     };
     await new Promise<void>((resolve, reject) => {
       const transaction = database.transaction(DOCUMENTS_STORE, 'readwrite');
@@ -1735,7 +1755,10 @@ export async function addUserLibraryFile(
       .catch(async (cause) => {
         const message =
           cause instanceof Error ? cause.message : 'Не удалось обработать личный документ.';
-        await patchUserLibraryDocument(document.id, { status: 'failed', errorMessage: message });
+        await patchUserLibraryDocumentProcessing(document.id, {
+          status: 'failed',
+          errorMessage: message,
+        });
       });
   }
   options?.onProgress?.(1);
@@ -1805,7 +1828,7 @@ export async function replaceUserLibraryFile(
       .catch(async (cause) => {
         const message =
           cause instanceof Error ? cause.message : 'Не удалось обработать личный документ.';
-        await patchUserLibraryDocument(id, { status: 'failed', errorMessage: message });
+        await patchUserLibraryDocumentProcessing(id, { status: 'failed', errorMessage: message });
       });
   }
   return updated;
@@ -1861,7 +1884,7 @@ export async function saveUserLibraryDraft(
   } catch (cause) {
     const message =
       cause instanceof Error ? cause.message : 'Не удалось обработать сохранённый черновик.';
-    await patchUserLibraryDocument(id, { status: 'failed', errorMessage: message });
+    await patchUserLibraryDocumentProcessing(id, { status: 'failed', errorMessage: message });
     throw cause;
   }
   if (existing.source?.kind === 'note') {

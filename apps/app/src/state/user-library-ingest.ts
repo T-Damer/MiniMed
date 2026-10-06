@@ -12,7 +12,7 @@ import {
   isUserLibraryPdfMime,
   isUserLibraryTextLikeMime,
   listUserLibraryDocuments,
-  patchUserLibraryDocument,
+  patchUserLibraryDocumentProcessing,
   putUserLibraryPage,
   type UserLibraryDocument,
   type UserLibraryOcrQuality,
@@ -340,7 +340,7 @@ export async function processNewDocument(documentId: string): Promise<void> {
       });
       await yieldToEventLoop();
     }
-    await patchUserLibraryDocument(documentId, {
+    await patchUserLibraryDocumentProcessing(documentId, {
       pageCount: chunks.length,
       nativeTextPages: chunks.length,
       ocrDonePages: 0,
@@ -355,7 +355,7 @@ export async function processNewDocument(documentId: string): Promise<void> {
 
   if (isUserLibraryImageMime(meta.mimeType)) {
     await putUserLibraryPage({ documentId, pageIndex: 0, kind: 'empty', text: '' });
-    await patchUserLibraryDocument(documentId, {
+    await patchUserLibraryDocumentProcessing(documentId, {
       pageCount: 1,
       nativeTextPages: 0,
       ocrNeededPages: 0,
@@ -370,7 +370,7 @@ export async function processNewDocument(documentId: string): Promise<void> {
   if (!isUserLibraryPdfMime(meta.mimeType)) {
     // Unknown binary (json, zip, video, …): nothing to extract — keep the file
     // downloadable in the reader instead of failing PDF inspection.
-    await patchUserLibraryDocument(documentId, {
+    await patchUserLibraryDocumentProcessing(documentId, {
       pageCount: 0,
       nativeTextPages: 0,
       ocrNeededPages: 0,
@@ -408,7 +408,7 @@ export async function processNewDocument(documentId: string): Promise<void> {
       await yieldToEventLoop();
     }
 
-    await patchUserLibraryDocument(documentId, {
+    await patchUserLibraryDocumentProcessing(documentId, {
       pageCount,
       nativeTextPages,
       ocrNeededPages,
@@ -449,11 +449,11 @@ async function completeOcrPage(
   await putUserLibraryPage(
     buildUserLibraryPage(documentId, pageIndex, page.kind, page.text, page.words),
   );
-  const updated = await patchUserLibraryDocument(documentId, {
+  const updated = await patchUserLibraryDocumentProcessing(documentId, {
     ocrDonePages: meta.ocrDonePages + 1,
   });
   if (updated && updated.ocrDonePages >= updated.ocrNeededPages) {
-    await patchUserLibraryDocument(documentId, { status: 'ready', ocrPriority: 0 });
+    await patchUserLibraryDocumentProcessing(documentId, { status: 'ready', ocrPriority: 0 });
   }
 }
 
@@ -461,7 +461,7 @@ async function failAllOcrDocuments(message: string): Promise<void> {
   const documents = await listUserLibraryDocuments();
   for (const document of documents) {
     if (document.status !== 'ocr') continue;
-    await patchUserLibraryDocument(document.id, {
+    await patchUserLibraryDocumentProcessing(document.id, {
       status: 'failed',
       errorMessage: message,
     });
@@ -501,7 +501,7 @@ async function processNextOcrPage(): Promise<boolean> {
       kind: 'empty',
       text: '',
     });
-    await patchUserLibraryDocument(pending.documentId, {
+    await patchUserLibraryDocumentProcessing(pending.documentId, {
       status: 'ready',
       ocrNeededPages: 0,
       ocrDonePages: 0,
@@ -613,7 +613,7 @@ async function processNextInspectingDocument(): Promise<boolean> {
     await processNewDocument(document.id);
   } catch (cause) {
     const message = cause instanceof Error ? cause.message : 'Не удалось обработать документ.';
-    await patchUserLibraryDocument(document.id, {
+    await patchUserLibraryDocumentProcessing(document.id, {
       status: 'failed',
       errorMessage: message,
     });

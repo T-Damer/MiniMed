@@ -28,6 +28,7 @@ import {
   listUserLibraryFolders,
   listUserLibraryPages,
   patchUserLibraryDocument,
+  patchUserLibraryDocumentProcessing,
   putUserLibraryMedicalAnnotationBitmap,
   putUserLibraryMedicalAnnotations,
   putUserLibraryPage,
@@ -373,6 +374,24 @@ describe('user-library storage', () => {
     const updated = (await listUserLibraryDocuments()).find((item) => item.id === created.id);
     expect(updated).toBeTruthy();
     expect(userLibraryProgressFraction(updated as NonNullable<typeof updated>)).toBe(0.75);
+  });
+
+  it('records processing progress without touching the modification time', async () => {
+    installUserLibraryIndexedDb();
+    const created = await addUserLibraryFile(
+      new File(['%PDF-1.7'], 'scan.pdf', { type: 'application/pdf' }),
+    );
+    const progressed = await patchUserLibraryDocumentProcessing(created.id, {
+      pageCount: 2,
+      nativeTextPages: 2,
+      status: 'ready',
+    });
+    expect(progressed?.status).toBe('ready');
+    expect(progressed?.updatedAt).toBe(created.updatedAt);
+
+    await new Promise((resolve) => setTimeout(resolve, 2));
+    const recolored = await patchUserLibraryDocument(created.id, { color: 'red' });
+    expect(recolored?.updatedAt).not.toBe(created.updatedAt);
   });
 
   it('allows RTF, image and arbitrary binary uploads', async () => {
