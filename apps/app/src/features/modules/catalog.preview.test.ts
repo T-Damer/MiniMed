@@ -156,6 +156,35 @@ describe('catalog.preview.json', () => {
     );
   });
 
+  it('lists the DDInter severity labels as one optional, search-free reference module (INT2)', () => {
+    const catalog = ContentModuleCatalogSchema.parse(rawCatalog);
+    const module = catalog.modules.find(
+      (entry) => entry.id === 'minimed.reference.ddinter-severity.ru',
+    );
+    expect(module).toMatchObject({
+      kind: 'reference',
+      collection: 'ddinter-severity',
+      releaseState: 'preview',
+      required: false,
+      dependencies: [{ moduleId: 'minimed.core.ru', required: true }],
+      // The UI that reads the labels ships in 0.6.52.
+      compatibility: { minAppVersion: '0.6.52', schemaVersion: 2 },
+      capabilities: { search: false, fullText: false },
+    });
+    // Licence and source are in the entry's description, not only in the pack.
+    expect(module?.description).toContain('CC BY-NC-SA 4.0');
+    expect(module?.description).toContain('DDInter');
+    expect(module?.artifacts).toHaveLength(1);
+    expect(module?.artifacts[0]?.url).toMatch(
+      /^https:\/\/github\.com\/T-Damer\/MiniMed\/releases\/download\/ddinter-severity-2026\.10\.06-[0-9a-f]{12}\/minimed\.reference\.ddinter-severity\.ru\.db\.zst$/u,
+    );
+    // It is not a drug module: the drug download and the instruction groups do not count it.
+    expect(drugModules(catalog, () => true).map((entry) => entry.id)).not.toContain(module?.id);
+    expect(
+      catalog.modules.filter((entry) => entry.collection === 'grls-instructions'),
+    ).toHaveLength(ESKLP_MODULE_IDS.length);
+  });
+
   it('lists the manufacturer-site instructions as one separately labelled module, not a ГРЛС group', () => {
     const catalog = ContentModuleCatalogSchema.parse(rawCatalog);
     const module = catalog.modules.find(

@@ -6,7 +6,11 @@ const GITHUB_RELEASE_PATTERN =
   /^https:\/\/github\.com\/([^/]+)\/([^/]+)\/releases\/download\/([^/]+)\/([^/?#]+)$/u;
 
 /** Dataset tags whose `.db.zst` modules live as plain git blobs on `datasets/<tag>` (modules/…). */
-const MEDICATION_MIRROR_TAG = /^(?:esklp|grls-instructions|allmed|manufacturer-instructions)-/u;
+const MEDICATION_MIRROR_TAG =
+  /^(?:esklp|grls-instructions|allmed|manufacturer-instructions|ddinter-severity)-/u;
+
+/** Module files of the mirrored medication tags: drug modules and the DDInter severity labels. */
+const MEDICATION_MIRROR_FILE = /^minimed\.(?:medications\.|reference\.ddinter-)/u;
 
 const RAW_GITHUB_MODULE_BASE =
   'https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules';
@@ -68,7 +72,7 @@ export function resolveContentModuleArtifactUrl(url: string): string {
     if (owner === 'T-Damer' && repo === 'MiniMed' && fileName.length > 0 && releaseTag.length > 0) {
       if (
         MEDICATION_MIRROR_TAG.test(releaseTag) &&
-        fileName.startsWith('minimed.medications.') &&
+        MEDICATION_MIRROR_FILE.test(fileName) &&
         fileName.endsWith('.db.zst')
       ) {
         // Compressed modules are small enough for plain git blobs on the mirror branch; raw

@@ -57,6 +57,7 @@ import {
   sweepModulePools,
 } from '@/features/modules/module-opfs-pools';
 import { commitRegistryAndArtifactMutation } from '@/features/modules/module-registry-transaction';
+import { searchIndexIsConsistent } from '@/features/modules/module-search-index';
 import {
   dequeuePendingModuleInstall,
   discardPendingModuleInstall,
@@ -700,7 +701,11 @@ export class BrowserModuleValidator implements ContentModuleIndexValidator {
         integrity.foreignKeyViolations === 0 &&
         (module.definitionReference
           ? referenceValid
-          : integrity.chunkCount === integrity.ftsRowCount) &&
+          : searchIndexIsConsistent({
+              searchable: module.capabilities.search,
+              chunkCount: integrity.chunkCount,
+              ftsRowCount: integrity.ftsRowCount,
+            })) &&
         schemaCompatible;
       return {
         checkedAt: new Date().toISOString(),

@@ -175,5 +175,12 @@ describe('resolveContentModuleArtifactUrl', () => {
     ).toBe(
       'https://raw.githubusercontent.com/T-Damer/MiniMed/datasets/manufacturer-instructions-2026.10.05-abc123/modules/minimed.medications.instructions.manufacturer-site.ru.db.zst',
     );
+    expect(
+      resolveContentModuleArtifactUrl(
+        'https://github.com/T-Damer/MiniMed/releases/download/ddinter-severity-2026.10.06-abc123/minimed.reference.ddinter-severity.ru.db.zst',
+      ),
+    ).toBe(
+      'https://raw.githubusercontent.com/T-Damer/MiniMed/datasets/ddinter-severity-2026.10.06-abc123/modules/minimed.reference.ddinter-severity.ru.db.zst',
+    );
   });
 });

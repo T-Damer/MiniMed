@@ -1,6 +1,6 @@
 {
-  "catalogVersion": "release-0.6.48-m1.2026.10.05",
-  "publishedAt": "2026-10-05T18:42:50Z",
+  "catalogVersion": "int2-ddinter.2026.10.06",
+  "publishedAt": "2026-10-06T15:30:00Z",
   "coreModule": {
     "id": "minimed.core.ru",
     "version": "1.0.0-preview.8",

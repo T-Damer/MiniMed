@@ -6,7 +6,7 @@
  * validated before the candidate is written. Nothing is uploaded and the committed catalog is
  * only written with --write-catalog, after the files are published.
  *
- *   bun scripts/package-instruction-modules.ts --family grls|allmed|manufacturer --source-dir DIR --out-dir DIR \
+ *   bun scripts/package-instruction-modules.ts --family grls|allmed|manufacturer|ddinter --source-dir DIR --out-dir DIR \
  *     --tag TAG --catalog-in FILE [--catalog-out FILE] [--write-catalog] \
  *     [--min-app-version 0.6.48] [--published-at ISO] [--catalog-version V]
  *
@@ -16,6 +16,8 @@
  * `--family manufacturer`: the one module `minimed.medications.instructions.manufacturer-site.ru.db`
  * (instructions from the holders' own sites, not ГРЛС files; collection `manufacturer-instructions`,
  * kept apart from the per-ATC-group `grls-instructions` modules). `grls` skips that module.
+ * `--family ddinter`: the one optional module `minimed.reference.ddinter-severity.ru.db` (INT2: DDInter 2.0
+ * severity labels per drug pair, CC BY-NC-SA 4.0; `kind: reference`, collection `ddinter-severity`, no search).
  * `--family allmed`: `minimed.medications.ru.db` completes the existing `minimed.medications.ru`
  * entry (same version and source set: installed copies stay valid); its sizes and artifact change.
  *
@@ -53,6 +55,7 @@ const RELEASE_BASE = 'https://github.com/T-Damer/MiniMed/releases/download';
 const GRLS_PREFIX = 'minimed.medications.instructions.';
 const ALLMED_ID = 'minimed.medications.ru';
 const MANUFACTURER_ID = 'minimed.medications.instructions.manufacturer-site.ru';
+const DDINTER_ID = 'minimed.reference.ddinter-severity.ru';
 
 type Raw = Record<string, unknown>;
 
@@ -167,13 +170,13 @@ const sourceDir = values['source-dir'];
 const outDir = values['out-dir'];
 const tag = values.tag;
 if (
-  (family !== 'grls' && family !== 'allmed' && family !== 'manufacturer') ||
+  (family !== 'grls' && family !== 'allmed' && family !== 'manufacturer' && family !== 'ddinter') ||
   !sourceDir ||
   !outDir ||
   !tag
 ) {
   throw new Error(
-    'Usage: bun scripts/package-instruction-modules.ts --family grls|allmed|manufacturer --source-dir DIR --out-dir DIR --tag TAG [--catalog-in FILE] [--catalog-out FILE] [--write-catalog]',
+    'Usage: bun scripts/package-instruction-modules.ts --family grls|allmed|manufacturer|ddinter --source-dir DIR --out-dir DIR --tag TAG [--catalog-in FILE] [--catalog-out FILE] [--write-catalog]',
   );
 }
 const minAppVersion = values['min-app-version'] as string;
@@ -189,6 +192,8 @@ const files = readdirSync(sourceDir)
   .filter((name) => {
     if (family === 'allmed') return name === `${ALLMED_ID}.db`;
     if (family === 'manufacturer') return name === `${MANUFACTURER_ID}.db`;
+    if (family === 'ddinter') return name === `${DDINTER_ID}.db`;
+    if (name === `${DDINTER_ID}.db`) return false;
     // The manufacturer module shares the prefix but is its own family and collection.
     return name.startsWith(GRLS_PREFIX) && name !== `${MANUFACTURER_ID}.db`;
   })
@@ -279,6 +284,45 @@ for (const name of files) {
           : minAppVersion,
       },
     };
+  } else if (family === 'ddinter') {
+    const entry: Raw = {
+      id: identity.id,
+      version: identity.version,
+      kind: 'reference',
+      collection: 'ddinter-severity',
+      title: identity.title,
+      description:
+        'Только метки степени риска (серьёзное / умеренное / слабое / не определено) для пар веществ из международной базы DDInter 2.0, без описаний. Показываются в «Взаимодействии препаратов» рядом с предложениями из инструкций. Данные DDInter распространяются по лицензии CC BY-NC-SA 4.0 (некоммерческое использование, с указанием источника).',
+      required: false,
+      releaseState: 'preview',
+      specialties: [],
+      populations: [],
+      tags: ['ddinter', 'interaction-severity', 'cc-by-nc-sa-4.0'],
+      compatibility: {
+        minAppVersion,
+        maxAppVersion: null,
+        schemaVersion: 2,
+        coreCatalogVersion: '1',
+      },
+      sourceSetDigest: digest,
+      dependencies: [{ moduleId: 'minimed.core.ru', versionRange: '^1.0.0', required: true }],
+      sizes,
+      capabilities: {
+        search: false,
+        fullText: false,
+        structuredTables: false,
+        images: false,
+        originalPdf: false,
+        structuredKnowledge: false,
+        calculations: false,
+      },
+      artifacts: [artifact],
+      documents: [],
+      previewDocumentCount: identity.documents.length,
+    };
+    const index = catalog.modules.findIndex((module) => module['id'] === identity.id);
+    if (index === -1) catalog.modules.push(entry);
+    else catalog.modules[index] = entry;
   } else {
     const group = identity.id.slice(GRLS_PREFIX.length, -'.ru'.length);
     const manufacturer = family === 'manufacturer';
