@@ -15,6 +15,8 @@
     --theme-accent-contrast: #1c1712;
     --theme-accent-soft: rgb(130 168 141 / 15%);
     --theme-link: #9bc7a7;
+    --theme-inline-link: #9bc7a7;
+    --theme-inline-link-hover: color-mix(in srgb, #9bc7a7 80%, white);
     --theme-search-surface: #243029;
     --theme-search-surface-muted: #2c3a31;
     --theme-floating-surface: #456452;
@@ -229,10 +231,6 @@
   .result-group-header__index {
     color: var(--theme-text);
     opacity: 0.12;
-  }
-
-  .result-group-header__note {
-    color: var(--theme-text-muted);
   }
 
   :where(input, textarea, select) {
@@ -481,20 +479,6 @@
   .document-inline-reference,
   .patient-note-related button {
     color: #e09a8d;
-  }
-
-  .document-inline-link {
-    color: var(--theme-link);
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .document-inline-link:hover {
-      color: color-mix(in srgb, var(--theme-link) 80%, white);
-    }
-  }
-
-  .document-inline-link:focus-visible {
-    color: color-mix(in srgb, var(--theme-link) 80%, white);
   }
 
   .document-overlay-match {

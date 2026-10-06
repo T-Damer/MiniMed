@@ -180,7 +180,9 @@ test('reminders surface in the tab bar and close with a recorded condition', asy
   });
   // The separate «Заметки» tab exists once the core is ready; while it loads, notes live under
   // «Мои файлы» (the badge is there too).
-  await expect(page.getByTestId('search-input')).toBeEnabled({ timeout: 90_000 });
+  await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
+    timeout: 90_000,
+  });
 
   // The due follow-up is loud before the section is even opened.
   const notesButton = page

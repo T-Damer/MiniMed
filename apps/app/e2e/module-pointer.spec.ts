@@ -55,7 +55,9 @@ for (const cpuSlowdown of [1, 4]) {
     );
     await mountBuiltApp(page, { skipLargeCompanionPacks: true });
     // Documents open once the core is ready; a cold core start is not what this test measures.
-    await expect(page.getByTestId('search-input')).toBeEnabled({ timeout: 60_000 });
+    await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
+      timeout: 60_000,
+    });
     if (cpuSlowdown > 1) {
       const cdp = await page.context().newCDPSession(page);
       await cdp.send('Emulation.setCPUThrottlingRate', { rate: cpuSlowdown });

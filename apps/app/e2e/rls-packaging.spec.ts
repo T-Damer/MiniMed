@@ -62,7 +62,7 @@ for (const experimental of [false, true]) {
     await page.getByRole('link', { name: 'Абактал® — формы и упаковки' }).click();
     await expect(page).toHaveURL(documentRoute(TARGET));
     await expect(page.locator('.document-module-pointer__title')).toHaveText(
-      experimental ? 'Полный документ доступен после загрузки' : 'Полный документ пока недоступен',
+      experimental ? /^Полная версия — в наборе/u : 'Полный документ пока недоступен',
     );
     await expect(page.locator('.document-module-pointer__action')).toHaveCount(
       experimental ? 1 : 0,

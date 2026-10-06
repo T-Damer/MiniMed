@@ -703,6 +703,13 @@ main {
   font-size: var(--type-micro);
 }
 
+/* A long prompt ends with «…» on one line instead of making the empty field two lines tall. */
+.query-sheet__input::placeholder {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .query-sheet textarea {
   display: block;
   width: 100%;
@@ -806,8 +813,16 @@ main {
   background: var(--theme-accent);
   box-shadow: 0 0.14rem 0 color-mix(in srgb, var(--theme-accent) 55%, black);
   transition:
-    transform 120ms ease,
-    box-shadow 120ms ease;
+    transform var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease),
+    opacity var(--motion-base) var(--motion-ease-out);
+}
+
+/* Waiting (a search runs or the core is on its way): quieter, never hidden. */
+.search-button:disabled {
+  cursor: default;
+  opacity: 0.78;
+  box-shadow: none;
 }
 
 .search-button:hover:not(:disabled) {
@@ -816,6 +831,7 @@ main {
 
 .search-button:active:not(:disabled) {
   box-shadow: inset 0 0.05rem 0.15rem 0 rgb(0 0 0 / 25%);
+  transform: scale(0.94);
 }
 
 .search-button__icon {
@@ -1260,17 +1276,6 @@ main {
   line-height: 1.35;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
-}
-
-.result-group-header__note {
-  display: -webkit-box;
-  overflow: hidden;
-  color: var(--theme-text-muted);
-  font-family: var(--font-mono);
-  font-size: var(--type-micro);
-  line-height: 1.4;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
 }
 
 @media (hover: hover) and (pointer: fine) {

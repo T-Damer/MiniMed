@@ -1,0 +1,55 @@
+/* A background re-run of the shown query: a quiet line, never a dimmed or locked list. */
+.search-refresh-status {
+  margin: 0 0 0.5rem;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  animation: search-refresh-fade-in var(--motion-base) var(--motion-ease-out) both;
+}
+
+/* New results wait behind «Обновить»; the pill stays in view above the bottom navigation. */
+.search-refresh-offer {
+  position: sticky;
+  bottom: calc(5.5rem + var(--nav-safe-bottom, 0px));
+  z-index: 3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.625rem;
+  width: fit-content;
+  margin: 0.75rem auto 0;
+  padding: 0.375rem 0.375rem 0.375rem 0.875rem;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised, var(--theme-surface));
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 22%);
+  font-size: 0.875rem;
+  animation: search-refresh-rise var(--motion-slow) var(--motion-ease) both;
+}
+
+.search-refresh-offer__text {
+  white-space: nowrap;
+}
+
+.search-refresh-offer__button {
+  min-height: 2.25rem;
+  border-radius: 999px;
+}
+
+.search-refresh-offer__icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+@keyframes search-refresh-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.96);
+  }
+}
+
+@keyframes search-refresh-fade-in {
+  from {
+    opacity: 0;
+  }
+}

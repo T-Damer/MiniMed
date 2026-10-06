@@ -24,6 +24,7 @@ import {
   onMount,
   Show,
   Suspense,
+  untrack,
 } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import { AppGlyph } from '@/components/AppGlyph';
@@ -76,6 +77,8 @@ import { SearchExamples } from '@/features/search/SearchExamples';
 import { type SearchMeaning, SearchMeaningChoices } from '@/features/search/SearchMeaningChoices';
 import { SearchResultGroupCard } from '@/features/search/SearchResultGroupCard';
 import { SearchResultsSkeleton } from '@/features/search/SearchResultsSkeleton';
+import { sameSearchOutcome } from '@/features/search/search-refresh';
+import '@/features/search/search-refresh.css';
 import { createLingeringFlag } from '@/features/search/search-skeleton';
 import '@/features/search/search-results-skeleton.css';
 import { pluralRu } from '@/i18n/labels';
@@ -91,13 +94,15 @@ import {
 type ClinicalEditionsModule = typeof import('@/features/modules/clinical-editions');
 
 interface SearchWorkspaceProps {
-  /** Absent while the medical core opens; the field stays disabled until it arrives. */
+  /** Absent while the medical core opens; the field stays usable and a typed query runs once it arrives. */
   readonly core?: MedicalCore | undefined;
   readonly referenceCore?: MedicalCore | undefined;
   readonly onContentChanged?: () => Promise<void>;
   readonly scope: SearchScope;
   readonly searchAllowed?: boolean;
-  /** Compact status under the field, e.g. while the core opens, downloads or failed to open. */
+  /** The core is on its way (opening, downloading): the send button shows a spinner meanwhile. */
+  readonly searchPending?: boolean;
+  /** One small status line at the bottom of the search block, e.g. while the core opens. */
   readonly fieldStatus?: JSX.Element;
   readonly modePicker?: JSX.Element;
   readonly catalog?: JSX.Element;
@@ -202,7 +207,8 @@ const INTENT_LABELS: Readonly<Record<NonNullable<QueryAnalysis['intent']>['prima
 function resizeTextarea(element: HTMLTextAreaElement): void {
   const maxHeight = 260;
   element.style.height = 'auto';
-  const contentHeight = Math.max(element.scrollHeight, 56);
+  // An empty field is one line: Chrome counts a wrapped placeholder in `scrollHeight`.
+  const contentHeight = element.value ? Math.max(element.scrollHeight, 56) : 56;
   element.style.height = `${Math.min(contentHeight, maxHeight)}px`;
   element.style.overflowY = contentHeight > maxHeight ? 'auto' : 'hidden';
 }
@@ -278,6 +284,13 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     ).values(),
   ]);
   const [loading, setLoading] = createSignal(false);
+  // A re-run of the query already on screen (after an install, a core swap or a history replay):
+  // the current results stay usable, and a different outcome waits behind «Обновить».
+  const [refreshing, setRefreshing] = createSignal(false);
+  // The send button turns into a spinner while a search runs or the core is still on its way.
+  const submitBusy = (): boolean =>
+    loading() || (props.searchAllowed === false && props.searchPending === true);
+  const [pendingResponse, setPendingResponse] = createSignal<SearchResponse>();
   // A typed query waits 500 ms before it searches; the skeleton shows through that wait too.
   const [searchQueued, setSearchQueued] = createSignal(false);
   const [analysisLoading, setAnalysisLoading] = createSignal(false);
@@ -524,6 +537,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
         lastSearchedQuery = trimmed;
       } else if (scopeChanged || !searchWasAllowed) {
         lastSearchedQuery = '';
+        // A query typed while the core was still opening gets its analysis now as well.
+        if (!searchWasAllowed) untrack(() => scheduleAnalysis(query()));
         scheduleSearch(query());
       }
     }
@@ -672,6 +687,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     setQuery(value);
     if (response()?.analysis.originalQuery !== searchableQuery(value)) {
       setResponse(undefined);
+      setPendingResponse(undefined);
+      setRefreshing(false);
       setContext(undefined);
     }
     scheduleAnalysis(value);
@@ -703,11 +720,14 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     if (searchTimer) clearTimeout(searchTimer);
 
     const generation = ++searchGeneration;
+    const shown = response();
+    const refreshOfShown = shown?.analysis.originalQuery === trimmed;
     // Search normalizes its own input; writing the trimmed text back into the field deleted the
     // space or newline the doctor had just typed mid-sentence.
-    setLoading(true);
+    if (refreshOfShown) setRefreshing(true);
+    else setLoading(true);
     setError(undefined);
-    setContext(undefined);
+    if (!refreshOfShown) setContext(undefined);
 
     const result = await core.search({
       query: trimmed,
@@ -720,13 +740,22 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
 
     if (generation !== searchGeneration || searchableQuery(query()) !== trimmed) return;
     setLoading(false);
+    setRefreshing(false);
     if (!result.ok) {
       setError(result.error.message);
       return;
     }
 
     lastSearchedQuery = trimmed;
-    setResponse(result.value);
+    // An automatic refresh never swaps the list under the reader: an identical outcome is applied
+    // silently, a different one is offered. A search the user asked for is applied at once.
+    const current = response();
+    if (refreshOfShown && !recordHistory && current && !sameSearchOutcome(current, result.value)) {
+      setPendingResponse(result.value);
+    } else {
+      setPendingResponse(undefined);
+      setResponse(result.value);
+    }
     setDraftAnalysis(result.value.analysis);
     if (recordHistory) appendSearchHistory(rawQuery, props.scope, result.value, props.specialty);
     // Link labels use the compact projection; extraction metadata stays in the database.
@@ -788,6 +817,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     setQuery('');
     setDraftAnalysis(undefined);
     setResponse(undefined);
+    setPendingResponse(undefined);
+    setRefreshing(false);
     setContext(undefined);
     setError(undefined);
     setLoading(false);
@@ -909,8 +940,10 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
               if (!props.compact) resizeTextarea(element);
             }}
             id="clinical-query"
+            class="query-sheet__input"
             rows={1}
             data-testid="search-input"
+            data-search-ready={props.searchAllowed === false ? 'false' : 'true'}
             data-search-focus-target="true"
             aria-controls={toolPickerOpen() ? 'search-calculator-tools' : undefined}
             aria-activedescendant={
@@ -931,7 +964,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             placeholder={
               props.placeholder ?? 'Например: 5 лет, мальчик, второй день кашляет и температурит…'
             }
-            disabled={props.searchAllowed === false}
             maxlength={20_000}
             autocomplete="off"
             enterkeyhint={props.scope === 'diagnosis' ? 'enter' : 'search'}
@@ -1018,30 +1050,21 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                     </Popover.Content>
                   </Popover.Portal>
                 </Popover>
-                <div
-                  class="search-submit-reveal"
-                  classList={{ visible: props.searchAllowed !== false }}
-                  aria-hidden={props.searchAllowed === false}
-                >
-                  <div
-                    class="search-submit-reveal__content"
-                    classList={{
-                      'search-submit-reveal__content--visible': props.searchAllowed !== false,
-                    }}
-                  >
+                <div class="search-submit-reveal visible">
+                  <div class="search-submit-reveal__content search-submit-reveal__content--visible">
                     <button
                       class="search-button"
                       data-testid="search-submit"
                       data-haptic="medium"
                       type="submit"
-                      aria-label={loading() ? 'Ищем…' : 'Найти'}
-                      title={loading() ? 'Ищем…' : 'Найти (Enter)'}
-                      tabindex={props.searchAllowed === false ? -1 : undefined}
+                      aria-label={submitBusy() ? 'Ищем…' : 'Найти'}
+                      title={submitBusy() ? 'Ищем…' : 'Найти (Enter)'}
+                      aria-busy={submitBusy()}
                       disabled={loading() || props.searchAllowed === false}
                     >
                       <AppGlyph
-                        name={loading() ? 'refresh' : 'arrow-up'}
-                        class={`search-button__icon${loading() ? ' search-button__icon--spinning' : ''}`}
+                        name={submitBusy() ? 'refresh' : 'arrow-up'}
+                        class={`search-button__icon${submitBusy() ? ' search-button__icon--spinning' : ''}`}
                       />
                     </button>
                   </div>
@@ -1049,8 +1072,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
               </div>
             </div>
           </Show>
+          {props.fieldStatus}
         </form>
-        {props.fieldStatus}
         {/* The field leads the page; tools and capabilities follow it and fold away once a
             search starts, leaving results right under the field. */}
         <Show when={props.intro}>
@@ -1135,10 +1158,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                 </summary>
                 <Show when={response()}>
                   {(searchResponse) => (
-                    <div
-                      class="result-summary result-summary--analysis"
-                      classList={{ 'results-refreshing': loading() }}
-                    >
+                    <div class="result-summary result-summary--analysis">
                       <div class="result-summary__cell">
                         <span class="result-summary__label">РЕЗУЛЬТАТЫ</span>
                         <strong class="result-summary__value">
@@ -1286,10 +1306,10 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           <Show when={response()}>
             {(_searchResponse) => (
               <div class="search-results-slot__content search-results-slot__reveal">
-                <Show when={loading() && props.scope !== 'personal'}>
-                  <div class="results-refreshing-note" role="status">
-                    Обновляем результаты по установленным документам…
-                  </div>
+                <Show when={refreshing() && props.scope !== 'personal'}>
+                  <p class="search-refresh-status" role="status">
+                    Проверяем установленные документы…
+                  </p>
                 </Show>
 
                 <Show when={props.scope !== 'personal' ? response()?.queryRewrite : undefined}>
@@ -1337,6 +1357,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                     {(referenceCore) => (
                       <CoreIdentityMatches
                         hits={visibleIdentities()}
+                        query={searchableQuery(query())}
+                        groups={visibleGroups()}
                         core={referenceCore()}
                         onContentChanged={
                           props.onContentChanged ??
@@ -1347,20 +1369,13 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                       />
                     )}
                   </Show>
-                  <div
-                    class="results-list"
-                    classList={{ 'results-refreshing': loading() }}
-                    data-testid="search-results"
-                  >
+                  <div class="results-list" data-testid="search-results">
                     <LayoutVirtualizedGrid data={visibleGroups()} bufferSize={400}>
                       {(group, groupIndex) => {
                         return (
                           <SearchResultGroupCard
                             group={group}
                             index={groupIndex}
-                            specialties={
-                              contextDocumentsById().get(group.documentId)?.specialties ?? []
-                            }
                             selectedChunkId={context()?.focusChunkId}
                             action={props.groupAction?.(group)}
                             onOpenDocument={openDocumentInArchive}
@@ -1383,6 +1398,27 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                   }
                 >
                   {(emptyResults) => emptyResults()(searchableQuery(query()))}
+                </Show>
+
+                <Show when={pendingResponse()}>
+                  {(pending) => (
+                    <div class="search-refresh-offer" role="status">
+                      <span class="search-refresh-offer__text">Есть новые результаты</span>
+                      <Button
+                        type="button"
+                        variant="primary"
+                        class="search-refresh-offer__button"
+                        data-testid="search-refresh-apply"
+                        icon={<AppGlyph name="refresh" class="search-refresh-offer__icon" />}
+                        onClick={() => {
+                          setResponse(pending());
+                          setPendingResponse(undefined);
+                        }}
+                      >
+                        Обновить
+                      </Button>
+                    </div>
+                  )}
                 </Show>
               </div>
             )}

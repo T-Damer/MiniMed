@@ -116,7 +116,9 @@ for (const viewport of [
     const field = page.locator('.search-home .query-sheet');
     const pill = row.getByRole('button', { name: 'Вернуться к поиску' });
     await expect(pill).toHaveCount(0);
-    await expect(page.getByTestId('search-input')).toBeEnabled({ timeout: 60_000 });
+    await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
+      timeout: 60_000,
+    });
 
     // A long page (results, many sections): the empty home alone may not scroll the field away.
     await page.evaluate(() => {

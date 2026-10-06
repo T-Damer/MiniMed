@@ -28,10 +28,12 @@ for (const viewport of [
       await expect(coreStatus).toContainText(/Подготавливаем поиск|Загружаем базу/u);
       await expect(page.locator('.boot-screen')).toHaveCount(0);
       await expect(page.locator('.app-bottom-nav')).toBeVisible();
-      await expect(page.getByTestId('search-input')).toBeDisabled();
-      // Real progress or a still mark; nothing spins without work behind it.
-      await expect(coreStatus.locator('.search-core-status__mark')).toBeVisible();
-      await expect(page.locator('.search-core-status__spinner')).toHaveCount(0);
+      await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'false');
+      // The status is one line inside the search block; the field takes a query meanwhile and
+      // the send button waits as a spinner (owner 2026-10-06).
+      await expect(coreStatus).toHaveClass(/search-core-status--inline/u);
+      await expect(page.locator('form.query-sheet .search-core-status')).toHaveCount(1);
+      await expect(page.getByTestId('search-input')).toBeEnabled();
       await expect(page.getByRole('button', { name: 'Все инструменты' })).toBeVisible();
       // Picking a random record needs the corpus, like the dictionary; it sits in the «?» menu.
       await page.getByRole('button', { name: 'Справка', exact: true }).click();
@@ -74,7 +76,9 @@ for (const viewport of [
       page.getByRole('button', { name: 'Открыть папку «До готовности ядра»' }),
     ).toBeVisible();
     await page.getByRole('button', { name: 'Поиск', exact: true }).click();
-    await expect(page.getByTestId('search-input')).toBeEnabled({ timeout: 60000 });
+    await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
+      timeout: 60000,
+    });
     await expect(coreStatus).toHaveCount(0);
     expect(
       await page.evaluate(

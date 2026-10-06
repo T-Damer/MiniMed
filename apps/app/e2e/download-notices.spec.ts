@@ -27,7 +27,9 @@ for (const width of [375, 1280]) {
     test.setTimeout(240_000);
     await page.setViewportSize({ width, height: 844 });
     await mountBuiltApp(page, { skipLargeCompanionPacks: true });
-    await expect(page.getByTestId('search-input')).toBeEnabled({ timeout: 60_000 });
+    await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
+      timeout: 60_000,
+    });
     await page.goto(`${E2E_ASSET_ORIGIN}/#/modules/documents`);
     await page
       .locator('article[aria-label="Открыть набор «Нормы и расчёты»"]')

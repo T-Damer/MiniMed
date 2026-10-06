@@ -52,15 +52,16 @@ for (const viewport of [
       await expect(navigation).toBeVisible({ timeout: 5000 });
       await expect(page.locator('#boot-surface')).toHaveCount(0);
       await expect(navigation.locator('.app-nav-button')).toHaveCount(4);
-      // An installed core that is still opening keeps the search page: the field waits disabled.
+      // An installed core that is still opening keeps the search page: the field is usable and
+      // the search waits for the core.
       const coreStatus = page.locator('.search-core-status');
       await expect(coreStatus).toContainText('Подготавливаем поиск');
       await expect(page.locator('.boot-card')).toHaveCount(0);
-      await expect(page.getByTestId('search-input')).toBeDisabled();
-      // The status shows once: the note carries it, the disabled field keeps its usual prompt.
+      await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'false');
+      // The status shows once: the line in the search block carries it, the field keeps its prompt.
       await expect(page.getByTestId('search-input')).toHaveAttribute(
         'placeholder',
-        'Название, код МКБ, препарат или фраза из документа',
+        'Болезнь, код МКБ, препарат, фраза',
       );
       await expect(
         page.getByRole('button', { name: 'Все инструменты', exact: true }),
@@ -117,7 +118,7 @@ for (const viewport of [
       await expect(navigation.locator('.app-nav-button')).toHaveCount(4);
       await navigation.getByRole('button', { name: 'Поиск', exact: true }).click();
       await expect(coreStatus).toBeVisible();
-      await expect(page.getByTestId('search-input')).toBeDisabled();
+      await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'false');
       await expect(page.getByRole('button', { name: 'Повторить', exact: true })).toBeHidden();
       const marks = await page.evaluate(() => ({
         navigation: performance.getEntriesByName('minimed:navigation-ready').length,

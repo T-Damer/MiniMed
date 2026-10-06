@@ -32,7 +32,7 @@ test('a search for two drugs opens the tool, offers the instruction and quotes i
 
   // The search entry: names read from the query, shown on a card above the ordinary results.
   const input = page.getByTestId('search-input');
-  await expect(input).toBeEnabled({ timeout: 60_000 });
+  await expect(input).toHaveAttribute('data-search-ready', 'true', { timeout: 60_000 });
   await input.fill('албендазол взаимодействие с празиквантелом');
   await page.getByTestId('search-submit').click();
   const suggestion = page.getByTestId('interaction-suggestion');

@@ -127,7 +127,7 @@ test('clinical analysis explains itself above the results and in the field', asy
   const note = page.getByRole('complementary', { name: 'О клиническом разборе' });
   await expect(note).toBeVisible();
   await expect(note).toContainText('источники, а не диагноз');
-  await expect(field).toHaveAttribute('placeholder', /Опишите случай своими словами/u);
+  await expect(field).toHaveAttribute('placeholder', /Опишите случай: жалобы/u);
   await page.getByRole('button', { name: 'Клинический разбор' }).click();
   await expect(note).toHaveCount(0);
 });

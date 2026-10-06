@@ -8,7 +8,7 @@ test('a layout slip and a Latin spelling find the drug and name the spelling sea
 }) => {
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
   const input = page.getByTestId('search-input');
-  await expect(input).toBeEnabled({ timeout: 60_000 });
+  await expect(input).toHaveAttribute('data-search-ready', 'true', { timeout: 60_000 });
 
   for (const typed of ['ьуеащкьшт', 'metformin']) {
     await input.fill(typed);

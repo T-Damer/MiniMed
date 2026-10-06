@@ -66,7 +66,7 @@ for (const width of [360, 1280]) {
       // stays up with its shortcuts, and tools never need the core.
       const navigation = page.getByRole('navigation', { name: 'Разделы приложения' });
       await navigation.getByRole('button', { name: 'Поиск', exact: true }).click();
-      await expect(page.getByTestId('search-input')).toBeDisabled();
+      await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'false');
       await page.getByRole('button', { name: 'Все инструменты', exact: true }).click();
       await page
         .getByRole('dialog', { name: 'Все инструменты' })

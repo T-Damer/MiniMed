@@ -688,12 +688,6 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   font-size: clamp(0.9375rem, 1.4vw, 1.125rem);
 }
 
-.search-workspace-main .result-minimal-note,
-.search-workspace-main .result-group-header__note {
-  margin-top: 0.125rem;
-  font-size: 0.75rem;
-}
-
 .search-workspace-main .result-open {
   padding: 0.5rem 0.6875rem 0.5625rem;
 }
@@ -2047,13 +2041,6 @@ fieldset.search-mode-picker {
 
 .workspace .query-actions {
   padding-top: 0.25rem;
-}
-
-/* Stale results stay on screen while a refreshed search runs, dimmed so the update is visible. */
-.results-refreshing {
-  opacity: 0.45;
-  pointer-events: none;
-  transition: opacity 140ms ease;
 }
 
 .results-refreshing-note {
@@ -3604,6 +3591,41 @@ html.native-print-active #root {
 
   .search-core-status__action {
     width: 100%;
+  }
+}
+
+/* Inside the search block: one quiet line under the controls, the action small beside it. */
+.search-core-status--inline {
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.375rem 0.875rem 0.625rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  animation: search-core-status-in var(--motion-base) var(--motion-ease-out) both;
+}
+
+.search-core-status__copy--inline {
+  display: block;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.search-core-status__title--inline,
+.search-core-status__detail--inline {
+  display: inline;
+  font-size: inherit;
+  font-weight: 500;
+}
+
+.search-core-status__title--inline::after {
+  content: " · ";
+}
+
+@keyframes search-core-status-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.25rem);
   }
 }
 

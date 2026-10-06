@@ -69,7 +69,6 @@ import {
   SEARCH_CORE_NOTE_DELAY_MS,
   type SearchCoreStatus,
   searchCoreStatusHomeNoteVisible,
-  searchCoreStatusLabel,
 } from '@/features/search/search-core-status';
 import { searchSectionFromHash, searchSectionHash } from '@/features/search/search-section-route';
 import {
@@ -413,6 +412,27 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             ...(conversationSession.recorder() ? { unavailableReason: 'Запись уже идёт' } : {}),
           }}
           secondary={{ label: 'Пациенты', icon: 'users', href: '#/notes/patients' }}
+        />
+      ),
+    },
+    {
+      id: 'drug-comparison',
+      render: () => (
+        <HomeFeatureCard
+          icon={DRUG_COMPARISON_TOOL.icon}
+          kicker="Препараты"
+          title={DRUG_COMPARISON_TOOL.title}
+          text="Два–четыре препарата рядом: МНН, группа АТХ, формы и дозировки, условия отпуска и разделы официальных инструкций дословно, с пометками совпадений и различий."
+          action={{
+            label: 'Сравнить',
+            icon: DRUG_COMPARISON_TOOL.icon,
+            href: DRUG_COMPARISON_TOOL.href,
+          }}
+          secondary={{
+            label: 'Взаимодействие',
+            icon: DRUG_INTERACTION_TOOL.icon,
+            href: DRUG_INTERACTION_TOOL.href,
+          }}
         />
       ),
     },
@@ -789,10 +809,17 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           onContentChanged={props.onContentChanged}
           scope={scope()}
           searchAllowed={props.baseCore !== undefined}
+          searchPending={
+            props.coreStatus !== undefined &&
+            props.coreStatus.kind !== 'error' &&
+            props.coreStatus.kind !== 'download-required' &&
+            props.coreStatus.kind !== 'waiting'
+          }
           fieldStatus={
             <Show when={noteCoreStatus()}>
               {(status) => (
                 <SearchCoreStatusNote
+                  variant="inline"
                   status={status()}
                   {...(props.onRetryCore ? { onRetry: props.onRetryCore } : {})}
                   {...(props.onDownloadCore ? { onDownload: props.onDownloadCore } : {})}
@@ -875,13 +902,12 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
               />
             </Show>
           }
-          // The core's status shows in one place: in the field only until the note below appears.
+          // The field stays usable while the core opens; its status is a line at the block's bottom.
+          // One line on a 375 px phone: a textarea placeholder cannot end with «…».
           placeholder={
-            props.coreStatus && !noteCoreStatus()
-              ? searchCoreStatusLabel(props.coreStatus)
-              : scope() === 'diagnosis'
-                ? 'Опишите случай своими словами: жалобы, анамнез, находки'
-                : 'Название, код МКБ, препарат или фраза из документа'
+            scope() === 'diagnosis'
+              ? 'Опишите случай: жалобы, анамнез, находки'
+              : 'Болезнь, код МКБ, препарат, фраза'
           }
           modePicker={
             <div class="search-source-controls">

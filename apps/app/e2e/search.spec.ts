@@ -64,7 +64,9 @@ test('opens with source lookup ready and clinical parsing as a separate mode', a
 
   await expect(page.getByTestId('search-input')).toBeVisible();
   // The field is on screen at once and editable as soon as the core has opened.
-  await expect(page.getByTestId('search-input')).toBeEnabled({ timeout: 60_000 });
+  await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
+    timeout: 60_000,
+  });
   await expect(page.getByTestId('search-submit')).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Раздел поиска', exact: true })).toContainText(
     'Все источники',
@@ -398,7 +400,7 @@ test('renders ordinary lookup on a phone-sized browser and records query latency
 }) => {
   await page.setViewportSize({ width: 375, height: 844 });
   await mountBuiltApp(page, { skipLargeCompanionPacks: true, splitNavigation: false });
-  await expect(page.getByTestId('search-input')).toBeEnabled();
+  await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true');
   const timings: number[] = [];
   for (const value of ['пневмония', 'отит', 'анемия']) {
     const started = Date.now();
@@ -546,8 +548,9 @@ test('finds a recommendation section and opens local context', async ({ page }) 
   await expect(page.getByTestId('reader-context')).toHaveCount(0);
   await clinicalRecommendationResult(page).click();
   await expect(page.getByTestId('reader-context')).toContainText('Пневмония');
+  // The card's own definition is its first fragment; its catalogue details come after it.
   await expect(page.getByTestId('reader-context')).toContainText(
-    'Полные данные находятся в скачиваемом модуле',
+    'Источник определения: клиническая рекомендация',
   );
 });
 

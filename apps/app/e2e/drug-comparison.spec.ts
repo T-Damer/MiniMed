@@ -40,7 +40,7 @@ for (const width of [390, 1280]) {
 
     // A query of two drugs gets a card above the unchanged results; two diseases get none.
     const input = page.getByTestId('search-input');
-    await expect(input).toBeEnabled({ timeout: 60_000 });
+    await expect(input).toHaveAttribute('data-search-ready', 'true', { timeout: 60_000 });
     await input.fill('албендазол или мебендазол');
     await page.getByTestId('search-submit').click();
     const suggestion = page.getByTestId('comparison-suggestion');
@@ -179,7 +179,7 @@ test('the tool is listed among the tools', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
   const input = page.getByTestId('search-input');
-  await expect(input).toBeEnabled({ timeout: 60_000 });
+  await expect(input).toHaveAttribute('data-search-ready', 'true', { timeout: 60_000 });
   await input.fill('сравнение препаратов');
   await page.getByTestId('search-submit').click();
   await expect(page.getByText('Сравнение препаратов').first()).toBeVisible({ timeout: 60_000 });

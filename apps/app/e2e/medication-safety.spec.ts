@@ -19,7 +19,7 @@ async function shoot(page: Page, name: string): Promise<void> {
 
 async function search(page: Page, query: string): Promise<void> {
   const input = page.getByTestId('search-input');
-  await expect(input).toBeEnabled({ timeout: 150_000 });
+  await expect(input).toHaveAttribute('data-search-ready', 'true', { timeout: 150_000 });
   await input.fill(query);
   await page.getByTestId('search-submit').click();
 }
