@@ -38,3 +38,8 @@ export function pluralize(count: number, one: string, few: string, many: string)
 export function entriesLabel(count: number): string {
   return `${count} ${pluralize(count, 'запись', 'записи', 'записей')}`;
 }
+
+/** «6 октября, 14:32». */
+export function formatLongDateTime(iso: string): string {
+  return `${formatDate(iso)}, ${formatTime(iso)}`;
+}

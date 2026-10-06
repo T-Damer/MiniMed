@@ -2,7 +2,7 @@ import { createSignal, type JSX, Show } from 'solid-js';
 
 import { Button } from '@/components/Button';
 import { FileButton } from '@/components/FileButton';
-import { TextArea } from '@/components/TextArea';
+import { TextBlock } from '@/diary/diary-fields';
 import { entriesLabel } from '@/diary/diary-format';
 import { decodeDiaryResultsText } from '@/features/diary/diary-codec';
 import type { DiaryStore } from '@/features/diary/diary-storage';
@@ -63,50 +63,52 @@ export function RestoreCard(props: {
   };
 
   return (
-    <details class="diary-card diary-restore">
+    <details class="diary-card diary-card--fold diary-restore">
       <summary class="diary-restore__summary">Восстановить записи из файла или текста</summary>
-      <p class="diary-card__text">
-        Подойдёт файл или текст, который вы сохраняли кнопкой «Передать врачу» («Сохранить файл» или
-        «Скопировать текстом»). В нём есть и сам дневник, и ваши записи, поэтому подойдёт и пустое
-        приложение: дневник появится в списке вместе с записями. Если дневник уже есть, записи
-        добавятся к нему, ничего не заменится.
-      </p>
-      <FileButton
-        class="diary-restore__file"
-        accept=".txt,text/plain"
-        aria-label="Выбрать файл с записями"
-        onChange={(event) => {
-          void readFile(event.currentTarget.files);
-          event.currentTarget.value = '';
-        }}
-      >
-        Выбрать файл
-      </FileButton>
-      <TextArea
-        class="diary-restore__text"
-        label="Или вставьте текст"
-        value={text()}
-        onInput={(event) => setText(event.currentTarget.value)}
-      />
-      <Button
-        class="diary-button"
-        type="button"
-        variant="primary"
-        disabled={busy() || !text().trim()}
-        onClick={() => void restore(text())}
-      >
-        Восстановить
-      </Button>
-      <Show when={message()}>
-        <p class="diary-card__text" role="status">
-          {message()}
+      <div class="diary-card__body">
+        <p class="diary-card__text">
+          Подойдёт файл или текст, который вы получали кнопкой «Отправить врачу» («Отправить файлом»
+          или «Скопировать текстом»). В нём есть и сам дневник, и ваши записи, поэтому подойдёт и
+          пустое приложение: дневник появится в списке вместе с записями. Если дневник уже есть,
+          записи добавятся к нему, ничего не заменится.
         </p>
-      </Show>
-      <Show when={error()}>
-        <p class="diary-error" role="alert">
-          {error()}
-        </p>
-      </Show>
+        <FileButton
+          class="diary-restore__file"
+          accept=".txt,text/plain"
+          aria-label="Выбрать файл с записями"
+          onChange={(event) => {
+            void readFile(event.currentTarget.files);
+            event.currentTarget.value = '';
+          }}
+        >
+          Выбрать файл
+        </FileButton>
+        <TextBlock
+          id="diary-restore-text"
+          label="Или вставьте текст"
+          value={text()}
+          onInput={setText}
+        />
+        <Button
+          class="diary-button"
+          type="button"
+          variant="primary"
+          disabled={busy() || !text().trim()}
+          onClick={() => void restore(text())}
+        >
+          Восстановить
+        </Button>
+        <Show when={message()}>
+          <p class="diary-card__text" role="status">
+            {message()}
+          </p>
+        </Show>
+        <Show when={error()}>
+          <p class="diary-error" role="alert">
+            {error()}
+          </p>
+        </Show>
+      </div>
     </details>
   );
 }

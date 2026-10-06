@@ -38,7 +38,13 @@ export function InstallCard(props: {
   readonly store: DiaryStore;
   /** Entries already made: on iOS the home-screen icon keeps its own storage. */
   readonly entries: number;
+  /**
+   * `tip` is the dismissible hint on the diary home (back for a week after «Не сейчас»);
+   * `section` is the same help under «Ещё», always available and with nothing to dismiss.
+   */
+  readonly variant?: 'tip' | 'section';
 }): JSX.Element {
+  const asSection = (): boolean => props.variant === 'section';
   const [dismissed, setDismissed] = createSignal(
     installCardDismissed(props.store.ui().installDismissedAt, Date.now()),
   );
@@ -61,9 +67,18 @@ export function InstallCard(props: {
 
   return (
     <Show
-      when={!insideMessenger() && !dismissed() && advice() !== 'installed' && advice() !== 'none'}
+      when={
+        !insideMessenger() &&
+        (asSection() || !dismissed()) &&
+        advice() !== 'installed' &&
+        advice() !== 'none'
+      }
     >
-      <section class="diary-card" aria-label="Добавить дневник на экран «Домой»">
+      <section
+        class="diary-card"
+        classList={{ 'diary-card--tip': !asSection() }}
+        aria-label="Добавить дневник на экран «Домой»"
+      >
         <h2 class="diary-card__title">Добавьте дневник на экран «Домой»</h2>
         <p class="diary-card__text">
           Так он откроется одним касанием и не потеряется среди закладок. Записи останутся на этом
@@ -80,9 +95,11 @@ export function InstallCard(props: {
             >
               Добавить на экран
             </Button>
-            <Button class="diary-button" type="button" onClick={dismiss}>
-              Не сейчас
-            </Button>
+            <Show when={!asSection()}>
+              <Button class="diary-button" type="button" onClick={dismiss}>
+                Не сейчас
+              </Button>
+            </Show>
           </div>
         </Show>
         <Show when={advice() === 'ios'}>
@@ -113,27 +130,31 @@ export function InstallCard(props: {
             <p class="diary-card__text">
               Значок откроет этот же дневник, но без записей, сделанных сейчас в Safari: на{' '}
               {onIpad() ? 'iPad' : 'iPhone'} значок хранит записи отдельно. Чтобы перенести их, в
-              Safari нажмите «Передать врачу» → «Сохранить файл» (или «Скопировать текстом»), затем
-              в дневнике со значка выберите «Печать, файлы и копия» → «Восстановить записи». Дальше
-              записывайте только в дневнике со значка.
+              Safari нажмите «Отправить врачу» → «Отправить файлом» (или «Скопировать текстом»),
+              затем в дневнике со значка выберите «Ещё» → «Восстановить записи». Дальше записывайте
+              только в дневнике со значка.
             </p>
           </Show>
-          <div class="diary-card__actions">
-            <Button class="diary-button" type="button" onClick={dismiss}>
-              Понятно, не сейчас
-            </Button>
-          </div>
+          <Show when={!asSection()}>
+            <div class="diary-card__actions">
+              <Button class="diary-button" type="button" onClick={dismiss}>
+                Понятно, не сейчас
+              </Button>
+            </div>
+          </Show>
         </Show>
         <Show when={advice() === 'manual'}>
           <p class="diary-card__text">
             Откройте меню браузера («⋮») и выберите «Добавить на главный экран» или «Установить
             приложение».
           </p>
-          <div class="diary-card__actions">
-            <Button class="diary-button" type="button" onClick={dismiss}>
-              Понятно, не сейчас
-            </Button>
-          </div>
+          <Show when={!asSection()}>
+            <div class="diary-card__actions">
+              <Button class="diary-button" type="button" onClick={dismiss}>
+                Понятно, не сейчас
+              </Button>
+            </div>
+          </Show>
         </Show>
       </section>
     </Show>

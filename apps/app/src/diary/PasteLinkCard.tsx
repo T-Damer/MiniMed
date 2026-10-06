@@ -1,7 +1,7 @@
 import { createSignal, type JSX, Show } from 'solid-js';
 
 import { Button } from '@/components/Button';
-import { TextArea } from '@/components/TextArea';
+import { TextBlock } from '@/diary/diary-fields';
 import { readInvitationText } from '@/features/diary/diary-codec';
 import type { DiaryOpenResult, DiaryStore } from '@/features/diary/diary-storage';
 
@@ -51,14 +51,13 @@ export function PasteLinkCard(props: {
         Скопируйте ссылку, которую прислал врач, и вставьте её сюда. Ссылка остаётся на этом
         устройстве и никуда не отправляется.
       </p>
-      <TextArea
-        class="diary-paste__text"
+      <TextBlock
+        id="diary-paste-text"
         label="Ссылка от врача"
         value={text()}
-        autocomplete="off"
-        autocapitalize="off"
-        spellcheck={false}
-        onInput={(event) => setText(event.currentTarget.value)}
+        plain
+        rows={3}
+        onInput={setText}
       />
       <Button
         class="diary-button"
@@ -81,9 +80,9 @@ export function PasteLinkCard(props: {
     <Show
       when={props.prominent}
       fallback={
-        <details class="diary-card diary-paste">
+        <details class="diary-card diary-card--fold diary-paste">
           <summary class="diary-paste__summary">Добавить дневник по ссылке врача</summary>
-          {body}
+          <div class="diary-card__body">{body}</div>
         </details>
       }
     >

@@ -2,7 +2,7 @@ import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { Button } from '@/components/Button';
 import { DiaryList } from '@/diary/DiaryList';
-import { DiaryView } from '@/diary/DiaryView';
+import { type DiaryScreen, DiaryView } from '@/diary/DiaryView';
 import { entriesLabel } from '@/diary/diary-format';
 import { isStandaloneApp } from '@/diary/install-state';
 import { diaryInvitationLink, readInvitationFragment } from '@/features/diary/diary-codec';
@@ -27,6 +27,8 @@ type State =
       readonly store: DiaryStore;
       readonly results: DiaryResults;
       readonly notice: string | undefined;
+      /** The step to open first; the diary home when absent. */
+      readonly screen: DiaryScreen | undefined;
     };
 
 /** The browser must be able to keep the diary; private windows and blocked storage cannot. */
@@ -59,7 +61,7 @@ function linkNotice(
         switch (outcome) {
           case 'new':
             if (isStandaloneApp()) {
-              return 'Дневник открыт. Если вы уже делали записи в Safari, сюда они не попали: перенесите их файлом («Печать, файлы и копия» → «Восстановить записи»).';
+              return 'Дневник открыт. Если вы уже делали записи в Safari, сюда они не попали: перенесите их файлом («Ещё» → «Восстановить записи»).';
             }
             return 'Дневник добавлен. Он сохранён на этом устройстве: при следующем открытии страницы вы найдёте его здесь.';
           case 'same':
@@ -85,7 +87,8 @@ function linkNotice(
 function syncAddress(results: DiaryResults): void {
   const base = window.location.href.split('#')[0] ?? '';
   void diaryInvitationLink(results.invitation, base)
-    .then((link) => window.history.replaceState(null, '', link))
+    // Keep the history state: it remembers which step of the diary is open.
+    .then((link) => window.history.replaceState(window.history.state, '', link))
     .catch(() => console.warn('Не удалось обновить адрес страницы дневника.'));
 }
 
@@ -96,19 +99,24 @@ function clearAddress(): void {
 export function DiaryApp(): JSX.Element {
   const [state, setState] = createSignal<State>({ kind: 'loading' });
 
-  const showDiary = (store: DiaryStore, results: DiaryResults, notice?: string): void => {
-    setState({ kind: 'diary', store, results, notice });
+  const showDiary = (
+    store: DiaryStore,
+    results: DiaryResults,
+    notice?: string,
+    screen?: DiaryScreen,
+  ): void => {
+    setState({ kind: 'diary', store, results, notice, screen });
     syncAddress(results);
   };
 
-  const openFromList = (store: DiaryStore, id: string): void => {
+  const openFromList = (store: DiaryStore, id: string, screen?: DiaryScreen): void => {
     try {
       const results = store.read(id);
       if (!results) {
         setState({ kind: 'list', store });
         return;
       }
-      showDiary(store, results);
+      showDiary(store, results, undefined, screen);
     } catch (cause) {
       setState({
         kind: 'error',
@@ -126,15 +134,21 @@ export function DiaryApp(): JSX.Element {
       linkNotice(opened.outcome, opened.results.entries.length, opened.salvagedSkipped),
     );
 
+  // Two links opened one after the other: the later one wins even if the earlier finishes last.
+  let latestOpen = 0;
   const open = async (): Promise<void> => {
     let store: DiaryStore | undefined;
+    const ticket = ++latestOpen;
     try {
       store = createDiaryStore(openStorage());
       const invitation = await readInvitationFragment(window.location.hash);
       if (invitation) {
-        showOpened(store, store.open(invitation));
+        // The link is stored even when a later one has already taken over the screen.
+        const opened = store.open(invitation);
+        if (ticket === latestOpen) showOpened(store, opened);
         return;
       }
+      if (ticket !== latestOpen) return;
       // No link: the patient came back through the home-screen icon or a bookmark. One diary
       // opens straight away; with several, the list puts the one used last first.
       const summaries = store.summaries();
@@ -142,6 +156,7 @@ export function DiaryApp(): JSX.Element {
       if (only) openFromList(store, only.invitation.id);
       else setState({ kind: 'list', store });
     } catch (cause) {
+      if (ticket !== latestOpen) return;
       setState({
         kind: 'error',
         message: errorMessage(cause, 'Не удалось открыть дневник.'),
@@ -195,7 +210,7 @@ export function DiaryApp(): JSX.Element {
             return (
               <DiaryList
                 store={current.store}
-                onOpen={(id) => openFromList(current.store, id)}
+                onOpen={(id, screen) => openFromList(current.store, id, screen)}
                 onOpened={(opened) => showOpened(current.store, opened)}
               />
             );
@@ -205,6 +220,9 @@ export function DiaryApp(): JSX.Element {
                 store={current.store}
                 initial={current.results}
                 notice={current.notice}
+                initialScreen={current.screen}
+                hasOtherDiaries={current.store.summaries().length > 1}
+                onOpened={(opened) => showOpened(current.store, opened)}
                 onBack={() => {
                   clearAddress();
                   setState({ kind: 'list', store: current.store });

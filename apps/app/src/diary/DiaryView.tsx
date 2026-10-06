@@ -1,22 +1,33 @@
-import { createSignal, For, type JSX, onMount, Show } from 'solid-js';
+import { createSignal, type JSX, Match, onCleanup, onMount, Switch } from 'solid-js';
 
-import { Button } from '@/components/Button';
-import { entriesLabel, formatDateTime, formatTime, isSameLocalDay } from '@/diary/diary-format';
-import { InstallCard, MessengerWarning } from '@/diary/InstallCard';
-import { RestoreCard } from '@/diary/RestoreCard';
-import { ShareSheet, shareStatusText } from '@/diary/ShareSheet';
-import { DiaryEntryForm } from '@/features/diary/DiaryEntryForm';
+import { DiaryEntryForm } from '@/diary/DiaryEntryForm';
+import { DiaryHome, type SavedEntry } from '@/diary/DiaryHome';
+import { DiaryMore } from '@/diary/DiaryMore';
+import { DiaryRecords } from '@/diary/DiaryRecords';
+import { DiarySend } from '@/diary/DiarySend';
+import { whenLabel } from '@/diary/diary-home';
+import { ScreenHeader } from '@/diary/diary-ui';
 import { diaryToFhirBundle } from '@/features/diary/diary-fhir';
-import { entryFingerprint, markAllSent, shareStatus } from '@/features/diary/diary-merge';
+import { markAllSent, shareStatus } from '@/features/diary/diary-merge';
 import {
-  activePlanItems,
   type DiaryEntry,
+  type DiaryInvitation,
   type DiaryResults,
-  describeDiaryEntry,
   parseDiaryEntry,
 } from '@/features/diary/diary-model';
 import { diaryPrintHtml, printHtmlInFrame } from '@/features/diary/diary-print';
-import { type DiaryStore, withEntry, withoutEntry } from '@/features/diary/diary-storage';
+import {
+  type DiaryOpenResult,
+  type DiaryStore,
+  withEntry,
+  withoutEntry,
+} from '@/features/diary/diary-storage';
+
+/** The steps of one diary. «home» is the page the patient lands on; the others are one tap away. */
+export type DiaryScreen = 'home' | 'entry' | 'records' | 'send' | 'more';
+
+const SCREENS: readonly DiaryScreen[] = ['home', 'entry', 'records', 'send', 'more'];
+const HISTORY_KEY = 'diaryScreen';
 
 function errorMessage(cause: unknown, fallback: string): string {
   return cause instanceof Error ? cause.message : fallback;
@@ -41,26 +52,108 @@ function requestPersistentStorage(): void {
   void navigator.storage?.persist?.().catch(() => false);
 }
 
+function screenFromHistory(): DiaryScreen {
+  const state = window.history.state as Record<string, unknown> | null;
+  const value = state?.[HISTORY_KEY];
+  return SCREENS.find((screen) => screen === value) ?? 'home';
+}
+
+function EntryPage(props: {
+  readonly invitation: DiaryInvitation;
+  readonly entry: DiaryEntry | undefined;
+  readonly backLabel: string;
+  readonly onSave: (value: Record<string, unknown>) => string | undefined;
+  readonly onLeave: () => void;
+}): JSX.Element {
+  const subtitle = (): string =>
+    props.entry
+      ? `${props.invitation.title}. Запись от ${whenLabel(props.entry.at, new Date())}`
+      : props.invitation.title;
+  return (
+    <main class="diary-page diary-page--entry">
+      <ScreenHeader
+        title={props.entry ? 'Изменить запись' : 'Новая запись'}
+        subtitle={subtitle()}
+        backLabel={props.backLabel}
+        onBack={props.onLeave}
+      />
+      <DiaryEntryForm
+        invitation={props.invitation}
+        entry={props.entry}
+        onSave={props.onSave}
+        onCancel={props.onLeave}
+      />
+    </main>
+  );
+}
+
+/**
+ * One diary: the home page and the steps behind it. Each step is its own page with a way back, and
+ * the browser's Back button (the one an Android phone has at the bottom) returns from a step to the
+ * home instead of leaving the diary.
+ */
 export function DiaryView(props: {
   readonly store: DiaryStore;
   readonly initial: DiaryResults;
+  /** The step to open first (the buttons on a diary card in the list). */
+  readonly initialScreen?: DiaryScreen | undefined;
   /** What happened when the link was opened (a new diary, an update, an older link…). */
   readonly notice?: string | undefined;
+  /** The patient has more than one diary, so «Мои дневники» is worth a button on the home. */
+  readonly hasOtherDiaries: boolean;
   readonly onBack: () => void;
+  readonly onOpened: (opened: DiaryOpenResult) => void;
 }): JSX.Element {
   const [results, setResults] = createSignal<DiaryResults>(props.initial);
   const [sent, setSent] = createSignal(props.store.meta(props.initial.invitation.id).sent);
   const [error, setError] = createSignal('');
-  const [saved, setSaved] = createSignal('');
-  // The «diary added / updated» message is for the first look; it goes once the patient writes.
-  const [noticeShown, setNoticeShown] = createSignal(true);
-  const [sharing, setSharing] = createSignal(false);
-  const [editing, setEditing] = createSignal<DiaryEntry | null>(null);
+  const [notice, setNotice] = createSignal(props.notice);
+  const [saved, setSaved] = createSignal<SavedEntry | undefined>(undefined);
+  const [screen, setScreen] = createSignal<DiaryScreen>(props.initialScreen ?? 'home');
+  const [editing, setEditing] = createSignal<DiaryEntry | undefined>(undefined);
+  // Where «Сохранить» and «Отмена» of the entry form return to.
+  const [returnTo, setReturnTo] = createSignal<'home' | 'records'>('home');
   const invitation = () => results().invitation;
+  // A step was added to the browser's history by this page: going home pops it again.
+  let pushed = false;
+
+  const navigate = (next: DiaryScreen): void => {
+    setError('');
+    if (next === 'home') {
+      setScreen('home');
+      if (pushed) {
+        pushed = false;
+        window.history.back();
+      }
+    } else {
+      if (!pushed && screen() === 'home') {
+        window.history.pushState({ [HISTORY_KEY]: next }, '', window.location.href);
+        pushed = true;
+      } else if (pushed) {
+        window.history.replaceState({ [HISTORY_KEY]: next }, '', window.location.href);
+      }
+      setScreen(next);
+    }
+    window.scrollTo(0, 0);
+  };
 
   onMount(() => {
+    // A reload leaves the step of the last visit in the history entry; this page starts at the
+    // home (or at the step it was asked for), so that stale mark must not survive.
+    if (screenFromHistory() !== 'home') {
+      window.history.replaceState(null, '', window.location.href);
+    }
     props.store.setMeta(invitation().id, { lastOpenedAt: new Date().toISOString() });
     props.store.setUi({ lastOpenedId: invitation().id });
+    const onPop = (): void => {
+      const next = screenFromHistory();
+      pushed = next !== 'home';
+      setError('');
+      setScreen(next);
+      window.scrollTo(0, 0);
+    };
+    window.addEventListener('popstate', onPop);
+    onCleanup(() => window.removeEventListener('popstate', onPop));
   });
 
   const commit = (next: DiaryResults): void => {
@@ -70,28 +163,35 @@ export function DiaryView(props: {
   };
 
   const status = () => shareStatus(results().entries, sent());
-  const today = () =>
-    results().entries.filter((entry) => isSameLocalDay(new Date(entry.at), new Date()));
 
-  const save = (value: Record<string, unknown>): void => {
-    setError('');
-    setSaved('');
+  const startEntry = (entry: DiaryEntry | undefined, from: 'home' | 'records'): void => {
+    setSaved(undefined);
+    setEditing(entry);
+    setReturnTo(from);
+    navigate('entry');
+  };
+
+  const save = (value: Record<string, unknown>): string | undefined => {
     try {
       const entry = parseDiaryEntry(invitation(), value);
+      const existed = results().entries.some((candidate) => candidate.id === entry.id);
       commit(withEntry(withoutEntry(results(), entry.id), entry));
-      setEditing(null);
-      setNoticeShown(false);
-      setSaved(`Запись сохранена на этом устройстве (${formatTime(entry.at)}).`);
+      setSaved({ entry, kind: existed ? 'edited' : 'new' });
+      // The «diary added / updated» message is for the first look; it goes once the patient writes.
+      setNotice(undefined);
+      setEditing(undefined);
+      navigate(returnTo());
+      return undefined;
     } catch (cause) {
-      setError(errorMessage(cause, 'Не удалось сохранить запись.'));
+      return errorMessage(cause, 'Не удалось сохранить запись.');
     }
   };
 
   const remove = (entry: DiaryEntry): void => {
-    if (!window.confirm('Удалить запись?')) return;
     try {
       commit(withoutEntry(results(), entry.id));
-      setSaved('');
+      setSaved(undefined);
+      setError('');
     } catch (cause) {
       setError(errorMessage(cause, 'Не удалось удалить запись.'));
     }
@@ -103,188 +203,76 @@ export function DiaryView(props: {
     setSent(next);
   };
 
-  const entryBadge = (entry: DiaryEntry): string | undefined => {
-    const known = sent()?.entries[entry.id];
-    if (known === undefined) return 'Не передана врачу';
-    return known === entryFingerprint(entry) ? undefined : 'Изменена после передачи';
-  };
-
-  const planItems = () => activePlanItems(invitation());
-
   return (
-    <main class="diary-page">
-      <nav class="diary-nav" aria-label="Навигация">
-        <Button class="diary-nav__back" type="button" variant="quiet" onClick={props.onBack}>
-          ← Мои дневники
-        </Button>
-      </nav>
-      <header class="diary-header">
-        <h1 class="diary-header__title">{invitation().title}</h1>
-        <Show when={invitation().doctor}>
-          <p class="diary-header__meta">Врач: {invitation().doctor}</p>
-        </Show>
-        <Show when={invitation().note}>
-          <p class="diary-header__note">{invitation().note}</p>
-        </Show>
-      </header>
-      <Show when={props.notice && noticeShown()}>
-        <p class="diary-notice" role="status">
-          {props.notice}
-        </p>
-      </Show>
-      <MessengerWarning />
-      <Show when={error()}>
-        <p class="diary-error" role="alert">
-          {error()}
-        </p>
-      </Show>
-      <Show
-        when={!sharing()}
-        fallback={
-          <ShareSheet
-            results={results()}
-            status={status()}
-            onSent={confirmSent}
-            onClose={() => setSharing(false)}
-          />
-        }
-      >
-        <InstallCard store={props.store} entries={results().entries.length} />
-        <Show when={planItems().length > 0}>
-          <section class="diary-plan-list" aria-label="Назначение врача">
-            <h2 class="diary-entries__title">{invitation().planTitle ?? 'Назначение врача'}</h2>
-            <ul class="diary-plan-list__items">
-              <For each={planItems()}>
-                {(item) => (
-                  <li class="diary-plan-list__item">
-                    <strong class="diary-plan-list__name">{item.name}</strong>
-                    <Show when={item.dose || item.schedule}>
-                      <span class="diary-plan-list__detail">
-                        {[item.dose, item.schedule].filter(Boolean).join(' · ')}
-                      </span>
-                    </Show>
-                  </li>
-                )}
-              </For>
-            </ul>
-          </section>
-        </Show>
-        <section class="diary-today" aria-label="Новая запись">
-          <h2 class="diary-today__title">{editing() ? 'Изменить запись' : 'Новая запись'}</h2>
-          <p class="diary-today__status">
-            {today().length === 0
-              ? 'Сегодня записей ещё нет.'
-              : `Сегодня: ${entriesLabel(today().length)}, последняя в ${formatTime(today().at(-1)?.at ?? new Date().toISOString())}.`}
-          </p>
-          <Show when={saved()}>
-            <p class="diary-saved" role="status">
-              {saved()}
-            </p>
-          </Show>
-          <Show
-            when={editing()}
-            fallback={<DiaryEntryForm invitation={invitation()} onSave={save} />}
-          >
-            {(entry) => (
-              <DiaryEntryForm
-                invitation={invitation()}
-                entry={entry()}
-                onSave={save}
-                onCancel={() => setEditing(null)}
-              />
-            )}
-          </Show>
-        </section>
-        <Show when={results().entries.length > 0}>
-          <section class="diary-send" aria-label="Передать врачу">
-            <h2 class="diary-entries__title">Передать врачу</h2>
-            <p class="diary-send__status">{shareStatusText(status())}</p>
-            <Button
-              class="diary-button"
-              type="button"
-              variant={status().unsent + status().changed > 0 ? 'primary' : 'secondary'}
-              onClick={() => setSharing(true)}
-            >
-              Передать врачу
-            </Button>
-          </section>
-        </Show>
-        <section class="diary-entries" aria-label="Записи">
-          <h2 class="diary-entries__title">Записи: {results().entries.length}</h2>
-          <ul class="diary-entries__list">
-            <For each={[...results().entries].reverse()}>
-              {(entry) => (
-                <li class="diary-entries__item">
-                  <span class="diary-entries__time">{formatDateTime(entry.at)}</span>
-                  <span class="diary-entries__value">
-                    {describeDiaryEntry(invitation(), entry)}
-                  </span>
-                  <Show when={entry.note}>
-                    <span class="diary-entries__note">{entry.note}</span>
-                  </Show>
-                  <Show when={entryBadge(entry)}>
-                    {(badge) => <span class="diary-entries__badge">{badge()}</span>}
-                  </Show>
-                  <div class="diary-entries__actions">
-                    <Button
-                      class="diary-entries__edit"
-                      type="button"
-                      variant="quiet"
-                      aria-label="Изменить запись"
-                      onClick={() => {
-                        setEditing(entry);
-                        setSaved('');
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }}
-                    >
-                      Изменить
-                    </Button>
-                    <Button
-                      class="diary-entries__remove"
-                      type="button"
-                      variant="quiet"
-                      aria-label="Удалить запись"
-                      onClick={() => remove(entry)}
-                    >
-                      ×
-                    </Button>
-                  </div>
-                </li>
-              )}
-            </For>
-          </ul>
-        </section>
-        <details class="diary-card diary-more">
-          <summary class="diary-more__summary">Печать, файлы и копия</summary>
-          <div class="diary-actions">
-            <Button
-              class="diary-button"
-              type="button"
-              onClick={() => printHtmlInFrame(diaryPrintHtml(invitation(), results().entries, 10))}
-            >
-              Распечатать
-            </Button>
-            <Button
-              class="diary-button"
-              type="button"
-              disabled={results().entries.length === 0}
-              onClick={() => downloadFhir(results())}
-            >
-              Файл для другой программы (FHIR)
-            </Button>
-          </div>
-          <RestoreCard
-            store={props.store}
-            onRestored={(id) => {
-              if (id === invitation().id) setResults(props.store.read(id) ?? results());
-            }}
-          />
-        </details>
-        <p class="diary-header__privacy">
-          Записи хранятся только на этом устройстве, в браузере. Не очищайте данные сайта до визита
-          к врачу.
-        </p>
-      </Show>
-    </main>
+    <Switch>
+      <Match when={screen() === 'entry'}>
+        <EntryPage
+          invitation={invitation()}
+          entry={editing()}
+          backLabel={returnTo() === 'records' ? 'Мои записи' : 'На главную'}
+          onSave={save}
+          onLeave={() => navigate(returnTo())}
+        />
+      </Match>
+      <Match when={screen() === 'records'}>
+        <DiaryRecords
+          results={results()}
+          sent={sent()}
+          saved={saved()}
+          error={error()}
+          onBack={() => {
+            setSaved(undefined);
+            navigate('home');
+          }}
+          onWrite={() => startEntry(undefined, 'records')}
+          onSend={() => navigate('send')}
+          onEdit={(entry) => startEntry(entry, 'records')}
+          onDelete={remove}
+        />
+      </Match>
+      <Match when={screen() === 'send'}>
+        <DiarySend
+          results={results()}
+          status={status()}
+          onSent={confirmSent}
+          onBack={() => navigate('home')}
+          onWrite={() => startEntry(undefined, 'home')}
+        />
+      </Match>
+      <Match when={screen() === 'more'}>
+        <DiaryMore
+          store={props.store}
+          entries={results().entries.length}
+          onBack={() => navigate('home')}
+          onPrint={() => printHtmlInFrame(diaryPrintHtml(invitation(), results().entries, 10))}
+          onFhir={() => downloadFhir(results())}
+          onRestored={(id) => {
+            if (id === invitation().id) setResults(props.store.read(id) ?? results());
+          }}
+          onOpened={props.onOpened}
+          onList={props.onBack}
+        />
+      </Match>
+      <Match when={screen() === 'home'}>
+        <DiaryHome
+          store={props.store}
+          results={results()}
+          status={status()}
+          notice={notice()}
+          saved={saved()}
+          error={error()}
+          hasOtherDiaries={props.hasOtherDiaries}
+          onWrite={() => startEntry(undefined, 'home')}
+          onRecords={() => {
+            setSaved(undefined);
+            navigate('records');
+          }}
+          onSend={() => navigate('send')}
+          onMore={() => navigate('more')}
+          onDismissNotice={() => setNotice(undefined)}
+          onList={props.onBack}
+        />
+      </Match>
+    </Switch>
   );
 }
