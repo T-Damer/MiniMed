@@ -36,6 +36,7 @@ import type { NotesRoute } from '@/features/notes/notes-routing';
 import { notesFormsPath, notesPath, notesPatientsPath } from '@/features/notes/notes-routing';
 import { EpisodeDiagnosisEditor, PatientFormData } from '@/features/notes/PatientFormData';
 import { openDocumentOverlay } from '@/state/document-navigation';
+import { saveBlobAsFile } from '@/state/native-share';
 import {
   appendEpisode,
   appendEvent,
@@ -74,7 +75,6 @@ import {
   updatePatientVault,
 } from '@/state/patient-vault';
 import type { PatientAvatar as Avatar } from '@/state/patientAvatar';
-import { saveBlobAsFile } from '@/state/native-share';
 import '@/styles/patient-workspace.css';
 
 export type PatientRoute = Extract<
