@@ -1,3 +1,4 @@
+import { saveBlobAsFile } from '@/state/native-share';
 import { deleteTranscript, deleteTranscriptsForNotes } from '@/state/note-transcription';
 import { attachmentThumbnails } from '@/state/thumbnails';
 
@@ -350,11 +351,5 @@ export async function deleteNoteFilesForNotes(noteIds: readonly string[]): Promi
 
 /** Save a stored attachment back to the user's machine (web download). */
 export function downloadNoteFile(record: NoteFile): void {
-  const url = noteFileSrc(record);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = record.name;
-  document.body.append(anchor);
-  anchor.click();
-  anchor.remove();
+  void saveBlobAsFile(record.blob, record.name);
 }
