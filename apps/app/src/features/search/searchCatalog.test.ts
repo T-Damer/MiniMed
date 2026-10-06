@@ -50,6 +50,17 @@ describe('unified tool catalog', () => {
     expect(matchingCatalogTools(tools, 'all', undefined, '')).not.toContain(CUSTOM_CALCULATOR);
     expect(matchingCatalogTools(tools, 'legal', undefined, '')).not.toContain(CUSTOM_CALCULATOR);
   });
+  it('lists no tool for a clinical abbreviation that only occurs inside longer words', () => {
+    const tools = searchCatalogTools();
+    for (const abbreviation of ['АГ', 'ОКС', 'ХСН']) {
+      expect(
+        matchingCatalogTools(tools, 'all', undefined, abbreviation).map((entry) => entry.title),
+      ).toEqual([]);
+    }
+    // A word start still finds a tool while the query is being typed.
+    const scales = matchingCatalogTools(tools, 'all', undefined, 'шк').map((entry) => entry.title);
+    expect(scales.length).toBeGreaterThan(0);
+  });
   it('combines document and tool counts and filters the same unified specialty', () => {
     const tools = searchCatalogTools();
     const document = {

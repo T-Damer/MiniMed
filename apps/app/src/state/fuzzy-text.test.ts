@@ -20,6 +20,16 @@ describe('matchesFuzzyQuery', () => {
     expect(matchesFuzzyQuery('ОАК', ['ОАЭ документ'])).toBe(false);
   });
 
+  it('matches a short abbreviation only as a word or the start of a word', () => {
+    for (const abbreviation of ['АГ', 'ОКС', 'ХСН']) {
+      expect(
+        matchesFuzzyQuery(abbreviation, ['Шкала гирсутизма', 'диагностика, токсикоз, мохнатость']),
+      ).toBe(false);
+    }
+    expect(matchesFuzzyQuery('АГ', ['АГ: артериальная гипертензия'])).toBe(true);
+    expect(matchesFuzzyQuery('хсн', ['Шкала ХСН (NYHA)'])).toBe(true);
+  });
+
   it('does not match an unrelated phrase just because its conjunction is inside the query', () => {
     expect(matchesFuzzyQuery('фармакология', ['Акушерство и гинекология'])).toBe(false);
     expect(matchesFuzzyQuery('фармакология', ['МКБ, симптомы и состояния'])).toBe(false);

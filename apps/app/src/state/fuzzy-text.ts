@@ -1,5 +1,8 @@
 import { isCloseToken, MIN_FUZZY_TOKEN_LENGTH } from '@localmed/search-lexical';
 
+/** Query words up to this length match only at the start of a catalog word. */
+const SHORT_TOKEN_LENGTH = 3;
+
 function normalize(value: string): string {
   return value.toLocaleLowerCase('ru-RU').replaceAll('ё', 'е').trim();
 }
@@ -38,10 +41,13 @@ export function fuzzyQueryScore(query: string, values: readonly string[]): numbe
   const title = normalize(values[0] ?? '');
   const haystack = normalize(values.join(' '));
   const hayTokens = tokens(haystack);
-  const matched = queryTokens.every(
-    (queryToken) =>
-      haystack.includes(queryToken) ||
-      hayTokens.some((hayToken) => tokenMatches(queryToken, hayToken)),
+  const matched = queryTokens.every((queryToken) =>
+    queryToken.length <= SHORT_TOKEN_LENGTH
+      ? // An abbreviation («АГ», «ОКС», «ХСН») is a word or the start of one, never a fragment
+        // inside «диагностика» or «шкала».
+        hayTokens.some((hayToken) => hayToken.startsWith(queryToken))
+      : haystack.includes(queryToken) ||
+        hayTokens.some((hayToken) => tokenMatches(queryToken, hayToken)),
   );
   if (!matched) return 0;
 
