@@ -1,12 +1,16 @@
 import type { SearchResult, SearchResultCategory, SearchResultGroup } from '@localmed/contracts';
 import { children, For, type JSX, Show } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
-import { CATEGORY_VISUALS, ClinicalGlyph } from '@/components/ClinicalGlyph';
-import { ClinicalTags } from '@/components/ClinicalTags';
+import { CATEGORY_VISUALS } from '@/components/ClinicalGlyph';
 import { Disclosure } from '@/components/Disclosure';
 import { HighlightedText } from '@/components/HighlightedText';
 import { IcdText } from '@/components/IcdText';
 import { ICD11_RESULT_LABEL, isIcd11DocumentId } from '@/features/icd11/icd11-document';
+import {
+  displaySectionPath,
+  orderResultsForDisplay,
+  presentResultSnippet,
+} from '@/features/search/search-result-presentation';
 import { RESULT_KIND_VISUALS } from '@/features/search/searchResultKindVisuals';
 import { pluralRu } from '@/i18n/labels';
 import '@/features/search/search-result-group.css';
@@ -59,7 +63,6 @@ function supplementalSectionPath(
 export function SearchResultGroupCard(props: {
   readonly group: SearchResultGroup;
   readonly index: number;
-  readonly specialties: readonly string[];
   readonly selectedChunkId: string | undefined;
   readonly action: JSX.Element;
   readonly onOpenDocument: (documentId: string) => void;
@@ -71,25 +74,27 @@ export function SearchResultGroupCard(props: {
     isIcd11DocumentId(props.group.documentId)
       ? { icon: RESULT_KIND_VISUALS.reference.icon, label: ICD11_RESULT_LABEL }
       : RESULT_KIND_VISUALS[props.group.documentKind ?? 'reference'];
-  const contentLabel = () =>
+  // Only what changes how a hit should be read; storage details (pointer, summary, full text)
+  // stay out of the result.
+  const contentLabel = (): string | undefined =>
     props.group.terminologyMatch === 'term'
       ? 'Медицинский термин'
       : props.group.terminologyMatch === 'term-mention'
         ? 'Вхождение термина в источнике'
         : props.group.terminologyMatch === 'related-term'
           ? 'Смежное понятие MeSH — не клинический вывод'
-          : props.group.contentKind === 'summary'
-            ? 'Краткий обзор'
-            : props.group.contentKind === 'pointer'
-              ? 'Карточка источника'
-              : 'Полный текст';
-  const results = () =>
-    props.group.documentKind === 'medication'
-      ? props.group.results.slice(0, 3)
-      : props.group.results;
+          : undefined;
+  const results = () => {
+    const ordered = orderResultsForDisplay(props.group.results);
+    return props.group.documentKind === 'medication' ? ordered.slice(0, 3) : ordered;
+  };
   const renderExcerpt = (result: SearchResult): JSX.Element => {
     const visual = CATEGORY_VISUALS[result.category];
-    const pathSuffix = supplementalSectionPath(result.category, result.sectionPath);
+    const pathSuffix = supplementalSectionPath(
+      result.category,
+      displaySectionPath(result.sectionPath),
+    );
+    const snippet = presentResultSnippet(result);
     return (
       <article
         class="result-card"
@@ -104,21 +109,21 @@ export function SearchResultGroupCard(props: {
           onClick={() => props.onOpenResult(result)}
         >
           <span class="result-category-line">
-            <span class={`result-category-icon tone-${visual.tone}`} aria-hidden="true">
-              <ClinicalGlyph name={visual.icon} />
-            </span>
             {/* “Прочее” names no section; the path suffix says more. */}
             <Show when={result.category !== 'other'}>
               <span class={`category-stamp tone-${visual.tone}`}>
                 {CATEGORY_LABELS[result.category]}
               </span>
             </Show>
-            <Show when={pathSuffix}>
-              <span class="result-path">{pathSuffix}</span>
+            {/* A fragment that opens with its own label («МКБ-10: …») needs no label above. */}
+            <Show
+              when={pathSuffix && !snippet.text.startsWith(pathSuffix) ? pathSuffix : undefined}
+            >
+              {(path) => <span class="result-path result-category-line__path">{path()}</span>}
             </Show>
           </span>
           <p class="result-snippet">
-            <HighlightedText text={result.snippet} ranges={result.highlightedRanges} />
+            <HighlightedText text={snippet.text} ranges={snippet.ranges} />
           </p>
         </button>
       </article>
@@ -144,14 +149,12 @@ export function SearchResultGroupCard(props: {
               <AppGlyph name={kind().icon} class="result-group-header__kind-icon" />
               <span class="result-group-header__kind-label">{kind().label}</span>
             </span>
-            <span class="result-group-header__content-kind">{contentLabel()}</span>
+            <Show when={contentLabel()}>
+              {(label) => <span class="result-group-header__content-kind">{label()}</span>}
+            </Show>
             <strong class="result-group-header__title">
               <IcdText text={props.group.title} />
             </strong>
-            <ClinicalTags title={props.group.title} specialties={props.specialties} />
-            <span class="result-group-header__note result-minimal-note">
-              {props.group.results[0]?.sectionPath.join(' / ') ?? 'Релевантный источник'}
-            </span>
           </span>
         </button>
         {action()}

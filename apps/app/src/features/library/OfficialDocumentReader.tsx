@@ -38,7 +38,7 @@ import {
   displayDocumentSubtitle,
   displayDocumentTitle,
   documentSectionHeadingTag,
-  isAdministrativeMedicationSection,
+  isAdministrativeSection,
   type MutableDocumentSectionTree,
   nestDocumentSections,
   resolveReadableDocumentId,
@@ -1448,11 +1448,10 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                           classList={{
                             'document-overlay-section--active':
                               chrome.activeAnchor() === section.anchor,
-                            'document-overlay-section--administrative':
-                              isAdministrativeMedicationSection(
-                                section,
-                                documentValue().sourceType,
-                              ),
+                            'document-overlay-section--administrative': isAdministrativeSection(
+                              section,
+                              documentValue().sourceType,
+                            ),
                           }}
                           id={section.anchor}
                         >

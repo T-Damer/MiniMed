@@ -140,26 +140,10 @@
   text-transform: uppercase;
 }
 
-.result-minimal-note {
-  margin: 0.4375rem 0 0;
-  color: var(--ink-faint);
-  font-family: var(--font-mono);
-  font-size: var(--type-micro);
-}
-
 .result-category-line {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-}
-
-.result-category-icon {
-  display: inline-grid;
-  width: 1.75rem;
-  height: 1.75rem;
-  place-items: center;
-  border-radius: 0.5rem;
-  background: color-mix(in srgb, currentColor 9%, transparent);
 }
 
 .source-paragraph.context-hidden {

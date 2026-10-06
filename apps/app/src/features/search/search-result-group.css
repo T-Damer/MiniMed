@@ -10,3 +10,10 @@
 .result-card.result-card--selected {
   background: var(--theme-accent-soft);
 }
+
+/* Section of a fragment: the category stamp and the path on one line, the path giving way. */
+.result-category-line__path {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+}

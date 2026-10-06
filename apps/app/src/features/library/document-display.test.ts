@@ -120,6 +120,25 @@ describe('document-display', () => {
     ).toBe(false);
   });
 
+  it('puts a card’s technical sections after its own text, in any source', () => {
+    const ordered = orderDocumentSections(
+      [
+        section('Сведения МКБ-10'),
+        section('Классификационный контекст'),
+        section('Краткое описание'),
+      ],
+      'core_catalog_pointer',
+    );
+    expect(ordered.map((item) => item.title)).toEqual([
+      'Краткое описание',
+      'Сведения МКБ-10',
+      'Классификационный контекст',
+    ]);
+    // A card with nothing but technical sections keeps them as they are.
+    const only = [section('Сведения о документе')];
+    expect(orderDocumentSections(only, 'core_catalog_pointer')).toBe(only);
+  });
+
   it('drops empty sections and the redundant Allmed medication card section', () => {
     const emptySection = { ...section('Пустой'), chunks: [] };
     const visible = visibleReaderSections(

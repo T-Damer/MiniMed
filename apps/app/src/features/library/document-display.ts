@@ -149,17 +149,38 @@ export function isAdministrativeMedicationSection(
   return sourceType === 'official_registry_summary' && REGISTRY_SECTION_PATTERN.test(section.title);
 }
 
+/**
+ * Sections a catalog card carries about itself (names, codes, identifiers, where the full text
+ * lives). Readers keep them after the document's own text in small print; search shows their
+ * fragments after the document's own ones.
+ */
+export const TECHNICAL_SECTION_TITLES: ReadonlySet<string> = new Set([
+  'Сведения о документе',
+  'Сведения МКБ-10',
+  'Классификационный контекст',
+  'Ограничение покрытия',
+]);
+
+export function isTechnicalSection(section: Pick<MedicalSection, 'title'>): boolean {
+  return TECHNICAL_SECTION_TITLES.has(section.title.trim());
+}
+
+/** Registration details of a medication or a card's technical section: last and in small print. */
+export function isAdministrativeSection(
+  section: Pick<MedicalSection, 'title' | 'sectionType'>,
+  sourceType: string,
+): boolean {
+  return isAdministrativeMedicationSection(section, sourceType) || isTechnicalSection(section);
+}
+
 export function orderDocumentSections(
   sections: readonly MedicalSection[],
   sourceType: string,
 ): readonly MedicalSection[] {
-  const primary = sections.filter(
-    (section) => !isAdministrativeMedicationSection(section, sourceType),
-  );
-  if (primary.length === sections.length) return sections;
-  const administrative = sections.filter((section) =>
-    isAdministrativeMedicationSection(section, sourceType),
-  );
+  const primary = sections.filter((section) => !isAdministrativeSection(section, sourceType));
+  // A card made only of technical sections keeps its order: there is nothing to put first.
+  if (primary.length === sections.length || primary.length === 0) return sections;
+  const administrative = sections.filter((section) => isAdministrativeSection(section, sourceType));
   return [...primary, ...administrative];
 }
 

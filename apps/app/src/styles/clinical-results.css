@@ -69,7 +69,6 @@
 }
 
 .result-group-header__title,
-.result-minimal-note,
 .result-path {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -77,11 +76,6 @@
 
 .result-category-line {
   min-width: 0;
-}
-
-.result-category-line .result-path {
-  min-width: 0;
-  white-space: nowrap;
 }
 
 .results-more {
@@ -163,15 +157,5 @@
   .reader-header__actions {
     align-self: stretch;
     justify-content: flex-end;
-  }
-
-  .result-category-line {
-    align-items: center;
-    flex-wrap: wrap;
-  }
-
-  .result-category-line .result-path {
-    width: 100%;
-    padding-left: 2.25rem;
   }
 }
