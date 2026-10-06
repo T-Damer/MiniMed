@@ -10,6 +10,11 @@ const config: CapacitorConfig = {
   server: {
     androidScheme: 'https',
   },
+  ios: {
+    // The web view is white until the page paints; the boot surface and the launch screen are this
+    // colour, so the start has no white frame between them.
+    backgroundColor: '#f3ecd9',
+  },
   plugins: {
     SystemBars: {
       insetsHandling: 'css',
