@@ -256,6 +256,10 @@ def test_the_options_of_the_prognosis_lines_are_the_printed_words() -> None:
     ]
 
 
+@pytest.mark.skipif(
+    not (RAW / f"{EO_NUMBER}.ocr.json").exists(),
+    reason="official PDF and its OCR text are private raw data",
+)
 def test_every_checkbox_caption_word_occurs_in_the_ocr_text_of_the_blank() -> None:
     """The captions of the boxed tables are not contiguous in the OCR text (columns are read
     interleaved); each of their words still has to be on the scan."""
@@ -303,6 +307,10 @@ def test_every_field_is_printed_once_somewhere() -> None:
         assert f'"{field_id}"' in printed, field_id
 
 
+@pytest.mark.skipif(
+    not (RAW / f"{EO_NUMBER}.ocr.json").exists(),
+    reason="official PDF and its OCR text are private raw data",
+)
 def test_rebuilding_from_the_raw_files_gives_the_committed_schema() -> None:
     source = json.loads((RAW / f"{EO_NUMBER}.source.json").read_text(encoding="utf-8"))
     rebuilt = prepare_form(load_blueprint("088u"), source, RAW / f"{EO_NUMBER}.ocr.json")
