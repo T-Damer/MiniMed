@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { expect, type Locator, type Page, test } from '@playwright/test';
 import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
 import { syntheticEpub } from './synthetic-epub';
+import { syntheticPdf } from './synthetic-pdf';
 
 const DISCOVER_NAME = 'Действия с документом';
 const SCREENSHOT_DIR = process.env['DOC_MENU_SCREENSHOTS_DIR'];
@@ -36,6 +37,14 @@ async function closeMenu(page: Page): Promise<void> {
 
 const isFocused = (locator: Locator): Promise<boolean> =>
   locator.evaluate((element) => element === document.activeElement);
+
+/** Cards are not tab stops themselves; their «⋯» button is. Tab through the page until it has focus. */
+async function tabTo(page: Page, target: Locator): Promise<void> {
+  for (let step = 0; step < 80 && !(await isFocused(target)); step += 1) {
+    await page.keyboard.press('Tab');
+  }
+  await expect(target).toBeFocused();
+}
 
 const opacityOf = (locator: Locator): Promise<number> =>
   locator.evaluate((element) => Number.parseFloat(getComputedStyle(element).opacity));
@@ -110,30 +119,65 @@ test.describe('desktop pointer', () => {
     const card = page.locator('.user-library-card').filter({ hasText: 'second-book' });
     const wrapper = page.locator('.user-library-card-menu').filter({ has: card });
     const button = wrapper.getByRole('button', { name: DISCOVER_NAME });
-    // Freshly added files are still being read, and the library re-renders their cards meanwhile,
-    // which would drop keyboard focus from a replaced «⋯». Wait until the card stays the same node.
-    await expect
-      .poll(
-        async () =>
-          card.evaluate(async (element) => {
-            const marked = element as HTMLElement & { e2eStable?: boolean };
-            marked.e2eStable = true;
-            await new Promise((resolve) => setTimeout(resolve, 800));
-            return marked.isConnected && marked.e2eStable === true;
-          }),
-        { timeout: 30_000 },
-      )
-      .toBe(true);
     await page.mouse.move(2, 2);
-    // Cards are not tab stops themselves; the «⋯» button is. Tab from the card before this one
-    // (or the page controls) until it is reached.
     await expect(button).not.toHaveAttribute('tabindex', '-1');
-    await page.keyboard.press('Tab');
-    for (let step = 0; step < 80 && !(await isFocused(button)); step += 1) {
-      await page.keyboard.press('Tab');
-    }
+    await tabTo(page, button);
     await expect(button).toBeFocused();
     await expect.poll(() => opacityOf(button)).toBe(1);
+    await page.keyboard.press('Enter');
+    expect((await menuLabels(page)).length).toBeGreaterThan(3);
+  });
+
+  test('cards keep their node and «⋯» focus while added files are still being read', async ({
+    page,
+  }) => {
+    await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+    // Hold the PDF reader so «scan» stays at «Читаем файл…» until «⋯» has focus; its progress and
+    // the final «ready» patch then land while the keyboard user is on the menu button.
+    let releaseReader = (): void => undefined;
+    const readerHeld = new Promise<void>((resolve) => {
+      releaseReader = resolve;
+    });
+    await page.route('**/pdf.worker*', async (route) => {
+      await readerHeld;
+      await route.continue();
+    });
+    await page.goto(`${E2E_ASSET_ORIGIN}/#/modules/documents/user`);
+    const input = page.locator('.user-library-page__file-input');
+    await input.waitFor({ state: 'attached' });
+    const epub = await syntheticEpub();
+    await input.setInputFiles([
+      { name: 'fresh-one.epub', mimeType: 'application/epub+zip', buffer: epub },
+      { name: 'fresh-two.epub', mimeType: 'application/epub+zip', buffer: epub },
+      { name: 'scan.pdf', mimeType: 'application/pdf', buffer: syntheticPdf({ pages: 3 }) },
+    ]);
+    await expect(page.locator('.user-library-card')).toHaveCount(3);
+    const reading = page.locator('.user-library-card').filter({ hasText: 'scan' });
+    await expect(reading.locator('.user-library-card__progress-bar')).toHaveCount(1);
+
+    const card = page.locator('.user-library-card').filter({ hasText: 'fresh-two' });
+    const wrapper = page.locator('.user-library-card-menu').filter({ has: card });
+    const button = wrapper.getByRole('button', { name: DISCOVER_NAME });
+    await card.evaluate((element) => {
+      (window as unknown as { e2eFreshCard?: Element }).e2eFreshCard = element;
+    });
+    await page.mouse.move(2, 2);
+    await tabTo(page, button);
+
+    releaseReader();
+    await expect(page.locator('.user-library-card__progress-bar')).toHaveCount(0, {
+      timeout: 30_000,
+    });
+    await page.waitForTimeout(500);
+    // Reading, thumbnails and progress patch the same documents: no card is replaced.
+    expect(
+      await card.evaluate(
+        (element) =>
+          element.isConnected &&
+          element === (window as unknown as { e2eFreshCard?: Element }).e2eFreshCard,
+      ),
+    ).toBe(true);
+    await expect(button).toBeFocused();
     await page.keyboard.press('Enter');
     expect((await menuLabels(page)).length).toBeGreaterThan(3);
   });
