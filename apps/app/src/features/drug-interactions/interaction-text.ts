@@ -83,14 +83,14 @@ const MIN_SPAN_LENGTH = 12;
 /** A span longer than this is cut at line breaks: it is a list without full stops, not one sentence. */
 const MAX_SPAN_LENGTH = 1_200;
 
-function isUpperStart(character: string | undefined): boolean {
+export function isUpperStart(character: string | undefined): boolean {
   if (character === undefined) return false;
   if (/[0-9•–—«"(-]/u.test(character)) return true;
   return character !== character.toLowerCase() && character === character.toUpperCase();
 }
 
 /** True when the full stop at `index` closes a sentence rather than an abbreviation or a number. */
-function endsSentenceAt(text: string, index: number): boolean {
+export function endsSentenceAt(text: string, index: number): boolean {
   let after = index + 1;
   // Closing brackets and quotes belong to the sentence that ends.
   while (after < text.length && /["»”)\]]/u.test(text.charAt(after))) after += 1;
