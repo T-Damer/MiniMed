@@ -52,6 +52,9 @@ ignore = ["RUF001"]
 # МНН, СМНН and ЕСКЛП are written in Cyrillic capitals in docstrings.
 "src/localmed_ingest/substance_fallback.py" = ["RUF002", "RUF003"]
 "tests/test_substance_fallback.py" = ["RUF002", "RUF003"]
+# НСИ, МНН, ЕСКЛП and АТХ are written in Cyrillic capitals in docstrings.
+"src/localmed_ingest/ddinter_severity.py" = ["RUF002", "RUF003"]
+"tests/test_ddinter_severity.py" = ["RUF002", "RUF003"]
 
 [tool.pyright]
 pythonVersion = "3.12"
