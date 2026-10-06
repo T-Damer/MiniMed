@@ -52,6 +52,8 @@ import {
   buildDocumentLinkPhrases,
   createDocumentLinkMatcher,
 } from '@/features/library/document-medication-links';
+import { MedicationSafetyCard } from '@/features/medication-safety/MedicationSafetyCard';
+import { parseSafetyQuery } from '@/features/medication-safety/safety-query';
 import { loadModuleCatalog } from '@/features/modules/module-catalog-state';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
 import { PersonalNoteMatches } from '@/features/notes/PersonalNoteMatches';
@@ -424,6 +426,12 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     const searched = response();
     if (!searched || (props.scope !== 'all' && props.scope !== 'medications')) return null;
     return parseInteractionQuery(searched.analysis.originalQuery);
+  });
+  // «ибупрофен при беременности», «X ребёнку 3 лет»: the instruction's own sentences on the topic.
+  const safetyQuery = createMemo(() => {
+    const searched = response();
+    if (!searched || (props.scope !== 'all' && props.scope !== 'medications')) return null;
+    return parseSafetyQuery(searched.analysis.originalQuery);
   });
   const calculatorSuggestion = createMemo(() => {
     const searched = response();
@@ -1290,6 +1298,16 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
 
                 <Show when={interactionQuery()}>
                   {(asked) => <InteractionSuggestionCard names={asked().names} />}
+                </Show>
+
+                <Show when={interactionQuery() ? undefined : safetyQuery()}>
+                  {(asked) => (
+                    <MedicationSafetyCard
+                      core={props.core}
+                      query={asked()}
+                      onContentChanged={props.onContentChanged}
+                    />
+                  )}
                 </Show>
 
                 <Show when={requestedInlineCalculator() ? undefined : calculatorSuggestion()}>

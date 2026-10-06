@@ -64,6 +64,7 @@ import {
 import { RlsMedicationPackagingPanel } from '@/features/library/RlsMedicationPackagingPanel';
 import type { ResolvedReferenceImage } from '@/features/library/reference-image-assets';
 import { getReferenceImageResolver } from '@/features/library/reference-image-assets';
+import { DrugSafetyBlock } from '@/features/medication-safety/DrugSafetyBlock';
 import type { ClinicalMedicationLink } from '@/features/medications/clinical-medication-links';
 import { DrugQuickLinks } from '@/features/medications/DrugQuickLinks';
 import { DrugScreenHeader } from '@/features/medications/DrugScreenHeader';
@@ -1321,6 +1322,10 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                 </Show>
 
                 <RlsMedicationPackagingPanel document={documentValue()} />
+
+                <Show when={documentValue().sourceType === 'official_drug_instruction'}>
+                  <DrugSafetyBlock document={documentValue()} />
+                </Show>
 
                 <Show when={isIcd11Document(documentValue())}>
                   <Icd11CardPanel document={documentValue()} />
