@@ -107,6 +107,7 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
+| 2026-10-06 | claude-opus (DIARY3) | patient diary as an installed web app on iOS: the home-screen icon must open the patient's diary (manifest start_url with the `#i=` fragment, measured on the iPad simulator), paste-the-doctor's-link on the empty state, backup that restores diary + entries, iOS 26 copy | `apps/app/src/diary/**`, `apps/app/src/features/diary/**`, `apps/app/public/diary/**`, `apps/app/diary/**`, `apps/app/e2e/diary-*` |
 | 2026-10-06 | claude-opus (INT1) | drug-interaction tool «Взаимодействие препаратов» + search entry «X взаимодействие с Y, Z»: build-time index of sentences naming other drugs/classes from the shipped instruction modules, tool, query parser, research note (severity sources) | `apps/app/src/features/drug-interactions/**`, `tools/**/drug-interaction*`, `docs/research/drug-interactions-2026-10-06.md`, search query-parse hook, tool registry entry |
 
 ## Next (claimed, not started)
