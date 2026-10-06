@@ -10,7 +10,13 @@ interface LocalMedSharePlugin {
   }): Promise<void>;
 }
 
-const localMedShare = registerPlugin<LocalMedSharePlugin>('LocalMedShare');
+let localMedSharePlugin: LocalMedSharePlugin | undefined;
+
+/** Registered on first use: importing this module (note files do) must not need the native bridge. */
+function localMedShare(): LocalMedSharePlugin {
+  localMedSharePlugin ??= registerPlugin<LocalMedSharePlugin>('LocalMedShare');
+  return localMedSharePlugin;
+}
 
 export function isAndroidNativeShareAvailable(): boolean {
   return Capacitor.getPlatform() === 'android';
@@ -20,7 +26,7 @@ export async function nativeAndroidShareText(title: string, text: string): Promi
   if (!isAndroidNativeShareAvailable()) {
     throw new Error('Android share is not available.');
   }
-  await localMedShare.shareText({ title, text });
+  await localMedShare().shareText({ title, text });
 }
 
 function downloadFile(blob: Blob, fileName: string): 'downloaded' {
@@ -47,7 +53,7 @@ export async function shareSystemFile(input: {
     for (let offset = 0; offset < bytes.length; offset += 32_768) {
       binary += String.fromCharCode(...bytes.subarray(offset, offset + 32_768));
     }
-    await localMedShare.shareFile({
+    await localMedShare().shareFile({
       title: input.title,
       fileName: input.fileName,
       mimeType: input.mimeType || 'application/octet-stream',
