@@ -320,7 +320,7 @@ export interface ClusterView {
   readonly kind: ClusterKind;
   /** The matched statements say the same after normalisation. */
   readonly identical: boolean;
-  /** «у обоих», «только у Нурофен», «у Ибупрофен и Парацетамол». */
+  /** «у обоих», «у Нурофен; у других совпадения нет», «у Ибупрофен и Парацетамол». */
   readonly label: string;
   /** One cell per column; null where the drug does not state it. */
   readonly cells: readonly (CellView | null)[];
@@ -370,7 +370,9 @@ export function clusterLabel(
 ): string {
   let text: string;
   if (kind === 'shared') text = drugCount === 2 ? 'у обоих' : 'у всех';
-  else if (kind === 'only') text = `только у ${names[0] ?? ''}`;
+  // Not «только у X»: a statement worded differently in another instruction is not matched, so the
+  // mark says only what was checked — no matching statement in the other texts.
+  else if (kind === 'only') text = `у ${names[0] ?? ''}; у других совпадения нет`;
   else text = `у ${names.join(', ')}`;
   return kind !== 'only' && !identical ? `${text}, формулировки различаются` : text;
 }
@@ -497,7 +499,7 @@ export function sectionRowViews(
   });
 }
 
-/** «Одинаково: 8 · различаются формулировки: 2 · только у Нурофен: 3 · только у Пенталгин: 5». */
+/** «одинаковых: 8 · похожих, с различиями: 2 · без совпадения у других — Нурофен: 3 · …». */
 export function rowSummary(row: SectionRowView, columns: readonly ColumnView[]): string {
   if (!row.compared) return '';
   const parts: string[] = [];
@@ -507,7 +509,7 @@ export function rowSummary(row: SectionRowView, columns: readonly ColumnView[]):
   if (row.counts.partial > 0) parts.push(`у части препаратов: ${row.counts.partial}`);
   columns.forEach((column, position) => {
     const count = row.counts.only[position] ?? 0;
-    if (count > 0) parts.push(`только у ${markName(column.item)}: ${count}`);
+    if (count > 0) parts.push(`без совпадения у других — ${markName(column.item)}: ${count}`);
   });
   return parts.join(' · ');
 }

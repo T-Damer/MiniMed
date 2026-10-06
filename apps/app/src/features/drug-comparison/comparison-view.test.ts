@@ -78,7 +78,7 @@ describe('the marks', () => {
   it('words a mark without a judgement', () => {
     expect(clusterLabel('shared', true, ['A', 'B'], 2)).toBe('у обоих');
     expect(clusterLabel('shared', true, ['A', 'B', 'C'], 3)).toBe('у всех');
-    expect(clusterLabel('only', true, ['Нурофен'], 2)).toBe('только у Нурофен');
+    expect(clusterLabel('only', true, ['Нурофен'], 2)).toBe('у Нурофен; у других совпадения нет');
     expect(clusterLabel('partial', true, ['A', 'B'], 3)).toBe('у A, B');
     expect(clusterLabel('shared', false, ['A', 'B'], 2)).toBe('у обоих, формулировки различаются');
   });

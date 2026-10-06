@@ -68,7 +68,7 @@ function todayText(): string {
 
 /**
  * «Сравнение препаратов»: 2–4 drugs in columns, registry rows and quoted instruction sections in
- * rows, statements matched across the instructions and marked «у обоих» / «только у …». A
+ * rows, statements matched across the instructions and marked «у обоих» / «у других совпадения нет». A
  * comparison of instruction texts, not a clinical recommendation: nothing is summarised, nothing is
  * called better or worse.
  */
@@ -368,7 +368,8 @@ export function DrugComparisonWorkspace(props: {
               слов, название самого препарата не учитываются. Пункты с одинаковыми словами отмечены
               «у обоих», пункты, у которых совпадает не менее 60 % слов, показаны рядом с пометкой
               «формулировки различаются», а различающиеся слова и числа выделены. Остальные пункты
-              отмечены «только у …». Ничего не пересказывается и не оценивается.
+              отмечены «у других совпадения нет»: другая инструкция может говорить о том же иными
+              словами — проверьте её раздел. Ничего не пересказывается и не оценивается.
             </p>
             <p>
               Для каждого препарата читается одна инструкция; где возможно, у всех препаратов

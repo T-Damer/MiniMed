@@ -205,3 +205,11 @@ loaded for the pairs block. Not measured on a phone or in the WebView.
 - The instruction read is one per drug; other manufacturers' instructions of the substance are one `<select>` away and are
   not compared with each other.
 - Print and share carry the same rows and marks; they were not exercised on paper.
+
+## Coordinator change (2026-10-06): the unmatched mark
+
+«только у X» claimed an absence the matcher cannot prove: the same topic worded differently in
+another instruction is not matched. The mark is now «у X; у других совпадения нет», the row summary
+says «без совпадения у других — X: N», and the explanation adds that another instruction may say the
+same in other words. Matching rules and thresholds are unchanged.
+

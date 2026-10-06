@@ -89,7 +89,7 @@ for (const width of [390, 1280]) {
     await expect(section).toBeVisible({ timeout: 60_000 });
     await expect(page.getByTestId('comparison-cluster').first()).toBeVisible();
     const marks = await page.getByTestId('comparison-mark').allTextContents();
-    expect(marks.some((text) => /только у|у обоих/u.test(text))).toBe(true);
+    expect(marks.some((text) => /совпадения нет|у обоих/u.test(text))).toBe(true);
     for (const text of marks) expect(text).not.toMatch(/лучше|хуже|рекоменду/iu);
     await shoot(page, 'compared');
 

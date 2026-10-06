@@ -56,7 +56,7 @@ export function ComparisonSuggestionCard(props: {
             </span>
             <span class="comparison-suggestion__hint">
               Сравнение текстов инструкций, а не клиническая рекомендация: реестровые данные и
-              разделы инструкций рядом, с пометками «у обоих» и «только у …».
+              разделы инструкций рядом, с пометками «у обоих» и «у других совпадения нет».
             </span>
           </span>
           <AppGlyph name="caret-right" class="comparison-suggestion__chevron" />

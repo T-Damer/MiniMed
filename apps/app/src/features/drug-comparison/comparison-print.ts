@@ -19,7 +19,7 @@ export interface PrintScalarRow {
 }
 
 export interface PrintCluster {
-  /** «у обоих», «только у Нурофен». */
+  /** «у обоих», «у Нурофен; у других совпадения нет». */
   readonly label: string;
   /** One text per column; null where the drug does not state it. */
   readonly texts: readonly (string | null)[];
