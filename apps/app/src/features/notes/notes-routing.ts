@@ -12,6 +12,13 @@ export type NotesRoute =
       readonly episodeId?: string;
     }
   | { readonly kind: 'vaccination'; readonly part?: string }
+  | {
+      readonly kind: 'drug-interactions';
+      /** Names typed in a search query (`d`), looked up in the drug search when the tool opens. */
+      readonly names: readonly string[];
+      /** Exact drug cards (`c`), for a link that must find the same drugs again. */
+      readonly cards: readonly string[];
+    }
   | { readonly kind: 'templates'; readonly create?: boolean }
   | { readonly kind: 'template'; documentId: string }
   | { readonly kind: 'card'; readonly cardId: string }
@@ -76,6 +83,10 @@ export function readNotesRoute(
   if (parts[1] === 'vaccination') {
     const part = new URLSearchParams(query).get(VACCINATION_PART_QUERY_KEY);
     return part ? { kind: 'vaccination', part } : { kind: 'vaccination' };
+  }
+  if (parts[1] === 'drug-interactions') {
+    const params = new URLSearchParams(query);
+    return { kind: 'drug-interactions', names: params.getAll('d'), cards: params.getAll('c') };
   }
   if (parts[1] === 'templates') {
     if (parts.length === 2) {
@@ -149,6 +160,18 @@ export function notesVaccinationPath(part?: string): string {
   return part
     ? `#/notes/vaccination?${VACCINATION_PART_QUERY_KEY}=${encodeURIComponent(part)}`
     : '#/notes/vaccination';
+}
+
+/** `#/notes/drug-interactions` opens «Взаимодействие препаратов», with drug names to look up (`d`) or exact cards (`c`). */
+export function notesDrugInteractionsPath(
+  names: readonly string[] = [],
+  cards: readonly string[] = [],
+): string {
+  const params = new URLSearchParams();
+  for (const name of names) params.append('d', name);
+  for (const card of cards) params.append('c', card);
+  const query = params.toString();
+  return query ? `#/notes/drug-interactions?${query}` : '#/notes/drug-interactions';
 }
 
 export function notesTemplatesPath(create = false): string {

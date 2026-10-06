@@ -467,6 +467,7 @@ export function App(): JSX.Element {
             core={session.searchCore() ?? session.ready()?.core}
             active={navigation.view() === 'notes'}
             backToFiles={!expandedNavigation()}
+            onContentChanged={session.connectInstalledModules}
           />
         ))}
         {rootPane('news', () => (

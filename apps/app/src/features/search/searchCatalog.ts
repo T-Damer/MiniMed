@@ -11,6 +11,7 @@ import {
 import { CALCULATOR_SECTIONS } from '@/features/calculators/calculator-packs';
 import { getCalculatorRegistry } from '@/features/calculators/calculator-registry';
 import { userCalculatorNewPath } from '@/features/calculators/user-calculator/user-calculator-routing';
+import { DRUG_INTERACTION_TOOL } from '@/features/drug-interactions/drug-interaction-tool';
 import {
   medicationDocumentGroups,
   medicationGroupLabel,
@@ -147,6 +148,18 @@ export function searchCatalogTools(): readonly SearchCatalogTool[] {
       group: 'pediatrics',
       href: VACCINATION_TOOL.href,
       ageScope: VACCINATION_TOOL.ageScope,
+    },
+    // Search over the instruction texts of the drug modules, listed with the other working tools.
+    {
+      id: DRUG_INTERACTION_TOOL.id,
+      scope: 'calculators',
+      icon: DRUG_INTERACTION_TOOL.icon,
+      title: DRUG_INTERACTION_TOOL.title,
+      description: DRUG_INTERACTION_TOOL.description,
+      aliases: DRUG_INTERACTION_TOOL.aliases,
+      group: 'medication',
+      href: DRUG_INTERACTION_TOOL.href,
+      ageScope: DRUG_INTERACTION_TOOL.ageScope,
     },
   ];
 }

@@ -19,6 +19,7 @@
       "!!apps/app/src/features/modules/catalog.preview.json",
       "!!apps/app/src/features/modules/catalog.terminology.json",
       "!!apps/app/src/features/forms/schemas",
+      "!!apps/app/src/features/drug-interactions/data",
       "!!data",
       "!!packages/storage-sqlite/src/generated",
       "!!packages/test-fixtures/src/generated",

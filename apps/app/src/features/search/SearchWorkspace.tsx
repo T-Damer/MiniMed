@@ -45,6 +45,8 @@ import {
 } from '@/features/calculators/calculator-registry';
 import { getCalculatorSchema } from '@/features/calculators/calculator-schema-catalog';
 import type { AvailableCalculatorDefinition } from '@/features/calculators/calculator-types';
+import { InteractionSuggestionCard } from '@/features/drug-interactions/InteractionSuggestionCard';
+import { parseInteractionQuery } from '@/features/drug-interactions/interaction-query';
 import { resolveReadableDocumentId } from '@/features/library/document-display';
 import {
   buildDocumentLinkPhrases,
@@ -415,6 +417,13 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   const calculatorSchemas = createMemo(() => {
     calculatorPacksRevision();
     return installedCalculatorSchemas();
+  });
+  // «варфарин взаимодействие с ибупрофеном»: the interaction tool opens with those drugs. Read from
+  // the query the shown results were searched for, in the sections that hold drugs.
+  const interactionQuery = createMemo(() => {
+    const searched = response();
+    if (!searched || (props.scope !== 'all' && props.scope !== 'medications')) return null;
+    return parseInteractionQuery(searched.analysis.originalQuery);
   });
   const calculatorSuggestion = createMemo(() => {
     const searched = response();
@@ -1277,6 +1286,10 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                       Показаны результаты по: «{rewrite().query}»
                     </div>
                   )}
+                </Show>
+
+                <Show when={interactionQuery()}>
+                  {(asked) => <InteractionSuggestionCard names={asked().names} />}
                 </Show>
 
                 <Show when={requestedInlineCalculator() ? undefined : calculatorSuggestion()}>

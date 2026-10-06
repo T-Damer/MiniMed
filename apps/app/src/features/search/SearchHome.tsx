@@ -27,6 +27,7 @@ import {
   conversationSession,
   startConversation,
 } from '@/features/conversations/conversation-session';
+import { DRUG_INTERACTION_TOOL } from '@/features/drug-interactions/drug-interaction-tool';
 import { SearchHistoryPanel } from '@/features/history/SearchHistoryPanel';
 import { preferReadableDocuments } from '@/features/library/document-display';
 import { ImagingViewerEntry } from '@/features/library/ImagingViewerEntry';
@@ -285,6 +286,15 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       ageScope: VACCINATION_TOOL.ageScope,
       group: 'reference',
       href: VACCINATION_TOOL.href,
+    },
+    {
+      id: DRUG_INTERACTION_TOOL.id,
+      title: DRUG_INTERACTION_TOOL.title,
+      kindLabel: DRUG_INTERACTION_TOOL.kindLabel,
+      icon: DRUG_INTERACTION_TOOL.icon,
+      ageScope: DRUG_INTERACTION_TOOL.ageScope,
+      group: 'reference',
+      href: DRUG_INTERACTION_TOOL.href,
     },
     {
       id: APP_TOOL_IDS.notes,

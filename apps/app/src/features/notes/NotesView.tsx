@@ -417,6 +417,11 @@ function deferEnrichment(
 }
 
 /** «Календарь прививок» ships its 100 KB of transcribed tables only when it is opened. */
+const DrugInteractionWorkspace = lazy(() =>
+  import('@/features/drug-interactions/DrugInteractionWorkspace').then((module) => ({
+    default: module.DrugInteractionWorkspace,
+  })),
+);
 const VaccinationWorkspace = lazy(() =>
   import('@/features/vaccination/VaccinationWorkspace').then((module) => ({
     default: module.VaccinationWorkspace,
@@ -427,6 +432,8 @@ export function NotesView(props: {
   readonly core: MedicalCore | undefined;
   readonly active: boolean;
   readonly backToFiles?: boolean;
+  /** Reconnects the core after instruction modules are installed from a tool. */
+  readonly onContentChanged?: () => Promise<void>;
 }): JSX.Element {
   const [snapshot, setSnapshot] = createSignal<PatientNotesSnapshot>({ cards: [], notes: [] });
   const [documents, setDocuments] = createSignal<readonly MedicalDocumentSummary[]>([]);
@@ -940,6 +947,10 @@ export function NotesView(props: {
     const current = route();
     return current.kind === 'vaccination' ? current : null;
   });
+  const drugInteractionsRoute = createMemo(() => {
+    const current = route();
+    return current.kind === 'drug-interactions' ? current : null;
+  });
   const activeTemplateId = (): string | null => {
     const current = route();
     return current.kind === 'template' ? current.documentId : null;
@@ -1266,6 +1277,28 @@ export function NotesView(props: {
           >
             <VaccinationWorkspace
               initialPart={current().part}
+              onBack={() => {
+                if (window.history.length > 1) window.history.back();
+                else navigate(notesPath());
+              }}
+            />
+          </Suspense>
+        )}
+      </Show>
+      <Show when={props.active && drugInteractionsRoute()}>
+        {(current) => (
+          <Suspense
+            fallback={
+              <p class="vax-loading" role="status">
+                Открываем «Взаимодействие препаратов»…
+              </p>
+            }
+          >
+            <DrugInteractionWorkspace
+              core={props.core}
+              {...(props.onContentChanged ? { onContentChanged: props.onContentChanged } : {})}
+              initialNames={current().names}
+              initialCards={current().cards}
               onBack={() => {
                 if (window.history.length > 1) window.history.back();
                 else navigate(notesPath());
