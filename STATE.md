@@ -108,7 +108,6 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 | --- | --- | --- | --- |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 | 2026-10-06 | claude-opus (INT1) | drug-interaction tool «Взаимодействие препаратов» + search entry «X взаимодействие с Y, Z»: build-time index of sentences naming other drugs/classes from the shipped instruction modules, tool, query parser, research note (severity sources) | `apps/app/src/features/drug-interactions/**`, `tools/**/drug-interaction*`, `docs/research/drug-interactions-2026-10-06.md`, search query-parse hook, tool registry entry |
-| 2026-10-06 | claude-opus (IOS1) | iOS testing on iPad mini / iPhone simulators: web build in Mobile Safari + Playwright WebKit, Capacitor iOS app build/run, patient diary on Safari; fix iOS-specific layout/safe-area/touch issues; opt-in WebKit e2e project | `apps/app/ios/**`, `apps/app/playwright*`/e2e WebKit specs, iOS-specific CSS fixes, `output/ios1-screens/**`, docs/CURRENT_STATE.md «iOS» section |
 
 ## Next (claimed, not started)
 
@@ -168,6 +167,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-10-06 claude-opus (IOS1): first iOS run on the iPad mini / iPhone 17 simulators (Safari + the Capacitor app) — onboarding blur mask (WebKit paints nothing for a negative radial stop), portrait-tablet page width, iOS input-zoom guard and date-field width, file saving through the share sheet in the iOS app (`saveBlobAsFile`), camera/microphone usage strings, launch screen/web view colour, iPad/iPhone «На экран Домой» steps; opt-in WebKit project `PLAYWRIGHT_WEBKIT=1 … --project=webkit-ios`; status, build commands and what was not verified (landscape in the simulator, real devices) in `docs/CURRENT_STATE.md` «iOS on iPad mini and iPhone simulators»
 - 2026-10-06 claude-opus (ICD11b): МКБ-11 module 2026.10.6 — WHO local ICD-API container text merged (7 990 Russian definitions, inclusions, exclusions, index terms; English fallback omitted), crosswalks kept, installed 479 → 262 MB, download 76 → 48 MB; release `reference-icd11-2026.10.6`, catalog preview entry updated (only `minimed.reference.icd11.ru` changed, `minAppVersion` 0.6.51 unchanged). Details: `docs/research/icd11-2026-10-05.md`.
 
 - 2026-10-06 claude-opus (TOOLS1b): tool-module artifacts — all 8 now point at raw main (4 used missing v0.6.33 release assets), versions were already bumped by TOOLS1; installed older modules auto-update at start, until then tools show the section download state (e2e `tool-module-update.spec.ts`); release note: gate the new tool modules with `minAppVersion` 0.6.51 (older apps cannot parse them)
