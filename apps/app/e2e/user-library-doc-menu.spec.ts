@@ -181,6 +181,71 @@ test.describe('desktop pointer', () => {
     await page.keyboard.press('Enter');
     expect((await menuLabels(page)).length).toBeGreaterThan(3);
   });
+
+  test('a card that an added file pushes into the next row keeps its node and «⋯» focus', async ({
+    page,
+  }) => {
+    await openLibraryWithDocuments(page);
+    // The list view has three columns here, so the oldest of the three books ends the first row.
+    await page.getByRole('button', { name: 'Список', exact: true }).click();
+    await expect(page.locator('.user-library-card--list').first()).toBeVisible();
+    await expect(page.locator('.user-library-card__progress-bar')).toHaveCount(0, {
+      timeout: 30_000,
+    });
+    // A document card in the last cell of a row that has a row after it: a newer file shifts
+    // every document by one, so this card moves into the next row.
+    const movingTitle = await page.evaluate(() => {
+      for (const cell of document.querySelectorAll('.layout-card-grid > :last-child')) {
+        const row = cell.closest('.layout-card-row');
+        const hasNextRow = Boolean(row?.parentElement?.nextElementSibling);
+        const title = cell.querySelector('.user-library-card__file-name')?.textContent;
+        if (hasNextRow && title) return title;
+      }
+      return null;
+    });
+    expect(movingTitle).not.toBeNull();
+    const card = page.locator('.user-library-card').filter({
+      has: page.locator('.user-library-card__file-name', { hasText: movingTitle ?? '' }),
+    });
+    const wrapper = page.locator('.user-library-card-menu').filter({ has: card });
+    const button = wrapper.getByRole('button', { name: DISCOVER_NAME });
+    const rowOf = (): Promise<string> =>
+      card.evaluate((element) => {
+        const row = element.closest('.layout-card-row')?.parentElement;
+        return String([...(row?.parentElement?.children ?? [])].indexOf(row as Element));
+      });
+    const rowBefore = await rowOf();
+    await card.evaluate((element) => {
+      (window as unknown as { e2eMovingCard?: Element }).e2eMovingCard = element;
+    });
+    await page.mouse.move(2, 2);
+    await tabTo(page, button);
+
+    await page.locator('.user-library-page__file-input').setInputFiles({
+      name: 'fourth-book.epub',
+      mimeType: 'application/epub+zip',
+      buffer: await syntheticEpub(),
+    });
+    await expect(
+      page.locator('.user-library-card').filter({ hasText: 'fourth-book' }),
+    ).toBeVisible();
+    await expect(page.locator('.user-library-card__progress-bar')).toHaveCount(0, {
+      timeout: 30_000,
+    });
+    await page.waitForTimeout(500);
+
+    expect(await rowOf()).not.toBe(rowBefore);
+    expect(
+      await card.evaluate(
+        (element) =>
+          element.isConnected &&
+          element === (window as unknown as { e2eMovingCard?: Element }).e2eMovingCard,
+      ),
+    ).toBe(true);
+    await expect(button).toBeFocused();
+    await page.keyboard.press('Enter');
+    expect((await menuLabels(page)).length).toBeGreaterThan(3);
+  });
 });
 
 test.describe('touch pointer', () => {
