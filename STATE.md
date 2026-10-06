@@ -107,6 +107,7 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
+| 2026-10-06 | claude-opus (ICD11b) | МКБ-11 module v2: run WHO local ICD-API container (Docker, owner accepted licence) for Russian definitions/inclusions/exclusions, merge into the module, compact installed size, republish (release asset + catalog entry for `minimed.reference.icd11.ru`) | tools/ingest/**icd11*, tools/ingest/tests/*icd11*, data/raw/icd11, data/build/icd11-module, docs/research/icd11-2026-10-05.md, catalog entry of the icd11 module |
 
 ## Next (claimed, not started)
 
