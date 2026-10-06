@@ -107,6 +107,7 @@ WebView: `apps/app/**` boot, motion and reader work â€” claude-coordinator (W1â€
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
+| 2026-10-06 13:00 | claude-opus (INT2) | drug interactions severity layer: optional DDInter 2.0 module (labels only, CC BY-NC-SA 4.0), label on pairs that have instruction sentences, fold for non-interaction sections; verify bulk download first (stop if CAPTCHA/login) | `apps/app/src/features/drug-interactions/**`, `scripts/build-drug-interactions.ts`, `scripts/*ddinter*`, `tools/ingest/**/ddinter*`, `data/raw/ddinter/**`, `docs/research/drug-interactions-2026-10-06.md`, INT sections of `docs/CURRENT_STATE.md`, `apps/app/e2e/drug-interactions*` |
 | 2026-10-06 | claude-opus (DIARY3) | patient diary as an installed web app on iOS: the home-screen icon must open the patient's diary (manifest start_url with the `#i=` fragment, measured on the iPad simulator), paste-the-doctor's-link on the empty state, backup that restores diary + entries, iOS 26 copy | `apps/app/src/diary/**`, `apps/app/src/features/diary/**`, `apps/app/public/diary/**`, `apps/app/diary/**`, `apps/app/e2e/diary-*` |
 
 ## Next (claimed, not started)
