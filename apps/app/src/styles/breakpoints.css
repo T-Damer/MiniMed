@@ -9,12 +9,19 @@
   --page-content-width: var(--page-board-width);
 }
 
+/* Portrait tablets (iPad mini is 744 pt wide) keep the phone's single column, but the page board
+   uses the room instead of a 65ch strip between wide desk-coloured gutters. */
+@media (min-width: 600px) {
+  :root {
+    --page-board-width: min(100% - 2rem, 72rem);
+    --page-inline-padding: clamp(0.875rem, 3vw, 1.5rem);
+  }
+}
+
 @media (min-width: 760px) {
   :root {
     --layout-cols: 2;
     --layout-gap: 0.5rem;
-    --page-board-width: min(100% - 2rem, 72rem);
-    --page-inline-padding: clamp(0.875rem, 3vw, 1.5rem);
   }
 }
 

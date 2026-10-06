@@ -43,6 +43,23 @@ select {
   font: inherit;
 }
 
+/* iOS (Safari and WKWebView) zooms the page in when a field smaller than 16px takes focus and does
+   not zoom back out. Whatever component class sized a text field, on iOS it is never below 16px. */
+@supports (-webkit-touch-callout: none) {
+  input:not(
+    [type="checkbox"],
+    [type="radio"],
+    [type="range"],
+    [type="file"],
+    [type="color"],
+    [type="hidden"]
+  ),
+  select,
+  textarea {
+    font-size: max(1rem, 16px) !important;
+  }
+}
+
 button {
   color: inherit;
 }
