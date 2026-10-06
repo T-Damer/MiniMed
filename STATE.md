@@ -108,6 +108,7 @@ WebView: `apps/app/**` boot, motion and reader work â€” claude-coordinator (W1â€
 | --- | --- | --- | --- |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 | 2026-10-06 13:00 | claude-opus (INT2) | drug interactions severity layer: optional DDInter 2.0 module (labels only, CC BY-NC-SA 4.0), label on pairs that have instruction sentences, fold for non-interaction sections; verify bulk download first (stop if CAPTCHA/login) | `apps/app/src/features/drug-interactions/**`, `scripts/build-drug-interactions.ts`, `scripts/*ddinter*`, `tools/ingest/**/ddinter*`, `data/raw/ddinter/**`, `docs/research/drug-interactions-2026-10-06.md`, INT sections of `docs/CURRENT_STATE.md`, `apps/app/e2e/drug-interactions*` |
+| 2026-10-06 14:00 | claude-opus (SAFE1) | pregnancy / lactation / child-age questions in search: build-time instruction-section + age-limit index (offsets+checksums), deterministic query intent parsing, result card with quoted instruction sentences; separate benchmark set; added to SEARCH_ROADMAP | `tools/` (new SAFE1 pipeline), `apps/app/src/features/medication-safety/` (new), search card glue in `apps/app/src/features/search/`, `tools/benchmarks/safe1-queries.json`, `docs/SEARCH_ROADMAP.md`, `docs/CURRENT_STATE.md` |
 
 ## Next (claimed, not started)
 
