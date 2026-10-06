@@ -1,6 +1,6 @@
 # Current state
 
-> Updated: 5 October 2026
+> Updated: 6 October 2026
 > Released version: `0.6.47` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
@@ -19,6 +19,85 @@ Detailed history, moved verbatim on 2026-09-24:
   baseline and runtime benchmark up to the 0.6.39 release.
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
+
+## iOS on iPad mini and iPhone simulators — 2026-10-06 (STATE IOS1)
+
+First time anything ran on iOS. Tested on the **iPad mini (A17 Pro) simulator** (744 × 1133 pt, iOS 26.5)
+in Safari and in the Capacitor app, plus the iPhone 17 simulator and Playwright WebKit (iPad mini,
+iPhone 15, Slide Over 320 and half-split 570 pt widths). Screens: `output/ios1-screens/` (not
+committed; `*-before` / `*-after`, named by device, orientation and screen).
+
+**Works.** The iOS app builds from the committed project (no source changes needed beyond the ones
+below), installs and runs: the packaged core opens through the native SQLite plugin («Ядро знаний уже
+на месте»), search (20 127 sources, typed through the software keyboard), document reader with the
+sticky and hide-on-scroll chrome contract, section/module download and install (4.2 MB drug module
+→ drug screen), settings, patient vault (Keychain), camera picker (ECG), share popover, dark mode,
+the onboarding tour. In the web view: OPFS incl. sync access handles in a worker, MediaRecorder (webm
+and mp4), `navigator.share` with files, backdrop-filter, `@property`, Web Locks, CompressionStream. The
+patient diary works in iPad and iPhone Safari (first open, entry with the keyboard, the install card).
+
+**Fixed.**
+
+- *Onboarding blur missing in WebKit.* A radial mask whose first colour stop is negative paints nothing
+  in Safari/WKWebView, so the veil (blur and tint) never showed and the greeting sat on the sharp app.
+  Stops are clamped (`max(0%, …)`). Headless WebKit paints no backdrop-filter at all: judge blur in the
+  simulator, not in Playwright.
+- *Portrait tablets.* 744 pt is below the 760 px tablet breakpoint and got the 65ch phone strip with
+  83 pt desk gutters. From 600 px the page board is the full width (still one column).
+- *Input zoom.* iOS zooms into a focused field under 16 px: on iOS (`@supports (-webkit-touch-callout)`)
+  text fields are held at 16 px (`styles/global.css`).
+- *Date and time fields* (`date`, `time`, `datetime-local`) stuck out of their card in the patient form
+  and the diary and were taller than text fields: `appearance: none` on iOS.
+- *Saving files in the app.* `<a download>` of a blob does nothing in the iOS web view (no error). Six
+  places (note attachments, transcript, drawing, patient export, user documents, notes backup) now call
+  `saveBlobAsFile` (`state/native-share.ts`): the system share sheet on iOS (popover on iPad, «Save to
+  Files»), the anchor elsewhere. `navigator.share({files})` works in the web view; verified.
+- *Info.plist* had no camera/microphone usage strings: iOS ends the app at the first access.
+  `CapApp-SPM/Package.swift` was stale (`@capgo/capacitor-downloader` missing); `cap update ios` fixed it.
+- *Launch.* The storyboard was the stock white Capacitor splash and the web view is white until paint,
+  so every start flashed white before the cream boot surface. Launch screen: cream + the 190 pt wallet;
+  `ios.backgroundColor` in `capacitor.config.ts`.
+- *Diary «На экран Домой».* iPad: the share button is in the top toolbar (iPad detection already
+  existed for iPadOS' desktop-class UA). iPhone on Safari 26: «Поделиться» is inside the «⋯» menu.
+
+**Build and run (simulator).** Sanitized environment, no signing identity needed but the app must be
+**ad-hoc signed** (`CODE_SIGN_IDENTITY=-`): an unsigned simulator build cannot use the Keychain, and the
+patient vault then reports that the key was not saved.
+
+```bash
+bun run build:app
+# the Android build drops the four large databases; do the same for iOS (core.db stays, ~590 MB):
+rsync -a --delete --exclude content/ambulatory.db --exclude content/medications.db \
+  --exclude content/mkb.db apps/app/dist/ apps/app/ios/App/App/public/
+cd apps/app && bunx cap update ios        # plugins / Package.swift; `bun run cap:sync:ios` also copies dist
+cd ios/App && xcodebuild -project App.xcodeproj -scheme App -sdk iphonesimulator \
+  -destination 'generic/platform=iOS Simulator' -derivedDataPath <scratch>/DerivedData \
+  CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=YES CODE_SIGNING_ALLOWED=YES CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= build
+xcrun simctl install <udid> <scratch>/DerivedData/Build/Products/Debug-iphonesimulator/App.app
+xcrun simctl launch <udid> dev.localmed.search
+```
+
+The Safari side serves the build on 127.0.0.1 (`vite preview --outDir … --host 127.0.0.1`) and opens
+`xcrun simctl openurl <udid> 'http://127.0.0.1:<port>/#/route'`; `simctl openurl` opens a new tab each
+time, and two tabs fight for the one OPFS owner («MiniMed открыт в другой вкладке») — close the old
+tab. The iOS-simulator MCP tool can tap, swipe and type (Latin only; Cyrillic text arrives garbled).
+
+**Tests.** `ios-layout.spec.ts` (no sideways scroll at iPad portrait/landscape and iPhone widths, the
+portrait page uses the width, the veil mask has no negative stop in WebKit) and an iPad case in
+`diary-install.spec.ts`. Opt-in WebKit project: `PLAYWRIGHT_WEBKIT=1 bunx playwright test
+--project=webkit-ios` (needs `bunx playwright install webkit`); the specs also run in Chromium. Headless
+WebKit cannot navigate offline, so the diary offline spec is skipped there.
+
+**Not verified.** Landscape in real Safari / the app (the simulator cannot be rotated without
+accessibility permission for the tool; landscape is checked in Playwright WebKit only — no sideways
+scroll, layout as Chromium); iPad Split View / Slide Over in the simulator (widths 320 and 570 checked
+in WebKit: the ECG card's «Сфотографировать» button clips at 320); real devices (Keychain with a
+real team, camera, microphone permission prompt, haptics, notifications, ProMotion), the Pencil and
+touch drawing (Excalidraw), PDF viewer canvas limits on iOS, scroll lock under a sheet, the home-screen
+install flow itself (the share sheet cannot be driven), Safari offline after the first visit, PWA
+storage eviction (ITP: 7 days without a visit), the real App Store/TestFlight signing. Left as is:
+document breadcrumb keeps a stale «Открываем документ» segment after a module install (not iOS
+specific), 320 pt Slide Over clipping, `UIRequiredDeviceCapabilities` still lists `armv7`.
 
 ## Shared PDF viewer — 2026-10-06 (STATE W3)
 
@@ -1039,6 +1118,35 @@ tags `manufacturer-site`, `official-instruction`, `instructions`, `minAppVersion
   numbers, `sourceClass`/`matchLevel`/`matchMethod` in every document, kinds), vitest (`catalog.preview`, `artifact-url`, shell,
   sections, onboarding). **Not verified:** installing the module in a browser/Android profile, the drug-screen wording for this source
   class (MED3 UI), search ranking over the mounted module, text overlap with the ГРЛС version of the same drug.
+
+## Drug interactions: tool, index and search entry — 2026-10-06 (STATE INT1)
+
+Owner request 2026-10-06: a drug-interaction «calculator» (UI idea from vidal.ru; Vidal's data is proprietary and is
+not used — only a «Проверить на vidal.ru» link-out that sends nothing). Research, measurements and the severity-source
+recommendation: [research/drug-interactions-2026-10-06.md](research/drug-interactions-2026-10-06.md).
+
+- **Index** (`scripts/build-drug-interactions.ts`, rebuild after every instruction-module refresh): reads the 16 published
+  instruction modules (SHA-256 checked against the catalog), the ЕСКЛП cards and the НСИ «АТХ» names; writes
+  `apps/app/src/features/drug-interactions/data/interaction-index.json` (2.0 MB, 672 kB gzip, lazy chunk, no instruction
+  text: sentence offsets into each section plus a 4-hex checksum) and `data/build/drug-interactions/report.json`.
+  Sections: interactions, special instructions, contraindications, caution (flagged by section); a leaflet without a typed
+  interaction section is read only for sentences about taking drugs together. Substances by МНН (whole word, inflection-aware,
+  own substance excluded), classes by the official ATC group names (derived; 35 documented aliases, each pointing at НСИ codes).
+- **Tool** «Взаимодействие препаратов» (`#/notes/drug-interactions?d=<name>&c=<card>`, listed in «Все инструменты» and the
+  search catalog, ageScope any, Print / Поделиться): 2–10 drugs from the ordinary drug search (+ «Алкоголь»), per pair the quoted
+  sentences of each drug's instruction with the matched words marked, the section, the source (kind, edition, ГРЛС/holder site)
+  and «Открыть в инструкции» (reader at the chunk). States: «упоминание найдено», «в инструкциях упоминаний не найдено»
+  (never «безопасно»; the notice says so), «инструкция не установлена — скачать» (one offer per missing module), no instruction
+  in the sources. The instruction read is one of the substance's instructions and is labelled so (ADR-0023). A changed section
+  text is reported, not guessed.
+- **Search entry**: «X взаимодействие с Y, Z», «совместимость X и Y», «X и алкоголь» (`parseInteractionQuery`, syntactic, cue
+  word + separators) add a card «Проверить взаимодействие: …» above the results of «Все источники» and «Препараты»; the
+  ordinary search and ranking are untouched (benchmarks before/after in the research note).
+- **Measured**: 12.2 % of the 19 900 pairs among the 200 most common substances have ≥ 1 sentence in either instruction; 1 484 of
+  3 324 МНН have an indexed interaction section (2 398 have any instruction). Hand-checked precision (50 sentences): all
+  targets right 96 %, relevant to a pair 86 % (interaction section 27/27, «Особые указания» 6/12).
+- **Not done / not verified**: severity layer (owner decision, research §4); trade names in instruction text; Android/WebView;
+  products as items (a drug is picked as a substance); `benchmark:*` unchanged by design (no core change).
 
 ## Same-substance instruction fallback (MED3) — 2026-10-05
 
