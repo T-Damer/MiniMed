@@ -244,8 +244,9 @@ test('calculators and questionnaires carry a star that puts them in the quick ro
 }) => {
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
   await page.goto(`${E2E_ASSET_ORIGIN}/#/calculators`);
+  // «Мои калькуляторы» comes first and starts empty; open the first section of built-in calculators.
   await page
-    .getByRole('button', { name: /^Открыть раздел/u })
+    .getByRole('button', { name: /^Открыть раздел «(?!Мои калькуляторы»)/u })
     .first()
     .click();
   const star = page.locator('.calculator-card__pins .tool-pin__star').first();

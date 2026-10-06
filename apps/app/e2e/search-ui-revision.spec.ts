@@ -166,6 +166,9 @@ for (const splitNavigation of [false, true]) {
   test(`all sources includes specialty tools with split navigation ${splitNavigation}`, async ({
     page,
   }) => {
+    // The tool list is virtualized: a tall window draws every specialty tool, so the count below
+    // measures the catalog, not how much fits under the age filter row.
+    await page.setViewportSize({ width: 1280, height: 2400 });
     await mountBuiltApp(page, { splitNavigation, skipLargeCompanionPacks: true });
     const input = page.getByTestId('search-input');
     await input.fill('Гинекология');

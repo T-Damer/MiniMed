@@ -48,7 +48,8 @@ for (const width of [375, 1280]) {
     await page.locator('.unified-catalog__tool').first().click();
     await expect(page).toHaveURL(/#\/calculators\//u);
     await page.getByRole('button', { name: 'Назад', exact: true }).click();
-    await expect(page).toHaveURL(/#\/search$/u);
+    // An open section is a page of its own (UX7): back from a tool returns to that section's page.
+    await expect(page).toHaveURL(/#\/search(?:\/section\/calculators)?$/u);
     await expect(page.getByTestId('search-input')).toHaveValue('Единицы');
     await expect(picker).toContainText('Калькуляторы');
 
