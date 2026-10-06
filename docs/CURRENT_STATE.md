@@ -572,6 +572,24 @@ on the list searches titles, descriptions and card keywords.
   opens the app settings. Not verified on a physical phone (HyperOS may add its own audio-record
   gate).
 
+## Smaller APK — 2026-10-07 (STATE SIZE1)
+
+Owner 2026-10-07: «shrink the app; bundle the core or not?». Measured on the 0.6.53 debug APK
+(102 MiB): native libs 20.8, tessdata 19.6, JS 18.5, onnxruntime-web wasm 14.35, Excalidraw fonts
+12.5, other wasm 3.6, dex 3.6, bundled modules 2.6 MiB.
+
+- Done (≈13 MiB off the APK, dist −26 MiB): Excalidraw's Xiaolai CJK fonts are 312-byte glyph-less
+  stubs (`excalidrawCjkFontStubs` in `vite.config.ts`) — CJK falls back to system fonts and nothing
+  is fetched from esm.sh; `public/content/modules` keeps only the 11 files the preview catalog names
+  (the old core-clinical build used by `tool-module-update.spec.ts` is an e2e fixture); KaTeX ships
+  woff2 only (`katexWoff2Only`).
+- Core: stays a download after install (76 MB gzip). Bundling it adds 76 MB to every app update
+  (the app releases far more often than the core) and keeps a second copy resident; an optional
+  «offline» APK beside the normal one is the way to a no-network first run if needed.
+- Next, by size: OCR language data on first OCR use instead of bundled (19.6 MiB; consent UI, Android
+  path check), the CPU-only onnxruntime build for the ECG worker and on-demand wasm for ASR/e5
+  (≈11 MiB), a lite build without the llama stack (≈7 MiB), R8 minify (≈2 MiB).
+
 ## «В МКБ-11» on ICD-10 cards — 2026-10-07 (STATE ICD11-MAP)
 
 Owner 2026-10-07: specialists should see what changes in ICD-11 for a code they read (Russia still
