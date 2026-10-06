@@ -583,9 +583,13 @@ on the list searches titles, descriptions and card keywords.
 - Processing state (inspection, page counts, OCR progress, processing failures) is written with
   `patchUserLibraryDocumentProcessing`, which keeps `updatedAt`: «изменён» and the time order no
   longer move a file while it is read. User edits (rename, colour, move, OCR request) still touch it.
-- Inserting or reordering files still moves cards between virtualized rows and re-creates the moved
-  ones. E2E: `user-library-doc-menu.spec.ts` holds the PDF reader, focuses «⋯» and checks the card
-  node stays connected and focused through ingest.
+- Inserts and new orders keep cards too (LIB-KEY2): the page uses `LayoutVirtualizedGrid
+  preserveItemNodes` — fixed row slots by position, each item rendered once into a
+  `display: contents` holder kept by a reference-counted `RetainedNodeCache`, a row's cell only
+  hosting it — so a card pushed into the next row is moved, not rebuilt; focus that the move drops to
+  the page is given back to the same element. Other grids keep the old mode (their children use the
+  render index). E2E: `user-library-doc-menu.spec.ts` holds the PDF reader during ingest, and pushes
+  a focused card into the next row with a new file; both check the same node stays focused.
 
 ## Discoverable item menu — 2026-10-05
 
