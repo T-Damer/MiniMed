@@ -2020,13 +2020,14 @@ findings, the Russian status and what the public files lack are in
 `docs/research/icd11-2026-10-05.md`. Summary: WHO publishes the MMS **Russian** linearization
 (release 2026-01) and the ICD-10↔ICD-11 mapping tables as public downloads (no account); licence
 CC BY-ND 3.0 IGO; the public file has titles, hierarchy and coding notes but **no definitions,
-inclusions, exclusions or index terms** (ICD-API only, owner decision pending); Russian has no
+inclusions, exclusions or index terms** (ICD-API only; added in 2026.10.6, see below); Russian has no
 official status (Минздрав suspended the transition 2024-02).
 
-- **Numbers**: 37 052 documents (28 chapters, 1 360 blocks, 35 664 categories), 1 494 titles without a Russian
-  translation in WHO's file (English kept, marked), 633 coding notes; 76.3 MB download, 479 MB installed;
-  release asset `reference-icd11-2026.10.5` (pre-release) uploaded, catalog preview entry added
-  (no per-document table: no core pointer targets it).
+- **Numbers** (2026.10.6): 37 052 documents (28 chapters, 1 360 blocks, 35 664 categories), 1 494 titles without a
+  Russian translation in WHO's file (English kept, marked), 633 coding notes (+246 residual rows with the API's note);
+  55 078 sections, 56 720 chunks; **47.7 MB download, 261.7 MB installed** (2026.10.5: 76.3 / 479 MB);
+  release asset `reference-icd11-2026.10.6` (pre-release), catalog preview entry updated (no per-document table:
+  no core pointer targets it).
 - **Module** `minimed.reference.icd11.ru`, collection `icd11`, title «МКБ-11 (ВОЗ), справочно; в РФ
   действует МКБ-10», `preview`, `minAppVersion` 0.6.51. Never replaces or mixes with МКБ-10 (own id,
   collection, document prefix `who.icd11.mms.`, source type `who_icd11_reference`, none of
@@ -2052,8 +2053,20 @@ official status (Минздрав suspended the transition 2024-02).
   reader shows the practice note («В Российской Федерации действует МКБ-10…»), WHO hierarchy as
   links, children and the crosswalk; the modules page lists it in its own «МКБ-11 (ВОЗ), справочно»
   card, not under «Нормы и расчёты» or «Заболевания и состояния», so no section download queues it.
-- **Not done**: definitions/inclusions/exclusions (need ICD-API or WHO's local container, see the research
-  note), a dedicated ICD-11 search section and ICD-10 → ICD-11 links on the МКБ-10 cards (they would
+- **ICD-API text (owner decisions 2026-10-06, `docs/research/icd11-2026-10-05.md`)**: WHO's local container
+  `whoicd/icd-api` (`acceptLicense=true`, `include=2026-01_ru`, loopback only, analytics off) is run once by
+  `bun run content:fetch:icd11-api` (`medbase fetch-icd11-api`; refuses a non-loopback URL); the 37 052 raw answers are
+  cached unchanged in `data/raw/icd11/2026-01/api/mms-ru.zip` with a SHA-256 manifest (image digest, data release,
+  per-entity checksums). `prepare-icd11` merges them: definitions (7 990 cards), long definitions (665), fully specified
+  names (89), inclusions (1 515 cards), exclusions (2 535), index terms (14 419) and «children elsewhere» (1 669).
+  The container tags English fallback as `"@language":"ru"` with `[No translation available]` (or unmarked English):
+  such text is **omitted** and counted (76 definitions, 6 252 index terms, 23 exclusions, …), WHO's
+  `[possible translation]` strings are kept with a visible note; nothing is translated or substituted. The ICD-10 ↔ ICD-11
+  crosswalk tables stay (owner publication decision).
+- **Size reduction**: one «Рубрика МКБ-11» section per card (+ the crosswalk), hierarchy/children kept as metadata links only,
+  crosswalk text without English ICD-10 titles (kept in metadata), compact source spans and per-document metadata
+  (`rawSources` checksums in the release report). Remaining lever, not done: ancestor/child titles by id in the panel.
+- **Not done**: exclusion/inclusion link targets and postcoordination axes (in the raw cache, not carried), a dedicated ICD-11 search section and ICD-10 → ICD-11 links on the МКБ-10 cards (they would
   need `SearchWorkspace`/`contracts`, owned by other tasks), a zstd-framed re-pack (gzip transport only).
 - Tests: `tools/ingest/tests/test_icd11_prepare.py`, unit (`icd11-document`, `ScopedMedicalCore`,
   `homeDocumentOrder`, `overview-document-counts`), `apps/app/e2e/icd11-module.spec.ts` (installs the

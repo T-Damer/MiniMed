@@ -594,8 +594,8 @@
       "class": "RELEASED",
       "producer": "bun run content:module:icd11",
       "consumers": ["apps/app/e2e/icd11-module.spec.ts"],
-      "release": "reference-icd11-2026.10.5 (.db.gz asset); the SQLite and release/ copies are the local release copy",
-      "bytes": 555674954,
+      "release": "reference-icd11-2026.10.6 (.db.gz asset); the SQLite and release/ copies are the local release copy",
+      "bytes": 309358500,
       "modified": "2026-10-06"
     }
   ]
