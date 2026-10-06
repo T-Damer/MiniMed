@@ -572,6 +572,30 @@ on the list searches titles, descriptions and card keywords.
   opens the app settings. Not verified on a physical phone (HyperOS may add its own audio-record
   gate).
 
+## «В МКБ-11» on ICD-10 cards — 2026-10-07 (STATE ICD11-MAP)
+
+Owner 2026-10-07: specialists should see what changes in ICD-11 for a code they read (Russia still
+codes in МКБ-10). WHO's own Russian ICD-11 (MMS 2026-01) is the source; no Russian ministry edition
+exists (the 2024 plan was suspended), so nothing is translated by the app.
+
+- Under the title of any card carrying ICD-10 codes (`mkbCode` / `icd10Codes`): a folded row
+  «В МКБ-11: 8A6Z · Эпилепсия или эпилептические приступы, неуточнённые» (or «соответствия для N
+  кодов МКБ-10» on a recommendation). Opened: per code, the targets of WHO's «одна категория» and
+  «несколько категорий» tables (shown separately when they differ), postcoordination parts, the
+  ICD-11 chapter, and labels derived from the rows only — одна рубрика / разделено на N рубрик /
+  объединено с другими кодами МКБ-10 (reverse rows) / кластер / другая глава / таблицы ВОЗ различаются
+  — plus WHO's citation and the practice note (МКБ-10 stays in force). 173 of 8 003 mapped targets
+  have no Russian WHO title: the English one is shown, marked «англ., перевода ВОЗ нет».
+- With the ICD-11 module installed the codes open its cards; otherwise the panel offers the module
+  download (`useModuleInstaller`).
+- Asset: `apps/app/src/features/icd11/icd10-icd11-map.json` (1.2 MB raw, lazy chunk), built by
+  `bun run content:icd10-icd11-map` from `data/raw/icd11/2026-01` (mapping.zip + Russian tabulation,
+  SHA-256 checked); logic and view rules in `icd10-icd11-map.ts`, `icd10-to-icd11-view.ts`,
+  `icd10-chapters.ts` (unit tests); e2e `icd10-to-icd11.spec.ts`.
+- Licence: WHO CC BY-ND 3.0 IGO for the classification; the mapping tables are shown unchanged under
+  the owner's personal-use publication decision of 2026-10-06 (as the ICD-11 module).
+- Not done: a dedicated МКБ-11 search section and ICD-11 code lookup in search (STATE request).
+
 ## Search and reader polish — 2026-10-07 (STATE UX9)
 
 Owner screenshots 2026-10-06 (search «Эпилепсия», the result list, a disease card's page).
