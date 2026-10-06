@@ -586,9 +586,13 @@ Owner 2026-10-07: «shrink the app; bundle the core or not?». Measured on the 0
 - Core: stays a download after install (76 MB gzip). Bundling it adds 76 MB to every app update
   (the app releases far more often than the core) and keeps a second copy resident; an optional
   «offline» APK beside the normal one is the way to a no-network first run if needed.
+- One ONNX Runtime wasm instead of two (≈7 MiB more): the ECG worker imports `onnxruntime-web/webgpu`,
+  the entry transformers.js already uses, and still runs on the `wasm` (CPU) backend; the 27 MB
+  JSEP build is no longer emitted. Checked with `ecg-success-path.spec.ts` (published model, the app's
+  own example photo): local segmentation and editable points as before.
 - Next, by size: OCR language data on first OCR use instead of bundled (19.6 MiB; consent UI, Android
-  path check), the CPU-only onnxruntime build for the ECG worker and on-demand wasm for ASR/e5
-  (≈11 MiB), a lite build without the llama stack (≈7 MiB), R8 minify (≈2 MiB).
+  path check), on-demand wasm for ASR/e5, a lite build without the llama stack (≈7 MiB), R8 minify
+  (≈2 MiB).
 
 ## «В МКБ-11» on ICD-10 cards — 2026-10-07 (STATE ICD11-MAP)
 

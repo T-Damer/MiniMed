@@ -1,7 +1,9 @@
 /// <reference lib="webworker" />
 
 import { RawImage } from '@huggingface/transformers';
-import * as ort from 'onnxruntime-web';
+// The same entry @huggingface/transformers uses: one ONNX Runtime wasm in the app instead of two
+// (the default entry adds a 27 MB WebGPU/JSEP build this CPU-only model never uses).
+import * as ort from 'onnxruntime-web/webgpu';
 
 import {
   ECG_DIGITIZER_CONFIG_FILE,
