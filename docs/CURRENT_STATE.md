@@ -354,6 +354,89 @@ the behaviour should match, but the share-sheet path differs); Android Chrome in
 script-inserted manifest (Chrome supports a manifest link added during load, the installability e2e
 reads the inserted link but cannot run Chrome's installer).
 
+## Patient diary: a home with three visible actions — 2026-10-06 (STATE DIARY4)
+
+Owner request: it was not always clear how to open, read, fill and send the diary, and the actions were
+not visible. The coordinator's phone/iPad screenshots: the page opened with notices and a long
+«Добавьте дневник на экран» card, the entry form was long, «Записи» and the list were below it, «Передать
+врачу» was at the very bottom, «Печать, файлы и копия» was a collapsed card. Redesigned for an older
+patient on a phone (data formats, storage, merge rules, the doctor side: unchanged).
+
+**Structure** (`apps/app/src/diary/`, steps are screens of `DiaryView`, one level deep, the browser's
+Back button returns from a step to the home — `history.pushState` with the step in the entry state,
+cleaned on reload):
+
+- *Diary home* (`DiaryHome`): title, doctor, «Что просит врач» (the doctor's instruction), then three
+  whole-width buttons with an icon, a plain verb and the state in words — **«Записать показания»**
+  («Сегодня записей ещё нет» / «Сегодня: 2 записи, последняя в 07:55»), **«Мои записи (N)»**
+  («Последняя: вчера в 08:10») and **«Отправить врачу»** («Не отправлено: 3 записи» with a warning
+  border / «Всё отправлено 5 окт.» / «Записей пока нет») — and «Ещё: печать, копия, справка». The three
+  buttons are on the first 390×844 screen with the title block (e2e checks it, also with the iPhone
+  install tip present). Below them: the doctor's plan, the link/update notice (dismissible «Понятно»,
+  also dropped once the patient saves), the install tip, the storage note. After a save the green
+  «Запись сохранена» card shows the saved entry and when. Wide screens (≥56rem): info and plan on the
+  left, actions on the right.
+- *Entry* (`DiaryEntryForm`, moved from `features/diary/`): its own page, large labelled fields (label
+  20 px bold, input 22 px, unit beside the input, «от 50 до 300» under the label), `inputmode` numeric for
+  whole-number fields (pressure, pulse, grams) and decimal otherwise (`diary-validation.ts`
+  `inputModeFor`), choices and the doctor's plan as pressed-state buttons instead of dropdowns, counter
+  with 56 px buttons, flags as a 56 px row. The time is «Сейчас: 6 октября, 14:32» (read at save time)
+  with «Изменить время» opening the date field. «Сохранить» (or «Сохранить изменения») is a sticky bottom
+  bar with safe-area padding, so it is on screen however long the form is. Problems are written next to
+  the field and summarised above the button («Допустимо от 50 до 300 мм рт. ст. Проверьте, нет ли лишней
+  цифры.», «Введите число цифрами, например 120.», ««Нижнее» должно быть меньше, чем «Верхнее»…»); focus
+  moves to the first wrong field; `parseDiaryEntry` stays the final authority. Leaving a changed form
+  asks «Выйти без сохранения?».
+- *Мои записи* (`DiaryRecords`): grouped by day, newest first, «Сегодня» / «Вчера» / weekday + date, today
+  highlighted; each record shows time, value, note, «Не отправлена врачу» / «Изменена после отправки»,
+  and «Изменить» / «Удалить» buttons (48 px, with the record's time in the accessible name). Deleting asks
+  once in place («Удалить эту запись насовсем?»). Editing returns to this list with «Запись изменена».
+  A sticky bar keeps «Записать показания» and «Отправить врачу» reachable.
+- *Отправить врачу* (`DiarySend`, was `ShareSheet`): three numbered steps. 1 «Что будет отправлено»
+  (all records, the period, what the doctor already has and how many are new or changed since, a fold with
+  the records, «ваше имя и другие данные не отправляются»), 2 «Выберите, как отправить» — «Показать врачу
+  на экране» (QR codes), «Отправить файлом», «Скопировать текстом», each with one line of explanation,
+  3 a sticky «Врач получил все записи?» → «Да, врач получил» / «Ещё нет» (showing codes is still not proof;
+  nothing is marked until the patient says so). The result is «Готово. Всё отправлено 6 окт.» and the home
+  shows it. With no records the step says so and offers «Записать показания».
+- *Ещё* (`DiaryMore`): print, FHIR file («для врача в другой программе»), «Восстановить записи из файла
+  или текста», the install help (same `InstallCard`, `variant="section"`: always available, no dismissal),
+  «Добавить дневник по ссылке врача», «Как пользоваться дневником», «Мои дневники».
+- *Мои дневники* (`DiaryList`): one big card per diary — name, doctor, last entry date, where sending
+  stands, the same three buttons (each opens that step of that diary), «Удалить дневник» with an in-place
+  confirmation; the last used one marked «Продолжить»; empty state keeps «Вставьте ссылку от врача»
+  (DIARY3), the install tip and the restore card below. «← Мои дневники» appears on a diary's home only
+  when there is more than one diary.
+- *Install tip* (`InstallCard`, `variant="tip"`): after the actions, once, «Не сейчас» is remembered for a
+  week (DIARY2), the iOS copy is DIARY3's with the file-transfer path renamed («Отправить врачу» →
+  «Отправить файлом» / «Скопировать текстом», «Ещё» → «Восстановить записи»).
+
+**Wording.** The patient side now says «отправить / не отправлено» everywhere (was «передать»); the
+doctor side is untouched. State logic with no DOM is in `diary-home.ts` (send summary, day labels and
+grouping, «сегодня в 07:55», period and what-is-sent sentences) and `diary-validation.ts` (number
+messages, keyboard choice); both in `diary-home.test.ts`.
+
+**Accessibility, checked in e2e (`diary-screens.spec.ts`, every screen at 390 and 1024 px, light and dark,
+Chromium and WebKit):** every control and checkbox row ≥48 px, page text 17 px (nothing under 15 px),
+text contrast ≥4.5:1 (3:1 for large text) computed from the rendered colours, no sideways scroll. The
+audit found and fixed two things: the QR carousel's three buttons overflowed a 390 px screen, and the
+dark-theme danger button («Да, удалить») had 3.99:1. Screen readers: step titles take focus, action
+buttons are named by the verb and described by the state, fields are tied to hints and errors with
+`aria-describedby`, errors are `role="alert"`. `prefers-reduced-motion` turns the transitions off.
+
+**Also fixed.** Two links opened in quick succession (hash change while the first was still being decoded)
+could leave the earlier one on the screen; the later link now wins and both are stored.
+
+Tests: `diary-patient` (home on the first screen, state in words, the whole open → fill → save → read →
+send flow, mistakes explained, leaving a half-filled form, edit and delete in «Мои записи», Back button,
+«Ещё», long form with the sticky save, diary cards), `diary-share`, `diary-install`, `diary-paste`,
+`diary-doctor` updated to the new flow; `diary-patient` and `diary-screens` now also run in the opt-in
+`webkit-ios` project. Screenshots (`DIARY_SCREENSHOTS=1`): `output/diary4-screens/{before,after}/`.
+
+Not verified: a real iPhone or Android phone (touch feel, virtual-keyboard behaviour with the sticky bar,
+the numeric keypad on iOS/Android, the system Back gesture), VoiceOver / TalkBack, Telegram/WhatsApp
+in-app browsers, the effect on patients themselves (no user test with older people).
+
 ## Search header, core status line and source-card download — 2026-10-05 (STATE UX8)
 
 - **Header.** The search top row holds only the history button, the update notice and «?». With the
