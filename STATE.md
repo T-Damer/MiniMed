@@ -108,6 +108,7 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 | --- | --- | --- | --- |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 | 2026-10-06 | claude-opus (CMP1) | «Сравнение препаратов» tool (2–4 drugs, registry rows + quoted instruction sections + deterministic differences) and search entry «X или Y» (0.6.52) | `apps/app/src/features/drug-comparison/**`, `scripts/build-drug-comparison*`, `tools/benchmarks/src/*cmp1*`, `apps/app/e2e/drug-comparison.spec.ts`, `docs/research/drug-comparison-*` |
+| 2026-10-06 | claude-opus (CAT1) | module catalog cache to IndexedDB (localStorage quota), newest-of-{bundled,cached,remote} resolution, startup refresh errors reported (0.6.52) | `apps/app/src/features/modules/catalog-service.ts`, new `apps/app/src/features/modules/catalog-cache*.ts`, `packages/core/src/content-module-catalog-client*.ts`, `apps/app/e2e/module-catalog-cache.spec.ts`, the catalog refresh `.catch` in `apps/app/src/app/use-app-session.ts` |
 
 ## Next (claimed, not started)
 
