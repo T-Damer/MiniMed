@@ -38,11 +38,10 @@ interface Catalog {
   modules: CatalogModule[];
 }
 
+// The previous release is a test fixture, not a shipped module: the app bundle carries only the
+// versions the catalog points at.
 const oldBytes = readFileSync(
-  resolve(
-    APP_ROOT,
-    `public/content/modules/minimed-tools-${MODULE_ID.split('.')[2]}-${OLD_VERSION}.db`,
-  ),
+  resolve(APP_ROOT, `e2e/fixtures/minimed-tools-${MODULE_ID.split('.')[2]}-${OLD_VERSION}.db`),
 );
 const currentCatalog = JSON.parse(
   readFileSync(resolve(APP_ROOT, 'src/features/modules/catalog.preview.json'), 'utf8'),
