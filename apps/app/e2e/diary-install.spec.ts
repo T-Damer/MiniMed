@@ -7,6 +7,7 @@ import {
   IPAD_SAFARI,
   IPHONE_MESSENGER,
   IPHONE_SAFARI,
+  invitationIdInAddress,
   isBuiltDiary,
   localInput,
   testInvitation,
@@ -25,15 +26,19 @@ test.describe('patient diary: keeping it one tap away', () => {
     });
     const page = await context.newPage();
     await page.goto(await testInvitationLink(testInvitation()));
-    const card = page.getByRole('region', { name: 'Добавить дневник на экран телефона' });
+    const card = page.getByRole('region', { name: 'Добавить дневник на экран «Домой»' });
     await expect(card).toContainText('«Поделиться»');
     // Safari on iOS 26 keeps «Поделиться» inside the «⋯» menu at the bottom.
     await expect(card).toContainText('«⋯»');
-    await expect(card).toContainText('На экран «Домой»');
+    await expect(card).toContainText('«Ещё»');
+    await expect(card).toContainText('На экран Домой');
+    await expect(card).toContainText('«Добавить»');
     await expect(card).toContainText('до первой записи');
+    await expect(card).toContainText('на iPhone значок хранит записи отдельно от Safari');
 
     await addReading(page, { systolic: 130, diastolic: 80, at: localInput(0, 8) });
-    await expect(card).toContainText('отдельный пустой дневник');
+    await expect(card).toContainText('без записей, сделанных сейчас в Safari');
+    await expect(card).toContainText('Сохранить файл');
     await expect(card).toContainText('Восстановить записи');
 
     await card.getByRole('button', { name: /Понятно/u }).click();
@@ -56,10 +61,14 @@ test.describe('patient diary: keeping it one tap away', () => {
     });
     const page = await context.newPage();
     await page.goto(await testInvitationLink(testInvitation()));
-    const card = page.getByRole('region', { name: 'Добавить дневник на экран телефона' });
+    const card = page.getByRole('region', { name: 'Добавить дневник на экран «Домой»' });
     await expect(card).toContainText('«Поделиться»');
     await expect(card).toContainText('в верхней панели');
+    await expect(card).toContainText('«Ещё»');
+    await expect(card).toContainText('На экран Домой');
+    await expect(card).toContainText('на iPad значок');
     await expect(card).not.toContainText('«⋯»');
+    await expect(card).not.toContainText('телефон');
     await context.close();
   });
 
@@ -71,7 +80,7 @@ test.describe('patient diary: keeping it one tap away', () => {
     const page = await context.newPage();
     await page.goto(await testInvitationLink(testInvitation()));
     await expect(
-      page.getByRole('region', { name: 'Добавить дневник на экран телефона' }),
+      page.getByRole('region', { name: 'Добавить дневник на экран «Домой»' }),
     ).toContainText('Добавить на главный экран');
     await context.close();
   });
@@ -105,7 +114,7 @@ test.describe('patient diary: keeping it one tap away', () => {
       )
       .toBe(true);
     await expect(
-      page.getByRole('region', { name: 'Добавить дневник на экран телефона' }),
+      page.getByRole('region', { name: 'Добавить дневник на экран «Домой»' }),
     ).toHaveCount(0);
     await context.close();
   });
@@ -122,7 +131,7 @@ test.describe('patient diary: keeping it one tap away', () => {
     await page.goto(await testInvitationLink(testInvitation()));
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await expect(
-      page.getByRole('region', { name: 'Добавить дневник на экран телефона' }),
+      page.getByRole('region', { name: 'Добавить дневник на экран «Домой»' }),
     ).toHaveCount(0);
     await context.close();
   });
@@ -137,7 +146,7 @@ test.describe('patient diary: keeping it one tap away', () => {
     const warning = page.getByRole('region', { name: 'Откройте в браузере' });
     await expect(warning).toContainText('Открыть в Safari');
     await expect(
-      page.getByRole('region', { name: 'Добавить дневник на экран телефона' }),
+      page.getByRole('region', { name: 'Добавить дневник на экран «Домой»' }),
     ).toHaveCount(0);
     await context.close();
   });
@@ -145,7 +154,11 @@ test.describe('patient diary: keeping it one tap away', () => {
   test('the page is installable: manifest scope, start URL and icons stay inside the diary', async ({
     page,
     request,
-  }) => {
+  }, testInfo) => {
+    test.skip(
+      testInfo.project.name === 'webkit-ios',
+      'iOS Safari deliberately gets no manifest (see the next tests)',
+    );
     await page.goto(DIARY_PAGE);
     const href = await page.locator('link[rel="manifest"]').getAttribute('href');
     expect(href).toBeTruthy();
@@ -169,6 +182,40 @@ test.describe('patient diary: keeping it one tap away', () => {
     for (const icon of manifest.icons) {
       expect((await request.get(new URL(icon.src, manifestUrl).href)).ok()).toBe(true);
     }
+  });
+
+  test('iOS Safari gets no manifest, so the saved icon keeps the invitation in its address', async ({
+    browser,
+  }) => {
+    // iOS reads the manifest once at load and would use its start_url (no room for #i=...).
+    for (const device of [
+      { userAgent: IPHONE_SAFARI, ipad: false },
+      { userAgent: IPAD_SAFARI, ipad: true },
+    ]) {
+      const context = await browser.newContext({ userAgent: device.userAgent });
+      if (device.ipad) {
+        await context.addInitScript(() => {
+          Object.defineProperty(navigator, 'platform', { get: () => 'MacIntel' });
+          Object.defineProperty(navigator, 'maxTouchPoints', { get: () => 5 });
+        });
+      }
+      const page = await context.newPage();
+      const invitation = testInvitation();
+      await page.goto(await testInvitationLink(invitation));
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+      await expect(page.locator('link[rel="manifest"]')).toHaveCount(0);
+      // What «Add to Home Screen» takes is the address: it must hold the whole invitation.
+      await expect.poll(() => invitationIdInAddress(page.url())).toBe(invitation.id);
+      await context.close();
+    }
+  });
+
+  test('Android and desktop browsers still get the manifest', async ({ browser }) => {
+    const context = await browser.newContext({ userAgent: ANDROID_CHROME });
+    const page = await context.newPage();
+    await page.goto(await testInvitationLink(testInvitation()));
+    await expect(page.locator('link[rel="manifest"]')).toHaveCount(1);
+    await context.close();
   });
 
   test('after one visit the diary opens offline from the icon, and entries still save', async ({

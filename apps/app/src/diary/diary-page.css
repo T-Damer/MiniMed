@@ -529,6 +529,7 @@
 }
 
 .diary-restore__summary,
+.diary-paste__summary,
 .diary-more__summary {
   min-height: 2.75rem;
   display: flex;

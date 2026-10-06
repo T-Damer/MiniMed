@@ -45,7 +45,11 @@ export default defineConfig({
       ? [
           {
             name: 'webkit-ios',
-            testMatch: ['**/ios-layout.spec.ts', '**/diary-install.spec.ts'],
+            testMatch: [
+              '**/ios-layout.spec.ts',
+              '**/diary-install.spec.ts',
+              '**/diary-paste.spec.ts',
+            ],
             use: { ...devices['iPad Mini'], viewport: { width: 744, height: 1133 } },
           },
         ]

@@ -133,6 +133,33 @@ export async function readInvitationFragment(
   return parseDiaryInvitation(await decodePayload(match[1]), now);
 }
 
+const PART_TEXT_PATTERN = /MMD1\.[A-Za-z0-9_-]{8}\.\d{1,2}\.\d{1,2}\.[A-Za-z0-9_-]+/gu;
+
+const INVITATION_IN_TEXT = /(?:^|[#?&/])i=([jz][A-Za-z0-9_-]+)/u;
+const BARE_INVITATION = /^[jz][A-Za-z0-9_-]{16,}$/u;
+
+/**
+ * Reads the doctor's invitation from text the patient pasted: the whole link (`…/diary/#i=…`),
+ * only its part after `#`, or the bare code; text around it (a messenger's caption) is ignored.
+ * Returns null when the text holds no invitation; results codes (`MMD1.…`) are refused
+ * with a reason, because they belong in «Восстановить записи».
+ */
+export async function readInvitationText(
+  text: string,
+  now = Date.now(),
+): Promise<DiaryInvitation | null> {
+  if (/MMD1\.[A-Za-z0-9_-]{8}\./u.test(text)) {
+    throw new DiaryFormatError(
+      'Это не ссылка от врача, а сохранённые записи. Их можно вернуть в пункте «Восстановить записи» ниже.',
+    );
+  }
+  const trimmed = text.trim();
+  const payload =
+    INVITATION_IN_TEXT.exec(text)?.[1] ?? (BARE_INVITATION.test(trimmed) ? trimmed : null);
+  if (!payload) return null;
+  return parseDiaryInvitation(await decodePayload(payload), now);
+}
+
 // --- Results as QR parts ---------------------------------------------------------------------
 
 type WireValue = number | string | null | readonly (number | string)[];
@@ -393,8 +420,6 @@ export async function decodeDiaryResultsPayload(
 }
 
 // --- Results as one text (file, message, clipboard) ----------------------------------------------
-
-const PART_TEXT_PATTERN = /MMD1\.[A-Za-z0-9_-]{8}\.\d{1,2}\.\d{1,2}\.[A-Za-z0-9_-]+/gu;
 
 /** The QR texts one per line: what a saved file or a pasted message carries. */
 export async function encodeDiaryResultsText(results: DiaryResults): Promise<string> {

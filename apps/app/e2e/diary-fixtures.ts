@@ -1,5 +1,5 @@
 import { expect, type Page } from '@playwright/test';
-import { diaryInvitationLink } from '../src/features/diary/diary-codec';
+import { diaryInvitationLink, readInvitationFragment } from '../src/features/diary/diary-codec';
 import {
   createDiaryId,
   DIARY_FORMAT_VERSION,
@@ -117,4 +117,9 @@ export async function createDoctorCard(page: Page, name: string, first: boolean)
   await page.getByLabel('Имя или псевдоним').fill(name);
   await page.getByRole('button', { name: 'Создать карточку' }).click();
   await expect(page.getByRole('heading', { name })).toBeVisible();
+}
+
+/** The id of the diary whose invitation the address carries (what a home-screen icon would open). */
+export async function invitationIdInAddress(url: string): Promise<string | undefined> {
+  return (await readInvitationFragment(new URL(url).hash))?.id;
 }

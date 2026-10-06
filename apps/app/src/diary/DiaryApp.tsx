@@ -4,10 +4,15 @@ import { Button } from '@/components/Button';
 import { DiaryList } from '@/diary/DiaryList';
 import { DiaryView } from '@/diary/DiaryView';
 import { entriesLabel } from '@/diary/diary-format';
+import { isStandaloneApp } from '@/diary/install-state';
 import { diaryInvitationLink, readInvitationFragment } from '@/features/diary/diary-codec';
 import type { InvitationMergeOutcome } from '@/features/diary/diary-merge';
 import type { DiaryResults } from '@/features/diary/diary-model';
-import { createDiaryStore, type DiaryStore } from '@/features/diary/diary-storage';
+import {
+  createDiaryStore,
+  type DiaryOpenResult,
+  type DiaryStore,
+} from '@/features/diary/diary-storage';
 
 function errorMessage(cause: unknown, fallback: string): string {
   return cause instanceof Error ? cause.message : fallback;
@@ -34,7 +39,7 @@ function openStorage(): Storage {
     return storage;
   } catch (cause) {
     throw new Error(
-      'Браузер не разрешает сохранять записи на этом телефоне (возможно, открыто приватное окно). Откройте ссылку врача в обычном окне браузера.',
+      'Браузер не разрешает сохранять записи на этом устройстве (возможно, открыто приватное окно). Откройте ссылку врача в обычном окне браузера.',
       { cause },
     );
   }
@@ -45,22 +50,30 @@ function linkNotice(
   entries: number,
   skipped: number,
 ): string | undefined {
-  const base = (() => {
-    switch (outcome) {
-      case 'new':
-        return 'Дневник добавлен. Он сохранён на этом телефоне: при следующем открытии страницы вы найдёте его здесь.';
-      case 'same':
-        return entries > 0
-          ? `Это ваш дневник, он уже был на этом телефоне. Ваши записи на месте (${entriesLabel(entries)}).`
-          : undefined;
-      case 'updated':
-        return `Врач обновил дневник. Ваши записи сохранены${entries > 0 ? ` (${entriesLabel(entries)})` : ''}.`;
-      case 'older':
-        return 'Эта ссылка старее вашего дневника. Показана последняя версия, записи сохранены.';
-      case 'incompatible':
-        return 'Эта ссылка относится к тому же дневнику, но не подходит к вашим записям. Дневник оставлен как был. Попросите врача выдать новый.';
-    }
-  })();
+  // The home-screen icon opens with the link it was saved with, every time: a diary that is
+  // already here (or newer than the saved link) needs no remark.
+  const fromIcon = isStandaloneApp() && (outcome === 'same' || outcome === 'older');
+  const base = fromIcon
+    ? undefined
+    : (() => {
+        switch (outcome) {
+          case 'new':
+            if (isStandaloneApp()) {
+              return 'Дневник открыт. Если вы уже делали записи в Safari, сюда они не попали: перенесите их файлом («Печать, файлы и копия» → «Восстановить записи»).';
+            }
+            return 'Дневник добавлен. Он сохранён на этом устройстве: при следующем открытии страницы вы найдёте его здесь.';
+          case 'same':
+            return entries > 0
+              ? `Это ваш дневник, он уже был на этом устройстве. Ваши записи на месте (${entriesLabel(entries)}).`
+              : undefined;
+          case 'updated':
+            return `Врач обновил дневник. Ваши записи сохранены${entries > 0 ? ` (${entriesLabel(entries)})` : ''}.`;
+          case 'older':
+            return 'Эта ссылка старее вашего дневника. Показана последняя версия, записи сохранены.';
+          case 'incompatible':
+            return 'Эта ссылка относится к тому же дневнику, но не подходит к вашим записям. Дневник оставлен как был. Попросите врача выдать новый.';
+        }
+      })();
   return skipped > 0
     ? [base, `Не удалось прочитать записей: ${skipped}. Их исходный текст сохранён.`]
         .filter(Boolean)
@@ -105,18 +118,21 @@ export function DiaryApp(): JSX.Element {
     }
   };
 
+  /** A diary that was just opened or added from a link: show it with what happened. */
+  const showOpened = (store: DiaryStore, opened: DiaryOpenResult): void =>
+    showDiary(
+      store,
+      opened.results,
+      linkNotice(opened.outcome, opened.results.entries.length, opened.salvagedSkipped),
+    );
+
   const open = async (): Promise<void> => {
     let store: DiaryStore | undefined;
     try {
       store = createDiaryStore(openStorage());
       const invitation = await readInvitationFragment(window.location.hash);
       if (invitation) {
-        const opened = store.open(invitation);
-        showDiary(
-          store,
-          opened.results,
-          linkNotice(opened.outcome, opened.results.entries.length, opened.salvagedSkipped),
-        );
+        showOpened(store, store.open(invitation));
         return;
       }
       // No link: the patient came back through the home-screen icon or a bookmark. One diary
@@ -177,7 +193,11 @@ export function DiaryApp(): JSX.Element {
           }
           case 'list':
             return (
-              <DiaryList store={current.store} onOpen={(id) => openFromList(current.store, id)} />
+              <DiaryList
+                store={current.store}
+                onOpen={(id) => openFromList(current.store, id)}
+                onOpened={(opened) => showOpened(current.store, opened)}
+              />
             );
           case 'diary':
             return (

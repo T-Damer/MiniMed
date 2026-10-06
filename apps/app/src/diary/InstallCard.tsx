@@ -36,7 +36,7 @@ export function MessengerWarning(): JSX.Element {
  */
 export function InstallCard(props: {
   readonly store: DiaryStore;
-  /** Entries already made: on iPhone the home-screen icon starts with an empty diary. */
+  /** Entries already made: on iOS the home-screen icon keeps its own storage. */
   readonly entries: number;
 }): JSX.Element {
   const [dismissed, setDismissed] = createSignal(
@@ -63,11 +63,11 @@ export function InstallCard(props: {
     <Show
       when={!insideMessenger() && !dismissed() && advice() !== 'installed' && advice() !== 'none'}
     >
-      <section class="diary-card" aria-label="Добавить дневник на экран телефона">
-        <h2 class="diary-card__title">Добавьте дневник на экран телефона</h2>
+      <section class="diary-card" aria-label="Добавить дневник на экран «Домой»">
+        <h2 class="diary-card__title">Добавьте дневник на экран «Домой»</h2>
         <p class="diary-card__text">
           Так он откроется одним касанием и не потеряется среди закладок. Записи останутся на этом
-          телефоне.
+          устройстве.
         </p>
         <Show when={advice() === 'prompt'}>
           <div class="diary-card__actions">
@@ -90,27 +90,32 @@ export function InstallCard(props: {
             <li class="diary-card__step">
               <Show
                 when={onIpad()}
-                fallback={
-                  <>
-                    Нажмите «⋯» внизу экрана Safari и выберите «Поделиться» (в прежних версиях —
-                    квадрат со стрелкой внизу экрана).
-                  </>
-                }
+                fallback={<>Нажмите «⋯» внизу экрана Safari, затем «Поделиться».</>}
               >
                 Нажмите «Поделиться» — квадрат со стрелкой в верхней панели Safari.
               </Show>
             </li>
-            <li class="diary-card__step">Выберите «На экран «Домой»».</li>
+            <li class="diary-card__step">
+              В списке действий нажмите «Ещё» (стрелка вниз), затем «На экран Домой».
+            </li>
             <li class="diary-card__step">Нажмите «Добавить».</li>
           </ol>
           <Show
             when={props.entries > 0}
-            fallback={<p class="diary-card__text">Лучше сделать это сейчас, до первой записи.</p>}
+            fallback={
+              <p class="diary-card__text">
+                Значок откроет этот же дневник. Сделайте это сейчас, до первой записи: на{' '}
+                {onIpad() ? 'iPad' : 'iPhone'} значок хранит записи отдельно от Safari, и тогда все
+                они будут в одном месте. Дальше записывайте в дневнике со значка.
+              </p>
+            }
           >
             <p class="diary-card__text">
-              Значок на экране «Домой» на {onIpad() ? 'iPad' : 'iPhone'} открывает отдельный пустой
-              дневник. Чтобы перенести записи, нажмите «Передать врачу» → «Сохранить файл», а в
-              дневнике с экрана «Домой» выберите «Восстановить записи».
+              Значок откроет этот же дневник, но без записей, сделанных сейчас в Safari: на{' '}
+              {onIpad() ? 'iPad' : 'iPhone'} значок хранит записи отдельно. Чтобы перенести их, в
+              Safari нажмите «Передать врачу» → «Сохранить файл» (или «Скопировать текстом»), затем
+              в дневнике со значка выберите «Печать, файлы и копия» → «Восстановить записи». Дальше
+              записывайте только в дневнике со значка.
             </p>
           </Show>
           <div class="diary-card__actions">

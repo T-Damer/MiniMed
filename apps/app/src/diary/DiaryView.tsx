@@ -81,7 +81,7 @@ export function DiaryView(props: {
       commit(withEntry(withoutEntry(results(), entry.id), entry));
       setEditing(null);
       setNoticeShown(false);
-      setSaved(`Запись сохранена на этом телефоне (${formatTime(entry.at)}).`);
+      setSaved(`Запись сохранена на этом устройстве (${formatTime(entry.at)}).`);
     } catch (cause) {
       setError(errorMessage(cause, 'Не удалось сохранить запись.'));
     }
@@ -281,8 +281,8 @@ export function DiaryView(props: {
           />
         </details>
         <p class="diary-header__privacy">
-          Записи хранятся только на этом телефоне, в браузере. Не очищайте данные сайта до визита к
-          врачу.
+          Записи хранятся только на этом устройстве, в браузере. Не очищайте данные сайта до визита
+          к врачу.
         </p>
       </Show>
     </main>

@@ -57,7 +57,7 @@ patient diary works in iPad and iPhone Safari (first open, entry with the keyboa
 - *Launch.* The storyboard was the stock white Capacitor splash and the web view is white until paint,
   so every start flashed white before the cream boot surface. Launch screen: cream + the 190 pt wallet;
   `ios.backgroundColor` in `capacitor.config.ts`.
-- *Diary «На экран Домой».* iPad: the share button is in the top toolbar (iPad detection already
+- *Diary «На экран Домой».* (follow-up in «Patient diary on the iOS home screen», STATE DIARY3.) iPad: the share button is in the top toolbar (iPad detection already
   existed for iPadOS' desktop-class UA). iPhone on Safari 26: «Поделиться» is inside the «⋯» menu.
 
 **Build and run (simulator).** Sanitized environment, no signing identity needed but the app must be
@@ -296,6 +296,63 @@ Not verified: real iPhone Safari / Android Chrome (add-to-home-screen behaviour,
 timing, the system share sheet, camera scan of the QR codes), Telegram/WhatsApp in-app browsers (only
 the user-agent heuristic is tested), GitHub Pages hosting of the scope, a doctor result link that
 deep-links into the app (not built: file and pasted text instead).
+
+## Patient diary on the iOS home screen — 2026-10-06 (STATE DIARY3)
+
+Found on the iPad mini simulator (iOS 26.5 Safari, real taps): a diary opened from the doctor's link
+and added through «Поделиться» → «Ещё» → «На экран Домой» opened as an **empty «Мои дневники»**. Two
+causes: a home-screen web app gets its own storage, and the saved URL was the manifest's `start_url`
+(`./`), so the `#i=` invitation was lost and the diary itself did not exist in the icon.
+
+**What iOS 26 Safari honours** (measured with scratch pages on the simulator, dialog name/URL and the
+launched icon's `location.href`, `navigator.standalone`, storage counter):
+
+- The manifest is read **once, while the page loads**. A `<link rel=manifest>` swapped to a Blob URL
+  after load, or removed after load, changes nothing: the dialog still showed the original manifest's
+  name and `start_url`. A manifest known at load always wins over the page address.
+- With **no manifest link at load**, the dialog shows the page's current address **including the
+  `#i=…` fragment**, the name comes from `apple-mobile-web-app-title`, the icon from
+  `apple-touch-icon`; «Open as Web App» is on, and the launched icon is `standalone: true` with that
+  exact URL (fragment intact) and empty storage of its own. A Blob manifest as the only manifest was
+  ignored (name = page title, icon = letter), so a dynamic manifest is not a usable route on iOS.
+- A static manifest can't carry the invitation (it is per patient), so on iOS the page has **no
+  manifest at all**. `apps/app/diary/index.html` adds `<link rel=manifest>` from an inline script
+  only when the browser is not iOS/iPadOS (same detection as `detectPlatform`, incl. iPadOS' Mac UA).
+  Android Chrome and desktop keep the installable manifest (e2e checks both; `sw.js` precaches the
+  manifest explicitly, no longer by parsing the HTML). The invitation stays in the fragment, in the
+  saved address only; it is never sent to a server and never put in a query string.
+
+**Flows.**
+
+- Add to home screen from a diary: the address is already the full link (`syncAddress`), so the icon
+  opens the patient's diary on first launch (notice: «Дневник открыт. Если вы уже делали записи в
+  Safari, сюда они не попали…»). Later launches from the icon say nothing about the saved link
+  («same»/«older» outcomes are silent when `navigator.standalone`).
+- Entries made in Safari before adding: «Передать врачу» → «Сохранить файл» / «Скопировать текстом» in
+  Safari, then in the icon «Печать, файлы и копия» → «Восстановить записи». The file/text already
+  carries the invitation (`encodeDiaryResultsText` writes `[v, invitation, entries]`), so it restores
+  the diary **and** its entries in one step into an empty store or into the diary the icon created from
+  its start link (merge by entry id, tests in `diary-sync.test.ts` and `diary-share.spec.ts`).
+- Empty «Мои дневники» (icon without a link, or a link that never reached it): card «Вставьте ссылку от
+  врача» (`PasteLinkCard`) above «Восстановить записи из файла или текста». `readInvitationText`
+  accepts the whole link, a message with the link inside, `#i=…`, `i=…` or the bare code, validates it
+  like an opened link and merges with the same rules (newer updates, older ignored, entries kept);
+  pasted saved entries (`MMD1.…`) are refused with a pointer to «Восстановить записи». With diaries
+  present the same card is a collapsed «Добавить дневник по ссылке врача».
+- Copy: iOS steps «Поделиться» (iPad: top toolbar; iPhone: «⋯» then «Поделиться») → «Ещё» → «На экран
+  Домой» → «Добавить»; the warning now says what really happens (the icon keeps its storage apart from
+  Safari, opens the same diary, entries made in Safari need the file transfer; best order: add before
+  the first entry). «телефон» → «устройство» in every patient-facing line.
+
+Tests: `diary-sync.test.ts` (restore into an empty store, merge into the icon's diary, link text
+parsing), e2e `diary-install` (iPhone/iPad copy, no manifest on iOS UAs, manifest elsewhere),
+`diary-paste` (new, also in `webkit-ios`), `diary-share` (Safari → icon transfer in a second context
+with `navigator.standalone`).
+
+Not verified: a real iPhone; iOS versions below 26 (older Safari also takes the manifest at load, so
+the behaviour should match, but the share-sheet path differs); Android Chrome install with the
+script-inserted manifest (Chrome supports a manifest link added during load, the installability e2e
+reads the inserted link but cannot run Chrome's installer).
 
 ## Search header, core status line and source-card download — 2026-10-05 (STATE UX8)
 

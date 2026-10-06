@@ -8,7 +8,25 @@
     <meta name="referrer" content="no-referrer" />
     <link rel="icon" href="../favicon.ico" sizes="any" />
     <link rel="apple-touch-icon" sizes="192x192" href="../apple-touch-icon.png" />
-    <link rel="manifest" href="./manifest.webmanifest" />
+    <!--
+      iOS Safari reads the manifest once, while the page loads, and a manifest's start_url has no
+      room for the invitation (#i=...): the home-screen icon would then open an empty diary. Without
+      a manifest, iOS adds the page's current address, including the fragment, so the icon opens
+      the patient's diary. Every other browser gets the manifest (installable on Android Chrome).
+    -->
+    <script>
+      (() => {
+        var ua = navigator.userAgent;
+        var ios =
+          /iPhone|iPad|iPod/.test(ua) ||
+          (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        if (ios) return;
+        var link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = './manifest.webmanifest';
+        document.head.appendChild(link);
+      })();
+    </script>
     <meta name="theme-color" content="#2f4638" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />

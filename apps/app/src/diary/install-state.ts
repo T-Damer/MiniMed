@@ -23,7 +23,8 @@ function browserFacts(): BrowserFacts {
   };
 }
 
-function isStandalone(): boolean {
+/** Running from the home-screen icon (iOS `navigator.standalone`, or an installed web app). */
+export function isStandaloneApp(): boolean {
   const iosStandalone = (navigator as Navigator & { readonly standalone?: boolean }).standalone;
   return iosStandalone === true || window.matchMedia('(display-mode: standalone)').matches;
 }
@@ -36,7 +37,7 @@ const [installed, setInstalled] = createSignal(false);
  * is lost if nothing is listening yet.
  */
 export function listenForInstallPrompt(): void {
-  setInstalled(isStandalone());
+  setInstalled(isStandaloneApp());
   window.addEventListener('beforeinstallprompt', (event) => {
     event.preventDefault();
     setPromptEvent(event as InstallPromptEvent);

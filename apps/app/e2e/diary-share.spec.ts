@@ -172,6 +172,65 @@ test.describe('patient diary: returning results to the doctor', () => {
       await expect(page.locator('.diary-restore')).toContainText('Новых записей нет');
       await expect(page.locator(ENTRY_ROWS)).toHaveCount(2);
     });
+
+    test('a diary copy saved in Safari restores the diary and its entries in the home-screen app', async ({
+      browser,
+      context,
+      page,
+    }) => {
+      await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+      const invitation = testInvitation({ doctor: 'Иванова А. А.' });
+      await page.goto(await testInvitationLink(invitation));
+      await addReading(page, { systolic: 150, diastolic: 95, at: localInput(2, 8) });
+      await addReading(page, { systolic: 138, diastolic: 88, at: localInput(1, 8) });
+      // What «Add to Home Screen» saves: the address with the invitation.
+      const iconAddress = page.url();
+      expect(iconAddress).toContain('#i=');
+      await page.getByRole('button', { name: SEND, exact: true }).click();
+      await page.getByRole('button', { name: 'Скопировать текстом' }).click();
+      await expect
+        .poll(() => page.evaluate(() => navigator.clipboard.readText()))
+        .toContain('MMD1.');
+      const copied = await page.evaluate(() => navigator.clipboard.readText());
+
+      // The icon: separate storage, started at the saved address (fragment kept).
+      const icon = await browser.newContext({ viewport: { width: 390, height: 844 } });
+      await icon.addInitScript(() => {
+        Object.defineProperty(navigator, 'standalone', { value: true });
+      });
+      const app = await icon.newPage();
+      await app.goto(iconAddress);
+      await expect(app.getByRole('heading', { level: 1 })).toContainText('давления');
+      await expect(app.locator('.diary-notice')).toContainText(
+        'Если вы уже делали записи в Safari',
+      );
+      await expect(app.locator(ENTRY_ROWS)).toHaveCount(0);
+      // A second launch from the icon says nothing new about the same link.
+      await app.reload();
+      await expect(app.getByRole('heading', { level: 1 })).toContainText('давления');
+      await expect(app.locator('.diary-notice')).toHaveCount(0);
+
+      await app.getByText('Печать, файлы и копия').click();
+      await app.getByText('Восстановить записи из файла или текста').click();
+      await app.getByLabel('Или вставьте текст').fill(copied);
+      await app.getByRole('button', { name: 'Восстановить', exact: true }).click();
+      await expect(app.locator('.diary-restore')).toContainText('Добавлено: 2 записи');
+      await expect(app.locator(ENTRY_ROWS)).toHaveCount(2);
+      await icon.close();
+
+      // The other way round: the icon is empty and never saw the link at all.
+      const bare = await browser.newContext({ viewport: { width: 390, height: 844 } });
+      const empty = await bare.newPage();
+      await empty.goto(DIARY_PAGE);
+      await empty.getByText('Восстановить записи из файла или текста').click();
+      await empty.getByLabel('Или вставьте текст').fill(copied);
+      await empty.getByRole('button', { name: 'Восстановить', exact: true }).click();
+      await expect(empty.locator('.diary-restore')).toContainText('Добавлено: 2 записи');
+      await expect(empty.locator('.diary-list__item')).toContainText(
+        'Дневник артериального давления',
+      );
+      await bare.close();
+    });
   });
 
   test('text that is not a diary copy, or only part of one, is refused with a reason', async ({

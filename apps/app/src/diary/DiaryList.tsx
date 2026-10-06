@@ -3,8 +3,10 @@ import { createSignal, For, type JSX, Show } from 'solid-js';
 import { Button } from '@/components/Button';
 import { entriesLabel, formatDateTime } from '@/diary/diary-format';
 import { InstallCard, MessengerWarning } from '@/diary/InstallCard';
+import { isStandaloneApp } from '@/diary/install-state';
+import { PasteLinkCard } from '@/diary/PasteLinkCard';
 import { RestoreCard } from '@/diary/RestoreCard';
-import type { DiaryStore, DiarySummary } from '@/features/diary/diary-storage';
+import type { DiaryOpenResult, DiaryStore, DiarySummary } from '@/features/diary/diary-storage';
 
 function errorMessage(cause: unknown, fallback: string): string {
   return cause instanceof Error ? cause.message : fallback;
@@ -27,6 +29,8 @@ function ordered(
 export function DiaryList(props: {
   readonly store: DiaryStore;
   readonly onOpen: (id: string) => void;
+  /** A diary added from a pasted link. */
+  readonly onOpened: (opened: DiaryOpenResult) => void;
 }): JSX.Element {
   const [diaries, setDiaries] = createSignal(props.store.summaries());
   const [error, setError] = createSignal('');
@@ -39,7 +43,7 @@ export function DiaryList(props: {
     const unsent = diary.unsent > 0 ? ` Не передано врачу записей: ${diary.unsent}.` : '';
     if (
       !window.confirm(
-        `Удалить дневник «${diary.invitation.title}» и все его записи с этого телефона?${unsent}`,
+        `Удалить дневник «${diary.invitation.title}» и все его записи с этого устройства?${unsent}`,
       )
     ) {
       return;
@@ -70,8 +74,12 @@ export function DiaryList(props: {
         when={diaries().length > 0}
         fallback={
           <p class="diary-header__privacy">
-            Здесь пока нет дневников. Откройте ссылку или отсканируйте QR-код, который дал врач.
-            Если вы перешли с другого телефона или браузера, восстановите записи из файла ниже.
+            Здесь пока нет дневников.{' '}
+            {isStandaloneApp()
+              ? 'Значок на экране «Домой» хранит записи отдельно от Safari, поэтому он открылся пустым. '
+              : ''}
+            Вставьте ссылку, которую прислал врач (или откройте её, или отсканируйте QR-код). Если
+            вы переносите записи из Safari или с другого устройства, восстановите их из файла ниже.
           </p>
         }
       >
@@ -113,7 +121,7 @@ export function DiaryList(props: {
                   type="button"
                   variant="quiet"
                   aria-label={`Удалить: ${diary.invitation.title}`}
-                  title="Удалить дневник с этого телефона"
+                  title="Удалить дневник с этого устройства"
                   onClick={() => remove(diary)}
                 >
                   Удалить
@@ -123,6 +131,11 @@ export function DiaryList(props: {
           </For>
         </ul>
       </Show>
+      <PasteLinkCard
+        store={props.store}
+        prominent={diaries().length === 0}
+        onOpened={props.onOpened}
+      />
       <InstallCard store={props.store} entries={diaries().reduce((sum, d) => sum + d.entries, 0)} />
       <RestoreCard store={props.store} onRestored={refresh} />
     </main>

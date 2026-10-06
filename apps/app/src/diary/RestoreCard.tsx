@@ -15,7 +15,7 @@ const MAX_FILE_BYTES = 2 * 1024 * 1024;
 
 /**
  * Brings records back from a saved file or pasted text: a new phone, another browser, or the
- * icon on the iPhone home screen. Records are added to the diary, never replace it.
+ * icon on the iOS home screen. Records are added to the diary, never replace it.
  */
 export function RestoreCard(props: {
   readonly store: DiaryStore;
@@ -36,7 +36,7 @@ export function RestoreCard(props: {
       const parts = [
         merge.added > 0 ? `Добавлено: ${entriesLabel(merge.added)}.` : 'Новых записей нет.',
         merge.kept > 0
-          ? `${entriesLabel(merge.kept)} уже были на телефоне и остались без изменений.`
+          ? `${entriesLabel(merge.kept)} уже были на устройстве и остались без изменений.`
           : '',
         merge.skipped > 0
           ? `${entriesLabel(merge.skipped)} не подошли к текущей версии дневника.`
@@ -66,8 +66,10 @@ export function RestoreCard(props: {
     <details class="diary-card diary-restore">
       <summary class="diary-restore__summary">Восстановить записи из файла или текста</summary>
       <p class="diary-card__text">
-        Подойдёт файл или текст, который вы сохраняли кнопкой «Передать врачу». Записи добавятся к
-        дневнику, ничего не заменится.
+        Подойдёт файл или текст, который вы сохраняли кнопкой «Передать врачу» («Сохранить файл» или
+        «Скопировать текстом»). В нём есть и сам дневник, и ваши записи, поэтому подойдёт и пустое
+        приложение: дневник появится в списке вместе с записями. Если дневник уже есть, записи
+        добавятся к нему, ничего не заменится.
       </p>
       <FileButton
         class="diary-restore__file"

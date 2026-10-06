@@ -3,8 +3,10 @@ import { describe, expect, it } from 'vitest';
 import {
   DiaryPartCollector,
   decodeDiaryResultsText,
+  diaryInvitationLink,
   encodeDiaryResults,
   encodeDiaryResultsText,
+  readInvitationText,
 } from '@/features/diary/diary-codec';
 import {
   detectPlatform,
@@ -358,5 +360,68 @@ describe('keeping the diary on the phone screen', () => {
     expect(installCardDismissed(undefined, NOW)).toBe(false);
     expect(installCardDismissed(new Date(NOW - 2 * 86_400_000).toISOString(), NOW)).toBe(true);
     expect(installCardDismissed(new Date(NOW - 8 * 86_400_000).toISOString(), NOW)).toBe(false);
+  });
+});
+
+describe('the home-screen copy of the diary (iOS keeps its storage apart from Safari)', () => {
+  it('restores the diary itself and its entries from a saved file into an empty store', async () => {
+    const inv = invitation({ note: 'Меряйте утром и вечером' });
+    const safari = results(inv, [
+      reading(inv, 'entry00001', '2026-10-02T08:00:00Z', 120, 80),
+      reading(inv, 'entry00002', '2026-10-03T08:00:00Z', 130, 85),
+    ]);
+    const saved = await encodeDiaryResultsText(safari);
+
+    const icon = createDiaryStore(memoryStorage(), () => NOW);
+    expect(icon.list()).toHaveLength(0);
+    const merge = icon.restore(await decodeDiaryResultsText(saved, NOW));
+    expect(merge).toMatchObject({ added: 2, outcome: 'new' });
+    expect(icon.read(inv.id)?.invitation.note).toBe('Меряйте утром и вечером');
+    expect(icon.read(inv.id)?.entries).toHaveLength(2);
+  });
+
+  it('merges the saved file into the diary the icon already created from its start link', async () => {
+    const inv = invitation();
+    const saved = await encodeDiaryResultsText(
+      results(inv, [reading(inv, 'entry00001', '2026-10-02T08:00:00Z', 120, 80)]),
+    );
+    const icon = createDiaryStore(memoryStorage(), () => NOW);
+    icon.open(inv);
+    icon.save({
+      ...results(inv, []),
+      entries: [reading(inv, 'entry00009', '2026-10-04T08:00:00Z', 118, 76)],
+    });
+    icon.restore(await decodeDiaryResultsText(saved, NOW));
+    expect(icon.read(inv.id)?.entries.map((entry) => entry.id)).toEqual([
+      'entry00001',
+      'entry00009',
+    ]);
+  });
+
+  it('reads the doctor link from a whole link, a caption around it, the code part or the bare code', async () => {
+    const inv = invitation();
+    const link = await diaryInvitationLink(inv, 'https://example.org/diary/');
+    const code = link.split('#i=')[1] ?? '';
+    for (const text of [
+      link,
+      `  ${link}\n`,
+      `Здравствуйте! Вот ваш дневник: ${link} Спасибо.`,
+      `#i=${code}`,
+      `i=${code}`,
+      code,
+    ]) {
+      expect((await readInvitationText(text, NOW))?.id).toBe(inv.id);
+    }
+  });
+
+  it('returns nothing for text without a link, and refuses saved entries with a reason', async () => {
+    expect(await readInvitationText('привет', NOW)).toBeNull();
+    expect(await readInvitationText('https://example.org/diary/', NOW)).toBeNull();
+    const inv = invitation();
+    const saved = await encodeDiaryResultsText(
+      results(inv, [reading(inv, 'entry00001', '2026-10-02T08:00:00Z', 120, 80)]),
+    );
+    await expect(readInvitationText(saved, NOW)).rejects.toThrow('Восстановить записи');
+    await expect(readInvitationText('https://example.org/diary/#i=zAAAA', NOW)).rejects.toThrow();
   });
 });
