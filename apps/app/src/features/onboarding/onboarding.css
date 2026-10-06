@@ -51,15 +51,17 @@
   background: color-mix(in srgb, var(--theme-surface) 46%, transparent);
   -webkit-backdrop-filter: blur(1.25rem) saturate(1.1);
   backdrop-filter: blur(1.25rem) saturate(1.1);
+  /* WebKit paints nothing for a radial mask whose first stop is negative, so the stops are
+     clamped: at the start (-24%) the hole is a 0.1% dot, i.e. the veil covers the screen. */
   -webkit-mask-image: radial-gradient(
     circle at 50% 50%,
-    transparent var(--onboarding-clear),
-    #000 calc(var(--onboarding-clear) + 24%)
+    transparent max(0%, var(--onboarding-clear)),
+    #000 max(0.1%, calc(var(--onboarding-clear) + 24%))
   );
   mask-image: radial-gradient(
     circle at 50% 50%,
-    transparent var(--onboarding-clear),
-    #000 calc(var(--onboarding-clear) + 24%)
+    transparent max(0%, var(--onboarding-clear)),
+    #000 max(0.1%, calc(var(--onboarding-clear) + 24%))
   );
   transition:
     --onboarding-clear 900ms var(--onboarding-ease),
