@@ -167,6 +167,20 @@ were not tested.
 - Keep state selectors class-based (`.block--active`) and avoid selector chains whose meaning depends on DOM nesting.
 - Use normal flex/grid/document flow for layout. Use `position: absolute` only for intentional overlays, such as a full-card hit area or an icon layered over content; do not use it for ordinary actions or spacing.
 
+## Motion (user decision, 2026-10-06)
+
+- Animations, transitions and interactions follow iOS (UIKit/SwiftUI) behaviour, in a fast mode:
+  content slides and fades instead of popping, state changes (idle → busy → result, empty →
+  filled, pending → «Обновить») cross-fade or move rather than jump, sheets rise from below,
+  pressed controls give a short scale feedback (≈0.96).
+- Keep them quick: 120–260 ms through the theme tokens `--motion-fast`, `--motion-base`,
+  `--motion-slow` and the curves `--motion-ease` / `--motion-ease-out` (`styles/theme.css`); nothing
+  longer than ~300 ms unless it follows a gesture.
+- Animate through CSS or `Element.animate` so the AnimationManager (`state/motion.ts`, Settings →
+  «Анимации») retimes it; timers use `motionMs()`. With animations off, end states still apply.
+- Never block input to show a transition or a pending state: keep what is on screen usable and show
+  progress in place (a spinner inside the control, a quiet status line).
+
 ## Native sticky chrome
 
 - Read `docs/NATIVE_STICKY_CHROME.md` before changing safe-area, sticky-header, backdrop blur/grain,

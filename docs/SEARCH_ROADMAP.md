@@ -114,6 +114,16 @@ hit@5 0.444 (rush 0.581, thoughtful 0.261), and with S3 0.278 / 0.574 (0.774, 0.
     one topic worded differently are not matched; the first instruction of each substance is read, other manufacturers'
     are one switch away; a disease or symptom pair gets no card by design.
 
+17. **Presenting results** (UX9, 2026-10-07; owner screenshots). Compared with the list first: no
+    ranking item changes (1–5, 8 stay as they are, every gate untouched); closest are 6 (related
+    documents from source data) and the cards above the results (15, 16). Shipped as presentation:
+    the dictionary entries of one name fold into one definition preview (the best-covered entry, or the
+    definition section of a found document of that name), technical fragments of catalogue cards come
+    after the card's own text in plain words, and background re-runs never replace the list without
+    «Обновить». Measured by the app-path e2e suites, not by recall; recall gates unchanged by
+    construction. Left: the preview does not yet read a definition from a full КР that is installed but
+    not among the results.
+
 ## Measured and rejected
 
 | Idea | Result | Date |

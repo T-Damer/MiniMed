@@ -572,6 +572,40 @@ on the list searches titles, descriptions and card keywords.
   opens the app settings. Not verified on a physical phone (HyperOS may add its own audio-record
   gate).
 
+## Search and reader polish — 2026-10-07 (STATE UX9)
+
+Owner screenshots 2026-10-06 (search «Эпилепсия», the result list, a disease card's page).
+Presentation only: ranking, the core and every benchmark set are unchanged.
+
+- **One definition preview.** Dictionary entries of one name (two term lists, a Wiktionary gloss and
+  an archived name without a definition) fold into one card «**Эпилепсия** — …» above the results:
+  the best-covered entry first, read from the installed dictionary (`definition-preview.ts`,
+  `core.reference` status → blocks → text); without it, the definition section of a found document of
+  the same name is quoted with «из «…»». «Подробнее» opens the entry, «ещё N источника/значения» the
+  others, «Также в словаре» other names. Source text only, nothing reworded.
+- **Nothing blocks.** A re-run of the query on screen (after an install, a core swap, a history
+  replay) keeps the results usable — no dimming, no `pointer-events: none`; an identical outcome is
+  applied silently, a different one waits behind a sticky «Есть новые результаты · Обновить»
+  (`search-refresh.ts`). While the core opens the field takes a query (it runs once the core is
+  ready), the send button is a disabled spinner, and the status is one small line at the bottom of the
+  search block instead of a separate card. Readiness is `data-search-ready` on the field.
+- **Plain result cards.** No second icon under the title or before the fragment, no «Карточка
+  источника / Полный текст / Краткий обзор» line, no repeated section line; one section label per
+  fragment. A catalogue card's technical fragments («Сведения о документе», «Сведения МКБ-10»,
+  «Классификационный контекст», «Ограничение покрытия») come after its own text and read in plain
+  words: «Другие названия:», no title/identifier/empty fields/storage note/copied-from address
+  (`search-result-presentation.ts`, highlight ranges remapped).
+- **Reader.** The same technical sections go last in small print (`isAdministrativeSection`), so a
+  disease card opens on «Краткое описание». The download block is one row: «Полная версия — в наборе
+  «…»» (up to two lines on a phone) and a button with the size that fills with the download's
+  progress. Inline links start at their icon (a `<button>` centred wrapped text), long addresses wrap,
+  and their colour is a theme token (`--theme-inline-link`) — the dark override used to lose to the
+  lazily loaded light rule in the production bundle. The header's «Меню действий» is «⋯».
+- «Сравнение препаратов» is the fourth «Полезные функции» card (with «Взаимодействие»).
+- Motion tokens `--motion-*` (iOS curves, 120–260 ms) and the AGENTS.md «Motion» rule (owner).
+- E2E: `core-identities` (one preview, «ещё 1 …»), `boot-screen`, `startup-shell`, `search`, and the
+  readiness checks of 13 specs moved from «field enabled» to `data-search-ready`.
+
 ## Stable library cards — 2026-10-06 (STATE LIB-KEY)
 
 - «Ваши документы» keeps one DOM node per card while its document is read, previewed or patched:
