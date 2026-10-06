@@ -4,6 +4,27 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.52] - 2026-10-06
+
+- «Сравнение препаратов»: 2–4 drugs side by side — МНН, ATC group, forms and strengths, dispensing
+  conditions, ЖНВЛП, registrations and manufacturers, age and weight limits, pregnancy and breastfeeding,
+  and the instruction sections (indications, contraindications, dosing, side effects, special
+  instructions, overdose) quoted with «Открыть в инструкции». Statements are marked «у обоих»,
+  «формулировки различаются» (differing words highlighted) or «у других совпадения нет»;
+  «Показать только различия». Search: «X или Y», «сравнить X и Y», «чем отличается X от Y».
+- Pregnancy, breastfeeding and child age in search: «X при ГВ», «X при беременности», «X ребёнку 3 лет»
+  show the instruction's sentences and age limits as quotes, with a labelled calculated comparison
+  when an age is typed; the app never words «можно» itself. A «Беременность, ГВ, дети» block on the
+  official instruction.
+- «Взаимодействие препаратов»: optional DDInter 2.0 severity labels («Серьёзное / Умеренное / Слабое
+  по DDInter») on pairs that already have an instruction sentence; sentences from other sections fold
+  under «ещё из других разделов».
+- Patient diary: a home with three visible actions («Записать показания», «Мои записи», «Отправить
+  врачу» with what is not sent yet), a page per step, larger text and buttons.
+- The module catalog is cached in IndexedDB: an unchanged catalog costs a 304 instead of a 2 MB
+  download on every start, nothing is downloaded on mobile data without a cached copy, and the newest
+  of the built-in, cached and online catalogs is always used.
+
 ## [0.6.51] - 2026-10-06
 
 - Android microphone: recording no longer reports «доступ запрещён» when the permission is granted
