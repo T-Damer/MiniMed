@@ -1023,6 +1023,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
                 modulePointerInstallError={modulePointerInstallError()}
                 onNavigate={navigateTrail}
                 onInstallModulePointer={requestModulePointerInstall}
+                {...(props.reconnectContent ? { onContentChanged: props.reconnectContent } : {})}
                 {...(editionNotice() ? { editionNotice: editionNotice() } : {})}
                 editionPending={editionPending()}
                 editionProgress={editionProgress()}

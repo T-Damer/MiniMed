@@ -18,6 +18,7 @@
       "!!apps/app/src/features/modules/catalog.clinical-editions.json",
       "!!apps/app/src/features/modules/catalog.preview.json",
       "!!apps/app/src/features/modules/catalog.terminology.json",
+      "!!apps/app/src/features/icd11/icd10-icd11-map.json",
       "!!apps/app/src/features/forms/schemas",
       "!!apps/app/src/features/drug-interactions/data",
       "!!apps/app/src/features/drug-comparison/data",

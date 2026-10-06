@@ -1,0 +1,172 @@
+/* «В МКБ-11» row of an ICD-10 card. Motion follows DESIGN.md: micro 140 ms ease-out for hover,
+   200 ms ease-in-out for the panel's entry; transform and opacity only. */
+.icd10-to-icd11 {
+  margin-block: 0.5rem;
+  animation: icd10-to-icd11-enter 200ms ease-in-out both;
+}
+
+@keyframes icd10-to-icd11-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.3rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.icd10-to-icd11__title {
+  font-weight: 600;
+}
+
+.icd10-to-icd11__title-label {
+  color: var(--theme-text-muted);
+  font-weight: 500;
+}
+
+.icd10-to-icd11__code {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.icd10-to-icd11__target-title {
+  font-weight: 500;
+}
+
+.icd10-to-icd11__lang {
+  color: var(--theme-text-muted);
+  font-size: 0.82em;
+  font-weight: 400;
+}
+
+.icd10-to-icd11__more {
+  white-space: nowrap;
+}
+
+.icd10-to-icd11__details {
+  display: grid;
+  gap: 1rem;
+}
+
+.icd10-to-icd11__entry {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.icd10-to-icd11__entry-heading {
+  margin: 0;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.icd10-to-icd11__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.icd10-to-icd11__chip {
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: var(--theme-surface-muted);
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.icd10-to-icd11__chip--notable {
+  background: var(--theme-accent-soft);
+  color: var(--theme-text);
+}
+
+.icd10-to-icd11__table {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.icd10-to-icd11__table-heading {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.icd10-to-icd11__targets {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.icd10-to-icd11__target {
+  display: grid;
+  gap: 0.1rem;
+  padding-inline-start: 0.7rem;
+  border-inline-start: 2px solid var(--theme-border);
+  line-height: 1.4;
+}
+
+.icd10-to-icd11__target-line,
+.icd10-to-icd11__link {
+  display: inline-block;
+  padding-block: 0.2rem;
+}
+
+.icd10-to-icd11__link {
+  color: var(--theme-text);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--theme-accent) 55%, transparent);
+  text-underline-offset: 0.18em;
+  transition: color 140ms ease-out;
+}
+
+.icd10-to-icd11__link:hover {
+  color: var(--theme-accent);
+}
+
+.icd10-to-icd11__cluster,
+.icd10-to-icd11__chapter,
+.icd10-to-icd11__merged,
+.icd10-to-icd11__source,
+.icd10-to-icd11__module-note {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.icd10-to-icd11__meta-label {
+  font-weight: 600;
+}
+
+.icd10-to-icd11__module {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: start;
+}
+
+.icd10-to-icd11__module-link {
+  display: inline-block;
+  padding-block: 0.4rem;
+  color: var(--theme-accent);
+  font-size: 0.9rem;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .icd10-to-icd11 {
+    animation: none;
+  }
+
+  .icd10-to-icd11__link {
+    transition: none;
+  }
+}

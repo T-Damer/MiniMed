@@ -29,6 +29,7 @@ import {
   ReaderActionsMenu,
   ReaderTitleRow,
 } from '@/features/collections/ReaderItemActions';
+import { Icd10ToIcd11Panel } from '@/features/icd11/Icd10ToIcd11Panel';
 import { Icd11CardPanel } from '@/features/icd11/Icd11CardPanel';
 import { isIcd11Document } from '@/features/icd11/icd11-document';
 import { ClinicalEditionNoticeLine } from '@/features/library/ClinicalEditionNotice';
@@ -150,6 +151,8 @@ interface OfficialDocumentReaderProps {
   readonly modulePointerInstallError?: string | null;
   readonly onNavigate: (href: string) => void;
   readonly onInstallModulePointer?: () => Promise<void>;
+  /** Reconnects the search core after a module is installed from inside the reader. */
+  readonly onContentChanged?: () => Promise<void>;
   readonly editionNotice?: ClinicalEditionNotice | null;
   readonly editionPending?: boolean;
   readonly editionProgress?: number | null;
@@ -1179,6 +1182,12 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                       <header class="document-overlay-paper__header">
                         <Show when={displayDocumentSubtitle(documentValue())}>
                           {(subtitle) => <p class="document-overlay-lead">{subtitle()}</p>}
+                        </Show>
+                        <Show when={!isIcd11Document(documentValue())}>
+                          <Icd10ToIcd11Panel
+                            document={documentValue()}
+                            onContentChanged={props.onContentChanged}
+                          />
                         </Show>
                         <Show when={props.editionNotice}>
                           {(notice) => (
