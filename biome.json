@@ -24,6 +24,7 @@
       "!!packages/storage-sqlite/src/generated",
       "!!packages/test-fixtures/src/generated",
       "!!tools/ingest/.venv",
+      "!!tools/ingest/tests/fixtures/icd11-api",
       "!!uv.lock"
     ]
   },
