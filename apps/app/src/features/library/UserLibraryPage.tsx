@@ -2035,7 +2035,12 @@ export function UserLibraryPage(props: {
             <Show
               when={viewMode() === 'grid'}
               fallback={
-                <LayoutVirtualizedGrid data={visibleEntries()} bufferSize={500} maxColumns={3}>
+                <LayoutVirtualizedGrid
+                  data={visibleEntries()}
+                  bufferSize={500}
+                  maxColumns={3}
+                  preserveItemNodes
+                >
                   {(entry) => renderLibraryEntry(entry)}
                 </LayoutVirtualizedGrid>
               }
@@ -2045,6 +2050,7 @@ export function UserLibraryPage(props: {
                 bufferSize={500}
                 maxColumns={6}
                 minColumns={2}
+                preserveItemNodes
               >
                 {(entry) => renderLibraryEntry(entry)}
               </LayoutVirtualizedGrid>

@@ -32,6 +32,13 @@
   gap: var(--layout-gap);
 }
 
+/* `LayoutVirtualizedGrid preserveItemNodes`: a row's cell hosts an item that may move between
+   rows; neither wrapper takes part in the grid layout. */
+.layout-card-grid__cell,
+.layout-card-grid__item {
+  display: contents;
+}
+
 .layout-virtualized-grid {
   width: 100%;
   min-width: 0;
