@@ -110,7 +110,15 @@ in `UserDocumentReader` is now one module, `apps/app/src/features/pdf-viewer/` (
   the uncertain tools: `docs/ASSESSMENTS.md`. The built-in unit converter and ECG caliper declare any
   age (the ECG tool's stale «только взрослые» population text was corrected). **Publishing note:** an
   installed pre-0.6.49 tool module has no `ageScope` and fails the new definition parse until it is
-  updated to the new versions.
+  updated to the new versions. TOOLS1b: every module got a new version and file name (the table above),
+  all eight artifacts now point at `raw.githubusercontent.com/.../main/apps/app/public/content/modules/`
+  (four used the missing `v0.6.33` release assets; the resolver already rewrote them to raw main).
+  An installed older version is not read (tools are taken only from the module version the catalog
+  lists), so nothing fails to parse; the app installs the new version by itself at start
+  (`localPackagedModulesToInstall`, shipped catalog only) and until then the tool shows its
+  «Скачать» section state and the list «Есть обновление»
+  (`apps/app/e2e/tool-module-update.spec.ts`). An app older than this release still reads the
+  catalog from main and cannot parse the new definitions: gate them with `minAppVersion` at the release.
 - **Filter and badge.** `features/tools/` (`tool-age-filter.ts`, `ToolAgeFilterBar`, `ToolAgeBadge`):
   the choice is `toolAgeFilter` in app preferences and applies in «Все инструменты» (favourites, tool
   row, groups; collections stay as the doctor made them), the «Калькуляторы»/«Опросники» sections and
