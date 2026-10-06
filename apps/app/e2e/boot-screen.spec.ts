@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { E2E_ASSET_ORIGIN } from './mount-built-app';
 
 for (const viewport of [
   { width: 390, height: 844 },
@@ -18,7 +19,7 @@ for (const viewport of [
       await coreGate;
       await route.continue();
     });
-    await page.goto(`${process.env.MINIMED_LIVE_URL ?? 'http://127.0.0.1:4173'}/#/search`, {
+    await page.goto(`${process.env.MINIMED_LIVE_URL ?? E2E_ASSET_ORIGIN}/#/search`, {
       waitUntil: 'domcontentloaded',
     });
     const coreStatus = page.locator('.search-core-status');
@@ -99,10 +100,9 @@ test('the knowledge base shows the core status by direct link and keeps its page
     await coreGate;
     await route.continue();
   });
-  await page.goto(
-    `${process.env.MINIMED_LIVE_URL ?? 'http://127.0.0.1:4173'}/#/modules/documents`,
-    { waitUntil: 'domcontentloaded' },
-  );
+  await page.goto(`${process.env.MINIMED_LIVE_URL ?? E2E_ASSET_ORIGIN}/#/modules/documents`, {
+    waitUntil: 'domcontentloaded',
+  });
   const knowledge = page.locator('.knowledge-base-page');
   try {
     await expect(knowledge.getByRole('heading', { name: 'База знаний', level: 1 })).toBeVisible();
@@ -156,7 +156,7 @@ test('missing core on a cellular connection waits for the user while files and s
       },
     });
   });
-  await page.goto(`${process.env.MINIMED_LIVE_URL ?? 'http://127.0.0.1:4173'}/#/search`);
+  await page.goto(`${process.env.MINIMED_LIVE_URL ?? E2E_ASSET_ORIGIN}/#/search`);
   await expect(page.getByRole('heading', { name: 'Скачайте ядро MiniMed' })).toBeVisible();
   await expect(page.getByRole('button', { name: /^Скачать ядро · ~\d+ МБ$/u })).toBeVisible();
   const navigation = page.locator('.app-bottom-nav');
@@ -182,7 +182,7 @@ test('the first run on a cellular connection waits for the user inside the onboa
   await page.addInitScript(() => {
     Object.defineProperty(navigator, 'connection', { value: { type: 'cellular' } });
   });
-  await page.goto(`${process.env.MINIMED_LIVE_URL ?? 'http://127.0.0.1:4173'}/#/search`);
+  await page.goto(`${process.env.MINIMED_LIVE_URL ?? E2E_ASSET_ORIGIN}/#/search`);
   const onboarding = page.getByRole('dialog', { name: 'Добро пожаловать в MiniMed' });
   await expect(onboarding).toBeAttached();
   // The greeting and the welcome wait for the user; the consent to download comes after them.

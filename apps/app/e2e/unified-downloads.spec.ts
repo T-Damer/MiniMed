@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { E2E_ASSET_ORIGIN } from './mount-built-app';
 
 for (const width of [360, 1280]) {
   test(`unified queue remains accessible before core readiness at ${width}px`, async ({ page }) => {
@@ -48,7 +49,7 @@ for (const width of [360, 1280]) {
       );
     });
     try {
-      await page.goto('http://127.0.0.1:4173/#/settings/downloads', {
+      await page.goto(`${E2E_ASSET_ORIGIN}/#/settings/downloads`, {
         waitUntil: 'domcontentloaded',
       });
       const downloads = page.getByTestId('downloads-page');

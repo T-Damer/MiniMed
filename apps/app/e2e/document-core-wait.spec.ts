@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
+import { E2E_ASSET_ORIGIN } from './mount-built-app';
 
-const ORIGIN = process.env.MINIMED_LIVE_URL ?? 'http://127.0.0.1:4173';
+const ORIGIN = process.env.MINIMED_LIVE_URL ?? E2E_ASSET_ORIGIN;
 // A clinical-recommendation pointer from the core pack («Острая ишемия конечностей»).
 const DOCUMENT_ROUTE = `#/modules/documents/d/${Buffer.from(
   'core.catalog.pointer.clinical.kr.rf.1006_1-1151be108d81d0ac',

@@ -1,6 +1,7 @@
 import { expect, type Page, test } from '@playwright/test';
+import { E2E_ASSET_ORIGIN } from './mount-built-app';
 
-const ORIGIN = process.env.MINIMED_LIVE_URL ?? 'http://127.0.0.1:4173';
+const ORIGIN = process.env.MINIMED_LIVE_URL ?? E2E_ASSET_ORIGIN;
 
 /**
  * A core that never arrives keeps the download line on screen for the whole tour. The returned

@@ -5,6 +5,10 @@ import { defineConfig, devices } from '@playwright/test';
 const chromiumExecutable =
   process.env.CHROMIUM_PATH ?? (existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : undefined);
 const localModelSmokeOrigin = process.env.LOCAL_MODEL_SMOKE_ORIGIN;
+// Parallel checkouts (release worktrees, agents) each pick their own port: `E2E_PORT=4183`. Workers
+// inherit E2E_ORIGIN, which mount-built-app and the specs use as the app's address.
+const e2ePort = process.env.E2E_PORT ?? '4173';
+process.env.E2E_ORIGIN ??= `http://127.0.0.1:${e2ePort}`;
 
 export default defineConfig({
   testDir: './apps/app/e2e',
@@ -24,8 +28,8 @@ export default defineConfig({
   webServer: process.env.MINIMED_LIVE_URL
     ? undefined
     : {
-        command: 'bun run --cwd apps/app preview -- --host 127.0.0.1 --port 4173 --strictPort',
-        url: localModelSmokeOrigin ?? 'http://127.0.0.1:4173',
+        command: `bun run --cwd apps/app preview -- --host 127.0.0.1 --port ${e2ePort} --strictPort`,
+        url: localModelSmokeOrigin ?? process.env.E2E_ORIGIN,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
       },

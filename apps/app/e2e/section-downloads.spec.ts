@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
+import { E2E_ASSET_ORIGIN } from './mount-built-app';
 
-const ORIGIN = process.env.MINIMED_LIVE_URL ?? 'http://127.0.0.1:4173';
+const ORIGIN = process.env.MINIMED_LIVE_URL ?? E2E_ASSET_ORIGIN;
 
 for (const viewport of [
   { width: 390, height: 844 },

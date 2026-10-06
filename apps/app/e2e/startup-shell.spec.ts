@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { E2E_ASSET_ORIGIN } from './mount-built-app';
 import { openSettingsPage } from './settings-nav';
 
 for (const viewport of [
@@ -13,7 +14,7 @@ for (const viewport of [
     const shellGate = new Promise<void>((resolve) => {
       releaseShell = resolve;
     });
-    await page.route('http://127.0.0.1:4173/', async (route) => {
+    await page.route(`${E2E_ASSET_ORIGIN}/`, async (route) => {
       const response = await route.fetch();
       await route.fulfill({
         response,
@@ -40,7 +41,7 @@ for (const viewport of [
       await route.abort();
     });
     try {
-      await page.goto('http://127.0.0.1:4173/#/search', { waitUntil: 'domcontentloaded' });
+      await page.goto(`${E2E_ASSET_ORIGIN}/#/search`, { waitUntil: 'domcontentloaded' });
       const navigation = page.getByRole('navigation', { name: 'Разделы приложения' });
       // The splash-identical boot surface covers the app until its first screen is ready.
       await expect(page.locator('#boot-surface')).toBeVisible();

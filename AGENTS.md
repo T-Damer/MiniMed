@@ -69,6 +69,8 @@ substitution, clinical promotion or rights assumptions. Historical source files 
   upload destinations into local app, test, build, or browser processes.
 - Bind local browser development servers to `127.0.0.1`; do not expose them on the LAN unless the user
   explicitly requests it.
+- Concurrent e2e runs (agents, release worktrees) each set their own `E2E_PORT` (default 4173): the
+  config reuses a server already on its port, so a shared port tests another checkout's build.
 - Content builds, module packaging and data releases run locally and are pushed to GitHub (user
   decision 2026-09-29; Actions minutes are scarce). Only CI, the Pages deploy and the `release:`
   Android build run automatically; every content/data workflow is `workflow_dispatch` only.

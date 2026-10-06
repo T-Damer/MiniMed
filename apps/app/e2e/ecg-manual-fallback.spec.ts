@@ -1,8 +1,8 @@
 import { resolve } from 'node:path';
 import { expect, type Page, test } from '@playwright/test';
+import { E2E_ASSET_ORIGIN } from './mount-built-app';
 
-const origin =
-  process.env.ECG_MANUAL_QA_ORIGIN ?? process.env.MINIMED_LIVE_URL ?? 'http://127.0.0.1:4173';
+const origin = process.env.ECG_MANUAL_QA_ORIGIN ?? process.env.MINIMED_LIVE_URL ?? E2E_ASSET_ORIGIN;
 const fixture = resolve(
   process.env.ECG_MANUAL_QA_FILE ?? 'apps/app/src/assets/ecg-photo-example.jpg',
 );

@@ -1,7 +1,7 @@
 import { expect, type Page, test } from '@playwright/test';
+import { E2E_ASSET_ORIGIN } from './mount-built-app';
 
-const origin =
-  process.env.ECG_MANUAL_QA_ORIGIN ?? process.env.MINIMED_LIVE_URL ?? 'http://127.0.0.1:4173';
+const origin = process.env.ECG_MANUAL_QA_ORIGIN ?? process.env.MINIMED_LIVE_URL ?? E2E_ASSET_ORIGIN;
 
 /** A non-patient ECG-grid sheet photographed at an angle: rotated and sheared on a dark table. */
 async function skewedSheetPng(page: Page): Promise<Buffer> {

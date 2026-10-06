@@ -1,4 +1,4 @@
-import { mountBuiltApp } from '@localmed/app/e2e/mount-built-app';
+import { E2E_ASSET_ORIGIN, mountBuiltApp } from '@localmed/app/e2e/mount-built-app';
 import { expect, test } from '@playwright/test';
 
 /**
@@ -6,7 +6,7 @@ import { expect, test } from '@playwright/test';
  * run in Chromium by default; `PLAYWRIGHT_WEBKIT=1 bunx playwright test --project=webkit-ios` runs
  * them in WebKit, the engine of Safari and of the iOS app's web view.
  */
-const ORIGIN = process.env['MINIMED_LIVE_URL'] ?? 'http://127.0.0.1:4173';
+const ORIGIN = process.env['MINIMED_LIVE_URL'] ?? E2E_ASSET_ORIGIN;
 
 const SIZES = [
   { name: 'iPad mini portrait', width: 744, height: 1133 },
