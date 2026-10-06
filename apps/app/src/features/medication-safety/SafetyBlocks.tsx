@@ -12,7 +12,7 @@ import {
 } from './safety-view';
 import '@/styles/medication-safety.css';
 
-function QuoteBlock(props: {
+export function QuoteBlock(props: {
   readonly documentId: string;
   readonly quote: QuoteView;
 }): JSX.Element {

@@ -45,6 +45,8 @@ import {
 } from '@/features/calculators/calculator-registry';
 import { getCalculatorSchema } from '@/features/calculators/calculator-schema-catalog';
 import type { AvailableCalculatorDefinition } from '@/features/calculators/calculator-types';
+import { ComparisonSuggestionCard } from '@/features/drug-comparison/ComparisonSuggestionCard';
+import { parseComparisonQuery } from '@/features/drug-comparison/comparison-query';
 import { InteractionSuggestionCard } from '@/features/drug-interactions/InteractionSuggestionCard';
 import { parseInteractionQuery } from '@/features/drug-interactions/interaction-query';
 import { resolveReadableDocumentId } from '@/features/library/document-display';
@@ -426,6 +428,12 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     const searched = response();
     if (!searched || (props.scope !== 'all' && props.scope !== 'medications')) return null;
     return parseInteractionQuery(searched.analysis.originalQuery);
+  });
+  // «ибупрофен или парацетамол», «чем отличается X от Y»: the comparison tool opens with those drugs.
+  const comparisonQuery = createMemo(() => {
+    const searched = response();
+    if (!searched || (props.scope !== 'all' && props.scope !== 'medications')) return null;
+    return parseComparisonQuery(searched.analysis.originalQuery);
   });
   // «ибупрофен при беременности», «X ребёнку 3 лет»: the instruction's own sentences on the topic.
   const safetyQuery = createMemo(() => {
@@ -1298,6 +1306,10 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
 
                 <Show when={interactionQuery()}>
                   {(asked) => <InteractionSuggestionCard names={asked().names} />}
+                </Show>
+
+                <Show when={interactionQuery() ? undefined : comparisonQuery()}>
+                  {(asked) => <ComparisonSuggestionCard core={props.core} names={asked().names} />}
                 </Show>
 
                 <Show when={interactionQuery() ? undefined : safetyQuery()}>

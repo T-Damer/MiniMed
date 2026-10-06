@@ -271,6 +271,10 @@
   font-weight: 600;
 }
 
+.drug-chip--link {
+  text-decoration: none;
+}
+
 .drug-chip--code {
   font-family: var(--font-mono);
   font-size: 0.875rem;

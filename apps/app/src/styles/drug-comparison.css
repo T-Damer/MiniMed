@@ -1,0 +1,586 @@
+.drug-comparison {
+  --cmp-head-width: 9.5rem;
+  --cmp-column-min: 15rem;
+  display: grid;
+  gap: 0.9rem;
+  min-height: 100%;
+  min-width: 0;
+  padding-bottom: calc(var(--theme-bottom-nav-clearance, 5rem) + 1rem);
+  color: var(--theme-text);
+}
+
+.drug-comparison__chrome {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.drug-comparison__back {
+  flex: 0 0 auto;
+}
+
+.drug-comparison__notice {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.85rem 1rem;
+  border-left: 0.2rem solid var(--theme-warning);
+}
+
+.drug-comparison__notice-text {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.drug-comparison__how {
+  display: grid;
+  gap: 0.45rem;
+  color: var(--theme-text-muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.drug-comparison__picker {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.drug-comparison__search {
+  min-width: 0;
+}
+
+.drug-comparison__candidates {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0;
+  padding: 0.3rem;
+  list-style: none;
+  border: var(--theme-border-hairline, 1px) solid var(--theme-border);
+  border-radius: var(--theme-radius-panel);
+  background: var(--theme-surface);
+}
+
+.drug-comparison__candidate-row {
+  display: block;
+}
+
+.drug-comparison__candidate {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  min-height: 2.4rem;
+  padding: 0.4rem 0.6rem;
+  border: 0;
+  border-radius: var(--theme-radius-control);
+  background: transparent;
+  color: var(--theme-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.drug-comparison__candidate:hover:not(:disabled) {
+  background: var(--theme-accent-soft);
+}
+
+.drug-comparison__candidate:disabled {
+  color: var(--theme-text-faint);
+  cursor: default;
+}
+
+.drug-comparison__hint {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.82rem;
+}
+
+.drug-comparison__empty {
+  margin: 0;
+  padding: 0.5rem 0.1rem;
+  color: var(--theme-text-muted);
+}
+
+.drug-comparison__items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.drug-comparison__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  max-width: 100%;
+  padding: 0.3rem 0.35rem 0.3rem 0.8rem;
+  border: var(--theme-border-hairline, 1px) solid var(--theme-border);
+  border-radius: 999px;
+  background: var(--theme-surface-raised);
+  font-size: 0.9rem;
+}
+
+.drug-comparison__item--missing {
+  border-color: var(--theme-warning);
+  background: var(--theme-warning-soft);
+}
+
+.drug-comparison__item--busy {
+  color: var(--theme-text-muted);
+  padding-right: 0.8rem;
+}
+
+.drug-comparison__item-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+
+.drug-comparison__item-typed {
+  color: var(--theme-text-muted);
+  font-size: 0.76rem;
+}
+
+.drug-comparison__item-remove,
+.drug-comparison__remove {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--theme-text-muted);
+  cursor: pointer;
+}
+
+.drug-comparison__item-remove:hover,
+.drug-comparison__remove:hover {
+  background: var(--theme-accent-soft);
+  color: var(--theme-text);
+}
+
+.drug-comparison__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem 1rem;
+}
+
+.drug-comparison__differences {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.drug-comparison__differences-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.drug-comparison__actions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.drug-comparison__offers {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.8rem 1rem;
+}
+
+.drug-comparison__offers-text {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+/* ---- The matrix: rows are parameters, columns are drugs, the first column stays in view ---- */
+
+.drug-comparison__matrix {
+  min-width: 0;
+  overflow-x: auto;
+  border: var(--theme-border-hairline, 1px) solid var(--theme-border);
+  border-radius: var(--theme-radius-panel);
+  background: var(--theme-surface);
+}
+
+.drug-comparison__grid {
+  display: grid;
+  min-width: calc(var(--cmp-head-width) + var(--cmp-columns) * var(--cmp-column-min));
+}
+
+.drug-comparison__clusters {
+  display: grid;
+  min-width: calc(var(--cmp-head-width) + var(--cmp-columns) * var(--cmp-column-min));
+}
+
+.drug-comparison__clusters-scroller {
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.drug-comparison__row {
+  display: grid;
+  grid-template-columns: var(--cmp-head-width) repeat(
+      var(--cmp-columns),
+      minmax(var(--cmp-column-min), 1fr)
+    );
+  border-top: var(--theme-border-hairline, 1px) solid var(--theme-border);
+}
+
+.drug-comparison__row--head {
+  border-top: 0;
+}
+
+.drug-comparison__row--sub {
+  background: var(--theme-surface-muted);
+}
+
+.drug-comparison__rowhead {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  display: grid;
+  align-content: start;
+  gap: 0.15rem;
+  padding: 0.6rem 0.7rem;
+  background: var(--theme-surface-muted);
+  border-right: var(--theme-border-hairline, 1px) solid var(--theme-border);
+  font-size: 0.82rem;
+}
+
+.drug-comparison__rowhead--corner {
+  color: var(--theme-text-muted);
+  font-weight: 650;
+}
+
+.drug-comparison__rowhead-title {
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.drug-comparison__rowhead-note {
+  color: var(--theme-text-faint);
+  font-size: 0.72rem;
+  line-height: 1.3;
+}
+
+.drug-comparison__colhead {
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.6rem 0.7rem;
+  border-left: var(--theme-border-hairline, 1px) solid var(--theme-border);
+}
+
+.drug-comparison__colhead:first-of-type {
+  border-left: 0;
+}
+
+.drug-comparison__colhead-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.drug-comparison__colhead-name {
+  margin: 0;
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.drug-comparison__colhead-source,
+.drug-comparison__colhead-note {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.drug-comparison__choice {
+  min-width: 0;
+}
+
+.drug-comparison__group {
+  margin: 0;
+  padding: 0.7rem 0.8rem 0;
+  font-size: 0.95rem;
+}
+
+.drug-comparison__group-source {
+  margin: 0;
+  padding: 0.1rem 0.8rem 0.6rem;
+  color: var(--theme-text-muted);
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.drug-comparison__cell {
+  display: grid;
+  align-content: start;
+  gap: 0.3rem;
+  min-width: 0;
+  padding: 0.6rem 0.7rem;
+  border-left: var(--theme-border-hairline, 1px) solid var(--theme-border);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.drug-comparison__cell--empty,
+.drug-comparison__cell--absent {
+  color: var(--theme-text-faint);
+}
+
+.drug-comparison__cell-drug {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  color: var(--theme-kicker, var(--theme-text-muted));
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.drug-comparison__cell-section {
+  color: var(--theme-text-faint);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.drug-comparison__lines {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.drug-comparison__line {
+  overflow-wrap: anywhere;
+}
+
+.drug-comparison__muted {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.drug-comparison__quote-text {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.drug-comparison__quote-text--clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.drug-comparison__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+}
+
+.drug-comparison__toggle,
+.drug-comparison__link,
+.drug-comparison__more {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--theme-link);
+  font: inherit;
+  font-size: 0.8rem;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: var(--theme-text-underline-offset, 0.2em);
+  cursor: pointer;
+}
+
+.drug-comparison__more {
+  justify-self: start;
+  margin: 0.5rem 0.8rem 0;
+}
+
+.drug-comparison__numbers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.drug-comparison__number {
+  padding: 0.1rem 0.5rem;
+  border: var(--theme-border-hairline, 1px) solid var(--theme-border);
+  border-radius: 999px;
+  background: var(--theme-surface-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+/* ---- Sections with matched statements ---- */
+
+.drug-comparison__sections {
+  display: grid;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.drug-comparison__section-body {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.drug-comparison__section-count {
+  color: var(--theme-text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.drug-comparison__summary {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.drug-comparison__subhead {
+  padding: 0.5rem 0.7rem;
+  border-left: var(--theme-border-hairline, 1px) solid var(--theme-border);
+  font-size: 0.82rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.drug-comparison__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  padding: 0.12rem 0.55rem;
+  border: var(--theme-border-hairline, 1px) solid var(--theme-border);
+  border-radius: 999px;
+  background: var(--theme-surface);
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.drug-comparison__mark--shared {
+  background: var(--theme-surface-raised);
+  color: var(--theme-text-muted);
+}
+
+.drug-comparison__mark--only {
+  border-color: var(--theme-accent);
+  background: var(--theme-accent-soft);
+}
+
+.drug-comparison__mark--similar {
+  border-color: var(--theme-warning);
+  background: var(--theme-warning-soft);
+}
+
+.drug-comparison__diff {
+  padding: 0 0.1em;
+  border-radius: 0.2em;
+  background: var(--theme-match-background);
+  color: var(--theme-match-text);
+}
+
+.drug-comparison__absent {
+  color: var(--theme-text-faint);
+}
+
+.drug-comparison__interactions {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.drug-comparison__footnote {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+/* ---- Phone: every row stacks and each value carries its drug's name ---- */
+
+@media (width < 720px) {
+  .drug-comparison__grid,
+  .drug-comparison__clusters {
+    min-width: 0;
+  }
+
+  .drug-comparison__row {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .drug-comparison__row--sub {
+    display: none;
+  }
+
+  .drug-comparison__rowhead {
+    position: static;
+    border-right: 0;
+  }
+
+  .drug-comparison__rowhead--corner {
+    display: none;
+  }
+
+  .drug-comparison__colhead,
+  .drug-comparison__cell {
+    border-left: 0;
+    border-top: var(--theme-border-hairline, 1px) solid var(--theme-border);
+  }
+
+  .drug-comparison__colhead:first-of-type {
+    border-top: 0;
+  }
+
+  .drug-comparison__cell-drug {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+  }
+
+  .drug-comparison__cell--absent {
+    display: none;
+  }
+}
+
+@media print {
+  .drug-comparison__chrome,
+  .drug-comparison__picker,
+  .drug-comparison__toolbar {
+    display: none;
+  }
+}

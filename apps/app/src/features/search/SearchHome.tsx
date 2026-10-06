@@ -27,6 +27,7 @@ import {
   conversationSession,
   startConversation,
 } from '@/features/conversations/conversation-session';
+import { DRUG_COMPARISON_TOOL } from '@/features/drug-comparison/drug-comparison-tool';
 import { DRUG_INTERACTION_TOOL } from '@/features/drug-interactions/drug-interaction-tool';
 import { SearchHistoryPanel } from '@/features/history/SearchHistoryPanel';
 import { preferReadableDocuments } from '@/features/library/document-display';
@@ -295,6 +296,15 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       ageScope: DRUG_INTERACTION_TOOL.ageScope,
       group: 'reference',
       href: DRUG_INTERACTION_TOOL.href,
+    },
+    {
+      id: DRUG_COMPARISON_TOOL.id,
+      title: DRUG_COMPARISON_TOOL.title,
+      kindLabel: DRUG_COMPARISON_TOOL.kindLabel,
+      icon: DRUG_COMPARISON_TOOL.icon,
+      ageScope: DRUG_COMPARISON_TOOL.ageScope,
+      group: 'reference',
+      href: DRUG_COMPARISON_TOOL.href,
     },
     {
       id: APP_TOOL_IDS.notes,

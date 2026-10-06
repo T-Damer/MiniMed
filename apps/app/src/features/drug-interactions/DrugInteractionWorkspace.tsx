@@ -1,7 +1,6 @@
 import type { MedicalCore } from '@localmed/contracts';
 import {
   createEffect,
-  createMemo,
   createResource,
   createSignal,
   For,
@@ -11,66 +10,32 @@ import {
   Show,
   untrack,
 } from 'solid-js';
-import { toast } from 'solid-sonner';
 
 import { AppGlyph } from '@/components/AppGlyph';
-import { Button } from '@/components/Button';
 import { ChoiceChip } from '@/components/ChoiceChip';
 import { Disclosure } from '@/components/Disclosure';
 import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
 import { SearchField } from '@/components/SearchField';
 import { Heading } from '@/components/Text';
-import { PrintManager } from '@/features/printing/print-manager';
+import { MAX_COMPARED_NAMES } from '@/features/drug-comparison/comparison-query';
+import { notesDrugComparisonPath } from '@/features/notes/notes-routing';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
-import { buildOfficialDocumentHash } from '@/state/document-route';
 import {
   cardDisplayName,
   type DrugCandidate,
   findDrugCandidates,
   resolveTypedName,
 } from './drug-candidates';
-import { InstructionDownloadOffer } from './InstructionDownloadOffer';
-import { ALCOHOL_ITEM_ID, checkAllPairs, type DrugItem, itemDocumentId } from './interaction-check';
-import { loadClassPhrases, loadInteractionIndex } from './interaction-load';
-import {
-  INTERACTION_NOTICE,
-  INTERACTION_PRINT_TITLE,
-  interactionShareText,
-  renderInteractionPrintHtml,
-} from './interaction-print';
+import { InteractionPairsPanel } from './InteractionPairs';
+import { ALCOHOL_ITEM_ID, type DrugItem } from './interaction-check';
+import { loadInteractionIndex } from './interaction-load';
+import { INTERACTION_NOTICE } from './interaction-print';
 import { ALCOHOL_QUERY_NAME } from './interaction-query';
-import { sentenceSectionLabel } from './interaction-quotes';
-import {
-  SEVERITY_LICENSE_URL,
-  type SeverityLevel,
-  type SeverityLookup,
-  type SeverityProvenance,
-  severityAttribution,
-  severityDocumentId,
-} from './interaction-severity';
-import { loadSeverityPartners, loadSeverityProvenance } from './interaction-severity-load';
-import {
-  type DocumentState,
-  otherSectionsLabel,
-  type PairView,
-  pairStatusText,
-  pairTitle,
-  pairView,
-  pluralSentence,
-  printPairs,
-  type SideView,
-  SUBSTANCE_INSTRUCTION_NOTE,
-  sideHeading,
-  sideNote,
-  sideSourceLine,
-  splitQuotes,
-} from './interaction-view';
-import { SeverityDownloadOffer } from './SeverityDownloadOffer';
 import '@/styles/drug-interactions.css';
 
 const MAX_ITEMS = 10;
-const VIDAL_CHECKER_URL = 'https://www.vidal.ru/drugs/interaction/new';
+const MAX_COMPARED = MAX_COMPARED_NAMES;
 const ALCOHOL_NAME = /^(?:алкогол|этанол|спирт|вино\b|пиво\b)/iu;
 
 function alcoholItem(typed?: string): DrugItem {
@@ -81,165 +46,6 @@ function alcoholItem(typed?: string): DrugItem {
     label: 'Алкоголь',
     typed: typed && typed.toLocaleLowerCase('ru-RU') !== 'алкоголь' ? typed : undefined,
   };
-}
-
-function todayText(): string {
-  return new Date().toLocaleDateString('ru-RU');
-}
-
-/** One quoted sentence with the words that name the other drug marked. */
-function QuoteBlock(props: {
-  readonly documentId: string;
-  readonly quote: SideView['quotes'][number];
-}): JSX.Element {
-  const [expanded, setExpanded] = createSignal(false);
-  const long = () => props.quote.text.length > 360;
-  return (
-    <blockquote class="drug-interactions__quote">
-      <span class="drug-interactions__quote-section">
-        {sentenceSectionLabel(props.quote.flags)}
-      </span>
-      <p
-        class="drug-interactions__quote-text"
-        classList={{ 'drug-interactions__quote-text--clamped': long() && !expanded() }}
-      >
-        <For each={props.quote.segments}>
-          {(segment) => (
-            <Show when={segment.hit} fallback={segment.text}>
-              <mark class="drug-interactions__mark">{segment.text}</mark>
-            </Show>
-          )}
-        </For>
-      </p>
-      <span class="drug-interactions__quote-actions">
-        <Show when={long()}>
-          <button
-            type="button"
-            class="drug-interactions__quote-toggle"
-            onClick={() => setExpanded((value) => !value)}
-          >
-            {expanded() ? 'Свернуть' : 'Показать полностью'}
-          </button>
-        </Show>
-        <Show when={props.quote.anchor}>
-          {(anchor) => (
-            <a
-              class="drug-interactions__quote-link"
-              href={buildOfficialDocumentHash(props.documentId, anchor())}
-            >
-              Открыть в инструкции
-            </a>
-          )}
-        </Show>
-      </span>
-    </blockquote>
-  );
-}
-
-function SideBlock(props: { readonly side: SideView }): JSX.Element {
-  const note = () => sideNote(props.side);
-  const source = () => sideSourceLine(props.side);
-  const split = createMemo(() => splitQuotes(props.side.quotes));
-  return (
-    <section class="drug-interactions__side" data-state={props.side.state}>
-      <h4 class="drug-interactions__side-title">{sideHeading(props.side)}</h4>
-      <Show when={source()}>
-        <p class="drug-interactions__side-source">{source()}</p>
-      </Show>
-      <Show when={props.side.source?.qualityNote}>
-        {(text) => <p class="drug-interactions__side-note">{text()}</p>}
-      </Show>
-      <Show when={props.side.state === 'loading'}>
-        <p class="drug-interactions__side-note" role="status">
-          Читаем установленную инструкцию…
-        </p>
-      </Show>
-      <Show when={props.side.state === 'not-installed'}>
-        <p class="drug-interactions__side-status" data-testid="interaction-side-status">
-          {props.side.count > 0
-            ? `В указателе есть ${props.side.count} ${pluralSentence(props.side.count)} с упоминанием «${props.side.to.label}», но инструкция не установлена — скачайте её, чтобы прочитать.`
-            : `В инструкции «${props.side.from.label}» по указателю упоминаний «${props.side.to.label}» не найдено; сама инструкция не установлена.`}
-        </p>
-      </Show>
-      <Show when={props.side.state === 'no-instruction'}>
-        <p class="drug-interactions__side-status">{note()}</p>
-      </Show>
-      <Show when={props.side.state === 'ready'}>
-        <Show
-          when={props.side.quotes.length > 0}
-          fallback={
-            <p class="drug-interactions__side-status" data-testid="interaction-side-status">
-              {props.side.changed > 0
-                ? note()
-                : `В этой инструкции упоминаний «${props.side.to.label}» не найдено.`}
-            </p>
-          }
-        >
-          <For each={split().main}>
-            {(quote) => <QuoteBlock documentId={props.side.documentId ?? ''} quote={quote} />}
-          </For>
-          <Show when={split().main.length === 0}>
-            <p class="drug-interactions__side-status" data-testid="interaction-main-empty">
-              {`В разделе о взаимодействии с другими лекарственными средствами упоминаний «${props.side.to.label}» нет.`}
-            </p>
-          </Show>
-          <Show when={split().other.length > 0}>
-            <Disclosure
-              variant="inline"
-              class="drug-interactions__fold"
-              title={otherSectionsLabel(split().other.length)}
-            >
-              <div class="drug-interactions__fold-body" data-testid="interaction-fold-body">
-                <For each={split().other}>
-                  {(quote) => <QuoteBlock documentId={props.side.documentId ?? ''} quote={quote} />}
-                </For>
-              </div>
-            </Disclosure>
-          </Show>
-          <Show when={props.side.changed > 0}>
-            <p class="drug-interactions__side-note">{note()}</p>
-          </Show>
-        </Show>
-        <p class="drug-interactions__side-note">{SUBSTANCE_INSTRUCTION_NOTE}</p>
-      </Show>
-    </section>
-  );
-}
-
-function PairCard(props: { readonly view: PairView }): JSX.Element {
-  return (
-    <article
-      class="drug-interactions__pair paper-card"
-      data-status={props.view.status}
-      data-testid="interaction-pair"
-    >
-      <header class="drug-interactions__pair-header">
-        <Heading depth={3} class="drug-interactions__pair-title">
-          {pairTitle(props.view)}
-        </Heading>
-        <p class="drug-interactions__pair-status" data-testid="interaction-pair-status">
-          {pairStatusText(props.view)}
-        </p>
-        <Show when={props.view.severity}>
-          {(severity) => (
-            <div class="drug-interactions__severity" data-testid="interaction-severity">
-              <span
-                class="drug-interactions__severity-label"
-                classList={{
-                  [`drug-interactions__severity-label--${severity().level}`]: true,
-                }}
-                data-level={severity().level}
-              >
-                {severity().label}
-              </span>
-              <span class="drug-interactions__severity-note">{severity().note}</span>
-            </div>
-          )}
-        </Show>
-      </header>
-      <For each={props.view.sides}>{(side) => <SideBlock side={side} />}</For>
-    </article>
-  );
 }
 
 /**
@@ -260,18 +66,14 @@ export function DrugInteractionWorkspace(props: {
       window.dispatchEvent(new Event(CONTENT_CHANGED_EVENT));
     });
   const [index] = createResource(loadInteractionIndex);
-  const [phrases] = createResource(() => loadClassPhrases().catch(() => []));
   const [items, setItems] = createSignal<readonly DrugItem[]>([]);
   const [unresolved, setUnresolved] = createSignal<readonly string[]>([]);
   const [query, setQuery] = createSignal('');
   const [candidates, setCandidates] = createSignal<readonly DrugCandidate[]>([]);
-  const [documents, setDocuments] = createSignal<ReadonlyMap<string, DocumentState>>(new Map());
   const [resolving, setResolving] = createSignal(props.initialNames.length > 0);
-  const [contentRevision, setContentRevision] = createSignal(0);
-  const [severityDocuments, setSeverityDocuments] = createSignal<
-    ReadonlyMap<string, ReadonlyMap<string, SeverityLevel> | 'loading'>
-  >(new Map());
 
+  /** The drugs (not alcohol) that can be sent to «Сравнение препаратов». */
+  const comparable = (): readonly DrugItem[] => items().filter((item) => item.kind === 'drug');
   const hasItem = (id: string): boolean => items().some((item) => item.id === id);
   const addItem = (item: DrugItem): void => {
     setItems((current) =>
@@ -339,128 +141,6 @@ export function DrugInteractionWorkspace(props: {
     }, 250);
     onCleanup(() => clearTimeout(handle));
   });
-
-  // Installed instructions: read once per document; a reconnected core or a content change starts over.
-  let requested = new Set<string>();
-  let severityRequested = new Set<string>();
-  const forgetDocuments = (): void => {
-    requested = new Set();
-    setDocuments(new Map());
-    severityRequested = new Set();
-    setSeverityDocuments(new Map());
-    setContentRevision((value) => value + 1);
-  };
-  createEffect(on(() => props.core, forgetDocuments, { defer: true }));
-  createEffect(() => {
-    const loaded = index();
-    const core = props.core;
-    documents();
-    if (!loaded || !core) return;
-    const generation = requested;
-    for (const item of items()) {
-      const id = itemDocumentId(loaded, item);
-      if (!id || generation.has(id)) continue;
-      generation.add(id);
-      setDocuments((current) => new Map(current).set(id, 'loading'));
-      void core.getDocument(id).then((result) => {
-        if (generation !== requested) return;
-        setDocuments((current) =>
-          new Map(current).set(id, result.ok ? { document: result.value } : 'missing'),
-        );
-      });
-    }
-  });
-  window.addEventListener(CONTENT_CHANGED_EVENT, forgetDocuments);
-  onCleanup(() => window.removeEventListener(CONTENT_CHANGED_EVENT, forgetDocuments));
-
-  const pairChecks = createMemo(() => {
-    const loaded = index();
-    return loaded ? checkAllPairs(loaded, items()) : [];
-  });
-
-  // The optional DDInter module: its manifest says it is installed, and which source and licence.
-  const [provenance] = createResource(
-    () => (props.core ? { core: props.core, revision: contentRevision() } : false),
-    ({ core }): Promise<SeverityProvenance | null> =>
-      loadSeverityProvenance(core).catch(() => null),
-  );
-  // The severity document of each pair that has instruction sentences, read once.
-  createEffect(() => {
-    const core = props.core;
-    if (!core || !provenance()) return;
-    const generation = severityRequested;
-    for (const pair of pairChecks()) {
-      if (pair.found === 0 || pair.a.kind !== 'drug' || pair.b.kind !== 'drug') continue;
-      const { documentId } = severityDocumentId(pair.a.id, pair.b.id);
-      if (generation.has(documentId)) continue;
-      generation.add(documentId);
-      setSeverityDocuments((current) => new Map(current).set(documentId, 'loading'));
-      void loadSeverityPartners(core, documentId)
-        .catch(() => new Map<string, SeverityLevel>())
-        .then((partners) => {
-          if (generation !== severityRequested) return;
-          setSeverityDocuments((current) => new Map(current).set(documentId, partners));
-        });
-    }
-  });
-  const severityLookup = createMemo<SeverityLookup | null>(() => {
-    const installed = provenance();
-    if (!installed) return null;
-    const read = severityDocuments();
-    return {
-      provenance: installed,
-      levelOf: (first, second) => {
-        const { documentId, partner } = severityDocumentId(first, second);
-        const partners = read.get(documentId);
-        return partners && partners !== 'loading' ? (partners.get(partner) ?? null) : null;
-      },
-    };
-  });
-
-  const views = createMemo<readonly PairView[]>(() => {
-    const loaded = index();
-    if (!loaded) return [];
-    const read = documents();
-    const classes = phrases() ?? [];
-    const severity = severityLookup();
-    return pairChecks().map((pair) => pairView(loaded, pair, read, classes, severity));
-  });
-  const foundCount = () => views().filter((view) => view.status === 'found').length;
-  const labelledCount = () => views().filter((view) => view.severity !== null).length;
-  /** Pairs with a sentence that can be quoted now: only those could carry a severity label. */
-  const quotablePairCount = () =>
-    views().filter((view) => view.sides.some((side) => side.quotes.length > 0)).length;
-  /** The instruction modules the pairs need and the device does not have: one offer for each. */
-  const missingModules = createMemo(() => [
-    ...new Set(
-      views().flatMap((view) =>
-        view.sides.flatMap((side) =>
-          side.state === 'not-installed' && side.moduleId ? [side.moduleId] : [],
-        ),
-      ),
-    ),
-  ]);
-
-  const printOut = (): void => {
-    const html = renderInteractionPrintHtml(printPairs(views()), todayText());
-    if (!PrintManager.html(html, INTERACTION_PRINT_TITLE)) {
-      toast.error('Не удалось открыть печать. Разрешите всплывающие окна для этого сайта.');
-    }
-  };
-  const share = async (): Promise<void> => {
-    const text = interactionShareText(printPairs(views()));
-    try {
-      if ('share' in navigator && typeof navigator.share === 'function') {
-        await navigator.share({ title: INTERACTION_PRINT_TITLE, text });
-        return;
-      }
-      await navigator.clipboard.writeText(text);
-      toast.success('Текст скопирован.');
-    } catch (cause) {
-      if (cause instanceof DOMException && cause.name === 'AbortError') return;
-      toast.error('Не удалось поделиться текстом.');
-    }
-  };
 
   return (
     <section class="drug-interactions" aria-label="Взаимодействие препаратов">
@@ -632,85 +312,31 @@ export function DrugInteractionWorkspace(props: {
           </Show>
         }
       >
-        <div class="drug-interactions__summary" role="status" data-testid="interaction-summary">
-          <span>
-            Пар: {views().length}. Упоминание найдено в {foundCount()}.
-          </span>
-        </div>
-        <div class="drug-interactions__actions">
-          <Button
-            type="button"
-            variant="secondary"
-            icon={<AppGlyph name="printer" />}
-            onClick={printOut}
-          >
-            Печать
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            icon={<AppGlyph name="share" />}
-            onClick={() => void share()}
-          >
-            Поделиться
-          </Button>
+        <Show when={comparable().length >= 2}>
           <a
-            class="drug-interactions__vidal"
-            href={VIDAL_CHECKER_URL}
-            target="_blank"
-            rel="noopener noreferrer"
+            class="drug-interactions__compare"
+            href={notesDrugComparisonPath(
+              [],
+              comparable()
+                .slice(0, MAX_COMPARED)
+                .map((item) => item.id),
+            )}
+            data-testid="interaction-compare-link"
           >
-            Проверить на vidal.ru
+            <AppGlyph name="pill" class="drug-interactions__compare-icon" />
+            <span class="drug-interactions__compare-text">
+              {comparable().length > MAX_COMPARED
+                ? `Сравнить первые ${MAX_COMPARED} препарата`
+                : 'Сравнить эти препараты'}
+            </span>
+            <AppGlyph name="caret-right" class="drug-interactions__compare-icon" />
           </a>
-        </div>
-        <p class="drug-interactions__vidal-note">
-          Ссылка открывает отдельный сайт со своей базой данных; приложение не передаёт ему список
-          препаратов.
-        </p>
-        <Show when={missingModules().length > 0}>
-          <section class="drug-interactions__offers paper-card" aria-label="Инструкции для чтения">
-            <p class="drug-interactions__offers-text">
-              Тексты этих инструкций ещё не скачаны: указатель знает, где в них названы другие
-              препараты, но прочитать предложения можно только из установленной инструкции.
-            </p>
-            <For each={missingModules()}>
-              {(moduleId) => (
-                <InstructionDownloadOffer moduleId={moduleId} onContentChanged={onContentChanged} />
-              )}
-            </For>
-          </section>
         </Show>
-        <Show
-          when={quotablePairCount() > 0 && provenance.state === 'ready' && provenance() === null}
-        >
-          <SeverityDownloadOffer onContentChanged={onContentChanged} />
-        </Show>
-        <div class="drug-interactions__pairs" data-testid="interaction-pairs">
-          <For each={views()}>{(view) => <PairCard view={view} />}</For>
-        </div>
-        <Show when={severityLookup()}>
-          {(lookup) => (
-            <aside class="drug-interactions__severity-source" data-testid="severity-source">
-              <p class="drug-interactions__severity-source-text">
-                {severityAttribution(lookup().provenance)} Показаны только метки; описаний базы в
-                приложении нет.
-              </p>
-              <p class="drug-interactions__severity-source-text">
-                {labelledCount() === 0
-                  ? 'Для выбранных пар меток нет: метка показывается только там, где в инструкции есть предложение, и база DDInter знает пару.'
-                  : `Меток на экране: ${labelledCount()}.`}{' '}
-                <a
-                  class="drug-interactions__vidal"
-                  href={lookup().provenance.licenseUrl || SEVERITY_LICENSE_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Лицензия {lookup().provenance.license}
-                </a>
-              </p>
-            </aside>
-          )}
-        </Show>
+        <InteractionPairsPanel
+          core={props.core}
+          items={items()}
+          onContentChanged={onContentChanged}
+        />
       </Show>
     </section>
   );

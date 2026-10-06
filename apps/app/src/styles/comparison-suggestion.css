@@ -1,0 +1,45 @@
+.comparison-suggestion {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.85rem 1rem;
+  color: var(--theme-text);
+  text-decoration: none;
+  border-left: 0.2rem solid var(--theme-accent);
+}
+
+.comparison-suggestion:hover {
+  background: var(--theme-accent-soft);
+}
+
+.comparison-suggestion__icon,
+.comparison-suggestion__chevron {
+  flex: 0 0 auto;
+  width: 1.4rem;
+  height: 1.4rem;
+  color: var(--theme-text-muted);
+}
+
+.comparison-suggestion__copy {
+  display: grid;
+  flex: 1 1 auto;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.comparison-suggestion__title {
+  font-size: 0.98rem;
+  font-weight: 650;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.comparison-suggestion__name {
+  white-space: nowrap;
+}
+
+.comparison-suggestion__hint {
+  color: var(--theme-text-muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}

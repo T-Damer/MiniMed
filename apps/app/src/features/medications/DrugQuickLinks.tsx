@@ -11,6 +11,7 @@ import {
   type DrugSubstanceLink,
 } from '@/features/medications/drug-screen';
 import type { MedicationProduct } from '@/features/medications/medication-record';
+import { notesDrugComparisonPath } from '@/features/notes/notes-routing';
 import { pluralRu } from '@/i18n/labels';
 
 import '@/features/medications/drug-screen.css';
@@ -118,7 +119,8 @@ export function DrugQuickLinks(props: {
     props.links.related.length === 0 &&
     props.links.groups.length === 0 &&
     props.links.atc.length === 0 &&
-    props.links.substance === null;
+    props.links.substance === null &&
+    props.links.compare === null;
 
   return (
     <Show when={!empty()}>
@@ -214,6 +216,33 @@ export function DrugQuickLinks(props: {
               </button>
             )}
           </ChipRow>
+        </Show>
+        <Show when={props.links.compare}>
+          {(compare) => (
+            <section class="drug-links__group" aria-labelledby="drug-links-compare">
+              <p class="drug-links__label" id="drug-links-compare">
+                Сравнение
+              </p>
+              <ul class="drug-links__list">
+                <li class="drug-links__item">
+                  <a
+                    class="drug-chip drug-chip--accent drug-chip--link"
+                    href={notesDrugComparisonPath(
+                      [],
+                      [
+                        compare().product
+                          ? `${compare().slug}|${compare().product}`
+                          : compare().slug,
+                      ],
+                    )}
+                    data-testid="drug-compare-link"
+                  >
+                    Сравнить с…
+                  </a>
+                </li>
+              </ul>
+            </section>
+          )}
         </Show>
       </nav>
       <AtcCodeSheet code={atc()} open={atcOpen()} onClose={() => setAtcOpen(false)} />

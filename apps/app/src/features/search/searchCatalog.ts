@@ -11,6 +11,7 @@ import {
 import { CALCULATOR_SECTIONS } from '@/features/calculators/calculator-packs';
 import { getCalculatorRegistry } from '@/features/calculators/calculator-registry';
 import { userCalculatorNewPath } from '@/features/calculators/user-calculator/user-calculator-routing';
+import { DRUG_COMPARISON_TOOL } from '@/features/drug-comparison/drug-comparison-tool';
 import { DRUG_INTERACTION_TOOL } from '@/features/drug-interactions/drug-interaction-tool';
 import {
   medicationDocumentGroups,
@@ -160,6 +161,18 @@ export function searchCatalogTools(): readonly SearchCatalogTool[] {
       group: 'medication',
       href: DRUG_INTERACTION_TOOL.href,
       ageScope: DRUG_INTERACTION_TOOL.ageScope,
+    },
+    // The same drugs side by side: registry rows and quoted instruction sections.
+    {
+      id: DRUG_COMPARISON_TOOL.id,
+      scope: 'calculators',
+      icon: DRUG_COMPARISON_TOOL.icon,
+      title: DRUG_COMPARISON_TOOL.title,
+      description: DRUG_COMPARISON_TOOL.description,
+      aliases: DRUG_COMPARISON_TOOL.aliases,
+      group: 'medication',
+      href: DRUG_COMPARISON_TOOL.href,
+      ageScope: DRUG_COMPARISON_TOOL.ageScope,
     },
   ];
 }

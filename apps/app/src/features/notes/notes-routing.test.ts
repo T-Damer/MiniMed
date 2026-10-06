@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   isNotesFullscreenRoute,
+  notesDrugComparisonPath,
   notesFormsPath,
   notesNewPatientPath,
   notesPath,
@@ -14,6 +15,21 @@ import {
 } from '@/features/notes/notes-routing';
 
 describe('notes routing', () => {
+  it('opens the drug comparison with typed names and exact drugs', () => {
+    expect(readNotesRoute('#/notes/drug-comparison')).toEqual({
+      kind: 'drug-comparison',
+      names: [],
+      drugs: [],
+    });
+    const path = notesDrugComparisonPath(['нурофен'], ['ибупрофен|Нурофен', 'парацетамол']);
+    expect(readNotesRoute(path)).toEqual({
+      kind: 'drug-comparison',
+      names: ['нурофен'],
+      drugs: ['ибупрофен|Нурофен', 'парацетамол'],
+    });
+    expect(notesDrugComparisonPath()).toBe('#/notes/drug-comparison');
+  });
+
   it('parses index, templates, card, new-record, and record routes', () => {
     expect(readNotesRoute('#/notes')).toEqual({ kind: 'index' });
     expect(readNotesRoute('#/notes/templates')).toEqual({ kind: 'templates' });

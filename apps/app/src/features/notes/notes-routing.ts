@@ -19,6 +19,13 @@ export type NotesRoute =
       /** Exact drug cards (`c`), for a link that must find the same drugs again. */
       readonly cards: readonly string[];
     }
+  | {
+      readonly kind: 'drug-comparison';
+      /** Names typed in a search query (`d`), looked up in the drug search when the tool opens. */
+      readonly names: readonly string[];
+      /** Exact drugs (`c`): `slug` or `slug|Trade name`. */
+      readonly drugs: readonly string[];
+    }
   | { readonly kind: 'templates'; readonly create?: boolean }
   | { readonly kind: 'template'; documentId: string }
   | { readonly kind: 'card'; readonly cardId: string }
@@ -87,6 +94,10 @@ export function readNotesRoute(
   if (parts[1] === 'drug-interactions') {
     const params = new URLSearchParams(query);
     return { kind: 'drug-interactions', names: params.getAll('d'), cards: params.getAll('c') };
+  }
+  if (parts[1] === 'drug-comparison') {
+    const params = new URLSearchParams(query);
+    return { kind: 'drug-comparison', names: params.getAll('d'), drugs: params.getAll('c') };
   }
   if (parts[1] === 'templates') {
     if (parts.length === 2) {
@@ -172,6 +183,18 @@ export function notesDrugInteractionsPath(
   for (const card of cards) params.append('c', card);
   const query = params.toString();
   return query ? `#/notes/drug-interactions?${query}` : '#/notes/drug-interactions';
+}
+
+/** `#/notes/drug-comparison` opens «Сравнение препаратов», with drug names to look up (`d`) or exact drugs (`c`). */
+export function notesDrugComparisonPath(
+  names: readonly string[] = [],
+  drugs: readonly string[] = [],
+): string {
+  const params = new URLSearchParams();
+  for (const name of names) params.append('d', name);
+  for (const drug of drugs) params.append('c', drug);
+  const query = params.toString();
+  return query ? `#/notes/drug-comparison?${query}` : '#/notes/drug-comparison';
 }
 
 export function notesTemplatesPath(create = false): string {

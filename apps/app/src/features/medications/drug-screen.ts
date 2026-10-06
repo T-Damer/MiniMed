@@ -376,6 +376,14 @@ export interface DrugQuickLinksModel {
   readonly relatedAccordion: boolean;
   readonly related: readonly DrugRelatedProduct[];
   readonly atc: readonly DrugAtcCode[];
+  /** «Сравнить с…»: the drug (substance card, and the trade name on a product) to start a comparison from. */
+  readonly compare: DrugCompareLink | null;
+}
+
+/** What «Сравнить с…» sends to the comparison tool: the ЕСКЛП МНН card and the trade name, when on screen. */
+export interface DrugCompareLink {
+  readonly slug: string;
+  readonly product: string | null;
 }
 
 export interface DrugScreenModel {
@@ -533,7 +541,26 @@ export function buildDrugScreen(input: DrugScreenInput): DrugScreenModel | null 
       relatedAccordion: !product,
       related: drugRelatedProducts(input.sourceProducts, product, input.mfgCountries),
       atc: drugAtcCodes(atcSource, product),
+      compare: compareLinkOf(input, product),
     },
+  };
+}
+
+const MNN_ID_PREFIX = 'esklp.mnn.';
+
+function compareLinkOf(
+  input: DrugScreenInput,
+  product: MedicationProduct | undefined,
+): DrugCompareLink | null {
+  const id = product
+    ? (product.mnnDocumentId ?? product.linkedMnnDocumentId)
+    : input.source && isEsklpSubstanceDocument(input.source)
+      ? input.source.id
+      : null;
+  if (!id?.startsWith(MNN_ID_PREFIX)) return null;
+  return {
+    slug: id.slice(MNN_ID_PREFIX.length),
+    product: product ? displayDrugName(product.tradeName) : null,
   };
 }
 

@@ -417,6 +417,11 @@ function deferEnrichment(
 }
 
 /** «Календарь прививок» ships its 100 KB of transcribed tables only when it is opened. */
+const DrugComparisonWorkspace = lazy(() =>
+  import('@/features/drug-comparison/DrugComparisonWorkspace').then((module) => ({
+    default: module.DrugComparisonWorkspace,
+  })),
+);
 const DrugInteractionWorkspace = lazy(() =>
   import('@/features/drug-interactions/DrugInteractionWorkspace').then((module) => ({
     default: module.DrugInteractionWorkspace,
@@ -947,6 +952,10 @@ export function NotesView(props: {
     const current = route();
     return current.kind === 'vaccination' ? current : null;
   });
+  const drugComparisonRoute = createMemo(() => {
+    const current = route();
+    return current.kind === 'drug-comparison' ? current : null;
+  });
   const drugInteractionsRoute = createMemo(() => {
     const current = route();
     return current.kind === 'drug-interactions' ? current : null;
@@ -1277,6 +1286,28 @@ export function NotesView(props: {
           >
             <VaccinationWorkspace
               initialPart={current().part}
+              onBack={() => {
+                if (window.history.length > 1) window.history.back();
+                else navigate(notesPath());
+              }}
+            />
+          </Suspense>
+        )}
+      </Show>
+      <Show when={props.active && drugComparisonRoute()}>
+        {(current) => (
+          <Suspense
+            fallback={
+              <p class="vax-loading" role="status">
+                Открываем «Сравнение препаратов»…
+              </p>
+            }
+          >
+            <DrugComparisonWorkspace
+              core={props.core}
+              {...(props.onContentChanged ? { onContentChanged: props.onContentChanged } : {})}
+              initialNames={current().names}
+              initialDrugs={current().drugs}
               onBack={() => {
                 if (window.history.length > 1) window.history.back();
                 else navigate(notesPath());
