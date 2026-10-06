@@ -106,6 +106,7 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
+| 2026-10-06 | claude-opus (LIB-KEY) | «Ваши документы»: keyed, stable library cards across ingest/thumbnail/progress updates (focus on «⋯» survives); e2e regression | `apps/app/src/features/library/UserLibraryPage.tsx`, `apps/app/src/state/user-library*.ts`, `apps/app/src/state/thumbnails.ts`, `apps/app/e2e/user-library-doc-menu.spec.ts` |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 
 ## Next (claimed, not started)
