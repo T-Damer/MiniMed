@@ -1,6 +1,9 @@
 import { createWorker, type Worker } from 'tesseract.js';
 import workerPath from 'tesseract.js/dist/worker.min.js?url';
 import corePath from 'tesseract.js-core/tesseract-core-lstm.wasm.js?url';
+import { ensureOcrLanguagePackFiles } from '@/features/ocr/ocr-language-pack';
+import { OCR_LANGUAGES } from '@/features/ocr/ocr-language-pack-catalog';
+import { OCR_TESSERACT_CACHE_PATH } from '@/features/ocr/ocr-language-pack-store';
 import { backgroundParity, PARITY_PRIORITIES } from '@/state/parity-controller';
 import { loadPdfJsDocument, type PdfPageProxy } from '@/state/pdfjs-document';
 import {
@@ -30,7 +33,6 @@ const TEXT_CHUNK_SIZE = 1200;
 const OCR_PAGE_DELAY_MS = 600;
 const OCR_WORKER_INIT_TIMEOUT_MS = 20_000;
 const OCR_WORKER_INIT_MAX_ATTEMPTS = 2;
-const OCR_LANGUAGES = 'rus+eng';
 const OCR_OEM = 1;
 
 let ingestLoopRunning = false;
@@ -271,15 +273,28 @@ function extractTesseractWords(
 async function ensureOcrWorker(): Promise<Worker | null> {
   if (ocrWorker) return ocrWorker;
   if (ocrWorkerInitAttempts >= OCR_WORKER_INIT_MAX_ATTEMPTS) return null;
+  // The language files are not bundled: they come from the downloaded pack. Without it, documents
+  // waiting for OCR (requested before the pack was removed) are stopped with a reason instead of
+  // spinning forever.
+  if (!(await ensureOcrLanguagePackFiles())) {
+    await failAllOcrDocuments(
+      'Для распознавания текста нужен языковой пакет. Скачайте его в настройках («Функции ИИ») и запустите распознавание ещё раз.',
+    );
+    return null;
+  }
 
   ocrWorkerInitAttempts += 1;
-  const langPath = new URL('tessdata/', `${window.location.origin}/`).href;
+  // tesseract.js reads the verified files from `cachePath` (read-only). `langPath` is never
+  // fetched when they are there; it only keeps tesseract.js from falling back to its default CDN.
+  const langPath = new URL('ocr-language-pack-not-bundled/', `${window.location.origin}/`).href;
   try {
     ocrWorker = await withTimeout(
       createWorker(OCR_LANGUAGES, OCR_OEM, {
         workerPath,
         corePath,
         langPath,
+        cachePath: OCR_TESSERACT_CACHE_PATH,
+        cacheMethod: 'readOnly',
         workerBlobURL: false,
       }),
       OCR_WORKER_INIT_TIMEOUT_MS,
@@ -291,12 +306,12 @@ async function ensureOcrWorker(): Promise<Worker | null> {
     console.error('Не удалось инициализировать OCR.', {
       workerPath,
       corePath,
-      langPath,
+      cachePath: OCR_TESSERACT_CACHE_PATH,
       cause,
     });
     if (ocrWorkerInitAttempts >= OCR_WORKER_INIT_MAX_ATTEMPTS) {
       await failAllOcrDocuments(
-        'Не удалось запустить распознавание текста на устройстве. Проверьте, что файлы tessdata доступны в сборке.',
+        'Не удалось запустить распознавание текста на устройстве. Переустановите языковой пакет в настройках («Функции ИИ»).',
       );
     }
     return null;
@@ -304,6 +319,9 @@ async function ensureOcrWorker(): Promise<Worker | null> {
 }
 
 async function disposeOcrWorker(): Promise<void> {
+  // The queue is empty: a later request starts with a fresh attempt budget (the language pack may
+  // have been reinstalled meanwhile).
+  ocrWorkerInitAttempts = 0;
   if (!ocrWorker) return;
   await ocrWorker.terminate();
   ocrWorker = undefined;

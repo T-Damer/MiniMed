@@ -15,6 +15,7 @@ const KIND_LABELS: Readonly<Record<DownloadKind, string>> = {
   module: 'Набор документов',
   images: 'Изображения',
   ecg: 'ЭКГ',
+  ocr: 'Распознавание текста',
   speech: 'Распознавание речи',
   model: 'Локальная модель',
   document: 'Файл',

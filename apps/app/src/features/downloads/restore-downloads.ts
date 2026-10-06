@@ -44,6 +44,16 @@ export async function restoreDownloadIntents(): Promise<void> {
       ) {
         restore = () => ecg.installEcgPackage(new AbortController().signal, () => undefined);
       }
+    } else if (recipe.kind === 'ocr-language-pack') {
+      const ocr = await import('@/features/ocr/ocr-language-pack');
+      const catalog = await import('@/features/ocr/ocr-language-pack-catalog');
+      if (
+        task.id === ocr.OCR_DOWNLOAD_ID &&
+        recipe.id === task.id &&
+        recipe.version === catalog.OCR_LANGUAGE_PACK_VERSION
+      ) {
+        restore = () => ocr.installOcrLanguagePack();
+      }
     } else if (recipe.kind === 'speech') {
       const [asr, protocol] = await Promise.all([
         import('@/features/asr/asr-models'),

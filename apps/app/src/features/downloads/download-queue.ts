@@ -4,6 +4,7 @@ export type DownloadKind =
   | 'module'
   | 'images'
   | 'ecg'
+  | 'ocr'
   | 'speech'
   | 'model'
   | 'document'
@@ -21,7 +22,7 @@ export type DownloadPhase =
   | 'interrupted';
 
 export interface DownloadResume {
-  readonly kind: 'reference-images' | 'ecg-package' | 'speech';
+  readonly kind: 'reference-images' | 'ecg-package' | 'ocr-language-pack' | 'speech';
   readonly id: string;
   readonly version: string;
 }
@@ -91,6 +92,7 @@ const KINDS = new Set<DownloadKind>([
   'module',
   'images',
   'ecg',
+  'ocr',
   'speech',
   'model',
   'document',
@@ -598,7 +600,9 @@ export class DownloadQueue {
         const safeResume: DownloadResume | undefined =
           resume &&
           typeof resume === 'object' &&
-          ['reference-images', 'ecg-package', 'speech'].includes(resume.kind) &&
+          ['reference-images', 'ecg-package', 'ocr-language-pack', 'speech'].includes(
+            resume.kind,
+          ) &&
           safeText(resume.id, 256) &&
           safeText(resume.version, 200)
             ? { kind: resume.kind, id: resume.id, version: resume.version }

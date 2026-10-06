@@ -20,6 +20,11 @@ import {
   REFERENCE_IMAGES_DOWNLOAD_ID,
 } from '@/features/library/reference-image-assets';
 import { isModuleReleased } from '@/features/modules/local-packaged-modules';
+import {
+  isOcrLanguagePackInstalled,
+  OCR_DOWNLOAD_ID,
+  subscribeOcrLanguagePack,
+} from '@/features/ocr/ocr-language-pack';
 import { sectionManifest } from '@/features/sections/section-manifest';
 import { buildSections, installState, sectionModules } from '@/features/sections/section-model';
 import { useModuleInstaller } from '@/features/sections/use-module-installer';
@@ -40,6 +45,7 @@ import {
   e5Readiness,
   ecgReadiness,
   generalStatus,
+  ocrReadiness,
   type PatientVaultState,
   referenceImagesStatus,
   type SettingsStatus,
@@ -80,6 +86,7 @@ export function useSettingsStatuses(inputs: SettingsStatusInputs): Accessor<Sett
   const [asrSelected, setAsrSelected] = createSignal<string | null>(selectedAsrModelId());
   const [asrCached, setAsrCached] = createSignal(false);
   const [ecgState, setEcgState] = createSignal(ecgPackageStatus().state);
+  const [ocrInstalled, setOcrInstalled] = createSignal(isOcrLanguagePackInstalled());
   const [scheme, setScheme] = createSignal<ColorScheme>('light');
   const [vault, setVault] = createSignal<PatientVaultState>('checking');
 
@@ -106,6 +113,7 @@ export function useSettingsStatuses(inputs: SettingsStatusInputs): Accessor<Sett
 
     const onQueue = () => setTasks(queue.list());
     const syncEcg = () => setEcgState(ecgPackageStatus().state);
+    const syncOcr = () => setOcrInstalled(isOcrLanguagePackInstalled());
 
     const media = window.matchMedia('(prefers-color-scheme: dark)');
     const onScheme = () => setScheme(media.matches ? 'dark' : 'light');
@@ -123,6 +131,7 @@ export function useSettingsStatuses(inputs: SettingsStatusInputs): Accessor<Sett
       subscribeAsr(syncAsr),
       subscribeEcgModel(syncEcg),
       subscribeEcgDiagnosticModel(syncEcg),
+      subscribeOcrLanguagePack(syncOcr),
     ];
     onCleanup(() => {
       disposed = true;
@@ -175,6 +184,7 @@ export function useSettingsStatuses(inputs: SettingsStatusInputs): Accessor<Sett
           ASR_MODELS.some((model) => taskActive(downloadTask(asrDownloadId(model.id)))),
         ),
         ecgReadiness(ecgState(), taskActive(downloadTask(ECG_DOWNLOAD_ID))),
+        ocrReadiness(ocrInstalled(), taskActive(downloadTask(OCR_DOWNLOAD_ID))),
       ]),
       images: imagesBase(),
       appearance: appearanceStatus(scheme()),

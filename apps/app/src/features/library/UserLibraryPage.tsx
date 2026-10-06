@@ -31,6 +31,8 @@ import {
   notesPatientsPath,
   notesTemplatesPath,
 } from '@/features/notes/notes-routing';
+import { OcrLanguagePackSheet } from '@/features/ocr/OcrLanguagePackSheet';
+import { ensureOcrLanguagePackFiles } from '@/features/ocr/ocr-language-pack';
 import { getPluralMessage } from '@/i18n/browser-i18n';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
 import { saveBlobAsFile, shareSystemFile } from '@/state/native-share';
@@ -1015,7 +1017,7 @@ export function UserLibraryPage(props: {
 
   onCleanup(() => stopTouchDrag());
 
-  const requestOcr = async (
+  const startOcr = async (
     document: UserLibraryDocument,
     quality: UserLibraryOcrQuality,
   ): Promise<void> => {
@@ -1030,6 +1032,39 @@ export function UserLibraryPage(props: {
     } catch (cause) {
       toast.error(cause instanceof Error ? cause.message : 'Не удалось запустить OCR.');
     }
+  };
+
+  // OCR needs the downloaded language pack: without it the request waits behind the download
+  // prompt, and starts by itself once the pack is on the device.
+  const [pendingOcr, setPendingOcr] = createSignal<{
+    readonly document: UserLibraryDocument;
+    readonly quality: UserLibraryOcrQuality;
+  } | null>(null);
+  const [ocrPackPromptOpen, setOcrPackPromptOpen] = createSignal(false);
+
+  const requestOcr = async (
+    document: UserLibraryDocument,
+    quality: UserLibraryOcrQuality,
+  ): Promise<void> => {
+    try {
+      if (!(await ensureOcrLanguagePackFiles())) {
+        setPendingOcr({ document, quality });
+        setOcrPackPromptOpen(true);
+        return;
+      }
+    } catch (cause) {
+      console.warn('Языковой пакет OCR не проверен.', cause);
+      toast.error('Не удалось проверить языковой пакет для распознавания текста.');
+      return;
+    }
+    await startOcr(document, quality);
+  };
+
+  const ocrPackReady = (): void => {
+    const request = pendingOcr();
+    setPendingOcr(null);
+    setOcrPackPromptOpen(false);
+    if (request) void startOcr(request.document, request.quality);
   };
 
   const unpackArchive = async (document: UserLibraryDocument): Promise<void> => {
@@ -2133,6 +2168,12 @@ export function UserLibraryPage(props: {
             )}
           </Show>
         </OverlayDialog>
+
+        <OcrLanguagePackSheet
+          open={ocrPackPromptOpen()}
+          onClose={() => setOcrPackPromptOpen(false)}
+          onReady={ocrPackReady}
+        />
 
         <ConfirmationDialog
           open={confirmExitSelection()}

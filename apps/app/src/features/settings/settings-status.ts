@@ -144,6 +144,12 @@ export function asrReadiness(
   return selectedModel !== null && modelOnDevice ? 'ready' : 'missing';
 }
 
+/** The OCR language pack is a single stored pack: on the device or not. */
+export function ocrReadiness(installed: boolean, downloading: boolean): FeatureReadiness {
+  if (downloading) return 'working';
+  return installed ? 'ready' : 'missing';
+}
+
 export function ecgReadiness(state: EcgPackageState, downloading: boolean): FeatureReadiness {
   if (downloading) return 'working';
   if (state === 'installed') return 'ready';

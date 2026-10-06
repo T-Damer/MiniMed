@@ -13,6 +13,7 @@ import {
   ecgReadiness,
   formatStorageSize,
   generalStatus,
+  ocrReadiness,
   patientStorageDescription,
   referenceImagesStatus,
 } from '@/features/settings/settings-status';
@@ -182,6 +183,9 @@ describe('settings statuses', () => {
     expect(ecgReadiness('outdated', false)).toBe('update');
     expect(ecgReadiness('partial', false)).toBe('missing');
     expect(ecgReadiness('missing', true)).toBe('working');
+    expect(ocrReadiness(true, false)).toBe('ready');
+    expect(ocrReadiness(false, false)).toBe('missing');
+    expect(ocrReadiness(false, true)).toBe('working');
   });
 
   it('describes the patient storage in plain words', () => {
