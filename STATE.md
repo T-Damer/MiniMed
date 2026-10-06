@@ -106,6 +106,7 @@ WebView: `apps/app/**` boot, motion and reader work â€” claude-coordinator (W1â€
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
+| 2026-10-06 | claude-opus (LIB-KEY2) | cards keep their node and focus when files are inserted/reordered (fixed row slots + per-item node cache in `LayoutVirtualizedGrid`), then release 0.6.53 | `apps/app/src/components/LayoutVirtualizedGrid.tsx`, `apps/app/src/state/layout-columns.ts`, `apps/app/e2e/user-library-doc-menu.spec.ts`, release files |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 
 ## Next (claimed, not started)
