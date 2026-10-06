@@ -78,6 +78,10 @@ import { type SearchMeaning, SearchMeaningChoices } from '@/features/search/Sear
 import { SearchResultGroupCard } from '@/features/search/SearchResultGroupCard';
 import { SearchResultsSkeleton } from '@/features/search/SearchResultsSkeleton';
 import { sameSearchOutcome } from '@/features/search/search-refresh';
+import {
+  presentSourceChunkText,
+  sourceContextKicker,
+} from '@/features/search/search-result-presentation';
 import '@/features/search/search-refresh.css';
 import { createLingeringFlag } from '@/features/search/search-skeleton';
 import '@/features/search/search-results-skeleton.css';
@@ -1452,7 +1456,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                 <article class="reader-card paper-card" data-testid="reader-context">
                   <header class="reader-header">
                     <div class="reader-header__content">
-                      <p class="archive-kicker">В клинических рекомендациях</p>
+                      <p class="archive-kicker">{sourceContextKicker(resolved().document)}</p>
                       <h2 class="reader-header__title">{resolved().document.title}</h2>
                     </div>
                     <div class="reader-header__actions">
@@ -1490,7 +1494,9 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                             <span class="margin-note">НАЙДЕНО</span>
                           </Show>
                           <DocumentText
-                            text={chunk.originalText}
+                            text={presentSourceChunkText(chunk.originalText, [
+                              resolved().section.title,
+                            ])}
                             paragraphClass="document-text__paragraph"
                             onReference={searchReference}
                             core={props.core}

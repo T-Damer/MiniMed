@@ -1,5 +1,7 @@
-import type { SearchResult, TextRange } from '@localmed/contracts';
+import type { MedicalDocumentSummary, SearchResult, TextRange } from '@localmed/contracts';
+import { isIcd11Document } from '@/features/icd11/icd11-document';
 import { TECHNICAL_SECTION_TITLES } from '@/features/library/document-display';
+import { searchResultDocumentKind } from '@/features/search/ScopedMedicalCore';
 
 /** How a technical section is named in a result line. */
 const TECHNICAL_SECTION_LABELS: Readonly<Record<string, string>> = {
@@ -129,4 +131,45 @@ export function presentResultSnippet(
         (range) => range.start >= 0 && range.end <= trimmed.length && range.end > range.start,
       ),
   };
+}
+
+/** What the source overlay says it is looking into, by the kind of document that holds the text. */
+export function sourceContextKicker(
+  document: Pick<MedicalDocumentSummary, 'sourceType' | 'metadata'>,
+): string {
+  if (isIcd11Document(document)) return 'В классификации МКБ-11';
+  switch (searchResultDocumentKind(document)) {
+    case 'medication':
+      return document.sourceType === 'official_drug_instruction'
+        ? 'В инструкции к препарату'
+        : 'В справочнике по препаратам';
+    case 'clinical-recommendation':
+      return 'В клинических рекомендациях';
+    case 'legal':
+      return 'В нормативном акте';
+    case 'calculator':
+      return 'В описании калькулятора';
+    case 'assessment':
+      return 'В описании опросника';
+    case 'reference':
+      return document.sourceType === 'rls_mkb_reference' ? 'В справочнике МКБ-10' : 'В справочнике';
+  }
+}
+
+/**
+ * A source fragment's text for the overlay: a technical card's catalogue labels, empty fields and
+ * storage notes dropped as in a result line, the document's own text untouched. Never empty when
+ * the source text is not.
+ */
+export function presentSourceChunkText(text: string, sectionPath: readonly string[]): string {
+  const presented = presentResultSnippet({
+    snippet: text,
+    highlightedRanges: [],
+    sectionPath,
+  }).text;
+  const tidy = presented
+    .replace(/[ \t]+\n/gu, '\n')
+    .replace(/\n{3,}/gu, '\n\n')
+    .trim();
+  return tidy.length > 0 ? tidy : text;
 }

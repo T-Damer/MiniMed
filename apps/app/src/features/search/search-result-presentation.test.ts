@@ -3,6 +3,8 @@ import {
   displaySectionPath,
   orderResultsForDisplay,
   presentResultSnippet,
+  presentSourceChunkText,
+  sourceContextKicker,
 } from '@/features/search/search-result-presentation';
 
 const POINTER =
@@ -71,5 +73,39 @@ describe('displaySectionPath', () => {
   it('names technical sections in reader words', () => {
     expect(displaySectionPath(['Сведения о документе'])).toEqual(['О документе']);
     expect(displaySectionPath(['Лечение'])).toEqual(['Лечение']);
+  });
+});
+
+describe('sourceContextKicker', () => {
+  const kicker = (sourceType: string, metadata?: Record<string, unknown>): string =>
+    sourceContextKicker({ sourceType, metadata });
+
+  it('names the kind of document the fragment comes from', () => {
+    expect(kicker('clinical_recommendation')).toBe('В клинических рекомендациях');
+    expect(kicker('official_drug_instruction')).toBe('В инструкции к препарату');
+    expect(kicker('allmed_reference')).toBe('В справочнике по препаратам');
+    expect(kicker('regulatory_act_federal_law')).toBe('В нормативном акте');
+    expect(kicker('rls_mkb_reference')).toBe('В справочнике МКБ-10');
+    expect(kicker('medical_reference')).toBe('В справочнике');
+    expect(kicker('core_catalog_pointer', { catalogFamily: 'medication' })).toBe(
+      'В справочнике по препаратам',
+    );
+    expect(kicker('core_catalog_pointer', { catalogFamily: 'legal' })).toBe('В нормативном акте');
+    expect(kicker('x', { interactiveAssessmentId: 'phq-9' })).toBe('В описании опросника');
+  });
+});
+
+describe('presentSourceChunkText', () => {
+  it('drops catalogue clauses from a technical card, keeps the rest', () => {
+    const text =
+      'Название: Эпилепсия у детей. Объявленные алиасы: ЭС. Официальный идентификатор: 741_1. Ключевые слова: не указано в каталоге. Полные данные находятся в скачиваемом модуле «minimed-x» и не дублируются в ядре.';
+    expect(presentSourceChunkText(text, ['Сведения о документе'])).toBe('Другие названия: ЭС.');
+  });
+
+  it('leaves the document’s own text and an all-technical chunk as they are', () => {
+    const own = 'Название: так в тексте. Объявленные алиасы: тоже.';
+    expect(presentSourceChunkText(own, ['Лечение'])).toBe(own);
+    const empty = 'Название: Эпилепсия.';
+    expect(presentSourceChunkText(empty, ['Сведения о документе'])).toBe(empty);
   });
 });
