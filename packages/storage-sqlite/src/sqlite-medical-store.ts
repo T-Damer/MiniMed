@@ -543,6 +543,8 @@ export interface SqliteIntegrityReport {
  */
 const LEXICAL_OVERFETCH = 4;
 const LEXICAL_CHUNKS_PER_DOCUMENT = 3;
+/** A document filter up to this size is also narrowed to the documents' chunk rowid span. */
+const ROWID_BOUND_MAX_DOCUMENTS = 64;
 
 export interface OpfsOpenOptions {
   readonly fetchTimeoutMs?: number;
@@ -555,6 +557,7 @@ export interface OpfsOpenOptions {
 
 export class SqliteMedicalStore implements MedicalStore {
   private initialized = false;
+  private externalContentFts: boolean | undefined;
   private referenceDispatch: ReturnType<typeof createDefinitionReferenceDispatch> | undefined;
   private embeddingProfiles: readonly EmbeddingProfile[] | undefined;
   private readonly vectorIndexes = new Map<string, VectorIndex>();
@@ -1307,19 +1310,50 @@ export class SqliteMedicalStore implements MedicalStore {
     const candidateLimit = Math.min(500, request.limit);
     const clauses = ['chunks_fts MATCH ?'];
     const bind: BindableValue[] = [request.ftsQuery];
+    // Migration 010 packs index chunks through an external-content view, and the FTS rowid is the
+    // chunk's rowid. Reading `chunks_fts.document_id` / `chunk_id` there makes FTS5 materialise the
+    // whole source-view row (four joins, the chunk text, string and JSON functions) for every
+    // match: ~1 s of CPU natively for a lookup whose phrases match 100 000 chunks, and 20-45 s in
+    // wasm over OPFS. For those packs every filter column is reached through the base tables by
+    // rowid instead; CROSS JOIN keeps the FTS table as the outer loop (one primary-key probe per
+    // match). Older packs store the identity columns in the FTS table itself (and their FTS rowids
+    // are not chunk rowids), so they keep reading them directly.
+    const external = this.usesExternalContentFts();
     const joins: string[] = [];
+    let chunksJoined = false;
+    let versionsJoined = false;
     let documentsJoined = false;
     let sectionsJoined = false;
 
+    const joinChunks = (): void => {
+      if (chunksJoined) return;
+      joins.push(
+        external
+          ? 'CROSS JOIN chunks c ON c.rowid = chunks_fts.rowid'
+          : 'JOIN chunks c ON c.id = chunks_fts.chunk_id',
+      );
+      chunksJoined = true;
+    };
+    const joinVersions = (): void => {
+      if (versionsJoined) return;
+      joinChunks();
+      joins.push('CROSS JOIN document_versions dv ON dv.id = c.document_version_id');
+      versionsJoined = true;
+    };
     const joinDocuments = (): void => {
       if (documentsJoined) return;
-      joins.push('JOIN documents d ON d.id = chunks_fts.document_id');
+      if (external) {
+        joinVersions();
+        joins.push('CROSS JOIN documents d ON d.id = dv.document_id');
+      } else {
+        joins.push('JOIN documents d ON d.id = chunks_fts.document_id');
+      }
       documentsJoined = true;
     };
     const joinSections = (): void => {
       if (sectionsJoined) return;
-      joins.push('JOIN chunks c ON c.id = chunks_fts.chunk_id');
-      joins.push('JOIN sections s ON s.id = c.section_id');
+      joinChunks();
+      joins.push(`${external ? 'CROSS ' : ''}JOIN sections s ON s.id = c.section_id`);
       sectionsJoined = true;
     };
 
@@ -1328,9 +1362,35 @@ export class SqliteMedicalStore implements MedicalStore {
       // document sets (hundreds of IDs), which can exhaust the WASM SQLite heap with
       // SQLITE_NOMEM. Binding the IDs as one JSON array and scanning it via json_each keeps
       // the parameter count constant regardless of how many documents are selected.
-      joinDocuments();
-      clauses.push('d.id IN (SELECT value FROM json_each(?))');
-      bind.push(JSON.stringify(request.filters.documentIds));
+      const documentIdsJson = JSON.stringify(request.filters.documentIds);
+      if (external) {
+        if (request.filters.documentIds.length <= ROWID_BOUND_MAX_DOCUMENTS) {
+          // The few documents of an exact-identity lookup (core pointers, one card) own a short
+          // span of chunk rowids. A rowid range is one FTS5 seek, so only the matches inside it
+          // are ranked, not every match of the expression (~0.2 s native, ~1 s wasm for «ОРВИ»);
+          // the exact filter below still decides membership. A pack that holds none of the
+          // documents (most mounted modules) answers without running the FTS query at all.
+          const [span] = queryRows(
+            this.database,
+            `SELECT min(c.rowid) AS lowest, max(c.rowid) AS highest
+             FROM document_versions dv
+             CROSS JOIN chunks c ON c.document_version_id = dv.id
+             WHERE dv.document_id IN (SELECT value FROM json_each(?))`,
+            [documentIdsJson],
+          );
+          const lowest = span ? readNullableNumber(span, 'lowest') : null;
+          const highest = span ? readNullableNumber(span, 'highest') : null;
+          if (lowest === null || highest === null) return [];
+          clauses.push('chunks_fts.rowid BETWEEN ? AND ?');
+          bind.push(lowest, highest);
+        }
+        joinVersions();
+        clauses.push('dv.document_id IN (SELECT value FROM json_each(?))');
+      } else {
+        joinDocuments();
+        clauses.push('d.id IN (SELECT value FROM json_each(?))');
+      }
+      bind.push(documentIdsJson);
     }
     if (request.filters.sectionTypes?.length) {
       joinSections();
@@ -1481,6 +1541,14 @@ export class SqliteMedicalStore implements MedicalStore {
   public async close(): Promise<void> {
     if (this.database.isOpen()) this.database.close();
     this.initialized = false;
+  }
+
+  /** Migration 010 layout: `chunks_fts` reads its columns from `chunks_fts_source` by chunk rowid. */
+  private usesExternalContentFts(): boolean {
+    this.externalContentFts ??= String(
+      this.database.selectValue("SELECT sql FROM sqlite_master WHERE name = 'chunks_fts'") ?? '',
+    ).includes('chunks_fts_source');
+    return this.externalContentFts;
   }
 
   private assertInitialized(): void {

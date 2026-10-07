@@ -380,6 +380,7 @@ export class CapacitorMedicalStore implements MedicalStore {
   private nativeSession: NativeDatabaseSession | undefined;
   private opening: Promise<NativeDatabaseSession> | undefined;
   private closing: Promise<void> | undefined;
+  private externalContentFts: Promise<boolean> | undefined;
 
   public constructor(private readonly options: CapacitorMedicalStoreOptions) {
     this.plugin = options.plugin ?? LocalMedDatabase;
@@ -730,25 +731,59 @@ export class CapacitorMedicalStore implements MedicalStore {
     const candidateLimit = Math.min(500, request.limit);
     const clauses = ['chunks_fts MATCH ?'];
     const bind: NativeSqlValue[] = [request.ftsQuery];
+    // Migration 010 packs index chunks through an external-content view, and the FTS rowid is the
+    // chunk's rowid. Reading `chunks_fts.document_id` / `chunk_id` there makes FTS5 materialise the
+    // whole source-view row for every match (see SqliteMedicalStore.search); those packs reach
+    // every filter column through the base tables by rowid instead. CROSS JOIN keeps the FTS table
+    // as the outer loop. Older packs store the identity columns (and their FTS rowids are not
+    // chunk rowids), so they keep reading them directly.
+    const external = await this.usesExternalContentFts();
     const joins: string[] = [];
+    let chunksJoined = false;
+    let versionsJoined = false;
     let documentsJoined = false;
     let sectionsJoined = false;
 
+    const joinChunks = (): void => {
+      if (chunksJoined) return;
+      joins.push(
+        external
+          ? 'CROSS JOIN chunks c ON c.rowid = chunks_fts.rowid'
+          : 'JOIN chunks c ON c.id = chunks_fts.chunk_id',
+      );
+      chunksJoined = true;
+    };
+    const joinVersions = (): void => {
+      if (versionsJoined) return;
+      joinChunks();
+      joins.push('CROSS JOIN document_versions dv ON dv.id = c.document_version_id');
+      versionsJoined = true;
+    };
     const joinDocuments = (): void => {
       if (documentsJoined) return;
-      joins.push('JOIN documents d ON d.id = chunks_fts.document_id');
+      if (external) {
+        joinVersions();
+        joins.push('CROSS JOIN documents d ON d.id = dv.document_id');
+      } else {
+        joins.push('JOIN documents d ON d.id = chunks_fts.document_id');
+      }
       documentsJoined = true;
     };
     const joinSections = (): void => {
       if (sectionsJoined) return;
-      joins.push('JOIN chunks c ON c.id = chunks_fts.chunk_id');
-      joins.push('JOIN sections s ON s.id = c.section_id');
+      joinChunks();
+      joins.push(`${external ? 'CROSS ' : ''}JOIN sections s ON s.id = c.section_id`);
       sectionsJoined = true;
     };
 
     if (request.filters.documentIds?.length) {
-      joinDocuments();
-      clauses.push(`d.id IN (${placeholders(request.filters.documentIds.length)})`);
+      if (external) {
+        joinVersions();
+        clauses.push(`dv.document_id IN (${placeholders(request.filters.documentIds.length)})`);
+      } else {
+        joinDocuments();
+        clauses.push(`d.id IN (${placeholders(request.filters.documentIds.length)})`);
+      }
       bind.push(...request.filters.documentIds);
     }
     if (request.filters.sectionTypes?.length) {
@@ -856,6 +891,13 @@ export class CapacitorMedicalStore implements MedicalStore {
     this.nativeHealth = undefined;
     this.initialized = false;
     if (session) await releaseNativeDatabase(this.plugin, session);
+  }
+
+  private usesExternalContentFts(): Promise<boolean> {
+    this.externalContentFts ??= this.query(
+      "SELECT sql FROM sqlite_master WHERE name = 'chunks_fts'",
+    ).then((rows) => String(rows[0]?.['sql'] ?? '').includes('chunks_fts_source'));
+    return this.externalContentFts;
   }
 
   private async query(sql: string, args: readonly NativeSqlValue[] = []): Promise<NativeSqlRow[]> {

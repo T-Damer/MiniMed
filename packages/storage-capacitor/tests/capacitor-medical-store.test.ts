@@ -73,6 +73,8 @@ class FakeNativePlugin implements LocalMedDatabasePlugin {
   openCount = 0;
   closeCount = 0;
   closed = false;
+  /** What `sqlite_master` reports for `chunks_fts`: a stored-column table unless a test says otherwise. */
+  ftsDefinition = 'CREATE VIRTUAL TABLE chunks_fts USING fts5(chunk_id UNINDEXED)';
 
   async openPack() {
     this.openCount += 1;
@@ -93,6 +95,7 @@ class FakeNativePlugin implements LocalMedDatabasePlugin {
     if (this.closed) throw new Error('native database is closed');
     this.calls.push(options);
 
+    if (options.sql.includes("name = 'chunks_fts'")) return { rows: [{ sql: this.ftsDefinition }] };
     if (options.sql.includes('current_version_id FROM documents')) {
       const row = fixtureRow();
       return { rows: [{ id: row.id, current_version_id: row.version_id }] };
@@ -309,7 +312,9 @@ describe('CapacitorMedicalStore', () => {
       document: { id: CORE_SLICE.pneumonia },
       rank: 2.5,
     });
-    expect(plugin.calls).toHaveLength(2);
+    // One probe for the FTS layout (cached for the store's life), then the two search statements.
+    expect(plugin.calls).toHaveLength(3);
+    expect(plugin.calls[0]?.sql).toContain("name = 'chunks_fts'");
     const candidateCall = plugin.calls.at(-2);
     const hydrationCall = plugin.calls.at(-1);
     expect(candidateCall?.sql).toContain('window_fts.chunk_id AS chunk_id');
@@ -339,6 +344,36 @@ describe('CapacitorMedicalStore', () => {
       5,
       5,
     ]);
+  });
+
+  it('reaches the filter columns of an external-content index through the base tables by rowid', async () => {
+    const plugin = new FakeNativePlugin();
+    plugin.ftsDefinition =
+      'CREATE VIRTUAL TABLE chunks_fts USING fts5(content = chunks_fts_source)';
+    const store = createStore(plugin);
+    await store.initialize();
+    await store.search({
+      ftsQuery: '"тахипноэ"*',
+      terms: ['тахипноэ'],
+      filters: { documentIds: ['a', 'b'], sectionTypes: ['diagnostics'] },
+      limit: 3,
+    });
+    const sql = plugin.calls.at(-2)?.sql ?? '';
+    expect(sql).toContain('CROSS JOIN chunks c ON c.rowid = chunks_fts.rowid');
+    expect(sql).toContain('dv.document_id IN (?, ?)');
+    expect(sql).not.toContain('chunks_fts.document_id');
+    expect(sql).not.toContain('chunks_fts.chunk_id AS');
+    // Stored-column packs keep the direct column reads (their FTS rowids are not chunk rowids).
+    const legacyPlugin = new FakeNativePlugin();
+    const legacy = createStore(legacyPlugin);
+    await legacy.initialize();
+    await legacy.search({
+      ftsQuery: '"тахипноэ"*',
+      terms: ['тахипноэ'],
+      filters: { documentIds: ['a'] },
+      limit: 3,
+    });
+    expect(legacyPlugin.calls.at(-2)?.sql).toContain('d.id = chunks_fts.document_id');
   });
 
   it('pushes specialty and age-group filters into native SQL and vector search', async () => {

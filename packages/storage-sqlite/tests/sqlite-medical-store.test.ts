@@ -381,6 +381,51 @@ describe('SqliteMedicalStore', () => {
     expect(excluded).toHaveLength(0);
   });
 
+  it('ranks a document-filtered search exactly like the unfiltered ranking restricted to it', async () => {
+    const store = await SqliteMedicalStore.create();
+    stores.push(store);
+    await store.initialize(CORE_SLICE_PACK);
+    const base = {
+      ftsQuery: '"пневмония"* OR "лечен"* OR "диагностик"*',
+      terms: ['пневмония', 'лечен', 'диагностик'],
+      limit: 200,
+      diversifyDocuments: false,
+    };
+    const everything = await store.search({ ...base, filters: {} });
+    const wanted = new Set([CORE_SLICE.pneumonia, CORE_SLICE.appendicitis]);
+    const expected = everything.filter((hit) => wanted.has(hit.document.id));
+    expect(expected.length).toBeGreaterThan(0);
+
+    const filtered = await store.search({ ...base, filters: { documentIds: [...wanted] } });
+    expect(filtered.map((hit) => [hit.chunk.id, hit.rank])).toEqual(
+      expected.map((hit) => [hit.chunk.id, hit.rank]),
+    );
+
+    // The narrower filters ride on the same joins; they only ever remove hits.
+    const section = expected[0]?.section.sectionType;
+    expect(section).toBeTruthy();
+    const sectionFiltered = await store.search({
+      ...base,
+      filters: { documentIds: [...wanted], sectionTypes: [section ?? 'overview'] },
+    });
+    expect(sectionFiltered.map((hit) => hit.chunk.id)).toEqual(
+      expected.filter((hit) => hit.section.sectionType === section).map((hit) => hit.chunk.id),
+    );
+  });
+
+  it('answers a document filter that names no document of the pack without a match', async () => {
+    const store = await SqliteMedicalStore.create();
+    stores.push(store);
+    await store.initialize(CORE_SLICE_PACK);
+    const hits = await store.search({
+      ftsQuery: '"пневмония"*',
+      terms: ['пневмония'],
+      filters: { documentIds: ['nonexistent-document-1', 'nonexistent-document-2'] },
+      limit: 10,
+    });
+    expect(hits).toEqual([]);
+  });
+
   it('applies specialty metadata filters before lexical and vector limits', async () => {
     const store = await SqliteMedicalStore.create();
     stores.push(store);
