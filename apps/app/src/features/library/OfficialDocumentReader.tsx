@@ -59,11 +59,11 @@ import {
 } from '@/features/library/document-reader-chrome';
 import { jumpReaderTo } from '@/features/library/document-reader-scroll';
 import { DocumentRichBlock } from '@/features/library/document-rich-block';
-import { documentTextSearchText } from '@/features/library/document-text-search';
 import {
   documentRenderBlockSearchText,
   resolveDocumentChunkItems,
 } from '@/features/library/document-rich-block-data';
+import { documentTextSearchText } from '@/features/library/document-text-search';
 import { RlsMedicationPackagingPanel } from '@/features/library/RlsMedicationPackagingPanel';
 import type { ResolvedReferenceImage } from '@/features/library/reference-image-assets';
 import { getReferenceImageResolver } from '@/features/library/reference-image-assets';
