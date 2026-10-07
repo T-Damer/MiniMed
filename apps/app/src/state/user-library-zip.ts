@@ -119,13 +119,34 @@ async function extractEntry(data: Uint8Array, entry: ZipEntry): Promise<Uint8Arr
   return result;
 }
 
-export async function readZipEntry(data: ArrayBuffer, path: string): Promise<Uint8Array | null> {
+export interface ZipReader {
+  readonly paths: readonly string[];
+  readonly read: (path: string) => Promise<Uint8Array | null>;
+}
+
+/**
+ * Reads the central directory once. A book with hundreds of chapters is read entry by entry; going
+ * through `readZipEntry` would parse the whole directory again for every chapter.
+ */
+export function createZipReader(data: ArrayBuffer): ZipReader {
   const bytes = new Uint8Array(data);
   const entries = readCentralDirectory(bytes);
-  const normalizedPath = path.replace(/\\/gu, '/');
-  const entry = entries.find((item) => item.path.replace(/\\/gu, '/') === normalizedPath);
-  if (!entry) return null;
-  return await extractEntry(bytes, entry);
+  const byPath = new Map<string, ZipEntry>();
+  for (const entry of entries) {
+    const normalized = entry.path.replace(/\\/gu, '/');
+    if (!byPath.has(normalized)) byPath.set(normalized, entry);
+  }
+  return {
+    paths: entries.map((entry) => entry.path.replace(/\\/gu, '/')),
+    read: async (path) => {
+      const entry = byPath.get(path.replace(/\\/gu, '/'));
+      return entry ? await extractEntry(bytes, entry) : null;
+    },
+  };
+}
+
+export async function readZipEntry(data: ArrayBuffer, path: string): Promise<Uint8Array | null> {
+  return await createZipReader(data).read(path);
 }
 
 export async function listZipEntries(data: ArrayBuffer): Promise<readonly string[]> {

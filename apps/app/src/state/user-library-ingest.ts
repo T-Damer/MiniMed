@@ -22,12 +22,17 @@ import {
   type UserLibraryPage,
   type UserLibraryWordBox,
 } from '@/state/user-library';
-import { extractUserLibraryText, userLibraryArchiveHasImages } from '@/state/user-library-formats';
+import {
+  extractUserLibraryText,
+  userLibraryArchiveHasImages,
+} from '@/state/user-library-formats';
 import { pageHasEnoughNativeText, pdfPageHasTextLayer } from '@/state/user-library-ingest-helpers';
+import { createInspectionRunner } from '@/state/user-library-inspection';
 import {
   normalizeUserLibraryTextPages,
   splitUserLibraryTextPages,
 } from '@/state/user-library-text-pages';
+import type { InspectionProgress } from '@/state/user-library-watchdog';
 
 const TEXT_CHUNK_SIZE = 1200;
 const OCR_PAGE_DELAY_MS = 600;
@@ -339,18 +344,39 @@ async function resumeQueuedOcr(documentId: string): Promise<void> {
   await requestUserLibraryOcr(documentId, current.ocrQuality);
 }
 
-export async function processNewDocument(documentId: string): Promise<void> {
+async function readInspectingDocument(
+  documentId: string,
+  progress: InspectionProgress,
+): Promise<void> {
   const blob = await getUserLibraryFile(documentId);
   const meta = await getUserLibraryDocument(documentId);
   if (!blob || !meta || meta.status !== 'inspecting') return;
+  progress.touch();
+
+  // Every write first checks that this read was not abandoned by the watchdog meanwhile.
+  const putPage = async (page: UserLibraryPage): Promise<void> => {
+    progress.assertActive();
+    await putUserLibraryPage(page);
+    progress.touch();
+  };
+  const patchProcessing = async (
+    patch: Parameters<typeof patchUserLibraryDocumentProcessing>[1],
+  ): Promise<void> => {
+    progress.assertActive();
+    await patchUserLibraryDocumentProcessing(documentId, patch);
+    progress.touch();
+  };
 
   if (isUserLibraryTextLikeMime(meta.mimeType, meta.fileName)) {
     const data = await blob.arrayBuffer();
-    const text = await extractUserLibraryText(meta.fileName, meta.mimeType, data);
+    progress.touch();
+    const text = await extractUserLibraryText(meta.fileName, meta.mimeType, data, progress.touch);
+    progress.touch();
     const chunks = splitTextIntoPages(text, meta.mimeType);
     const hasImages = await userLibraryArchiveHasImages(meta.fileName, meta.mimeType, data);
+    progress.touch();
     for (let pageIndex = 0; pageIndex < chunks.length; pageIndex += 1) {
-      await putUserLibraryPage({
+      await putPage({
         documentId,
         pageIndex,
         kind: 'native',
@@ -358,7 +384,7 @@ export async function processNewDocument(documentId: string): Promise<void> {
       });
       await yieldToEventLoop();
     }
-    await patchUserLibraryDocumentProcessing(documentId, {
+    await patchProcessing({
       pageCount: chunks.length,
       nativeTextPages: chunks.length,
       ocrDonePages: 0,
@@ -372,8 +398,8 @@ export async function processNewDocument(documentId: string): Promise<void> {
   }
 
   if (isUserLibraryImageMime(meta.mimeType)) {
-    await putUserLibraryPage({ documentId, pageIndex: 0, kind: 'empty', text: '' });
-    await patchUserLibraryDocumentProcessing(documentId, {
+    await putPage({ documentId, pageIndex: 0, kind: 'empty', text: '' });
+    await patchProcessing({
       pageCount: 1,
       nativeTextPages: 0,
       ocrNeededPages: 0,
@@ -388,7 +414,7 @@ export async function processNewDocument(documentId: string): Promise<void> {
   if (!isUserLibraryPdfMime(meta.mimeType)) {
     // Unknown binary (json, zip, video, …): nothing to extract — keep the file
     // downloadable in the reader instead of failing PDF inspection.
-    await patchUserLibraryDocumentProcessing(documentId, {
+    await patchProcessing({
       pageCount: 0,
       nativeTextPages: 0,
       ocrNeededPages: 0,
@@ -400,6 +426,13 @@ export async function processNewDocument(documentId: string): Promise<void> {
   }
 
   const pdf = await loadPdfJsDocument(blob);
+  // A stuck read releases the document so a hung worker call fails instead of waiting forever.
+  progress.onCancel(() => {
+    pdf.destroy().catch((cause: unknown) => {
+      console.warn('Не удалось освободить PDF после отмены чтения.', cause);
+    });
+  });
+  progress.touch();
   try {
     const pageCount = pdf.numPages;
     let nativeTextPages = 0;
@@ -407,18 +440,17 @@ export async function processNewDocument(documentId: string): Promise<void> {
     let hasTextLayer = false;
 
     for (let pageIndex = 0; pageIndex < pageCount; pageIndex += 1) {
+      progress.assertActive();
       const page = await pdf.getPage(pageIndex + 1);
       try {
         const { text: nativeText, words } = await extractPdfPageContent(page);
         hasTextLayer ||= pdfPageHasTextLayer(nativeText);
         if (pageHasEnoughNativeText(nativeText)) {
           nativeTextPages += 1;
-          await putUserLibraryPage(
-            buildUserLibraryPage(documentId, pageIndex, 'native', nativeText, words),
-          );
+          await putPage(buildUserLibraryPage(documentId, pageIndex, 'native', nativeText, words));
         } else {
           ocrNeededPages += 1;
-          await putUserLibraryPage({ documentId, pageIndex, kind: 'pending', text: '' });
+          await putPage({ documentId, pageIndex, kind: 'pending', text: '' });
         }
       } finally {
         page.cleanup();
@@ -426,7 +458,7 @@ export async function processNewDocument(documentId: string): Promise<void> {
       await yieldToEventLoop();
     }
 
-    await patchUserLibraryDocumentProcessing(documentId, {
+    await patchProcessing({
       pageCount,
       nativeTextPages,
       ocrNeededPages,
@@ -442,6 +474,22 @@ export async function processNewDocument(documentId: string): Promise<void> {
   }
   await resumeQueuedOcr(documentId);
   ensureUserLibraryIngestRunning();
+}
+
+const inspectionRunner = createInspectionRunner({
+  getDocument: getUserLibraryDocument,
+  inspect: readInspectingDocument,
+  markFailed: async (id, message) => {
+    await patchUserLibraryDocumentProcessing(id, { status: 'failed', errorMessage: message });
+  },
+});
+
+/**
+ * Reads a freshly stored (or edited, or retried) document: page count, text, a book's own title.
+ * One file at a time; a read that stalls or fails leaves the document `failed` with a reason.
+ */
+export function inspectUserLibraryDocument(documentId: string): Promise<void> {
+  return inspectionRunner.run(documentId);
 }
 
 function buildUserLibraryPage(
@@ -628,13 +676,10 @@ async function processNextInspectingDocument(): Promise<boolean> {
     })[0];
   if (!document) return false;
   try {
-    await processNewDocument(document.id);
+    await inspectUserLibraryDocument(document.id);
   } catch (cause) {
-    const message = cause instanceof Error ? cause.message : 'Не удалось обработать документ.';
-    await patchUserLibraryDocumentProcessing(document.id, {
-      status: 'failed',
-      errorMessage: message,
-    });
+    // The runner recorded the failure on the document; this keeps the loop going with a trace.
+    console.error('Не удалось обработать личный документ.', cause);
   }
   return true;
 }

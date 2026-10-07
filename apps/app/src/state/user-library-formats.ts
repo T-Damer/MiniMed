@@ -8,7 +8,12 @@ import {
   splitUserLibraryTextPages,
   USER_LIBRARY_TEXT_PAGE_BREAK,
 } from '@/state/user-library-text-pages';
-import { listZipEntries, readZipEntry } from '@/state/user-library-zip';
+import {
+  createZipReader,
+  listZipEntries,
+  readZipEntry,
+  type ZipReader,
+} from '@/state/user-library-zip';
 
 function decodeBytes(bytes: Uint8Array): string {
   try {
@@ -360,20 +365,29 @@ function joinZipPath(base: string, relative: string): string {
   return parts.join('/');
 }
 
-async function extractEpubText(data: ArrayBuffer): Promise<string> {
-  const containerBytes = await readZipEntry(data, 'META-INF/container.xml');
-  if (!containerBytes) return '';
-  const containerXml = decodeXmlBytes(containerBytes);
-  const opfPath = resolveOpfPath(containerXml);
-  if (!opfPath) return '';
-  const opfBytes = await readZipEntry(data, opfPath);
-  if (!opfBytes) return '';
-  const opfXml = decodeXmlBytes(opfBytes);
+async function readEpubPackage(
+  zip: ZipReader,
+): Promise<{ readonly opfPath: string; readonly opfXml: string } | null> {
+  const containerBytes = await zip.read('META-INF/container.xml');
+  if (!containerBytes) return null;
+  const opfPath = resolveOpfPath(decodeXmlBytes(containerBytes));
+  if (!opfPath) return null;
+  const opfBytes = await zip.read(opfPath);
+  if (!opfBytes) return null;
+  return { opfPath, opfXml: decodeXmlBytes(opfBytes) };
+}
+
+async function extractEpubText(data: ArrayBuffer, onProgress?: () => void): Promise<string> {
+  const zip = createZipReader(data);
+  const epubPackage = await readEpubPackage(zip);
+  if (!epubPackage) return '';
+  const { opfPath, opfXml } = epubPackage;
   const hrefs = resolveSpineHrefs(opfXml);
   const parts: string[] = [];
   for (const href of hrefs) {
     const contentPath = joinZipPath(opfPath, href);
-    const contentBytes = await readZipEntry(data, contentPath);
+    const contentBytes = await zip.read(contentPath);
+    onProgress?.();
     if (!contentBytes) continue;
     const content = decodeXmlBytes(contentBytes);
     parts.push(extractHtmlText(content));
@@ -402,13 +416,15 @@ function slideNumber(path: string): number {
   return match ? Number(match[1]) : Number.MAX_SAFE_INTEGER;
 }
 
-async function extractPptxText(data: ArrayBuffer): Promise<string> {
-  const entries = (await listZipEntries(data))
+async function extractPptxText(data: ArrayBuffer, onProgress?: () => void): Promise<string> {
+  const zip = createZipReader(data);
+  const entries = zip.paths
     .filter((path) => /^ppt\/slides\/slide\d+\.xml$/u.test(path))
     .toSorted((left, right) => slideNumber(left) - slideNumber(right));
   const slides: string[] = [];
   for (const path of entries) {
-    const bytes = await readZipEntry(data, path);
+    const bytes = await zip.read(path);
+    onProgress?.();
     if (!bytes) continue;
     const doc = new DOMParser().parseFromString(decodeBytes(bytes), 'application/xml');
     const text = Array.from(doc.getElementsByTagNameNS(DRAWING_NS, 't'))
@@ -698,14 +714,16 @@ export async function extractUserLibraryText(
       return documentXml ? extractDocxText(decodeBytes(documentXml)) : '';
     }
     case 'pptx':
-      return extractPptxText(data);
+      return extractPptxText(data, onProgress);
     case 'epub':
-      return extractEpubText(data);
+      return extractEpubText(data, onProgress);
     case 'spreadsheet':
       return extractSpreadsheetText(data);
     case 'plain':
       return extractPlainText(bytes);
     case 'none':
       return '';
+  /** Called after each chapter or slide, so a long read can show that it is still moving. */
+  onProgress?: () => void,
   }
 }

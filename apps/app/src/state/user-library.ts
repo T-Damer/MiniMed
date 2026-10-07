@@ -4,6 +4,7 @@ import {
   personalQueryStems,
   wordMatchesQueryStem,
 } from '@/state/personal-stem-match';
+import { createSerialQueue } from '@/state/serial-queue';
 import {
   type UserLibraryFileKind,
   userLibraryFileCapability,
@@ -605,6 +606,7 @@ function thumbnailJobKey(document: UserLibraryDocument): string {
   return `${document.id}:${document.contentVersion ?? ''}`;
 }
 
+const thumbnailQueue = createSerialQueue();
 function scheduleUserLibraryThumbnail(document: UserLibraryDocument, file: File): void {
   void ensureUserLibraryThumbnail(document, file).catch((cause: unknown) => {
     console.warn(
@@ -910,7 +912,11 @@ export async function ensureUserLibraryThumbnail(
     const source = file ?? (await getUserLibraryFile(document.id));
     if (!source) return undefined;
     const { previewExtractor } = await import('@/state/thumbnails');
-    const thumbnail = await previewExtractor.forFile(source, document.mimeType, document.fileName);
+    // One preview at a time: each decodes a PDF page or a cover image, and several big files added
+    // together must not do that all at once beside the reading of their text.
+    const thumbnail = await thumbnailQueue.run(() =>
+      previewExtractor.forFile(source, document.mimeType, document.fileName),
+    );
     if (thumbnail) {
       await putUserLibraryThumbnail(document.id, thumbnail, document.contentVersion);
     }
@@ -1750,16 +1756,7 @@ export async function addUserLibraryFile(
   emitLibraryChanged();
   if (!options?.skipProcessing) {
     scheduleUserLibraryThumbnail(document, file);
-    void import('@/state/user-library-ingest')
-      .then(({ processNewDocument }) => processNewDocument(document.id))
-      .catch(async (cause) => {
-        const message =
-          cause instanceof Error ? cause.message : 'Не удалось обработать личный документ.';
-        await patchUserLibraryDocumentProcessing(document.id, {
-          status: 'failed',
-          errorMessage: message,
-        });
-      });
+    startUserLibraryInspection(document.id);
   }
   options?.onProgress?.(1);
   return document;
@@ -1782,7 +1779,7 @@ export async function replaceUserLibraryFile(
   const now = new Date().toISOString();
   const title = file.name.replace(/\.[^.]+$/u, '').trim() || file.name;
   const updated: UserLibraryDocument = {
-    ...existing,
+    ...existingWithoutAuthor,
     contentVersion: crypto.randomUUID(),
     title,
     fileName: file.name,
@@ -1823,13 +1820,7 @@ export async function replaceUserLibraryFile(
   emitLibraryChanged();
   if (!options.skipProcessing) {
     scheduleUserLibraryThumbnail(updated, file);
-    void import('@/state/user-library-ingest')
-      .then(({ processNewDocument }) => processNewDocument(id))
-      .catch(async (cause) => {
-        const message =
-          cause instanceof Error ? cause.message : 'Не удалось обработать личный документ.';
-        await patchUserLibraryDocumentProcessing(id, { status: 'failed', errorMessage: message });
-      });
+    startUserLibraryInspection(id);
   }
   return updated;
 }
@@ -1841,6 +1832,36 @@ export async function saveUserLibraryDraft(
   const existing = await getUserLibraryDocument(id);
   if (!existing) return null;
   if (!isEditableUserLibraryFile(existing.fileName, existing.mimeType)) {
+/**
+ * Reads a stored file (page count, text, a book's own title) in the background. Files are read one
+ * after another; a read that stalls or fails leaves the document `failed` with a reason, which
+ * `retryUserLibraryDocument` can start again.
+ */
+function startUserLibraryInspection(id: string): void {
+  void import('@/state/user-library-ingest')
+    .then(({ inspectUserLibraryDocument }) => inspectUserLibraryDocument(id))
+    .catch((cause: unknown) => {
+      // The document itself already carries the failure; this is the developer's trace.
+      console.error('Не удалось обработать личный документ.', cause);
+    });
+}
+
+/** Starts a failed document's reading again (the «Повторить» action of its card). */
+export async function retryUserLibraryDocument(id: string): Promise<void> {
+  const existing = await getUserLibraryDocument(id);
+  if (!existing || existing.status !== 'failed') return;
+  await patchUserLibraryDocumentProcessing(id, {
+    status: 'inspecting',
+    errorMessage: '',
+    pageCount: 0,
+    nativeTextPages: 0,
+    ocrDonePages: 0,
+    ocrNeededPages: 0,
+    ocrPriority: 0,
+  });
+  startUserLibraryInspection(id);
+}
+
     throw new Error('Этот тип файла нельзя редактировать во встроенном редакторе.');
   }
   const file = createEditableUserLibraryFile(existing.fileName, existing.mimeType, text);
@@ -1878,15 +1899,9 @@ export async function saveUserLibraryDraft(
   }
   emitLibraryChanged();
   scheduleUserLibraryThumbnail(updated, file);
-  try {
-    const { processNewDocument } = await import('@/state/user-library-ingest');
-    await processNewDocument(id);
-  } catch (cause) {
-    const message =
-      cause instanceof Error ? cause.message : 'Не удалось обработать сохранённый черновик.';
-    await patchUserLibraryDocumentProcessing(id, { status: 'failed', errorMessage: message });
-    throw cause;
-  }
+  // The ingest queue marks the document failed itself when the read fails; the caller still learns.
+  const { inspectUserLibraryDocument } = await import('@/state/user-library-ingest');
+  await inspectUserLibraryDocument(id);
   if (existing.source?.kind === 'note') {
     const { updatePatientNote } = await import('@/state/patient-notes');
     updatePatientNote(existing.source.noteId, text);

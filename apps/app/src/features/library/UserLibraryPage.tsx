@@ -65,6 +65,7 @@ import {
   USER_LIBRARY_BOOKS_FOLDER_ID,
   USER_LIBRARY_COLORS,
   USER_LIBRARY_EVENT,
+  retryUserLibraryDocument,
   USER_LIBRARY_EXAMPLE_SLOTS,
   USER_LIBRARY_NAME_MAX_LENGTH,
   USER_LIBRARY_NOTES_FOLDER_ID,
@@ -1141,7 +1142,25 @@ export function UserLibraryPage(props: {
         id: 'root',
         label: 'В корень',
         icon: 'house',
+  const retryDocument = async (document: UserLibraryDocument): Promise<void> => {
+    try {
+      await retryUserLibraryDocument(document.id);
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : 'Не удалось повторить обработку файла.');
+    }
+  };
+
         disabled: folder.parentId === null,
+    ...(document.status === 'failed'
+      ? [
+          {
+            id: 'retry',
+            label: 'Повторить',
+            icon: 'refresh' as const,
+            onSelect: () => void retryDocument(document),
+          } satisfies AppContextMenuAction,
+        ]
+      : []),
         onSelect: () => void moveFolder(folder.id, null),
       },
       ...folders()

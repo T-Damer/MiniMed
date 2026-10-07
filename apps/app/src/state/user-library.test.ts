@@ -8,7 +8,7 @@ const downloadWithRetryMock = vi.hoisted(() => ({
 }));
 
 vi.mock('@/state/user-library-ingest', () => ({
-  processNewDocument: vi.fn(async () => undefined),
+  inspectUserLibraryDocument: vi.fn(async () => undefined),
   ensureUserLibraryIngestRunning: vi.fn(),
 }));
 
