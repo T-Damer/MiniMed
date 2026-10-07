@@ -1091,7 +1091,8 @@ main {
   display: block;
   width: 100%;
   margin-bottom: 0.5625rem;
-  color: #625638;
+  /* On the home's tan backdrop the muted text token falls to 3:1; the label is small and bold. */
+  color: var(--theme-text);
   font-family: var(--font-mono);
   font-size: var(--type-micro);
   font-weight: 800;
@@ -1274,6 +1275,11 @@ main {
   opacity: 0.1;
   pointer-events: none;
   user-select: none;
+}
+
+/* The download chip sits over the numeral's corner; a half-covered ghost digit reads as a glitch. */
+.result-group-header__index--under-action {
+  display: none;
 }
 
 .result-group-header__body {
