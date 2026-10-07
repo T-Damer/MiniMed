@@ -140,7 +140,11 @@ export function SearchResultGroupCard(props: {
           class="result-group-header"
           onClick={() => props.onOpenDocument(props.group.documentId)}
         >
-          <span class="result-group-header__index" aria-hidden="true">
+          <span
+            class="result-group-header__index"
+            classList={{ 'result-group-header__index--under-action': action() !== undefined }}
+            aria-hidden="true"
+          >
             {String(props.index + 1).padStart(2, '0')}
           </span>
 
