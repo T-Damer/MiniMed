@@ -5,6 +5,9 @@
  */
 export const OUTLINE_DRAWER_ROOT_CLASS = 'reader-outline-open';
 
+/** The drawer's slide-out (`transition: transform 200ms` in doctor-ux.css); the class outlasts it. */
+export const OUTLINE_DRAWER_CLOSE_MS = 220;
+
 export function isOutlineDrawerOpen(outlineOpen: boolean, desktopLayout: boolean): boolean {
   return outlineOpen && !desktopLayout;
 }

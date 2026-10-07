@@ -1111,6 +1111,14 @@ html.reader-outline-open .app-bottom-nav {
   pointer-events: none;
 }
 
+/* The shell is an isolated stacking context at level 0 and the navigation (z 70) is its sibling, so
+   no z-index inside the reader — the drawer's 92 included — can put the drawer above the bar. While
+   the drawer is open the whole shell rises above the navigation, below dialogs and toasts, so the
+   drawer and its backdrop cover the bar even if the bar has not finished stepping aside. */
+html.reader-outline-open .app-shell {
+  z-index: var(--z-reader-shell-open);
+}
+
 .app-bottom-nav .app-nav-item {
   position: relative;
   z-index: var(--z-raised);

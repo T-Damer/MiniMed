@@ -20,6 +20,7 @@ import { dismissOpenDocumentFind } from '@/features/library/document-find';
 import { navigateDocumentReaderBack } from '@/features/library/document-reader-back';
 import {
   isOutlineDrawerOpen,
+  OUTLINE_DRAWER_CLOSE_MS,
   OUTLINE_DRAWER_ROOT_CLASS,
   shouldCloseOutlineOnEscape,
 } from '@/features/library/document-reader-drawer';
@@ -105,8 +106,23 @@ export function useDocumentReaderChrome(
 
   const [desktopLayout, setDesktopLayout] = createSignal(isDesktopReaderLayout());
   const drawerOpen = (): boolean => isOutlineDrawerOpen(outlineOpen(), desktopLayout());
+  // The root class parks the bottom navigation while the drawer is up. It is taken off only after
+  // the drawer has slid out (200 ms), or the navigation would reappear over the closing drawer.
+  let drawerClassTimer: number | undefined;
   createEffect(() => {
-    document.documentElement.classList.toggle(OUTLINE_DRAWER_ROOT_CLASS, drawerOpen());
+    const open = drawerOpen();
+    window.clearTimeout(drawerClassTimer);
+    drawerClassTimer = undefined;
+    const root = document.documentElement;
+    if (open) {
+      root.classList.add(OUTLINE_DRAWER_ROOT_CLASS);
+      return;
+    }
+    if (!root.classList.contains(OUTLINE_DRAWER_ROOT_CLASS)) return;
+    drawerClassTimer = window.setTimeout(() => {
+      drawerClassTimer = undefined;
+      root.classList.remove(OUTLINE_DRAWER_ROOT_CLASS);
+    }, OUTLINE_DRAWER_CLOSE_MS);
   });
 
   useStickySurface(chromeElement);
@@ -207,6 +223,7 @@ export function useDocumentReaderChrome(
     onCleanup(() => {
       layoutQuery.removeEventListener('change', syncLayout);
       window.removeEventListener('keydown', closeOnEscape);
+      window.clearTimeout(drawerClassTimer);
       document.documentElement.classList.remove(OUTLINE_DRAWER_ROOT_CLASS);
     });
     onCleanup(() => {
