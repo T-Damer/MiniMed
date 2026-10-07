@@ -32,6 +32,7 @@ import { DRUG_COMPARISON_TOOL } from '@/features/drug-comparison/drug-comparison
 import { DRUG_INTERACTION_TOOL } from '@/features/drug-interactions/drug-interaction-tool';
 import { SearchHistoryPanel } from '@/features/history/SearchHistoryPanel';
 import { preferReadableDocuments } from '@/features/library/document-display';
+import { prepareDocumentLinksWhenIdle } from '@/features/library/document-link-prewarm';
 import { ImagingViewerEntry } from '@/features/library/ImagingViewerEntry';
 import {
   createUserLibraryDocuments,
@@ -449,6 +450,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       if (result.ok) {
         setDocuments(preferReadableDocuments(result.value));
         setCatalogError(undefined);
+        prepareDocumentLinksWhenIdle(result.value);
       } else setCatalogError(result.error.message);
     });
     onCleanup(() => {

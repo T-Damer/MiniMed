@@ -206,6 +206,11 @@ export function parseDocumentText(
 
 export interface DocumentLinkMatcher {
   segment(text: string): readonly LinkedTextSegment[];
+  /**
+   * A view of this matcher that never links to the documents `excluded` accepts (a reader does not
+   * link its own document's names inside itself). It shares the index, so it costs nothing to make.
+   */
+  excluding(excluded: (documentId: string) => boolean): DocumentLinkMatcher;
 }
 
 const WORD_CHAR = /[\p{L}\p{M}\p{N}_]/u;
@@ -268,30 +273,54 @@ function matchFoldedPhraseAt(text: string, start: number, folded: string): numbe
   return textIndex;
 }
 
+/** Collects phrases into the index of a matcher, a few at a time or all at once. */
+function createMatcherIndex(): {
+  readonly add: (link: DocumentLinkPhrase) => void;
+  readonly finish: () => DocumentLinkMatcher;
+} {
+  const buckets = new Map<string, IndexedDocumentLink[]>();
+  return {
+    add(link) {
+      const folded = foldPhrase(link.phrase);
+      if (folded.length < PREFIX_LENGTH) return;
+      const prefix = folded.slice(0, PREFIX_LENGTH);
+      const bucket = buckets.get(prefix) ?? [];
+      bucket.push({
+        documentId: link.documentId,
+        linkKind: link.kind,
+        folded,
+        title: link.title ?? link.preview?.title ?? link.phrase,
+        ...(/^[\p{Lu}]{3}$/u.test(link.phrase) ? { exactCase: link.phrase } : {}),
+        ...(link.preview ? { preview: link.preview } : {}),
+      });
+      buckets.set(prefix, bucket);
+    },
+    finish() {
+      for (const bucket of buckets.values()) {
+        bucket.sort((left, right) => right.folded.length - left.folded.length);
+      }
+      return matcherOverBuckets(buckets);
+    },
+  };
+}
+
 export function createDocumentLinkMatcher(
   links: readonly DocumentLinkPhrase[],
 ): DocumentLinkMatcher {
-  const buckets = new Map<string, IndexedDocumentLink[]>();
-  for (const link of links) {
-    const folded = foldPhrase(link.phrase);
-    if (folded.length < PREFIX_LENGTH) continue;
-    const prefix = folded.slice(0, PREFIX_LENGTH);
-    const bucket = buckets.get(prefix) ?? [];
-    bucket.push({
-      documentId: link.documentId,
-      linkKind: link.kind,
-      folded,
-      title: link.title ?? link.preview?.title ?? link.phrase,
-      ...(/^[\p{Lu}]{3}$/u.test(link.phrase) ? { exactCase: link.phrase } : {}),
-      ...(link.preview ? { preview: link.preview } : {}),
-    });
-    buckets.set(prefix, bucket);
-  }
-  for (const bucket of buckets.values()) {
-    bucket.sort((left, right) => right.folded.length - left.folded.length);
-  }
+  const index = createMatcherIndex();
+  for (const link of links) index.add(link);
+  return index.finish();
+}
 
-  return {
+function matcherOverBuckets(
+  buckets: ReadonlyMap<string, readonly IndexedDocumentLink[]>,
+): DocumentLinkMatcher {
+  const matcherFor = (
+    excluded: ((documentId: string) => boolean) | undefined,
+  ): DocumentLinkMatcher => ({
+    excluding(next: (documentId: string) => boolean): DocumentLinkMatcher {
+      return matcherFor(excluded ? (id) => excluded(id) || next(id) : next);
+    },
     segment(text: string): readonly LinkedTextSegment[] {
       if (!text || buckets.size === 0) return [{ kind: 'text', value: text }];
       const segments: LinkedTextSegment[] = [];
@@ -307,6 +336,7 @@ export function createDocumentLinkMatcher(
         let best: { readonly end: number; readonly link: IndexedDocumentLink } | null = null;
         if (candidates) {
           for (const link of candidates) {
+            if (excluded?.(link.documentId)) continue;
             const end = matchFoldedPhraseAt(text, index, link.folded);
             if (end < 0) continue;
             if (link.exactCase && text.slice(index, end) !== link.exactCase) continue;
@@ -322,6 +352,7 @@ export function createDocumentLinkMatcher(
                 ?.filter(
                   (link) =>
                     link.folded === folded &&
+                    !excluded?.(link.documentId) &&
                     (!link.exactCase || text.slice(index, best.end) === link.exactCase),
                 )
                 .map((link): [string, DocumentLinkAlternative] => [
@@ -360,7 +391,85 @@ export function createDocumentLinkMatcher(
       }
       return segments.length > 0 ? segments : [{ kind: 'text', value: text }];
     },
-  };
+  });
+
+  return matcherFor(undefined);
+}
+
+const matchersByDocuments = new WeakMap<readonly MedicalDocumentSummary[], DocumentLinkMatcher>();
+
+/**
+ * The link matcher of a document list, built once per list. Turning ~20 000 catalog entries into
+ * phrases and an index cost ~230 ms of the first render of every document that was opened (the
+ * list is the core's cached listing, the same array every time); the document's own family is
+ * left out per reader through `excluding`, not by rebuilding the index.
+ */
+/** Milliseconds of work done before `prepareDocumentLinkMatcher` hands the thread back. */
+const PREPARE_SLICE_MS = 8;
+
+function yieldToMainThread(): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, 0);
+  });
+}
+
+/**
+ * Builds the matcher of a document list in the background, in slices of a few milliseconds, so the
+ * first document opened from the list finds it ready instead of spending ~230 ms of its first render
+ * on it (~900 ms with the CPU throttled four times). Stops when `documentLinkMatcherFor` built it
+ * first (a reader opened before the slices finished); a list is built once.
+ */
+export async function prepareDocumentLinkMatcher(
+  documents: readonly MedicalDocumentSummary[],
+  yieldNow: () => Promise<void> = yieldToMainThread,
+): Promise<void> {
+  if (matchersByDocuments.has(documents) || preparing.has(documents)) return;
+  preparing.add(documents);
+  try {
+    const collector = createLinkPhraseCollector(documents);
+    for (let next = 0; next < documents.length; ) {
+      const sliceEnd = performance.now() + PREPARE_SLICE_MS;
+      while (next < documents.length && performance.now() < sliceEnd) {
+        const document = documents[next];
+        if (document) collector.add(document);
+        next += 1;
+      }
+      await yieldNow();
+      if (matchersByDocuments.has(documents)) return;
+    }
+    const links = collector.finish();
+    await yieldNow();
+    const index = createMatcherIndex();
+    for (let next = 0; next < links.length; ) {
+      const sliceEnd = performance.now() + PREPARE_SLICE_MS;
+      while (next < links.length && performance.now() < sliceEnd) {
+        const link = links[next];
+        if (link) index.add(link);
+        next += 1;
+      }
+      await yieldNow();
+      if (matchersByDocuments.has(documents)) return;
+    }
+    if (!matchersByDocuments.has(documents)) matchersByDocuments.set(documents, index.finish());
+  } finally {
+    preparing.delete(documents);
+  }
+}
+
+const preparing = new WeakSet<readonly MedicalDocumentSummary[]>();
+
+export function documentLinkMatcherFor(
+  documents: readonly MedicalDocumentSummary[],
+  currentDocumentId?: string,
+): DocumentLinkMatcher {
+  let matcher = matchersByDocuments.get(documents);
+  if (!matcher) {
+    matcher = createDocumentLinkMatcher(buildDocumentLinkPhrases(documents));
+    matchersByDocuments.set(documents, matcher);
+  }
+  return currentDocumentId
+    ? matcher.excluding((documentId) => isSameDocumentFamily(documentId, currentDocumentId))
+    : matcher;
 }
 
 export function buildMedicationLinkPhrases(
@@ -453,71 +562,89 @@ function documentLinkPreview(
   };
 }
 
+const LINKABLE_SOURCE_TYPES: ReadonlySet<string> = new Set([
+  'official_registry_summary',
+  'clinical_recommendation_summary',
+  'regulatory_act',
+  'medical_reference',
+  'rls_mkb_reference',
+  'core_catalog_pointer',
+]);
+
+/** Collects the link phrases of a document list, a few documents at a time or all at once. */
+function createLinkPhraseCollector(
+  documents: readonly MedicalDocumentSummary[],
+  currentDocumentId?: string,
+): {
+  readonly add: (document: MedicalDocumentSummary) => void;
+  readonly finish: () => readonly DocumentLinkPhrase[];
+} {
+  const candidatesByPhrase = new Map<string, Map<string, DocumentLinkPhrase>>();
+  const documentsById = new Map(documents.map((document) => [document.id, document]));
+
+  return {
+    add(document) {
+      const pointerTarget = document.metadata?.['targetDocumentId'];
+      const installedTarget =
+        document.sourceType === 'core_catalog_pointer' && typeof pointerTarget === 'string'
+          ? documentsById.get(pointerTarget)
+          : undefined;
+      const target = installedTarget ?? document;
+      if (
+        (currentDocumentId && isSameDocumentFamily(target.id, currentDocumentId)) ||
+        !LINKABLE_SOURCE_TYPES.has(document.sourceType)
+      ) {
+        return;
+      }
+      const preview =
+        documentLinkPreview(document, documentsById) ?? documentLinkPreview(target, documentsById);
+      for (const phrase of documentPhraseCandidates(document)) {
+        const key = foldPhrase(phrase);
+        if (!key) continue;
+        const candidates = candidatesByPhrase.get(key) ?? new Map();
+        const existing = candidates.get(target.id);
+        if (!existing || (!existing.preview && preview)) {
+          candidates.set(target.id, {
+            phrase,
+            documentId: target.id,
+            kind:
+              document.metadata?.['catalogFamily'] === 'medication'
+                ? 'medication'
+                : linkKindForSourceType(target.sourceType),
+            ...(preview ? { preview } : {}),
+          });
+        }
+        candidatesByPhrase.set(key, candidates);
+      }
+    },
+    finish() {
+      return [...candidatesByPhrase.values()]
+        .flatMap((candidates) =>
+          [...candidates.values()].map((candidate) =>
+            candidates.size > 1
+              ? {
+                  ...candidate,
+                  title: documentsById.get(candidate.documentId)?.title ?? candidate.phrase,
+                }
+              : candidate,
+          ),
+        )
+        .toSorted(
+          (left, right) =>
+            right.phrase.length - left.phrase.length ||
+            left.documentId.localeCompare(right.documentId),
+        );
+    },
+  };
+}
+
 export function buildDocumentLinkPhrases(
   documents: readonly MedicalDocumentSummary[],
   currentDocumentId?: string,
 ): readonly DocumentLinkPhrase[] {
-  const linkableSourceTypes = new Set([
-    'official_registry_summary',
-    'clinical_recommendation_summary',
-    'regulatory_act',
-    'medical_reference',
-    'rls_mkb_reference',
-    'core_catalog_pointer',
-  ]);
-  const candidatesByPhrase = new Map<string, Map<string, DocumentLinkPhrase>>();
-  const documentsById = new Map(documents.map((document) => [document.id, document]));
-
-  for (const document of documents) {
-    const pointerTarget = document.metadata?.['targetDocumentId'];
-    const installedTarget =
-      document.sourceType === 'core_catalog_pointer' && typeof pointerTarget === 'string'
-        ? documentsById.get(pointerTarget)
-        : undefined;
-    const target = installedTarget ?? document;
-    if (
-      (currentDocumentId && isSameDocumentFamily(target.id, currentDocumentId)) ||
-      !linkableSourceTypes.has(document.sourceType)
-    ) {
-      continue;
-    }
-    const preview =
-      documentLinkPreview(document, documentsById) ?? documentLinkPreview(target, documentsById);
-    for (const phrase of documentPhraseCandidates(document)) {
-      const key = foldPhrase(phrase);
-      if (!key) continue;
-      const candidates = candidatesByPhrase.get(key) ?? new Map();
-      const existing = candidates.get(target.id);
-      if (!existing || (!existing.preview && preview)) {
-        candidates.set(target.id, {
-          phrase,
-          documentId: target.id,
-          kind:
-            document.metadata?.['catalogFamily'] === 'medication'
-              ? 'medication'
-              : linkKindForSourceType(target.sourceType),
-          ...(preview ? { preview } : {}),
-        });
-      }
-      candidatesByPhrase.set(key, candidates);
-    }
-  }
-
-  return [...candidatesByPhrase.values()]
-    .flatMap((candidates) =>
-      [...candidates.values()].map((candidate) =>
-        candidates.size > 1
-          ? {
-              ...candidate,
-              title: documentsById.get(candidate.documentId)?.title ?? candidate.phrase,
-            }
-          : candidate,
-      ),
-    )
-    .toSorted(
-      (left, right) =>
-        right.phrase.length - left.phrase.length || left.documentId.localeCompare(right.documentId),
-    );
+  const collector = createLinkPhraseCollector(documents, currentDocumentId);
+  for (const document of documents) collector.add(document);
+  return collector.finish();
 }
 
 export function segmentTextWithMedicationLinks(

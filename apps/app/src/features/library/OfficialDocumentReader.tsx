@@ -48,10 +48,7 @@ import {
 } from '@/features/library/document-display';
 import { type DocumentFindUnit, rangesForFindUnit } from '@/features/library/document-find';
 import { documentInteractiveToolLink } from '@/features/library/document-interactive-tool';
-import {
-  buildDocumentLinkPhrases,
-  createDocumentLinkMatcher,
-} from '@/features/library/document-medication-links';
+import { documentLinkMatcherFor } from '@/features/library/document-medication-links';
 import { printDocument, shareDocument, shareText } from '@/features/library/document-print';
 import {
   DocumentReaderChromeShell,
@@ -196,6 +193,7 @@ const emptyFindState: DocumentFindResultState = {
   loading: false,
 };
 
+const NO_DOCUMENTS: readonly MedicalDocumentSummary[] = [];
 const INITIAL_SECTION_BATCH = 4;
 const SECTION_BATCH_SIZE = 3;
 
@@ -990,17 +988,18 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
   const availableIds = createMemo(
     () => new Set((props.availableDocuments ?? []).map((document) => document.id)),
   );
-  const documentLinks = createMemo(() =>
-    buildDocumentLinkPhrases(props.availableDocuments ?? [], props.document?.id),
-  );
   const fullTextDocumentId = createMemo(() => {
     const document = props.document;
     if (document?.sourceType !== 'clinical_recommendation_summary') return null;
     const readableId = resolveReadableDocumentId(document.id, availableIds());
     return readableId === document.id ? null : readableId;
   });
+  // One index per document list (shared by every document opened from it); this reader's own
+  // document family is left out by a view of it, not by rebuilding.
   const documentLinkMatcher = createMemo(() =>
-    props.document ? createDocumentLinkMatcher(documentLinks()) : null,
+    props.document
+      ? documentLinkMatcherFor(props.availableDocuments ?? NO_DOCUMENTS, props.document.id)
+      : null,
   );
   const isClinicalSummary = createMemo(
     () => props.document?.sourceType === 'clinical_recommendation_summary',

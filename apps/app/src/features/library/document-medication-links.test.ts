@@ -5,7 +5,9 @@ import {
   buildDocumentLinkPhrases,
   buildMedicationLinkPhrases,
   createDocumentLinkMatcher,
+  documentLinkMatcherFor,
   parseDocumentText,
+  prepareDocumentLinkMatcher,
   segmentTextWithMedicationLinks,
 } from '@/features/library/document-medication-links';
 
@@ -440,6 +442,70 @@ describe('document-medication-links', () => {
       },
       { kind: 'text', value: '.' },
     ]);
+  });
+
+  it("excludes a reader's own document family from a shared matcher exactly as a rebuild would", () => {
+    const documents: MedicalDocumentSummary[] = [
+      recommendation('kr.rf.281_3', 'Инфекция мочевых путей', 'ИМП'),
+      recommendation('kr.rf.281_3.uti', 'Инфекция мочевых путей', 'ИМП у детей'),
+      recommendation('clinical.pneumonia', 'Пневмония у детей', 'Пневмония у детей'),
+      recommendation('clinical.cystitis', 'Инфекция мочевых путей', 'Цистит'),
+    ];
+    const text = 'ИМП — инфекция мочевых путей. См. также пневмония у детей и цистит.';
+    for (const current of ['kr.rf.281_3', 'clinical.pneumonia', undefined]) {
+      const rebuilt = createDocumentLinkMatcher(buildDocumentLinkPhrases(documents, current));
+      expect(documentLinkMatcherFor(documents, current).segment(text)).toEqual(
+        rebuilt.segment(text),
+      );
+    }
+    // The index is built once per list: the second reader gets a view of the same one.
+    const first = documentLinkMatcherFor(documents, 'kr.rf.281_3');
+    const second = documentLinkMatcherFor(documents, 'clinical.pneumonia');
+    expect(first.segment(text)).not.toEqual(second.segment(text));
+  });
+
+  it('prepares the matcher of a list in slices and a reader then finds it ready', async () => {
+    const documents: MedicalDocumentSummary[] = Array.from({ length: 3000 }, (_, index) =>
+      recommendation(`clinical.item-${index}`, `Состояние номер ${index}`, `Синдром-${index}`),
+    );
+    documents.push(recommendation('clinical.pneumonia', 'Пневмония у детей', 'Пневмония у детей'));
+    let yields = 0;
+    await prepareDocumentLinkMatcher(documents, () => {
+      yields += 1;
+      return Promise.resolve();
+    });
+    // The work was handed back to the thread more than once, not done in one go.
+    expect(yields).toBeGreaterThan(2);
+    const text = 'Пневмония у детей и синдром-5 описаны.';
+    const rebuilt = createDocumentLinkMatcher(buildDocumentLinkPhrases(documents));
+    expect(documentLinkMatcherFor(documents).segment(text)).toEqual(rebuilt.segment(text));
+    expect(
+      documentLinkMatcherFor(documents)
+        .segment(text)
+        .filter((part) => part.kind === 'link'),
+    ).toHaveLength(2);
+    // Asking again does nothing.
+    const before = yields;
+    await prepareDocumentLinkMatcher(documents, () => {
+      yields += 1;
+      return Promise.resolve();
+    });
+    expect(yields).toBe(before);
+  });
+
+  it('stops preparing when a reader built the matcher first', async () => {
+    const documents: MedicalDocumentSummary[] = Array.from({ length: 3000 }, (_, index) =>
+      recommendation(`clinical.item-${index}`, `Состояние номер ${index}`, `Синдром-${index}`),
+    );
+    let built = false;
+    await prepareDocumentLinkMatcher(documents, () => {
+      if (!built) {
+        built = true;
+        documentLinkMatcherFor(documents);
+      }
+      return Promise.resolve();
+    });
+    expect(documentLinkMatcherFor(documents).segment('синдром-7').length).toBeGreaterThan(0);
   });
 
   it('does not link a phrase inside a longer word', () => {
