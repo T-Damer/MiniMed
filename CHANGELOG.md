@@ -4,6 +4,33 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.56] - 2026-10-07
+
+- Reader: a long guideline shows every section — chapters («3. Лечение») are back, nothing is missing
+  below the first screen; a jump from the contents lands in one tap and the contents mark where you
+  are; «12 / 48» shows your place and jumps to a section; Back returns to where you were reading and
+  never to «Открываем…»; the breadcrumbs name the document while it opens and show it once; «⋯» closes
+  on a second tap; the contents panel stays above the bottom bar; long documents open faster.
+- Search in a document: every match it counts is reachable and highlighted; the counter sits on the
+  right inside the field and a small spinner turns while it searches.
+- Clinical guidelines: numbered sub-headings («1.2.2.1 …») are headings in the text and the contents;
+  122 guidelines are updated with them (only those download again). Text can be highlighted in
+  guidelines, and the colour bar sits clear of the phone's selection menu. Selection is a green-yellow
+  highlighter colour.
+- Pictures zoom where you point or pinch; previews show the whole picture; guideline pictures open
+  in the zoomable preview.
+- A drug name in a text opens a short card — group, ATC code, trade names and one line of what it
+  does from an installed instruction — with «Открыть»; term cards stay short with «Показать полностью».
+- Search remembers results: a repeated query or a history entry shows its results at once, with
+  «Повторить поиск» to search again.
+- «Обновление» is a small pill above «Настройки» instead of a banner in the search header.
+- «Лента»: suggested sources first, with their own tiles; «+» to add your own; pictures in articles;
+  PubMed search, which you can subscribe to.
+- Children's vaccination calendar: tidier page; a child's plan attaches to the patient card or is
+  calculated without saving anything; «Личный дневник прививок» for the mother on one landscape page;
+  children's influenza is shown for everyone from 6 months.
+- EPUB: a highlight's popup stays with its text while the book loads.
+
 ## [0.6.55] - 2026-10-07
 
 - «В МКБ-11» on every card with МКБ-10 codes: the ICD-11 rubrics WHO's mapping tables give (Russian
