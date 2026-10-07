@@ -224,7 +224,9 @@ test('plan: dates are calculated from the birth date, labelled as calculated, wi
   await openCalendar(page, '#/notes/vaccination?part=plan');
 
   await expect(page.getByText('Расчётные даты по возрастам национального календаря')).toBeVisible();
-  await expect(page.getByText('Дата рождения нигде не сохраняется')).toBeVisible();
+  // Attaching to a card is the normal path; «Только расчёт» keeps nothing (see vaccination-plan.spec).
+  await page.getByRole('radio', { name: 'Только расчёт', exact: true }).check({ force: true });
+  await expect(page.getByText(/нигде не записываются/u)).toBeVisible();
   const birth = page.getByLabel('Дата рождения ребёнка');
   const today = new Date();
   const born = new Date(today.getFullYear() - 1, today.getMonth(), 15);
