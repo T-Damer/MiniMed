@@ -38,6 +38,9 @@ test('offers and installs the pediatric growth pack from the calculator catalog'
   await expect(anthropometry).toContainText(/Скачать раздел · [\d.,]+\s[КМ]Б/u);
   await anthropometry.getByRole('button', { name: 'Скачать раздел — Антропометрия' }).click();
   await expect(anthropometry).not.toContainText('Скачать раздел ·');
+  // One notice turns from progress into the result: no stale «Скачиваем модуль…» beside it.
+  await expect(page.getByText(/«Антропометрия» скачан/u)).toBeVisible();
+  await expect(page.getByText('Скачиваем модуль…')).toHaveCount(0);
 
   await anthropometry.getByRole('button', { name: 'Открыть раздел «Антропометрия»' }).click();
   await expect(
@@ -121,4 +124,15 @@ test('calculates body surface area and writes the result to a patient note', asy
   await expect(page.locator('.patient-note-record')).toContainText('Площадь поверхности тела', {
     timeout: 25_000,
   });
+});
+
+test('a link to an unknown tool says so above the calculator list', async ({ page }) => {
+  await mountBuiltApp(page, { persistentOrigin: true });
+  await page.evaluate(() => {
+    window.location.hash = '#/calculators/no-such-tool';
+  });
+  await expect(page.locator('.calculators-heading__missing')).toContainText(
+    'Инструмент по этой ссылке не найден',
+  );
+  await expect(page.getByRole('heading', { name: 'Калькуляторы', exact: true })).toBeVisible();
 });

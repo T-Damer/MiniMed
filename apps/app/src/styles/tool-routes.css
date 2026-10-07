@@ -158,3 +158,21 @@
     padding: 0;
   }
 }
+
+/* A link to a tool this build does not know: one quiet line above the list. */
+.calculators-heading__missing {
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-left: 0.1875rem solid var(--theme-accent);
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  font-size: 0.875rem;
+  animation: calculators-missing-in var(--motion-base) var(--motion-ease-out) both;
+}
+
+@keyframes calculators-missing-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.25rem);
+  }
+}

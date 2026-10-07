@@ -1578,6 +1578,11 @@ export function CalculatorsView(): JSX.Element {
     calculatorRegistry();
     return slug() ? findCalculator(slug()) : undefined;
   });
+  // A link to a tool this build does not know (renamed, removed, mistyped) says so above the list
+  // instead of silently showing the list.
+  const unknownSlug = createMemo(
+    () => slug() !== '' && slug() !== 'section' && !userRoute() && !routeDefinition(),
+  );
   const selected = createMemo<AvailableCalculatorDefinition | undefined>(() => {
     const definition = routeDefinition();
     return definition?.state === 'available' && installation().installedIds.has(definition.id)
@@ -1679,8 +1684,9 @@ export function CalculatorsView(): JSX.Element {
     );
     if (modules.length === 0 && !hasBundledCalculator) return;
     void (async () => {
+      // One notice that turns from «Скачиваем…» into the result, so no stale progress stays up.
+      const notice = toast.loading('Скачиваем модуль…');
       try {
-        notify('Скачиваем модуль…');
         for (const module of modules) await installToolModule(module.id);
         setInstallation(installCalculatorSection(sectionId, calculatorRegistry()));
         const section = CALCULATOR_SECTIONS.find((candidate) => candidate.id === sectionId);
@@ -1689,27 +1695,34 @@ export function CalculatorsView(): JSX.Element {
           () => {
             window.location.hash = calculatorSectionPath(sectionId);
           },
+          { id: notice },
         );
       } catch (cause) {
-        notify(cause instanceof Error ? cause.message : 'Не удалось скачать раздел.');
+        toast.error(cause instanceof Error ? cause.message : 'Не удалось скачать раздел.', {
+          id: notice,
+        });
       }
     })();
   };
   const requestInstallCalculator = (definition: AvailableCalculatorDefinition): void => {
     void (async () => {
+      const notice = toast.loading('Скачиваем модуль…');
       try {
-        notify('Скачиваем модуль…');
         await installToolModule(
           moduleForTool(definition.id)?.id ?? moduleIdForCalculatorSection(definition.category),
         );
         if (!getCalculatorSchema(definition.id))
           throw new Error('Схема инструмента отсутствует в скачанном модуле.');
         setInstallation(installCalculator(definition.id, calculatorRegistry()));
-        notifyWithOpen(`«${definition.title}» скачан. Инструмент доступен офлайн.`, () =>
-          openCalculator(definition),
+        notifyWithOpen(
+          `«${definition.title}» скачан. Инструмент доступен офлайн.`,
+          () => openCalculator(definition),
+          { id: notice },
         );
       } catch (cause) {
-        notify(cause instanceof Error ? cause.message : 'Не удалось скачать инструмент.');
+        toast.error(cause instanceof Error ? cause.message : 'Не удалось скачать инструмент.', {
+          id: notice,
+        });
       }
     })();
   };
@@ -1774,6 +1787,12 @@ export function CalculatorsView(): JSX.Element {
                       <>
                         <header class="subpage-heading calculators-heading">
                           <div>
+                            <Show when={unknownSlug()}>
+                              <p class="calculators-heading__missing" role="status">
+                                Инструмент по этой ссылке не найден: возможно, ссылка устарела. Ниже
+                                — все калькуляторы.
+                              </p>
+                            </Show>
                             <p class="archive-kicker">Разделы инструментов</p>
                             <Heading depth={1}>Калькуляторы</Heading>
                             <p>
