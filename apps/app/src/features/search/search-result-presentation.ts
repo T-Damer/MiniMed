@@ -1,6 +1,9 @@
 import type { MedicalDocumentSummary, SearchResult, TextRange } from '@localmed/contracts';
 import { isIcd11Document } from '@/features/icd11/icd11-document';
-import { TECHNICAL_SECTION_TITLES } from '@/features/library/document-display';
+import {
+  CLEANED_SECTION_TITLES,
+  TECHNICAL_SECTION_TITLES,
+} from '@/features/library/document-display';
 import { searchResultDocumentKind } from '@/features/search/ScopedMedicalCore';
 
 /** How a technical section is named in a result line. */
@@ -93,7 +96,8 @@ function snippetEdits(text: string): readonly SnippetEdit[] {
 export function presentResultSnippet(
   result: Pick<SearchResult, 'snippet' | 'highlightedRanges' | 'sectionPath'>,
 ): { readonly text: string; readonly ranges: readonly TextRange[] } {
-  if (!isTechnicalResult(result)) {
+  const last = result.sectionPath.at(-1);
+  if (last === undefined || !CLEANED_SECTION_TITLES.has(last)) {
     return { text: result.snippet, ranges: result.highlightedRanges };
   }
   const source = result.snippet;

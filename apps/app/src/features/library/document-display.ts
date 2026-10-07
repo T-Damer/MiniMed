@@ -159,6 +159,14 @@ export const TECHNICAL_SECTION_TITLES: ReadonlySet<string> = new Set([
   'Сведения МКБ-10',
   'Классификационный контекст',
   'Ограничение покрытия',
+]);
+
+/**
+ * Sections whose catalogue wording is cleaned (storage note, empty fields, identifiers) but which
+ * stay in place: a drug pointer's «Указатель препарата» carries the drug's МНН, its most useful line.
+ */
+export const CLEANED_SECTION_TITLES: ReadonlySet<string> = new Set([
+  ...TECHNICAL_SECTION_TITLES,
   'Указатель препарата',
 ]);
 

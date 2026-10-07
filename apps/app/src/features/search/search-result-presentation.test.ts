@@ -117,3 +117,21 @@ describe('presentSourceChunkText', () => {
     expect(presentSourceChunkText(empty, ['Сведения о документе'])).toBe(empty);
   });
 });
+
+describe('a drug pointer’s «Указатель препарата»', () => {
+  it('stays in place, since it carries the МНН, but loses the storage note', () => {
+    const index = {
+      sectionPath: ['Указатель препарата'],
+      snippet:
+        'Стандартизированное МНН: ПАРАЦЕТАМОЛ. Полные данные находятся в скачиваемом модуле «minimed.x» и не дублируются в ядре.',
+      highlightedRanges: [],
+    };
+    const code = {
+      sectionPath: ['Указатель препарата', '21.20.10'],
+      snippet: 'x',
+      highlightedRanges: [],
+    };
+    expect(orderResultsForDisplay([index, code])).toEqual([index, code]);
+    expect(presentResultSnippet(index).text).toBe('Стандартизированное МНН: ПАРАЦЕТАМОЛ.');
+  });
+});
