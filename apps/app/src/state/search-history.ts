@@ -1,5 +1,6 @@
 import type { SearchResponse } from '@localmed/contracts';
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
+import { clearSearchResultCache } from '@/state/search-result-cache';
 
 export interface SearchHistoryEntry {
   readonly id: string;
@@ -158,6 +159,9 @@ export function clearSearchHistory(): void {
   localStorage.removeItem(PREVIOUS_HISTORY_KEY);
   localStorage.removeItem(LEGACY_HISTORY_KEY);
   responseCache.clear();
+  void clearSearchResultCache().catch((cause: unknown) => {
+    console.error('Не удалось очистить сохранённые результаты поиска.', cause);
+  });
   window.dispatchEvent(new CustomEvent(SEARCH_HISTORY_EVENT, { detail: [] }));
 }
 

@@ -77,7 +77,7 @@ import { SearchExamples } from '@/features/search/SearchExamples';
 import { type SearchMeaning, SearchMeaningChoices } from '@/features/search/SearchMeaningChoices';
 import { SearchResultGroupCard } from '@/features/search/SearchResultGroupCard';
 import { SearchResultsSkeleton } from '@/features/search/SearchResultsSkeleton';
-import { sameSearchOutcome } from '@/features/search/search-refresh';
+import { sameSearchOutcome, savedSearchAge } from '@/features/search/search-refresh';
 import {
   presentSourceChunkText,
   sourceContextKicker,
@@ -94,6 +94,11 @@ import {
   SEARCH_REPLAY_EVENT,
   type SearchReplayDetail,
 } from '@/state/search-history';
+import {
+  readCachedSearch,
+  type SearchCacheIdentity,
+  writeCachedSearch,
+} from '@/state/search-result-cache';
 
 type ClinicalEditionsModule = typeof import('@/features/modules/clinical-editions');
 
@@ -295,6 +300,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   const submitBusy = (): boolean =>
     loading() || (props.searchAllowed === false && props.searchPending === true);
   const [pendingResponse, setPendingResponse] = createSignal<SearchResponse>();
+  // When the list on screen is a saved copy (`search-result-cache.ts`): the time it was made.
+  const [savedAt, setSavedAt] = createSignal<string>();
   // A typed query waits 500 ms before it searches; the skeleton shows through that wait too.
   const [searchQueued, setSearchQueued] = createSignal(false);
   const [analysisLoading, setAnalysisLoading] = createSignal(false);
@@ -558,6 +565,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     const replayQuery = replay.detail?.entry.query;
     if (!replayQuery?.trim() || replay.detail.entry.scope !== props.scope) return;
     updateQuery(replayQuery, false);
+    // A history entry opens on its saved results at once; the search re-runs behind them only
+    // when they are stale, and «Повторить поиск» re-runs it on request.
     if (replay.detail.cachedResponse) {
       lastSearchedQuery = searchableQuery(replayQuery);
       setResponse(replay.detail.cachedResponse);
@@ -565,7 +574,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     }
     requestAnimationFrame(() => {
       if (textarea) resizeTextarea(textarea);
-      void runSearch(replayQuery, false);
+      void runSearch(replayQuery, false, { specialty: replay.detail.entry.specialty });
     });
   };
 
@@ -691,6 +700,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     setQuery(value);
     if (response()?.analysis.originalQuery !== searchableQuery(value)) {
       setResponse(undefined);
+      setSavedAt(undefined);
       setPendingResponse(undefined);
       setRefreshing(false);
       setContext(undefined);
@@ -699,7 +709,48 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     if (debounce) scheduleSearch(value);
   }
 
-  async function runSearch(nextQuery = query(), recordHistory = true): Promise<void> {
+  function cacheIdentity(trimmed: string, specialty = props.specialty): SearchCacheIdentity {
+    return { query: trimmed, scope: props.scope, specialty, filters: props.filters ?? {} };
+  }
+
+  /**
+   * Shows the saved copy of `trimmed` when there is one. True when it is fresh, so the search need
+   * not run; a stale copy stays on screen while the search re-runs behind it.
+   */
+  async function showSavedSearch(
+    trimmed: string,
+    generation: number,
+    specialty: string | undefined,
+  ): Promise<boolean> {
+    const saved = await readCachedSearch(cacheIdentity(trimmed, specialty)).catch(
+      (cause: unknown) => {
+        console.error('Сохранённые результаты поиска недоступны.', cause);
+        return null;
+      },
+    );
+    if (!saved || generation !== searchGeneration || searchableQuery(query()) !== trimmed) {
+      return false;
+    }
+    if (response()?.analysis.originalQuery !== trimmed) {
+      setResponse(saved.response);
+      setDraftAnalysis(saved.response.analysis);
+      setContext(undefined);
+    }
+    setSavedAt(saved.savedAt);
+    setLoading(false);
+    return saved.fresh;
+  }
+
+  async function runSearch(
+    nextQuery = query(),
+    recordHistory = true,
+    options: {
+      /** «Повторить поиск»: skip the saved copy and show the new results at once. */
+      readonly fromScratch?: boolean;
+      /** The specialty of a replayed history entry. */
+      readonly specialty?: string | undefined;
+    } = {},
+  ): Promise<void> {
     const rawQuery = nextQuery.trim();
     const trimmed = searchableQuery(nextQuery);
     setSearchQueued(false);
@@ -724,6 +775,21 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     if (searchTimer) clearTimeout(searchTimer);
 
     const generation = ++searchGeneration;
+    const specialty = options.specialty ?? props.specialty;
+    if (!options.fromScratch) {
+      // The skeleton covers the (short) read of a saved copy for a query not yet on screen.
+      if (response()?.analysis.originalQuery !== trimmed) setLoading(true);
+      const fresh = await showSavedSearch(trimmed, generation, specialty);
+      if (generation !== searchGeneration) return;
+      if (fresh) {
+        lastSearchedQuery = trimmed;
+        const shownResponse = response();
+        if (recordHistory && shownResponse)
+          appendSearchHistory(rawQuery, props.scope, shownResponse, specialty);
+        if (contextDocuments().length === 0) await loadContextDocuments(core, generation, trimmed);
+        return;
+      }
+    }
     const shown = response();
     const refreshOfShown = shown?.analysis.originalQuery === trimmed;
     // Search normalizes its own input; writing the trimmed text back into the field deleted the
@@ -754,21 +820,39 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     // An automatic refresh never swaps the list under the reader: an identical outcome is applied
     // silently, a different one is offered. A search the user asked for is applied at once.
     const current = response();
-    if (refreshOfShown && !recordHistory && current && !sameSearchOutcome(current, result.value)) {
+    if (
+      refreshOfShown &&
+      !recordHistory &&
+      !options.fromScratch &&
+      current &&
+      !sameSearchOutcome(current, result.value)
+    ) {
       setPendingResponse(result.value);
     } else {
       setPendingResponse(undefined);
       setResponse(result.value);
+      setSavedAt(undefined);
     }
     setDraftAnalysis(result.value.analysis);
-    if (recordHistory) appendSearchHistory(rawQuery, props.scope, result.value, props.specialty);
-    // Link labels use the compact projection; extraction metadata stays in the database.
-    if (contextDocuments().length === 0) {
-      const available = await (core.listNavigationDocuments?.() ?? core.listDocuments());
-      if (generation !== searchGeneration || searchableQuery(query()) !== trimmed) return;
-      if (available.ok) setContextDocuments(available.value);
-      else setError(available.error.message);
-    }
+    void writeCachedSearch(cacheIdentity(trimmed, specialty), result.value).catch(
+      (cause: unknown) => {
+        console.error('Не удалось сохранить результаты поиска.', cause);
+      },
+    );
+    if (recordHistory) appendSearchHistory(rawQuery, props.scope, result.value, specialty);
+    if (contextDocuments().length === 0) await loadContextDocuments(core, generation, trimmed);
+  }
+
+  // Link labels use the compact projection; extraction metadata stays in the database.
+  async function loadContextDocuments(
+    core: MedicalCore,
+    generation: number,
+    trimmed: string,
+  ): Promise<void> {
+    const available = await (core.listNavigationDocuments?.() ?? core.listDocuments());
+    if (generation !== searchGeneration || searchableQuery(query()) !== trimmed) return;
+    if (available.ok) setContextDocuments(available.value);
+    else setError(available.error.message);
   }
 
   async function openResult(result: SearchResult): Promise<void> {
@@ -1315,6 +1399,24 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                     Проверяем установленные документы…
                   </p>
                 </Show>
+                <Show when={!refreshing() && props.scope !== 'personal' ? savedAt() : undefined}>
+                  {(time) => (
+                    <p class="search-saved-status">
+                      <span class="search-saved-status__text">
+                        Сохранённые результаты · {savedSearchAge(time())}
+                      </span>
+                      <button
+                        type="button"
+                        class="search-saved-status__button"
+                        data-testid="search-saved-rerun"
+                        onClick={() => void runSearch(query(), false, { fromScratch: true })}
+                      >
+                        <AppGlyph name="refresh" class="search-saved-status__icon" />
+                        Повторить поиск
+                      </button>
+                    </p>
+                  )}
+                </Show>
 
                 <Show when={props.scope !== 'personal' ? response()?.queryRewrite : undefined}>
                   {(rewrite) => (
@@ -1417,6 +1519,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                         onClick={() => {
                           setResponse(pending());
                           setPendingResponse(undefined);
+                          setSavedAt(undefined);
                         }}
                       >
                         Обновить

@@ -1,6 +1,6 @@
 import type { SearchResponse, SearchResultGroup } from '@localmed/contracts';
 import { describe, expect, it } from 'vitest';
-import { sameSearchOutcome } from '@/features/search/search-refresh';
+import { sameSearchOutcome, savedSearchAge } from '@/features/search/search-refresh';
 
 function group(documentId: string, chunkIds: readonly string[]): SearchResultGroup {
   return {
@@ -40,5 +40,15 @@ describe('sameSearchOutcome', () => {
     expect(sameSearchOutcome(current, response([group('b', ['2']), group('a', ['1'])]))).toBe(
       false,
     );
+  });
+});
+
+describe('saved search age', () => {
+  const now = Date.parse('2026-10-07T12:00:00Z');
+  it('says how old a saved list is', () => {
+    expect(savedSearchAge('2026-10-07T11:59:40Z', now)).toBe('только что');
+    expect(savedSearchAge('2026-10-07T11:48:00Z', now)).toBe('12 мин назад');
+    expect(savedSearchAge('2026-10-07T09:00:00Z', now)).toBe('3 ч назад');
+    expect(savedSearchAge('2026-10-05T09:00:00Z', now)).toBe('5 октября');
   });
 });

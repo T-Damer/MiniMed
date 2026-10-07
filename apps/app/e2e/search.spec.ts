@@ -1008,6 +1008,40 @@ test('replays a saved query from the history drawer', async ({ page }) => {
   await expect(pneumoniaResult(page)).toBeVisible({ timeout: 60_000 });
 });
 
+test('a replayed or repeated query shows its saved results at once, and can search again', async ({
+  page,
+}) => {
+  await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+  await page.getByTestId('search-input').fill(query);
+  await page.getByTestId('search-submit').click();
+  await expect(pneumoniaResult(page)).toBeVisible({ timeout: 60_000 });
+  // A fresh search shows no «saved» line.
+  await expect(page.getByTestId('search-saved-rerun')).toHaveCount(0);
+
+  await page.getByTestId('search-input').fill('другой запрос');
+  await page.getByRole('button', { name: 'Показать историю поиска' }).click();
+  await page.locator('.search-history-panel-replay').filter({ hasText: query }).first().click();
+  // From the saved copy: no skeleton, no background re-run, and a way to search again.
+  await expect(pneumoniaResult(page)).toBeVisible({ timeout: 5_000 });
+  await expect(page.getByTestId('search-saved-rerun')).toBeVisible();
+  await expect(page.locator('.search-refresh-status')).toHaveCount(0);
+  await expect(page.locator('.results-skeleton')).toHaveCount(0);
+
+  await page.getByTestId('search-saved-rerun').click();
+  await expect(page.getByTestId('search-saved-rerun')).toHaveCount(0, { timeout: 60_000 });
+  await expect(pneumoniaResult(page)).toBeVisible();
+
+  // The copy survives a reload of the app.
+  await page.reload();
+  await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
+    timeout: 60_000,
+  });
+  await page.getByTestId('search-input').fill(query);
+  await page.getByTestId('search-submit').click();
+  await expect(page.getByTestId('search-saved-rerun')).toBeVisible({ timeout: 10_000 });
+  await expect(pneumoniaResult(page)).toBeVisible();
+});
+
 test('runs a debounced clinical search without requiring submit', async ({ page }) => {
   await mountBuiltApp(page);
   await page.getByTestId('search-input').fill(query);
@@ -1077,7 +1111,9 @@ test('shows neuroinfection clarifications without hiding search results', async 
   await expect(page.getByTestId('search-results')).toBeVisible();
 });
 
-test('opens settings from the home update notice without applying it', async ({ page }) => {
+test('opens settings from the update hint above «Настройки» without applying it', async ({
+  page,
+}) => {
   await mountBuiltApp(page);
   await page.evaluate(() => {
     const worker = {
@@ -1089,12 +1125,14 @@ test('opens settings from the home update notice without applying it', async ({ 
     window.dispatchEvent(new CustomEvent('minimed:app-update-ready', { detail: { worker } }));
   });
 
-  const update = page.locator('.search-update-status');
+  // The search header carries no update pill any more; the hint sits above the settings tab.
+  await expect(page.locator('.search-mode-tools').getByText('Обновление')).toHaveCount(0);
+  const update = page.getByTestId('app-update-nav-hint');
   await expect(update).toBeVisible();
-  await expect(update).toHaveText(/Доступно обновление/u);
+  await expect(update).toHaveText(/Обновление/u);
   await update.click();
   await expect(page.getByRole('heading', { name: 'Обновление приложения' })).toBeVisible();
-  await expect(page.locator('.search-update-status')).toHaveCount(0);
+  await expect(page.getByTestId('app-update-nav-hint')).toHaveCount(0);
   await expect
     .poll(() =>
       page.evaluate(

@@ -1,5 +1,6 @@
 import { getDownloadQueue } from '@/features/downloads/download-service';
 import { downloadWithRetry } from '@/features/network/download-retry';
+import { bumpSearchContentRevision } from '@/state/search-result-cache';
 import { E5_DOWNLOAD_ID, E5_MODEL_FILES, E5_MODEL_TOTAL_BYTES, e5FileUrl } from './e5-model';
 import {
   fileKey,
@@ -18,6 +19,8 @@ export function subscribeE5Model(listener: () => void): () => void {
 }
 
 function notify(): void {
+  // Saved search results ranked without (or with) the model are stale now.
+  bumpSearchContentRevision();
   for (const listener of listeners) listener();
 }
 
