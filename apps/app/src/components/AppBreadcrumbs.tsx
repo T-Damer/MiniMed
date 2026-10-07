@@ -1,5 +1,5 @@
 import { Breadcrumbs } from '@kobalte/core/breadcrumbs';
-import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import { For, type JSX, Show } from 'solid-js';
 
 export interface AppBreadcrumbItem {
   readonly label: string;
@@ -12,38 +12,15 @@ export interface AppBreadcrumbItem {
 interface AppBreadcrumbsProps {
   readonly items: readonly AppBreadcrumbItem[];
   readonly onNavigate?: (href: string) => void;
+  /** No crumb is the current page (the page heading names it): every crumb with a target links. */
+  readonly allLinks?: boolean;
 }
 
+/** The current page's title: one line cut with an ellipsis; the full text is the tooltip. */
 function BreadcrumbCurrentLabel(props: { readonly text: string }): JSX.Element {
-  const [overflowDistance, setOverflowDistance] = createSignal(0);
-  let label: HTMLElement | undefined;
-  let text: HTMLSpanElement | undefined;
-
-  onMount(() => {
-    if (!label || !text) return;
-    const measure = (): void => {
-      setOverflowDistance(Math.max(0, Math.ceil(text.scrollWidth - label.clientWidth)));
-    };
-    const observer = new ResizeObserver(measure);
-    observer.observe(label);
-    observer.observe(text);
-    const frame = requestAnimationFrame(measure);
-    onCleanup(() => {
-      cancelAnimationFrame(frame);
-      observer.disconnect();
-    });
-  });
-
   return (
-    <span class="document-crumbs__current-label" title={props.text} ref={label}>
-      <span
-        class="document-crumbs__current-text"
-        classList={{ 'document-crumbs__current-text--marquee': overflowDistance() > 1 }}
-        style={{ '--document-crumbs-current-shift': `${String(overflowDistance())}px` }}
-        ref={text}
-      >
-        {props.text}
-      </span>
+    <span class="document-crumbs__current-label" title={props.text}>
+      {props.text}
     </span>
   );
 }
@@ -66,7 +43,8 @@ export function AppBreadcrumbs(props: AppBreadcrumbsProps): JSX.Element {
       <ol class="document-crumbs__list">
         <For each={props.items}>
           {(item, index) => {
-            const isCurrent = (): boolean => index() === lastIndex() || !item.href;
+            const isCurrent = (): boolean =>
+              (!props.allLinks && index() === lastIndex()) || !item.href;
             const currentAction = (): boolean => isCurrent() && Boolean(item.onCurrentClick);
             return (
               <li class="document-crumbs__item">

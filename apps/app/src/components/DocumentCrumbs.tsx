@@ -1,28 +1,26 @@
 import type { JSX } from 'solid-js';
-
-import { type AppBreadcrumbItem, AppBreadcrumbs } from '@/components/AppBreadcrumbs';
+import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
+import {
+  compactBreadcrumbItems,
+  documentTrailBreadcrumbItems,
+} from '@/components/app-breadcrumb-items';
 import type { DocumentTrail } from '@/state/document-trail';
 
 interface DocumentCrumbsProps {
   readonly trail: DocumentTrail;
   readonly onNavigate: (href: string) => void;
+  /** The heading the page shows for itself; a last crumb repeating it is left out. */
+  readonly pageTitle?: string | null;
 }
 
 export function DocumentCrumbs(props: DocumentCrumbsProps): JSX.Element {
-  const items = (): readonly AppBreadcrumbItem[] => {
-    const crumbs: AppBreadcrumbItem[] = [
-      { label: props.trail.origin.label, href: props.trail.origin.hash },
-    ];
-    const lastIndex = props.trail.crumbs.length - 1;
-    for (const [index, crumb] of props.trail.crumbs.entries()) {
-      if (index === lastIndex) {
-        crumbs.push({ label: crumb.title });
-      } else {
-        crumbs.push({ label: crumb.title, href: crumb.href });
-      }
-    }
-    return crumbs;
-  };
-
-  return <AppBreadcrumbs items={items()} onNavigate={props.onNavigate} />;
+  const compact = () =>
+    compactBreadcrumbItems(documentTrailBreadcrumbItems(props.trail), props.pageTitle);
+  return (
+    <AppBreadcrumbs
+      items={compact().items}
+      allLinks={compact().allLinks}
+      onNavigate={props.onNavigate}
+    />
+  );
 }

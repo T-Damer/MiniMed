@@ -12,10 +12,10 @@ import {
   Show,
 } from 'solid-js';
 import { toast } from 'solid-sonner';
-
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import type { AppContextMenuAction } from '@/components/AppContextMenu';
 import { AppGlyph } from '@/components/AppGlyph';
+import { compactBreadcrumbItems } from '@/components/app-breadcrumb-items';
 import { Button } from '@/components/Button';
 import { DocumentCrumbs } from '@/components/DocumentCrumbs';
 import { QueryHighlightedText } from '@/components/HighlightedText';
@@ -824,6 +824,15 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
   });
 
   const isPdf = (): boolean => {
+  /** The page heading is shown for every document except a CT/MRI study, which names itself. */
+  const titleShownByHeading = (): string | null => {
+    const current = meta();
+    return current && !isMedicalImage() ? current.title : null;
+  };
+  const compactBreadcrumbs = createMemo(() =>
+    compactBreadcrumbItems(breadcrumbItems(), titleShownByHeading()),
+  );
+
     const current = meta();
     return current ? isUserLibraryPdfMime(current.mimeType) : false;
   };
@@ -999,10 +1008,20 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
         breadcrumbs={
           <Show
             when={props.trail}
-            fallback={<AppBreadcrumbs items={breadcrumbItems()} onNavigate={requestNavigate} />}
+            fallback={
+              <AppBreadcrumbs
+                items={compactBreadcrumbs().items}
+                allLinks={compactBreadcrumbs().allLinks}
+                onNavigate={requestNavigate}
+              />
+            }
           >
             {(currentTrail) => (
-              <DocumentCrumbs trail={currentTrail()} onNavigate={requestNavigate} />
+              <DocumentCrumbs
+                trail={currentTrail()}
+                onNavigate={requestNavigate}
+                pageTitle={titleShownByHeading()}
+              />
             )}
           </Show>
         }

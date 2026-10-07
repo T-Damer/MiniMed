@@ -998,7 +998,11 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
       breadcrumbs={
         <Show when={props.trail}>
           {(currentTrail) => (
-            <DocumentCrumbs trail={currentTrail()} onNavigate={props.onNavigate} />
+            <DocumentCrumbs
+              trail={currentTrail()}
+              onNavigate={props.onNavigate}
+              pageTitle={props.document ? pageTitle() : null}
+            />
           )}
         </Show>
       }

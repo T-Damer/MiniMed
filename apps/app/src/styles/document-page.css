@@ -385,6 +385,7 @@
 .document-crumbs__item {
   display: inline-flex;
   min-width: 0;
+  max-width: 100%;
   align-items: center;
   gap: 0.25rem;
 }
@@ -393,6 +394,7 @@
 .document-crumbs__current {
   display: inline-block;
   overflow: hidden;
+  min-width: 0;
   max-width: 14rem;
   color: var(--theme-kicker);
   font-size: 0.8125rem;
@@ -405,7 +407,6 @@
 .document-crumbs__current {
   cursor: default;
   font-weight: 600;
-  text-overflow: clip;
 }
 
 .document-crumbs__current--action {
@@ -426,15 +427,8 @@
   display: block;
   min-width: 0;
   overflow: hidden;
-}
-
-.document-crumbs__current-text {
-  display: inline-block;
-  min-width: max-content;
-}
-
-.document-crumbs__current-text--marquee {
-  animation: document-crumbs-current-marquee 10s ease-in-out infinite;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -454,28 +448,6 @@
 .document-crumbs__separator {
   color: var(--theme-kicker);
   font-size: 0.75rem;
-}
-
-@keyframes document-crumbs-current-marquee {
-  0%,
-  15% {
-    transform: translateX(0);
-  }
-
-  55%,
-  80% {
-    transform: translateX(calc(-1 * var(--document-crumbs-current-shift)));
-  }
-
-  100% {
-    transform: translateX(0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .document-crumbs__current-text--marquee {
-    animation: none;
-  }
 }
 
 .document-overlay-empty__title {
