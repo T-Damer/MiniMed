@@ -33,6 +33,10 @@ test('a medication lookup preserves the reader position and shows source strengt
 test('search source context uses the same inline medication lookup', async ({ page }) => {
   test.setTimeout(90_000);
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+  // The field takes a query while the core opens; the result wait below covers the search only.
+  await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
+    timeout: 60_000,
+  });
   await page.getByTestId('search-input').fill('АСКОРБИНОВАЯ КИСЛОТА ПАРАЦЕТАМОЛ');
   const result = page
     .locator('.result-group')
