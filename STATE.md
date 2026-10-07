@@ -106,6 +106,7 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
+| 2026-10-07 18:10 | claude-opus (KR3, subagent) | rebuild + republish КР modules with numbered sub-headings (owner OK 2026-10-07): re-prepare from raw JSON, build/e5/compact/zstd, publish only changed modules to a new additive `datasets/clinical-…-2026.10.07-…` branch, catalog update | `data/build/**` (own subdirs), `apps/app/src/features/modules/catalog.*.json`, `docs/CURRENT_STATE.md` KR3 section, `docs/data-ledger.json` |
 | 2026-10-07 17:50 | claude-opus (UX12, subagent in worktree) | reader QA follow-up: new document starts at its top, back restores reading position, app back pops history instead of pushing, bottom bar vs contents column at 761–1000 px, lightbox crop + КР image preview, short term cards, first-render long task | reader files in `features/library/**`, `components/DocumentText.tsx`, reader CSS |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 
