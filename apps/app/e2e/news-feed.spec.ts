@@ -6,6 +6,7 @@ const BLOCKED_FEED_URL = 'https://closed.test/feed.xml';
 const SITE_URL = 'https://site.test/articles/long';
 const REFUSED_URL = 'https://refuses.test/article';
 const SLOW_URL = 'https://slow.test/article';
+const HERO_URL = 'https://img.test/hero.png';
 const CORS_HEADERS = { 'access-control-allow-origin': '*' };
 /** The preview server is cross-origin isolated (COEP), so a framed site must opt in like this; production hosts are not isolated. */
 const FRAMEABLE = {
@@ -48,6 +49,7 @@ function feedXml(options: { readonly extraItem?: boolean } = {}): string {
       <guid>g3</guid>
       <pubDate>${rfc822(26 * 3_600_000)}</pubDate>
       <description>Вступление.</description>
+      <enclosure url="${HERO_URL}" type="image/png" length="1234"/>
       <content:encoded><![CDATA[<p>${'Полный текст статьи из самой ленты. '.repeat(20)}</p><script>window.__pwned = true</script><img src="https://img.test/a.png" alt="x">]]></content:encoded>
     </item>
   </channel>
@@ -120,7 +122,12 @@ async function installFeedHosts(page: Page): Promise<FeedHost> {
   });
   await page.route(/^https:\/\/img\.test\//u, async (route) => {
     requests.push(route.request().url());
-    await route.abort();
+    await route.fulfill({
+      status: 200,
+      contentType: 'image/svg+xml',
+      headers: { ...CORS_HEADERS, 'cross-origin-resource-policy': 'cross-origin' },
+      body: '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4d7657"/><stop offset="1" stop-color="#c9a55a"/></linearGradient></defs><rect width="640" height="360" fill="url(#g)"/></svg>',
+    });
   });
   return {
     requests,
@@ -174,6 +181,16 @@ test.describe('news feed tab', () => {
     // Suggested feeds are offered, never subscribed on their own.
     await expect(page.getByRole('button', { name: /^Подписаться: / }).first()).toBeEnabled();
     await expect(page.getByTestId('news-unread-badge')).toHaveCount(0);
+    // Adding your own address is a small round «+» in the header, not a call to action in the body.
+    await expect(page.getByTestId('news-add-entry')).toHaveAccessibleName('Добавить источник');
+    await expect(
+      page.getByTestId('news-empty').getByRole('link', { name: 'Добавить источник' }),
+    ).toHaveCount(0);
+    // Suggestions are drawn from bundled visuals: tiles with a monogram, a topic, no picture to fetch.
+    const firstCard = page.locator('[data-suggested]').first();
+    await expect(firstCard.locator('.news-tile__mark')).not.toBeEmpty();
+    await expect(firstCard.locator('.news-suggested__tag')).not.toHaveCount(0);
+    await expect(page.locator('[data-suggested] img')).toHaveCount(0);
     await page.waitForTimeout(500);
     expect(external).toEqual([]);
     await page.screenshot({ path: test.info().outputPath('news-empty-phone.png') });
@@ -248,9 +265,12 @@ test.describe('news feed tab', () => {
     );
     await expect(page.locator('[data-news-item]')).toHaveCount(3);
 
-    // Back up: the refresh brings the new record, unread.
+    // Back up: the refresh brings the new record, unread. The failure toast pauses its timer while
+    // the pointer rests on it, so the pointer leaves before the next press.
     hosts.setReachable(true);
     hosts.setExtraItem(true);
+    await page.mouse.move(0, 600);
+    await expect(page.locator('[data-sonner-toast]')).toHaveCount(0);
     await page.getByRole('button', { name: 'Обновить ленту' }).click();
     await expect(page.locator('[data-news-item]')).toHaveCount(4);
     await expect(page.getByTestId('news-errors')).toHaveCount(0);
@@ -332,11 +352,49 @@ test.describe('news feed tab', () => {
       .or(page.getByRole('button', { name: 'К ленте' }))
       .first()
       .click();
+    // The list row gets a fixed-size thumbnail from the item's own picture.
+    const thumbnail = page
+      .locator('[data-news-item]')
+      .filter({ hasText: 'Вчерашняя запись' })
+      .locator('[data-news-thumbnail]');
+    await expect(thumbnail).toHaveCount(1);
+    await expect(thumbnail).toHaveAttribute('referrerpolicy', 'no-referrer');
+    await expect(thumbnail).toHaveAttribute('loading', 'lazy');
+    await page.screenshot({ path: test.info().outputPath('news-list-images-phone.png') });
+    const box = await thumbnail.boundingBox();
+    expect(Math.round(box?.width ?? 0)).toBe(72);
+    expect(Math.round(box?.height ?? 0)).toBe(72);
     await page.locator('[data-news-item]').filter({ hasText: 'Вчерашняя запись' }).click();
-    await expect(page.getByTestId('news-article').locator('img')).toHaveCount(1);
+    // Hero picture (the enclosure) plus the one inside the text.
+    await expect(page.getByTestId('news-article').locator('img')).toHaveCount(2);
+    const cover = page.getByTestId('news-article-cover');
+    await expect(cover).toHaveAttribute('src', HERO_URL);
+    await expect(cover).toHaveAttribute('referrerpolicy', 'no-referrer');
+    await expect(cover).toHaveAttribute('loading', 'lazy');
+    const coverBox = await cover.boundingBox();
+    // A fixed 16:9 box, so the text below does not jump when the picture arrives.
+    expect(Math.abs((coverBox?.width ?? 0) / (coverBox?.height ?? 1) - 16 / 9)).toBeLessThan(0.05);
+    await expect(page.getByTestId('news-article-images')).toHaveCount(0);
     await expect
       .poll(() => hosts.requests.some((url) => url.startsWith('https://img.test')))
       .toBe(true);
+    await page.screenshot({ path: test.info().outputPath('news-article-images-phone.png') });
+  });
+
+  test('offers to show the pictures of a source from the article, and never fetches them before', async ({
+    page,
+  }) => {
+    const hosts = await installFeedHosts(page);
+    await mountBuiltApp(page, { splitNavigation: false, skipLargeCompanionPacks: true });
+    await openNews(page);
+    await subscribeByAddress(page, FEED_URL);
+    await expect(page.locator('[data-news-thumbnail]')).toHaveCount(0);
+    await page.locator('[data-news-item]').filter({ hasText: 'Вчерашняя запись' }).click();
+    await expect(page.getByTestId('news-article-cover')).toHaveCount(0);
+    expect(hosts.requests.some((url) => url.startsWith('https://img.test'))).toBe(false);
+    await page.getByTestId('news-article-images').click();
+    await expect(page.getByTestId('news-article-cover')).toBeVisible();
+    await expect(page.getByTestId('news-article-images')).toHaveCount(0);
   });
 
   test('offers the browser instead of a blank frame when the site forbids framing', async ({
@@ -448,6 +506,173 @@ test.describe('news feed tab', () => {
     await expect(page.locator('[data-news-item]')).toHaveCount(3);
     await expect(page.locator('[data-news-chip]')).toContainText('MedPortal');
     expect(suggestedHosts).toHaveLength(1);
+    // MedPortal's feed carries no pictures, so its images stay off.
+    await page.getByRole('link', { name: 'Управление источниками' }).click();
+    await expect(page.getByRole('switch', { name: /Показывать изображения/u })).not.toBeChecked();
+  });
+
+  test('starts a suggested source that carries pictures with its images on', async ({ page }) => {
+    await page.route('https://medicalxpress.com/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/rss+xml',
+        headers: CORS_HEADERS,
+        body: feedXml(),
+      });
+    });
+    await mountBuiltApp(page, { splitNavigation: false, skipLargeCompanionPacks: true });
+    await openNews(page);
+    await expect(
+      page.locator('[data-suggested="medical-xpress"]').getByText('С картинками'),
+    ).toBeVisible();
+    await page.getByRole('button', { name: /^Подписаться: Medical Xpress/u }).click();
+    await expect(page.locator('[data-news-item]')).toHaveCount(3);
+    await page.getByRole('link', { name: 'Управление источниками' }).click();
+    await expect(page.getByRole('switch', { name: /Показывать изображения/u })).toBeChecked();
+  });
+
+  test('keeps offering the sources not yet subscribed to, compactly', async ({ page }) => {
+    await installFeedHosts(page);
+    await page.route('https://medportal.ru/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/rss+xml',
+        headers: CORS_HEADERS,
+        body: feedXml(),
+      });
+    });
+    await mountBuiltApp(page, { splitNavigation: false, skipLargeCompanionPacks: true });
+    await openNews(page);
+    await subscribeByAddress(page, FEED_URL);
+    const rail = page.getByTestId('news-suggested-compact');
+    await expect(rail).toBeVisible();
+    await expect(rail.locator('[data-suggested]').first()).toBeVisible();
+    await expect(page.getByTestId('news-empty')).toHaveCount(0);
+    await page.screenshot({
+      path: test.info().outputPath('news-compact-suggestions-phone.png'),
+      fullPage: true,
+    });
+    const before = await rail.locator('[data-suggested]').count();
+    await rail.getByRole('button', { name: /^Подписаться: MedPortal/u }).click();
+    await expect(rail.locator('[data-suggested="medportal-news"]')).toHaveCount(0);
+    await expect(rail.locator('[data-suggested]')).toHaveCount(before - 1);
+    await expect(page.locator('[data-news-chip]')).toHaveCount(2);
+  });
+
+  test('searches PubMed on request, saves the search and refreshes it with the other sources', async ({
+    page,
+  }) => {
+    const hits: { readonly url: URL; readonly at: number }[] = [];
+    let ids = ['41000002', '41000001'];
+    await page.route('https://eutils.ncbi.nlm.nih.gov/**', async (route) => {
+      const url = new URL(route.request().url());
+      hits.push({ url, at: Date.now() });
+      const body = url.pathname.endsWith('esearch.fcgi')
+        ? { esearchresult: { count: '1523', idlist: ids } }
+        : {
+            result: {
+              uids: ids,
+              ...Object.fromEntries(
+                ids.map((id) => [
+                  id,
+                  {
+                    uid: id,
+                    title: `Исследование глаукомы ${id}.`,
+                    source: 'Ophthalmology',
+                    pubdate: '2026 Oct 2',
+                    sortpubdate: '2026/10/02 00:00',
+                    authors: [
+                      { name: 'Smith AB' },
+                      { name: 'Doe C' },
+                      { name: 'Lee D' },
+                      { name: 'Kim E' },
+                    ],
+                  },
+                ]),
+              ),
+            },
+          };
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        headers: CORS_HEADERS,
+        body: JSON.stringify(body),
+      });
+    });
+    await mountBuiltApp(page, { splitNavigation: false, skipLargeCompanionPacks: true });
+    await openNews(page);
+    await page.getByRole('link', { name: 'Поиск в PubMed' }).first().click();
+    await expect(page.getByTestId('news-pubmed')).toBeVisible();
+    // The notice comes before the first search, and nothing is sent until the user searches.
+    await expect(page.getByTestId('news-pubmed-notice')).toContainText('отправляется в NCBI');
+    expect(hits).toEqual([]);
+    await page.getByRole('searchbox', { name: 'Запрос' }).fill('glaucoma AND treatment');
+    await page.getByRole('button', { name: 'Найти', exact: true }).click();
+    const results = page.getByTestId('news-pubmed-results');
+    await expect(results).toContainText('Исследование глаукомы 41000002');
+    await expect(results).toContainText('Ophthalmology');
+    await expect(results).toContainText('Smith AB, Doe C, Lee D и др.');
+    await expect(results).toContainText('Найдено: 1');
+    const link = results.locator('[data-pubmed-article="41000002"]');
+    await expect(link).toHaveAttribute('href', 'https://pubmed.ncbi.nlm.nih.gov/41000002/');
+    await expect(link).toHaveAttribute('target', '_blank');
+    await expect(link).toHaveAttribute('rel', /noopener/u);
+    const search = hits[0]?.url;
+    expect(search?.searchParams.get('term')).toBe('glaucoma AND treatment');
+    expect(search?.searchParams.get('tool')).toBe('minimed');
+    expect(search?.searchParams.get('sort')).toBeNull();
+    expect(hits).toHaveLength(2);
+    // NCBI allows three requests a second: the two requests of one search are spaced.
+    expect((hits[1]?.at ?? 0) - (hits[0]?.at ?? 0)).toBeGreaterThanOrEqual(350);
+    await page.screenshot({ path: test.info().outputPath('news-pubmed-phone.png') });
+
+    await page.getByRole('button', { name: 'Подписаться на этот поиск' }).click();
+    await expect(page.getByTestId('news-pubmed-saved')).toBeVisible();
+    await page.getByRole('button', { name: 'К ленте' }).click();
+    await expect(page.locator('[data-news-item]')).toHaveCount(2);
+    await expect(page.locator('[data-news-chip]')).toContainText('PubMed: glaucoma AND treatment');
+
+    // The saved search opens as a record with a link to PubMed, not as a frame PubMed would refuse.
+    await page.locator('[data-news-item]').first().click();
+    await expect(page.locator('iframe.news-frame__frame')).toHaveCount(0);
+    await expect(page.getByTestId('news-article')).toContainText('PMID');
+    await expect(page.getByRole('link', { name: 'Открыть в PubMed' })).toHaveAttribute(
+      'href',
+      /^https:\/\/pubmed\.ncbi\.nlm\.nih\.gov\/\d+\/$/u,
+    );
+    await page.getByRole('button', { name: 'К ленте' }).first().click();
+
+    // A new article appears when the feed is refreshed.
+    ids = ['41000003', '41000002', '41000001'];
+    await page.getByRole('button', { name: 'Обновить ленту' }).click();
+    await expect(page.locator('[data-news-item]')).toHaveCount(3);
+  });
+
+  test('says so when PubMed finds nothing or cannot be reached', async ({ page }) => {
+    let reachable = true;
+    await page.route('https://eutils.ncbi.nlm.nih.gov/**', async (route) => {
+      if (!reachable) {
+        await route.abort('connectionrefused');
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        headers: CORS_HEADERS,
+        body: JSON.stringify({ esearchresult: { count: '0', idlist: [] } }),
+      });
+    });
+    await mountBuiltApp(page, { splitNavigation: false, skipLargeCompanionPacks: true });
+    await openNews(page);
+    await page.getByRole('link', { name: 'Поиск в PubMed' }).first().click();
+    const field = page.getByRole('searchbox', { name: 'Запрос' });
+    await field.fill('zzzz-no-such-term');
+    await page.getByRole('button', { name: 'Найти', exact: true }).click();
+    await expect(page.getByTestId('news-pubmed-results')).toContainText('ничего не найдено');
+    reachable = false;
+    await field.fill('glaucoma');
+    await page.getByRole('button', { name: 'Найти', exact: true }).click();
+    await expect(page.getByRole('alert')).toContainText('Не удалось связаться');
   });
 });
 

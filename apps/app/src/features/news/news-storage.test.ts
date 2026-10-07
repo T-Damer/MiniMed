@@ -123,3 +123,37 @@ describe('storages', () => {
     expect(readStoredUnreadCount(fakeStorage())).toBe(0);
   });
 });
+
+describe('PubMed subscriptions in storage', () => {
+  const search: Subscription = {
+    ...valid,
+    id: 's-pm',
+    kind: 'pubmed',
+    url: 'https://pubmed.ncbi.nlm.nih.gov/?term=glaucoma&sort=date',
+    title: 'PubMed: glaucoma',
+    query: 'glaucoma',
+    images: false,
+    unread: 3,
+  };
+
+  it('keeps the query of a saved search and drops a search without one', () => {
+    const parsed = parseSubscriptions([search, { ...search, id: 's-pm2', query: undefined }]);
+    expect(parsed).toHaveLength(1);
+    expect(parsed[0]).toMatchObject({ kind: 'pubmed', query: 'glaucoma' });
+    // The query is stored only for this kind.
+    expect(
+      parseSubscriptions([{ ...valid, id: 's-9', query: 'sneaky' }])[0]?.query,
+    ).toBeUndefined();
+  });
+
+  it('counts the unread items of saved searches in the tab badge', () => {
+    const storage = fakeStorage({
+      [NEWS_SUBSCRIPTIONS_KEY]: JSON.stringify([
+        valid,
+        search,
+        { ...valid, id: 's-site', kind: 'site' },
+      ]),
+    });
+    expect(readStoredUnreadCount(storage)).toBe(7);
+  });
+});

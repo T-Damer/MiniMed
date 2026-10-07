@@ -1,7 +1,7 @@
 {
   "version": 1,
   "verifiedAt": "2026-10-05",
-  "verifiedNote": "Each address returned a valid feed with fresh items on 2026-10-05 and was parsed by the app's own parser. webReadable records whether the host sent Access-Control-Allow-Origin for https://t-damer.github.io (the browser build); the Android app reads every source, CORS or not.",
+  "verifiedNote": "Each address returned a valid feed with fresh items on 2026-10-05 and was parsed by the app's own parser. webReadable records whether the host sent Access-Control-Allow-Origin for https://t-damer.github.io (the browser build); the Android app reads every source, CORS or not. carriesImages records that the feed's items carried an image (parsed by the app's own parser, 2026-10-07); such a source is subscribed with «Изображения» on. visual is a bundled monogram tile (no logo files, no network): mark text, hue 0-360 and the glyph of the topic.",
   "feeds": [
     {
       "id": "roszdravnadzor-news",
@@ -11,7 +11,14 @@
       "siteUrl": "https://roszdravnadzor.gov.ru/",
       "language": "ru",
       "group": "ru",
-      "webReadable": false
+      "webReadable": false,
+      "topic": "Надзор и безопасность",
+      "visual": {
+        "mark": "РЗН",
+        "hue": 8,
+        "glyph": "scales"
+      },
+      "carriesImages": false
     },
     {
       "id": "who-news-ru",
@@ -21,7 +28,14 @@
       "siteUrl": "https://www.who.int/ru/news",
       "language": "ru",
       "group": "ru",
-      "webReadable": true
+      "webReadable": true,
+      "topic": "Мировое здравоохранение",
+      "visual": {
+        "mark": "ВОЗ",
+        "hue": 205,
+        "glyph": "globe"
+      },
+      "carriesImages": false
     },
     {
       "id": "pharmvestnik-news",
@@ -31,7 +45,14 @@
       "siteUrl": "https://pharmvestnik.ru/",
       "language": "ru",
       "group": "ru",
-      "webReadable": false
+      "webReadable": false,
+      "topic": "Фармрынок и препараты",
+      "visual": {
+        "mark": "Фв",
+        "hue": 160,
+        "glyph": "pill"
+      },
+      "carriesImages": true
     },
     {
       "id": "mgzt-news",
@@ -41,7 +62,14 @@
       "siteUrl": "https://mgzt.ru/",
       "language": "ru",
       "group": "ru",
-      "webReadable": false
+      "webReadable": false,
+      "topic": "Здравоохранение и профессия",
+      "visual": {
+        "mark": "МГ",
+        "hue": 28,
+        "glyph": "newspaper"
+      },
+      "carriesImages": false
     },
     {
       "id": "medportal-news",
@@ -51,7 +79,14 @@
       "siteUrl": "https://medportal.ru/",
       "language": "ru",
       "group": "ru",
-      "webReadable": true
+      "webReadable": true,
+      "topic": "Новости медицины",
+      "visual": {
+        "mark": "МП",
+        "hue": 335,
+        "glyph": "heartbeat"
+      },
+      "carriesImages": false
     },
     {
       "id": "doctorpiter-news",
@@ -61,7 +96,14 @@
       "siteUrl": "https://doctorpiter.ru/",
       "language": "ru",
       "group": "ru",
-      "webReadable": true
+      "webReadable": true,
+      "topic": "Медицина для всех",
+      "visual": {
+        "mark": "ДП",
+        "hue": 188,
+        "glyph": "heartbeat"
+      },
+      "carriesImages": true
     },
     {
       "id": "nejm-current",
@@ -71,7 +113,14 @@
       "siteUrl": "https://www.nejm.org/",
       "language": "en",
       "group": "international",
-      "webReadable": false
+      "webReadable": false,
+      "topic": "Клинические исследования",
+      "visual": {
+        "mark": "NE",
+        "hue": 355,
+        "glyph": "book-open"
+      },
+      "carriesImages": false
     },
     {
       "id": "lancet-online",
@@ -81,7 +130,14 @@
       "siteUrl": "https://www.thelancet.com/",
       "language": "en",
       "group": "international",
-      "webReadable": false
+      "webReadable": false,
+      "topic": "Клинические исследования",
+      "visual": {
+        "mark": "TL",
+        "hue": 215,
+        "glyph": "book-open"
+      },
+      "carriesImages": false
     },
     {
       "id": "nature-medicine",
@@ -91,7 +147,14 @@
       "siteUrl": "https://www.nature.com/nm/",
       "language": "en",
       "group": "international",
-      "webReadable": false
+      "webReadable": false,
+      "topic": "Исследования и наука",
+      "visual": {
+        "mark": "NM",
+        "hue": 150,
+        "glyph": "microscope"
+      },
+      "carriesImages": false
     },
     {
       "id": "plos-medicine",
@@ -101,7 +164,14 @@
       "siteUrl": "https://journals.plos.org/plosmedicine/",
       "language": "en",
       "group": "international",
-      "webReadable": false
+      "webReadable": false,
+      "topic": "Открытые исследования",
+      "visual": {
+        "mark": "PM",
+        "hue": 175,
+        "glyph": "books"
+      },
+      "carriesImages": false
     },
     {
       "id": "fda-medwatch",
@@ -111,7 +181,14 @@
       "siteUrl": "https://www.fda.gov/safety/medwatch-fda-safety-information-and-adverse-event-reporting-program",
       "language": "en",
       "group": "international",
-      "webReadable": false
+      "webReadable": false,
+      "topic": "Безопасность препаратов",
+      "visual": {
+        "mark": "FDA",
+        "hue": 232,
+        "glyph": "prescription"
+      },
+      "carriesImages": false
     },
     {
       "id": "medpage-today",
@@ -121,7 +198,14 @@
       "siteUrl": "https://www.medpagetoday.com/",
       "language": "en",
       "group": "international",
-      "webReadable": true
+      "webReadable": true,
+      "topic": "Клиническая практика",
+      "visual": {
+        "mark": "MPT",
+        "hue": 95,
+        "glyph": "heartbeat"
+      },
+      "carriesImages": true
     },
     {
       "id": "stat-news",
@@ -131,7 +215,14 @@
       "siteUrl": "https://www.statnews.com/",
       "language": "en",
       "group": "international",
-      "webReadable": false
+      "webReadable": false,
+      "topic": "Медицина и биотех",
+      "visual": {
+        "mark": "STAT",
+        "hue": 12,
+        "glyph": "newspaper"
+      },
+      "carriesImages": true
     },
     {
       "id": "medical-xpress",
@@ -141,7 +232,14 @@
       "siteUrl": "https://medicalxpress.com/",
       "language": "en",
       "group": "international",
-      "webReadable": false
+      "webReadable": false,
+      "topic": "Научные новости",
+      "visual": {
+        "mark": "MX",
+        "hue": 262,
+        "glyph": "flask"
+      },
+      "carriesImages": true
     }
   ]
 }

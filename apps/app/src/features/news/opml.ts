@@ -24,7 +24,9 @@ export function buildOpml(
   subscriptions: readonly Subscription[],
   title = 'MiniMed — лента',
 ): string {
+  // A PubMed search is no feed address and its text is the user's own: it stays out of the file.
   const outlines = subscriptions
+    .filter((subscription) => subscription.kind !== 'pubmed')
     .map((subscription) => {
       const text = escapeXml(subscription.title);
       const url = escapeXml(subscription.url);

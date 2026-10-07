@@ -9,6 +9,7 @@ import {
   type FeedResponse,
   type FeedTransport,
 } from '@/features/news/news-transport';
+import type { PubmedClient, PubmedSearchResult } from '@/features/news/pubmed-client';
 
 const NOW = Date.parse('2026-10-05T12:00:00Z');
 
@@ -26,7 +27,12 @@ function ok(text: string, headers: Record<string, string> = {}): FeedResponse {
 
 function makeService(
   handler: Handler,
-  options: { online?: () => boolean; storage?: NewsStorage; now?: () => number } = {},
+  options: {
+    online?: () => boolean;
+    storage?: NewsStorage;
+    now?: () => number;
+    pubmed?: PubmedClient;
+  } = {},
 ) {
   const requests: FeedRequest[] = [];
   const transport: FeedTransport = {
@@ -43,6 +49,7 @@ function makeService(
     transport,
     now: options.now ?? (() => NOW),
     online: options.online ?? (() => true),
+    ...(options.pubmed ? { pubmed: options.pubmed } : {}),
   });
   return { service, requests, storage };
 }
@@ -271,5 +278,185 @@ describe('NewsService refresh and unread', () => {
     });
     await service.subscribeSite('https://one.example/', 'One');
     await expect(service.subscribeSite('https://two.example/', 'Two')).rejects.toThrow(/предел/u);
+  });
+});
+
+describe('NewsService suggested-source images', () => {
+  it('subscribes with images on only when asked, and keeps the switch per source', async () => {
+    const { service } = makeService(() => ok(RSS2_FEED));
+    const withImages = await service.subscribeFeed('https://example.org/feed.xml', {
+      suggestedId: 'sug-1',
+      images: true,
+    });
+    expect(withImages.images).toBe(true);
+    const plain = makeService(() => ok(RSS2_FEED));
+    const without = await plain.service.subscribeFeed('https://example.org/feed.xml');
+    expect(without.images).toBe(false);
+    plain.service.setImages(without.id, true);
+    expect(plain.service.snapshot().subscriptions[0]?.images).toBe(true);
+  });
+
+  it('keeps the image of an item in the model whatever the switch says', async () => {
+    const { service } = makeService(() => ok(RSS2_FEED));
+    await service.subscribeFeed('https://example.org/feed.xml');
+    expect(service.snapshot().items.find((item) => item.imageUrl)?.imageUrl).toBe(
+      'https://example.org/thumb.jpg',
+    );
+  });
+});
+
+function pubmedResult(query: string, ids: readonly string[]): PubmedSearchResult {
+  const articles = ids.map((pmid, index) => ({
+    pmid,
+    title: `Article ${pmid}`,
+    journal: 'Lancet',
+    pubdate: '2026 Oct 4',
+    publishedAt: Date.UTC(2026, 9, 4) - index,
+    authors: ['Smith AB'],
+  }));
+  return {
+    query,
+    total: ids.length,
+    articles,
+    items: articles.map((article) => ({
+      guid: `pmid:${article.pmid}`,
+      url: `https://pubmed.ncbi.nlm.nih.gov/${article.pmid}/`,
+      title: article.title,
+      snippet: 'Lancet',
+      content: [],
+      publishedAt: article.publishedAt,
+    })),
+  };
+}
+
+function fakePubmed(handler: (query: string) => PubmedSearchResult | Error): {
+  readonly client: PubmedClient;
+  readonly queries: string[];
+} {
+  const queries: string[] = [];
+  return {
+    queries,
+    client: {
+      search: async (query) => {
+        queries.push(query);
+        const answer = handler(query);
+        if (answer instanceof Error) throw answer;
+        return answer;
+      },
+    },
+  };
+}
+
+describe('NewsService PubMed searches', () => {
+  it('searches only when asked, validates the text first and sends nothing while offline', async () => {
+    const pubmed = fakePubmed((query) => pubmedResult(query, ['1']));
+    const { service } = makeService(() => ok(''), { pubmed: pubmed.client });
+    await service.load();
+    expect(pubmed.queries).toEqual([]);
+    await expect(service.searchPubmed(' ')).rejects.toThrow(/запрос/iu);
+    expect(pubmed.queries).toEqual([]);
+    const found = await service.searchPubmed('  glaucoma   treatment ');
+    expect(found.query).toBe('glaucoma treatment');
+    expect(pubmed.queries).toEqual(['glaucoma treatment']);
+    // Searching does not save anything.
+    expect(service.snapshot().subscriptions).toEqual([]);
+
+    const offline = fakePubmed((query) => pubmedResult(query, ['1']));
+    const sleeper = makeService(() => ok(''), { online: () => false, pubmed: offline.client });
+    await expect(sleeper.service.searchPubmed('glaucoma')).rejects.toMatchObject({
+      code: 'offline',
+    });
+    expect(offline.queries).toEqual([]);
+  });
+
+  it('subscribes to a search using the result already on screen', async () => {
+    const pubmed = fakePubmed((query) => pubmedResult(query, ['1', '2']));
+    const { service } = makeService(() => ok(''), { pubmed: pubmed.client });
+    const found = await service.searchPubmed('glaucoma');
+    const subscription = await service.subscribePubmed('glaucoma', found);
+    expect(pubmed.queries).toEqual(['glaucoma']);
+    expect(subscription).toMatchObject({
+      kind: 'pubmed',
+      query: 'glaucoma',
+      title: 'PubMed: glaucoma',
+      images: false,
+    });
+    expect(subscription.url).toContain('pubmed.ncbi.nlm.nih.gov');
+    const snapshot = service.snapshot();
+    expect(snapshot.items.map((item) => item.url)).toEqual([
+      'https://pubmed.ncbi.nlm.nih.gov/1/',
+      'https://pubmed.ncbi.nlm.nih.gov/2/',
+    ]);
+    // Recent hits are unread and counted like any other feed.
+    expect(snapshot.unread).toBe(subscription.unread);
+    // Subscribing twice to the same search is a no-op.
+    const again = await service.subscribePubmed('  glaucoma ');
+    expect(again.id).toBe(subscription.id);
+    expect(service.snapshot().subscriptions).toHaveLength(1);
+  });
+
+  it('refreshes with the other sources, adds only new PMIDs and records a failure per search', async () => {
+    let ids = ['1'];
+    let failure: Error | undefined;
+    const pubmed = fakePubmed((query) => failure ?? pubmedResult(query, ids));
+    const { service, requests } = makeService(() => ok(RSS2_FEED), { pubmed: pubmed.client });
+    await service.subscribeFeed('https://example.org/feed.xml');
+    const search = await service.subscribePubmed('glaucoma');
+    await service.markAllRead();
+    ids = ['3', '2', '1'];
+    const report = await service.refresh();
+    expect(report).toMatchObject({ refreshed: 2, failed: 0, added: 2 });
+    expect(requests).toHaveLength(2);
+    const items = service.snapshot().items.filter((item) => item.feedId === search.id);
+    expect(items).toHaveLength(3);
+    expect(items.filter((item) => !item.read)).toHaveLength(2);
+
+    failure = new FeedFetchError('http', 'Источник вернул ошибку 429.', 429);
+    const failed = await service.refresh([search.id]);
+    expect(failed).toMatchObject({ refreshed: 0, failed: 1 });
+    expect(
+      service.snapshot().subscriptions.find((entry) => entry.id === search.id)?.error?.code,
+    ).toBe('http');
+    expect(service.snapshot().items.filter((item) => item.feedId === search.id)).toHaveLength(3);
+    failure = undefined;
+    await service.refresh([search.id]);
+    expect(
+      service.snapshot().subscriptions.find((entry) => entry.id === search.id)?.error,
+    ).toBeUndefined();
+  });
+
+  it('keeps old hits (a year) and refreshes stale saved searches when the tab opens', async () => {
+    let now = NOW;
+    const old = pubmedResult('rare disease', ['9']);
+    const pubmed = fakePubmed(() => ({
+      ...old,
+      items: old.items.map((item) => ({ ...item, publishedAt: NOW - 200 * 24 * 3600 * 1000 })),
+    }));
+    const { service } = makeService(() => ok(''), { now: () => now, pubmed: pubmed.client });
+    await service.subscribePubmed('rare disease');
+    // A 200-day-old record is within the PubMed window although a feed item would be dropped.
+    expect(service.snapshot().items).toHaveLength(1);
+    expect(service.snapshot().items[0]?.read).toBe(true);
+    now += 20 * 60_000;
+    await service.refreshStale(15 * 60_000);
+    expect(pubmed.queries).toEqual(['rare disease', 'rare disease']);
+  });
+
+  it('reloads a saved search and its items from storage after a restart', async () => {
+    const storage = createMemoryNewsStorage();
+    const first = makeService(() => ok(''), {
+      storage,
+      pubmed: fakePubmed((query) => pubmedResult(query, ['5'])).client,
+    });
+    await first.service.subscribePubmed('glaucoma');
+    const second = makeService(
+      () => {
+        throw new Error('offline');
+      },
+      { storage, online: () => false },
+    );
+    await second.service.load();
+    expect(second.service.snapshot().items).toHaveLength(1);
+    expect(second.service.snapshot().subscriptions[0]).toMatchObject({ kind: 'pubmed' });
   });
 });

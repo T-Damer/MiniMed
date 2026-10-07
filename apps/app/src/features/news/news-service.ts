@@ -16,10 +16,22 @@ import {
 import {
   DEFAULT_NEWS_LIMITS,
   type FetchFailureCode,
+  hasItems,
   type NewsItem,
   type NewsLimits,
+  PUBMED_ITEM_WINDOWS,
   type Subscription,
 } from '@/features/news/news-types';
+import {
+  normalizePubmedQuery,
+  pubmedSearchPageUrl,
+  pubmedSubscriptionTitle,
+} from '@/features/news/pubmed';
+import {
+  createPubmedClient,
+  type PubmedClient,
+  type PubmedSearchResult,
+} from '@/features/news/pubmed-client';
 import {
   classifyPayload,
   type DiscoveredFeed,
@@ -57,6 +69,8 @@ export interface SubscribeMeta {
   readonly title?: string;
   readonly language?: string;
   readonly suggestedId?: string;
+  /** Start with the source's remote images switched on (suggested sources measured to carry them). */
+  readonly images?: boolean;
 }
 
 export interface RefreshReport {
@@ -72,6 +86,8 @@ export interface NewsServiceDeps {
   readonly now?: () => number;
   readonly online?: () => boolean;
   readonly limits?: NewsLimits;
+  /** PubMed search; defaults to E-utilities through `transport`, rate-limited. */
+  readonly pubmed?: PubmedClient;
 }
 
 const REFRESH_CONCURRENCY = 3;
@@ -97,6 +113,7 @@ export class NewsService {
   private readonly now: () => number;
   private readonly online: () => boolean;
   private readonly limits: NewsLimits;
+  private readonly pubmed: PubmedClient;
   private readonly listeners = new Set<() => void>();
   private readonly itemsByFeed = new Map<string, readonly NewsItem[]>();
   private readonly itemLoads = new Map<string, Promise<void>>();
@@ -113,6 +130,7 @@ export class NewsService {
     this.online =
       deps.online ?? (() => (typeof navigator === 'undefined' ? true : navigator.onLine));
     this.limits = deps.limits ?? DEFAULT_NEWS_LIMITS;
+    this.pubmed = deps.pubmed ?? createPubmedClient({ transport: this.transport, now: this.now });
     this.current = this.buildSnapshot();
   }
 
@@ -156,7 +174,7 @@ export class NewsService {
     this.loaded = true;
     this.publish(false);
     await Promise.all(
-      this.subscriptions.filter((s) => s.kind === 'feed').map((s) => this.ensureItems(s.id)),
+      this.subscriptions.filter((s) => hasItems(s.kind)).map((s) => this.ensureItems(s.id)),
     );
     this.itemsLoaded = true;
     this.publish(false);
@@ -241,7 +259,7 @@ export class NewsService {
       ...(feed.siteUrl ? { siteUrl: feed.siteUrl } : {}),
       ...(language ? { language } : {}),
       ...(meta.suggestedId ? { suggestedId: meta.suggestedId } : {}),
-      images: false,
+      images: meta.images === true,
       addedAt: now,
       fetchedAt: now,
       ...(response?.headers['etag'] ? { etag: response.headers['etag'] } : {}),
@@ -278,7 +296,7 @@ export class NewsService {
       siteUrl: url,
       ...(meta.language ? { language: meta.language } : {}),
       ...(meta.suggestedId ? { suggestedId: meta.suggestedId } : {}),
-      images: false,
+      images: meta.images === true,
       addedAt: this.now(),
       unread: 0,
     };
@@ -287,10 +305,94 @@ export class NewsService {
     return subscription;
   }
 
+  /**
+   * Looks PubMed up for the user (a user-initiated search, nothing is saved). The text is checked
+   * before anything is sent; offline sends nothing.
+   */
+  async searchPubmed(rawQuery: string, signal?: AbortSignal): Promise<PubmedSearchResult> {
+    const checked = normalizePubmedQuery(rawQuery);
+    if (!checked.ok) throw new Error(checked.message);
+    if (!this.online()) throw new FeedFetchError('offline', FAILURE_MESSAGES.offline);
+    return this.pubmed.search(checked.query, signal);
+  }
+
+  /** Saves a PubMed search as a source; `result` (the search just shown) saves the second round of requests. */
+  async subscribePubmed(rawQuery: string, result?: PubmedSearchResult): Promise<Subscription> {
+    await this.load();
+    const checked = normalizePubmedQuery(rawQuery);
+    if (!checked.ok) throw new Error(checked.message);
+    const url = pubmedSearchPageUrl(checked.query);
+    const id = subscriptionIdFor(url);
+    const existing = this.subscriptions.find((s) => s.id === id);
+    if (existing) return existing;
+    if (this.subscriptions.length >= this.limits.maxSubscriptions) {
+      throw new Error('Достигнут предел числа источников. Удалите ненужные.');
+    }
+    const found = result?.query === checked.query ? result : await this.searchPubmed(checked.query);
+    const now = this.now();
+    const subscription: Subscription = {
+      id,
+      kind: 'pubmed',
+      url,
+      query: checked.query,
+      title: pubmedSubscriptionTitle(checked.query),
+      siteUrl: url,
+      language: 'en',
+      images: false,
+      addedAt: now,
+      fetchedAt: now,
+      unread: 0,
+    };
+    this.subscriptions = [...this.subscriptions, subscription];
+    const { items } = mergeFeedItems([], found.items, {
+      feedId: id,
+      now,
+      firstFetch: true,
+      limits: this.pubmedLimits(),
+    });
+    await this.setItems(id, items);
+    return this.subscriptions.find((s) => s.id === id) ?? subscription;
+  }
+
+  /** PubMed items are the newest hits of a search, often months old: they are kept for longer. */
+  private pubmedLimits(): NewsLimits {
+    return { ...this.limits, ...PUBMED_ITEM_WINDOWS };
+  }
+
+  private async refreshPubmed(subscription: Subscription): Promise<{ ok: boolean; added: number }> {
+    const id = subscription.id;
+    try {
+      const found = await this.pubmed.search(subscription.query ?? '');
+      const now = this.now();
+      const current = this.itemsByFeed.get(id) ?? [];
+      const merged = mergeFeedItems(current, found.items, {
+        feedId: id,
+        now,
+        firstFetch: subscription.fetchedAt === undefined && current.length === 0,
+        limits: this.pubmedLimits(),
+      });
+      this.updateSubscription(id, (s) => {
+        const { error: _dropped, ...rest } = s;
+        return { ...rest, fetchedAt: now };
+      });
+      await this.setItems(id, merged.items);
+      return { ok: true, added: merged.added };
+    } catch (error) {
+      const failure = failureOf(error);
+      this.updateSubscription(id, (s) => ({
+        ...s,
+        error: { code: failure.code, message: failure.message, at: this.now() },
+      }));
+      this.publish(true);
+      return { ok: false, added: 0 };
+    }
+  }
+
   private async refreshOne(id: string): Promise<{ ok: boolean; added: number }> {
     const subscription = this.subscriptions.find((s) => s.id === id);
-    if (subscription?.kind !== 'feed') return { ok: true, added: 0 };
+    if (!subscription || !hasItems(subscription.kind)) return { ok: true, added: 0 };
     await this.ensureItems(id);
+    if (subscription.kind === 'pubmed') return this.refreshPubmed(subscription);
     try {
       const response = await this.transport.fetch({
         url: subscription.url,
@@ -342,7 +444,7 @@ export class NewsService {
   async refresh(ids?: readonly string[]): Promise<RefreshReport> {
     await this.load();
     const targets = (ids ?? this.subscriptions.map((s) => s.id)).filter((id) =>
-      this.subscriptions.some((s) => s.id === id && s.kind === 'feed'),
+      this.subscriptions.some((s) => s.id === id && hasItems(s.kind)),
     );
     if (targets.length === 0) return { offline: false, refreshed: 0, failed: 0, added: 0 };
     if (!this.online()) return { offline: true, refreshed: 0, failed: 0, added: 0 };
@@ -383,7 +485,7 @@ export class NewsService {
     const now = this.now();
     return this.subscriptions
       .filter(
-        (s) => s.kind === 'feed' && (s.fetchedAt === undefined || now - s.fetchedAt > maxAgeMs),
+        (s) => hasItems(s.kind) && (s.fetchedAt === undefined || now - s.fetchedAt > maxAgeMs),
       )
       .map((s) => s.id);
   }

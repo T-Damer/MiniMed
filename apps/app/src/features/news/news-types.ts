@@ -1,7 +1,15 @@
 import type { SafeNode } from '@/features/news/feed-content';
 
-/** A feed is read as items; a site is only opened in the viewer (no items, no unread count). */
-export type SubscriptionKind = 'feed' | 'site';
+/**
+ * A feed is read as items; a site is only opened in the viewer (no items, no unread count); a
+ * `pubmed` subscription is a saved PubMed search whose newest results become items (ADR-0024).
+ */
+export type SubscriptionKind = 'feed' | 'site' | 'pubmed';
+
+/** Whether the subscription produces cached items (and therefore unread counts and refreshes). */
+export function hasItems(kind: SubscriptionKind): boolean {
+  return kind === 'feed' || kind === 'pubmed';
+}
 
 export type FetchFailureCode =
   | 'offline'
@@ -24,8 +32,11 @@ export interface SubscriptionError {
 export interface Subscription {
   readonly id: string;
   readonly kind: SubscriptionKind;
+  /** Feed address; for `pubmed` the PubMed web page of the same search (only ever opened by the user). */
   readonly url: string;
   readonly title: string;
+  /** The search text of a `pubmed` subscription, sent to NCBI on every refresh. */
+  readonly query?: string;
   readonly siteUrl?: string;
   /** Language label of a suggested source (`ru`, `en`), for the badge. */
   readonly language?: string;
@@ -73,4 +84,10 @@ export const DEFAULT_NEWS_LIMITS: NewsLimits = {
   maxAgeMs: 30 * 24 * 60 * 60 * 1000,
   firstFetchUnreadWindowMs: 3 * 24 * 60 * 60 * 1000,
   maxSubscriptions: 40,
+};
+
+/** PubMed search results are the newest hits, often months old: kept and flagged unread over longer windows. */
+export const PUBMED_ITEM_WINDOWS: Pick<NewsLimits, 'maxAgeMs' | 'firstFetchUnreadWindowMs'> = {
+  maxAgeMs: 365 * 24 * 60 * 60 * 1000,
+  firstFetchUnreadWindowMs: 14 * 24 * 60 * 60 * 1000,
 };

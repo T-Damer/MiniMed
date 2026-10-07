@@ -1,6 +1,7 @@
 import type { ParsedFeedItem } from '@/features/news/feed-parser';
 import {
   DEFAULT_NEWS_LIMITS,
+  hasItems,
   type NewsItem,
   type NewsLimits,
   type Subscription,
@@ -114,7 +115,7 @@ export function markItemsRead(
 
 export function totalUnread(subscriptions: readonly Subscription[]): number {
   return subscriptions.reduce(
-    (sum, subscription) => sum + (subscription.kind === 'feed' ? subscription.unread : 0),
+    (sum, subscription) => sum + (hasItems(subscription.kind) ? subscription.unread : 0),
     0,
   );
 }

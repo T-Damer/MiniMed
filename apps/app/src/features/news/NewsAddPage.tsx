@@ -292,7 +292,7 @@ export function NewsAddPage(props: { readonly snapshot: Accessor<NewsSnapshot> }
         </Match>
       </Switch>
 
-      <NewsSuggestedFeeds subscriptions={props.snapshot().subscriptions} />
+      <NewsSuggestedFeeds subscriptions={props.snapshot().subscriptions} variant="compact" />
     </section>
   );
 }

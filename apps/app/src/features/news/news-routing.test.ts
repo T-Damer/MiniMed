@@ -13,6 +13,7 @@ describe('news routes', () => {
     expect(readNewsRoute('#/news')).toEqual({ kind: 'list' });
     expect(readNewsRoute('#/news/add')).toEqual({ kind: 'add' });
     expect(readNewsRoute('#/news/sources')).toEqual({ kind: 'sources' });
+    expect(readNewsRoute('#/news/pubmed')).toEqual({ kind: 'pubmed' });
     expect(readNewsRoute(newsItemHash('i-abc/def'))).toEqual({ kind: 'item', itemId: 'i-abc/def' });
     expect(readNewsRoute(newsSiteHash('s-1'))).toEqual({ kind: 'site', feedId: 's-1' });
     expect(readNewsRoute('#/news/item')).toEqual({ kind: 'list' });
@@ -29,6 +30,7 @@ describe('news routes', () => {
   it('leads every sub-route back to the list, and the list nowhere', () => {
     expect(newsParentHash('news/add')).toBe('#/news');
     expect(newsParentHash('news/sources')).toBe('#/news');
+    expect(newsParentHash('news/pubmed')).toBe('#/news');
     expect(newsParentHash('news/item/i-1')).toBe('#/news');
     expect(newsParentHash('news/site/s-1')).toBe('#/news');
     expect(newsParentHash('news')).toBeNull();

@@ -1,6 +1,8 @@
 # ADR-0020: Medical news and research feed
 
-- Status: proposed (research before implementation)
+- Status: proposed (research before implementation); partially implemented through
+  [ADR-0024](0024-opt-in-news-feed-subscriptions.md): own RSS/Atom subscriptions (2026-10-05) and a
+  PubMed search with saved-search subscriptions (2026-10-07)
 - Date: 2026-09-27
 
 ## Context
@@ -17,7 +19,8 @@ cache. Browser builds are limited by CORS; Android/iOS can fetch natively.
    enters the official corpus, search ranking or answers, and the app stays fully useful offline;
    the last fetched feed is readable offline from a device-local cache.
 2. **Sources, first wave** (free public APIs): PubMed E-utilities (MeSH-topic subscriptions,
-   abstracts), Europe PMC (including medRxiv/bioRxiv preprints and open full texts), OpenAlex (topic
+   abstracts) — *partially done 2026-10-07: `esearch`/`esummary` search and saved-search
+   subscriptions (title, journal, date, authors; no abstracts, no MeSH, no key), ADR-0024*; Europe PMC (including medRxiv/bioRxiv preprints and open full texts), OpenAlex (topic
    subscriptions), ClinicalTrials.gov API v2, Crossref and Unpaywall (legal open-access copies).
    **Russian journals** through their own feeds and OAI-PMH endpoints (Elpub/OJS platforms) and
    official news (Минздрав, Росздравнадзор) where they publish RSS. CyberLeninka is not a primary

@@ -16,12 +16,18 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { Page } from '@/components/Page';
 import { useStickySurface } from '@/components/sticky-surface';
 import { NewsItemRow } from '@/features/news/NewsItemRow';
+import { NewsSourceTile } from '@/features/news/NewsSourceTile';
 import { NewsSuggestedFeeds } from '@/features/news/NewsSuggestedFeeds';
-import { NEWS_ADD_HASH, NEWS_SOURCES_HASH, newsSiteHash } from '@/features/news/news-routing';
+import {
+  NEWS_ADD_HASH,
+  NEWS_PUBMED_HASH,
+  NEWS_SOURCES_HASH,
+  newsSiteHash,
+} from '@/features/news/news-routing';
 import type { NewsSnapshot } from '@/features/news/news-service';
 import { fetchedAtLabel, groupItemsByDay, pluralRu } from '@/features/news/news-state';
 import { getNewsService } from '@/features/news/news-store';
-import type { Subscription } from '@/features/news/news-types';
+import { hasItems, type Subscription } from '@/features/news/news-types';
 import { hostLabel } from '@/features/news/source-url';
 
 const ALL_SOURCES = 'all';
@@ -48,19 +54,20 @@ function useOnline(): Accessor<boolean> {
 function NewsEmpty(props: { readonly subscriptions: readonly Subscription[] }): JSX.Element {
   return (
     <div class="news-empty" data-testid="news-empty">
-      <div class="news-empty__card">
-        <AppGlyph name="newspaper" class="news-empty__icon" />
-        <h2 class="news-empty__title">Лента новостей</h2>
-        <p class="news-empty__text">
-          Подпишитесь на RSS-ленты и сайты, чтобы видеть новое в одном месте. Лента — необязательный
-          слой: пока вы ничего не добавили, приложение не обращается к сети, а без сети показывает
-          сохранённые записи.
-        </p>
-        <a class="news-empty__action" href={NEWS_ADD_HASH}>
-          <AppGlyph name="plus" class="news-empty__action-icon" />
-          Добавить источник
-        </a>
-      </div>
+      <p class="news-empty__lead">
+        Выберите источники — новое будет собираться здесь. Пока ничего не добавлено, приложение не
+        обращается к сети.
+      </p>
+      <a class="news-pubmed-card" href={NEWS_PUBMED_HASH} data-testid="news-pubmed-entry">
+        <NewsSourceTile glyph="search" />
+        <span class="news-pubmed-card__copy">
+          <span class="news-pubmed-card__title">Поиск в PubMed</span>
+          <span class="news-pubmed-card__text">
+            Свежие статьи по вашей теме из базы NCBI; поиск можно сохранить как источник.
+          </span>
+        </span>
+        <AppGlyph name="caret-right" class="news-pubmed-card__chevron" />
+      </a>
       <NewsSuggestedFeeds subscriptions={props.subscriptions} />
     </div>
   );
@@ -75,7 +82,8 @@ export function NewsListPage(props: { readonly snapshot: Accessor<NewsSnapshot> 
   useStickySurface(toolbar);
 
   const subscriptions = () => props.snapshot().subscriptions;
-  const feeds = createMemo(() => subscriptions().filter((entry) => entry.kind === 'feed'));
+  // Feeds and saved PubMed searches both produce items.
+  const feeds = createMemo(() => subscriptions().filter((entry) => hasItems(entry.kind)));
   const sites = createMemo(() => subscriptions().filter((entry) => entry.kind === 'site'));
   const subscriptionById = createMemo(
     () => new Map(subscriptions().map((entry) => [entry.id, entry])),
@@ -124,7 +132,7 @@ export function NewsListPage(props: { readonly snapshot: Accessor<NewsSnapshot> 
         title={<h1 class="news-page__title">Лента</h1>}
         description={
           sourceCount() === 0
-            ? 'Новости и статьи из выбранных вами источников.'
+            ? undefined
             : `${sourceCount()} ${pluralRu(sourceCount(), 'источник', 'источника', 'источников')} · обновлено ${fetchedAtLabel(lastFetched(), Date.now())}`
         }
         actions={
@@ -146,11 +154,11 @@ export function NewsListPage(props: { readonly snapshot: Accessor<NewsSnapshot> 
             </Show>
             <a
               class="news-page__action"
-              href={NEWS_ADD_HASH}
-              aria-label="Добавить источник"
-              title="Добавить источник"
+              href={NEWS_PUBMED_HASH}
+              aria-label="Поиск в PubMed"
+              title="Поиск в PubMed"
             >
-              <AppGlyph name="plus" class="news-page__action-icon" />
+              <AppGlyph name="search" class="news-page__action-icon" />
             </a>
             <Show when={subscriptions().length > 0}>
               <a
@@ -162,6 +170,15 @@ export function NewsListPage(props: { readonly snapshot: Accessor<NewsSnapshot> 
                 <AppGlyph name="sliders-horizontal" class="news-page__action-icon" />
               </a>
             </Show>
+            <a
+              class="news-page__action news-page__action--add"
+              href={NEWS_ADD_HASH}
+              aria-label="Добавить источник"
+              title="Добавить источник"
+              data-testid="news-add-entry"
+            >
+              <AppGlyph name="plus" class="news-page__action-icon" />
+            </a>
           </div>
         }
       />
@@ -311,7 +328,10 @@ export function NewsListPage(props: { readonly snapshot: Accessor<NewsSnapshot> 
               </For>
             </Show>
           </Show>
-          <Show when={feeds().length === 0 && sites().length > 0}>
+          <Show
+            when={feeds().length === 0 && sites().length > 0}
+            fallback={<NewsSuggestedFeeds subscriptions={subscriptions()} variant="compact" />}
+          >
             <NewsSuggestedFeeds subscriptions={subscriptions()} />
           </Show>
         </Match>

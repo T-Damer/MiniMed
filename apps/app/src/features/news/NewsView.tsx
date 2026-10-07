@@ -11,6 +11,7 @@ import {
 } from 'solid-js';
 import { NewsAddPage } from '@/features/news/NewsAddPage';
 import { NewsListPage } from '@/features/news/NewsListPage';
+import { NewsPubmedPage } from '@/features/news/NewsPubmedPage';
 import { NewsSourcesPage } from '@/features/news/NewsSourcesPage';
 import { NewsViewer } from '@/features/news/NewsViewer';
 import { isNewsRoute, type NewsRoute, readNewsRoute } from '@/features/news/news-routing';
@@ -68,6 +69,9 @@ export function NewsView(props: NewsViewProps): JSX.Element {
     <Switch>
       <Match when={route().kind === 'add'}>
         <NewsAddPage snapshot={snapshot} />
+      </Match>
+      <Match when={route().kind === 'pubmed'}>
+        <NewsPubmedPage snapshot={snapshot} />
       </Match>
       <Match when={route().kind === 'sources'}>
         <NewsSourcesPage snapshot={snapshot} />

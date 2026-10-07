@@ -6,13 +6,15 @@ import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { FileButton } from '@/components/FileButton';
 import { NavBack } from '@/components/NavBack';
 import { Switch } from '@/components/Switch';
-import { NEWS_ADD_HASH, NEWS_ROOT_HASH } from '@/features/news/news-routing';
+import { NewsSourceTile } from '@/features/news/NewsSourceTile';
+import { NEWS_ADD_HASH, NEWS_PUBMED_HASH, NEWS_ROOT_HASH } from '@/features/news/news-routing';
 import type { NewsSnapshot } from '@/features/news/news-service';
 import { fetchedAtLabel } from '@/features/news/news-state';
 import { getNewsService } from '@/features/news/news-store';
-import type { Subscription } from '@/features/news/news-types';
+import { hasItems, type Subscription } from '@/features/news/news-types';
 import { buildOpml, parseOpml } from '@/features/news/opml';
 import { hostLabel } from '@/features/news/source-url';
+import { suggestedFeedById } from '@/features/news/suggested-feeds';
 import { shareSystemFile } from '@/state/native-share';
 
 function SourceRow(props: {
@@ -27,6 +29,11 @@ function SourceRow(props: {
 }): JSX.Element {
   const [draft, setDraft] = createSignal(props.subscription.title);
   const feed = () => props.subscription.kind === 'feed';
+  const items = () => hasItems(props.subscription.kind);
+  const glyph = () => {
+    const kind = props.subscription.kind;
+    return kind === 'pubmed' ? 'search' : kind === 'feed' ? 'rss' : 'globe';
+  };
   const status = (): string => {
     const subscription = props.subscription;
     if (subscription.kind === 'site') return 'Сайт — открывается в приложении';
@@ -36,9 +43,11 @@ function SourceRow(props: {
   return (
     <li class="news-source" data-source={props.subscription.id}>
       <div class="news-source__main">
-        <span class="news-source__icon" aria-hidden="true">
-          <AppGlyph name={feed() ? 'rss' : 'globe'} class="news-source__glyph" />
-        </span>
+        <NewsSourceTile
+          visual={suggestedFeedById(props.subscription.suggestedId)?.visual}
+          glyph={glyph()}
+          size="small"
+        />
         <div class="news-source__copy">
           <Show
             when={props.editing}
@@ -74,7 +83,10 @@ function SourceRow(props: {
           >
             {status()}
           </span>
-          <Show when={feed() && props.unread > 0}>
+          <Show when={props.subscription.query}>
+            {(query) => <span class="news-source__status">Запрос: {query()}</span>}
+          </Show>
+          <Show when={items() && props.unread > 0}>
             <span class="news-source__unread">Непрочитанных: {props.unread}</span>
           </Show>
         </div>
@@ -224,7 +236,11 @@ export function NewsSourcesPage(props: { readonly snapshot: Accessor<NewsSnapsho
           <AppGlyph name="plus" class="news-sources__link-icon" />
           Добавить источник
         </a>
-        <Show when={props.snapshot().subscriptions.length > 0}>
+        <a class="news-sources__link" href={NEWS_PUBMED_HASH}>
+          <AppGlyph name="search" class="news-sources__link-icon" />
+          Поиск в PubMed
+        </a>
+        <Show when={props.snapshot().subscriptions.some((entry) => entry.kind !== 'pubmed')}>
           <button type="button" class="news-sources__link" onClick={() => void exportOpml()}>
             <AppGlyph name="share" class="news-sources__link-icon" />
             Экспорт OPML

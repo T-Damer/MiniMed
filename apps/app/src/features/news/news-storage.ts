@@ -1,5 +1,11 @@
 import { safeLinkUrl } from '@/features/news/feed-content';
-import type { FetchFailureCode, NewsItem, Subscription } from '@/features/news/news-types';
+import {
+  type FetchFailureCode,
+  hasItems,
+  type NewsItem,
+  type Subscription,
+  type SubscriptionKind,
+} from '@/features/news/news-types';
 
 /**
  * Device-local persistence of the news feature (ADR-0024). Subscriptions (a few kilobytes: titles,
@@ -33,6 +39,10 @@ const FAILURE_CODES: ReadonlySet<string> = new Set<FetchFailureCode>([
   'empty',
 ]);
 
+function isSubscriptionKind(value: unknown): value is SubscriptionKind {
+  return value === 'feed' || value === 'site' || value === 'pubmed';
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -58,7 +68,9 @@ export function parseSubscriptions(raw: unknown): readonly Subscription[] {
     const kind = entry['kind'];
     const addedAt = finiteNumber(entry['addedAt']);
     if (!id || !url || !/^https?:/u.test(url) || title === undefined) continue;
-    if ((kind !== 'feed' && kind !== 'site') || addedAt === undefined || seen.has(id)) continue;
+    if (!isSubscriptionKind(kind) || addedAt === undefined || seen.has(id)) continue;
+    const query = text(entry['query'], 300);
+    if (kind === 'pubmed' && (!query || query.trim() === '')) continue;
     seen.add(id);
     const siteUrl = safeLinkUrl(text(entry['siteUrl'], 2048));
     const language = text(entry['language'], 12);
@@ -84,6 +96,7 @@ export function parseSubscriptions(raw: unknown): readonly Subscription[] {
       kind,
       url,
       title,
+      ...(kind === 'pubmed' && query ? { query } : {}),
       ...(siteUrl ? { siteUrl } : {}),
       ...(language ? { language } : {}),
       ...(suggestedId ? { suggestedId } : {}),
@@ -253,7 +266,7 @@ export function readStoredUnreadCount(storage?: Storage): number {
     const raw = (storage ?? globalThis.localStorage).getItem(NEWS_SUBSCRIPTIONS_KEY);
     if (!raw) return 0;
     return parseSubscriptions(JSON.parse(raw)).reduce(
-      (sum, subscription) => sum + (subscription.kind === 'feed' ? subscription.unread : 0),
+      (sum, subscription) => sum + (hasItems(subscription.kind) ? subscription.unread : 0),
       0,
     );
   } catch {

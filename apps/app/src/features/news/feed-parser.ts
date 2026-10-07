@@ -146,6 +146,25 @@ function itemFromParts(
   };
 }
 
+const IMAGE_EXTENSION = /\.(?:jpe?g|png|webp|gif|avif)(?:[?#]|$)/iu;
+
+/**
+ * Whether a media element is a picture: an explicit `medium="image"` or `image/*` type wins; with
+ * neither declared (some feeds omit both) the file extension decides.
+ */
+function declaresImage(attrs: Readonly<Record<string, string>>, url: string): boolean {
+  const type = (attrs['type'] ?? '').toLowerCase();
+  const medium = (attrs['medium'] ?? '').toLowerCase();
+  if (medium === 'image' || type.startsWith('image/')) return true;
+  if (medium !== '' || type !== '') return false;
+  return IMAGE_EXTENSION.test(url);
+}
+
+/**
+ * The item's own picture, in the order feeds publish it: `media:thumbnail`, `media:content`, an RSS
+ * `enclosure` and an Atom `<link rel="enclosure">` (also inside `media:group`). Only a candidate;
+ * {@link safeImageUrl} still decides whether it may ever be requested.
+ */
 function mediaImage(element: MarkupElement): string | undefined {
   for (const child of element.children) {
     if (child.kind !== 'element') continue;
@@ -153,16 +172,24 @@ function mediaImage(element: MarkupElement): string | undefined {
     if (
       child.name === 'media:content' &&
       child.attrs['url'] &&
-      (child.attrs['medium'] === 'image' || (child.attrs['type'] ?? '').startsWith('image/'))
+      declaresImage(child.attrs, child.attrs['url'])
     ) {
       return child.attrs['url'];
     }
     if (
       child.name === 'enclosure' &&
       child.attrs['url'] &&
-      (child.attrs['type'] ?? '').startsWith('image/')
+      declaresImage(child.attrs, child.attrs['url'])
     ) {
       return child.attrs['url'];
+    }
+    if (
+      child.name === 'link' &&
+      child.attrs['rel'] === 'enclosure' &&
+      child.attrs['href'] &&
+      declaresImage(child.attrs, child.attrs['href'])
+    ) {
+      return child.attrs['href'];
     }
     if (child.name === 'media:group') {
       const nested = mediaImage(child);
@@ -268,6 +295,19 @@ function limitItems(
   return { items, skipped };
 }
 
+/** A JSON Feed `attachments` entry that is a picture (used only when `image`/`banner_image` are absent). */
+function jsonAttachmentImage(attachments: unknown): string {
+  if (!Array.isArray(attachments)) return '';
+  for (const raw of attachments as unknown[]) {
+    if (typeof raw !== 'object' || raw === null) continue;
+    const attachment = raw as Record<string, unknown>;
+    const url = typeof attachment['url'] === 'string' ? attachment['url'] : '';
+    const mime = typeof attachment['mime_type'] === 'string' ? attachment['mime_type'] : '';
+    if (url !== '' && mime.toLowerCase().startsWith('image/')) return url;
+  }
+  return '';
+}
+
 function parseJsonFeed(text: string, baseUrl: string | undefined, limits: FeedLimits): ParsedFeed {
   let data: unknown;
   try {
@@ -303,7 +343,10 @@ function parseJsonFeed(text: string, baseUrl: string | undefined, limits: FeedLi
     const contentText = str(entry['content_text']);
     const escapedText = contentText.replace(/&/gu, '&amp;').replace(/</gu, '&lt;');
     const guid = str(entry['id']);
-    const imageUrl = str(entry['image']) || str(entry['banner_image']);
+    const imageUrl =
+      str(entry['image']) ||
+      str(entry['banner_image']) ||
+      jsonAttachmentImage(entry['attachments']);
     const item = itemFromParts(
       {
         ...(guid ? { guid } : {}),

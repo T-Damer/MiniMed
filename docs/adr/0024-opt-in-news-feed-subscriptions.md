@@ -1,6 +1,7 @@
 # ADR-0024: Opt-in news feed subscriptions and the embedded site viewer
 
-- Status: accepted; implemented as the «Лента» tab (STATE NEWS1).
+- Status: accepted; implemented as the «Лента» tab (STATE NEWS1). Amended 2026-10-07 (STATE UX10):
+  suggested sources as the first view, item pictures, and PubMed search (see «PubMed searches»).
 - Decision: project owner, 2026-10-05 — a fourth bottom tab «Лента» (Поиск · Файлы · Лента ·
   Настройки) with an unread count; RSS/Atom feeds and websites opened in an embedded viewer.
 - Related: [ADR-0020](0020-medical-news-and-research-feed.md) (the research-API layer, still
@@ -18,8 +19,9 @@ never routes anything through a server of ours.
 
 ### Network use and privacy
 
-- **Opt-in, per source.** No request is made until the user adds a subscription (or pastes an
-  address to inspect). The suggested sources are offered, never subscribed. Refresh happens when the
+- **Opt-in, per source.** No request is made until the user adds a subscription (pastes an address
+  to inspect, or presses «Найти» in the PubMed search). The suggested sources are offered, never
+  subscribed, and are drawn from bundled visuals only: showing them requests nothing. Refresh happens when the
   tab is opened (only feeds older than 15 minutes) and on the refresh button; there is no
   background polling, no push and no scheduled work.
 - **What leaves the device:** an HTTPS `GET` to the feed or site address the user chose, carrying no
@@ -67,9 +69,23 @@ never routes anything through a server of ours.
   disagreement cannot produce script or an event handler. Scripts, styles, frames, forms, SVG and
   every attribute (`style`, `on*`, `class`, `id`) are dropped. DOMPurify (already a dependency)
   was not reused because it returns a string for `innerHTML` and is a no-op without a DOM.
-- Remote images are fetched only when the user switches **«Изображения»** on for that source;
-  otherwise nothing from the item's image hosts is requested. Links inside text open outside the
-  app (`target="_blank"`, `rel="noopener noreferrer"`, no referrer).
+- Remote images are fetched only when **«Изображения»** is on for that source; otherwise nothing
+  from the item's image hosts is requested. The switch starts **off** for every source except a
+  suggested one whose `carriesImages` flag says its items were measured to carry pictures (2026-10-07:
+  Фармвестник, ДокторПитер, MedPage Today, STAT, Medical Xpress): subscribing to such a card is an
+  explicit tap on a card that says «С картинками», and the picture hosts see the same minimum as the
+  feed host (IP address, no cookies, no referrer). The switch stays per source in «Источники», and
+  from an article of a source with the switch off a one-line button turns it on. Sources the user
+  adds by address start off. Links inside text open outside the app (`target="_blank"`,
+  `rel="noopener noreferrer"`, no referrer).
+- An item's picture is parsed into `NewsItem.imageUrl`: `media:thumbnail`, `media:content`
+  (`medium="image"`, an `image/*` type, or an image extension when neither is declared), an RSS
+  `enclosure`, an Atom `<link rel="enclosure">` of an image type, JSON Feed `image` /
+  `banner_image` / an image attachment, and finally the first `<img>` of the sanitized text. Only
+  `https:` addresses survive (an https app cannot show mixed content, and the sanitizer already
+  refuses everything else). The list row shows a fixed 4.5 rem square thumbnail and the article a
+  16:9 hero box (`aspect-ratio`, `loading="lazy"`, `referrerpolicy="no-referrer"`), so nothing jumps
+  when a picture arrives.
 
 ### Storage
 
@@ -126,11 +142,60 @@ the same mechanism the app already uses for external links, no new plugin).
 
 ### Suggested sources are data
 
-`suggested-feeds.json` (id, title, description, address, language, group, `webReadable`) holds the
-list; the interface renders whatever it contains. Every address was fetched and parsed by the app's
+`suggested-feeds.json` (id, title, description, address, language, group, `webReadable`, `topic`,
+`carriesImages` and `visual`) holds the list; the interface renders whatever it contains. `visual`
+is the logo stand-in: a monogram (`mark`, up to four characters), a `hue` (0–360, lightness and the
+theme stay in the stylesheet) and the `glyph` of the topic from a fixed allow-list. No logo files
+are bundled or fetched (no trademark artwork, and no request before the user subscribes). The
+first view of an empty «Лента» is these cards with a one-tap «Подписаться»; once the user has
+sources, the ones not yet subscribed to stay in a compact one-row rail under the list. Adding an
+address of one's own is a small round «+» in the header (and on «Источники»), not a banner. Every address was fetched and parsed by the app's
 own parser on 2026-10-05 (see CURRENT_STATE). Sources that returned empty feeds, stale items,
 bot challenges or an http-only redirect (BMJ) were left out; the Минздрав site does not publish a
 feed and is not reachable with the system trust store (Russian root CA).
+
+### PubMed searches (amendment 2026-10-07)
+
+A search of PubMed is a third subscription kind, `pubmed`, next to `feed` and `site`.
+
+- **Entry points.** A search icon in the «Лента» header, a card on the empty first view and a link on
+  «Источники» open `#/news/pubmed`. The page is user-initiated: nothing is sent until the user
+  presses «Найти», and a one-line notice above the button says «Текст запроса отправляется в NCBI
+  (PubMed) — только когда вы нажимаете «Найти»». The search text is the user's own wording: it is
+  checked locally (2–300 characters), never logged and never part of any address the app logs.
+- **Requests.** NCBI E-utilities over HTTPS, both CORS-enabled, through the same `FeedTransport` as
+  everything else (so Android uses `CapacitorHttp`, the web build `fetch`): `esearch.fcgi?db=pubmed&
+  retmode=json&retmax=25&tool=minimed&term=…` for the newest PMIDs, then
+  `esummary.fcgi?db=pubmed&retmode=json&tool=minimed&id=…` for their records. No API key, no `email`,
+  nothing else is sent. There is no `sort` parameter on purpose: the default order is newest-added
+  first, while `sort=date` (the web page's «Most recent») is not an E-utilities value and is ignored
+  with a warning; `pub_date` would order by the issue date, which can lie in the future (measured
+  against the live API on 2026-10-07, which also confirmed `Access-Control-Allow-Origin: *`). Both documents are validated at the boundary (`pubmed.ts`: PMIDs are digits
+  only, anything off-shape is a `malformed` failure; unusable records are dropped, not repaired).
+  `esummary` carries no abstract, so a record is title, journal, date and authors; no MeSH, no
+  `efetch`.
+- **Rate limit.** NCBI asks for at most three requests a second without a key. One spacer
+  (`createRequestSpacer`, 400 ms = 2.5 a second) is shared by every search and refresh, so the two
+  requests of a search and the three parallel refresh workers queue instead of bursting. A refused
+  answer (HTTP 429/5xx) is recorded on that source like any other failure.
+- **Results.** Title, journal · date, the first three authors; each opens
+  `https://pubmed.ncbi.nlm.nih.gov/<pmid>/` as an external link (`target="_blank"`,
+  `rel="noopener noreferrer"`, no referrer: the system browser on Android). PubMed refuses framing
+  (`X-Frame-Options`, measured 2026-10-05), so there is no in-app page mode for it.
+- **Subscribing.** «Подписаться на этот поиск» stores `{kind: 'pubmed', query, url, title:
+  'PubMed: <query>'}` in the same localStorage list; `url` is the PubMed web page of the same search
+  (it keeps the id stable and is what «Открыть» uses), while `query` is what is sent. A saved search
+  refreshes with the other sources (tab open when stale, the refresh button, never in the
+  background): the newest 25 PMIDs become items with guid `pmid:<pmid>`, merged like feed items,
+  counted in the unread badge and filterable as a chip. An item is dated by when its record entered
+  PubMed (the `entrez` history date; the publication date is only the label), because a
+  late-indexed article can carry a print date months old. Because the hits of a narrow search are
+  often old, a PubMed source keeps items for 365 days (feeds: 30) and marks as unread on the first
+  fetch only those from the last 14 days (feeds: 3). The notice on the page states that the
+  query goes to NCBI on every refresh; removing the source stops it.
+- **Not exported.** OPML export leaves saved searches out (no feed address, and the text is the
+  user's own); import does not create them.
+- Not done: abstracts and MeSH topics, Europe PMC, user-provided NCBI keys (ADR-0020 items 2–3).
 
 ## Consequences
 

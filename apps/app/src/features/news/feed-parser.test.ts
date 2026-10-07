@@ -161,3 +161,117 @@ describe('parseFeedDate', () => {
     expect(parseFeedDate('')).toBeUndefined();
   });
 });
+
+describe('parseFeed item images', () => {
+  const rss = (item: string): string =>
+    `<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>T</title><item><title>Item</title><link>https://x.example/a</link>${item}</item></channel></rss>`;
+  const imageOf = (xml: string, baseUrl = 'https://x.example/feed'): string | undefined =>
+    parseFeed(xml, { baseUrl }).items[0]?.imageUrl;
+
+  it('takes an RSS enclosure that is an image, by type or by extension when the type is missing', () => {
+    expect(
+      imageOf(rss('<enclosure url="https://x.example/p.jpg" type="image/jpeg" length="1"/>')),
+    ).toBe('https://x.example/p.jpg');
+    expect(imageOf(rss('<enclosure url="https://x.example/p.webp?w=400"/>'))).toBe(
+      'https://x.example/p.webp?w=400',
+    );
+  });
+
+  it('ignores enclosures that are not pictures', () => {
+    expect(
+      imageOf(rss('<enclosure url="https://x.example/a.mp3" type="audio/mpeg"/>')),
+    ).toBeUndefined();
+    expect(
+      imageOf(rss('<enclosure url="https://x.example/a.jpg" type="application/pdf"/>')),
+    ).toBeUndefined();
+    expect(imageOf(rss('<enclosure url="https://x.example/episode"/>'))).toBeUndefined();
+  });
+
+  it('reads media:content by medium or type, also inside media:group, and media:thumbnail', () => {
+    expect(imageOf(rss('<media:content url="https://x.example/m.png" medium="image"/>'))).toBe(
+      'https://x.example/m.png',
+    );
+    expect(imageOf(rss('<media:content url="https://x.example/m2.png" type="image/png"/>'))).toBe(
+      'https://x.example/m2.png',
+    );
+    expect(
+      imageOf(
+        rss(
+          '<media:group><media:content url="https://x.example/v.mp4" medium="video"/><media:thumbnail url="https://x.example/v.jpg"/></media:group>',
+        ),
+      ),
+    ).toBe('https://x.example/v.jpg');
+    expect(
+      imageOf(rss('<media:content url="https://x.example/v.mp4" medium="video"/>')),
+    ).toBeUndefined();
+  });
+
+  it('reads an Atom link with rel=enclosure that is an image and not the alternate link', () => {
+    const atom = (link: string): string =>
+      `<feed xmlns="http://www.w3.org/2005/Atom"><title>A</title><entry><title>E</title><id>1</id><link rel="alternate" href="https://x.example/e"/>${link}</entry></feed>`;
+    const feed = parseFeed(
+      atom('<link rel="enclosure" type="image/jpeg" href="https://x.example/e.jpg"/>'),
+    );
+    expect(feed.items[0]?.imageUrl).toBe('https://x.example/e.jpg');
+    expect(feed.items[0]?.url).toBe('https://x.example/e');
+    expect(
+      parseFeed(
+        atom('<link rel="enclosure" type="application/pdf" href="https://x.example/e.pdf"/>'),
+      ).items[0]?.imageUrl,
+    ).toBeUndefined();
+  });
+
+  it('reads JSON Feed image, banner_image and an image attachment, in that order', () => {
+    const json = (entry: Record<string, unknown>): string | undefined =>
+      parseFeed(
+        JSON.stringify({
+          version: 'https://jsonfeed.org/version/1.1',
+          title: 'J',
+          items: [{ id: '1', title: 'T', ...entry }],
+        }),
+      ).items[0]?.imageUrl;
+    expect(json({ banner_image: 'https://x.example/b.png' })).toBe('https://x.example/b.png');
+    expect(
+      json({
+        image: 'https://x.example/i.png',
+        banner_image: 'https://x.example/b.png',
+      }),
+    ).toBe('https://x.example/i.png');
+    expect(
+      json({
+        attachments: [
+          { url: 'https://x.example/a.mp3', mime_type: 'audio/mpeg' },
+          { url: 'https://x.example/a.jpg', mime_type: 'image/jpeg' },
+        ],
+      }),
+    ).toBe('https://x.example/a.jpg');
+  });
+
+  it('falls back to the first image of the sanitized content', () => {
+    const xml = rss(
+      '<content:encoded><![CDATA[<p>Text</p><img src="/pics/first.jpg" alt="x"><img src="https://x.example/second.jpg">]]></content:encoded>',
+    );
+    expect(imageOf(xml)).toBe('https://x.example/pics/first.jpg');
+  });
+
+  it('never keeps an image that is not https, whatever tag it came from', () => {
+    expect(imageOf(rss('<media:thumbnail url="http://x.example/t.jpg"/>'))).toBeUndefined();
+    expect(
+      imageOf(rss('<enclosure url="javascript:alert(1).jpg" type="image/jpeg"/>')),
+    ).toBeUndefined();
+    expect(
+      imageOf(
+        rss(
+          '<content:encoded><![CDATA[<img src="data:image/png;base64,AAAA">]]></content:encoded>',
+        ),
+      ),
+    ).toBeUndefined();
+  });
+
+  it('prefers the declared item image over the one inside the text', () => {
+    const xml = rss(
+      '<media:thumbnail url="https://x.example/declared.jpg"/><content:encoded><![CDATA[<img src="https://x.example/inline.jpg">]]></content:encoded>',
+    );
+    expect(imageOf(xml)).toBe('https://x.example/declared.jpg');
+  });
+});

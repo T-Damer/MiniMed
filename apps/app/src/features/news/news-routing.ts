@@ -1,11 +1,14 @@
 export const NEWS_ROOT_HASH = '#/news';
 export const NEWS_ADD_HASH = '#/news/add';
 export const NEWS_SOURCES_HASH = '#/news/sources';
+export const NEWS_PUBMED_HASH = '#/news/pubmed';
 
 export type NewsRoute =
   | { readonly kind: 'list' }
   | { readonly kind: 'add' }
   | { readonly kind: 'sources' }
+  /** PubMed search (NCBI E-utilities), user-initiated. */
+  | { readonly kind: 'pubmed' }
   /** A cached feed item, read in the viewer. */
   | { readonly kind: 'item'; readonly itemId: string }
   /** A website subscription, opened in the viewer. */
@@ -46,6 +49,7 @@ export function readNewsRoute(hash = window.location.hash): NewsRoute {
   const [section, id] = newsSegments(hash) ?? [];
   if (section === 'add') return { kind: 'add' };
   if (section === 'sources') return { kind: 'sources' };
+  if (section === 'pubmed') return { kind: 'pubmed' };
   const decoded = decode(id);
   if (section === 'item' && decoded) return { kind: 'item', itemId: decoded };
   if (section === 'site' && decoded) return { kind: 'site', feedId: decoded };

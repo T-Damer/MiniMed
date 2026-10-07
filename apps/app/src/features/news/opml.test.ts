@@ -9,6 +9,20 @@ const subscriptions: Subscription[] = [
 ];
 
 describe('OPML', () => {
+  it('leaves saved PubMed searches out of the file', () => {
+    const search: Subscription = {
+      ...base,
+      id: '3',
+      kind: 'pubmed',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/?term=secret',
+      title: 'PubMed: secret',
+      query: 'secret',
+    };
+    const opml = buildOpml([...subscriptions, search]);
+    expect(opml).not.toContain('secret');
+    expect(parseOpml(opml)).toHaveLength(2);
+  });
+
   it('round-trips subscriptions through export and import', () => {
     const entries = parseOpml(buildOpml(subscriptions));
     expect(entries).toEqual([

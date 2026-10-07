@@ -183,6 +183,7 @@ function NewsArticle(props: {
         {(src) => (
           <img
             class="news-article__cover"
+            data-testid="news-article-cover"
             src={src()}
             alt=""
             loading="lazy"
@@ -190,6 +191,20 @@ function NewsArticle(props: {
             referrerPolicy="no-referrer"
           />
         )}
+      </Show>
+      <Show when={!images() && props.item.imageUrl && props.subscription?.kind === 'feed'}>
+        <button
+          type="button"
+          class="news-article__images"
+          data-testid="news-article-images"
+          onClick={() => {
+            const subscription = props.subscription;
+            if (subscription) getNewsService().setImages(subscription.id, true);
+          }}
+        >
+          <AppGlyph name="image" class="news-article__images-icon" />У записи есть картинка.
+          Показывать картинки этого источника (они загружаются с его сайта)
+        </button>
       </Show>
       <div class="news-article__body">
         <Show
@@ -203,6 +218,14 @@ function NewsArticle(props: {
           <NewsRichText nodes={nodes()} images={images()} />
         </Show>
       </div>
+      <Show when={props.subscription?.kind === 'pubmed' && props.item.url}>
+        {(url) => (
+          <ExternalLink url={url()} class="news-viewer__action news-viewer__action--primary">
+            <AppGlyph name="arrow-square-out" class="news-viewer__action-icon" />
+            Открыть в PubMed
+          </ExternalLink>
+        )}
+      </Show>
     </article>
   );
 }
@@ -232,6 +255,8 @@ export function NewsViewer(props: {
     props.target.kind === 'site' ? subscription()?.url : item()?.url,
   );
   const hasText = () => (item()?.content.length ?? 0) > 0 || (item()?.snippet ?? '') !== '';
+  // PubMed refuses framing and its record carries no abstract: the record itself is the view.
+  const isPubmed = () => subscription()?.kind === 'pubmed';
   const [mode, setMode] = createSignal<ViewerMode>('page');
   let modeChosen = false;
   // The first view is the feed's own text when it carries a real article, the page otherwise.
@@ -240,7 +265,7 @@ export function NewsViewer(props: {
     if (modeChosen || !current) return;
     modeChosen = true;
     const fullText = safeTextLength(current.content) >= FULL_TEXT_CHARS;
-    setMode(fullText || !current.url ? 'feed' : 'page');
+    setMode(fullText || !current.url || isPubmed() ? 'feed' : 'page');
   });
   createEffect(() => {
     const current = item();
@@ -306,7 +331,7 @@ export function NewsViewer(props: {
           </div>
         }
       >
-        <Show when={props.target.kind === 'item' && pageUrl() && hasText()}>
+        <Show when={props.target.kind === 'item' && pageUrl() && hasText() && !isPubmed()}>
           <SegmentedControl
             class="news-viewer__mode"
             label="Что показать"
@@ -339,6 +364,12 @@ export function NewsViewer(props: {
         <p class="news-viewer__note">
           Это текст, который опубликовала лента. Полная статья — на странице источника (
           {hostLabel(pageUrl() ?? '')}).
+        </p>
+      </Show>
+      <Show when={isPubmed() && pageUrl()}>
+        <p class="news-viewer__note">
+          Это сведения из PubMed: название, журнал, авторы. Аннотация и ссылки на полный текст — на
+          странице статьи; она откроется в браузере.
         </p>
       </Show>
     </section>

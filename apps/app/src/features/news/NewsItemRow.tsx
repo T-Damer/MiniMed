@@ -44,6 +44,7 @@ export function NewsItemRow(props: {
           {(src) => (
             <img
               class="news-item__thumbnail"
+              data-news-thumbnail=""
               src={src()}
               alt=""
               loading="lazy"
