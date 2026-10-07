@@ -81,6 +81,22 @@ export const NationalItemSchema = z
     /** Rows of the chart (`national.chart.targets`) this vaccination is shown in. */
     targets: z.array(targetKey).min(1),
     band: VaccinationBandSchema,
+    /**
+     * Ages of a category row whose band differs from `band` (months, `toMonths` inclusive): row 19
+     * is for every child from 6 months, for named groups of adults. Absent when the band is uniform.
+     */
+    bandSpans: z
+      .array(
+        z
+          .object({
+            fromMonths: z.number().nonnegative(),
+            toMonths: z.number().nonnegative().nullable(),
+            band: VaccinationBandSchema,
+          })
+          .strict(),
+      )
+      .min(1)
+      .optional(),
     steps: z.array(VaccinationStepSchema).min(1),
     /** The printed «(группы риска)». */
     qualifier: z.string().nullable(),

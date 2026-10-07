@@ -87,10 +87,12 @@ describe('chart of the national calendar', () => {
   });
 
   it('runs a category row from its first age on into adulthood, with the dose in the first column', () => {
-    const covered = chart.columns
-      .filter((column) => cellOf('influenza', column.rowId)?.covered === 'risk')
-      .map((column) => column.rowId);
-    expect(covered).toEqual([
+    const coveredAs = (band: string) =>
+      chart.columns
+        .filter((column) => cellOf('influenza', column.rowId)?.covered === band)
+        .map((column) => column.rowId);
+    // Row 19 is for every child from 6 months (green) and for named groups of adults.
+    expect(coveredAs('all')).toEqual([
       'n-07',
       'n-08',
       'n-09',
@@ -99,8 +101,9 @@ describe('chart of the national calendar', () => {
       'n-12',
       'n-13',
       'n-14',
-      'n-15',
     ]);
+    expect(coveredAs('risk')).toEqual(['n-15']);
+    expect(cellOf('influenza', 'n-07')?.doses[0]?.band).toBe('all');
     expect(cellOf('influenza', 'n-07')?.doses.map((dose) => dose.category)).toEqual([true]);
     expect(cellOf('influenza', 'n-08')?.doses).toEqual([]);
     expect(cellOf('measles', 'n-07')?.covered).toBeNull();

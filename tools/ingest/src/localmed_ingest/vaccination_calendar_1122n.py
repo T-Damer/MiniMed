@@ -85,6 +85,14 @@ CATEGORY_CHART: Final[dict[int, tuple[str, float]]] = {
     19: ("risk", 6),
 }
 
+# Ages within a category row whose band differs from the row's band, as (from, to, band) in months
+# (`to` inclusive). Row 19 names «Дети с 6 месяцев» first and without a condition, so every child
+# from 6 months up to 17 years is in it; the rest of the row lists adult groups (owner 2026-10-07:
+# the chart shows children's influenza for everyone).
+CATEGORY_BAND_SPANS: Final[dict[int, tuple[tuple[float, float, str], ...]]] = {
+    19: ((6, 215, "all"),),
+}
+
 # Vaccine of a step, from paragraph 12 of Appendix 3 (polio): the first, second and third
 # vaccinations and the first revaccination use the inactivated vaccine, the second and third
 # revaccinations the live one (the inactivated one for children of risk groups).

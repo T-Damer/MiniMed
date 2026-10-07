@@ -800,9 +800,11 @@ Owner request: polish the children's calendar page, make each child a patient re
   only as Chromium PDF, 1 page, ~10 % spare height); clinical correctness (unchanged, no clinician review);
   the unlock flow on native (Keychain) devices; a diary row for patients who changed edition (only flagged).
 
-Open question for the owner: the flu row is coloured «группы риска» because order item 19 lists
-children from 6 months together with adult risk groups in one category; the common chart shows
-children in green.
+Flu colour (owner 2026-10-07): order item 19 names «Дети с 6 месяцев» first and without a
+condition, so children's influenza is «всем» (green) from 6 months to 17 years and adults stay
+«группы риска». Declared in the data as `bandSpans` on the item (preparer table
+`CATEGORY_BAND_SPANS`, contract `NationalItemSchema.bandSpans`); the chart, the diary sheet and the
+plan read the band at the age (`itemBandAt`).
 
 ## Drug link summary, saved search results, update hint, «Лента» sources — 2026-10-07 (STATE UX10)
 

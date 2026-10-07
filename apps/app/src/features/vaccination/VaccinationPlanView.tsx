@@ -12,7 +12,7 @@ import {
   procedureItemsFor,
   type VaccinationCalendar,
 } from '@/features/vaccination/vaccination-calendar';
-import { CHART_BAND_LABELS } from '@/features/vaccination/vaccination-chart';
+import { CHART_BAND_LABELS, itemBandAt } from '@/features/vaccination/vaccination-chart';
 import {
   type ChildInput,
   childBirthDate,
@@ -157,8 +157,12 @@ export function VaccinationPlanView(props: {
                               {(item) => (
                                 <li class="vax-items__item vax-plan__dose">
                                   <span
-                                    class={`vax-plan__dose-label vax-plan__dose-label--${item.band}`}
-                                    title={CHART_BAND_LABELS[item.band]}
+                                    class={`vax-plan__dose-label vax-plan__dose-label--${itemBandAt(item, row().ageSpan?.fromMonths ?? null)}`}
+                                    title={
+                                      CHART_BAND_LABELS[
+                                        itemBandAt(item, row().ageSpan?.fromMonths ?? null)
+                                      ]
+                                    }
                                   >
                                     {itemDoseLabel(item)}
                                     {item.product ? ` · ${item.product.code}` : ''}

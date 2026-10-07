@@ -106,11 +106,22 @@ function columnFor(row: NationalRow): ChartColumn {
   return { ...base, shortLabel, group: 'months', fromMonths: from };
 }
 
-function doseFor(item: NationalItem, category: boolean): ChartDose {
+/** The band of an item at an age in months: a declared age span's band, else the item's own. */
+export function itemBandAt(item: NationalItem, months: number | null): VaccinationBand {
+  if (months === null) return item.band;
+  const span = item.bandSpans?.find(
+    (candidate) =>
+      months >= candidate.fromMonths &&
+      (candidate.toMonths === null || months <= candidate.toMonths),
+  );
+  return span?.band ?? item.band;
+}
+
+function doseFor(item: NationalItem, category: boolean, months: number | null): ChartDose {
   return {
     itemId: item.id,
     label: itemDoseLabel(item),
-    band: item.band,
+    band: itemBandAt(item, months),
     product: item.product,
     text: item.text,
     category,
@@ -137,7 +148,9 @@ export function buildNationalChart(calendar: VaccinationCalendar): NationalChart
   for (const row of rows) {
     if (isAgeRow(row)) {
       for (const item of row.items) {
-        for (const target of item.targets) cellOf(target, row.id)?.doses.push(doseFor(item, false));
+        for (const target of item.targets) {
+          cellOf(target, row.id)?.doses.push(doseFor(item, false, null));
+        }
       }
       continue;
     }
@@ -154,8 +167,8 @@ export function buildNationalChart(calendar: VaccinationCalendar): NationalChart
         for (const column of covered) {
           const cell = cellOf(target, column.rowId);
           if (!cell) continue;
-          cell.covered = item.band;
-          if (column === lead) cell.doses.push(doseFor(item, true));
+          cell.covered = itemBandAt(item, column.fromMonths);
+          if (column === lead) cell.doses.push(doseFor(item, true, column.fromMonths));
         }
       }
     }

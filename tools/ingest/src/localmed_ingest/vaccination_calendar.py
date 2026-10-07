@@ -200,9 +200,25 @@ def _item_band(item: dict[str, Any], row: blueprint.NationalRow) -> str:
     return blueprint.CATEGORY_CHART[row.number][0]
 
 
+def _item_band_spans(row: blueprint.NationalRow) -> list[dict[str, Any]]:
+    """Ages of a category row with their own band (`CATEGORY_BAND_SPANS`); empty when none."""
+    if row.age is not None or row.population == "adults":
+        return []
+    return [
+        {"fromMonths": start, "toMonths": end, "band": band}
+        for start, end, band in blueprint.CATEGORY_BAND_SPANS.get(row.number, ())
+    ]
+
+
 def _national_item(row: blueprint.NationalRow, index: int, text: str) -> dict[str, Any]:
     item = parse_item(text)
-    return {"id": f"n-{row.number:02d}-{index}", **item, "band": _item_band(item, row)}
+    spans = _item_band_spans(row)
+    return {
+        "id": f"n-{row.number:02d}-{index}",
+        **item,
+        "band": _item_band(item, row),
+        **({"bandSpans": spans} if spans else {}),
+    }
 
 
 def _national_rows(page_words: dict[int, list[str]]) -> list[dict[str, Any]]:

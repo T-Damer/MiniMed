@@ -1160,7 +1160,14 @@
             "qualifier": null,
             "condition": null,
             "product": null,
-            "band": "risk"
+            "band": "risk",
+            "bandSpans": [
+              {
+                "fromMonths": 6,
+                "toMonths": 215,
+                "band": "all"
+              }
+            ]
           }
         ],
         "source": {
