@@ -6,12 +6,6 @@
   color: var(--theme-text);
 }
 
-.vax__chrome {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
 .vax__back {
   flex: 0 0 auto;
 }
@@ -65,6 +59,19 @@
 .vax__layout {
   flex-wrap: wrap;
   max-width: 100%;
+}
+
+/* Four sections: one row on a wide screen, an even two-by-two grid on a phone. */
+.vax__parts {
+  justify-self: start;
+}
+
+@media (max-width: 40rem) {
+  .vax__parts.segmented-control--stretch {
+    justify-self: stretch;
+    grid-auto-flow: row;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .vax__filters {
@@ -467,6 +474,94 @@
   font-size: 0.78rem;
 }
 
+/* Child: a patient card or a bare birth date. */
+.vax-child {
+  display: grid;
+  gap: 0.8rem;
+  padding: 0.9rem 1rem;
+}
+
+.vax-child__mode {
+  justify-self: start;
+}
+
+.vax-child__fields {
+  display: grid;
+  gap: 0.8rem;
+  align-items: start;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+}
+
+.vax-child__note {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.vax-child__note--saved {
+  color: var(--theme-text);
+}
+
+.vax-child__fact {
+  display: grid;
+  gap: 0.1rem;
+  margin: 0;
+}
+
+.vax-child__fact-label {
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.vax-child__fact-value {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.vax-child__fact-source {
+  color: var(--theme-text-muted);
+  font-size: 0.74rem;
+}
+
+.vax-child__switch {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 2.5rem;
+}
+
+.vax-child__switch-label {
+  font-size: 0.88rem;
+}
+
+.vax-child__attach {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 0.5rem;
+  justify-items: start;
+}
+
+.vax-child__attach-button {
+  max-width: 100%;
+}
+
+.vax-child__status {
+  margin: 0;
+  color: var(--theme-accent);
+  font-size: 0.86rem;
+  font-weight: 650;
+}
+
+.vax-child__problem {
+  margin: 0;
+  color: var(--theme-danger);
+  font-size: 0.86rem;
+}
+
 /* Plan from a birth date. */
 .vax-plan {
   display: grid;
@@ -481,14 +576,23 @@
   line-height: 1.45;
 }
 
-.vax-plan__birth {
-  max-width: 14rem;
-}
-
 .vax-plan__problem {
   margin: 0;
   color: var(--theme-danger);
   font-size: 0.88rem;
+}
+
+.vax-plan__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+.vax-plan__toolbar-title {
+  margin: 0;
+  font-size: 1.05rem;
 }
 
 .vax-plan__list {
@@ -501,7 +605,7 @@
 
 .vax-plan__entry {
   display: grid;
-  gap: 0.4rem;
+  gap: 0.45rem;
   padding: 0.7rem 0.85rem;
   border: 1px solid var(--theme-border);
   background: var(--theme-surface-raised);
@@ -547,7 +651,54 @@
   font-size: 0.76rem;
 }
 
+.vax-plan__dose {
+  display: grid;
+  grid-template-columns: 4.6rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+@media (max-width: 40rem) {
+  .vax-plan__dose {
+    display: block;
+  }
+
+  .vax-plan__dose-label {
+    margin-inline-end: 0.45rem;
+  }
+}
+
+.vax-plan__dose-label {
+  justify-self: start;
+  padding: 0.05rem 0.4rem;
+  border-radius: 0.3rem;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.vax-plan__dose-label--all {
+  color: var(--theme-accent);
+  background: var(--theme-accent-soft);
+}
+
+.vax-plan__dose-label--risk {
+  color: var(--theme-warning);
+  background: var(--theme-warning-soft);
+}
+
+.vax-plan__dose-label--catch-up {
+  color: var(--theme-info);
+  background: var(--theme-info-soft);
+}
+
+.vax-plan__dose-text {
+  display: block;
+}
+
 .vax-plan__ref {
+  display: block;
   color: var(--theme-text-muted);
   font-size: 0.76rem;
 }

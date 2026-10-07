@@ -20,11 +20,16 @@ export function SegmentedControl<T extends string>(props: {
   readonly value: T;
   readonly onChange: (value: T) => void;
   readonly class?: string;
+  /** Fills the width: equal columns, labels centred (a phone-width row of a few options). */
+  readonly stretch?: boolean;
 }): JSX.Element {
   const name = createUniqueId();
   const [focusVisible, setFocusVisible] = createSignal<T>();
   return (
-    <fieldset class={`segmented-control ${props.class ?? ''}`.trim()}>
+    <fieldset
+      class={`segmented-control ${props.class ?? ''}`.trim()}
+      classList={{ 'segmented-control--stretch': props.stretch === true }}
+    >
       <legend class="segmented-control__legend sr-only">{props.label}</legend>
       <For each={props.options}>
         {(option) => (
@@ -34,6 +39,7 @@ export function SegmentedControl<T extends string>(props: {
               'segmented-control__option--selected': option.value === props.value,
               'segmented-control__option--focus-visible': focusVisible() === option.value,
               'segmented-control__option--disabled': option.disabled === true,
+              'segmented-control__option--stretch': props.stretch === true,
             }}
           >
             <input
