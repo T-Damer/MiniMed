@@ -572,6 +572,50 @@ on the list searches titles, descriptions and card keywords.
   opens the app settings. Not verified on a physical phone (HyperOS may add its own audio-record
   gate).
 
+## Children's vaccination calendar (VAC2) — 2026-10-07
+
+Owner request: polish the children's calendar page, make each child a patient record, and print a landscape
+«для мамы — личный дневник прививок» sheet shaped like the official chart.
+
+- **Page.** Back and «Печать» share the header row (`Page` `navigation`); the four sections are an even
+  two-by-two grid on a phone (`SegmentedControl` got `stretch`); «План ребёнка» rows are compact (date, status,
+  dose chips coloured by band, order conditions). Checked at 390 and 1280 px.
+- **Child = patient card.** «План ребёнка» starts with «Пациент» (default) / «Только расчёт».
+  - Patient: the card field of the calculators (`PatientCaseCombobox`, unlock and «Добавить пациента» inline).
+    The plan is computed from the card's birth date and name. «Прикрепить план к карточке» writes a patient
+    file `vaccination-plan-<patientId>` into the vault (`vaccination-attachment.ts`: zod-validated on read,
+    `{kind, schemaVersion 1, calendarId, editionLine, attachedAt, updatedAt}`); it is protected with the vault,
+    removed with the card and carried by the card backup. A stale edition is flagged. A card without a birth
+    date gets the typed date written into it when the plan is attached (`setPatientBirthDate`, never
+    overwrites a different stored date). No SQLite change, no migration.
+  - Only calculate: a birth date (and an optional name for the sheet); nothing is stored.
+- **Data (schema v2).** `bun run vaccination:prepare` now also declares, from the reviewed transcription,
+  `national.chart.targets` (12 infections in chart order), `item.targets` (chart rows a vaccination covers:
+  dtp → коклюш/дифтерия/столбняк …), `item.band` (`all` / `risk` / `catch-up`), `row.ageSpan` (category rows
+  16–19: the age from which they apply, open to adulthood) and `item.product` (ИПВ/ОПВ of paragraph 12 of
+  Appendix 3, with the risk-group variant). The printed wording is unchanged; the contract checks references.
+  The preparer was run against the raw PDFs/OCR of the main checkout (`--dir`).
+- **Chart + diary.** `vaccination-chart.ts` builds infections × ages from the data only (columns = age rows:
+  24 ч, 3–7 дн., 1…20 мес., 6, 6–7, 14 лет, взрослые; no vaccine named in code). `vaccination-diary.ts` adds
+  the child and the planned date of each column; `vaccination-diary-print.ts` renders one A4 landscape page
+  (`@page`), green = всем, orange = группы риска, blue = ранее не привитым (with * for risk groups), V/RV
+  legend, ИПВ/ОПВ legend, the title and edition cited from the data (приказ 1122н в ред. 677н, приложение № 1),
+  the printed date. Printed through the shared `PrintManager`; the preview dialog is generic over the document.
+- **Not in the sheet, on purpose.** The order has no columns for 7, 12 and 15–17 years or an АДС-м product
+  name; the sheet follows the data (no invented columns or products). The order names no dates: the planned
+  dates are calculated from the printed ages (window and ≈ marked), the sheet says so.
+- **Tests.** vitest: chart (7), diary model and print (7), child (6), attachment (4), patient-domain
+  `setPatientBirthDate` (3), contract (+2), Python (+3). Playwright `vaccination-plan.spec.ts` (3: card
+  attach/reload/print one page A4 landscape PDF; calculate-only stores nothing; layout at 390 and 1280) and
+  `vaccination-calendar.spec.ts` (updated).
+- **Not verified.** A real printer and Android WebView print (the sheet uses 6–7.5 pt text and was checked
+  only as Chromium PDF, 1 page, ~10 % spare height); clinical correctness (unchanged, no clinician review);
+  the unlock flow on native (Keychain) devices; a diary row for patients who changed edition (only flagged).
+
+Open question for the owner: the flu row is coloured «группы риска» because order item 19 lists
+children from 6 months together with adult risk groups in one category; the common chart shows
+children in green.
+
 ## Drug link summary, saved search results, update hint, «Лента» sources — 2026-10-07 (STATE UX10)
 
 Owner screenshots 2026-10-07.
