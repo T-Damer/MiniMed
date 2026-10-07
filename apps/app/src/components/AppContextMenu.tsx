@@ -51,7 +51,17 @@ const AppContextMenuSub = ContextMenu.Sub as unknown as (
   props: AppContextMenuSubProps,
 ) => JSX.Element;
 
-/** Opens the nearest context menu synthetically (e.g. from a left click). */
+/** Closes whichever context menu is open, the way an outside press does. */
+function dismissOpenContextMenu(): void {
+  document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+}
+
+/**
+ * Opens the nearest context menu synthetically (e.g. from a left click) — or closes it when it is
+ * already open. The «⋯» button sits inside the menu's trigger, so Kobalte does not count a press on
+ * it as an outside press: the press leaves the menu open, and the click that follows used to
+ * dispatch another contextmenu event, which only moved the open menu. The button is a toggle.
+ */
 export function requestContextMenu(event: MouseEvent): void {
   event.preventDefault();
   event.stopPropagation();
@@ -59,6 +69,10 @@ export function requestContextMenu(event: MouseEvent): void {
   if (!(currentTarget instanceof HTMLElement)) return;
   const trigger = currentTarget.closest<HTMLElement>('[data-app-context-menu-trigger]');
   if (!trigger) return;
+  if (trigger.hasAttribute('data-expanded')) {
+    dismissOpenContextMenu();
+    return;
+  }
   const rect = currentTarget.getBoundingClientRect();
   trigger.dispatchEvent(
     new MouseEvent('contextmenu', {
@@ -144,9 +158,7 @@ export function AppContextMenu(props: AppContextMenuProps): JSX.Element {
   /** An item with no actions has nothing to open: no long press, no right click, no «⋯» button. */
   const hasActions = (): boolean => props.actions.length > 0;
 
-  const dismissMenu = (): void => {
-    document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
-  };
+  const dismissMenu = dismissOpenContextMenu;
 
   // Non-modal menus let the page scroll freely; the first scroll gesture
   // outside the menu closes it via a synthesized outside press.
