@@ -671,6 +671,18 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
   z-index: var(--z-overlay);
 }
 
+/* An image preview: the surface is the picture's own box, so the zoomed picture is clipped to it
+   and panning stays inside it. The zoom hook turns the cursor into a hand once zoomed. */
+.pinch-zoom-surface--image {
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+  overflow: hidden;
+  cursor: zoom-in;
+  line-height: 0;
+  user-select: none;
+}
+
 .pinch-zoom-surface__content {
   position: relative;
   z-index: calc(var(--z-base) + 1);

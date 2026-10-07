@@ -1319,7 +1319,7 @@ html:has(.assessment-next-button) .patient-notes-fab {
 
 .assessment-image-carousel__lightbox-image {
   display: block;
-  max-width: 100%;
+  max-width: min(62rem, calc(100vw - 4rem));
   max-height: min(74dvh, 52rem);
   object-fit: contain;
 }

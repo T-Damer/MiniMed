@@ -11,7 +11,7 @@ import {
   visibleImageCaption,
 } from '@/features/library/document-rich-block-data';
 import { PinchZoomSurface } from '@/features/library/PinchZoomSurface';
-import { usePinchZoom } from '@/features/library/use-pinch-zoom';
+import { IMAGE_ZOOM_OPTIONS, usePinchZoom } from '@/features/library/use-pinch-zoom';
 import { PrintManager } from '@/features/printing/print-manager';
 
 interface RichBlockHighlightProps {
@@ -96,11 +96,21 @@ function buildImagePrintHtml(image: {
 export function MediaViewer(props: {
   readonly open: boolean;
   readonly title: string;
+  /**
+   * `image`: the wheel zooms around the cursor, double click / tap zooms to the point and the mouse
+   * drags the zoomed picture. `document` (tables): only Ctrl+wheel / trackpad pinch zoom, so the
+   * wheel and text selection keep working.
+   */
+  readonly zoomMode?: 'image' | 'document';
   readonly printHtmlContent?: () => string;
   readonly onClose: () => void;
   readonly children: JSX.Element;
 }): JSX.Element {
-  const pinch = usePinchZoom({ expandScrollPort: true });
+  const pinch = usePinchZoom(
+    props.zoomMode === 'image'
+      ? { ...IMAGE_ZOOM_OPTIONS, expandScrollPort: true }
+      : { expandScrollPort: true, wheelZoom: 'ctrl' },
+  );
 
   createEffect(() => {
     if (!props.open) return;
@@ -321,6 +331,7 @@ function ZoomableImage(props: {
       </button>
       <MediaViewer
         open={open()}
+        zoomMode="image"
         title={visibleImageCaption(props.image.alt, props.image.title) || 'Изображение'}
         printHtmlContent={() => buildImagePrintHtml(props.image)}
         onClose={() => setOpen(false)}

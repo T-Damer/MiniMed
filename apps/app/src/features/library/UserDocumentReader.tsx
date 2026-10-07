@@ -54,6 +54,7 @@ import {
 } from '@/features/library/SafeMarkdown';
 import { sheetAnchorId } from '@/features/library/SpreadsheetRenderer';
 import { UserDocumentHighlights } from '@/features/library/UserDocumentHighlights';
+import { IMAGE_ZOOM_OPTIONS } from '@/features/library/use-pinch-zoom';
 import {
   buildUserDocumentOutlineItems,
   buildUserDocumentPrintHtml,
@@ -1617,11 +1618,17 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
       >
         <Show when={imageUrl()}>
           {(url) => (
-            <img
-              src={url()}
-              class="user-doc-image-lightbox__image"
-              alt={meta()?.title ?? 'Изображение'}
-            />
+            <PinchZoomSurface
+              class="pinch-zoom-surface pinch-zoom-surface--image"
+              zoomOptions={IMAGE_ZOOM_OPTIONS}
+            >
+              <img
+                src={url()}
+                class="user-doc-image-lightbox__image"
+                alt={meta()?.title ?? 'Изображение'}
+                draggable={false}
+              />
+            </PinchZoomSurface>
           )}
         </Show>
       </OverlayDialog>

@@ -1,6 +1,10 @@
 import { createEffect, type JSX, onCleanup, Show } from 'solid-js';
 
-import { type PinchZoomControls, usePinchZoom } from '@/features/library/use-pinch-zoom';
+import {
+  type PinchZoomControls,
+  type PinchZoomOptions,
+  usePinchZoom,
+} from '@/features/library/use-pinch-zoom';
 
 export function PinchZoomSurface(props: {
   readonly class?: string;
@@ -8,9 +12,14 @@ export function PinchZoomSurface(props: {
   readonly expandScrollPort?: boolean;
   readonly lightbox?: boolean;
   readonly pinch?: PinchZoomControls;
+  /** Zoom behaviours of the surface's own controller (ignored when `pinch` is passed). */
+  readonly zoomOptions?: PinchZoomOptions;
   readonly children: JSX.Element;
 }): JSX.Element {
-  const fallback = usePinchZoom(props.expandScrollPort === true ? { expandScrollPort: true } : {});
+  const fallback = usePinchZoom({
+    ...(props.expandScrollPort === true ? { expandScrollPort: true } : {}),
+    ...props.zoomOptions,
+  });
   const controls = (): PinchZoomControls => props.pinch ?? fallback;
 
   createEffect(() => {

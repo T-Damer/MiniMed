@@ -4,6 +4,8 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { HorizontalScroller } from '@/components/HorizontalScroller';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import type { AssessmentImage } from '@/features/assessments/assessment-types';
+import { PinchZoomSurface } from '@/features/library/PinchZoomSurface';
+import { IMAGE_ZOOM_OPTIONS } from '@/features/library/use-pinch-zoom';
 
 export function AssessmentImageCarousel(props: {
   readonly images: readonly AssessmentImage[];
@@ -57,11 +59,17 @@ export function AssessmentImageCarousel(props: {
       >
         <Show when={expanded()}>
           {(image) => (
-            <img
-              class="assessment-image-carousel__lightbox-image"
-              src={image().dataUrl}
-              alt={image().alt}
-            />
+            <PinchZoomSurface
+              class="pinch-zoom-surface pinch-zoom-surface--image"
+              zoomOptions={IMAGE_ZOOM_OPTIONS}
+            >
+              <img
+                class="assessment-image-carousel__lightbox-image"
+                src={image().dataUrl}
+                alt={image().alt}
+                draggable={false}
+              />
+            </PinchZoomSurface>
           )}
         </Show>
       </OverlayDialog>
