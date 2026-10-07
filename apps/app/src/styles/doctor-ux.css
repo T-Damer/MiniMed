@@ -592,6 +592,17 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
   margin: 0 0 0.9rem;
 }
 
+.document-reference-image__open {
+  display: block;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  cursor: zoom-in;
+  line-height: 0;
+}
+
 .document-reference-image__image {
   display: block;
   max-width: 100%;
@@ -871,6 +882,8 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
   flex: 1;
   overflow: auto;
   padding: 0.75rem 1.25rem 0.75rem 0.75rem;
+  /* The free area of the panel, measurable by the picture (cqw / cqh) whatever the window is. */
+  container-type: size;
 }
 
 .media-viewer__pinch {
@@ -886,6 +899,11 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
 .media-viewer__table-wrap,
 .media-viewer__figure {
   background: var(--theme-surface-raised);
+}
+
+.media-viewer__figure {
+  /* A <figure> brings 1em / 40px margins: they pushed the picture 16 px down and 40 px in. */
+  margin: 0;
 }
 
 .media-viewer__table {
@@ -923,18 +941,35 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
   font-weight: 650;
 }
 
+.media-viewer__figure--captioned {
+  /* Room the caption keeps below the picture (two lines and its gap). */
+  --media-viewer-caption-room: 3.5rem;
+}
+
 .media-viewer__image {
   display: block;
   width: auto;
   max-width: 100%;
-  max-height: calc(95dvh - 5rem);
+  /* Without container units: the panel's height minus its title bar, padding and a margin. */
+  max-height: calc(95dvh - 5.5rem - var(--media-viewer-caption-room, 0rem));
   height: auto;
   margin: 0 auto;
   background: var(--theme-surface-raised);
+  object-fit: contain;
+}
+
+/* The whole picture inside the free area of the panel, never under the title bar or the edge. */
+@supports (width: 1cqw) {
+  .media-viewer__image {
+    max-width: 100cqw;
+    max-height: calc(100cqh - var(--media-viewer-caption-room, 0rem));
+  }
 }
 
 .media-viewer__caption {
+  max-height: 2.8rem;
   margin: 0.5rem 0 0;
+  overflow: auto;
   color: var(--theme-text-muted);
   font-size: 0.75rem;
   line-height: 1.4;
@@ -1130,6 +1165,33 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
   white-space: pre-line;
   margin: 0;
   line-height: 1.45;
+}
+
+/* A long definition shows four lines that fade out; «Показать полностью» opens the rest. */
+.document-inline-preview__definition--clamped {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+}
+
+.document-inline-preview__definition--faded {
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 1.75em), transparent);
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 1.75em), transparent);
+}
+
+.document-inline-preview__more {
+  margin-block-start: 0.35rem;
+  padding: 0.25rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--theme-link);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }
 
 .document-inline-preview__meaning {
@@ -1950,6 +2012,13 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
   /* The track owns the width; beat reader-polish's fixed clamp on the aside. */
   .document-overlay-layout:not(.document-overlay-layout--outline-hidden) .document-overlay-outline {
     width: auto;
+  }
+
+  /* The floating bottom navigation is centred over the page, so between a tablet's and a small
+     laptop's width it reaches over the contents column. The column ends above the bar: its list
+     and its «Сведения об источнике» footer scroll clear of it. */
+  .document-overlay-outline--open {
+    padding-bottom: calc(1.125rem + var(--bottom-nav-clearance));
   }
 }
 

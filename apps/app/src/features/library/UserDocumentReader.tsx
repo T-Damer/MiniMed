@@ -1613,6 +1613,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
         open={imageLightboxOpen()}
         title={meta()?.title ?? 'Изображение'}
         class="user-doc-image-lightbox"
+        bodyClass="user-doc-image-lightbox__body"
         presentation="screen"
         onClose={() => setImageLightboxOpen(false)}
       >

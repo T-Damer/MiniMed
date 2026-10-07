@@ -153,19 +153,42 @@ html:has(.user-document-reader--sheet-fullscreen) .app-bottom-nav {
   cursor: zoom-in;
 }
 
-.user-doc-image-lightbox .overlay-dialog-body {
+.user-doc-image-lightbox {
+  /* A definite height, so the body is a measurable free area and the picture is fitted to it. Fitted
+     to the window instead, it ran under the title bar and past the bottom edge. */
+  height: calc(100dvh - 2rem - var(--safe-top, 0px) - var(--safe-bottom, 0px));
+}
+
+@media (max-width: 760px) {
+  .user-doc-image-lightbox {
+    height: 100dvh;
+  }
+}
+
+.user-doc-image-lightbox__body {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  container-type: size;
 }
 
 .user-doc-image-lightbox__image {
   display: block;
   width: auto;
   height: auto;
-  max-width: 92vw;
-  max-height: 92dvh;
+  /* The window minus the dialog's margins, title bar and padding. */
+  max-width: 100%;
+  max-height: calc(100dvh - 11rem);
   margin: 0 auto;
+}
+
+/* Where container units exist: exactly the free area of the dialog body. */
+@supports (width: 1cqw) {
+  .user-doc-image-lightbox__image {
+    max-width: 100cqw;
+    max-height: 100cqh;
+  }
 }
 
 /* XLS/XLSX/XLSM/CSV sheets */

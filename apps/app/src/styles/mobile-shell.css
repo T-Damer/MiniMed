@@ -5,6 +5,9 @@
   --safe-bottom: max(var(--safe-area-inset-bottom, 0px), env(safe-area-inset-bottom, 0px));
   --safe-left: max(var(--safe-area-inset-left, 0px), env(safe-area-inset-left, 0px));
   --nav-safe-bottom: env(safe-area-inset-bottom, 0px);
+  /* The floating bottom bar (its height, its gap to the edge, a margin): what a column or a dock
+     that must stay clear of it leaves free at the bottom. */
+  --bottom-nav-clearance: calc(4.75rem + var(--nav-safe-bottom));
   --shell-bar: #47453f;
   --shell-bar-text: #f2ead8;
   --nav-tab-active-bg: #fffef9;

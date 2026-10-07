@@ -58,7 +58,7 @@ import {
   useDocumentReaderChrome,
 } from '@/features/library/document-reader-chrome';
 import { jumpReaderTo, readerOffsetWithin } from '@/features/library/document-reader-scroll';
-import { DocumentRichBlock } from '@/features/library/document-rich-block';
+import { DocumentRichBlock, PreviewableImage } from '@/features/library/document-rich-block';
 import {
   documentRenderBlockSearchText,
   resolveDocumentChunkItems,
@@ -305,13 +305,14 @@ function ReferencePointerImage(props: { readonly documentId: string }): JSX.Elem
     >
       {(value) => (
         <figure class="document-reference-image document-reference-image--pointer">
-          <img
-            class="document-reference-image__image"
+          <PreviewableImage
+            openClass="document-reference-image__open"
+            imageClass="document-reference-image__image"
             src={value().url}
             alt={value().alt}
-            loading="lazy"
-            onError={() => setFailed(true)}
+            caption={value().alt}
             hidden={failed()}
+            onError={() => setFailed(true)}
           />
           <Show when={!failed()}>
             <figcaption class="document-reference-image__caption">

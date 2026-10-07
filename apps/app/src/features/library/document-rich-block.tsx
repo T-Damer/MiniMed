@@ -336,7 +336,14 @@ function ZoomableImage(props: {
         printHtmlContent={() => buildImagePrintHtml(props.image)}
         onClose={() => setOpen(false)}
       >
-        <figure class="media-viewer__figure">
+        <figure
+          class="media-viewer__figure"
+          classList={{
+            'media-viewer__figure--captioned': Boolean(
+              visibleImageCaption(props.image.alt, props.image.title),
+            ),
+          }}
+        >
           <img
             class="media-viewer__image"
             src={props.image.dataUrl}
@@ -358,6 +365,55 @@ function ZoomableImage(props: {
                 />
               </figcaption>
             )}
+          </Show>
+        </figure>
+      </MediaViewer>
+    </>
+  );
+}
+
+/**
+ * A picture of a document (an illustration from the reference images) that opens in the same
+ * zoomable preview as the pictures of rich blocks: wheel, double tap and pinch zoom around the
+ * point, fitted to the free area of the panel.
+ */
+export function PreviewableImage(props: {
+  readonly src: string;
+  readonly alt: string;
+  /** Shown under the picture in the preview. */
+  readonly caption?: string | undefined;
+  readonly openClass: string;
+  readonly imageClass: string;
+  readonly hidden?: boolean | undefined;
+  readonly onError?: (() => void) | undefined;
+}): JSX.Element {
+  const [open, setOpen] = createSignal(false);
+  const title = (): string => props.caption || props.alt || 'Изображение';
+  return (
+    <>
+      <button
+        type="button"
+        class={props.openClass}
+        aria-label="Открыть изображение"
+        hidden={props.hidden}
+        onClick={() => setOpen(true)}
+      >
+        <img
+          class={props.imageClass}
+          src={props.src}
+          alt={props.alt}
+          loading="lazy"
+          onError={() => props.onError?.()}
+        />
+      </button>
+      <MediaViewer open={open()} zoomMode="image" title={title()} onClose={() => setOpen(false)}>
+        <figure
+          class="media-viewer__figure"
+          classList={{ 'media-viewer__figure--captioned': Boolean(props.caption) }}
+        >
+          <img class="media-viewer__image" src={props.src} alt={props.alt || title()} />
+          <Show when={props.caption}>
+            {(caption) => <figcaption class="media-viewer__caption">{caption()}</figcaption>}
           </Show>
         </figure>
       </MediaViewer>

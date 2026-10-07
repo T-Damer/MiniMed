@@ -1,6 +1,6 @@
 import { Popover } from '@kobalte/core/popover';
 import type { MedicalCore, TextRange } from '@localmed/contracts';
-import { createEffect, createMemo, createSignal, For, type JSX, Show } from 'solid-js';
+import { createEffect, createMemo, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { QueryHighlightedText } from '@/components/HighlightedText';
@@ -17,7 +17,7 @@ import {
   type LinkedTextSegment,
   parseDocumentText,
 } from '@/features/library/document-medication-links';
-import { DocumentRichBlock } from '@/features/library/document-rich-block';
+import { DocumentRichBlock, PreviewableImage } from '@/features/library/document-rich-block';
 import { documentTextBlockSearchText } from '@/features/library/document-text-search';
 import {
   loadMedicationLinkSummary,
@@ -116,6 +116,50 @@ const MEDICATION_ASSETS = {
   atcNames: () =>
     import('@/features/medications/atc-names').then((module) => module.loadAtcNames()),
 };
+
+/**
+ * A term's definition inside its preview card: four lines with a fade, «Показать полностью» when
+ * there is more. Some definitions run to hundreds of characters, and the card (a drug card is a few
+ * lines) must stay a glance, not a page; the full text opens inside the card.
+ */
+function ClampedDefinition(props: { readonly text: string; readonly class?: string }): JSX.Element {
+  const [expanded, setExpanded] = createSignal(false);
+  const [overflowing, setOverflowing] = createSignal(false);
+  let element: HTMLParagraphElement | undefined;
+  createEffect(() => {
+    // Measured with the clamp on: the paragraph overflows its four lines only when it is longer.
+    const text = props.text;
+    if (expanded() || !text) return;
+    const frame = requestAnimationFrame(() => {
+      if (element) setOverflowing(element.scrollHeight > element.clientHeight + 1);
+    });
+    onCleanup(() => cancelAnimationFrame(frame));
+  });
+  return (
+    <>
+      <p
+        ref={element}
+        class={`document-inline-preview__definition ${props.class ?? ''}`.trim()}
+        classList={{
+          'document-inline-preview__definition--clamped': !expanded(),
+          'document-inline-preview__definition--faded': !expanded() && overflowing(),
+        }}
+      >
+        {props.text}
+      </p>
+      <Show when={overflowing() || expanded()}>
+        <button
+          type="button"
+          class="document-inline-preview__more"
+          aria-expanded={expanded()}
+          onClick={() => setExpanded((value) => !value)}
+        >
+          {expanded() ? 'Свернуть' : 'Показать полностью'}
+        </button>
+      </Show>
+    </>
+  );
+}
 
 function InlineDocumentLink(props: {
   readonly segment: LinkedDocumentSegment;
@@ -323,9 +367,10 @@ function InlineDocumentLink(props: {
                     <Show when={alternative.preview}>
                       {(preview) => (
                         <>
-                          <p class="document-inline-preview__definition document-inline-preview__definition--choice">
-                            {preview().definition}
-                          </p>
+                          <ClampedDefinition
+                            class="document-inline-preview__definition--choice"
+                            text={preview().definition}
+                          />
                         </>
                       )}
                     </Show>
@@ -334,9 +379,7 @@ function InlineDocumentLink(props: {
               </For>
             </Show>
             <Show when={!ambiguous() && props.segment.preview}>
-              {(preview) => (
-                <p class="document-inline-preview__definition">{preview().definition}</p>
-              )}
+              {(preview) => <ClampedDefinition text={preview().definition} />}
             </Show>
             <Show when={!ambiguous() && !props.segment.preview}>
               <Show when={previewError()}>
@@ -683,11 +726,12 @@ function ReferenceImage(props: {
       >
         {(value) => (
           <figure class="document-reference-image">
-            <img
-              class="document-reference-image__image"
+            <PreviewableImage
+              openClass="document-reference-image__open"
+              imageClass="document-reference-image__image"
               src={value().url}
               alt={value().alt || props.block.alt}
-              loading="lazy"
+              caption={value().alt || props.block.alt}
               onError={() => setFailed(true)}
             />
             <figcaption class="document-reference-image__caption">
