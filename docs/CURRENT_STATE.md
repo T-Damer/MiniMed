@@ -572,6 +572,111 @@ on the list searches titles, descriptions and card keywords.
   opens the app settings. Not verified on a physical phone (HyperOS may add its own audio-record
   gate).
 
+## Drug link summary, saved search results, update hint, «Лента» sources — 2026-10-07 (STATE UX10)
+
+Owner screenshots 2026-10-07.
+
+### Drug link card in texts
+
+- A drug name in a text (КР, search context) opens a **short card**: substance (or trade name with
+  its substance), the registry's pharmacotherapeutic group (one line; a group that only repeats the
+  start of a longer one is dropped), ATC code with the NSI level-4 name, trade names (five, «и ещё
+  N»), and — when an instruction module of the substance is installed — one quoted line «Действие:»
+  (the instruction's «Фармакодинамика» / «Фармакологические свойства», else «Показания:»; the first
+  sentences up to 240 characters, cut at a sentence or word boundary, never paraphrased), then a
+  short source line «ЕСКЛП, 28.08.2026 · инструкция». «Открыть» opens the drug card. The previous
+  card listed ЕСКЛП codes and a «Открыть фрагмент источника» per dosage form; both are gone.
+- Why the codes showed: the link of a not-installed substance points at its core pointer, whose
+  lines are «<СМНН code> — form — strength / ТН: …». The card now reads the full ЕСКЛП card behind
+  a pointer when its module is installed, else the pointer's «ТН:» lines plus the lazy
+  drug-comparison index (`cards`: groups, ATC; `documents`: trade names and the instructions to try)
+  and the NSI ATC names — both chunks are shared with their tools and load on the first card only.
+- Code: `features/library/medication-link-preview.ts` (pure model + loader, tests),
+  `components/DocumentText.tsx` (`MedicationLinkSummaryBody`), CSS `.medication-link-summary*` in
+  `styles/doctor-ux.css`. The inline preview card now stands above the search source overlay
+  (`--z-inline-preview: 540`); before, in the search context it opened behind the overlay.
+
+### Saved search results
+
+- Every finished search is kept on the device (`state/search-result-cache.ts`, IndexedDB
+  `minimed-search-results`, newest 40, evicted through a `savedAt` index; an in-memory layer for the
+  session). Key: scope, specialty, filters and the normalised query text.
+- Asking a saved query again — typed, submitted, from the history drawer or after the app restarted
+  — shows its list at once (no skeleton) with a quiet line «Сохранённые результаты · 12 мин назад ·
+  Повторить поиск». A **fresh** copy (same app version and content revision, younger than a day)
+  is not searched again; «Повторить поиск» re-runs it and applies the result at once. A **stale**
+  copy is still shown at once and the search re-runs behind it with the existing «Есть новые
+  результаты» offer (UX9), so the list never changes under the reader's finger.
+- The content revision (localStorage `minimed.search.content-revision.v1`) moves on every
+  `notifyContentChanged()` (module install/removal, core swap) and on installing/removing the
+  semantic model. Clearing the search history clears the saved results too. Query text is stored like
+  the history and never logged.
+- Tests: unit `search-result-cache.test.ts`, `search-refresh.test.ts` (age wording); e2e
+  `search.spec.ts` «a replayed or repeated query shows its saved results at once, and can search
+  again» (history replay without re-run or skeleton, «Повторить поиск», survives a reload).
+
+### App update hint
+
+- The «Доступно обновление» pill left the search header. An available update now shows a small
+  «Обновление» pill above the «Настройки» tab (`AppBottomNav`, `.app-update-nav-hint`), which opens
+  Settings → Основные and is dismissed per version as before (`state/ignored-app-updates.ts`); the dot
+  on the tab stays. e2e: `search.spec.ts` (opens settings, applies nothing), `ux8-search-header.spec.ts`
+  (header row has two buttons; the hint fits the viewport at 360/390/1280 px, light and dark).
+
+### «Лента»: suggestions first, item pictures, PubMed search (ADR-0024 amended)
+
+Owner request: adding your own feed is too prominent; show what can be added; real articles with
+pictures; PubMed search. Code in `apps/app/src/features/news/`, CSS `styles/news.css`.
+
+- **«+» instead of a banner.** The big «Добавить источник» card on the empty view is gone. Adding an
+  address of one's own is a small round «+» (`aria-label` «Добавить источник», `data-testid=
+  news-add-entry`) in the «Лента» header, beside refresh / PubMed search / «Источники» (all four
+  header buttons are now round, 2.5 rem), and a link on «Источники». The add page itself is unchanged
+  (its suggestions are now the compact rail).
+- **Suggestions are the first view.** `NewsSuggestedFeeds` has two variants: `cards` (empty «Лента»
+  or only websites: grouped Россия / Международные, each card = tile + title + language + description
+  + topic + «С картинками» + one-tap «Подписаться») and `compact` (a one-row swipeable rail «Ещё
+  источники» of the sources not yet subscribed to, under the list and on the add page). No request is
+  made to show them: logos are **bundled monogram tiles** (`NewsSourceTile`: coloured tile with a
+  1–4 character `mark`, HSL `hue`, topic `glyph` from an allow-list), declared per source in
+  `suggested-feeds.json` (`topic`, `visual {mark, hue, glyph}`, `carriesImages`; validated by
+  `isSuggestedFeed`; no logo files, no favicons, tested). The «Источники» rows reuse the tile for
+  suggested sources. A «Поиск в PubMed» card sits above the suggestions on the empty view.
+- **Pictures.** `NewsItem.imageUrl` was already parsed; now also Atom `<link rel="enclosure">`,
+  `media:content`/`enclosure` without a declared type (image extension decides), JSON Feed
+  `attachments` images (plus the existing `media:thumbnail`, `media:content`, `enclosure`, JSON
+  `image`/`banner_image`, first `<img>` of the sanitized text). https only. List row: fixed 4.5 rem
+  square thumbnail; article: 16:9 hero box (`aspect-ratio`, lazy, `no-referrer`); both only when the
+  source's «Изображения» switch is on. From an article of a source with it off, a one-line button
+  turns it on. **Default:** off, except suggested sources whose feeds were measured on 2026-10-07 to
+  carry a picture on every item (`carriesImages`: Фармвестник, ДокторПитер, MedPage Today, STAT,
+  Medical Xpress), which are subscribed with it on; sources added by address start off.
+- **PubMed** (`#/news/pubmed`; `pubmed.ts` pure builders/validators, `pubmed-client.ts` transport +
+  rate limit, `NewsPubmedPage.tsx`). User-initiated: a one-line notice «Текст запроса отправляется в
+  NCBI (PubMed) — только когда вы нажимаете «Найти»» is shown before the first search; nothing is sent
+  until then. `esearch` (no `sort`: `sort=date` is not an E-utilities value and is ignored, the default
+  order is newest-added first; measured live) then `esummary`, `tool=minimed`, through `FeedTransport`
+  (CapacitorHttp on Android), JSON validated at the boundary, one shared spacer at 400 ms
+  (≤ 2.5 requests/s). Results: title, journal · date, first three authors, external link to
+  `https://pubmed.ncbi.nlm.nih.gov/<pmid>/` (PubMed refuses framing; no abstract in `esummary`).
+  «Подписаться на этот поиск» saves a `kind: 'pubmed'` subscription (`query`, `url` = PubMed web page
+  of the search) in the same localStorage list; it refreshes with the other sources, items are dated
+  by PubMed entry date, kept 365 days (feeds 30), unread window on first fetch 14 days (feeds 3), and
+  counted in the tab badge. Excluded from OPML export. Query text is never logged.
+- Tests: unit (`feed-parser` image extraction, `pubmed`, `pubmed-client` incl. spacer, `news-service`
+  PubMed + images default, `news-storage` kind/query/badge, `suggested-feeds` data, `opml`, routes);
+  e2e `news-feed.spec.ts` (18 cases; «+» entry, tiles without images and no request, images default
+  for suggested, thumbnail/hero boxes, compact rail, PubMed search → save → refresh with stubbed
+  eutils and spacing, empty/unreachable PubMed).
+- Not verified: Android device (`CapacitorHttp` against the real feeds and NCBI, system-browser
+  hand-off of the PubMed link), real feeds in the app (parser run against the 14 suggested feeds with
+  `bun` on 2026-10-07 only to measure pictures; `who-news-ru` and `nejm-current` failed TLS
+  verification from that shell, their pictures were checked with `curl -k`), abstracts/MeSH/NCBI key
+  (ADR-0020 items 2–3, still open).
+
+Not verified on a phone: the drug card with installed instruction modules on Android, the saved
+results after a WebView kill on Android, the update hint next to the HyperOS gesture bar.
+
 ## Search fixes from the QA pass — 2026-10-07 (STATE QA2)
 
 - The source overlay names the kind of document it shows (drug, МКБ card, reference, law,
