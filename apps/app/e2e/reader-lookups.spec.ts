@@ -4,7 +4,7 @@ import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
 const pointerId =
   'core.catalog.pointer.medication.esklp.mnn.аскорбиновая-кислота-парацетамол-bfbe39d48f8ac5dc';
 
-test('a medication lookup preserves the reader position and shows source strengths', async ({
+test('a medication lookup preserves the reader position and shows a short drug card', async ({
   page,
 }) => {
   test.setTimeout(90_000);
@@ -21,9 +21,11 @@ test('a medication lookup preserves the reader position and shows source strengt
   await link.click();
   const preview = page.locator('.document-inline-preview__card');
   await expect(preview).toBeVisible();
-  await expect(preview).toContainText(/форма|концентрация/iu);
-  await expect(preview).toContainText(/мг|%/u);
-  await expect(preview).toContainText('не схема дозирования');
+  // Substance, group/ATC and trade names from the pointer and the drug index; no per-form lines.
+  await expect(preview.locator('.medication-link-summary')).toBeVisible();
+  await expect(preview).toContainText(/Торговые названия/u);
+  await expect(preview).toContainText(/АТХ [A-Z]\d{2}/u);
+  await expect(preview).not.toContainText(/форма\/дозировка|Открыть фрагмент источника/u);
   expect(page.url()).toBe(url);
   await page.keyboard.press('Escape');
   await expect(preview).toHaveCount(0);
