@@ -27,6 +27,11 @@ import {
   userLibraryFolderHash,
 } from '@/features/library/user-library-routing';
 import {
+  formatDateTime,
+  formatFileSize,
+  userLibraryStatusParts,
+} from '@/features/library/user-library-status';
+import {
   notesFormsPath,
   notesPatientsPath,
   notesTemplatesPath,
@@ -60,12 +65,12 @@ import {
   renameUserLibraryDocument,
   renameUserLibraryFolder,
   requestUserLibraryOcr,
+  retryUserLibraryDocument,
   setUserLibraryDocumentColor,
   setUserLibraryFolderColor,
   USER_LIBRARY_BOOKS_FOLDER_ID,
   USER_LIBRARY_COLORS,
   USER_LIBRARY_EVENT,
-  retryUserLibraryDocument,
   USER_LIBRARY_EXAMPLE_SLOTS,
   USER_LIBRARY_NAME_MAX_LENGTH,
   USER_LIBRARY_NOTES_FOLDER_ID,
@@ -189,28 +194,6 @@ function breadcrumbLabel(value: string): string {
   return characters.length > 16 ? `${characters.slice(0, 15).join('')}…` : value;
 }
 
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} Б`;
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} КБ`;
-  return `${(bytes / 1024 / 1024).toFixed(bytes >= 10 * 1024 * 1024 ? 0 : 1)} МБ`;
-}
-
-const DATE_FORMAT = new Intl.DateTimeFormat('ru-RU', {
-  day: '2-digit',
-  month: 'short',
-  hour: '2-digit',
-  minute: '2-digit',
-});
-
-function formatDateTime(value: string | undefined): string {
-  if (!value) return '';
-  try {
-    return DATE_FORMAT.format(new Date(value));
-  } catch {
-    return '';
-  }
-}
-
 const FILE_KIND_GLYPHS: Record<UserLibraryFileKind, AppGlyphName> = {
   questionnaire: 'list-checks',
   pdf: 'file-pdf',
@@ -251,18 +234,20 @@ function activeOcrDocumentId(documents: readonly UserLibraryDocument[]): string 
   );
 }
 
-function statusLabel(document: UserLibraryDocument, activeOcrId: string | null): string {
-  if (document.status === 'inspecting') return 'Читаем файл…';
-  if (document.status === 'ready') {
-    const textLayer = document.hasTextLayer ? 'Текстовый слой найден · ' : '';
-    return `${textLayer}${formatFileSize(document.byteLength)} · изменён ${formatDateTime(document.updatedAt)}`;
-  }
-  if (document.status === 'failed') {
-    return document.errorMessage ?? 'Не удалось обработать файл';
-  }
-  if (document.id !== activeOcrId) return 'В очереди на распознавание текста';
-  const done = document.nativeTextPages + document.ocrDonePages;
-  return `Распознавание текста · ${done} / ${document.pageCount}`;
+/** The status line as parts: each stays whole when a narrow card wraps it. */
+function StatusParts(props: {
+  readonly document: UserLibraryDocument;
+  readonly activeOcrId: string | null;
+}): JSX.Element {
+  return (
+    <For each={userLibraryStatusParts(props.document, props.activeOcrId)}>
+      {(part) => (
+        <>
+          <span class="user-library-card__meta-part">{part}</span>{' '}
+        </>
+      )}
+    </For>
+  );
 }
 
 function folderDescendants(folders: readonly UserLibraryFolder[], folderId: string): Set<string> {
@@ -1142,25 +1127,7 @@ export function UserLibraryPage(props: {
         id: 'root',
         label: 'В корень',
         icon: 'house',
-  const retryDocument = async (document: UserLibraryDocument): Promise<void> => {
-    try {
-      await retryUserLibraryDocument(document.id);
-    } catch (cause) {
-      toast.error(cause instanceof Error ? cause.message : 'Не удалось повторить обработку файла.');
-    }
-  };
-
         disabled: folder.parentId === null,
-    ...(document.status === 'failed'
-      ? [
-          {
-            id: 'retry',
-            label: 'Повторить',
-            icon: 'refresh' as const,
-            onSelect: () => void retryDocument(document),
-          } satisfies AppContextMenuAction,
-        ]
-      : []),
         onSelect: () => void moveFolder(folder.id, null),
       },
       ...folders()
@@ -1175,7 +1142,25 @@ export function UserLibraryPage(props: {
     ];
   };
 
+  const retryDocument = async (document: UserLibraryDocument): Promise<void> => {
+    try {
+      await retryUserLibraryDocument(document.id);
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : 'Не удалось повторить обработку файла.');
+    }
+  };
+
   const documentActions = (document: UserLibraryDocument): readonly AppContextMenuAction[] => [
+    ...(document.status === 'failed'
+      ? [
+          {
+            id: 'retry',
+            label: 'Повторить',
+            icon: 'refresh' as const,
+            onSelect: () => void retryDocument(document),
+          } satisfies AppContextMenuAction,
+        ]
+      : []),
     {
       id: 'select',
       label: 'Выбрать несколько',
@@ -1454,8 +1439,6 @@ export function UserLibraryPage(props: {
         toggleDocumentSelection(props.document.id);
         return;
       }
-        `Файл: ${props.document.fileName}`,
-        ...(props.document.author ? [`Автор: ${props.document.author}`] : []),
       if (props.document.status === 'inspecting') return;
       openLibraryDocument(props.document);
     };
@@ -1471,6 +1454,8 @@ export function UserLibraryPage(props: {
     };
     const timesTitle = (): string =>
       [
+        `Файл: ${props.document.fileName}`,
+        ...(props.document.author ? [`Автор: ${props.document.author}`] : []),
         `Добавлен: ${formatDateTime(props.document.createdAt)}`,
         `Изменён: ${formatDateTime(props.document.updatedAt)}`,
         props.document.lastOpenedAt
@@ -1574,7 +1559,7 @@ export function UserLibraryPage(props: {
                 fallback={
                   <>
                     <small class="user-library-card__meta">
-                      {statusLabel(props.document, activeOcrId())}
+                      <StatusParts document={props.document} activeOcrId={activeOcrId()} />
                     </small>
                     <Show
                       when={
@@ -1591,7 +1576,7 @@ export function UserLibraryPage(props: {
                 }
               >
                 <small class="user-library-card__meta" title={timesTitle()}>
-                  {statusLabel(props.document, activeOcrId())}
+                  <StatusParts document={props.document} activeOcrId={activeOcrId()} />
                 </small>
               </Show>
             </span>

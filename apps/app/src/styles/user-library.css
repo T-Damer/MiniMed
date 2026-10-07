@@ -1364,13 +1364,26 @@
   white-space: nowrap;
 }
 
+/* Up to two lines: a phone card is too narrow for the status on one. */
 .user-library-card__meta {
+  display: -webkit-box;
   max-width: 100%;
   overflow: hidden;
   color: var(--theme-text-muted);
   font-size: var(--type-micro);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.3;
+  line-clamp: 2;
+  overflow-wrap: anywhere;
+  text-align: inherit;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* Each part wraps as a whole; one longer than the card (an error message) still breaks inside. */
+.user-library-card__meta-part {
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: top;
 }
 
 /* View toggle: buttons match the round back control; the active state slides */
