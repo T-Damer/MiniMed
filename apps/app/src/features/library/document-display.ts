@@ -9,6 +9,10 @@ import {
   summaryDocumentId,
 } from '@localmed/core';
 
+import {
+  isClinicalRecommendationSource,
+  promoteNumberedHeadingSections,
+} from '@/features/library/numbered-heading-sections';
 import { browserI18n } from '@/i18n/browser-i18n';
 import { sourceTypeReaderLabel as localizedSourceTypeReaderLabel } from '@/i18n/labels';
 
@@ -204,13 +208,18 @@ export function visibleReaderSections(
   sections: readonly MedicalSection[],
   sourceType: string,
 ): readonly MedicalSection[] {
-  return orderDocumentSections(sections, sourceType).filter((section) => {
+  const visible = orderDocumentSections(sections, sourceType).filter((section) => {
     if (section.chunks.length === 0) return false;
     return !(
       MEDICATION_READER_SOURCE_TYPES.has(sourceType) &&
       section.title === REDUNDANT_MEDICATION_SECTION_TITLE
     );
   });
+  // Sub-headings the source kept as numbered paragraphs become sections of the reader. After the
+  // filter above: a section left without its own text still shows its title.
+  return isClinicalRecommendationSource(sourceType)
+    ? promoteNumberedHeadingSections(visible)
+    : visible;
 }
 
 export function isFullTextDocumentId(documentId: string): boolean {
