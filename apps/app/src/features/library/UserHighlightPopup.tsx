@@ -2,11 +2,14 @@ import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js'
 import { Portal } from 'solid-js/web';
 import { toast } from 'solid-sonner';
 import { AppGlyph } from '@/components/AppGlyph';
+import type { HighlightPopupPlacement } from '@/features/library/highlight-popup-placement';
 import { USER_HIGHLIGHT_COLORS, type UserHighlightColor } from '@/state/user-library-highlights';
 
 export function UserHighlightPopup(props: {
   readonly x: number;
   readonly y: number;
+  /** Over the text (mouse), under it clear of the system selection menu (touch), or docked. */
+  readonly placement?: HighlightPopupPlacement | undefined;
   readonly onAdd?: ((color: UserHighlightColor) => Promise<void>) | undefined;
   readonly onRemove?: (() => Promise<void>) | undefined;
   readonly onClose: () => void;
@@ -39,11 +42,19 @@ export function UserHighlightPopup(props: {
       <fieldset
         ref={root}
         class="user-highlight-popup"
-        aria-label="Выделение текста"
-        style={{
-          left: `clamp(8rem, ${props.x}px, calc(100vw - 8rem))`,
-          top: `clamp(4rem, ${props.y}px, calc(100dvh - 0.5rem))`,
+        classList={{
+          'user-highlight-popup--below': props.placement === 'below',
+          'user-highlight-popup--dock': props.placement === 'dock',
         }}
+        aria-label="Выделение текста"
+        style={
+          props.placement === 'dock'
+            ? undefined
+            : {
+                left: `clamp(8rem, ${props.x}px, calc(100vw - 8rem))`,
+                top: `clamp(4rem, ${props.y}px, calc(100dvh - 0.5rem))`,
+              }
+        }
         onPointerDown={(event) => event.preventDefault()}
       >
         <Show when={props.onAdd}>

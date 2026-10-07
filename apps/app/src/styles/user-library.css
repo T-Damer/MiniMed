@@ -1018,6 +1018,20 @@
   box-shadow: 0 0.75rem 2rem rgb(29 27 22 / 26%);
 }
 
+/* Touch: the system selection menu opens above the selection, so the popup goes below it, past the
+   drag handles; too close to the bottom edge it docks above the bottom navigation instead. */
+.user-highlight-popup--below {
+  transform: translate(-50%, 2rem);
+}
+
+.user-highlight-popup--dock {
+  top: auto;
+  right: auto;
+  bottom: calc(var(--theme-bottom-nav-clearance) + var(--safe-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+}
+
 .user-highlight-popup__color {
   display: grid;
   place-items: center;

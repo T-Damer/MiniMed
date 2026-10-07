@@ -64,9 +64,14 @@ import {
   resolveDocumentChunkItems,
 } from '@/features/library/document-rich-block-data';
 import { documentTextSearchText } from '@/features/library/document-text-search';
+import { isClinicalRecommendationSource } from '@/features/library/numbered-heading-sections';
 import { RlsMedicationPackagingPanel } from '@/features/library/RlsMedicationPackagingPanel';
 import type { ResolvedReferenceImage } from '@/features/library/reference-image-assets';
 import { getReferenceImageResolver } from '@/features/library/reference-image-assets';
+import {
+  OFFICIAL_DOCUMENT_HIGHLIGHT_CONTAINERS,
+  UserDocumentHighlights,
+} from '@/features/library/UserDocumentHighlights';
 import { DrugSafetyBlock } from '@/features/medication-safety/DrugSafetyBlock';
 import type { ClinicalMedicationLink } from '@/features/medications/clinical-medication-links';
 import { DrugQuickLinks } from '@/features/medications/DrugQuickLinks';
@@ -1154,6 +1159,17 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
           <Show when={props.document}>
             {(documentValue) => (
               <>
+                <Show when={isClinicalRecommendationSource(documentValue().sourceType)}>
+                  <UserDocumentHighlights
+                    documentId={documentValue().id}
+                    surface={() =>
+                      globalThis.document.querySelector<HTMLElement>('.document-overlay-paper') ??
+                      undefined
+                    }
+                    containers={OFFICIAL_DOCUMENT_HIGHLIGHT_CONTAINERS}
+                    verifyQuote
+                  />
+                </Show>
                 <Show
                   when={drugScreen()}
                   fallback={
