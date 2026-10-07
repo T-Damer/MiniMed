@@ -106,7 +106,6 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
-| 2026-10-07 18:10 | claude-opus (KR3, subagent) | rebuild + republish КР modules with numbered sub-headings (owner OK 2026-10-07): re-prepare from raw JSON, build/e5/compact/zstd, publish only changed modules to a new additive `datasets/clinical-…-2026.10.07-…` branch, catalog update | `data/build/**` (own subdirs), `apps/app/src/features/modules/catalog.*.json`, `docs/CURRENT_STATE.md` KR3 section, `docs/data-ledger.json` |
 | 2026-10-07 17:50 | claude-opus (UX12, subagent in worktree) | reader QA follow-up: new document starts at its top, back restores reading position, app back pops history instead of pushing, bottom bar vs contents column at 761–1000 px, lightbox crop + КР image preview, short term cards, first-render long task | reader files in `features/library/**`, `components/DocumentText.tsx`, reader CSS |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 
@@ -168,6 +167,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-10-07 claude-opus (KR3): КР modules rebuilt with the numbered sub-heading rule — 122 of 774 modules changed (841 headings baked in; 652 untouched, no re-download), 139.0 MB zstd + e5 on the new additive branch `datasets/clinical-json-2026.10.07-197a48d1f268`, catalog entries/`publishedAt` updated; extractor revision 3 keeps a numbered paragraph a paragraph where promoting it would hide a heading (288 headings in 35 modules would have vanished from the reader); document ids unchanged, 10 section / 3 875 chunk ids moved, nothing shipped references them; app release NOT cut — `docs/CURRENT_STATE.md` «KR3»
 - 2026-10-07 claude-opus (UX11c): numbered КР sub-headings as reader sections (+ ingest rule, rebuild not run), focal-point image zoom everywhere, green-yellow selection, highlights in КР with a touch-safe popup; chapters without own text kept, container sections never skipped (TOC jumps/active entry correct); see `docs/CURRENT_STATE.md`
 - 2026-10-07 claude-opus (EG2): EmbeddingGemma 2 (text 270M) vs e5-small on КР, Q1 330 queries — R@5 0.452 → 0.497 not significant, R@1 0.288 → 0.270, query 66× slower (284 ms vs 4.3 ms, 1 CPU thread), 314 MB; not adopted (`docs/research/embeddinggemma-2-2026-10-07.md`, roadmap rejected table)
 - 2026-10-07 claude-opus (UX11a+b): reader — target name while opening, pointer redirect replaces its history entry, one crumb per document, «⋯» toggles, outline drawer above the bottom bar, «12 / 48» section counter with a jump bubble; nested sections now mount in later batches (find count = highlighted matches), `jumpReaderTo` lands far TOC/find jumps in one tap, find counter in the box with a `| / – \` spinner; see `docs/CURRENT_STATE.md`

@@ -20,6 +20,80 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## КР modules rebuilt with numbered sub-headings — 2026-10-07 (STATE KR3)
+
+Owner OK 2026-10-07: rebuild and republish the clinical-recommendation modules with the numbered
+sub-heading rule of [UX11c](#кр-headings-image-zoom-and-selection-ux11c--2026-10-07). Only modules whose
+content changed because of the rule were republished; the other 652 keep their catalog entry, version and
+URL, so no device re-downloads them.
+
+- **Rebuilt from the raw JSON** (`data/raw/official-clinical-documents/<id>.json`, nothing re-fetched) with
+  the committed July plan for the 744 earlier modules and the 2026-10-02 plan for the 30 newer ones
+  (`build-documents` → `compact-module-search` → e5 vectors → framed zstd), 774 modules in all. Each was compared
+  with the published module (`tools/ingest/scripts/compare_clinical_modules.py`, document / section / chunk
+  rows). Separating the rule from older importer drift needed a control build of the 135 candidates with the
+  rule switched off: **122 modules changed because of the rule** (841 headings baked in, most in one
+  document: 58); 652 are unchanged for the rule. 616 of those still differ from the published bytes by importer
+  changes since 2026-07-27 (image label «image.png» → «Иллюстрация», figure/table captions attached to their
+  figure; same text, other chunk ids) and 8 by an older structure difference; they were deliberately not
+  republished.
+- **Extractor: where the rule stays a display-time fact (revision 3).** A first rebuild showed that promoting
+  every matching paragraph hides text: the reader drops a section with no text of its own and none below it,
+  so a classification list («2.3.1 Краснуха», «2.3.2 Другие» …) or a checklist of numbered lines became
+  invisible in the page, the contents and the search index (288 headings in 35 modules), and a promoted
+  `3.3.1` at the same level as a stored `h3` «3.3 Иное лечение» left that heading hidden. `clinical_json_import`
+  now keeps a matching paragraph a paragraph whenever promoting it would leave it, or a stored heading, hidden
+  (`_demote_hidden_promoted_headings`, judged with the reader's own rule, to a fixed point). Of the 1 192
+  promotions of the first pass 351 stayed paragraphs; the rule function itself (shared cases file, TS twin)
+  is untouched. Those paragraphs are still promoted by the app's display layer, so a current app shows
+  them as headings as before, and an older app shows them as plain text exactly as today. Extractor revision
+  3 (so `prepare --reuse` re-extracts revision-2 extractions). Tests:
+  `test_clinical_json_numbered_headings.py` (+2), `kr-numbered-heading-modules.spec.ts` (3 modules).
+- **Published** to the new additive mirror branch `datasets/clinical-json-2026.10.07-197a48d1f268` (122
+  `.db.zst`, **139.0 MB** instead of 138.3 MB, 347.6 MB installed instead of 334.7 MB; version
+  `0.6.0-json.9db36e75287b.e5`, i.e. the vectors are the same e5 profile, recomputed for the new chunks). Nothing
+  existing was touched; no release. `minAppVersion` stays 0.6.46: the data is plain sections, any app reads it.
+  Catalog `publishedAt` 2026-10-07T15:40:00Z, `catalogVersion` `kr3-numbered-headings.2026.10.07`; the
+  whole КР download is 689.2 MB (was 688.6). Editions sidecar needed no change (998_1 below). Local copy:
+  `output/module-zstd-json-2026-10-07/` (the E2 copy `output/module-zstd-e5-2026-10-05/` stays for the 652
+  unchanged modules).
+- **Identifiers.** Document ids, titles and version labels are identical in all 774 modules. In the 122 modules
+  (6 133 sections, 20 922 chunks): 6 123 section ids kept, 841 added, **10 changed** (six modules where a stored
+  deeper-level heading, e.g. «3.2.», now sits below a promoted «3.1.» — 1028_1, 1041_1, 391_3, 551_3, 555_3,
+  650_2 — so its path-derived id moved), 17 047 chunk ids kept, **3 875 changed** (3 830 new): 1 978 because
+  chunks moved under a new sub-section, 2 191 because of the importer drift above (they overlap). That is 4.0 %
+  of the 95 827 chunks of the КР modules. Nothing shipped references them: the released core 0.6.47 holds
+  its own pointer chunk ids (its KR-derived definition evidence points at «Термины и определения» chunks
+  that did not move), mkb/medications/ambulatory/reference packs, the drug-comparison / interaction /
+  substance-fallback assets and `clinical-medication-relations` contain none of the changed ids or anchors, and no
+  committed test, fixture or benchmark does. Stored on a device: KR highlights (keyed by chunk anchor, quote-checked;
+  new today and unreleased), copied section links and a remembered reading position fall back to the document
+  top for a moved anchor; bookmarks are per document and survive. No rebuild of the core, the e5 query model or any
+  index is needed.
+- **998_1** is a changed module whose raw file was re-saved by the registry after the published build (see KR2):
+  the rebuild records the current file's checksum (`dfd5f4f7…`), so its source-set digest and document-table
+  row differ and the editions sidecar now agrees with the module; its text is as before. The other 11 re-saved
+  editions are superseded modules that did not change for the rule and stay as published.
+- **Verified:** all 122 `.db.zst` decode with the reference `zstd` CLI to the catalog's decoded checksums, SQLite
+  integrity and foreign keys ok, one e5 vector per chunk; every new mirror URL returns the catalog size and
+  SHA-256 with `access-control-allow-origin: *`; token check on all 122 modules (text lost from chunks = exactly
+  the moved headings, nothing gained); no heading that was visible before is hidden now (0 of 841);
+  `bun run typecheck`, `vitest` (469 files, 8 972 tests; one 5 s timeout of `KnowledgeGraph.test.ts` on a busy host,
+  green alone), `pytest tools/ingest` , ruff/pyright, `bun run benchmark:all` within tolerance. In a Chromium
+  build (`E2E_PORT=4199`, one worker) modules 1062_1, 555_3, 960_1 and 1006_1 installed from the catalog and
+  opened: each promoted heading is one outline entry and one title and not repeated as body text.
+- **Spot check** (10 documents, all 841 headings screened for doses, ICD codes, units): no dose or code line was
+  promoted. Borderline, kept by the rule: descriptive list lines with an enumeration (791_1 «6.1. Интраабдоминальные:
+  оментит, …»), the long «7.1. Критерии оценки качества … (коды по МКБ-10: …)» lines of 62_3 and a diagnostic
+  criterion «1.1. Подозрение на синдром Линча – …» (396_4); sentence-like items with a trailing full stop
+  («1.1. Простой.») are classification entries.
+- **Not verified:** Android/WebView or a phone, slow hardware, an older app against the new data (it reads plain
+  sections, not run), a physician review, the lexical/semantic search quality on the rebuilt modules (headings now
+  also reach FTS through `section_path`; no benchmark was re-run on the 122 modules).
+- Tools: `tools/ingest/scripts/compare_clinical_modules.py` (published vs rebuilt), `embed_modules_e5.py --from-dir`
+  (rebuilt, compacted databases), `scripts/republish-clinical-modules.ts` (rewrites the listed entries only; new
+  version, artifact id, URL, sizes, checksums, digest from the database).
+
 ## Module catalog cache — 2026-10-06 (STATE CAT1)
 
 The remote catalog (`catalog.preview.json` on raw.githubusercontent.com) is 7.54 MB, 2.19 MB gzip on
@@ -607,7 +681,8 @@ Owner feedback 2026-10-07, three items. Branch `worktree-agent-a6b8b452dd6b115fe
   move under a new sub-section get new chunk ids — same as any edition rebuild. `ExtractedSource.extractor_revision`
   (2) makes `prepare --reuse` re-extract older clinical-JSON extractions. Rebuild: the KR2 flow
   (`prepare` on the clinical JSON registry without `--reuse`, then build/compact/zstd/publish);
-  NOT run or published here. PDF-derived modules are not rebuilt: the display layer covers them.
+  NOT run or published here (done in KR3, with a further guard for headings the reader would hide). PDF-derived
+  modules are not rebuilt: the display layer covers them.
 - Tests: `numbered-headings.test.ts`, `numbered-heading-sections.test.ts`, `test_numbered_headings.py`,
   `test_clinical_json_numbered_headings.py`; e2e `kr-reader-structure.spec.ts` (heading + outline).
 
