@@ -1,5 +1,4 @@
-import { isSameDocumentFamily } from '@localmed/core';
-
+import { isSameDocumentIdentity } from '@/state/document-identity';
 import {
   buildOfficialDocumentHash,
   buildUserDocumentHash,
@@ -195,7 +194,7 @@ export function appendDocumentCrumb(
     href,
   };
   const existingIndex = trail.crumbs.findIndex(
-    (item) => item.kind === crumb.kind && isSameDocumentFamily(item.id, crumb.id),
+    (item) => item.kind === crumb.kind && isSameDocumentIdentity(item.id, crumb.id),
   );
   const crumbs =
     existingIndex >= 0

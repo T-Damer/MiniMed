@@ -25,6 +25,68 @@ describe('documentTrailBreadcrumbItems', () => {
   });
 });
 
+describe('documentTrailBreadcrumbItems: one crumb per document', () => {
+  it('drops a module pointer once the installed document that replaced it is in the trail', () => {
+    const trail: DocumentTrail = {
+      origin,
+      crumbs: [
+        {
+          kind: 'official',
+          id: 'core.catalog.pointer.clinical.kr.rf.1006_1-1151be108d81d0ac',
+          title: 'Острая ишемия конечностей (краткая справка)',
+          href: '#/pointer',
+        },
+        {
+          kind: 'official',
+          id: 'kr.rf.1006_1',
+          title: 'Острая ишемия конечностей',
+          href: '#/full',
+        },
+      ],
+    };
+    expect(documentTrailBreadcrumbItems(trail)).toEqual([
+      { label: 'Поиск', href: '#/search' },
+      { label: 'Острая ишемия конечностей' },
+    ]);
+  });
+
+  it('drops a summary when its full text is a later crumb, whatever the titles say', () => {
+    const trail: DocumentTrail = {
+      origin,
+      crumbs: [
+        { kind: 'official', id: 'kr.rf.281_3', title: 'ИМП', href: '#/summary' },
+        {
+          kind: 'official',
+          id: 'kr.rf.281_3.full',
+          title: 'Инфекция мочевых путей',
+          href: '#/full',
+        },
+      ],
+    };
+    expect(documentTrailBreadcrumbItems(trail).map((item) => item.label)).toEqual([
+      'Поиск',
+      'Инфекция мочевых путей',
+    ]);
+  });
+
+  it('keeps different documents, and a personal file next to an official one', () => {
+    const trail: DocumentTrail = {
+      origin,
+      crumbs: [
+        { kind: 'official', id: 'esklp.mnn.албендазол', title: 'Албендазол', href: '#/card' },
+        { kind: 'official', id: 'esklp.instruction.1', title: 'Инструкция', href: '#/instruction' },
+        { kind: 'user', id: 'user-1', title: 'Мой файл', href: '#/user' },
+      ],
+    };
+    expect(documentTrailBreadcrumbItems(trail).map((item) => item.label)).toEqual([
+      'Поиск',
+      'Албендазол',
+      'Инструкция',
+      'Мой файл',
+    ]);
+  });
+});
+
 describe('compactBreadcrumbItems', () => {
   it('drops the last crumb that repeats the page heading and keeps every other crumb a link', () => {
     const result = compactBreadcrumbItems(

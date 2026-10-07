@@ -12,6 +12,12 @@ import {
   resolveReadableDocumentId,
 } from '@/features/library/document-display';
 import { shouldReloadOfficialDocument } from '@/features/library/document-page-load';
+import {
+  isPlaceholderDocumentTitle,
+  knownDocumentTitle,
+  OPENING_DOCUMENT_TITLE,
+  rememberDocumentSummaries,
+} from '@/features/library/document-title-hints';
 import { OfficialDocumentReader } from '@/features/library/OfficialDocumentReader';
 import { UserDocumentReader } from '@/features/library/UserDocumentReader';
 import { migrateLegacyUserDocumentHash } from '@/features/library/user-library-routing';
@@ -69,6 +75,7 @@ import {
   getContentModuleRuntime,
   peekContentModuleRuntime,
 } from '@/features/modules/module-runtime-service';
+import { canonicalDocumentId } from '@/state/document-identity';
 import { consumePreferSummaryDocumentId, openDocumentOverlay } from '@/state/document-navigation';
 import {
   buildOfficialDocumentHash,
@@ -144,11 +151,27 @@ function userFacingOpenError(message: string): string {
   return message;
 }
 
+/**
+ * The name of a document before its text has loaded: the one the app met in a catalog list, else the
+ * title the module catalog gives its member (a pointer's target is listed under the target's id).
+ */
+function earlyDocumentTitle(documentId: string): string | undefined {
+  const known = knownDocumentTitle(documentId);
+  if (known) return known;
+  const catalogId = canonicalDocumentId(documentId);
+  const catalogs = peekContentModuleRuntime()?.getCatalog().modules ?? [];
+  for (const module of catalogs) {
+    const title = module.documents.find((item) => item.documentId === catalogId)?.title?.trim();
+    if (title) return title;
+  }
+  return undefined;
+}
+
 export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
   const [route, setRoute] = createSignal<DocumentReadRoute | null>(null);
   const [trail, setTrail] = createSignal<DocumentTrail | null>(null);
   const [document, setDocument] = createSignal<MedicalDocument | undefined>();
-  const [pendingTitle, setPendingTitle] = createSignal<string | undefined>('Открываем документ');
+  const [pendingTitle, setPendingTitle] = createSignal<string | undefined>(OPENING_DOCUMENT_TITLE);
   const [initialAnchor, setInitialAnchor] = createSignal<string | null>(null);
   const [availableDocuments, setAvailableDocuments] = createSignal<
     readonly MedicalDocumentSummary[]
@@ -229,6 +252,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
   const listDocuments = async (core: MedicalCore): Promise<readonly MedicalDocumentSummary[]> => {
     const list = await (core.listNavigationDocuments?.() ?? core.listDocuments());
     if (!list.ok) throw new Error(list.error.message);
+    rememberDocumentSummaries(list.value);
     return list.value;
   };
 
@@ -306,7 +330,19 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     setSupplementalPanels([]);
     setClinicalMedicationLinks([]);
     setDocument(undefined);
-    setPendingTitle('Открываем документ');
+    // The target is named at once from what the app already knows; only an unknown one waits.
+    const earlyTitle = earlyDocumentTitle(documentId);
+    setPendingTitle(earlyTitle ?? OPENING_DOCUMENT_TITLE);
+    const openingTrail = trail();
+    const openingCrumb = openingTrail?.crumbs.at(-1);
+    if (
+      earlyTitle &&
+      openingTrail &&
+      openingCrumb &&
+      isPlaceholderDocumentTitle(openingCrumb.title)
+    ) {
+      setTrail(updateCurrentCrumbTitle(openingTrail, earlyTitle));
+    }
 
     let core = props.getCore();
     if (!core) {
@@ -359,6 +395,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
           const target = await core.getDocument(pointer.targetDocumentId);
           if (!current()) return;
           if (target.ok && target.value.sections.some((section) => section.chunks.length > 0)) {
+            // The pointer only stands in for the target: the target takes its history entry.
             openDocumentOverlay(
               pointer.targetDocumentId,
               modulePointerTargetAnchor(
@@ -371,7 +408,11 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
                     }
                   : undefined,
               ),
-              { preferSummary: true },
+              {
+                preferSummary: true,
+                replace: true,
+                title: displayDocumentTitle(target.value),
+              },
             );
             return;
           }
@@ -754,6 +795,8 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       }
       openDocumentOverlay(resolution.pointer.targetDocumentId, targetAnchor, {
         preferSummary: true,
+        replace: true,
+        title: displayDocumentTitle(target.value),
         ...(expectedIdentity ? { expectedIdentity } : {}),
       });
     } catch (cause) {

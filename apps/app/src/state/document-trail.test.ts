@@ -116,6 +116,21 @@ describe('document-trail', () => {
     expect(trail.crumbs[0]?.id).toBe('kr.rf.281_3.uti');
   });
 
+  it('replaces a module pointer with the document it leads to instead of stacking both', () => {
+    let trail = beginDocumentTrail('official');
+    trail = appendDocumentCrumb(trail, {
+      kind: 'official',
+      id: 'core.catalog.pointer.clinical.kr.rf.1006_1-1151be108d81d0ac',
+      title: 'Острая ишемия конечностей',
+    });
+    trail = appendDocumentCrumb(trail, {
+      kind: 'official',
+      id: 'kr.rf.1006_1',
+      title: 'Острая ишемия конечностей',
+    });
+    expect(trail.crumbs.map((crumb) => crumb.id)).toEqual(['kr.rf.1006_1']);
+  });
+
   it('slices to crumbs and origin', () => {
     let trail = beginDocumentTrail('official');
     trail = appendDocumentCrumb(trail, { kind: 'official', id: 'doc-a', title: 'Doc A' });

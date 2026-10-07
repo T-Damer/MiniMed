@@ -1,3 +1,8 @@
+import {
+  knownDocumentTitle,
+  OPENING_DOCUMENT_TITLE,
+  rememberDocumentTitle,
+} from '@/features/library/document-title-hints';
 import { buildOfficialDocumentHash, type ExactDocumentIdentity } from '@/state/document-route';
 import { appendDocumentCrumb, beginDocumentTrail, loadDocumentTrail } from '@/state/document-trail';
 
@@ -12,14 +17,32 @@ export interface OpenDocumentRequest {
   readonly expectedIdentity?: ExactDocumentIdentity;
 }
 
+export interface OpenDocumentOverlayOptions {
+  readonly preferSummary?: boolean;
+  readonly expectedIdentity?: ExactDocumentIdentity;
+  /** The document's name when the caller has it; otherwise the app's remembered catalog names. */
+  readonly title?: string;
+  /**
+   * The reader is moving on from the document it shows to the one that stands in for it (a module
+   * pointer that became its installed text): the new address takes the old one's history entry, so
+   * back returns to where the user came from rather than to the redirecting route.
+   */
+  readonly replace?: boolean;
+}
+
+/** Points the current history entry at another address and tells the app's route listeners. */
+function replaceLocationHash(hash: string): void {
+  const oldURL = window.location.href;
+  window.history.replaceState(window.history.state, '', hash);
+  window.dispatchEvent(new HashChangeEvent('hashchange', { oldURL, newURL: window.location.href }));
+}
+
 export function openDocumentOverlay(
   documentId: string,
   anchor: string | null = null,
-  options: {
-    readonly preferSummary?: boolean;
-    readonly expectedIdentity?: ExactDocumentIdentity;
-  } = {},
+  options: OpenDocumentOverlayOptions = {},
 ): void {
+  if (options.title) rememberDocumentTitle(documentId, options.title);
   if (options.preferSummary) {
     sessionStorage.setItem(PREFER_SUMMARY_KEY, documentId);
   } else {
@@ -33,16 +56,18 @@ export function openDocumentOverlay(
   appendDocumentCrumb(trail, {
     kind: 'official',
     id: documentId,
-    title: 'Открываем документ',
+    // The name is known from the link, the card or the catalog before the text loads.
+    title: knownDocumentTitle(documentId) ?? OPENING_DOCUMENT_TITLE,
     ...(anchor ? { section: anchor } : {}),
     ...(options.expectedIdentity ? { expectedIdentity: options.expectedIdentity } : {}),
   });
 
-  window.location.hash = buildOfficialDocumentHash(
-    documentId,
-    anchor ?? undefined,
-    options.expectedIdentity,
-  );
+  const hash = buildOfficialDocumentHash(documentId, anchor ?? undefined, options.expectedIdentity);
+  if (options.replace) {
+    replaceLocationHash(hash);
+    return;
+  }
+  window.location.hash = hash;
 }
 
 export function consumePreferSummaryDocumentId(): string | null {

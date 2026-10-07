@@ -24,11 +24,33 @@ import type {
 import { ok } from '@localmed/contracts';
 
 import { getPackagedContentBaseUrl } from '@/composition/create-browser-core';
+import {
+  rememberDocumentSummaries,
+  rememberDocumentTitle,
+} from '@/features/library/document-title-hints';
 import type {
   SearchWorkerRequest,
   SearchWorkerResponse,
   SearchWorkerResult,
 } from '@/features/search/search-worker-protocol';
+
+/** A document opened later is named from these lists before its own text has loaded. */
+function rememberListedDocuments(
+  result: Result<readonly MedicalDocumentSummary[], LocalMedError>,
+): Result<readonly MedicalDocumentSummary[], LocalMedError> {
+  if (result.ok) rememberDocumentSummaries(result.value);
+  return result;
+}
+
+/** A result opened next is named by the heading the list showed for it. */
+function rememberSearchedDocuments(
+  result: Result<SearchResponse, LocalMedError>,
+): Result<SearchResponse, LocalMedError> {
+  if (result.ok) {
+    for (const group of result.value.groups) rememberDocumentTitle(group.documentId, group.title);
+  }
+  return result;
+}
 
 export class WorkerSearchMedicalCore implements MedicalCore {
   private worker: Worker | undefined;
@@ -117,15 +139,17 @@ export class WorkerSearchMedicalCore implements MedicalCore {
   }
 
   public listDocuments(): Promise<Result<readonly MedicalDocumentSummary[], LocalMedError>> {
-    return this.base.listDocuments();
+    return this.base.listDocuments().then(rememberListedDocuments);
   }
 
   public listNavigationDocuments(): Promise<
     Result<readonly MedicalDocumentSummary[], LocalMedError>
   > {
-    return this.base.listNavigationDocuments
-      ? this.base.listNavigationDocuments()
-      : this.base.listDocuments();
+    return (
+      this.base.listNavigationDocuments
+        ? this.base.listNavigationDocuments()
+        : this.base.listDocuments()
+    ).then(rememberListedDocuments);
   }
 
   public listSearchDocuments(): Promise<
@@ -151,6 +175,10 @@ export class WorkerSearchMedicalCore implements MedicalCore {
   }
 
   public async search(request: SearchRequest): Promise<Result<SearchResponse, LocalMedError>> {
+    return rememberSearchedDocuments(await this.searchOnce(request));
+  }
+
+  private async searchOnce(request: SearchRequest): Promise<Result<SearchResponse, LocalMedError>> {
     if (!(await this.canUseWorker())) return this.base.search(request);
     try {
       return (await this.request({ method: 'search', request })) as Result<

@@ -1,5 +1,6 @@
 import type { AppBreadcrumbItem } from '@/components/AppBreadcrumbs';
-import type { DocumentTrail } from '@/state/document-trail';
+import { isSameDocumentIdentity } from '@/state/document-identity';
+import type { DocumentTrail, DocumentTrailCrumb } from '@/state/document-trail';
 
 export interface CompactBreadcrumbs<T extends AppBreadcrumbItem> {
   readonly items: readonly T[];
@@ -12,11 +13,28 @@ function sameLabel(left: string, right: string): boolean {
   return normalize(left) === normalize(right);
 }
 
+/**
+ * One crumb per document: a module pointer, a summary and the full text of one work are the same
+ * document at different stages, so only the latest of them stays (the full variant that replaced
+ * the short one). A trail saved by an older build can still hold both.
+ */
+function distinctDocumentCrumbs(
+  crumbs: readonly DocumentTrailCrumb[],
+): readonly DocumentTrailCrumb[] {
+  return crumbs.filter(
+    (crumb, index) =>
+      !crumbs
+        .slice(index + 1)
+        .some((later) => later.kind === crumb.kind && isSameDocumentIdentity(later.id, crumb.id)),
+  );
+}
+
 /** Crumbs of a document trail: the origin view, then every document that led here. */
 export function documentTrailBreadcrumbItems(trail: DocumentTrail): readonly AppBreadcrumbItem[] {
   const crumbs: AppBreadcrumbItem[] = [{ label: trail.origin.label, href: trail.origin.hash }];
-  const lastIndex = trail.crumbs.length - 1;
-  for (const [index, crumb] of trail.crumbs.entries()) {
+  const documents = distinctDocumentCrumbs(trail.crumbs);
+  const lastIndex = documents.length - 1;
+  for (const [index, crumb] of documents.entries()) {
     crumbs.push(
       index === lastIndex ? { label: crumb.title } : { label: crumb.title, href: crumb.href },
     );
