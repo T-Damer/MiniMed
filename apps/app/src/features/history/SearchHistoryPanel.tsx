@@ -1,7 +1,6 @@
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import { AppGlyph } from '@/components/AppGlyph';
-import { ReleaseLinks } from '@/components/ReleaseLinks';
 import { searchGroupLabel } from '@/features/search/searchCatalog';
 import { hapticFeedback } from '@/state/haptics';
 import { createHorizontalGestureManager } from '@/state/horizontal-gesture';
@@ -12,7 +11,6 @@ import {
   SEARCH_HISTORY_EVENT,
   type SearchHistoryEntry,
 } from '@/state/search-history';
-import { RELEASE_VERSION } from '../../../../../release';
 
 const HISTORY_LIMIT = 12;
 const CLOSE_DURATION_MS = 180;
@@ -256,10 +254,6 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
                   </button>
                 </Show>
               </div>
-              <nav class="search-history-panel-footer" aria-label="Ссылки приложения">
-                <ReleaseLinks linkClass="search-history-panel-footer__link" />
-                <span>v{RELEASE_VERSION}</span>
-              </nav>
             </aside>
           </div>
         </Portal>

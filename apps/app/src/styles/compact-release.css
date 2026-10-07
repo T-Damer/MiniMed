@@ -874,32 +874,6 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   text-align: center;
 }
 
-.search-history-panel-footer {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.75rem;
-  margin: 0.5rem 0.25rem 0;
-  padding: 0.625rem 0.25rem 0.25rem;
-  border-top: 1px solid var(--theme-border);
-}
-
-.search-history-panel-footer__link,
-.search-history-panel-footer__link:visited {
-  color: var(--theme-link);
-  font-family: var(--font-mono);
-  font-size: var(--type-micro);
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.15rem;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .search-history-panel-footer__link:hover {
-    color: color-mix(in srgb, var(--theme-link) 72%, var(--theme-text));
-  }
-}
-
 .diagnosis-help-copy {
   display: grid;
   gap: 0.625rem;
@@ -1451,19 +1425,6 @@ html.reader-outline-open .app-bottom-nav {
   gap: 0.625rem;
   padding: max(1rem, calc(1rem + var(--safe-top))) 0.875rem 0.75rem;
   border-bottom: 1px solid rgb(72 59 34 / 18%);
-}
-
-.search-history-panel-footer {
-  display: flex;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem calc(0.75rem + var(--safe-bottom));
-  border-top: 1px solid var(--paper-line);
-  font-family: var(--font-mono);
-  font-size: var(--type-micro);
-}
-
-.search-history-panel-footer a {
-  color: var(--theme-link);
 }
 
 .search-history-panel-header > div,

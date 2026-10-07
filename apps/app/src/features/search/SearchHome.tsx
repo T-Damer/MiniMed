@@ -14,6 +14,7 @@ import { toast } from 'solid-sonner';
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import { ReleaseLinks } from '@/components/ReleaseLinks';
 import { SheetPopover } from '@/components/SheetPopover';
 import { useStickySurface } from '@/components/sticky-surface';
 import { ASSESSMENT_PACKS_EVENT } from '@/features/assessments/assessment-packs';
@@ -101,6 +102,7 @@ import { appendSearchHistory, replaySearch, type SearchHistoryEntry } from '@/st
 import { USER_LIBRARY_EXAMPLE_MRI_FILE_NAME } from '@/state/user-library';
 
 import '@/features/search/search-help-sheet.css';
+import { RELEASE_VERSION } from '../../../../../release';
 
 const isSearchSection = (value: string): value is SearchScope =>
   SEARCH_SECTIONS.some((section) => section.id === value);
@@ -799,6 +801,10 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           <div class="search-help-sheet__list search-help-sheet__list--page">
             <For each={pageActions}>{(action) => renderHelpAction(action)}</For>
           </div>
+          <nav class="search-help-sheet__links" aria-label="Ссылки приложения">
+            <ReleaseLinks linkClass="search-help-sheet__link" />
+            <span class="search-help-sheet__version">v{RELEASE_VERSION}</span>
+          </nav>
         </SheetPopover>
       </div>
 
