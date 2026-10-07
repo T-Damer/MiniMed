@@ -572,6 +572,20 @@ on the list searches titles, descriptions and card keywords.
   opens the app settings. Not verified on a physical phone (HyperOS may add its own audio-record
   gate).
 
+## Reader and library fixes from the QA pass — 2026-10-07 (STATE QA1)
+
+- Reader header: the breadcrumb no longer repeats the H1 title; a long last crumb ends with «…».
+  Escape closes the phone outline drawer, and the bottom navigation steps out of its way.
+- Library ingest: files are read one at a time (one serial queue; previews too), and a read that
+  reports no progress for 60 s (scaled by size, at most 300 s) is abandoned and marked failed with a
+  reason and «Повторить» in the card menu, instead of «Читаем файл…» forever (QA saw a hang and a tab
+  crash with a 400-page PDF and a 5.5 MB EPUB added together).
+- Books are named by their own `dc:title` (and author) once read, unless renamed; the file name stays
+  visible. EPUB chapters follow the app theme (dark page and text in the dark theme). Card status wraps
+  to two lines on a phone and names the file format.
+- Known flaky: `user-reader.spec.ts` «EPUB chapters remain at their target…» fails ~50% (highlight
+  popup re-created while neighbouring chapters render); a separate task was proposed.
+
 ## Faster lexical search — 2026-10-07 (STATE PERF2)
 
 QA 2026-10-07: some lookups took 7–13 s in the browser build (0.2–0.8 s natively). Cause: packs of
