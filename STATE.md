@@ -166,6 +166,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-10-07 claude-opus (QA2): search fixes from the QA pass — source overlay names its document kind and drops catalogue wording, short abbreviations no longer match tools by substring, no numeral under the download chip, readable «Примеры поиска», app links in the «?» sheet
 - 2026-10-07 claude-opus (QA1): reader/library fixes from the QA pass — no repeated title in the reader header, Escape closes the outline, files read one at a time with a stuck-read watchdog and «Повторить», books named by dc:title, EPUB follows the app theme; calculators/drug tools: one download notice, unknown tool links say so, prompts fit a phone
 - 2026-10-07 claude-opus (PERF2): lexical search reads FTS matches through base tables by rowid (+ rowid span for small document filters): browser lookups 7–13 s → 0.4–1.2 s, results identical; see `docs/CURRENT_STATE.md` «Faster lexical search»
 - 2026-10-07 claude-opus (SIZE1b): OCR language pack (19.6 MB) downloads on first OCR with consent + SHA-256, offline afterwards; ECG worker shares transformers' ONNX Runtime (−27 MB raw JSEP wasm); see `docs/CURRENT_STATE.md` «Smaller APK»

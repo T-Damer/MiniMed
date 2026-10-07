@@ -572,6 +572,18 @@ on the list searches titles, descriptions and card keywords.
   opens the app settings. Not verified on a physical phone (HyperOS may add its own audio-record
   gate).
 
+## Search fixes from the QA pass — 2026-10-07 (STATE QA2)
+
+- The source overlay names the kind of document it shows (drug, МКБ card, reference, law,
+  recommendation) instead of always «В клинических рекомендациях», and shows catalogue cards in
+  reader words (no storage note, identifiers, raw addresses or empty fields).
+- Short abbreviations («АГ», «ОКС», «ХСН») match tools only at the start of a word, so scales that
+  merely contain the letters no longer lead the list.
+- No ghost index numeral under a download chip; «Примеры поиска» at readable contrast; the app links
+  (GitHub, APK, version) moved from the history drawer to the «?» help sheet.
+- A drug pointer's «Указатель препарата» is cleaned (no storage note) but keeps its place: it carries
+  the МНН.
+
 ## Reader and library fixes from the QA pass — 2026-10-07 (STATE QA1)
 
 - Reader header: the breadcrumb no longer repeats the H1 title; a long last crumb ends with «…».
