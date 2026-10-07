@@ -84,7 +84,7 @@ def test_numbered_paragraphs_are_extracted_as_sub_headings(tmp_path: Path) -> No
     blocks = extracted.pages[0].blocks
     promoted = [block for block in blocks if block.metadata.get("promotedFrom")]
 
-    assert extracted.extractor_revision == 2
+    assert extracted.extractor_revision == 3
     assert extracted.diagnostics.promoted_headings == 2
     assert [(block.text, block.kind, block.heading_level) for block in promoted] == [
         ("3.1 Консервативное лечение", "heading", 2),
@@ -99,6 +99,117 @@ def test_numbered_paragraphs_are_extracted_as_sub_headings(tmp_path: Path) -> No
         assert next(block for block in blocks if block.text == text).kind == "paragraph"
     # The block ids stay sequential, so promoting does not renumber anything after it.
     assert [block.id for block in blocks[:4]] == ["json-b1", "json-b2", "json-b3", "json-b4"]
+
+
+def _classification_source(directory: Path) -> Path:
+    source = directory / "909_1.json"
+    sections = [
+        {
+            "id": "doc_1",
+            "title": "1. Краткая информация",
+            "content": (
+                "<p>1.1 Причины заболевания</p>"
+                "<p>Причины перечислены ниже.</p>"
+                "<p>2.3 Патология развития</p>"
+                "<p>2.3.1 Краснуха</p>"
+                "<p>2.3.2 Другие</p>"
+                "<p>2.4 Лечение патологии</p>"
+                "<p>2.4.1 Подбор терапии</p>"
+                "<p>Терапию подбирают индивидуально.</p>"
+                "<p>2.5 Профилактика</p>"
+            ),
+        },
+        *[
+            {
+                "id": f"doc_{index}",
+                "title": f"{index}. Раздел {index}",
+                "content": "<p>" + "Текст раздела клинической рекомендации. " * 40 + "</p>",
+            }
+            for index in range(2, 12)
+        ],
+    ]
+    source.write_text(
+        json.dumps(
+            {
+                "id": "909_1",
+                "name": "Проверочная классификация",
+                "obj": {"sections": [{"id": "doc_whole", "content": "dup"}, *sections]},
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    return source
+
+
+def test_a_numbered_paragraph_that_heads_no_text_stays_a_paragraph(tmp_path: Path) -> None:
+    extracted = extract_clinical_json(_classification_source(tmp_path))
+    blocks = {block.text: block for block in extracted.pages[0].blocks}
+
+    # «2.4» heads «2.4.1», which has text below it; «2.4.1» heads its own text.
+    assert blocks["2.4 Лечение патологии"].kind == "heading"
+    assert blocks["2.4.1 Подбор терапии"].kind == "heading"
+    # A heading directly followed by body text stays one (the cause list intro).
+    assert blocks["1.1 Причины заболевания"].kind == "heading"
+    # A classification list and a last numbered line with nothing below it would be hidden by the
+    # reader as text-less sections, so they remain body paragraphs with their wording.
+    for text in ("2.3 Патология развития", "2.3.1 Краснуха", "2.3.2 Другие", "2.5 Профилактика"):
+        assert blocks[text].kind == "paragraph"
+        assert blocks[text].heading_level is None
+        assert "promotedFrom" not in blocks[text].metadata
+    assert extracted.diagnostics.promoted_headings == 3
+
+
+def test_a_numbered_paragraph_that_would_take_over_a_stored_headings_text_stays_a_paragraph(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "910_1.json"
+    sections = [
+        {
+            "id": "doc_3",
+            "title": "3. Лечение",
+            "content": (
+                "<h3>3.3 Иное лечение</h3>"
+                "<p>3.3.1 Дистанционная лучевая терапия</p>"
+                "<p>Рекомендована при болевом синдроме.</p>"
+                "<p>3.3.2 Контрацепция</p>"
+                "<p>Подбирается индивидуально.</p>"
+                "<h3>3.4 Наблюдение</h3>"
+                "<p>3.4.1 Контрольные визиты</p>"
+                "<p>Раз в три месяца.</p>"
+            ),
+        },
+        *[
+            {
+                "id": f"doc_{index}",
+                "title": f"{index}. Раздел {index}",
+                "content": "<p>" + "Текст раздела клинической рекомендации. " * 40 + "</p>",
+            }
+            for index in range(4, 13)
+        ],
+    ]
+    source.write_text(
+        json.dumps(
+            {
+                "id": "910_1",
+                "name": "Проверочная рекомендация",
+                "obj": {"sections": [{"id": "doc_whole", "content": "dup"}, *sections]},
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    blocks = {block.text: block for block in extract_clinical_json(source).pages[0].blocks}
+
+    # «3.3» is a stored level-3 heading; its «3.3.x» lines would be level-3 siblings that leave it
+    # without text of its own, so the reader would hide it. They stay as its body paragraphs.
+    assert blocks["3.3 Иное лечение"].kind == "heading"
+    for text in (
+        "3.3.1 Дистанционная лучевая терапия",
+        "3.3.2 Контрацепция",
+        "3.4.1 Контрольные визиты",
+    ):
+        assert blocks[text].kind == "paragraph"
 
 
 def test_promoted_sub_headings_become_sections_of_the_pack(tmp_path: Path) -> None:

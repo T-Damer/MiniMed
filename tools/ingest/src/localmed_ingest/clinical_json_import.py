@@ -22,7 +22,8 @@ from .numbered_headings import numbered_heading_depth
 
 # Bumped when a change to the extraction makes a stored extraction of the same raw file stale
 # (`prepare --reuse` re-extracts anything older). 2: numbered sub-headings promoted to headings.
-EXTRACTOR_REVISION = 2
+# 3: a numbered paragraph stays a paragraph where promoting it would leave a heading hidden.
+EXTRACTOR_REVISION = 3
 
 _SPACE_PATTERN = re.compile(r"\s+")
 _SECTION_NUMBER_PATTERN = re.compile(r"^\s*(\d+(?:\.\d+)*)\.?\s+\S")
@@ -366,6 +367,76 @@ def _section_heading_level(title: str) -> int:
     return min(6, match.group(1).count(".") + 1) if match else 1
 
 
+def _hidden_headings(blocks: list[ExtractedBlock], kept: set[int]) -> set[int]:
+    """Indices of the headings the reader would not show, given which promoted ones are kept.
+
+    The reader drops a section without text of its own unless deeper sections below it (before the
+    next heading of the same or a higher level) have text; a heading's text is every non-heading
+    block between it and the next heading.
+    """
+    heads: list[tuple[int, int]] = []
+    has_text: list[bool] = []
+    for index, block in enumerate(blocks):
+        if block.kind == "heading" and (index in kept or not block.metadata.get("promotedFrom")):
+            heads.append((index, block.heading_level or 1))
+            has_text.append(False)
+        elif heads:
+            has_text[-1] = True
+    hidden: set[int] = set()
+    for position, (index, level) in enumerate(heads):
+        if has_text[position]:
+            continue
+        for later in range(position + 1, len(heads)):
+            if heads[later][1] <= level:
+                hidden.add(index)
+                break
+            if has_text[later]:
+                break
+        else:
+            hidden.add(index)
+    return hidden
+
+
+def _demote_hidden_promoted_headings(blocks: list[ExtractedBlock]) -> int:
+    """Keep numbered paragraphs paragraphs wherever promoting them would hide a heading.
+
+    Promoted headings are only worth having where the reader keeps them. A promoted heading with no
+    text under it (a classification list such as «2.3.1 Краснуха», «2.3.2 Другие», a checklist of
+    numbered items) would vanish from the page, the contents and the search index; one that takes
+    over the text of a stored heading (its sub-numbers at the same level, or a restated title right
+    after it) would hide that heading. Such candidates stay body paragraphs with their wording.
+    Returns how many were kept as paragraphs.
+    """
+    promoted = {index for index, block in enumerate(blocks) if block.metadata.get("promotedFrom")}
+    control_hidden = _hidden_headings(blocks, set())
+    kept = set(promoted)
+    while True:
+        newly_hidden = _hidden_headings(blocks, kept) - control_hidden
+        dropped = {index for index in newly_hidden if index in kept}
+        for index in newly_hidden - kept:
+            level = blocks[index].heading_level or 1
+            for later in range(index + 1, len(blocks)):
+                block = blocks[later]
+                stored = block.kind == "heading" and not block.metadata.get("promotedFrom")
+                if stored and (block.heading_level or 1) <= level:
+                    break
+                if later in kept:
+                    dropped.add(later)
+        if not dropped:
+            break
+        kept -= dropped
+    for index in sorted(promoted - kept):
+        block = blocks[index]
+        blocks[index] = block.model_copy(
+            update={
+                "kind": "paragraph",
+                "heading_level": None,
+                "metadata": {k: v for k, v in block.metadata.items() if k != "promotedFrom"},
+            }
+        )
+    return len(promoted - kept)
+
+
 def extract_clinical_json(source: Path) -> ExtractedSource:
     raw = source.read_bytes()
     try:
@@ -441,6 +512,7 @@ def extract_clinical_json(source: Path) -> ExtractedSource:
             )
             order += 1
 
+    promoted_headings -= _demote_hidden_promoted_headings(blocks)
     character_count = sum(len(block.text) for block in blocks)
     heading_count = sum(block.kind == "heading" for block in blocks)
     table_count = sum(block.kind == "table_candidate" for block in blocks)
