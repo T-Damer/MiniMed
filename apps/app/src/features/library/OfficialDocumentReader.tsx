@@ -57,7 +57,7 @@ import {
   DocumentReaderChromeShell,
   useDocumentReaderChrome,
 } from '@/features/library/document-reader-chrome';
-import { jumpReaderTo } from '@/features/library/document-reader-scroll';
+import { jumpReaderTo, readerOffsetWithin } from '@/features/library/document-reader-scroll';
 import { DocumentRichBlock } from '@/features/library/document-rich-block';
 import {
   documentRenderBlockSearchText,
@@ -123,6 +123,12 @@ import type { ModulePointerResolution } from '@/features/modules/module-pointer-
 import { searchResultDocumentKind } from '@/features/search/ScopedMedicalCore';
 import { buildDocumentSectionLink, openDocumentOverlay } from '@/state/document-navigation';
 import type { DocumentTrail } from '@/state/document-trail';
+import {
+  currentHistoryEntry,
+  type ReaderPosition,
+  registerReaderPositionFlusher,
+  saveReaderPosition,
+} from '@/state/history-entries';
 import type { ItemRefInput } from '@/state/item-collections';
 
 interface OfficialDocumentReaderProps {
@@ -666,6 +672,16 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
     return visibleReaderSections(document.sections, document.sourceType);
   });
 
+  // The place this history entry was left at (back, forward, reload): read once, when the reader
+  // is made for the entry. It only counts while the document still has that section.
+  const historyEntry = currentHistoryEntry();
+  const savedPosition = historyEntry.position ?? null;
+  const restoredPosition = createMemo(() =>
+    savedPosition && sectionIndexForAnchor(orderedSections(), savedPosition.anchor) >= 0
+      ? savedPosition
+      : null,
+  );
+
   const visibleSections = createMemo(() => orderedSections().slice(0, mountedSectionCount()));
   // Stable node identities keep Solid's <For> from remounting already-rendered
   // sections on every idle batch append.
@@ -685,7 +701,10 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
       return;
     }
 
-    const anchorIndex = sectionIndexForAnchor(sections, props.initialAnchor);
+    const anchorIndex = sectionIndexForAnchor(
+      sections,
+      restoredPosition()?.anchor ?? props.initialAnchor,
+    );
     const initialCount =
       anchorIndex >= 0
         ? Math.min(sections.length, Math.max(INITIAL_SECTION_BATCH, anchorIndex + 1))
@@ -874,7 +893,47 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
   });
   onCleanup(() => cancelFindJump?.());
 
+  // The reading position goes onto the history entry (see `state/history-entries.ts`): the section
+  // under the reading line and the pixels past its start. It is written only once the reader has
+  // reached its starting place, or the first scroll events of a restore would overwrite the place
+  // being restored.
+  let trackingPosition = false;
+  let positionDirty = false;
+  let positionTimer: number | undefined;
+  const capturePosition = (): ReaderPosition | null => {
+    const anchor = chrome.activeAnchor();
+    const section = anchor ? globalThis.document.getElementById(anchor) : null;
+    return section ? { anchor, offset: readerOffsetWithin(section) } : null;
+  };
+  const writePosition = (): void => {
+    window.clearTimeout(positionTimer);
+    positionTimer = undefined;
+    if (!trackingPosition || !positionDirty) return;
+    positionDirty = false;
+    const position = capturePosition();
+    if (position) saveReaderPosition(historyEntry.id, position);
+  };
+  const markPositionDirty = (): void => {
+    if (!trackingPosition) return;
+    positionDirty = true;
+    positionTimer ??= window.setTimeout(writePosition, 500);
+  };
+  const startTrackingPosition = (): void => {
+    trackingPosition = true;
+  };
+  onMount(() => {
+    window.addEventListener('scroll', markPositionDirty, { passive: true });
+    const unregister = registerReaderPositionFlusher(writePosition);
+    onCleanup(() => {
+      window.removeEventListener('scroll', markPositionDirty);
+      unregister();
+      window.clearTimeout(positionTimer);
+    });
+  });
+
   let initialScrollKey: string | undefined;
+  let cancelRestoreJump: (() => void) | undefined;
+  onCleanup(() => cancelRestoreJump?.());
   createEffect(() => {
     const document = props.document;
     const anchor = props.initialAnchor;
@@ -883,8 +942,26 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
       return;
     }
     if (mountedSectionCount() === 0) return;
-    const key = `${document.id}\n${anchor ?? ''}`;
+    const restore = restoredPosition();
+    const key = `${document.id}\n${restore ? `${restore.anchor}@${String(restore.offset)}` : (anchor ?? '')}`;
     if (initialScrollKey === key) return;
+    if (restore) {
+      // Back, forward or a reload: return to the place this entry was left at. Sections far above
+      // are only estimated until they render, so the jump measures again until the place stands
+      // still; the user taking over ends it, and from then on their reading is what is saved.
+      initialScrollKey = key;
+      const startOnInput = (): void => startTrackingPosition();
+      for (const name of ['wheel', 'touchstart', 'keydown', 'pointerdown'] as const) {
+        window.addEventListener(name, startOnInput, { once: true, passive: true, capture: true });
+      }
+      cancelRestoreJump?.();
+      cancelRestoreJump = jumpReaderTo(() => globalThis.document.getElementById(restore.anchor), {
+        align: 'start',
+        offset: restore.offset,
+        onSettled: startTrackingPosition,
+      });
+      return;
+    }
     // The route mounts before its asynchronous document arrives. Scroll after the target renders,
     // once per document/anchor; later section batches must not reset the reader's position.
     const frame = requestAnimationFrame(() => {
@@ -895,11 +972,16 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
         // The page below the anchor may not have mounted yet: the scroll then stops at the page
         // end with the anchor still below the fold. Try again as the next sections mount.
         if (target.getBoundingClientRect().top >= window.innerHeight) return;
-      } else
+      } else {
+        // A document opened without a place starts at its top, whatever the page before it was
+        // scrolled to (the page scrolls, not the paper).
+        window.scrollTo({ top: 0, behavior: 'instant' });
         globalThis.document
           .querySelector<HTMLElement>('.document-overlay-paper')
           ?.scrollTo({ top: 0, behavior: 'instant' });
+      }
       initialScrollKey = key;
+      startTrackingPosition();
     });
     onCleanup(() => cancelAnimationFrame(frame));
   });

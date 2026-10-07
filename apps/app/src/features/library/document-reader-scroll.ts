@@ -132,8 +132,23 @@ function scrollByInstantly(scroller: HTMLElement | null, delta: number): void {
   else window.scrollBy({ top: delta, behavior: 'instant' });
 }
 
+/**
+ * How far the reading line has passed the aligned start of `target`, in pixels: the number a
+ * restored position hands back to `jumpReaderTo` as `offset`. Zero when the target sits exactly
+ * where a table-of-contents jump would put it; negative while it is still below that place.
+ */
+export function readerOffsetWithin(target: HTMLElement): number {
+  const scroller = readerScrollParent(target);
+  return Math.round(startOffsetOf(target, scroller) - target.getBoundingClientRect().top);
+}
+
 export interface ReaderJumpOptions {
   readonly align: ReaderJumpAlign;
+  /**
+   * With `align: 'start'`: land this many pixels past the target's aligned start, i.e. the place a
+   * reader had reached inside a section (`readerOffsetWithin`).
+   */
+  readonly offset?: number;
   /** Called once with the target when it first exists in the document. */
   readonly onTarget?: (target: HTMLElement) => void;
   /** Called when the jump ends: the target stood still, could not be reached, or never appeared. */
@@ -199,7 +214,7 @@ export function jumpReaderTo(
         target.getBoundingClientRect(),
         options.align,
         readerViewport(target, scroller),
-        startOffsetOf(target, scroller),
+        startOffsetOf(target, scroller) - (options.align === 'start' ? (options.offset ?? 0) : 0),
       );
       if (isReaderJumpArrived(delta)) {
         stableFrames += 1;

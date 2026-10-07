@@ -13,6 +13,10 @@ import {
 } from '@/features/library/document-display';
 import { shouldReloadOfficialDocument } from '@/features/library/document-page-load';
 import {
+  type DocumentNavigateOptions,
+  documentReaderBackTarget,
+} from '@/features/library/document-reader-back';
+import {
   isPlaceholderDocumentTitle,
   knownDocumentTitle,
   OPENING_DOCUMENT_TITLE,
@@ -75,8 +79,12 @@ import {
   getContentModuleRuntime,
   peekContentModuleRuntime,
 } from '@/features/modules/module-runtime-service';
-import { canonicalDocumentId } from '@/state/document-identity';
-import { consumePreferSummaryDocumentId, openDocumentOverlay } from '@/state/document-navigation';
+import { canonicalDocumentId, isSameDocumentIdentity } from '@/state/document-identity';
+import {
+  consumePreferSummaryDocumentId,
+  openDocumentOverlay,
+  replaceLocationHash,
+} from '@/state/document-navigation';
 import {
   buildOfficialDocumentHash,
   type DocumentReadRoute,
@@ -95,6 +103,7 @@ import {
   updateCurrentCrumbDocument,
   updateCurrentCrumbTitle,
 } from '@/state/document-trail';
+import { hasInAppPreviousEntry } from '@/state/history-entries';
 
 interface DocumentPageHostProps {
   readonly getCore: () => MedicalCore | undefined;
@@ -212,30 +221,55 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     officialLoadGeneration += 1;
   });
 
+  /**
+   * The trail follows the address: the history is what moves the reader between documents, and a
+   * system back, a forward or a swipe must leave the breadcrumbs where they would be had the user
+   * come there by hand. A document the trail already lists cuts everything after it; one it does
+   * not list (a forward step, a link that bypassed the opener) joins it.
+   */
   const syncTrail = (parsed: DocumentReadRoute): DocumentTrail => {
     let current = loadDocumentTrail();
     if (!current) {
       current = rebuildTrailForPastedRoute(parsed);
-    } else if (current.crumbs.length === 0) {
-      current = appendDocumentCrumb(current, {
-        kind: parsed.kind,
-        id: parsed.documentId,
-        title: parsed.kind === 'user' ? 'Личный документ' : 'Документ',
-        ...(parsed.kind === 'official' && parsed.section ? { section: parsed.section } : {}),
-        ...(parsed.kind === 'official' && parsed.expectedIdentity
-          ? { expectedIdentity: parsed.expectedIdentity }
-          : {}),
-        ...(parsed.kind === 'user' && parsed.pageIndex !== undefined
-          ? { pageIndex: parsed.pageIndex }
-          : {}),
-      });
+    } else {
+      const index = current.crumbs.findIndex(
+        (crumb) =>
+          crumb.kind === parsed.kind && isSameDocumentIdentity(crumb.id, parsed.documentId),
+      );
+      if (index >= 0) {
+        if (index < current.crumbs.length - 1) current = sliceTrailToCrumb(current, index);
+      } else {
+        current = appendDocumentCrumb(current, {
+          kind: parsed.kind,
+          id: parsed.documentId,
+          title:
+            parsed.kind === 'user'
+              ? 'Личный документ'
+              : (knownDocumentTitle(parsed.documentId) ?? OPENING_DOCUMENT_TITLE),
+          ...(parsed.kind === 'official' && parsed.section ? { section: parsed.section } : {}),
+          ...(parsed.kind === 'official' && parsed.expectedIdentity
+            ? { expectedIdentity: parsed.expectedIdentity }
+            : {}),
+          ...(parsed.kind === 'user' && parsed.pageIndex !== undefined
+            ? { pageIndex: parsed.pageIndex }
+            : {}),
+        });
+      }
     }
     setTrail(current);
     return current;
   };
 
-  const navigateTrail = (href: string): void => {
+  const navigateTrail = (href: string, options?: DocumentNavigateOptions): void => {
     const current = trail();
+    // The place the reader's back control leads to is the entry below this one: go there by
+    // stepping back, so a crumb tap behaves like «Назад» instead of stacking the page again.
+    if (!options?.replace && current && href === documentReaderBackTarget(current)) {
+      if (hasInAppPreviousEntry()) {
+        window.history.back();
+        return;
+      }
+    }
     if (current) {
       if (href === current.origin.hash) {
         setTrail(sliceTrailToOrigin(current));
@@ -245,6 +279,10 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
           setTrail(sliceTrailToCrumb(current, crumbIndex));
         }
       }
+    }
+    if (options?.replace) {
+      replaceLocationHash(href);
+      return;
     }
     window.location.hash = href;
   };
@@ -951,6 +989,13 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     migrateLegacyUserDocumentHash();
     migrateLegacyOverlaySearch();
     const parsed = parseDocumentReadRoute(window.location.hash);
+    const shown = route();
+    if (parsed && (shown?.kind !== parsed.kind || shown.documentId !== parsed.documentId)) {
+      // Another document starts at its top: the page keeps the scroll of the one before it, which
+      // the short page of a loading document clamps to a few pixels below its title row. A
+      // position saved on the history entry is restored by the reader once its text is there.
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
     setRoute(parsed);
     if (!parsed) {
       officialLoadGeneration += 1;
@@ -1007,77 +1052,88 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     });
   });
 
+  // One reader per document: a different document is a new reader, with its own find, section and
+  // reading-position state (and the history entry's saved place, read when the reader is made).
+  // The accessors follow the route; a copy of the route taken once would never re-key the readers.
+  const userDocumentId = (): string | null => {
+    const current = route();
+    return current?.kind === 'user' ? current.documentId : null;
+  };
+  const officialDocumentId = (): string | null => {
+    const current = route();
+    return current?.kind === 'official' ? current.documentId : null;
+  };
+  const userPageIndex = (): number | undefined => {
+    const current = route();
+    return current?.kind === 'user' ? current.pageIndex : undefined;
+  };
+
   return (
     <Show when={route()}>
-      {(activeRoute) => {
-        const parsed = activeRoute();
-        return (
-          <>
-            <Show when={parsed.kind === 'user' ? parsed.documentId : null} keyed>
-              {(documentId) => (
-                <UserDocumentReader
-                  documentId={documentId}
-                  {...(parsed.kind === 'user' && parsed.pageIndex !== undefined
-                    ? { initialPageIndex: parsed.pageIndex }
-                    : {})}
-                  {...(trail() ? { trail: trail() } : {})}
-                  onNavigate={navigateTrail}
-                  onTitle={(title) => {
-                    const currentTrail = trail();
-                    if (!currentTrail) return;
-                    setTrail(updateCurrentCrumbTitle(currentTrail, title));
-                  }}
-                />
-              )}
-            </Show>
-            <Show when={parsed.kind === 'official' ? parsed.documentId : null} keyed>
-              <OfficialDocumentReader
-                core={props.getCore()}
-                document={readerDocument()}
-                {...(readerPendingTitle() ? { pendingTitle: readerPendingTitle() as string } : {})}
-                availableDocuments={availableDocuments()}
-                {...(medicationProduct()
-                  ? {
-                      medicationProduct: medicationProduct() as MedicationProduct,
-                      medicationReadingMode: medicationReadingMode(),
-                      onMedicationReadingModeChange: (mode: MedicationReadingMode) =>
-                        void changeMedicationReadingMode(mode),
-                    }
-                  : {})}
-                {...(document()
-                  ? { medicationOpenedDocumentId: (document() as MedicalDocument).id }
-                  : {})}
-                instructionOffer={instructionOffer()}
-                instructionOfferPending={instructionOfferPending()}
-                instructionOfferProgress={instructionOfferProgress()}
-                instructionOfferError={instructionOfferError()}
-                onInstallInstructionModule={() => void installInstructionModule()}
-                supplementalPanels={showsInstruction() ? [] : supplementalPanels()}
-                drugSupplements={supplementalPanels()}
-                {...(document() ? { medicationSource: document() as MedicalDocument } : {})}
-                onSelectMedicationProduct={(product) => void selectMedicationProduct(product)}
-                clinicalMedicationLinks={clinicalMedicationLinks()}
-                initialAnchor={initialAnchor()}
-                trail={trail()}
-                openError={openError()}
-                modulePointer={modulePointer()}
-                modulePointerPending={modulePointerPending()}
-                modulePointerProgress={modulePointerProgress()}
-                modulePointerInstallError={modulePointerInstallError()}
-                onNavigate={navigateTrail}
-                onInstallModulePointer={requestModulePointerInstall}
-                {...(props.reconnectContent ? { onContentChanged: props.reconnectContent } : {})}
-                {...(editionNotice() ? { editionNotice: editionNotice() } : {})}
-                editionPending={editionPending()}
-                editionProgress={editionProgress()}
-                editionError={editionError()}
-                onOpenEdition={(target) => void openClinicalEdition(target)}
-                onRequestFullText={requestFullText}
-              />
-            </Show>
-          </>
-        );
-      }}
+      <>
+        <Show when={userDocumentId()} keyed>
+          {(documentId) => (
+            <UserDocumentReader
+              documentId={documentId}
+              {...(userPageIndex() !== undefined
+                ? { initialPageIndex: userPageIndex() as number }
+                : {})}
+              {...(trail() ? { trail: trail() } : {})}
+              onNavigate={navigateTrail}
+              onTitle={(title) => {
+                const currentTrail = trail();
+                if (!currentTrail) return;
+                setTrail(updateCurrentCrumbTitle(currentTrail, title));
+              }}
+            />
+          )}
+        </Show>
+        <Show when={officialDocumentId()} keyed>
+          <OfficialDocumentReader
+            core={props.getCore()}
+            document={readerDocument()}
+            {...(readerPendingTitle() ? { pendingTitle: readerPendingTitle() as string } : {})}
+            availableDocuments={availableDocuments()}
+            {...(medicationProduct()
+              ? {
+                  medicationProduct: medicationProduct() as MedicationProduct,
+                  medicationReadingMode: medicationReadingMode(),
+                  onMedicationReadingModeChange: (mode: MedicationReadingMode) =>
+                    void changeMedicationReadingMode(mode),
+                }
+              : {})}
+            {...(document()
+              ? { medicationOpenedDocumentId: (document() as MedicalDocument).id }
+              : {})}
+            instructionOffer={instructionOffer()}
+            instructionOfferPending={instructionOfferPending()}
+            instructionOfferProgress={instructionOfferProgress()}
+            instructionOfferError={instructionOfferError()}
+            onInstallInstructionModule={() => void installInstructionModule()}
+            supplementalPanels={showsInstruction() ? [] : supplementalPanels()}
+            drugSupplements={supplementalPanels()}
+            {...(document() ? { medicationSource: document() as MedicalDocument } : {})}
+            onSelectMedicationProduct={(product) => void selectMedicationProduct(product)}
+            clinicalMedicationLinks={clinicalMedicationLinks()}
+            initialAnchor={initialAnchor()}
+            trail={trail()}
+            openError={openError()}
+            modulePointer={modulePointer()}
+            modulePointerPending={modulePointerPending()}
+            modulePointerProgress={modulePointerProgress()}
+            modulePointerInstallError={modulePointerInstallError()}
+            onNavigate={navigateTrail}
+            onInstallModulePointer={requestModulePointerInstall}
+            {...(props.reconnectContent ? { onContentChanged: props.reconnectContent } : {})}
+            {...(editionNotice() ? { editionNotice: editionNotice() } : {})}
+            editionPending={editionPending()}
+            editionProgress={editionProgress()}
+            editionError={editionError()}
+            onOpenEdition={(target) => void openClinicalEdition(target)}
+            onRequestFullText={requestFullText}
+          />
+        </Show>
+      </>
     </Show>
   );
 }

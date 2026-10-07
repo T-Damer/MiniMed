@@ -5,6 +5,7 @@ import {
 } from '@/features/library/document-title-hints';
 import { buildOfficialDocumentHash, type ExactDocumentIdentity } from '@/state/document-route';
 import { appendDocumentCrumb, beginDocumentTrail, loadDocumentTrail } from '@/state/document-trail';
+import { flushReaderPositions } from '@/state/history-entries';
 
 export const OPEN_DOCUMENT_EVENT = 'minimed:open-document';
 const PREFER_SUMMARY_KEY = 'minimed:document-prefer-summary';
@@ -30,8 +31,11 @@ export interface OpenDocumentOverlayOptions {
   readonly replace?: boolean;
 }
 
-/** Points the current history entry at another address and tells the app's route listeners. */
-function replaceLocationHash(hash: string): void {
+/**
+ * Points the current history entry at another address and tells the app's route listeners (a
+ * `replaceState` raises no `hashchange`). The entry keeps its state, so its stamp stays.
+ */
+export function replaceLocationHash(hash: string): void {
   const oldURL = window.location.href;
   window.history.replaceState(window.history.state, '', hash);
   window.dispatchEvent(new HashChangeEvent('hashchange', { oldURL, newURL: window.location.href }));
@@ -43,6 +47,8 @@ export function openDocumentOverlay(
   options: OpenDocumentOverlayOptions = {},
 ): void {
   if (options.title) rememberDocumentTitle(documentId, options.title);
+  // The page being left keeps the place the reader had reached, for the way back.
+  if (!options.replace) flushReaderPositions();
   if (options.preferSummary) {
     sessionStorage.setItem(PREFER_SUMMARY_KEY, documentId);
   } else {

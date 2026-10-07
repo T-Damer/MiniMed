@@ -10,6 +10,7 @@ import {
 } from '@/app/root-view';
 import { medicalImageViewerActive } from '@/features/library/document-reading-mode';
 import { isDocumentReadRoute } from '@/state/document-route';
+import { installHistoryEntryTracking } from '@/state/history-entries';
 import { READER_CHROME_HOLD_EVENT } from '@/state/reader-chrome-hold';
 import { trackToolNavigation } from '@/state/tool-navigation';
 
@@ -26,6 +27,8 @@ const CHROME_HIDE_AFTER = 96;
 const CHROME_DIRECTION_THRESHOLD = 1;
 
 export function useRootNavigation() {
+  // First listener on the history: every entry is stamped before any route code reads it.
+  onCleanup(installHistoryEntryTracking());
   bootstrapDocumentReadLocation();
   const [view, setView] = createSignal<RootView>(viewFromLocation());
   const [documentReadActive, setDocumentReadActive] = createSignal(
