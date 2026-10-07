@@ -30,6 +30,12 @@ model (`apps/app/src/features/semantic/e5-model.ts`).
       --source data/build/grls-instruction-modules/zst --source data/build/allmed-module/zst \\
       --out data/build/drug-e5/decoded
 
+    # Freshly rebuilt, already compacted modules (STATE KR3): no catalog, nothing to decode; the
+    # databases of --from-dir are copied to --out and embedded there.
+    uv run tools/ingest/scripts/embed_modules_e5.py --family clinical \\
+      --from-dir data/build/official-clinical-2026-10-07/compacted \\
+      --out data/build/official-clinical-2026-10-07/e5/decoded
+
 Encoding runs in shards saved as they finish (`--out/../shards-<family>`), so a stopped run resumes.
 """
 
@@ -39,6 +45,7 @@ import argparse
 import hashlib
 import json
 import math
+import shutil
 import sqlite3
 import subprocess
 import time
@@ -238,14 +245,31 @@ def write_vectors(path: Path, chunk_ids: list[str], vectors: np.ndarray) -> None
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
     parser.add_argument("--family", choices=sorted(FAMILIES), required=True)
-    parser.add_argument("--source", type=Path, action="append", required=True)
+    parser.add_argument("--source", type=Path, action="append", default=[])
+    parser.add_argument(
+        "--from-dir",
+        type=Path,
+        help="embed the databases of this directory (copied to --out) instead of released archives",
+    )
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
+    if args.from_dir is None and not args.source:
+        parser.error("give --source (released archives) or --from-dir (rebuilt databases)")
 
     family = FAMILIES[args.family]
-    modules = released_modules(args.family, args.source)
-    databases = decode(modules, args.out)
-    print(f"decoded: {len(databases)} modules → {args.out}", flush=True)
+    if args.from_dir is not None:
+        args.out.mkdir(parents=True, exist_ok=True)
+        databases = []
+        for source in sorted(args.from_dir.glob("*.db")):
+            target = args.out / source.name
+            if not target.exists():
+                shutil.copyfile(source, target)
+            databases.append(target)
+        print(f"copied: {len(databases)} modules → {args.out}", flush=True)
+    else:
+        modules = released_modules(args.family, args.source)
+        databases = decode(modules, args.out)
+        print(f"decoded: {len(databases)} modules → {args.out}", flush=True)
 
     per_module = [passages(path, family["chunks"]) for path in databases]
     texts = [text for rows in per_module for _, text in rows]

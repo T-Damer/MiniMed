@@ -7,8 +7,12 @@ import { expect, type Page, test } from '@playwright/test';
 import { E2E_ASSET_ORIGIN } from './mount-built-app';
 
 const ROOT = resolve(import.meta.dirname, '../../..');
-// Local copy of the published zstd index (docs/data-ledger.json keeps it as the release copy).
-const PUBLISHED_DIRECTORY = 'output/module-zstd-e5-2026-10-05';
+// Local copies of the published zstd indexes (docs/data-ledger.json keeps them as release copies):
+// the KR3 rebuild with numbered sub-headings first, then the E2 e5 release for modules it left alone.
+const PUBLISHED_DIRECTORIES = [
+  'output/module-zstd-json-2026-10-07',
+  'output/module-zstd-e5-2026-10-05',
+];
 const MODULE_ID = 'minimed.clinical.recommendation.1006_1';
 const POINTER = 'core.catalog.pointer.clinical.kr.rf.1006_1-1151be108d81d0ac';
 
@@ -32,7 +36,10 @@ export async function routeClinicalModule(page: Page): Promise<void> {
     ?.artifacts.find((item) => item.kind === 'index');
   if (!artifact?.url) throw new Error(`Missing ${MODULE_ID} artifact`);
   const fileName = new URL(artifact.url).pathname.split('/').at(-1) ?? '';
-  const localPath = resolve(ROOT, PUBLISHED_DIRECTORY, fileName);
+  const localPath =
+    PUBLISHED_DIRECTORIES.map((directory) => resolve(ROOT, directory, fileName)).find((path) =>
+      existsSync(path),
+    ) ?? resolve(ROOT, PUBLISHED_DIRECTORIES[0] ?? '', fileName);
   test.skip(!existsSync(localPath), `The published module file ${fileName} is local-only.`);
   const bytes = await readFile(localPath);
   expect(`sha256:${createHash('sha256').update(bytes).digest('hex')}`).toBe(artifact.sha256);

@@ -91,7 +91,8 @@ test('numbered sub-headings are headings, and a selection in the text can be hig
   await page.setViewportSize({ width: 1280, height: 900 });
   await openClinicalDocument(page);
 
-  // «1.2.1 Этиология» is a plain paragraph in the stored text.
+  // «1.2.1 Этиология» is a heading in the stored text since the KR3 rebuild (it was a plain paragraph
+  // the reader promoted before): either way it shows once, as an h4, in the outline and not as body text.
   const heading = page
     .locator('.document-overlay-section__title')
     .filter({ hasText: /^1\.2\.1\s+Этиология/u });
