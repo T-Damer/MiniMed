@@ -32,8 +32,8 @@ import {
   outlineItemSelector,
   pickActiveSectionAnchor,
 } from '@/features/library/document-reader-outline';
-import { jumpReaderTo } from '@/features/library/document-reader-scroll';
 import { readerPosition, readerPositionAnchor } from '@/features/library/document-reader-position';
+import { jumpReaderTo } from '@/features/library/document-reader-scroll';
 import { ReaderPositionCounter } from '@/features/library/ReaderPositionCounter';
 import { useDocumentOutlineSwipe } from '@/features/library/use-document-outline-swipe';
 import type { DocumentTrail } from '@/state/document-trail';

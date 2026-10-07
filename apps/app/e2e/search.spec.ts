@@ -732,7 +732,8 @@ test('toggles the document outline on desktop and highlights exact reader matche
     .fill('официальный идентификатор');
   await expect(overlay.locator('mark').first()).toBeVisible({ timeout: 15_000 });
   await expect(overlay.locator('mark').first()).toHaveText(/официальный/iu);
-  await expect(overlay.getByText(/\d+\s*\/\s*\d+/)).toBeVisible();
+  // The find counter, not the reader's «12 / 48» section counter.
+  await expect(overlay.locator('.document-find__count')).toHaveText(/^\d+\s*\/\s*\d+$/u);
 });
 
 test('renders the complete virtualized document list', async ({ page }, testInfo) => {
