@@ -208,12 +208,23 @@ export function visibleReaderSections(
   sections: readonly MedicalSection[],
   sourceType: string,
 ): readonly MedicalSection[] {
-  const visible = orderDocumentSections(sections, sourceType).filter((section) => {
-    if (section.chunks.length === 0) return false;
-    return !(
-      MEDICATION_READER_SOURCE_TYPES.has(sourceType) &&
-      section.title === REDUNDANT_MEDICATION_SECTION_TITLE
-    );
+  const ordered = orderDocumentSections(sections, sourceType).filter(
+    (section) =>
+      !(
+        MEDICATION_READER_SOURCE_TYPES.has(sourceType) &&
+        section.title === REDUNDANT_MEDICATION_SECTION_TITLE
+      ),
+  );
+  // A section without text of its own stays when it heads deeper sections that have text: a chapter
+  // («3. Лечение») is the parent of its subsections. Dropped, its children nested under whatever
+  // section came before it and the chapter vanished from the page and the contents.
+  const visible = ordered.filter((section, index) => {
+    if (section.chunks.length > 0) return true;
+    for (const next of ordered.slice(index + 1)) {
+      if (next.depth <= section.depth) return false;
+      if (next.chunks.length > 0) return true;
+    }
+    return false;
   });
   // Sub-headings the source kept as numbered paragraphs become sections of the reader. After the
   // filter above: a section left without its own text still shows its title.

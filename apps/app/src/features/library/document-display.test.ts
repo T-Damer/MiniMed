@@ -148,6 +148,28 @@ describe('document-display', () => {
     expect(visible.map((item) => item.title)).toEqual(['Показания']);
   });
 
+  it('keeps a chapter without text of its own when its subsections have text', () => {
+    const chapter = { ...section('3. Лечение'), depth: 1, chunks: [] };
+    const sub = { ...section('3.1 Алгоритм'), depth: 2 };
+    const emptyChapter = { ...section('4. Пусто'), depth: 1, chunks: [] };
+    const emptyChild = { ...section('4.1 Тоже пусто'), depth: 2, chunks: [] };
+    const next = { ...section('5. Профилактика'), depth: 1 };
+    const visible = visibleReaderSections(
+      [chapter, sub, emptyChapter, emptyChild, next],
+      'clinical_recommendation',
+    );
+    expect(visible.map((item) => item.title)).toEqual([
+      '3. Лечение',
+      '3.1 Алгоритм',
+      '5. Профилактика',
+    ]);
+    // Nested under its own chapter, not under the section before it.
+    expect(nestDocumentSections(visible).map((node) => node.section.title)).toEqual([
+      '3. Лечение',
+      '5. Профилактика',
+    ]);
+  });
+
   it('keeps a Карточка препарата heading on non-medication documents', () => {
     const visible = visibleReaderSections(
       [section('Карточка препарата'), section('Показания')],
