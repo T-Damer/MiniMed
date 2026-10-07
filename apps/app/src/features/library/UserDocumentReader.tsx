@@ -1064,6 +1064,13 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
         }
         showLayout
         outlineEnabled={!isMedicalImage()}
+        positionAnchors={() =>
+          // Markdown and text scroll by section like the official reader. A PDF has its own page
+          // box, an EPUB moves by chapter, a sheet by tab; none of them is counted here.
+          isPdf() || readerCapability().reader.renderer === 'epub' || isSheet() || isMedicalImage()
+            ? []
+            : outlineItems().map((item) => item.anchor)
+        }
         bodyPrefix={
           <Show when={banner()}>
             {(message) => (

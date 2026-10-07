@@ -4,6 +4,7 @@ import {
 } from 'overlayscrollbars-solid';
 import {
   createEffect,
+  createMemo,
   createSignal,
   type JSX,
   onCleanup,
@@ -31,8 +32,11 @@ import {
   pickActiveSectionAnchor,
 } from '@/features/library/document-reader-outline';
 import { jumpReaderTo } from '@/features/library/document-reader-scroll';
+import { readerPosition, readerPositionAnchor } from '@/features/library/document-reader-position';
+import { ReaderPositionCounter } from '@/features/library/ReaderPositionCounter';
 import { useDocumentOutlineSwipe } from '@/features/library/use-document-outline-swipe';
 import type { DocumentTrail } from '@/state/document-trail';
+import { holdReaderChrome } from '@/state/reader-chrome-hold';
 
 interface OverlayScrollbarsInstance {
   elements: () => { viewport: HTMLElement | null };
@@ -385,6 +389,12 @@ export interface DocumentReaderChromeShellProps {
   readonly loadingBody?: JSX.Element;
   readonly showLayout: boolean;
   readonly outlineEnabled?: boolean;
+  /**
+   * The anchors of the contents list in order. They give the position counter («12 / 48») its
+   * numbers and its jump targets; see `document-reader-position.ts` for what a page is. Left out, or
+   * with fewer than two anchors, the reader shows no counter.
+   */
+  readonly positionAnchors?: () => readonly string[];
   readonly outlineSearchSlot?: JSX.Element;
   /** Heading of the side panel; «Оглавление» unless the panel lists something else (PDF pages). */
   readonly outlineTitle?: string;
@@ -401,6 +411,17 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
     openOutline: () => chrome.setOutlineOpen(true),
     closeOutline: chrome.closeOutline,
   });
+
+  const position = createMemo(() =>
+    readerPosition(props.positionAnchors?.() ?? [], chrome.activeAnchor()),
+  );
+  /** A jump the reader makes by itself keeps the controls visible, like find and «go to page». */
+  const goToPosition = (page: number): void => {
+    const anchor = readerPositionAnchor(props.positionAnchors?.() ?? [], page);
+    if (!anchor) return;
+    holdReaderChrome();
+    chrome.scrollTo(anchor);
+  };
 
   const handleBack = (): void => {
     const header = chrome.chromeElement();
@@ -506,6 +527,18 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
               </button>
             </header>
             {props.outlineSearchSlot}
+            <Show when={position()}>
+              {(current) => (
+                <div class="document-overlay-outline-position">
+                  <span class="document-overlay-outline-position__label">Раздел</span>
+                  <ReaderPositionCounter
+                    variant="outline"
+                    position={current()}
+                    onGo={goToPosition}
+                  />
+                </div>
+              )}
+            </Show>
             <OverlayScrollbarsComponent
               ref={(value) => {
                 chrome.setOutlineScrollbars(value);
@@ -563,7 +596,18 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
                 <AppGlyph name="menu" class="document-overlay-outline-toggle__icon" />
               </button>
             </Show>
-            {props.breadcrumbs}
+            <div class="document-page__trail">
+              {props.breadcrumbs}
+              <Show when={position()}>
+                {(current) => (
+                  <ReaderPositionCounter
+                    variant="chrome"
+                    position={current()}
+                    onGo={goToPosition}
+                  />
+                )}
+              </Show>
+            </div>
             {props.headerSearchSlot}
             <Show when={props.printButton}>{props.printButton}</Show>
           </header>

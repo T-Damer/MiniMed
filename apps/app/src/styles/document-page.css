@@ -371,6 +371,15 @@
   min-width: 0;
 }
 
+/* The breadcrumbs and, at their end, the reader's position counter share the header's wide column. */
+.document-page__trail {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
 .document-crumbs__list {
   display: flex;
   flex-wrap: wrap;

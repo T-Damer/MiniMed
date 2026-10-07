@@ -982,6 +982,10 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
       });
   };
 
+  /** The counter's «pages» are the contents list's sections, in the outline's order. */
+  const positionAnchors = (): readonly string[] =>
+    props.document && !props.openError ? orderedSections().map((section) => section.anchor) : [];
+
   const pageTitle = (): string =>
     props.document
       ? displayDocumentTitle(props.document)
@@ -1064,6 +1068,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
       }
       showLayout={Boolean(props.document) && !props.openError}
       outlineEnabled={!props.document || orderedSections().length > 1}
+      positionAnchors={positionAnchors}
       loadingBody={
         <>
           <Show when={!props.document && !props.openError && props.modulePointer}>
