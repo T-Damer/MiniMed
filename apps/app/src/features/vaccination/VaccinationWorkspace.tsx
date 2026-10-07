@@ -25,7 +25,11 @@ import {
   filterNationalRows,
   type PopulationFilter,
 } from '@/features/vaccination/vaccination-filter';
-import { displayIsoDate } from '@/features/vaccination/vaccination-print';
+import {
+  displayIsoDate,
+  renderVaccinationPrintHtml,
+  VACCINATION_PRINT_TITLE,
+} from '@/features/vaccination/vaccination-print';
 import { pluralRu } from '@/i18n/labels';
 import '@/styles/vaccination.css';
 
@@ -72,6 +76,10 @@ export function VaccinationWorkspace(props: {
   const [layout, setLayout] = createSignal<NationalLayout>('order');
   const [filter, setFilter] = createSignal<CalendarFilter>(DEFAULT_FILTER);
   const [previewOpen, setPreviewOpen] = createSignal(false);
+  // Built only while the preview is open: the whole document is large.
+  const printHtml = createMemo(() =>
+    previewOpen() ? renderVaccinationPrintHtml(calendar, todayIso()) : '',
+  );
   const patch = (next: Partial<CalendarFilter>): void => {
     setFilter((current) => ({ ...current, ...next }));
   };
@@ -104,6 +112,7 @@ export function VaccinationWorkspace(props: {
     <fieldset class="vax__filters" aria-label="Фильтры">
       <SegmentedControl
         class="vax__population"
+        stretch={narrow()}
         label="Кому"
         options={POPULATION_OPTIONS}
         value={filter().population}
@@ -112,6 +121,7 @@ export function VaccinationWorkspace(props: {
       <Show when={part() === 'national'}>
         <SegmentedControl
           class="vax__layout"
+          stretch={narrow()}
           label="Вид таблицы"
           options={LAYOUT_OPTIONS}
           value={layout()}
@@ -149,14 +159,14 @@ export function VaccinationWorkspace(props: {
 
   return (
     <section class="vax" aria-label="Календарь прививок">
-      <header class="vax__chrome">
-        <NavBack
-          class="vax__back knowledge-back-button"
-          aria-label="Назад"
-          onClick={props.onBack}
-        />
-      </header>
       <Page
+        navigation={
+          <NavBack
+            class="vax__back knowledge-back-button"
+            aria-label="Назад"
+            onClick={props.onBack}
+          />
+        }
         icon={<AppGlyph name="calendar" class="page__icon-glyph" />}
         title={<Heading depth={1}>Календарь прививок</Heading>}
         description={`Национальный календарь и календарь по эпидемическим показаниям — ${calendar.edition.editionLine}.`}
@@ -210,6 +220,7 @@ export function VaccinationWorkspace(props: {
       </section>
       <SegmentedControl
         class="vax__parts"
+        stretch
         label="Раздел календаря"
         options={PART_OPTIONS}
         value={part()}
@@ -273,8 +284,11 @@ export function VaccinationWorkspace(props: {
       </Show>
       <VaccinationPrintDialog
         open={previewOpen()}
-        calendar={calendar}
-        printedOn={todayIso()}
+        html={printHtml()}
+        printTitle={VACCINATION_PRINT_TITLE}
+        dialogTitle="Календарь прививок"
+        frameTitle="Предпросмотр печати календаря прививок"
+        note="Печатаются все три приложения приказа целиком, как в оригинале: таблицы, примечания, сноски и редакция приказа. Сводка по возрасту помечена как составленная."
         onClose={() => setPreviewOpen(false)}
       />
     </section>
