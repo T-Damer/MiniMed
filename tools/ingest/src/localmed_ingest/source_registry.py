@@ -12,6 +12,7 @@ from typing import Literal
 
 import yaml
 
+from .clinical_json_import import EXTRACTOR_REVISION as CLINICAL_JSON_EXTRACTOR_REVISION
 from .clinical_json_import import extract_clinical_json
 from .html_import import extract_html
 from .models import (
@@ -162,6 +163,8 @@ def render_prepared_markdown(source: RegistrySource, extracted: ExtractedSource)
         "headingCandidates": diagnostics.heading_candidates,
         "tableCandidates": diagnostics.table_candidates,
     }
+    if diagnostics.promoted_headings:
+        extraction["promotedHeadings"] = diagnostics.promoted_headings
     if extracted.source_format == "pdf":
         # Keep how the text was obtained, so downstream databases can show it.
         extraction.update(
@@ -381,6 +384,10 @@ def _extract_or_reuse(
                 and extracted.source_file == source_path.name
                 and extracted.source_format == _source_format(source, source_path)
                 and extracted.source_checksum == expected_checksum
+                and (
+                    extracted.source_format != "clinical_json"
+                    or extracted.extractor_revision >= CLINICAL_JSON_EXTRACTOR_REVISION
+                )
             ):
                 return extracted, True
     return extract_source(source, source_path), False

@@ -18,6 +18,11 @@ from .models import (
     ExtractedSource,
     ExtractionDiagnostics,
 )
+from .numbered_headings import numbered_heading_depth
+
+# Bumped when a change to the extraction makes a stored extraction of the same raw file stale
+# (`prepare --reuse` re-extracts anything older). 2: numbered sub-headings promoted to headings.
+EXTRACTOR_REVISION = 2
 
 _SPACE_PATTERN = re.compile(r"\s+")
 _SECTION_NUMBER_PATTERN = re.compile(r"^\s*(\d+(?:\.\d+)*)\.?\s+\S")
@@ -371,6 +376,7 @@ def extract_clinical_json(source: Path) -> ExtractedSource:
 
     blocks: list[ExtractedBlock] = []
     warnings: list[str] = []
+    promoted_headings = 0
     order = 0
     source_sections = [section for section in document.obj.sections if section.id != "doc_whole"]
     for section_index, section in enumerate(source_sections):
@@ -396,6 +402,17 @@ def extract_clinical_json(source: Path) -> ExtractedSource:
         parser.close()
         warnings.extend(f"{section.id}: {warning}" for warning in parser.warnings)
         for parsed in _attach_adjacent_figure_captions(parser.blocks):
+            kind: BlockKind = parsed.kind
+            heading_level = parsed.heading_level
+            promoted_metadata: dict[str, object] = {}
+            if parsed.kind == "paragraph":
+                depth = numbered_heading_depth(parsed.text)
+                if depth is not None:
+                    # A numbered sub-heading the source kept as a <p>: same text, read as a heading.
+                    kind = "heading"
+                    heading_level = depth
+                    promoted_metadata = {"promotedFrom": "numbered-paragraph"}
+                    promoted_headings += 1
             render = parsed.metadata.get("renderBlock")
             if (
                 isinstance(render, dict)
@@ -410,14 +427,15 @@ def extract_clinical_json(source: Path) -> ExtractedSource:
                     id=f"json-b{order + 1}",
                     page=None,
                     order_index=order,
-                    kind=parsed.kind,
+                    kind=kind,
                     text=parsed.text,
-                    heading_level=parsed.heading_level,
+                    heading_level=heading_level,
                     line_count=max(1, parsed.text.count("\n") + 1),
                     metadata={
                         "sourceSectionId": section.id,
                         "sourceSectionOrder": section_index,
                         **parsed.metadata,
+                        **promoted_metadata,
                     },
                 )
             )
@@ -446,6 +464,7 @@ def extract_clinical_json(source: Path) -> ExtractedSource:
         low_text=character_count < 40,
     )
     return ExtractedSource(
+        extractor_revision=EXTRACTOR_REVISION,
         source_file=source.name,
         source_checksum=checksum,
         source_format="clinical_json",
@@ -460,6 +479,7 @@ def extract_clinical_json(source: Path) -> ExtractedSource:
             low_text_pages=[],
             removed_repeated_blocks=0,
             heading_candidates=heading_count,
+            promoted_headings=promoted_headings,
             table_candidates=table_count,
             body_font_size=None,
             quality_score=0.75 if reasons or warnings else 1.0,

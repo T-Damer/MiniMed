@@ -313,6 +313,8 @@ class ExtractionDiagnostics(CamelModel):
     low_text_pages: list[int] = Field(default_factory=list)
     removed_repeated_blocks: int = Field(ge=0)
     heading_candidates: int = Field(ge=0)
+    # Headings the source kept as numbered paragraphs and the extractor read as headings.
+    promoted_headings: int = Field(default=0, ge=0)
     table_candidates: int = Field(ge=0)
     body_font_size: float | None = None
     text_extraction_mode: Literal["pdf_text_layer", "ocr"] = "pdf_text_layer"
@@ -328,6 +330,8 @@ class ExtractionDiagnostics(CamelModel):
 
 class ExtractedSource(CamelModel):
     schema_version: int = Field(default=2, ge=1)
+    # Which revision of the format's extractor wrote this; see `clinical_json_import`.
+    extractor_revision: int = Field(default=1, ge=1)
     source_file: str
     source_checksum: str
     source_format: Literal["pdf", "text", "markdown", "html", "clinical_json"]
