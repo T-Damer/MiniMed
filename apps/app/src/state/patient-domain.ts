@@ -564,6 +564,34 @@ export function updatePatientProfileData(
   };
 }
 
+/**
+ * Returns a new snapshot where the named profile carries a birth date (an ISO calendar date).
+ * A card created without one can get it later; an existing date is replaced only when
+ * `replace` is true, so a caller that merely fills a gap never overwrites what the card holds.
+ */
+export function setPatientBirthDate(
+  snapshot: PatientVaultSnapshot,
+  patientId: string,
+  birthDate: string,
+  options: { readonly replace?: boolean; readonly updatedAt?: string } = {},
+): PatientVaultSnapshot {
+  const updatedAt = options.updatedAt ?? nowIso();
+  asDate(updatedAt, 'Дата изменения карточки');
+  if (!/^\d{4}-\d{2}-\d{2}$/u.test(birthDate)) throw new Error('Дата рождения: некорректная дата.');
+  asDate(birthDate, 'Дата рождения');
+  const target = snapshot.profiles.find((profile) => profile.id === patientId);
+  if (!target) throw new Error('Пациент не найден.');
+  if (target.birthDate !== undefined && target.birthDate !== birthDate && !options.replace) {
+    throw new Error('В карточке уже указана другая дата рождения.');
+  }
+  return {
+    ...snapshot,
+    profiles: snapshot.profiles.map((profile) =>
+      profile.id === patientId ? { ...profile, birthDate, updatedAt } : profile,
+    ),
+  };
+}
+
 function normalizeDiagnosis(value: unknown): EpisodeDiagnosis | undefined {
   if (value === undefined) return undefined;
   if (!isRecord(value)) throw new Error('Поврежден диагноз осмотра.');

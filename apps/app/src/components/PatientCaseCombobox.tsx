@@ -18,6 +18,8 @@ export function PatientCaseCombobox(props: {
   readonly subjectLabel: string;
   readonly unlocked: boolean;
   readonly class?: string;
+  /** The field's label; the default marks the field as optional (tools that record to a case). */
+  readonly label?: string;
   readonly onPatientChange: (patientId: string) => void;
   readonly onSubjectLabelChange: (label: string) => void;
   readonly onSnapshotChange: (snapshot: PatientVaultSnapshot) => void;
@@ -93,7 +95,7 @@ export function PatientCaseCombobox(props: {
     >
       <Combobox.HiddenSelect />
       <Combobox.Label class="patient-case-combobox__label">
-        Пациент / случай — необязательно
+        {props.label ?? 'Пациент / случай — необязательно'}
       </Combobox.Label>
       <Combobox.Control
         class="patient-case-combobox__control"

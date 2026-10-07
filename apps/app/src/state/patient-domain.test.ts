@@ -25,6 +25,7 @@ import {
   reviseManualObservation,
   selectPatientFromSnapshot,
   setEpisodeDiagnosis,
+  setPatientBirthDate,
   updatePatientProfileData,
 } from './patient-domain';
 
@@ -870,5 +871,46 @@ describe('patient domain', () => {
       expect(trimmed.profiles[0]?.fullName).toBe('Иванов');
       expect(trimmed.profiles[0]).not.toHaveProperty('workplace');
     });
+  });
+});
+
+describe('setPatientBirthDate', () => {
+  function snapshotWith(birthDate?: string): { snapshot: PatientVaultSnapshot; id: string } {
+    const { profile } = createPatientProfile({
+      displayName: 'Аня',
+      ...(birthDate ? { birthDate } : {}),
+    });
+    return {
+      snapshot: { ...emptyPatientVaultSnapshot(), profiles: [profile] },
+      id: profile.id,
+    };
+  }
+
+  it('fills a missing birth date and survives a read back through the normalizer', () => {
+    const { snapshot, id } = snapshotWith();
+    const next = setPatientBirthDate(snapshot, id, '2025-03-15', {
+      updatedAt: '2026-10-07T10:00:00.000Z',
+    });
+    expect(next.profiles[0]?.birthDate).toBe('2025-03-15');
+    expect(next.profiles[0]?.updatedAt).toBe('2026-10-07T10:00:00.000Z');
+    expect(
+      normalizePatientVaultSnapshot(JSON.parse(JSON.stringify(next))).profiles[0]?.birthDate,
+    ).toBe('2025-03-15');
+  });
+
+  it('never overwrites a different stored date unless asked', () => {
+    const { snapshot, id } = snapshotWith('2025-03-15');
+    expect(() => setPatientBirthDate(snapshot, id, '2024-01-01')).toThrow(/другая дата рождения/u);
+    expect(setPatientBirthDate(snapshot, id, '2025-03-15')).toBeDefined();
+    expect(
+      setPatientBirthDate(snapshot, id, '2024-01-01', { replace: true }).profiles[0]?.birthDate,
+    ).toBe('2024-01-01');
+  });
+
+  it('rejects an impossible date and an unknown patient', () => {
+    const { snapshot, id } = snapshotWith();
+    expect(() => setPatientBirthDate(snapshot, id, '2025-02-30')).toThrow();
+    expect(() => setPatientBirthDate(snapshot, id, 'вчера')).toThrow();
+    expect(() => setPatientBirthDate(snapshot, 'nobody', '2025-03-15')).toThrow(/не найден/u);
   });
 });
