@@ -572,6 +572,99 @@ on the list searches titles, descriptions and card keywords.
   opens the app settings. Not verified on a physical phone (HyperOS may add its own audio-record
   gate).
 
+## Reader chrome and navigation (UX11a) — 2026-10-07
+
+Owner feedback on the document reader (official documents and personal Markdown/text files).
+
+- **Name while opening.** A document opens under its own name: the crumb and the pending title come from
+  `features/library/document-title-hints.ts` — the document lists and search-result group headings the
+  core has already returned (remembered in `WorkerSearchMedicalCore`, by reference), a title the opener
+  passes (`openDocumentOverlay(id, anchor, { title })`) or the module-catalog member title. Only a
+  document nobody has named yet shows «Открываем документ».
+- **Opening is not a history entry.** A module pointer that stands in for its installed document used to
+  redirect with a pushed entry, so back landed on the pointer, which redirected forward again.
+  `openDocumentOverlay(…, { replace: true })` now takes the pointer's entry (`history.replaceState` plus a
+  synthetic `hashchange`, which `replaceState` does not raise); used by the host's pointer redirect and by
+  the post-install open. Unit tests: `document-navigation.test.ts`; e2e: `reader-navigation.spec.ts`
+  (history length +1, back leaves the reader). The Android system back (`window.history.back()` on a
+  document route) is covered by the same history shape; it was not run on a device.
+- **One crumb per document.** `state/document-identity.ts` maps a pointer id
+  (`core.catalog.pointer.<kind>.<target id>-<16 hex>`, true for all 20 002 bundled pointers) to its
+  target; `appendDocumentCrumb` and the header crumbs (`documentTrailBreadcrumbItems`) keep one crumb per
+  document identity (pointer, summary, `.full` text and revisions of one work), the latest — the full
+  variant — winning. Trails saved by older builds are deduplicated on display.
+- **Position counter «12 / 48».** A reflowed document has no pages, so a *page is one entry of the contents
+  list* (the sections the outline numbers «01», «02», …): the total is known before the sections render,
+  equals the outline's length, and every number is reachable with the outline's own jump. Pure helpers in
+  `document-reader-position.ts`; the pill (`ReaderPositionCounter`, tabular-nums) sits at the end of the
+  breadcrumb column of the header and in a «Раздел» row at the top of the contents list (phone drawer and
+  desktop column). A tap opens a Kobalte popover with a digits-only field and «Перейти» (a number beyond the
+  ends goes to the nearest end); a second tap closes it. The jump holds the reader chrome
+  (`holdReaderChrome`). Official documents and Markdown/text personal files have it; PDF (own page box),
+  EPUB, sheets and medical images do not. The current number follows the scroll spy, so it moves only
+  between sections that are mounted; the jump relies on the same `chrome.scrollTo` as the outline, whose
+  reach into not-yet-mounted sections is tracked separately (scroll-to-section reliability).
+- **«⋯» toggles.** The button sits inside Kobalte's context-menu trigger, so a press is not an outside press
+  and the open menu stayed open; the click then dispatched another synthetic `contextmenu`, which only
+  moved it. `requestContextMenu` closes the menu when the trigger is `data-expanded` (all «⋯»/discover
+  buttons built on `AppContextMenu`).
+- **Drawer above the bottom bar.** `.app-shell` is an isolated stacking context at level 0 and the bar
+  (z 70) is its sibling, so no z-index inside the reader could lift the drawer above it; the earlier fix
+  (3a6c64dc) only slid the bar away. While the drawer is open the shell rises to
+  `--z-reader-shell-open` (75: above the bar, below dialogs and toasts), and the `reader-outline-open`
+  root class outlives the drawer's slide-out so the bar does not reappear over the closing drawer.
+- **Tests:** unit — `document-identity`, `document-trail`, `document-navigation`, `document-title-hints`,
+  `document-reader-position`, `app-breadcrumb-items`; e2e — `reader-navigation.spec.ts` (clinical module
+  from the local release copy; skips when it is absent).
+
+## Reader find and section jumps (UX11b) — 2026-10-07
+
+Owner feedback on the official-document reader (КР guidelines and the other `OfficialDocumentReader`
+documents): find reported more matches than stepping could reach, a far TOC heading needed several
+taps, and the find counter shifted the typed text.
+
+- **Nested sections were never rendered.** The reader mounts sections in idle batches and nests them
+  through a cached tree whose nodes keep their identity; a node's `children` array is replaced on every
+  rebuild but the inner `<For>` read it once. Sections nested under an already-mounted section that
+  arrived in a later batch never reached the DOM (63 sections in the model, 17 in the page after
+  mounting finished), so find counted text that was not on screen and the TOC listed headings that did
+  not exist. The list now reads the tree memo (`OfficialDocumentReader.tsx`, «children» `<For>`).
+- **Jumps are one measured, self-correcting scroll.** `features/library/document-reader-scroll.ts`
+  (`jumpReaderTo`) replaces the single `scrollIntoView` of TOC taps (`useDocumentReaderChrome.scrollTo`)
+  and of find next / previous. Cause of the multi-tap TOC: `.document-overlay-section` carries
+  `content-visibility: auto; contain-intrinsic-size: auto 420px` (`styles/user-library.css`), so every
+  off-screen section is estimated at 420 px until it renders and the page height changes under a jump
+  (and desktop used a smooth animation that chased the moving target). The jump scrolls instantly,
+  re-measures every frame, corrects the remainder and ends after the target stood still for 4 frames
+  (max 2.5 s); wheel, touch, key and pointer input cancel it. TOC jumps align the heading to its
+  `scroll-margin-top` (below the sticky headings); find centres the highlighted word between the chrome
+  and the bottom navigation and also reveals it sideways inside a wide table. Both hold the reader
+  controls (`holdReaderChrome`) so the find bar stays on screen while stepping on a phone. The scroll
+  spy's reading line is never above the sections' scroll margin (`computeReadingLine(rect, minimum)`),
+  so the tapped heading is the active one in the outline.
+- **Find counts only what the page shows.** `features/library/document-text-search.ts` is the single
+  source of a text chunk's searchable text and of `DocumentText`'s highlight offsets; image blocks
+  (whose alt text is never displayed) contribute nothing. Table cells and image captions of a chunk now
+  carry the host's match class, so the active match in a table is marked (`--current`).
+- **Find bar (item 12).** The counter is in the right end of the field (`SearchField` got a `trailing`
+  slot) in a slot of fixed width (`.document-find__status`, `5.5em`, `tabular-nums`) so the text does not
+  move; while searching the slot shows `components/AsciiSpinner.tsx` (`| / – \`, ~110 ms per frame, timed
+  by `motionMs`; an ellipsis when Animations are off or `prefers-reduced-motion`).
+- **Tests.** Unit: `document-reader-scroll.test.ts`, `document-text-search.test.ts`, `computeReadingLine`
+  minimum in `document-reader-outline.test.ts`. e2e `reader-find-jumps.spec.ts` on «Острая ишемия
+  конечностей» (63 sections, tables; needs the local module copy like `reader-loading-layout.spec.ts`):
+  stepping through find matches at 390 px (first, last through unmounted sections, 36 consecutive, a
+  complete short query) with the active match highlighted and between chrome and bottom navigation;
+  highlighted words equal the reported count and the DOM holds every outline section; six far headings
+  reached with one tap at 390 and 1280 px and active; counter inside the field at a fixed width, spinner
+  cycling and standing still under reduced motion.
+- **Not changed / known.** `UserDocumentReader` (personal files) still scrolls find matches with a single
+  `scrollIntoView`, and in a quick check a long `.md` file showed no `.document-overlay-match--current`
+  after find next (the markdown path appears to draw no `mark` elements), so find there may count
+  matches it does not highlight — not investigated, separate task. The initial
+  `initialAnchor` scroll of `OfficialDocumentReader` is unchanged. Not verified on phone hardware or
+  with slow devices.
+
 ## Children's vaccination calendar (VAC2) — 2026-10-07
 
 Owner request: polish the children's calendar page, make each child a patient record, and print a landscape

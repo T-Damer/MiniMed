@@ -168,6 +168,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-10-07 claude-opus (UX11a+b): reader — target name while opening, pointer redirect replaces its history entry, one crumb per document, «⋯» toggles, outline drawer above the bottom bar, «12 / 48» section counter with a jump bubble; nested sections now mount in later batches (find count = highlighted matches), `jumpReaderTo` lands far TOC/find jumps in one tap, find counter in the box with a `| / – \` spinner; see `docs/CURRENT_STATE.md`
 - 2026-10-07 claude-opus (VAC2): children's vaccination calendar — page polish, plan attached to a patient card (validated vault file) or «Только расчёт» without saving, one-page A4 landscape «Личный дневник прививок» built from chart data declared in the 1122н JSON (schema v2); see `docs/CURRENT_STATE.md`
 - 2026-10-07 claude-opus (UX10): drug link card = group, ATC, trade names, quoted effect + «Открыть» (no ЕСКЛП codes); saved search results (IndexedDB) shown at once for repeated/history queries with «Повторить поиск»; update pill above «Настройки»; «Лента»: «+», suggested-source tiles, item pictures, PubMed search; see `docs/CURRENT_STATE.md` «Drug link summary, saved search results…»
 - 2026-10-07 claude-opus (EPUB-POP): EPUB highlight popup no longer vanishes or jumps while neighbouring chapters render — only reader-started scrolls close it, otherwise it follows its text; user-reader EPUB test stable (12/12 at 6× CPU)
