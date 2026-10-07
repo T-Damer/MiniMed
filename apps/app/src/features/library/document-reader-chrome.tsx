@@ -18,8 +18,14 @@ import { useStickySurface } from '@/components/sticky-surface';
 import { dismissOpenDocumentFind } from '@/features/library/document-find';
 import { navigateDocumentReaderBack } from '@/features/library/document-reader-back';
 import {
+  isOutlineDrawerOpen,
+  OUTLINE_DRAWER_ROOT_CLASS,
+  shouldCloseOutlineOnEscape,
+} from '@/features/library/document-reader-drawer';
+import {
   centerOutlineItem,
   computeReadingLine,
+  DESKTOP_READER_LAYOUT_QUERY,
   isDesktopReaderLayout,
   outlineItemSelector,
   pickActiveSectionAnchor,
@@ -83,6 +89,12 @@ export function useDocumentReaderChrome(
   let paper: HTMLElement | undefined;
   let detachOutlineViewportScroll: (() => void) | undefined;
   let outlineSearchFrame: number | undefined;
+
+  const [desktopLayout, setDesktopLayout] = createSignal(isDesktopReaderLayout());
+  const drawerOpen = (): boolean => isOutlineDrawerOpen(outlineOpen(), desktopLayout());
+  createEffect(() => {
+    document.documentElement.classList.toggle(OUTLINE_DRAWER_ROOT_CLASS, drawerOpen());
+  });
 
   useStickySurface(chromeElement);
 
@@ -165,6 +177,25 @@ export function useDocumentReaderChrome(
     }
     outline?.addEventListener('scroll', scheduleOutlineSearchSticky, { passive: true });
     scheduleOutlineSearchSticky();
+
+    // Phone drawer: Escape closes it, and it is not left under the bottom navigation.
+    const layoutQuery = window.matchMedia(DESKTOP_READER_LAYOUT_QUERY);
+    const syncLayout = (): void => {
+      setDesktopLayout(layoutQuery.matches);
+    };
+    layoutQuery.addEventListener('change', syncLayout);
+    const closeOnEscape = (event: KeyboardEvent): void => {
+      const findOpen = Boolean(chromeElement()?.querySelector('.document-find--open'));
+      if (!shouldCloseOutlineOnEscape(event, { drawerOpen: drawerOpen(), findOpen })) return;
+      event.preventDefault();
+      mutateOutline(() => setOutlineOpen(false));
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    onCleanup(() => {
+      layoutQuery.removeEventListener('change', syncLayout);
+      window.removeEventListener('keydown', closeOnEscape);
+      document.documentElement.classList.remove(OUTLINE_DRAWER_ROOT_CLASS);
+    });
     onCleanup(() => {
       detachOutlineViewportScroll?.();
       outline?.removeEventListener('scroll', scheduleOutlineSearchSticky);

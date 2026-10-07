@@ -1159,8 +1159,15 @@ html.app-chrome-hidden .route-sticky-chrome {
   transform: translateY(calc(-100% - var(--sticky-header-top)));
 }
 
-html.app-chrome-hidden .app-bottom-nav {
+html.app-chrome-hidden .app-bottom-nav,
+html.reader-outline-open .app-bottom-nav {
   transform: translateY(calc(100% + var(--nav-safe-bottom) + 1rem));
+}
+
+/* The phone outline drawer covers the page; the navigation (outside the reader's stacking context)
+   steps aside instead of sitting on top of its last items. */
+html.reader-outline-open .app-bottom-nav {
+  pointer-events: none;
 }
 
 .app-bottom-nav .app-nav-item {

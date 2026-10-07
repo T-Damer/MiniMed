@@ -22,8 +22,10 @@ export function centerOutlineItem(viewport: HTMLElement, item: HTMLElement): voi
     itemRect.top - viewportRect.top - (viewport.clientHeight - item.clientHeight) / 2;
 }
 
+export const DESKTOP_READER_LAYOUT_QUERY = '(min-width: 761px)';
+
 export function isDesktopReaderLayout(): boolean {
-  return window.matchMedia('(min-width: 761px)').matches;
+  return window.matchMedia(DESKTOP_READER_LAYOUT_QUERY).matches;
 }
 
 export function readerScrollBehavior(): ScrollBehavior {
