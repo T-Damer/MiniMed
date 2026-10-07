@@ -159,6 +159,7 @@ export const TECHNICAL_SECTION_TITLES: ReadonlySet<string> = new Set([
   'Сведения МКБ-10',
   'Классификационный контекст',
   'Ограничение покрытия',
+  'Указатель препарата',
 ]);
 
 export function isTechnicalSection(section: Pick<MedicalSection, 'title'>): boolean {

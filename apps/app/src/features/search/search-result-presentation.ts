@@ -9,6 +9,7 @@ const TECHNICAL_SECTION_LABELS: Readonly<Record<string, string>> = {
   'Сведения МКБ-10': 'МКБ-10',
   'Классификационный контекст': 'Раздел МКБ',
   'Ограничение покрытия': 'О материале',
+  'Указатель препарата': 'О препарате',
 };
 
 export function isTechnicalResult(result: Pick<SearchResult, 'sectionPath'>): boolean {

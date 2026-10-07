@@ -78,7 +78,7 @@ describe('displaySectionPath', () => {
 
 describe('sourceContextKicker', () => {
   const kicker = (sourceType: string, metadata?: Record<string, unknown>): string =>
-    sourceContextKicker({ sourceType, metadata });
+    sourceContextKicker(metadata ? { sourceType, metadata } : { sourceType });
 
   it('names the kind of document the fragment comes from', () => {
     expect(kicker('clinical_recommendation')).toBe('В клинических рекомендациях');
@@ -100,6 +100,14 @@ describe('presentSourceChunkText', () => {
     const text =
       'Название: Эпилепсия у детей. Объявленные алиасы: ЭС. Официальный идентификатор: 741_1. Ключевые слова: не указано в каталоге. Полные данные находятся в скачиваемом модуле «minimed-x» и не дублируются в ядре.';
     expect(presentSourceChunkText(text, ['Сведения о документе'])).toBe('Другие названия: ЭС.');
+  });
+
+  it('drops where a medication pointer’s full data is stored, keeps the standard name', () => {
+    const text =
+      'Стандартизированное МНН: ПАРАЦЕТАМОЛ.\n\nПолные данные находятся в скачиваемом модуле «minimed.medications.nervous-system.ru» и не дублируются в ядре.';
+    expect(presentSourceChunkText(text, ['Указатель препарата'])).toBe(
+      'Стандартизированное МНН: ПАРАЦЕТАМОЛ.',
+    );
   });
 
   it('leaves the document’s own text and an all-technical chunk as they are', () => {
