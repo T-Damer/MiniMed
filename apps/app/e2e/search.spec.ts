@@ -548,10 +548,52 @@ test('finds a recommendation section and opens local context', async ({ page }) 
   await expect(page.getByTestId('reader-context')).toHaveCount(0);
   await clinicalRecommendationResult(page).click();
   await expect(page.getByTestId('reader-context')).toContainText('Пневмония');
+  await expect(page.getByTestId('reader-context').locator('.archive-kicker')).toHaveText(
+    'В клинических рекомендациях',
+  );
   // The card's own definition is its first fragment; its catalogue details come after it.
   await expect(page.getByTestId('reader-context')).toContainText(
     'Источник определения: клиническая рекомендация',
   );
+});
+
+test('the source overlay names a medication card and drops its storage note', async ({ page }) => {
+  await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+  await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
+    timeout: 60_000,
+  });
+  await page.getByTestId('search-input').fill('парацетамол');
+  await page.getByTestId('search-submit').click();
+  const group = page
+    .getByTestId('search-results')
+    .locator('.result-group')
+    .filter({ has: page.locator('.result-group-header__kind-label', { hasText: 'Препарат' }) })
+    .first();
+  await expect(group).toBeVisible({ timeout: 60_000 });
+  // The ghost index numeral would sit half behind the download chip, so a card with one has none.
+  for (const withAction of await page
+    .locator('.result-group')
+    .filter({ has: page.locator('.result-group__action') })
+    .all()) {
+    await expect(withAction.locator('.result-group-header__index')).toBeHidden();
+  }
+  await group.getByTestId('search-result').first().click();
+  const overlay = page.getByTestId('reader-context');
+  await expect(overlay.locator('.archive-kicker')).toHaveText(/^В (инструкции|справочнике)/u);
+  await expect(overlay).not.toContainText('Полные данные находятся');
+  await expect(overlay).not.toContainText('не дублируются в ядре');
+});
+
+test('an abbreviation does not surface tools that only contain its letters', async ({ page }) => {
+  await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+  await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
+    timeout: 60_000,
+  });
+  await page.getByTestId('search-input').fill('АГ');
+  await page.getByTestId('search-submit').click();
+  await expect(page.getByTestId('search-results')).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByTestId('search-results')).not.toContainText('гирсутизм');
+  await expect(page.getByTestId('search-results')).not.toContainText('Бравермана');
 });
 
 test('finds medication names in free search with the full companion', async ({ page }) => {
