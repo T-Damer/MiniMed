@@ -495,14 +495,6 @@ export function App(): JSX.Element {
             splitNavigation={splitNavigation()}
             active={navigation.view() === 'search'}
             onOpenKnowledgeBase={() => navigation.navigate('modules')}
-            {...(session.availableUpdateVersion()
-              ? { appUpdateVersion: session.availableUpdateVersion() as string }
-              : {})}
-            onOpenAppUpdateSettings={() => {
-              rememberReturnTo();
-              requestSettingsPage('general');
-              navigation.navigate('settings');
-            }}
           />
         ))}
         <Show
@@ -578,6 +570,12 @@ export function App(): JSX.Element {
             dueReminderCount={session.dueReminderCount}
             newsUnreadCount={newsUnreadCount}
             appUpdateReady={() => Boolean(session.appUpdateWorker() || session.availableApkUrl())}
+            appUpdateVersion={session.availableUpdateVersion}
+            onOpenAppUpdate={() => {
+              rememberReturnTo();
+              requestSettingsPage('general');
+              navigation.navigate('settings');
+            }}
             bubbleStyle={bottomNav.bubbleStyle}
             bindNav={bottomNav.bindNav}
             onPrefetch={preloadRootView}

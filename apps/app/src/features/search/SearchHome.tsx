@@ -93,11 +93,6 @@ import {
 } from '@/state/app-preferences';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import { experimentalModulesEnabled } from '@/state/experimental-modules';
-import {
-  ignoreAppUpdate,
-  isHomeAppUpdateVisible,
-  loadIgnoredAppUpdates,
-} from '@/state/ignored-app-updates';
 import { appendSearchHistory, replaySearch, type SearchHistoryEntry } from '@/state/search-history';
 import { USER_LIBRARY_EXAMPLE_MRI_FILE_NAME } from '@/state/user-library';
 
@@ -118,8 +113,6 @@ interface SearchHomeProps {
   readonly active: boolean;
   readonly splitNavigation?: boolean;
   readonly onOpenKnowledgeBase: () => void;
-  readonly appUpdateVersion?: string;
-  readonly onOpenAppUpdateSettings?: () => void;
 }
 
 /** A row of the «?» panel. Accessors keep the row's state live while the panel is open. */
@@ -645,7 +638,6 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   const [fieldForm, setFieldForm] = createSignal<HTMLFormElement>();
   /** The field has scrolled up behind the sticky row: the row offers a way back to it. */
   const [fieldAway, setFieldAway] = createSignal(false);
-  const [ignoredAppUpdates, setIgnoredAppUpdates] = createSignal(loadIgnoredAppUpdates());
   let searchModeTools: HTMLElement | undefined;
   let searchScrollFrame: number | undefined;
   useStickySurface(() => searchModeTools);
@@ -766,22 +758,6 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           >
             <AppGlyph name="search" class="search-field-pill__icon" />
             <span class="search-field-pill__label">{catalogQuery().trim() || 'Поиск'}</span>
-          </button>
-        </Show>
-        <Show when={isHomeAppUpdateVisible(props.appUpdateVersion, ignoredAppUpdates())}>
-          <button
-            class="search-update-status"
-            type="button"
-            aria-label="Доступно обновление"
-            title="Доступно обновление"
-            onClick={() => {
-              const version = props.appUpdateVersion;
-              if (version) setIgnoredAppUpdates(ignoreAppUpdate(version));
-              props.onOpenAppUpdateSettings?.();
-            }}
-          >
-            <AppGlyph name="refresh" class="search-update-status__icon" />
-            <span class="search-update-status__label">Доступно обновление</span>
           </button>
         </Show>
         <SheetPopover

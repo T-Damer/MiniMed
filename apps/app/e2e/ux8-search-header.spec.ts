@@ -20,7 +20,7 @@ async function announceUpdate(page: Page): Promise<void> {
 
 for (const width of [360, 390, 1280]) {
   for (const colorScheme of ['light', 'dark'] as const) {
-    test(`the search header keeps every button and the update notice inside the row at ${width}px, ${colorScheme}`, async ({
+    test(`the search header keeps every button inside the row and the update hint above «Настройки» at ${width}px, ${colorScheme}`, async ({
       page,
     }, testInfo) => {
       await page.setViewportSize({ width, height: 844 });
@@ -28,7 +28,10 @@ for (const width of [360, 390, 1280]) {
       await mountBuiltApp(page, { skipLargeCompanionPacks: true });
       await waitForSearchReady(page);
       await announceUpdate(page);
-      await expect(page.locator('.search-update-status')).toBeVisible();
+      await expect(page.getByTestId('app-update-nav-hint')).toBeVisible();
+      const hint = await page.getByTestId('app-update-nav-hint').boundingBox();
+      expect(hint).not.toBeNull();
+      expect((hint?.x ?? 0) + (hint?.width ?? 0)).toBeLessThanOrEqual(width);
 
       const geometry = await page.evaluate(() => {
         const row = document.querySelector('.search-mode-tools');
@@ -52,8 +55,8 @@ for (const width of [360, 390, 1280]) {
         expect(item.right, item.name).toBeLessThanOrEqual(geometry.viewport);
         expect(item.right, item.name).toBeLessThanOrEqual(geometry.row.right + 0.5);
       }
-      // Only the history button, the update notice and «?» are left in the row.
-      await expect(page.locator('.search-mode-tools > *')).toHaveCount(3);
+      // Only the history button and «?» are left in the row; the update hint is not in it.
+      await expect(page.locator('.search-mode-tools > *')).toHaveCount(2);
       await expect(page.getByRole('button', { name: 'Случайная запись' })).toHaveCount(0);
       await expect(page.getByRole('button', { name: 'Карта связей' })).toHaveCount(0);
       await page.screenshot({

@@ -234,43 +234,10 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   backdrop-filter: none;
 }
 
-.search-history-fab,
-.search-update-status {
+.search-history-fab {
   position: relative;
   z-index: var(--z-raised);
   flex: 0 0 auto;
-}
-
-.search-update-status {
-  display: inline-flex;
-  height: 2.5rem;
-  min-height: 2.5rem;
-  box-sizing: border-box;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0 0.85rem;
-  border: 1px solid var(--theme-floating-border);
-  border-radius: 999px;
-  color: var(--theme-floating-text);
-  background: var(--theme-floating-surface);
-  box-shadow:
-    0 0 0 1px rgb(255 255 255 / 8%) inset,
-    0 0.625rem 1.875rem rgb(20 25 21 / 38%);
-  cursor: pointer;
-  font: inherit;
-  font-size: 0.75rem;
-  font-weight: 700;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.search-update-status__icon {
-  width: 1.125rem;
-  height: 1.125rem;
-}
-
-.search-update-status__label {
-  display: block;
 }
 
 .platform-android .search-mode-tools {
@@ -1312,6 +1279,47 @@ html.reader-outline-open .app-bottom-nav {
   padding: 0;
   border-radius: 999px;
   background: #4d7657;
+}
+
+/* An update waits: a small pill above «Настройки» instead of a pill in the search header. */
+.app-update-nav-hint {
+  position: absolute;
+  right: -0.25rem;
+  bottom: calc(100% + 0.625rem);
+  z-index: calc(var(--z-raised-3) + 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 1.75rem;
+  padding: 0 0.625rem;
+  border: 1px solid var(--theme-floating-border);
+  border-radius: 999px;
+  color: var(--theme-floating-text);
+  background: var(--theme-floating-surface);
+  box-shadow: 0 0.375rem 1.25rem rgb(20 25 21 / 32%);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  animation: app-update-nav-hint-rise var(--motion-slow) var(--motion-ease) both;
+}
+
+.app-update-nav-hint__icon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.app-update-nav-hint__label {
+  display: block;
+}
+
+@keyframes app-update-nav-hint-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.375rem) scale(0.94);
+  }
 }
 
 .overlay-backdrop {
