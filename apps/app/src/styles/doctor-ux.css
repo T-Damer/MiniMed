@@ -1074,7 +1074,8 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
 }
 
 .document-inline-preview__card {
-  z-index: 12;
+  /* A portal on <body>: it must stand above the source overlay it is opened from. */
+  z-index: var(--z-inline-preview);
   width: min(24rem, calc(100vw - 2rem));
   max-height: min(calc(100dvh - 1rem), var(--kb-popper-content-available-height));
   overflow-y: auto;
@@ -1996,28 +1997,49 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
   user-select: none;
 }
 
-.document-inline-preview__source {
-  display: block;
-  margin-block-start: 0.5rem;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--theme-link);
-  font: inherit;
-  font-size: 0.8rem;
-  text-align: start;
-  text-decoration: underline;
-  cursor: pointer;
+.medication-link-summary {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.9375rem;
+  line-height: 1.4;
 }
 
-.document-inline-preview__excerpt {
-  padding-block: 0.5rem;
-  border-block-end: 1px solid var(--paper-line);
+.medication-link-summary__substance,
+.medication-link-summary__group,
+.medication-link-summary__atc,
+.medication-link-summary__row,
+.medication-link-summary__source {
+  margin: 0;
 }
 
-.document-inline-preview__source-label {
-  margin-block: 0.5rem 0;
-  font-size: 0.8rem;
+.medication-link-summary__group {
+  font-weight: 600;
+}
+
+.medication-link-summary__atc {
+  color: var(--theme-text-muted);
+}
+
+.medication-link-summary__atc-code {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.medication-link-summary__label {
+  color: var(--theme-text-muted);
+}
+
+.medication-link-summary__row--effect {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  overflow: hidden;
+}
+
+.medication-link-summary__source {
+  margin-block-start: 0.25rem;
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
 }
 
 .document-inline-preview__definition--choice {

@@ -19,8 +19,8 @@ import {
 } from '@/features/library/document-medication-links';
 import { DocumentRichBlock } from '@/features/library/document-rich-block';
 import {
-  type MedicationPreviewExcerpt,
-  medicationPreviewExcerpts,
+  loadMedicationLinkSummary,
+  type MedicationLinkSummary,
 } from '@/features/library/medication-link-preview';
 import type { ResolvedReferenceImage } from '@/features/library/reference-image-assets';
 import { segmentTextWithToolLinks } from '@/features/tool-links/document-tool-links';
@@ -106,6 +106,16 @@ function HighlightedLabel(props: {
 
 type LinkedDocumentSegment = Extract<LinkedTextSegment, { readonly kind: 'link' }>;
 
+/** Both assets are lazy chunks, fetched on the first drug summary and shared with their tools. */
+const MEDICATION_ASSETS = {
+  comparisonIndex: () =>
+    import('@/features/drug-comparison/comparison-load').then((module) =>
+      module.loadComparisonIndex(),
+    ),
+  atcNames: () =>
+    import('@/features/medications/atc-names').then((module) => module.loadAtcNames()),
+};
+
 function InlineDocumentLink(props: {
   readonly segment: LinkedDocumentSegment;
   readonly onOpen: (documentId: string) => void;
@@ -129,9 +139,8 @@ function InlineDocumentLink(props: {
     selectedAlternative()?.preview?.source ?? props.segment.preview?.source;
   useInlinePreviewBounds(open, previewCard, () => setOpen(false));
 
-  const [excerpts, setExcerpts] = createSignal<readonly MedicationPreviewExcerpt[]>();
+  const [summary, setSummary] = createSignal<MedicationLinkSummary>();
   const [previewError, setPreviewError] = createSignal<string>();
-  const [sourceLabel, setSourceLabel] = createSignal<string>();
   const ambiguous = () => (props.segment.alternatives?.length ?? 0) > 1;
   const canPreview = () =>
     Boolean(
@@ -145,15 +154,16 @@ function InlineDocumentLink(props: {
       return;
     }
     setOpen((value) => !value);
-    if (!open() || ambiguous() || props.segment.preview || excerpts() || !props.core) return;
+    if (!open() || ambiguous() || props.segment.preview || summary() || !props.core) return;
     setPreviewError();
-    const result = await props.core.getDocument(props.segment.documentId);
-    if (!result.ok) {
-      setPreviewError(result.error.message);
-      return;
+    try {
+      setSummary(
+        await loadMedicationLinkSummary(props.core, props.segment.documentId, MEDICATION_ASSETS),
+      );
+    } catch (error) {
+      console.error('Не удалось открыть сведения о препарате.', error);
+      setPreviewError('Не удалось открыть сведения о препарате.');
     }
-    setSourceLabel(`${result.value.title} · ${result.value.versionLabel}`);
-    setExcerpts(medicationPreviewExcerpts(result.value, props.segment.value));
   };
 
   return (
@@ -212,7 +222,7 @@ function InlineDocumentLink(props: {
               <strong class="document-inline-preview__title">
                 {ambiguous()
                   ? `${props.segment.value}: выберите значение`
-                  : (props.segment.preview?.title ?? props.segment.value)}
+                  : (props.segment.preview?.title ?? summary()?.title ?? props.segment.value)}
               </strong>
               <Show when={manyChoices()}>
                 <select
@@ -335,46 +345,61 @@ function InlineDocumentLink(props: {
                   </p>
                 )}
               </Show>
-              <Show when={!excerpts() && !previewError()}>
+              <Show when={!summary() && !previewError()}>
                 <p class="document-inline-preview__definition" role="status">
                   Открываем локальные данные…
                 </p>
               </Show>
-              <For each={excerpts()}>
-                {(excerpt) => (
-                  <div class="document-inline-preview__excerpt">
-                    <p class="document-inline-preview__definition">{excerpt.text}</p>
-                    <Show when={excerpt.anchor}>
-                      {(anchor) => (
-                        <button
-                          type="button"
-                          class="document-inline-preview__source"
-                          onClick={() => {
-                            setOpen(false);
-                            openDocumentOverlay(props.segment.documentId, anchor());
-                          }}
-                        >
-                          Открыть фрагмент источника
-                        </button>
-                      )}
-                    </Show>
-                  </div>
-                )}
-              </For>
-              <Show when={excerpts()?.length === 0}>
-                <p class="document-inline-preview__definition">
-                  В локальных данных нет сведений о форме и концентрации.
-                </p>
+              <Show when={summary()}>
+                {(drug) => <MedicationLinkSummaryBody summary={drug()} />}
               </Show>
-              <p class="document-inline-preview__source-label">
-                Источник: {sourceLabel() ?? props.segment.value}. Сведения о препарате; не схема
-                дозирования.
-              </p>
             </Show>
           </Popover.Content>
         </Popover.Portal>
       </Show>
     </Popover>
+  );
+}
+
+function MedicationLinkSummaryBody(props: {
+  readonly summary: MedicationLinkSummary;
+}): JSX.Element {
+  const drug = () => props.summary;
+  return (
+    <div class="medication-link-summary">
+      <Show when={drug().substance}>
+        {(substance) => (
+          <p class="medication-link-summary__substance">Действующее вещество: {substance()}</p>
+        )}
+      </Show>
+      <Show when={drug().groups.length > 0}>
+        <p class="medication-link-summary__group">{drug().groups.join('; ')}</p>
+      </Show>
+      <Show when={drug().atc}>
+        {(atc) => (
+          <p class="medication-link-summary__atc">
+            <span class="medication-link-summary__atc-code">АТХ {atc().code}</span>
+            <Show when={atc().name}>{(name) => <> · {name()}</>}</Show>
+          </p>
+        )}
+      </Show>
+      <Show when={drug().tradeNames.length > 0}>
+        <p class="medication-link-summary__row">
+          <span class="medication-link-summary__label">Торговые названия: </span>
+          {drug().tradeNames.join(', ')}
+          <Show when={drug().moreTradeNames > 0}>{` и ещё ${String(drug().moreTradeNames)}`}</Show>
+        </p>
+      </Show>
+      <Show when={drug().effect}>
+        {(effect) => (
+          <p class="medication-link-summary__row medication-link-summary__row--effect">
+            <span class="medication-link-summary__label">{effect().label}: </span>
+            {effect().text}
+          </p>
+        )}
+      </Show>
+      <p class="medication-link-summary__source">{drug().sourceLine}</p>
+    </div>
   );
 }
 

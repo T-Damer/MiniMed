@@ -51,6 +51,11 @@ test('search source context uses the same inline medication lookup', async ({ pa
     .filter({ hasText: /^АСКОРБИНОВАЯ КИСЛОТА$/u })
     .first();
   await link.click();
-  await expect(page.locator('.document-inline-preview__card')).toContainText(/мг|%/u);
+  // A short drug card: names, group/ATC, «Открыть» — no registry codes or per-form source links.
+  const card = page.locator('.document-inline-preview__card');
+  await expect(card.locator('.medication-link-summary')).toBeVisible();
+  await expect(card).toContainText(/Торговые названия|АТХ/u);
+  await expect(card).not.toContainText(/smnnCode|\d{2}\.\d{2}\.\d{2}\.\d{3}-/u);
+  await expect(card.getByRole('button', { name: /Открыть/u })).toBeVisible();
   await expect(page.locator('.source-paragraph')).toHaveCount(1);
 });
