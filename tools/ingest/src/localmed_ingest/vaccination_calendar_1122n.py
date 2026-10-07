@@ -42,6 +42,66 @@ INFECTIONS: Final[dict[str, tuple[str, str]]] = {
 }
 
 
+# Chart of the national calendar (infections × ages), the way the official infographic shows it.
+# The order prints vaccines that cover several infections in one cell; the chart gives each
+# infection its own row. Key, display label; the order of the tuple is the order of the chart rows.
+CHART_TARGETS: Final[tuple[tuple[str, str], ...]] = (
+    ("tuberculosis", "Туберкулёз"),
+    ("hepatitis-b", "Вирусный гепатит B"),
+    ("pneumococcal", "Пневмококковая инфекция"),
+    ("pertussis", "Коклюш"),
+    ("diphtheria", "Дифтерия"),
+    ("tetanus", "Столбняк"),
+    ("polio", "Полиомиелит"),
+    ("hib", "Гемофильная инфекция"),
+    ("measles", "Корь"),
+    ("rubella", "Краснуха"),
+    ("mumps", "Эпидемический паротит"),
+    ("influenza", "Грипп"),
+)
+
+# Chart rows a vaccination (by infection key) covers, read from the infection named in the order.
+INFECTION_TARGETS: Final[dict[str, tuple[str, ...]]] = {
+    "hepatitis-b": ("hepatitis-b",),
+    "tuberculosis": ("tuberculosis",),
+    "pneumococcal": ("pneumococcal",),
+    "dtp": ("pertussis", "diphtheria", "tetanus"),
+    "dt": ("diphtheria", "tetanus"),
+    "polio": ("polio",),
+    "hib": ("hib",),
+    "mmr": ("measles", "rubella", "mumps"),
+    "rubella": ("rubella",),
+    "measles": ("measles",),
+    "influenza": ("influenza",),
+}
+
+# Band of a vaccination of a category row (rows 16-19) and the age from which the row's category
+# starts, in months; the category has no upper age in the chart (adults are named in each row).
+# `catch-up`: rows 16-18 name persons not vaccinated before; `risk`: row 19 names groups.
+CATEGORY_CHART: Final[dict[int, tuple[str, float]]] = {
+    16: ("catch-up", 12),
+    17: ("catch-up", 12),
+    18: ("catch-up", 12),
+    19: ("risk", 6),
+}
+
+# Vaccine of a step, from paragraph 12 of Appendix 3 (polio): the first, second and third
+# vaccinations and the first revaccination use the inactivated vaccine, the second and third
+# revaccinations the live one (the inactivated one for children of risk groups).
+# Key: infection key, step kind, ordinal; value: code, label, code for risk groups.
+PRODUCT_PARAGRAPH: Final = "12"
+_IPV: Final = ("ИПВ", "вакцина для профилактики полиомиелита (инактивированная)", None)
+_OPV: Final = ("ОПВ", "вакцина для профилактики полиомиелита (живая)", "ИПВ")
+PRODUCTS: Final[dict[tuple[str, str, int | None], tuple[str, str, str | None]]] = {
+    ("polio", "vaccination", 1): _IPV,
+    ("polio", "vaccination", 2): _IPV,
+    ("polio", "vaccination", 3): _IPV,
+    ("polio", "revaccination", 1): _IPV,
+    ("polio", "revaccination", 2): _OPV,
+    ("polio", "revaccination", 3): _OPV,
+}
+
+
 @dataclass(frozen=True)
 class NationalRow:
     number: int

@@ -200,3 +200,42 @@ def test_age_rows_carry_their_unit() -> None:
     assert rows["13"] == {"unit": "months", "from": 72, "to": 84}
     assert rows["15"] is None
     assert rows["19"] is None
+
+
+def test_items_name_the_chart_rows_they_cover() -> None:
+    dtp = vaccination.parse_item("Первая вакцинация против дифтерии, коклюша, столбняка")
+    assert dtp["targets"] == ["pertussis", "diphtheria", "tetanus"]
+    mmr = vaccination.parse_item("Вакцинация против кори, краснухи, эпидемического паротита")
+    assert mmr["targets"] == ["measles", "rubella", "mumps"]
+    assert vaccination.parse_item("Вакцинация против туберкулеза")["targets"] == ["tuberculosis"]
+
+
+def test_polio_steps_carry_the_vaccine_of_paragraph_12() -> None:
+    first = vaccination.parse_item("Первая вакцинация против полиомиелита")
+    assert first["product"] == {
+        "code": "ИПВ",
+        "label": "вакцина для профилактики полиомиелита (инактивированная)",
+        "riskCode": None,
+        "procedureNumber": "12",
+    }
+    second_revaccination = vaccination.parse_item("Вторая ревакцинация против полиомиелита")
+    assert second_revaccination["product"]["code"] == "ОПВ"
+    assert second_revaccination["product"]["riskCode"] == "ИПВ"
+    assert vaccination.parse_item("Вакцинация против туберкулеза")["product"] is None
+
+
+def test_committed_chart_is_consistent_with_the_rows() -> None:
+    calendar = committed()
+    targets = [target["key"] for target in calendar["national"]["chart"]["targets"]]
+    assert len(targets) == len(set(targets)) == 12
+    paragraphs = {item["number"] for item in calendar["procedure"]["items"]}
+    for row in calendar["national"]["rows"]:
+        category_row = row["age"] is None and row["population"] != "adults"
+        assert (row["ageSpan"] is not None) == category_row, row["id"]
+        for item in row["items"]:
+            assert set(item["targets"]) <= set(targets), item["id"]
+            assert item["band"] in {"all", "risk", "catch-up"}, item["id"]
+            assert (item["band"] == "risk") == bool(item["qualifier"] or row["id"] == "n-19")
+            if item["product"]:
+                assert item["product"]["procedureNumber"] in paragraphs
+    assert calendar["schemaVersion"] == vaccination.SCHEMA_VERSION == 2

@@ -62,4 +62,37 @@ describe('vaccination calendar contract', () => {
     const extra = { ...committed(), invented: true };
     expect(VaccinationCalendarSchema.safeParse(extra).success).toBe(false);
   });
+  it('rejects a chart target the chart does not list, an unknown band and a missing paragraph', () => {
+    const target = clone(committed()) as {
+      national: { rows: { items: { targets: string[] }[] }[] };
+    };
+    must(must(target.national.rows[0]).items[0]).targets = ['no-such-infection'];
+    expect(VaccinationCalendarSchema.safeParse(target).success).toBe(false);
+
+    const band = clone(committed()) as { national: { rows: { items: { band: string }[] }[] } };
+    must(must(band.national.rows[0]).items[0]).band = 'everyone';
+    expect(VaccinationCalendarSchema.safeParse(band).success).toBe(false);
+
+    const product = clone(committed()) as {
+      national: { rows: { items: { product: unknown }[] }[] };
+    };
+    must(must(product.national.rows[0]).items[0]).product = {
+      code: 'ИПВ',
+      label: 'вакцина',
+      riskCode: null,
+      procedureNumber: '99',
+    };
+    expect(VaccinationCalendarSchema.safeParse(product).success).toBe(false);
+  });
+
+  it('allows an age span on a category row only', () => {
+    const calendar = parseVaccinationCalendar(committed());
+    const spans = calendar.national.rows.filter((row) => row.ageSpan !== null).map((row) => row.id);
+    expect(spans).toEqual(['n-16', 'n-17', 'n-18', 'n-19']);
+    const data = clone(committed()) as {
+      national: { rows: { ageSpan: unknown }[] };
+    };
+    must(data.national.rows[0]).ageSpan = { fromMonths: 0, toMonths: null };
+    expect(VaccinationCalendarSchema.safeParse(data).success).toBe(false);
+  });
 });

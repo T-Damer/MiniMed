@@ -32,7 +32,7 @@ from localmed_ingest.medical_forms import (
     sha256_file,
 )
 
-SCHEMA_VERSION: Final = 1
+SCHEMA_VERSION: Final = 2
 CALENDAR_ID: Final = "ru.minzdrav.1122n"
 OCR_METHOD: Final = "macos-vision-ocr-v1"
 TRANSCRIPTION_METHOD: Final = "read-from-scan-and-checked-against-ocr-v1"
@@ -168,10 +168,41 @@ def parse_item(text: str) -> dict[str, Any]:
         "text": text,
         "infectionKey": key,
         "infection": label,
+        "targets": list(blueprint.INFECTION_TARGETS[key]),
         "steps": steps,
         "qualifier": qualifier,
         "condition": condition,
+        "product": _product(key, steps),
     }
+
+
+def _product(infection_key: str, steps: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """The vaccine Appendix 3 names for a single step; `None` when it names none."""
+    if len(steps) != 1:
+        return None
+    step = steps[0]
+    entry = blueprint.PRODUCTS.get((infection_key, step["kind"], step["ordinal"]))
+    if entry is None:
+        return None
+    code, label, risk_code = entry
+    return {
+        "code": code,
+        "label": label,
+        "riskCode": risk_code,
+        "procedureNumber": blueprint.PRODUCT_PARAGRAPH,
+    }
+
+
+def _item_band(item: dict[str, Any], row: blueprint.NationalRow) -> str:
+    """`all` for an age row, `risk` for a printed «группы риска», else the category's band."""
+    if row.age is not None or row.population == "adults":
+        return "risk" if item["qualifier"] else "all"
+    return blueprint.CATEGORY_CHART[row.number][0]
+
+
+def _national_item(row: blueprint.NationalRow, index: int, text: str) -> dict[str, Any]:
+    item = parse_item(text)
+    return {"id": f"n-{row.number:02d}-{index}", **item, "band": _item_band(item, row)}
 
 
 def _national_rows(page_words: dict[int, list[str]]) -> list[dict[str, Any]]:
@@ -190,8 +221,13 @@ def _national_rows(page_words: dict[int, list[str]]) -> list[dict[str, Any]]:
                     else {"unit": row.age[0], "from": row.age[1], "to": row.age[2]}
                 ),
                 "population": row.population,
+                "ageSpan": (
+                    {"fromMonths": blueprint.CATEGORY_CHART[row.number][1], "toMonths": None}
+                    if row.age is None and row.population != "adults"
+                    else None
+                ),
                 "items": [
-                    {"id": f"n-{row.number:02d}-{index}", **parse_item(item)}
+                    _national_item(row, index, item)
                     for index, item in enumerate(row.items, start=1)
                 ],
                 "source": _source_ref(blueprint.BASE_EO_NUMBER, "1", row.pages),
@@ -367,6 +403,9 @@ def prepare(source_dir: Path, ocr_dir: Path | None = None) -> dict[str, Any]:
                 "Категории и возраст граждан, подлежащих обязательной вакцинации",
                 "Наименование профилактической прививки",
             ],
+            "chart": {
+                "targets": [{"key": key, "label": label} for key, label in blueprint.CHART_TARGETS],
+            },
             "rows": _national_rows(page_words_by_order[blueprint.BASE_EO_NUMBER]),
         },
         "epidemic": {

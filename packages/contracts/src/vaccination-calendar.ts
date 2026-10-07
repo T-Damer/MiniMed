@@ -9,7 +9,7 @@ import { z } from 'zod';
  * preparer, never typed by hand. Each row cites the PDF page of the official file it is printed on.
  */
 
-export const VACCINATION_CALENDAR_SCHEMA_VERSION = 1 as const;
+export const VACCINATION_CALENDAR_SCHEMA_VERSION = 2 as const;
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/u, 'must be an ISO date');
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/u, 'must be a lowercase SHA-256');
@@ -49,6 +49,28 @@ export const VaccinationStepSchema = z
   .strict();
 export type VaccinationStep = z.infer<typeof VaccinationStepSchema>;
 
+/** A vaccine the order names for one step (paragraph of Appendix 3), e.g. «ИПВ» or «ОПВ». */
+export const VaccinationProductSchema = z
+  .object({
+    code: nonEmpty,
+    label: nonEmpty,
+    /** The code for children of risk groups when it differs from `code`. */
+    riskCode: nonEmpty.nullable(),
+    /** Paragraph of Appendix 3 the product is named in. */
+    procedureNumber: z.string().regex(/^\d+$/u),
+  })
+  .strict();
+export type VaccinationProduct = z.infer<typeof VaccinationProductSchema>;
+
+/**
+ * Who a chart cell is for: `all` (everyone of the age), `risk` (groups of risk the order names),
+ * `catch-up` (persons not vaccinated before). Declared by the preparer from the printed wording.
+ */
+export const VaccinationBandSchema = z.enum(['all', 'risk', 'catch-up']);
+export type VaccinationBand = z.infer<typeof VaccinationBandSchema>;
+
+const targetKey = z.string().regex(/^[a-z][a-z0-9-]*$/u);
+
 export const NationalItemSchema = z
   .object({
     id: rowId,
@@ -56,11 +78,16 @@ export const NationalItemSchema = z
     text: nonEmpty,
     infectionKey: z.string().regex(/^[a-z][a-z0-9-]*$/u),
     infection: nonEmpty,
+    /** Rows of the chart (`national.chart.targets`) this vaccination is shown in. */
+    targets: z.array(targetKey).min(1),
+    band: VaccinationBandSchema,
     steps: z.array(VaccinationStepSchema).min(1),
     /** The printed «(группы риска)». */
     qualifier: z.string().nullable(),
     /** The printed condition after a dash. */
     condition: z.string().nullable(),
+    /** The vaccine the order names for the step; `null` when it names none. */
+    product: VaccinationProductSchema.nullable(),
   })
   .strict();
 export type NationalItem = z.infer<typeof NationalItemSchema>;
@@ -84,6 +111,14 @@ export const NationalRowSchema = z
       .strict()
       .nullable(),
     population: VaccinationPopulationSchema,
+    /**
+     * Category rows only: the age (months) from which the category applies; `toMonths` is `null`
+     * when it runs on into adulthood. `null` for an age row.
+     */
+    ageSpan: z
+      .object({ fromMonths: z.number().min(0), toMonths: z.number().min(0).nullable() })
+      .strict()
+      .nullable(),
     items: z.array(NationalItemSchema).min(1),
     source: VaccinationSourceRefSchema,
     verification: VaccinationVerificationSchema,
@@ -186,6 +221,12 @@ export const VaccinationCalendarSchema = z
         appendix: z.literal('1'),
         title: nonEmpty,
         columns,
+        /** Infections of the chart, in the order of its rows. */
+        chart: z
+          .object({
+            targets: z.array(z.object({ key: targetKey, label: nonEmpty }).strict()).min(1),
+          })
+          .strict(),
         rows: z.array(NationalRowSchema).min(1),
       })
       .strict(),
@@ -238,9 +279,28 @@ export const VaccinationCalendarSchema = z
         context.addIssue({ code: 'custom', message: `${unit.id}: link points at another file` });
       }
     }
+    const targets = new Set(calendar.national.chart.targets.map((target) => target.key));
+    if (targets.size !== calendar.national.chart.targets.length) {
+      context.addIssue({ code: 'custom', message: 'chart targets repeat' });
+    }
+    const paragraphs = new Set(calendar.procedure.items.map((item) => item.number));
     for (const row of calendar.national.rows) {
       if (row.age && row.age.to < row.age.from) {
         context.addIssue({ code: 'custom', message: `${row.id}: age range is reversed` });
+      }
+      if (row.age && row.ageSpan) {
+        context.addIssue({ code: 'custom', message: `${row.id}: an age row has no age span` });
+      }
+      if (row.ageSpan?.toMonths != null && row.ageSpan.toMonths < row.ageSpan.fromMonths) {
+        context.addIssue({ code: 'custom', message: `${row.id}: age span is reversed` });
+      }
+      for (const item of row.items) {
+        if (item.targets.some((target) => !targets.has(target))) {
+          context.addIssue({ code: 'custom', message: `${item.id}: unknown chart target` });
+        }
+        if (item.product && !paragraphs.has(item.product.procedureNumber)) {
+          context.addIssue({ code: 'custom', message: `${item.id}: product paragraph is missing` });
+        }
       }
     }
   });

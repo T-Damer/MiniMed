@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "ru.minzdrav.1122n",
   "title": "Национальный календарь профилактических прививок и календарь профилактических прививок по эпидемическим показаниям",
   "edition": {
@@ -55,6 +55,58 @@
       "Категории и возраст граждан, подлежащих обязательной вакцинации",
       "Наименование профилактической прививки"
     ],
+    "chart": {
+      "targets": [
+        {
+          "key": "tuberculosis",
+          "label": "Туберкулёз"
+        },
+        {
+          "key": "hepatitis-b",
+          "label": "Вирусный гепатит B"
+        },
+        {
+          "key": "pneumococcal",
+          "label": "Пневмококковая инфекция"
+        },
+        {
+          "key": "pertussis",
+          "label": "Коклюш"
+        },
+        {
+          "key": "diphtheria",
+          "label": "Дифтерия"
+        },
+        {
+          "key": "tetanus",
+          "label": "Столбняк"
+        },
+        {
+          "key": "polio",
+          "label": "Полиомиелит"
+        },
+        {
+          "key": "hib",
+          "label": "Гемофильная инфекция"
+        },
+        {
+          "key": "measles",
+          "label": "Корь"
+        },
+        {
+          "key": "rubella",
+          "label": "Краснуха"
+        },
+        {
+          "key": "mumps",
+          "label": "Эпидемический паротит"
+        },
+        {
+          "key": "influenza",
+          "label": "Грипп"
+        }
+      ]
+    },
     "rows": [
       {
         "id": "n-01",
@@ -67,12 +119,14 @@
           "to": 1
         },
         "population": "children",
+        "ageSpan": null,
         "items": [
           {
             "id": "n-01-1",
             "text": "Первая вакцинация против вирусного гепатита В",
             "infectionKey": "hepatitis-b",
             "infection": "Вирусный гепатит В",
+            "targets": ["hepatitis-b"],
             "steps": [
               {
                 "kind": "vaccination",
@@ -80,7 +134,9 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": null,
+            "band": "all"
           }
         ],
         "source": {
@@ -105,12 +161,14 @@
           "to": 7
         },
         "population": "children",
+        "ageSpan": null,
         "items": [
           {
             "id": "n-02-1",
             "text": "Вакцинация против туберкулеза",
             "infectionKey": "tuberculosis",
             "infection": "Туберкулёз",
+            "targets": ["tuberculosis"],
             "steps": [
               {
                 "kind": "vaccination",
@@ -118,7 +176,9 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": null,
+            "band": "all"
           }
         ],
         "source": {
@@ -143,12 +203,14 @@
           "to": 1
         },
         "population": "children",
+        "ageSpan": null,
         "items": [
           {
             "id": "n-03-1",
             "text": "Вторая вакцинация против вирусного гепатита В",
             "infectionKey": "hepatitis-b",
             "infection": "Вирусный гепатит В",
+            "targets": ["hepatitis-b"],
             "steps": [
               {
                 "kind": "vaccination",
@@ -156,7 +218,9 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": null,
+            "band": "all"
           }
         ],
         "source": {
@@ -181,12 +245,14 @@
           "to": 2
         },
         "population": "children",
+        "ageSpan": null,
         "items": [
           {
             "id": "n-04-1",
             "text": "Третья вакцинация против вирусного гепатита В (группы риска)",
             "infectionKey": "hepatitis-b",
             "infection": "Вирусный гепатит В",
+            "targets": ["hepatitis-b"],
             "steps": [
               {
                 "kind": "vaccination",
@@ -194,13 +260,16 @@
               }
             ],
             "qualifier": "группы риска",
-            "condition": null
+            "condition": null,
+            "product": null,
+            "band": "risk"
           },
           {
             "id": "n-04-2",
             "text": "Первая вакцинация против пневмококковой инфекции",
             "infectionKey": "pneumococcal",
             "infection": "Пневмококковая инфекция",
+            "targets": ["pneumococcal"],
             "steps": [
               {
                 "kind": "vaccination",
@@ -208,7 +277,9 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": null,
+            "band": "all"
           }
         ],
         "source": {
@@ -233,12 +304,14 @@
           "to": 3
         },
         "population": "children",
+        "ageSpan": null,
         "items": [
           {
             "id": "n-05-1",
             "text": "Первая вакцинация против дифтерии, коклюша, столбняка",
             "infectionKey": "dtp",
             "infection": "Дифтерия, коклюш, столбняк",
+            "targets": ["pertussis", "diphtheria", "tetanus"],
             "steps": [
               {
                 "kind": "vaccination",
@@ -246,13 +319,16 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": null,
+            "band": "all"
           },
           {
             "id": "n-05-2",
             "text": "Первая вакцинация против полиомиелита",
             "infectionKey": "polio",
             "infection": "Полиомиелит",
+            "targets": ["polio"],
             "steps": [
               {
                 "kind": "vaccination",
@@ -260,13 +336,21 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": {
+              "code": "ИПВ",
+              "label": "вакцина для профилактики полиомиелита (инактивированная)",
+              "riskCode": null,
+              "procedureNumber": "12"
+            },
+            "band": "all"
           },
           {
             "id": "n-05-3",
             "text": "Первая вакцинация против гемофильной инфекции типа b",
             "infectionKey": "hib",
             "infection": "Гемофильная инфекция типа b",
+            "targets": ["hib"],
             "steps": [
               {
                 "kind": "vaccination",
@@ -274,7 +358,9 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": null,
+            "band": "all"
           }
         ],
         "source": {
@@ -299,12 +385,14 @@
           "to": 4.5
         },
         "population": "children",
+        "ageSpan": null,
         "items": [
           {
             "id": "n-06-1",
             "text": "Вторая вакцинация против дифтерии, коклюша, столбняка",
             "infectionKey": "dtp",
             "infection": "Дифтерия, коклюш, столбняк",
+            "targets": ["pertussis", "diphtheria", "tetanus"],
             "steps": [
               {
                 "kind": "vaccination",
@@ -312,13 +400,16 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": null,
+            "band": "all"
           },
           {
             "id": "n-06-2",
             "text": "Вторая вакцинация против гемофильной инфекции типа b",
             "infectionKey": "hib",
             "infection": "Гемофильная инфекция типа b",
+            "targets": ["hib"],
             "steps": [
               {
                 "kind": "vaccination",
@@ -326,13 +417,16 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": null,
+            "band": "all"
           },
           {
             "id": "n-06-3",
             "text": "Вторая вакцинация против полиомиелита",
             "infectionKey": "polio",
             "infection": "Полиомиелит",
+            "targets": ["polio"],
             "steps": [
               {
                 "kind": "vaccination",
@@ -340,13 +434,21 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": {
+              "code": "ИПВ",
+              "label": "вакцина для профилактики полиомиелита (инактивированная)",
+              "riskCode": null,
+              "procedureNumber": "12"
+            },
+            "band": "all"
           },
           {
             "id": "n-06-4",
             "text": "Вторая вакцинация против пневмококковой инфекции",
             "infectionKey": "pneumococcal",
             "infection": "Пневмококковая инфекция",
+            "targets": ["pneumococcal"],
             "steps": [
               {
                 "kind": "vaccination",
@@ -354,7 +456,9 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": null,
+            "band": "all"
           }
         ],
         "source": {
@@ -379,12 +483,14 @@
           "to": 6
         },
         "population": "children",
+        "ageSpan": null,
         "items": [
           {
             "id": "n-07-1",
             "text": "Третья вакцинация против дифтерии, коклюша, столбняка",
             "infectionKey": "dtp",
             "infection": "Дифтерия, коклюш, столбняк",
+            "targets": ["pertussis", "diphtheria", "tetanus"],
             "steps": [
               {
                 "kind": "vaccination",
@@ -392,13 +498,16 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": null,
+            "band": "all"
           },
           {
             "id": "n-07-2",
             "text": "Третья вакцинация против вирусного гепатита В",
             "infectionKey": "hepatitis-b",
             "infection": "Вирусный гепатит В",
+            "targets": ["hepatitis-b"],
             "steps": [
               {
                 "kind": "vaccination",
@@ -406,13 +515,16 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": null,
+            "band": "all"
           },
           {
             "id": "n-07-3",
             "text": "Третья вакцинация против полиомиелита",
             "infectionKey": "polio",
             "infection": "Полиомиелит",
+            "targets": ["polio"],
             "steps": [
               {
                 "kind": "vaccination",
@@ -420,13 +532,21 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": {
+              "code": "ИПВ",
+              "label": "вакцина для профилактики полиомиелита (инактивированная)",
+              "riskCode": null,
+              "procedureNumber": "12"
+            },
+            "band": "all"
           },
           {
             "id": "n-07-4",
             "text": "Третья вакцинация против гемофильной инфекции типа b",
             "infectionKey": "hib",
             "infection": "Гемофильная инфекция типа b",
+            "targets": ["hib"],
             "steps": [
               {
                 "kind": "vaccination",
@@ -434,7 +554,9 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": null,
+            "band": "all"
           }
         ],
         "source": {
@@ -459,12 +581,14 @@
           "to": 12
         },
         "population": "children",
+        "ageSpan": null,
         "items": [
           {
             "id": "n-08-1",
             "text": "Вакцинация против кори, краснухи, эпидемического паротита",
             "infectionKey": "mmr",
             "infection": "Корь, краснуха, эпидемический паротит",
+            "targets": ["measles", "rubella", "mumps"],
             "steps": [
               {
                 "kind": "vaccination",
@@ -472,13 +596,16 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": null,
+            "band": "all"
           },
           {
             "id": "n-08-2",
             "text": "Четвертая вакцинация против вирусного гепатита В (группы риска)",
             "infectionKey": "hepatitis-b",
             "infection": "Вирусный гепатит В",
+            "targets": ["hepatitis-b"],
             "steps": [
               {
                 "kind": "vaccination",
@@ -486,7 +613,9 @@
               }
             ],
             "qualifier": "группы риска",
-            "condition": null
+            "condition": null,
+            "product": null,
+            "band": "risk"
           }
         ],
         "source": {
@@ -511,12 +640,14 @@
           "to": 15
         },
         "population": "children",
+        "ageSpan": null,
         "items": [
           {
             "id": "n-09-1",
             "text": "Ревакцинация против пневмококковой инфекции",
             "infectionKey": "pneumococcal",
             "infection": "Пневмококковая инфекция",
+            "targets": ["pneumococcal"],
             "steps": [
               {
                 "kind": "revaccination",
@@ -524,7 +655,9 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": null,
+            "band": "all"
           }
         ],
         "source": {
@@ -549,12 +682,14 @@
           "to": 18
         },
         "population": "children",
+        "ageSpan": null,
         "items": [
           {
             "id": "n-10-1",
             "text": "Первая ревакцинация против дифтерии, коклюша, столбняка",
             "infectionKey": "dtp",
             "infection": "Дифтерия, коклюш, столбняк",
+            "targets": ["pertussis", "diphtheria", "tetanus"],
             "steps": [
               {
                 "kind": "revaccination",
@@ -562,13 +697,16 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": null,
+            "band": "all"
           },
           {
             "id": "n-10-2",
             "text": "Первая ревакцинация против полиомиелита",
             "infectionKey": "polio",
             "infection": "Полиомиелит",
+            "targets": ["polio"],
             "steps": [
               {
                 "kind": "revaccination",
@@ -576,13 +714,21 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": {
+              "code": "ИПВ",
+              "label": "вакцина для профилактики полиомиелита (инактивированная)",
+              "riskCode": null,
+              "procedureNumber": "12"
+            },
+            "band": "all"
           },
           {
             "id": "n-10-3",
             "text": "Ревакцинация против гемофильной инфекции типа b",
             "infectionKey": "hib",
             "infection": "Гемофильная инфекция типа b",
+            "targets": ["hib"],
             "steps": [
               {
                 "kind": "revaccination",
@@ -590,7 +736,9 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": null,
+            "band": "all"
           }
         ],
         "source": {
@@ -615,12 +763,14 @@
           "to": 20
         },
         "population": "children",
+        "ageSpan": null,
         "items": [
           {
             "id": "n-11-1",
             "text": "Вторая ревакцинация против полиомиелита",
             "infectionKey": "polio",
             "infection": "Полиомиелит",
+            "targets": ["polio"],
             "steps": [
               {
                 "kind": "revaccination",
@@ -628,7 +778,14 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": {
+              "code": "ОПВ",
+              "label": "вакцина для профилактики полиомиелита (живая)",
+              "riskCode": "ИПВ",
+              "procedureNumber": "12"
+            },
+            "band": "all"
           }
         ],
         "source": {
@@ -653,12 +810,14 @@
           "to": 72
         },
         "population": "children",
+        "ageSpan": null,
         "items": [
           {
             "id": "n-12-1",
             "text": "Ревакцинация против кори, краснухи, эпидемического паротита",
             "infectionKey": "mmr",
             "infection": "Корь, краснуха, эпидемический паротит",
+            "targets": ["measles", "rubella", "mumps"],
             "steps": [
               {
                 "kind": "revaccination",
@@ -666,13 +825,16 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": null,
+            "band": "all"
           },
           {
             "id": "n-12-2",
             "text": "Третья ревакцинация против полиомиелита",
             "infectionKey": "polio",
             "infection": "Полиомиелит",
+            "targets": ["polio"],
             "steps": [
               {
                 "kind": "revaccination",
@@ -680,7 +842,14 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": {
+              "code": "ОПВ",
+              "label": "вакцина для профилактики полиомиелита (живая)",
+              "riskCode": "ИПВ",
+              "procedureNumber": "12"
+            },
+            "band": "all"
           }
         ],
         "source": {
@@ -705,12 +874,14 @@
           "to": 84
         },
         "population": "children",
+        "ageSpan": null,
         "items": [
           {
             "id": "n-13-1",
             "text": "Вторая ревакцинация против дифтерии, столбняка",
             "infectionKey": "dt",
             "infection": "Дифтерия, столбняк",
+            "targets": ["diphtheria", "tetanus"],
             "steps": [
               {
                 "kind": "revaccination",
@@ -718,13 +889,16 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": null,
+            "band": "all"
           },
           {
             "id": "n-13-2",
             "text": "Ревакцинация против туберкулеза",
             "infectionKey": "tuberculosis",
             "infection": "Туберкулёз",
+            "targets": ["tuberculosis"],
             "steps": [
               {
                 "kind": "revaccination",
@@ -732,7 +906,9 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": null,
+            "band": "all"
           }
         ],
         "source": {
@@ -757,12 +933,14 @@
           "to": 168
         },
         "population": "children",
+        "ageSpan": null,
         "items": [
           {
             "id": "n-14-1",
             "text": "Третья ревакцинация против дифтерии, столбняка",
             "infectionKey": "dt",
             "infection": "Дифтерия, столбняк",
+            "targets": ["diphtheria", "tetanus"],
             "steps": [
               {
                 "kind": "revaccination",
@@ -770,7 +948,9 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": null,
+            "band": "all"
           }
         ],
         "source": {
@@ -791,12 +971,14 @@
         "ageLabel": "Взрослые от 18 лет",
         "age": null,
         "population": "adults",
+        "ageSpan": null,
         "items": [
           {
             "id": "n-15-1",
             "text": "Ревакцинация против дифтерии, столбняка – каждые 10 лет от момента последней ревакцинации",
             "infectionKey": "dt",
             "infection": "Дифтерия, столбняк",
+            "targets": ["diphtheria", "tetanus"],
             "steps": [
               {
                 "kind": "revaccination",
@@ -804,7 +986,9 @@
               }
             ],
             "qualifier": null,
-            "condition": "каждые 10 лет от момента последней ревакцинации"
+            "condition": "каждые 10 лет от момента последней ревакцинации",
+            "product": null,
+            "band": "all"
           }
         ],
         "source": {
@@ -825,12 +1009,17 @@
         "ageLabel": "Категории",
         "age": null,
         "population": "both",
+        "ageSpan": {
+          "fromMonths": 12,
+          "toMonths": null
+        },
         "items": [
           {
             "id": "n-16-1",
             "text": "Вакцинация против вирусного гепатита В",
             "infectionKey": "hepatitis-b",
             "infection": "Вирусный гепатит В",
+            "targets": ["hepatitis-b"],
             "steps": [
               {
                 "kind": "vaccination",
@@ -838,7 +1027,9 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": null,
+            "band": "catch-up"
           }
         ],
         "source": {
@@ -859,12 +1050,17 @@
         "ageLabel": "Категории",
         "age": null,
         "population": "both",
+        "ageSpan": {
+          "fromMonths": 12,
+          "toMonths": null
+        },
         "items": [
           {
             "id": "n-17-1",
             "text": "Вакцинация против краснухи, ревакцинация против краснухи",
             "infectionKey": "rubella",
             "infection": "Краснуха",
+            "targets": ["rubella"],
             "steps": [
               {
                 "kind": "vaccination",
@@ -876,7 +1072,9 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": null,
+            "band": "catch-up"
           }
         ],
         "source": {
@@ -897,12 +1095,17 @@
         "ageLabel": "Категории",
         "age": null,
         "population": "both",
+        "ageSpan": {
+          "fromMonths": 12,
+          "toMonths": null
+        },
         "items": [
           {
             "id": "n-18-1",
             "text": "Вакцинация против кори, ревакцинация против кори",
             "infectionKey": "measles",
             "infection": "Корь",
+            "targets": ["measles"],
             "steps": [
               {
                 "kind": "vaccination",
@@ -914,7 +1117,9 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": null,
+            "band": "catch-up"
           }
         ],
         "source": {
@@ -935,12 +1140,17 @@
         "ageLabel": "Категории",
         "age": null,
         "population": "both",
+        "ageSpan": {
+          "fromMonths": 6,
+          "toMonths": null
+        },
         "items": [
           {
             "id": "n-19-1",
             "text": "Вакцинация против гриппа",
             "infectionKey": "influenza",
             "infection": "Грипп",
+            "targets": ["influenza"],
             "steps": [
               {
                 "kind": "vaccination",
@@ -948,7 +1158,9 @@
               }
             ],
             "qualifier": null,
-            "condition": null
+            "condition": null,
+            "product": null,
+            "band": "risk"
           }
         ],
         "source": {
