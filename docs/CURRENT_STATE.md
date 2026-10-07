@@ -742,6 +742,134 @@ browser is not rendering; `reader-find-jumps.spec.ts` asserts the landed heading
 Open: the КР modules are not rebuilt with the ingest-side heading rule (owner decision); the
 small-caps section path above each promoted sub-heading is shown as for any section.
 
+## Reader back, positions and layout (UX12) — 2026-10-07
+
+QA pass 2026-10-07 (Playwright, Chromium, 390×844 touch and 1280×800, КР «Острая ишемия конечностей»
+`kr.rf.1006_1`), seven items on the official-document reader. Branch `worktree-agent-a2a990fb340f25309`
+(not merged, not pushed).
+
+### A–C. Opening, back and positions
+
+- **A. A document opened from a link started at scrollY ≈ 78.** The page (window) scrolls, and the
+  host kept the scroll of the document before it; the short loading page of the new document clamped
+  it to ~78 px, and nothing reset it (the reader's «scroll to top» branch scrolled
+  `.document-overlay-paper`, which does not scroll). `DocumentPageHost.syncFromLocation` now scrolls
+  the window to 0 when the route's document changes; the reader's no-anchor branch also resets the
+  window.
+- **B. Back did not restore the place.** The reading position is the section under the reading line
+  (the scroll spy's active section id) plus the pixels past its aligned start
+  (`readerOffsetWithin`, `document-reader-scroll.ts`), saved on the history entry
+  (`history.state.minimedEntry.position`; `state/history-entries.ts`) — not the raw scroll offset,
+  because sections mount lazily and off-screen ones are only estimated (`content-visibility`). The
+  reader writes it debounced (500 ms) while the user scrolls, and synchronously before any tap or key
+  (capture-phase `click` / `keydown`, `pagehide`, `visibilitychange`, `openDocumentOverlay`), so the
+  place at the moment of the tap is what is stored. On back / forward / reload the reader mounts the
+  sections up to the anchor and restores with `jumpReaderTo(…, { align: 'start', offset })` (new
+  `offset` option), which re-measures until the place stands still; tracking starts only after the
+  restore settled or the user took over, so the restore's own scroll events never overwrite the saved
+  place. A late write for a document that has been left is dropped (entry id check). Measured on
+  КР 1006_1: the section and the offset into it return to ±4 px (raw scrollY may differ by tens of
+  pixels, as the sections above the reading line are estimated again until they render).
+- **C. The app's own back pushed history** (`navigateDocumentReaderBack` called
+  `onNavigate(previous.href)` → `window.location.hash = href`): after open → app back, `history.length`
+  grew 5 → 7 → 9 and a system back led to the document just left. Every entry the app visits is now
+  stamped in `history.state` with an id and a depth (the number of app entries below it that this page
+  load has seen; a push raises `history.length` and arrives unstamped, a traversal lands on a stamped
+  entry; an unclassifiable arrival gets depth 0). `navigateDocumentReaderBack` does `history.back()`
+  when depth > 0 and only otherwise (deep link, reload of an old entry) replaces the entry with the
+  previous document / the trail origin (`replaceLocationHash`, now exported). A crumb tap that leads to
+  the same place does the same. The trail follows the address: a system back/forward cuts or extends
+  the breadcrumbs (`syncTrail`), so after back the header shows the previous document's crumbs.
+- **Found on the way:** `DocumentPageHost` rendered its readers inside
+  `<Show when={route()}>{(activeRoute) => { const parsed = activeRoute(); … }}`, a non-keyed callback that
+  runs once, so the `keyed` `<Show>`s inside it never re-keyed: **one reader instance served every
+  document** (its find, section and scroll state carried over). The keys now follow the route
+  (`officialDocumentId()` / `userDocumentId()`); a different document is a new reader.
+- Tests: unit `history-entries.test.ts` (stamps, depth through pushes/back steps, late writes,
+  flushers), `document-reader-chrome.test.ts` (back = `history.back()` vs replace); e2e
+  `reader-back-position.spec.ts` (phone + desktop: search → A → link → B → app back → A → app back →
+  search, history length constant, B at scrollY 0, A's place restored, system back after it;
+  `page.goBack()`/`goForward()` sequence with crumbs and places; a fresh-load deep link goes to its
+  origin by replacing). Before the fix (same flow): B opened at y = 78, A came back at y = 78, history
+  length 3 → 4 → 5 → 6.
+- **Not verified:** the Android system back (gesture / button) on a device — `nativeBackAction` calls
+  `history.back()` on a document route, which is the same history shape as tested; back from a
+  document opened inside a Capacitor WebView session that was restored by the OS; the position of
+  personal files (`UserDocumentReader`: only the scroll reset and the back behaviour changed; PDF/EPUB
+  keep their own resume).
+
+### D. Contents column and the bottom bar
+
+At 761–~1000 px the reader uses the desktop column layout and the floating bottom bar (centred, fixed)
+reaches over the contents column (768 px: «Сведения об источнике» ended 17 px below the bar's top).
+`--bottom-nav-clearance` (`mobile-shell.css`, 4.75 rem + the bottom safe inset) is now free at the end
+of `.document-overlay-outline--open` (`doctor-ux.css`), so the list and the footer scroll clear of it.
+`reader-layout-preview.spec.ts` hit-tests the footer and the list end at 768×1024, 800×1000, 844×390,
+1024×768 and 1280×800; with the old CSS the 768 case fails (footer bottom 977 > bar top 960).
+
+### E. Image previews
+
+- User image lightbox: the dialog had no definite height, the picture was sized to the window
+  (`92dvh`, `92vw`) and centred, so it ran under the title bar and past the bottom edge (1280×800: the
+  picture spanned y 67–803 over a body of 88–783; wide pictures were also clipped 32 px at the right).
+  The dialog now has a definite height, its body is a size container, and the picture is
+  `max-width: 100cqw; max-height: 100cqh` (window-based fallback outside `@supports (width: 1cqw)`).
+- The reader's `MediaViewer`: the `<figure>` kept the UA margins (16 px top, 40 px left/right) and the
+  caption took room from the picture; margins are 0, the panel's content box is a size container, the
+  picture is fitted to it minus a reserved caption row (long captions scroll inside it).
+- Reference illustrations (`.document-reference-image`, in `DocumentText` and the pointer page) were
+  not openable. They now open in the same zoomable preview (`PreviewableImage` in
+  `document-rich-block.tsx`: wheel / double tap / pinch / buttons; no print for them).
+- Tests: `reader-layout-preview.spec.ts` — the lightbox and the `MediaViewer` stay inside the title bar
+  and the free area at 1280×800, 390×844, 844×390 (tall and wide pictures); a reference illustration
+  opens, zooms and closes (the mirror is answered from the local copy of the assets; skipped when
+  they are absent).
+
+### F. Term preview card
+
+`ClampedDefinition` (`DocumentText.tsx`): four lines with a fade, «Показать полностью» / «Свернуть»
+inside the card (overflow measured with the clamp on); «Открыть» stays in the sticky header at the top
+of the card. «Парадоксальная эмболия» (698 characters): card 581 → ~240 px at 390×844.
+`reader-layout-preview.spec.ts` checks the height, the four-line clamp, the expand, «Открыть» at the
+top after scrolling the expanded card.
+
+### G. First render of a long document
+
+Profile (CDP `Profiler`, 500 µs sampling; КР 1006_1, 86 sections, 390×844): the first long task
+(396 ms at 1×) was ~230 ms link matching — `buildDocumentLinkPhrases` + `createDocumentLinkMatcher`
+over the ~20 000 catalog entries, **rebuilt for every document opened** because the document's own
+family was excluded at build time — plus ~110 ms rendering the first sections. `documentLinkMatcherFor`
+builds one matcher per document list (WeakMap on the core's cached listing); the reader's own family is
+excluded by `matcher.excluding(…)` (same results as a rebuild, unit-tested). The build is time-sliced
+(`prepareDocumentLinkMatcher`, 8 ms slices) and started in idle time 2 s after the search home has the
+list (`document-link-prewarm.ts`), so the first document opened finds it ready.
+
+| longest main-thread task while opening | 1× CPU | 4× CPU |
+| --- | --- | --- |
+| before (matcher rebuilt per document) | 396 ms | 1826 ms |
+| after, matcher ready (idle prewarm done, or a second document) | 56–65 ms | 263–280 ms |
+| after, opened right after load, before the prewarm finished (built once, synchronously) | 174 ms | 903 ms |
+
+Idle-batch tasks after the first (the remaining sections mounting in batches of 3) are unchanged:
+50–70 ms at 1×, 60–160 ms at 4×. Not changed: the section batches themselves, the find index, rich-block
+resolution (not measured as a cost). Not verified on a phone.
+
+### Checks
+
+`bun run check`: one error that exists on `main` (`document-reader-chrome.tsx` import order), no new
+ones; `bun run typecheck` clean; `bunx vitest run`: 470 files / 8 985 tests pass (one run showed the
+timing-only flake `knowledge-graph … keeps every circle one gap clear` under load; it passed on re-run);
+`bun run build:app` ok. Playwright (Chromium, `--workers=2`, `E2E_PORT=4198`, local clinical-module
+copy): `reader-navigation`, `reader-find-jumps`, `reader-lookups`, `kr-reader-structure`, `image-zoom`,
+`reader-loading-layout`, `native-chrome`, `reader-back-position` (5), `reader-layout-preview` (16),
+plus `document-core-wait`, `module-pointer`, `notification-open`, `reader-actions`, `user-reader`,
+`user-library-reader-fixes`, `ux-feedback`, `ecg-close`, `pdf-viewer`, `search-ui-revision`,
+`icd11-module`, `drug-*`, `medication-safety`, `settings-list`, `item-bookmarks`, `search`: all pass
+except `search.spec.ts › toggles the document outline on desktop…` (strict-mode violation: the UX11a
+«12 / 48» counter pills now also match `/\d+\s*\/\s*\d+/` in `.document-overlay`; not touched by
+these changes, its locator needs a more specific selector) and one run of `reader-lookups › search source context…` that timed out under two
+workers and passed alone and 3/3 on repeat.
+
 ## Reader chrome and navigation (UX11a) — 2026-10-07
 
 Owner feedback on the document reader (official documents and personal Markdown/text files).
