@@ -807,6 +807,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
   });
   let lastScrolledMatchKey = '';
   let cancelFindJump: (() => void) | undefined;
+
   const bookmark = createReaderBookmark();
   const chrome = useDocumentReaderChrome({
     ...(props.initialAnchor != null && props.initialAnchor !== ''
@@ -866,8 +867,8 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
       { align: 'center' },
     );
   });
-
   onCleanup(() => cancelFindJump?.());
+
   let initialScrollKey: string | undefined;
   createEffect(() => {
     const document = props.document;
@@ -1569,6 +1570,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                                           query: state().query,
                                           exact: state().mode === 'exact',
                                           fuzzy: state().mode === 'similar',
+                                          matchClass: 'document-overlay-match',
                                           ranges: rangesForFindUnit(
                                             rangesByUnit(),
                                             item.chunk.anchor,
