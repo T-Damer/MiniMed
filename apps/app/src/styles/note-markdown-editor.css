@@ -9,7 +9,8 @@ body:has(.note-markdown-editor--fullscreen) {
 
 .note-markdown-editor ::selection,
 .note-selection-menu ::selection {
-  background: color-mix(in srgb, var(--theme-accent, #5a7d5a) 30%, transparent);
+  color: var(--selection-text);
+  background: var(--selection-background);
 }
 
 .note-markdown-editor__workspace {

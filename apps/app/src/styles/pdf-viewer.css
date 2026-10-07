@@ -114,7 +114,7 @@
 
 .pdf-viewer__text-run::selection {
   color: transparent;
-  background: color-mix(in srgb, var(--theme-accent, #5a7d5a) 35%, transparent);
+  background: color-mix(in srgb, var(--selection-background) 70%, transparent);
 }
 
 /* Find matches, painted by the CSS Custom Highlight API over the transparent text. */

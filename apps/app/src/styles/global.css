@@ -10,13 +10,24 @@
   --motion-slow: 260ms;
   --inline-link: #355b69;
   --inline-link-hover: #244652;
+  /* Text selection: a green-yellow highlighter. Dark text on it is 9.5:1 (light theme), light text
+     5.5:1 (dark theme); it stays apart from the tan find-match colour by hue. */
+  --selection-background: #bfd873;
+  --selection-text: #292720;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --inline-link: #9bc7a7;
     --inline-link-hover: #afd2b9;
+    --selection-background: #55661f;
+    --selection-text: #f4efd8;
   }
+}
+
+::selection {
+  color: var(--selection-text);
+  background: var(--selection-background);
 }
 
 * {
