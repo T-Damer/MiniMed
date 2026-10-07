@@ -539,32 +539,26 @@
   display: flex;
   flex: none;
   align-items: center;
-  gap: 0.375rem;
+  justify-content: flex-end;
+  /* A fixed slot: the typed text does not move while the count changes or a search runs. It holds
+     «999/9999»; a longer label grows to the left over the empty end of the text. */
+  width: 5.5em;
   min-height: 1rem;
-}
-
-.document-find__field-status {
-  min-width: 0;
-  justify-content: center;
-  margin-inline-start: 0;
+  color: var(--theme-text-muted, var(--ink-soft));
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .document-find__count {
   color: var(--theme-text, var(--ink));
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
   white-space: nowrap;
 }
 
-.document-find__spinner {
-  display: inline-block;
-  width: 1rem;
-  height: 1rem;
-  border: 0.125rem solid var(--theme-border);
-  border-top-color: var(--theme-accent);
-  border-radius: 50%;
-  animation: spin 0.75s linear infinite;
+.ascii-spinner.document-find__spinner {
+  font-size: 0.75rem;
 }
 
 .document-find__step {

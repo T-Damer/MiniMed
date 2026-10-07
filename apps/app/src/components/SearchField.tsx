@@ -13,6 +13,8 @@ export interface SearchFieldProps {
   readonly tone?: 'default' | 'inverse';
   readonly class?: string;
   readonly leading?: JSX.Element;
+  /** After the text, before the clear button: a result counter or a progress mark. */
+  readonly trailing?: JSX.Element;
   readonly onClear?: (() => void) | undefined;
   readonly autocomplete?: string;
   readonly inputRef?: (element: HTMLInputElement) => void;
@@ -31,6 +33,7 @@ export function SearchField(props: SearchFieldProps): JSX.Element {
     'tone',
     'class',
     'leading',
+    'trailing',
     'onClear',
     'autocomplete',
     'inputRef',
@@ -65,6 +68,7 @@ export function SearchField(props: SearchFieldProps): JSX.Element {
           autocomplete={local.autocomplete ?? 'off'}
           onInput={(event) => local.onInput(event.currentTarget.value)}
         />
+        {local.trailing}
         <Show when={local.onClear && local.value.length > 0}>
           <button
             type="button"

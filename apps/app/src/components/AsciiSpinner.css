@@ -1,0 +1,14 @@
+.ascii-spinner {
+  display: inline-block;
+  min-width: 1ch;
+  color: var(--theme-accent, currentColor);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  text-align: center;
+}
+
+.ascii-spinner--static {
+  color: var(--theme-text-muted, currentColor);
+}

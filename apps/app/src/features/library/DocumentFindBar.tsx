@@ -10,6 +10,7 @@ import {
 } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { AsciiSpinner } from '@/components/AsciiSpinner';
 import { Button } from '@/components/Button';
 import { SearchField } from '@/components/SearchField';
 import {
@@ -200,6 +201,11 @@ export function DocumentFindBar(props: DocumentFindBarProps): JSX.Element {
     return `${activeIndex() + 1}/${count}`;
   };
 
+  const statusLabel = (): string | undefined => {
+    if (loading()) return 'Идёт поиск';
+    return countLabel() === '0/0' ? 'Нет совпадений' : undefined;
+  };
+
   onMount(() => {
     const handleKeyDown = (event: KeyboardEvent): void => {
       if (event.key === 'Escape' && open()) {
@@ -251,15 +257,15 @@ export function DocumentFindBar(props: DocumentFindBarProps): JSX.Element {
           value={inputValue()}
           onInput={setInputValue}
           placeholder="Слово или фраза"
-          leading={
+          trailing={
             <div
-              class="document-find__status document-find__field-status"
+              class="document-find__status"
               role="status"
               aria-live="polite"
-              aria-label={countLabel() === '0/0' ? 'Нет совпадений' : undefined}
+              aria-label={statusLabel()}
             >
               <Show when={loading()}>
-                <span class="document-find__spinner" aria-hidden="true" />
+                <AsciiSpinner class="document-find__spinner" />
               </Show>
               <Show when={countLabel()}>
                 <span class="document-find__count">{countLabel()}</span>
