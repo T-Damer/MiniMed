@@ -102,9 +102,10 @@ test('the first run shows no status line while the download waits for the greeti
   expect(downloads).toBe(0);
   await expect(page.locator('.search-home .search-core-status')).toHaveCount(0);
   await expect(page.locator('.search-core-status__spinner')).toHaveCount(0);
+  // Since UX9 (0.6.54) the field takes a query while the core is on its way: its usual prompt stays.
   await expect(page.getByTestId('search-input')).toHaveAttribute(
     'placeholder',
-    'Поиск откроется после загрузки ядра',
+    'Болезнь, код МКБ, препарат, фраза',
   );
   // Once the user is past the greeting the download is real, and the status follows it.
   const intro = page.getByRole('dialog', { name: 'Добро пожаловать в MiniMed' });
