@@ -7,6 +7,15 @@ export function computeReadingLine(scrollerRect: DOMRect, minimumOffset = 0): nu
   return scrollerRect.top + Math.max(minimumOffset, Math.min(120, scrollerRect.height * 0.2));
 }
 
+/**
+ * True while the browser skips rendering the section (`content-visibility: auto` far off screen).
+ * Such a section's box can be stale — a nested one may still report where it sat before the page
+ * scrolled — so it is no evidence of where the reader is. The section being read is always rendered.
+ */
+function skippedByContentVisibility(section: HTMLElement): boolean {
+  return section.checkVisibility?.({ contentVisibilityAuto: true }) === false;
+}
+
 export function pickActiveSectionAnchor(
   sections: readonly HTMLElement[],
   readingLine: number,
@@ -14,6 +23,7 @@ export function pickActiveSectionAnchor(
   if (sections.length === 0) return '';
   let nextAnchor = sections[0]?.id ?? '';
   for (const section of sections) {
+    if (skippedByContentVisibility(section)) continue;
     if (section.getBoundingClientRect().top > readingLine) break;
     nextAnchor = section.id;
   }

@@ -286,11 +286,14 @@ async function assertOneTapJumps(page: Page, width: number): Promise<void> {
       const section = id ? document.getElementById(id) : null;
       return {
         present: Boolean(section),
+        // A section inside a skipped (content-visibility) ancestor reports a stale box.
+        rendered: section?.checkVisibility({ contentVisibilityAuto: true } as never) ?? false,
         top: section?.getBoundingClientRect().top ?? Number.NaN,
         margin: section ? Number.parseFloat(getComputedStyle(section).scrollMarginTop) : Number.NaN,
       };
     }, anchor);
     expect(landing.present, `heading ${index} is in the page`).toBe(true);
+    expect(landing.rendered, `heading ${index} is rendered, not a stale box`).toBe(true);
     expect(
       Math.abs(landing.top - landing.margin),
       `heading ${index} sits under the chrome`,

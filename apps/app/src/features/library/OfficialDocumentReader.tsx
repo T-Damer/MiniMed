@@ -1486,6 +1486,9 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                               section,
                               documentValue().sourceType,
                             ),
+                            // Holds subsections: never skipped as a whole (see the CSS).
+                            'document-overlay-section--container':
+                              (visibleSectionTree(), treeNode.children.length > 0),
                           }}
                           id={section.anchor}
                         >

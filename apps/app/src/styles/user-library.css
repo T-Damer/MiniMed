@@ -832,6 +832,15 @@
   contain-intrinsic-size: auto 420px;
 }
 
+/* A section that holds subsections is rendered as a whole. Skipped, it collapsed to the 420px
+   estimate while its subsections kept stale boxes, so a jump into a chapter («3. Лечение») scrolled
+   to a place that showed another chapter and the scroll spy marked the wrong section. Leaf
+   sections keep the estimate; jumps re-measure as they render (`document-reader-scroll.ts`). */
+.document-overlay-section--container {
+  content-visibility: visible;
+  contain-intrinsic-size: none;
+}
+
 /* Card menu: filled accent icon, flat card, green outline hover */
 
 .user-library-card.paper-card,

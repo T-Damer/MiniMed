@@ -31,6 +31,25 @@ describe('document-reader-outline', () => {
     expect(pickActiveSectionAnchor([], 100)).toBe('');
   });
 
+  it('pickActiveSectionAnchor ignores sections the browser skips, whose boxes are stale', () => {
+    const rendered = (id: string, top: number) =>
+      ({ id, getBoundingClientRect: () => ({ top }), checkVisibility: () => true }) as unknown;
+    // A nested section far above, not rendered, still reports a box below the reading line.
+    const skipped = {
+      id: 'stale',
+      getBoundingClientRect: () => ({ top: 900 }),
+      checkVisibility: () => false,
+    } as unknown;
+    const sections = [
+      rendered('a', -4000),
+      skipped,
+      rendered('b', -200),
+      rendered('c', 150),
+      rendered('d', 600),
+    ] as HTMLElement[];
+    expect(pickActiveSectionAnchor(sections, 186)).toBe('c');
+  });
+
   it('outlineItemSelector builds attribute selectors', () => {
     expect(outlineItemSelector('data-section-anchor', 'intro')).toBe(
       '[data-section-anchor="intro"]',
