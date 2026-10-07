@@ -1585,7 +1585,12 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                               );
                             }}
                           </For>
-                          <For each={treeNode.children}>{(child) => renderSection(child)}</For>
+                          {/* The cached nodes keep their identity, but `children` is a plain array that the
+                              tree rebuild replaces whenever a batch mounts: read the memo so this list
+                              follows it (nested sections of a mounted root would never appear otherwise). */}
+                          <For each={(visibleSectionTree(), treeNode.children)}>
+                            {(child) => renderSection(child)}
+                          </For>
                         </section>
                       );
                     };
