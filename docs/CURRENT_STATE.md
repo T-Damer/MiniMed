@@ -572,6 +572,101 @@ on the list searches titles, descriptions and card keywords.
   opens the app settings. Not verified on a physical phone (HyperOS may add its own audio-record
   gate).
 
+## КР headings, image zoom and selection (UX11c) — 2026-10-07
+
+Owner feedback 2026-10-07, three items. Branch `worktree-agent-a6b8b452dd6b115fe` (not merged).
+
+### КР sub-headings that were plain paragraphs
+
+- **Cause.** The Minzdrav JSON gives only top-level sections (`obj.sections[].title`; the extractor
+  already derives their depth from the number), deeper numbered headings («1.2.2.1 Заголовок») sit
+  inside the section's HTML as `<p>`. The PDF extraction found headings by font size and missed the
+  same ones. Both reach the reader as body paragraphs: no outline entry, no heading style.
+- **Measured** (rule below, real data): published КР modules (774 documents, `data/build/official-clinical-documents-merged`):
+  1 624 paragraphs start with a multi-level number, **1 184 are headings in 129 documents** (depth 2:
+  565, 3: 426, 4: 174, 5: 19; most in one document: 95). Raw JSON editions (1 259): 2 570 candidates,
+  **2 004 headings in 250 documents** (headings 56 085 → 58 089). The rest are list items («2.2 ФЛ …;»),
+  doses, ICD codes, recommendations, TOC lines.
+- **Rule** (`numbered-headings.ts` / `localmed_ingest/numbered_headings.py`, one shared case file
+  `numbered-headings.cases.json`, 0 mismatches over the 4 194 real lines): ≥ 2 number components
+  (1–2 digits, no leading zero), capital letter next, not ending in `;`/`,`, no dot leaders / page
+  number / `____`, no second sentence, no recommendation/instruction phrasing (verbs, infinitive,
+  «Для/При …» clauses), ≤ 40 words / 220 characters; question titles of patient sections allowed.
+  Depth = number of components.
+- **Display layer (works on published modules now).** `visibleReaderSections` (КР source types only)
+  runs `promoteNumberedHeadingSections`: the heading paragraph becomes a reader section (outline
+  entry, heading element with the sticky-heading stack, find unit, copyable link, section path) and
+  the text after it moves in. Stored data and ids are untouched: existing sections keep id/anchor,
+  a chunk without a heading is the same object, a chunk cut at a heading gives its id and anchor to
+  the first piece that has text; derived ids/anchors are `<chunk id>~<n>` and `<chunk anchor>~h<n>`.
+  129 documents / 1 184 sections added over 30 886; no id collisions, text preserved (checked on all
+  774 modules). The wording is never changed.
+- **Ingest layer (needs a module rebuild).** `clinical_json_import` reads a matching `<p>` as a
+  heading block (same text and block id, `promotedFrom: numbered-paragraph`, `promotedHeadings` in the
+  extraction report). Section ids are path-derived, so existing sections keep theirs, but chunks that
+  move under a new sub-section get new chunk ids — same as any edition rebuild. `ExtractedSource.extractor_revision`
+  (2) makes `prepare --reuse` re-extract older clinical-JSON extractions. Rebuild: the KR2 flow
+  (`prepare` on the clinical JSON registry without `--reuse`, then build/compact/zstd/publish);
+  NOT run or published here. PDF-derived modules are not rebuilt: the display layer covers them.
+- Tests: `numbered-headings.test.ts`, `numbered-heading-sections.test.ts`, `test_numbered_headings.py`,
+  `test_clinical_json_numbered_headings.py`; e2e `kr-reader-structure.spec.ts` (heading + outline).
+
+### Image preview zoom
+
+- Cause: scroll-port zoom scaled from the content's top-left without compensating the scroll,
+  the transform model scaled from the centre with an approximate pan, there was no wheel / trackpad
+  or double-tap handling, and two lightboxes (user image documents, assessment images) had no zoom.
+- `pinch-zoom-math.ts`: one rule — keep the content point under the cursor / pinch centroid / tapped
+  point (`placeContentPoint`), clamped pan (content always covers the surface), pinch centroid
+  tracking (two-finger pan), double-tap 1× ↔ 2×, wheel factors (mouse notch gentler than trackpad
+  pinch, which Chromium reports as Ctrl+wheel). `use-pinch-zoom.ts` applies it in the scrollport
+  model (scroll compensation, instant scroll — `html` is `scroll-behavior: smooth`) and in the
+  transform model (translate + clamp), adds `wheelZoom` (`ctrl` | `always`), `doubleTapZoom`,
+  `dragPan`. Image previews (`MediaViewer` for images, user image lightbox, assessment lightbox)
+  use `IMAGE_ZOOM_OPTIONS`; tables keep Ctrl+wheel only so wheel and text selection still work.
+  Buttons zoom around the visible centre.
+- Library question: PhotoSwipe / similar were not adopted — the viewer needs scroll-port and
+  in-place modes, zoom buttons and print inside the app's dialogs; a library would still need that
+  glue (~45 kB) for what is ~150 lines of math here, now unit-tested. Inertia was not added.
+- Tests: `pinch-zoom-math.test.ts` (22), e2e `image-zoom.spec.ts` (wheel, double click, drag-pan
+  clamp, two-finger pinch + double tap via CDP). The scrollport model was checked in a DOM harness
+  (wheel, double click, drag, buttons).
+
+### Selection colour and КР highlights
+
+- `::selection` is a green-yellow highlighter from tokens `--selection-background` / `--selection-text`
+  in `global.css` (light `#bfd873` + `#292720` 9.5:1; dark `#55661f` + `#f4efd8` 5.5:1); the note
+  editor and the PDF text layer use the same tokens.
+- Highlights existed only for user documents (`UserDocumentHighlights`); official documents had no
+  selection handling, so no popup could appear. `UserDocumentHighlights` now takes the containers it
+  works in (`OFFICIAL_DOCUMENT_HIGHLIGHT_CONTAINERS` = a КР text chunk, `id` = chunk anchor), saves a
+  selection across chunks as one mark per chunk, checks a stored mark against its quote before
+  painting (`verifyQuote`), and `OfficialDocumentReader` mounts it for clinical recommendations.
+  Same IndexedDB store, colours and removal-by-tap as user documents. Marks are anchored to the
+  rendered chunk (anchor + character offsets + quote); a mark whose text moved (reading rule or a new
+  edition) is hidden, not repainted over other words — re-anchoring across editions is R1.
+  Only КР for now; other official documents are one prop away.
+- Popup placement (`highlight-popup-placement.ts`): mouse — above the selection as before; touch
+  (`pointer: coarse`) — below the selection past the drag handles (the system menu opens above it),
+  docked above the bottom navigation when there is no room below.
+- Tests: `highlight-popup-placement.test.ts`; e2e `kr-reader-structure.spec.ts` (highlight, cross-chunk
+  marks, reload, remove, 390 px touch placement + dock); `user-reader.spec.ts` highlight test still passes.
+- **Not verified:** the real Android system selection menu (positions, drag handles, whether the
+  WebView's menu ever covers the popup below the selection) — emulated touch only.
+
+Merge follow-up (2026-10-07, coordinator): the promoted headings exposed two older reader faults,
+both fixed. (1) `visibleReaderSections` dropped every section without its own text, so chapters
+(«1. Краткая информация», «3. Лечение», «7. …») vanished and their subsections nested under the
+section before; a text-less section now stays when a deeper section under it has text. (2)
+`content-visibility: auto` on nested sections let an off-screen chapter collapse to its 420px
+estimate while its subsections kept stale boxes: TOC jumps into it settled on a stale box showing
+another chapter, and the outline marked the wrong entry. Sections holding subsections now carry
+`.document-overlay-section--container` (rendered as a whole); the scroll spy skips sections the
+browser is not rendering; `reader-find-jumps.spec.ts` asserts the landed heading is rendered.
+
+Open: the КР modules are not rebuilt with the ingest-side heading rule (owner decision); the
+small-caps section path above each promoted sub-heading is shown as for any section.
+
 ## Reader chrome and navigation (UX11a) — 2026-10-07
 
 Owner feedback on the document reader (official documents and personal Markdown/text files).
