@@ -21,7 +21,7 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { Disclosure } from '@/components/Disclosure';
 import { DocumentCrumbs } from '@/components/DocumentCrumbs';
-import { DocumentText, documentTextSearchText } from '@/components/DocumentText';
+import { DocumentText } from '@/components/DocumentText';
 import { QueryHighlightedText } from '@/components/HighlightedText';
 import { SegmentedControl } from '@/components/SegmentedControl';
 import {
@@ -59,6 +59,7 @@ import {
 } from '@/features/library/document-reader-chrome';
 import { jumpReaderTo } from '@/features/library/document-reader-scroll';
 import { DocumentRichBlock } from '@/features/library/document-rich-block';
+import { documentTextSearchText } from '@/features/library/document-text-search';
 import {
   documentRenderBlockSearchText,
   resolveDocumentChunkItems,
@@ -805,7 +806,6 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
     return findMatches()[state.activeIndex];
   });
   let lastScrolledMatchKey = '';
-
   let cancelFindJump: (() => void) | undefined;
   const bookmark = createReaderBookmark();
   const chrome = useDocumentReaderChrome({

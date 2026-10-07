@@ -18,6 +18,7 @@ import {
   parseDocumentText,
 } from '@/features/library/document-medication-links';
 import { DocumentRichBlock } from '@/features/library/document-rich-block';
+import { documentTextBlockSearchText } from '@/features/library/document-text-search';
 import {
   loadMedicationLinkSummary,
   type MedicationLinkSummary,
@@ -624,18 +625,15 @@ function addSearchOffsets(
   return groups.map((group) => ({
     ...group,
     items: group.items.map((item) => {
-      const text = (item.kind === 'image' ? item.alt : item.text).replaceAll('**', '');
-      const result = { ...item, text, offset };
-      offset += text.length + 1;
+      const searchText = documentTextBlockSearchText(item);
+      // A reference image shows no text of its own (its alt text is not on screen), so find does
+      // not count it and it takes no part in the offsets.
+      if (searchText === null) return { ...item, offset };
+      const result = { ...item, text: searchText, offset };
+      offset += searchText.length + 1;
       return result;
     }),
   }));
-}
-
-export function documentTextSearchText(text: string, sourceSpans?: unknown): string {
-  return parseDocumentText(stripKnownHtmlMarkup(text), sourceSpans)
-    .map((block) => (block.kind === 'image' ? block.alt : block.text).replaceAll('**', ''))
-    .join('\n');
 }
 
 function ReferenceImage(props: {
@@ -778,6 +776,7 @@ export function DocumentText(props: {
                 query: props.query,
                 exact: props.exactQuery,
                 fuzzy: props.fuzzyQuery,
+                matchClass: props.highlightClass,
                 ranges: props.ranges,
                 unitId: props.unitId,
                 activeStart: props.activeStart,

@@ -19,6 +19,8 @@ interface RichBlockHighlightProps {
   readonly query?: string | undefined;
   readonly exact?: boolean | undefined;
   readonly fuzzy?: boolean | undefined;
+  /** Class of a find match; it also names the `--current` modifier of the active one. */
+  readonly matchClass?: string | undefined;
   readonly ranges?: readonly TextRange[] | undefined;
   readonly unitId?: string | undefined;
   readonly activeStart?: number | undefined;
@@ -228,6 +230,7 @@ function RichTableMarkup(props: {
               query={props.highlight?.query ?? ''}
               exact={props.highlight?.exact}
               fuzzy={props.highlight?.fuzzy}
+              matchClass={props.highlight?.matchClass}
               ranges={props.highlight?.ranges}
               unitId={props.highlight?.unitId}
               activeStart={props.highlight?.activeStart}
@@ -250,6 +253,7 @@ function RichTableMarkup(props: {
                       query={props.highlight?.query ?? ''}
                       exact={props.highlight?.exact}
                       fuzzy={props.highlight?.fuzzy}
+                      matchClass={props.highlight?.matchClass}
                       ranges={props.highlight?.ranges}
                       unitId={props.highlight?.unitId}
                       activeStart={props.highlight?.activeStart}
@@ -336,6 +340,7 @@ function ZoomableImage(props: {
                   query={props.highlight?.query ?? ''}
                   exact={props.highlight?.exact}
                   fuzzy={props.highlight?.fuzzy}
+                  matchClass={props.highlight?.matchClass}
                   ranges={props.highlight?.ranges}
                   unitId={props.highlight?.unitId}
                   activeStart={props.highlight?.activeStart}
@@ -417,6 +422,7 @@ export function DocumentRichBlock(props: {
                 query={props.highlight?.query ?? ''}
                 exact={props.highlight?.exact}
                 fuzzy={props.highlight?.fuzzy}
+                matchClass={props.highlight?.matchClass}
                 ranges={props.highlight?.ranges}
                 unitId={props.highlight?.unitId}
                 activeStart={props.highlight?.activeStart}
