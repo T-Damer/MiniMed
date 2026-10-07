@@ -106,7 +106,6 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
-| 2026-10-07 16:24 | claude-opus (EG2) | owner 10-07: measure EmbeddingGemma 2 (text-only 270M) against e5-small on КР search, Q1 queries, offline harness; research only | `tools/benchmarks/embedding_eval.py`, `docs/research/embeddinggemma-2-2026-10-07.md`, `docs/SEARCH_ROADMAP.md` (rejected/item 8 row) |
 | 2026-10-07 16:05 | claude-opus (UX11, subagents in worktrees) | owner 10-07 reader batch: (a) target name in crumbs while opening, no «Открываем…» history entry, one crumb per document, menu toggle, TOC above the bottom bar, page counter + jump bubble; (b) every find match reachable, one-tap TOC jumps, find counter right-aligned with a `\|/–` spinner; (c) numbered КР sub-headings as headings, focal-point image zoom, green/yellow selection + highlights in КР | `features/library/**` reader files, `styles/*reader*`, theme selection tokens, possibly `tools/ingest` КР structure |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 
@@ -168,6 +167,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-10-07 claude-opus (EG2): EmbeddingGemma 2 (text 270M) vs e5-small on КР, Q1 330 queries — R@5 0.452 → 0.497 not significant, R@1 0.288 → 0.270, query 66× slower (284 ms vs 4.3 ms, 1 CPU thread), 314 MB; not adopted (`docs/research/embeddinggemma-2-2026-10-07.md`, roadmap rejected table)
 - 2026-10-07 claude-opus (UX11a+b): reader — target name while opening, pointer redirect replaces its history entry, one crumb per document, «⋯» toggles, outline drawer above the bottom bar, «12 / 48» section counter with a jump bubble; nested sections now mount in later batches (find count = highlighted matches), `jumpReaderTo` lands far TOC/find jumps in one tap, find counter in the box with a `| / – \` spinner; see `docs/CURRENT_STATE.md`
 - 2026-10-07 claude-opus (VAC2): children's vaccination calendar — page polish, plan attached to a patient card (validated vault file) or «Только расчёт» without saving, one-page A4 landscape «Личный дневник прививок» built from chart data declared in the 1122н JSON (schema v2); see `docs/CURRENT_STATE.md`
 - 2026-10-07 claude-opus (UX10): drug link card = group, ATC, trade names, quoted effect + «Открыть» (no ЕСКЛП codes); saved search results (IndexedDB) shown at once for repeated/history queries with «Повторить поиск»; update pill above «Настройки»; «Лента»: «+», suggested-source tiles, item pictures, PubMed search; see `docs/CURRENT_STATE.md` «Drug link summary, saved search results…»

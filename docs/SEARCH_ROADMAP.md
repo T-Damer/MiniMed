@@ -60,7 +60,9 @@ and the list is updated when the proposal is better. How search works today:
    gate next to the public sets; every item above is re-measured on it.
 8. **Complaints, second attempt.** Candidates to measure, in order: e5 on the clinical analysis's
    positive facts in addition to the raw text; a small on-device cross-encoder reranker over the top
-   20 (size and latency first); a larger embedding model for КР only if a phone measurement allows.
+   20 (size and latency first); a larger embedding model for КР only if a phone measurement allows
+   (EmbeddingGemma 2 measured 2026-10-07: complaints R@5 0.255 → 0.303, not significant, query 66×
+   slower — see the rejected table).
 9. **Explain semantic hits.** Highlight the best-matching sentence of a vector hit, since no query
    word may occur in it.
 10. **Approximate vector search** only when a phone measurement of the exact scan exceeds ~300 ms.
@@ -139,6 +141,7 @@ hit@5 0.444 (rush 0.581, thoughtful 0.261), and with S3 0.278 / 0.574 (0.774, 0.
 | МКБ bridge placed right behind its card / by score / appended, in name lookup | right behind the card: lookup recall@1 0.803 → 0.689, mrr 0.855 → 0.766; appended: Q1 dev R@5 0.174 (no gain) | 2026-10-06 |
 | МКБ bridge in name lookup without «first group is a card» | `benchmark:all` lookup recall@1 0.180 → 0.115: «парацетамол», «ибупрофен», «цефтриаксон» get recommendations in front of the drug through «Отравление парацетамолом» and neighbours | 2026-10-06 |
 | МКБ bridge on top of e5 hybrid | Q1 test, 723 КР modules: R@5 0.423 → 0.423, MRR 0.350 → 0.351 — nothing to add | 2026-10-06 |
+| EmbeddingGemma 2 (text 270M) instead of e5-small on КР | Q1, 330 queries, 774 КР modules: R@5 0.452 → 0.497 (95 % CI −0.003…+0.094), R@1 0.288 → 0.270; complaints 0.255 → 0.303; query 4.3 → 284 ms on one CPU thread, model 118 → 314 MB; [note](research/embeddinggemma-2-2026-10-07.md) | 2026-10-07 |
 
 ## Open owner decisions
 

@@ -1,6 +1,9 @@
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["numpy>=2", "sentence-transformers>=3.4", "torch>=2.4"]
+# dependencies = [
+#   "numpy>=2", "pillow>=11", "sentence-transformers>=6.1", "torch>=2.4",
+#   "torchvision", "transformers>=5.19",
+# ]
 # ///
 """Offline comparison: the app's lexical search versus hybrid lexical + embeddings.
 
@@ -12,6 +15,8 @@ retrieves by cosine, fuses with reciprocal-rank fusion and scores both with the 
     uv run tools/benchmarks/embedding_eval.py corpus --packs data/build/release-clinical --work DIR
     uv run tools/benchmarks/embedding_eval.py embed --work DIR --model cointegrated/rubert-tiny2
     uv run tools/benchmarks/embedding_eval.py evaluate --work DIR --model cointegrated/rubert-tiny2
+    uv run tools/benchmarks/embedding_eval.py evaluate-docs --work DIR --model google/embeddinggemma-2 \
+      --dims 768 256 128
 
 DIR must hold `queries.jsonl` and `lexical-candidates.jsonl`. Nothing here ships in the app.
 """
@@ -36,6 +41,7 @@ QUERY_PREFIX = {
     "intfloat/multilingual-e5-small": "query: ",
     "intfloat/multilingual-e5-base": "query: ",
     "deepvk/USER-base": "query: ",
+    "google/embeddinggemma-2": "task: search result | query: ",
 }
 PASSAGE_PREFIX = {
     "intfloat/multilingual-e5-small": "passage: ",
@@ -45,6 +51,12 @@ PASSAGE_PREFIX = {
 # Models whose packaged sentence-transformers config the current library cannot read: built by hand
 # from the transformer with the pooling their model cards prescribe.
 MANUAL_MEAN_POOLING = {"deepvk/USER-base"}
+# Models whose model card asks for `title: {title} | text: {content}` documents instead of a prefix.
+TITLED_PASSAGES = {"google/embeddinggemma-2"}
+# Multimodal models loaded with their text encoder only (the vision/audio encoders stay unloaded).
+TEXT_ONLY_CONFIG = {
+    "google/embeddinggemma-2": {"vision_config": None, "audio_config": None},
+}
 PASSAGE_CHARS = 1200
 TOP_CHUNKS = 400
 TOP_GROUPS = 50
@@ -107,6 +119,13 @@ def passage(row: dict) -> str:
     return f"{row['title']}. {row['sectionPath']}. {row['text']}"[:PASSAGE_CHARS]
 
 
+def model_passage(model_name: str, row: dict) -> str:
+    if model_name in TITLED_PASSAGES:
+        text = f"{row['sectionPath']}. {row['text']}"[:PASSAGE_CHARS]
+        return f"title: {row['title']} | text: {text}"
+    return PASSAGE_PREFIX.get(model_name, "") + passage(row)
+
+
 def load_model(model: str):
     import torch
     from sentence_transformers import SentenceTransformer
@@ -120,6 +139,13 @@ def load_model(model: str):
             word.get_word_embedding_dimension(), pooling_mode="mean"
         )
         return SentenceTransformer(modules=[word, pooling], device=device), device
+    if model in TEXT_ONLY_CONFIG:
+        return (
+            SentenceTransformer(
+                model, device=device, config_kwargs=TEXT_ONLY_CONFIG[model]
+            ),
+            device,
+        )
     return SentenceTransformer(model, device=device), device
 
 
@@ -132,7 +158,6 @@ def embed(work: Path, model_name: str, batch: int) -> None:
     rows = load_corpus(work)
     model, device = load_model(model_name)
     model.max_seq_length = min(model.max_seq_length or MAX_TOKENS, MAX_TOKENS)
-    prefix = PASSAGE_PREFIX.get(model_name, "")
     shard_dir = work / f"emb-{slug(model_name)}.shards"
     shard_dir.mkdir(exist_ok=True)
     started = time.perf_counter()
@@ -141,7 +166,7 @@ def embed(work: Path, model_name: str, batch: int) -> None:
         if path.exists():
             continue
         part = model.encode(
-            [prefix + passage(row) for row in rows[start : start + SHARD]],
+            [model_passage(model_name, row) for row in rows[start : start + SHARD]],
             batch_size=batch,
             normalize_embeddings=True,
             convert_to_numpy=True,
@@ -385,10 +410,24 @@ def evaluate(work: Path, model_name: str, weights: list[float]) -> None:
         )
 
 
+def truncate(vectors: np.ndarray, dims: int) -> np.ndarray:
+    """Matryoshka truncation: the leading `dims` components, L2-normalised again."""
+    cut = vectors[:, :dims].astype(np.float32)
+    return cut / np.linalg.norm(cut, axis=1, keepdims=True).clip(1e-6)
+
+
 def evaluate_documents(
-    work: Path, model_name: str, queries_file: str, lexical_file: str
+    work: Path,
+    model_name: str,
+    queries_file: str,
+    lexical_file: str,
+    dims: list[int] | None = None,
 ) -> None:
-    """Document-level relevance (`relevantKr`: document id → grade) from retrieval-icd-queries."""
+    """Document-level relevance (`relevantKr`: document id → grade) from retrieval-icd-queries.
+
+    `dims` scores Matryoshka truncations of the same vectors (runs named `semantic@256`, …); the
+    report also records the query encoder's latency on one CPU thread.
+    """
     rows = load_corpus(work)
     queries = {
         q["query_id"]: q
@@ -400,7 +439,9 @@ def evaluate_documents(
         for c in map(json.loads, (work / lexical_file).read_text().splitlines())
         if c
     }
-    vectors = quantize(np.load(work / f"emb-{slug(model_name)}.npy"), "int8")
+    full = np.load(work / f"emb-{slug(model_name)}.npy").astype(np.float32)
+    sizes = dims or [full.shape[1]]
+    stores = {d: quantize(truncate(full, d), "int8") for d in sizes}
     model, _ = load_model(model_name)
     prefix = QUERY_PREFIX.get(model_name, "")
     ids = [qid for qid in lexical if qid in queries]
@@ -410,6 +451,7 @@ def evaluate_documents(
         convert_to_numpy=True,
         batch_size=64,
     ).astype(np.float32)
+    query_stores = {d: truncate(query_vectors, d) for d in sizes}
 
     def metrics(ranked: list[str], relevant: dict[str, int]) -> dict[str, float]:
         first = next((i + 1 for i, d in enumerate(ranked[:10]) if d in relevant), None)
@@ -426,16 +468,16 @@ def evaluate_documents(
     by: dict[str, dict[str, list[dict[str, float]]]] = defaultdict(
         lambda: defaultdict(list)
     )
-    for qid, query_vector in zip(ids, query_vectors, strict=True):
+    for index, qid in enumerate(ids):
         query = queries[qid]
         lex = lexical[qid]
-        sem = semantic_groups(vectors @ query_vector, rows)
-        runs = {
-            "lexical": lex,
-            "semantic": sem,
-            "hybrid w=1.0": fuse(lex, sem, 1.0),
-            "hybrid w=2.0": fuse(lex, sem, 2.0),
-        }
+        runs = {"lexical": lex}
+        for d in sizes:
+            suffix = "" if dims is None else f"@{d}"
+            sem = semantic_groups(stores[d] @ query_stores[d][index], rows)
+            runs[f"semantic{suffix}"] = sem
+            runs[f"hybrid{suffix} w=1.0"] = fuse(lex, sem, 1.0)
+            runs[f"hybrid{suffix} w=2.0"] = fuse(lex, sem, 2.0)
         for name, groups in runs.items():
             scored = metrics([d for d, _ in groups], query["relevantKr"])
             for slice_ in (
@@ -444,6 +486,15 @@ def evaluate_documents(
                 f"split:{query['split']}",
             ):
                 by[name][slice_].append(scored)
+    import torch
+
+    model.to("cpu")
+    torch.set_num_threads(1)
+    single = []
+    for q in ids[:50]:
+        started = time.perf_counter()
+        model.encode([prefix + queries[q]["query"]], normalize_embeddings=True)
+        single.append((time.perf_counter() - started) * 1000)
     report = {
         name: {
             slice_: {k: round(statistics.fmean(r[k] for r in rs), 3) for k in rs[0]}
@@ -451,11 +502,16 @@ def evaluate_documents(
             for slice_, rs in sorted(slices.items())
         }
         for name, slices in by.items()
-    }
+    } | {"queryCpu1ThreadMs": {"p50": round(statistics.median(single), 1)}}
     (work / f"report-docs-{slug(model_name)}.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=1)
     )
+    print(
+        f"{model_name} query encoder, 1 CPU thread: p50 {statistics.median(single):.1f} ms"
+    )
     for name, slices in report.items():
+        if name == "queryCpu1ThreadMs":
+            continue
         line = " | ".join(
             f"{s}: @1 {v['at1']} @5 {v['at5']} strict@5 {v['strictAt5']} mrr {v['mrr10']} (n{v['n']})"
             for s, v in slices.items()
@@ -483,13 +539,14 @@ def main() -> None:
     d.add_argument("--model", required=True)
     d.add_argument("--queries", default="icd-queries.jsonl")
     d.add_argument("--lexical", default="icd-lexical.jsonl")
+    d.add_argument("--dims", type=int, nargs="+")
     args = parser.parse_args()
     if args.command == "corpus":
         corpus(args.packs, args.work)
     elif args.command == "embed":
         embed(args.work, args.model, args.batch)
     elif args.command == "evaluate-docs":
-        evaluate_documents(args.work, args.model, args.queries, args.lexical)
+        evaluate_documents(args.work, args.model, args.queries, args.lexical, args.dims)
     else:
         evaluate(args.work, args.model, args.weights)
 
