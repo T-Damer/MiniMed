@@ -106,6 +106,7 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
+| 2026-10-07 16:24 | claude-opus (EG2) | owner 10-07: measure EmbeddingGemma 2 (text-only 270M) against e5-small on КР search, Q1 queries, offline harness; research only | `tools/benchmarks/embedding_eval.py`, `docs/research/embeddinggemma-2-2026-10-07.md`, `docs/SEARCH_ROADMAP.md` (rejected/item 8 row) |
 | 2026-10-07 16:05 | claude-opus (UX11, subagents in worktrees) | owner 10-07 reader batch: (a) target name in crumbs while opening, no «Открываем…» history entry, one crumb per document, menu toggle, TOC above the bottom bar, page counter + jump bubble; (b) every find match reachable, one-tap TOC jumps, find counter right-aligned with a `\|/–` spinner; (c) numbered КР sub-headings as headings, focal-point image zoom, green/yellow selection + highlights in КР | `features/library/**` reader files, `styles/*reader*`, theme selection tokens, possibly `tools/ingest` КР structure |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 
