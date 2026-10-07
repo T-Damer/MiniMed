@@ -4,6 +4,23 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.55] - 2026-10-07
+
+- «В МКБ-11» on every card with МКБ-10 codes: the ICD-11 rubrics WHO's mapping tables give (Russian
+  WHO titles, chapter, «разделено на N рубрик», «объединено с другими кодами», «другая глава»), opening
+  the ICD-11 card when that module is installed. Nothing is translated by the app; МКБ-10 stays in force.
+- Faster search: frequent words no longer slow lookups down (e.g. «ангина у ребенка», «ОРВИ»), with the
+  same results.
+- A smaller app (about 40 MB less): text recognition (OCR) language data downloads the first time you
+  use it, after you agree; unused fonts and duplicate files are gone.
+- Search: the source panel names the kind of document and hides catalogue wording; short abbreviations
+  («АГ», «ХСН») no longer pull in unrelated scales; app links moved to the «?» sheet.
+- Reader and files: no repeated title in the header, Escape closes the contents, books are named by
+  their own title and follow the dark theme, files are read one at a time and a stuck file can be
+  retried instead of «Читаем файл…» forever.
+- Tools: one download notice instead of two, a clear message for an unknown tool link, drug tools fit
+  a phone screen.
+
 ## [0.6.54] - 2026-10-07
 
 - Search: one definition line instead of a card per dictionary entry — «**Эпилепсия** — …» with
