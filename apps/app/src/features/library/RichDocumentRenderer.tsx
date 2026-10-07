@@ -1,5 +1,11 @@
 import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { toast } from 'solid-sonner';
+import {
+  appPrefersDark,
+  EPUB_THEME_STYLE_KEY,
+  epubThemeCss,
+  readEpubThemeColors,
+} from '@/features/library/epub-theme';
 import { SpreadsheetRenderer } from '@/features/library/SpreadsheetRenderer';
 import { UserHighlightPopup } from '@/features/library/UserHighlightPopup';
 import {
@@ -22,6 +28,7 @@ import {
 interface EpubContents {
   readonly document: Document;
   readonly window: Window;
+  readonly addStylesheetCss: (css: string, key: string) => boolean;
 }
 
 interface EpubLocation {
@@ -139,7 +146,24 @@ export function RichDocumentRenderer(props: {
               fullsize: true,
             };
             const rendition = book.renderTo(host, renditionOptions);
+            // The chapters follow the app theme (dark page and text in the dark theme), also
+            // when the system colour scheme changes while a book is open.
+            const applyAppTheme = (contents: EpubContents): void => {
+              contents.addStylesheetCss(
+                epubThemeCss(readEpubThemeColors(host)),
+                EPUB_THEME_STYLE_KEY,
+              );
+            };
+            rendition.hooks.content.register(applyAppTheme);
+            const colorScheme = window.matchMedia('(prefers-color-scheme: dark)');
+            const refreshAppTheme = (): void => {
+              for (const contents of rendition.getContents() as unknown as readonly EpubContents[]) {
+                applyAppTheme(contents);
+              }
+            };
+            colorScheme.addEventListener('change', refreshAppTheme);
             destroyBook = () => {
+              colorScheme.removeEventListener('change', refreshAppTheme);
               void rendition.destroy();
               void book.destroy();
             };
@@ -170,8 +194,9 @@ export function RichDocumentRenderer(props: {
                 'epub-user-highlight',
                 {
                   fill: userHighlightColor(highlight.color).fill,
-                  'fill-opacity': '0.55',
-                  'mix-blend-mode': 'multiply',
+                  // Multiplying a marker over a dark page would hide the text under it.
+                  'fill-opacity': appPrefersDark() ? '0.4' : '0.55',
+                  'mix-blend-mode': appPrefersDark() ? 'normal' : 'multiply',
                 },
               );
             };
@@ -281,6 +306,7 @@ export function RichDocumentRenderer(props: {
             rendition.on('relocated', handleRelocated);
             rendition.themes.fontSize('100%');
             destroyBook = () => {
+              colorScheme.removeEventListener('change', refreshAppTheme);
               rendition.off('selected', handleSelected);
               rendition.off('relocated', handleRelocated);
               void rendition.destroy();

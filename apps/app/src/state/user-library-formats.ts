@@ -4,6 +4,11 @@ import {
   userLibraryFileExtension,
 } from '@/state/user-library-capabilities';
 import {
+  parseEpubPackageMetadata,
+  parseFb2Metadata,
+  type UserLibraryEmbeddedMetadata,
+} from '@/state/user-library-metadata';
+import {
   normalizeUserLibraryTextPages,
   splitUserLibraryTextPages,
   USER_LIBRARY_TEXT_PAGE_BREAK,
@@ -696,10 +701,30 @@ export async function userLibraryArchiveHasImages(
   }
 }
 
+/** The title and author a book declares itself; empty for formats that carry none. */
+export async function extractUserLibraryMetadata(
+  fileName: string,
+  mimeType: string,
+  data: ArrayBuffer,
+): Promise<UserLibraryEmbeddedMetadata> {
+  switch (userLibraryFileCapability(mimeType, fileName).textExtraction) {
+    case 'epub': {
+      const epubPackage = await readEpubPackage(createZipReader(data));
+      return epubPackage ? parseEpubPackageMetadata(epubPackage.opfXml) : {};
+    }
+    case 'fb2':
+      return parseFb2Metadata(decodeXmlBytes(new Uint8Array(data), 'windows-1251'));
+    default:
+      return {};
+  }
+}
+
 export async function extractUserLibraryText(
   fileName: string,
   mimeType: string,
   data: ArrayBuffer,
+  /** Called after each chapter or slide, so a long read can show that it is still moving. */
+  onProgress?: () => void,
 ): Promise<string> {
   const bytes = new Uint8Array(data);
   switch (userLibraryFileCapability(mimeType, fileName).textExtraction) {
@@ -723,7 +748,5 @@ export async function extractUserLibraryText(
       return extractPlainText(bytes);
     case 'none':
       return '';
-  /** Called after each chapter or slide, so a long read can show that it is still moving. */
-  onProgress?: () => void,
   }
 }

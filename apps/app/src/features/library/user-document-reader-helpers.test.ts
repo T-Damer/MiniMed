@@ -8,8 +8,31 @@ import {
   flattenEpubNavigation,
   pageAnchorId,
   textMatchesDocumentQuery,
+  userDocumentMetaLine,
   waitForStablePosition,
 } from '@/features/library/user-document-reader-helpers';
+
+describe('userDocumentMetaLine', () => {
+  it('shows the file and the author of a book titled by its own metadata', () => {
+    expect(
+      userDocumentMetaLine({
+        title: 'Проверочная книга',
+        fileName: 'synthetic-book.epub',
+        author: 'А. А. Автор',
+      }),
+    ).toBe('А. А. Автор · synthetic-book.epub');
+  });
+
+  it('is quiet when the title is the file name and nothing else is known', () => {
+    expect(userDocumentMetaLine({ title: 'big-book', fileName: 'big-book.pdf' })).toBeNull();
+  });
+
+  it('keeps the file name after the user renames a file', () => {
+    expect(userDocumentMetaLine({ title: 'Моя книга', fileName: 'big-book.pdf' })).toBe(
+      'big-book.pdf',
+    );
+  });
+});
 
 describe('user-document-reader-helpers', () => {
   it('builds visual page outline labels', () => {

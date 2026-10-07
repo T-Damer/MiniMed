@@ -17,6 +17,7 @@ import {
   isEditableUserLibraryFile,
   validateUserLibraryFile,
 } from '@/state/user-library-formats';
+import { defaultUserLibraryTitle } from '@/state/user-library-metadata';
 
 export {
   USER_LIBRARY_FILE_CAPABILITIES,
@@ -51,8 +52,11 @@ export interface UserLibraryDocument {
   readonly exampleId?: UserLibraryExampleId;
   /** Changes whenever the stored file bytes change, so stale previews cannot win a race. */
   readonly contentVersion?: string;
+  /** What the library calls the file: the book's own title, the file name, or the user's rename. */
   readonly title: string;
   readonly fileName: string;
+  /** The author a book declares about itself (EPUB `dc:creator`, FB2 title-info). */
+  readonly author?: string;
   readonly mimeType: string;
   readonly byteLength: number;
   readonly pageCount: number;
@@ -445,6 +449,7 @@ function isDocument(value: unknown): value is UserLibraryDocument {
     (candidate.contentVersion === undefined || typeof candidate.contentVersion === 'string') &&
     typeof candidate.title === 'string' &&
     typeof candidate.fileName === 'string' &&
+    (candidate.author === undefined || typeof candidate.author === 'string') &&
     typeof candidate.mimeType === 'string' &&
     typeof candidate.byteLength === 'number' &&
     typeof candidate.pageCount === 'number' &&
@@ -601,12 +606,12 @@ function emitLibraryChanged(): void {
 }
 
 const thumbnailJobs = new Map<string, Promise<string | undefined>>();
+const thumbnailQueue = createSerialQueue();
 
 function thumbnailJobKey(document: UserLibraryDocument): string {
   return `${document.id}:${document.contentVersion ?? ''}`;
 }
 
-const thumbnailQueue = createSerialQueue();
 function scheduleUserLibraryThumbnail(document: UserLibraryDocument, file: File): void {
   void ensureUserLibraryThumbnail(document, file).catch((cause: unknown) => {
     console.warn(
@@ -1337,6 +1342,7 @@ type UserLibraryDocumentPatch = Partial<
     Pick<
       UserLibraryDocument,
       | 'title'
+      | 'author'
       | 'pageCount'
       | 'nativeTextPages'
       | 'ocrDonePages'
@@ -1717,7 +1723,7 @@ export async function addUserLibraryFile(
   await validateUserLibraryFile(file.name, mimeType, data);
   options?.onProgress?.(0.6);
   const now = new Date().toISOString();
-  const title = file.name.replace(/\.[^.]+$/u, '').trim() || file.name;
+  const title = defaultUserLibraryTitle(file.name);
   const document: UserLibraryDocument = {
     id: createDocumentId(),
     ...(options?.exampleId ? { exampleId: options.exampleId } : {}),
@@ -1777,7 +1783,8 @@ export async function replaceUserLibraryFile(
   await validateUserLibraryFile(file.name, mimeType, await file.arrayBuffer());
   const pages = await listUserLibraryPages(id);
   const now = new Date().toISOString();
-  const title = file.name.replace(/\.[^.]+$/u, '').trim() || file.name;
+  const title = defaultUserLibraryTitle(file.name);
+  const { author: _previousAuthor, ...existingWithoutAuthor } = existing;
   const updated: UserLibraryDocument = {
     ...existingWithoutAuthor,
     contentVersion: crypto.randomUUID(),
@@ -1825,13 +1832,6 @@ export async function replaceUserLibraryFile(
   return updated;
 }
 
-export async function saveUserLibraryDraft(
-  id: string,
-  text: string,
-): Promise<UserLibraryDocument | null> {
-  const existing = await getUserLibraryDocument(id);
-  if (!existing) return null;
-  if (!isEditableUserLibraryFile(existing.fileName, existing.mimeType)) {
 /**
  * Reads a stored file (page count, text, a book's own title) in the background. Files are read one
  * after another; a read that stalls or fails leaves the document `failed` with a reason, which
@@ -1862,6 +1862,13 @@ export async function retryUserLibraryDocument(id: string): Promise<void> {
   startUserLibraryInspection(id);
 }
 
+export async function saveUserLibraryDraft(
+  id: string,
+  text: string,
+): Promise<UserLibraryDocument | null> {
+  const existing = await getUserLibraryDocument(id);
+  if (!existing) return null;
+  if (!isEditableUserLibraryFile(existing.fileName, existing.mimeType)) {
     throw new Error('Этот тип файла нельзя редактировать во встроенном редакторе.');
   }
   const file = createEditableUserLibraryFile(existing.fileName, existing.mimeType, text);

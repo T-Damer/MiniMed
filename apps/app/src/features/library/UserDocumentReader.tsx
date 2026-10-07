@@ -61,6 +61,7 @@ import {
   pageAnchorId,
   pageCanvasId,
   type UserDocumentOutlineItem,
+  userDocumentMetaLine,
 } from '@/features/library/user-document-reader-helpers';
 import {
   openUserLibraryDocument,
@@ -823,7 +824,6 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     ];
   });
 
-  const isPdf = (): boolean => {
   /** The page heading is shown for every document except a CT/MRI study, which names itself. */
   const titleShownByHeading = (): string | null => {
     const current = meta();
@@ -833,6 +833,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     compactBreadcrumbItems(breadcrumbItems(), titleShownByHeading()),
   );
 
+  const isPdf = (): boolean => {
     const current = meta();
     return current ? isUserLibraryPdfMime(current.mimeType) : false;
   };
@@ -1185,6 +1186,9 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                       />
                     </h1>
                   </ReaderTitleRow>
+                  <Show when={current().source ? null : userDocumentMetaLine(current())}>
+                    {(line) => <p class="user-document-reader__file-meta">{line()}</p>}
+                  </Show>
                   <header
                     class="document-overlay-paper__header"
                     classList={{

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   createEditableUserLibraryFile,
+  extractUserLibraryMetadata,
   extractUserLibraryText,
   validateUserLibraryFile,
 } from '@/state/user-library-formats';
@@ -264,6 +265,41 @@ describe('user-library formats', () => {
     const text = await extractUserLibraryText('book.epub', 'application/epub+zip', zip);
     expect(text).toContain('Глава');
     expect(text).toContain('Текст книги');
+  });
+
+  it('reads the title and author an EPUB declares about itself', async () => {
+    const zip = buildStoredZip({
+      'META-INF/container.xml':
+        '<?xml version="1.0"?><container><rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"></rootfile></rootfiles></container>',
+      'OEBPS/content.opf':
+        '<?xml version="1.0"?><package><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>Проверочная книга</dc:title><dc:creator>А. А. Автор</dc:creator></metadata><manifest></manifest><spine></spine></package>',
+    });
+    await expect(
+      extractUserLibraryMetadata('big-book.epub', 'application/epub+zip', zip),
+    ).resolves.toEqual({ title: 'Проверочная книга', author: 'А. А. Автор' });
+    // A format without embedded metadata, or a broken package, simply has none.
+    await expect(
+      extractUserLibraryMetadata(
+        'big-book.epub',
+        'application/epub+zip',
+        buildStoredZip({ a: 'b' }),
+      ),
+    ).resolves.toEqual({});
+    await expect(
+      extractUserLibraryMetadata('notes.txt', 'text/plain', new TextEncoder().encode('x').buffer),
+    ).resolves.toEqual({});
+  });
+
+  it('reads the title of an FB2 book', async () => {
+    const xml =
+      '<?xml version="1.0" encoding="utf-8"?><FictionBook><description><title-info><author><first-name>Анна</first-name><last-name>Орлова</last-name></author><book-title>Заметки терапевта</book-title></title-info></description></FictionBook>';
+    await expect(
+      extractUserLibraryMetadata(
+        'book.fb2',
+        'application/x-fictionbook+xml',
+        new TextEncoder().encode(xml).buffer,
+      ),
+    ).resolves.toEqual({ title: 'Заметки терапевта', author: 'Анна Орлова' });
   });
 
   it('extracts text from a stored DOCX zip', async () => {

@@ -24,6 +24,14 @@ body:has(.user-document-reader--fullscreen) {
   padding-top: 0;
 }
 
+/* Author and source file under the title of a book that carries its own title. */
+.user-document-reader__file-meta {
+  margin: -0.25rem 0 0.75rem;
+  color: var(--theme-text-muted);
+  font-size: var(--type-small, 0.875rem);
+  overflow-wrap: anywhere;
+}
+
 .app-view:has(.patient-notes-view--document-reader) {
   width: 100%;
   max-width: none;

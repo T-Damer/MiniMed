@@ -23,11 +23,16 @@ import {
   type UserLibraryWordBox,
 } from '@/state/user-library';
 import {
+  extractUserLibraryMetadata,
   extractUserLibraryText,
   userLibraryArchiveHasImages,
 } from '@/state/user-library-formats';
 import { pageHasEnoughNativeText, pdfPageHasTextLayer } from '@/state/user-library-ingest-helpers';
 import { createInspectionRunner } from '@/state/user-library-inspection';
+import {
+  titleFromEmbeddedMetadata,
+  type UserLibraryEmbeddedMetadata,
+} from '@/state/user-library-metadata';
 import {
   normalizeUserLibraryTextPages,
   splitUserLibraryTextPages,
@@ -344,6 +349,30 @@ async function resumeQueuedOcr(documentId: string): Promise<void> {
   await requestUserLibraryOcr(documentId, current.ocrQuality);
 }
 
+/** What a book's own metadata adds to its document record once its text has been read. */
+async function embeddedMetadataPatch(
+  documentId: string,
+  fileName: string,
+  mimeType: string,
+  data: ArrayBuffer,
+): Promise<{ readonly title?: string; readonly author?: string }> {
+  let metadata: UserLibraryEmbeddedMetadata;
+  try {
+    metadata = await extractUserLibraryMetadata(fileName, mimeType, data);
+  } catch (cause) {
+    // The text was read, so the book is usable; only its own title is missing.
+    console.warn('Не удалось прочитать название книги из файла.', cause);
+    return {};
+  }
+  // Read the record again: the user may have renamed the file while it was being read.
+  const current = await getUserLibraryDocument(documentId);
+  const title = current ? titleFromEmbeddedMetadata(current, metadata) : undefined;
+  return {
+    ...(title ? { title } : {}),
+    ...(metadata.author ? { author: metadata.author } : {}),
+  };
+}
+
 async function readInspectingDocument(
   documentId: string,
   progress: InspectionProgress,
@@ -375,6 +404,8 @@ async function readInspectingDocument(
     const chunks = splitTextIntoPages(text, meta.mimeType);
     const hasImages = await userLibraryArchiveHasImages(meta.fileName, meta.mimeType, data);
     progress.touch();
+    const embedded = await embeddedMetadataPatch(documentId, meta.fileName, meta.mimeType, data);
+    progress.touch();
     for (let pageIndex = 0; pageIndex < chunks.length; pageIndex += 1) {
       await putPage({
         documentId,
@@ -391,6 +422,7 @@ async function readInspectingDocument(
       ocrNeededPages: 0,
       hasImages,
       status: 'ready',
+      ...embedded,
     });
     await resumeQueuedOcr(documentId);
     ensureUserLibraryIngestRunning();

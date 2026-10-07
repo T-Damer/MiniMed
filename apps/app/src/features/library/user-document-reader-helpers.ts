@@ -5,6 +5,23 @@ import {
   isUserLibraryVisualMime,
   type UserLibraryPage,
 } from '@/state/user-library';
+import { defaultUserLibraryTitle } from '@/state/user-library-metadata';
+
+/**
+ * The quiet line under a document's title: the author a book declares and the file it came from,
+ * shown when the title is not simply the file name (the book's own title, or the user's rename).
+ */
+export function userDocumentMetaLine(document: {
+  readonly title: string;
+  readonly fileName: string;
+  readonly author?: string | undefined;
+}): string | null {
+  const parts = [
+    document.author,
+    defaultUserLibraryTitle(document.fileName) === document.title ? undefined : document.fileName,
+  ].filter((part): part is string => Boolean(part));
+  return parts.length > 0 ? parts.join(' · ') : null;
+}
 
 export function pageAnchorId(documentId: string, pageIndex: number): string {
   return `user-doc-anchor-${documentId}-${String(pageIndex)}`;

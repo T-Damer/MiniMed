@@ -1454,6 +1454,8 @@ export function UserLibraryPage(props: {
         toggleDocumentSelection(props.document.id);
         return;
       }
+        `Файл: ${props.document.fileName}`,
+        ...(props.document.author ? [`Автор: ${props.document.author}`] : []),
       if (props.document.status === 'inspecting') return;
       openLibraryDocument(props.document);
     };

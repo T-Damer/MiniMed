@@ -1,10 +1,22 @@
 import JSZip from 'jszip';
 
+export interface SyntheticEpubOptions {
+  /**
+   * The book's own `dc:title`. Left out by default: the library names a book by its `dc:title` once
+   * it has been read, and most specs find their card by the file name.
+   */
+  readonly title?: string;
+  /** `dc:creator`. */
+  readonly author?: string;
+  /** CSS of the chapters, to prove the reader overrides a book's own white page. */
+  readonly css?: string;
+}
+
 /**
  * A small generated EPUB 3 book for reader tests: ten chapters of neutral text, each a
  * `.chapter` block whose heading has the id `chapNN`. No third-party book is shipped for tests.
  */
-export async function syntheticEpub(): Promise<Buffer> {
+export async function syntheticEpub(options: SyntheticEpubOptions = {}): Promise<Buffer> {
   const roman = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
   const chapters = roman.map((numeral, index) => {
     const number = String(index + 1).padStart(2, '0');
@@ -21,7 +33,7 @@ export async function syntheticEpub(): Promise<Buffer> {
       title,
       body: `<?xml version="1.0" encoding="utf-8"?>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ru" lang="ru">
-<head><title>${title}</title></head>
+<head><title>${title}</title>${options.css ? `<style>${options.css}</style>` : ''}</head>
 <body><div class="chapter"><h2 id="chap${number}">${title}</h2>
 ${paragraphs}
 </div></body></html>`,
@@ -43,7 +55,8 @@ ${paragraphs}
 <package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="book-id" xml:lang="ru">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
     <dc:identifier id="book-id">urn:minimed:synthetic-book</dc:identifier>
-    <dc:title>Проверочная книга</dc:title>
+    ${options.title ? `<dc:title>${options.title}</dc:title>` : ''}
+    ${options.author ? `<dc:creator>${options.author}</dc:creator>` : ''}
     <dc:language>ru</dc:language>
     <meta property="dcterms:modified">2026-09-27T00:00:00Z</meta>
   </metadata>
