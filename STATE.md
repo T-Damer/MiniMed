@@ -106,6 +106,7 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
+| 2026-10-07 | claude-opus (EPUB-POP) | EPUB highlight popup jumps/vanishes while neighbouring chapters render (user-reader.spec «EPUB chapters…» flaky ~50%) | `apps/app/src/features/library/RichDocumentRenderer.tsx`, `UserHighlightPopup.tsx`, `apps/app/e2e/user-reader.spec.ts` |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 
 ## Next (claimed, not started)
