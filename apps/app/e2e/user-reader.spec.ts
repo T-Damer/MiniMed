@@ -139,10 +139,22 @@ test('EPUB chapters remain at their target after navigation and later scrolling'
     })
     .toBe(true);
   await expect(mark).toBeInViewport();
-  const rect = await mark.boundingBox();
-  if (!rect) throw new Error('Missing EPUB annotation');
-  await page.mouse.click(rect.x + 4, rect.y + rect.height / 2);
-  await page.getByRole('button', { name: 'Убрать выделение' }).click();
+  const tapMark = async (): Promise<void> => {
+    const rect = await mark.boundingBox();
+    if (!rect) throw new Error('Missing EPUB annotation');
+    await page.mouse.click(rect.x + 4, rect.y + rect.height / 2);
+  };
+  const remove = page.getByRole('button', { name: 'Убрать выделение' });
+  await tapMark();
+  await expect(remove).toBeVisible();
+  // A scroll the reader starts closes the popup; the book's own scrolling while it renders
+  // neighbouring chapters only moves the popup along with its text.
+  await page.mouse.wheel(0, 240);
+  await expect(remove).toHaveCount(0);
+  await mark.scrollIntoViewIfNeeded();
+  await expect(mark).toBeInViewport();
+  await tapMark();
+  await remove.click();
   await expect(page.locator('.epub-user-highlight')).toHaveCount(0);
 });
 

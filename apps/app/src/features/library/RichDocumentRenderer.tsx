@@ -1,6 +1,12 @@
 import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { toast } from 'solid-sonner';
 import {
+  createUserScrollTracker,
+  isScrollKey,
+  type PopupPoint,
+  popupPointForText,
+} from '@/features/library/epub-popup-anchor';
+import {
   appPrefersDark,
   EPUB_THEME_STYLE_KEY,
   epubThemeCss,
@@ -38,6 +44,8 @@ interface EpubLocation {
 interface EpubHighlightPopup {
   readonly x: number;
   readonly y: number;
+  /** Where its text is now; the popup follows it when the book scrolls by itself. */
+  readonly anchor: () => PopupPoint | null;
   readonly remove: boolean;
   readonly action: (color?: UserHighlightColor) => Promise<void>;
 }
@@ -116,6 +124,21 @@ export function RichDocumentRenderer(props: {
   onMount(() => {
     let disposed = false;
     let destroyBook: (() => void) | undefined;
+    // The continuous view scrolls the page itself while it renders neighbouring chapters; only a
+    // scroll the reader started closes the popup, any other one moves it with its text.
+    const userScroll = createUserScrollTracker();
+    const markUserGesture = (): void => userScroll.mark(performance.now());
+    const markScrollKey = (event: KeyboardEvent): void => {
+      if (isScrollKey(event.key)) markUserGesture();
+    };
+    let followFrame = 0;
+    const followHighlightPopup = (): void => {
+      followFrame = 0;
+      const popup = epubHighlightPopup();
+      if (!popup) return;
+      const point = popup.anchor();
+      setEpubHighlightPopup(point ? { ...popup, ...point } : null);
+    };
     const dismissHighlightPopup = (event: Event): void => {
       if (
         event.target !== document &&
@@ -124,9 +147,17 @@ export function RichDocumentRenderer(props: {
         !host.contains(event.target)
       )
         return;
-      setEpubHighlightPopup(null);
+      if (!epubHighlightPopup()) return;
+      if (userScroll.isUserScroll(performance.now())) {
+        setEpubHighlightPopup(null);
+        return;
+      }
+      if (!followFrame) followFrame = requestAnimationFrame(followHighlightPopup);
     };
     window.addEventListener('scroll', dismissHighlightPopup, { capture: true, passive: true });
+    window.addEventListener('wheel', markUserGesture, { capture: true, passive: true });
+    window.addEventListener('touchmove', markUserGesture, { capture: true, passive: true });
+    window.addEventListener('keydown', markScrollKey, { capture: true });
     void getUserLibraryFile(props.documentId)
       .then(async (blob) => {
         if (!blob || disposed) return;
@@ -180,6 +211,7 @@ export function RichDocumentRenderer(props: {
                   setEpubHighlightPopup({
                     x: rect.left + rect.width / 2,
                     y: rect.top,
+                    anchor: rangeAnchor(cfiRange),
                     remove: true,
                     action: async () => {
                       const saved = await loadUserHighlights(props.documentId);
@@ -212,7 +244,21 @@ export function RichDocumentRenderer(props: {
               const report = (): void => reportUserScroll?.();
               contents.window.addEventListener('wheel', report, { passive: true });
               contents.window.addEventListener('touchstart', report, { passive: true });
+              contents.window.addEventListener('wheel', markUserGesture, { passive: true });
+              contents.window.addEventListener('touchmove', markUserGesture, { passive: true });
+              contents.window.addEventListener('keydown', markScrollKey);
             });
+            /** The current place of a book range on the page, or null once it is not shown. */
+            const rangeAnchor = (cfiRange: string) => (): PopupPoint | null => {
+              const range = rendition.getRange(cfiRange) as Range | undefined;
+              const frame = range?.startContainer.ownerDocument?.defaultView?.frameElement;
+              if (!range || !(frame instanceof HTMLElement) || !frame.isConnected) return null;
+              return popupPointForText(
+                frame.getBoundingClientRect(),
+                range.getBoundingClientRect(),
+                { width: window.innerWidth, height: window.innerHeight },
+              );
+            };
             const handleSelected = (cfiRange: string, contents: EpubContents): void => {
               const selection = contents.window.getSelection();
               if (!selection || selection.isCollapsed || selection.rangeCount === 0) return;
@@ -221,6 +267,7 @@ export function RichDocumentRenderer(props: {
               const point = popupPoint(contents, selection.getRangeAt(0).getBoundingClientRect());
               setEpubHighlightPopup({
                 ...point,
+                anchor: rangeAnchor(cfiRange),
                 remove: false,
                 action: async (color) => {
                   const highlight = await addUserHighlight({
@@ -397,6 +444,10 @@ export function RichDocumentRenderer(props: {
     onCleanup(() => {
       disposed = true;
       window.removeEventListener('scroll', dismissHighlightPopup, { capture: true });
+      window.removeEventListener('wheel', markUserGesture, { capture: true });
+      window.removeEventListener('touchmove', markUserGesture, { capture: true });
+      window.removeEventListener('keydown', markScrollKey, { capture: true });
+      if (followFrame) cancelAnimationFrame(followFrame);
       props.onEpubOutlineChange?.([]);
       props.onEpubNavigateReady?.(null);
       document.documentElement.classList.remove('epub-page-scroll');
