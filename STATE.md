@@ -106,7 +106,6 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
-| 2026-10-07 | claude-opus (EPUB-POP) | EPUB highlight popup jumps/vanishes while neighbouring chapters render (user-reader.spec «EPUB chapters…» flaky ~50%) | `apps/app/src/features/library/RichDocumentRenderer.tsx`, `UserHighlightPopup.tsx`, `apps/app/e2e/user-reader.spec.ts` |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 
 ## Next (claimed, not started)
@@ -167,6 +166,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-10-07 claude-opus (EPUB-POP): EPUB highlight popup no longer vanishes or jumps while neighbouring chapters render — only reader-started scrolls close it, otherwise it follows its text; user-reader EPUB test stable (12/12 at 6× CPU)
 - 2026-10-07 claude-opus (QA2): search fixes from the QA pass — source overlay names its document kind and drops catalogue wording, short abbreviations no longer match tools by substring, no numeral under the download chip, readable «Примеры поиска», app links in the «?» sheet
 - 2026-10-07 claude-opus (QA1): reader/library fixes from the QA pass — no repeated title in the reader header, Escape closes the outline, files read one at a time with a stuck-read watchdog and «Повторить», books named by dc:title, EPUB follows the app theme; calculators/drug tools: one download notice, unknown tool links say so, prompts fit a phone
 - 2026-10-07 claude-opus (PERF2): lexical search reads FTS matches through base tables by rowid (+ rowid span for small document filters): browser lookups 7–13 s → 0.4–1.2 s, results identical; see `docs/CURRENT_STATE.md` «Faster lexical search»

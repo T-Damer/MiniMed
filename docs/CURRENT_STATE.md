@@ -595,8 +595,11 @@ on the list searches titles, descriptions and card keywords.
 - Books are named by their own `dc:title` (and author) once read, unless renamed; the file name stays
   visible. EPUB chapters follow the app theme (dark page and text in the dark theme). Card status wraps
   to two lines on a phone and names the file format.
-- Known flaky: `user-reader.spec.ts` «EPUB chapters remain at their target…» fails ~50% (highlight
-  popup re-created while neighbouring chapters render); a separate task was proposed.
+- EPUB highlight popup (EPUB-POP): the continuous view scrolls the page by itself while it renders
+  neighbouring chapters, which used to close or rebuild a just-opened popup (seen on a busy CPU).
+  Only a scroll the reader starts (wheel, touch move, scroll keys) closes it now; otherwise it follows
+  its text via the CFI range and closes when the text leaves the screen (`epub-popup-anchor.ts`).
+  `user-reader.spec.ts` covers both; 12/12 at 6× CPU throttling (the old build failed there).
 
 ## Faster lexical search — 2026-10-07 (STATE PERF2)
 
