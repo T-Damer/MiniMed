@@ -572,6 +572,18 @@ on the list searches titles, descriptions and card keywords.
   opens the app settings. Not verified on a physical phone (HyperOS may add its own audio-record
   gate).
 
+## Faster lexical search — 2026-10-07 (STATE PERF2)
+
+QA 2026-10-07: some lookups took 7–13 s in the browser build (0.2–0.8 s natively). Cause: packs of
+migration 010 index chunks through an external-content view, and reading `chunks_fts.document_id`
+/ `chunk_id` made FTS5 materialise the whole source-view row (four joins, chunk text, JSON) for
+every match. Filters now reach chunks, versions, documents and sections through the base tables by
+rowid (CROSS JOIN keeps FTS as the outer loop), and a document filter of ≤64 documents is narrowed to
+its chunk rowid span; older packs keep the direct columns. Same SQL in the Capacitor store.
+Browser build, top-10 results identical: ОРВИ 7.1 → 0.5 s, эпилепсия 6.9 → 0.5, инсульт тромболизис
+6.6 → 0.4, пневмония у детей 7.0 → 1.2, ангина у ребенка 13.4 → 1.2; `benchmark:all` output identical
+apart from timings (suite 24.3 → 20.3 s). Not measured on a phone.
+
 ## Smaller APK — 2026-10-07 (STATE SIZE1)
 
 Owner 2026-10-07: «shrink the app; bundle the core or not?». Measured on the 0.6.53 debug APK
