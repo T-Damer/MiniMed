@@ -1,5 +1,10 @@
-export function computeReadingLine(scrollerRect: DOMRect): number {
-  return scrollerRect.top + Math.min(120, scrollerRect.height * 0.2);
+/**
+ * The line below which a section does not count as read yet. `minimumOffset` keeps it under the
+ * sticky headings: a section that a jump has just aligned to `scroll-margin-top` must be the active
+ * one, even when that margin is deeper than 120px.
+ */
+export function computeReadingLine(scrollerRect: DOMRect, minimumOffset = 0): number {
+  return scrollerRect.top + Math.max(minimumOffset, Math.min(120, scrollerRect.height * 0.2));
 }
 
 export function pickActiveSectionAnchor(

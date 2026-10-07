@@ -11,6 +11,13 @@ describe('document-reader-outline', () => {
     expect(computeReadingLine({ top: 50, height: 1000 } as DOMRect)).toBe(170);
   });
 
+  it('computeReadingLine stays below the sticky headings a jump aligns sections to', () => {
+    // A section aligned to a 182px scroll margin must count as read: the line cannot be at 120px.
+    expect(computeReadingLine({ top: 0, height: 844 } as DOMRect, 186)).toBe(186);
+    expect(computeReadingLine({ top: 0, height: 844 } as DOMRect, 60)).toBe(120);
+    expect(computeReadingLine({ top: 100, height: 400 } as DOMRect, 0)).toBe(180);
+  });
+
   it('pickActiveSectionAnchor selects the last section above the reading line', () => {
     const sections = [
       { id: 'a', getBoundingClientRect: () => ({ top: 80 }) },

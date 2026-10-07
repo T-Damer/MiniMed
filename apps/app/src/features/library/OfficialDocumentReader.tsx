@@ -57,6 +57,7 @@ import {
   DocumentReaderChromeShell,
   useDocumentReaderChrome,
 } from '@/features/library/document-reader-chrome';
+import { jumpReaderTo } from '@/features/library/document-reader-scroll';
 import { DocumentRichBlock } from '@/features/library/document-rich-block';
 import {
   documentRenderBlockSearchText,
@@ -805,6 +806,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
   });
   let lastScrolledMatchKey = '';
 
+  let cancelFindJump: (() => void) | undefined;
   const bookmark = createReaderBookmark();
   const chrome = useDocumentReaderChrome({
     ...(props.initialAnchor != null && props.initialAnchor !== ''
@@ -853,22 +855,19 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
     }
     const unitId = match.unitId;
     const start = match.start;
-    requestAnimationFrame(() => {
-      const paper = globalThis.document.querySelector<HTMLElement>('.document-overlay-paper');
-      const mark = paper?.querySelector<HTMLElement>(
-        `[data-document-find-unit="${CSS.escape(unitId)}"][data-document-find-start="${String(start)}"]`,
-      );
-      if (mark) {
-        mark.scrollIntoView({ behavior: 'auto', block: 'center' });
-        return;
-      }
-      globalThis.document.getElementById(unitId)?.scrollIntoView({
-        behavior: 'auto',
-        block: 'center',
-      });
-    });
+    // The section is mounted. The jump measures the highlighted word every frame, so late layout
+    // changes (sections far above that were only estimated, images) cannot leave it off screen.
+    cancelFindJump?.();
+    cancelFindJump = jumpReaderTo(
+      () =>
+        globalThis.document.querySelector<HTMLElement>(
+          `[data-document-find-unit="${CSS.escape(unitId)}"][data-document-find-start="${String(start)}"]`,
+        ) ?? globalThis.document.getElementById(unitId),
+      { align: 'center' },
+    );
   });
 
+  onCleanup(() => cancelFindJump?.());
   let initialScrollKey: string | undefined;
   createEffect(() => {
     const document = props.document;

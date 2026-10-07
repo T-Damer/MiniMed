@@ -29,8 +29,8 @@ import {
   isDesktopReaderLayout,
   outlineItemSelector,
   pickActiveSectionAnchor,
-  readerScrollBehavior,
 } from '@/features/library/document-reader-outline';
+import { jumpReaderTo } from '@/features/library/document-reader-scroll';
 import { useDocumentOutlineSwipe } from '@/features/library/use-document-outline-swipe';
 import type { DocumentTrail } from '@/state/document-trail';
 
@@ -65,6 +65,15 @@ export interface UseDocumentReaderChromeOptions {
   readonly scrollSpyWhen?: () => boolean;
   readonly onBeforeScrollTo?: (anchor: string) => void;
   readonly onScrollTo?: (anchor: string, element: HTMLElement | null) => void;
+}
+
+/** A section aligned by a jump may sit this far below its `scroll-margin-top` and stay active. */
+const SECTION_ALIGNMENT_SLACK_PX = 4;
+
+function sectionScrollMargin(section: HTMLElement | undefined): number {
+  if (!section) return 0;
+  const margin = Number.parseFloat(getComputedStyle(section).scrollMarginTop);
+  return Number.isFinite(margin) ? margin : 0;
 }
 
 function isNearScrollEnd(element: HTMLElement, threshold = 32): boolean {
@@ -234,6 +243,7 @@ export function useDocumentReaderChrome(
                 : bodyScrolls && body
                   ? body.getBoundingClientRect()
                   : new DOMRect(0, 0, window.innerWidth, window.innerHeight),
+              sectionScrollMargin(sections[0]) + SECTION_ALIGNMENT_SLACK_PX,
             ),
           );
       if (nextAnchor !== activeAnchor()) setActiveAnchor(nextAnchor);
@@ -286,16 +296,12 @@ export function useDocumentReaderChrome(
     if (!isDesktopReaderLayout()) {
       mutateOutline(() => setOutlineOpen(false));
     }
-    requestAnimationFrame(() => {
-      options.onBeforeScrollTo?.(anchor);
-      requestAnimationFrame(() => {
-        const element = document.getElementById(anchor);
-        options.onScrollTo?.(anchor, element);
-        element?.scrollIntoView({
-          behavior: readerScrollBehavior(),
-          block: 'start',
-        });
-      });
+    // Everything up to the target mounts first (the host renders sections in idle batches); the
+    // jump then corrects itself until the target stands still below the sticky headings.
+    options.onBeforeScrollTo?.(anchor);
+    jumpReaderTo(() => document.getElementById(anchor), {
+      align: 'start',
+      onSettled: (element) => options.onScrollTo?.(anchor, element),
     });
   };
 
