@@ -194,7 +194,7 @@ export function DrugInteractionWorkspace(props: {
         <SearchField
           class="drug-interactions__search"
           label="Добавить препарат"
-          placeholder="Название или МНН, например: варфарин"
+          placeholder="Например: варфарин"
           value={query()}
           onInput={setQuery}
           onClear={() => {

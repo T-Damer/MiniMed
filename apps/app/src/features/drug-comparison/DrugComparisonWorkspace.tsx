@@ -51,6 +51,7 @@ import { safetyRowViews } from './comparison-safety';
 import { type ExtractedRow, extractRows } from './comparison-sections';
 import {
   COMPARISON_NOTICE,
+  COMPARISON_NOTICE_SHORT,
   type CompareItem,
   chooseDocuments,
   columnViews,
@@ -354,7 +355,7 @@ export function DrugComparisonWorkspace(props: {
       />
       <aside class="drug-comparison__notice paper-card" role="note">
         <p class="drug-comparison__notice-text" data-testid="comparison-notice">
-          {COMPARISON_NOTICE}
+          {COMPARISON_NOTICE_SHORT}
         </p>
         <Disclosure variant="inline" title="Как это работает">
           <div class="drug-comparison__how">
@@ -384,7 +385,7 @@ export function DrugComparisonWorkspace(props: {
         <SearchField
           class="drug-comparison__search"
           label="Добавить препарат"
-          placeholder="Название, МНН или торговое наименование"
+          placeholder="Препарат или МНН"
           value={query()}
           onInput={setQuery}
           inputRef={(element) => {

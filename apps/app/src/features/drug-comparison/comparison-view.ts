@@ -45,6 +45,10 @@ export const MAX_DRUGS = MAX_COMPARED_NAMES;
 export const MIN_DRUGS = 2;
 
 /** The notice shown above every comparison, in the screen, the print and the share text. */
+/** The notice above the empty tool: one line; the full one closes the results and the print. */
+export const COMPARISON_NOTICE_SHORT =
+  'Сравнение текстов инструкций, а не клиническая рекомендация: решение принимает врач.';
+
 export const COMPARISON_NOTICE =
   'Сравнение текстов инструкций, а не клиническая рекомендация. Приложение не оценивает, какой препарат лучше или хуже: оно показывает, что написано в инструкциях и где эти тексты совпадают или различаются. Решение принимает врач по полному тексту инструкций и клинической картине.';
 
