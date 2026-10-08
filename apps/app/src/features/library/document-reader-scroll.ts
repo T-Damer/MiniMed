@@ -65,23 +65,39 @@ function isScrollable(element: HTMLElement): boolean {
   );
 }
 
+/** A block with its own scrolling inside the text (a wide table): never the reader's scroller. */
+const NESTED_SCROLLER_SELECTOR = '.document-rich-table__scroller';
+
 /** The nearest scrolling ancestor, or `null` when the page itself scrolls. */
 export function readerScrollParent(element: HTMLElement): HTMLElement | null {
   for (let parent = element.parentElement; parent; parent = parent.parentElement) {
     if (parent === document.body || parent === document.documentElement) return null;
+    if (parent.matches(NESTED_SCROLLER_SELECTOR)) continue;
     if (isScrollable(parent)) return parent;
   }
   return null;
 }
 
 /**
- * A target inside a horizontally scrolling block (a wide table) must also be brought sideways into
- * view; the page-level vertical jump does not do that.
+ * A target inside a block that scrolls on its own (a wide table) must also be brought into view
+ * inside that block, sideways and, for a table taller than its box, up or down; the page-level
+ * vertical jump does neither.
  */
-export function revealReaderTargetHorizontally(target: HTMLElement): void {
+export function revealReaderTargetInScrollers(target: HTMLElement): void {
   const targetRect = target.getBoundingClientRect();
   for (let parent = target.parentElement; parent; parent = parent.parentElement) {
     if (parent === document.body || parent === document.documentElement) return;
+    if (parent.matches(NESTED_SCROLLER_SELECTOR) && parent.scrollHeight > parent.clientHeight + 1) {
+      const box = parent.getBoundingClientRect();
+      // The pinned header row covers the top of the box.
+      const pinned = parent.querySelector<HTMLElement>('.document-rich-table__cell--pin-row');
+      const top = box.top + (pinned?.offsetHeight ?? 0);
+      if (targetRect.top < top) {
+        parent.scrollTop -= top - targetRect.top + READER_JUMP_EDGE_PX;
+      } else if (targetRect.bottom > box.bottom) {
+        parent.scrollTop += targetRect.bottom - box.bottom + READER_JUMP_EDGE_PX;
+      }
+    }
     const overflowX = getComputedStyle(parent).overflowX;
     if (overflowX !== 'auto' && overflowX !== 'scroll') continue;
     if (parent.scrollWidth <= parent.clientWidth + 1) continue;
@@ -209,7 +225,7 @@ export function jumpReaderTo(
         announced = true;
         options.onTarget?.(target);
       }
-      revealReaderTargetHorizontally(target);
+      revealReaderTargetInScrollers(target);
       const scroller = readerScrollParent(target);
       const offset =
         typeof options.offset === 'function' ? options.offset() : (options.offset ?? 0);
