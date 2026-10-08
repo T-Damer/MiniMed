@@ -2,6 +2,9 @@
 
 - Status: accepted; implemented as the «Лента» tab (STATE NEWS1). Amended 2026-10-07 (STATE UX10):
   suggested sources as the first view, item pictures, and PubMed search (see «PubMed searches»).
+  Amended 2026-10-08 (STATE NEWS2): Twitter-style feed, avatars, in-app article reader and merged
+  «Источники» (see «Amendment 2026-10-08»; it supersedes «The embedded viewer and its limits» and
+  the list/rail/sources descriptions above).
 - Decision: project owner, 2026-10-05 — a fourth bottom tab «Лента» (Поиск · Файлы · Лента ·
   Настройки) with an unread count; RSS/Atom feeds and websites opened in an embedded viewer.
 - Related: [ADR-0020](0020-medical-news-and-research-feed.md) (the research-API layer, still
@@ -196,6 +199,92 @@ A search of PubMed is a third subscription kind, `pubmed`, next to `feed` and `s
 - **Not exported.** OPML export leaves saved searches out (no feed address, and the text is the
   user's own); import does not create them.
 - Not done: abstracts and MeSH topics, Europe PMC, user-provided NCBI keys (ADR-0020 items 2–3).
+
+### Amendment 2026-10-08 (NEWS2): the feed as posts, avatars, the article inside the app
+
+Owner decisions (personal-use app): read the sites inside the app whatever their framing headers
+say; make the feed a quick, Twitter-like scroll with an avatar for every organisation.
+
+**New requests, all user-initiated or tied to a source the user chose.**
+
+- *Opening an item* whose feed text is a teaser (under 400 characters) downloads that item's page
+  through `FeedTransport` (Android: `CapacitorHttp`, no CORS, no framing rules) once; the article is
+  extracted and saved with the item. A full feed text is shown as it is and the page is not fetched.
+  The browser build gets the same request, which works only where the site sends CORS headers: on
+  failure the feed text stays the view and one muted line says why.
+- *Subscribing and refreshing* also fetch the source's avatar: the site's home page (to read
+  `<link rel="apple-touch-icon|icon">`), then at most four candidate images (touch icon, sized icon,
+  the feed's own image, `/favicon.ico`). A source without a found icon is retried at most once a week;
+  nothing is fetched while offline. Avatars of the suggested sources are **bundled** (96 px PNG per
+  site host in `avatars/`; the four sites that refuse non-browser clients — NEJM, The Lancet, PLOS
+  Medicine, Фармвестник — have none and show the monogram), so looking at suggestions still sends
+  nothing.
+- *Tapping a suggested card, or checking an address on «Источники»,* fetches that one feed to
+  preview it (avatar, description, latest entries) in the source sheet. No subscription is made by
+  the tap; the avatar fetched for the preview is kept only if the user subscribes.
+
+**Avatars.** `news-icons.ts`: candidates are fetched as bytes, identified by their magic bytes (the
+content type is not trusted), re-encoded to a 112 px PNG with a canvas (so ICO and SVG become plain
+raster), and kept as a data URL of at most 24 000 characters. Storage: `localStorage`
+`minimed.news.icons.v1`, `{host: {data?, checkedAt}}` — a failed attempt is recorded so it is not
+repeated. Only `data:image/{png,jpeg,gif,webp,x-icon,svg+xml};base64,…` survives reading. An icon is
+shared by host and dropped with the last source of that host. The fallback is a monogram: the first
+letters of the name on a disc whose hue comes from a hash of the name.
+
+**Article extraction (`article-extract.ts`).** A readability-style pass over the tolerant tokenizer's
+tree (no DOM): paragraphs score their parent and grandparent, class/id hints and `<article>` raise a
+container, link density lowers it, navigation / share bars / comments / related-link lists / empty
+wrappers are dropped, lazy-loaded images (`data-src`) are resolved, links and images become absolute
+against the page (`<base href>` honoured), the title is the article's own `<h1>` else `og:title`,
+and the result is the same allow-listed tree as feed text (limits raised to 80 000 characters /
+8 000 nodes), rendered by element creation, never `innerHTML`. A page with under 280 characters of
+article text yields nothing and the feed text stays. The tokenizer now also closes implied end tags
+(`<p>`, `<li>`, `<td>`) so old pages without closing tags split correctly. HTML is decoded with the
+charset the page declares in `<meta>` when the header has none (windows-1251 sites).
+
+**The page as the site serves it.** A header toggle shows the page the app itself downloaded in
+`<iframe srcdoc>` with `sandbox="allow-popups allow-popups-to-escape-sandbox"` — never
+`allow-scripts`, never `allow-same-origin` together with scripts. Before that the document is parsed
+with `DOMParser` and stripped of `script`, `noscript`, `iframe`, `frame`, `object`, `embed`, `base`,
+`meta[http-equiv]`, preload/prefetch links, all `on*` attributes and `javascript:` / `vbscript:` /
+`data:text/html` addresses; a `<base href=finalUrl target=_blank>` (relative styles, images and links
+resolve, links open outside), `<meta name=referrer content=no-referrer>` and a CSP meta
+(`script-src 'none'; object-src 'none'; frame-src 'none'; form-action 'none'`) are added. X-Frame-Options and
+`frame-ancestors` do not apply because the frame shows the app's copy, not the site. The cached
+article is saved; the raw page is kept only in memory (three pages) and downloaded again when needed.
+A browser build that cannot read a website subscription falls back to the old
+`<iframe src sandbox="allow-scripts allow-popups …">` (never `allow-same-origin`) with a 12 s
+«не загрузилась» fallback and «Открыть в браузере»; the HEAD probe and `framing-policy.ts` were
+removed (a page the app can read has no framing question, and one it cannot read cannot be probed).
+
+**Storage.** IndexedDB `minimed-news` is version 2: a new `articles` store keyed by item id with a
+`feedId` index (kept apart from the items record, which is rewritten on every read mark). Articles are
+dropped with their item when retention removes it, and with their source.
+
+**The feed.** One flat newest-first list (no day groups, no source chips, no «read all»): each entry
+is a title (6-line clamp) under a small account line «avatar · name · site · age» with a dot while
+unread; the age is relative («5 мин», «3 ч», «вчера», «4 д», then a date). Entries are drawn 60 at a
+time and more as the end nears. **Scrolling past an entry marks it read** (IntersectionObserver:
+the element left through the top of the viewport; hidden tabs report an empty box and are ignored),
+batched into one write per feed every 900 ms and flushed when the page is left or hidden. A thumbnail
+no longer appears in the list (the «Изображения» switch still governs the article's pictures).
+Above the list, a swipeable rail of suggested sources not yet subscribed to, led by a «+» card; a
+card opens the source sheet through a View Transition (the card's avatar becomes the sheet's avatar;
+without View Transitions, or with animations off, the sheet's own rise plays). Website subscriptions
+stay a small list above the feed.
+
+**«Источники».** Adding and managing are one page (`#/news/sources`; `#/news/add` is the same page
+with the address field focused): an address field that opens the source sheet (RSS/Atom/JSON feed
+preview, or the feeds a page declares as choices, or «Добавить как сайт»), then one compact row per
+source — avatar, name, «site · updated» (or the error), the images switch, delete. Renaming is gone.
+OPML import/export are icon buttons in the header. Explanations and the privacy statements that were
+notes on these pages (what a request sends, that a saved PubMed search queries NCBI on each refresh)
+are behind the «?» of the header (`Page` `help`).
+
+**The viewer.** One compact header row (back, the source's avatar and short name, round icon
+buttons: page-as-on-the-site toggle, open in browser); the article's heading, date and author are in
+the content; no tabs. The best available content is shown directly: the saved article, else the feed
+text with a small spinner in the meta line while the page downloads, then a fade to the article.
 
 ## Consequences
 
