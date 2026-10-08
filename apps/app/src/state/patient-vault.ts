@@ -780,6 +780,24 @@ export async function readPatientBlob(
   }
 }
 
+/** Removes one stored file (for example a draft transcript of a deleted recording). */
+export async function deletePatientBlob(id: string): Promise<void> {
+  if (!session) throw new PatientVaultLockedError();
+  try {
+    const database = await openDatabase();
+    try {
+      const transaction = database.transaction(BLOB_STORE, 'readwrite');
+      transaction.objectStore(BLOB_STORE).delete(id);
+      await transactionDone(transaction);
+    } finally {
+      database.close();
+    }
+  } catch (error) {
+    lockPatientVault();
+    throw error;
+  }
+}
+
 async function writeSnapshotAndDeletePatientBlobs(
   snapshot: PatientVaultSnapshot,
   patientId: string,

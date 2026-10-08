@@ -1,15 +1,16 @@
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import { toast } from 'solid-sonner';
 
 import { Button } from '@/components/Button';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import {
   conversationSession,
   conversationTitle,
+  removeConversation,
 } from '@/features/conversations/conversation-session';
 import {
   CONVERSATION_RECORDINGS_EVENT,
   type ConversationRecording,
-  deleteConversationRecording,
   listConversationRecordings,
 } from '@/state/conversation-recordings';
 
@@ -93,7 +94,11 @@ export function ConversationInbox(): JSX.Element {
           onConfirm={() => {
             const target = deleting();
             setDeleting(null);
-            if (target) void deleteConversationRecording(target.id);
+            if (target) {
+              removeConversation(target).catch(() =>
+                toast.error('Не удалось полностью удалить запись беседы.'),
+              );
+            }
           }}
           onOpenChange={(open) => {
             if (!open) setDeleting(null);
