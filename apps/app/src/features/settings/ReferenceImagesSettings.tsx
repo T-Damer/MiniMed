@@ -9,6 +9,7 @@ import {
   REFERENCE_IMAGES_DOWNLOAD_ID,
 } from '@/features/library/reference-image-assets';
 import { formatModuleBytes } from '@/features/modules/module-display';
+import { formatCount } from '@/i18n/format-count';
 
 export function ReferenceImagesSettings(): JSX.Element {
   const resolver = getReferenceImageResolver();
@@ -93,7 +94,8 @@ export function ReferenceImagesSettings(): JSX.Element {
     const known = status();
     if (!known) return 'Проверяем…';
     if (known.complete) return 'Все скачаны';
-    if (known.files > 0) return `Скачано ${known.files} из ${known.totalFiles}`;
+    if (known.files > 0)
+      return `Скачано ${formatCount(known.files)} из ${formatCount(known.totalFiles)}`;
     return `Не скачано · ${formatModuleBytes(known.totalBytes)}`;
   };
   return (

@@ -1,3 +1,4 @@
+import { formatCount } from '@/i18n/format-count';
 import { pluralRu } from '@/i18n/labels';
 import { formatStorageSize } from './settings-status';
 
@@ -74,19 +75,15 @@ export interface ReferenceImagesContents {
   readonly bytes: number;
 }
 
-function groupedNumber(value: number): string {
-  return value.toLocaleString('ru-RU').replace(/ /gu, ' ');
-}
-
 /** «9 123 иллюстрации к 5 932 статьям · 462 МБ». */
 export function referenceImagesContentsLabel(contents: ReferenceImagesContents): string {
-  const files = `${groupedNumber(contents.files)} ${pluralRu(
+  const files = `${formatCount(contents.files)} ${pluralRu(
     contents.files,
     'иллюстрация',
     'иллюстрации',
     'иллюстраций',
   )}`;
-  const documents = `${groupedNumber(contents.documents)} ${pluralRu(
+  const documents = `${formatCount(contents.documents)} ${pluralRu(
     contents.documents,
     'статье',
     'статьям',

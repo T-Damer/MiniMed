@@ -1,6 +1,5 @@
 import { createSignal, For, type JSX, onCleanup, onMount } from 'solid-js';
 
-import { AppGlyph } from '@/components/AppGlyph';
 import { TextField } from '@/components/TextField';
 import {
   type ClinicianProfile,
@@ -58,22 +57,8 @@ export function ClinicianProfileSettings(): JSX.Element {
   return (
     <section
       class="settings-section clinician-profile-settings paper-sheet"
-      aria-labelledby="settings-clinician-heading"
+      aria-label="Данные врача и организации"
     >
-      <div class="settings-section__heading">
-        <div class="settings-section__heading-main">
-          <AppGlyph name="users" class="settings-section__icon" />
-          <div class="settings-section__heading-copy">
-            <h3 id="settings-clinician-heading" class="settings-section__title">
-              Врач и организация
-            </h3>
-            <p class="settings-section__description">
-              Подставляются в официальные формы: справки, санаторно-курортные карты. Хранится только
-              на этом устройстве.
-            </p>
-          </div>
-        </div>
-      </div>
       <div class="clinician-profile-settings__fields">
         <For each={FIELDS}>
           {(field) => (

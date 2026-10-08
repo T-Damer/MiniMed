@@ -29,7 +29,7 @@ for (const width of [375, 1280]) {
       .locator('.app-bottom-nav')
       .getByRole('button', { name: /^Настройки/u })
       .click();
-    await openSettingsPage(page, 'Изображения и дополнительно');
+    await openSettingsPage(page, 'Изображения');
     const experimental = page.getByRole('switch', { name: 'Предварительные материалы' });
     await expect(experimental).toHaveAttribute('aria-checked', 'true');
     await experimental.click();

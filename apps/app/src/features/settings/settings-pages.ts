@@ -49,7 +49,7 @@ export const SETTINGS_PAGES: readonly SettingsPageDefinition[] = [
   {
     id: 'clinician',
     title: 'Врач и организация',
-    description: 'Подставляются в официальные формы.',
+    description: 'Подставляются в справки и формы. Хранятся на устройстве.',
     icon: 'users',
     tone: 'blue',
     keywords: ['огрн', 'организация', 'должность', 'фио', 'формы', 'справки'],
@@ -85,7 +85,7 @@ export const SETTINGS_PAGES: readonly SettingsPageDefinition[] = [
   },
   {
     id: 'images',
-    title: 'Изображения и дополнительно',
+    title: 'Изображения',
     description: 'Иллюстрации и предварительные материалы.',
     icon: 'image-fill',
     tone: 'orange',

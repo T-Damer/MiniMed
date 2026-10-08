@@ -191,7 +191,7 @@ export function useSettingsStatuses(inputs: SettingsStatusInputs): Accessor<Sett
   });
 }
 
-/** The reference-images status alone, for the row on the «Изображения и дополнительно» page. */
+/** The reference-images status alone, for the row on the «Изображения» page. */
 export function useReferenceImagesStatus(): Accessor<SettingsStatus> {
   const queue = getDownloadQueue();
   const resolver = getReferenceImageResolver();

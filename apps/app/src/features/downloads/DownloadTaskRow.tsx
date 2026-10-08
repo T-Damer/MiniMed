@@ -9,6 +9,7 @@ import {
   type DownloadTask,
   downloadTaskFraction,
 } from '@/features/downloads/download-queue';
+import { formatCount } from '@/i18n/format-count';
 
 const KIND_LABELS: Readonly<Record<DownloadKind, string>> = {
   core: 'Ядро знаний',
@@ -49,7 +50,7 @@ function transferText(task: DownloadTask): string | undefined {
       ? `${formatDownloadBytes(task.downloadedBytes)} из ${formatDownloadBytes(task.totalBytes)}`
       : formatDownloadBytes(task.downloadedBytes);
     return task.totalFiles !== null
-      ? `${transferred} · файлы ${task.completedFiles ?? 0} из ${task.totalFiles}`
+      ? `${transferred} · файлы ${formatCount(task.completedFiles ?? 0)} из ${formatCount(task.totalFiles)}`
       : transferred;
   }
   return task.totalBytes ? formatDownloadBytes(task.totalBytes) : undefined;

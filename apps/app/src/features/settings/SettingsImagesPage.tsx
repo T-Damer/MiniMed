@@ -12,7 +12,7 @@ import {
 } from '@/state/app-preferences';
 
 /**
- * «Изображения и дополнительно»: the reference images (own sub-page with examples), the packaging
+ * «Изображения»: the reference images (own sub-page with examples), the packaging
  * images module and the switch for preliminary materials.
  */
 export function SettingsImagesPage(): JSX.Element {

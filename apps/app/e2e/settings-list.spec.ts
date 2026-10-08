@@ -7,7 +7,7 @@ const ROWS = [
   'Врач и организация',
   'Загрузки и разделы',
   'Функции ИИ',
-  'Изображения и дополнительно',
+  'Изображения',
   'Внешний вид',
   'Пациенты и данные',
 ] as const;
@@ -94,7 +94,7 @@ test.describe('settings list on a phone', () => {
   test('reference images page shows bundled examples before the download', async ({ page }) => {
     await mountBuiltApp(page);
     await openSettings(page);
-    await openSettingsPage(page, 'Изображения и дополнительно');
+    await openSettingsPage(page, 'Изображения');
     await page.getByRole('link', { name: /^Справочные изображения/u }).click();
     await expect(page).toHaveURL(/#\/settings\/images\/reference$/u);
     const examples = page.getByTestId('reference-image-examples');

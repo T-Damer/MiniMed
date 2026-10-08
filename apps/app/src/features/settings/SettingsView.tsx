@@ -191,7 +191,7 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
                   description="Иллюстрации к статьям справочника."
                   showBack
                   backHash={settingsParentHash('settings/images/reference') ?? SETTINGS_ROOT_HASH}
-                  backLabel="К разделу «Изображения и дополнительно»"
+                  backLabel="К разделу «Изображения»"
                   headingLevel={pageHeading()}
                   testId="reference-images-page"
                 >

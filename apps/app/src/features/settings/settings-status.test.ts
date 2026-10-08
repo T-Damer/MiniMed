@@ -129,7 +129,7 @@ describe('settings statuses', () => {
     expect(
       referenceImagesStatus({ status: { ...none, files: 120 }, downloading: false, fraction: null })
         .label,
-    ).toBe('Скачано 120 из 9123');
+    ).toBe('Скачано 120 из 9\u202f123');
     expect(
       referenceImagesStatus({
         status: { ...none, complete: true },

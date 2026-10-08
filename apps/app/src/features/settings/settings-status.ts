@@ -1,4 +1,5 @@
 import type { DownloadPhase } from '@/features/downloads/download-queue';
+import { formatCount } from '@/i18n/format-count';
 import { pluralRu } from '@/i18n/labels';
 import type { ClinicianProfile } from '@/state/clinician-profile';
 import type { ThemePreference } from '@/state/theme';
@@ -165,7 +166,7 @@ export function aiStatus(features: readonly FeatureReadiness[]): SettingsStatus 
   if (features.includes('update')) return { label: 'Есть обновление', tone: 'attention' };
   if (ready === 0) return { label: 'Не скачано', tone: 'neutral' };
   if (ready === total) return { label: 'Готово', tone: 'ok' };
-  return { label: `Готово ${ready} из ${total}`, tone: 'ok' };
+  return { label: `Готово ${formatCount(ready)} из ${formatCount(total)}`, tone: 'ok' };
 }
 
 export interface ReferenceImagesStatusInput {
@@ -197,7 +198,10 @@ export function referenceImagesStatus(context: ReferenceImagesStatusContext): Se
   if (!known) return { label: 'Проверяем…', tone: 'neutral' };
   if (known.complete) return { label: 'Готово', tone: 'ok' };
   if (known.files > 0) {
-    return { label: `Скачано ${known.files} из ${known.totalFiles}`, tone: 'attention' };
+    return {
+      label: `Скачано ${formatCount(known.files)} из ${formatCount(known.totalFiles)}`,
+      tone: 'attention',
+    };
   }
   return { label: 'Не скачано', tone: 'neutral' };
 }
