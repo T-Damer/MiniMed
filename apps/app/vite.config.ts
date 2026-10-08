@@ -8,6 +8,7 @@ import {
   rmSync,
   statSync,
 } from 'node:fs';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
@@ -93,16 +94,55 @@ function ensureCornerstoneCodecAssets(): Plugin {
 function localReleaseCache(): Plugin {
   const cacheRoot = fileURLToPath(new URL('./.cache/releases', import.meta.url));
   const pending = new Map<string, Promise<void>>();
-  const ensureCached = (target: ReleaseCacheTarget): Promise<void> => {
-    const existing = pending.get(target.path);
-    if (existing) return existing;
-    // A replaced release keeps its file name; the catalog digest decides whether to refetch.
-    const refresh = isReleaseCacheCurrent(target)
-      .then((current) => (current ? undefined : downloadReleaseAsset(target)))
-      .finally(() => pending.delete(target.path));
-    pending.set(target.path, refresh);
-    return refresh;
+  const serveCached = (
+    target: ReleaseCacheTarget,
+    request: IncomingMessage,
+    response: ServerResponse,
+  ): void => {
+    response.statusCode = 200;
+    response.setHeader('Content-Type', 'application/octet-stream');
+    response.setHeader('Content-Length', String(statSync(target.path).size));
+    response.setHeader('Cache-Control', 'no-store');
+    if (request.method === 'HEAD') response.end();
+    else createReadStream(target.path).pipe(response);
   };
+  const fail = (target: ReleaseCacheTarget, response: ServerResponse, cause: unknown): void => {
+    console.error(`[local-release-cache] ${target.tag}/${target.fileName}:`, cause);
+    if (response.headersSent) {
+      response.destroy();
+      return;
+    }
+    response.statusCode = 502;
+    response.end('Release asset download failed.');
+  };
+  /**
+   * A cache miss forwards the bytes to the first caller while they are written to disk: the app
+   * shows real download progress from the first byte instead of waiting for the whole file.
+   * Concurrent callers wait for the finished copy.
+   */
+  const fetchAndServe = (
+    target: ReleaseCacheTarget,
+    request: IncomingMessage,
+    response: ServerResponse,
+  ): Promise<void> =>
+    downloadReleaseAsset(target, (upstream) => {
+      if (request.method === 'HEAD' || response.destroyed) return;
+      response.statusCode = 200;
+      response.setHeader('Content-Type', 'application/octet-stream');
+      const length = upstream.headers['content-length'];
+      if (length) response.setHeader('Content-Length', length);
+      response.setHeader('Cache-Control', 'no-store');
+      upstream.pipe(response);
+    }).then(
+      () => {
+        if (request.method === 'HEAD' && !response.writableEnded)
+          serveCached(target, request, response);
+      },
+      (cause: unknown) => {
+        fail(target, response, cause);
+        throw cause;
+      },
+    );
   const middleware: Connect.NextHandleFunction = (request, response, next) => {
     const target =
       request.method === 'GET' || request.method === 'HEAD'
@@ -112,20 +152,36 @@ function localReleaseCache(): Plugin {
       next();
       return;
     }
-    ensureCached(target).then(
-      () => {
-        response.statusCode = 200;
-        response.setHeader('Content-Type', 'application/octet-stream');
-        response.setHeader('Content-Length', String(statSync(target.path).size));
-        response.setHeader('Cache-Control', 'no-store');
-        if (request.method === 'HEAD') response.end();
-        else createReadStream(target.path).pipe(response);
+    const waitForCopy = (running: Promise<void>): void => {
+      running.then(
+        () => serveCached(target, request, response),
+        (cause: unknown) => fail(target, response, cause),
+      );
+    };
+    const running = pending.get(target.path);
+    if (running) {
+      waitForCopy(running);
+      return;
+    }
+    isReleaseCacheCurrent(target).then(
+      (current) => {
+        if (current) {
+          serveCached(target, request, response);
+          return;
+        }
+        const raced = pending.get(target.path);
+        if (raced) {
+          waitForCopy(raced);
+          return;
+        }
+        // A replaced release keeps its file name; the catalog digest decided that this copy is stale.
+        const download = fetchAndServe(target, request, response).finally(() =>
+          pending.delete(target.path),
+        );
+        pending.set(target.path, download);
+        download.catch(() => undefined);
       },
-      (cause: unknown) => {
-        console.error(`[local-release-cache] ${target.tag}/${target.fileName}:`, cause);
-        response.statusCode = 502;
-        response.end('Release asset download failed.');
-      },
+      (cause: unknown) => fail(target, response, cause),
     );
   };
   return {

@@ -7,6 +7,7 @@ import {
   rmSync,
   statSync,
 } from 'node:fs';
+import type { IncomingMessage } from 'node:http';
 import { get } from 'node:https';
 import { dirname, resolve, sep } from 'node:path';
 
@@ -86,7 +87,12 @@ export function isAllowedReleaseUrl(url: URL): boolean {
   return url.protocol === 'https:' && ALLOWED_REDIRECT_HOSTS.has(url.hostname);
 }
 
-function fetchToFile(url: URL, destination: string, redirects: number): Promise<void> {
+function fetchToFile(
+  url: URL,
+  destination: string,
+  redirects: number,
+  onResponse: ((response: IncomingMessage) => void) | undefined,
+): Promise<void> {
   if (!isAllowedReleaseUrl(url))
     return Promise.reject(new Error(`Release redirect to ${url.hostname} is not allowed.`));
   return new Promise((resolveDownload, reject) => {
@@ -99,7 +105,7 @@ function fetchToFile(url: URL, destination: string, redirects: number): Promise<
           reject(new Error(`Release download redirect failed (HTTP ${status}).`));
           return;
         }
-        fetchToFile(new URL(location, url), destination, redirects + 1).then(
+        fetchToFile(new URL(location, url), destination, redirects + 1, onResponse).then(
           resolveDownload,
           reject,
         );
@@ -112,6 +118,7 @@ function fetchToFile(url: URL, destination: string, redirects: number): Promise<
       }
       const expected = Number(response.headers['content-length']);
       const file = createWriteStream(destination);
+      onResponse?.(response);
       response.pipe(file);
       response.on('error', reject);
       file.on('error', reject);
@@ -128,8 +135,15 @@ function fetchToFile(url: URL, destination: string, redirects: number): Promise<
   });
 }
 
-/** Downloads to a temporary file and renames it atomically, so an interrupted run leaves no cache. */
-export async function downloadReleaseAsset(target: ReleaseCacheTarget): Promise<void> {
+/**
+ * Downloads to a temporary file and renames it atomically, so an interrupted run leaves no cache.
+ * `onResponse` receives the upstream stream before its first byte: a caller can forward the bytes
+ * while they are cached instead of making the browser wait for the whole file.
+ */
+export async function downloadReleaseAsset(
+  target: ReleaseCacheTarget,
+  onResponse?: (response: IncomingMessage) => void,
+): Promise<void> {
   const partial = `${target.path}.${process.pid}.partial`;
   mkdirSync(dirname(target.path), { recursive: true });
   try {
@@ -140,6 +154,7 @@ export async function downloadReleaseAsset(target: ReleaseCacheTarget): Promise<
       ),
       partial,
       0,
+      onResponse,
     );
     if (target.sha256 !== undefined) {
       const actual = await sha256OfFile(partial);
