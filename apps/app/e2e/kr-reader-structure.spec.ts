@@ -214,9 +214,10 @@ test('one compact line names the section path instead of stacked sticky headings
     });
   });
   await expect(line).toHaveClass(/reader-section-path__line--shown/u);
-  const titles = await page.locator('.reader-section-path__title').allTextContents();
+  const pathTitles = () => page.locator('.reader-section-path__title').allTextContents();
+  await expect.poll(async () => (await pathTitles()).at(-1)).toMatch(/^1\.2\.1\s+Этиология/u);
+  const titles = await pathTitles();
   expect(titles.length).toBeGreaterThanOrEqual(2);
-  expect(titles.at(-1)).toMatch(/^1\.2\.1\s+Этиология/u);
   // Outer sections are shortened to their number; the line is one compact row.
   expect(titles[0]).toMatch(/^1\.?$/u);
   const box = await line.boundingBox();

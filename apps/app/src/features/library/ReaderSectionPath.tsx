@@ -34,8 +34,12 @@ export function ReaderSectionPath(): JSX.Element {
     };
     refresh();
     const update = (): void => {
-      const bottom = stickyAnchor.getBoundingClientRect().top + stickyLine.offsetHeight;
-      const index = pickStuckHeadingIndex(headings, bottom - 1);
+      const anchorTop = stickyAnchor.getBoundingClientRect().top;
+      // Before the line has reached its place it is still in the flow, above the first heading.
+      const stuck = anchorTop <= Number.parseFloat(getComputedStyle(stickyAnchor).top) + 1;
+      const index = stuck
+        ? pickStuckHeadingIndex(headings, anchorTop + stickyLine.offsetHeight - 1)
+        : -1;
       const heading = index < 0 ? undefined : headings[index];
       setShown(heading !== undefined);
       // The last path stays while the line fades out.
@@ -54,6 +58,8 @@ export function ReaderSectionPath(): JSX.Element {
       schedule();
     });
     mutations.observe(paper, { childList: true, subtree: true });
+    // A section the browser starts or stops rendering changes which headings can be measured.
+    paper.addEventListener('contentvisibilityautostatechange', schedule, true);
     window.addEventListener('scroll', schedule, { passive: true });
     window.addEventListener('resize', schedule);
     // The line moves to the screen edge when the chrome hides: measure again once it has settled.
@@ -62,6 +68,7 @@ export function ReaderSectionPath(): JSX.Element {
     onCleanup(() => {
       if (frame !== undefined) cancelAnimationFrame(frame);
       mutations.disconnect();
+      paper.removeEventListener('contentvisibilityautostatechange', schedule, true);
       window.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', schedule);
       stickyAnchor.removeEventListener('transitionend', schedule);

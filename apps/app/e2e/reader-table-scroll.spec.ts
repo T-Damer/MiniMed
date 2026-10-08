@@ -1,7 +1,18 @@
-import { expect, test } from '@playwright/test';
+import { expect, type Locator, test } from '@playwright/test';
 
 import { installClinicalModule, routeClinicalModule } from './clinical-module-fixture';
 import { mountBuiltApp } from './mount-built-app';
+
+/** A table can be taller than the screen: bring its top into view, where a touch lands on it. */
+async function showTableTop(table: Locator): Promise<void> {
+  await table.evaluate((element) => {
+    element.scrollIntoView({ block: 'start', behavior: 'instant' });
+    window.scrollBy({ top: -120, behavior: 'instant' });
+  });
+  await expect
+    .poll(() => table.evaluate((element) => Math.round(element.getBoundingClientRect().top)))
+    .toBeGreaterThan(0);
+}
 
 test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
 
@@ -15,7 +26,7 @@ test('a wide table scrolls sideways under a finger, in the page and in its full-
   await installClinicalModule(page);
   await page.locator('.document-overlay-section__title').first().waitFor();
   const table = page.locator('.document-rich-table').first();
-  await table.scrollIntoViewIfNeeded();
+  await showTableTop(table);
   const scroller = table.locator('.document-rich-table__scroller');
   const overflow = await scroller.evaluate((element) => element.scrollWidth - element.clientWidth);
   expect(overflow).toBeGreaterThan(40);
@@ -60,7 +71,7 @@ test('a two-finger pinch still zooms a table in the page', async ({ page }) => {
   await installClinicalModule(page);
   await page.locator('.document-overlay-section__title').first().waitFor();
   const table = page.locator('.document-rich-table').first();
-  await table.scrollIntoViewIfNeeded();
+  await showTableTop(table);
   const box = await table.locator('.document-rich-table__scroller').boundingBox();
   if (!box) throw new Error('The table has no box.');
   const cdp = await page.context().newCDPSession(page);

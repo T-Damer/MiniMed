@@ -261,6 +261,14 @@ test('hides native status blur on document readers and medical viewers', async (
     .first()
     .click();
   await expect(page.locator('.document-page__chrome')).toBeVisible();
+  // The page slides in: measure once the back button has settled below the safe area.
+  await expect
+    .poll(() =>
+      page
+        .locator('.document-page__back')
+        .evaluate((element) => Math.round(element.getBoundingClientRect().top)),
+    )
+    .toBeGreaterThanOrEqual(24);
   const readerChrome = await page.locator('.document-page__chrome').evaluate((element) => {
     const styles = getComputedStyle(element);
     const backButton = element.querySelector<HTMLElement>('.document-page__back');
