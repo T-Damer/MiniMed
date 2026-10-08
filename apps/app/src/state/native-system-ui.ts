@@ -13,6 +13,8 @@ const TRANSPARENT_STATUS_BAR = '#00000000';
 
 let medicalImageStatusBarActive = false;
 let darkHeaderOverlayCount = 0;
+/** The theme the user chose in the app; the status-bar icons follow it instead of the device's. */
+let themeOverride: 'light' | 'dark' | undefined;
 
 function medicalImageStatusBarColor(): string {
   const viewer = document.querySelector<HTMLElement>('.medical-image-viewer');
@@ -31,11 +33,22 @@ function syncStatusBar(): void {
         medicalImageStatusBarActive && darkHeaderOverlayCount === 0
           ? medicalImageStatusBarColor()
           : TRANSPARENT_STATUS_BAR,
-      ...(lightIcons ? { darkIcons: false } : {}),
+      ...(lightIcons
+        ? { darkIcons: false }
+        : themeOverride !== undefined
+          ? { darkIcons: themeOverride === 'light' }
+          : {}),
     })
     .catch((cause: unknown) => {
       console.warn('Не удалось изменить тему status bar.', cause);
     });
+}
+
+/** The app's own theme choice (`undefined`: follow the device); redraws the status bar icons. */
+export function setNativeThemeOverride(theme: 'light' | 'dark' | undefined): void {
+  if (theme === themeOverride) return;
+  themeOverride = theme;
+  syncStatusBar();
 }
 
 export function setMedicalImageStatusBar(active: boolean): void {

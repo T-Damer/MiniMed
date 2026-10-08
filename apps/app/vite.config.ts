@@ -17,6 +17,7 @@ import { type Connect, defineConfig, type Plugin } from 'vite';
 import solid from 'vite-plugin-solid';
 
 import { contentArchiveHeaders } from './src/dev-server/content-archive-headers';
+import { colorSchemePlugin } from './src/dev-server/postcss-color-scheme';
 import {
   downloadReleaseAsset,
   isReleaseCacheCurrent,
@@ -337,6 +338,8 @@ export default defineConfig({
       ),
     },
   },
+  // Every prefers-color-scheme block also follows the in-app theme (state/theme.ts).
+  css: { postcss: { plugins: [colorSchemePlugin()] } },
   optimizeDeps: {
     exclude: ['@sqlite.org/sqlite-wasm'],
     include: [

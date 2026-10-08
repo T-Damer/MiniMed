@@ -36,7 +36,6 @@ import {
   aiStatus,
   appearanceStatus,
   asrReadiness,
-  type ColorScheme,
   clinicianStatus,
   dataStatus,
   downloadQueueCounts,
@@ -56,6 +55,7 @@ import {
   subscribeClinicianProfile,
 } from '@/state/clinician-profile';
 import { PATIENT_VAULT_EVENT, patientVaultStorageMode } from '@/state/patient-vault';
+import { getThemePreference, subscribeTheme, type ThemePreference } from '@/state/theme';
 import { RELEASE_VERSION } from '../../../../../release';
 
 export interface SettingsStatusInputs {
@@ -86,7 +86,7 @@ export function useSettingsStatuses(inputs: SettingsStatusInputs): Accessor<Sett
   const [asrCached, setAsrCached] = createSignal(false);
   const [ecgState, setEcgState] = createSignal(ecgPackageStatus().state);
   const [ocrInstalled, setOcrInstalled] = createSignal(isOcrLanguagePackInstalled());
-  const [scheme, setScheme] = createSignal<ColorScheme>('light');
+  const [theme, setTheme] = createSignal<ThemePreference>('system');
   const [vault, setVault] = createSignal<PatientVaultState>('checking');
 
   onMount(() => {
@@ -114,10 +114,8 @@ export function useSettingsStatuses(inputs: SettingsStatusInputs): Accessor<Sett
     const syncEcg = () => setEcgState(ecgPackageStatus().state);
     const syncOcr = () => setOcrInstalled(isOcrLanguagePackInstalled());
 
-    const media = window.matchMedia('(prefers-color-scheme: dark)');
-    const onScheme = () => setScheme(media.matches ? 'dark' : 'light');
-    onScheme();
-    media.addEventListener('change', onScheme);
+    setTheme(getThemePreference());
+    const stopTheme = subscribeTheme(() => setTheme(getThemePreference()));
     window.addEventListener(PATIENT_VAULT_EVENT, syncVault);
 
     syncE5();
@@ -134,7 +132,7 @@ export function useSettingsStatuses(inputs: SettingsStatusInputs): Accessor<Sett
     ];
     onCleanup(() => {
       disposed = true;
-      media.removeEventListener('change', onScheme);
+      stopTheme();
       window.removeEventListener(PATIENT_VAULT_EVENT, syncVault);
       for (const unsubscribe of unsubscribers) unsubscribe();
     });
@@ -186,7 +184,7 @@ export function useSettingsStatuses(inputs: SettingsStatusInputs): Accessor<Sett
         ocrReadiness(ocrInstalled(), taskActive(downloadTask(OCR_DOWNLOAD_ID))),
       ]),
       images: imagesBase(),
-      appearance: appearanceStatus(scheme()),
+      appearance: appearanceStatus(theme()),
       data: dataStatus(vault()),
     };
     return statuses;

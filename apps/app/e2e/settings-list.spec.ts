@@ -48,10 +48,9 @@ test.describe('settings list on a phone', () => {
   });
 
   test('each row shows a status computed from the stores', async ({ page }) => {
-    await page.emulateMedia({ colorScheme: 'dark' });
     await mountBuiltApp(page);
     await openSettings(page);
-    await expect(page.getByTestId('settings-status-appearance')).toHaveText('Тёмная');
+    await expect(page.getByTestId('settings-status-appearance')).toHaveText('Системная');
     await expect(page.getByTestId('settings-status-clinician')).toHaveText('Не заполнено');
     await expect(page.getByTestId('settings-status-ai')).toHaveText('Не скачано');
     await expect(page.getByTestId('settings-status-images')).toHaveText('Не скачано');

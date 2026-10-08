@@ -21,6 +21,7 @@ import {
   type UserDocumentOutlineItem,
   waitForStablePosition,
 } from '@/features/library/user-document-reader-helpers';
+import { subscribeTheme } from '@/state/theme';
 import { getUserLibraryFile, userLibraryFileCapability } from '@/state/user-library';
 import {
   addUserHighlight,
@@ -178,7 +179,7 @@ export function RichDocumentRenderer(props: {
             };
             const rendition = book.renderTo(host, renditionOptions);
             // The chapters follow the app theme (dark page and text in the dark theme), also
-            // when the system colour scheme changes while a book is open.
+            // when the theme or the system colour scheme changes while a book is open.
             const applyAppTheme = (contents: EpubContents): void => {
               contents.addStylesheetCss(
                 epubThemeCss(readEpubThemeColors(host)),
@@ -186,15 +187,14 @@ export function RichDocumentRenderer(props: {
               );
             };
             rendition.hooks.content.register(applyAppTheme);
-            const colorScheme = window.matchMedia('(prefers-color-scheme: dark)');
             const refreshAppTheme = (): void => {
               for (const contents of rendition.getContents() as unknown as readonly EpubContents[]) {
                 applyAppTheme(contents);
               }
             };
-            colorScheme.addEventListener('change', refreshAppTheme);
+            const stopThemeUpdates = subscribeTheme(refreshAppTheme);
             destroyBook = () => {
-              colorScheme.removeEventListener('change', refreshAppTheme);
+              stopThemeUpdates();
               void rendition.destroy();
               void book.destroy();
             };
@@ -353,7 +353,7 @@ export function RichDocumentRenderer(props: {
             rendition.on('relocated', handleRelocated);
             rendition.themes.fontSize('100%');
             destroyBook = () => {
-              colorScheme.removeEventListener('change', refreshAppTheme);
+              stopThemeUpdates();
               rendition.off('selected', handleSelected);
               rendition.off('relocated', handleRelocated);
               void rendition.destroy();

@@ -315,9 +315,14 @@
   color: var(--theme-text-muted, rgb(0 0 0 / 58%));
 }
 
-.settings-slider {
+.settings-slider,
+.settings-theme {
   display: grid;
   gap: 0.5rem;
+}
+
+.settings-theme__control {
+  width: 100%;
 }
 
 .settings-update__error {

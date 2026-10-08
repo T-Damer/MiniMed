@@ -1,6 +1,7 @@
 import type { DownloadPhase } from '@/features/downloads/download-queue';
 import { pluralRu } from '@/i18n/labels';
 import type { ClinicianProfile } from '@/state/clinician-profile';
+import type { ThemePreference } from '@/state/theme';
 import type { SettingsPageId } from './settings-pages';
 
 type EcgPackageState = 'missing' | 'partial' | 'outdated' | 'installed';
@@ -201,11 +202,15 @@ export function referenceImagesStatus(context: ReferenceImagesStatusContext): Se
   return { label: 'Не скачано', tone: 'neutral' };
 }
 
-export type ColorScheme = 'light' | 'dark';
+/** Names of the theme choices (Settings → Внешний вид → Тема). */
+export const THEME_LABELS: Readonly<Record<ThemePreference, string>> = {
+  system: 'Системная',
+  light: 'Светлая',
+  dark: 'Тёмная',
+};
 
-/** The theme follows the device; the status names the one in effect. */
-export function appearanceStatus(scheme: ColorScheme): SettingsStatus {
-  return { label: scheme === 'dark' ? 'Тёмная' : 'Светлая', tone: 'neutral' };
+export function appearanceStatus(theme: ThemePreference): SettingsStatus {
+  return { label: THEME_LABELS[theme], tone: 'neutral' };
 }
 
 export type PatientVaultState =

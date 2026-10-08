@@ -10,7 +10,7 @@ vi.mock('@capacitor/core', () => ({
   registerPlugin: () => ({ setStatusBar: mocks.setStatusBar }),
 }));
 
-import { setDarkHeaderStatusBar } from '@/state/native-system-ui';
+import { setDarkHeaderStatusBar, setNativeThemeOverride } from '@/state/native-system-ui';
 
 describe('setDarkHeaderStatusBar', () => {
   beforeEach(() => {
@@ -33,5 +33,40 @@ describe('setDarkHeaderStatusBar', () => {
     expect(mocks.setStatusBar).toHaveBeenLastCalledWith({
       backgroundColor: '#00000000',
     });
+  });
+});
+
+describe('setNativeThemeOverride', () => {
+  beforeEach(() => {
+    mocks.platform.mockReturnValue('android');
+    mocks.setStatusBar.mockClear();
+  });
+
+  it('sets the icon colour from the chosen theme and hands it back to the device', () => {
+    setNativeThemeOverride('dark');
+    expect(mocks.setStatusBar).toHaveBeenLastCalledWith({
+      backgroundColor: '#00000000',
+      darkIcons: false,
+    });
+
+    setNativeThemeOverride('light');
+    expect(mocks.setStatusBar).toHaveBeenLastCalledWith({
+      backgroundColor: '#00000000',
+      darkIcons: true,
+    });
+
+    setNativeThemeOverride(undefined);
+    expect(mocks.setStatusBar).toHaveBeenLastCalledWith({ backgroundColor: '#00000000' });
+  });
+
+  it('keeps light icons over a dark header whatever the theme', () => {
+    setNativeThemeOverride('light');
+    setDarkHeaderStatusBar(true);
+    expect(mocks.setStatusBar).toHaveBeenLastCalledWith({
+      backgroundColor: '#00000000',
+      darkIcons: false,
+    });
+    setDarkHeaderStatusBar(false);
+    setNativeThemeOverride(undefined);
   });
 });

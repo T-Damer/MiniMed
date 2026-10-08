@@ -5,6 +5,7 @@ import { lockNativeSafeBottom } from '@/app/lock-native-safe-bottom';
 import { registerAppServiceWorker } from '@/state/app-update';
 import { installMotionManager } from '@/state/motion';
 import { startReminderNotifications } from '@/state/reminder-notifications';
+import { installTheme } from '@/state/theme';
 import 'overlayscrollbars/overlayscrollbars.css';
 import '@/styles/theme.css';
 import '@/styles/zIndex.css';
@@ -48,12 +49,14 @@ const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element.');
 
 const stopMotionManager = installMotionManager();
+const stopTheme = installTheme();
 render(() => <App />, root);
 const stopNativeSafeBottomLock = lockNativeSafeBottom();
 const stopReminderNotifications = startReminderNotifications();
 if (import.meta.hot) {
   import.meta.hot.dispose(() => {
     stopMotionManager();
+    stopTheme();
     stopNativeSafeBottomLock();
     stopReminderNotifications();
   });

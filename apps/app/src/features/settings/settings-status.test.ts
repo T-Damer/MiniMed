@@ -145,9 +145,10 @@ describe('settings statuses', () => {
     );
   });
 
-  it('names the theme in effect and the patient storage', () => {
+  it('names the chosen theme and the patient storage', () => {
     expect(appearanceStatus('dark').label).toBe('Тёмная');
     expect(appearanceStatus('light').label).toBe('Светлая');
+    expect(appearanceStatus('system').label).toBe('Системная');
     expect(dataStatus('empty').label).toBe('Пусто');
     expect(dataStatus('native-keychain')).toEqual({ label: 'Защищено', tone: 'ok' });
     expect(dataStatus('browser-device-key')).toEqual({

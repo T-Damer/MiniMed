@@ -2,8 +2,10 @@ import { createSignal, type JSX, onCleanup, onMount } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { RangeSlider } from '@/components/RangeSlider';
+import { SegmentedControl } from '@/components/SegmentedControl';
 import { StepSlider } from '@/components/StepSlider';
 import { Switch } from '@/components/Switch';
+import { THEME_LABELS } from '@/features/settings/settings-status';
 import {
   getFloatingWindowsEnabled,
   getMotionSpeed,
@@ -18,6 +20,12 @@ import {
   setVibrationEnabled,
   subscribeAppPreferences,
 } from '@/state/app-preferences';
+import {
+  getThemePreference,
+  setThemePreference,
+  subscribeTheme,
+  THEME_PREFERENCES,
+} from '@/state/theme';
 
 /** Ordered by speed, slowest to fastest. */
 const MOTION_OPTIONS = [
@@ -26,6 +34,8 @@ const MOTION_OPTIONS = [
   { value: 'normal', label: 'Обычные', hint: 'Стандартная скорость переходов и окон.' },
   { value: 'fast', label: 'Быстрые', hint: 'Переходы и окна появляются почти мгновенно.' },
 ] as const;
+
+const THEME_OPTIONS = THEME_PREFERENCES.map((value) => ({ value, label: THEME_LABELS[value] }));
 
 /** «Внешний вид»: theme, animations, sounds, vibration, tab layout and floating windows. */
 export function SettingsAppearancePage(): JSX.Element {
@@ -36,7 +46,7 @@ export function SettingsAppearancePage(): JSX.Element {
   const [floatingWindowsEnabled, setFloatingWindowsEnabledState] = createSignal(
     getFloatingWindowsEnabled(),
   );
-  const [dark, setDark] = createSignal(false);
+  const [theme, setTheme] = createSignal(getThemePreference());
 
   onMount(() => {
     const unsubscribe = subscribeAppPreferences((preferences) => {
@@ -46,15 +56,10 @@ export function SettingsAppearancePage(): JSX.Element {
       setMotionSpeedState(preferences.motionSpeed);
       setFloatingWindowsEnabledState(preferences.floatingWindowsEnabled);
     });
-    const media = window.matchMedia('(prefers-color-scheme: dark)');
-    const syncTheme = (): void => {
-      setDark(media.matches);
-    };
-    syncTheme();
-    media.addEventListener('change', syncTheme);
+    const unsubscribeTheme = subscribeTheme(() => setTheme(getThemePreference()));
     onCleanup(() => {
       unsubscribe();
-      media.removeEventListener('change', syncTheme);
+      unsubscribeTheme();
     });
   });
 
@@ -65,17 +70,23 @@ export function SettingsAppearancePage(): JSX.Element {
       class="settings-section settings-section--interface paper-sheet"
       aria-label="Внешний вид и поведение"
     >
-      <div class="settings-row">
-        <div class="settings-row__text">
-          <span class="settings-row__label settings-row__label--with-icon">
-            <AppGlyph name="palette" class="settings-row__label-icon" aria-hidden="true" />
-            Тема
-          </span>
-          <p class="settings-row__helper">
-            Следует за настройкой устройства: сейчас {dark() ? 'тёмная' : 'светлая'}. Сменить её
-            можно в системных настройках телефона или компьютера.
-          </p>
-        </div>
+      <div class="settings-theme">
+        <span class="settings-row__label settings-row__label--with-icon">
+          <AppGlyph name="palette" class="settings-row__label-icon" aria-hidden="true" />
+          Тема
+        </span>
+        <SegmentedControl
+          class="settings-theme__control"
+          label="Тема"
+          stretch
+          options={THEME_OPTIONS}
+          value={theme()}
+          onChange={(next) => {
+            // The control moves at once; the page itself cross-fades to the new theme.
+            setTheme(next);
+            setThemePreference(next);
+          }}
+        />
       </div>
 
       <StepSlider

@@ -1,3 +1,5 @@
+import { resolvedTheme } from '@/state/theme';
+
 /** Style key of the app-theme sheet inside every EPUB chapter frame. */
 export const EPUB_THEME_STYLE_KEY = 'minimed-app-theme';
 
@@ -36,9 +38,9 @@ export function epubThemeCss(colors: EpubThemeColors): string {
   return rules.join('\n');
 }
 
-/** Whether the app is in its dark theme (it follows the system colour scheme). */
+/** Whether the app is in its dark theme (the chosen one, or the system colour scheme). */
 export function appPrefersDark(): boolean {
-  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  return resolvedTheme() === 'dark';
 }
 
 /** The colours the reader page itself uses, read from the element the book is rendered into. */
