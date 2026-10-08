@@ -1,10 +1,11 @@
 import type { MedicalCore } from '@localmed/contracts';
-import { createResource, For, type JSX, Show } from 'solid-js';
+import { For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { notesDrugComparisonPath } from '@/features/notes/notes-routing';
 import { encodeDrug, type FoundDrug, resolveDrugName } from './comparison-candidates';
 import '@/styles/comparison-suggestion.css';
+import { createQuietResource } from '@/state/quiet-resource';
 
 /** The drugs a parsed comparison query names, or null unless at least two of them are drugs. */
 async function resolveNames(
@@ -29,12 +30,13 @@ export function ComparisonSuggestionCard(props: {
   readonly core: MedicalCore | undefined;
   readonly names: readonly string[];
 }): JSX.Element {
-  const [drugs] = createResource(
+  // A quiet resource: a core swap refetches the names behind the card on screen.
+  const drugs = createQuietResource(
     () => (props.core ? { core: props.core, names: props.names } : undefined),
     (source) => resolveNames(source.core, source.names).catch(() => null),
   );
   return (
-    <Show when={drugs()}>
+    <Show when={drugs.value()}>
       {(found) => (
         <a
           class="comparison-suggestion paper-card"

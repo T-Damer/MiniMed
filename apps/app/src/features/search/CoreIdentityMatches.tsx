@@ -1,14 +1,5 @@
 import type { CoreIdentityHit, MedicalCore, SearchResultGroup } from '@localmed/contracts';
-import {
-  createEffect,
-  createMemo,
-  createResource,
-  createSignal,
-  For,
-  type JSX,
-  onCleanup,
-  Show,
-} from 'solid-js';
+import { createEffect, createMemo, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { loadModuleCatalog } from '@/features/modules/module-catalog-state';
 import { assertIdentityDocumentTarget } from '@/features/modules/module-pointer-install';
@@ -27,6 +18,7 @@ import { pluralRu } from '@/i18n/labels';
 import { subscribeAppPreferences } from '@/state/app-preferences';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import '@/features/search/core-identity-matches.css';
+import { createQuietResource } from '@/state/quiet-resource';
 
 const COVERAGE_LABELS: Readonly<Record<string, string>> = {
   'explicit-definition': 'определение',
@@ -51,9 +43,11 @@ export function CoreIdentityMatches(props: {
   readonly core: MedicalCore;
   readonly onContentChanged: () => Promise<void>;
 }): JSX.Element {
-  const [catalog] = createResource(loadModuleCatalog);
+  // Quiet resources: the preview loads and reloads in place (a core swap, an install), never
+  // through the page-level loader.
+  const catalog = createQuietResource(loadModuleCatalog);
   const runtime = createMemo(() => {
-    const value = catalog();
+    const value = catalog.value();
     return value ? getContentModuleRuntime(value) : undefined;
   });
   const [revision, setRevision] = createSignal(0);
@@ -79,7 +73,7 @@ export function CoreIdentityMatches(props: {
   const selection = createMemo(() => selectDefinitionPreview(props.hits, props.query));
   const primary = () => selection()?.main.primary;
 
-  const [definition] = createResource(
+  const definition = createQuietResource(
     () => {
       const hit = primary();
       const module = hit ? moduleFor(hit) : undefined;
@@ -96,15 +90,16 @@ export function CoreIdentityMatches(props: {
     const current = selection();
     return current ? definitionFromResults(props.groups, current.main.title) : undefined;
   });
-  const shownText = (): string | undefined =>
-    definition() ?? (definition.loading ? undefined : fromResults()?.text);
+  // A quoted found-document definition stays on screen while the dictionary is read (or read
+  // again after a core swap): the preview changes text only when the dictionary has some.
+  const shownText = (): string | undefined => definition.value() ?? fromResults()?.text;
   const hint = (): string => {
     const hit = primary();
     if (!hit) return '';
     if (hit.target.type === 'document') return 'документ в установленном наборе';
     if (!definitionHitHasText(hit)) return 'название сохранено, определения пока нет';
-    if (definition.loading) return '…';
-    if (definition.error) return 'не удалось прочитать словарь';
+    if (definition.loading()) return '…';
+    if (definition.error()) return 'не удалось прочитать словарь';
     if (!moduleFor(hit)) return 'этот выпуск словаря сейчас недоступен';
     return 'определение в словаре — откройте, чтобы скачать его';
   };
@@ -175,11 +170,11 @@ export function CoreIdentityMatches(props: {
             </p>
             <div class="definition-preview__footer">
               <Show
-                when={definition() ? undefined : fromResults()}
+                when={definition.value() ? undefined : fromResults()}
                 fallback={
                   <span class="definition-preview__source">
                     {moduleFor(current().main.primary)?.title ??
-                      (catalog.loading ? 'Проверяем словарь…' : 'Словарь недоступен')}
+                      (catalog.loading() ? 'Проверяем словарь…' : 'Словарь недоступен')}
                   </span>
                 }
               >
@@ -258,7 +253,7 @@ export function CoreIdentityMatches(props: {
               </For>
             </p>
           </Show>
-          <Show when={catalog.error}>
+          <Show when={catalog.error()}>
             <p class="definition-preview__error" role="alert">
               Не удалось прочитать каталог наборов.
             </p>

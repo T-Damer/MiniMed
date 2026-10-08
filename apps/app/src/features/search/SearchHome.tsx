@@ -9,6 +9,7 @@ import {
   onCleanup,
   onMount,
   Show,
+  untrack,
 } from 'solid-js';
 import { toast } from 'solid-sonner';
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
@@ -44,6 +45,7 @@ import { KnowledgeGraph } from '@/features/library/KnowledgeGraph';
 import { selectGraphNeighborhood } from '@/features/library/knowledge-graph-model';
 import { medicationDocumentGroups } from '@/features/medications/medicationGroups';
 import { DefinitionReferencePanel } from '@/features/reference/DefinitionReferencePanel';
+import { sameDocumentList } from '@/features/search/document-list';
 import { HomeFeatureCard } from '@/features/search/HomeFeatureCard';
 import { homeDocumentOrder } from '@/features/search/homeDocumentOrder';
 import {
@@ -441,14 +443,18 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   });
   createEffect(() => {
     const core = props.baseCore;
-    setCatalogLoading(true);
+    // Only the first read is «loading»: a core swap (module install, pack attach) rereads the list
+    // behind the catalog and the section counts already on screen, and replaces them only if they
+    // changed — a background refresh never turns the page back into a loader.
+    if (untrack(documents).length === 0) setCatalogLoading(true);
     if (!core) return;
     let current = true;
     void (core.listNavigationDocuments?.() ?? core.listDocuments()).then((result) => {
       if (!current) return;
       setCatalogLoading(false);
       if (result.ok) {
-        setDocuments(preferReadableDocuments(result.value));
+        const next = preferReadableDocuments(result.value);
+        if (!sameDocumentList(untrack(documents), next)) setDocuments(next);
         setCatalogError(undefined);
         prepareDocumentLinksWhenIdle(result.value);
       } else setCatalogError(result.error.message);

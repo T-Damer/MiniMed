@@ -2,7 +2,6 @@ import type { MedicalCore } from '@localmed/contracts';
 import {
   createEffect,
   createMemo,
-  createResource,
   createSignal,
   For,
   type JSX,
@@ -25,6 +24,7 @@ import {
   intentView,
 } from './safety-view';
 import '@/styles/medication-safety.css';
+import { createQuietResource } from '@/state/quiet-resource';
 
 /**
  * The card above the results of a question about a drug in pregnancy, during breastfeeding or in a
@@ -43,10 +43,11 @@ export function MedicationSafetyCard(props: {
     (async () => {
       window.dispatchEvent(new Event(CONTENT_CHANGED_EVENT));
     });
-  const [index] = createResource(loadSafetyIndex);
-  const [candidate] = createResource(
+  // Quiet resources: the card loads and reloads in place, never through the page-level loader.
+  const index = createQuietResource(loadSafetyIndex);
+  const candidate = createQuietResource(
     () => {
-      const loaded = index();
+      const loaded = index.value();
       const core = props.core;
       return loaded && core ? { loaded, core, name: props.query.name } : undefined;
     },
@@ -63,8 +64,8 @@ export function MedicationSafetyCard(props: {
   };
   createEffect(on(() => props.core, forgetDocuments, { defer: true }));
   createEffect(() => {
-    const loaded = index();
-    const found = candidate();
+    const loaded = index.value();
+    const found = candidate.value();
     const core = props.core;
     const read = documents();
     if (!loaded || !found || !core) return;
@@ -85,8 +86,8 @@ export function MedicationSafetyCard(props: {
   onCleanup(() => window.removeEventListener(CONTENT_CHANGED_EVENT, forgetDocuments));
 
   const views = createMemo<readonly IntentView[]>(() => {
-    const loaded = index();
-    const found = candidate();
+    const loaded = index.value();
+    const found = candidate.value();
     if (!loaded || !found) return [];
     const read = documents();
     return props.query.intents.map((intent) =>
@@ -103,7 +104,7 @@ export function MedicationSafetyCard(props: {
   });
 
   return (
-    <Show when={candidate()}>
+    <Show when={candidate.value()}>
       {(found) => (
         <section class="safety-card paper-card" data-testid="safety-card">
           <header class="safety-card__header">
