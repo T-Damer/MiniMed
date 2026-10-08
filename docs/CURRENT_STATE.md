@@ -96,6 +96,43 @@ Owner screenshots and requests of 2026-10-08, applied by eight Sonnet worktree a
 Not tested in this batch: physical Android/iOS devices, native Keychain/Keystore, Safari/WebKit, real
 GigaAM/Whisper downloads, real printers.
 
+## Fixes from the UX13 QA pass — 2026-10-08 (STATE UX13-QA)
+
+A Sonnet agent used the merged app as a doctor ([qa-ux13-2026-10-08](research/qa-ux13-2026-10-08.md),
+37 findings); seven worktree agents fixed them and the e2e failures of the full run.
+
+- **Downloads.** The dev/preview release cache streams uncached assets (it used to fetch the whole
+  file before the first byte: the «0%» chip). Chip phases «Скачиваем…» → % → «Устанавливаем…» →
+  «Готово»; one offer per pack in a result list («В том же наборе» on the others); the home document
+  list drops a pointer once its target is installed (МКБ no longer doubles); the КР counter counts
+  recommendations only. Open: installing the 96 MB pack took ~2.5 min on a loaded machine, not
+  investigated; counters are not yet sourced from the catalog manifest.
+- **Search ranking.** A typed МКБ code puts its own card first; form numbers are phrases (no I07.x for
+  «070/у»); the 13 official forms are tool cards in «Все»; complaint lists favour symptom-level
+  documents; synonym-only words no longer rescue unrelated КР; tools follow the article for a bare
+  disease name unless a tool is asked for. Benchmarks unchanged; doctor-lookup 14 cases, R@5 1.0.
+- **Search screen.** History drawer: plain meta line, trash icon. `html` scroll-padding clears the tab
+  bar. The «Калькуляторы» tab restores the last tool.
+- **Reader.** Wide tables scroll in their own box with a pinned header row and first column; the
+  picture preview is a dark full-bleed stage; the hero shows the picture sharp above the title (the
+  stored reference images are the source's ~200 px thumbnails); stacked sticky headings are replaced
+  by one sticky section-path line (`ReaderSectionPath`). «Красота и медицина» as a query finds nothing
+  (the source name is not indexed) — open.
+- **Patients and recording.** Russian sex labels and metric names; silent encrypted vault creation
+  (help behind «?»); compact patient card header with a «…» menu; whole-card notes sections; the
+  recording window opens ready and starts on the record button; real duration after stop; patient
+  chosen with `PatientPickerRow`; Settings → «Пациенты и данные» has backup rows.
+- **Tools.** Forms list cards show number + name; lighter official field labels; shared zoomable
+  `PaperPreview` (forms, vaccination handout); vaccination tap dates the dose today with an undo toast
+  (closed when the preview opens); ECG help behind «?» with one primary action; Cyrillic units; the
+  patient row only for tools whose schema uses patient data (`calculatorUsesPatientData`); phone
+  wording on the imaging entry; calculators/tests roots with back and compact own-tools rows.
+- **Shell.** In-app theme «Системная / Светлая / Тёмная» (`minimed.theme.v1`, `data-theme`, a PostCSS
+  step keeps every `prefers-color-scheme` block in sync — combined media conditions there now fail the
+  build); dark CSS no longer loads before `main.css`; settings number formatting; news web build says
+  once that feeds load in the Android app; tour 8 screens; open home sections hide the carousel;
+  knowledge-base section bars put the title beside back.
+
 ## Definitions dictionary 2026.10.08 and core 0.6.57 — 2026-10-08 (STATE DEF4)
 
 Owner approved on 2026-10-08 («Publish»), including the Красота и медицина symptom pages on the terms of the
