@@ -350,17 +350,25 @@ test('fills the referral 057/у (order 519н) from one patient: prefill, underli
   await page.getByRole('button', { name: 'Заполнить форму', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Формы', exact: true })).toBeVisible();
 
-  // The card says which order the blank comes from and when it is in force; a coming edition is
-  // never shown as current.
+  // The list card is the form number and name only; the order, the dates of validity and the
+  // official publication are small text at the bottom of the form page. A coming edition is never
+  // shown as current.
   const card = page.locator('.forms-home__card').filter({ hasText: 'Форма № 057/у' });
-  await expect(card).toContainText('Приказ Минздрава России от 02.09.2025 № 519н');
-  await expect(card).toContainText('Действует с 27.10.2025.');
-  const coming = page.locator('.forms-home__card').filter({ hasText: 'Форма № 058/у' });
-  await expect(coming).toContainText('Вступает в силу с 01.03.2027.');
-  await expect(coming).not.toContainText('Действует с');
+  await expect(card).not.toContainText('Приказ');
+  await expect(card).not.toContainText('Официальная публикация');
   await expect(page.locator('.forms-home__card')).toHaveCount(13);
+  await fillButton(page, '058/у').click();
+  const comingReference = page.locator('.forms-workspace__reference');
+  await expect(comingReference).toContainText('Вступает в силу с 01.03.2027.');
+  await expect(comingReference).not.toContainText('Действует с');
+  await page.getByRole('button', { name: 'К карточке пациента' }).click();
+  await page.getByRole('button', { name: 'Заполнить форму', exact: true }).click();
   await fillButton(page, '057/у').click();
   await expect(page).toHaveURL(/#\/notes\/forms\/ru\.minzdrav\.519n\.057u\?patient=/u);
+  const reference = page.locator('.forms-workspace__reference');
+  await expect(reference).toContainText('Приказ Минздрава России от 02.09.2025 № 519н');
+  await expect(reference).toContainText('зарегистрирован Минюстом');
+  await expect(reference).toContainText('Действует с 27.10.2025.');
 
   for (const [fieldId, value] of Object.entries({
     patientFullName: 'Иванов Иван Иванович',

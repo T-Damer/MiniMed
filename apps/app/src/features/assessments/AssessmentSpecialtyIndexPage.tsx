@@ -146,7 +146,7 @@ export function AssessmentSpecialtyIndexPage(props: {
             : {
                 navigation: (
                   <NavBack
-                    class="assessment-user-questionnaires__back"
+                    class="knowledge-back-button"
                     aria-label="Назад"
                     onClick={props.onHome}
                   />

@@ -134,3 +134,24 @@ test('a link to an unknown tool says so above the calculator list', async ({ pag
   );
   await expect(page.getByRole('heading', { name: 'Калькуляторы', exact: true })).toBeVisible();
 });
+
+test('the unit converter shows Russian units and no patient row', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await mountBuiltApp(page, { persistentOrigin: true });
+  await page.evaluate(() => {
+    window.location.hash = '#/calculators/unit-conversion';
+  });
+  await expect(page.getByRole('heading', { name: 'Преобразование единиц' })).toBeVisible();
+  // The tool takes typed numbers only: nothing to choose a patient for.
+  await expect(page.locator('.patient-picker-row')).toHaveCount(0);
+
+  const from = page.getByLabel('Из единицы');
+  const to = page.getByLabel('В единицу');
+  await expect(from.locator('option')).toHaveText(['кг', 'г', 'мг', 'мкг']);
+  await from.selectOption('kg');
+  await to.selectOption('mg');
+  await page.getByLabel('Значение').fill('2');
+  await page.getByTestId('calculator-submit').click();
+  await expect(page.getByTestId('calculator-result')).toContainText('мг');
+  await expect(page.getByTestId('calculator-result')).not.toContainText('mg');
+});
