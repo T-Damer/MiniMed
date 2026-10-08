@@ -15,11 +15,11 @@ for (const width of [375, 1280]) {
     await expect(dictionary).toBeEnabled({ timeout: 60_000 });
     await dictionary.click();
     const dialog = page.getByRole('dialog', { name: 'Словарь терминов' });
-    await expect(dialog).toContainText('Черновая редакция, не проверено');
-    await dialog.getByText('Пакеты справочника').click();
+    // Not installed: the download is offered right in the dialog, without explanations.
     await expect(
       dialog.locator('[data-module-id="minimed.definition.reference.ru"]'),
     ).toContainText('Словарь терминов, симптомов и синдромов');
+    await expect(dialog).not.toContainText('Черновая редакция, не проверено');
     await page.screenshot({ path: test.info().outputPath('experimental-reference.png') });
     await page.keyboard.press('Escape');
     await expect(dialog).toBeHidden();

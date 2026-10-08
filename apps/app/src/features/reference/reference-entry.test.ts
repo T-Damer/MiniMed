@@ -5,8 +5,8 @@ import {
   expansionCountLabel,
   groupReferenceHits,
   licenseLabel,
+  orderSameNameHits,
   referenceAnnotationFlags,
-  referenceBlockLabel,
   referenceEntryType,
   referenceLocation,
   referenceLocationLabel,
@@ -37,12 +37,6 @@ describe('reference entry types', () => {
     expect(referenceEntryType(hit('c', 'Гипертензия', 'term'))).toBe('definition');
     // An id that looks like a dictionary entry changes nothing.
     expect(referenceEntryType(hit('ruwikt.1', 'слово', 'term'))).toBe('definition');
-  });
-
-  it('never labels an abbreviation block as a definition', () => {
-    expect(referenceBlockLabel('definition', 'abbreviation')).toBe('Расшифровка');
-    expect(referenceBlockLabel('definition', 'gloss')).toBe('Толкование');
-    expect(referenceBlockLabel('definition', 'definition')).toBe('Определение');
   });
 
   it('folds same-spelled abbreviations into one row at the first hit, keeping search order', () => {
@@ -124,5 +118,26 @@ describe('reference provenance', () => {
         { citations: [{ path: 'x' }] },
       ).entryUrl,
     ).toBe(undefined);
+  });
+});
+
+describe('orderSameNameHits', () => {
+  const sensed = (id: string, title: string, usage: number, authority: number) => ({
+    ...hit(id, title, 'term'),
+    sense: { usage, authority, documents: 1, fieldLabel: id },
+  });
+
+  it('puts the widely used sense of a name first without moving other names', () => {
+    const ordered = orderSameNameHits([
+      sensed('fracture', 'Депрессия', 8, 3),
+      sensed('other', 'Астения', 5, 1),
+      sensed('mood', 'Депрессия', 68, 1),
+    ]);
+    expect(ordered.map((entry) => entry.id)).toEqual(['mood', 'other', 'fracture']);
+  });
+
+  it('leaves hits without signals and abbreviations in the search order', () => {
+    const hits = [hit('a', 'АД', 'abbreviation'), hit('b', 'АД', 'abbreviation')];
+    expect(orderSameNameHits(hits)).toEqual(hits);
   });
 });

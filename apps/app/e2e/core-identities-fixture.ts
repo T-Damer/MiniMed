@@ -26,14 +26,16 @@ from copy import deepcopy
 root, directory = map(Path, sys.argv[1:])
 source = root / 'data/build/definition-reference/2026.9.30/minimed.definition.reference.2026.9.30.db.gz'
 entries, blocks, sources, expected = [], [], [], []
-with _source_database(source) as db:
-    rows = db.execute("""SELECT e.id,e.canonical_name,e.entity_type,
-        json_extract(e.metadata_json,'$.coverage') FROM knowledge_entities e
-        JOIN knowledge_names n ON n.entity_id=e.id
-        WHERE n.normalized_name='на' ORDER BY e.id LIMIT 2""").fetchall()
-    if len(rows) != 2:
-        raise ValueError('Real source must provide two distinct НА meanings')
-    for ordinal, (identity, title, kind, coverage) in enumerate(rows, 1):
+# Ranking signals: the first meaning is a rare traumatology one, the second the widely used one.
+senses = [
+    {'field': 'traumatology', 'fieldLabel': 'травматология', 'documents': 1, 'authority': 3,
+     'usage': 2, 'termUsage': 40},
+    {'field': 'psychiatry', 'fieldLabel': 'психиатрия', 'documents': 1, 'authority': 1,
+     'usage': 30, 'termUsage': 40},
+]
+def take(db, rows, signals):
+    for identity, title, kind, coverage, sense in rows:
+        ordinal = len(entries) + 1
         text, raw_source, raw_span = db.execute("""SELECT c.original_text,d.metadata_json,c.metadata_json
           FROM definition_reference_links l JOIN definition_reference_chunks c ON c.id=l.chunk_id
           JOIN documents d ON d.id=l.document_id WHERE l.entity_id=?
@@ -42,9 +44,32 @@ with _source_database(source) as db:
         sources.append({'id': ordinal, **source_descriptor})
         blocks.append({**json.loads(raw_span), 'id': ordinal, 'source': ordinal, 'text': text})
         entries.append({'id': identity, 'title': title, 'kind': kind, 'aliases': [],
-                        'coverage': coverage, 'blockIds': [ordinal], 'note': ''})
+                        'coverage': coverage, 'blockIds': [ordinal], 'note': '',
+                        'sense': signals(sense, len(entries))})
         expected.append({'id': identity, 'title': title, 'text': text,
                          'locator': json.loads(raw_span)['locator']})
+
+with _source_database(source) as db:
+    rows = db.execute("""SELECT e.id,e.canonical_name,e.entity_type,
+        json_extract(e.metadata_json,'$.coverage'), NULL FROM knowledge_entities e
+        JOIN knowledge_names n ON n.entity_id=e.id
+        WHERE n.normalized_name='на' ORDER BY e.id LIMIT 2""").fetchall()
+    if len(rows) != 2:
+        raise ValueError('Real source must provide two distinct НА meanings')
+    take(db, rows, lambda _, index: senses[index])
+# The candidate edition's real «Депрессия» senses (КР fracture pattern, mood disorder of the site),
+# with the ranking signals the build measured, when that local edition exists.
+candidate = root / 'data/build/definitions-ux13/2026.10.08/minimed.definition.reference.2026.10.08.db'
+if candidate.exists():
+    with _source_database(candidate) as db:
+        rows = db.execute("""SELECT e.id,e.canonical_name,e.entity_type,
+            json_extract(e.metadata_json,'$.coverage'), json_extract(e.metadata_json,'$.sense')
+            FROM knowledge_entities e WHERE e.normalized_name='депрессия'
+            AND json_extract(e.metadata_json,'$.coverage')='explicit-definition'
+            AND EXISTS (SELECT 1 FROM definition_reference_links l JOIN definition_reference_chunks c
+              ON c.id=l.chunk_id WHERE l.entity_id=e.id AND l.link_type='reference:definition'
+              AND json_extract(c.metadata_json,'$.locator') IS NOT NULL) ORDER BY e.id""").fetchall()
+        take(db, [row[:4] + (json.loads(row[4]),) for row in rows], lambda sense, _: sense)
 payload = {'version': 3, 'id': 'e2e.exact-source-names', 'reviewStatus': 'requires-review',
            'publicationState': 'local-dev', 'textKind': 'source-excerpt',
            'sources': sources, 'blocks': blocks, 'terms': entries}
@@ -102,9 +127,11 @@ export async function prepareCoreIdentityFixture() {
   const sourceSetDigest = `sha256:${createHash('sha256')
     .update(await readFile(resolve(DIRECTORY, 'source.json')))
     .digest('hex')}`;
+  const expectedEntries: { id: string; title: string; text: string; locator: string }[] =
+    JSON.parse(await readFile(resolve(DIRECTORY, 'expected.json'), 'utf8'));
   const module = ContentModuleCatalogEntrySchema.parse({
     ...original,
-    title: 'Два исходных значения НА — проверочная редакция',
+    title: 'Проверочная редакция словаря',
     sourceSetDigest,
     sizes: { downloadBytes: database.length, installedBytes: database.length, precision: 'exact' },
     compatibility: { ...(original['compatibility'] as Record<string, unknown>), schemaVersion: 7 },
@@ -121,7 +148,7 @@ export async function prepareCoreIdentityFixture() {
       },
     ],
     documents: [],
-    definitionReference: { contract: 1, editionId: EDITION_ID, entries: 2 },
+    definitionReference: { contract: 1, editionId: EDITION_ID, entries: expectedEntries.length },
   });
   const document: {
     id: string;
@@ -196,9 +223,7 @@ export async function prepareCoreIdentityFixture() {
       ],
       { env: environment },
     );
-  const expected: { id: string; title: string; text: string; locator: string }[] = JSON.parse(
-    await readFile(resolve(DIRECTORY, 'expected.json'), 'utf8'),
-  );
+  const expected = expectedEntries;
   return {
     database,
     documentDatabase,

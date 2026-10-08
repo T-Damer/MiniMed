@@ -1,11 +1,8 @@
 import type {
   ContentModuleCatalog,
-  DefinitionReferenceBlock,
   DefinitionReferenceHit,
-  DefinitionReferencePage,
   DefinitionReferenceReply,
   DefinitionReferenceRequest,
-  DefinitionReferenceText,
   MedicalCore,
 } from '@localmed/contracts';
 import {
@@ -18,24 +15,32 @@ import {
   onCleanup,
   Show,
 } from 'solid-js';
-import { Disclosure } from '@/components/Disclosure';
+import { AppGlyph } from '@/components/AppGlyph';
 import { MODULE_CATALOG } from '@/features/modules/module-catalog';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
+import { getDoctorProfile } from '@/features/reference/doctor-profile';
 import {
   expansionCountLabel,
   groupReferenceHits,
+  orderSameNameHits,
   type ReferenceHitGroup,
   referenceAnnotationFlags,
-  referenceBlockLabel,
   referenceEntryType,
   referenceLocation,
   referenceLocationLabel,
-  referenceSourceAttribution,
 } from '@/features/reference/reference-entry';
+import type { SenseSource } from '@/features/reference/sense-detail';
+import { loadTermArticle, type TermArticle } from '@/features/reference/term-article';
 import { PackageDownloadRow } from '@/features/setup/PackageDownloadRow';
 import { subscribeAppPreferences } from '@/state/app-preferences';
+import { openDocumentOverlay } from '@/state/document-navigation';
+import { motionMs } from '@/state/motion';
 import '@/features/setup/setup.css';
 import '@/features/reference/reference.css';
+
+/** The query is searched this long after the last keystroke. */
+const SEARCH_DEBOUNCE_MS = 300;
+const MIN_QUERY_LENGTH = 2;
 
 /** One expansion of an abbreviation and the source documents that give it. */
 interface AbbreviationExpansion {
@@ -53,13 +58,11 @@ interface AbbreviationView {
   readonly conflicting: boolean;
 }
 
-function sourceTitle(metadata: Readonly<Record<string, unknown>> | null): string {
-  const source = metadata?.['source'];
-  if (source && typeof source === 'object' && 'title' in source && typeof source.title === 'string')
-    return source.title;
-  return 'Исходный материал';
-}
-
+/**
+ * A dictionary entry in full: the term, the source's own words and where each of them stands.
+ * `initialCard` opens one entry (from the definition card in search); without it the panel is
+ * the dictionary tool with its own search field.
+ */
 export function DefinitionReferencePanel(props: {
   readonly core: MedicalCore;
   readonly onContentChanged: () => Promise<void>;
@@ -77,13 +80,11 @@ export function DefinitionReferencePanel(props: {
   const [query, setQuery] = createSignal('');
   const [hits, setHits] = createSignal<readonly DefinitionReferenceHit[]>([]);
   const [searched, setSearched] = createSignal(false);
-  const [card, setCard] = createSignal<DefinitionReferenceHit | null>(null);
+  const [article, setArticle] = createSignal<TermArticle | null>(null);
   const [abbreviation, setAbbreviation] = createSignal<AbbreviationView | null>(null);
-  const groups = createMemo(() => groupReferenceHits(hits()));
-  const [page, setPage] = createSignal<DefinitionReferencePage>({ blocks: [], next: null });
-  const [text, setText] = createSignal<DefinitionReferenceText | null>(null);
-  const [block, setBlock] = createSignal<DefinitionReferenceBlock>();
-  const [source, setSource] = createSignal<Readonly<Record<string, unknown>> | null>(null);
+  const groups = createMemo(() =>
+    groupReferenceHits(orderSameNameHits(hits(), getDoctorProfile())),
+  );
   const [error, setError] = createSignal<string>();
   const [busy, setBusy] = createSignal(false);
   const [connected, setConnected] = createSignal(false);
@@ -130,12 +131,8 @@ export function DefinitionReferencePanel(props: {
     generation += 1;
     setHits([]);
     setSearched(false);
-    setCard(null);
+    setArticle(null);
     setAbbreviation(null);
-    setPage({ blocks: [], next: null });
-    setText(null);
-    setSource(null);
-    setBlock(undefined);
     setError(undefined);
     setBusy(false);
     setConnected(false);
@@ -185,7 +182,7 @@ export function DefinitionReferencePanel(props: {
     work: (token: number, scope: { moduleId: string; editionId: string }) => Promise<void>,
   ) => {
     const module = selected();
-    if (!module?.definitionReference || !connected() || busy()) return;
+    if (!module?.definitionReference || !connected()) return;
     const token = ++generation;
     setBusy(true);
     setError(undefined);
@@ -198,58 +195,41 @@ export function DefinitionReferencePanel(props: {
       if (token === generation) setBusy(false);
     }
   };
-  const search = () =>
+  const search = (text: string) =>
     run(async (token, scope) => {
-      const result = await request({ ...scope, op: 'search', query: query().trim(), limit: 20 });
+      const result = await request({ ...scope, op: 'search', query: text, limit: 20 });
       if (result.op !== 'search') throw new Error('Некорректный ответ справочника.');
       if (token !== generation) return;
       setHits(result.hits);
       setSearched(true);
-      setCard(null);
+      setArticle(null);
       setAbbreviation(null);
-      setText(null);
-      setSource(null);
     });
-  const readText = async (
-    token: number,
-    scope: { moduleId: string; editionId: string },
-    id: string,
-    selectedBlock: DefinitionReferenceBlock,
-    offset = 0,
-  ) => {
-    const result = await request({
-      ...scope,
-      op: 'text',
-      id,
-      chunkId: selectedBlock.chunkId,
-      offset,
-    });
-    if (result.op !== 'text' || !result.block)
-      throw new Error('Фрагмент больше не доступен в этой карточке.');
-    const origin = await request({ ...scope, op: 'source', id: result.block.sourceId });
-    if (origin.op !== 'source' || !origin.source) throw new Error('Источник фрагмента не найден.');
-    if (token !== generation) return;
-    setBlock(selectedBlock);
-    setText(result.block);
-    setSource(origin.source);
-  };
+  // Typing searches by itself after a pause; Enter searches at once.
+  let pending: ReturnType<typeof setTimeout> | undefined;
+  onCleanup(() => clearTimeout(pending));
+  createEffect(
+    on(
+      () => [query().trim(), connected()] as const,
+      ([text, ready]) => {
+        clearTimeout(pending);
+        if (!ready || props.initialCard) return;
+        if (text.length < MIN_QUERY_LENGTH) {
+          setHits([]);
+          setSearched(false);
+          return;
+        }
+        pending = setTimeout(() => void search(text), motionMs(SEARCH_DEBOUNCE_MS));
+      },
+      { defer: true },
+    ),
+  );
   const open = (hit: Pick<DefinitionReferenceHit, 'id'>) =>
     run(async (token, scope) => {
-      const result = await request({ ...scope, op: 'card', id: hit.id });
-      const blocks = await request({ ...scope, op: 'blocks', id: hit.id });
-      if (result.op !== 'card' || !result.card || blocks.op !== 'blocks')
-        throw new Error('Карточка не найдена.');
+      const result = await loadTermArticle((input) => request(input), scope, hit.id);
       if (token !== generation) return;
       setAbbreviation(null);
-      setCard(result.card);
-      setPage(blocks.page);
-      setText(null);
-      setSource(null);
-      setBlock(undefined);
-      const first = blocks.page.blocks.find(
-        (entry) => entry.role === 'definition' || entry.role === 'item',
-      );
-      if (first) await readText(token, scope, hit.id, first);
+      setArticle(result);
     });
   createEffect(
     on(
@@ -297,10 +277,7 @@ export function DefinitionReferencePanel(props: {
         }),
       );
       if (token !== generation) return;
-      setCard(null);
-      setText(null);
-      setSource(null);
-      setBlock(undefined);
+      setArticle(null);
       setAbbreviation({
         title: group.title,
         // The expansion most documents use comes first; ties keep the search order.
@@ -314,340 +291,165 @@ export function DefinitionReferencePanel(props: {
         conflicting: expansions.some((expansion) => expansion.flagged),
       });
     });
-  const attribution = createMemo(() => {
-    const body = text();
-    return body ? referenceSourceAttribution(source(), body.provenance) : undefined;
-  });
-  const location = createMemo(() => {
-    const body = text();
-    return body ? referenceLocationLabel(referenceLocation(body.provenance)) : undefined;
-  });
+  const openSource = (source: SenseSource) => {
+    const link = source.link;
+    if (link?.kind === 'document')
+      openDocumentOverlay(link.documentId, link.anchor, { preferSummary: true });
+  };
   return (
     <section class="reference-panel">
-      <p class="reference-panel__draft" role="note">
-        Черновая редакция, не проверено. Экспериментальный модуль: записи ещё не отсмотрены врачом.
-      </p>
-      <p class="reference-panel__notice">
-        Определения из источников, а не сгенерированные ответы. Предварительные записи требуют
-        проверки; одинаковые названия могут обозначать разные понятия.
-      </p>
       <Show
         when={available().length > 0}
         fallback={
           <div class="reference-panel__empty">
-            <p class="reference-panel__description">
-              Новый справочник пока не подключён. Установите подготовленный пакет ниже. Выпущенный
-              русский словарь также доступен как отдельный пакет в обычном поиске.
-            </p>
-            <Show when={candidates().length === 0}>
-              <p class="reference-panel__description">
-                Полная предварительная редакция подключается из локальной сборки; публичный файл
-                этой редакции ещё не опубликован.
-              </p>
+            <Show
+              when={candidates().length > 0}
+              fallback={<p class="reference-panel__description">Словарь пока не опубликован.</p>}
+            >
+              <ul class="package-list">
+                <For each={candidates()}>
+                  {(module) => (
+                    <PackageDownloadRow
+                      module={module}
+                      runtime={runtime}
+                      revision={revision()}
+                      onContentChanged={props.onContentChanged}
+                    />
+                  )}
+                </For>
+              </ul>
             </Show>
           </div>
         }
       >
         <Show when={available().length > 1}>
-          <label class="reference-panel__field">
-            Редакция
-            <select
-              class="reference-panel__input"
-              value={selected()?.id}
-              onChange={(event) => setSelection(event.currentTarget.value)}
-            >
-              <For each={available()}>
-                {(module) => <option value={module.id}>{module.title}</option>}
-              </For>
-            </select>
-          </label>
+          <select
+            class="reference-panel__input"
+            aria-label="Редакция"
+            value={selected()?.id}
+            onChange={(event) => setSelection(event.currentTarget.value)}
+          >
+            <For each={available()}>
+              {(module) => <option value={module.id}>{module.title}</option>}
+            </For>
+          </select>
         </Show>
-        <form
-          class="reference-panel__search"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void search();
-          }}
-        >
-          <label class="reference-panel__field">
-            Термин или описание
+        <Show when={!props.initialCard}>
+          <form
+            class="reference-panel__search"
+            onSubmit={(event) => {
+              event.preventDefault();
+              clearTimeout(pending);
+              if (query().trim().length >= MIN_QUERY_LENGTH) void search(query().trim());
+            }}
+          >
             <input
               class="reference-panel__input"
+              type="search"
+              aria-label="Термин или описание"
               maxLength={2048}
               value={query()}
               onInput={(event) => setQuery(event.currentTarget.value)}
-              placeholder="Например: гиперестезия"
+              placeholder="Термин или описание"
+              disabled={!connected()}
             />
-          </label>
-          <button
-            class="package-row__button"
-            type="submit"
-            disabled={busy() || !connected() || !query().trim()}
-          >
-            Найти
-          </button>
-        </form>
-        <Show when={searched() && hits().length === 0}>
-          <p class="reference-panel__description">
-            Совпадений в установленной редакции нет. Это не означает, что понятия не существует.
-          </p>
+          </form>
+          <Show when={searched() && hits().length === 0}>
+            <p class="reference-panel__description">Ничего не найдено.</p>
+          </Show>
+          <ul class="reference-panel__hits">
+            <For each={groups()}>
+              {(group) => (
+                <li class="reference-panel__hit">
+                  <button
+                    class="reference-panel__hit-button"
+                    type="button"
+                    disabled={busy()}
+                    onClick={() =>
+                      void (group.type === 'abbreviation'
+                        ? openAbbreviation(group)
+                        : group.hits[0] && open(group.hits[0]))
+                    }
+                  >
+                    {group.title}
+                    <Show when={group.type === 'abbreviation'}>
+                      <span class="reference-panel__hit-kind">
+                        сокращение
+                        {group.hits.length > 1
+                          ? ` · ${expansionCountLabel(group.hits.length)}`
+                          : ''}
+                      </span>
+                    </Show>
+                    <Show when={group.type === 'gloss'}>
+                      <span class="reference-panel__hit-kind">словарь</span>
+                    </Show>
+                    <Show when={group.type !== 'abbreviation' && group.hits[0]?.sense?.fieldLabel}>
+                      {(label) => <span class="reference-panel__hit-kind">{label()}</span>}
+                    </Show>
+                    <Show
+                      when={
+                        group.type !== 'abbreviation' &&
+                        (group.hits[0]?.coverage === 'needs-definition' ||
+                          group.hits[0]?.coverage === 'mention-only')
+                      }
+                    >
+                      <span class="reference-panel__hit-kind">нет определения</span>
+                    </Show>
+                  </button>
+                </li>
+              )}
+            </For>
+          </ul>
         </Show>
-        <ul class="reference-panel__hits">
-          <For each={groups()}>
-            {(group) => (
-              <li class="reference-panel__hit">
-                <button
-                  class="reference-panel__hit-button"
-                  type="button"
-                  disabled={busy()}
-                  onClick={() =>
-                    void (group.type === 'abbreviation'
-                      ? openAbbreviation(group)
-                      : group.hits[0] && open(group.hits[0]))
-                  }
-                >
-                  {group.title}
-                  <Show when={group.type === 'abbreviation'}>
-                    <span class="reference-panel__hit-kind">
-                      Сокращение
-                      {group.hits.length > 1 ? ` · ${expansionCountLabel(group.hits.length)}` : ''}
-                    </span>
-                  </Show>
-                  <Show when={group.type === 'gloss'}>
-                    <span class="reference-panel__hit-kind">Словарное толкование</span>
-                  </Show>
-                  <Show
-                    when={
-                      group.type !== 'abbreviation' &&
-                      group.hits[0]?.coverage === 'needs-definition'
-                    }
-                  >
-                    <span class="reference-panel__hit-note">Нужно определение</span>
-                  </Show>
-                  <Show
-                    when={
-                      group.type !== 'abbreviation' && group.hits[0]?.coverage === 'mention-only'
-                    }
-                  >
-                    <span class="reference-panel__hit-note">Только упоминание</span>
-                  </Show>
-                </button>
-              </li>
-            )}
-          </For>
-        </ul>
         <Show when={abbreviation()}>
           {(view) => (
-            <article class="reference-card reference-card--abbreviation">
-              <p class="reference-card__kind">Сокращение</p>
-              <Show
-                when={view().expansions.length === 1 && !view().conflicting}
-                fallback={
-                  <>
-                    <h3 class="reference-card__title">{view().title}</h3>
-                    <p class="reference-abbreviation__conflict" role="note">
-                      В разных документах это сокращение расшифровано по-разному. Выбирайте
-                      расшифровку по документу, в котором встретили сокращение.
-                    </p>
-                  </>
-                }
-              >
-                <h3 class="reference-card__title">
-                  {view().title} → {view().expansions[0]?.text}
-                </h3>
+            <article class="reference-term reference-term--abbreviation">
+              <h3 class="reference-term__title">
+                {view().title}
+                <Show when={view().expansions.length === 1 && !view().conflicting}>
+                  {' → '}
+                  {view().expansions[0]?.text}
+                </Show>
+              </h3>
+              <Show when={view().conflicting}>
+                <p class="reference-term__note" role="note">
+                  В разных документах расшифровки разные: ориентируйтесь на документ, где встретили
+                  сокращение.
+                </p>
               </Show>
-              <ul class="reference-abbreviation__list">
-                <For each={view().expansions}>
-                  {(expansion) => (
-                    <li class="reference-abbreviation__item">
-                      <Show when={view().expansions.length > 1 || view().conflicting}>
-                        <p class="reference-abbreviation__expansion">
-                          {view().title} →{' '}
-                          <strong class="reference-abbreviation__text">{expansion.text}</strong>
-                        </p>
-                      </Show>
-                      <ul class="reference-abbreviation__sources">
-                        <For each={expansion.locations}>
-                          {(label) => <li class="reference-abbreviation__source">{label}</li>}
-                        </For>
-                        <Show when={expansion.moreSources}>
-                          <li class="reference-abbreviation__source">и другие документы</li>
-                        </Show>
-                      </ul>
-                    </li>
-                  )}
-                </For>
-              </ul>
-              <p class="reference-card__review">
-                Черновая редакция, не проверено · расшифровка из списка сокращений источника, а не
-                определение понятия
-              </p>
+              <Show when={view().expansions.length > 1 || view().conflicting}>
+                <ul class="reference-term__list">
+                  <For each={view().expansions}>
+                    {(expansion) => (
+                      <li class="reference-term__list-item">
+                        <strong class="reference-term__expansion">{expansion.text}</strong>
+                        <span class="reference-term__where">
+                          {expansion.locations.join(' · ')}
+                          {expansion.moreSources ? ' · и другие документы' : ''}
+                        </span>
+                      </li>
+                    )}
+                  </For>
+                </ul>
+              </Show>
+              <Show when={view().expansions.length === 1 && !view().conflicting}>
+                <p class="reference-term__where">
+                  {view().expansions[0]?.locations.join(' · ')}
+                  {view().expansions[0]?.moreSources ? ' · и другие документы' : ''}
+                </p>
+              </Show>
             </article>
           )}
         </Show>
-        <Show when={card()}>
-          {(current) => (
-            <article
-              class="reference-card"
-              classList={{ 'reference-card--gloss': referenceEntryType(current()) === 'gloss' }}
-            >
-              <Show when={referenceEntryType(current()) === 'gloss'}>
-                <p class="reference-card__kind">
-                  Словарное толкование
-                  {attribution()
-                    ? ` · ${attribution()?.name}${attribution()?.license ? `, ${attribution()?.license}` : ''}`
-                    : ''}
-                </p>
-              </Show>
-              <h3 class="reference-card__title">{current().title}</h3>
-              <p class="reference-card__review">
-                Черновая редакция, не проверено ·{' '}
-                {referenceEntryType(current()) === 'gloss'
-                  ? 'общий словарь, не клиническое определение'
-                  : current().textKind === 'editorial-paraphrase'
-                    ? 'Редакционное изложение'
-                    : 'Текст источника'}
-              </p>
-              <Show when={current().coverage === 'needs-definition'}>
-                <p class="reference-panel__notice">
-                  Название сохранено. Медицинское определение ещё подбирается; энциклопедический
-                  текст не используется.
-                </p>
-              </Show>
-              <div class="reference-card__blocks">
-                <For each={page().blocks}>
-                  {(item, index) => (
-                    <button
-                      class="package-row__button"
-                      type="button"
-                      disabled={busy()}
-                      aria-pressed={item.linkId === block()?.linkId}
-                      onClick={() =>
-                        void run((token, scope) => readText(token, scope, current().id, item))
-                      }
-                    >
-                      {referenceBlockLabel(item.role, referenceEntryType(current()))} {index() + 1}
-                    </button>
-                  )}
-                </For>
-              </div>
-              <Show when={page().next}>
-                <button
-                  class="package-row__button"
-                  type="button"
-                  disabled={busy()}
-                  onClick={() =>
-                    void run(async (token, scope) => {
-                      const after = page().next;
-                      const result = await request({
-                        ...scope,
-                        op: 'blocks',
-                        id: current().id,
-                        ...(after ? { after } : {}),
-                      });
-                      if (result.op !== 'blocks')
-                        throw new Error('Некорректная страница справочника.');
-                      if (token === generation) {
-                        setPage(result.page);
-                        setText(null);
-                        setSource(null);
-                        setBlock(undefined);
-                      }
-                    })
-                  }
-                >
-                  Следующие фрагменты
-                </button>
-              </Show>
-              <Show when={text()}>
-                {(body) => (
-                  <>
-                    <p class="reference-card__text">{body().text}</p>
-                    <Show when={body().nextOffset !== null}>
-                      <button
-                        class="package-row__button"
-                        type="button"
-                        disabled={busy()}
-                        onClick={() => {
-                          const next = body().nextOffset;
-                          const currentBlock = block();
-                          if (next !== null && currentBlock)
-                            void run((token, scope) =>
-                              readText(token, scope, current().id, currentBlock, next),
-                            );
-                        }}
-                      >
-                        Продолжение фрагмента
-                      </button>
-                    </Show>
-                    <p class="reference-card__source">Источник: {sourceTitle(source())}</p>
-                    <Show when={location()}>
-                      {(label) => <p class="reference-card__location">{label()}</p>}
-                    </Show>
-                    <Show when={referenceEntryType(current()) === 'gloss' && attribution()}>
-                      {(credit) => (
-                        <p class="reference-card__attribution">
-                          <Show when={credit().attribution}>
-                            {(authors) => <span class="reference-card__credit">{authors()}. </span>}
-                          </Show>
-                          <Show when={credit().license}>
-                            {(license) => (
-                              <Show when={credit().licenseUrl} fallback={<span>{license()}</span>}>
-                                {(url) => (
-                                  <a
-                                    class="reference-card__link"
-                                    href={url()}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                  >
-                                    {license()}
-                                  </a>
-                                )}
-                              </Show>
-                            )}
-                          </Show>
-                          <Show when={credit().entryUrl}>
-                            {(url) => (
-                              <>
-                                {' · '}
-                                <a
-                                  class="reference-card__link"
-                                  href={url()}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                >
-                                  Статья в источнике
-                                </a>
-                              </>
-                            )}
-                          </Show>
-                        </p>
-                      )}
-                    </Show>
-                    <Disclosure
-                      variant="inline"
-                      class="reference-card__provenance"
-                      title="Источник и точное расположение"
-                    >
-                      <pre class="reference-card__metadata">
-                        {JSON.stringify({ source: source(), locator: body().provenance }, null, 2)}
-                      </pre>
-                    </Disclosure>
-                  </>
-                )}
-              </Show>
-            </article>
+        <Show when={article()} keyed>
+          {(term) => (
+            <TermView article={term} showTitle={!props.initialCard} onOpenSource={openSource} />
           )}
         </Show>
       </Show>
       <Show when={available().length > 0 && !connected() && !error()}>
-        <p class="reference-panel__description" role="status">
-          Подключаем установленный справочник к поиску…
-        </p>
-      </Show>
-      <Show when={busy()}>
-        <p class="reference-panel__description" role="status">
-          Читаем выбранные данные…
+        <p class="reference-panel__status" role="status">
+          Подключаем словарь…
         </p>
       </Show>
       <Show when={error()}>
@@ -657,27 +459,114 @@ export function DefinitionReferencePanel(props: {
           </p>
         )}
       </Show>
-      <Show when={candidates().length > 0}>
-        <Disclosure
-          variant="inline"
-          class="reference-panel__packages"
-          title="Пакеты справочника"
-          meta={candidates().length}
-        >
-          <ul class="package-list">
-            <For each={candidates()}>
-              {(module) => (
-                <PackageDownloadRow
-                  module={module}
-                  runtime={runtime}
-                  revision={revision()}
-                  onContentChanged={props.onContentChanged}
-                />
-              )}
-            </For>
-          </ul>
-        </Disclosure>
-      </Show>
     </section>
+  );
+}
+
+/** The term, the source's words and a short list of where they stand. */
+function TermView(props: {
+  readonly article: TermArticle;
+  /** A dialog titled with the term already shows it. */
+  readonly showTitle: boolean;
+  readonly onOpenSource: (source: SenseSource) => void;
+}): JSX.Element {
+  const card = () => props.article.card;
+  const draft = () => props.article.sources.some((source) => !source.official);
+  const kind = () => referenceEntryType(card());
+  const meta = () => draft() || Boolean(card().sense?.fieldLabel);
+  return (
+    <article class="reference-term">
+      <Show when={props.showTitle || meta()}>
+        <header class="reference-term__header">
+          <Show when={props.showTitle}>
+            <h3 class="reference-term__title">{card().title}</h3>
+          </Show>
+          <Show when={draft()}>
+            <span class="reference-term__badge">черновик</span>
+          </Show>
+          <Show when={card().sense?.fieldLabel}>
+            {(label) => <span class="reference-term__field">{label()}</span>}
+          </Show>
+        </header>
+      </Show>
+      <div
+        class="reference-term__body"
+        classList={{ 'reference-term__body--gloss': kind() === 'gloss' }}
+      >
+        <For each={props.article.paragraphs}>
+          {(paragraph) => (
+            <p
+              class="reference-term__paragraph"
+              classList={{
+                'reference-term__paragraph--context': paragraph.role === 'context',
+              }}
+            >
+              {paragraph.text}
+            </p>
+          )}
+        </For>
+      </div>
+      <Show when={props.article.sources.length > 0}>
+        <ul class="reference-term__sources">
+          <For each={props.article.sources}>
+            {(source) => (
+              <li class="reference-term__source">
+                <Show
+                  when={source.link}
+                  fallback={<span class="reference-term__where">{source.label}</span>}
+                >
+                  {(link) => {
+                    const target = link();
+                    return target.kind === 'web' ? (
+                      <a
+                        class="reference-term__link"
+                        href={target.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <span>{source.label}</span>
+                        <AppGlyph name="arrow-square-out" class="reference-term__link-icon" />
+                      </a>
+                    ) : (
+                      <button
+                        type="button"
+                        class="reference-term__link"
+                        onClick={() => props.onOpenSource(source)}
+                      >
+                        <span>{source.label}</span>
+                        <AppGlyph name="arrow-square-out" class="reference-term__link-icon" />
+                      </button>
+                    );
+                  }}
+                </Show>
+                <Show when={source.credit}>
+                  {(credit) => (
+                    <span class="reference-term__where">
+                      <Show when={credit().authors}>{(authors) => <>{authors()}. </>}</Show>
+                      <Show when={credit().license}>
+                        {(license) => (
+                          <Show when={credit().licenseUrl} fallback={license()}>
+                            {(url) => (
+                              <a
+                                class="reference-term__credit-link"
+                                href={url()}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                {license()}
+                              </a>
+                            )}
+                          </Show>
+                        )}
+                      </Show>
+                    </span>
+                  )}
+                </Show>
+              </li>
+            )}
+          </For>
+        </ul>
+      </Show>
+    </article>
   );
 }

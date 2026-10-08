@@ -1,4 +1,4 @@
-/* One definition preview above the search results: «Термин — определение». */
+/* One definition above the search results: «Термин — определение», its source and other senses. */
 .definition-preview {
   display: grid;
   gap: 0.375rem;
@@ -20,6 +20,11 @@
   margin: 0;
   font-size: 1rem;
   line-height: 1.5;
+  animation: definition-preview-swap var(--motion-base) var(--motion-ease-out) both;
+}
+
+.definition-preview__text--quiet {
+  opacity: 0.6;
 }
 
 .definition-preview__term {
@@ -36,22 +41,35 @@
 
 .definition-preview__footer {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 0.25rem 0.875rem;
-  font-size: 0.8125rem;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 0;
 }
 
-.definition-preview__source {
+.definition-preview__source-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  min-width: 0;
+  font-size: 0.8125rem;
+  animation: definition-preview-swap var(--motion-base) var(--motion-ease-out) both;
+}
+
+.definition-preview__source,
+.definition-preview__source-link {
   min-width: 0;
   color: var(--theme-text-muted);
+  overflow-wrap: anywhere;
 }
 
 .definition-preview__source-link {
-  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
   padding: 0;
   border: 0;
-  color: var(--theme-text-muted);
   background: transparent;
   cursor: pointer;
   font: inherit;
@@ -60,8 +78,103 @@
   text-underline-offset: 0.2em;
 }
 
-.definition-preview__action,
-.definition-preview__other-link,
+.definition-preview__source-link:hover {
+  color: var(--theme-link);
+}
+
+.definition-preview__source-name {
+  min-width: 0;
+}
+
+.definition-preview__source-icon {
+  flex: none;
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.definition-preview__badge {
+  padding: 0.0625rem 0.5rem;
+  border-radius: 999px;
+  color: var(--theme-text-muted);
+  background: var(--theme-surface-muted);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.definition-preview__more {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  color: var(--theme-text);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    transform var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease);
+}
+
+.definition-preview__more:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.definition-preview__more:disabled {
+  color: var(--theme-text-muted);
+  cursor: default;
+  opacity: 0.5;
+}
+
+.definition-preview__more-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.definition-preview__senses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.definition-preview__sense {
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  color: var(--theme-text);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8125rem;
+  transition:
+    transform var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease);
+}
+
+.definition-preview__sense:active {
+  transform: scale(0.96);
+}
+
+.definition-preview__sense:hover {
+  background: var(--theme-surface-muted);
+}
+
+.definition-preview__also {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.75rem;
+  margin: 0;
+  padding-inline: 0.25rem;
+  font-size: 0.8125rem;
+}
+
 .definition-preview__also-link {
   padding: 0;
   border: 0;
@@ -75,56 +188,10 @@
   text-underline-offset: 0.2em;
 }
 
-.definition-preview__action {
-  font-weight: 600;
-}
-
-.definition-preview__action--quiet {
-  font-weight: 400;
-}
-
-.definition-preview__action:disabled,
-.definition-preview__other-link:disabled,
 .definition-preview__also-link:disabled {
   color: var(--theme-text-muted);
   cursor: default;
   text-decoration: none;
-}
-
-.definition-preview__others {
-  display: grid;
-  gap: 0.25rem;
-  margin: 0;
-  padding: 0.5rem 0 0;
-  border-top: 1px solid var(--theme-border);
-  list-style: none;
-  font-size: 0.875rem;
-}
-
-.definition-preview__other {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0 0.5rem;
-}
-
-.definition-preview__other-kind {
-  color: var(--theme-text-muted);
-  font-size: 0.8125rem;
-}
-
-.definition-preview__also {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.25rem 0.75rem;
-  margin: 0;
-  padding-inline: 0.25rem;
-  font-size: 0.8125rem;
-}
-
-.definition-preview__also-label {
-  color: var(--theme-text-muted);
 }
 
 .definition-preview__error {
@@ -137,5 +204,12 @@
   from {
     opacity: 0;
     transform: translateY(0.375rem);
+  }
+}
+
+@keyframes definition-preview-swap {
+  from {
+    opacity: 0;
+    transform: translateY(0.25rem);
   }
 }

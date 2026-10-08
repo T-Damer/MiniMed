@@ -13,7 +13,7 @@ test.beforeAll(async () => {
 });
 test.afterAll(cleanupCoreIdentityFixture);
 
-test('exact stopword meanings fold into one preview that opens each own source card', async ({
+test('exact stopword meanings fold into one preview: the likeliest sense first, the others one tap away', async ({
   page,
 }) => {
   test.setTimeout(180_000);
@@ -35,39 +35,44 @@ test('exact stopword meanings fold into one preview that opens each own source c
     .toBe('ready');
   await input.fill('НА');
   await page.getByTestId('search-submit').click();
-  // Two dictionary entries of one name are one preview; the second waits behind «ещё 1 …».
+  // Two dictionary entries of one name are one preview.
   await expect(cards).toHaveCount(1);
   await expect(page.locator('.error-card')).toHaveCount(0);
   await cards.getByRole('button', { name: 'Подробнее', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'НА', exact: true });
-  await expect(dialog).toContainText('Новый справочник пока не подключён');
-  await dialog.getByText('Пакеты справочника', { exact: true }).click();
+  // The dictionary is not installed yet: the dialog offers the download right away.
   const packageRow = dialog.locator('[data-module-id="minimed.definition.reference.ru"]');
   await expect(packageRow).toContainText(fixture.module.title);
   await packageRow.getByRole('button', { name: /^Скачать/u }).click();
-  await expect(dialog.locator('.reference-card__text')).toHaveText(
-    fixture.expected[0]?.text ?? '',
-    { timeout: 90_000 },
-  );
-  await dialog.getByText('Источник и точное расположение', { exact: true }).click();
-  await expect(dialog.locator('.reference-card__metadata')).toContainText(
-    fixture.expected[0]?.locator ?? '',
-  );
+  const paragraph = dialog.locator('.reference-term__paragraph').first();
+  await expect(paragraph).toBeVisible({ timeout: 90_000 });
+  expect(fixture.expected.map((entry) => entry.text)).toContain(await paragraph.innerText());
+  // Neither pipeline notes nor raw metadata reach the doctor.
+  await expect(dialog).not.toContainText('sectionTitle');
+  await expect(dialog).not.toContainText('Черновая редакция, не проверено');
+  await expect(dialog.getByRole('textbox')).toHaveCount(0);
   await page.keyboard.press('Escape');
   await expect(dialog).toBeHidden();
-  // With the dictionary installed the preview quotes its first definition.
-  await expect(cards.locator('.definition-preview__definition')).toBeVisible();
-  await cards.getByRole('button', { name: /^ещё 1 / }).click();
-  await cards.locator('.definition-preview__other-link').first().click();
-  await expect(dialog.locator('.reference-card__text')).toHaveText(fixture.expected[1]?.text ?? '');
-  await expect(dialog.locator('.reference-card__text')).not.toHaveText(
-    fixture.expected[0]?.text ?? '',
-  );
+  // With the dictionary installed the card quotes the widely used sense (psychiatry), not the
+  // rare one the core lists first, and offers the other sense as a field-labelled chip.
+  const snippet = (index: number) =>
+    (fixture.expected[index]?.text ?? '').replace(/\s+/gu, ' ').trim().slice(0, 30);
+  const text = cards.locator('.definition-preview__text');
+  await expect(text).toContainText(snippet(1));
+  await expect(cards.locator('.definition-preview__source-row')).toBeVisible();
+  const chip = cards.getByRole('button', { name: 'травматология', exact: true });
+  await expect(chip).toBeVisible();
+  await page.screenshot({
+    path: test.info().outputPath('sense-card.png'),
+    animations: 'disabled',
+  });
+  await chip.click();
+  await expect(text).toContainText(snippet(0));
+  await expect(cards.getByRole('button', { name: 'психиатрия', exact: true })).toBeVisible();
   await page.screenshot({
     path: test.info().outputPath('exact-source-card.png'),
     animations: 'disabled',
   });
-  await page.keyboard.press('Escape');
 
   await selectSearchSection(page, 'Препараты');
   await page.getByTestId('search-submit').click();
@@ -78,6 +83,60 @@ test('exact stopword meanings fold into one preview that opens each own source c
   await setClinicalAnalysis(page, true);
   await page.getByTestId('search-submit').click();
   await expect(cards).toHaveCount(0);
+});
+
+test('«Депрессия» opens with the mood disorder, the fracture pattern is one tap away', async ({
+  page,
+}) => {
+  test.skip(
+    !fixture.expected.some((entry) => entry.title === 'Депрессия'),
+    'needs the local candidate dictionary edition (data/build/definitions-ux13)',
+  );
+  test.setTimeout(180_000);
+  await routeCoreIdentityFixture(page, fixture);
+  await page.route('**/content/regulatory.db', (route) => route.abort());
+  await mountBuiltApp(page, { splitNavigation: false, skipLargeCompanionPacks: true });
+  const input = page.getByTestId('search-input');
+  await expect(input).toHaveAttribute('data-search-ready', 'true', { timeout: 60_000 });
+  const cards = page
+    .locator('section[aria-label="Определение термина"]')
+    .getByTestId('definition-preview');
+  await input.fill('Депрессия');
+  await page.getByTestId('search-submit').click();
+  await expect(cards).toHaveCount(1);
+  await cards.getByRole('button', { name: 'Подробнее', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Депрессия', exact: true });
+  await dialog
+    .locator('[data-module-id="minimed.definition.reference.ru"]')
+    .getByRole('button', { name: /^Скачать/u })
+    .click();
+  await expect(dialog.locator('.reference-term__paragraph').first()).toBeVisible({
+    timeout: 90_000,
+  });
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
+
+  const text = cards.locator('.definition-preview__text');
+  await expect(text).toContainText('психическое расстройство');
+  await expect(text).not.toContainText('перелома');
+  await expect(cards.locator('.definition-preview__source-row')).toContainText(
+    'Красота и медицина',
+  );
+  const chip = cards.getByRole('button', { name: 'травматология', exact: true });
+  await page.screenshot({
+    path: test.info().outputPath('depression-card.png'),
+    animations: 'disabled',
+  });
+  await chip.click();
+  await expect(text).toContainText('перелома');
+  await expect(cards.locator('.definition-preview__source-row')).toContainText(
+    'КР: Переломы бедренной кости',
+  );
+  await expect(cards.getByRole('button', { name: 'психиатрия', exact: true })).toBeVisible();
+  // The doctor's own tap is remembered on this device only and resets completely.
+  expect(
+    await page.evaluate(() => window.localStorage.getItem('minimed.doctor-profile.v1')),
+  ).toContain('traumatology');
 });
 
 test('an exact document identity rejects a local copy with the wrong raw-source checksum', async ({

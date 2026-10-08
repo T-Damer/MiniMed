@@ -1,4 +1,6 @@
 import type { DefinitionReferenceBlock, DefinitionReferenceHit } from '@localmed/contracts';
+import { type DoctorProfile, EMPTY_DOCTOR_PROFILE } from './doctor-profile';
+import { rankSenses } from './sense-ranking';
 
 /**
  * How a reference record is presented. Decided only by the record's declared type — never by
@@ -13,6 +15,38 @@ export function referenceEntryType(
   if (hit.kind === 'abbreviation') return 'abbreviation';
   if (hit.textKind === 'source-gloss') return 'gloss';
   return 'definition';
+}
+
+/**
+ * Entries that share a name (a mood disorder and a fracture pattern are both «Депрессия») in the
+ * order the definition card would show them. Each name keeps the place of its first hit; only the
+ * entries of one name trade places.
+ */
+export function orderSameNameHits(
+  hits: readonly DefinitionReferenceHit[],
+  profile: DoctorProfile = EMPTY_DOCTOR_PROFILE,
+): DefinitionReferenceHit[] {
+  const slots = new Map<string, number[]>();
+  hits.forEach((hit, index) => {
+    if (hit.kind === 'abbreviation') return;
+    const key = titleKey(hit.title);
+    slots.set(key, [...(slots.get(key) ?? []), index]);
+  });
+  const result = [...hits];
+  for (const indexes of slots.values()) {
+    if (indexes.length < 2) continue;
+    const ranked = rankSenses(
+      indexes.map((index, order) => {
+        const hit = hits[index] as DefinitionReferenceHit;
+        return { item: hit, sense: hit.sense, order };
+      }),
+      profile,
+    );
+    indexes.forEach((index, position) => {
+      result[index] = (ranked[position] as (typeof ranked)[number]).item;
+    });
+  }
+  return result;
 }
 
 export interface ReferenceHitGroup {
@@ -61,22 +95,6 @@ export function expansionCountLabel(count: number): string {
   const form = expansionForms.select(count);
   const noun = form === 'one' ? 'расшифровка' : form === 'few' ? 'расшифровки' : 'расшифровок';
   return `${count} ${noun}`;
-}
-
-/** Block buttons name what the block is; an abbreviation's text is its expansion. */
-export function referenceBlockLabel(
-  role: DefinitionReferenceBlock['role'],
-  type: ReferenceEntryType,
-): string {
-  if (role === 'definition')
-    return type === 'abbreviation'
-      ? 'Расшифровка'
-      : type === 'gloss'
-        ? 'Толкование'
-        : 'Определение';
-  if (role === 'item') return 'Пункт';
-  if (role === 'context') return 'Контекст';
-  return 'Сведения об источнике';
 }
 
 /**
