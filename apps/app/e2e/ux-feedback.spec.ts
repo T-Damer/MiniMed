@@ -1,6 +1,13 @@
-import { expect, test } from '@playwright/test';
+import { expect as baseExpect, test } from '@playwright/test';
 
 import { mountBuiltApp } from './mount-built-app';
+
+// Every case waits for the 440 MB core to open, which takes over the default 25 s when the machine
+// is busy (parallel agents, full e2e runs).
+const expect = baseExpect.configure({ timeout: 90_000 });
+test.beforeEach(() => {
+  test.setTimeout(180_000);
+});
 
 test('shows a verified mirrored reference illustration and keeps it available offline', async ({
   page,

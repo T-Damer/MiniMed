@@ -59,9 +59,12 @@ for (const width of [375, 1280]) {
       .locator('.app-bottom-nav')
       .getByRole('button', { name: 'Калькуляторы', exact: true })
       .click();
-    // The tab restores the calculator opened before; the breadcrumb row is gone (2026-10-08), the
-    // header back button leads to the catalog.
-    await page.getByRole('button', { name: 'Назад', exact: true }).click();
+    // The tab restores the calculator opened before and the breadcrumb row is gone (2026-10-08);
+    // Back from it returns to the search it was opened from, so the catalog is opened by address.
+    await expect(page.getByRole('heading', { name: 'Преобразование единиц' })).toBeVisible();
+    await page.evaluate(() => {
+      window.location.hash = '#/calculators';
+    });
     await page.getByRole('button', { name: 'Открыть раздел «Преобразование единиц»' }).click();
     const origin = page.url();
     await page.locator('[data-testid^="calculator-open-"]').first().click();

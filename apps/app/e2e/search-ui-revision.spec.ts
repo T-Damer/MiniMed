@@ -82,6 +82,13 @@ for (const width of [375, 1280]) {
     await expect(
       page.locator('.search-history-panel-replay').filter({ hasText: 'препарат' }),
     ).toContainText('Фармакология');
+    // Plain readable meta (date, result count, source) and an icon button that clears the list.
+    const meta = page.locator('.search-history-panel-replay__meta').first();
+    await expect(meta).toContainText('Результаты:');
+    await expect(meta).not.toContainText('FTS5');
+    expect(await meta.evaluate((node) => getComputedStyle(node).fontFamily)).not.toMatch(/mono/iu);
+    await expect(page.getByRole('button', { name: 'Очистить историю', exact: true })).toBeVisible();
+    await expect(page.getByText('Очистить историю', { exact: true })).toHaveCount(0);
     await page.locator('.search-history-panel-replay').filter({ hasText: 'создать свое' }).click();
     await expect(picker).toContainText('Опросники');
     await expect(input).toHaveValue('создать свое');
