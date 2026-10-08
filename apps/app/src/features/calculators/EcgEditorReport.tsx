@@ -2,7 +2,6 @@ import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } fro
 import { AppGlyph } from '@/components/AppGlyph';
 import { PrintManager } from '@/features/printing/print-manager';
 import reportStyles from '@/styles/ecg-editor-report.css?inline';
-import { EcgStepGuide } from './EcgEditorFlow';
 import { ECG_STANDARD_LEADS } from './ecg-model-contract';
 import { ECG_PEDIATRIC_NORM_GROUPS, ECG_PEDIATRIC_UNCOVERED } from './ecg-pediatric-norms';
 import type { EcgMeasurements } from './ecg-photo-caliper';
@@ -158,9 +157,6 @@ export function EcgEditorReport(props: {
             <option value="female">Женский</option>
           </select>
         </label>
-        <div class="ecg-editor__patient-guide">
-          <EcgStepGuide step={5} />
-        </div>
       </div>
       <div class="ecg-editor__report-actions">
         <span class="ecg-editor__hint">

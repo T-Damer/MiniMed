@@ -86,3 +86,7 @@ export const ECG_STEP_GUIDES: Readonly<Record<EcgEditorStep, EcgStepGuide>> = {
     ],
   },
 };
+
+/** What the optional on-device model does; shown in the help of the first step. */
+export const ECG_MODEL_HELP =
+  'Находит сетку и отведения и предлагает точки зубцов. Скачивается один раз и работает без интернета. Без неё разметка полностью ручная.';

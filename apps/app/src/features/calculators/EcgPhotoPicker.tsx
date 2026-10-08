@@ -8,6 +8,10 @@ export function EcgPhotoPicker(props: {
   readonly disabled?: boolean;
   readonly replacing?: boolean;
   readonly stretch?: boolean;
+  /** One obvious action (the camera) on its own row, the other ways to get a photo under it. */
+  readonly stack?: boolean;
+  /** Another way in (typing measurements), shown beside the gallery as a secondary button. */
+  readonly extra?: JSX.Element;
   readonly onFile: (file: File) => void;
 }): JSX.Element {
   const pick = (event: Event & { currentTarget: HTMLInputElement }): void => {
@@ -16,10 +20,14 @@ export function EcgPhotoPicker(props: {
     if (file) props.onFile(file);
   };
   return (
-    <div class="ecg-picker">
+    <div class="ecg-picker" classList={{ 'ecg-picker--stack': props.stack ?? false }}>
       <label
-        class="ecg-picker__option ecg-picker__option--primary"
-        classList={{ 'ecg-picker__option--stretch': props.stretch ?? false }}
+        class="ecg-picker__option"
+        classList={{
+          'ecg-picker__option--primary': !props.replacing,
+          'ecg-picker__option--stretch': props.stretch ?? false,
+          'ecg-picker__option--wide': props.stack ?? false,
+        }}
       >
         <AppGlyph class="ecg-picker__icon" name="camera" />
         {props.replacing ? 'Переснять' : 'Сфотографировать'}
@@ -48,6 +56,7 @@ export function EcgPhotoPicker(props: {
           onChange={pick}
         />
       </label>
+      {props.extra}
     </div>
   );
 }

@@ -1,7 +1,8 @@
 import { createSignal, For, type JSX, Show } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
+import { SheetPopover } from '@/components/SheetPopover';
 import type { EcgAutoSummaryStatus } from './ecg-auto-summary';
-import { ECG_STEP_GUIDES } from './ecg-editor-guide';
+import { ECG_MODEL_HELP, ECG_STEP_GUIDES } from './ecg-editor-guide';
 import type { EcgEditorStep } from './ecgEditor';
 import type { EcgEditor } from './useEcgEditor';
 
@@ -62,57 +63,74 @@ export function EcgStepper(props: { readonly editor: EcgEditor }): JSX.Element {
   );
 }
 
-export function EcgStepGuide(props: {
-  readonly step: EcgEditorStep;
-  readonly padded?: boolean;
-}): JSX.Element {
+/** What the current step is for and what to check: the body of the header «?». */
+function EcgStepGuideBody(props: { readonly step: EcgEditorStep }): JSX.Element {
   const guide = () => ECG_STEP_GUIDES[props.step];
   return (
-    <details class="ecg-guide" classList={{ 'ecg-guide--padded': props.padded ?? false }}>
-      <summary class="ecg-guide__summary">
-        <AppGlyph class="ecg-guide__icon" name="question" />
-        Зачем этот шаг и что проверить
-      </summary>
-      <div class="ecg-guide__body">
-        <p class="ecg-guide__why">{guide().why}</p>
-        <h3 class="ecg-guide__heading">Проверьте</h3>
-        <ul class="ecg-guide__list">
-          <For each={guide().checks}>{(item) => <li class="ecg-guide__item">{item}</li>}</For>
-        </ul>
-        <h3 class="ecg-guide__heading">Как</h3>
-        <p class="ecg-guide__text">{guide().how}</p>
-        <h3 class="ecg-guide__heading">Частые ошибки</h3>
-        <ul class="ecg-guide__list">
-          <For each={guide().mistakes}>
-            {(item) => <li class="ecg-guide__item ecg-guide__item--mistake">{item}</li>}
-          </For>
-        </ul>
-      </div>
-    </details>
+    <div class="ecg-guide">
+      <p class="ecg-guide__why">{guide().why}</p>
+      <h3 class="ecg-guide__heading">Проверьте</h3>
+      <ul class="ecg-guide__list">
+        <For each={guide().checks}>{(item) => <li class="ecg-guide__item">{item}</li>}</For>
+      </ul>
+      <h3 class="ecg-guide__heading">Как</h3>
+      <p class="ecg-guide__text">{guide().how}</p>
+      <h3 class="ecg-guide__heading">Частые ошибки</h3>
+      <ul class="ecg-guide__list">
+        <For each={guide().mistakes}>
+          {(item) => <li class="ecg-guide__item ecg-guide__item--mistake">{item}</li>}
+        </For>
+      </ul>
+      <Show when={props.step === 1}>
+        <h3 class="ecg-guide__heading">Авторазметка</h3>
+        <p class="ecg-guide__text">{ECG_MODEL_HELP}</p>
+      </Show>
+    </div>
   );
 }
 
+/** The round «?» of the editor header: the guide of the step the doctor is on. */
+export function EcgHelpButton(props: { readonly step: EcgEditorStep }): JSX.Element {
+  const [open, setOpen] = createSignal(false);
+  return (
+    <SheetPopover
+      open={open()}
+      onOpenChange={setOpen}
+      title="Как это работает"
+      triggerClass="page__help-button ecg-editor__help"
+      triggerLabel="Как это работает"
+      triggerTitle="Как это работает"
+      trigger={<AppGlyph name="question" class="page__help-icon" />}
+      contentClass="page__help-panel"
+      placement="bottom-end"
+    >
+      <div class="page__help-body">
+        <EcgStepGuideBody step={props.step} />
+      </div>
+    </SheetPopover>
+  );
+}
+
+/** One quiet row: the model the auto-markup needs, with its download right there. */
 export function EcgModelOffer(props: { readonly editor: EcgEditor }): JSX.Element {
   const e = props.editor;
+  const label = () =>
+    e.installing()
+      ? `Отменить установку · ${Math.round(e.progress() * 100)}%`
+      : 'Установить авторазметку · 19 МБ';
   return (
     <section class="ecg-offer" aria-label="Авторазметка ЭКГ">
-      <div class="ecg-offer__copy">
-        <strong class="ecg-offer__title">Авторазметка на устройстве</strong>
-        <span class="ecg-offer__text">
-          Находит сетку, отведения и предлагает точки зубцов. Скачивается один раз и работает без
-          интернета. Без неё разметка полностью ручная.
-        </span>
-      </div>
+      <span class="ecg-offer__title">Авторазметка · 19 МБ</span>
       <button
         class="ecg-offer__button"
         classList={{ 'ecg-offer__button--busy': e.installing() }}
         type="button"
+        aria-label={label()}
+        title={label()}
         onClick={() => void e.install()}
       >
-        <AppGlyph class="ecg-offer__icon" name="download" />
-        {e.installing()
-          ? `Отменить установку · ${Math.round(e.progress() * 100)}%`
-          : 'Установить авторазметку · 19 МБ'}
+        <AppGlyph class="ecg-offer__icon" name={e.installing() ? 'close' : 'download'} />
+        <Show when={e.installing()}>{Math.round(e.progress() * 100)}%</Show>
       </button>
       <Show when={e.installing()}>
         <progress class="ecg-offer__progress" max="1" value={e.progress()} />

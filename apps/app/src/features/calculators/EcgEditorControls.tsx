@@ -1,5 +1,4 @@
 import { type JSX, Show } from 'solid-js';
-import { EcgStepGuide } from './EcgEditorFlow';
 import { type EcgEditorLayout, ecgRegionTemplate } from './ecgEditor';
 import type { EcgEditor } from './useEcgEditor';
 
@@ -83,7 +82,6 @@ export function EcgEditorControls(props: {
               ? 'Протяните линию на 2 большие клетки по вертикали.'
               : 'Проверьте сетку: 5 больших клеток по горизонтали и 2 по вертикали. Границы можно двигать.'}
         </p>
-        <EcgStepGuide step={2} />
       </Show>
       <Show when={e.step() === 3}>
         <div class="ecg-editor__control-row">
@@ -111,7 +109,6 @@ export function EcgEditorControls(props: {
             Перемещайте рамки и их углы, оставляя внутри только нужное отведение.
           </p>
         </div>
-        <EcgStepGuide step={3} />
       </Show>
       <Show when={e.step() === 4}>
         <div class="ecg-editor__control-row">
@@ -135,7 +132,6 @@ export function EcgEditorControls(props: {
           <li class="ecg-legend__item ecg-legend__item--baseline">изолиния</li>
           <li class="ecg-legend__item ecg-legend__item--auto">пунктир — авто</li>
         </ul>
-        <EcgStepGuide step={4} />
       </Show>
     </div>
   );

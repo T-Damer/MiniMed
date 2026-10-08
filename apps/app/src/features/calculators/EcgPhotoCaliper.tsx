@@ -9,10 +9,10 @@ import { EcgEditorControls } from './EcgEditorControls';
 import {
   ECG_CONFIRM_LABELS,
   EcgAutoSummary,
+  EcgHelpButton,
   EcgModelOffer,
   EcgModelUpdateNotice,
   EcgPerspectivePanel,
-  EcgStepGuide,
   EcgStepper,
 } from './EcgEditorFlow';
 import { EcgEditorReport } from './EcgEditorReport';
@@ -114,42 +114,51 @@ export function EcgPhotoCaliper(props: { readonly onExit?: () => void }): JSX.El
         presentation="screen"
         headerClass="ecg-editor__header"
         bodyClass="ecg-editor__body"
+        headerEnd={<EcgHelpButton step={editor.step()} />}
         onClose={closeEditor}
       >
-        <EcgStepper editor={editor} />
+        <Show when={editor.photo()}>
+          <EcgStepper editor={editor} />
+        </Show>
         <Show when={editor.step() === 1}>
           <div class="ecg-flow__panel">
             <div class="ecg-editor__upload-bar">
               <EcgPhotoPicker
                 disabled={editor.loading()}
                 replacing={Boolean(editor.photo())}
+                stretch
+                stack={!editor.photo()}
+                extra={
+                  <Show when={props.onExit}>
+                    <button
+                      class="ecg-picker__option ecg-picker__option--stretch"
+                      type="button"
+                      onClick={() => {
+                        setOpen(false);
+                        setNumericOpen(true);
+                      }}
+                    >
+                      <AppGlyph class="ecg-picker__icon" name="list-checks" />
+                      Ввести измерения
+                    </button>
+                  </Show>
+                }
                 onFile={load}
               />
-              <Show when={props.onExit}>
-                <button
-                  class="ecg-editor__button"
-                  type="button"
-                  onClick={() => {
-                    setOpen(false);
-                    setNumericOpen(true);
-                  }}
-                >
-                  Ввести готовые измерения
-                </button>
-              </Show>
-              <span class="ecg-editor__hint">
-                {editor.photo()
-                  ? `${editor.photo()?.width} × ${editor.photo()?.height} · ${editor.photo()?.file.name}`
-                  : 'JPEG, PNG или WebP · обработка на устройстве'}
-              </span>
             </div>
+            <Show when={editor.photo()}>
+              {(photo) => (
+                <span class="ecg-editor__hint ecg-editor__file">
+                  {photo().width} × {photo().height} · {photo().file.name}
+                </span>
+              )}
+            </Show>
             <EcgPerspectivePanel editor={editor} />
             <Show when={!editor.model()}>
               <EcgModelOffer editor={editor} />
             </Show>
             <EcgModelUpdateNotice editor={editor} />
             <EcgAutoSummary editor={editor} />
-            <EcgStepGuide step={1} padded />
           </div>
         </Show>
         <Show when={editor.step() >= 2 && editor.step() <= 4}>
@@ -159,7 +168,10 @@ export function EcgPhotoCaliper(props: { readonly onExit?: () => void }): JSX.El
             onCalibrationTool={setCalibrationTool}
           />
         </Show>
-        <div class="ecg-editor__stage">
+        <div
+          class="ecg-editor__stage"
+          classList={{ 'ecg-editor__stage--idle': !editor.photo() && editor.step() !== 5 }}
+        >
           <Show
             when={editor.step() === 5}
             fallback={
@@ -167,14 +179,6 @@ export function EcgPhotoCaliper(props: { readonly onExit?: () => void }): JSX.El
                 when={editor.photo()}
                 fallback={
                   <div class="ecg-editor__welcome">
-                    <div class="ecg-editor__welcome-copy">
-                      <span class="ecg-editor__eyebrow">ПОЛУМАНУАЛЬНЫЙ АНАЛИЗ</span>
-                      <h3 class="ecg-editor__welcome-title">Начнём с хорошего снимка</h3>
-                      <p class="ecg-editor__welcome-text">
-                        Снимайте сверху, расправьте лист и избегайте бликов. Все отведения, сетка,
-                        скорость и усиление должны быть читаемы.
-                      </p>
-                    </div>
                     <div class="ecg-editor__examples">
                       <figure class="ecg-editor__example">
                         <img
@@ -183,7 +187,7 @@ export function EcgPhotoCaliper(props: { readonly onExit?: () => void }): JSX.El
                           alt="Пример: все 12 отведений целиком в кадре"
                         />
                         <figcaption class="ecg-editor__example-caption">
-                          Весь лист · ни одно отведение не обрезано
+                          Весь лист в кадре
                         </figcaption>
                       </figure>
                       <figure class="ecg-editor__example">
@@ -194,14 +198,9 @@ export function EcgPhotoCaliper(props: { readonly onExit?: () => void }): JSX.El
                             alt="Увеличенный фрагмент: различимы сетка и зубцы"
                           />
                         </div>
-                        <figcaption class="ecg-editor__example-caption">
-                          Чёткая сетка · различимы мелкие зубцы
-                        </figcaption>
+                        <figcaption class="ecg-editor__example-caption">Чёткая сетка</figcaption>
                       </figure>
                     </div>
-                    <p class="ecg-editor__hint ecg-editor__hint--on-photo">
-                      Иллюстрации качества съёмки. Параметры берём только с вашей ЭКГ.
-                    </p>
                   </div>
                 }
               >

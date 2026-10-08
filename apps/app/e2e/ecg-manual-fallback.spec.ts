@@ -69,8 +69,10 @@ test('reviews a photo in five fullscreen steps, undoes edits and prints one repo
   await expect(page.getByRole('heading', { name: 'Загрузите ЭКГ' })).toBeVisible();
   await expect(page.getByRole('button', { name: NEXT.photo })).toBeDisabled();
   await expect(page.getByLabel('Сфотографировать ЭКГ')).toHaveAttribute('capture', 'environment');
-  await page.getByText('Зачем этот шаг и что проверить').click();
+  // The guide of the step is behind the header «?», not a card on the page.
+  await page.getByRole('button', { name: 'Как это работает', exact: true }).click();
   await expect(page.getByText('Лист виден целиком, ни одно отведение не обрезано.')).toBeVisible();
+  await page.keyboard.press('Escape');
   await page.getByLabel('Загрузить ЭКГ', { exact: true }).setInputFiles(fixture);
   const canvas = page.locator('.ecg-editor__canvas');
   const fullView = await canvas.getAttribute('viewBox');

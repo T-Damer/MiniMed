@@ -129,6 +129,10 @@
   overflow: hidden;
   background: #1d2926;
 }
+/* Before a photo is chosen the stage only holds two small examples: no dark panel. */
+.ecg-editor__stage--idle {
+  background: transparent;
+}
 .ecg-editor__canvas-wrap {
   position: relative;
   width: 100%;
@@ -152,32 +156,10 @@
   box-sizing: border-box;
   flex-direction: column;
   align-items: center;
-  /* Safe centering keeps the heading reachable when the step panel leaves little height. */
-  justify-content: safe center;
-  gap: clamp(0.6rem, 2vh, 1.5rem);
-  padding: 1.25rem;
+  justify-content: flex-start;
+  padding: 0.75rem 1rem;
   overflow: auto;
-  color: #e5eee8;
-}
-.ecg-editor__welcome-copy {
-  max-width: 36rem;
-  text-align: center;
-}
-.ecg-editor__eyebrow {
-  color: #b5d1c4;
-  font-size: var(--type-micro);
-  letter-spacing: 0.16em;
-}
-.ecg-editor__welcome-title {
-  margin: 0.5rem 0;
-  font-size: clamp(1.2rem, 2.4vw, 1.8rem);
-  font-weight: 500;
-}
-.ecg-editor__welcome-text {
-  margin: 0;
-  color: #c2cec7;
-  font-size: 0.85rem;
-  line-height: 1.5;
+  color: var(--theme-text-muted);
 }
 .ecg-editor__examples {
   display: grid;
@@ -208,8 +190,8 @@
 }
 .ecg-editor__example-caption {
   margin-top: 0.6rem;
-  color: #ccdbd1;
-  font-size: 0.7rem;
+  color: inherit;
+  font-size: 0.75rem;
 }
 .ecg-editor__footer {
   flex: 0 0 auto;
@@ -479,13 +461,6 @@
   }
   .ecg-editor__instruction {
     font-size: var(--type-micro);
-  }
-  .ecg-editor__welcome {
-    padding: 1rem;
-    justify-content: safe center;
-  }
-  .ecg-editor__welcome-text {
-    font-size: 0.75rem;
   }
   .ecg-editor__examples {
     gap: 0.6rem;
