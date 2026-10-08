@@ -858,8 +858,10 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           catalogOnly={catalogOnly()}
           showExamples
           toolStrip={<SearchQuickAccess tools={quickTools()} />}
+          // An open section (calculators, questionnaires, ...) starts at its own list: the promo
+          // carousel belongs to the section list only.
           intro={
-            featuresHidden() ? undefined : (
+            featuresHidden() || !showSectionsOverview() ? undefined : (
               <SearchHomeIntro
                 features={homeFeatures()}
                 onHideFeatures={() => setUsefulFeaturesHidden(true)}
