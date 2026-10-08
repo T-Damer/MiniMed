@@ -1,0 +1,40 @@
+[
+  {
+    "id": "depression-mood",
+    "headword": "Депрессия",
+    "origin": "owner-report-2026-10-08",
+    "definitionIncludes": "психическое расстройство",
+    "definitionExcludes": "перелома",
+    "note": "A fracture pattern in one traumatology recommendation, a mood disorder in dozens."
+  },
+  {
+    "id": "epilepsy",
+    "headword": "Эпилепсия",
+    "origin": "authored-probe",
+    "definitionIncludes": "головного мозга"
+  },
+  {
+    "id": "anemia",
+    "headword": "Анемия",
+    "origin": "authored-probe",
+    "definitionIncludes": "гемоглобин"
+  },
+  {
+    "id": "stress",
+    "headword": "Стресс",
+    "origin": "authored-probe",
+    "definitionIncludes": "реакци"
+  },
+  {
+    "id": "pain",
+    "headword": "Боль",
+    "origin": "authored-probe",
+    "definitionIncludes": "неприятн"
+  },
+  {
+    "id": "tremor",
+    "headword": "Тремор",
+    "origin": "authored-probe",
+    "definitionIncludes": "ритмическ"
+  }
+]

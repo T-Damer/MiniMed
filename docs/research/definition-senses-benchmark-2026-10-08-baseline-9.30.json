@@ -1,0 +1,105 @@
+{
+  "database": "data/build/definition-reference/2026.9.30/minimed.definition.reference.2026.9.30.db (decoded from the released .zst)",
+  "definedSenses": 15524,
+  "headwords": 11792,
+  "ambiguousHeadwords": 1387,
+  "firstSenseChangedByRanking": 2,
+  "cases": {
+    "total": 6,
+    "passedBefore": 4,
+    "passedAfter": 4,
+    "rows": [
+      {
+        "id": "depression-mood",
+        "headword": "Депрессия",
+        "senses": 2,
+        "before": {
+          "field": null,
+          "text": "Депрессия – процесс формирования перелома суставной поверхности кости вследствие избыточно",
+          "passes": false
+        },
+        "after": {
+          "field": null,
+          "text": "Депрессия – процесс формирования перелома суставной поверхности кости вследствие избыточно",
+          "passes": false
+        }
+      },
+      {
+        "id": "epilepsy",
+        "headword": "Эпилепсия",
+        "senses": 3,
+        "before": {
+          "field": null,
+          "text": "Эпилепсия – заболевание головного мозга, определяемая любым из следующих условий: 1) по кр",
+          "passes": true
+        },
+        "after": {
+          "field": null,
+          "text": "Эпилепсия – заболевание головного мозга, определяемая любым из следующих условий: 1) по кр",
+          "passes": true
+        }
+      },
+      {
+        "id": "anemia",
+        "headword": "Анемия",
+        "senses": 9,
+        "before": {
+          "field": null,
+          "text": "Анемия – снижение содержания гемоглобина",
+          "passes": true
+        },
+        "after": {
+          "field": null,
+          "text": "Анемия – снижение содержания гемоглобина",
+          "passes": true
+        }
+      },
+      {
+        "id": "stress",
+        "headword": "Стресс",
+        "senses": 2,
+        "before": {
+          "field": null,
+          "text": "Стресс – совокупность неспецифических адаптационных (нормальных) реакций организма на возд",
+          "passes": true
+        },
+        "after": {
+          "field": null,
+          "text": "Стресс – совокупность неспецифических адаптационных (нормальных) реакций организма на возд",
+          "passes": true
+        }
+      },
+      {
+        "id": "pain",
+        "headword": "Боль",
+        "senses": 5,
+        "before": {
+          "field": null,
+          "text": "неприятное сенсорное и эмоциональное переживание, связанное с действительным или возможным",
+          "passes": true
+        },
+        "after": {
+          "field": null,
+          "text": "неприятное сенсорное и эмоциональное переживание, связанное с действительным или возможным",
+          "passes": true
+        }
+      },
+      {
+        "id": "tremor",
+        "headword": "Тремор",
+        "senses": 2,
+        "before": {
+          "field": null,
+          "text": "Тремор - это непроизвольные ритмичные колебательные движения, взаимодополняющих антагонист",
+          "passes": false
+        },
+        "after": {
+          "field": null,
+          "text": "Тремор - это непроизвольные ритмичные колебательные движения, взаимодополняющих антагонист",
+          "passes": false
+        }
+      }
+    ]
+  },
+  "note": "Authored probes and one owner report, not independent clinical qualification."
+}
