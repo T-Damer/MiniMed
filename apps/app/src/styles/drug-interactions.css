@@ -149,9 +149,14 @@
   padding-right: 0.8rem;
 }
 
-.drug-interactions__item-name {
+.drug-interactions__item-text {
+  display: grid;
   min-width: 0;
   flex: 1 1 auto;
+}
+
+.drug-interactions__item-name {
+  min-width: 0;
   overflow-wrap: anywhere;
   font-weight: 600;
 }
@@ -192,7 +197,7 @@
   gap: 0.75rem;
 }
 
-.drug-interactions__toolbar:has(.drug-interactions__summary:empty):not(:has(.drug-interactions__actions)) {
+.drug-interactions__toolbar--empty {
   display: none;
 }
 

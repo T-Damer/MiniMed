@@ -177,12 +177,14 @@ export function DrugInteractionWorkspace(props: {
             <For each={items()}>
               {(item) => (
                 <li class="drug-interactions__item" data-testid="interaction-item">
-                  <span class="drug-interactions__item-name">{item.label}</span>
-                  <Show when={item.typed}>
-                    {(typed) => (
-                      <span class="drug-interactions__item-typed">по запросу «{typed()}»</span>
-                    )}
-                  </Show>
+                  <span class="drug-interactions__item-text">
+                    <span class="drug-interactions__item-name">{item.label}</span>
+                    <Show when={item.typed}>
+                      {(typed) => (
+                        <span class="drug-interactions__item-typed">по запросу «{typed()}»</span>
+                      )}
+                    </Show>
+                  </span>
                   <button
                     type="button"
                     class="drug-interactions__item-remove"
@@ -197,7 +199,9 @@ export function DrugInteractionWorkspace(props: {
             <For each={unresolved()}>
               {(name) => (
                 <li class="drug-interactions__item drug-interactions__item--missing">
-                  <span class="drug-interactions__item-name">Не найден: «{name}»</span>
+                  <span class="drug-interactions__item-text">
+                    <span class="drug-interactions__item-name">Не найден: «{name}»</span>
+                  </span>
                   <button
                     type="button"
                     class="drug-interactions__item-remove"

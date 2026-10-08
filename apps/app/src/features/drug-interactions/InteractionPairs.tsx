@@ -369,7 +369,12 @@ export function InteractionPairsPanel(props: {
 
   return (
     <>
-      <div class="drug-interactions__toolbar">
+      <div
+        class="drug-interactions__toolbar"
+        classList={{
+          'drug-interactions__toolbar--empty': views().length <= 1 && props.actions === false,
+        }}
+      >
         <div class="drug-interactions__summary" role="status" data-testid="interaction-summary">
           <Show when={views().length > 1}>
             <span>
