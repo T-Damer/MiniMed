@@ -22,6 +22,7 @@ import { SQLITE_WASM_DESERIALIZE_MAX_BYTES, SqliteMedicalStore } from '@localmed
 import { WorkerOpfsMedicalStore } from '@/composition/worker-opfs-medical-store';
 import {
   getAssessmentCatalog,
+  hasAssessmentPayload,
   preloadAssessmentDefinitions,
 } from '@/features/assessments/assessment-catalog';
 import { findAssessmentDependenciesInStore } from '@/features/assessments/assessment-module-dependencies';
@@ -1118,8 +1119,11 @@ export class BrowserContentModuleRuntime {
         modules: this.catalog.modules,
       });
       if (!this.isCurrentAssessmentDependencyScan(moduleId, version, generation)) return;
-      if (assessmentIds.length > 0) {
-        await preloadAssessmentDefinitions(assessmentIds).catch((cause: unknown) => {
+      // A questionnaire that is not downloaded yet stays a recorded dependency: there is nothing to
+      // warm, and its absence is not a failure worth a console warning.
+      const installedAssessmentIds = assessmentIds.filter(hasAssessmentPayload);
+      if (installedAssessmentIds.length > 0) {
+        await preloadAssessmentDefinitions(installedAssessmentIds).catch((cause: unknown) => {
           console.warn(`Unable to preload questionnaires required by ${moduleId}.`, cause);
         });
       }

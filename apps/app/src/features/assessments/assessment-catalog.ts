@@ -177,6 +177,11 @@ export function loadAssessmentDefinition(idOrSlug: string): Promise<AssessmentDe
   return promise;
 }
 
+/** True when the questionnaire's definition is installed; the catalog entry alone is only a name. */
+export function hasAssessmentPayload(id: string): boolean {
+  return downloadedAssessments.has(id);
+}
+
 export async function preloadAssessmentDefinitions(ids: readonly string[]): Promise<void> {
   await Promise.all([...new Set(ids)].map((id) => loadAssessmentDefinition(id)));
 }
