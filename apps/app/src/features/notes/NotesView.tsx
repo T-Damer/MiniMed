@@ -120,6 +120,7 @@ import {
 } from '@/state/personal-notes-backup';
 import { requestReminderNotificationPermission } from '@/state/reminder-notifications';
 import { attachmentViewerKind } from '@/state/thumbnails';
+import '@/styles/notes-root.css';
 
 type DeleteTarget =
   | {
@@ -1343,7 +1344,6 @@ export function NotesView(props: {
           class="patient-notes-heading"
           icon={<AppGlyph name="notes" class="page__icon-glyph" />}
           title={<Heading depth={1}>Заметки</Heading>}
-          description="Ваши записи и пациенты."
           navigation={
             <Show when={props.backToFiles}>
               <NavBack
@@ -1383,34 +1383,49 @@ export function NotesView(props: {
           <article class="patient-notes-protected-card paper-card">
             <button
               type="button"
-              class="patient-card-open"
+              class="patient-card-open notes-section-card"
               onClick={() => navigate(notesPatientsPath())}
             >
-              <span class="patient-card-title">Пациенты</span>
-              <p>Карточки пациентов, визиты и показатели в динамике</p>
-              <small>Открыть раздел</small>
+              <AppGlyph name="users" class="notes-section-card__icon" />
+              <span class="notes-section-card__text">
+                <span class="patient-card-title">Пациенты</span>
+                <span class="notes-section-card__description">
+                  Карточки пациентов, визиты и показатели в динамике
+                </span>
+              </span>
+              <AppGlyph name="caret-right" class="notes-section-card__chevron" />
             </button>
           </article>
           <article class="patient-notes-forms-card paper-card">
             <button
               type="button"
-              class="patient-card-open"
+              class="patient-card-open notes-section-card"
               onClick={() => navigate(notesFormsPath())}
             >
-              <span class="patient-card-title">Формы</span>
-              <p>Официальные бланки Минздрава: справки и карты с подстановкой данных пациента</p>
-              <small>Открыть список форм</small>
+              <AppGlyph name="file-text" class="notes-section-card__icon" />
+              <span class="notes-section-card__text">
+                <span class="patient-card-title">Формы</span>
+                <span class="notes-section-card__description">
+                  Официальные бланки Минздрава с подстановкой данных пациента
+                </span>
+              </span>
+              <AppGlyph name="caret-right" class="notes-section-card__chevron" />
             </button>
           </article>
           <article class="patient-notes-template-card paper-card">
             <button
               type="button"
-              class="patient-card-open"
+              class="patient-card-open notes-section-card"
               onClick={() => navigate(notesTemplatesPath())}
             >
-              <span class="patient-card-title">Ваши шаблоны</span>
-              <p>Бланки осмотров, отчётов и других рабочих записей</p>
-              <small>Открыть каталог шаблонов</small>
+              <AppGlyph name="notepad" class="notes-section-card__icon" />
+              <span class="notes-section-card__text">
+                <span class="patient-card-title">Ваши шаблоны</span>
+                <span class="notes-section-card__description">
+                  Бланки осмотров, отчётов и других рабочих записей
+                </span>
+              </span>
+              <AppGlyph name="caret-right" class="notes-section-card__chevron" />
             </button>
           </article>
           <For each={visibleCards()}>

@@ -1,17 +1,22 @@
-import { Popover } from '@kobalte/core/popover';
 import { createSignal, type JSX, onCleanup, Show } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
 import { PatientAvatar } from '@/components/PatientAvatar';
 import { PatientEmojiPicker } from '@/components/PatientEmojiPicker';
+import { SheetPopover } from '@/components/SheetPopover';
 import { type PatientAvatar as Avatar, patientAvatarFromFile } from '@/state/patientAvatar';
 
+/**
+ * A round avatar that is also the button to change it: the panel under it offers a photo, an emoji
+ * or removing the current picture (a popover on wide screens, a sheet on phones).
+ */
 export function PatientAvatarPicker(props: {
   readonly name: string;
   readonly value: Avatar | undefined;
   readonly onBusyChange?: (busy: boolean) => void;
   readonly onChange: (value: Avatar | undefined) => void | Promise<void>;
 }): JSX.Element {
-  const [emojiOpen, setEmojiOpen] = createSignal(false);
+  const [open, setOpen] = createSignal(false);
+  const [emojiView, setEmojiView] = createSignal(false);
   const [busy, setBusy] = createSignal(false);
   const working = (value: boolean): void => {
     setBusy(value);
@@ -23,6 +28,10 @@ export function PatientAvatarPicker(props: {
   onCleanup(() => {
     current = false;
   });
+  const setPanelOpen = (value: boolean): void => {
+    setOpen(value);
+    if (!value) setEmojiView(false);
+  };
   const change = async (value: Avatar | undefined): Promise<void> => {
     setError('');
     try {
@@ -52,81 +61,84 @@ export function PatientAvatarPicker(props: {
   };
   return (
     <div class="patient-avatar-picker">
-      <div class="patient-avatar-picker__actions">
-        <button
-          type="button"
-          class="patient-avatar-picker__trigger"
-          aria-label="Выбрать фото пациента"
-          disabled={busy()}
-          onClick={() => fileInput?.click()}
-        >
-          <span class="patient-avatar-picker__stack">
-            <Show
-              when={props.value}
-              fallback={
-                <span class="patient-avatar-picker__empty">
-                  <AppGlyph name="image" class="patient-avatar-picker__photo-icon" />
-                  <span class="patient-avatar-picker__empty-label">+ фото</span>
-                </span>
-              }
-            >
-              <PatientAvatar name={props.name} avatar={props.value} portrait />
-            </Show>
-          </span>
-        </button>
+      <SheetPopover
+        open={open()}
+        onOpenChange={setPanelOpen}
+        title="Фото пациента"
+        triggerClass="patient-avatar-picker__trigger"
+        triggerLabel="Фото или эмодзи пациента"
+        triggerTitle="Фото или эмодзи"
+        trigger={
+          <>
+            <PatientAvatar
+              name={props.name}
+              avatar={props.value}
+              class="patient-avatar-picker__avatar"
+            />
+            <span class="patient-avatar-picker__badge" aria-hidden="true">
+              <AppGlyph name="camera" class="patient-avatar-picker__badge-icon" />
+            </span>
+          </>
+        }
+        contentClass="patient-avatar-picker__popover"
+        placement="bottom-start"
+        onOpenAutoFocus={(event) => event.preventDefault()}
+      >
         <Show
-          when={!props.value}
+          when={!emojiView()}
           fallback={
-            <button
-              type="button"
-              class="patient-avatar-picker__emoji-trigger"
-              aria-label="Удалить фото или эмодзи"
-              title="Удалить фото или эмодзи"
-              disabled={busy()}
-              onClick={() => void change(undefined)}
-            >
-              <AppGlyph name="trash" class="patient-avatar-picker__action-icon" />
-            </button>
+            <PatientEmojiPicker
+              onSelect={(avatar) => {
+                setPanelOpen(false);
+                void change(avatar);
+              }}
+            />
           }
         >
-          <Popover
-            open={emojiOpen()}
-            onOpenChange={setEmojiOpen}
-            modal={false}
-            fitViewport
-            gutter={8}
-            placement="bottom-start"
-          >
-            <Popover.Trigger
-              class="patient-avatar-picker__emoji-trigger"
-              aria-label="Выбрать эмодзи пациента"
-              title="Выбрать эмодзи"
+          <div class="patient-avatar-picker__menu">
+            <button
+              type="button"
+              class="patient-avatar-picker__option"
+              aria-label="Выбрать фото пациента"
               disabled={busy()}
+              onClick={() => {
+                setPanelOpen(false);
+                fileInput?.click();
+              }}
             >
-              ☺
-            </Popover.Trigger>
-            <Popover.Portal>
-              <Popover.Content
-                class="patient-avatar-picker__popover"
-                onOpenAutoFocus={(event) => event.preventDefault()}
+              <AppGlyph name="image" class="patient-avatar-picker__option-icon" />
+              Фото
+            </button>
+            <button
+              type="button"
+              class="patient-avatar-picker__option"
+              aria-label="Выбрать эмодзи пациента"
+              disabled={busy()}
+              onClick={() => setEmojiView(true)}
+            >
+              <span class="patient-avatar-picker__option-emoji" aria-hidden="true">
+                ☺
+              </span>
+              Эмодзи
+            </button>
+            <Show when={props.value}>
+              <button
+                type="button"
+                class="patient-avatar-picker__option patient-avatar-picker__option--danger"
+                aria-label="Удалить фото или эмодзи"
+                disabled={busy()}
+                onClick={() => {
+                  setPanelOpen(false);
+                  void change(undefined);
+                }}
               >
-                <Popover.CloseButton
-                  class="patient-avatar-picker__close"
-                  aria-label="Закрыть выбор эмодзи"
-                >
-                  ×
-                </Popover.CloseButton>
-                <PatientEmojiPicker
-                  onSelect={(avatar) => {
-                    setEmojiOpen(false);
-                    void change(avatar);
-                  }}
-                />
-              </Popover.Content>
-            </Popover.Portal>
-          </Popover>
+                <AppGlyph name="trash" class="patient-avatar-picker__option-icon" />
+                Убрать
+              </button>
+            </Show>
+          </div>
         </Show>
-      </div>
+      </SheetPopover>
       <input
         class="patient-avatar-picker__file"
         ref={fileInput}

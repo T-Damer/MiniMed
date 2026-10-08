@@ -151,7 +151,6 @@ export async function createDoctorCard(page: Page, name: string, first: boolean)
     await page.getByRole('button', { name: 'Заметки', exact: true }).click();
     await page.getByRole('button', { name: 'Добавить', exact: true }).click();
     await page.getByRole('menuitem', { name: 'Карточка пациента', exact: true }).press('Enter');
-    await page.getByRole('button', { name: /^(Понятно, продолжить|Открыть)$/u }).click();
   } else {
     await page.getByRole('button', { name: 'Пациенты', exact: true }).click();
     await page.getByRole('button', { name: 'Новый пациент', exact: true }).click();

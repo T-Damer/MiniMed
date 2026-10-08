@@ -103,9 +103,6 @@ for (const viewport of [
         await page.evaluate((nextHash) => {
           window.location.hash = nextHash;
         }, hash);
-        // Browser patient cards are unencrypted; the page asks once before showing them.
-        if (hash === '#/notes/patients')
-          await page.getByRole('button', { name: /^(Понятно, продолжить|Открыть)$/u }).click();
         await expect(page.getByRole('region', { name: 'Личные заметки' })).toBeVisible();
         await navigation.getByRole('button', { name: 'Мои файлы', exact: true }).click();
         await expect(page).toHaveURL(/#\/modules\/documents\/user$/u);

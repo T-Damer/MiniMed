@@ -24,10 +24,7 @@ async function createPatient(page: Page, name: string, birthDate?: string): Prom
   await page.getByRole('button', { name: 'Заметки', exact: true }).click();
   await page.getByRole('button', { name: 'Добавить', exact: true }).click();
   await page.getByRole('menuitem', { name: 'Карточка пациента', exact: true }).press('Enter');
-  const unlock = page.getByRole('button', { name: /^(Понятно, продолжить|Открыть)$/u });
   const heading = page.getByRole('heading', { name: 'Новая карточка пациента' });
-  await unlock.or(heading).first().waitFor();
-  if (await unlock.isVisible()) await unlock.click();
   await expect(heading).toBeVisible();
   await page.getByLabel('Имя или псевдоним').fill(name);
   if (birthDate) await page.getByLabel('Дата рождения').fill(birthDate);
@@ -281,9 +278,10 @@ test('birth date only: statuses and marks without a card, nothing is saved', asy
   const stored = await page.evaluate(() => JSON.stringify({ ...window.localStorage }));
   expect(stored).not.toContain('2026-01-10');
   expect(page.url()).not.toContain('2026-01-10');
-  // Opening the chooser may create the empty vault database, but no record is written into it.
+  // Opening the chooser creates the empty encrypted vault silently, but no patient file and no
+  // other record is written into it.
   const patientRecords = await page.evaluate(async () => {
-    let records = 0;
+    const counts: Record<string, number> = {};
     for (const { name } of await indexedDB.databases()) {
       if (!name || !/patient/iu.test(name)) continue;
       const db = await new Promise<IDBDatabase>((resolve, reject) => {
@@ -292,7 +290,7 @@ test('birth date only: statuses and marks without a card, nothing is saved', asy
         request.onerror = () => reject(request.error);
       });
       for (const store of Array.from(db.objectStoreNames)) {
-        records += await new Promise<number>((resolve, reject) => {
+        counts[store] = await new Promise<number>((resolve, reject) => {
           const request = db.transaction(store).objectStore(store).count();
           request.onsuccess = () => resolve(request.result);
           request.onerror = () => reject(request.error);
@@ -300,9 +298,12 @@ test('birth date only: statuses and marks without a card, nothing is saved', asy
       }
       db.close();
     }
-    return records;
+    return counts;
   });
-  expect(patientRecords).toBe(0);
+  expect(patientRecords['blobs'] ?? 0).toBe(0);
+  expect(Object.values(patientRecords).reduce((sum, count) => sum + count, 0)).toBeLessThanOrEqual(
+    1,
+  );
 
   // A date that cannot be used is explained; a cleared child leaves the plain table.
   await page.getByRole('button', { name: 'Выбрать пациента', exact: true }).click();

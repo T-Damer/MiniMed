@@ -18,7 +18,6 @@ test('patient list has a safe sticky header, local search, and grouped actions',
   await page.getByRole('button', { name: 'Заметки', exact: true }).click();
   await page.getByRole('button', { name: 'Добавить', exact: true }).click();
   await page.getByRole('menuitem', { name: 'Карточка пациента', exact: true }).press('Enter');
-  await page.getByRole('button', { name: /^(Понятно, продолжить|Открыть)$/u }).click();
   await page.getByRole('button', { name: 'Отмена', exact: true }).click();
   await expect(page.locator('.patient-workspace__empty')).toContainText('Карточек пока нет.');
   await expect(page.locator('.patient-workspace__empty-icon')).toBeVisible();
@@ -33,7 +32,7 @@ test('patient list has a safe sticky header, local search, and grouped actions',
   await expect(search).toBeVisible();
   await expect(patientCard).toBeVisible();
   await expect(page.getByRole('button', { name: 'Назад к заметкам', exact: true })).toBeVisible();
-  await expect(page.locator('.patient-workspace__page .page__icon')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Где хранятся карточки' })).toBeVisible();
   await expect(page.locator('.patient-workspace')).not.toHaveClass(/page-grain/u);
   await search.fill('для поиска');
   await expect(patientCard).toHaveCount(1);
@@ -88,10 +87,8 @@ test('creates a protected patient profile and opens longitudinal dynamics', asyn
   await page.getByRole('button', { name: 'Добавить', exact: true }).click();
   await page.getByRole('menuitem', { name: 'Карточка пациента', exact: true }).press('Enter');
 
-  await expect(
-    page.getByRole('heading', { name: 'Карточки пациентов в этом браузере' }),
-  ).toBeVisible();
-  await page.getByRole('button', { name: /^(Понятно, продолжить|Открыть)$/u }).click();
+  // The vault opens silently: no consent sheet stands in front of the form.
+  await expect(page.getByRole('button', { name: 'Понятно, продолжить' })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Новая карточка пациента' })).toBeVisible();
   await page.getByLabel('Имя или псевдоним').fill('Пациент динамики');
   await page.getByLabel('Дата рождения').fill('2020-01-02');
@@ -190,12 +187,14 @@ test('creates a protected patient profile and opens longitudinal dynamics', asyn
   await page.getByRole('button', { name: 'Динамика' }).click();
   await expect(page).toHaveURL(/#\/notes\/patients\/[^/]+\/dynamics$/u);
   await expect(page.getByRole('heading', { name: 'Динамика' })).toBeVisible();
-  await expect(page.getByRole('button', { name: /body-mass · кг · Масса тела/u })).toBeVisible();
-  await expect(page.getByRole('button', { name: /body-mass · кг · body-surface/u })).toBeVisible();
-  await expect(page.getByRole('button', { name: /body-height · см · Рост/u })).toBeVisible();
-  await expect(page.getByRole('button', { name: /body-height · см · body-/u })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'blood-pressure', exact: true })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'pulse', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Масса тела · кг · Масса тела/u })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Масса тела · кг · body-surface/u })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Рост · см · Рост/u })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Рост · см · body-/u })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Артериальное давление', exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Пульс', exact: true })).toBeVisible();
   await expect(page.locator('.patient-dynamics__table')).toHaveCount(5);
   await expect(page.getByText('Лекарственные интервалы и маркеры')).toBeVisible();
   await expect(page.getByRole('button', { name: /Начало лечения/u })).toBeVisible();
@@ -242,7 +241,7 @@ test('creates a protected patient profile and opens longitudinal dynamics', asyn
 
   // Creating another profile must append to the patient snapshot, not replace the first
   // patient's profile and measurements.
-  await page.getByRole('button', { name: /^Пациент динамики/u }).click();
+  await page.getByRole('button', { name: 'К карточке пациента', exact: true }).click();
   await page.getByRole('button', { name: 'Пациенты', exact: true }).click();
   await page.getByRole('button', { name: 'Новый пациент' }).click();
   await page.getByLabel('Имя или псевдоним').fill('Второй пациент');
@@ -259,7 +258,8 @@ test('creates a protected patient profile and opens longitudinal dynamics', asyn
   // Locking from the patient workspace is the production curtain emitter. The mounted calculator
   // must drop its selected patient and transient result before the curtain can clear.
   await page.getByRole('button', { name: /^Пациент динамики/u }).click();
-  await page.getByRole('button', { name: 'Заблокировать', exact: true }).click();
+  await page.getByRole('button', { name: 'Действия с карточкой', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Заблокировать', exact: true }).click();
   // The browser key opens the vault again at once, as the Keystore key does on a phone; the lock
   // still drops everything the open screens held.
   await expect(page.getByRole('heading', { name: 'Пациент динамики' })).toBeVisible();
@@ -279,7 +279,6 @@ test('repeats an assessment for the same protected patient', async ({ page }) =>
 
   await page.getByRole('button', { name: 'Заметки', exact: true }).click();
   await page.getByRole('button', { name: /^Пациенты/u }).click();
-  await page.getByRole('button', { name: /^(Понятно, продолжить|Открыть)$/u }).click();
   await page.getByRole('button', { name: 'Новый пациент' }).click();
   await page.getByLabel('Имя или псевдоним').fill('Пациент повторной оценки');
   await page.getByRole('button', { name: 'Создать карточку' }).click();

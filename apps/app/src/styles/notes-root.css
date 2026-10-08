@@ -1,0 +1,40 @@
+/* Section cards of the notes root: the whole card is the tap target, an icon leads and a chevron trails. */
+.patient-card-open.notes-section-card {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.9rem 1rem;
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+
+.patient-card-open.notes-section-card:active {
+  transform: scale(0.98);
+}
+
+.notes-section-card__icon {
+  width: 1.6rem;
+  height: 1.6rem;
+  color: var(--theme-accent);
+}
+
+.notes-section-card__text {
+  display: grid;
+  min-width: 0;
+  gap: 0.2rem;
+}
+
+.notes-section-card__description {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--ink-soft);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.notes-section-card__chevron {
+  width: 1rem;
+  height: 1rem;
+  color: var(--theme-text-muted);
+}

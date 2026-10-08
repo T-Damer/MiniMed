@@ -5,11 +5,34 @@
   color: var(--theme-text);
 }
 
-.patient-workspace__toolbar {
+/* Patient card header: the avatar sits beside the name, actions are round icon buttons. */
+.patient-card__identity {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
+  min-width: 0;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.patient-card__name {
+  display: -webkit-box;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: 1rem;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.patient-card__action {
+  --ui-icon-button-size: 2.4rem;
+  flex: none;
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+
+.patient-card__action:active {
+  transform: scale(0.96);
 }
 
 .patient-workspace__actions {
@@ -164,13 +187,23 @@
 
 .patient-workspace__patient-card {
   display: grid;
-  gap: 0.35rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 0.85rem;
+  row-gap: 0.2rem;
   border: 1px solid var(--theme-border);
   padding: 1rem;
   text-align: left;
   color: var(--theme-text);
   cursor: pointer;
   font: inherit;
+}
+
+.patient-avatar.patient-workspace__patient-avatar {
+  grid-row: 1 / span 3;
+  width: 2.75rem;
+  height: 2.75rem;
+  --patient-avatar-symbol-size: 1.7rem;
+  --patient-avatar-initials-size: 1rem;
 }
 
 .patient-workspace__patient-name {
@@ -208,8 +241,7 @@
 }
 
 .patient-workspace__source,
-.patient-workspace__source-details-link,
-.patient-workspace__back {
+.patient-workspace__source-details-link {
   border: 1px solid var(--theme-border);
   border-radius: 999px;
   background: transparent;
@@ -265,16 +297,6 @@
   opacity: 0.5;
 }
 
-.patient-workspace__back {
-  justify-self: start;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  border: 0;
-  color: var(--theme-accent);
-  padding-inline: 0;
-}
-
 .patient-dynamics {
   display: grid;
   gap: 0.8rem;
@@ -301,8 +323,7 @@
   min-width: 0;
 }
 
-.patient-dynamics__series-title,
-.patient-dynamics__page-title {
+.patient-dynamics__series-title {
   margin: 0;
 }
 
@@ -367,10 +388,6 @@
 }
 
 @media (max-width: 640px) {
-  .patient-workspace__toolbar {
-    display: grid;
-  }
-
   .patient-workspace__search-chrome {
     gap: 0.35rem;
   }
@@ -393,7 +410,6 @@
   .patient-workspace__source:hover,
   .patient-workspace__source-details-link:hover,
   .patient-dynamics__toggle:hover,
-  .patient-workspace__back:hover,
   .patient-workspace__quick-action.ui-button:hover,
   .patient-workspace__event-action.ui-button:hover {
     border-color: var(--theme-accent);

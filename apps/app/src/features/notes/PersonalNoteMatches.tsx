@@ -12,6 +12,7 @@ import {
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { openUserLibraryDocument } from '@/features/library/user-library-routing';
 import { notesPatientsPath } from '@/features/notes/notes-routing';
+import { patientSexLabel } from '@/features/notes/patient-labels';
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
 import type { PatientProfile } from '@/state/patient-domain';
 import {
@@ -51,7 +52,7 @@ function patientProfileSearchText(profile: PatientProfile): string {
     profile.displayName,
     profile.localRecordNumber,
     profile.birthDate,
-    profile.biologicalSex,
+    patientSexLabel(profile.biologicalSex),
     profile.summary,
     ...Object.values(profile.context ?? {}).map(String),
   ]
@@ -64,7 +65,7 @@ function patientProfileSnippet(profile: PatientProfile): string {
     [
       profile.localRecordNumber ? `№ ${profile.localRecordNumber}` : '',
       profile.birthDate ? `рожд. ${profile.birthDate}` : '',
-      profile.biologicalSex ?? '',
+      patientSexLabel(profile.biologicalSex) ?? '',
       profile.summary ?? '',
     ]
       .filter(Boolean)

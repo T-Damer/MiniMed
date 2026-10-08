@@ -67,19 +67,21 @@ for (const width of [375, 1280]) {
     await page.screenshot({ path: testInfo.outputPath(`patients-native-${width}.png`) });
   });
 
-  test(`the browser explains its device key before storing patients at ${width}px`, async ({
+  test(`the browser creates its encrypted vault silently at ${width}px`, async ({
     page,
   }, testInfo) => {
     await page.setViewportSize({ width, height: 844 });
+    await watchVaultDialog(page);
     await mountBuiltApp(page, { skipLargeCompanionPacks: true });
     await page.goto(`${E2E_ASSET_ORIGIN}/#/notes/patients`);
 
-    const dialog = page.getByRole('dialog', { name: 'Пациенты' });
-    await expect(dialog.getByText(/шифруются ключом этого браузера/u)).toBeVisible({
+    // No blocking sheet and no consent button: the list is there at once, the explanation sits
+    // behind the «?» of the header.
+    await expect(page.getByRole('button', { name: 'Новый пациент', exact: true })).toBeVisible({
       timeout: 30_000,
     });
-    await dialog.getByRole('button', { name: 'Понятно, продолжить', exact: true }).click();
-    await expect(dialog).toBeHidden();
+    expect(await vaultDialogSeen(page)).toBe(false);
+    await expect(page.getByRole('button', { name: 'Понятно, продолжить' })).toHaveCount(0);
     const add = page.getByRole('button', { name: 'Новый пациент', exact: true });
     await expect(add).toBeVisible();
 
@@ -105,3 +107,14 @@ for (const width of [375, 1280]) {
     await add.screenshot({ path: testInfo.outputPath(`patients-add-stuck-${width}.png`) });
   });
 }
+
+test('the explanation of the patient storage sits behind the «?» of the list', async ({ page }) => {
+  await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+  await page.goto(`${E2E_ASSET_ORIGIN}/#/notes/patients`);
+  await expect(page.getByRole('button', { name: 'Новый пациент', exact: true })).toBeVisible({
+    timeout: 30_000,
+  });
+  await expect(page.getByText(/шифруются/u)).toHaveCount(0);
+  await page.getByRole('button', { name: 'Где хранятся карточки' }).click();
+  await expect(page.getByText(/шифруются/u).first()).toBeVisible();
+});

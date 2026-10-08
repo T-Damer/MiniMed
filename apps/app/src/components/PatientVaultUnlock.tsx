@@ -14,10 +14,6 @@ import {
   readPatientVault,
   unlockPatientVault,
 } from '@/state/patient-vault';
-import {
-  isNativePatientVaultKeychainAvailable,
-  isPatientVaultNativePlatform,
-} from '@/state/patient-vault-native';
 import '@/styles/patient-workspace.css';
 
 /** A silent open that finishes sooner than this shows no progress at all. */
@@ -25,9 +21,10 @@ const PENDING_NOTICE_DELAY_MS = 400;
 
 /**
  * Opens the patient vault. Encrypted vaults open silently (ADR-0016): the Android Keystore on a
- * phone, the browser's non-extractable device key elsewhere. The choice card appears only when the
- * user has to act: the first use in a browser (what the browser key does and does not protect), a
- * plaintext vault that can be encrypted in place, or a browser that cannot keep a key at all.
+ * phone, the browser's non-extractable device key elsewhere; the first use creates the encrypted
+ * vault without asking (what the browser key protects lives behind the «?» of the patients page).
+ * The choice card appears only when the user has to act: a plaintext vault that can be encrypted in
+ * place, a browser that cannot keep a key at all, or a creation that failed.
  * With `dialog`, that card is a modal and the silent attempt shows nothing but a delayed status
  * line, so a fast open never flashes a lock dialog.
  */
@@ -64,18 +61,12 @@ export function PatientVaultUnlock(props: {
         // screen that clears its draft when the vault closes.
         if (isEncryptedPatientVaultMode(mode)) {
           unlocked(await (isPatientVaultUnlocked() ? readPatientVault() : unlockPatientVault()));
-        } else if (
-          !mode &&
-          isPatientVaultNativePlatform() &&
-          (await isNativePatientVaultKeychainAvailable())
-        ) {
+        } else if (!mode) {
           await createPatientVault();
           unlocked(await readPatientVault());
         }
       } catch (cause) {
-        setError(
-          cause instanceof Error ? cause.message : 'Защищённое хранилище устройства недоступно.',
-        );
+        fail(cause, 'Защищённое хранилище устройства недоступно.');
       } finally {
         setBusy(false);
         setAttempting(false);
@@ -133,7 +124,7 @@ export function PatientVaultUnlock(props: {
   const heading = (): string => {
     if (busy()) return 'Открываем пациентов…';
     if (openFailed()) return 'Не удалось открыть защищённое хранилище';
-    if (firstUse()) return 'Карточки пациентов в этом браузере';
+    if (firstUse()) return 'Не удалось создать хранилище';
     return 'Карточки пациентов без шифрования';
   };
   const card = (): JSX.Element => (
@@ -146,14 +137,6 @@ export function PatientVaultUnlock(props: {
     >
       <AppGlyph name="lock" class="patient-workspace__unlock-icon" />
       <Heading depth={2}>{heading()}</Heading>
-      <Show when={!busy() && firstUse()}>
-        <p class="patient-workspace__note">
-          Карточки хранятся только на этом устройстве и шифруются ключом этого браузера: скопировать
-          данные без ключа нельзя. Но любой, кто откроет ваш профиль браузера, увидит их, а очистка
-          данных сайта сотрёт и ключ, и карточки. Для реальных пациентов используйте приложение для
-          Android — там ключ хранится в защищённой памяти телефона.
-        </p>
-      </Show>
       <Show when={!busy() && upgradable()}>
         <p class="patient-workspace__note">
           Эти карточки сохранены без шифрования. Зашифруем их ключом этого браузера — карточки и
@@ -175,7 +158,7 @@ export function PatientVaultUnlock(props: {
       </Show>
       <Show when={!busy() && firstUse()}>
         <Button type="button" variant="primary" onClick={() => void createEncrypted()}>
-          Понятно, продолжить
+          Повторить
         </Button>
       </Show>
       <Show when={!busy() && upgradable()}>

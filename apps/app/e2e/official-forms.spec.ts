@@ -57,7 +57,6 @@ async function openPatientVault(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Заметки', exact: true }).click();
   await page.getByRole('button', { name: 'Добавить', exact: true }).click();
   await page.getByRole('menuitem', { name: 'Карточка пациента', exact: true }).press('Enter');
-  await page.getByRole('button', { name: /^(Понятно, продолжить|Открыть)$/u }).click();
 }
 
 /** «Врач и организация» in Settings, then a patient with the data forms need and one episode. */
@@ -491,11 +490,6 @@ test('autosaves a draft in the patient vault and approves the form with «Сох
   await expect(state).toHaveText('Черновик');
   await page.waitForTimeout(1500);
   await page.reload();
-  // An encrypted vault opens silently; the choice card is only there on a device that has none.
-  const unlock = page.getByRole('button', { name: /^(Понятно, продолжить|Открыть)$/u });
-  const signaInput = page.locator('#form-field-signa').getByRole('textbox');
-  await expect(unlock.or(signaInput)).toBeVisible();
-  if (await unlock.isVisible()) await unlock.click();
   await expect(page.locator('#form-field-signa').getByRole('textbox')).toHaveValue(
     'По 1 таблетке 1 раз в день',
   );
@@ -576,7 +570,11 @@ test('«Мои файлы» opens the official forms from a pinned «Формы�
   await expect(page.locator('#form-field-patientFullName')).toHaveClass(/form-field--missing/u);
   await expect(page.locator('.form-progress__state')).toHaveText('Черновик');
   await page.getByRole('button', { name: 'Выбрать пациента', exact: true }).click();
+  // The chooser opens the vault silently and lists the patients; no consent sheet comes first.
   await expect(
-    page.getByRole('heading', { name: 'Карточки пациентов в этом браузере' }),
+    page.getByRole('dialog', { name: 'Пациент', exact: true }).getByRole('button', {
+      name: 'Добавить пациента',
+      exact: true,
+    }),
   ).toBeVisible();
 });

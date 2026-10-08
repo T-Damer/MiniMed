@@ -35,6 +35,8 @@ import { PatientDiaryPanel } from '@/features/diary/PatientDiaryPanel';
 import type { NotesRoute } from '@/features/notes/notes-routing';
 import { notesFormsPath, notesPath, notesPatientsPath } from '@/features/notes/notes-routing';
 import { EpisodeDiagnosisEditor, PatientFormData } from '@/features/notes/PatientFormData';
+import { PatientStorageHelp } from '@/features/notes/PatientStorageHelp';
+import { patientMetricLabel, patientSexLabel } from '@/features/notes/patient-labels';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import { saveBlobAsFile } from '@/state/native-share';
 import {
@@ -239,7 +241,7 @@ function DynamicsChart(props: {
       }
       return [
         {
-          label: `${series.metricId} · ${series.unit}`,
+          label: `${patientMetricLabel(series.metricId)} · ${series.unit}`,
           data: points,
           borderColor: color,
           backgroundColor: `${color}1f`,
@@ -313,7 +315,7 @@ function DynamicsChart(props: {
     <canvas
       ref={canvas}
       class="patient-dynamics-chart__canvas"
-      aria-label={`График ${props.group.metricId}`}
+      aria-label={`График ${patientMetricLabel(props.group.metricId)}`}
     />
   );
 }
@@ -398,10 +400,10 @@ function NewPatientForm(props: {
           value={sex() ?? ''}
           options={[
             { value: '', label: 'Не указан' },
-            { value: 'female', label: 'Женский' },
-            { value: 'male', label: 'Мужской' },
-            { value: 'intersex', label: 'Интерсекс' },
-            { value: 'unknown', label: 'Неизвестно' },
+            ...(['female', 'male', 'intersex', 'unknown'] as const).map((value) => ({
+              value,
+              label: patientSexLabel(value) ?? value,
+            })),
           ]}
           onChange={(event) =>
             setSex((event.currentTarget.value || undefined) as PatientProfile['biologicalSex'])
@@ -723,7 +725,7 @@ function PatientList(props: {
         profile.displayName,
         profile.localRecordNumber,
         profile.birthDate,
-        profile.biologicalSex,
+        patientSexLabel(profile.biologicalSex),
         profile.summary,
       ]
         .filter((value): value is string => Boolean(value))
@@ -807,9 +809,9 @@ function PatientList(props: {
       </header>
       <Page
         class="patient-workspace__page"
-        icon={<AppGlyph name="users" class="page__icon-glyph" />}
         title={<Heading depth={1}>Пациенты</Heading>}
-        description="Карточки хранятся на этом устройстве."
+        help={<PatientStorageHelp />}
+        helpTitle="Где хранятся карточки"
       />
       <div class="patient-workspace__list">
         <For each={visibleProfiles()}>
@@ -822,13 +824,19 @@ function PatientList(props: {
                 class="patient-workspace__patient-card paper-card"
                 onClick={() => props.onNavigate(notesPatientsPath(profile.id))}
               >
-                <PatientAvatar name={profile.displayName} avatar={profile.avatar} />
+                <PatientAvatar
+                  name={profile.displayName}
+                  avatar={profile.avatar}
+                  class="patient-workspace__patient-avatar"
+                />
                 <strong class="patient-workspace__patient-name">{profile.displayName}</strong>
                 <small class="patient-workspace__patient-meta">
                   {profile.birthDate
                     ? `рожд. ${formatDate(profile.birthDate)}`
                     : 'Дата рождения не указана'}
-                  {profile.biologicalSex ? ` · ${profile.biologicalSex}` : ''}
+                  {patientSexLabel(profile.biologicalSex)
+                    ? ` · ${patientSexLabel(profile.biologicalSex)}`
+                    : ''}
                 </small>
                 <span class="patient-workspace__patient-measurement">
                   {weight ? `${weight.value} кг` : 'масса —'} ·{' '}
@@ -951,85 +959,108 @@ function PatientDetail(props: {
       setBusy(false);
     }
   };
+  const cardMenuActions: readonly AppContextMenuAction[] = [
+    {
+      id: 'export',
+      label: 'Экспорт карточки',
+      icon: 'download',
+      onSelect: () => props.onExport(props.profile.id),
+    },
+    { id: 'lock', label: 'Заблокировать', icon: 'lock', onSelect: lockPatientVault },
+    {
+      id: 'delete',
+      label: 'Удалить карточку',
+      icon: 'trash',
+      danger: true,
+      onSelect: () => props.onDelete(props.profile.id),
+    },
+  ];
   return (
     <>
-      <div class="patient-workspace__toolbar">
-        <div>
-          <button
-            type="button"
-            class="patient-workspace__back"
+      <Page
+        class="patient-card__page"
+        navigation={
+          <NavBack
+            class="knowledge-back-button"
+            aria-label="Пациенты"
             onClick={() => props.onNavigate(notesPatientsPath())}
-          >
-            <AppGlyph name="arrow-left" /> Пациенты
-          </button>
-          <p class="archive-kicker">Карточка пациента</p>
-          <Heading depth={1}>{props.profile.displayName}</Heading>
-          <PatientAvatarPicker
-            name={props.profile.displayName}
-            value={props.profile.avatar}
-            onChange={async (avatar) => {
-              const snapshot = await updatePatientVault((current) => ({
-                ...current,
-                profiles: current.profiles.map((profile) => {
-                  if (profile.id !== props.profile.id) return profile;
-                  const { avatar: _previous, ...rest } = profile;
-                  return {
-                    ...rest,
-                    ...(avatar ? { avatar } : {}),
-                    updatedAt: new Date().toISOString(),
-                  };
-                }),
-              }));
-              props.onSnapshot(snapshot);
-            }}
           />
-          <p>
-            {props.profile.birthDate
-              ? `Дата рождения: ${formatDate(props.profile.birthDate)}`
-              : 'Дата рождения не указана'}
-            {props.profile.biologicalSex ? ` · Пол: ${props.profile.biologicalSex}` : ''}
-          </p>
-        </div>
-        <div class="patient-workspace__actions">
-          <Button
-            type="button"
-            variant="secondary"
-            icon={<AppGlyph name="graph" />}
-            onClick={() => props.onNavigate(notesPatientsPath(props.profile.id, true))}
-          >
-            Динамика
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            icon={<AppGlyph name="file-text" />}
-            onClick={() =>
-              props.onNavigate(
-                notesFormsPath(undefined, {
-                  patientId: props.profile.id,
-                  ...(episode() ? { episodeId: (episode() as ClinicalEpisode).id } : {}),
-                }),
-              )
-            }
-          >
-            Заполнить форму
-          </Button>
-          <Button type="button" variant="quiet" onClick={() => props.onExport(props.profile.id)}>
-            Экспорт карточки
-          </Button>
-          <Button type="button" variant="danger" onClick={() => props.onDelete(props.profile.id)}>
-            Удалить карточку
-          </Button>
-          <Button
-            type="button"
-            variant="quiet"
-            icon={<AppGlyph name="lock" />}
-            onClick={lockPatientVault}
-          >
-            Заблокировать
-          </Button>
-        </div>
-      </div>
+        }
+        title={
+          <div class="patient-card__identity">
+            <PatientAvatarPicker
+              name={props.profile.displayName}
+              value={props.profile.avatar}
+              onChange={async (avatar) => {
+                const snapshot = await updatePatientVault((current) => ({
+                  ...current,
+                  profiles: current.profiles.map((profile) => {
+                    if (profile.id !== props.profile.id) return profile;
+                    const { avatar: _previous, ...rest } = profile;
+                    return {
+                      ...rest,
+                      ...(avatar ? { avatar } : {}),
+                      updatedAt: new Date().toISOString(),
+                    };
+                  }),
+                }));
+                props.onSnapshot(snapshot);
+              }}
+            />
+            <Heading depth={1} class="patient-card__name">
+              {props.profile.displayName}
+            </Heading>
+          </div>
+        }
+        description={[
+          props.profile.birthDate
+            ? formatDate(props.profile.birthDate)
+            : 'Дата рождения не указана',
+          patientSexLabel(props.profile.biologicalSex),
+        ]
+          .filter(Boolean)
+          .join(' · ')}
+        actions={
+          <>
+            <Button
+              type="button"
+              variant="icon"
+              class="patient-card__action"
+              aria-label="Динамика"
+              title="Динамика"
+              icon={<AppGlyph name="graph" />}
+              onClick={() => props.onNavigate(notesPatientsPath(props.profile.id, true))}
+            />
+            <Button
+              type="button"
+              variant="icon"
+              class="patient-card__action"
+              aria-label="Заполнить форму"
+              title="Заполнить форму"
+              icon={<AppGlyph name="file-text" />}
+              onClick={() =>
+                props.onNavigate(
+                  notesFormsPath(undefined, {
+                    patientId: props.profile.id,
+                    ...(episode() ? { episodeId: (episode() as ClinicalEpisode).id } : {}),
+                  }),
+                )
+              }
+            />
+            <AppContextMenu class="patient-card__menu" actions={cardMenuActions} hideButton>
+              <Button
+                type="button"
+                variant="icon"
+                class="patient-card__action"
+                aria-label="Действия с карточкой"
+                title="Действия с карточкой"
+                onClick={requestContextMenu}
+                icon={<AppGlyph name="dots-three" />}
+              />
+            </AppContextMenu>
+          </>
+        }
+      />
       <PatientFormData profile={props.profile} onSnapshot={props.onSnapshot} />
       <section class="patient-workspace__panel paper-card">
         <Heading depth={2}>Осмотр</Heading>
@@ -1266,30 +1297,31 @@ function DynamicsView(props: {
   };
   return (
     <>
-      <div class="patient-workspace__toolbar">
-        <div>
-          <button
-            type="button"
-            class="patient-workspace__back"
+      <Page
+        navigation={
+          <NavBack
+            class="knowledge-back-button"
+            aria-label="К карточке пациента"
+            title={props.profile.displayName}
             onClick={() => props.onNavigate(notesPatientsPath(props.profile.id))}
-          >
-            <AppGlyph name="arrow-left" /> {props.profile.displayName}
-          </button>
-          <p class="archive-kicker">Продольные наблюдения</p>
-          <Heading depth={1} class="patient-dynamics__page-title">
-            Динамика
-          </Heading>
-          <p>Ряды разделены по показателю, единице, инструменту и методике.</p>
-        </div>
-        <Button
-          type="button"
-          variant="quiet"
-          icon={<AppGlyph name="lock" />}
-          onClick={lockPatientVault}
-        >
-          Заблокировать
-        </Button>
-      </div>
+          />
+        }
+        title={<Heading depth={1}>Динамика</Heading>}
+        description={props.profile.displayName}
+        help={<p>Ряды разделены по показателю, единице, инструменту и методике.</p>}
+        helpTitle="Как читать ряды"
+        actions={
+          <Button
+            type="button"
+            variant="icon"
+            class="patient-card__action"
+            aria-label="Заблокировать"
+            title="Заблокировать"
+            icon={<AppGlyph name="lock" />}
+            onClick={lockPatientVault}
+          />
+        }
+      />
       <section class="patient-workspace__sources paper-card">
         <span class="patient-workspace__sources-label">Источники рядов</span>
         <div class="patient-workspace__sources-list">
@@ -1305,7 +1337,7 @@ function DynamicsView(props: {
                   setSelectedSource(item.observations[0]);
                 }}
               >
-                {item.metricId} · {item.unit} · {item.method}
+                {patientMetricLabel(item.metricId)} · {item.unit} · {item.method}
               </button>
             )}
           </For>
@@ -1416,7 +1448,7 @@ function DynamicsView(props: {
               <header class="patient-dynamics__header">
                 <div class="patient-dynamics__heading">
                   <Heading depth={2} class="patient-dynamics__series-title">
-                    {group.metricId}
+                    {patientMetricLabel(group.metricId)}
                   </Heading>
                   <small class="patient-dynamics__meta">
                     {group.unit} · {group.series.map((item) => item.method).join(' · ')}
