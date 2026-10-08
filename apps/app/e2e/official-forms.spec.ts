@@ -560,6 +560,6 @@ test('«Мои файлы» opens the official forms from a pinned «Формы�
   await expect(page.locator('.form-progress__state')).toHaveText('Черновик');
   await page.getByRole('button', { name: 'Выбрать пациента', exact: true }).click();
   await expect(
-    page.getByRole('heading', { name: /^(Карточки пациентов без шифрования|Пациенты закрыты)$/u }),
+    page.getByRole('heading', { name: 'Карточки пациентов в этом браузере' }),
   ).toBeVisible();
 });

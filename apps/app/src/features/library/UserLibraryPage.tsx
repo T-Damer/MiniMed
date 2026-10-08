@@ -42,7 +42,11 @@ import { getPluralMessage } from '@/i18n/browser-i18n';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
 import { saveBlobAsFile, shareSystemFile } from '@/state/native-share';
 import { syncPatientNotesToUserLibrary } from '@/state/note-library-sync';
-import { PATIENT_VAULT_EVENT, patientVaultStorageMode } from '@/state/patient-vault';
+import {
+  isEncryptedPatientVaultMode,
+  PATIENT_VAULT_EVENT,
+  patientVaultStorageMode,
+} from '@/state/patient-vault';
 import {
   addUserLibraryFile,
   createUserLibraryFolder,
@@ -463,7 +467,7 @@ export function UserLibraryPage(props: {
 
   const refreshVaultMode = async (): Promise<void> => {
     try {
-      setVaultEncrypted((await patientVaultStorageMode()) === 'native-keychain');
+      setVaultEncrypted(isEncryptedPatientVaultMode(await patientVaultStorageMode()));
     } catch (cause) {
       setVaultEncrypted(false);
       toast.error(

@@ -150,6 +150,10 @@ describe('settings statuses', () => {
     expect(appearanceStatus('light').label).toBe('Светлая');
     expect(dataStatus('empty').label).toBe('Пусто');
     expect(dataStatus('native-keychain')).toEqual({ label: 'Защищено', tone: 'ok' });
+    expect(dataStatus('browser-device-key')).toEqual({
+      label: 'Зашифровано в браузере',
+      tone: 'ok',
+    });
     expect(dataStatus('unencrypted').tone).toBe('attention');
     expect(dataStatus('checking').label).toBe('Проверяем…');
   });
@@ -188,6 +192,7 @@ describe('settings statuses', () => {
 
   it('describes the patient storage in plain words', () => {
     expect(patientStorageDescription('native-keychain')).toMatch(/зашифрованы ключом/u);
+    expect(patientStorageDescription('browser-device-key')).toMatch(/ключом этого браузера/u);
     expect(patientStorageDescription('unencrypted')).toMatch(/без шифрования/u);
     expect(patientStorageDescription('empty')).toMatch(/пока нет/u);
     expect(patientStorageDescription('checking')).toMatch(/Проверяем/u);

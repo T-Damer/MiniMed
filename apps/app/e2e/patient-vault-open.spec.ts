@@ -67,7 +67,7 @@ for (const width of [375, 1280]) {
     await page.screenshot({ path: testInfo.outputPath(`patients-native-${width}.png`) });
   });
 
-  test(`the browser still asks before storing patients unencrypted at ${width}px`, async ({
+  test(`the browser explains its device key before storing patients at ${width}px`, async ({
     page,
   }, testInfo) => {
     await page.setViewportSize({ width, height: 844 });
@@ -75,7 +75,7 @@ for (const width of [375, 1280]) {
     await page.goto(`${E2E_ASSET_ORIGIN}/#/notes/patients`);
 
     const dialog = page.getByRole('dialog', { name: 'Пациенты' });
-    await expect(dialog.getByText(/не может зашифровать карточки/u)).toBeVisible({
+    await expect(dialog.getByText(/шифруются ключом этого браузера/u)).toBeVisible({
       timeout: 30_000,
     });
     await dialog.getByRole('button', { name: 'Понятно, продолжить', exact: true }).click();

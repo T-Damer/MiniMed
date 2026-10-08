@@ -6,20 +6,30 @@ import { Heading } from '@/components/Text';
 import type { PatientVaultSnapshot } from '@/state/patient-domain';
 import {
   createPatientVault,
+  encryptPatientVault,
+  isEncryptedPatientVaultMode,
+  isPatientVaultUnlocked,
+  PatientVaultError,
   patientVaultStorageMode,
   readPatientVault,
   unlockPatientVault,
 } from '@/state/patient-vault';
-import { isPatientVaultNativePlatform } from '@/state/patient-vault-native';
+import {
+  isNativePatientVaultKeychainAvailable,
+  isPatientVaultNativePlatform,
+} from '@/state/patient-vault-native';
 import '@/styles/patient-workspace.css';
 
 /** A silent open that finishes sooner than this shows no progress at all. */
 const PENDING_NOTICE_DELAY_MS = 400;
 
 /**
- * Opens the patient vault. Device-key and existing vaults open silently (ADR-0016); the choice
- * card appears only when the user has to act. With `dialog`, that card is a modal and the silent
- * attempt shows nothing but a delayed status line, so a fast open never flashes a lock dialog.
+ * Opens the patient vault. Encrypted vaults open silently (ADR-0016): the Android Keystore on a
+ * phone, the browser's non-extractable device key elsewhere. The choice card appears only when the
+ * user has to act: the first use in a browser (what the browser key does and does not protect), a
+ * plaintext vault that can be encrypted in place, or a browser that cannot keep a key at all.
+ * With `dialog`, that card is a modal and the silent attempt shows nothing but a delayed status
+ * line, so a fast open never flashes a lock dialog.
  */
 export function PatientVaultUnlock(props: {
   readonly onUnlocked: (snapshot: PatientVaultSnapshot) => void;
@@ -34,6 +44,8 @@ export function PatientVaultUnlock(props: {
   };
   const [storedMode, setStoredMode] =
     createSignal<Awaited<ReturnType<typeof patientVaultStorageMode>>>();
+  /** The browser refused to keep an encryption key: plaintext is the only choice left. */
+  const [noDeviceKey, setNoDeviceKey] = createSignal(false);
   const [attempting, setAttempting] = createSignal(true);
   const [busy, setBusy] = createSignal(true);
   const [slow, setSlow] = createSignal(false);
@@ -48,16 +60,21 @@ export function PatientVaultUnlock(props: {
       try {
         const mode = await patientVaultStorageMode();
         setStoredMode(mode);
-        if (mode === 'unencrypted' || (!mode && !isPatientVaultNativePlatform())) return;
-        if (!mode) {
+        // A session that is still open is only read: unlocking again would announce a lock to every
+        // screen that clears its draft when the vault closes.
+        if (isEncryptedPatientVaultMode(mode)) {
+          unlocked(await (isPatientVaultUnlocked() ? readPatientVault() : unlockPatientVault()));
+        } else if (
+          !mode &&
+          isPatientVaultNativePlatform() &&
+          (await isNativePatientVaultKeychainAvailable())
+        ) {
           await createPatientVault();
           unlocked(await readPatientVault());
-        } else unlocked(await unlockPatientVault());
+        }
       } catch (cause) {
         setError(
-          cause instanceof Error
-            ? cause.message
-            : 'Защищённое хранилище устройства недоступно; можно продолжить без шифрования.',
+          cause instanceof Error ? cause.message : 'Защищённое хранилище устройства недоступно.',
         );
       } finally {
         setBusy(false);
@@ -65,6 +82,34 @@ export function PatientVaultUnlock(props: {
       }
     })();
   });
+  const fail = (cause: unknown, fallback: string): void => {
+    if (cause instanceof PatientVaultError && cause.code === 'unavailable') setNoDeviceKey(true);
+    setError(cause instanceof Error ? cause.message : fallback);
+  };
+  const createEncrypted = async (): Promise<void> => {
+    setError('');
+    setBusy(true);
+    try {
+      await createPatientVault();
+      unlocked(await readPatientVault());
+    } catch (cause) {
+      fail(cause, 'Не удалось создать хранилище.');
+    } finally {
+      setBusy(false);
+    }
+  };
+  const encryptExisting = async (): Promise<void> => {
+    setError('');
+    setBusy(true);
+    try {
+      await encryptPatientVault();
+      unlocked(await readPatientVault());
+    } catch (cause) {
+      fail(cause, 'Не удалось зашифровать хранилище.');
+    } finally {
+      setBusy(false);
+    }
+  };
   const continueUnencrypted = async (): Promise<void> => {
     setError('');
     setBusy(true);
@@ -72,6 +117,7 @@ export function PatientVaultUnlock(props: {
       if (storedMode() === 'unencrypted') unlocked(await unlockPatientVault());
       else {
         await createPatientVault({ allowUnencrypted: true });
+        setStoredMode('unencrypted');
         unlocked(await readPatientVault());
       }
     } catch (cause) {
@@ -80,7 +126,16 @@ export function PatientVaultUnlock(props: {
       setBusy(false);
     }
   };
-  const canUseUnencrypted = (): boolean => storedMode() !== 'native-keychain';
+  /** An encrypted vault that did not open: nothing to choose, only the reason to show. */
+  const openFailed = (): boolean => isEncryptedPatientVaultMode(storedMode());
+  const upgradable = (): boolean => storedMode() === 'unencrypted' && !noDeviceKey();
+  const firstUse = (): boolean => !storedMode() && !noDeviceKey();
+  const heading = (): string => {
+    if (busy()) return 'Открываем пациентов…';
+    if (openFailed()) return 'Не удалось открыть защищённое хранилище';
+    if (firstUse()) return 'Карточки пациентов в этом браузере';
+    return 'Карточки пациентов без шифрования';
+  };
   const card = (): JSX.Element => (
     <section
       class={
@@ -90,20 +145,27 @@ export function PatientVaultUnlock(props: {
       }
     >
       <AppGlyph name="lock" class="patient-workspace__unlock-icon" />
-      <Heading depth={2}>
-        {busy()
-          ? 'Открываем пациентов…'
-          : storedMode() === 'unencrypted'
-            ? 'Пациенты закрыты'
-            : canUseUnencrypted()
-              ? 'Карточки пациентов без шифрования'
-              : 'Не удалось открыть защищённое хранилище'}
-      </Heading>
-      <Show when={!busy() && canUseUnencrypted()}>
+      <Heading depth={2}>{heading()}</Heading>
+      <Show when={!busy() && firstUse()}>
+        <p class="patient-workspace__note">
+          Карточки хранятся только на этом устройстве и шифруются ключом этого браузера: скопировать
+          данные без ключа нельзя. Но любой, кто откроет ваш профиль браузера, увидит их, а очистка
+          данных сайта сотрёт и ключ, и карточки. Для реальных пациентов используйте приложение для
+          Android — там ключ хранится в защищённой памяти телефона.
+        </p>
+      </Show>
+      <Show when={!busy() && upgradable()}>
+        <p class="patient-workspace__note">
+          Эти карточки сохранены без шифрования. Зашифруем их ключом этого браузера — карточки и
+          файлы останутся на месте.
+        </p>
+      </Show>
+      <Show when={!busy() && noDeviceKey()}>
         <p class="patient-workspace__warning" role="alert">
-          Здесь MiniMed не может зашифровать карточки. Они хранятся только на этом устройстве, но
-          открыть их сможет любой, у кого есть доступ к этому браузеру. Для реальных пациентов
-          используйте приложение для Android — там данные шифруются.
+          Этот браузер не может хранить ключ шифрования, поэтому MiniMed не может зашифровать
+          карточки. Они хранятся только на этом устройстве, но открыть их сможет любой, у кого есть
+          доступ к этому браузеру. Для реальных пациентов используйте приложение для Android — там
+          данные шифруются.
         </p>
       </Show>
       <Show when={error()}>
@@ -111,9 +173,24 @@ export function PatientVaultUnlock(props: {
           {error()}
         </p>
       </Show>
-      <Show when={!busy() && canUseUnencrypted()}>
+      <Show when={!busy() && firstUse()}>
+        <Button type="button" variant="primary" onClick={() => void createEncrypted()}>
+          Понятно, продолжить
+        </Button>
+      </Show>
+      <Show when={!busy() && upgradable()}>
+        <Button type="button" variant="primary" onClick={() => void encryptExisting()}>
+          Зашифровать и открыть
+        </Button>
+      </Show>
+      <Show when={!busy() && storedMode() === 'unencrypted' && error()}>
+        <Button type="button" variant="quiet" onClick={() => void continueUnencrypted()}>
+          Открыть без шифрования
+        </Button>
+      </Show>
+      <Show when={!busy() && noDeviceKey() && storedMode() !== 'unencrypted'}>
         <Button type="button" variant="primary" onClick={() => void continueUnencrypted()}>
-          {storedMode() === 'unencrypted' ? 'Открыть' : 'Понятно, продолжить'}
+          Продолжить без шифрования
         </Button>
       </Show>
     </section>

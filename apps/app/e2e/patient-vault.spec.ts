@@ -89,7 +89,7 @@ test('creates a protected patient profile and opens longitudinal dynamics', asyn
   await page.getByRole('menuitem', { name: 'Карточка пациента', exact: true }).press('Enter');
 
   await expect(
-    page.getByRole('heading', { name: /^(Карточки пациентов без шифрования|Пациенты закрыты)$/u }),
+    page.getByRole('heading', { name: 'Карточки пациентов в этом браузере' }),
   ).toBeVisible();
   await page.getByRole('button', { name: /^(Понятно, продолжить|Открыть)$/u }).click();
   await expect(page.getByRole('heading', { name: 'Новая карточка пациента' })).toBeVisible();
@@ -260,15 +260,10 @@ test('creates a protected patient profile and opens longitudinal dynamics', asyn
   // must drop its selected patient and transient result before the curtain can clear.
   await page.getByRole('button', { name: /^Пациент динамики/u }).click();
   await page.getByRole('button', { name: 'Заблокировать', exact: true }).click();
-  await expect(
-    page.getByRole('heading', { name: /^(Карточки пациентов без шифрования|Пациенты закрыты)$/u }),
-  ).toBeVisible();
+  // The browser key opens the vault again at once, as the Keystore key does on a phone; the lock
+  // still drops everything the open screens held.
+  await expect(page.getByRole('heading', { name: 'Пациент динамики' })).toBeVisible();
   await expect(page.locator('html')).not.toHaveClass(/patient-vault--privacy-curtain/u);
-  // The unlock prompt is a modal dialog over the patient area; leave it before switching tabs.
-  await page
-    .getByRole('dialog', { name: 'Пациенты' })
-    .getByRole('button', { name: 'Закрыть', exact: true })
-    .click();
   await page
     .locator('.app-bottom-nav')
     .getByRole('button', { name: 'Калькуляторы', exact: true })

@@ -6,9 +6,11 @@ import {
 } from '@/features/calculators/calculator-schema-engine';
 import {
   deleteConversationTranscript,
+  enableEncryptedVault,
   readConversationTranscript,
   saveDraftTranscript,
   transcriptBlobId,
+  vaultOffer,
 } from '@/features/conversations/conversation-transcript';
 import {
   appendEvent,
@@ -26,6 +28,7 @@ import {
   deletePatientBlob,
   deletePatientFromVault,
   deletePatientVault,
+  encryptPatientVault,
   exportPatientVaultBackup,
   importPatientVaultBackup,
   isPatientVaultUnlocked,
@@ -283,13 +286,24 @@ describe('patient vault storage modes', () => {
     vi.unstubAllGlobals();
   });
 
-  it('drops the legacy DEV store and requires explicit plaintext consent on web', async () => {
+  it('drops the legacy DEV store and creates an encrypted browser vault by default', async () => {
     fakeDatabase.stores.set('envelope', new Map([['current', { legacy: true }]]));
 
-    await expect(createPatientVault()).rejects.toMatchObject({ code: 'unavailable' });
-    await createPatientVault({ allowUnencrypted: true });
+    await expect(createPatientVault()).resolves.toBe('browser-device-key');
 
     expect(fakeDatabase.stores.has('envelope')).toBe(false);
+    expect(await patientVaultStorageMode()).toBe('browser-device-key');
+  });
+
+  it('offers plaintext only when the browser cannot keep an encryption key', async () => {
+    const generate = vi
+      .spyOn(globalThis.crypto.subtle, 'generateKey')
+      .mockRejectedValueOnce(new Error('no key store'));
+    await expect(createPatientVault()).rejects.toMatchObject({ code: 'unavailable' });
+    expect(await patientVaultExists()).toBe(false);
+    generate.mockRestore();
+
+    await createPatientVault({ allowUnencrypted: true });
     expect(await patientVaultStorageMode()).toBe('unencrypted');
   });
 
@@ -528,5 +542,225 @@ describe('patient vault storage modes', () => {
     expect(isPatientVaultUnlocked()).toBe(false);
     expect(await patientVaultExists()).toBe(false);
     expect(nativeBridge.deleteKey).toHaveBeenCalled();
+  });
+});
+
+describe('browser device-key vault', () => {
+  let fakeDatabase: FakeVaultDatabase;
+
+  const storedVault = (): { mode?: string; key?: unknown; snapshot?: unknown } =>
+    fakeDatabase.stores.get('vault')?.get('current') as {
+      mode?: string;
+      key?: unknown;
+      snapshot?: unknown;
+    };
+  const storedBlobRecord = (id: string): { storage?: string; patientId?: string } =>
+    fakeDatabase.stores.get('blobs')?.get(id) as { storage?: string; patientId?: string };
+
+  beforeEach(() => {
+    fakeDatabase = installIndexedDbDouble();
+    nativeBridge.native = false;
+    nativeBridge.available = false;
+    lockPatientVault();
+  });
+
+  afterEach(() => {
+    lockPatientVault();
+    vi.clearAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it('keeps a non-extractable key beside ciphertext and round-trips snapshot and files', async () => {
+    await createPatientVault();
+    await writePatientVault(patientSnapshotWithEvent('patient-secret', 'event-1'));
+    await addPatientBlob({
+      id: 'blob-1',
+      patientId: 'patient-secret',
+      mimeType: 'text/plain',
+      bytes: new TextEncoder().encode('жалобы пациента'),
+    });
+
+    const vault = storedVault();
+    expect(vault.mode).toBe('browser-device-key');
+    const key = vault.key as CryptoKey;
+    expect(key).toBeInstanceOf(CryptoKey);
+    expect(key.extractable).toBe(false);
+    await expect(globalThis.crypto.subtle.exportKey('raw', key)).rejects.toThrow();
+    expect(JSON.stringify(vault.snapshot)).toContain('ciphertext');
+    expect(JSON.stringify(vault.snapshot)).not.toContain('patient-secret');
+    expect(JSON.stringify(storedBlobRecord('blob-1'))).not.toContain('жалобы');
+    expect(storedBlobRecord('blob-1').storage).toBe('encrypted');
+
+    // Locking and opening again needs nothing from the user: the stored key opens it.
+    lockPatientVault();
+    expect(isPatientVaultUnlocked()).toBe(false);
+    await expect(readPatientVault()).rejects.toMatchObject({ code: 'locked' });
+    expect((await unlockPatientVault()).profiles[0]?.id).toBe('patient-secret');
+    const blob = await readPatientBlob('blob-1');
+    expect(new TextDecoder().decode(blob?.bytes)).toBe('жалобы пациента');
+  });
+
+  it('is what a phone without a usable keychain gets', async () => {
+    nativeBridge.native = true;
+    nativeBridge.available = false;
+    await expect(createPatientVault()).resolves.toBe('browser-device-key');
+    expect(nativeBridge.wrapKey).not.toHaveBeenCalled();
+  });
+
+  it('refuses to open with a swapped key or a damaged key record', async () => {
+    await createPatientVault();
+    await writePatientVault(patientSnapshotWithEvent('patient-1', 'event-1'));
+    lockPatientVault();
+    const original = storedVault();
+    const other = await globalThis.crypto.subtle.generateKey(
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['encrypt', 'decrypt'],
+    );
+    fakeDatabase.stores.get('vault')?.set('current', { ...original, key: other });
+    await expect(unlockPatientVault()).rejects.toMatchObject({ code: 'integrity' });
+    expect(isPatientVaultUnlocked()).toBe(false);
+
+    fakeDatabase.stores.get('vault')?.set('current', { ...original, key: 'not-a-key' });
+    await expect(unlockPatientVault()).rejects.toMatchObject({ code: 'integrity' });
+  });
+
+  it('exports a readable backup and imports it back under the same key', async () => {
+    await createPatientVault();
+    await writePatientVault(patientSnapshotWithEvent('patient-1', 'event-1'));
+    await addPatientBlob({
+      id: 'blob-1',
+      patientId: 'patient-1',
+      mimeType: 'text/plain',
+      bytes: new Uint8Array([1, 2, 3]),
+    });
+    const backup = await exportPatientVaultBackup();
+    expect(backup.blobs[0]?.bytesBase64).toBe('AQID');
+
+    await writePatientVault(emptyPatientVaultSnapshot());
+    await importPatientVaultBackup(backup);
+    expect((await readPatientVault()).events[0]?.id).toBe('event-1');
+    expect(storedBlobRecord('blob-1').storage).toBe('encrypted');
+    expect((await readPatientBlob('blob-1'))?.bytes).toEqual(new Uint8Array([1, 2, 3]));
+  });
+
+  describe('upgrading a plaintext vault in place', () => {
+    const seedPlainVault = async (): Promise<void> => {
+      await createPatientVault({ allowUnencrypted: true });
+      await writePatientVault(patientSnapshotWithEvent('patient-keep', 'event-1'));
+      await addPatientBlob({
+        id: 'blob-1',
+        patientId: 'patient-keep',
+        mimeType: 'application/json',
+        bytes: new TextEncoder().encode('{"note":"очень личное"}'),
+      });
+      await addPatientBlob({ id: 'blob-2', mimeType: 'text/plain', bytes: new Uint8Array([9, 8]) });
+    };
+
+    it('re-encrypts the snapshot and every file and keeps all of it readable', async () => {
+      await seedPlainVault();
+      expect(JSON.stringify(storedVault())).toContain('patient-keep');
+
+      await expect(encryptPatientVault()).resolves.toBe('browser-device-key');
+
+      expect(await patientVaultStorageMode()).toBe('browser-device-key');
+      expect(isPatientVaultUnlocked()).toBe(true);
+      expect(JSON.stringify(storedVault().snapshot)).not.toContain('patient-keep');
+      expect(JSON.stringify(storedBlobRecord('blob-1'))).not.toContain('очень личное');
+      expect(storedBlobRecord('blob-1').storage).toBe('encrypted');
+      expect(storedBlobRecord('blob-2').storage).toBe('encrypted');
+      expect(storedBlobRecord('blob-1').patientId).toBe('patient-keep');
+
+      lockPatientVault();
+      const snapshot = await unlockPatientVault();
+      expect(snapshot.profiles.map((profile) => profile.id)).toEqual(['patient-keep']);
+      expect(snapshot.events.map((event) => event.id)).toEqual(['event-1']);
+      expect(new TextDecoder().decode((await readPatientBlob('blob-1'))?.bytes)).toBe(
+        '{"note":"очень личное"}',
+      );
+      expect((await readPatientBlob('blob-2'))?.bytes).toEqual(new Uint8Array([9, 8]));
+    });
+
+    it('leaves the plaintext vault untouched when the write fails', async () => {
+      await seedPlainVault();
+      fakeDatabase.failNextReadwrite = true;
+
+      await expect(encryptPatientVault()).rejects.toBeInstanceOf(PatientVaultError);
+
+      expect(await patientVaultStorageMode()).toBe('unencrypted');
+      expect(storedBlobRecord('blob-1').storage).toBe('plaintext');
+      lockPatientVault();
+      expect((await unlockPatientVault()).profiles[0]?.id).toBe('patient-keep');
+      expect((await readPatientBlob('blob-2'))?.bytes).toEqual(new Uint8Array([9, 8]));
+    });
+
+    it('does not lose a file that is added while the vault is being encrypted', async () => {
+      await seedPlainVault();
+      const upgrade = encryptPatientVault();
+      const late = addPatientBlob({
+        id: 'blob-late',
+        mimeType: 'text/plain',
+        bytes: new Uint8Array([7]),
+      });
+      await Promise.all([upgrade, late]);
+
+      expect(storedBlobRecord('blob-late').storage).toBe('encrypted');
+      expect((await readPatientBlob('blob-late'))?.bytes).toEqual(new Uint8Array([7]));
+      expect((await readPatientBlob('blob-1'))?.mimeType).toBe('application/json');
+    });
+
+    it('only opens a vault that is already encrypted', async () => {
+      await createPatientVault();
+      lockPatientVault();
+      await expect(encryptPatientVault()).resolves.toBe('browser-device-key');
+      expect(isPatientVaultUnlocked()).toBe(true);
+    });
+  });
+
+  describe('the recording window offer', () => {
+    it('creates the vault on a tap and then saves the pending text encrypted', async () => {
+      const lines = ['У пациента болит голова третий день'];
+      await expect(vaultOffer()).resolves.toBe('create');
+      await expect(saveDraftTranscript('conv-1', lines)).resolves.toBe('unavailable');
+      expect(await patientVaultExists()).toBe(false);
+
+      await enableEncryptedVault();
+
+      expect(await patientVaultStorageMode()).toBe('browser-device-key');
+      await expect(vaultOffer()).resolves.toBeUndefined();
+      await expect(saveDraftTranscript('conv-1', lines)).resolves.toBe('saved');
+      const raw = JSON.stringify(storedBlobRecord(transcriptBlobId('conv-1')));
+      expect(raw).toContain('"storage":"encrypted"');
+      expect(raw).not.toContain('болит');
+
+      // The next session opens the same vault silently.
+      lockPatientVault();
+      await expect(readConversationTranscript('conv-1')).resolves.toEqual({
+        status: 'found',
+        lines,
+      });
+    });
+
+    it('encrypts an existing plaintext vault instead of creating a second one', async () => {
+      await createPatientVault({ allowUnencrypted: true });
+      await writePatientVault(patientSnapshotWithEvent('patient-keep', 'event-1'));
+      lockPatientVault();
+      await expect(vaultOffer()).resolves.toBe('encrypt');
+      await expect(saveDraftTranscript('conv-1', ['текст'])).resolves.toBe('unavailable');
+
+      await enableEncryptedVault();
+
+      expect(await patientVaultStorageMode()).toBe('browser-device-key');
+      await expect(saveDraftTranscript('conv-1', ['текст'])).resolves.toBe('saved');
+      expect((await readPatientVault()).profiles[0]?.id).toBe('patient-keep');
+    });
+
+    it('opens an encrypted vault that is merely locked, and is safe to repeat', async () => {
+      await createPatientVault();
+      lockPatientVault();
+      await Promise.all([enableEncryptedVault(), enableEncryptedVault()]);
+      expect(isPatientVaultUnlocked()).toBe(true);
+      expect(await patientVaultStorageMode()).toBe('browser-device-key');
+    });
   });
 });
