@@ -48,6 +48,8 @@ KINDS_BY_TITLE: tuple[tuple[str, str], ...] = (
     (r"синдром", "syndrome"),
     (r"симптом|феномен", "symptom"),
 )
+# Leading characters of a normalized paragraph that identify it among the reader's chunks.
+ANCHOR_PROBE = 160
 _WORD = re.compile(r"[^\W_]+", re.UNICODE)
 _BULLET_END = re.compile(r"[:;,]\s*$")
 
@@ -388,7 +390,9 @@ def build_shard(
         block_ids: list[int] = []
         for member in item.entries:
             document = member.document
-            located = anchors.get((document.code_version, normalized(member.text)[:200]), {})
+            located = anchors.get(
+                (document.code_version, normalized(member.text)[:ANCHOR_PROBE]), {}
+            )
             block_id = len(blocks) + 1
             block_ids.append(block_id)
             field_id = field_for_mkb_codes(document.mkb)

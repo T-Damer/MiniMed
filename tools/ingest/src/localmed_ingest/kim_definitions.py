@@ -20,6 +20,7 @@ Boundaries (REFERENCE_SOURCE_POLICY, owner decision 2026-09-28):
 from __future__ import annotations
 
 import argparse
+import html
 import json
 import re
 import sqlite3
@@ -191,6 +192,120 @@ def extract(database: Path, *, accessed: str) -> tuple[dict[str, Any], dict[str,
     }
     report = {
         "format": "minimed-krasotaimedicina-leads-v1",
+        "counts": dict(sorted(stats.items())),
+        "skippedExamples": skipped,
+        "maxSentenceWords": MAX_SENTENCE_WORDS,
+    }
+    return shard, report
+
+
+SYMPTOM_SOURCE_TITLE = "Красота и медицина: описания симптомов"
+_BOLD_TAG = re.compile(r"</?(?:b|strong)\b[^>]*>", re.IGNORECASE)
+_TAG = re.compile(r"<[^>]+>")
+_DESCRIPTION = re.compile(r'itemprop="description"[^>]*>\s*<p[^>]*>(.*?)</p>', re.DOTALL)
+
+
+def page_lead(html_text: str) -> str | None:
+    """The opening paragraph of a site page as markdown-bold text, or `None` without one."""
+    match = _DESCRIPTION.search(html_text)
+    if match is None:
+        return None
+    marked = _BOLD_TAG.sub("**", match.group(1))
+    return " ".join(html.unescape(_TAG.sub("", marked)).replace("\xa0", " ").split())
+
+
+def extract_symptoms(raw_root: Path, *, accessed: str) -> tuple[dict[str, Any], dict[str, Any]]:
+    """(version-3 shard, report) for the symptom pages of the unchanged crawl.
+
+    The symptom pages are not part of the published disease module, so there is no reader anchor:
+    the card links to the page itself. The owner decision of 2026-09-28 covers the disease
+    articles only; this shard is a local candidate until the decision is extended.
+    """
+    stats: Counter[str] = Counter()
+    blocks: list[dict[str, Any]] = []
+    terms: list[dict[str, Any]] = []
+    skipped: dict[str, list[str]] = {}
+    for record_path in sorted((raw_root / "records").glob("*.json")):
+        record = json.loads(record_path.read_text(encoding="utf-8"))
+        if record.get("entityType") != "symptom":
+            continue
+        stats["pages"] += 1
+        title = str(record["title"])
+        page = (raw_root / str(record["rawPath"])).read_text(encoding="utf-8", errors="replace")
+        chunk = page_lead(page)
+        lead = lead_definition(chunk, title) if chunk else None
+        reason: str | None = None
+        if lead is None:
+            reason = "lead-is-not-term-dash-definition"
+        elif len(lead[1].split()) > MAX_SENTENCE_WORDS:
+            reason = "first-sentence-too-long"
+        elif len(lead[1].split()) < MIN_SENTENCE_WORDS:
+            reason = "first-sentence-too-short"
+        if reason is not None or lead is None:
+            stats[f"skipped:{reason}"] += 1
+            if len(skipped.setdefault(str(reason), [])) < 8:
+                skipped[str(reason)].append(title)
+            continue
+        url = str(record["url"])
+        field_id = field_for_krasotaimedicina_url(url)
+        names = term_names(title)
+        identity = digest(url)[:20]
+        block_id = len(blocks) + 1
+        blocks.append(
+            {
+                "id": block_id,
+                "source": 1,
+                "text": lead[1],
+                "textSha256": digest(lead[1]),
+                "path": url.removeprefix(BASE_URL),
+                "locator": f"site=krasotaimedicina.ru; page={record_path.stem}; section=lead",
+                "documentId": f"krasotaimedicina.symptom.{identity}",
+                "documentTitle": title,
+                "sectionTitle": "Описание симптома",
+                "rawSha256": str(record["rawSha256"]),
+                "fetchedAt": record.get("fetchedAt"),
+                **({"field": field_id} if field_id else {}),
+            }
+        )
+        terms.append(
+            {
+                "id": f"kimsym.{identity}",
+                "title": names.title,
+                "kind": "symptom",
+                "aliases": list(names.aliases),
+                "blockIds": [block_id],
+                "coverage": "explicit-definition",
+            }
+        )
+        stats["extracted"] += 1
+        stats[f"field:{field_id}"] += 1
+    shard: dict[str, Any] = {
+        "version": 3,
+        "id": "minimed.definition.krasotaimedicina-symptoms.2026-10-08",
+        "reviewStatus": "requires-review",
+        "publicationState": "local-dev",
+        "textKind": "source-excerpt",
+        "sources": [
+            {
+                "id": 1,
+                "title": SYMPTOM_SOURCE_TITLE,
+                "baseUrl": BASE_URL,
+                "authority": "third-party",
+                "accessed": accessed,
+                "rightsStatus": "unresolved",
+                "releaseEligible": False,
+                "sourceType": "medical-reference-site",
+                "publisher": "Красота и медицина",
+                "decision": (
+                    "local candidate; the owner decision 2026-09-28 covers disease articles only"
+                ),
+            }
+        ],
+        "blocks": blocks,
+        "terms": terms,
+    }
+    report = {
+        "format": "minimed-krasotaimedicina-symptoms-v1",
         "counts": dict(sorted(stats.items())),
         "skippedExamples": skipped,
         "maxSentenceWords": MAX_SENTENCE_WORDS,

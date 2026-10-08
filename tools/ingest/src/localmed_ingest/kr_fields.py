@@ -145,6 +145,68 @@ KRASOTAIMEDICINA_RUBRICS: dict[str, str] = {
     "zabolevanija_trihology": "trichology",
 }
 
+# krasotaimedicina.ru symptom rubric (`/symptom/<rubric>/…`) → field id. Only rubrics that name
+# an organ system or a specialty are mapped; sensation and location rubrics have no field.
+KRASOTAIMEDICINA_SYMPTOM_RUBRICS: dict[str, str] = {
+    "blood": "hematology",
+    "speech": "speech",
+    "speech-distortion": "speech",
+    "handwriting": "speech",
+    "vision": "ophthalmology",
+    "eye-discharge": "ophthalmology",
+    "urine": "urology",
+    "urinary": "urology",
+    "stranguria": "urology",
+    "painful-urination": "urology",
+    "penile-discharge": "andrology",
+    "men-itching": "andrology",
+    "psycho-emotional": "psychiatry",
+    "hallucination": "psychiatry",
+    "senestopathy": "psychiatry",
+    "digestive": "gastroenterology",
+    "vomiting": "gastroenterology",
+    "constipation": "gastroenterology",
+    "diarrhea": "gastroenterology",
+    "heartburn": "gastroenterology",
+    "belching": "gastroenterology",
+    "nausea": "gastroenterology",
+    "stool": "gastroenterology",
+    "abdominal-pain": "gastroenterology",
+    "tremor": "neurology",
+    "convulsion": "neurology",
+    "paresis": "neurology",
+    "paraparesis": "neurology",
+    "involuntary-movement": "neurology",
+    "movement-disorder": "neurology",
+    "numbness": "neurology",
+    "dizziness": "neurology",
+    "headache": "neurology",
+    "gait": "neurology",
+    "neurological": "neurology",
+    "ENT": "otolaryngology",
+    "nasal-discharge": "otolaryngology",
+    "ear-discharge": "otolaryngology",
+    "cardiovascular": "cardiology",
+    "heart-murmur": "cardiology",
+    "cough": "pulmonology",
+    "sputum": "pulmonology",
+    "dyspnea": "pulmonology",
+    "breath-sound": "pulmonology",
+    "pathological-breathing": "pulmonology",
+    "respiratory": "pulmonology",
+    "rhonchi": "pulmonology",
+    "vaginal-discharge": "gynecology",
+    "menstrual": "gynecology",
+    "nipple-discharge": "mammology",
+    "female-genital-pain": "gynecology",
+    "women-itching": "gynecology",
+    "hot-flash": "gynecology",
+    "itchy-skin": "dermatology",
+    "hyperhidrosis": "dermatology",
+    "fever": "infectious",
+    "joint-pain": "rheumatology",
+}
+
 # Wiktionary usage labels at the start of a sense («психиатр. то же, что …»).
 WIKTIONARY_LABELS: dict[str, str] = {
     "психиатр": "psychiatry",
@@ -249,7 +311,10 @@ def field_for_mkb_codes(codes: Iterable[str]) -> str | None:
 def field_for_krasotaimedicina_url(url: str) -> str | None:
     """`https://www.krasotaimedicina.ru/diseases/psychiatric/depression` → `psychiatry`."""
     match = re.search(r"/diseases/([A-Za-z0-9_-]+)/", url)
-    return KRASOTAIMEDICINA_RUBRICS.get(match.group(1)) if match else None
+    if match:
+        return KRASOTAIMEDICINA_RUBRICS.get(match.group(1))
+    symptom = re.search(r"/symptom/([A-Za-z0-9_-]+)/", url)
+    return KRASOTAIMEDICINA_SYMPTOM_RUBRICS.get(symptom.group(1)) if symptom else None
 
 
 def field_for_wiktionary_text(text: str) -> str | None:

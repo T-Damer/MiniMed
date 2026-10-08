@@ -6,7 +6,13 @@ from contextlib import closing
 from pathlib import Path
 
 from localmed_ingest.definition_reference_pack import Projection
-from localmed_ingest.kim_definitions import extract, first_sentence, lead_definition
+from localmed_ingest.kim_definitions import (
+    extract,
+    extract_symptoms,
+    first_sentence,
+    lead_definition,
+    page_lead,
+)
 
 
 def test_first_sentence_skips_abbreviations_and_initials() -> None:
@@ -89,3 +95,63 @@ def test_extract_records_field_anchor_and_loads_as_a_draft_input(tmp_path: Path)
     projection.add(shard, "2" * 64)
     (entry,) = projection.entries.values()
     assert entry.title == "Депрессия"
+
+
+def test_page_lead_marks_the_bold_term_and_drops_other_markup() -> None:
+    html_text = (
+        '<div itemprop="description"><p align="justify"><b>Базофилия </b>(базофильный '
+        "лейкоцитоз) &ndash; это увеличение содержания базофилов.<br/> Очень часто.</p></div>"
+    )
+    assert page_lead(html_text) == (
+        "**Базофилия **(базофильный лейкоцитоз) – это увеличение содержания базофилов. Очень часто."
+    )
+    assert page_lead("<p>no description block</p>") is None
+
+
+def test_extract_symptoms_reads_the_crawl_and_links_the_page(tmp_path: Path) -> None:
+    (tmp_path / "records").mkdir()
+    (tmp_path / "pages").mkdir()
+    pages = {
+        "basophilia": (
+            "Базофилия",
+            "symptom/blood/basophilia",
+            '<div itemprop="description"><p><b>Базофилия</b> (базофильный лейкоцитоз) – это '
+            "увеличение содержания базофилов в крови пациента. Далее текст.</p></div>",
+        ),
+        "leg-pain": (
+            "Боль в голени",
+            "symptom/leg-pain/shin",
+            '<div itemprop="description"><p>Боль в голени свидетельствует о патологии кости '
+            "голени и мягких тканей этой области.</p></div>",
+        ),
+    }
+    for stem, (title, path, html_text) in pages.items():
+        (tmp_path / "pages" / f"{stem}.html").write_text(html_text, encoding="utf-8")
+        (tmp_path / "records" / f"{stem}.json").write_text(
+            json.dumps(
+                {
+                    "entityType": "symptom",
+                    "title": title,
+                    "url": f"https://www.krasotaimedicina.ru/{path}",
+                    "rawPath": f"pages/{stem}.html",
+                    "rawSha256": "a" * 64,
+                    "fetchedAt": "2026-09-04T00:00:00Z",
+                }
+            ),
+            encoding="utf-8",
+        )
+    (tmp_path / "records" / "disease.json").write_text(
+        json.dumps({"entityType": "disease", "title": "Депрессия"}), encoding="utf-8"
+    )
+    shard, report = extract_symptoms(tmp_path, accessed="2026-09-04")
+    assert report["counts"]["extracted"] == 1
+    assert report["counts"]["skipped:lead-is-not-term-dash-definition"] == 1
+    (block,) = shard["blocks"]
+    assert block["field"] == "hematology"
+    assert block["path"] == "symptom/blood/basophilia"
+    assert "anchor" not in block  # not in the reader module: the card links to the page
+    (term,) = shard["terms"]
+    assert (term["title"], term["kind"], term["aliases"]) == ("Базофилия", "symptom", [])
+    projection = Projection()
+    projection.add(shard, "3" * 64)
+    assert len(projection.entries) == 1

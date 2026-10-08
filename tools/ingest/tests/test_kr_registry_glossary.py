@@ -206,3 +206,27 @@ def test_anchor_comes_from_the_reader_chunk_that_holds_the_paragraph(tmp_path: P
     assert shard["blocks"][0]["anchor"] == "kr.rf.904_1@904_1/термины-и-определения#chunk-aa"
     _, missing = resolve_anchors(entries, [tmp_path / "nowhere"])
     assert missing == Counter({"no-reader-document": 1})
+
+
+def test_anchor_of_a_long_paragraph_reaches_its_block(tmp_path: Path) -> None:
+    # The probe the resolver stores under must be the one the shard builder looks up.
+    long_text = "Депрессия – " + "процесс формирования перелома суставной поверхности кости, " * 8
+    entries, _ = _entries(tmp_path, f"<p>{long_text}</p>")
+    databases = tmp_path / "databases"
+    databases.mkdir()
+    with closing(sqlite3.connect(databases / "clinical-904_1-clinical-json-x.db")) as connection:
+        connection.executescript(
+            "CREATE TABLE sections(id TEXT, title TEXT, order_index INT);"
+            "CREATE TABLE chunks(id TEXT, section_id TEXT, original_text TEXT, anchor TEXT,"
+            " document_version_id TEXT, order_index INT);"
+            "INSERT INTO sections VALUES('s1','Термины и определения',3);"
+        )
+        connection.execute(
+            "INSERT INTO chunks VALUES('chunk.aa','s1',?,'kr.rf.904_1@904_1/x#chunk-aa',"
+            "'kr.rf.904_1@904_1',0)",
+            (long_text,),
+        )
+        connection.commit()
+    anchors, _ = resolve_anchors(entries, [databases])
+    shard = build_shard(fold_entries(entries), edition="test", anchors=anchors)
+    assert shard["blocks"][0]["anchor"] == "kr.rf.904_1@904_1/x#chunk-aa"

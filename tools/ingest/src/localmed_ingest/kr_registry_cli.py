@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any
 
 from .kr_registry_glossary import (
+    ANCHOR_PROBE,
     SECTION_DISEASE,
     SECTION_TERMS,
     Entry,
@@ -36,7 +37,6 @@ from .kr_registry_glossary import (
 )
 
 SECTION_TITLES = ("Термины и определения", "1.1 Определение заболевания или состояния")
-ANCHOR_PROBE = 160
 SHARD_BYTES = 6 * 1024 * 1024
 
 

@@ -12,7 +12,7 @@ What it does, in order:
    worked on flattened text and cut some terms at the wrong dash (they are replaced, not edited);
 3. adds the registry extraction (`kr_registry_cli`: every current КР «Термины и определения»
    section, term boundary at the first dash outside brackets) and the Красота и медицина lead
-   definitions (`kim_definitions`);
+   definitions of the disease module and of the symptom pages of the crawl (`kim_definitions`);
 4. measures the usage of every ambiguous headword's senses across all КР and writes the sense
    signals into every term row (`definition_senses`);
 5. writes the shards and a new manifest under `content/definition-drafts/<tag>/` and a report.
@@ -30,6 +30,7 @@ from typing import Any
 from .definition_reference_pack import number
 from .definition_senses import annotate_shards
 from .kim_definitions import extract as extract_kim
+from .kim_definitions import extract_symptoms
 from .kr_registry_cli import extract_registry
 from .sense_usage import load_registry_corpus
 
@@ -103,6 +104,10 @@ def assemble(args: argparse.Namespace) -> dict[str, Any]:
         shards.append((f"kr-registry-glossary.part-{index:02d}.json", part))
     kim_shard, kim_report = extract_kim(args.kim_module, accessed=args.kim_accessed)
     shards.append(("krasotaimedicina-leads.json", kim_shard))
+    symptom_shard, symptom_report = extract_symptoms(
+        data_root / args.kim_raw, accessed=args.kim_accessed
+    )
+    shards.append(("krasotaimedicina-symptoms.json", symptom_shard))
     corpus = load_registry_corpus(data_root, args.raw)
     sense_report = annotate_shards([payload for _, payload in shards], corpus)
     sense_report["corpusDocuments"] = len(corpus.documents)
@@ -131,6 +136,7 @@ def assemble(args: argparse.Namespace) -> dict[str, Any]:
         "replacedFirstExtractionEntries": removed_total,
         "registry": registry_report,
         "krasotaimedicina": kim_report,
+        "krasotaimedicinaSymptoms": symptom_report,
         "senses": sense_report,
         "inputs": len(rows),
         "inputBytes": sizes,
@@ -149,6 +155,7 @@ def main() -> None:
     parser.add_argument("--raw", type=Path, default=Path("data/raw/official-clinical-documents"))
     parser.add_argument("--reader-databases", type=Path, nargs="*", default=[])
     parser.add_argument("--kim-module", type=Path, required=True)
+    parser.add_argument("--kim-raw", type=Path, default=Path("data/raw/krasotaimedicina"))
     parser.add_argument("--kim-accessed", default="2026-09-04")
     parser.add_argument("--tag", required=True)
     parser.add_argument("--report", type=Path, required=True)
