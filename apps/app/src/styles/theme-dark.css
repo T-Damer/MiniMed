@@ -612,8 +612,7 @@
     border-color: var(--theme-border);
   }
 
-  .document-overlay-paper__source-label,
-  .document-overlay-path {
+  .document-overlay-paper__source-label {
     color: var(--theme-text-faint);
   }
 

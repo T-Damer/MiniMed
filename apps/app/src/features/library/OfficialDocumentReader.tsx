@@ -179,10 +179,6 @@ interface OfficialDocumentReaderProps {
   ) => Promise<void>;
 }
 
-function normalize(value: string): string {
-  return value.toLocaleLowerCase('ru-RU').replaceAll('ё', 'е').trim();
-}
-
 function statusLabel(status: string): string {
   if (status === 'active' || status === 'current') return 'Действующая редакция';
   if (status === 'superseded') return 'Заменённая редакция';
@@ -1578,7 +1574,6 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                   {(node) => {
                     const renderSection = (treeNode: typeof node): JSX.Element => {
                       const section = treeNode.section;
-                      const path = () => section.sectionPath.join(' / ');
                       const state = () => findState();
                       const currentMatch = () => activeMatch();
                       const headingTag = documentSectionHeadingTag(section.depth);
@@ -1598,9 +1593,6 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                           }}
                           id={section.anchor}
                         >
-                          <Show when={normalize(path()) !== normalize(section.title)}>
-                            <p class="document-overlay-path">{path()}</p>
-                          </Show>
                           <Dynamic
                             component={headingTag}
                             class={`document-overlay-section__title document-overlay-section__title--${headingTag} document-overlay-section__title--copy`}

@@ -392,8 +392,7 @@ html.app-chrome-hidden .document-overlay-paper::before {
   border-bottom: 1px solid var(--paper-line);
 }
 
-.document-overlay-paper__source-label,
-.document-overlay-path {
+.document-overlay-paper__source-label {
   margin: 0 0 0.4375rem;
   color: var(--ink-faint);
   font-family: var(--font-mono);

@@ -111,6 +111,8 @@ test('numbered sub-headings are headings, and a selection in the text can be hig
         nodes.filter((node) => /^1\.2\.1\s+Этиология\s*$/u.test(node.textContent ?? '')).length,
     );
   expect(leftovers).toBe(0);
+  // The heading stands alone: no small uppercase path («1. КРАТКАЯ ИНФОРМАЦИЯ / 1.2 …») above it.
+  expect(await heading.evaluate((node) => node.previousElementSibling?.tagName ?? null)).toBeNull();
 
   await scrollChunkTo(page, 2, 300);
   const selected = await selectInChunk(page, 2, 0, 24);
