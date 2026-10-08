@@ -61,59 +61,10 @@
   height: 0.8rem;
 }
 
-/* Child: «Compact patient row». */
-.vax-child__row {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  min-height: 3.5rem;
-  padding: 0.5rem 0.6rem 0.5rem 0.75rem;
-  border: 1px solid var(--theme-border);
-  border-radius: 0.4375rem;
-  background: var(--theme-surface-raised);
-  box-shadow: 0 0.1rem 0.4rem rgb(34 31 25 / 8%);
-}
-
-.vax-child__avatar {
-  display: inline-grid;
-  width: 2rem;
-  height: 2rem;
-  flex: none;
-  place-items: center;
-  border-radius: 50%;
-  color: var(--theme-accent);
-  background: var(--theme-accent-soft);
-}
-
-.vax-child__avatar-icon {
-  width: 1.15rem;
-  height: 1.15rem;
-}
-
-.vax-child__text {
+/* Child: the shared compact patient row, a date field for a card without one, a problem line. */
+.vax-child {
   display: grid;
-  flex: 1 1 auto;
-  min-width: 0;
-  margin: 0;
-}
-
-.vax-child__name {
-  overflow: hidden;
-  font-weight: 650;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.vax-child__birth {
-  overflow: hidden;
-  color: var(--theme-text-muted);
-  font-size: 0.82rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.vax-child__change {
-  flex: none;
+  gap: 0.5rem;
 }
 
 .vax-child__form {

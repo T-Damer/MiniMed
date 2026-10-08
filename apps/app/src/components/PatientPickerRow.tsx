@@ -28,6 +28,10 @@ export interface PatientPickerRowProps {
   readonly hint?: string;
   /** Offer «Без пациента» in the chooser; on by default. */
   readonly allowNone?: boolean;
+  /** Title and second line shown while nobody is chosen but something else stands in for a patient. */
+  readonly standIn?: { readonly title: string; readonly subtitle: string } | undefined;
+  /** Extra content at the bottom of the chooser sheet; receives the sheet's close action. */
+  readonly chooserExtra?: (close: () => void) => JSX.Element;
   readonly onPatientChange: (patientId: string) => void;
   readonly onSnapshotChange: (snapshot: PatientVaultSnapshot) => void;
 }
@@ -85,9 +89,9 @@ export function PatientPickerRow(props: PatientPickerRowProps): JSX.Element {
           <>
             <PatientAvatar name="" class="patient-picker-row__avatar" />
             <div class="patient-picker-row__text">
-              <span class="patient-picker-row__title">Пациент</span>
+              <span class="patient-picker-row__title">{props.standIn?.title ?? 'Пациент'}</span>
               <span class="patient-picker-row__subtitle">
-                {props.hint ?? 'Выберите, чтобы подставить данные'}
+                {props.standIn?.subtitle ?? props.hint ?? 'Выберите, чтобы подставить данные'}
               </span>
             </div>
           </>
@@ -224,6 +228,7 @@ export function PatientPickerRow(props: PatientPickerRowProps): JSX.Element {
             </button>
           </Show>
         </Show>
+        {props.chooserExtra?.(close)}
       </OverlayDialog>
     </div>
   );

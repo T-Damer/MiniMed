@@ -9,17 +9,13 @@ import {
   Show,
 } from 'solid-js';
 
-import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
-import { OverlayDialog } from '@/components/OverlayDialog';
-import { PatientAvatar } from '@/components/PatientAvatar';
-import { PatientCaseCombobox } from '@/components/PatientCaseCombobox';
+import { PatientPickerRow } from '@/components/PatientPickerRow';
 import { TextField } from '@/components/TextField';
 import {
   type ChildInput,
   childBirthDate,
   needsBirthDateInCard,
-  patientSheetName,
 } from '@/features/vaccination/vaccination-child';
 import { childAgeLabel, displayIsoDate } from '@/features/vaccination/vaccination-format';
 import type { PatientProfile, PatientVaultSnapshot } from '@/state/patient-domain';
@@ -34,19 +30,17 @@ import {
 } from '@/state/patient-vault';
 
 /**
- * «Compact patient row» (AGENTS.md): one row for the child. Empty it says what to choose; chosen it
- * shows the avatar, the full name, the birth date and a button to change. The child is a patient
- * card or just a birth date (nothing is saved then). The vault is unlocked on demand by the card
- * field, exactly as in the calculators.
+ * The child for the calendar: the shared compact patient row. The child is a patient card or just
+ * a birth date typed in the chooser sheet (nothing is saved then). A card without a birth date
+ * gets a date field under the row; the date is written into the card. The vault is unlocked on
+ * demand by the chooser, exactly as in the calculators.
  */
 export function VaccinationChildRow(props: {
   readonly today: string;
   readonly onChange: (input: ChildInput) => void;
 }): JSX.Element {
-  const [open, setOpen] = createSignal(false);
   const [snapshot, setSnapshot] = createSignal<PatientVaultSnapshot>();
   const [patientId, setPatientId] = createSignal('');
-  const [subjectLabel, setSubjectLabel] = createSignal('');
   const [typedBirthDate, setTypedBirthDate] = createSignal('');
   const [problem, setProblem] = createSignal('');
 
@@ -56,7 +50,6 @@ export function VaccinationChildRow(props: {
     if (!isPatientVaultUnlocked()) {
       setSnapshot(undefined);
       setPatientId('');
-      setSubjectLabel('');
       acknowledgePatientVaultUiCleared();
       return;
     }
@@ -93,7 +86,6 @@ export function VaccinationChildRow(props: {
   createEffect(on(patientId, () => setTypedBirthDate(''), { defer: true }));
 
   const birthDate = (): string | null => childBirthDate(input());
-  const chosen = (): boolean => profile() !== undefined || birthDate() !== null;
 
   /** A birth date for a card that has none is written into the card (it is the card's data). */
   const commitBirthDate = (value: string): void => {
@@ -114,124 +106,81 @@ export function VaccinationChildRow(props: {
     );
   };
 
-  const reset = (): void => {
-    setPatientId('');
-    setSubjectLabel('');
-    setTypedBirthDate('');
-    setProblem('');
+  /** Only a birth date stands in for the patient: the row names it instead of a card. */
+  const standIn = (): { readonly title: string; readonly subtitle: string } | undefined => {
+    const date = birthDate();
+    if (profile() || date === null) return undefined;
+    return {
+      title: 'Без карточки',
+      subtitle: `${displayIsoDate(date)} · ${childAgeLabel(date, props.today)}`,
+    };
   };
 
   return (
     <section class="vax-child" aria-label="Ребёнок">
-      <div class="vax-child__row">
-        <Show
-          when={profile()}
-          fallback={
-            <span class="vax-child__avatar vax-child__avatar--glyph" aria-hidden="true">
-              <AppGlyph name={birthDate() ? 'calendar' : 'users'} class="vax-child__avatar-icon" />
-            </span>
-          }
-        >
-          {(card) => <PatientAvatar name={card().displayName} avatar={card().avatar} />}
-        </Show>
-        <p class="vax-child__text">
-          <Show
-            when={chosen()}
-            fallback={
-              <>
-                <span class="vax-child__name">Ребёнок</span>
-                <span class="vax-child__birth">выберите, чтобы отмечать прививки</span>
-              </>
-            }
-          >
-            <span class="vax-child__name">
-              {profile() ? patientSheetName(profile() as PatientProfile) : 'Без карточки'}
-            </span>
-            <span class="vax-child__birth">
-              <Show when={birthDate()} fallback="дата рождения не указана">
-                {(date) => (
-                  <>
-                    {displayIsoDate(date())}
-                    {' · '}
-                    {childAgeLabel(date(), props.today)}
-                  </>
-                )}
-              </Show>
-            </span>
+      <PatientPickerRow
+        profiles={snapshot()?.profiles ?? []}
+        patientId={patientId()}
+        unlocked={snapshot() !== undefined && isPatientVaultUnlocked()}
+        hint="Для отметок о прививках"
+        standIn={standIn()}
+        onPatientChange={(id) => {
+          setPatientId(id);
+          setProblem('');
+        }}
+        onSnapshotChange={(next) => {
+          refreshRequest += 1;
+          setSnapshot(next);
+        }}
+        chooserExtra={(close) => (
+          <Show when={!profile()}>
+            <div class="vax-child__form">
+              <TextField
+                class="vax-child__date"
+                label="Или только дата рождения"
+                type="date"
+                value={typedBirthDate()}
+                max={props.today}
+                onInput={(event) => commitBirthDate(event.currentTarget.value)}
+              />
+              <div class="vax-child__actions">
+                <Show when={typedBirthDate() !== ''}>
+                  <Button
+                    type="button"
+                    variant="quiet"
+                    class="vax-child__clear"
+                    onClick={() => {
+                      setTypedBirthDate('');
+                      setProblem('');
+                      close();
+                    }}
+                  >
+                    Убрать
+                  </Button>
+                </Show>
+                <Button type="button" variant="primary" class="vax-child__done" onClick={close}>
+                  Готово
+                </Button>
+              </div>
+            </div>
           </Show>
-        </p>
-        <Button
-          type="button"
-          variant="icon"
-          class="vax-child__change"
-          aria-label={chosen() ? 'Сменить ребёнка' : 'Выбрать ребёнка'}
-          title={chosen() ? 'Сменить ребёнка' : 'Выбрать ребёнка'}
-          icon={<AppGlyph name={chosen() ? 'edit' : 'plus'} />}
-          onClick={() => setOpen(true)}
+        )}
+      />
+      <Show when={profile() && !profile()?.birthDate}>
+        <TextField
+          class="vax-child__date"
+          label="Дата рождения (запишется в карточку)"
+          type="date"
+          value={typedBirthDate()}
+          max={props.today}
+          onInput={(event) => commitBirthDate(event.currentTarget.value)}
         />
-      </div>
-      <OverlayDialog
-        open={open()}
-        title="Ребёнок"
-        class="vax-sheet"
-        bodyClass="vax-sheet__body"
-        onClose={() => setOpen(false)}
-      >
-        <div class="vax-child__form">
-          <PatientCaseCombobox
-            class="vax-child__patient"
-            label="Карточка пациента"
-            profiles={snapshot()?.profiles ?? []}
-            patientId={patientId()}
-            subjectLabel={subjectLabel()}
-            unlocked={snapshot() !== undefined && isPatientVaultUnlocked()}
-            onPatientChange={(id) => {
-              setPatientId(id);
-              setProblem('');
-              const card = snapshot()?.profiles.find((candidate) => candidate.id === id);
-              if (card?.birthDate) setOpen(false);
-            }}
-            onSubjectLabelChange={setSubjectLabel}
-            onSnapshotChange={(next) => {
-              refreshRequest += 1;
-              setSnapshot(next);
-            }}
-          />
-          <Show when={!profile()?.birthDate}>
-            <TextField
-              class="vax-child__date"
-              label={
-                profile() ? 'Дата рождения (запишется в карточку)' : 'Или только дата рождения'
-              }
-              type="date"
-              value={typedBirthDate()}
-              max={props.today}
-              onInput={(event) => commitBirthDate(event.currentTarget.value)}
-            />
-          </Show>
-          <Show when={problem()}>
-            <p class="vax-child__problem" role="alert">
-              {problem()}
-            </p>
-          </Show>
-          <div class="vax-child__actions">
-            <Show when={chosen()}>
-              <Button type="button" variant="quiet" class="vax-child__clear" onClick={reset}>
-                Убрать
-              </Button>
-            </Show>
-            <Button
-              type="button"
-              variant="primary"
-              class="vax-child__done"
-              disabled={!chosen()}
-              onClick={() => setOpen(false)}
-            >
-              Готово
-            </Button>
-          </div>
-        </div>
-      </OverlayDialog>
+      </Show>
+      <Show when={problem()}>
+        <p class="vax-child__problem" role="alert">
+          {problem()}
+        </p>
+      </Show>
     </section>
   );
 }

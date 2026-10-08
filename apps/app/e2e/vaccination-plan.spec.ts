@@ -50,12 +50,12 @@ async function leaveCalendar(page: Page): Promise<void> {
 }
 
 async function chooseChild(page: Page, name: string): Promise<void> {
-  await page.getByRole('button', { name: /^(Выбрать|Сменить) ребёнка$/u }).click();
-  await page.getByRole('combobox', { name: 'Карточка пациента' }).fill(name);
-  await page.getByRole('option', { name }).click();
+  await page.getByRole('button', { name: /^Выбрать (другого )?пациента$/u }).click();
+  await page.locator('.patient-picker-dialog__option', { hasText: name }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
 }
 
-/** Confirms the child sheet and waits for it to slide away. */
+/** Confirms the birth-date part of the chooser sheet and waits for it to slide away. */
 async function closeChildSheet(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Готово' }).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
@@ -95,15 +95,15 @@ test('patient: the child row, statuses, marks kept with the card, and the handou
   await openCalendar(page);
 
   // Nothing chosen: the row asks for a child, there are no statuses and no tiles.
-  await expect(page.locator('.vax-child__name')).toHaveText('Ребёнок');
+  await expect(page.locator('.patient-picker-row__title')).toHaveText('Пациент');
   await expect(page.locator('.vax-status')).toHaveCount(0);
   await expect(page.locator('.vax-chart__now')).toHaveCount(0);
 
   // Chosen: avatar, full name, birth date and age in one row, then the tiles and the «now» line.
   await chooseChild(page, 'Аня Тестова');
-  await expect(page.locator('.vax-child__name')).toHaveText('Аня Тестова');
-  await expect(page.locator('.vax-child__birth')).toHaveText('10.01.2026 · 8 мес.');
-  await expect(page.getByRole('button', { name: 'Сменить ребёнка' })).toBeVisible();
+  await expect(page.locator('.patient-picker-row__title')).toHaveText('Аня Тестова');
+  await expect(page.locator('.patient-picker-row__subtitle')).toHaveText('10.01.2026 · 8 мес.');
+  await expect(page.getByRole('button', { name: 'Выбрать другого пациента' })).toBeVisible();
   await expect.poll(() => counts(page)).toEqual({ done: 0, planned: 0, now: 4, overdue: 11 });
   await expect(dose(page, 'n-01-1')).toHaveAttribute('data-status', 'overdue');
   await expect(dose(page, 'n-07-1')).toHaveAttribute('data-status', 'now');
@@ -228,22 +228,20 @@ test('patient: the child row, statuses, marks kept with the card, and the handou
 
   // A card without a birth date: marks work, statuses wait for the date, which goes into the card.
   await chooseChild(page, 'Миша без даты');
-  // The sheet stays open to ask for the date; the marks work without it.
-  await closeChildSheet(page);
-  await expect(page.locator('.vax-child__birth')).toHaveText('дата рождения не указана');
+  // The date is asked for under the row; the marks work without it.
+  await expect(page.getByLabel('Дата рождения (запишется в карточку)')).toBeVisible();
+  await expect(page.locator('.patient-picker-row__subtitle')).toHaveCount(0);
   await expect(page.locator('.vax-status')).toHaveCount(0);
   await expect(dose(page, 'n-01-1')).toHaveAttribute('data-status', 'later');
   await dose(page, 'n-01-1').click();
   await expect(dose(page, 'n-01-1')).toHaveAttribute('data-status', 'done');
-  await page.getByRole('button', { name: 'Сменить ребёнка' }).click();
   await page.getByLabel('Дата рождения (запишется в карточку)').fill('2026-01-10');
-  await closeChildSheet(page);
-  await expect(page.locator('.vax-child__birth')).toHaveText('10.01.2026 · 8 мес.');
+  await expect(page.locator('.patient-picker-row__subtitle')).toHaveText('10.01.2026 · 8 мес.');
   await expect.poll(() => counts(page)).toMatchObject({ done: 1, now: 4, overdue: 10 });
   // The card keeps the date: another card and back again.
   await chooseChild(page, 'Аня Тестова');
   await chooseChild(page, 'Миша без даты');
-  await expect(page.locator('.vax-child__birth')).toHaveText('10.01.2026 · 8 мес.');
+  await expect(page.locator('.patient-picker-row__subtitle')).toHaveText('10.01.2026 · 8 мес.');
   await expect(dose(page, 'n-01-1')).toHaveAttribute('data-status', 'done');
 
   // Patient data is not left outside the vault.
@@ -260,12 +258,12 @@ test('birth date only: statuses and marks without a card, nothing is saved', asy
   await mountBuiltApp(page, { persistentOrigin: true, skipLargeCompanionPacks: true });
   await openCalendar(page);
 
-  await page.getByRole('button', { name: 'Выбрать ребёнка' }).click();
+  await page.getByRole('button', { name: 'Выбрать пациента', exact: true }).click();
   const birth = page.getByLabel('Или только дата рождения');
   await birth.fill('2026-01-10');
   await closeChildSheet(page);
-  await expect(page.locator('.vax-child__name')).toHaveText('Без карточки');
-  await expect(page.locator('.vax-child__birth')).toHaveText('10.01.2026 · 8 мес.');
+  await expect(page.locator('.patient-picker-row__title')).toHaveText('Без карточки');
+  await expect(page.locator('.patient-picker-row__subtitle')).toHaveText('10.01.2026 · 8 мес.');
   await expect.poll(() => counts(page)).toEqual({ done: 0, planned: 0, now: 4, overdue: 11 });
   await dose(page, 'n-01-1').click();
   await expect.poll(() => counts(page)).toMatchObject({ done: 1, overdue: 10 });
@@ -283,21 +281,38 @@ test('birth date only: statuses and marks without a card, nothing is saved', asy
   const stored = await page.evaluate(() => JSON.stringify({ ...window.localStorage }));
   expect(stored).not.toContain('2026-01-10');
   expect(page.url()).not.toContain('2026-01-10');
-  const databases = await page.evaluate(async () =>
-    (await indexedDB.databases()).map((database) => database.name ?? ''),
-  );
-  expect(databases.filter((name) => /patient/iu.test(name))).toEqual([]);
+  // Opening the chooser may create the empty vault database, but no record is written into it.
+  const patientRecords = await page.evaluate(async () => {
+    let records = 0;
+    for (const { name } of await indexedDB.databases()) {
+      if (!name || !/patient/iu.test(name)) continue;
+      const db = await new Promise<IDBDatabase>((resolve, reject) => {
+        const request = indexedDB.open(name);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+      for (const store of Array.from(db.objectStoreNames)) {
+        records += await new Promise<number>((resolve, reject) => {
+          const request = db.transaction(store).objectStore(store).count();
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+      }
+      db.close();
+    }
+    return records;
+  });
+  expect(patientRecords).toBe(0);
 
   // A date that cannot be used is explained; a cleared child leaves the plain table.
-  await page.getByRole('button', { name: 'Сменить ребёнка' }).click();
+  await page.getByRole('button', { name: 'Выбрать пациента', exact: true }).click();
   await birth.fill('2099-01-01');
   await closeChildSheet(page);
   await expect(page.getByRole('alert')).toContainText('не может быть позже сегодняшнего дня');
-  await page.getByRole('button', { name: 'Сменить ребёнка' }).click();
+  await page.getByRole('button', { name: 'Выбрать пациента', exact: true }).click();
   await page.getByRole('button', { name: 'Убрать' }).click();
-  await page.getByRole('button', { name: 'Закрыть', exact: true }).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
-  await expect(page.locator('.vax-child__name')).toHaveText('Ребёнок');
+  await expect(page.locator('.patient-picker-row__title')).toHaveText('Пациент');
   await expect(page.locator('.vax-status')).toHaveCount(0);
   await expect(dose(page, 'n-01-1')).toHaveAttribute('data-status', 'later');
 });
@@ -308,7 +323,7 @@ test('desktop: the table, tiles and the «now» line at full width', async ({ pa
   await page.setViewportSize({ width: 1280, height: 900 });
   await mountBuiltApp(page, { persistentOrigin: true, skipLargeCompanionPacks: true });
   await openCalendar(page);
-  await page.getByRole('button', { name: 'Выбрать ребёнка' }).click();
+  await page.getByRole('button', { name: 'Выбрать пациента', exact: true }).click();
   await page.getByLabel('Или только дата рождения').fill('2026-01-10');
   await closeChildSheet(page);
   await expect.poll(() => counts(page)).toMatchObject({ now: 4, overdue: 11 });
