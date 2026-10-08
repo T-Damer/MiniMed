@@ -257,6 +257,8 @@ test('builds a calculator, runs it, prints it, edits it, copies it, moves its in
 
   // The list: the age badge, the input count with its plural, copy.
   await page.locator('.calculator-subpage-header').getByRole('button', { name: 'Назад' }).click();
+  // The calculator was opened from the editor, so back returns there; the editor leads to the list.
+  await page.getByRole('button', { name: 'К моим калькуляторам' }).click();
   await expect(page).toHaveURL(/#\/calculators\/mine$/u);
   const original = card(page, 'Индекс массы');
   await expect(original).toContainText('2 входных значения');
@@ -310,6 +312,8 @@ test('builds a calculator, runs it, prints it, edits it, copies it, moves its in
   await page.getByTestId('user-calculator-editor-open').click();
   await expect(page.getByRole('heading', { name: 'Индекс массы' })).toBeVisible();
   await page.locator('.calculator-subpage-header').getByRole('button', { name: 'Назад' }).click();
+  // The calculator was opened from the editor, so back returns there; the editor leads to the list.
+  await page.getByRole('button', { name: 'К моим калькуляторам' }).click();
   await expect(page.getByTestId('user-calculator-card')).toHaveCount(3);
 
   // The calculators of the author are in the search catalog too, and the filter hides them there.
