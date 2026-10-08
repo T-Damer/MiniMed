@@ -286,7 +286,7 @@ test('hides native status blur on document readers and medical viewers', async (
 });
 
 for (const safeTop of [0, 24, 47]) {
-  test(`moves sticky document headings with the hidden reader chrome (${safeTop}px)`, async ({
+  test(`moves the sticky section path with the hidden reader chrome (${safeTop}px)`, async ({
     page,
   }) => {
     test.setTimeout(150_000);
@@ -295,10 +295,9 @@ for (const safeTop of [0, 24, 47]) {
     await mountBuiltApp(page);
     await installClinicalModule(page);
 
-    const heading = page
-      .locator('.document-overlay-section__title--h1, .document-overlay-section__title--h2')
-      .first();
-    await heading.waitFor({ state: 'visible', timeout: 30_000 });
+    // One sticky line names the section path; it has no height of its own (the text does not move).
+    const heading = page.locator('.reader-section-path');
+    await heading.waitFor({ state: 'attached', timeout: 30_000 });
     expect(await heading.evaluate((element) => getComputedStyle(element).transitionDuration)).toBe(
       await page
         .locator('.document-page__chrome')

@@ -69,6 +69,7 @@ import {
 import { documentTextSearchText } from '@/features/library/document-text-search';
 import { isClinicalRecommendationSource } from '@/features/library/numbered-heading-sections';
 import { ReaderHero } from '@/features/library/ReaderHero';
+import { ReaderSectionPath } from '@/features/library/ReaderSectionPath';
 import { RlsMedicationPackagingPanel } from '@/features/library/RlsMedicationPackagingPanel';
 import {
   getReferenceImageResolver,
@@ -1534,6 +1535,8 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                     onSelect={(anchor) => chrome.scrollTo(anchor)}
                   />
                 </Show>
+
+                <ReaderSectionPath />
 
                 <For each={visibleSectionTree()}>
                   {(node) => {

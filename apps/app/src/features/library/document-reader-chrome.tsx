@@ -169,19 +169,12 @@ export function useDocumentReaderChrome(
       element.style.setProperty('--document-chrome-height', height);
       root?.style.setProperty('--document-chrome-height', height);
     };
+    // The section path line (`ReaderSectionPath`) and the section jumps start below the chrome.
     const updateHeadingLayout = (): void => {
-      if (!root) return;
-      let top = Math.max(0, Math.ceil(element.getBoundingClientRect().bottom));
-      for (let level = 1; level <= 6; level += 1) {
-        const levelName = `h${level}`;
-        root.style.setProperty(`--document-heading-${levelName}-top`, `${top}px`);
-        const heading = root.querySelector<HTMLElement>(
-          `.document-overlay-section__title--${levelName}`,
-        );
-        const height = heading?.offsetHeight ?? 0;
-        root.style.setProperty(`--document-heading-${levelName}-height`, `${height}px`);
-        top += height;
-      }
+      root?.style.setProperty(
+        '--document-heading-top',
+        `${Math.max(0, Math.ceil(element.getBoundingClientRect().bottom))}px`,
+      );
     };
     let frame: number | undefined;
     const schedule = (): void => {

@@ -12,7 +12,7 @@ export function computeReadingLine(scrollerRect: DOMRect, minimumOffset = 0): nu
  * Such a section's box can be stale — a nested one may still report where it sat before the page
  * scrolled — so it is no evidence of where the reader is. The section being read is always rendered.
  */
-function skippedByContentVisibility(section: HTMLElement): boolean {
+export function skippedByContentVisibility(section: HTMLElement): boolean {
   return section.checkVisibility?.({ contentVisibilityAuto: true }) === false;
 }
 

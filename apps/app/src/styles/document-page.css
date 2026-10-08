@@ -1,31 +1,7 @@
 .document-page {
   --document-chrome-height: 3.25rem;
-  --document-heading-h1-top: calc(var(--sticky-header-top) + var(--document-chrome-height));
-  --document-heading-h1-height: 0px;
-  --document-heading-h2-top: calc(
-    var(--document-heading-h1-top) +
-    var(--document-heading-h1-height)
-  );
-  --document-heading-h2-height: 2.2rem;
-  --document-heading-h3-top: calc(
-    var(--document-heading-h2-top) +
-    var(--document-heading-h2-height)
-  );
-  --document-heading-h3-height: 2rem;
-  --document-heading-h4-top: calc(
-    var(--document-heading-h3-top) +
-    var(--document-heading-h3-height)
-  );
-  --document-heading-h4-height: 1.85rem;
-  --document-heading-h5-top: calc(
-    var(--document-heading-h4-top) +
-    var(--document-heading-h4-height)
-  );
-  --document-heading-h5-height: 1.85rem;
-  --document-heading-h6-top: calc(
-    var(--document-heading-h5-top) +
-    var(--document-heading-h5-height)
-  );
+  --document-heading-top: calc(var(--sticky-header-top) + var(--document-chrome-height));
+  --document-path-height: 2.25rem;
   display: flex;
   min-height: calc(100dvh + 4.875rem + var(--nav-safe-bottom));
   margin-bottom: calc(-4.875rem - var(--nav-safe-bottom));
