@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "provenance": {
     "catalogFile": "apps/app/src/features/modules/catalog.preview.json",
-    "catalogVersion": "kr3-numbered-headings.2026.10.07",
-    "catalogSha256": "4cff757bffca713a8a89e39fa14b9de84ba517bd8cae84ac5b11f2e5311cb621",
+    "catalogVersion": "kr4-appendix-headings.2026.10.08",
+    "catalogSha256": "d683379e243fd954f25d3fc33c392c754fdc4578a377fa83e5e32e2d208c23db",
     "relationsDirectory": "data/build/clinical-medication-relations",
     "relationsFileCount": 753,
     "relationsDigest": "c417b9053c4f0b03230ee097df597ee021908a75354d4d1e4579e431976890b5",

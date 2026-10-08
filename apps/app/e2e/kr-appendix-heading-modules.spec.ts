@@ -7,45 +7,46 @@ import { expect, test } from '@playwright/test';
 import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
 
 const ROOT = resolve(import.meta.dirname, '../../..');
-// Local copies of the KR3 rebuild and of the KR4 rebuild (appendix headings) that superseded 555_3
-// (docs/data-ledger.json): the tests serve exactly the published bytes.
-const REBUILT_DIRECTORIES = [
-  'output/module-zstd-json-2026-10-08',
-  'output/module-zstd-json-2026-10-07',
-];
+// Local copy of the KR4 rebuild (docs/data-ledger.json): the tests serve exactly the published bytes.
+const REBUILT_DIRECTORY = 'output/module-zstd-json-2026-10-08';
 
 interface RebuiltModule {
   readonly officialId: string;
   readonly pointer: string;
   /** Sections the reader shows (sections without any text below them are hidden) after the rebuild. */
   readonly visibleSections: number;
-  /** The same count for the module as published before the rebuild: the rest are promoted headings. */
+  /** The same count for the module as published before the rebuild: the rest are appendix titles. */
   readonly visibleSectionsBefore: number;
   readonly headings: readonly RegExp[];
 }
 
 const MODULES: readonly RebuiltModule[] = [
   {
-    officialId: '1062_1',
-    pointer: 'core.catalog.pointer.clinical.kr.rf.1062_1-481e31c1c5973533',
-    visibleSections: 44,
-    visibleSectionsBefore: 36,
-    headings: [/^2\.5\.2\s+Другие/u, /^1\.2\s+Нейросекреторная дисфункция/u],
+    officialId: '655_2',
+    pointer: 'core.catalog.pointer.clinical.kr.rf.655_2-f32e4acf942e2fef',
+    visibleSections: 35,
+    visibleSectionsBefore: 33,
+    headings: [/^Приложение Б1\.\s+Схема диагностики хронического бронхита/u],
   },
   {
-    officialId: '555_3',
-    pointer: 'core.catalog.pointer.clinical.kr.rf.555_3-a184a82d9d24f40d',
-    // 36 in the KR3 build; the KR4 rebuild (appendix headings) added three more.
-    visibleSections: 39,
-    visibleSectionsBefore: 35,
-    headings: [/^4\.1\.\s+Пререабилитация/u, /^4\.2\.\s+Реабилитация при хирургическом лечении/u],
+    officialId: '283_2',
+    pointer: 'core.catalog.pointer.clinical.kr.rf.283_2-fe4c92a4870ee8ef',
+    visibleSections: 70,
+    visibleSectionsBefore: 57,
+    headings: [
+      /^Приложение Б3\.\s+Алгоритм фармакотерапии обструктивной ГКМП/u,
+      /^Приложение Б6\.\s+Алгоритм выбора метода редукции МЖП/u,
+    ],
   },
   {
-    officialId: '960_1',
-    pointer: 'core.catalog.pointer.clinical.kr.rf.960_1-86ddcd4e4dbba070',
-    visibleSections: 185,
-    visibleSectionsBefore: 127,
-    headings: [/^3\.2\.5\.9\.\s+Антагонисты витамина К/u, /^3\.7\.3\.1\.\s+Виды ГИТ/u],
+    officialId: '739_2',
+    pointer: 'core.catalog.pointer.clinical.kr.rf.739_2-b8e9c7fcfc624cc3',
+    visibleSections: 68,
+    visibleSectionsBefore: 67,
+    headings: [
+      /^Приложение Г1\s+Расширенная Шкала Статуса Инвалидизации/u,
+      /^Приложение Г2\.\s+Шкала баланса Берг/u,
+    ],
   },
 ];
 
@@ -53,7 +54,7 @@ const route = (id: string) =>
   `${E2E_ASSET_ORIGIN}/#/modules/documents/d/${Buffer.from(id).toString('base64url')}`;
 
 for (const module of MODULES) {
-  test(`a rebuilt recommendation (${module.officialId}) installs, outlines its sub-headings once and shows each heading once`, async ({
+  test(`a rebuilt recommendation (${module.officialId}) installs and opens its appendix titles as headings`, async ({
     page,
   }) => {
     test.setTimeout(240_000);
@@ -68,10 +69,7 @@ for (const module of MODULES) {
       ?.artifacts.find((item) => item.kind === 'index');
     if (!artifact?.url) throw new Error(`Missing ${module.officialId} artifact`);
     const fileName = new URL(artifact.url).pathname.split('/').at(-1) ?? '';
-    const localPath =
-      REBUILT_DIRECTORIES.map((directory) => resolve(ROOT, directory, fileName)).find((path) =>
-        existsSync(path),
-      ) ?? resolve(ROOT, REBUILT_DIRECTORIES[0] ?? '', fileName);
+    const localPath = resolve(ROOT, REBUILT_DIRECTORY, fileName);
     test.skip(!existsSync(localPath), `The rebuilt module file ${fileName} is local-only.`);
     const bytes = await readFile(localPath);
     expect(`sha256:${createHash('sha256').update(bytes).digest('hex')}`).toBe(artifact.sha256);
@@ -91,9 +89,8 @@ for (const module of MODULES) {
       timeout: 90_000,
     });
 
-    // Every shown section is one outline entry and one rendered section. The stored sections are
-    // all there; the reader adds only the numbered paragraphs the extractor kept as body text
-    // (headings with no text of their own, which the reader would otherwise hide), never a stored one.
+    // Every shown section is one outline entry and one rendered section; the appendix titles are
+    // the sections the rebuild added, each once in the outline and once as a title, never as body text.
     expect(module.visibleSections).toBeGreaterThan(module.visibleSectionsBefore);
     const outline = await page.locator('.document-overlay-outline-section-button').count();
     expect(outline).toBeGreaterThanOrEqual(module.visibleSections);
