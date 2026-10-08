@@ -14,7 +14,7 @@ const PUBLISHED_DIRECTORIES = [
   'output/module-zstd-e5-2026-10-05',
 ];
 const MODULE_ID = 'minimed.clinical.recommendation.1006_1';
-const POINTER = 'core.catalog.pointer.clinical.kr.rf.1006_1-1151be108d81d0ac';
+export const CLINICAL_POINTER_ID = 'core.catalog.pointer.clinical.kr.rf.1006_1-1151be108d81d0ac';
 
 export const CLINICAL_DOCUMENT_ROUTE = `${E2E_ASSET_ORIGIN}/#/modules/documents/d/${Buffer.from(
   'kr.rf.1006_1',
@@ -52,7 +52,7 @@ export async function routeClinicalModule(page: Page): Promise<void> {
 /** Installs the routed module from its core pointer and waits for the full document to open. */
 export async function installClinicalModule(page: Page): Promise<void> {
   await page.goto(
-    `${E2E_ASSET_ORIGIN}/#/modules/documents/d/${Buffer.from(POINTER).toString('base64url')}`,
+    `${E2E_ASSET_ORIGIN}/#/modules/documents/d/${Buffer.from(CLINICAL_POINTER_ID).toString('base64url')}`,
   );
   await page.locator('.document-module-pointer__action').click();
   await expect(page).toHaveURL(CLINICAL_DOCUMENT_ROUTE, { timeout: 90_000 });

@@ -397,12 +397,21 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       // Merely awaiting it first is insufficient when the catalog request was already dispatched.
       const requested = await core.getDocument(documentId);
       if (!current()) return;
+      // A pointer may hand over to the document it stands for, and a clinical summary to its full
+      // text: showing the stand-in first would flash it between two loading states. They wait for
+      // the lookups below and the reader opens once, on the document that stays.
+      const mayHandOver =
+        requested.ok &&
+        ((!expectedIdentity && parseModulePointerMetadata(requested.value.metadata) !== null) ||
+          (!preferSummary && requested.value.sourceType === 'clinical_recommendation_summary'));
       if (requested.ok) {
         assertIdentityDocumentTarget(requested.value, expectedIdentity);
-        setDocument(requested.value);
-        setPendingTitle(undefined);
+        if (!mayHandOver) {
+          setDocument(requested.value);
+          setPendingTitle(undefined);
+        }
       }
-      if (requested.ok && globalThis.document.visibilityState === 'visible') {
+      if (requested.ok && !mayHandOver && globalThis.document.visibilityState === 'visible') {
         await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
         if (!current()) return;
       }
@@ -425,7 +434,6 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
           runtime.getCatalog(),
           runtime.listInstalled(),
         );
-        setModulePointer(resolution);
         if (
           pointer.targetDocumentId !== documentId &&
           (availableIds.has(pointer.targetDocumentId) || resolution.state === 'installed')
@@ -457,6 +465,13 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
           setModulePointerInstallError(
             'Набор установлен, но полный документ недоступен. Повторите подключение в разделе скачивания.',
           );
+        }
+        // The pointer stays: its panel (install, progress) now stands in the reader. It is named
+        // only here, so a pointer that hands over never flashes its install panel first.
+        setModulePointer(resolution);
+        if (requested.ok && readableId === documentId) {
+          setDocument(requested.value);
+          setPendingTitle(undefined);
         }
       }
       const summary = listed.find((item) => item.id === readableId);
