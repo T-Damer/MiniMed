@@ -4,6 +4,36 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.57] - 2026-10-08
+
+- Screens are lighter: the title sits next to the back button, explanations open from a round «?»,
+  orders and editions are small text at the bottom, buttons with an obvious meaning are icons.
+- Search: cards say what a document is («Клинические рекомендации», «Определение», «Препарат», «Форма»…);
+  a fragment opens in place and «Найдено ещё в N фрагментах» shows the rest; results stay on screen
+  while a pack installs; a typed МКБ code shows its own card first; «070/у» finds the form; complaint
+  lists («болит живот рвота») start with symptom-level documents; tools stay under the field after a
+  search. Downloads show «Скачиваем…», the percentage, «Устанавливаем…» and «Готово», once per pack.
+- Definitions: the likeliest meaning comes first («Депрессия» — the mood disorder), other meanings are
+  one tap away by field; terms from every clinical guideline and from «Красота и медицина»; the term
+  card shows the source's own words and a link to the exact place, without warnings or technical data.
+- Reader: page number in a bubble in the corner — tap it to type a page; pages in the contents; one
+  loading state when a document opens; a picture at the top of illustrated articles; wide tables
+  scroll sideways with the first column and header kept in view; one quiet line shows the current
+  section. 78 guidelines get their appendix titles as headings (only those download again).
+- Children's vaccination calendar: one chart of ages and vaccines; pick a child (or just a birth date)
+  to see what is done, due now or overdue; tap a cell to mark it, with undo; a one-page plan for the
+  mother, previewed in the header.
+- Forms: a live miniature of the form in the header, larger fields, a «?» only where a field has a fill
+  rule, drafts save themselves and «Сохранить» approves; the patient is one compact row everywhere.
+- Conversation recording: starts on the record button; offers the speech model in place; the text is
+  saved encrypted with the audio and comes back after a crash; patient storage is encrypted in the
+  browser too.
+- «Лента»: a feed with source avatars and short titles, suggested sources with a preview, articles
+  readable inside the app, one page for sources.
+- Drug interactions: one field at a time, suggestions as you type, the missing download offered in place.
+- Settings: light / dark / system theme; «О приложении» is part of «Основные»; backup buttons on
+  «Пациенты и данные»; patients open without a privacy sheet.
+
 ## [0.6.56] - 2026-10-07
 
 - Reader: a long guideline shows every section — chapters («3. Лечение») are back, nothing is missing
