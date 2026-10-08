@@ -130,4 +130,32 @@ describe('unified tool catalog', () => {
       ['kind:disease', 1],
     ]);
   });
+
+  it('counts only clinical recommendations in the «Клинические рекомендации» counter', () => {
+    const base = {
+      shortTitle: null,
+      status: 'active' as const,
+      specialties: ['pediatrics'],
+      versionId: 'v1',
+      versionLabel: '1',
+      effectiveFrom: null,
+    };
+    const documents = [
+      { ...base, id: 'kr.1', title: 'КР', sourceType: 'clinical_recommendation' },
+      {
+        ...base,
+        id: 'pointer.kr.2',
+        title: 'КР 2',
+        sourceType: 'core_catalog_pointer',
+        metadata: { catalogFamily: 'clinical' },
+      },
+      // Searched in the same section, but not a recommendation: an installed reference pack.
+      { ...base, id: 'rls.1', title: 'МКБ', sourceType: 'rls_mkb_reference' },
+      { ...base, id: 'ref.1', title: 'Справочник', sourceType: 'medical_reference' },
+    ];
+    const guidelines = searchCatalogSections(documents, []).find(
+      (section) => section.id === 'guidelines',
+    );
+    expect(guidelines?.count).toBe(2);
+  });
 });

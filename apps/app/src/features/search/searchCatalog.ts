@@ -271,6 +271,23 @@ export interface SearchCatalogSection {
     readonly kinds: readonly SearchResultDocumentKind[];
   }[];
 }
+const CLINICAL_RECOMMENDATION_SOURCE_TYPES: ReadonlySet<string> = new Set([
+  'clinical_recommendation',
+  'clinical_recommendation_summary',
+]);
+
+/**
+ * What a section's counter counts. Search scopes are wide on purpose («Клинические рекомендации»
+ * also searches reference articles and the MKB reference), but the counter names its noun: an
+ * installed reference pack must not show up as «рекомендации».
+ */
+function countsTowardSection(document: MedicalDocumentSummary, sectionId: SearchScope): boolean {
+  if (sectionId !== 'guidelines') return true;
+  return document.sourceType === 'core_catalog_pointer'
+    ? document.metadata?.['catalogFamily'] === 'clinical'
+    : CLINICAL_RECOMMENDATION_SOURCE_TYPES.has(document.sourceType);
+}
+
 export function searchCatalogSections(
   documents: readonly MedicalDocumentSummary[],
   tools: readonly SearchCatalogTool[],
@@ -325,7 +342,7 @@ export function searchCatalogSections(
       );
     return {
       ...section,
-      count: rows.length + docs.length,
+      count: rows.length + docs.filter((entry) => countsTowardSection(entry, section.id)).length,
       groups:
         section.id === 'conditions'
           ? CONDITION_GROUPS.map((group) => {
