@@ -149,8 +149,14 @@ export function MediaViewer(props: {
             aria-label="Закрыть просмотр"
             onClick={props.onClose}
           />
-          <div class="media-viewer__panel">
-            <header class="media-viewer__toolbar">
+          <div
+            class="media-viewer__panel"
+            classList={{ 'media-viewer__panel--image': props.zoomMode === 'image' }}
+          >
+            <header
+              class="media-viewer__toolbar"
+              classList={{ 'media-viewer__toolbar--image': props.zoomMode === 'image' }}
+            >
               <div class="media-viewer__toolbar-group">
                 <button
                   type="button"
@@ -206,7 +212,10 @@ export function MediaViewer(props: {
                 </button>
               </div>
             </header>
-            <div class="media-viewer__content">
+            <div
+              class="media-viewer__content"
+              classList={{ 'media-viewer__content--image': props.zoomMode === 'image' }}
+            >
               <PinchZoomSurface
                 pinch={pinch}
                 class="media-viewer__pinch"
@@ -225,6 +234,10 @@ export function MediaViewer(props: {
 function RichTableMarkup(props: {
   readonly block: DocumentTableBlock;
   readonly tableClass: string;
+  /** The table sits in the page: its first column is kept from taking the screen from the rest. */
+  readonly inline?: boolean;
+  /** Keeps the header row and the first column in view while the table scrolls in its box. */
+  readonly pinned?: boolean;
   readonly highlight?: RichBlockHighlightProps | undefined;
 }): JSX.Element {
   let offset =
@@ -251,10 +264,18 @@ function RichTableMarkup(props: {
       </Show>
       <tbody>
         <For each={props.block.rows}>
-          {(row: DocumentTableRow) => (
+          {(row: DocumentTableRow, rowIndex) => (
             <tr>
               <For each={row.cells}>
-                {(cell) => {
+                {(cell, columnIndex) => {
+                  const cellClass = (): string => {
+                    const lead = columnIndex() === 0 && cell.colSpan === 1;
+                    const pinRow =
+                      props.pinned && rowIndex() === 0 && row.cells.every((value) => value.header);
+                    return `${props.inline && lead ? ' document-rich-table__cell--lead' : ''}${
+                      pinRow ? ' document-rich-table__cell--pin-row' : ''
+                    }${props.pinned && lead ? ' document-rich-table__cell--pin-column' : ''}`;
+                  };
                   const rangeOffset = offset;
                   offset += cell.text.length + 1;
                   const text = (
@@ -275,7 +296,7 @@ function RichTableMarkup(props: {
                       when={cell.header}
                       fallback={
                         <td
-                          class={`document-rich-table__cell document-rich-table__cell--${cell.align ?? 'left'}`}
+                          class={`document-rich-table__cell document-rich-table__cell--${cell.align ?? 'left'}${cellClass()}`}
                           rowSpan={cell.rowSpan}
                           colSpan={cell.colSpan}
                         >
@@ -284,7 +305,7 @@ function RichTableMarkup(props: {
                       }
                     >
                       <th
-                        class={`document-rich-table__cell document-rich-table__cell--${cell.align ?? 'left'}`}
+                        class={`document-rich-table__cell document-rich-table__cell--${cell.align ?? 'left'}${cellClass()}`}
                         rowSpan={cell.rowSpan}
                         colSpan={cell.colSpan}
                       >
@@ -426,7 +447,30 @@ function ZoomableTable(props: {
   readonly highlight?: RichBlockHighlightProps | undefined;
 }): JSX.Element {
   const [open, setOpen] = createSignal(false);
+  // A table wider than the page keeps its header row and first column in view while it scrolls
+  // inside its own box (see `document-rich-table__scroller--wide`).
+  const [wide, setWide] = createSignal(false);
   const title = () => props.block.caption || 'Таблица из документа';
+  const watchWidth = (scroller: HTMLElement): void => {
+    const measure = (): void => {
+      setWide(scroller.scrollWidth > scroller.clientWidth + 1);
+    };
+    measure();
+    // A table in a section the browser has not rendered yet (`content-visibility`) has no size to
+    // observe: it is measured again when it comes near the screen.
+    const resize = typeof ResizeObserver === 'undefined' ? undefined : new ResizeObserver(measure);
+    resize?.observe(scroller);
+    for (const child of Array.from(scroller.children)) resize?.observe(child);
+    const near =
+      typeof IntersectionObserver === 'undefined'
+        ? undefined
+        : new IntersectionObserver(measure, { rootMargin: '200px' });
+    near?.observe(scroller);
+    onCleanup(() => {
+      resize?.disconnect();
+      near?.disconnect();
+    });
+  };
 
   return (
     <section class="document-rich-table" aria-label={title()}>
@@ -447,10 +491,16 @@ function ZoomableTable(props: {
         zoomOptions={{ horizontalPan: true }}
         lightbox
       >
-        <div class="document-rich-table__scroller">
+        <div
+          ref={watchWidth}
+          class="document-rich-table__scroller"
+          classList={{ 'document-rich-table__scroller--wide': wide() }}
+        >
           <RichTableMarkup
             block={props.block}
             tableClass="document-rich-table__table"
+            inline
+            pinned={wide()}
             highlight={props.highlight}
           />
         </div>

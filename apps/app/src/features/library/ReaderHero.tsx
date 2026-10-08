@@ -10,11 +10,12 @@ import {
 import './reader-hero.css';
 
 /**
- * The top of an illustrated reference article: its picture, large and softly blurred, behind the
- * title (the way a drug page shows its packaging). A tap opens the picture full screen. The hero
- * holds its place while the picture is looked up, so the title does not jump when it arrives; an
- * article without a picture simply shows its title. `onSource` reports the picture's source address
- * so the text can leave out the copy of the same picture it carries inline.
+ * The top of an illustrated reference article: its picture, sharp and whole (the way a drug page
+ * shows its packaging), above the title; a soft blur of the same picture only fills the card around
+ * it. A tap opens the picture full screen. The hero holds its place while the picture is looked up,
+ * so the title does not jump when it arrives; an article without a picture simply shows its title.
+ * `onSource` reports the picture's source address so the text can leave out the copy of the same
+ * picture it carries inline.
  */
 export function ReaderHero(props: {
   /** The reference-image document the picture belongs to; no hero without it. */
@@ -64,22 +65,34 @@ export function ReaderHero(props: {
         <Show when={image()}>
           {(resolved) => (
             <>
-              <PreviewableImage
-                openClass="reader-hero__open"
-                imageClass="reader-hero__photo"
-                src={resolved().url}
-                alt={resolved().alt}
-                caption={resolved().alt}
-                onError={() => {
-                  setImage(null);
-                  props.onSource?.(null);
-                }}
-              />
+              <img class="reader-hero__backdrop" src={resolved().url} alt="" aria-hidden="true" />
               <div class="reader-hero__veil" aria-hidden="true" />
-              <AppGlyph name="arrows-out" class="reader-hero__expand" />
             </>
           )}
         </Show>
+        <div
+          class="reader-hero__stage"
+          classList={{ 'reader-hero__stage--shown': pending() || image() !== null }}
+        >
+          <Show when={image()}>
+            {(resolved) => (
+              <>
+                <PreviewableImage
+                  openClass="reader-hero__open"
+                  imageClass="reader-hero__photo"
+                  src={resolved().url}
+                  alt={resolved().alt}
+                  caption={resolved().alt}
+                  onError={() => {
+                    setImage(null);
+                    props.onSource?.(null);
+                  }}
+                />
+                <AppGlyph name="arrows-out" class="reader-hero__expand" />
+              </>
+            )}
+          </Show>
+        </div>
         <div class="reader-hero__body">
           {props.children}
           <Show when={image()}>
