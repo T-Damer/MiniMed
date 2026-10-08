@@ -1389,6 +1389,27 @@ function extractSymptoms(query: string, facts: QueryFact[]): void {
   }
 }
 
+/**
+ * True when a query is a list of complaints («болит живот рвота»): at least two different symptoms
+ * from the clinical parser's vocabulary and no other subject word. Such a query asks for the
+ * symptom or syndrome, not for a disease that happens to mention the words.
+ */
+export function isSymptomPhraseQuery(query: string): boolean {
+  const facts: QueryFact[] = [];
+  extractSymptomExpressions(query, facts);
+  extractSymptoms(query, facts);
+  const symptoms = facts.filter((fact) => fact.kind === 'symptom');
+  if (new Set(symptoms.map((fact) => fact.normalizedValue)).size < 2) return false;
+  for (const match of query.matchAll(/[\p{L}\p{N}]+/gu)) {
+    const token = normalizeSurfaceText(match[0]);
+    if (!isLookupSubjectToken(token)) continue;
+    const start = match.index ?? 0;
+    const end = start + match[0].length;
+    if (!symptoms.some((fact) => fact.range.start <= start && fact.range.end >= end)) return false;
+  }
+  return true;
+}
+
 function extractKnownTerms(query: string, facts: QueryFact[]): void {
   for (const term of INVESTIGATION_TERMS) {
     addTermFact(query, facts, 'investigation', 'Обследование', term);
@@ -1622,7 +1643,8 @@ function icd10LegacyFtsQueries(
       queries.add(ftsToken(`${chapter}${prefix}`));
       continue;
     }
-    // A bare number («67.9») is read as the cardiology chapter the legacy pilot indexed.
+    // A bare number («67.9») is read as the cardiology chapter the legacy pilot indexed. A written
+    // form number («070/у») never gets here: `withoutFormNumbers` took it out.
     queries.add(`(${ftsToken(prefix)} AND ${ftsToken(suffix)})`);
     queries.add(`(${ftsToken(`i${prefix}`)} AND ${ftsToken(suffix)})`);
   }
@@ -1638,7 +1660,7 @@ function buildFtsQuery(
   return [
     ...new Set([
       ...terms.map(lookup ? ftsLookupToken : ftsToken),
-      ...icd10LegacyFtsQueries(query, excludedNumericTerms),
+      ...icd10LegacyFtsQueries(withoutFormNumbers(query), excludedNumericTerms),
     ]),
   ].join(' OR ');
 }
@@ -1668,11 +1690,29 @@ function icd10SearchTerms(values: readonly string[]): readonly string[] {
   return [...terms];
 }
 
+/**
+ * An official form number in its written shape: «070/у», «025-1/у», «003/у». Its digits are not an
+ * МКБ-10 number, so they are searched together with the letter («070 у») and never alone.
+ */
+const FORM_NUMBER_PATTERN =
+  /(?<![\p{L}\p{N}])(\d{2,4}(?:-\d{1,2})?)\s*\/\s*([а-яёa-z]{1,3})(?![\p{L}\p{N}])/giu;
+
+function formNumberPhrases(value: string): readonly string[] {
+  return [...value.matchAll(FORM_NUMBER_PATTERN)].map(
+    (match) => `${(match[1] ?? '').replace('-', ' ')} ${normalizeSurfaceText(match[2] ?? '')}`,
+  );
+}
+
+function withoutFormNumbers(value: string): string {
+  return value.replace(FORM_NUMBER_PATTERN, ' ');
+}
+
 function termsWithStems(
-  values: readonly string[],
+  rawValues: readonly string[],
   excludedNumericTerms?: ReadonlySet<string>,
 ): readonly string[] {
-  const terms = new Set<string>();
+  const terms = new Set<string>(rawValues.flatMap(formNumberPhrases));
+  const values = rawValues.map(withoutFormNumbers);
   const icd10Fragments = icd10CodeFragments(values);
   for (const value of values) {
     const normalizedValue = normalizeSurfaceText(value);
@@ -2216,11 +2256,18 @@ const AUDIENCE_TITLE_TERMS: Readonly<Record<'children' | 'adults', readonly stri
 function lookupTitleRescue(
   query: string,
   groups: readonly LookupTermGroup[],
+  dilutedTerms: ReadonlySet<string>,
 ): LookupTitleRescue | null {
   const subjectGroups = groups.filter((group) => isLookupSubjectToken(group.token));
   if (subjectGroups.length === 0) return null;
+  // A word that only an ambiguous synonym brings («ассоциированная» from «вентилятор-ассоциированная
+  // пневмония») is no subject word of the title: with the audience it would pull in any
+  // «… ассоциированная … у детей» title.
   const subject = subjectGroups.map((group) =>
-    group.terms.slice(0, MAX_TITLE_BRANCH_GROUP_TERMS).filter((term) => term.length >= 2),
+    group.terms
+      .filter((term) => !dilutedTerms.has(term) || group.literalTerms.includes(term))
+      .slice(0, MAX_TITLE_BRANCH_GROUP_TERMS)
+      .filter((term) => term.length >= 2),
   );
   const audience = groups
     .map((group) => audienceOfToken(group.token))
@@ -2330,7 +2377,11 @@ export function buildLookupQueryPlan(
   const branches = [branch, dilutedBranch].filter(
     (candidate): candidate is LexicalQueryBranchPlan => candidate !== null,
   );
-  const titleRescue = lookupTitleRescue(query, termGroups);
+  const titleRescue = lookupTitleRescue(
+    query,
+    termGroups,
+    new Set(dilutedTerms.flatMap((term) => [term, lightStemRussian(term)])),
+  );
   return {
     analysis: {
       originalQuery: query,

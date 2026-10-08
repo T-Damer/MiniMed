@@ -32,6 +32,7 @@ import {
   findNormalizedPhraseIndex,
   fuzzyPhraseSpan,
   hasWordPrefix,
+  isSymptomPhraseQuery,
   type LexicalQueryBranchPlan,
   type LookupTermGroup,
   lightStemRussian,
@@ -81,6 +82,7 @@ import {
   type SearchResultContextHint,
   searchResultContextFallbackMessage,
 } from './search-context';
+import { prioritizeSymptomLevelGroups } from './symptom-phrase-ranking';
 import { TerminologySearchIndex } from './terminology-search';
 
 export interface CreateMedicalCoreOptions {
@@ -1387,9 +1389,12 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         parsed.data.query,
       );
       const exactShortTitleDocumentIds = documentIndex.exactShortTitleIds(parsed.data.query);
+      // A typed МКБ-10 code names its own card before any longer code of the same category.
+      const exactIcdCardDocumentIds = new Set(documentIndex.exactIcdCardIds(parsed.data.query));
       const exactSecondaryIdentityDocumentIds = new Set([
         ...exactNavigationAliasDocumentIds,
         ...exactShortTitleDocumentIds,
+        ...exactIcdCardDocumentIds,
       ]);
       const exactIdentityDocumentIds = new Set([
         ...exactTitleDocumentIds,
@@ -1545,17 +1550,22 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
               ]),
             )
           : groupedResults;
-      const rankedGroups = termIndex
-        .rank(subjectGroups, terminologyMatch)
-        .toSorted(
-          (left, right) =>
-            Number(exactTitleDocumentIds.has(right.documentId)) -
-              Number(exactTitleDocumentIds.has(left.documentId)) ||
-            Number(exactSecondaryIdentityDocumentIds.has(right.documentId)) -
-              Number(exactSecondaryIdentityDocumentIds.has(left.documentId)) ||
-            Number(spellingDocumentIds.has(right.documentId)) -
-              Number(spellingDocumentIds.has(left.documentId)),
-        );
+      const termRankedGroups = termIndex.rank(subjectGroups, terminologyMatch);
+      const rankedGroups = (
+        parsed.data.analysisMode === 'lookup' &&
+        lexicalOnly &&
+        isSymptomPhraseQuery(parsed.data.query)
+          ? prioritizeSymptomLevelGroups(termRankedGroups, documentIndex.byId)
+          : termRankedGroups
+      ).toSorted(
+        (left, right) =>
+          Number(exactTitleDocumentIds.has(right.documentId)) -
+            Number(exactTitleDocumentIds.has(left.documentId)) ||
+          Number(exactSecondaryIdentityDocumentIds.has(right.documentId)) -
+            Number(exactSecondaryIdentityDocumentIds.has(left.documentId)) ||
+          Number(spellingDocumentIds.has(right.documentId)) -
+            Number(spellingDocumentIds.has(left.documentId)),
+      );
       const bridgeTuning = icdBridgeTuning(options.icdBridge, parsed.data.analysisMode);
       let finalGroups: readonly SearchResultGroup[] = rankedGroups;
       if (bridgeTuning) {

@@ -8,6 +8,7 @@ export type {
 } from './analysis';
 export {
   DILUTED_DIAGNOSIS_ALIAS_BRANCH_ID,
+  isSymptomPhraseQuery,
   lookupGroupCovered,
 } from './analysis';
 export { analyzeClinicalQuery } from './clinical-query';

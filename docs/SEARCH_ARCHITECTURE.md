@@ -191,8 +191,10 @@ e5 embedder ignores). The Capacitor native store answers `scoreVectors` only if 
   word (protected: exact identities, spelling candidates, terminology matches). `ScopedMedicalCore`
   `rankSearchGroupsByAudience` gets the query and lets an audience tag help only titles that name the
   subject.
-- `filterSuffixFallbackGroups`, then `TerminologySearchIndex.rank`, then a stable sort that puts
-  exact title, secondary identity (navigation alias / short title) and spelling documents first,
+- `filterSuffixFallbackGroups`, then `TerminologySearchIndex.rank`, then (lexical lookup of a list of
+  complaints, `isSymptomPhraseQuery`) `prioritizeSymptomLevelGroups` (`symptom-phrase-ranking.ts`),
+  then a stable sort that puts exact title, secondary identity (navigation alias / short title /
+  the МКБ-10 card of a typed code, `QueryDocumentIndex.exactIcdCardIds`) and spelling documents first,
   then `collapseGroupsByTargetDocument` (a pointer and its installed full document become one
   group), then `slice(0, limit)`.
 

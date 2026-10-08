@@ -44,6 +44,32 @@ describe('QueryDocumentIndex', () => {
     expect([...index.exactAliasIds('D32.0')].toSorted()).toEqual(['broad-alias', 'exact-title']);
   });
 
+  it('finds the МКБ-10 card of a typed code, not a longer code or a mention (S1)', () => {
+    const card = (id: string, code: string, title: string) => ({
+      id,
+      title,
+      shortTitle: null,
+      sourceType: 'rls_mkb_reference',
+      metadata: { mkbCode: code, icd10Codes: [code] },
+    });
+    const index = new QueryDocumentIndex([
+      card('j18-9', 'J18.9', 'J18.9 Пневмония неуточненная, МКБ-10'),
+      card('j18', 'J18', 'J18 Пневмония без уточнения возбудителя, МКБ-10'),
+      {
+        id: 'kr',
+        title: 'Пневмония (внебольничная)',
+        shortTitle: null,
+        sourceType: 'clinical_recommendation',
+        metadata: { mkbCode: 'J18', icd10Codes: ['J18'] },
+      },
+    ]);
+    expect(index.exactIcdCardIds('J18')).toEqual(['j18']);
+    expect(index.exactIcdCardIds(' j18 ')).toEqual(['j18']);
+    expect(index.exactIcdCardIds('J18.9')).toEqual(['j18-9']);
+    expect(index.exactIcdCardIds('пневмония')).toEqual([]);
+    expect(index.exactIcdCardIds('070/у')).toEqual([]);
+  });
+
   it('normalizes strict identity surfaces consistently with lookup subjects', () => {
     const index = new QueryDocumentIndex([
       {

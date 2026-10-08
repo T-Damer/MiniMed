@@ -1,4 +1,8 @@
-import { normalizeSurfaceText, searchSubjectText } from '@localmed/search-lexical';
+import {
+  normalizeIcd10Lookalikes,
+  normalizeSurfaceText,
+  searchSubjectText,
+} from '@localmed/search-lexical';
 import type { SearchDocumentDescriptor } from '@localmed/storage';
 
 /** Immutable per-core projection; never shared across installed corpus generations. */
@@ -12,6 +16,7 @@ export class QueryDocumentIndex {
   private readonly documents: readonly SearchDocumentDescriptor[];
   private namePrefixes: ReadonlySet<string> | undefined;
   private latinNames: ReadonlyMap<string, readonly string[]> | undefined;
+  private icdCards: ReadonlyMap<string, readonly string[]> | undefined;
 
   constructor(documents: readonly SearchDocumentDescriptor[]) {
     this.documents = documents;
@@ -52,6 +57,18 @@ export class QueryDocumentIndex {
     return this.shortTitles.get(searchSubjectText(query)) ?? new Set();
   }
 
+  /**
+   * The МКБ-10 cards of the code typed as the whole query («J18», «j18.9», Cyrillic look-alike
+   * letters too): the card whose own title starts with the code. A recommendation or article that
+   * merely lists the code is no such card.
+   */
+  exactIcdCardIds(query: string): readonly string[] {
+    const code = normalizeIcd10Lookalikes(normalizeSurfaceText(query).trim()).toUpperCase();
+    if (!ICD_CODE.test(code)) return [];
+    this.icdCards ??= buildIcdCards(this.documents);
+    return this.icdCards.get(code) ?? [];
+  }
+
   exactIdentityIds(query: string): ReadonlySet<string> {
     return new Set([
       ...this.exactTitleIds(query),
@@ -87,6 +104,7 @@ export class QueryDocumentIndex {
   }
 }
 
+const ICD_CODE = /^[A-Z]\d{2}(?:\.\d{1,2})?$/u;
 const NAME_PREFIX_LENGTH = 5;
 const WORD_SPLIT = /[^0-9a-zа-я]+/u;
 
@@ -126,4 +144,20 @@ function buildLatinNames(
     names.set(key, titles);
   }
   return names;
+}
+
+function buildIcdCards(
+  documents: readonly SearchDocumentDescriptor[],
+): ReadonlyMap<string, readonly string[]> {
+  const cards = new Map<string, string[]>();
+  for (const document of documents) {
+    const code = document.metadata['mkbCode'];
+    if (typeof code !== 'string') continue;
+    const key = code.trim().toUpperCase();
+    if (!document.title.toUpperCase().startsWith(`${key} `)) continue;
+    const ids = cards.get(key) ?? [];
+    ids.push(document.id);
+    cards.set(key, ids);
+  }
+  return cards;
 }

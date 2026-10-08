@@ -59,6 +59,30 @@
     "forbiddenTargets": []
   },
   {
+    "id": "doctor-lookup.qa-icd-code-exact",
+    "query": "J18",
+    "expectedTargets": ["rls.mkb.node.j18"],
+    "forbiddenTargets": []
+  },
+  {
+    "id": "doctor-lookup.qa-form-number-070u",
+    "query": "070/у",
+    "expectedTargets": ["regulatory.rf.minzdrav.274n-2025-sanatorium-forms"],
+    "forbiddenTargets": ["rls.mkb.node.i07-0", "rls.mkb.node.i07-1", "rls.mkb.node.i07-2"]
+  },
+  {
+    "id": "doctor-lookup.qa-symptom-phrase-abdomen",
+    "query": "болит живот рвота",
+    "expectedTargets": ["krasotaimedicina.disease.6f152c48526baefd", "rls.mkb.node.r11"],
+    "forbiddenTargets": []
+  },
+  {
+    "id": "doctor-lookup.qa-pneumonia-child-no-liver-guideline",
+    "query": "пневмония у детей",
+    "expectedTargets": ["krasotaimedicina.disease.708fcd766f425dfb"],
+    "forbiddenTargets": ["kr.rf.1071_1", "kr.rf.507_4"]
+  },
+  {
     "id": "doctor-lookup.pyelonephritis-or-cystitis-woman",
     "query": "пиелонефрит или цистит у женщины",
     "expectedTargets": ["kr.rf.9_3", "kr.rf.281_3"],

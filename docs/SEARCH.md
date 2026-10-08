@@ -158,6 +158,34 @@ Rules, none of which uses a symptom → drug dictionary:
 - All of this applies when the result is lexical (`modeUsed === 'lexical'`); hybrid/semantic results
   keep their ranking, because a semantic match often lacks the typed words in its title.
 
+### QA findings S1–S5 (UX13, 2026-10-08)
+
+All lexical lookup, none uses a symptom → disease dictionary; the queries are in
+`tools/benchmarks/doctor-lookup-queries.json` (`doctor-lookup.qa-*`) and in unit tests.
+
+- **S1, a typed МКБ-10 code names its card first.** `QueryDocumentIndex.exactIcdCardIds` finds the
+  card whose own title starts with the code (`mkbCode` equal to the query, Cyrillic look-alike
+  letters accepted); it counts as a secondary identity, so «J18» is `J18`, then `J18.9`. A
+  recommendation that merely lists the code is no card.
+- **S2, a written form number is a phrase.** `070/у`, `025-1/у` become the FTS phrase `"070 у"` and
+  never the bare number, which the index also holds as the numeric tail of МКБ-10 codes (`a070 070`):
+  no `I07.0` for a form. A bare number without a slash keeps its old reading («679» → I67.9). Forms
+  are tool cards (`formCatalogTools`, `features/forms/form-search-tools.ts`): found by number,
+  alias («070у», «форма 070/у») or title while a query is typed in «Все источники», opening the filling
+  screen; they are not part of the calculator/questionnaire sections and counts.
+- **S3, a list of complaints asks for the symptom.** `isSymptomPhraseQuery` (≥ 2 different symptoms
+  of the parser's vocabulary and no other subject word, e.g. «болит живот рвота») moves
+  symptom-level documents (`entityType` symptom/syndrome, or МКБ-10 codes all in chapter R) ahead of
+  the other non-recommendation groups (`symptom-phrase-ranking.ts`); recommendations keep their slot.
+- **S4, synonym words do not carry a title.** The words of ambiguous diagnosis aliases
+  («ассоциированная» from «вентилятор-ассоциированная пневмония») stay out of the title-and-audience
+  rescue query and give the diluted alias branch no title boost; in the app, a recommendation is
+  lifted over reference cards for an audience query only when its title names the subject
+  (`preferClinicalRecommendationForCaseQueries`).
+- **S5, tools wait behind the article for a bare disease name.** When the query neither asks for a
+  tool (шкала, опросник, тест, калькулятор, форма…) nor is a word of a tool's title / one of its
+  aliases whole, the tool cards render after the document results (`toolsFollowResults`).
+
 Small transparent section boosts are applied only when branch intent matches section type, for
 example investigation → diagnostics and medication → treatment. Each result exposes:
 

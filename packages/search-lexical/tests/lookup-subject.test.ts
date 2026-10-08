@@ -86,6 +86,25 @@ describe('lookup plan', () => {
     expect(lookupGroupCovered(group, new Set(['эозинофильн', 'неаллергическ']))).toBe(true);
   });
 
+  it('keeps words that only an ambiguous synonym brings out of the title rescue (S4)', () => {
+    const plan = buildLookupQueryPlan('пневмония у детей', [
+      alias('вентилятор-ассоциированная пневмония', 'пневмония'),
+      alias('внебольничная пневмония', 'пневмония'),
+      alias('острый бронхит', 'пневмония'),
+    ]);
+    const rescue = plan.lookupTitleRescue;
+    if (!rescue) throw new Error('expected a title rescue');
+    expect(rescue.branch.ftsQuery).toContain('"пневмония"*');
+    expect(rescue.branch.ftsQuery).not.toContain('ассоциирован');
+  });
+
+  it('reads a written form number as a phrase, never as an МКБ-10 number (S2)', () => {
+    const plan = buildLookupQueryPlan('070/у', []);
+    expect(plan.ftsQuery).toBe('"070 у"*');
+    expect(buildLookupQueryPlan('025-1/у', []).ftsQuery).toBe('"025 1 у"*');
+    expect(buildLookupQueryPlan('67.9', []).ftsQuery).toContain('"i67"*');
+  });
+
   it('plans a title rescue only for a query that names an audience', () => {
     expect(buildLookupQueryPlan('менингит', []).lookupTitleRescue).toBeUndefined();
     const rescue = buildLookupQueryPlan('менингит у ребенка', []).lookupTitleRescue;
