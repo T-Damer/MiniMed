@@ -444,6 +444,7 @@ function ZoomableTable(props: {
       <PinchZoomSurface
         class="document-rich-table__pinch"
         contentClass="document-rich-table__pinch-content"
+        zoomOptions={{ horizontalPan: true }}
         lightbox
       >
         <div class="document-rich-table__scroller">

@@ -37,6 +37,12 @@ export interface PinchZoomOptions {
   readonly doubleTapZoom?: boolean;
   /** The mouse (and, without a scrollport, one finger) drags the zoomed content. */
   readonly dragPan?: boolean;
+  /**
+   * The surface holds something that scrolls sideways by itself (a wide table): a finger may pan
+   * both ways, so the browser does not swallow the horizontal swipe. Two-finger pinch still comes
+   * through as pointer events.
+   */
+  readonly horizontalPan?: boolean;
 }
 
 /** What an image preview wants: wheel / pinch / double tap around the point, mouse drag to pan. */
@@ -102,6 +108,7 @@ export function usePinchZoom(options: PinchZoomOptions = {}): PinchZoomControls 
   const wheelMode = options.wheelZoom;
   const doubleTapZoom = options.doubleTapZoom === true;
   const dragPan = options.dragPan === true;
+  const horizontalPan = options.horizontalPan === true;
   let root: HTMLElement | undefined;
   let content: HTMLElement | undefined;
   let scale = PINCH_ZOOM_MIN;
@@ -448,7 +455,7 @@ export function usePinchZoom(options: PinchZoomOptions = {}): PinchZoomControls 
     element.style.touchAction =
       dragPan && !expandScrollPort
         ? 'none'
-        : expandScrollPort && !lockHorizontalPan
+        : (expandScrollPort && !lockHorizontalPan) || horizontalPan
           ? 'pan-x pan-y'
           : 'pan-y';
     element.addEventListener('pointerdown', onPointerDown);
