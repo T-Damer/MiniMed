@@ -137,8 +137,39 @@
   line-height: 1.45;
 }
 
-.ui-feature-card__details {
-  border-top: 1px solid var(--theme-border);
+.ui-feature-card__help {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: none;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--theme-border);
+  border-radius: 50%;
+  background: var(--theme-surface-raised);
+  color: var(--theme-text-muted);
+  cursor: pointer;
+  transition:
+    transform var(--motion-fast, 120ms) var(--motion-ease, ease),
+    background-color var(--motion-fast, 120ms) var(--motion-ease, ease);
+}
+
+.ui-feature-card__help:active {
+  transform: scale(0.96);
+}
+
+.ui-feature-card__help-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.ui-feature-card__help-panel {
+  max-width: min(28rem, calc(100vw - 2rem));
+  padding: 1rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.875rem;
+  background: var(--theme-surface-raised);
+  box-shadow: var(--shadow-paper);
 }
 
 .ui-feature-card__details-body {

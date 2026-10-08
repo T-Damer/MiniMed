@@ -1,7 +1,7 @@
-import { type JSX, Show } from 'solid-js';
+import { createSignal, type JSX, Show } from 'solid-js';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
-import { Disclosure } from '@/components/Disclosure';
+import { SheetPopover } from '@/components/SheetPopover';
 
 import '@/components/FeatureCard.css';
 
@@ -25,8 +25,13 @@ export interface FeatureCardProps {
   readonly children?: JSX.Element;
 }
 
-/** Card for an optional, downloadable capability: benefit, state, one clear action. */
+/**
+ * Card for an optional, downloadable capability: benefit, state, one clear action. The technical
+ * notes (`details`) open from a round «?» in the header, not as a section of the card.
+ */
 export function FeatureCard(props: FeatureCardProps): JSX.Element {
+  const [detailsOpen, setDetailsOpen] = createSignal(false);
+  const detailsTitle = (): string => props.detailsTitle ?? 'Подробнее';
   return (
     <section
       class={`ui-feature-card paper-sheet ${props.class ?? ''}`.trim()}
@@ -52,6 +57,21 @@ export function FeatureCard(props: FeatureCardProps): JSX.Element {
             {props.status}
           </span>
         </div>
+        <Show when={props.details}>
+          <SheetPopover
+            open={detailsOpen()}
+            onOpenChange={setDetailsOpen}
+            title={detailsTitle()}
+            triggerClass="ui-feature-card__help"
+            triggerLabel={detailsTitle()}
+            triggerTitle={detailsTitle()}
+            trigger={<AppGlyph name="question" class="ui-feature-card__help-icon" />}
+            contentClass="ui-feature-card__help-panel"
+            placement="bottom-end"
+          >
+            <div class="ui-feature-card__details-body">{props.details}</div>
+          </SheetPopover>
+        </Show>
       </header>
       <p class="ui-feature-card__summary">{props.summary}</p>
       <Show when={props.progress !== undefined}>
@@ -82,15 +102,6 @@ export function FeatureCard(props: FeatureCardProps): JSX.Element {
             {message()}
           </p>
         )}
-      </Show>
-      <Show when={props.details}>
-        <Disclosure
-          variant="inline"
-          class="ui-feature-card__details"
-          title={props.detailsTitle ?? 'Подробнее'}
-        >
-          <div class="ui-feature-card__details-body">{props.details}</div>
-        </Disclosure>
       </Show>
     </section>
   );

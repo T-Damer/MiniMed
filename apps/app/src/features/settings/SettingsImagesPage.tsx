@@ -49,9 +49,6 @@ export function SettingsImagesPage(): JSX.Element {
           </a>
         </li>
       </ul>
-      <p class="settings-subpage__hint">
-        Иллюстрации к статьям справочника: примеры, состав набора и загрузка.
-      </p>
       <PackagingImagesSettings />
       <section
         class="settings-section settings-section--experimental paper-sheet"

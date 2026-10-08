@@ -12,7 +12,7 @@ import {
 import { DownloadsPage } from '@/features/downloads/DownloadsPage';
 import { ClinicianProfileSettings } from '@/features/settings/ClinicianProfileSettings';
 import { ReferenceImagesPage } from '@/features/settings/ReferenceImagesPage';
-import { SettingsAiPage } from '@/features/settings/SettingsAiPage';
+import { SettingsAiHelp, SettingsAiPage } from '@/features/settings/SettingsAiPage';
 import { SettingsAppearancePage } from '@/features/settings/SettingsAppearancePage';
 import { SettingsDataPage } from '@/features/settings/SettingsDataPage';
 import {
@@ -95,7 +95,12 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
   };
   const pageHeading = (): 'h1' | 'h2' => (wide() ? 'h2' : 'h1');
 
-  const frame = (id: SettingsPageId, children: () => JSX.Element, testId?: string): JSX.Element => {
+  const frame = (
+    id: SettingsPageId,
+    children: () => JSX.Element,
+    testId?: string,
+    help?: () => JSX.Element,
+  ): JSX.Element => {
     const page = settingsPage(id);
     return (
       <SettingsSubpage
@@ -108,6 +113,7 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
         backLabel="К настройкам"
         headingLevel={pageHeading()}
         {...(testId ? { testId } : {})}
+        {...(help ? { help: help() } : {})}
       >
         {children()}
       </SettingsSubpage>
@@ -161,9 +167,16 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
                 )}
               </Match>
               <Match when={current() === 'ai'}>
-                {frame('ai', () => (
-                  <SettingsAiPage />
-                ))}
+                {frame(
+                  'ai',
+                  () => (
+                    <SettingsAiPage />
+                  ),
+                  undefined,
+                  () => (
+                    <SettingsAiHelp />
+                  ),
+                )}
               </Match>
               <Match when={current() === 'images'}>
                 {frame('images', () => (

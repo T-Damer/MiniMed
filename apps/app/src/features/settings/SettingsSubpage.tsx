@@ -18,6 +18,8 @@ export interface SettingsSubpageProps {
   /** `h1` when the page fills the screen, `h2` next to the list that owns the `h1`. */
   readonly headingLevel: 'h1' | 'h2';
   readonly testId?: string;
+  /** Explanations of the page: a round «?» in the header opens them. */
+  readonly help?: JSX.Element;
   readonly children: JSX.Element;
 }
 
@@ -50,6 +52,7 @@ export function SettingsSubpage(props: SettingsSubpageProps): JSX.Element {
           </Dynamic>
         }
         description={props.description}
+        {...(props.help !== undefined ? { help: props.help } : {})}
       />
       {props.children}
     </section>
