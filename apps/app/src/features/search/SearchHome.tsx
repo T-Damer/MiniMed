@@ -48,6 +48,7 @@ import { DefinitionReferencePanel } from '@/features/reference/DefinitionReferen
 import { sameDocumentList } from '@/features/search/document-list';
 import { HomeFeatureCard } from '@/features/search/HomeFeatureCard';
 import { homeDocumentOrder } from '@/features/search/homeDocumentOrder';
+import { distinctNavigationDocuments } from '@/features/search/navigation-documents';
 import {
   APP_FEATURE_AGE_SCOPE,
   APP_TOOL_IDS,
@@ -74,6 +75,7 @@ import {
   type SearchCoreStatus,
   searchCoreStatusHomeNoteVisible,
 } from '@/features/search/search-core-status';
+import { packOfferOwners, pointerModuleOf } from '@/features/search/search-pack-offers';
 import { searchSectionFromHash, searchSectionHash } from '@/features/search/search-section-route';
 import {
   matchingCatalogTools,
@@ -169,6 +171,13 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   );
   const documentsById = createMemo(
     () => new Map(documents().map((document) => [document.id, document])),
+  );
+  /** The result that carries each pack's download chip: a pack is offered once per list. */
+  const packOffers = createMemo(() =>
+    packOfferOwners(
+      resultDocumentIds(),
+      (documentId) => pointerModuleOf(documentsById().get(documentId), downloads.catalog())?.id,
+    ),
   );
   const downloadBlocks = createMemo(() => {
     downloads.preferenceRevision();
@@ -453,7 +462,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       if (!current) return;
       setCatalogLoading(false);
       if (result.ok) {
-        const next = preferReadableDocuments(result.value);
+        const next = distinctNavigationDocuments(preferReadableDocuments(result.value));
         if (!sameDocumentList(untrack(documents), next)) setDocuments(next);
         setCatalogError(undefined);
         prepareDocumentLinksWhenIdle(result.value);
@@ -828,6 +837,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
               <SearchResultModuleDownload
                 document={documentsById().get(group.documentId)}
                 downloads={downloads}
+                offerOwners={packOffers()}
               />
             ) : undefined
           }

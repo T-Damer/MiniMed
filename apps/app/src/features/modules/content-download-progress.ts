@@ -53,6 +53,50 @@ export function downloadProgressFraction(tasks: readonly ContentModuleDownloadTa
   return aggregateDownloadProgress(tasks) ?? CONTENT_DOWNLOAD_INDETERMINATE_PROGRESS;
 }
 
+/**
+ * What a download offer says about its tasks. `connecting` is a started download that has not
+ * received a byte yet, `installing` is everything after the last byte (checksum, decoding, commit).
+ */
+export type ContentDownloadPhase = 'queued' | 'connecting' | 'downloading' | 'installing';
+
+function taskPhase(task: ContentModuleDownloadTask): ContentDownloadPhase | null {
+  switch (task.state) {
+    case 'queued':
+      return 'queued';
+    case 'verifying':
+    case 'installing':
+      return 'installing';
+    case 'downloading':
+      if (task.totalBytes && task.totalBytes > 0 && task.downloadedBytes >= task.totalBytes) {
+        return 'installing';
+      }
+      return task.downloadedBytes > 0 ? 'downloading' : 'connecting';
+    default:
+      return null;
+  }
+}
+
+const PHASE_PRIORITY: readonly ContentDownloadPhase[] = [
+  'downloading',
+  'connecting',
+  'installing',
+  'queued',
+];
+
+/** The phase a group of tasks shows: bytes still moving win over a task that waits or installs. */
+export function contentDownloadPhase(
+  tasks: readonly ContentModuleDownloadTask[],
+): ContentDownloadPhase | null {
+  const phases = new Set(tasks.map(taskPhase));
+  return PHASE_PRIORITY.find((phase) => phases.has(phase)) ?? null;
+}
+
+/** A whole percent for a download in flight: «0%» only before the first byte, never «100%» before the end. */
+export function downloadPercent(fraction: number, receivedBytes: boolean): number {
+  const percent = Math.floor(Math.max(0, Math.min(1, fraction)) * 100);
+  return Math.min(99, receivedBytes ? Math.max(1, percent) : percent);
+}
+
 export function downloadNavPieBackground(progress: number, failed: boolean): string {
   const clamped = Math.max(0, Math.min(1, progress));
   const degrees = clamped * 360;

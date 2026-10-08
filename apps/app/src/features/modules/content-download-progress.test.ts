@@ -4,7 +4,9 @@ import { describe, expect, it } from 'vitest';
 import {
   activeContentDownloadTasks,
   aggregateDownloadProgress,
+  contentDownloadPhase,
   downloadNavPieBackground,
+  downloadPercent,
   downloadProgressFraction,
   hasActiveContentDownloads,
   latestVisibleDownloadTasks,
@@ -111,5 +113,46 @@ describe('downloadNavPieBackground', () => {
   it('uses a danger fill when the batch needs attention', () => {
     expect(downloadNavPieBackground(0.5, true)).toContain('var(--theme-danger');
     expect(downloadNavPieBackground(0.5, false)).toContain('#e8c654');
+  });
+});
+
+describe('contentDownloadPhase', () => {
+  const base = { id: 't', moduleId: 'm', totalBytes: 1000 } as const;
+
+  it('names a download without bytes «connecting», not 0%', () => {
+    expect(contentDownloadPhase([task({ ...base, state: 'downloading' })])).toBe('connecting');
+    expect(
+      contentDownloadPhase([task({ ...base, state: 'downloading', downloadedBytes: 10 })]),
+    ).toBe('downloading');
+  });
+
+  it('calls everything after the last byte installing', () => {
+    expect(
+      contentDownloadPhase([task({ ...base, state: 'downloading', downloadedBytes: 1000 })]),
+    ).toBe('installing');
+    expect(
+      contentDownloadPhase([task({ ...base, state: 'verifying', downloadedBytes: 1000 })]),
+    ).toBe('installing');
+    expect(contentDownloadPhase([task({ ...base, state: 'installing' })])).toBe('installing');
+  });
+
+  it('lets moving bytes win over waiting and installing tasks', () => {
+    expect(
+      contentDownloadPhase([
+        task({ ...base, id: 'a', moduleId: 'a', state: 'queued' }),
+        task({ ...base, id: 'b', moduleId: 'b', state: 'installing' }),
+        task({ ...base, id: 'c', moduleId: 'c', state: 'downloading', downloadedBytes: 5 }),
+      ]),
+    ).toBe('downloading');
+    expect(contentDownloadPhase([task({ ...base, state: 'completed' })])).toBeNull();
+  });
+});
+
+describe('downloadPercent', () => {
+  it('moves off 0% with the first bytes and stops short of 100%', () => {
+    expect(downloadPercent(0.0004, true)).toBe(1);
+    expect(downloadPercent(0, false)).toBe(0);
+    expect(downloadPercent(0.5, true)).toBe(50);
+    expect(downloadPercent(1, true)).toBe(99);
   });
 });

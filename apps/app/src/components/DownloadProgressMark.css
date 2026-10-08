@@ -25,6 +25,17 @@
   background: none;
 }
 
+.download-progress-mark--busy {
+  animation: spin 900ms linear infinite;
+}
+
+.download-progress-mark--done {
+  --download-progress-mark-done: var(--theme-accent);
+  border-color: var(--download-progress-mark-done);
+  color: var(--theme-accent-contrast);
+  background: var(--download-progress-mark-done);
+}
+
 .download-progress-mark__glyph {
   width: 72%;
   height: 72%;
