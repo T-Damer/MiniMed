@@ -24,8 +24,9 @@ no model):
   Each block keeps the exact reader anchor of its chunk and the field of the КР (МКБ-10 chapter).
 - `kim_definitions.py`: the first sentence of the «Краткое описание» lead of every Красота и медицина
   disease/syndrome article («**Термин** – …», reader anchor, page rubric = field), and of the symptom
-  pages of the crawl (the page itself is the source link; the 2026-09-28 owner decision covers
-  disease articles only, so the symptom shard needs an owner decision before publishing).
+  pages of the crawl (the page itself is the source link; the owner decision of 2026-10-08 extends the
+  2026-09-28 disease-article decision to the symptom pages on the same terms, see
+  `REFERENCE_SOURCE_POLICY.md`).
 - `definition_senses.py` + `sense_usage.py`: for every headword with two or more differently worded
   definitions, each sense gets `field`, `meaning`, `documents` (independent sources of that meaning),
   `authority` (3 КР «Термины и определения», 2 other official/specialist works, 1 reference sites,
@@ -76,10 +77,10 @@ decides nothing, and `resetDoctorProfile()` forgets everything. Not yet fed: ope
 and installed section bundles (`fieldForSpecialty` maps a specialty name to a field id) and no
 Settings row — both belong to other owners' screens.
 
-**Publishing needs:** the owner's OK for the symptom pages; a core rebuild
+**Published 2026-10-08 (STATE DEF4 in CURRENT_STATE.md).** What publishing needed: the owner's OK for the symptom pages (given); a core rebuild
 (`bun run content:core:build`, reference track) so `core_identities` points at the new entries;
-`.db.zst` framing and the upload (`docs/RELEASES.md`), a catalog entry (`minAppVersion` 0.6.41 is
-enough, the card needs the new app); the Красота и медицина module for its reader anchors.
+`.db.zst` framing and the upload (`docs/RELEASES.md`), a catalog entry (published with `minAppVersion` 0.6.57: the core identities pin the
+edition, so dictionary and core ship with the same app; zstd alone needs 0.6.45); the Красота и медицина module for its reader anchors.
 Rebuild: `uv run --project tools/ingest python -m localmed_ingest.definition_candidate …` then
 `scripts/prepare-definition-reference.py --source-manifest content/definition-drafts/<tag>/source-inputs.json`.
 

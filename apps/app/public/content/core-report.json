@@ -1,6 +1,6 @@
 {
-  "builtAt": "2026-10-02T00:00:00Z",
-  "coreBuildVersion": "0.6.47",
+  "builtAt": "2026-10-08T12:00:00Z",
+  "coreBuildVersion": "0.6.57",
   "documents": 20002,
   "sections": 57264,
   "chunks": 57276,
@@ -9,39 +9,39 @@
   "embeddings": 0,
   "warnings": [],
   "errors": [],
-  "outputChecksum": "sha256:8e6fe3bf5874c63b0df0e260fccf0905c6af1ac06e8b93ea5039a2f6ad1318d4",
+  "outputChecksum": "sha256:56ca3ba79539180790257e22f294d6aead0402043b998989375d8db54246cdeb",
   "sqliteIntegrity": "ok",
   "foreignKeyViolations": 0,
-  "outputSizeBytes": 441597952,
+  "outputSizeBytes": 445677568,
   "sqlitePageSizeBytes": 16384,
   "sourceChecksums": {
-    "editionManifest": "sha256:f4697eca36588297b8d3a9d62bb7b0ed80ee559b02441a3a41510fd03585bf80",
-    "identityReport": "sha256:6b2db3bc3a16ec1fc932d67f8c2e007965478e2a99215c6c7744ef7f78567c05"
+    "editionManifest": "sha256:3093413c348e2ab6a8358733a2b7a39e414bdfab02a1f891b335c6bedfb9aa23",
+    "identityReport": "sha256:65e8fb37ed9933bbd74d6f2ef20501657a48424a09d9755f05c83f9152ab2b11"
   },
   "coreIdentityIndex": {
     "migration": 11,
-    "inputChecksum": "sha256:03b3667aa987eee054c1296607ed93e0f4a113787c45b5589b9b0b649f1f2438",
-    "outputChecksum": "sha256:8e6fe3bf5874c63b0df0e260fccf0905c6af1ac06e8b93ea5039a2f6ad1318d4",
-    "identities": 31599,
-    "targets": 31508,
+    "inputChecksum": "sha256:f3df8b9f3ff7dafb3a54142a4c1b1dcbc942d7c180da564ed1278226d574e163",
+    "outputChecksum": "sha256:56ca3ba79539180790257e22f294d6aead0402043b998989375d8db54246cdeb",
+    "identities": 44269,
+    "targets": 38592,
     "skippedDocuments": 54
   },
   "distributions": {
     "browser": {
-      "checksum": "sha256:8e6fe3bf5874c63b0df0e260fccf0905c6af1ac06e8b93ea5039a2f6ad1318d4",
-      "compressedChecksum": "sha256:a5d0e3b5dfc418c4208c171d365afc03a956fae75bd5ddeee3b956ae814392c5",
-      "compressedSizeBytes": 76268794,
+      "checksum": "sha256:56ca3ba79539180790257e22f294d6aead0402043b998989375d8db54246cdeb",
+      "compressedChecksum": "sha256:8033cf48189a3b6aad2264f1bd495b5a992d0bffe2825afe802c0e75405d00c2",
+      "compressedSizeBytes": 75935899,
       "pageSizeBytes": 16384
     },
     "android": {
-      "url": "https://github.com/T-Damer/MiniMed/releases/download/core-0.6.47/core.db.gz",
+      "url": "https://github.com/T-Damer/MiniMed/releases/download/core-0.6.57/core.db.gz",
       "compression": "gzip",
-      "transferSha256": "sha256:a5d0e3b5dfc418c4208c171d365afc03a956fae75bd5ddeee3b956ae814392c5",
-      "transferSizeBytes": 76268794,
-      "checksum": "sha256:8e6fe3bf5874c63b0df0e260fccf0905c6af1ac06e8b93ea5039a2f6ad1318d4",
-      "sizeBytes": 441597952,
+      "transferSha256": "sha256:8033cf48189a3b6aad2264f1bd495b5a992d0bffe2825afe802c0e75405d00c2",
+      "transferSizeBytes": 75935899,
+      "checksum": "sha256:56ca3ba79539180790257e22f294d6aead0402043b998989375d8db54246cdeb",
+      "sizeBytes": 445677568,
       "pageSizeBytes": 16384,
-      "rawUrl": "https://github.com/T-Damer/MiniMed/releases/download/core-0.6.47/MiniMed-0.6.47-core.db"
+      "rawUrl": "https://github.com/T-Damer/MiniMed/releases/download/core-0.6.57/MiniMed-0.6.57-core.db"
     }
   }
 }

@@ -202,7 +202,7 @@
       "consumers": ["bun run content:core:build (scripts/build-core.mjs) (pointers-build)"],
       "rebuild": "bun run content:core:build (scripts/build-core.mjs)",
       "bytes": 91705612,
-      "modified": "2026-10-02"
+      "modified": "2026-10-08"
     },
     {
       "path": "data/build/core-pointers-base.db",
@@ -210,8 +210,8 @@
       "producer": "bun run content:core:build (scripts/build-core.mjs) stage pointers-build",
       "consumers": ["bun run content:core:build (scripts/build-core.mjs) (finalize)"],
       "rebuild": "bun run content:core:build (scripts/build-core.mjs)",
-      "bytes": 267395072,
-      "modified": "2026-10-02"
+      "bytes": 267624448,
+      "modified": "2026-10-08"
     },
     {
       "path": "data/build/core-medication-pointers-pinned.db",
@@ -220,7 +220,7 @@
       "consumers": ["bun run content:core:build (scripts/build-core.mjs) (finalize)"],
       "rebuild": "bun run content:core:build (scripts/build-core.mjs) (~14 s)",
       "bytes": 65372160,
-      "modified": "2026-10-02"
+      "modified": "2026-10-08"
     },
     {
       "path": "data/build/diseases.db",
@@ -268,10 +268,16 @@
       "path": "data/build/definition-reference",
       "class": "RELEASED",
       "producer": "scripts/prepare-definition-reference.py",
-      "consumers": ["apps/app/src/features/modules/local-definition-reference.ts (DEV)"],
-      "release": "definition-reference-2026.9.27, definition-reference-2026.9.30 (catalog uses .db.zst)",
-      "bytes": 217639776,
-      "modified": "2026-09-29"
+      "consumers": [
+        "apps/app/src/features/modules/local-definition-reference.ts (DEV)",
+        "scripts/build-core.mjs (identityDefinitions: 2026.10.08 .db.gz)",
+        "apps/app/e2e/core-identities-fixture.ts",
+        "tools/benchmarks/src/run-sense-ranking.ts, run-core-coverage.ts"
+      ],
+      "release": "definition-reference-2026.9.27, definition-reference-2026.9.30, definition-reference-2026.10.08 (catalog uses .db.zst; .db.gz kept)",
+      "bytes": 535880637,
+      "modified": "2026-10-08",
+      "rebuild": "2026.10.08: docs/CURRENT_STATE.md «Definitions dictionary 2026.10.08» (definition_candidate with tag candidate-2026.10.08, then prepare-definition-reference.py, then scripts/lib/zstd-module-archive.ts framing); or gh release download definition-reference-2026.10.08"
     },
     {
       "path": "data/build/grls-instruction-modules",
@@ -372,8 +378,8 @@
       "consumers": ["app DEV/build", ".github/workflows/*"],
       "release": "v0.6.37-v0.6.44 MiniMed-*-core.db",
       "note": "Never delete or replace by hand (AGENTS.md, docs/RELEASES.md).",
-      "bytes": 441597952,
-      "modified": "2026-10-02"
+      "bytes": 445677568,
+      "modified": "2026-10-08"
     },
     {
       "path": "apps/app/public/content/mkb.db",
@@ -384,8 +390,8 @@
         "benchmark:real:release (docs/RELEASES.md step 6)"
       ],
       "release": "v0.6.19 (mkb.db)",
-      "bytes": 1501626368,
-      "modified": "2026-08-15",
+      "bytes": 65,
+      "modified": "2026-10-08",
       "note": "Kept: the release benchmark needs every companion pack. Restorable from the v0.6.19 release asset."
     },
     {
@@ -394,8 +400,8 @@
       "producer": "bun run content:publish:ambulatory",
       "consumers": ["DEV ambulatory companion"],
       "release": "v0.6.13 (ambulatory.db)",
-      "bytes": 238510080,
-      "modified": "2026-08-09"
+      "bytes": 72,
+      "modified": "2026-10-08"
     },
     {
       "path": "apps/app/public/content/medications.db",
@@ -406,8 +412,8 @@
         "data/build/medications-unified.db (compose input)"
       ],
       "rebuild": "medbase prepare-allmed-medications + medbase build (Allmed snapshot needed)",
-      "bytes": 514322432,
-      "modified": "2026-09-01"
+      "bytes": 73,
+      "modified": "2026-10-08"
     },
     {
       "path": "apps/app/public/content/reference-images",
@@ -415,8 +421,8 @@
       "producer": "reference image pack",
       "consumers": ["DEV reference image assets"],
       "release": "v0.6.34 reference-images.tar.gz + branch datasets/content-2026-09-06",
-      "bytes": 482740515,
-      "modified": "2026-09-07"
+      "bytes": 4455106,
+      "modified": "2026-10-08"
     },
     {
       "path": "model-mirror/Giga-Embeddings-instruct-480M-0826-Q8_0.gguf",
@@ -424,9 +430,7 @@
       "producer": "local Q8_0 conversion of GigaEmbeddings",
       "consumers": ["GigaEmbeddings benchmark"],
       "rebuild": "re-convert from the public Hugging Face weights",
-      "note": "No hosted immutable copy yet (docs/CURRENT_STATE.md).",
-      "bytes": 520209504,
-      "modified": "2026-08-25"
+      "note": "No hosted immutable copy yet (docs/CURRENT_STATE.md)."
     },
     {
       "path": "output/release-rls-mkb-2026.9.30",
@@ -460,22 +464,6 @@
       "note": "Build input of core 0.6.47 (pilot-free, with the 2026-10-02 clinical editions).",
       "bytes": 2144260096,
       "modified": "2026-10-02"
-    },
-    {
-      "path": "output/release-core-0.6.45",
-      "class": "RELEASED",
-      "producer": "Deterministic content:core:build stages and checksum-verified core release staging",
-      "consumers": [
-        "Browser bundled core",
-        "Paired Android0.6.45 core",
-        "Native search parity",
-        "Offline rollback"
-      ],
-      "rebuild": "gh release download core-0.6.45",
-      "note": "Previous core, kept for rollback while 0.6.47 is the current core. Contains the 15 retired pilot documents.",
-      "bytes": 524658294,
-      "modified": "2026-09-30",
-      "release": "core-0.6.45"
     },
     {
       "path": "output/module-zstd-2026-10-01",
@@ -571,13 +559,9 @@
       "path": "output/release-core-0.6.47",
       "class": "RELEASED",
       "producer": "scripts/build-core.mjs finalize, gzip -9 -n, scripts/write-core-report.mjs",
-      "consumers": [
-        "Browser bundled core (content/bundled/core.db.gz)",
-        "Android first-launch download (core.db.gz)",
-        "Offline rollback to 0.6.45 is output/release-core-0.6.45"
-      ],
+      "consumers": ["Offline rollback to 0.6.47 (the 0.6.45 copy was removed 2026-10-08)"],
       "rebuild": "gh release download core-0.6.47",
-      "note": "Current core: pilot-free, +30 clinical edition pointers, 11 replaced editions superseded and linked to successors.",
+      "note": "Previous core, kept for rollback while 0.6.57 is the current core.",
       "bytes": 525375692,
       "modified": "2026-10-02",
       "release": "core-0.6.47"
@@ -627,16 +611,32 @@
       "modified": "2026-10-06"
     },
     {
-      "path": "data/build/definitions-ux13",
-      "class": "REBUILDABLE",
-      "producer": "python -m localmed_ingest.definition_candidate, then scripts/prepare-definition-reference.py --source-manifest (UX13 candidate dictionary 2026.10.08, not published)",
+      "path": "output/release-core-0.6.57",
+      "class": "RELEASED",
+      "producer": "scripts/build-core.mjs finalize, scripts/compress-module-index.mjs (gzip -9), scripts/write-core-report.mjs",
       "consumers": [
-        "apps/app/e2e/core-identities-fixture.ts (the «Депрессия» case)",
-        "tools/benchmarks/src/run-sense-ranking.ts"
+        "Browser bundled core (content/bundled/core.db.gz)",
+        "Android first-launch download (core.db.gz)",
+        "Offline rollback to 0.6.47 is output/release-core-0.6.47"
       ],
-      "rebuild": "docs/DEFINITION_REFERENCE_PLAN.md, section «Senses, КР glossary coverage and the definition card»: about 5 minutes over data/raw/official-clinical-documents and data/build/krasotaimedicina-module; the candidate source directory under content/definition-drafts is deleted after the build.",
-      "note": "The installed .db (237 MB) and its .db.gz (52 MB) of edition 2026.10.08; delete once a published edition supersedes it.",
-      "bytes": 290437286,
+      "rebuild": "gh release download core-0.6.57",
+      "note": "Current core: documents identical to 0.6.47, identity index points at dictionary 2026.10.08.",
+      "bytes": 529122413,
+      "modified": "2026-10-08",
+      "release": "core-0.6.57"
+    },
+    {
+      "path": "data/build/core.0.6.57.db",
+      "class": "REBUILDABLE",
+      "producer": "scripts/build-core.mjs stage finalize",
+      "consumers": [
+        "output/release-core-0.6.57",
+        "benchmark:real:release --core=",
+        "apps/app/public/content/core.db"
+      ],
+      "rebuild": "CORE_BUILD_VERSION=0.6.57 CORE_BUILT_AT=2026-10-08T12:00:00Z bun run content:core:build",
+      "note": "Build output of the published core 0.6.57 (same bytes as the release asset).",
+      "bytes": 445677568,
       "modified": "2026-10-08"
     }
   ]

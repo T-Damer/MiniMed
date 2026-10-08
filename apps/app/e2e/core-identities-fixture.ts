@@ -24,7 +24,7 @@ from localmed_ingest.sqlite_builder import write_sqlite_pack
 from localmed_ingest.models import ContentPack
 from copy import deepcopy
 root, directory = map(Path, sys.argv[1:])
-source = root / 'data/build/definition-reference/2026.9.30/minimed.definition.reference.2026.9.30.db.gz'
+source = root / 'data/build/definition-reference/2026.10.08/minimed.definition.reference.2026.10.08.db.gz'
 entries, blocks, sources, expected = [], [], [], []
 # Ranking signals: the first meaning is a rare traumatology one, the second the widely used one.
 senses = [
@@ -57,9 +57,9 @@ with _source_database(source) as db:
     if len(rows) != 2:
         raise ValueError('Real source must provide two distinct НА meanings')
     take(db, rows, lambda _, index: senses[index])
-# The candidate edition's real «Депрессия» senses (КР fracture pattern, mood disorder of the site),
-# with the ranking signals the build measured, when that local edition exists.
-candidate = root / 'data/build/definitions-ux13/2026.10.08/minimed.definition.reference.2026.10.08.db'
+# The edition's real «Депрессия» senses (КР fracture pattern, mood disorder of the site), with the
+# ranking signals the build measured, when the uncompressed edition exists locally.
+candidate = root / 'data/build/definition-reference/2026.10.08/minimed.definition.reference.2026.10.08.db'
 if candidate.exists():
     with _source_database(candidate) as db:
         rows = db.execute("""SELECT e.id,e.canonical_name,e.entity_type,
@@ -134,7 +134,12 @@ export async function prepareCoreIdentityFixture() {
     title: 'Проверочная редакция словаря',
     sourceSetDigest,
     sizes: { downloadBytes: database.length, installedBytes: database.length, precision: 'exact' },
-    compatibility: { ...(original['compatibility'] as Record<string, unknown>), schemaVersion: 7 },
+    // The published entry needs the app release that ships its core; the fixture runs on any build.
+    compatibility: {
+      ...(original['compatibility'] as Record<string, unknown>),
+      minAppVersion: '0.6.41',
+      schemaVersion: 7,
+    },
     artifacts: [
       {
         id: 'reference-index',

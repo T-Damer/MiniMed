@@ -4,11 +4,11 @@
 // verifies the decoded checksum, so a damaged or truncated archive never becomes an installed core.
 // The raw `MiniMed-*-core.db` asset of the same release stays published for older app builds.
 export const ANDROID_CORE_DOWNLOAD = {
-  url: 'https://github.com/T-Damer/MiniMed/releases/download/core-0.6.47/core.db.gz',
+  url: 'https://github.com/T-Damer/MiniMed/releases/download/core-0.6.57/core.db.gz',
   compression: 'gzip',
-  transferSha256: 'sha256:a5d0e3b5dfc418c4208c171d365afc03a956fae75bd5ddeee3b956ae814392c5',
-  transferSizeBytes: 76_268_794,
-  checksum: 'sha256:8e6fe3bf5874c63b0df0e260fccf0905c6af1ac06e8b93ea5039a2f6ad1318d4',
+  transferSha256: 'sha256:8033cf48189a3b6aad2264f1bd495b5a992d0bffe2825afe802c0e75405d00c2',
+  transferSizeBytes: 75_935_899,
+  checksum: 'sha256:56ca3ba79539180790257e22f294d6aead0402043b998989375d8db54246cdeb',
 } as const;
 
 /**

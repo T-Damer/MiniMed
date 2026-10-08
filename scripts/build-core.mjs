@@ -90,7 +90,7 @@ const identityInputs = {
   identityCatalog: resolve(root, 'apps/app/src/features/modules/catalog.preview.json'),
   identityDefinitions: resolve(
     buildDir,
-    'definition-reference/2026.9.30/minimed.definition.reference.2026.9.30.db.gz',
+    'definition-reference/2026.10.08/minimed.definition.reference.2026.10.08.db.gz',
   ),
   identityDocuments: ['reference', 'regulatory', 'ambulatory'].map((name) =>
     resolve(root, `apps/app/public/content/${name}.db`),

@@ -90,6 +90,28 @@ publication decision, not a rights clearance or a clinical review:
 
 The module is `minimed.reference.krasotaimedicina.ru`. The decision covers this source only.
 
+## User decision 2026-10-08: Krasota i Meditsina symptom pages (dictionary definitions)
+
+The project owner approved publishing the new definitions dictionary (edition 2026.10.08) and,
+with it, extended the 2026-09-28 decision above to the **symptom pages** of the same
+krasotaimedicina.ru crawl, on the same terms. As before this is an owner publication decision, not a
+rights clearance or a clinical review:
+
+- the dictionary takes only the first sentence of the «Краткое описание» lead of a symptom page as a
+  short attributed definition (`kim_definitions.extract_symptoms`; 320 of 544 symptom pages have such a
+  lead), with the page itself as the source link (the symptom pages are not part of the downloadable
+  disease module, so there is no reader anchor); diagnostics and treatment pages of the crawl have no
+  lead and are not terms;
+- the crawl's classification is kept (`rightsStatus: unresolved`, `crawlPublicationState: blocked`),
+  together with the source URL, `fetchedAt`, raw path and checksum; entries stay
+  `requiresReview: true` and the edition remains an experimental preview shown only while
+  experimental modules are enabled; the app labels non-official sources «черновик»;
+- raw crawl files are unchanged, nothing is summarised or harmonised, and a symptom definition never
+  replaces or outranks a clinical-recommendation definition by itself (the sense ranking weighs source
+  authority; reference sites rank below official works).
+
+The decision covers this source and this use only.
+
 ## User decision 2026-09-28: RLS MKB-10 pages
 
 The project owner also decided to distribute the 2026-08-14 RLS (rlsnet.ru) MKB-10 snapshot as

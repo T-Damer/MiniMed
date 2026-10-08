@@ -68,7 +68,7 @@ const SOURCES = {
   grlsLedger: resolve(ROOT, 'data/build/official-grls-coverage-ledger.json'),
   definitionReference: resolve(
     ROOT,
-    'data/build/definition-reference/2026.9.30/minimed.definition.reference.2026.9.30.db',
+    'data/build/definition-reference/2026.10.08/minimed.definition.reference.2026.10.08.db',
   ),
 } as const;
 
@@ -808,7 +808,7 @@ if (existsSync(SOURCES.definitionReference)) {
     inventoryRow(
       category,
       label,
-      'definition reference 2026.9.30 (preview module)',
+      'definition reference 2026.10.08 (preview module)',
       items.map((entry) => ({
         name: entry.canonical_name,
         inCore: inCoreIdentity(entry.canonical_name),
@@ -833,7 +833,7 @@ if (existsSync(SOURCES.definitionReference)) {
       })),
     );
   }
-} else notMeasured.push('Definition reference: data/build/definition-reference/2026.9.30 missing');
+} else notMeasured.push('Definition reference: data/build/definition-reference/2026.10.08 missing');
 
 // Reference packs (pediatric norms, ambulatory)
 for (const [key, label, shipped] of [

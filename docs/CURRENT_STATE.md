@@ -96,6 +96,57 @@ Owner screenshots and requests of 2026-10-08, applied by eight Sonnet worktree a
 Not tested in this batch: physical Android/iOS devices, native Keychain/Keystore, Safari/WebKit, real
 GigaAM/Whisper downloads, real printers.
 
+## Definitions dictionary 2026.10.08 and core 0.6.57 — 2026-10-08 (STATE DEF4)
+
+Owner approved on 2026-10-08 («Publish»), including the Красота и медицина symptom pages on the terms of the
+2026-09-28 disease-article decision (`REFERENCE_SOURCE_POLICY.md`). Data published; the app release is **not** cut.
+
+**Dictionary 2026.10.08.** Rebuilt from committed tooling (`definition_candidate` with tag `candidate-2026.10.08`, then
+`scripts/prepare-definition-reference.py --version 2026.10.08 --built-at 2026-10-08T12:00:00Z --publication-state
+experimental-preview`): the source manifest (sha256 `2de20659…`), the SQLite, the gzip, the catalog entry and the build
+report are **byte-identical** to the UX13 candidate, so the build is reproducible. The shard directory (74 MB) is a
+build input, not committed; it is regenerated from `data/raw` by the first command and deleted after the build.
+38 572 entries (15 669 clinical definitions, 8 369 abbreviations, 6 939 lexical glosses, 7 595 names to complete),
+237 481 984 B installed, sha256 `4580dd8b…`. Verified: SQLite integrity ok, 0 foreign-key violations, 46 387 content rows =
+46 387 FTS rows, `verify-definition-reference.ts` (all 31 315 source name surfaces resolve), sense benchmark 6 of 6 authored
+cases (the first sense of «Депрессия» is the mood disorder, psychiatry), every entity/link/chunk checked against the
+validation rules of the v0.6.56 reader (0 violations, metadata ≤ 2 857 characters).
+- Published as the data prerelease `definition-reference-2026.10.08` (new tag, nothing overwritten):
+  `minimed.definition.reference.2026.10.08.db.zst` 27 800 502 B sha256 `208c1e77d0023fb47c82cda9de35edc0823f58a96d45d797d33223d6ac5c7726`
+  (framed zstd, decoded again with the app's reader and the reference `zstd` CLI), `.db.gz` 52 275 358 B
+  `bf888f98…` (kept for rollback), the build report and `verify-report.json`. The Pages build mirrors the `.zst` from
+  the catalog (the tag matches `MIRRORED_DATA_RELEASE_TAG`); the mirror exists only after the next Pages deploy.
+- Catalog: `minimed.definition.reference.ru` 2026.10.08, zstd, **`minAppVersion` 0.6.57**. Old readers tolerate the new
+  `sense` metadata (they select only named keys) and zstd needs ≥ 0.6.45, but the core identities pin the edition id:
+  an older core (edition 2026.9.30) paired with the new catalog entry gets no navigable dictionary hit, so the new
+  dictionary and core 0.6.57 are released together. The 2026.9.30 entry's own `minAppVersion` 0.6.41 was already below
+  the zstd floor; it is replaced. `catalogVersion` `definitions-2026.10.08.kr4-appendix-headings.2026.10.08`, `publishedAt`
+  2026-10-08T17:40:00Z (after KR4); `catalog.shell.json` and `section-manifest.json` regenerated.
+
+**Core 0.6.57** (`CORE_BUILD_VERSION=0.6.57 CORE_BUILT_AT=2026-10-08T12:00:00Z bun run content:core:build`, identity
+inputs now the 2026.10.08 dictionary). Documents, sections, chunks and aliases are byte-identical to core 0.6.47
+(20 002 / 57 264 / 57 276 / 62 960; compared row by row); only the exact-name identity index changed: 31 599 names /
+31 508 targets → 44 269 / 38 592 (the 38 572 dictionary entities + 20 documents). 445 677 568 B (+4.1 MB), `core.db.gz`
+75 935 899 B (Node gzip level 9), page size 16 KiB, integrity ok, 0 FK violations, FTS 57 276 = chunks. Built against
+the KR4 catalog (rebuilt after rebasing onto it: identical output checksum, the core does not depend on the КР module
+set). Published as the prerelease `core-0.6.57` (`core.db.gz`, `MiniMed-0.6.57-core.db`, `core-report.json`,
+`core.manifest.json`; `core-0.6.47` stays for rollback). `content/bundled/core.db.gz`, `apps/app/public/content/core-report.json`
+and `ANDROID_CORE_DOWNLOAD` point at it; db sha256 `56ca3ba7…`, archive `8033cf48…`.
+
+**Checks.** `benchmark:all` and `benchmark:real:release` within tolerance (baseline unchanged), typecheck, `python:check`
+(1 357 tests, ruff, pyright), vitest 9 141 passed (one KnowledgeGraph layout test hit its 5 s limit on a machine at load 25
+and passes alone with a longer limit), Playwright `core-identities` and `experimental-reference` (6 of 6) against the
+rebuilt core on `E2E_PORT=4194`. The e2e fixture now reads the 2026.10.08 files and sets its own `minAppVersion`.
+
+**The app release must include:** version 0.6.57 (the dictionary entry requires it) with the already committed core
+files; push of `main` so that Pages deploys the `.zst` mirror (check `…/app/content/releases/definition-reference-2026.10.08/…db.zst`
+for size, sha256 and `access-control-allow-origin: *` once deployed); the Pages size budget grows by 9 MB (27.8 MB
+replaces the 18.8 MB of 2026.9.30).
+
+**Not verified:** the Pages mirror and its CORS (needs the deploy), Android download/install of the new gzip core and of the
+zstd dictionary on a device, any older app build against the new entry (reader rules checked in code only), a
+physician review of any text.
+
 ## КР appendix headings republished — 2026-10-08 (STATE KR4)
 
 Owner OK 2026-10-08: rebuild and publish the clinical-recommendation modules touched by extractor revision 4

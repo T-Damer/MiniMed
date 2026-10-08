@@ -1,6 +1,6 @@
 {
-  "catalogVersion": "kr4-appendix-headings.2026.10.08",
-  "publishedAt": "2026-10-08T17:05:00Z",
+  "catalogVersion": "definitions-2026.10.08.kr4-appendix-headings.2026.10.08",
+  "publishedAt": "2026-10-08T17:40:00Z",
   "coreModule": {
     "id": "minimed.core.ru",
     "version": "1.0.0-preview.8",
