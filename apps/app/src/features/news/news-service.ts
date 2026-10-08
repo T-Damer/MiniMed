@@ -1,4 +1,13 @@
+import { extractArticle } from '@/features/news/article-extract';
 import { FeedParseError, type ParsedFeed, parseFeed } from '@/features/news/feed-parser';
+import {
+  createCanvasIconShrinker,
+  fetchSourceIcon,
+  ICON_RETRY_AFTER_MS,
+  type IconShrinker,
+  iconKeyFor,
+  isStoredIconData,
+} from '@/features/news/news-icons';
 import {
   countUnread,
   markItemsRead,
@@ -20,6 +29,8 @@ import {
   type NewsItem,
   type NewsLimits,
   PUBMED_ITEM_WINDOWS,
+  type StoredArticle,
+  type StoredIcon,
   type Subscription,
 } from '@/features/news/news-types';
 import {
@@ -39,6 +50,7 @@ import {
   hostLabel,
   pageTitleOf,
 } from '@/features/news/source-url';
+import { bundledAvatarFor } from '@/features/news/suggested-avatars';
 
 export interface NewsSnapshot {
   readonly loaded: boolean;
@@ -49,6 +61,8 @@ export interface NewsSnapshot {
   readonly items: readonly NewsItem[];
   readonly refreshing: ReadonlySet<string>;
   readonly unread: number;
+  /** Fetched avatars (data URLs) by site host; a source without one draws a monogram. */
+  readonly icons: Readonly<Record<string, string>>;
 }
 
 export type SourceInspection =
@@ -71,6 +85,14 @@ export interface SubscribeMeta {
   readonly suggestedId?: string;
   /** Start with the source's remote images switched on (suggested sources measured to carry them). */
   readonly images?: boolean;
+  /** An avatar already fetched for the preview (a data URL), kept with the subscription. */
+  readonly icon?: string;
+}
+
+/** A downloaded page: what the article view and the «as on the site» view both read. */
+export interface FetchedPage {
+  readonly html: string;
+  readonly finalUrl: string;
 }
 
 export interface RefreshReport {
@@ -88,9 +110,18 @@ export interface NewsServiceDeps {
   readonly limits?: NewsLimits;
   /** PubMed search; defaults to E-utilities through `transport`, rate-limited. */
   readonly pubmed?: PubmedClient;
+  /**
+   * Whether subscribing and refreshing also fetch the sites' avatars (one extra page request per
+   * source, then the icon). The app turns it on; it is off where a test counts requests.
+   */
+  readonly fetchIcons?: boolean;
+  /** Re-encodes a downloaded icon small; the browser's canvas by default. */
+  readonly shrinkIcon?: IconShrinker | undefined;
 }
 
 const REFRESH_CONCURRENCY = 3;
+/** Pages kept in memory so «as on the site» after the article costs no second request. */
+const PAGE_CACHE_ENTRIES = 3;
 
 function failureOf(error: unknown): { code: FetchFailureCode; message: string } {
   if (error instanceof FeedFetchError) {
@@ -122,6 +153,12 @@ export class NewsService {
   private loaded = false;
   private itemsLoaded = false;
   private current: NewsSnapshot;
+  private readonly fetchIcons: boolean;
+  private readonly shrinkIcon: IconShrinker | undefined;
+  private icons: Readonly<Record<string, StoredIcon>> = {};
+  private iconView: Readonly<Record<string, string>> = {};
+  private iconRun: Promise<void> | undefined;
+  private readonly pages = new Map<string, FetchedPage>();
 
   constructor(deps: NewsServiceDeps) {
     this.storage = deps.storage;
@@ -131,6 +168,8 @@ export class NewsService {
       deps.online ?? (() => (typeof navigator === 'undefined' ? true : navigator.onLine));
     this.limits = deps.limits ?? DEFAULT_NEWS_LIMITS;
     this.pubmed = deps.pubmed ?? createPubmedClient({ transport: this.transport, now: this.now });
+    this.fetchIcons = deps.fetchIcons === true;
+    this.shrinkIcon = 'shrinkIcon' in deps ? deps.shrinkIcon : createCanvasIconShrinker();
     this.current = this.buildSnapshot();
   }
 
@@ -155,6 +194,7 @@ export class NewsService {
       items: [...this.itemsByFeed.values()].flat(),
       refreshing: this.refreshing,
       unread: totalUnread(this.subscriptions),
+      icons: this.iconView,
     };
   }
 
@@ -171,6 +211,7 @@ export class NewsService {
   async load(): Promise<void> {
     if (this.loaded) return;
     this.subscriptions = this.storage.loadSubscriptions();
+    this.setIcons(this.storage.loadIcons(), false);
     this.loaded = true;
     this.publish(false);
     await Promise.all(
@@ -269,6 +310,7 @@ export class NewsService {
       unread: 0,
     };
     this.subscriptions = [...this.subscriptions, subscription];
+    this.rememberIcon(subscription, meta.icon);
     const { items } = mergeFeedItems([], feed.items, {
       feedId: id,
       now,
@@ -276,6 +318,7 @@ export class NewsService {
       limits: this.limits,
     });
     await this.setItems(id, items);
+    this.scheduleIcons();
     return this.subscriptions.find((s) => s.id === id) ?? subscription;
   }
 
@@ -301,7 +344,9 @@ export class NewsService {
       unread: 0,
     };
     this.subscriptions = [...this.subscriptions, subscription];
+    this.rememberIcon(subscription, meta.icon);
     this.publish(true);
+    this.scheduleIcons();
     return subscription;
   }
 
@@ -376,6 +421,7 @@ export class NewsService {
         return { ...rest, fetchedAt: now };
       });
       await this.setItems(id, merged.items);
+      await this.storage.pruneArticles(id, new Set(merged.items.map((item) => item.id)));
       return { ok: true, added: merged.added };
     } catch (error) {
       const failure = failureOf(error);
@@ -428,6 +474,7 @@ export class NewsService {
         };
       });
       await this.setItems(id, merged.items);
+      await this.storage.pruneArticles(id, new Set(merged.items.map((item) => item.id)));
       return { ok: true, added: merged.added };
     } catch (error) {
       const failure = failureOf(error);
@@ -471,6 +518,7 @@ export class NewsService {
     await Promise.all(
       Array.from({ length: Math.min(REFRESH_CONCURRENCY, targets.length) }, () => worker()),
     );
+    this.scheduleIcons();
     return { offline: false, refreshed, failed, added };
   }
 
@@ -499,19 +547,14 @@ export class NewsService {
     }
   }
 
-  async markAllRead(feedId?: string): Promise<void> {
-    for (const [id, items] of this.itemsByFeed) {
-      if (feedId !== undefined && id !== feedId) continue;
-      const next = markItemsRead(items, 'all');
-      if (next !== items) await this.setItems(id, next);
+  /** Marks many items read with one write per feed: the list batches what the reader scrolled past. */
+  async markReadMany(itemIds: readonly string[]): Promise<void> {
+    const wanted = new Set(itemIds);
+    if (wanted.size === 0) return;
+    for (const [feedId, items] of this.itemsByFeed) {
+      const next = markItemsRead(items, wanted);
+      if (next !== items) await this.setItems(feedId, next);
     }
-  }
-
-  rename(id: string, title: string): void {
-    const trimmed = title.trim().slice(0, 120);
-    if (trimmed === '') return;
-    this.updateSubscription(id, (s) => ({ ...s, title: trimmed }));
-    this.publish(true);
   }
 
   setImages(id: string, images: boolean): void {
@@ -524,6 +567,158 @@ export class NewsService {
     this.itemsByFeed.delete(id);
     this.publish(true);
     await this.storage.deleteItems(id);
+    await this.storage.deleteArticles(id);
+    this.dropUnusedIcons();
+  }
+
+  /** The article of an item as saved the last time it was downloaded, readable offline. */
+  cachedArticle(itemId: string): Promise<StoredArticle | undefined> {
+    return this.storage.loadArticle(itemId);
+  }
+
+  /**
+   * Downloads a page (the viewer's «as on the site» view and the article extraction share it).
+   * Throws {@link FeedFetchError}: `cors` is the browser build refusing, `offline` sends nothing.
+   */
+  async fetchPage(url: string, signal?: AbortSignal): Promise<FetchedPage> {
+    const known = this.pages.get(url);
+    if (known) return known;
+    if (!this.online()) throw new FeedFetchError('offline', FAILURE_MESSAGES.offline);
+    const response = await this.transport.fetch({
+      url,
+      accept: 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.5',
+      signal,
+    });
+    const page = { html: response.text, finalUrl: response.finalUrl };
+    this.pages.set(url, page);
+    while (this.pages.size > PAGE_CACHE_ENTRIES) {
+      const oldest = this.pages.keys().next().value;
+      if (oldest === undefined) break;
+      this.pages.delete(oldest);
+    }
+    return page;
+  }
+
+  /**
+   * Fetches the item's own page, extracts the article and saves it with the item for offline
+   * reading. `undefined` when the page holds no article-sized text (the feed text stays the view).
+   */
+  async downloadArticle(item: NewsItem, signal?: AbortSignal): Promise<StoredArticle | undefined> {
+    if (!item.url) return undefined;
+    const page = await this.fetchPage(item.url, signal);
+    const extracted = extractArticle(page.html, page.finalUrl);
+    if (!extracted) return undefined;
+    const article: StoredArticle = {
+      itemId: item.id,
+      feedId: item.feedId,
+      url: item.url,
+      fetchedAt: this.now(),
+      ...(extracted.title ? { title: extracted.title } : {}),
+      ...(extracted.byline ? { byline: extracted.byline } : {}),
+      ...(extracted.imageUrl ? { imageUrl: extracted.imageUrl } : {}),
+      content: extracted.content,
+    };
+    await this.storage.saveArticle(article);
+    return article;
+  }
+
+  /** An avatar for the preview of an address (not stored until the user subscribes). */
+  previewIcon(
+    siteUrl: string,
+    feedIconUrl?: string,
+    signal?: AbortSignal,
+  ): Promise<string | undefined> {
+    if (!this.online()) return Promise.resolve(undefined);
+    return fetchSourceIcon({
+      transport: this.transport,
+      shrink: this.shrinkIcon,
+      siteUrl,
+      ...(feedIconUrl ? { feedIconUrl } : {}),
+      signal,
+    });
+  }
+
+  private siteOf(subscription: Subscription): string {
+    if (subscription.siteUrl) return subscription.siteUrl;
+    try {
+      return `${new URL(subscription.url).origin}/`;
+    } catch {
+      return subscription.url;
+    }
+  }
+
+  private setIcons(next: Readonly<Record<string, StoredIcon>>, persist: boolean): void {
+    this.icons = next;
+    const view: Record<string, string> = {};
+    for (const [host, icon] of Object.entries(next)) if (icon.data) view[host] = icon.data;
+    this.iconView = view;
+    if (persist) this.storage.saveIcons(next);
+  }
+
+  private rememberIcon(subscription: Subscription, data: string | undefined): void {
+    if (!data || !isStoredIconData(data)) return;
+    this.setIcons(
+      { ...this.icons, [iconKeyFor(this.siteOf(subscription))]: { data, checkedAt: this.now() } },
+      true,
+    );
+  }
+
+  /** Avatars of hosts no subscription points to any more are dropped with the last of its sources. */
+  private dropUnusedIcons(): void {
+    const used = new Set(this.subscriptions.map((s) => iconKeyFor(this.siteOf(s))));
+    const kept = Object.fromEntries(Object.entries(this.icons).filter(([host]) => used.has(host)));
+    if (Object.keys(kept).length === Object.keys(this.icons).length) return;
+    this.setIcons(kept, true);
+    this.publish(false);
+  }
+
+  /** The next source whose avatar is unknown and not tried within the last week. */
+  private nextIconTarget(): Subscription | undefined {
+    const now = this.now();
+    return this.subscriptions.find((subscription) => {
+      if (subscription.kind === 'pubmed') return false;
+      const site = this.siteOf(subscription);
+      if (bundledAvatarFor(site) !== undefined) return false;
+      const known = this.icons[iconKeyFor(site)];
+      return known === undefined || (!known.data && now - known.checkedAt > ICON_RETRY_AFTER_MS);
+    });
+  }
+
+  private scheduleIcons(): void {
+    if (!this.fetchIcons || this.iconRun) return;
+    this.iconRun = this.runIcons().finally(() => {
+      this.iconRun = undefined;
+    });
+  }
+
+  private async runIcons(): Promise<void> {
+    try {
+      for (let target = this.nextIconTarget(); target; target = this.nextIconTarget()) {
+        if (!this.online()) return;
+        const site = this.siteOf(target);
+        const data = await fetchSourceIcon({
+          transport: this.transport,
+          shrink: this.shrinkIcon,
+          siteUrl: site,
+        });
+        // A failed attempt is recorded too, so the monogram is not retried on every refresh.
+        this.setIcons(
+          {
+            ...this.icons,
+            [iconKeyFor(site)]: { ...(data ? { data } : {}), checkedAt: this.now() },
+          },
+          true,
+        );
+        this.publish(false);
+      }
+    } catch (error) {
+      console.warn('Не удалось получить значок источника.', error);
+    }
+  }
+
+  /** Resolves when the avatar fetching started by a subscribe or a refresh has finished. */
+  async settleIcons(): Promise<void> {
+    await this.iconRun;
   }
 
   itemById(itemId: string): NewsItem | undefined {

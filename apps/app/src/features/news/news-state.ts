@@ -120,11 +120,11 @@ export function totalUnread(subscriptions: readonly Subscription[]): number {
   );
 }
 
-export interface NewsDayGroup {
-  /** `YYYY-MM-DD` of the local day. */
-  readonly key: string;
-  readonly label: string;
-  readonly items: readonly NewsItem[];
+/** Items of any order, newest first (the feed is one flat list, not grouped by day). */
+export function sortNewestFirst(items: readonly NewsItem[]): readonly NewsItem[] {
+  return [...items].sort(
+    (left, right) => right.publishedAt - left.publishedAt || right.firstSeenAt - left.firstSeenAt,
+  );
 }
 
 function dayKey(time: number): string {
@@ -135,34 +135,6 @@ function dayKey(time: number): string {
 }
 
 const DAY_FORMAT = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long' });
-const DAY_YEAR_FORMAT = new Intl.DateTimeFormat('ru-RU', {
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-});
-
-export function dayLabel(time: number, now: number): string {
-  const key = dayKey(time);
-  if (key === dayKey(now)) return 'Сегодня';
-  if (key === dayKey(now - 24 * 60 * 60 * 1000)) return 'Вчера';
-  const sameYear = new Date(time).getFullYear() === new Date(now).getFullYear();
-  return (sameYear ? DAY_FORMAT : DAY_YEAR_FORMAT).format(time);
-}
-
-/** Items (any order) grouped by local day, newest day and newest item first. */
-export function groupItemsByDay(items: readonly NewsItem[], now: number): readonly NewsDayGroup[] {
-  const sorted = [...items].sort(
-    (left, right) => right.publishedAt - left.publishedAt || right.firstSeenAt - left.firstSeenAt,
-  );
-  const groups: { key: string; label: string; items: NewsItem[] }[] = [];
-  for (const item of sorted) {
-    const key = dayKey(item.publishedAt);
-    const last = groups[groups.length - 1];
-    if (last && last.key === key) last.items.push(item);
-    else groups.push({ key, label: dayLabel(item.publishedAt, now), items: [item] });
-  }
-  return groups;
-}
 
 /** «обновлено 5 мин назад» style text for the freshness line; the fetch time is always shown. */
 export function fetchedAtLabel(fetchedAt: number | undefined, now: number): string {

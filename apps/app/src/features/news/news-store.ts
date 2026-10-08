@@ -23,6 +23,7 @@ export function getNewsService(): NewsService {
   instance ??= new NewsService({
     storage: createBrowserNewsStorage(),
     transport: feedTransport(),
+    fetchIcons: true,
   });
   return instance;
 }

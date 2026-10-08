@@ -1,8 +1,11 @@
 import { safeLinkUrl } from '@/features/news/feed-content';
+import { isStoredIconData } from '@/features/news/news-icons';
 import {
   type FetchFailureCode,
   hasItems,
   type NewsItem,
+  type StoredArticle,
+  type StoredIcon,
   type Subscription,
   type SubscriptionKind,
 } from '@/features/news/news-types';
@@ -19,13 +22,25 @@ export interface NewsStorage {
   loadItems(feedId: string): Promise<readonly NewsItem[]>;
   saveItems(feedId: string, items: readonly NewsItem[]): Promise<void>;
   deleteItems(feedId: string): Promise<void>;
+  /** Source avatars by site host: small data URLs, a few kilobytes each. */
+  loadIcons(): Readonly<Record<string, StoredIcon>>;
+  saveIcons(icons: Readonly<Record<string, StoredIcon>>): void;
+  /** Extracted article pages, one record per item (kept apart from the items they belong to). */
+  loadArticle(itemId: string): Promise<StoredArticle | undefined>;
+  saveArticle(article: StoredArticle): Promise<void>;
+  /** Drops the articles of `feedId` whose item is no longer kept. */
+  pruneArticles(feedId: string, keepItemIds: ReadonlySet<string>): Promise<void>;
+  deleteArticles(feedId: string): Promise<void>;
 }
 
 export const NEWS_SUBSCRIPTIONS_KEY = 'minimed.news.subscriptions.v1';
+export const NEWS_ICONS_KEY = 'minimed.news.icons.v1';
 export const NEWS_CHANGED_EVENT = 'minimed:news-changed';
 const DB_NAME = 'minimed-news';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const ITEMS_STORE = 'items';
+const ARTICLES_STORE = 'articles';
+const ARTICLES_BY_FEED = 'feedId';
 
 const FAILURE_CODES: ReadonlySet<string> = new Set<FetchFailureCode>([
   'offline',
@@ -126,9 +141,36 @@ function isStoredItem(value: unknown): value is NewsItem {
   );
 }
 
+/** Validates stored avatars: only small image data URLs survive. */
+export function parseIcons(raw: unknown): Readonly<Record<string, StoredIcon>> {
+  if (!isRecord(raw)) return {};
+  const out: Record<string, StoredIcon> = {};
+  for (const [host, value] of Object.entries(raw)) {
+    if (!isRecord(value) || host.length > 253) continue;
+    const checkedAt = finiteNumber(value['checkedAt']);
+    if (checkedAt === undefined) continue;
+    const data = value['data'];
+    out[host] = isStoredIconData(data) ? { data, checkedAt } : { checkedAt };
+  }
+  return out;
+}
+
+function isStoredArticle(value: unknown): value is StoredArticle {
+  return (
+    isRecord(value) &&
+    typeof value['itemId'] === 'string' &&
+    typeof value['feedId'] === 'string' &&
+    typeof value['url'] === 'string' &&
+    finiteNumber(value['fetchedAt']) !== undefined &&
+    Array.isArray(value['content'])
+  );
+}
+
 export function createMemoryNewsStorage(initial: readonly Subscription[] = []): NewsStorage {
   let subscriptions: readonly Subscription[] = initial;
+  let icons: Readonly<Record<string, StoredIcon>> = {};
   const items = new Map<string, readonly NewsItem[]>();
+  const articles = new Map<string, StoredArticle>();
   return {
     loadSubscriptions: () => subscriptions,
     saveSubscriptions(next) {
@@ -142,6 +184,26 @@ export function createMemoryNewsStorage(initial: readonly Subscription[] = []): 
     },
     async deleteItems(feedId) {
       items.delete(feedId);
+    },
+    loadIcons: () => icons,
+    saveIcons(next) {
+      icons = next;
+    },
+    async loadArticle(itemId) {
+      return articles.get(itemId);
+    },
+    async saveArticle(article) {
+      articles.set(article.itemId, article);
+    },
+    async pruneArticles(feedId, keepItemIds) {
+      for (const [itemId, article] of articles) {
+        if (article.feedId === feedId && !keepItemIds.has(itemId)) articles.delete(itemId);
+      }
+    },
+    async deleteArticles(feedId) {
+      for (const [itemId, article] of articles) {
+        if (article.feedId === feedId) articles.delete(itemId);
+      }
     },
   };
 }
@@ -167,6 +229,10 @@ function openDatabase(factory: IDBFactory): Promise<IDBDatabase> {
     request.onupgradeneeded = () => {
       if (!request.result.objectStoreNames.contains(ITEMS_STORE)) {
         request.result.createObjectStore(ITEMS_STORE, { keyPath: 'feedId' });
+      }
+      if (!request.result.objectStoreNames.contains(ARTICLES_STORE)) {
+        const articles = request.result.createObjectStore(ARTICLES_STORE, { keyPath: 'itemId' });
+        articles.createIndex(ARTICLES_BY_FEED, 'feedId');
       }
     };
     request.onsuccess = () => resolve(request.result);
@@ -256,6 +322,68 @@ export function createBrowserNewsStorage(
       } catch {
         // A failed delete leaves an orphan record that the next load never asks for.
       }
+    },
+    loadIcons() {
+      try {
+        const raw = storage?.getItem(NEWS_ICONS_KEY);
+        if (!raw) return fallback.loadIcons();
+        return parseIcons(JSON.parse(raw));
+      } catch {
+        return fallback.loadIcons();
+      }
+    },
+    saveIcons(icons) {
+      fallback.saveIcons(icons);
+      try {
+        storage?.setItem(NEWS_ICONS_KEY, JSON.stringify(icons));
+      } catch {
+        // Storage is full or blocked: avatars stay in memory for this session.
+      }
+    },
+    async loadArticle(itemId) {
+      const db = await database();
+      if (!db) return fallback.loadArticle(itemId);
+      try {
+        const transaction = db.transaction(ARTICLES_STORE, 'readonly');
+        const record = await requestToPromise(transaction.objectStore(ARTICLES_STORE).get(itemId));
+        return isStoredArticle(record) ? record : undefined;
+      } catch {
+        return fallback.loadArticle(itemId);
+      }
+    },
+    async saveArticle(article) {
+      await fallback.saveArticle(article);
+      const db = await database();
+      if (!db) return;
+      try {
+        const transaction = db.transaction(ARTICLES_STORE, 'readwrite');
+        transaction.objectStore(ARTICLES_STORE).put(article);
+        await transactionDone(transaction);
+      } catch {
+        // The in-memory copy still serves this session.
+      }
+    },
+    async pruneArticles(feedId, keepItemIds) {
+      await fallback.pruneArticles(feedId, keepItemIds);
+      const db = await database();
+      if (!db) return;
+      try {
+        const transaction = db.transaction(ARTICLES_STORE, 'readwrite');
+        const store = transaction.objectStore(ARTICLES_STORE);
+        const keys = await requestToPromise(
+          store.index(ARTICLES_BY_FEED).getAllKeys(IDBKeyRange.only(feedId)),
+        );
+        for (const key of keys) {
+          if (typeof key === 'string' && !keepItemIds.has(key)) store.delete(key);
+        }
+        await transactionDone(transaction);
+      } catch {
+        // Orphaned articles are harmless: nothing asks for an item that is gone.
+      }
+    },
+    async deleteArticles(feedId) {
+      await fallback.deleteArticles(feedId);
+      await this.pruneArticles(feedId, new Set());
     },
   };
 }

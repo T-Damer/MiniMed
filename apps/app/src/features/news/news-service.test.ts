@@ -54,6 +54,10 @@ function makeService(
   return { service, requests, storage };
 }
 
+async function readAll(service: NewsService): Promise<void> {
+  await service.markReadMany(service.snapshot().items.map((item) => item.id));
+}
+
 describe('NewsService offline-first behaviour', () => {
   it('makes no request on load or refresh while nothing is subscribed', async () => {
     const { service, requests } = makeService(() => {
@@ -155,13 +159,11 @@ describe('NewsService subscriptions', () => {
     });
   });
 
-  it('renames, switches images, and removes with its items', async () => {
+  it('switches images, and removes with its items', async () => {
     const { service, storage } = makeService(() => ok(RSS2_FEED));
     const subscription = await service.subscribeFeed('https://example.org/feed.xml');
-    service.rename(subscription.id, '  Моя лента  ');
-    service.rename(subscription.id, '   ');
     service.setImages(subscription.id, true);
-    expect(service.snapshot().subscriptions[0]).toMatchObject({ title: 'Моя лента', images: true });
+    expect(service.snapshot().subscriptions[0]).toMatchObject({ images: true });
     await service.remove(subscription.id);
     expect(service.snapshot().subscriptions).toEqual([]);
     expect(service.snapshot().items).toEqual([]);
@@ -173,8 +175,8 @@ describe('NewsService refresh and unread', () => {
   it('adds only new items on refresh and keeps read state', async () => {
     let body = RSS2_FEED;
     const { service } = makeService(() => ok(body));
-    const subscription = await service.subscribeFeed('https://example.org/feed.xml');
-    await service.markAllRead(subscription.id);
+    await service.subscribeFeed('https://example.org/feed.xml');
+    await readAll(service);
     expect(service.snapshot().unread).toBe(0);
     body = RSS2_FEED.replace(
       '</channel>',
@@ -402,7 +404,7 @@ describe('NewsService PubMed searches', () => {
     const { service, requests } = makeService(() => ok(RSS2_FEED), { pubmed: pubmed.client });
     await service.subscribeFeed('https://example.org/feed.xml');
     const search = await service.subscribePubmed('glaucoma');
-    await service.markAllRead();
+    await readAll(service);
     ids = ['3', '2', '1'];
     const report = await service.refresh();
     expect(report).toMatchObject({ refreshed: 2, failed: 0, added: 2 });

@@ -69,6 +69,29 @@ export interface NewsItem {
   readonly read: boolean;
 }
 
+/** What was found for a source's avatar; `data` is absent when nothing usable was found (retried later). */
+export interface StoredIcon {
+  readonly data?: string;
+  /** Epoch milliseconds of the last attempt. */
+  readonly checkedAt: number;
+}
+
+/**
+ * The article of a feed item as extracted from its own page (ADR-0024, amended 2026-10-08), kept
+ * with the item so it reads offline. Sanitized like every other feed text: a tree, never HTML.
+ */
+export interface StoredArticle {
+  readonly itemId: string;
+  readonly feedId: string;
+  readonly url: string;
+  /** Epoch milliseconds of the fetch. */
+  readonly fetchedAt: number;
+  readonly title?: string;
+  readonly byline?: string;
+  readonly imageUrl?: string;
+  readonly content: readonly SafeNode[];
+}
+
 export interface NewsLimits {
   /** Items kept per feed. */
   readonly maxItemsPerFeed: number;

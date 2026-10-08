@@ -3,13 +3,12 @@ import { describe, expect, it } from 'vitest';
 import type { ParsedFeedItem } from '@/features/news/feed-parser';
 import {
   countUnread,
-  dayLabel,
   fetchedAtLabel,
-  groupItemsByDay,
   itemIdFor,
   markItemsRead,
   mergeFeedItems,
   pluralRu,
+  sortNewestFirst,
   stableHash,
   subscriptionIdFor,
   totalUnread,
@@ -146,22 +145,21 @@ describe('unread bookkeeping', () => {
   });
 });
 
-describe('grouping and labels', () => {
-  it('groups by local day, newest first, with Сегодня and Вчера', () => {
+describe('ordering and labels', () => {
+  it('orders the flat feed newest first, breaking ties by first sight', () => {
     const items = [
       stored('old', NOW - 5 * DAY),
       stored('today-early', NOW - 3 * 60 * 60 * 1000),
       stored('yesterday', NOW - DAY),
       stored('today-late', NOW - 60 * 1000),
     ];
-    const groups = groupItemsByDay(items, NOW);
-    expect(groups.map((group) => group.label)).toEqual([
-      'Сегодня',
-      'Вчера',
-      dayLabel(NOW - 5 * DAY, NOW),
+    expect(sortNewestFirst(items).map((item) => item.id)).toEqual([
+      'today-late',
+      'today-early',
+      'yesterday',
+      'old',
     ]);
-    expect(groups[0]?.items.map((item) => item.id)).toEqual(['today-late', 'today-early']);
-    expect(groups[2]?.label).toMatch(/30 сентября/u);
+    expect(items[0]?.id).toBe('old');
   });
 
   it('describes when a feed was fetched', () => {
