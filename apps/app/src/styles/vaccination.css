@@ -921,27 +921,9 @@
 
 /* Print preview. */
 .vax-preview__body {
-  display: grid;
-  align-content: start;
+  display: flex;
+  flex-direction: column;
   gap: 0.6rem;
-}
-
-.vax-preview__viewport {
-  min-width: 0;
-  overflow: auto;
-}
-
-.vax-preview__sheet {
-  margin: 0 auto;
   overflow: hidden;
-  border: 1px solid var(--theme-border);
-  background: #fff;
-  box-shadow: 0 0.2rem 0.8rem rgb(0 0 0 / 0.12);
-}
-
-.vax-preview__frame {
-  display: block;
-  border: 0;
-  background: #fff;
-  transform-origin: top left;
+  padding: 0.75rem;
 }

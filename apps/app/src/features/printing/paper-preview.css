@@ -1,0 +1,55 @@
+/* A print page fitted to the screen, zoomed and panned inside its own scroll box. */
+.paper-preview {
+  position: relative;
+  display: flex;
+  min-height: 0;
+  flex: 1;
+}
+
+.paper-preview__viewport {
+  min-width: 0;
+  flex: 1;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+/* The surface grows to the zoomed page (the zoom hook sizes it); the content is not promoted to its
+   own layer, so the text is drawn again at every zoom instead of being stretched. */
+.paper-preview__surface {
+  min-width: 100%;
+}
+
+.paper-preview__content {
+  position: relative;
+  transform-origin: 0 0;
+}
+
+.paper-preview__sheet {
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid var(--theme-border);
+  background: #fff;
+  box-shadow: 0 0.2rem 0.8rem rgb(0 0 0 / 0.12);
+}
+
+.paper-preview__frame {
+  display: block;
+  border: 0;
+  background: #fff;
+  pointer-events: none;
+  transform-origin: top left;
+}
+
+/* Zoom buttons float over the page, as the map controls of a viewer do. */
+.paper-preview__zoom {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  display: flex;
+  gap: 0.35rem;
+  padding: 0.25rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--theme-surface-raised) 92%, transparent);
+  box-shadow: 0 0.2rem 0.8rem rgb(0 0 0 / 0.18);
+}

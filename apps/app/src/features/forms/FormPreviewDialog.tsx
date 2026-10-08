@@ -1,5 +1,5 @@
 import type { FormSchema } from '@localmed/contracts';
-import { createMemo, createSignal, type JSX, onCleanup, Show } from 'solid-js';
+import { createMemo, type JSX, Show } from 'solid-js';
 import { toast } from 'solid-sonner';
 
 import { AppGlyph } from '@/components/AppGlyph';
@@ -8,6 +8,7 @@ import { OverlayDialog } from '@/components/OverlayDialog';
 import { formPrintTitle, renderFormPrintHtml } from '@/features/forms/form-print';
 import { A4_LONG_PX, A4_SHORT_PX } from '@/features/forms/form-sheet';
 import type { FormValues } from '@/features/forms/form-values';
+import { PaperPreview } from '@/features/printing/PaperPreview';
 import { PrintManager } from '@/features/printing/print-manager';
 import { getPluralMessage } from '@/i18n/browser-i18n';
 
@@ -25,17 +26,6 @@ export function FormPreviewDialog(props: FormPreviewDialogProps): JSX.Element {
   const landscape = (): boolean => props.schema.layout.page.orientation === 'landscape';
   const sheetWidthPx = (): number => (landscape() ? A4_LONG_PX : A4_SHORT_PX);
   const sheetMinHeightPx = (): number => (landscape() ? A4_SHORT_PX : A4_LONG_PX);
-  const [scale, setScale] = createSignal(1);
-  const [sheetHeight, setSheetHeight] = createSignal(sheetMinHeightPx());
-  const watchWidth = (host: HTMLElement): void => {
-    const update = (): void => {
-      setScale(Math.min(1, host.clientWidth / sheetWidthPx()));
-    };
-    update();
-    const observer = new ResizeObserver(update);
-    observer.observe(host);
-    onCleanup(() => observer.disconnect());
-  };
   // The page is laid out only while the dialog is open (the last page stays for its exit).
   const html = createMemo<string>(
     (previous) => (props.open ? renderFormPrintHtml(props.schema, props.values) : previous),
@@ -78,29 +68,12 @@ export function FormPreviewDialog(props: FormPreviewDialogProps): JSX.Element {
           </span>
         </p>
       </Show>
-      <div class="form-preview__viewport" ref={watchWidth}>
-        <div
-          class="form-preview__sheet"
-          style={{ width: `${sheetWidthPx() * scale()}px`, height: `${sheetHeight() * scale()}px` }}
-        >
-          {/* Same-origin, no scripts: the page is built from escaped values and is only measured. */}
-          <iframe
-            class="form-preview__frame"
-            title="Предпросмотр бланка"
-            sandbox="allow-same-origin"
-            srcdoc={html()}
-            style={{
-              width: `${sheetWidthPx()}px`,
-              height: `${sheetHeight()}px`,
-              transform: `scale(${scale()})`,
-            }}
-            onLoad={(event) => {
-              const height = event.currentTarget.contentDocument?.documentElement.scrollHeight;
-              if (height) setSheetHeight(Math.max(height, sheetMinHeightPx()));
-            }}
-          />
-        </div>
-      </div>
+      <PaperPreview
+        title="Предпросмотр бланка"
+        html={html()}
+        sheetWidth={sheetWidthPx()}
+        sheetMinHeight={sheetMinHeightPx()}
+      />
     </OverlayDialog>
   );
 }
