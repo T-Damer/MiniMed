@@ -29,7 +29,7 @@ async function mountTerminology(page: Page, edition: 'discovery' | 'installed'):
   await mountBuiltApp(page, { splitNavigation: false, skipLargeCompanionPacks: true });
   await page.getByTestId('search-input').fill(query);
   await page.getByTestId('search-submit').click();
-  await expect(page.locator('.result-group').first()).toContainText('Медицинский термин');
+  await expect(page.locator('.result-group').first()).toContainText('Определение');
   await expect(page.locator('.result-group').first()).toContainText(query);
 }
 

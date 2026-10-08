@@ -463,9 +463,13 @@ for (const width of [375, 1280]) {
 test('renders ordinary lookup on a phone-sized browser and records query latency', async ({
   page,
 }) => {
+  test.slow();
   await page.setViewportSize({ width: 375, height: 844 });
   await mountBuiltApp(page, { skipLargeCompanionPacks: true, splitNavigation: false });
-  await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true');
+  // Opening the 440 MB core takes up to a minute on a busy machine; the field is editable meanwhile.
+  await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
+    timeout: 90_000,
+  });
   const timings: number[] = [];
   for (const value of ['пневмония', 'отит', 'анемия']) {
     const started = Date.now();
@@ -668,6 +672,10 @@ test('finds medication names in free search with the full companion', async ({ p
     'The full medication companion pack is local-only.',
   );
   await mountBuiltApp(page, { includeMedicationCompanionPack: true });
+  // The 10 s bound below is for the query, not for opening the core and the 500 MB companion.
+  await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
+    timeout: 90_000,
+  });
 
   await page.getByTestId('search-input').fill('цефтриаксон');
   await expect(page.locator('.result-group').first()).toContainText(/цефтриаксон/iu, {
@@ -1190,7 +1198,11 @@ test('opens a random record of the current section', async ({ page }) => {
 });
 
 test('shows neuroinfection clarifications without hiding search results', async ({ page }) => {
+  test.slow();
   await mountBuiltApp(page);
+  await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
+    timeout: 90_000,
+  });
   // Clarifying questions belong to the explicit clinical mode, not to ordinary lookup.
   await setClinicalAnalysis(page, true);
   await page.getByTestId('search-input').fill('Менингит или энцефалит у ребёнка');
