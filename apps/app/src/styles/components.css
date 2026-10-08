@@ -212,6 +212,70 @@
   line-height: 1.4;
 }
 
+/* Title between the back button and the header tools (AGENTS.md «Interface rules»). */
+.page__title-row--inline {
+  flex: 1 1 auto;
+  align-items: center;
+  align-self: center;
+}
+
+.page__description--inline {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 0.9375rem;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.page__help-button {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: none;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--theme-border);
+  border-radius: 50%;
+  color: var(--theme-text-muted);
+  background: var(--theme-surface-raised);
+  box-shadow: 0 0.25rem 0.75rem rgb(34 31 25 / 10%);
+  cursor: pointer;
+  transition:
+    transform var(--motion-fast, 120ms) var(--motion-ease, ease),
+    background-color var(--motion-fast, 120ms) var(--motion-ease, ease);
+}
+
+.page__help-button:active {
+  transform: scale(0.96);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .page__help-button:hover {
+    color: var(--theme-text);
+    background: var(--theme-accent-soft);
+  }
+}
+
+.page__help-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.page__help-panel {
+  max-width: min(28rem, calc(100vw - 2rem));
+  padding: 1rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.875rem;
+  background: var(--theme-surface-raised);
+  box-shadow: var(--shadow-paper);
+}
+
+.page__help-body {
+  display: grid;
+  gap: 0.6rem;
+  line-height: 1.45;
+}
+
 .library-mode-tabs--page-header {
   margin: 0;
 }

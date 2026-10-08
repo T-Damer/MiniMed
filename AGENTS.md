@@ -181,6 +181,46 @@ were not tested.
 - Never block input to show a transition or a pending state: keep what is on screen usable and show
   progress in place (a spinner inside the control, a quiet status line).
 
+## Interface rules (user decisions, 2026-10-08)
+
+The owner repeated these on several screens; apply them to every screen you touch, not only the one
+reported.
+
+- **Header row.** A route's title sits in one row between the back button and the right-hand tools
+  (`Page` does this). One short description line at most; no big multi-line header blocks.
+- **Help is a «?».** «Как это работает», method notes and disclaimers live behind a round «?» icon
+  button in the header (`Page` `help` prop), never as a section, card or disclosure on the page.
+- **Less text.** Every visible sentence must earn its place; prefer icons, visuals and state to
+  explanations. Icon-only buttons (printer, share, add, delete) where the icon is obvious, with an
+  `aria-label`. No captions that restate a button («Предпросмотр бланка» next to a print icon).
+- **Reference data last.** Orders, editions, validity dates and «official publication» links are
+  small plain text at the bottom of the page — no card, no block at the top. The only legal detail
+  doctors need up front is a document/form number (№1122н, 070/у): show the number, not the legal
+  wording. Avoid law/legal language in UI copy.
+- **No validation disclaimers on official documents.** Government documents (orders, official
+  forms, calendars) are already validated; do not add «врач не проверял» notes to them. Draft or
+  machine-extracted content may carry one short status badge, not a stack of warnings.
+- **No raw data in UI.** Never render JSON, internal ids, schema keys or pipeline notes to the user.
+- **Inputs look fillable.** Inputs are large enough to read as the main task; a field's fill rule is
+  an icon button in its label that opens a tooltip, shown only when the field has a rule — no
+  always-visible «Правило заполнения» rows (they add scroll).
+- **Progressive input.** Do not pre-suggest values the user did not ask for. Show one search field;
+  suggestions appear as they type; the next field appears once the previous one is filled. When the
+  data or model the tool needs is not installed, offer the download right there.
+- **Compact patient row.** Patient choice is one row: «Пациент — выберите, чтобы подставить данные —
+  icon button»; once chosen: avatar/photo, full name, birth date, a button to change.
+- **Drafts autosave.** Forms and editors autosave as drafts; an explicit «Сохранить» at the bottom
+  approves (signs) the result.
+- **Debounce/throttle every input-driven computation** (search, suggestions, previews, autosave).
+  Reviewers need not report this as a finding — it is the default, always implement it.
+- **Live previews.** Where a printable artifact exists (forms, calendars), show a small paper
+  thumbnail in the header that updates (debounced) as the user fills it; tapping it prints/opens it.
+- **No hanging text buttons.** Avoid rows of text-link buttons and many inputs in a row; use segmented
+  controls, icon buttons, cells and visual tools a doctor can tap.
+- **Loading is one state.** A screen shows one loading state, then the finished content — no
+  loading → partial → loading → full flicker; background data refreshes never replace visible
+  content with a loader.
+
 ## Native sticky chrome
 
 - Read `docs/NATIVE_STICKY_CHROME.md` before changing safe-area, sticky-header, backdrop blur/grain,
