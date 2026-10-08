@@ -68,7 +68,7 @@
     "hast-util-to-html": "9.0.5",
     "jsqr": "1.4.0",
     "jszip": "3.10.1",
-    "katex": "0.16.22",
+    "katex": "0.18.2",
     "mdast-util-mark": "^1.0.0",
     "mdast-util-to-hast": "13.2.1",
     "micromark-extension-mark": "^1.0.2",
