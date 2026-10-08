@@ -63,7 +63,7 @@ describe('search history', () => {
 
   afterEach(() => vi.unstubAllGlobals());
 
-  it('preserves the selected scope and replays the cached response', () => {
+  it('preserves the selected scope and replays by asking again, with no stored response', () => {
     const [entry] = appendSearchHistory('приказ', 'legal', RESPONSE);
     expect(loadSearchHistory()[0]?.scope).toBe('legal');
 
@@ -72,10 +72,10 @@ describe('search history', () => {
     const replay = dispatched.find((event) => event.type === SEARCH_REPLAY_EVENT) as
       | CustomEvent
       | undefined;
-    expect(replay?.detail).toEqual({ entry, cachedResponse: RESPONSE });
+    expect(replay?.detail).toEqual({ entry });
   });
 
-  it('keeps different subsections and tool searches without a fabricated response', () => {
+  it('keeps different subsections and tool searches', () => {
     appendSearchHistory('риск', 'calculators', 3, 'cardiology');
     appendSearchHistory('риск', 'calculators', 2, 'obstetrics');
     appendSearchHistory('риск', 'calculators', 4, 'cardiology');

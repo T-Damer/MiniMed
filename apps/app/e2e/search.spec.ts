@@ -1009,38 +1009,59 @@ test('replays a saved query from the history drawer', async ({ page }) => {
   await expect(pneumoniaResult(page)).toBeVisible({ timeout: 60_000 });
 });
 
-test('a replayed or repeated query shows its saved results at once, and can search again', async ({
+test('a replayed or repeated query is answered from the versioned cache at once', async ({
   page,
 }) => {
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
-  await page.getByTestId('search-input').fill(query);
-  await page.getByTestId('search-submit').click();
-  await expect(pneumoniaResult(page)).toBeVisible({ timeout: 60_000 });
-  // A fresh search shows no «saved» line.
-  await expect(page.getByTestId('search-saved-rerun')).toHaveCount(0);
-
-  await page.getByTestId('search-input').fill('другой запрос');
-  await page.getByRole('button', { name: 'Показать историю поиска' }).click();
-  await page.locator('.search-history-panel-replay').filter({ hasText: query }).first().click();
-  // From the saved copy: no skeleton, no background re-run, and a way to search again.
-  await expect(pneumoniaResult(page)).toBeVisible({ timeout: 5_000 });
-  await expect(page.getByTestId('search-saved-rerun')).toBeVisible();
-  await expect(page.locator('.search-refresh-status')).toHaveCount(0);
-  await expect(page.locator('.results-skeleton')).toHaveCount(0);
-
-  await page.getByTestId('search-saved-rerun').click();
-  await expect(page.getByTestId('search-saved-rerun')).toHaveCount(0, { timeout: 60_000 });
-  await expect(pneumoniaResult(page)).toBeVisible();
-
-  // The copy survives a reload of the app.
+  // A first run records its installed core in the registry after start-up; reload once so the
+  // data version is the settled one for the rest of the test.
+  await page.waitForFunction(() => performance.getEntriesByName('minimed:search-ready').length > 0);
+  await page.waitForTimeout(3_000);
   await page.reload();
   await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
     timeout: 60_000,
   });
   await page.getByTestId('search-input').fill(query);
   await page.getByTestId('search-submit').click();
-  await expect(page.getByTestId('search-saved-rerun')).toBeVisible({ timeout: 10_000 });
-  await expect(pneumoniaResult(page)).toBeVisible();
+  await expect(pneumoniaResult(page)).toBeVisible({ timeout: 60_000 });
+  // The finished search is saved under the installed data version before anything asks again.
+  await expect
+    .poll(
+      () =>
+        page.evaluate(
+          () =>
+            new Promise<number>((resolve) => {
+              const open = indexedDB.open('minimed-search-results');
+              open.onsuccess = () => {
+                const count = open.result.transaction('searches').objectStore('searches').count();
+                count.onsuccess = () => {
+                  open.result.close();
+                  resolve(count.result);
+                };
+              };
+              open.onerror = () => resolve(-1);
+            }),
+        ),
+      { timeout: 10_000 },
+    )
+    .toBe(1);
+
+  await page.getByTestId('search-input').fill('другой запрос');
+  await page.getByRole('button', { name: 'Показать историю поиска' }).click();
+  await page.locator('.search-history-panel-replay').filter({ hasText: query }).first().click();
+  // The history asks the query again; the cache answers with no skeleton.
+  await expect(pneumoniaResult(page)).toBeVisible({ timeout: 5_000 });
+  await expect(page.locator('.results-skeleton')).toHaveCount(0);
+
+  // The copy survives a reload of the app (same data version).
+  await page.reload();
+  await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
+    timeout: 60_000,
+  });
+  await page.getByTestId('search-input').fill(query);
+  await page.getByTestId('search-submit').click();
+  await expect(pneumoniaResult(page)).toBeVisible({ timeout: 5_000 });
+  await expect(page.locator('.results-skeleton')).toHaveCount(0);
 });
 
 test('runs a debounced clinical search without requiring submit', async ({ page }) => {

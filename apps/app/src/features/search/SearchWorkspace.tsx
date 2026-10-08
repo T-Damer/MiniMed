@@ -77,7 +77,7 @@ import { SearchExamples } from '@/features/search/SearchExamples';
 import { type SearchMeaning, SearchMeaningChoices } from '@/features/search/SearchMeaningChoices';
 import { SearchResultGroupCard } from '@/features/search/SearchResultGroupCard';
 import { SearchResultsSkeleton } from '@/features/search/SearchResultsSkeleton';
-import { sameSearchOutcome, savedSearchAge } from '@/features/search/search-refresh';
+import { sameSearchOutcome } from '@/features/search/search-refresh';
 import {
   presentSourceChunkText,
   sourceContextKicker,
@@ -89,6 +89,7 @@ import { pluralRu } from '@/i18n/labels';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentInArchive } from '@/state/document-navigation';
 import { motionMs } from '@/state/motion';
+import { searchDataVersion } from '@/state/search-data-version';
 import {
   appendSearchHistory,
   SEARCH_REPLAY_EVENT,
@@ -296,12 +297,11 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   // A re-run of the query already on screen (after an install, a core swap or a history replay):
   // the current results stay usable, and a different outcome waits behind «Обновить».
   const [refreshing, setRefreshing] = createSignal(false);
-  // The send button turns into a spinner while a search runs or the core is still on its way.
+  // The send button turns into a spinner while a search runs, a re-run checks the list on screen
+  // (progress in place, nothing inserted into the page) or the core is still on its way.
   const submitBusy = (): boolean =>
-    loading() || (props.searchAllowed === false && props.searchPending === true);
+    loading() || refreshing() || (props.searchAllowed === false && props.searchPending === true);
   const [pendingResponse, setPendingResponse] = createSignal<SearchResponse>();
-  // When the list on screen is a saved copy (`search-result-cache.ts`): the time it was made.
-  const [savedAt, setSavedAt] = createSignal<string>();
   // A typed query waits 500 ms before it searches; the skeleton shows through that wait too.
   const [searchQueued, setSearchQueued] = createSignal(false);
   const [analysisLoading, setAnalysisLoading] = createSignal(false);
@@ -565,25 +565,21 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     const replayQuery = replay.detail?.entry.query;
     if (!replayQuery?.trim() || replay.detail.entry.scope !== props.scope) return;
     updateQuery(replayQuery, false);
-    // A history entry opens on its saved results at once; the search re-runs behind them only
-    // when they are stale, and «Повторить поиск» re-runs it on request.
-    if (replay.detail.cachedResponse) {
-      lastSearchedQuery = searchableQuery(replayQuery);
-      setResponse(replay.detail.cachedResponse);
-      setDraftAnalysis(replay.detail.cachedResponse.analysis);
-    }
+    // A history entry asks its query again. The versioned result cache answers at once when the
+    // installed data is the data the earlier answer was made with, and the search runs otherwise.
     requestAnimationFrame(() => {
       if (textarea) resizeTextarea(textarea);
       void runSearch(replayQuery, false, { specialty: replay.detail.entry.specialty });
     });
   };
 
+  // Installed content changed (a module, the core): what is on screen stays — the open source
+  // fragment, the link labels and the list itself — while the query re-runs behind it. The new
+  // outcome replaces the list silently when identical, otherwise waits behind «Обновить».
   const handleContentChanged = (): void => {
-    setContext(undefined);
-    setContextDocuments([]);
     setError(undefined);
     const trimmed = query().trim();
-    if (trimmed) void runSearch(trimmed, false);
+    if (trimmed) void runSearch(trimmed, false, { reloadContextDocuments: true });
   };
   const handleCalculatorPacksChanged = (): void => {
     setCalculatorPacksRevision((revision) => revision + 1);
@@ -700,7 +696,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     setQuery(value);
     if (response()?.analysis.originalQuery !== searchableQuery(value)) {
       setResponse(undefined);
-      setSavedAt(undefined);
       setPendingResponse(undefined);
       setRefreshing(false);
       setContext(undefined);
@@ -714,15 +709,17 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   }
 
   /**
-   * Shows the saved copy of `trimmed` when there is one. True when it is fresh, so the search need
-   * not run; a stale copy stays on screen while the search re-runs behind it.
+   * The copy of `trimmed` made with the data installed now (`search-result-cache.ts`), shown at
+   * once; a copy made with other data is never read. True when it was shown, so the search need
+   * not run.
    */
   async function showSavedSearch(
     trimmed: string,
     generation: number,
     specialty: string | undefined,
+    dataVersion: string,
   ): Promise<boolean> {
-    const saved = await readCachedSearch(cacheIdentity(trimmed, specialty)).catch(
+    const saved = await readCachedSearch(cacheIdentity(trimmed, specialty), dataVersion).catch(
       (cause: unknown) => {
         console.error('Сохранённые результаты поиска недоступны.', cause);
         return null;
@@ -736,19 +733,18 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       setDraftAnalysis(saved.response.analysis);
       setContext(undefined);
     }
-    setSavedAt(saved.savedAt);
     setLoading(false);
-    return saved.fresh;
+    return true;
   }
 
   async function runSearch(
     nextQuery = query(),
     recordHistory = true,
     options: {
-      /** «Повторить поиск»: skip the saved copy and show the new results at once. */
-      readonly fromScratch?: boolean;
       /** The specialty of a replayed history entry. */
       readonly specialty?: string | undefined;
+      /** Installed content changed: read the document list again, replacing the one on screen. */
+      readonly reloadContextDocuments?: boolean;
     } = {},
   ): Promise<void> {
     const rawQuery = nextQuery.trim();
@@ -776,20 +772,21 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
 
     const generation = ++searchGeneration;
     const specialty = options.specialty ?? props.specialty;
-    if (!options.fromScratch) {
-      // The skeleton covers the (short) read of a saved copy for a query not yet on screen.
-      if (response()?.analysis.originalQuery !== trimmed) setLoading(true);
-      const fresh = await showSavedSearch(trimmed, generation, specialty);
-      if (generation !== searchGeneration) return;
-      if (fresh) {
-        lastSearchedQuery = trimmed;
-        const shownResponse = response();
-        if (recordHistory && shownResponse)
-          appendSearchHistory(rawQuery, props.scope, shownResponse, specialty);
-        if (contextDocuments().length === 0) await loadContextDocuments(core, generation, trimmed);
-        return;
+    // The skeleton covers the (short) read of a saved copy for a query not yet on screen.
+    if (response()?.analysis.originalQuery !== trimmed) setLoading(true);
+    const dataVersion = await searchDataVersion();
+    if (generation !== searchGeneration) return;
+    if (await showSavedSearch(trimmed, generation, specialty, dataVersion)) {
+      lastSearchedQuery = trimmed;
+      const shownResponse = response();
+      if (recordHistory && shownResponse)
+        appendSearchHistory(rawQuery, props.scope, shownResponse, specialty);
+      if (generation === searchGeneration && contextDocuments().length === 0) {
+        await loadContextDocuments(core, generation, trimmed);
       }
+      return;
     }
+    if (generation !== searchGeneration) return;
     const shown = response();
     const refreshOfShown = shown?.analysis.originalQuery === trimmed;
     // Search normalizes its own input; writing the trimmed text back into the field deleted the
@@ -820,27 +817,32 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     // An automatic refresh never swaps the list under the reader: an identical outcome is applied
     // silently, a different one is offered. A search the user asked for is applied at once.
     const current = response();
-    if (
-      refreshOfShown &&
-      !recordHistory &&
-      !options.fromScratch &&
-      current &&
-      !sameSearchOutcome(current, result.value)
-    ) {
+    if (refreshOfShown && !recordHistory && current && !sameSearchOutcome(current, result.value)) {
       setPendingResponse(result.value);
     } else {
       setPendingResponse(undefined);
       setResponse(result.value);
-      setSavedAt(undefined);
     }
     setDraftAnalysis(result.value.analysis);
-    void writeCachedSearch(cacheIdentity(trimmed, specialty), result.value).catch(
-      (cause: unknown) => {
-        console.error('Не удалось сохранить результаты поиска.', cause);
-      },
-    );
+    void saveSearch(cacheIdentity(trimmed, specialty), dataVersion, result.value);
     if (recordHistory) appendSearchHistory(rawQuery, props.scope, result.value, specialty);
-    if (contextDocuments().length === 0) await loadContextDocuments(core, generation, trimmed);
+    if (options.reloadContextDocuments || contextDocuments().length === 0) {
+      await loadContextDocuments(core, generation, trimmed);
+    }
+  }
+
+  /** Saves a finished search unless the installed data moved on while it ran. */
+  async function saveSearch(
+    identity: SearchCacheIdentity,
+    dataVersion: string,
+    value: SearchResponse,
+  ): Promise<void> {
+    try {
+      if ((await searchDataVersion()) !== dataVersion) return;
+      await writeCachedSearch(identity, dataVersion, value);
+    } catch (cause) {
+      console.error('Не удалось сохранить результаты поиска.', cause);
+    }
   }
 
   // Link labels use the compact projection; extraction metadata stays in the database.
@@ -1394,30 +1396,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           <Show when={response()}>
             {(_searchResponse) => (
               <div class="search-results-slot__content search-results-slot__reveal">
-                <Show when={refreshing() && props.scope !== 'personal'}>
-                  <p class="search-refresh-status" role="status">
-                    Проверяем установленные документы…
-                  </p>
-                </Show>
-                <Show when={!refreshing() && props.scope !== 'personal' ? savedAt() : undefined}>
-                  {(time) => (
-                    <p class="search-saved-status">
-                      <span class="search-saved-status__text">
-                        Сохранённые результаты · {savedSearchAge(time())}
-                      </span>
-                      <button
-                        type="button"
-                        class="search-saved-status__button"
-                        data-testid="search-saved-rerun"
-                        onClick={() => void runSearch(query(), false, { fromScratch: true })}
-                      >
-                        <AppGlyph name="refresh" class="search-saved-status__icon" />
-                        Повторить поиск
-                      </button>
-                    </p>
-                  )}
-                </Show>
-
                 <Show when={props.scope !== 'personal' ? response()?.queryRewrite : undefined}>
                   {(rewrite) => (
                     <div
@@ -1519,7 +1497,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                         onClick={() => {
                           setResponse(pending());
                           setPendingResponse(undefined);
-                          setSavedAt(undefined);
                         }}
                       >
                         Обновить

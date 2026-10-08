@@ -40,6 +40,7 @@ import {
   watchAndroidApkTasks,
 } from '@/state/native-update';
 import { dueReminderNotes, loadPatientNotes, PATIENT_NOTES_EVENT } from '@/state/patient-notes';
+import { publishCoreDataVersion, readInstalledDataVersion } from '@/state/search-data-version';
 import { installUiFeedback } from '@/state/ui-feedback';
 import { ensureUserLibraryIngestRunning } from '@/state/user-library-ingest';
 
@@ -397,11 +398,15 @@ export function useAppSession() {
   const reconnectInstalledModules = async (): Promise<void> => {
     const current = ready();
     if (!current) throw new Error('Локальный поиск ещё не готов.');
+    // The installed set the next core is built from; saved searches are labelled with it once
+    // that core is the one searching, never earlier.
+    const dataVersion = readInstalledDataVersion();
     await swapMedicalCore(current, createSessionCore, (candidate) => {
       // Publish the new core before the previous one closes: readers must never be handed a core
       // that is shutting down («DB has been closed» right after an install).
       const previousSearchCore = searchCore();
       const nextSearchCore = new WorkerSearchMedicalCore(candidate.core);
+      publishCoreDataVersion(dataVersion);
       setSearchCore(nextSearchCore);
       coreToClose = candidate.core;
       setReady(candidate);
@@ -467,6 +472,7 @@ export function useAppSession() {
       unsubscribeInstalledModules = runtime.subscribe(syncInstalledCount);
     };
     bootTimer = setTimeout(() => setBootSlow(true), SLOW_BOOT_DELAY_MS);
+    const initialDataVersion = readInstalledDataVersion();
     const initializedPromise = initializeMedicalCore(createSessionCore);
     try {
       const initialized = await initializedPromise;
@@ -476,6 +482,7 @@ export function useAppSession() {
       }
       const initializedSearchCore = new WorkerSearchMedicalCore(initialized.core);
       coreToClose = initialized.core;
+      publishCoreDataVersion(initialDataVersion);
       setSearchCore(initializedSearchCore);
       setReady(initialized);
       performance.mark('minimed:search-ready');

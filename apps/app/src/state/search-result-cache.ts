@@ -1,25 +1,29 @@
 import type { SearchResponse } from '@localmed/contracts';
 
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
-import { RELEASE_VERSION } from '../../../../release';
 
 /**
- * Device-local copies of finished searches (owner 2026-10-07): a query asked again — typed, from
- * the history or after the app was closed — shows its last results at once instead of running the
- * whole search and its skeleton again. A copy is «fresh» while the app version and the installed
- * content are the ones it was made with (and for at most a day); a stale copy is still shown at
- * once, and the search re-runs behind it with the usual «Есть новые результаты» offer.
+ * Device-local copies of finished searches (owner 2026-10-07, versioned 2026-10-08): a query asked
+ * again — typed, from the history or after the app was closed — shows its results at once instead
+ * of running the whole search and its skeleton again.
+ *
+ * An entry is keyed by the query as the search sees it (scope, specialty, filters, normalised
+ * text) and by the data version it was made with (`search-data-version.ts`: build, core, installed
+ * modules and their versions, semantic model). A copy made with other data is never read: every
+ * write drops the entries of other data versions, and the newest-used {@link MAX_ENTRIES} stay
+ * (LRU: a read counts as a use). So there is no stale copy to show, and the history needs none —
+ * a previous search simply asks again and the cache answers only when the answer is still true.
  *
  * Kept in IndexedDB (a response is far over what localStorage takes), next to an in-memory map so
  * a repeat within the session needs no read at all. Holds query text like the search history and
  * is cleared with it; nothing here is logged.
  */
 export const SEARCH_CACHE_DATABASE = 'minimed-search-results';
+const DATABASE_VERSION = 2;
 const STORE = 'searches';
-const MAX_ENTRIES = 40;
-const FRESH_MS = 24 * 60 * 60 * 1000;
-const REVISION_KEY = 'minimed.search.content-revision.v1';
-const SAVED_AT = 'savedAt';
+export const MAX_ENTRIES = 50;
+const USED_AT = 'usedAt';
+const DATA_VERSION = 'dataVersion';
 
 export interface SearchCacheIdentity {
   readonly query: string;
@@ -29,57 +33,52 @@ export interface SearchCacheIdentity {
 }
 
 interface StoredSearch {
+  /** The identity and the data version: see {@link searchCacheKey}. */
   readonly key: string;
-  readonly signature: string;
+  readonly dataVersion: string;
   /** ISO time the search finished. */
   readonly savedAt: string;
+  /** ISO time of the last write or read; the oldest are evicted first. */
+  readonly usedAt: string;
   readonly response: SearchResponse;
 }
 
 export interface CachedSearch {
   readonly response: SearchResponse;
   readonly savedAt: string;
-  /** Same app version and installed content, younger than a day: no need to search again. */
-  readonly fresh: boolean;
 }
 
 const memory = new Map<string, StoredSearch>();
 
-function readRevision(): string {
-  try {
-    return localStorage.getItem(REVISION_KEY) ?? '0';
-  } catch (cause) {
-    console.warn('Search cache revision is unavailable.', cause);
-    return '0';
-  }
-}
-
-/** Installed content changed (a module, the core, the semantic model): every copy turns stale. */
-export function bumpSearchContentRevision(): void {
-  try {
-    localStorage.setItem(REVISION_KEY, String(Date.now()));
-  } catch (cause) {
-    console.warn('Search cache revision could not be saved.', cause);
-  }
-}
-
-export function searchContentSignature(): string {
-  return `${RELEASE_VERSION}|${readRevision()}`;
-}
-
-/** One key per query as the search sees it: scope, specialty, filters and the normalised text. */
-export function searchCacheKey(identity: SearchCacheIdentity): string {
+/** One key per query as the search sees it, under one data version. */
+export function searchCacheKey(identity: SearchCacheIdentity, dataVersion: string): string {
   const query = identity.query.replace(/\s+/gu, ' ').trim().toLocaleLowerCase('ru-RU');
-  return JSON.stringify([identity.scope, identity.specialty ?? '', identity.filters ?? {}, query]);
+  return JSON.stringify([
+    dataVersion,
+    identity.scope,
+    identity.specialty ?? '',
+    identity.filters ?? {},
+    query,
+  ]);
 }
 
-export function isFreshSearch(
-  stored: Pick<StoredSearch, 'signature' | 'savedAt'>,
-  signature: string,
-  now: number,
-): boolean {
-  const age = now - Date.parse(stored.savedAt);
-  return stored.signature === signature && age >= 0 && age < FRESH_MS;
+/** Entries of other data versions: they can never be read again. */
+export function staleKeys(
+  entries: readonly Pick<StoredSearch, 'key' | 'dataVersion'>[],
+  dataVersion: string,
+): readonly string[] {
+  return entries.filter((entry) => entry.dataVersion !== dataVersion).map((entry) => entry.key);
+}
+
+/** The least recently used keys past `limit`. */
+export function keysToEvict(
+  entries: readonly Pick<StoredSearch, 'key' | 'usedAt'>[],
+  limit = MAX_ENTRIES,
+): readonly string[] {
+  return entries
+    .toSorted((left, right) => right.usedAt.localeCompare(left.usedAt))
+    .slice(limit)
+    .map((entry) => entry.key);
 }
 
 function isStoredSearch(value: unknown): value is StoredSearch {
@@ -88,8 +87,9 @@ function isStoredSearch(value: unknown): value is StoredSearch {
   const response = record['response'] as Partial<SearchResponse> | undefined;
   return (
     typeof record['key'] === 'string' &&
-    typeof record['signature'] === 'string' &&
+    typeof record['dataVersion'] === 'string' &&
     typeof record['savedAt'] === 'string' &&
+    typeof record['usedAt'] === 'string' &&
     !!response &&
     typeof response === 'object' &&
     Array.isArray(response.groups) &&
@@ -108,9 +108,13 @@ async function withStore<T>(
   mode: IDBTransactionMode,
   action: (store: IDBObjectStore) => Promise<T>,
 ): Promise<T> {
-  const open = indexedDB.open(SEARCH_CACHE_DATABASE, 1);
+  const open = indexedDB.open(SEARCH_CACHE_DATABASE, DATABASE_VERSION);
   open.onupgradeneeded = () => {
-    open.result.createObjectStore(STORE, { keyPath: 'key' }).createIndex(SAVED_AT, SAVED_AT);
+    // Version 1 keyed entries without a data version; its copies are not carried over.
+    if (open.result.objectStoreNames.contains(STORE)) open.result.deleteObjectStore(STORE);
+    const store = open.result.createObjectStore(STORE, { keyPath: 'key' });
+    store.createIndex(USED_AT, USED_AT);
+    store.createIndex(DATA_VERSION, DATA_VERSION);
   };
   const database = await requestResult(open);
   try {
@@ -134,71 +138,102 @@ function available(): boolean {
   return typeof indexedDB !== 'undefined';
 }
 
+/** Deletes every key an index range yields, reading keys only. */
+function deleteKeysInRange(
+  store: IDBObjectStore,
+  index: string,
+  range: IDBKeyRange,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const cursor = store.index(index).openKeyCursor(range);
+    cursor.onerror = () => reject(cursor.error ?? new Error('Ошибка очистки кэша поиска.'));
+    cursor.onsuccess = () => {
+      const current = cursor.result;
+      if (!current) {
+        resolve();
+        return;
+      }
+      store.delete(current.primaryKey);
+      current.continue();
+    };
+  });
+}
+
+/** Drops the entries of other data versions and the least recently used past the limit. */
+async function trimStore(store: IDBObjectStore, dataVersion: string): Promise<void> {
+  await deleteKeysInRange(store, DATA_VERSION, IDBKeyRange.upperBound(dataVersion, true));
+  await deleteKeysInRange(store, DATA_VERSION, IDBKeyRange.lowerBound(dataVersion, true));
+  let excess = (await requestResult(store.count())) - MAX_ENTRIES;
+  if (excess <= 0) return;
+  // Oldest first through the `usedAt` index: only keys are read, never the stored responses.
+  await new Promise<void>((resolve, reject) => {
+    const cursor = store.index(USED_AT).openKeyCursor();
+    cursor.onerror = () => reject(cursor.error ?? new Error('Ошибка очистки кэша поиска.'));
+    cursor.onsuccess = () => {
+      const current = cursor.result;
+      if (!current || excess <= 0) {
+        resolve();
+        return;
+      }
+      store.delete(current.primaryKey);
+      excess -= 1;
+      current.continue();
+    };
+  });
+}
+
+function remember(record: StoredSearch): void {
+  // Insertion order is recency: the map's first key is the least recently used.
+  memory.delete(record.key);
+  memory.set(record.key, record);
+  for (const key of staleKeys([...memory.values()], record.dataVersion)) memory.delete(key);
+  for (const key of keysToEvict([...memory.values()])) memory.delete(key);
+}
+
+/** The copy of a query made with this data version, or null. Reading it counts as a use. */
 export async function readCachedSearch(
   identity: SearchCacheIdentity,
+  dataVersion: string,
   now = Date.now(),
 ): Promise<CachedSearch | null> {
-  const key = searchCacheKey(identity);
+  const key = searchCacheKey(identity, dataVersion);
   let stored = memory.get(key);
   if (!stored && available()) {
     const value: unknown = await withStore('readonly', (store) => requestResult(store.get(key)));
-    if (isStoredSearch(value)) {
-      stored = value;
-      memory.set(key, value);
-    }
+    if (isStoredSearch(value) && value.dataVersion === dataVersion) stored = value;
   }
   if (!stored) return null;
-  return {
-    response: stored.response,
-    savedAt: stored.savedAt,
-    fresh: isFreshSearch(stored, searchContentSignature(), now),
-  };
-}
-
-/** The newest `MAX_ENTRIES` keys stay; the rest are removed. */
-export function keysToEvict(
-  entries: readonly Pick<StoredSearch, 'key' | 'savedAt'>[],
-  limit = MAX_ENTRIES,
-): readonly string[] {
-  return entries
-    .toSorted((left, right) => right.savedAt.localeCompare(left.savedAt))
-    .slice(limit)
-    .map((entry) => entry.key);
+  const used: StoredSearch = { ...stored, usedAt: new Date(now).toISOString() };
+  remember(used);
+  if (available()) {
+    void withStore('readwrite', (store) => requestResult(store.put(used))).catch(
+      (cause: unknown) => {
+        console.error('Не удалось отметить использование сохранённого поиска.', cause);
+      },
+    );
+  }
+  return { response: used.response, savedAt: used.savedAt };
 }
 
 export async function writeCachedSearch(
   identity: SearchCacheIdentity,
+  dataVersion: string,
   response: SearchResponse,
   now = Date.now(),
 ): Promise<void> {
+  const stamp = new Date(now).toISOString();
   const record: StoredSearch = {
-    key: searchCacheKey(identity),
-    signature: searchContentSignature(),
-    savedAt: new Date(now).toISOString(),
+    key: searchCacheKey(identity, dataVersion),
+    dataVersion,
+    savedAt: stamp,
+    usedAt: stamp,
     response,
   };
-  memory.set(record.key, record);
-  for (const key of keysToEvict([...memory.values()])) memory.delete(key);
+  remember(record);
   if (!available()) return;
   await withStore('readwrite', async (store) => {
     await requestResult(store.put(record));
-    let excess = (await requestResult(store.count())) - MAX_ENTRIES;
-    if (excess <= 0) return;
-    // Oldest first through the `savedAt` index: only keys are read, never the stored responses.
-    const cursor = store.index(SAVED_AT).openKeyCursor();
-    await new Promise<void>((resolve, reject) => {
-      cursor.onerror = () => reject(cursor.error ?? new Error('Ошибка очистки кэша поиска.'));
-      cursor.onsuccess = () => {
-        const current = cursor.result;
-        if (!current || excess <= 0) {
-          resolve();
-          return;
-        }
-        store.delete(current.primaryKey);
-        excess -= 1;
-        current.continue();
-      };
-    });
+    await trimStore(store, dataVersion);
   });
 }
 

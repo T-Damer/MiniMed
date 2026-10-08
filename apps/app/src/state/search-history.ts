@@ -12,9 +12,12 @@ export interface SearchHistoryEntry {
   readonly modeUsed: SearchResponse['modeUsed'];
 }
 
+/**
+ * A previous search is asked again, never replayed from a stored snapshot: the search answers from
+ * the versioned result cache when its data is still the installed data, and runs otherwise.
+ */
 export interface SearchReplayDetail {
   readonly entry: SearchHistoryEntry;
-  readonly cachedResponse?: SearchResponse;
 }
 
 export const SEARCH_HISTORY_KEY = 'localmed.search-history.v4';
@@ -23,7 +26,6 @@ export const SEARCH_REPLAY_EVENT = 'localmed:replay-search';
 const PREVIOUS_HISTORY_KEY = 'localmed.search-history.v3';
 const LEGACY_HISTORY_KEY = 'localmed.search-history.v2';
 const MAX_HISTORY = 40;
-const responseCache = new Map<string, SearchResponse>();
 
 function isScope(value: unknown): value is SearchScope {
   return [
@@ -140,15 +142,6 @@ export function appendSearchHistory(
       (entry) => entry.query !== trimmed || entry.scope !== scope || entry.specialty !== specialty,
     ),
   ].slice(0, MAX_HISTORY);
-  for (const entry of current) {
-    if (entry.query === trimmed && entry.scope === scope && entry.specialty === specialty)
-      responseCache.delete(entry.id);
-  }
-  if (typeof response !== 'number') responseCache.set(nextEntry.id, response);
-  const retainedIds = new Set(next.map((entry) => entry.id));
-  for (const id of responseCache.keys()) {
-    if (!retainedIds.has(id)) responseCache.delete(id);
-  }
   localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(next));
   window.dispatchEvent(new CustomEvent(SEARCH_HISTORY_EVENT, { detail: next }));
   return next;
@@ -158,7 +151,6 @@ export function clearSearchHistory(): void {
   localStorage.removeItem(SEARCH_HISTORY_KEY);
   localStorage.removeItem(PREVIOUS_HISTORY_KEY);
   localStorage.removeItem(LEGACY_HISTORY_KEY);
-  responseCache.clear();
   void clearSearchResultCache().catch((cause: unknown) => {
     console.error('Не удалось очистить сохранённые результаты поиска.', cause);
   });
@@ -166,7 +158,6 @@ export function clearSearchHistory(): void {
 }
 
 export function removeSearchHistoryEntry(id: string): readonly SearchHistoryEntry[] {
-  responseCache.delete(id);
   const next = loadSearchHistory().filter((entry) => entry.id !== id);
   localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(next));
   window.dispatchEvent(new CustomEvent(SEARCH_HISTORY_EVENT, { detail: next }));
@@ -174,10 +165,7 @@ export function removeSearchHistoryEntry(id: string): readonly SearchHistoryEntr
 }
 
 export function replaySearch(entry: SearchHistoryEntry): void {
-  const cachedResponse = responseCache.get(entry.id);
   window.dispatchEvent(
-    new CustomEvent<SearchReplayDetail>(SEARCH_REPLAY_EVENT, {
-      detail: cachedResponse ? { entry, cachedResponse } : { entry },
-    }),
+    new CustomEvent<SearchReplayDetail>(SEARCH_REPLAY_EVENT, { detail: { entry } }),
   );
 }
