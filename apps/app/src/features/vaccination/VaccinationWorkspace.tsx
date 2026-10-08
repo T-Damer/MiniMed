@@ -33,6 +33,7 @@ import { VaccinationStatusBar } from '@/features/vaccination/VaccinationStatusBa
 import {
   getVaccinationCalendar,
   isAgeRow,
+  itemDoseLabel,
   type NationalRow,
   nationalDoses,
 } from '@/features/vaccination/vaccination-calendar';
@@ -50,6 +51,7 @@ import { buildHandout } from '@/features/vaccination/vaccination-handout';
 import { renderVaccinationHandoutHtml } from '@/features/vaccination/vaccination-handout-print';
 import {
   type DoseMarkState,
+  markedAs,
   nextMarkState,
   withMark,
   withMarks,
@@ -65,6 +67,9 @@ const PART_OPTIONS = [
   { value: 'national', label: 'Национальный' },
   { value: 'epidemic', label: 'Эпид. показания' },
 ] as const satisfies readonly { value: VaccinationPart; label: string }[];
+
+/** The one undo toast of the screen: a tap on a cell or a bulk mark replaces the last one. */
+const UNDO_TOAST_ID = 'vaccination-mark';
 
 /** Typing in the search of epidemic indications filters this long after the last key. */
 const SEARCH_DELAY_MS = 200;
@@ -123,15 +128,46 @@ export function VaccinationWorkspace(props: {
   );
   // The «now» line is brought into view once per child, not on every mark.
   const revealKey = (): string => `${child().profile?.id ?? ''}|${childBirthDate(child()) ?? ''}`;
-  createEffect(on(revealKey, () => setFocus(undefined), { defer: true }));
+  createEffect(
+    on(
+      revealKey,
+      () => {
+        setFocus(undefined);
+        // An undo belongs to the child it was made for.
+        toast.dismiss(UNDO_TOAST_ID);
+      },
+      { defer: true },
+    ),
+  );
 
   const update = (next: ReturnType<typeof record.marks>): void => record.update(next);
+  /** A tap on a cell: the next mark, dated today when it is «сделана», with an undo in the toast. */
   const cycle = (itemId: string): void => {
-    const marks = record.marks();
-    update(withMark(marks, itemId, nextMarkState(marks[itemId]?.state)));
+    const before = record.marks();
+    const next = nextMarkState(before[itemId]?.state);
+    const after = markedAs(before, itemId, next, today());
+    update(after);
+    const label = doses.get(itemId)?.item;
+    const date = after[itemId]?.date;
+    const what =
+      next === 'done'
+        ? `сделана${date ? ` ${displayIsoDate(date)}` : ''}`
+        : next === 'planned'
+          ? 'в плане'
+          : 'отметка снята';
+    // One toast that follows the taps, so a run of taps does not pile them up.
+    toast(`${label ? `${itemDoseLabel(label)} · ` : ''}${what}`, {
+      id: UNDO_TOAST_ID,
+      action: { label: 'Отменить', onClick: () => update(before) },
+    });
   };
   const mark = (itemId: string, next: DoseMarkState | undefined, date?: string | null): void => {
-    update(withMark(record.marks(), itemId, next, date));
+    const marks = record.marks();
+    update(
+      date === undefined
+        ? markedAs(marks, itemId, next, today())
+        : withMark(marks, itemId, next, date),
+    );
   };
   const markAll = (itemIds: readonly string[]): void => {
     update(withMarks(record.marks(), itemIds, 'done'));
@@ -144,7 +180,7 @@ export function VaccinationWorkspace(props: {
     setFocus(undefined);
     toast(
       `Отмечено сделанными: ${ids.length} ${pluralRu(ids.length, 'прививка', 'прививки', 'прививок')}`,
-      { action: { label: 'Отменить', onClick: () => update(before) } },
+      { id: UNDO_TOAST_ID, action: { label: 'Отменить', onClick: () => update(before) } },
     );
   };
 

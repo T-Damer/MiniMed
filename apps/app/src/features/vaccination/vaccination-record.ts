@@ -81,6 +81,24 @@ export function withMark(
   };
 }
 
+/**
+ * What one tap or choice does to a vaccination: its new state with the date that goes with it. A
+ * dose turned «done» is dated `today` (the doctor corrects it in the dose sheet); a plan keeps the
+ * date of an earlier plan, never the date of a dose that was given. Choosing the state it already
+ * has changes nothing.
+ */
+export function markedAs(
+  marks: DoseMarks,
+  itemId: string,
+  state: DoseMarkState | undefined,
+  today: string,
+): DoseMarks {
+  const previous = marks[itemId];
+  if (state === undefined || previous?.state === state) return withMark(marks, itemId, state);
+  const date = state === 'done' ? today : previous?.state === 'planned' ? previous.date : null;
+  return withMark(marks, itemId, state, date);
+}
+
 /** `marks` with the same state set for several vaccinations at once; dates already noted stay. */
 export function withMarks(
   marks: DoseMarks,

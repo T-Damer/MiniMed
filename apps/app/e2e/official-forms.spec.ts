@@ -208,7 +208,12 @@ test('fills form 070/у from a patient card, shows the rule behind a field and p
   await expect(frame.locator('.form-print__blank').filter({ hasText: /^45$/u })).toBeVisible();
   await capture(page, 'form-070u-preview');
 
-  // The printer button hands the same page to the print manager (a popup in the browser).
+  // The printer button hands the same page to the print manager (a popup in the browser). The
+  // popup closes itself once printing ends, which headless Chromium reports at once: print is
+  // stubbed so the page stays open long enough to be read.
+  await page.context().addInitScript(() => {
+    window.print = () => undefined;
+  });
   const popupPromise = page.waitForEvent('popup');
   await preview.getByRole('button', { name: 'Печать', exact: true }).click();
   const popup = await popupPromise;
@@ -478,7 +483,11 @@ test('autosaves a draft in the patient vault and approves the form with «Сох
   await expect(state).toHaveText('Черновик');
   await page.waitForTimeout(1500);
   await page.reload();
-  await page.getByRole('button', { name: /^(Понятно, продолжить|Открыть)$/u }).click();
+  // An encrypted vault opens silently; the choice card is only there on a device that has none.
+  const unlock = page.getByRole('button', { name: /^(Понятно, продолжить|Открыть)$/u });
+  const signaInput = page.locator('#form-field-signa').getByRole('textbox');
+  await expect(unlock.or(signaInput)).toBeVisible();
+  if (await unlock.isVisible()) await unlock.click();
   await expect(page.locator('#form-field-signa').getByRole('textbox')).toHaveValue(
     'По 1 таблетке 1 раз в день',
   );

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { getVaccinationCalendar } from '@/features/vaccination/vaccination-calendar';
 import {
   buildRecord,
+  markedAs,
   nextMarkState,
   parseRecord,
   recordBlobId,
@@ -32,6 +33,25 @@ describe('vaccination marks', () => {
     const two = withMark(done, 'n-02-1', 'done');
     expect(Object.keys(two)).toEqual(['n-01-1', 'n-02-1']);
     expect(withMark(two, 'n-01-1', undefined)).toEqual({ 'n-02-1': { state: 'done', date: null } });
+  });
+
+  it('dates a dose given today by default and never carries a given date over to a plan', () => {
+    const today = '2026-10-08';
+    const done = markedAs({}, 'n-01-1', 'done', today);
+    expect(done['n-01-1']).toEqual({ state: 'done', date: today });
+    // Done → planned: the date of the dose given is not a planned date.
+    const planned = markedAs(done, 'n-01-1', 'planned', today);
+    expect(planned['n-01-1']).toEqual({ state: 'planned', date: null });
+    // Planned for a day → done: dated today, the plan's date is not when it was given.
+    const dated = withMark({}, 'n-02-1', 'planned', '2026-12-01');
+    expect(markedAs(dated, 'n-02-1', 'done', today)['n-02-1']).toEqual({
+      state: 'done',
+      date: today,
+    });
+    // The same state again keeps the date the doctor corrected.
+    const corrected = withMark({}, 'n-03-1', 'done', '2026-09-30');
+    expect(markedAs(corrected, 'n-03-1', 'done', today)['n-03-1']?.date).toBe('2026-09-30');
+    expect(markedAs(corrected, 'n-03-1', undefined, today)).toEqual({});
   });
 
   it('marks several vaccinations at once and leaves dates already noted', () => {
