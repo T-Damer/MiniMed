@@ -2,6 +2,7 @@ import { createSignal, For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { FileButton } from '@/components/FileButton';
+import { useFinePointer } from '@/components/fine-pointer';
 import {
   createUserLibraryDocuments,
   dragCarriesFiles,
@@ -20,6 +21,8 @@ import './imaging-entry.css';
  */
 export function ImagingViewerEntry(props: { readonly onOpened: () => void }): JSX.Element {
   const documents = createUserLibraryDocuments();
+  // Dragging a file onto the page is a desktop gesture: a phone is told to pick one.
+  const canDrop = useFinePointer();
   const list = () => selectImagingStudies(documents());
   const [dragging, setDragging] = createSignal(false);
   const [busy, setBusy] = createSignal(false);
@@ -62,7 +65,9 @@ export function ImagingViewerEntry(props: { readonly onOpened: () => void }): JS
         }}
       >
         <AppGlyph name="image" class="imaging-entry__icon" />
-        <p class="imaging-entry__lead">Перетащите сюда снимок DICOM или NIfTI</p>
+        <p class="imaging-entry__lead">
+          {canDrop() ? 'Перетащите сюда снимок DICOM или NIfTI' : 'Выберите снимок DICOM или NIfTI'}
+        </p>
         <p class="imaging-entry__hint">
           Файл сохранится в «Мои файлы» → «Исследования» и откроется в просмотре.
         </p>
@@ -95,7 +100,9 @@ export function ImagingViewerEntry(props: { readonly onOpened: () => void }): JS
           when={list().length > 0}
           fallback={
             <p class="imaging-entry__empty">
-              В «Моих файлах» пока нет снимков. Откройте новый файл или перетащите его сюда.
+              {canDrop()
+                ? 'В «Моих файлах» пока нет снимков. Откройте новый файл или перетащите его сюда.'
+                : 'В «Моих файлах» пока нет снимков.'}
             </p>
           }
         >
