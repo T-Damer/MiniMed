@@ -6,10 +6,12 @@ import { Checkbox } from '@/components/Checkbox';
 import { ChoiceGroup } from '@/components/ChoiceGroup';
 import { NativeDateTimeField } from '@/components/NativeDateTimeField';
 import { SelectField } from '@/components/SelectField';
+import { SheetPopover } from '@/components/SheetPopover';
 import { TextArea } from '@/components/TextArea';
 import { TextField } from '@/components/TextField';
 import { type FormValue, listValue, textValue } from '@/features/forms/form-values';
 import {
+  fieldHasRule,
   fieldRuleView,
   isCodeList,
   optionLabel,
@@ -21,93 +23,78 @@ export interface FormFieldControlProps {
   readonly field: FormField;
   readonly value: FormValue | undefined;
   readonly prefilled: boolean;
+  /** The field is required, empty, and the person has already tried to save. */
   readonly missing: boolean;
   readonly error: string | undefined;
   readonly onChange: (value: FormValue) => void;
 }
 
-function FieldBadges(props: {
-  readonly field: FormField;
-  readonly prefilled: boolean;
-}): JSX.Element {
+/** The paragraph of the order that governs the field, opened from the «?» in its label. */
+function FieldRule(props: { readonly schema: FormSchema; readonly field: FormField }): JSX.Element {
+  const [open, setOpen] = createSignal(false);
+  const view = () => fieldRuleView(props.schema, props.field);
   return (
-    <>
-      <Show when={props.field.required}>
-        <span class="form-field__badge form-field__badge--required">обязательное</span>
-      </Show>
-      <Show when={props.prefilled}>
-        <span class="form-field__badge form-field__badge--prefilled">подставлено</span>
-      </Show>
-    </>
+    <SheetPopover
+      open={open()}
+      onOpenChange={setOpen}
+      title={props.field.label}
+      triggerClass="form-field__rule-button"
+      triggerLabel="Правило заполнения"
+      triggerTitle="Правило заполнения"
+      trigger={<AppGlyph name="question" class="form-field__rule-icon" />}
+      contentClass="form-field__rule"
+      placement="bottom-start"
+    >
+      <div role="note" class="form-field__rule-body">
+        <Show when={view().status === 'by-line' && view().note === undefined}>
+          <p class="form-field__rule-note">
+            Порядок называет строку целиком; эту часть строки он отдельно не определяет.
+          </p>
+        </Show>
+        <For each={view().paragraphs}>
+          {(paragraph) => (
+            <div class="form-field__rule-paragraph">
+              <p class="form-field__rule-text">{paragraph.text}</p>
+              <Show when={paragraph.listItemCount}>
+                {(count) => (
+                  <p class="form-field__rule-note">
+                    Перечень значений ({count()}) — в списке поля.
+                  </p>
+                )}
+              </Show>
+              <p class="form-field__rule-cite">{ruleCitation(props.schema, paragraph)}</p>
+            </div>
+          )}
+        </For>
+        <Show when={view().note}>{(note) => <p class="form-field__rule-note">{note()}</p>}</Show>
+      </div>
+    </SheetPopover>
   );
 }
 
+/** Label with a quiet «*» for a required field and a «?» when the order has a rule for it. */
 function FieldLabel(props: {
+  readonly schema: FormSchema;
   readonly field: FormField;
-  readonly prefilled: boolean;
 }): JSX.Element {
   return (
     <span class="form-field__label">
       <span class="form-field__label-text">{props.field.label}</span>
-      <FieldBadges field={props.field} prefilled={props.prefilled} />
-    </span>
-  );
-}
-
-function FieldRule(props: { readonly schema: FormSchema; readonly field: FormField }): JSX.Element {
-  const [open, setOpen] = createSignal(false);
-  const view = () => fieldRuleView(props.schema, props.field);
-  const panelId = `form-rule-${props.field.id}`;
-  return (
-    <div class="form-field__rule-block">
-      <button
-        type="button"
-        class="form-field__rule-toggle"
-        aria-expanded={open()}
-        aria-controls={panelId}
-        onClick={() => setOpen(!open())}
-      >
-        <AppGlyph name="question" class="form-field__rule-icon" aria-hidden="true" />
-        Правило заполнения
-      </button>
-      <Show when={open()}>
-        <div id={panelId} class="form-field__rule" role="note">
-          <Show when={view().status === 'undefined'}>
-            <p class="form-field__rule-text">
-              Порядок заполнения этого поля не определяет — приказ не содержит для него отдельного
-              указания.
-            </p>
-          </Show>
-          <Show when={view().status === 'by-line'}>
-            <p class="form-field__rule-note">
-              Порядок называет строку целиком; эту часть строки он отдельно не определяет.
-            </p>
-          </Show>
-          <For each={view().paragraphs}>
-            {(paragraph) => (
-              <div class="form-field__rule-paragraph">
-                <p class="form-field__rule-text">{paragraph.text}</p>
-                <Show when={paragraph.listItemCount}>
-                  {(count) => (
-                    <p class="form-field__rule-note">
-                      Перечень значений ({count()}) — в списке поля.
-                    </p>
-                  )}
-                </Show>
-                <p class="form-field__rule-cite">{ruleCitation(props.schema, paragraph)}</p>
-              </div>
-            )}
-          </For>
-          <Show when={view().note}>{(note) => <p class="form-field__rule-note">{note()}</p>}</Show>
-        </div>
+      <Show when={props.field.required}>
+        <span class="form-field__required" aria-hidden="true">
+          *
+        </span>
       </Show>
-    </div>
+      <Show when={fieldHasRule(props.schema, props.field)}>
+        <FieldRule schema={props.schema} field={props.field} />
+      </Show>
+    </span>
   );
 }
 
 function Control(props: FormFieldControlProps): JSX.Element {
   const field = (): FormField => props.field;
-  const label = (): JSX.Element => <FieldLabel field={field()} prefilled={props.prefilled} />;
+  const label = (): JSX.Element => <FieldLabel schema={props.schema} field={field()} />;
   const options = () =>
     (field().options ?? []).map((option) => ({
       value: option.value,
@@ -123,9 +110,11 @@ function Control(props: FormFieldControlProps): JSX.Element {
               label={label()}
               value={textValue(props.value)}
               error={props.error}
+              inputClass="form-field__input"
               autocomplete="off"
               spellcheck={false}
               autocapitalize={field().type === 'icd10' ? 'characters' : 'sentences'}
+              aria-required={field().required}
               {...(field().type === 'icd10' ? { hint: 'Например, J45.0' } : {})}
               onInput={(event) => {
                 const raw = event.currentTarget.value;
@@ -138,9 +127,11 @@ function Control(props: FormFieldControlProps): JSX.Element {
             label={label()}
             value={textValue(props.value)}
             error={props.error}
-            rows={2}
+            textareaClass="form-field__input form-field__input--multiline"
+            rows={3}
             autocomplete="off"
             spellcheck={false}
+            aria-required={field().required}
             onInput={(event) => props.onChange(event.currentTarget.value)}
           />
         </Show>
@@ -153,6 +144,8 @@ function Control(props: FormFieldControlProps): JSX.Element {
             label={field().label}
             placeholder="дд.мм.гггг"
             value={textValue(props.value)}
+            class="form-field__date-wrapper"
+            buttonClass="form-field__date-button"
             onChange={(next) => props.onChange(next)}
           />
           <Show when={props.error}>
@@ -169,6 +162,8 @@ function Control(props: FormFieldControlProps): JSX.Element {
           label={label()}
           value={textValue(props.value)}
           error={props.error}
+          controlClass="form-field__input"
+          aria-required={field().required}
           options={[{ value: '', label: 'Не указано' }, ...options()]}
           onChange={(event) => props.onChange(event.currentTarget.value)}
         />
@@ -180,6 +175,7 @@ function Control(props: FormFieldControlProps): JSX.Element {
             options={options()}
             value={textValue(props.value)}
             error={props.error}
+            large
             onChange={(next) => props.onChange(next)}
           />
           <Show when={textValue(props.value) !== '' && !field().required}>
@@ -195,6 +191,7 @@ function Control(props: FormFieldControlProps): JSX.Element {
           <For each={options()}>
             {(option) => (
               <Checkbox
+                class="form-field__tap-row"
                 label={option.label}
                 checked={listValue(props.value).includes(option.value)}
                 onChange={(event) => {
@@ -215,7 +212,8 @@ function Control(props: FormFieldControlProps): JSX.Element {
       </Show>
       <Show when={field().type === 'checkbox'}>
         <Checkbox
-          label={field().label}
+          class="form-field__tap-row"
+          label={label()}
           checked={props.value === true}
           onChange={(event) => props.onChange(event.currentTarget.checked)}
         />
@@ -238,10 +236,6 @@ export function FormFieldControl(props: FormFieldControlProps): JSX.Element {
       data-field={props.field.id}
     >
       <Control {...props} />
-      <Show when={props.missing && props.error === undefined}>
-        <p class="form-field__hint form-field__hint--missing">Не заполнено</p>
-      </Show>
-      <FieldRule schema={props.schema} field={props.field} />
     </div>
   );
 }

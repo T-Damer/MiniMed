@@ -53,6 +53,11 @@ export function fieldRuleView(schema: FormSchema, field: FormField): FieldRuleVi
   };
 }
 
+/** A field shows its «?» only when the order has a paragraph that governs it. */
+export function fieldHasRule(schema: FormSchema, field: FormField): boolean {
+  return fieldRuleView(schema, field).paragraphs.length > 0;
+}
+
 /** Where a paragraph sits in the official publication, e.g. `п. 6.11, стр. 35 PDF`. */
 export function ruleCitation(schema: FormSchema, paragraph: FormRuleParagraph): string {
   const pages = [...new Set(paragraph.spans.map((span) => span.pdfPage))];

@@ -6,13 +6,10 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { formPrintTitle, renderFormPrintHtml } from '@/features/forms/form-print';
+import { A4_LONG_PX, A4_SHORT_PX } from '@/features/forms/form-sheet';
 import type { FormValues } from '@/features/forms/form-values';
 import { PrintManager } from '@/features/printing/print-manager';
 import { getPluralMessage } from '@/i18n/browser-i18n';
-
-/** The blank is laid out on a 210 mm sheet and scaled down to the screen, never reflowed. */
-const A4_SHORT_PX = 794;
-const A4_LONG_PX = 1123;
 
 export interface FormPreviewDialogProps {
   readonly open: boolean;
@@ -23,7 +20,7 @@ export interface FormPreviewDialogProps {
   readonly onClose: () => void;
 }
 
-/** The filled blank as it will print, with the print / save-as-PDF action. */
+/** The filled blank as it will print, with a printer button for print / save-as-PDF. */
 export function FormPreviewDialog(props: FormPreviewDialogProps): JSX.Element {
   const landscape = (): boolean => props.schema.layout.page.orientation === 'landscape';
   const sheetWidthPx = (): number => (landscape() ? A4_LONG_PX : A4_SHORT_PX);
@@ -39,7 +36,11 @@ export function FormPreviewDialog(props: FormPreviewDialogProps): JSX.Element {
     observer.observe(host);
     onCleanup(() => observer.disconnect());
   };
-  const html = createMemo(() => renderFormPrintHtml(props.schema, props.values));
+  // The page is laid out only while the dialog is open (the last page stays for its exit).
+  const html = createMemo<string>(
+    (previous) => (props.open ? renderFormPrintHtml(props.schema, props.values) : previous),
+    '',
+  );
   const print = (): void => {
     if (!PrintManager.html(html(), formPrintTitle(props.schema))) {
       toast.error('Не удалось открыть печать. Разрешите всплывающие окна для этого сайта.');
@@ -49,7 +50,6 @@ export function FormPreviewDialog(props: FormPreviewDialogProps): JSX.Element {
     <OverlayDialog
       open={props.open}
       title={`Форма № ${props.schema.formNumber}`}
-      subtitle="Предпросмотр бланка"
       presentation="screen"
       class="form-preview"
       bodyClass="form-preview__body"
@@ -57,23 +57,25 @@ export function FormPreviewDialog(props: FormPreviewDialogProps): JSX.Element {
       headerEnd={
         <Button
           type="button"
-          variant="primary"
+          variant="icon"
           class="form-preview__print"
+          aria-label="Печать"
+          title="Печать или сохранить в PDF"
           icon={<AppGlyph name="printer" />}
           onClick={print}
-        >
-          Печать / PDF
-        </Button>
+        />
       }
     >
       <Show when={props.missingCount > 0 || props.invalidCount > 0}>
         <p class="form-preview__warning" role="status">
-          <Show when={props.missingCount > 0}>
-            {getPluralMessage('forms_missing_required_count', props.missingCount)}
-          </Show>
-          <Show when={props.missingCount > 0 && props.invalidCount > 0}>{'. '}</Show>
-          <Show when={props.invalidCount > 0}>Есть поля с ошибками: {props.invalidCount}</Show>. На
-          бланке они останутся пустыми или с введённым значением — печать не блокируется.
+          <AppGlyph name="info" class="form-preview__warning-icon" />
+          <span>
+            <Show when={props.missingCount > 0}>
+              {getPluralMessage('forms_missing_required_count', props.missingCount)}
+            </Show>
+            <Show when={props.missingCount > 0 && props.invalidCount > 0}>{' · '}</Show>
+            <Show when={props.invalidCount > 0}>Ошибок в полях: {props.invalidCount}</Show>
+          </span>
         </p>
       </Show>
       <div class="form-preview__viewport" ref={watchWidth}>
@@ -99,10 +101,6 @@ export function FormPreviewDialog(props: FormPreviewDialogProps): JSX.Element {
           />
         </div>
       </div>
-      <p class="form-preview__note">
-        Бланк печатается для подписи и печати организации. Приложение не выдаёт юридически значимые
-        электронные документы.
-      </p>
     </OverlayDialog>
   );
 }

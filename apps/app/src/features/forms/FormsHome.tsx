@@ -1,6 +1,5 @@
 import { For, type JSX } from 'solid-js';
 
-import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
@@ -9,7 +8,6 @@ import { displayDate } from '@/features/forms/form-print';
 import { listFormSchemas } from '@/features/forms/form-registry';
 import { localToday, orderReference, validityLine } from '@/features/forms/form-source-line';
 import { notesFormsPath, notesPath, notesPatientsPath } from '@/features/notes/notes-routing';
-import { getPluralMessage } from '@/i18n/browser-i18n';
 import '@/styles/forms.css';
 
 export function FormsHome(props: {
@@ -20,38 +18,36 @@ export function FormsHome(props: {
 }): JSX.Element {
   return (
     <section class="forms-workspace" aria-label="Формы">
-      <header class="forms-workspace__chrome">
-        <NavBack
-          class="forms-workspace__back knowledge-back-button"
-          aria-label={props.patientId ? 'К карточке пациента' : props.backLabel}
-          onClick={() =>
-            props.onNavigate(props.patientId ? notesPatientsPath(props.patientId) : notesPath())
-          }
-        />
-      </header>
       <Page
-        icon={<AppGlyph name="file-text" class="page__icon-glyph" />}
+        navigation={
+          <NavBack
+            class="knowledge-back-button"
+            aria-label={props.patientId ? 'К карточке пациента' : props.backLabel}
+            onClick={() =>
+              props.onNavigate(props.patientId ? notesPatientsPath(props.patientId) : notesPath())
+            }
+          />
+        }
         title={<Heading depth={1}>Формы</Heading>}
-        description="Официальные учётные формы Минздрава. Заполняются по данным карточки пациента и профиля «Врач и организация»; печатаются для подписи и печати."
+        help={
+          <>
+            <p>Официальные учётные формы Минздрава.</p>
+            <p>
+              Заполняются по данным карточки пациента и профиля «Врач и организация»; печатаются для
+              подписи и печати.
+            </p>
+          </>
+        }
+        helpTitle="О формах"
       />
       <div class="forms-home__list">
         <For each={listFormSchemas()}>
           {(schema) => (
             <article class="forms-home__card paper-card">
-              <div class="forms-home__card-head">
-                <span class="forms-home__number">Форма № {schema.formNumber}</span>
-                <span class="forms-home__count">
-                  {getPluralMessage('forms_field_count', schema.fields.length)}
-                </span>
-              </div>
+              <span class="forms-home__number">Форма № {schema.formNumber}</span>
               <Heading depth={2} class="forms-home__title">
                 {schema.title}
               </Heading>
-              <p class="forms-home__edition">
-                {orderReference(schema.source)}, зарегистрирован Минюстом{' '}
-                {displayDate(schema.source.registration.date)} № {schema.source.registration.number}
-                . {validityLine(schema.source, localToday())}
-              </p>
               <div class="forms-home__actions">
                 <Button
                   type="button"
@@ -67,6 +63,11 @@ export function FormsHome(props: {
                 >
                   Заполнить форму
                 </Button>
+              </div>
+              <p class="forms-home__edition">
+                {orderReference(schema.source)}, зарегистрирован Минюстом{' '}
+                {displayDate(schema.source.registration.date)} № {schema.source.registration.number}
+                . {validityLine(schema.source, localToday())}{' '}
                 <a
                   class="forms-home__source"
                   href={schema.source.publicationUrl}
@@ -75,7 +76,7 @@ export function FormsHome(props: {
                 >
                   Официальная публикация
                 </a>
-              </div>
+              </p>
             </article>
           )}
         </For>
