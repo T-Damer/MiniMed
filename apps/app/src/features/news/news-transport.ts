@@ -379,6 +379,19 @@ export function createNativeTransport(
   };
 }
 
+/** The web build reads feeds with `fetch`: most sources refuse that (CORS), the Android app has no such limit. */
+export function feedsNeedNativeApp(): boolean {
+  return !Capacitor.isNativePlatform();
+}
+
+/** What the web build says, once and briefly, when a feed cannot be read from a page. */
+export const BROWSER_FEEDS_MESSAGE = 'Ленты загружаются в приложении для Android.';
+
+/** In a browser a refused read and an unreachable host look alike; neither can be worked around there. */
+export function isBrowserReadFailure(code: FetchFailureCode): boolean {
+  return feedsNeedNativeApp() && (code === 'cors' || code === 'network');
+}
+
 export function createDefaultFeedTransport(): FeedTransport {
   return Capacitor.isNativePlatform() ? createNativeTransport() : createWebTransport();
 }

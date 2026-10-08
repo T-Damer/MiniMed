@@ -28,6 +28,7 @@ import { NEWS_PUBMED_HASH, NEWS_SOURCES_HASH, newsSiteHash } from '@/features/ne
 import type { NewsSnapshot } from '@/features/news/news-service';
 import { fetchedAtLabel, pluralRu, sortNewestFirst } from '@/features/news/news-state';
 import { getNewsService } from '@/features/news/news-store';
+import { BROWSER_FEEDS_MESSAGE, feedsNeedNativeApp } from '@/features/news/news-transport';
 import { hasItems, type Subscription } from '@/features/news/news-types';
 import { openThroughAvatarTransition } from '@/features/news/news-view-transition';
 import { hostLabel } from '@/features/news/source-url';
@@ -196,7 +197,7 @@ export function NewsListPage(props: { readonly snapshot: Accessor<NewsSnapshot> 
               aria-label="Управление источниками"
               title="Источники"
             >
-              <AppGlyph name="sliders-horizontal" class="news-icon-button__icon" />
+              <AppGlyph name="rss" class="news-icon-button__icon" />
             </a>
           </div>
         }
@@ -232,6 +233,11 @@ export function NewsListPage(props: { readonly snapshot: Accessor<NewsSnapshot> 
         </div>
       </Show>
 
+      <Show when={subscriptions().length === 0}>
+        <p class="news-empty news-empty--lead" data-testid="news-empty">
+          Выберите источник — новое будет появляться здесь.
+        </p>
+      </Show>
       <NewsSourceRail
         subscriptions={subscriptions()}
         icons={icons()}
@@ -240,9 +246,12 @@ export function NewsListPage(props: { readonly snapshot: Accessor<NewsSnapshot> 
 
       <Switch>
         <Match when={subscriptions().length === 0}>
-          <p class="news-empty" data-testid="news-empty">
-            Выберите источник — новое будет появляться здесь.
-          </p>
+          <Show when={feedsNeedNativeApp()}>
+            <p class="news-page__banner" role="status" data-testid="news-web-hint">
+              <AppGlyph name="info" class="news-page__banner-icon" />
+              {BROWSER_FEEDS_MESSAGE}
+            </p>
+          </Show>
         </Match>
         <Match when={true}>
           <Show when={sites().length > 0}>

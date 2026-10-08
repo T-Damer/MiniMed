@@ -218,6 +218,10 @@ test.describe('news feed tab', () => {
     await nav.getByRole('button', { name: 'Лента', exact: true }).click();
     await expect(page).toHaveURL(/#\/news$/u);
     await expect(page.getByTestId('news-empty')).toBeVisible();
+    // The web build says once that feeds load in the Android app; nothing is preselected.
+    await expect(page.getByTestId('news-web-hint')).toHaveText(
+      'Ленты загружаются в приложении для Android.',
+    );
     await expect(page.getByTestId('news-unread-badge')).toHaveCount(0);
 
     // Header: «<icon> Лента», PubMed and settings on the right, and a «?»; no refresh before a source exists.
@@ -609,7 +613,7 @@ test.describe('news feed tab', () => {
     await expect(page.getByTestId('news-viewer-raw')).toHaveCount(0);
   });
 
-  test('says honestly when the browser cannot read a source and adds it as a website', async ({
+  test('says once, briefly, that the browser cannot read a source and offers nothing that cannot work', async ({
     page,
   }) => {
     await installFeedHosts(page);
@@ -619,16 +623,12 @@ test.describe('news feed tab', () => {
     await page.getByRole('textbox', { name: 'Адрес ленты или сайта' }).fill(BLOCKED_FEED_URL);
     await page.getByRole('button', { name: 'Проверить адрес' }).click();
     const sheet = page.locator('.news-sheet');
-    await expect(sheet.getByRole('alert')).toContainText(
-      'Этот источник не разрешает чтение из браузера — откройте в приложении для Android или как сайт.',
+    await expect(sheet.getByRole('alert')).toHaveText(
+      'Ленты загружаются в приложении для Android.',
     );
-    await sheet.getByRole('button', { name: 'Добавить как сайт' }).click();
-    await page.getByRole('button', { name: 'К ленте' }).click();
-    await expect(page.locator('[data-news-site]')).toHaveCount(1);
-    await expect(page.getByTestId('news-unread-badge')).toHaveCount(0);
-    await page.locator('[data-news-site]').click();
-    await expect(page).toHaveURL(/#\/news\/site\//u);
-    await expect(page.getByTestId('news-viewer')).toBeVisible();
+    // The browser cannot read the feed, nor frame it as a site: no button promises either.
+    await expect(sheet.getByRole('button', { name: 'Добавить как сайт' })).toHaveCount(0);
+    await expect(sheet.getByRole('button', { name: 'Подписаться' })).toHaveCount(0);
   });
 
   test('validates addresses before any request', async ({ page }) => {

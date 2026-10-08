@@ -22,7 +22,11 @@ import { relativeTimeLabel } from '@/features/news/news-format';
 import type { SourceInspection } from '@/features/news/news-service';
 import { subscriptionIdFor } from '@/features/news/news-state';
 import { getNewsService } from '@/features/news/news-store';
-import { FeedFetchError } from '@/features/news/news-transport';
+import {
+  BROWSER_FEEDS_MESSAGE,
+  FeedFetchError,
+  isBrowserReadFailure,
+} from '@/features/news/news-transport';
 import type { FetchFailureCode, Subscription } from '@/features/news/news-types';
 import { sheetAvatarTransitionName } from '@/features/news/news-view-transition';
 import { type DiscoveredFeed, hostLabel } from '@/features/news/source-url';
@@ -71,6 +75,10 @@ function targetUrl(target: SourceTarget): string {
 
 function failureOf(error: unknown): { code: FetchFailureCode; message: string } {
   if (error instanceof FeedFetchError || error instanceof FeedParseError) {
+    // A browser cannot tell «refused» from «unreachable» and can do nothing about either.
+    if (isBrowserReadFailure(error.code)) {
+      return { code: error.code, message: BROWSER_FEEDS_MESSAGE };
+    }
     return { code: error.code, message: error.message };
   }
   return { code: 'network', message: 'Не удалось проверить адрес.' };
@@ -238,10 +246,19 @@ export function NewsSourceSheet(props: {
     setPreview({ kind: 'loading' });
     void inspect(feed.url, mine.signal, false);
   };
+  /** The web build cannot read this source: say so, offer no action that could not work there. */
+  const browserBlocked = () => {
+    const current = preview();
+    return current.kind === 'failed' && isBrowserReadFailure(current.code);
+  };
   const siteOnlyAllowed = () => {
     const current = preview();
     if (current.kind === 'page') return current.feeds.length === 0;
-    return current.kind === 'failed' && SITE_FALLBACK_CODES.has(current.code);
+    return (
+      current.kind === 'failed' &&
+      SITE_FALLBACK_CODES.has(current.code) &&
+      !isBrowserReadFailure(current.code)
+    );
   };
   const feedItems = () => feedOf()?.items.slice(0, PREVIEW_ITEMS) ?? [];
 
@@ -287,7 +304,7 @@ export function NewsSourceSheet(props: {
                   Добавить как сайт
                 </Button>
               </Match>
-              <Match when={true}>
+              <Match when={!browserBlocked()}>
                 <Button
                   variant="primary"
                   class="news-sheet__subscribe"
