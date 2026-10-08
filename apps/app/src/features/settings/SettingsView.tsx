@@ -14,7 +14,7 @@ import { ClinicianProfileSettings } from '@/features/settings/ClinicianProfileSe
 import { ReferenceImagesPage } from '@/features/settings/ReferenceImagesPage';
 import { SettingsAiHelp, SettingsAiPage } from '@/features/settings/SettingsAiPage';
 import { SettingsAppearancePage } from '@/features/settings/SettingsAppearancePage';
-import { SettingsDataPage } from '@/features/settings/SettingsDataPage';
+import { SettingsDataHelp, SettingsDataPage } from '@/features/settings/SettingsDataPage';
 import {
   SettingsGeneralPage,
   type SettingsGeneralPageProps,
@@ -204,9 +204,16 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
                 ))}
               </Match>
               <Match when={current() === 'data'}>
-                {frame('data', () => (
-                  <SettingsDataPage />
-                ))}
+                {frame(
+                  'data',
+                  () => (
+                    <SettingsDataPage />
+                  ),
+                  undefined,
+                  () => (
+                    <SettingsDataHelp />
+                  ),
+                )}
               </Match>
             </Switch>
           </div>

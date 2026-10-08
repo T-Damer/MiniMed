@@ -84,6 +84,21 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* A row that is a button: the whole row is the tap target. */
+.settings-list__row--action {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.settings-list__row--action:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
 .settings-list__row--divided {
   border-top: var(--theme-border-hairline) solid var(--theme-border);
 }
