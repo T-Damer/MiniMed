@@ -365,6 +365,13 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     if (!specialty) return null;
     return regulatoryModuleForSpecialty(regularModules(), specialty) ?? null;
   });
+  /** The open section's name, shown in the sticky bar beside «назад»; none on the section list. */
+  const barTitle = (): string | undefined => {
+    if (coreLibraryOpen()) return 'Ядро';
+    if (recommendationBrowserOpen()) return 'Клинические рекомендации';
+    const section = regularCollection();
+    return section ? regularSectionLabel(section) : undefined;
+  };
   const regularSectionLabel = (section: string): string =>
     ({
       core: 'Ядро',
@@ -969,7 +976,10 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
           ref={moduleCatalogHeading}
           class="module-catalog-toolbar knowledge-subroute-heading--blurred route-sticky-chrome route-sticky-chrome--transparent"
         >
-          <div class="knowledge-subroute-heading module-catalog-heading module-catalog-heading--in-toolbar">
+          <div
+            class="knowledge-subroute-heading module-catalog-heading module-catalog-heading--in-toolbar"
+            classList={{ 'knowledge-subroute-heading--titled': barTitle() !== undefined }}
+          >
             <Show
               when={catalogQuery().length > 0 && catalogSearchHasBack()}
               fallback={
@@ -985,7 +995,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                       catalogLabel="Назад"
                       catalogDetail="К предыдущему разделу"
                       catalogAriaLabel="Назад"
-                      buttonClass="knowledge-back-button knowledge-subroute-heading__control"
+                      buttonClass="knowledge-back-button knowledge-subroute-heading__control knowledge-subroute-heading__back"
                       onBackToCatalog={() =>
                         coreLibraryOpen() ? closeCoreLibrary() : props.onBack?.()
                       }
@@ -1001,7 +1011,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                         <Button
                           type="button"
                           variant="icon"
-                          class="knowledge-back-button return-navigation-button knowledge-subroute-heading__control"
+                          class="knowledge-back-button return-navigation-button knowledge-subroute-heading__control knowledge-subroute-heading__back"
                           aria-label={returnToControlLabel(location())}
                           title={returnToControlLabel(location())}
                           onClick={() => consumeAndRestoreReturnTo()}
@@ -1016,15 +1026,22 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
               <Button
                 type="button"
                 variant="icon"
-                class="knowledge-back-button knowledge-subroute-heading__control"
+                class="knowledge-back-button knowledge-subroute-heading__control knowledge-subroute-heading__back"
                 aria-label="Очистить поиск"
                 title="Очистить поиск"
                 onClick={() => setCatalogQuery('')}
                 icon={<AppGlyph name="close" />}
               />
             </Show>
+            <Show when={barTitle()}>
+              {(title) => (
+                <Heading depth={1} class="knowledge-subroute-heading__title">
+                  {title()}
+                </Heading>
+              )}
+            </Show>
             <SearchField
-              class="route-search knowledge-subroute-heading__control"
+              class="route-search knowledge-subroute-heading__control knowledge-subroute-heading__search"
               value={catalogQuery()}
               onInput={setCatalogQuery}
               onClear={catalogSearchHasBack() ? undefined : () => setCatalogQuery('')}
@@ -1042,7 +1059,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                     ? `${bulkDownloadLabel()}: ${bulkDownloadPercent()}%`
                     : `${bulkDownloadLabel()}: ${pendingDownloadCount()}`
                 }
-                class="module-download-all module-download-all--toolbar"
+                class="module-download-all module-download-all--toolbar knowledge-subroute-heading__action"
                 disabled={installingAll()}
                 onClick={() =>
                   setPendingBulkDownload(
@@ -1351,10 +1368,6 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
               when={singleRegularSectionModule(section)}
               fallback={
                 <section class="module-collection">
-                  <div class="module-collection-heading">
-                    <h2 class="module-collection-heading__title">{regularSectionLabel(section)}</h2>
-                    <CountBadge value={regularSectionModules(section).length} />
-                  </div>
                   <div class="module-grid module-grid-two-columns">
                     <For each={visibleRegularSectionModules(section)}>
                       {(module) => (
@@ -1419,11 +1432,6 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       >
         <section class="module-collection recommendation-browser recommendation-browser-nested">
           <Show when={!browsingSection() && !browsingSearch()}>
-            <div class="module-collection-heading recommendation-browser-heading">
-              <h2 class="module-collection-heading__title">Клинические рекомендации</h2>
-              <CountBadge value={catalog().categories.length} />
-            </div>
-
             <div class="recommendation-section-grid recommendation-section-grid-compact">
               <For each={catalog().categories}>
                 {(category) => {

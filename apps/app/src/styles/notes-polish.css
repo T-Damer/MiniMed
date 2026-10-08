@@ -1468,51 +1468,8 @@
   margin-bottom: 0.375rem;
 }
 
-.note-templates-catalog__actions {
-  display: flex;
-  flex: 0 0 auto;
-  gap: 0.5rem;
-}
-
 .note-templates-catalog__search {
   width: auto;
-}
-
-.note-templates-catalog__toolbar {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.note-templates-catalog__breadcrumbs {
-  display: inline-flex;
-  width: fit-content;
-  max-width: 100%;
-  min-width: 0;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.3rem 0.5rem;
-  border: 1px solid var(--theme-border);
-  border-radius: var(--theme-radius-panel);
-  color: var(--theme-text-muted);
-  background: var(--theme-surface-muted);
-  font-size: 0.72rem;
-}
-
-.note-templates-catalog__breadcrumb-icon.app-glyph {
-  width: 1rem;
-  height: 1rem;
-  flex: 0 0 auto;
-  color: var(--theme-accent);
-}
-
-.note-templates-catalog__breadcrumb-label {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .note-templates-catalog__action.ui-button--icon {
@@ -1653,14 +1610,6 @@
 }
 
 @media (max-width: 38rem) {
-  .note-templates-catalog__actions {
-    gap: 0.375rem;
-  }
-
-  .note-templates-catalog__toolbar {
-    gap: 0.5rem;
-  }
-
   .note-templates-catalog__list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

@@ -13,6 +13,7 @@ import { notifyWithOpen } from '@/components/notify';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { SearchField } from '@/components/SearchField';
 import { useStickySurface } from '@/components/sticky-surface';
+import { Heading } from '@/components/Text';
 import { userQuestionnairePath } from '@/features/assessments/assessment-routing';
 import { createLibraryDropHandlers, FOLDER_DRAG_TYPE } from '@/features/library/user-library-drag';
 import {
@@ -1925,16 +1926,19 @@ export function UserLibraryPage(props: {
       <AppContextMenu actions={pageActions()} hideButton class="user-library-page__area-context">
         <div
           ref={setHeadingElement}
-          class="user-library-page__search-chrome knowledge-subroute-heading knowledge-subroute-heading--blurred module-catalog-heading route-sticky-chrome route-sticky-chrome--transparent"
+          class="user-library-page__search-chrome knowledge-subroute-heading knowledge-subroute-heading--blurred knowledge-subroute-heading--titled module-catalog-heading route-sticky-chrome route-sticky-chrome--transparent"
         >
           <NavBack
-            class="knowledge-back-button knowledge-subroute-heading__control"
+            class="knowledge-back-button knowledge-subroute-heading__control knowledge-subroute-heading__back"
             aria-label={searchQuery().length > 0 ? 'Очистить поиск' : backTargetLabel()}
             onClick={() => (searchQuery().length > 0 ? setSearchQuery('') : goUpFolderHierarchy())}
             icon={<AppGlyph name={searchQuery().length > 0 ? 'close' : 'arrow-left'} />}
           />
+          <Heading depth={1} class="knowledge-subroute-heading__title">
+            {folderTrail().at(-1)?.title ?? 'Ваши файлы'}
+          </Heading>
           <SearchField
-            class="route-search knowledge-subroute-heading__control"
+            class="route-search knowledge-subroute-heading__control knowledge-subroute-heading__search"
             value={searchQuery()}
             onInput={setSearchQuery}
             label="Поиск по текущей папке"
@@ -1958,7 +1962,12 @@ export function UserLibraryPage(props: {
               {...rootDrops}
             >
               <AppGlyph name="house" class="user-library-breadcrumbs__icon" />
-              <span class="user-library-breadcrumbs__label">Ваши файлы</span>
+              <span
+                class="user-library-breadcrumbs__label"
+                classList={{ 'sr-only': folderTrail().length === 0 }}
+              >
+                Ваши файлы
+              </span>
             </button>
             <For each={folderTrail()}>
               {(folder) => {

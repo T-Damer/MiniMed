@@ -861,7 +861,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           // An open section (calculators, questionnaires, ...) starts at its own list: the promo
           // carousel belongs to the section list only.
           intro={
-            featuresHidden() || !showSectionsOverview() ? undefined : (
+            featuresHidden() || openSectionId() !== undefined ? undefined : (
               <SearchHomeIntro
                 features={homeFeatures()}
                 onHideFeatures={() => setUsefulFeaturesHidden(true)}

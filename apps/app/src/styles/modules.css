@@ -225,6 +225,50 @@
   padding: 0;
 }
 
+/*
+ * A sticky bar that names its section (ICD-11 collection, core library, law documents, user
+ * library, note templates): «назад», the title and the actions share the first row, the search
+ * field takes the second. After .module-catalog-heading, which would keep the bar on one line.
+ */
+.knowledge-subroute-heading--titled {
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem 0.75rem;
+}
+
+.knowledge-subroute-heading__back {
+  order: 1;
+}
+
+.knowledge-subroute-heading__title {
+  order: 2;
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  /* Long names (a law collection) take two lines at most. */
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.knowledge-subroute-heading__actions,
+.knowledge-subroute-heading__action {
+  order: 3;
+}
+
+.knowledge-subroute-heading__actions {
+  display: flex;
+  flex: none;
+  gap: 0.5rem;
+}
+
+.knowledge-subroute-heading__search {
+  order: 4;
+  flex: 1 0 100%;
+}
+
 .module-catalog-actions--heading {
   position: relative;
   z-index: var(--z-raised);

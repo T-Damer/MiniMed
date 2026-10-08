@@ -29,9 +29,10 @@ for (const width of [375, 1280]) {
     // Tool collections are put away for now: no folder button on the card.
     await expect(card.getByRole('button', { name: `Коллекции для «${title}»` })).toHaveCount(0);
 
-    // The tool row stays while typing (only the capabilities fold away).
+    // An open section starts at its own list, so there are no capabilities to fold away; the tool
+    // row stays while typing.
+    await expect(page.locator('.search-heading')).toHaveCount(0);
     await page.getByTestId('search-input').fill('пнев');
-    await expect(page.locator('.search-heading')).toHaveClass(/search-heading--hidden/u);
     await expect(quickAccess).toBeVisible();
     await page.getByTestId('search-input').fill('');
     await expect(quickAccess).toBeVisible();

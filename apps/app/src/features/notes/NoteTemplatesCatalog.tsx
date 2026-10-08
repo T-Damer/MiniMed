@@ -6,6 +6,7 @@ import { Button } from '@/components/Button';
 import { NavBack } from '@/components/NavBack';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { SearchField } from '@/components/SearchField';
+import { Heading } from '@/components/Text';
 import { HOME_VISIT_EXAMINATION_TEMPLATE } from '@/features/notes/note-template-examples';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
 import {
@@ -163,40 +164,16 @@ export function NoteTemplatesCatalog(props: {
           event.currentTarget.value = '';
         }}
       />
-      <div class="note-templates-catalog__search-chrome knowledge-subroute-heading knowledge-subroute-heading--blurred">
+      <div class="note-templates-catalog__search-chrome knowledge-subroute-heading knowledge-subroute-heading--blurred knowledge-subroute-heading--titled">
         <NavBack
-          class="note-templates-catalog__back knowledge-back-button knowledge-subroute-heading__control"
+          class="note-templates-catalog__back knowledge-back-button knowledge-subroute-heading__control knowledge-subroute-heading__back"
           aria-label="Назад к заметкам"
           onClick={props.onBack}
         />
-        <SearchField
-          class="note-templates-catalog__search route-search knowledge-subroute-heading__control"
-          id="note-templates-search"
-          value={search()}
-          onInput={setSearch}
-          onClear={() => setSearch('')}
-          label="Поиск по шаблонам"
-          hideLabel
-          placeholder="Название шаблона или файл"
-        />
-      </div>
-
-      <div class="note-templates-catalog__toolbar">
-        <h1 class="note-templates-catalog__title sr-only">Ваши шаблоны</h1>
-        <nav class="note-templates-catalog__breadcrumbs" aria-label="Раздел библиотеки">
-          <AppGlyph name="notepad" class="note-templates-catalog__breadcrumb-icon" />
-          <span class="note-templates-catalog__breadcrumb-label">Ваши шаблоны</span>
-        </nav>
-        <div class="note-templates-catalog__actions">
-          <Button
-            type="button"
-            variant="icon"
-            class="note-templates-catalog__action note-templates-catalog__create ui-button--primary"
-            aria-label="Создать шаблон"
-            title="Создать шаблон"
-            onClick={openCreateDialog}
-            icon={<AppGlyph name="plus" class="note-templates-catalog__action-icon" />}
-          />
+        <Heading depth={1} class="knowledge-subroute-heading__title">
+          Ваши шаблоны
+        </Heading>
+        <div class="knowledge-subroute-heading__actions">
           <Button
             type="button"
             variant="icon"
@@ -206,7 +183,26 @@ export function NoteTemplatesCatalog(props: {
             onClick={() => fileInput?.click()}
             icon={<AppGlyph name="file-plus" class="note-templates-catalog__action-icon" />}
           />
+          <Button
+            type="button"
+            variant="icon"
+            class="note-templates-catalog__action note-templates-catalog__create ui-button--primary"
+            aria-label="Создать шаблон"
+            title="Создать шаблон"
+            onClick={openCreateDialog}
+            icon={<AppGlyph name="plus" class="note-templates-catalog__action-icon" />}
+          />
         </div>
+        <SearchField
+          class="note-templates-catalog__search route-search knowledge-subroute-heading__control knowledge-subroute-heading__search"
+          id="note-templates-search"
+          value={search()}
+          onInput={setSearch}
+          onClear={() => setSearch('')}
+          label="Поиск по шаблонам"
+          hideLabel
+          placeholder="Название шаблона или файл"
+        />
       </div>
 
       <div class="note-templates-catalog__list">

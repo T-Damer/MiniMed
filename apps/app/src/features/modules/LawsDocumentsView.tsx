@@ -7,6 +7,7 @@ import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
 import { NavBack } from '@/components/NavBack';
 import { SearchField } from '@/components/SearchField';
 import { useStickySurface } from '@/components/sticky-surface';
+import { Heading } from '@/components/Text';
 import {
   matchesCatalogQuery,
   openCatalogDocument,
@@ -82,10 +83,10 @@ export function LawsDocumentsView(props: LawsDocumentsViewProps): JSX.Element {
     <section class="laws-documents-page module-documents-page" aria-label={props.module.title}>
       <header
         ref={headingElement}
-        class="laws-documents-page__header knowledge-subroute-heading knowledge-subroute-heading--blurred route-sticky-chrome route-sticky-chrome--transparent"
+        class="laws-documents-page__header knowledge-subroute-heading knowledge-subroute-heading--blurred knowledge-subroute-heading--titled route-sticky-chrome route-sticky-chrome--transparent"
       >
         <NavBack
-          class="laws-documents-page__back knowledge-back-button knowledge-subroute-heading__control"
+          class="laws-documents-page__back knowledge-back-button knowledge-subroute-heading__control knowledge-subroute-heading__back"
           aria-label={query().length > 0 ? 'Очистить поиск' : 'Назад к наборам документов'}
           onClick={() => (query().length > 0 ? setQuery('') : props.onBack())}
           icon={
@@ -95,8 +96,11 @@ export function LawsDocumentsView(props: LawsDocumentsViewProps): JSX.Element {
             />
           }
         />
+        <Heading depth={1} class="knowledge-subroute-heading__title">
+          {props.module.title}
+        </Heading>
         <SearchField
-          class="laws-documents-page__search route-search knowledge-subroute-heading__control"
+          class="laws-documents-page__search route-search knowledge-subroute-heading__control knowledge-subroute-heading__search"
           id="laws-documents-search"
           label="Поиск по документам"
           hideLabel
@@ -107,7 +111,7 @@ export function LawsDocumentsView(props: LawsDocumentsViewProps): JSX.Element {
         <Show when={!props.installed && props.downloadAvailable}>
           <button
             type="button"
-            class="module-download-all laws-documents-page__download"
+            class="module-download-all laws-documents-page__download knowledge-subroute-heading__action"
             aria-label={working() ? 'Скачиваем документы' : 'Скачать все документы'}
             disabled={working()}
             onClick={() => void installCollection()}
@@ -126,7 +130,7 @@ export function LawsDocumentsView(props: LawsDocumentsViewProps): JSX.Element {
           <Button
             type="button"
             variant="primary"
-            class="recommendation-delete-button laws-documents-page__remove"
+            class="recommendation-delete-button laws-documents-page__remove knowledge-subroute-heading__action"
             aria-label={`Удалить «${props.module.title}»`}
             title="Удалить"
             onClick={props.onRemove}
