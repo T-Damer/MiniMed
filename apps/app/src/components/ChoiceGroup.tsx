@@ -20,6 +20,8 @@ export interface ChoiceGroupProps {
   readonly class?: string;
   readonly disabled?: boolean;
   readonly orientation?: 'vertical' | 'horizontal';
+  /** Options as large tappable rows, for forms that are filled on a phone. */
+  readonly large?: boolean;
 }
 
 export function ChoiceGroup(props: ChoiceGroupProps): JSX.Element {
@@ -58,6 +60,7 @@ export function ChoiceGroup(props: ChoiceGroupProps): JSX.Element {
               class="ui-choice-group__option"
               classList={{
                 'ui-choice-group__option--disabled': Boolean(props.disabled || option.disabled),
+                'ui-choice-group__option--large': props.large ?? false,
               }}
             >
               <input

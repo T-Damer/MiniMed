@@ -1264,8 +1264,8 @@
 }
 
 .native-datetime-field__icon.app-glyph {
-  width: 0.75rem;
-  height: 0.75rem;
+  width: var(--native-datetime-icon-size, 0.75rem);
+  height: var(--native-datetime-icon-size, 0.75rem);
   color: var(--theme-text-muted);
 }
 

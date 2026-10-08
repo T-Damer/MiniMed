@@ -3,12 +3,11 @@ import { expect, type Page, test } from '@playwright/test';
 import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
 
 async function selectPatient(page: Page, name: string): Promise<void> {
-  const field = page.getByRole('combobox', {
-    name: 'Пациент / случай — необязательно',
-    exact: true,
-  });
-  await field.fill(name);
-  await page.getByRole('option', { name, exact: true }).click();
+  await page.getByRole('button', { name: /^Выбрать (другого )?пациента$/u }).click();
+  await page
+    .getByRole('dialog', { name: 'Пациент', exact: true })
+    .getByRole('button', { name: new RegExp(`^${name}`, 'u') })
+    .click();
 }
 
 test('patient list has a safe sticky header, local search, and grouped actions', async ({
@@ -274,7 +273,9 @@ test('creates a protected patient profile and opens longitudinal dynamics', asyn
     .locator('.app-bottom-nav')
     .getByRole('button', { name: 'Калькуляторы', exact: true })
     .click();
-  await expect(page.locator('.calculator-form select').first()).toHaveValue('');
+  await expect(
+    page.locator('.calculator-form').getByRole('button', { name: 'Выбрать пациента', exact: true }),
+  ).toBeVisible();
   await expect(page.getByTestId('calculator-result')).toHaveCount(0);
 });
 

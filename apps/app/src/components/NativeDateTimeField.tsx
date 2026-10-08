@@ -21,6 +21,10 @@ export function NativeDateTimeField(props: {
   readonly placeholder: string;
   readonly onChange: (value: string) => void;
   readonly disabled?: boolean;
+  /** Extra class on the wrapper, e.g. to stretch the field over its row. */
+  readonly class?: string;
+  /** Extra class on the button, e.g. for a larger field. */
+  readonly buttonClass?: string;
 }): JSX.Element {
   let input: HTMLInputElement | undefined;
 
@@ -38,10 +42,10 @@ export function NativeDateTimeField(props: {
   };
 
   return (
-    <span class="native-datetime-field__wrapper">
+    <span class={`native-datetime-field__wrapper${props.class ? ` ${props.class}` : ''}`}>
       <button
         type="button"
-        class="native-datetime-field"
+        class={`native-datetime-field${props.buttonClass ? ` ${props.buttonClass}` : ''}`}
         classList={{ 'native-datetime-field--empty': !props.value }}
         aria-label={props.label}
         title={props.label}

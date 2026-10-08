@@ -95,9 +95,6 @@ test('calculates body surface area and writes the result to a patient note', asy
     page.getByRole('heading', { name: 'Площадь поверхности тела — Mosteller' }),
   ).toBeVisible();
 
-  await page
-    .getByRole('combobox', { name: 'Пациент / случай — необязательно', exact: true })
-    .fill('Пациент калькулятора');
   await page.getByLabel('Рост, см').fill('170');
   await page.getByLabel('Масса, кг').fill('70');
   await page.getByTestId('calculator-submit').click();
@@ -106,6 +103,7 @@ test('calculates body surface area and writes the result to a patient note', asy
   await expect(page.getByTestId('calculator-result')).toContainText('1,82 м²');
 
   await page.getByTestId('calculator-save-note').click();
+  await page.locator('.calculator-note-panel__input').fill('Пациент калькулятора');
   await page.getByRole('button', { name: 'Записать результат' }).click();
   await expect(page.getByText('Расчёт записан в карточку пациента.')).toBeVisible();
 

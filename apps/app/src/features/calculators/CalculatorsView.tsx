@@ -20,7 +20,7 @@ import { Disclosure } from '@/components/Disclosure';
 import { NavBack } from '@/components/NavBack';
 import { notifyWithOpen } from '@/components/notify';
 import { OverlayDialog } from '@/components/OverlayDialog';
-import { PatientCaseCombobox } from '@/components/PatientCaseCombobox';
+import { PatientPickerRow } from '@/components/PatientPickerRow';
 import { QueryEmptyState } from '@/components/QueryEmptyState';
 import { SearchField } from '@/components/SearchField';
 import { Heading } from '@/components/Text';
@@ -762,13 +762,11 @@ function CalculatorForm(props: {
         void submit();
       }}
     >
-      <PatientCaseCombobox
+      <PatientPickerRow
         profiles={patientProfiles()}
         patientId={patientId()}
-        subjectLabel={subjectLabel()}
         unlocked={patientSnapshot() !== undefined && isPatientVaultUnlocked()}
         onPatientChange={selectPatient}
-        onSubjectLabelChange={setSubjectLabel}
         onSnapshotChange={(snapshot) => {
           patientRefreshRequest += 1;
           setPatientSnapshot(snapshot);
@@ -781,7 +779,7 @@ function CalculatorForm(props: {
 
       <Show when={selectedPatient()}>
         <label class="calculator-form__field calculator-wide-field">
-          <span>Осмотр — необязательно</span>
+          <span>Осмотр</span>
           <select
             class="calculator-form__select"
             data-testid="calculator-episode-select"

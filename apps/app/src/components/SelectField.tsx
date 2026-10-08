@@ -17,6 +17,8 @@ export interface SelectFieldProps
   readonly hideLabel?: boolean;
   readonly id?: string;
   readonly class?: string;
+  /** Extra class on the `<select>` itself, e.g. for a larger control. */
+  readonly controlClass?: string;
 }
 
 /** Labelled native select with the same label, hint and error layout as TextField. */
@@ -29,6 +31,7 @@ export function SelectField(props: SelectFieldProps): JSX.Element {
     'hideLabel',
     'id',
     'class',
+    'controlClass',
   ]);
   const generatedId = createUniqueId();
   let control: HTMLSelectElement | undefined;
@@ -62,7 +65,7 @@ export function SelectField(props: SelectFieldProps): JSX.Element {
           if (typeof forwarded === 'function') forwarded(element);
         }}
         id={fieldId()}
-        class="ui-select-field__control"
+        class={`ui-select-field__control${local.controlClass ? ` ${local.controlClass}` : ''}`}
         classList={{ 'ui-select-field__control--error': Boolean(local.error) }}
         aria-describedby={describedBy()}
         aria-invalid={local.error ? 'true' : undefined}

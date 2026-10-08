@@ -26,15 +26,13 @@ test('calculates an EDD by LMP and writes the result to a patient note', async (
     page.getByRole('heading', { name: 'ПДР по дате последней менструации' }),
   ).toBeVisible();
 
-  await page
-    .getByRole('combobox', { name: 'Пациент / случай — необязательно', exact: true })
-    .fill('Пациентка калькулятора');
   await page.getByLabel('Дата последней менструации').fill('2026-05-01');
   await page.getByTestId('calculator-submit').click();
 
   await expect(page.getByTestId('calculator-result')).toContainText('5 февраля 2027 г.');
 
   await page.getByTestId('calculator-save-note').click();
+  await page.locator('.calculator-note-panel__input').fill('Пациентка калькулятора');
   await page.getByRole('button', { name: 'Записать результат' }).click();
   await expect(page.getByText('Расчёт записан в карточку пациента.')).toBeVisible();
 

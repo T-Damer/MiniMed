@@ -12,7 +12,7 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { HorizontalScroller } from '@/components/HorizontalScroller';
 import { Page } from '@/components/Page';
-import { PatientCaseCombobox } from '@/components/PatientCaseCombobox';
+import { PatientPickerRow } from '@/components/PatientPickerRow';
 import { Heading } from '@/components/Text';
 import { AssessmentBackNav } from '@/features/assessments/AssessmentBackNav';
 import { AssessmentDefinitionNotice } from '@/features/assessments/AssessmentDefinitionNotice';
@@ -439,17 +439,11 @@ export function AssessmentQuestionnairePage(props: {
       </Show>
 
       <div class="assessment-toolbar">
-        <PatientCaseCombobox
-          class="assessment-toolbar__field"
+        <PatientPickerRow
           profiles={patientProfiles()}
           patientId={patientId()}
-          subjectLabel={subjectLabel()}
           unlocked={patientSnapshot() !== undefined && isPatientVaultUnlocked()}
           onPatientChange={selectPatient}
-          onSubjectLabelChange={(value) => {
-            setSubjectLabel(value);
-            saveDraft(answers(), value);
-          }}
           onSnapshotChange={(snapshot) => {
             patientRefreshRequest += 1;
             setPatientSnapshot(snapshot);
@@ -457,7 +451,7 @@ export function AssessmentQuestionnairePage(props: {
         />
         <Show when={selectedPatient()}>
           <label class="assessment-toolbar__episode-field">
-            <span class="assessment-toolbar__episode-label">Осмотр — необязательно</span>
+            <span class="assessment-toolbar__episode-label">Осмотр</span>
             <select
               class="assessment-toolbar__episode-input assessment-toolbar__input"
               data-testid="assessment-episode-select"

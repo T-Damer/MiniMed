@@ -78,7 +78,6 @@ test('completes a psychology questionnaire and writes the result to a patient no
   await expect(
     page.getByRole('heading', { name: 'Тест Бравермана — поведенческий профиль' }),
   ).toBeVisible();
-  await page.getByPlaceholder('Имя, номер карты или псевдоним').fill('Тестовый пациент');
 
   const middleAnswers = page.locator('.assessment-question input[value="3"]');
   await expect(middleAnswers).toHaveCount(24);
@@ -117,6 +116,7 @@ test('completes a psychology questionnaire and writes the result to a patient no
 
   await expect(page.locator('.assessment-score-list')).toBeVisible();
   await page.getByTestId('assessment-save-note').click();
+  await page.locator('.assessment-note-panel__input').fill('Тестовый пациент');
   await page.getByRole('button', { name: 'Сохранить', exact: true }).click();
   await expect(page.getByText('Результат записан в карточку пациента.')).toBeVisible();
 

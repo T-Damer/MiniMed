@@ -7,10 +7,12 @@ export function PatientAvatar(props: {
   readonly avatar?: Avatar | undefined;
   readonly portrait?: boolean;
   readonly name: string;
+  /** Extra class on the avatar, e.g. to size it inside a row. */
+  readonly class?: string;
 }): JSX.Element {
   return (
     <span
-      class="patient-avatar"
+      class={`patient-avatar${props.class ? ` ${props.class}` : ''}`}
       classList={{ 'patient-avatar--portrait': props.portrait }}
       aria-hidden="true"
     >
