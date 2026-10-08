@@ -190,3 +190,35 @@ test.describe('touch screen', () => {
     expect(docked.y + docked.height).toBeLessThanOrEqual(844);
   });
 });
+
+test('one compact line names the section path instead of stacked sticky headings', async ({
+  page,
+}) => {
+  test.setTimeout(240_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openClinicalDocument(page);
+  const heading = page
+    .locator('.document-overlay-section__title')
+    .filter({ hasText: /^1\.2\.1\s+Этиология/u });
+  await expect(heading).toHaveCount(1, { timeout: 60_000 });
+  // Headings are ordinary text: none of them sticks.
+  expect(await heading.evaluate((node) => getComputedStyle(node).position)).toBe('static');
+
+  const line = page.locator('.reader-section-path__line');
+  await expect(line).not.toHaveClass(/reader-section-path__line--shown/u);
+  // Scroll until the sub-heading has gone under the line, then read the path.
+  await heading.evaluate((node) => {
+    window.scrollTo({
+      top: node.getBoundingClientRect().top + window.scrollY + 160,
+      behavior: 'instant',
+    });
+  });
+  await expect(line).toHaveClass(/reader-section-path__line--shown/u);
+  const titles = await page.locator('.reader-section-path__title').allTextContents();
+  expect(titles.length).toBeGreaterThanOrEqual(2);
+  expect(titles.at(-1)).toMatch(/^1\.2\.1\s+Этиология/u);
+  // Outer sections are shortened to their number; the line is one compact row.
+  expect(titles[0]).toMatch(/^1\.?$/u);
+  const box = await line.boundingBox();
+  expect(box?.height ?? 999).toBeLessThan(44);
+});

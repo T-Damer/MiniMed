@@ -72,6 +72,25 @@ test('an illustrated article shows its picture as a hero behind the title, once,
     // A tap on the hero opens the picture full screen.
     await page.locator('.reader-hero__open').click();
     await expect(page.locator('.media-viewer__image')).toBeVisible();
+    // The picture is fitted to the free area of the dark stage and centred in it.
+    await expect
+      .poll(async () =>
+        page.evaluate(() => {
+          const image = document.querySelector('.media-viewer__image')?.getBoundingClientRect();
+          const area = document.querySelector('.media-viewer__content')?.getBoundingClientRect();
+          if (!image || !area) return false;
+          const fits =
+            image.left >= area.left - 1 &&
+            image.right <= area.right + 1 &&
+            image.top >= area.top - 1 &&
+            image.bottom <= area.bottom + 1;
+          const centred = Math.abs(image.left + image.width / 2 - (area.left + area.width / 2)) < 2;
+          return (
+            fits && centred && (image.width > area.width * 0.9 || image.height > area.height * 0.6)
+          );
+        }),
+      )
+      .toBe(true);
     await page.keyboard.press('Escape');
     await expect(page.locator('.media-viewer')).toHaveCount(0);
   } finally {

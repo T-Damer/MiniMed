@@ -73,3 +73,45 @@ test('a two-finger pinch still zooms a table in the page', async ({ page }) => {
   });
   await expect(table.locator('.pinch-zoom-surface--zoomed')).toHaveCount(1);
 });
+
+test('a wide table keeps its header row and first column in view while it scrolls in its box', async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  await routeClinicalModule(page);
+  await mountBuiltApp(page);
+  await installClinicalModule(page);
+  await page.locator('.document-overlay-section__title').first().waitFor();
+  const scroller = page.locator('.document-rich-table__scroller--wide').first();
+  await scroller.scrollIntoViewIfNeeded();
+  const geometry = () =>
+    scroller.evaluate((element) => {
+      const box = element.getBoundingClientRect();
+      const head = element.querySelector('.document-rich-table__cell--pin-row');
+      const lead = element.querySelector('.document-rich-table__cell--pin-column');
+      const rows = element.querySelectorAll('tr');
+      const body = rows[Math.min(rows.length - 1, 3)]?.querySelector(
+        '.document-rich-table__cell--pin-column',
+      );
+      return {
+        scrollerLeft: box.left,
+        scrollerTop: box.top,
+        headTop: head?.getBoundingClientRect().top ?? Number.NaN,
+        leadLeft: lead?.getBoundingClientRect().left ?? Number.NaN,
+        bodyLeft: body?.getBoundingClientRect().left ?? Number.NaN,
+        scrollable: element.scrollWidth - element.clientWidth,
+        tall: element.scrollHeight - element.clientHeight,
+      };
+    });
+  expect((await geometry()).scrollable).toBeGreaterThan(40);
+
+  await scroller.evaluate((element) => {
+    element.scrollLeft = element.scrollWidth;
+    element.scrollTop = element.scrollHeight;
+  });
+  const after = await geometry();
+  // The pinned cells stay at the box's edges whichever way the table is scrolled.
+  expect(after.leadLeft).toBeCloseTo(after.scrollerLeft, 0);
+  expect(after.bodyLeft).toBeCloseTo(after.scrollerLeft, 0);
+  if (after.tall > 0) expect(after.headTop).toBeCloseTo(after.scrollerTop, 0);
+});
