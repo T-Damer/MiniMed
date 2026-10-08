@@ -6,36 +6,13 @@
   color: var(--theme-text);
 }
 
-.drug-interactions__chrome {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.drug-interactions__back {
-  flex: 0 0 auto;
-}
-
-.drug-interactions__notice {
-  display: grid;
-  gap: 0.45rem;
-  padding: 0.85rem 1rem;
-  border-left: 0.2rem solid var(--theme-warning);
+.drug-interactions__notice-text,
+.drug-interactions__help {
+  margin: 0;
 }
 
 .drug-interactions__notice-text {
-  margin: 0;
-  font-size: 0.88rem;
   font-weight: 600;
-  line-height: 1.45;
-}
-
-.drug-interactions__how {
-  display: grid;
-  gap: 0.45rem;
-  color: var(--theme-text-muted);
-  font-size: 0.82rem;
-  line-height: 1.45;
 }
 
 .drug-interactions__picker {
@@ -43,8 +20,56 @@
   gap: 0.55rem;
 }
 
+.drug-interactions__slot {
+  display: grid;
+  gap: 0.55rem;
+}
+
+/* The next field slides and fades in once the previous drug is chosen. */
+.drug-interactions__slot--enter,
+.drug-interactions__results {
+  animation: drug-interactions-enter var(--motion-base, 180ms) var(--motion-ease-out, ease-out) both;
+}
+
+.drug-interactions__candidates {
+  animation: drug-interactions-enter var(--motion-fast, 120ms) var(--motion-ease-out, ease-out) both;
+}
+
+@keyframes drug-interactions-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+}
+
 .drug-interactions__search {
   min-width: 0;
+}
+
+.drug-interactions__results {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.drug-interactions__nothing {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.drug-interactions__catalog-offer {
+  max-width: 100%;
+}
+
+.drug-interactions__candidate-name {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.drug-interactions__candidate-note {
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
 }
 
 .drug-interactions__candidates {
@@ -87,49 +112,31 @@
   cursor: default;
 }
 
-.drug-interactions__quick {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 0.75rem;
-}
-
-.drug-interactions__quick-note {
-  color: var(--theme-text-muted);
-  font-size: 0.78rem;
-}
-
 .drug-interactions__hint {
   margin: 0;
   color: var(--theme-text-muted);
   font-size: 0.82rem;
 }
 
-.drug-interactions__empty {
-  margin: 0;
-  padding: 0.5rem 0.1rem;
-  color: var(--theme-text-muted);
-}
-
 .drug-interactions__items {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
+  display: grid;
+  gap: 0.5rem;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .drug-interactions__item {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 0.45rem;
-  max-width: 100%;
-  padding: 0.3rem 0.35rem 0.3rem 0.8rem;
+  gap: 0.5rem;
+  min-height: 3rem;
+  padding: 0.3rem 0.4rem 0.3rem 1rem;
   border: var(--theme-border-hairline, 1px) solid var(--theme-border);
-  border-radius: 999px;
+  border-radius: var(--theme-radius-panel);
   background: var(--theme-surface-raised);
-  font-size: 0.9rem;
+  font-size: 1rem;
+  animation: drug-interactions-enter var(--motion-fast, 120ms) var(--motion-ease-out, ease-out) both;
 }
 
 .drug-interactions__item--missing {
@@ -144,6 +151,7 @@
 
 .drug-interactions__item-name {
   min-width: 0;
+  flex: 1 1 auto;
   overflow-wrap: anywhere;
   font-weight: 600;
 }
@@ -156,8 +164,9 @@
 .drug-interactions__item-remove {
   display: inline-grid;
   place-items: center;
-  width: 1.7rem;
-  height: 1.7rem;
+  flex: none;
+  width: 2.4rem;
+  height: 2.4rem;
   border: 0;
   border-radius: 999px;
   background: transparent;
@@ -176,24 +185,43 @@
   font-size: 0.85rem;
 }
 
+.drug-interactions__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.drug-interactions__toolbar:has(.drug-interactions__summary:empty):not(:has(.drug-interactions__actions)) {
+  display: none;
+}
+
 .drug-interactions__actions {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem 0.75rem;
+  gap: 0.4rem;
+  margin-left: auto;
+}
+
+.drug-interactions__action {
+  --ui-icon-button-size: 2.5rem;
+}
+
+.drug-interactions__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  color: var(--theme-text-faint);
+  font-size: 0.78rem;
 }
 
 .drug-interactions__vidal {
   color: var(--theme-link);
-  font-size: 0.88rem;
+  font-size: 0.78rem;
   text-decoration: underline;
   text-underline-offset: var(--theme-text-underline-offset, 0.2em);
-}
-
-.drug-interactions__vidal-note {
-  margin: -0.4rem 0 0;
-  color: var(--theme-text-faint);
-  font-size: 0.75rem;
 }
 
 .drug-interactions__pairs {
@@ -326,13 +354,6 @@
   padding: 0.8rem 1rem;
 }
 
-.drug-interactions__offers-text {
-  margin: 0;
-  color: var(--theme-text-muted);
-  font-size: 0.82rem;
-  line-height: 1.45;
-}
-
 .drug-interactions__offer {
   display: flex;
 }
@@ -414,10 +435,9 @@
 }
 
 @media print {
-  .drug-interactions__chrome,
   .drug-interactions__picker,
-  .drug-interactions__actions,
-  .drug-interactions__vidal-note {
+  .drug-interactions__toolbar,
+  .drug-interactions__footer {
     display: none;
   }
 }

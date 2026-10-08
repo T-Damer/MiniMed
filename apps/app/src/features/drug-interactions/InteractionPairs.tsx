@@ -47,7 +47,6 @@ import {
   pluralSentence,
   printPairs,
   type SideView,
-  SUBSTANCE_INSTRUCTION_NOTE,
   sideHeading,
   sideNote,
   sideSourceLine,
@@ -175,7 +174,6 @@ function SideBlock(props: { readonly side: SideView }): JSX.Element {
             <p class="drug-interactions__side-note">{note()}</p>
           </Show>
         </Show>
-        <p class="drug-interactions__side-note">{SUBSTANCE_INSTRUCTION_NOTE}</p>
       </Show>
     </section>
   );
@@ -371,49 +369,39 @@ export function InteractionPairsPanel(props: {
 
   return (
     <>
-      <div class="drug-interactions__summary" role="status" data-testid="interaction-summary">
-        <span>
-          Пар: {views().length}. Упоминание найдено в {foundCount()}.
-        </span>
-      </div>
-      <Show when={props.actions !== false}>
-        <div class="drug-interactions__actions">
-          <Button
-            type="button"
-            variant="secondary"
-            icon={<AppGlyph name="printer" />}
-            onClick={printOut}
-          >
-            Печать
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            icon={<AppGlyph name="share" />}
-            onClick={() => void share()}
-          >
-            Поделиться
-          </Button>
-          <a
-            class="drug-interactions__vidal"
-            href={VIDAL_CHECKER_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Проверить на vidal.ru
-          </a>
+      <div class="drug-interactions__toolbar">
+        <div class="drug-interactions__summary" role="status" data-testid="interaction-summary">
+          <Show when={views().length > 1}>
+            <span>
+              Пар: {views().length}. Упоминание найдено в {foundCount()}.
+            </span>
+          </Show>
         </div>
-        <p class="drug-interactions__vidal-note">
-          Ссылка открывает отдельный сайт со своей базой данных; приложение не передаёт ему список
-          препаратов.
-        </p>
-      </Show>
+        <Show when={props.actions !== false}>
+          <div class="drug-interactions__actions">
+            <Button
+              type="button"
+              variant="icon"
+              class="drug-interactions__action"
+              aria-label="Печать"
+              title="Печать"
+              icon={<AppGlyph name="printer" />}
+              onClick={printOut}
+            />
+            <Button
+              type="button"
+              variant="icon"
+              class="drug-interactions__action"
+              aria-label="Поделиться"
+              title="Поделиться"
+              icon={<AppGlyph name="share" />}
+              onClick={() => void share()}
+            />
+          </div>
+        </Show>
+      </div>
       <Show when={props.offers !== false && missingModules().length > 0}>
         <section class="drug-interactions__offers paper-card" aria-label="Инструкции для чтения">
-          <p class="drug-interactions__offers-text">
-            Тексты этих инструкций ещё не скачаны: указатель знает, где в них названы другие
-            препараты, но прочитать предложения можно только из установленной инструкции.
-          </p>
           <For each={missingModules()}>
             {(moduleId) => (
               <InstructionDownloadOffer moduleId={moduleId} onContentChanged={onContentChanged} />
@@ -449,6 +437,19 @@ export function InteractionPairsPanel(props: {
             </p>
           </aside>
         )}
+      </Show>
+      <Show when={props.actions !== false}>
+        <footer class="drug-interactions__footer">
+          <span>«Не найдено» не значит «безопасно».</span>
+          <a
+            class="drug-interactions__vidal"
+            href={VIDAL_CHECKER_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Проверить на vidal.ru
+          </a>
+        </footer>
       </Show>
     </>
   );

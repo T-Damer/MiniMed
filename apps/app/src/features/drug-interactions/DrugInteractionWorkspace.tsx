@@ -1,32 +1,23 @@
 import type { MedicalCore } from '@localmed/contracts';
 import {
   createEffect,
+  createMemo,
   createResource,
   createSignal,
   For,
   type JSX,
-  on,
-  onCleanup,
   Show,
-  untrack,
 } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
-import { ChoiceChip } from '@/components/ChoiceChip';
-import { Disclosure } from '@/components/Disclosure';
 import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
-import { SearchField } from '@/components/SearchField';
 import { Heading } from '@/components/Text';
 import { MAX_COMPARED_NAMES } from '@/features/drug-comparison/comparison-query';
 import { notesDrugComparisonPath } from '@/features/notes/notes-routing';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
-import {
-  cardDisplayName,
-  type DrugCandidate,
-  findDrugCandidates,
-  resolveTypedName,
-} from './drug-candidates';
+import { DrugSlot, type DrugSuggestion, namesAlcohol } from './DrugSlot';
+import { cardDisplayName, type DrugCandidate, resolveTypedName } from './drug-candidates';
 import { InteractionPairsPanel } from './InteractionPairs';
 import { ALCOHOL_ITEM_ID, type DrugItem } from './interaction-check';
 import { loadInteractionIndex } from './interaction-load';
@@ -35,8 +26,9 @@ import { ALCOHOL_QUERY_NAME } from './interaction-query';
 import '@/styles/drug-interactions.css';
 
 const MAX_ITEMS = 10;
+/** The search fields offered one after another: the tool compares two drugs. */
+const MAX_PICKED = 2;
 const MAX_COMPARED = MAX_COMPARED_NAMES;
-const ALCOHOL_NAME = /^(?:алкогол|этанол|спирт|вино\b|пиво\b)/iu;
 
 function alcoholItem(typed?: string): DrugItem {
   return {
@@ -68,8 +60,6 @@ export function DrugInteractionWorkspace(props: {
   const [index] = createResource(loadInteractionIndex);
   const [items, setItems] = createSignal<readonly DrugItem[]>([]);
   const [unresolved, setUnresolved] = createSignal<readonly string[]>([]);
-  const [query, setQuery] = createSignal('');
-  const [candidates, setCandidates] = createSignal<readonly DrugCandidate[]>([]);
   const [resolving, setResolving] = createSignal(props.initialNames.length > 0);
 
   /** The drugs (not alcohol) that can be sent to «Сравнение препаратов». */
@@ -112,7 +102,7 @@ export function DrugInteractionWorkspace(props: {
       }
       const missing: string[] = [];
       for (const name of props.initialNames) {
-        if (ALCOHOL_NAME.test(name.trim()) || name === ALCOHOL_QUERY_NAME) {
+        if (namesAlcohol(name) || name === ALCOHOL_QUERY_NAME) {
           addItem(alcoholItem(name));
           continue;
         }
@@ -125,173 +115,126 @@ export function DrugInteractionWorkspace(props: {
     })();
   });
 
-  // The drug search box.
-  createEffect(() => {
-    const text = query().trim();
-    const loaded = index();
-    const core = props.core;
-    if (text.length < 2 || !loaded || !core) {
-      setCandidates([]);
-      return;
-    }
-    const handle = setTimeout(() => {
-      void findDrugCandidates(core, loaded, text).then((found) => {
-        if (untrack(() => query().trim()) === text) setCandidates(found);
-      });
-    }, 250);
-    onCleanup(() => clearTimeout(handle));
-  });
+  const [focusNext, setFocusNext] = createSignal(false);
+  const pick = (suggestion: DrugSuggestion): void => {
+    setFocusNext(true);
+    if (suggestion.kind === 'alcohol') addItem(alcoholItem());
+    else addCandidate(suggestion.candidate);
+  };
+  /** A fresh field for every change of the chosen drugs, so the next one slides in. */
+  const nextSlot = createMemo(() =>
+    items().length < MAX_PICKED && !resolving() ? { position: items().length } : null,
+  );
 
   return (
     <section class="drug-interactions" aria-label="Взаимодействие препаратов">
-      <header class="drug-interactions__chrome">
-        <NavBack
-          class="drug-interactions__back knowledge-back-button"
-          aria-label="Назад"
-          onClick={props.onBack}
-        />
-      </header>
       <Page
-        icon={<AppGlyph name="pill" class="page__icon-glyph" />}
+        navigation={
+          <NavBack
+            class="drug-interactions__back knowledge-back-button"
+            aria-label="Назад"
+            onClick={props.onBack}
+          />
+        }
         title={<Heading depth={1}>Взаимодействие препаратов</Heading>}
-        description="Поиск по текстам официальных инструкций: где инструкция одного препарата упоминает другой или его группу."
-      />
-      <aside class="drug-interactions__notice paper-card" role="note">
-        <p class="drug-interactions__notice-text" data-testid="interaction-notice">
-          {INTERACTION_NOTICE}
-        </p>
-        <Disclosure variant="inline" title="Как это работает">
-          <div class="drug-interactions__how">
-            <p>
+        description="По текстам официальных инструкций"
+        help={
+          <>
+            <p class="drug-interactions__notice-text" data-testid="interaction-notice">
+              {INTERACTION_NOTICE}
+            </p>
+            <p class="drug-interactions__help">
               Указатель построен заранее по текстам инструкций из ГРЛС и с сайтов производителей: в
               разделах «Взаимодействие с другими лекарственными средствами», «Особые указания»,
               «Противопоказания» и «С осторожностью» отмечены предложения, где названо другое
               вещество (по МНН) или группа препаратов (по официальному названию группы АТХ).
             </p>
-            <p>
+            <p class="drug-interactions__help">
               Предложения показаны дословно из установленных инструкций, с названием раздела и
               ссылкой на то место, откуда они взяты. Ничего не пересказывается и не переводится.
             </p>
-            <p>
+            <p class="drug-interactions__help">
               Если у препарата несколько инструкций, читается одна из них; тексты других
               производителей могут отличаться. Торговые названия в тексте не ищутся.
             </p>
-            <p>
+            <p class="drug-interactions__help">
               Предложения из раздела «Взаимодействие с другими лекарственными средствами» показаны
-              сразу; предложения из «Особых указаний», «Противопоказаний» и «С осторожностью»
-              свёрнуты под строкой «ещё из других разделов».
+              сразу; из «Особых указаний», «Противопоказаний» и «С осторожностью» — под строкой «ещё
+              из других разделов».
             </p>
-            <p>
+            <p class="drug-interactions__help">
               Если скачан необязательный модуль меток, рядом с парой, у которой есть предложение из
               инструкции, показана степень риска по международной базе DDInter. Это метка базы, а не
               текст инструкции.
             </p>
-          </div>
-        </Disclosure>
-      </aside>
+          </>
+        }
+      />
 
       <section class="drug-interactions__picker" aria-label="Препараты для проверки">
-        <SearchField
-          class="drug-interactions__search"
-          label="Добавить препарат"
-          placeholder="Например: варфарин"
-          value={query()}
-          onInput={setQuery}
-          onClear={() => {
-            setQuery('');
-            setCandidates([]);
-          }}
-        />
-        <Show when={candidates().length > 0}>
-          <ul class="drug-interactions__candidates" aria-label="Найденные препараты">
-            <For each={candidates()}>
-              {(candidate) => (
-                <li class="drug-interactions__candidate-row">
+        <Show when={items().length > 0 || unresolved().length > 0 || resolving()}>
+          <ul class="drug-interactions__items" aria-label="Выбранные препараты">
+            <For each={items()}>
+              {(item) => (
+                <li class="drug-interactions__item" data-testid="interaction-item">
+                  <span class="drug-interactions__item-name">{item.label}</span>
+                  <Show when={item.typed}>
+                    {(typed) => (
+                      <span class="drug-interactions__item-typed">по запросу «{typed()}»</span>
+                    )}
+                  </Show>
                   <button
                     type="button"
-                    class="drug-interactions__candidate"
-                    disabled={hasItem(candidate.slug)}
-                    onClick={() => {
-                      addCandidate(candidate);
-                      setQuery('');
-                      setCandidates([]);
-                    }}
+                    class="drug-interactions__item-remove"
+                    aria-label={`Убрать «${item.label}»`}
+                    onClick={() => removeItem(item.id)}
                   >
-                    <AppGlyph name={hasItem(candidate.slug) ? 'check' : 'plus'} />
-                    <span>{candidate.label}</span>
+                    <AppGlyph name="minus" />
                   </button>
                 </li>
               )}
             </For>
+            <For each={unresolved()}>
+              {(name) => (
+                <li class="drug-interactions__item drug-interactions__item--missing">
+                  <span class="drug-interactions__item-name">Не найден: «{name}»</span>
+                  <button
+                    type="button"
+                    class="drug-interactions__item-remove"
+                    aria-label={`Убрать «${name}»`}
+                    onClick={() =>
+                      setUnresolved((current) => current.filter((entry) => entry !== name))
+                    }
+                  >
+                    <AppGlyph name="minus" />
+                  </button>
+                </li>
+              )}
+            </For>
+            <Show when={resolving()}>
+              <li class="drug-interactions__item drug-interactions__item--busy" role="status">
+                Ищем препараты из запроса…
+              </li>
+            </Show>
           </ul>
         </Show>
-        <Show when={query().trim().length >= 2 && candidates().length === 0 && !index.loading}>
-          <p class="drug-interactions__hint" role="status">
-            Ничего не найдено. Если справочник препаратов не скачан, скачайте его в разделе
-            «Препараты».
-          </p>
+        <Show when={nextSlot()} keyed>
+          {(slot) => (
+            <DrugSlot
+              core={props.core}
+              index={index()}
+              label={slot.position === 0 ? 'Первый препарат' : 'Второй препарат'}
+              placeholder={slot.position === 0 ? 'Первый препарат' : 'Второй препарат'}
+              taken={hasItem}
+              entering={slot.position > 0}
+              focusOnMount={focusNext() && slot.position > 0}
+              onPick={pick}
+              onContentChanged={onContentChanged}
+            />
+          )}
         </Show>
-        <div class="drug-interactions__quick">
-          <ChoiceChip
-            class="drug-interactions__alcohol"
-            icon={<AppGlyph name="plus" />}
-            disabled={hasItem(ALCOHOL_ITEM_ID) || items().length >= MAX_ITEMS}
-            onClick={() => addItem(alcoholItem())}
-          >
-            Алкоголь
-          </ChoiceChip>
-          <span class="drug-interactions__quick-note">
-            Не препарат: ищется в инструкциях других препаратов.
-          </span>
-        </div>
       </section>
 
-      <Show when={items().length > 0 || unresolved().length > 0 || resolving()}>
-        <ul class="drug-interactions__items" aria-label="Выбранные препараты">
-          <For each={items()}>
-            {(item) => (
-              <li class="drug-interactions__item" data-testid="interaction-item">
-                <span class="drug-interactions__item-name">{item.label}</span>
-                <Show when={item.typed}>
-                  {(typed) => (
-                    <span class="drug-interactions__item-typed">по запросу «{typed()}»</span>
-                  )}
-                </Show>
-                <button
-                  type="button"
-                  class="drug-interactions__item-remove"
-                  aria-label={`Убрать «${item.label}»`}
-                  onClick={() => removeItem(item.id)}
-                >
-                  <AppGlyph name="minus" />
-                </button>
-              </li>
-            )}
-          </For>
-          <For each={unresolved()}>
-            {(name) => (
-              <li class="drug-interactions__item drug-interactions__item--missing">
-                <span class="drug-interactions__item-name">Не найден: «{name}»</span>
-                <button
-                  type="button"
-                  class="drug-interactions__item-remove"
-                  aria-label={`Убрать «${name}»`}
-                  onClick={() =>
-                    setUnresolved((current) => current.filter((entry) => entry !== name))
-                  }
-                >
-                  <AppGlyph name="minus" />
-                </button>
-              </li>
-            )}
-          </For>
-          <Show when={resolving()}>
-            <li class="drug-interactions__item drug-interactions__item--busy" role="status">
-              Ищем препараты из запроса…
-            </li>
-          </Show>
-        </ul>
-      </Show>
       <Show when={items().length >= MAX_ITEMS}>
         <p class="drug-interactions__hint">Достигнут предел в {MAX_ITEMS} препаратов.</p>
       </Show>
@@ -302,41 +245,34 @@ export function DrugInteractionWorkspace(props: {
         </p>
       </Show>
 
-      <Show
-        when={items().length >= 2}
-        fallback={
-          <Show when={!resolving()}>
-            <p class="drug-interactions__empty" role="status">
-              Добавьте два препарата или больше, чтобы увидеть, что говорят о них инструкции.
-            </p>
+      <Show when={items().length >= 2}>
+        <div class="drug-interactions__results">
+          <Show when={comparable().length >= 2}>
+            <a
+              class="drug-interactions__compare"
+              href={notesDrugComparisonPath(
+                [],
+                comparable()
+                  .slice(0, MAX_COMPARED)
+                  .map((item) => item.id),
+              )}
+              data-testid="interaction-compare-link"
+            >
+              <AppGlyph name="pill" class="drug-interactions__compare-icon" />
+              <span class="drug-interactions__compare-text">
+                {comparable().length > MAX_COMPARED
+                  ? `Сравнить первые ${MAX_COMPARED} препарата`
+                  : 'Сравнить эти препараты'}
+              </span>
+              <AppGlyph name="caret-right" class="drug-interactions__compare-icon" />
+            </a>
           </Show>
-        }
-      >
-        <Show when={comparable().length >= 2}>
-          <a
-            class="drug-interactions__compare"
-            href={notesDrugComparisonPath(
-              [],
-              comparable()
-                .slice(0, MAX_COMPARED)
-                .map((item) => item.id),
-            )}
-            data-testid="interaction-compare-link"
-          >
-            <AppGlyph name="pill" class="drug-interactions__compare-icon" />
-            <span class="drug-interactions__compare-text">
-              {comparable().length > MAX_COMPARED
-                ? `Сравнить первые ${MAX_COMPARED} препарата`
-                : 'Сравнить эти препараты'}
-            </span>
-            <AppGlyph name="caret-right" class="drug-interactions__compare-icon" />
-          </a>
-        </Show>
-        <InteractionPairsPanel
-          core={props.core}
-          items={items()}
-          onContentChanged={onContentChanged}
-        />
+          <InteractionPairsPanel
+            core={props.core}
+            items={items()}
+            onContentChanged={onContentChanged}
+          />
+        </div>
       </Show>
     </section>
   );

@@ -49,9 +49,13 @@ test('a search for two drugs opens the tool, offers the instruction and quotes i
   await expect(items).toHaveCount(2, { timeout: 60_000 });
   await expect(items.nth(0)).toContainText('Албендазол');
   await expect(items.nth(1)).toContainText('Празиквантел');
+  // The caution lives behind the header «?», not on the page.
+  await page.getByRole('button', { name: 'Как это работает' }).click();
   await expect(page.getByTestId('interaction-notice')).toContainText(
     'не система поддержки врачебных решений',
   );
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('interaction-notice')).toHaveCount(0);
   await expect(page.locator('.drug-interactions__vidal')).toHaveAttribute(
     'href',
     'https://www.vidal.ru/drugs/interaction/new',
@@ -84,11 +88,49 @@ test('a search for two drugs opens the tool, offers the instruction and quotes i
   await page.goBack();
   await expect(page.getByTestId('interaction-pair')).toHaveCount(1, { timeout: 60_000 });
 
-  // A pair the instructions do not connect says so without calling it safe; alcohol is an item too.
-  await page.getByRole('searchbox', { name: 'Добавить препарат' }).fill('пирантел');
+  // Two drugs fill the two fields: no third field, no pre-suggested items.
+  await expect(page.getByRole('searchbox')).toHaveCount(0);
+  await shoot(page, 'two-items');
+});
+
+test('the second field appears after the first drug; alcohol is found by typing', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+  await page.goto(`${E2E_ASSET_ORIGIN}/#/notes/drug-interactions`);
+  await expect(page.getByRole('searchbox', { name: 'Первый препарат' })).toBeVisible({
+    timeout: 60_000,
+  });
+  await expect(page.getByRole('searchbox', { name: 'Второй препарат' })).toHaveCount(0);
+  await expect(page.locator('.drug-interactions__alcohol')).toHaveCount(0);
+  await expect(page.getByTestId('interaction-item')).toHaveCount(0);
+
+  await page.getByRole('searchbox', { name: 'Первый препарат' }).fill('албендазол');
   await page.locator('.drug-interactions__candidate').first().click();
-  await page.locator('.drug-interactions__alcohol').click();
-  await expect(items).toHaveCount(4);
+  await expect(page.getByTestId('interaction-item')).toHaveCount(1);
+  const second = page.getByRole('searchbox', { name: 'Второй препарат' });
+  await expect(second).toBeVisible();
+  await expect(second).toBeFocused();
+
+  await second.fill('алкоголь');
+  const alcohol = page.locator('.drug-interactions__candidate').first();
+  await expect(alcohol).toContainText('Алкоголь', { timeout: 60_000 });
+  await alcohol.click();
+  await expect(page.getByTestId('interaction-item')).toHaveCount(2);
+  await expect(page.getByTestId('interaction-pair')).toHaveCount(1);
+  await expect(page.getByRole('button', { name: 'Печать' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Поделиться' })).toBeVisible();
+});
+
+test('drugs named in the address make every pair', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+  await page.goto(
+    `${E2E_ASSET_ORIGIN}/#/notes/drug-interactions?d=албендазол&d=празиквантел&d=пирантел&d=алкоголь`,
+  );
+  const items = page.getByTestId('interaction-item');
+  await expect(items).toHaveCount(4, { timeout: 60_000 });
   await expect(page.getByTestId('interaction-pair')).toHaveCount(6);
   const statuses = await page.getByTestId('interaction-pair-status').allTextContents();
   expect(statuses.some((text) => text.includes('упоминаний не найдено'))).toBe(true);
@@ -105,5 +147,5 @@ test('the tool opens from an address and keeps the names that match no drug', as
   await expect(items).toHaveCount(1, { timeout: 60_000 });
   await expect(page.locator('.drug-interactions__item--missing')).toContainText('ксзвцфыв');
   await expect(page.getByTestId('interaction-pair')).toHaveCount(0);
-  await expect(page.locator('.drug-interactions__empty')).toContainText('два препарата');
+  await expect(page.getByRole('searchbox', { name: 'Второй препарат' })).toBeVisible();
 });
