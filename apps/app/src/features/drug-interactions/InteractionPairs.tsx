@@ -46,7 +46,6 @@ import {
   pairStatusText,
   pairTitle,
   pairView,
-  pluralSentence,
   printPairs,
   type SideView,
   sideHeading,
