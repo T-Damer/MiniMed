@@ -10,6 +10,7 @@ import type {
   DefinitionReferenceBlock,
   DefinitionReferenceHit,
   DefinitionReferenceReader,
+  DefinitionReferenceSense,
 } from '@localmed/storage';
 
 /** Supplied by the current database owner. This adapter does not open/close connections or workers. */
@@ -28,7 +29,8 @@ const MAX_METADATA_CHARACTERS = 65536;
 const HEADER = `e.id, e.canonical_name AS title, e.entity_type AS kind,
   json_extract(e.metadata_json, '$.coverage') AS coverage,
   json_extract(e.metadata_json, '$.textKind') AS text_kind,
-  json_extract(e.metadata_json, '$.blockCount') AS block_count`;
+  json_extract(e.metadata_json, '$.blockCount') AS block_count,
+  json_extract(e.metadata_json, '$.sense') AS sense_json`;
 const SCOPE = `json_extract(e.metadata_json, '$.definitionReference') = 1
   AND json_extract(e.metadata_json, '$.editionId') = ?
   AND EXISTS (SELECT 1 FROM content_packs p WHERE p.id = ? AND p.enabled = 1)`;
@@ -66,6 +68,32 @@ function identity(value: string): string {
   return value;
 }
 
+/** Ranking signals of one sense; counts are non-negative integers, labels are short text. */
+function sense(value: unknown): DefinitionReferenceSense | undefined {
+  if (value === null || value === undefined) return undefined;
+  const signals = jsonObject(value);
+  const count = (key: string): number | undefined =>
+    signals[key] === undefined ? undefined : integer(signals[key]);
+  const label = (key: string, maximum: number): string | undefined =>
+    signals[key] === undefined ? undefined : string(signals[key], maximum);
+  const field = label('field', 40);
+  const fieldLabel = label('fieldLabel', 80);
+  const documents = count('documents');
+  const meaning = count('meaning');
+  const authority = count('authority');
+  const usage = count('usage');
+  const termUsage = count('termUsage');
+  return {
+    ...(field === undefined ? {} : { field }),
+    ...(fieldLabel === undefined ? {} : { fieldLabel }),
+    ...(documents === undefined ? {} : { documents }),
+    ...(meaning === undefined ? {} : { meaning }),
+    ...(authority === undefined ? {} : { authority }),
+    ...(usage === undefined ? {} : { usage }),
+    ...(termUsage === undefined ? {} : { termUsage }),
+  };
+}
+
 function hit(row: Row, match: 'name' | 'text'): DefinitionReferenceHit {
   const textKind = row['text_kind'];
   if (
@@ -75,6 +103,7 @@ function hit(row: Row, match: 'name' | 'text'): DefinitionReferenceHit {
   ) {
     throw new Error('Invalid reference text kind.');
   }
+  const signals = sense(row['sense_json']);
   return {
     id: string(row['id'], 256),
     title: string(row['title']),
@@ -85,6 +114,7 @@ function hit(row: Row, match: 'name' | 'text'): DefinitionReferenceHit {
     reviewStatus: 'requires-review',
     identityStatus: 'source-local-proposed',
     match,
+    ...(signals ? { sense: signals } : {}),
   };
 }
 

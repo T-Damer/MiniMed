@@ -1,5 +1,22 @@
 import { z } from 'zod';
 
+/**
+ * Facts the edition build measured to order the senses of one headword (never text): the medical
+ * field the source states, how many independent documents give its meaning, how authoritative the
+ * source is (3 КР glossary … 0 general dictionary) and how many recommendations use the sense
+ * (`usage`) or the headword at all (`termUsage`). Absent in editions built before senses.
+ */
+export interface DefinitionReferenceSense {
+  readonly field?: string;
+  readonly fieldLabel?: string;
+  readonly documents?: number;
+  /** Senses of one headword with the same `meaning` word one definition alike. */
+  readonly meaning?: number;
+  readonly authority?: number;
+  readonly usage?: number;
+  readonly termUsage?: number;
+}
+
 /** A source-local draft record is not an approved canonical clinical concept. */
 export interface DefinitionReferenceHit {
   readonly id: string;
@@ -11,6 +28,7 @@ export interface DefinitionReferenceHit {
   readonly identityStatus: 'source-local-proposed';
   readonly blockCount: number;
   readonly match: 'name' | 'text';
+  readonly sense?: DefinitionReferenceSense;
 }
 export interface DefinitionReferenceBlock {
   readonly linkId: string;
