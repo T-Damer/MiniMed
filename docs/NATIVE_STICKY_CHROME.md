@@ -33,8 +33,9 @@ Official and personal document readers do not use backdrop blur.
   icons.
 - When reading and scrolling down, the top reader controls and bottom navigation move out of view.
 - Scrolling up, or returning near the top, restores both controls.
-- While reader controls are hidden, the document paper supplies the opaque status-bar fill and sticky
-  document headings move to the safe-area edge.
+- While reader controls are hidden, the document paper supplies the opaque status-bar fill and the sticky
+  section-path line (`ReaderSectionPath`, the only sticky heading element since 2026-10-08) moves to
+  the safe-area edge.
 - Controls that float over the pages follow the same rule: the PDF page dock (`.pdf-viewer__dock`:
   page box and zoom) sits above the bottom navigation while it is shown and slides out with it
   (`html.app-chrome-hidden`). Inside a dialog (note attachment) there is no bottom navigation, so
