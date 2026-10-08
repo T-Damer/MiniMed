@@ -18,7 +18,7 @@ test('shows a verified mirrored reference illustration and keeps it available of
   await page.evaluate((documentId) => {
     window.location.hash = `#/modules/documents/d/${btoa(documentId)}`;
   }, id);
-  const illustration = page.locator('.document-reference-image__image');
+  const illustration = page.locator('.reader-hero__photo');
   await expect(illustration).toBeVisible({ timeout: 30000 });
   await expect
     .poll(() => illustration.evaluate((image) => (image as HTMLImageElement).naturalWidth))

@@ -240,12 +240,12 @@ test('a reference illustration opens in the shared zoomable preview', async ({ p
   await page.evaluate((documentId) => {
     window.location.hash = `#/modules/documents/d/${btoa(documentId)}`;
   }, id);
-  const illustration = page.locator('.document-reference-image__image');
+  const illustration = page.locator('.reader-hero__photo');
   await expect(illustration).toBeVisible({ timeout: 30_000 });
   await expect
     .poll(() => illustration.evaluate((image) => (image as HTMLImageElement).naturalWidth))
     .toBeGreaterThan(0);
-  await page.locator('.document-reference-image__open').click();
+  await page.locator('.reader-hero__open').click();
   const preview = page.locator('.media-viewer__image');
   await expect(preview).toBeVisible();
   // Double click zooms (the shared image zoom), the close button leaves the preview.
