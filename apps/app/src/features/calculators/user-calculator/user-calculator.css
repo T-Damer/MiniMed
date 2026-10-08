@@ -130,13 +130,14 @@
   font-size: var(--theme-type-caption);
 }
 
-/* The card on the calculators home that leads to the list above. */
+/* The compact row on the calculators home that leads to the list above. */
 .my-calculators-card {
   position: relative;
-  display: grid;
-  align-content: start;
-  gap: var(--theme-space-2);
-  padding: clamp(0.9rem, 3vw, 1.25rem);
+  display: flex;
+  align-items: center;
+  gap: var(--theme-space-3, 0.75rem);
+  margin-top: 0.75rem;
+  padding: 0.75rem clamp(0.9rem, 3vw, 1.25rem);
 }
 
 .my-calculators-card__hit-area {
@@ -150,17 +151,27 @@
   cursor: pointer;
 }
 
-.my-calculators-card__title,
-.my-calculators-card__text {
-  margin: 0;
-}
-
-.my-calculators-card__text,
-.my-calculators-card__count {
+.my-calculators-card__icon,
+.my-calculators-card__caret {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
   color: var(--theme-text-muted);
 }
 
+.my-calculators-card__copy {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+}
+
+.my-calculators-card__title {
+  margin: 0;
+  font-size: 1rem;
+}
+
 .my-calculators-card__count {
+  color: var(--theme-text-muted);
   font-size: var(--theme-type-caption);
 }
 

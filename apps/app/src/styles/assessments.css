@@ -98,8 +98,32 @@
   cursor: pointer;
 }
 
-.assessment-specialty-card--user {
-  align-content: start;
+.assessment-user-entry {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  padding: 0.75rem clamp(0.9rem, 3vw, 1.25rem);
+  border: 1px solid var(--theme-border);
+  color: inherit;
+  background: var(--theme-surface-raised);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.assessment-user-entry__icon,
+.assessment-user-entry__caret {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--theme-text-muted);
+}
+
+.assessment-user-entry__title {
+  flex: 1;
+  font-weight: 600;
 }
 
 .assessment-specialty-card__icon {

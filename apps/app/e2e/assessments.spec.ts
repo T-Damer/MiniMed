@@ -5,8 +5,10 @@ import { mountBuiltApp } from './mount-built-app';
 test('lets page descriptions use the full page header width', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await mountBuiltApp(page);
-  await page.locator('.app-bottom-nav').getByRole('button', { name: 'Тесты', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Тесты и опросники' })).toBeVisible();
+  await page.evaluate(() => {
+    window.location.hash = '#/notes/forms/ru.minzdrav.274n.070u';
+  });
+  await expect(page.getByRole('heading', { name: 'Форма № 070/у' })).toBeVisible();
 
   const widths = await page.locator('.page__description').evaluate((element) => {
     const header = element.parentElement;
@@ -20,13 +22,16 @@ test('lets page descriptions use the full page header width', async ({ page }) =
   expect(widths.description).toBeGreaterThanOrEqual(widths.header - 1);
 });
 
-test('opens personal questionnaires from the first catalog card', async ({ page }) => {
+test('opens personal questionnaires from the compact row after the catalog', async ({ page }) => {
   await mountBuiltApp(page);
   await page.locator('.app-bottom-nav').getByRole('button', { name: 'Тесты', exact: true }).click();
 
+  // The catalog comes first; the doctor's own questionnaires are one compact row below it.
   const cards = page.locator('.assessment-specialty-grid > .assessment-specialty-card');
-  await expect(cards.first()).toContainText('Мои опросники');
-  await cards.first().click();
+  await expect(cards.first()).not.toContainText('Мои опросники');
+  const entry = page.getByTestId('assessment-user-entry');
+  await expect(entry).toContainText('Мои опросники');
+  await entry.click();
   await expect(page).toHaveURL(/#\/assessments\/mine$/u);
   const heading = page.getByRole('heading', { name: 'Мои опросники' });
   const search = page.getByRole('searchbox', { name: 'Найти опросник' });

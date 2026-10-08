@@ -60,7 +60,10 @@ import {
   searchCalculators,
 } from '@/features/calculators/calculator-registry';
 import { calculatorSectionPath } from '@/features/calculators/calculator-routing';
-import { getCalculatorSchema } from '@/features/calculators/calculator-schema-catalog';
+import {
+  calculatorUsesPatientData,
+  getCalculatorSchema,
+} from '@/features/calculators/calculator-schema-catalog';
 import {
   type CalculatorSchemaEvaluation,
   calculatorSchemaInputsReady,
@@ -81,6 +84,7 @@ import {
 import {
   convertQuantity,
   type QuantityFamily,
+  unitLabel,
   unitsForFamily,
 } from '@/features/calculators/unit-conversion';
 import { MyCalculatorsCard } from '@/features/calculators/user-calculator/MyCalculatorsCard';
@@ -594,6 +598,8 @@ function CalculatorForm(props: {
     setToUnit(units[1] ?? units[0] ?? '');
   };
 
+  const usesPatientData = (): boolean =>
+    calculatorUsesPatientData(getCalculatorSchema(props.definition.id));
   const patientProfiles = (): readonly PatientProfile[] => patientSnapshot()?.profiles ?? [];
   const selectedPatient = (): PatientProfile | undefined =>
     patientProfiles().find((profile) => profile.id === patientId());
@@ -728,12 +734,12 @@ function CalculatorForm(props: {
           calculatorId: props.definition.id,
           formula: props.definition.formula,
           value: conversion.value,
-          unit: conversion.unit,
+          unit: unitLabel(conversion.unit),
           displayPrecision: 8,
           trace: conversion.trace,
           warnings: [],
         };
-        inputSummary = `${value()} ${fromUnit()} → ${toUnit()}`;
+        inputSummary = `${value()} ${unitLabel(fromUnit())} → ${unitLabel(toUnit())}`;
         break;
       }
       default:
@@ -753,20 +759,22 @@ function CalculatorForm(props: {
         void submit();
       }}
     >
-      <PatientPickerRow
-        profiles={patientProfiles()}
-        patientId={patientId()}
-        unlocked={patientSnapshot() !== undefined && isPatientVaultUnlocked()}
-        onPatientChange={selectPatient}
-        onSnapshotChange={(snapshot) => {
-          patientRefreshRequest += 1;
-          setPatientSnapshot(snapshot);
-        }}
-      />
-      <PatientAgeNotice
-        scope={props.definition.ageScope}
-        birthDate={selectedPatient()?.birthDate}
-      />
+      <Show when={usesPatientData()}>
+        <PatientPickerRow
+          profiles={patientProfiles()}
+          patientId={patientId()}
+          unlocked={patientSnapshot() !== undefined && isPatientVaultUnlocked()}
+          onPatientChange={selectPatient}
+          onSnapshotChange={(snapshot) => {
+            patientRefreshRequest += 1;
+            setPatientSnapshot(snapshot);
+          }}
+        />
+        <PatientAgeNotice
+          scope={props.definition.ageScope}
+          birthDate={selectedPatient()?.birthDate}
+        />
+      </Show>
 
       <Show when={selectedPatient()}>
         <label class="calculator-form__field calculator-wide-field">
@@ -821,7 +829,7 @@ function CalculatorForm(props: {
             onChange={(event) => setFromUnit(event.currentTarget.value)}
           >
             <For each={unitsForFamily(family())}>
-              {(unit) => <option value={unit}>{unit}</option>}
+              {(unit) => <option value={unit}>{unitLabel(unit)}</option>}
             </For>
           </select>
         </label>
@@ -833,7 +841,7 @@ function CalculatorForm(props: {
             onChange={(event) => setToUnit(event.currentTarget.value)}
           >
             <For each={unitsForFamily(family())}>
-              {(unit) => <option value={unit}>{unit}</option>}
+              {(unit) => <option value={unit}>{unitLabel(unit)}</option>}
             </For>
           </select>
         </label>
@@ -1774,18 +1782,26 @@ export function CalculatorsView(): JSX.Element {
                     }
                     fallback={
                       <>
-                        <header class="subpage-heading calculators-heading">
-                          <div>
-                            <Show when={unknownSlug()}>
-                              <p class="calculators-heading__missing" role="status">
-                                Инструмент по этой ссылке не найден: возможно, ссылка устарела. Ниже
-                                — все калькуляторы.
-                              </p>
-                            </Show>
-                            <Heading depth={1}>Калькуляторы</Heading>
-                            <p>Установленные инструменты работают без сети.</p>
-                          </div>
-                        </header>
+                        <Page
+                          class="calculators-heading"
+                          {...(getSplitNavigation()
+                            ? {}
+                            : {
+                                navigation: (
+                                  <NavBack
+                                    class="knowledge-back-button"
+                                    aria-label="Назад"
+                                    onClick={backToCatalog}
+                                  />
+                                ),
+                              })}
+                          title={<Heading depth={1}>Калькуляторы</Heading>}
+                        />
+                        <Show when={unknownSlug()}>
+                          <p class="calculators-heading__missing" role="status">
+                            Инструмент по этой ссылке не найден.
+                          </p>
+                        </Show>
 
                         <SearchField
                           class="calculator-search"
@@ -1817,15 +1833,6 @@ export function CalculatorsView(): JSX.Element {
                           }
                         >
                           <div class="calculator-section-list">
-                            <Show when={showMyCalculatorsCard()}>
-                              <MyCalculatorsCard
-                                count={userCalculatorCount()}
-                                onOpen={() => {
-                                  setQuery('');
-                                  window.location.hash = userCalculatorsPath();
-                                }}
-                              />
-                            </Show>
                             <For
                               each={CALCULATOR_SECTIONS.filter(
                                 (section) =>
@@ -1847,6 +1854,15 @@ export function CalculatorsView(): JSX.Element {
                               )}
                             </For>
                           </div>
+                          <Show when={showMyCalculatorsCard()}>
+                            <MyCalculatorsCard
+                              count={userCalculatorCount()}
+                              onOpen={() => {
+                                setQuery('');
+                                window.location.hash = userCalculatorsPath();
+                              }}
+                            />
+                          </Show>
                         </Show>
 
                         <Show when={history().length > 0}>

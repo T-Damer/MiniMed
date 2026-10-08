@@ -24,6 +24,7 @@ import { ToolAgeBadge } from '@/features/tools/ToolAgeBadge';
 import { ToolAgeFilterBar } from '@/features/tools/ToolAgeFilterBar';
 import { type ToolAgeFilter, toolMatchesAgeFilter } from '@/features/tools/tool-age-filter';
 import { assessmentCountLabel, pluralRu } from '@/i18n/labels';
+import { getSplitNavigation } from '@/state/app-preferences';
 import { userQuestionnaireReadinessError } from '@/state/user-questionnaire-rules';
 import {
   type StoredUserQuestionnaire,
@@ -58,6 +59,8 @@ export function AssessmentSpecialtyIndexPage(props: {
   readonly userQuestionnaires: readonly StoredUserQuestionnaire[];
   readonly onQuery: (value: string) => void;
   readonly onBack: () => void;
+  /** The tools home the catalog root goes back to when it is not a tab of its own. */
+  readonly onHome: () => void;
   readonly onOpenSpecialty: (specialtyId: string) => void;
   readonly onOpenUserQuestionnaires: () => void;
   readonly onCreateUserQuestionnaire: () => void;
@@ -138,14 +141,23 @@ export function AssessmentSpecialtyIndexPage(props: {
                 </>
               ),
             }
-          : {})}
+          : getSplitNavigation()
+            ? {}
+            : {
+                navigation: (
+                  <NavBack
+                    class="assessment-user-questionnaires__back"
+                    aria-label="Назад"
+                    onClick={props.onHome}
+                  />
+                ),
+              })}
         icon={
           <AppGlyph name={props.mineOnly ? 'notepad' : 'list-checks'} class="page__icon-glyph" />
         }
         title={
           <Heading depth={1}>{props.mineOnly ? 'Мои опросники' : 'Тесты и опросники'}</Heading>
         }
-        {...(props.mineOnly ? {} : { description: 'Тесты и шкалы, работают без сети.' })}
       />
 
       <ToolAgeFilterBar
@@ -186,20 +198,6 @@ export function AssessmentSpecialtyIndexPage(props: {
       >
         <Show when={!props.mineOnly}>
           <div class="assessment-specialty-grid">
-            <Show when={!hasQuery()}>
-              <button
-                type="button"
-                class="assessment-specialty-card assessment-specialty-card--user paper-card"
-                onClick={props.onOpenUserQuestionnaires}
-              >
-                <AppGlyph name="notepad" class="assessment-specialty-card__icon" />
-                <p class="archive-kicker assessment-specialty-card__kicker">Локальные файлы</p>
-                <h2 class="assessment-specialty-card__title">Мои опросники</h2>
-                <p class="assessment-specialty-card__description">
-                  Создавайте, открывайте и редактируйте свои опросники.
-                </p>
-              </button>
-            </Show>
             <For each={visibleSpecialties()}>
               {(specialty) => {
                 const specialtyDefinitions = () =>
@@ -240,6 +238,18 @@ export function AssessmentSpecialtyIndexPage(props: {
               }}
             </For>
           </div>
+          <Show when={!hasQuery()}>
+            <button
+              type="button"
+              class="assessment-user-entry paper-card"
+              data-testid="assessment-user-entry"
+              onClick={props.onOpenUserQuestionnaires}
+            >
+              <AppGlyph name="notepad" class="assessment-user-entry__icon" />
+              <span class="assessment-user-entry__title">Мои опросники</span>
+              <AppGlyph name="caret-right" class="assessment-user-entry__caret" />
+            </button>
+          </Show>
         </Show>
       </Show>
 

@@ -666,6 +666,7 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
           userQuestionnaires={userQuestionnaires()}
           onQuery={setQuery}
           onBack={() => navigate('#/assessments')}
+          onHome={() => navigate('#/search')}
           onOpenSpecialty={(specialtyId) => navigate(specialtyPath(specialtyId))}
           onOpenUserQuestionnaires={() => navigate(userQuestionnaireHomePath())}
           onCreateUserQuestionnaire={() => navigate(userQuestionnaireNewPath())}
