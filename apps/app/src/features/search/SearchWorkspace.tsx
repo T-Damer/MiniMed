@@ -125,6 +125,8 @@ interface SearchWorkspaceProps {
   readonly onFieldElement?: (form: HTMLFormElement) => void;
   /** Empty-field content under the field (tools, capabilities); folds away once a search starts. */
   readonly intro?: JSX.Element;
+  /** A compact row right under the field that stays while results show (the doctor's tools). */
+  readonly toolStrip?: JSX.Element;
   /** Document ids of the current result groups, e.g. to centre the knowledge graph on them. */
   readonly onResultDocuments?: (documentIds: readonly string[]) => void;
   readonly filters?: SearchFilters;
@@ -1010,7 +1012,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
         class="search-column case-folder"
         classList={{
           'has-search-content': query().length > 0,
-          'case-folder--with-welcome': Boolean(props.intro),
+          'case-folder--with-welcome': Boolean(props.intro ?? props.toolStrip),
         }}
       >
         <form
@@ -1164,8 +1166,11 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           </Show>
           {props.fieldStatus}
         </form>
-        {/* The field leads the page; tools and capabilities follow it and fold away once a
-            search starts, leaving results right under the field. */}
+        <Show when={props.toolStrip}>
+          <div class="search-tool-strip">{props.toolStrip}</div>
+        </Show>
+        {/* The field leads the page; capabilities follow it and fold away once a search starts,
+            leaving results right under the field. The tool strip above stays. */}
         <Show when={props.intro}>
           <div
             class="search-heading"

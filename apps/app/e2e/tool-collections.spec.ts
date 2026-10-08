@@ -26,27 +26,23 @@ for (const width of [375, 1280]) {
     const quickAccess = page.locator('.search-quick-access');
     await expect(quickAccess.getByRole('button', { name: title })).toBeVisible();
 
-    // Put the same tool into a new collection from the card.
-    await card.getByRole('button', { name: `Коллекции для «${title}»` }).click();
-    const collectionMenu = page.getByRole('dialog', { name: `Коллекции: ${title}` });
-    await collectionMenu.getByPlaceholder(/Новая коллекция/u).fill('Приём кардиолога');
-    await collectionMenu.getByRole('button', { name: 'Создать коллекцию' }).click();
-    await expect(collectionMenu.getByRole('checkbox', { name: /Приём кардиолога/u })).toBeChecked();
-    await page.keyboard.press('Escape');
+    // Tool collections are put away for now: no folder button on the card.
+    await expect(card.getByRole('button', { name: `Коллекции для «${title}»` })).toHaveCount(0);
 
-    // The tool row folds away with the rest of the empty-field content while typing.
+    // The tool row stays while typing (only the capabilities fold away).
     await page.getByTestId('search-input').fill('пнев');
     await expect(page.locator('.search-heading')).toHaveClass(/search-heading--hidden/u);
+    await expect(quickAccess).toBeVisible();
     await page.getByTestId('search-input').fill('');
     await expect(quickAccess).toBeVisible();
 
-    // Open the tool from the collection in the «Все инструменты» sheet.
+    // Open the tool from the favourites in the «Все инструменты» sheet.
     await page.getByRole('button', { name: 'Все инструменты', exact: true }).click();
     const panel = page.getByRole('dialog', { name: 'Все инструменты' });
     await expect(panel.getByRole('heading', { name: 'Избранное' })).toBeVisible();
-    await panel.locator('.tool-collection-row__toggle', { hasText: 'Приём кардиолога' }).click();
     await panel
-      .locator('.tool-collection-row__tools .quick-tool-row__open', { hasText: title })
+      .getByRole('region', { name: 'Избранное' })
+      .locator('.quick-tool-row__open', { hasText: title })
       .click();
     await expect(page).toHaveURL(
       new RegExp(`${(href ?? '').replace(/[.*+?^${}()|[\]\\]/gu, '\\$&')}$`, 'u'),
@@ -55,7 +51,8 @@ for (const width of [375, 1280]) {
   });
 }
 
-test('favourites and collections saved by an older version survive the update', async ({
+// Collections are hidden for now (`TOOL_COLLECTIONS_VISIBLE`); their saved data is kept.
+test('favourites saved by an older version survive the update; collections stay hidden', async ({
   page,
 }) => {
   const legacy = {
@@ -79,13 +76,7 @@ test('favourites and collections saved by an older version survive the update', 
 
   await page.getByRole('button', { name: 'Все инструменты', exact: true }).click();
   const sheet = page.getByRole('dialog', { name: 'Все инструменты' });
-  const collection = sheet.locator('.tool-collection-row', { hasText: 'Приём кардиолога' });
-  await expect(collection.locator('.tool-collection-row__count')).toHaveText('2');
-  await collection.locator('.tool-collection-row__toggle').click();
-  await expect(collection.locator('.quick-tool-row__title')).toHaveText([
-    'Калькуляторы',
-    'tool.removed',
-  ]);
+  await expect(sheet.locator('.tool-collection-row')).toHaveCount(0);
   // The old entry stays in place, so an older build can still read it.
   expect(await page.evaluate(() => localStorage.getItem('minimed.tool-collections.v1'))).toBe(
     JSON.stringify(legacy),

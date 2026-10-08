@@ -847,13 +847,14 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           )}
           catalogOnly={catalogOnly()}
           showExamples
+          toolStrip={<SearchQuickAccess tools={quickTools()} />}
           intro={
-            <SearchHomeIntro
-              quickAccess={<SearchQuickAccess tools={quickTools()} />}
-              features={homeFeatures()}
-              featuresHidden={featuresHidden()}
-              onHideFeatures={() => setUsefulFeaturesHidden(true)}
-            />
+            featuresHidden() ? undefined : (
+              <SearchHomeIntro
+                features={homeFeatures()}
+                onHideFeatures={() => setUsefulFeaturesHidden(true)}
+              />
+            )
           }
           catalog={
             <Show

@@ -17,6 +17,12 @@ import {
 
 import './search-quick-access.css';
 
+/**
+ * Tool collections are put away for now (owner 2026-10-08): the folder button on tool cards and
+ * the «Коллекции» section of the tool sheet stay hidden. Favourites and their row stay.
+ */
+export const TOOL_COLLECTIONS_VISIBLE = false;
+
 /** A tool as a collection item: tools resolve their live title from the catalog. */
 export function toolItem(toolId: string, title: string): ItemRefInput {
   return { kind: 'tool', id: toolId, title };
@@ -123,57 +129,59 @@ export function ItemCollectionMenu(props: {
   const title = () => props.item.title ?? props.item.id;
   const memberOf = createMemo(() => collectionIdsContaining(itemCollections(), props.item));
   return (
-    <SheetPopover
-      open={open()}
-      onOpenChange={setOpen}
-      title={`Коллекции: ${title()}`}
-      placement="bottom-end"
-      triggerClass={`tool-pin__collections ${props.class ?? ''}`.trim()}
-      triggerClassList={{ 'tool-pin__collections--on': memberOf().size > 0 }}
-      triggerLabel={`Коллекции для «${title()}»`}
-      triggerTitle="Добавить в коллекцию"
-      stopTriggerClick
-      trigger={<AppGlyph name="folder-open" class="tool-pin__glyph" />}
-      contentClass="tool-collection-menu"
-    >
-      <p class="tool-collection-menu__heading">Добавить в коллекцию</p>
-      <Show
-        when={itemCollections().collections.length > 0}
-        fallback={
-          <p class="tool-collection-menu__empty">Коллекций пока нет — создайте первую ниже.</p>
-        }
+    <Show when={TOOL_COLLECTIONS_VISIBLE}>
+      <SheetPopover
+        open={open()}
+        onOpenChange={setOpen}
+        title={`Коллекции: ${title()}`}
+        placement="bottom-end"
+        triggerClass={`tool-pin__collections ${props.class ?? ''}`.trim()}
+        triggerClassList={{ 'tool-pin__collections--on': memberOf().size > 0 }}
+        triggerLabel={`Коллекции для «${title()}»`}
+        triggerTitle="Добавить в коллекцию"
+        stopTriggerClick
+        trigger={<AppGlyph name="folder-open" class="tool-pin__glyph" />}
+        contentClass="tool-collection-menu"
       >
-        <ul class="tool-collection-menu__list">
-          <For each={itemCollections().collections}>
-            {(collection) => (
-              <li class="tool-collection-menu__item">
-                <label class="tool-collection-menu__option">
-                  <input
-                    class="tool-collection-menu__checkbox"
-                    type="checkbox"
-                    checked={memberOf().has(collection.id)}
-                    onChange={(event) => {
-                      const included = event.currentTarget.checked;
-                      updateItemCollections((state) =>
-                        setItemInCollection(
-                          state,
-                          collection.id,
-                          props.item,
-                          included,
-                          new Date().toISOString(),
-                        ),
-                      );
-                    }}
-                  />
-                  <span class="tool-collection-menu__name">{collection.name}</span>
-                  <span class="tool-collection-menu__count">{collection.items.length}</span>
-                </label>
-              </li>
-            )}
-          </For>
-        </ul>
-      </Show>
-      <ItemCollectionCreateForm item={props.item} />
-    </SheetPopover>
+        <p class="tool-collection-menu__heading">Добавить в коллекцию</p>
+        <Show
+          when={itemCollections().collections.length > 0}
+          fallback={
+            <p class="tool-collection-menu__empty">Коллекций пока нет — создайте первую ниже.</p>
+          }
+        >
+          <ul class="tool-collection-menu__list">
+            <For each={itemCollections().collections}>
+              {(collection) => (
+                <li class="tool-collection-menu__item">
+                  <label class="tool-collection-menu__option">
+                    <input
+                      class="tool-collection-menu__checkbox"
+                      type="checkbox"
+                      checked={memberOf().has(collection.id)}
+                      onChange={(event) => {
+                        const included = event.currentTarget.checked;
+                        updateItemCollections((state) =>
+                          setItemInCollection(
+                            state,
+                            collection.id,
+                            props.item,
+                            included,
+                            new Date().toISOString(),
+                          ),
+                        );
+                      }}
+                    />
+                    <span class="tool-collection-menu__name">{collection.name}</span>
+                    <span class="tool-collection-menu__count">{collection.items.length}</span>
+                  </label>
+                </li>
+              )}
+            </For>
+          </ul>
+        </Show>
+        <ItemCollectionCreateForm item={props.item} />
+      </SheetPopover>
+    </Show>
   );
 }

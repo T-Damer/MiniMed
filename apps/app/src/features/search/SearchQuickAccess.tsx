@@ -18,6 +18,7 @@ import {
   ItemCollectionCreateForm,
   ItemCollectionMenu,
   ItemFavoriteButton,
+  TOOL_COLLECTIONS_VISIBLE,
   toolItem,
 } from '@/features/search/ToolPinControls';
 import { ToolAgeBadge } from '@/features/tools/ToolAgeBadge';
@@ -243,21 +244,32 @@ export function SearchQuickAccess(props: {
   };
   return (
     <div class="search-quick-access" data-tour="quick-tools">
-      <HorizontalScroller class="search-quick-access__row" hideScrollbar>
+      <HorizontalScroller
+        class="search-quick-access__row"
+        controls
+        hideScrollbar
+        controlLabel="инструменты"
+        controlClass="search-quick-access__control"
+      >
         <ul class="search-quick-access__chips" aria-label="Инструменты">
           <li class="search-quick-access__chip-item">
             <button
               type="button"
               class="search-quick-access__all"
+              classList={{ 'search-quick-access__all--icon': chips().length > 0 }}
               data-tour="all-tools"
               aria-haspopup="dialog"
+              aria-label="Все инструменты"
+              title="Все инструменты"
               onClick={() => setOpen(true)}
             >
               <AppGlyph
                 name="squares-four"
                 class="search-quick-access__chip-icon search-quick-access__chip-icon--on-primary"
               />
-              <span class="search-quick-access__chip-label">Все инструменты</span>
+              <Show when={chips().length === 0}>
+                <span class="search-quick-access__chip-label">Все инструменты</span>
+              </Show>
             </button>
           </li>
           <For each={chips()}>{(tool) => <QuickToolChip tool={tool} />}</For>
@@ -336,111 +348,118 @@ export function SearchQuickAccess(props: {
               </section>
             )}
           </For>
-          <section class="search-quick-access__section" aria-labelledby="quick-access-collections">
-            <h2 class="search-quick-access__heading" id="quick-access-collections">
-              Коллекции
-            </h2>
-            <ul class="search-quick-access__list">
-              <For each={itemCollections().collections}>
-                {(collection) => {
-                  const isExpanded = () => expanded() === collection.id;
-                  const entries = createMemo(() => resolveItemRefs(collection.items, toolsById()));
-                  return (
-                    <li class="tool-collection-row">
-                      <Show
-                        when={renaming() !== collection.id}
-                        fallback={
-                          <CollectionRenameForm
-                            collection={collection}
-                            onDone={() => setRenaming(undefined)}
-                          />
-                        }
-                      >
-                        <div class="tool-collection-row__header">
-                          <button
-                            type="button"
-                            class="tool-collection-row__toggle"
-                            aria-expanded={isExpanded()}
-                            onClick={() => setExpanded(isExpanded() ? undefined : collection.id)}
-                          >
-                            <FolderFigure
-                              variant="list"
-                              hasDocument={collection.items.length > 0}
-                            />
-                            <span class="tool-collection-row__name">{collection.name}</span>
-                            <span class="tool-collection-row__count">
-                              {collection.items.length}
-                            </span>
-                          </button>
-                          <button
-                            type="button"
-                            class="tool-collection-row__action"
-                            aria-label={`Переименовать «${collection.name}»`}
-                            title="Переименовать"
-                            onClick={() => setRenaming(collection.id)}
-                          >
-                            <AppGlyph name="edit" class="tool-pin__glyph" />
-                          </button>
-                          <button
-                            type="button"
-                            class="tool-collection-row__action"
-                            aria-label={`Удалить «${collection.name}»`}
-                            title="Удалить коллекцию"
-                            onClick={() => setPendingDelete(collection)}
-                          >
-                            <AppGlyph name="trash" class="tool-pin__glyph" />
-                          </button>
-                        </div>
-                      </Show>
-                      <Show when={isExpanded()}>
+          <Show when={TOOL_COLLECTIONS_VISIBLE}>
+            <section
+              class="search-quick-access__section"
+              aria-labelledby="quick-access-collections"
+            >
+              <h2 class="search-quick-access__heading" id="quick-access-collections">
+                Коллекции
+              </h2>
+              <ul class="search-quick-access__list">
+                <For each={itemCollections().collections}>
+                  {(collection) => {
+                    const isExpanded = () => expanded() === collection.id;
+                    const entries = createMemo(() =>
+                      resolveItemRefs(collection.items, toolsById()),
+                    );
+                    return (
+                      <li class="tool-collection-row">
                         <Show
-                          when={entries().length > 0}
+                          when={renaming() !== collection.id}
                           fallback={
-                            <p class="search-quick-access__empty">
-                              Пусто. Добавьте инструмент кнопкой с папкой на его карточке.
-                            </p>
+                            <CollectionRenameForm
+                              collection={collection}
+                              onDone={() => setRenaming(undefined)}
+                            />
                           }
                         >
-                          <ul class="tool-collection-row__tools">
-                            <For each={entries()}>
-                              {(entry) => (
-                                <QuickToolRow
-                                  entry={entry}
-                                  onOpen={openFromSheet}
-                                  trailing={
-                                    <button
-                                      type="button"
-                                      class="tool-collection-row__action"
-                                      aria-label={`Убрать «${entry.tool?.title ?? entry.id}» из «${collection.name}»`}
-                                      title="Убрать из коллекции"
-                                      onClick={() =>
-                                        updateItemCollections((state) =>
-                                          setItemInCollection(
-                                            state,
-                                            collection.id,
-                                            entry.ref,
-                                            false,
-                                            new Date().toISOString(),
-                                          ),
-                                        )
-                                      }
-                                    >
-                                      <AppGlyph name="close" class="tool-pin__glyph" />
-                                    </button>
-                                  }
-                                />
-                              )}
-                            </For>
-                          </ul>
+                          <div class="tool-collection-row__header">
+                            <button
+                              type="button"
+                              class="tool-collection-row__toggle"
+                              aria-expanded={isExpanded()}
+                              onClick={() => setExpanded(isExpanded() ? undefined : collection.id)}
+                            >
+                              <FolderFigure
+                                variant="list"
+                                hasDocument={collection.items.length > 0}
+                              />
+                              <span class="tool-collection-row__name">{collection.name}</span>
+                              <span class="tool-collection-row__count">
+                                {collection.items.length}
+                              </span>
+                            </button>
+                            <button
+                              type="button"
+                              class="tool-collection-row__action"
+                              aria-label={`Переименовать «${collection.name}»`}
+                              title="Переименовать"
+                              onClick={() => setRenaming(collection.id)}
+                            >
+                              <AppGlyph name="edit" class="tool-pin__glyph" />
+                            </button>
+                            <button
+                              type="button"
+                              class="tool-collection-row__action"
+                              aria-label={`Удалить «${collection.name}»`}
+                              title="Удалить коллекцию"
+                              onClick={() => setPendingDelete(collection)}
+                            >
+                              <AppGlyph name="trash" class="tool-pin__glyph" />
+                            </button>
+                          </div>
                         </Show>
-                      </Show>
-                    </li>
-                  );
-                }}
-              </For>
-            </ul>
-            <ItemCollectionCreateForm onCreated={(id) => setExpanded(id)} />
-          </section>
+                        <Show when={isExpanded()}>
+                          <Show
+                            when={entries().length > 0}
+                            fallback={
+                              <p class="search-quick-access__empty">
+                                Пусто. Добавьте инструмент кнопкой с папкой на его карточке.
+                              </p>
+                            }
+                          >
+                            <ul class="tool-collection-row__tools">
+                              <For each={entries()}>
+                                {(entry) => (
+                                  <QuickToolRow
+                                    entry={entry}
+                                    onOpen={openFromSheet}
+                                    trailing={
+                                      <button
+                                        type="button"
+                                        class="tool-collection-row__action"
+                                        aria-label={`Убрать «${entry.tool?.title ?? entry.id}» из «${collection.name}»`}
+                                        title="Убрать из коллекции"
+                                        onClick={() =>
+                                          updateItemCollections((state) =>
+                                            setItemInCollection(
+                                              state,
+                                              collection.id,
+                                              entry.ref,
+                                              false,
+                                              new Date().toISOString(),
+                                            ),
+                                          )
+                                        }
+                                      >
+                                        <AppGlyph name="close" class="tool-pin__glyph" />
+                                      </button>
+                                    }
+                                  />
+                                )}
+                              </For>
+                            </ul>
+                          </Show>
+                        </Show>
+                      </li>
+                    );
+                  }}
+                </For>
+              </ul>
+              <ItemCollectionCreateForm onCreated={(id) => setExpanded(id)} />
+            </section>
+          </Show>
         </div>
       </OverlayDialog>
       <ConfirmationDialog

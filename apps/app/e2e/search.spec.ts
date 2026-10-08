@@ -38,7 +38,7 @@ function clinicalRecommendationResult(page: Page): Locator {
     .locator('.result-group')
     .filter({
       has: page.locator('.result-group-header__kind-label', {
-        hasText: 'Клиническая рекомендация',
+        hasText: 'Клинические рекомендации',
       }),
     })
     .first()
@@ -119,11 +119,76 @@ test('the tool row holds «Все инструменты» and only the tools th
   for (const group of ['Приём', 'Расчёты', 'Справочное', 'Файлы']) {
     await expect(sheet.getByRole('heading', { name: group, exact: true })).toBeVisible();
   }
+  // Tool collections are put away for now: favourites only.
+  await expect(sheet.getByRole('heading', { name: 'Коллекции', exact: true })).toHaveCount(0);
   await sheet.getByRole('button', { name: 'Добавить «Формы» в избранное' }).click();
   await page.keyboard.press('Escape');
   await expect(sheet).toHaveCount(0);
   await row.getByRole('button', { name: 'Формы', exact: true }).click();
   await expect(page).toHaveURL(/#\/notes\/forms$/u);
+});
+
+test('the tool row stays under the field while results show; «Все инструменты» shrinks to its icon', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+  await waitForSearchReady(page);
+  const row = page.locator('.search-quick-access');
+  const all = row.getByRole('button', { name: 'Все инструменты', exact: true });
+  await expect(all).toContainText('Все инструменты');
+  await all.click();
+  const sheet = page.getByRole('dialog', { name: 'Все инструменты' });
+  await sheet.getByRole('button', { name: 'Добавить «Формы» в избранное' }).click();
+  await page.keyboard.press('Escape');
+  await expect(sheet).toHaveCount(0);
+  // With a tool in the row the entry is its icon alone, still named for assistive tech.
+  await expect(all).toHaveText('');
+  expect((await all.boundingBox())?.width).toBeLessThanOrEqual(44);
+
+  await page.getByTestId('search-input').fill(query);
+  await page.getByTestId('search-submit').click();
+  await expect(pneumoniaResult(page)).toBeVisible({ timeout: 60_000 });
+  await expect(row.getByRole('button', { name: 'Формы', exact: true })).toBeVisible();
+  const [field, strip] = await Promise.all([
+    page.locator('.query-sheet').boundingBox(),
+    row.boundingBox(),
+  ]);
+  if (!field || !strip) throw new Error('The field or the tool row has no box.');
+  // Close under the field, not pushed down by anything.
+  expect(strip.y - (field.y + field.height)).toBeLessThan(40);
+});
+
+test('a found part shows three lines, unrolls in place, and the rest are «Найдено ещё в N»', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+  await waitForSearchReady(page);
+  await page.getByTestId('search-input').fill('депрессия');
+  await page.getByTestId('search-submit').click();
+  const toggleName = 'Показать фрагмент полностью';
+  await expect(page.getByRole('button', { name: toggleName }).first()).toBeVisible({
+    timeout: 60_000,
+  });
+  const fragment = page
+    .locator('.result-fragment', { has: page.locator('.result-fragment__toggle') })
+    .first();
+  const toggle = fragment.getByRole('button', { name: toggleName });
+  const text = fragment.locator('.result-fragment__text');
+  const collapsed = (await text.boundingBox())?.height ?? 0;
+  // The text is cut by its height with a fade, never by an ellipsis clamp.
+  await expect(text).toHaveCSS('-webkit-line-clamp', 'none');
+  await toggle.click();
+  const open = fragment.getByRole('button', { name: 'Свернуть фрагмент' });
+  await expect(open).toHaveAttribute('aria-expanded', 'true');
+  await expect.poll(async () => (await text.boundingBox())?.height ?? 0).toBeGreaterThan(collapsed);
+  await open.click();
+  await expect.poll(async () => (await text.boundingBox())?.height ?? 0).toBeCloseTo(collapsed, 0);
+
+  const more = page.getByRole('button', { name: /^Найдено ещё в \d+ фрагмент(е|ах)$/u }).first();
+  await expect(more).toBeVisible();
+  await expect(page.getByText(/^Ещё \d+ фрагмент/u)).toHaveCount(0);
 });
 
 /** The active position dot names the slide in view: «Функция 2 из 4» → 2. */
@@ -749,7 +814,7 @@ test('renders the complete virtualized document list', async ({ page }, testInfo
   await expect(expandable).toBeVisible();
   const excerpts = expandable.getByTestId('search-result').filter({ visible: true });
   await expect(excerpts).toHaveCount(1);
-  const toggle = expandable.getByRole('button', { name: /^Ещё \d+ фрагмент/u });
+  const toggle = expandable.getByRole('button', { name: /^Найдено ещё в \d+ фрагмент/u });
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
   await toggle.click();
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
@@ -771,7 +836,7 @@ test('renders the complete virtualized document list', async ({ page }, testInfo
         .poll(async () =>
           page
             .locator(
-              '.result-group-header__title, .result-group-header__kind, .result-group-header__content-kind, .result-group-header__note, .result-snippet, .result-path, .category-stamp, .result-group__more .ui-disclosure__title, .choice-chip__label, .choice-chip__detail, .highlighted-text__match',
+              '.result-group-header__title, .result-group-header__kind, .result-group-header__content-kind, .result-group-header__note, .result-snippet, .result-group__more .ui-disclosure__title, .choice-chip__label, .choice-chip__detail, .highlighted-text__match',
             )
             .evaluateAll((nodes) => {
               const canvas = new OffscreenCanvas(1, 1);

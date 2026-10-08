@@ -7,6 +7,11 @@
   margin-block: 0;
 }
 
+/* The tool row stays under the field while results show: close to it, never in the results' way. */
+.search-tool-strip {
+  margin-block-start: 0.75rem;
+}
+
 /* The scroll viewport clips what it contains, so the elevated chip's shadow needs room inside it:
    the list carries the padding and the frame takes it back as negative margin, so nothing
    around the row shifts. */
@@ -36,6 +41,29 @@
   cursor: pointer;
 }
 
+/* Once a tool is starred, «Все инструменты» shrinks to its icon and leaves the room to the tools. */
+.search-quick-access__all--icon {
+  width: 2.25rem;
+  padding: 0;
+  justify-content: center;
+}
+
+/* Arrows on the row's edges, for pointers that cannot swipe; they sit on the middle of the chips,
+   not of the padded frame around them. */
+.horizontal-scroll-control.search-quick-access__control {
+  --scroll-control-glyph: 0.6875rem;
+  display: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  top: calc(0.25rem + (100% - 0.25rem - 1.6rem) / 2);
+}
+
+@media (min-width: 48rem) {
+  .horizontal-scroll-control.search-quick-access__control {
+    display: grid;
+  }
+}
+
 .search-quick-access__hint {
   align-self: center;
   color: var(--theme-text-muted);
@@ -57,13 +85,12 @@
 
 .search-quick-access__chips {
   display: flex;
-  min-width: 0;
+  width: max-content;
+  min-width: 100%;
   gap: 0.4rem;
   margin: 0;
   padding: 0.25rem 0.75rem 1.6rem;
-  overflow-x: auto;
   list-style: none;
-  scrollbar-width: none;
 }
 
 .search-quick-access__chip-item {
