@@ -36,6 +36,7 @@ import { ClinicalEditionNoticeLine } from '@/features/library/ClinicalEditionNot
 import { DocumentFindBar, type DocumentFindResultState } from '@/features/library/DocumentFindBar';
 import { DocumentModulePointer } from '@/features/library/DocumentModulePointer';
 import {
+  type DocumentSectionTree,
   displayDocumentSubtitle,
   displayDocumentTitle,
   documentSectionHeadingTag,
@@ -649,6 +650,11 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
   const visibleSectionTree = createMemo(() =>
     nestDocumentSections(visibleSections(), sectionTreeCache),
   );
+  /** `children` is a plain array the tree rebuild replaces: reading the memo first makes callers follow it. */
+  const childrenOf = (node: DocumentSectionTree): readonly DocumentSectionTree[] => {
+    visibleSectionTree();
+    return node.children;
+  };
   const sectionsPending = createMemo(
     () => mountedSectionCount() > 0 && mountedSectionCount() < orderedSections().length,
   );
@@ -1547,8 +1553,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                               documentValue().sourceType,
                             ),
                             // Holds subsections: never skipped as a whole (see the CSS).
-                            'document-overlay-section--container':
-                              (visibleSectionTree(), treeNode.children.length > 0),
+                            'document-overlay-section--container': childrenOf(treeNode).length > 0,
                           }}
                           id={section.anchor}
                         >
@@ -1671,9 +1676,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                           {/* The cached nodes keep their identity, but `children` is a plain array that the
                               tree rebuild replaces whenever a batch mounts: read the memo so this list
                               follows it (nested sections of a mounted root would never appear otherwise). */}
-                          <For each={(visibleSectionTree(), treeNode.children)}>
-                            {(child) => renderSection(child)}
-                          </For>
+                          <For each={childrenOf(treeNode)}>{(child) => renderSection(child)}</For>
                         </section>
                       );
                     };
