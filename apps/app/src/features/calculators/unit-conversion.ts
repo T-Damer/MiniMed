@@ -18,11 +18,29 @@ const UNIT_FACTORS = {
   },
 } as const;
 
+/** The units as they are written on a Russian prescription and in a protocol. */
+const UNIT_LABELS: Readonly<Record<QuantityUnit, string>> = {
+  kg: 'кг',
+  g: 'г',
+  mg: 'мг',
+  mcg: 'мкг',
+  m: 'м',
+  cm: 'см',
+  mm: 'мм',
+  l: 'л',
+  ml: 'мл',
+};
+
 export type QuantityFamily = keyof typeof UNIT_FACTORS;
 export type MassUnit = keyof (typeof UNIT_FACTORS)['mass'];
 export type LengthUnit = keyof (typeof UNIT_FACTORS)['length'];
 export type VolumeUnit = keyof (typeof UNIT_FACTORS)['volume'];
 export type QuantityUnit = MassUnit | LengthUnit | VolumeUnit;
+
+/** `mcg` as `мкг`: what the screen, the saved summary and the result show. */
+export function unitLabel(unit: string): string {
+  return (UNIT_LABELS as Readonly<Record<string, string>>)[unit] ?? unit;
+}
 
 export interface QuantityConversionRequest {
   readonly family: QuantityFamily;
@@ -76,14 +94,14 @@ export function convertQuantity(request: QuantityConversionRequest): QuantityCon
   if (sourceFactor === undefined) {
     return failure(
       'unknown-source-unit',
-      `Единица ${request.from} не относится к величине ${request.family}.`,
+      `Единица ${unitLabel(request.from)} не относится к величине ${request.family}.`,
     );
   }
   const targetFactor = factors[request.to];
   if (targetFactor === undefined) {
     return failure(
       'unknown-target-unit',
-      `Единица ${request.to} не относится к величине ${request.family}.`,
+      `Единица ${unitLabel(request.to)} не относится к величине ${request.family}.`,
     );
   }
 
@@ -98,21 +116,21 @@ export function convertQuantity(request: QuantityConversionRequest): QuantityCon
     trace: [
       {
         label: 'Исходное значение',
-        expression: `${request.value} ${request.from}`,
+        expression: `${request.value} ${unitLabel(request.from)}`,
         value: request.value,
-        unit: request.from,
+        unit: unitLabel(request.from),
       },
       {
         label: 'В базовой единице',
         expression: `${request.value} × ${sourceFactor}`,
         value: baseValue,
-        unit: baseUnit,
+        unit: unitLabel(baseUnit),
       },
       {
         label: 'Результат',
         expression: `${baseValue} ÷ ${targetFactor}`,
         value: convertedValue,
-        unit: request.to,
+        unit: unitLabel(request.to),
       },
     ],
   };

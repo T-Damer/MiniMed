@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  calculatorUsesPatientData,
   getCalculatorSchema,
   registerDownloadedCalculatorSchema,
 } from '@/features/calculators/calculator-schema-catalog';
@@ -17,6 +18,7 @@ import {
 } from '@/features/calculators/clinical-calculations';
 import {
   calculatorSchemaFromModules,
+  loadToolModuleCalculatorSchemas,
   loadToolModuleRecords,
 } from '@/features/calculators/tool-module-test-helpers';
 
@@ -149,5 +151,36 @@ describe('pediatric oral rehydration schema stages inputs and ongoing losses', (
     );
     expectNumberOutput(ongoing);
     expect(ongoing.value).toBe(340);
+  });
+});
+
+describe('calculatorUsesPatientData', () => {
+  it('is declared by the schema: a patient-bound input or observation mappings', () => {
+    // Height and weight come from the card.
+    const bsa = calculatorSchemaFromModules('body-surface-area-mosteller');
+    expect(calculatorUsesPatientData(bsa)).toBe(true);
+    const unbound = {
+      ...bsa,
+      observationMappings: [],
+      inputs: bsa.inputs.map(({ patientBinding: _binding, ...input }) => input),
+    };
+    expect(calculatorUsesPatientData(unbound)).toBe(false);
+    // Nothing to bind, but the result is recorded in the card.
+    expect(
+      calculatorUsesPatientData({ ...unbound, observationMappings: bsa.observationMappings }),
+    ).toBe(bsa.observationMappings.length > 0);
+  });
+
+  it('is false for a tool without a schema, such as the unit converter', () => {
+    expect(calculatorUsesPatientData(undefined)).toBe(false);
+  });
+
+  it('is false only for the few shipped calculators that neither read nor record patient data', () => {
+    const without = loadToolModuleCalculatorSchemas()
+      .filter((schema) => !calculatorUsesPatientData(schema))
+      .map((schema) => schema.id);
+    expect(without.every((id) => id.startsWith('obstetric-edd-') || id.includes('feeding'))).toBe(
+      true,
+    );
   });
 });

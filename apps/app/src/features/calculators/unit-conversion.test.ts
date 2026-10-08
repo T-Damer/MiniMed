@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { convertQuantity, unitsForFamily } from '@/features/calculators/unit-conversion';
+import { convertQuantity, unitLabel, unitsForFamily } from '@/features/calculators/unit-conversion';
 
 describe('convertQuantity', () => {
   it('converts mass through the canonical kilogram base unit', () => {
@@ -9,7 +9,9 @@ describe('convertQuantity', () => {
     expect(result).toMatchObject({ ok: true, value: 1_000_000, unit: 'mg' });
     if (!result.ok) throw new Error(result.error.message);
     expect(result.trace).toHaveLength(3);
-    expect(result.trace[1]).toMatchObject({ value: 1, unit: 'kg' });
+    // The trace is shown to the doctor: its units are Russian.
+    expect(result.trace[1]).toMatchObject({ value: 1, unit: 'кг' });
+    expect(result.trace[0]?.expression).toBe('1 кг');
   });
 
   it('converts length and volume without applying hidden rounding', () => {
@@ -52,5 +54,21 @@ describe('unitsForFamily', () => {
     expect(unitsForFamily('mass')).toEqual(['kg', 'g', 'mg', 'mcg']);
     expect(unitsForFamily('length')).toEqual(['m', 'cm', 'mm']);
     expect(unitsForFamily('volume')).toEqual(['l', 'ml']);
+  });
+});
+
+describe('unitLabel', () => {
+  it('writes every unit the converter offers in Cyrillic', () => {
+    const offered = [
+      ...unitsForFamily('mass'),
+      ...unitsForFamily('length'),
+      ...unitsForFamily('volume'),
+    ];
+    expect(offered.map(unitLabel)).toEqual(['кг', 'г', 'мг', 'мкг', 'м', 'см', 'мм', 'л', 'мл']);
+    for (const unit of offered) expect(unitLabel(unit)).toMatch(/^[а-я]+$/u);
+  });
+
+  it('leaves a unit it does not know as it is', () => {
+    expect(unitLabel('IU')).toBe('IU');
   });
 });

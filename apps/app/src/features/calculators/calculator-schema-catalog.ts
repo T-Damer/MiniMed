@@ -32,3 +32,17 @@ export function registerDownloadedCalculatorSchema(
 export function getCalculatorSchema(id: string): CalculatorSchema | undefined {
   return USER_CALCULATOR_SCHEMAS.get(id) ?? DOWNLOADED_CALCULATOR_SCHEMAS.get(id);
 }
+
+/**
+ * Whether the calculator works with a patient card: it takes values from it (an input with a
+ * patient binding) or records its result in it (observation mappings). The schema declares this, so
+ * the screen decides by data, never by the tool's id. A calculator without a schema works on typed
+ * numbers only.
+ */
+export function calculatorUsesPatientData(schema: CalculatorSchema | undefined): boolean {
+  return (
+    schema !== undefined &&
+    (schema.observationMappings.length > 0 ||
+      schema.inputs.some((input) => input.patientBinding !== undefined))
+  );
+}
