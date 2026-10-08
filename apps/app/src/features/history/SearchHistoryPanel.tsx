@@ -22,12 +22,6 @@ interface SearchHistoryPanelProps {
   readonly back?: { readonly label: string; readonly onBack: () => void } | undefined;
 }
 
-const MODE_LABELS: Readonly<Record<SearchHistoryEntry['modeUsed'], string>> = {
-  lexical: 'FTS5',
-  semantic: 'VECTOR',
-  hybrid: 'FTS5 + VECTOR',
-};
-
 const SCOPE_LABELS: Readonly<Record<SearchHistoryEntry['scope'], string>> = {
   diagnosis: 'Клинический разбор',
   guidelines: 'Клинические рекомендации',
@@ -49,6 +43,14 @@ function formatDate(value: string): string {
     hour: '2-digit',
     minute: '2-digit',
   }).format(date);
+}
+
+/** Date, result count and scope in plain words; the retrieval mode is an internal detail. */
+function entryMeta(entry: SearchHistoryEntry): string {
+  const scope = entry.specialty
+    ? `${SCOPE_LABELS[entry.scope]} / ${searchGroupLabel(entry.scope, entry.specialty)}`
+    : SCOPE_LABELS[entry.scope];
+  return `${formatDate(entry.createdAt)} · Результаты: ${entry.resultCount} · ${scope}`;
 }
 
 export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element {
@@ -181,15 +183,31 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
                   </span>
                   <small>{entries().length}</small>
                 </div>
-                <button
-                  type="button"
-                  class="search-history-panel-header__close"
-                  aria-label="Закрыть историю"
-                  title="Закрыть историю"
-                  onClick={close}
-                >
-                  <AppGlyph name="close" class="search-history-panel-header__close-icon" />
-                </button>
+                <div class="search-history-panel-header__actions">
+                  <Show when={entries().length > 0}>
+                    <button
+                      type="button"
+                      class="search-history-panel-header__close"
+                      aria-label="Очистить историю"
+                      title="Очистить историю"
+                      onClick={() => {
+                        clearSearchHistory();
+                        setEntries([]);
+                      }}
+                    >
+                      <AppGlyph name="trash" class="search-history-panel-header__close-icon" />
+                    </button>
+                  </Show>
+                  <button
+                    type="button"
+                    class="search-history-panel-header__close"
+                    aria-label="Закрыть историю"
+                    title="Закрыть историю"
+                    onClick={close}
+                  >
+                    <AppGlyph name="close" class="search-history-panel-header__close-icon" />
+                  </button>
+                </div>
               </header>
 
               <div class="search-history-panel-body">
@@ -215,16 +233,8 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
                             }}
                           >
                             <strong>{entry.query}</strong>
-                            <small>
-                              {formatDate(entry.createdAt)} · Результаты: {entry.resultCount} ·{' '}
-                              {SCOPE_LABELS[entry.scope]}
-                              {entry.specialty
-                                ? ` / ${searchGroupLabel(entry.scope, entry.specialty)}`
-                                : ''}{' '}
-                              ·{' '}
-                              {entry.scope === 'calculators' || entry.scope === 'assessments'
-                                ? 'Каталог'
-                                : MODE_LABELS[entry.modeUsed]}
+                            <small class="search-history-panel-replay__meta">
+                              {entryMeta(entry)}
                             </small>
                           </button>
                           <button
@@ -242,16 +252,6 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
                       )}
                     </For>
                   </ol>
-                  <button
-                    class="search-history-panel-clear"
-                    type="button"
-                    onClick={() => {
-                      clearSearchHistory();
-                      setEntries([]);
-                    }}
-                  >
-                    Очистить историю
-                  </button>
                 </Show>
               </div>
             </aside>

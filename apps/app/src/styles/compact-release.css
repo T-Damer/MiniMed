@@ -755,13 +755,11 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   white-space: nowrap;
 }
 
-.search-history-panel-replay small {
-  overflow: hidden;
-  color: var(--theme-text-faint);
-  font-family: var(--font-mono);
-  font-size: var(--type-micro);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.search-history-panel-replay__meta {
+  color: var(--theme-text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  line-height: 1.35;
 }
 
 .search-history-panel-remove {
@@ -787,26 +785,6 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   .search-history-panel-remove:hover {
     color: var(--theme-danger);
     background: color-mix(in srgb, var(--theme-danger) 14%, transparent);
-  }
-}
-
-.search-history-panel-clear {
-  width: 100%;
-  margin-top: 0.3125rem;
-  padding: 0.375rem;
-  border: 1px solid var(--theme-border);
-  border-radius: 0.25rem;
-  color: var(--theme-accent);
-  background: transparent;
-  cursor: pointer;
-  font-family: var(--font-mono);
-  font-size: var(--type-micro);
-  text-transform: uppercase;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .search-history-panel-clear:hover {
-    background: var(--theme-accent-soft);
   }
 }
 
@@ -1448,6 +1426,10 @@ html.reader-outline-open .app-shell {
   background: #565b49;
   font-family: var(--font-mono);
   font-size: var(--type-micro);
+}
+
+.search-history-panel-header__actions {
+  gap: 0.125rem;
 }
 
 .search-history-panel-header__close {
