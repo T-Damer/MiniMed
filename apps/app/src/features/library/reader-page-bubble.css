@@ -1,0 +1,161 @@
+/* The page bubble of a reflowed reader: «12 / 94», bottom-left, and the jump field it turns into. */
+
+/* A zero-height strip that sticks to the bottom of the viewport while the reader is on screen; the
+   bubble stands on it. It sits level with the scroll-to-top button on the other side. */
+.reader-page-dock {
+  position: sticky;
+  z-index: var(--z-float);
+  bottom: max(4.375rem, calc(4.375rem + var(--safe-bottom, 0px)));
+  display: flex;
+  height: 0;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding-inline-start: max(0.75rem, var(--safe-left, 0px));
+  pointer-events: none;
+  transition: opacity var(--motion-base) var(--motion-ease-out);
+}
+
+.reader-page-dock--hidden {
+  opacity: 0;
+}
+
+.reader-page-bubble {
+  display: inline-flex;
+  min-width: 0;
+  height: 2rem;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  box-shadow: 0 0.375rem 1.125rem rgb(35 31 22 / 16%);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  pointer-events: auto;
+  transition:
+    transform var(--motion-base) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease);
+}
+
+/* The bar below steps away while the user reads on; the bubble follows it down. */
+html.app-chrome-hidden .reader-page-bubble {
+  transform: translateY(3.5rem);
+}
+
+.reader-page-bubble--editing {
+  border-color: var(--theme-accent);
+  background: var(--theme-surface);
+}
+
+.reader-page-bubble--invalid {
+  border-color: var(--theme-danger, #b3261e);
+}
+
+.reader-page-bubble__summary,
+.reader-page-bubble__editor {
+  display: inline-flex;
+  min-width: 0;
+  height: 100%;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+  animation: reader-page-bubble-in var(--motion-base) var(--motion-ease-out);
+}
+
+@keyframes reader-page-bubble-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.reader-page-bubble__summary {
+  padding: 0 0.75rem;
+  border: 0;
+  border-radius: 999px;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+
+.reader-page-bubble__summary:active {
+  transform: scale(0.96);
+}
+
+.reader-page-bubble__editor {
+  padding-inline: 0.75rem 0.1875rem;
+}
+
+.reader-page-bubble__summary:focus-visible,
+.reader-page-bubble__go:focus-visible {
+  outline: 0.125rem solid var(--theme-accent);
+  outline-offset: -0.125rem;
+}
+
+.reader-page-bubble__current {
+  font-weight: 700;
+}
+
+.reader-page-bubble__total {
+  color: var(--theme-text-muted);
+}
+
+.reader-page-bubble__input {
+  width: calc(var(--reader-page-digits, 2) * 1ch + 0.75rem);
+  min-width: 0;
+  height: 1.5rem;
+  padding: 0 0.125rem;
+  border: 0;
+  border-bottom: 2px solid var(--theme-accent);
+  border-radius: 0;
+  color: var(--theme-text);
+  background: transparent;
+  font: inherit;
+  /* 16px keeps a phone browser from zooming the page when the field takes focus. */
+  font-size: max(1rem, 16px);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  text-align: center;
+}
+
+.reader-page-bubble__input:focus {
+  outline: 0;
+}
+
+.reader-page-bubble__go {
+  display: grid;
+  width: 1.625rem;
+  height: 1.625rem;
+  flex: none;
+  margin-inline-start: 0.125rem;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--theme-accent);
+  cursor: pointer;
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+
+.reader-page-bubble__go:active {
+  transform: scale(0.92);
+}
+
+.reader-page-bubble__go-icon {
+  width: 0.9375rem;
+  height: 0.9375rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reader-page-bubble,
+  .reader-page-bubble__summary,
+  .reader-page-bubble__editor,
+  .reader-page-bubble__go {
+    transition: none;
+    animation: none;
+  }
+}

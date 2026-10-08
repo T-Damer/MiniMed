@@ -34,6 +34,7 @@ import {
   useDocumentReaderChrome,
 } from '@/features/library/document-reader-chrome';
 import { isDesktopReaderLayout } from '@/features/library/document-reader-outline';
+import { uniformReaderPageModel } from '@/features/library/document-reader-position';
 import {
   DEFAULT_DOCUMENT_TEXT_SCALE,
   DOCUMENT_TEXT_SCALE_LEVELS,
@@ -838,6 +839,15 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     const current = meta();
     return current ? isUserLibraryPdfMime(current.mimeType) : false;
   };
+
+  // Markdown and text scroll by section like the official reader, one page per entry of the
+  // contents. A PDF has its own page box, an EPUB moves by chapter, a sheet by tab: none of them is
+  // counted here.
+  const pageModel = createMemo(() =>
+    isPdf() || readerCapability().reader.renderer === 'epub' || isSheet() || isMedicalImage()
+      ? null
+      : uniformReaderPageModel([...new Set(outlineItems().map((item) => item.anchor))]),
+  );
   const pdfReady = createMemo(() => isPdf() && pdfModel.pageCount() > 0);
   createEffect(() => {
     markUserDocumentPdf(isPdf());
@@ -1065,13 +1075,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
         }
         showLayout
         outlineEnabled={!isMedicalImage()}
-        positionAnchors={() =>
-          // Markdown and text scroll by section like the official reader. A PDF has its own page
-          // box, an EPUB moves by chapter, a sheet by tab; none of them is counted here.
-          isPdf() || readerCapability().reader.renderer === 'epub' || isSheet() || isMedicalImage()
-            ? []
-            : outlineItems().map((item) => item.anchor)
-        }
+        pages={pageModel}
         bodyPrefix={
           <Show when={banner()}>
             {(message) => (

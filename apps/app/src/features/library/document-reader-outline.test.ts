@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   computeReadingLine,
+  outlineCenterScroll,
   outlineItemSelector,
   pickActiveSectionAnchor,
 } from '@/features/library/document-reader-outline';
@@ -54,5 +55,12 @@ describe('document-reader-outline', () => {
     expect(outlineItemSelector('data-section-anchor', 'intro')).toBe(
       '[data-section-anchor="intro"]',
     );
+  });
+
+  it('glides the contents list to a near entry and lands at once on a far one', () => {
+    expect(outlineCenterScroll(0.4, 600)).toBeNull();
+    expect(outlineCenterScroll(80, 600)).toEqual({ top: 80, behavior: 'smooth' });
+    expect(outlineCenterScroll(-600, 600)).toEqual({ top: -600, behavior: 'smooth' });
+    expect(outlineCenterScroll(2400, 600)).toEqual({ top: 2400, behavior: 'instant' });
   });
 });

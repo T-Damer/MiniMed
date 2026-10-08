@@ -58,51 +58,100 @@ test('a pointer that becomes its document takes its history entry and leaves one
   expect(new URL(page.url()).hash).not.toContain('/modules/documents/d/');
 });
 
-test('the reader counts its sections «12 / 48» and jumps from a bubble', async ({ page }) => {
+test('the reader shows its page in a bottom-left bubble, jumps from it in place and lists pages in the contents', async ({
+  page,
+}) => {
   test.setTimeout(240_000);
   await openClinicalReader(page);
 
-  const counter = page.locator('[data-reader-position="chrome"]');
-  await expect(counter).toBeVisible();
-  await expect(counter).toHaveText(/^\s*1\s*\/\s*\d+\s*$/u);
-  expect(
-    await counter.evaluate((element) => getComputedStyle(element).fontVariantNumeric),
-  ).toContain('tabular-nums');
-  const total = Number.parseInt((await counter.innerText()).split('/')[1] ?? '', 10);
+  const summary = page.locator('[data-reader-page-bubble="summary"]');
+  await expect(summary).toBeVisible();
+  await expect(summary).toHaveAttribute('aria-label', /^Страница 1 из \d+/u);
+  const total = Number.parseInt(
+    ((await summary.getAttribute('aria-label')) ?? '').match(/из (\d+)/u)?.[1] ?? '',
+    10,
+  );
   expect(total).toBeGreaterThan(8);
+  // A small bubble in the bottom-left corner, not a bar across the page and not in the header.
+  const box = await summary.boundingBox();
+  expect(box?.x ?? 999).toBeLessThan(40);
+  expect((box?.y ?? 0) + (box?.height ?? 0)).toBeGreaterThan(PHONE.height * 0.8);
+  expect(box?.width ?? 999).toBeLessThan(140);
+  await expect(page.locator('.document-page__chrome [data-reader-page-bubble]')).toHaveCount(0);
 
-  // The outline lists exactly as many sections as the counter totals.
+  // Reading on moves the page, and the digits roll.
+  await page.evaluate(() => {
+    const target = window as unknown as { __rolled: number };
+    target.__rolled = 0;
+    new MutationObserver((records) => {
+      for (const record of records) {
+        for (const node of record.addedNodes) {
+          if (node instanceof HTMLElement && node.classList.contains('rolling-number__ghost')) {
+            target.__rolled += 1;
+          }
+        }
+      }
+    }).observe(document.body, { childList: true, subtree: true });
+  });
+  for (let step = 0; step < 10; step += 1) {
+    await page.mouse.wheel(0, 800);
+    await page.waitForTimeout(100);
+  }
+  await expect(summary).not.toHaveAttribute('aria-label', /^Страница 1 из/u);
+  expect(
+    await page.evaluate(() => (window as unknown as { __rolled: number }).__rolled),
+  ).toBeGreaterThan(0);
+
+  // The contents list names the page of every heading, at the right end of its row.
   await page.getByRole('button', { name: 'Открыть оглавление' }).click();
-  await expect(page.locator('.document-overlay-outline-section-button')).toHaveCount(total);
-  await expect(page.locator('[data-reader-position="outline"]')).toHaveText(
-    new RegExp(`^\\s*1\\s*/\\s*${String(total)}\\s*$`, 'u'),
+  const pages = page.locator('.document-overlay-outline-section-button__page');
+  await expect(pages.first()).toHaveText('1');
+  const numbers = (await pages.allInnerTexts()).map((text) => Number.parseInt(text, 10));
+  expect(numbers.at(-1)).toBeLessThanOrEqual(total);
+  expect(numbers).toEqual([...numbers].sort((a, b) => a - b));
+  const row = await page.locator('.document-overlay-outline-section-button').first().boundingBox();
+  const pageBox = await pages.first().boundingBox();
+  expect((pageBox?.x ?? 0) + (pageBox?.width ?? 0)).toBeGreaterThan(
+    (row?.x ?? 0) + (row?.width ?? 0) - 24,
   );
   await page.keyboard.press('Escape');
   await expect(page.locator('.document-overlay-outline--hidden')).toHaveCount(1);
 
-  // Tapping the pill opens the bubble; a second tap closes it (no reopening race).
-  await counter.click();
-  const bubble = page.getByRole('dialog', { name: 'Перейти к разделу' });
-  await expect(bubble).toBeVisible();
-  await counter.click();
-  await expect(bubble).toHaveCount(0);
-
-  await counter.click();
-  const field = bubble.getByRole('textbox');
+  // Tapping the bubble turns it into a field in place: nothing scrolls, no separate panel opens.
+  const before = await page.evaluate(() => window.scrollY);
+  await summary.click();
+  const field = page.locator('[data-reader-page-bubble="input"]');
   await expect(field).toBeFocused();
+  expect(Math.abs((await page.evaluate(() => window.scrollY)) - before)).toBeLessThan(3);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.locator('[data-reader-page-bubble="go"]')).toBeVisible();
+
+  // Escape closes it without going anywhere.
+  await page.keyboard.press('Escape');
+  await expect(field).toHaveCount(0);
+  await expect(summary).toBeVisible();
+
+  // A page number and Enter: the jump is instant (no long scroll through the document).
+  await summary.click();
   await field.fill('9');
+  const started = Date.now();
   await page.keyboard.press('Enter');
-  await expect(bubble).toHaveCount(0);
-  await expect(counter).toHaveText(/^\s*9\s*\/\s*\d+\s*$/u);
-  // The jump is the outline's own (`chrome.scrollTo`), so the controls stay visible while it runs.
+  await expect(field).toHaveCount(0);
+  await expect(summary).toHaveAttribute('aria-label', /^Страница 9 из/u);
+  await expect
+    .poll(() => page.evaluate(() => window.scrollY), { timeout: 4000 })
+    .toBeGreaterThan(1000);
+  expect(Date.now() - started).toBeLessThan(3000);
+  // The jump is the contents list's own, so the controls stay visible while it runs.
   await expect(page.locator('.document-page__chrome')).toBeInViewport();
 
-  // A number beyond the end goes to the last section.
-  await counter.click();
-  await bubble.getByRole('textbox').fill('9999');
-  await page.keyboard.press('Enter');
-  await expect(counter).toHaveText(
-    new RegExp(`^\\s*${String(total)}\\s*/\\s*${String(total)}\\s*$`, 'u'),
+  // The «go» arrow does the same, and a number beyond the end goes to the last page.
+  await summary.click();
+  await field.fill('9999');
+  await page.locator('[data-reader-page-bubble="go"]').click();
+  await expect(summary).toHaveAttribute(
+    'aria-label',
+    new RegExp(`^Страница ${String(total)} из`, 'u'),
   );
 });
 

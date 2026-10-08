@@ -1,0 +1,24 @@
+/* A number whose digits roll on change (`RollingNumber.tsx`). Columns are units-first, so the number
+   reads right to left in the DOM and left to right on screen. */
+.rolling-number {
+  display: inline-flex;
+  flex-direction: row-reverse;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.25;
+}
+
+.rolling-number__digit {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+}
+
+.rolling-number__glyph {
+  display: block;
+}
+
+/* The glyph that is leaving lies over the one arriving until its animation ends. */
+.rolling-number__ghost {
+  position: absolute;
+  inset: 0;
+}

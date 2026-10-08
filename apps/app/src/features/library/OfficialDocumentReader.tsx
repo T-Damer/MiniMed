@@ -54,6 +54,11 @@ import {
   DocumentReaderChromeShell,
   useDocumentReaderChrome,
 } from '@/features/library/document-reader-chrome';
+import {
+  buildReaderPageModel,
+  readerPageOfAnchor,
+  readerSectionWeight,
+} from '@/features/library/document-reader-position';
 import { jumpReaderTo, readerOffsetWithin } from '@/features/library/document-reader-scroll';
 import { DocumentRichBlock, PreviewableImage } from '@/features/library/document-rich-block';
 import {
@@ -681,6 +686,18 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
       : null,
   );
 
+  /** Pages of the text the document carries (known before any section renders): bubble, jumps, contents. */
+  const pageModel = createMemo(() =>
+    props.document && !props.openError
+      ? buildReaderPageModel(
+          orderedSections().map((section) => ({
+            anchor: section.anchor,
+            weight: readerSectionWeight(section),
+          })),
+        )
+      : null,
+  );
+
   const visibleSections = createMemo(() => orderedSections().slice(0, mountedSectionCount()));
   // Stable node identities keep Solid's <For> from remounting already-rendered
   // sections on every idle batch append.
@@ -838,6 +855,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
       : {}),
     sectionSelector: '.document-overlay-section',
     outlineItemAttr: 'data-section-anchor',
+    measureFraction: true,
     scrollSpyWhen: () => Boolean(props.document) && orderedSections().length > 0,
     onBeforeScrollTo: (anchor) => {
       const sectionIndex = sectionIndexForAnchor(orderedSections(), anchor);
@@ -1069,10 +1087,6 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
       });
   };
 
-  /** The counter's «pages» are the contents list's sections, in the outline's order. */
-  const positionAnchors = (): readonly string[] =>
-    props.document && !props.openError ? orderedSections().map((section) => section.anchor) : [];
-
   const pageTitle = (): string =>
     props.document
       ? displayDocumentTitle(props.document)
@@ -1155,7 +1169,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
       }
       showLayout={Boolean(props.document) && !props.openError}
       outlineEnabled={!props.document || orderedSections().length > 1}
-      positionAnchors={positionAnchors}
+      pages={pageModel}
       loadingBody={
         <>
           <Show when={!props.document && !props.openError && props.modulePointer}>
@@ -1183,7 +1197,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
       }
       outlineNav={
         <For each={orderedSections()}>
-          {(section, index) => {
+          {(section) => {
             const headingTag = documentSectionHeadingTag(section.depth);
             return (
               <button
@@ -1197,10 +1211,20 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                 aria-current={chrome.activeAnchor() === section.anchor ? 'location' : undefined}
                 onClick={() => chrome.scrollTo(section.anchor)}
               >
-                <span class="document-overlay-outline-section-number">
-                  {String(index() + 1).padStart(2, '0')}
-                </span>
                 <span class="document-overlay-outline-section-button__label">{section.title}</span>
+                <Show when={pageModel()}>
+                  {(model) => (
+                    <span
+                      class="document-overlay-outline-section-button__page"
+                      classList={{
+                        'document-overlay-outline-section-button__page--active':
+                          chrome.activeAnchor() === section.anchor,
+                      }}
+                    >
+                      {readerPageOfAnchor(model(), section.anchor)}
+                    </span>
+                  )}
+                </Show>
               </button>
             );
           }}

@@ -30,11 +30,24 @@ export function pickActiveSectionAnchor(
   return nextAnchor;
 }
 
+/**
+ * How the contents list moves to keep the active entry in its middle. Following the reader one entry
+ * at a time glides; a far jump (a heading or a page number picked from a distance) lands at once
+ * rather than sweeping the whole list past.
+ */
+export function outlineCenterScroll(delta: number, viewportHeight: number): ScrollToOptions | null {
+  if (Math.abs(delta) < 1) return null;
+  return { top: delta, behavior: Math.abs(delta) <= viewportHeight ? 'smooth' : 'instant' };
+}
+
 export function centerOutlineItem(viewport: HTMLElement, item: HTMLElement): void {
   const viewportRect = viewport.getBoundingClientRect();
   const itemRect = item.getBoundingClientRect();
-  viewport.scrollTop +=
-    itemRect.top - viewportRect.top - (viewport.clientHeight - item.clientHeight) / 2;
+  const scroll = outlineCenterScroll(
+    itemRect.top - viewportRect.top - (viewport.clientHeight - item.clientHeight) / 2,
+    viewport.clientHeight,
+  );
+  if (scroll) viewport.scrollBy(scroll);
 }
 
 export const DESKTOP_READER_LAYOUT_QUERY = '(min-width: 761px)';

@@ -1,6 +1,7 @@
 import archiveBold from '@phosphor-icons/core/assets/bold/archive-bold.svg?raw';
 import arrowCounterClockwiseBold from '@phosphor-icons/core/assets/bold/arrow-counter-clockwise-bold.svg?raw';
 import arrowLeftBold from '@phosphor-icons/core/assets/bold/arrow-left-bold.svg?raw';
+import arrowRightBold from '@phosphor-icons/core/assets/bold/arrow-right-bold.svg?raw';
 import arrowSquareOutBold from '@phosphor-icons/core/assets/bold/arrow-square-out-bold.svg?raw';
 import arrowSquareUpRightBold from '@phosphor-icons/core/assets/bold/arrow-square-up-right-bold.svg?raw';
 import arrowUUpLeftBold from '@phosphor-icons/core/assets/bold/arrow-u-up-left-bold.svg?raw';
@@ -142,6 +143,7 @@ export type AppGlyphName =
   | 'heartbeat'
   | 'list'
   | 'arrow-left'
+  | 'arrow-right'
   | 'arrow-counter-clockwise'
   | 'arrow-up'
   | 'book-open'
@@ -282,6 +284,7 @@ const glyphBodies: Record<AppGlyphName, string> = {
   heartbeat: svgBody(heartbeatBold),
   list: svgBody(listBold),
   'arrow-left': svgBody(arrowLeftBold),
+  'arrow-right': svgBody(arrowRightBold),
   'arrow-counter-clockwise': svgBody(arrowCounterClockwiseBold),
   'arrow-up': svgBody(arrowUpBold),
   'book-open': svgBody(bookOpenBold),

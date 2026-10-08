@@ -146,9 +146,10 @@ export interface ReaderJumpOptions {
   readonly align: ReaderJumpAlign;
   /**
    * With `align: 'start'`: land this many pixels past the target's aligned start, i.e. the place a
-   * reader had reached inside a section (`readerOffsetWithin`).
+   * reader had reached inside a section (`readerOffsetWithin`). A function is read every frame, for
+   * an offset that depends on the target's own size (a share of it) while that size settles.
    */
-  readonly offset?: number;
+  readonly offset?: number | (() => number);
   /** Called once with the target when it first exists in the document. */
   readonly onTarget?: (target: HTMLElement) => void;
   /** Called when the jump ends: the target stood still, could not be reached, or never appeared. */
@@ -210,11 +211,13 @@ export function jumpReaderTo(
       }
       revealReaderTargetHorizontally(target);
       const scroller = readerScrollParent(target);
+      const offset =
+        typeof options.offset === 'function' ? options.offset() : (options.offset ?? 0);
       const delta = readerJumpDelta(
         target.getBoundingClientRect(),
         options.align,
         readerViewport(target, scroller),
-        startOffsetOf(target, scroller) - (options.align === 'start' ? (options.offset ?? 0) : 0),
+        startOffsetOf(target, scroller) - (options.align === 'start' ? offset : 0),
       );
       if (isReaderJumpArrived(delta)) {
         stableFrames += 1;

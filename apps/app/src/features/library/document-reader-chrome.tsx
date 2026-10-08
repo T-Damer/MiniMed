@@ -32,9 +32,13 @@ import {
   outlineItemSelector,
   pickActiveSectionAnchor,
 } from '@/features/library/document-reader-outline';
-import { readerPosition, readerPositionAnchor } from '@/features/library/document-reader-position';
+import {
+  type ReaderPageModel,
+  readerPageAt,
+  readerPageTarget,
+} from '@/features/library/document-reader-position';
 import { jumpReaderTo } from '@/features/library/document-reader-scroll';
-import { ReaderPositionCounter } from '@/features/library/ReaderPositionCounter';
+import { ReaderPageBubble } from '@/features/library/ReaderPageBubble';
 import { useDocumentOutlineSwipe } from '@/features/library/use-document-outline-swipe';
 import type { DocumentTrail } from '@/state/document-trail';
 import { holdReaderChrome } from '@/state/reader-chrome-hold';
@@ -49,6 +53,13 @@ export interface DocumentReaderChromeController {
   readonly outlineSearchStuck: () => boolean;
   readonly activeAnchor: () => string;
   readonly setActiveAnchor: Setter<string>;
+  /**
+   * How far the reading line has passed through the active section's own text (0–1). Measured only
+   * when the reader asks for it (`measureFraction`): the page bubble turns it into a page number.
+   */
+  readonly activeFraction: () => number;
+  /** The phone contents drawer is open and covers the page. */
+  readonly drawerOpen: () => boolean;
   readonly chromeElement: () => HTMLElement | undefined;
   readonly setChromeElement: (element: HTMLElement) => void;
   readonly setOutline: (element: HTMLElement) => void;
@@ -56,7 +67,8 @@ export interface DocumentReaderChromeController {
   readonly setOutlineNav: (element: HTMLElement) => void;
   readonly setOutlineScrollbars: (value: OverlayScrollbarsComponentRef) => void;
   readonly setPaper: (element: HTMLElement) => void;
-  readonly scrollTo: (anchor: string) => void;
+  /** `fraction` lands that share of the section's own text below its heading (a page's first line). */
+  readonly scrollTo: (anchor: string, options?: { readonly fraction?: number }) => void;
   readonly closeOutline: () => void;
   readonly toggleOutline: () => void;
   readonly bindOutlineScrollbars: (instance: OverlayScrollbarsInstance) => void;
@@ -68,6 +80,8 @@ export interface UseDocumentReaderChromeOptions {
   readonly outlineItemAttr: string;
   readonly bodyClosestSelector?: string;
   readonly scrollSpyWhen?: () => boolean;
+  /** Track how far through the active section the reader is (needs sections that nest their children). */
+  readonly measureFraction?: boolean;
   readonly onBeforeScrollTo?: (anchor: string) => void;
   readonly onScrollTo?: (anchor: string, element: HTMLElement | null) => void;
 }
@@ -79,6 +93,24 @@ function sectionScrollMargin(section: HTMLElement | undefined): number {
   if (!section) return 0;
   const margin = Number.parseFloat(getComputedStyle(section).scrollMarginTop);
   return Number.isFinite(margin) ? margin : 0;
+}
+
+function clamp01(value: number): number {
+  return Math.min(1, Math.max(0, value));
+}
+
+/**
+ * The part of a section that is its own text: from its top to where its first nested section
+ * starts, or to its bottom when it holds none.
+ */
+function ownTextExtent(
+  section: HTMLElement,
+  sectionSelector: string,
+): { readonly top: number; readonly height: number } {
+  const rect = section.getBoundingClientRect();
+  const nested = section.querySelector<HTMLElement>(`:scope > ${sectionSelector}`);
+  const bottom = nested ? nested.getBoundingClientRect().top : rect.bottom;
+  return { top: rect.top, height: Math.max(0, bottom - rect.top) };
 }
 
 function isNearScrollEnd(element: HTMLElement, threshold = 32): boolean {
@@ -96,6 +128,7 @@ export function useDocumentReaderChrome(
   const [outlineOpen, setOutlineOpen] = createSignal(false);
   const [outlineSearchStuck, setOutlineSearchStuck] = createSignal(false);
   const [activeAnchor, setActiveAnchor] = createSignal(options.initialAnchor ?? '');
+  const [activeFraction, setActiveFraction] = createSignal(0);
   const [chromeElement, setChromeElement] = createSignal<HTMLElement | undefined>();
   let outline: HTMLElement | undefined;
   let outlineNav: HTMLElement | undefined;
@@ -254,20 +287,30 @@ export function useDocumentReaderChrome(
         : bodyScrolls && body
           ? isNearScrollEnd(body)
           : isWindowNearScrollEnd();
+      const scrollerRect = paperScrolls
+        ? paper.getBoundingClientRect()
+        : bodyScrolls && body
+          ? body.getBoundingClientRect()
+          : new DOMRect(0, 0, window.innerWidth, window.innerHeight);
+      const readingLine = computeReadingLine(
+        scrollerRect,
+        sectionScrollMargin(sections[0]) + SECTION_ALIGNMENT_SLACK_PX,
+      );
       const nextAnchor = nearEnd
         ? (sections.at(-1)?.id ?? sections[0]?.id ?? '')
-        : pickActiveSectionAnchor(
-            sections,
-            computeReadingLine(
-              paperScrolls
-                ? paper.getBoundingClientRect()
-                : bodyScrolls && body
-                  ? body.getBoundingClientRect()
-                  : new DOMRect(0, 0, window.innerWidth, window.innerHeight),
-              sectionScrollMargin(sections[0]) + SECTION_ALIGNMENT_SLACK_PX,
-            ),
-          );
+        : pickActiveSectionAnchor(sections, readingLine);
       if (nextAnchor !== activeAnchor()) setActiveAnchor(nextAnchor);
+      if (options.measureFraction) {
+        const section = nextAnchor ? document.getElementById(nextAnchor) : null;
+        if (section) {
+          // At the very end the reading line is the bottom of the window: the last section's text
+          // may end above it, and that is the end of the last page.
+          const extent = ownTextExtent(section, options.sectionSelector);
+          const line = nearEnd ? scrollerRect.bottom : readingLine;
+          const fraction = extent.height > 0 ? clamp01((line - extent.top) / extent.height) : 0;
+          if (Math.abs(fraction - activeFraction()) >= 0.002) setActiveFraction(fraction);
+        }
+      }
     };
 
     let activeFrame: number | undefined;
@@ -312,8 +355,10 @@ export function useDocumentReaderChrome(
     });
   });
 
-  const scrollTo = (anchor: string): void => {
+  const scrollTo = (anchor: string, jump?: { readonly fraction?: number }): void => {
+    const fraction = clamp01(jump?.fraction ?? 0);
     setActiveAnchor(anchor);
+    setActiveFraction(fraction);
     if (!isDesktopReaderLayout()) {
       mutateOutline(() => setOutlineOpen(false));
     }
@@ -322,6 +367,12 @@ export function useDocumentReaderChrome(
     options.onBeforeScrollTo?.(anchor);
     jumpReaderTo(() => document.getElementById(anchor), {
       align: 'start',
+      // A page that begins inside a section lands that share of the section's own text below its
+      // heading; the size is read every frame, as it settles while the sections around it render.
+      offset: () => {
+        const element = fraction > 0 ? document.getElementById(anchor) : null;
+        return element ? fraction * ownTextExtent(element, options.sectionSelector).height : 0;
+      },
       onSettled: (element) => options.onScrollTo?.(anchor, element),
     });
   };
@@ -354,6 +405,8 @@ export function useDocumentReaderChrome(
     outlineSearchStuck,
     activeAnchor,
     setActiveAnchor,
+    activeFraction,
+    drawerOpen,
     chromeElement,
     setChromeElement,
     setOutline: (element) => {
@@ -407,11 +460,11 @@ export interface DocumentReaderChromeShellProps {
   readonly showLayout: boolean;
   readonly outlineEnabled?: boolean;
   /**
-   * The anchors of the contents list in order. They give the position counter («12 / 48») its
-   * numbers and its jump targets; see `document-reader-position.ts` for what a page is. Left out, or
-   * with fewer than two anchors, the reader shows no counter.
+   * The pages of the document (`document-reader-position.ts`): they give the page bubble («12 / 94»)
+   * its numbers and its jump targets. Left out, or `null` for a document of one page, the reader
+   * shows no bubble.
    */
-  readonly positionAnchors?: () => readonly string[];
+  readonly pages?: () => ReaderPageModel | null;
   readonly outlineSearchSlot?: JSX.Element;
   /** Heading of the side panel; «Оглавление» unless the panel lists something else (PDF pages). */
   readonly outlineTitle?: string;
@@ -429,15 +482,18 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
     closeOutline: chrome.closeOutline,
   });
 
-  const position = createMemo(() =>
-    readerPosition(props.positionAnchors?.() ?? [], chrome.activeAnchor()),
-  );
+  const pageModel = (): ReaderPageModel | null => props.pages?.() ?? null;
+  const currentPage = createMemo(() => {
+    const model = pageModel();
+    return model ? readerPageAt(model, chrome.activeAnchor(), chrome.activeFraction()) : 1;
+  });
   /** A jump the reader makes by itself keeps the controls visible, like find and «go to page». */
-  const goToPosition = (page: number): void => {
-    const anchor = readerPositionAnchor(props.positionAnchors?.() ?? [], page);
-    if (!anchor) return;
+  const goToPage = (page: number): void => {
+    const model = pageModel();
+    const target = model ? readerPageTarget(model, page) : null;
+    if (!target) return;
     holdReaderChrome();
-    chrome.scrollTo(anchor);
+    chrome.scrollTo(target.anchor, { fraction: target.fraction });
   };
 
   const handleBack = (): void => {
@@ -544,18 +600,6 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
               </button>
             </header>
             {props.outlineSearchSlot}
-            <Show when={position()}>
-              {(current) => (
-                <div class="document-overlay-outline-position">
-                  <span class="document-overlay-outline-position__label">Раздел</span>
-                  <ReaderPositionCounter
-                    variant="outline"
-                    position={current()}
-                    onGo={goToPosition}
-                  />
-                </div>
-              )}
-            </Show>
             <OverlayScrollbarsComponent
               ref={(value) => {
                 chrome.setOutlineScrollbars(value);
@@ -613,18 +657,7 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
                 <AppGlyph name="menu" class="document-overlay-outline-toggle__icon" />
               </button>
             </Show>
-            <div class="document-page__trail">
-              {props.breadcrumbs}
-              <Show when={position()}>
-                {(current) => (
-                  <ReaderPositionCounter
-                    variant="chrome"
-                    position={current()}
-                    onGo={goToPosition}
-                  />
-                )}
-              </Show>
-            </div>
+            <div class="document-page__trail">{props.breadcrumbs}</div>
             {props.headerSearchSlot}
             <Show when={props.printButton}>{props.printButton}</Show>
           </header>
@@ -635,6 +668,16 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
               {props.content}
             </Show>
           </div>
+          <Show when={props.showLayout ? pageModel() : null}>
+            {(model) => (
+              <ReaderPageBubble
+                page={currentPage()}
+                total={model().total}
+                hidden={chrome.drawerOpen()}
+                onGo={goToPage}
+              />
+            )}
+          </Show>
         </div>
       </div>
     </section>
