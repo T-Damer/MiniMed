@@ -61,14 +61,13 @@ test('a search for two drugs opens the tool, offers the instruction and quotes i
     'https://www.vidal.ru/drugs/interaction/new',
   );
 
-  // The index knows the sentence; the instruction is not installed yet: the module is offered.
+  // The index knows the sentence; the instruction is not installed yet: the pair says so once and
+  // the download of the module sits in that pair's card, with no per-drug block repeating it.
   const pair = page.getByTestId('interaction-pair');
   await expect(pair).toHaveCount(1);
   await expect(page.getByTestId('interaction-pair-status')).toContainText('Упоминание найдено');
-  await expect(page.getByTestId('interaction-side-status').first()).toContainText(
-    'инструкция не установлена',
-  );
-  const offer = page.locator('.drug-interactions__offer-button');
+  await expect(page.getByTestId('interaction-side-status')).toHaveCount(0);
+  const offer = pair.locator('.drug-interactions__offer-button');
   await expect(offer).toHaveCount(1, { timeout: 60_000 });
   await expect(offer).toContainText('Скачать инструкции группы', { timeout: 60_000 });
   await shoot(page, 'not-installed');

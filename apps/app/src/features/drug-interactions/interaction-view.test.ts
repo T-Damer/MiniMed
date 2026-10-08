@@ -14,7 +14,9 @@ import type { SeverityLookup } from './interaction-severity';
 import { buildFixtureIndex, SECTION_TEXT } from './interaction-test-fixtures';
 import {
   type DocumentState,
+  hasReadableSide,
   otherSectionsLabel,
+  pairOfferModules,
   pairStatusText,
   pairView,
   printPairs,
@@ -122,6 +124,27 @@ describe('pairView', () => {
     expect(view.sides[0]?.count).toBe(1);
     expect(view.sides[0]?.moduleId).toBe('minimed.medications.instructions.test.ru');
     expect(view.status).toBe('found');
+  });
+
+  it('offers one download in the pair for the instructions it could quote, and shows no block for them', () => {
+    const none = new Map<string, DocumentState>([
+      ['drug.rf.aaaa.instruction', 'missing'],
+      ['drug.rf.bbbb.instruction', 'missing'],
+    ]);
+    const view = pairView(index, checkPair(index, warfarin, ibuprofen), none, []);
+    // Both drugs are in the same module: one offer, not one per drug.
+    expect(pairOfferModules(view)).toEqual(['minimed.medications.instructions.test.ru']);
+    expect(view.sides.some(hasReadableSide)).toBe(false);
+    // Nothing to read, nothing to offer for a pair the index has no sentence for.
+    const quiet = pairView(index, checkPair(index, ibuprofen, omeprazole), none, []);
+    expect(pairOfferModules(quiet)).toEqual([]);
+  });
+
+  it('names a drug without an instruction once, in the status line, also when a mention is found', () => {
+    const view = pairView(index, checkPair(index, ibuprofen, omeprazole), new Map(states), []);
+    expect(pairStatusText(view)).toBe(
+      'В инструкциях упоминаний не найдено; для Омепразол инструкции нет в источниках приложения',
+    );
   });
 
   it('never calls a pair without mentions safe', () => {

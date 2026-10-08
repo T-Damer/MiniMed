@@ -150,6 +150,25 @@ export function splitQuotes(quotes: readonly Quote[]): {
   };
 }
 
+/** A side whose instruction can be quoted now (or soon): the others have nothing to show. */
+export function hasReadableSide(side: SideView): boolean {
+  return side.state === 'ready' || side.state === 'loading';
+}
+
+/**
+ * The instruction modules a pair needs to quote its sentences: only sides the index has sentences
+ * for, one download for a module two drugs share.
+ */
+export function pairOfferModules(view: PairView): readonly string[] {
+  return [
+    ...new Set(
+      view.sides.flatMap((side) =>
+        side.state === 'not-installed' && side.count > 0 && side.moduleId ? [side.moduleId] : [],
+      ),
+    ),
+  ];
+}
+
 export function otherSectionsLabel(count: number): string {
   return `ещё из других разделов (${count})`;
 }
@@ -160,16 +179,15 @@ export function pairTitle(pair: Pick<PairView, 'a' | 'b'>): string {
 
 /** The status line of a pair, as the screen and the print word it. */
 export function pairStatusText(view: PairView): string {
+  const names = view.sides
+    .filter((side) => side.state === 'no-instruction')
+    .map((side) => side.from.label);
+  const noInstruction =
+    names.length > 0 ? `; для ${names.join(', ')} инструкции нет в источниках приложения` : '';
   if (view.status === 'found') {
-    return `Упоминание найдено: ${view.found} ${pluralSentence(view.found)}`;
+    return `Упоминание найдено: ${view.found} ${pluralSentence(view.found)}${noInstruction}`;
   }
-  if (view.status === 'incomplete') {
-    const names = view.sides
-      .filter((side) => side.state === 'no-instruction')
-      .map((side) => side.from.label);
-    return `В инструкциях упоминаний не найдено; для ${names.join(', ')} инструкции нет в источниках приложения`;
-  }
-  return 'В инструкциях упоминаний не найдено';
+  return `В инструкциях упоминаний не найдено${noInstruction}`;
 }
 
 function pluralSentence(count: number): string {

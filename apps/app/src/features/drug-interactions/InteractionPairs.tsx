@@ -39,8 +39,10 @@ import {
 import { loadSeverityPartners, loadSeverityProvenance } from './interaction-severity-load';
 import {
   type DocumentState,
+  hasReadableSide,
   otherSectionsLabel,
   type PairView,
+  pairOfferModules,
   pairStatusText,
   pairTitle,
   pairView,
@@ -110,6 +112,11 @@ function QuoteBlock(props: {
   );
 }
 
+/**
+ * What one instruction says about the other drug. Only instructions that can be read get a block:
+ * «нет в источниках» is said once in the pair's status line and «не установлена» is the download
+ * offer under that line, so neither is repeated per drug.
+ */
 function SideBlock(props: { readonly side: SideView }): JSX.Element {
   const note = () => sideNote(props.side);
   const source = () => sideSourceLine(props.side);
@@ -127,16 +134,6 @@ function SideBlock(props: { readonly side: SideView }): JSX.Element {
         <p class="drug-interactions__side-note" role="status">
           Читаем установленную инструкцию…
         </p>
-      </Show>
-      <Show when={props.side.state === 'not-installed'}>
-        <p class="drug-interactions__side-status" data-testid="interaction-side-status">
-          {props.side.count > 0
-            ? `В указателе есть ${props.side.count} ${pluralSentence(props.side.count)} с упоминанием «${props.side.to.label}», но инструкция не установлена — скачайте её, чтобы прочитать.`
-            : `В инструкции «${props.side.from.label}» по указателю упоминаний «${props.side.to.label}» не найдено; сама инструкция не установлена.`}
-        </p>
-      </Show>
-      <Show when={props.side.state === 'no-instruction'}>
-        <p class="drug-interactions__side-status">{note()}</p>
       </Show>
       <Show when={props.side.state === 'ready'}>
         <Show
@@ -179,7 +176,12 @@ function SideBlock(props: { readonly side: SideView }): JSX.Element {
   );
 }
 
-function PairCard(props: { readonly view: PairView }): JSX.Element {
+function PairCard(props: {
+  readonly view: PairView;
+  /** The download of a missing instruction sits in the card that needs it. */
+  readonly offers: boolean;
+  readonly onContentChanged: () => Promise<void>;
+}): JSX.Element {
   return (
     <article
       class="drug-interactions__pair paper-card"
@@ -210,7 +212,19 @@ function PairCard(props: { readonly view: PairView }): JSX.Element {
           )}
         </Show>
       </header>
-      <For each={props.view.sides}>{(side) => <SideBlock side={side} />}</For>
+      <For each={props.view.sides.filter(hasReadableSide)}>
+        {(side) => <SideBlock side={side} />}
+      </For>
+      <Show when={props.offers}>
+        <For each={pairOfferModules(props.view)}>
+          {(moduleId) => (
+            <InstructionDownloadOffer
+              moduleId={moduleId}
+              onContentChanged={props.onContentChanged}
+            />
+          )}
+        </For>
+      </Show>
     </article>
   );
 }
@@ -405,20 +419,19 @@ export function InteractionPairsPanel(props: {
           </div>
         </Show>
       </div>
-      <Show when={props.offers !== false && missingModules().length > 0}>
-        <section class="drug-interactions__offers paper-card" aria-label="Инструкции для чтения">
-          <For each={missingModules()}>
-            {(moduleId) => (
-              <InstructionDownloadOffer moduleId={moduleId} onContentChanged={onContentChanged} />
-            )}
-          </For>
-        </section>
-      </Show>
       <Show when={quotablePairCount() > 0 && provenance.state === 'ready' && provenance() === null}>
         <SeverityDownloadOffer onContentChanged={onContentChanged} />
       </Show>
       <div class="drug-interactions__pairs" data-testid="interaction-pairs">
-        <For each={views()}>{(view) => <PairCard view={view} />}</For>
+        <For each={views()}>
+          {(view) => (
+            <PairCard
+              view={view}
+              offers={props.offers !== false}
+              onContentChanged={onContentChanged}
+            />
+          )}
+        </For>
       </div>
       <Show when={severityLookup()}>
         {(lookup) => (
