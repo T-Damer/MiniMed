@@ -61,6 +61,9 @@ export function CoreProgressLine(props: CoreProgressLineProps): JSX.Element {
   );
 
   const wide = () => !props.compact && (state().kind === 'deferred' || state().kind === 'error');
+  // Before the first byte the search field says the same in its own words («Подготавливаем
+  // поиск…», «Соединяемся с сервером…»): the pill stays quiet until it has a number to add.
+  const quiet = () => state().kind === 'preparing' || state().kind === 'connecting';
 
   createEffect(() => {
     if (!props.ready) return;
@@ -124,7 +127,10 @@ export function CoreProgressLine(props: CoreProgressLineProps): JSX.Element {
           </div>
           <div
             class="core-progress-line__caption"
-            classList={{ 'core-progress-line__caption--wide': wide() }}
+            classList={{
+              'core-progress-line__caption--wide': wide(),
+              'core-progress-line__caption--quiet': quiet(),
+            }}
           >
             <span class="core-progress-line__label" aria-hidden="true">
               {props.compact ? state().compactLabel : state().label}

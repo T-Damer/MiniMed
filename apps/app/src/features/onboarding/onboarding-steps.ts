@@ -7,11 +7,7 @@
 export type OnboardingView = 'search' | 'files';
 
 /** Extra content a step brings into its card. */
-export type OnboardingExtra =
-  | 'sections-download'
-  | 'drugs-download'
-  | 'speech-download'
-  | 'mri-viewer';
+export type OnboardingExtra = 'sections-download' | 'speech-download' | 'mri-viewer';
 
 export interface OnboardingStep {
   readonly id: string;
@@ -44,7 +40,7 @@ export const ONBOARDING_STEPS: readonly OnboardingStep[] = [
     title: 'Поиск',
     paragraphs: [
       'Это главный экран — поиск. Здесь можно найти любую информацию по медицине, но только ту, что ты скачал.',
-      'Нижняя панель переключает разделы: поиск, файлы и настройки.',
+      'Нижняя панель переключает разделы: поиск, файлы, лента новостей и настройки.',
     ],
     view: 'search',
     targets: ['nav'],
@@ -65,22 +61,11 @@ export const ONBOARDING_STEPS: readonly OnboardingStep[] = [
     title: 'Скачать по специальности',
     paragraphs: [
       'Выбери специальность: скачаем её клинические рекомендации и препараты, которые в них названы. Стрелка справа покажет состав раздела.',
-      'Это необязательно — то же самое есть в «Настройки → Загрузки».',
+      'Это необязательно — то же самое есть в «Настройки → Загрузки». Полную базу препаратов можно скачать позже, из раздела «Препараты».',
     ],
     view: 'search',
     targets: [],
     extra: 'sections-download',
-  },
-  {
-    id: 'drugs',
-    title: 'Препараты',
-    paragraphs: [
-      'Например, у нас есть полная и обновлённая база препаратов со всеми инструкциями.',
-      'Это необязательно: её можно скачать и позже, из раздела «Препараты».',
-    ],
-    view: 'search',
-    targets: ['section-medications', 'section-picker'],
-    extra: 'drugs-download',
   },
   {
     id: 'tools',
@@ -132,16 +117,6 @@ export const ONBOARDING_STEPS: readonly OnboardingStep[] = [
     view: 'search',
     targets: ['all-tools'],
     extra: 'speech-download',
-  },
-  {
-    id: 'privacy',
-    title: 'Всё остаётся у тебя',
-    paragraphs: [
-      'Всё хранится только на твоём устройстве. Если ничего никуда не передавать — данные в безопасности.',
-      'MiniMed подходит и для учёбы, и для работы.',
-    ],
-    view: 'search',
-    targets: [],
     finishLabel: 'Начать работу',
   },
 ];

@@ -861,6 +861,16 @@
   white-space: nowrap;
 }
 
+/* The caption keeps its place (the intro's arrow points at it) but says nothing yet. */
+.core-progress-line__caption--quiet {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.core-progress-line__caption {
+  transition: opacity var(--motion-base) var(--motion-ease);
+}
+
 .core-progress-line__label {
   white-space: nowrap;
 }

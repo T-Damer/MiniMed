@@ -98,17 +98,17 @@ for (const viewport of [
     // Tour: the card, the counter and the step dots advance one step at a time.
     const card = page.locator('.onboarding-hint');
     const counter = card.locator('.onboarding-hint__counter');
-    await expect(counter).toContainText('2 / 10');
+    await expect(counter).toContainText('2 / 8');
     await expect(card.getByRole('heading', { name: 'Поиск', exact: true })).toBeVisible();
     await expect(card.locator('.onboarding-hint__back')).toBeDisabled();
     // The first step spotlights the bottom navigation and explains it; no glow or particles.
     await expect(page.locator('.onboarding-ring--spotlight')).toBeVisible();
-    await expect(card).toContainText('Нижняя панель переключает разделы');
+    await expect(card).toContainText('поиск, файлы, лента новостей и настройки');
     await expect(page.locator('.onboarding__particles, .onboarding__edge-light')).toHaveCount(0);
     await page.screenshot({ path: testInfo.outputPath('step-2.png') });
 
     await card.getByRole('button', { name: 'Далее', exact: true }).click();
-    await expect(counter).toContainText('3 / 10');
+    await expect(counter).toContainText('3 / 8');
     await expect(card.getByRole('heading', { name: 'Разделы поиска' })).toBeVisible();
     // The control the step explains is ringed and an arrow is drawn to it.
     await expect(page.locator('.onboarding-ring')).toBeVisible();
@@ -117,28 +117,22 @@ for (const viewport of [
 
     // Specialty: whole sections, each with its contents before anything is downloaded.
     await card.getByRole('button', { name: 'Далее', exact: true }).click();
-    await expect(counter).toContainText('4 / 10');
+    await expect(counter).toContainText('4 / 8');
     await expect(card.getByRole('heading', { name: 'Скачать по специальности' })).toBeVisible();
     await expect(card.locator('.section-downloads__item').first()).toBeVisible({ timeout: 30_000 });
     await expect(card.getByRole('button', { name: /Выберите раздел/u })).toBeDisabled();
     await page.screenshot({ path: testInfo.outputPath('step-4.png') });
 
     await card.getByRole('button', { name: 'Далее', exact: true }).click();
-    await expect(counter).toContainText('5 / 10');
-    await expect(
-      card.getByRole('button', { name: /Скачать препараты|Считаем размер/u }),
-    ).toBeVisible();
-
+    await expect(counter).toContainText('5 / 8');
     await card.getByRole('button', { name: 'Назад', exact: true }).click();
-    await expect(counter).toContainText('4 / 10');
+    await expect(counter).toContainText('4 / 8');
     await card.getByRole('button', { name: 'Далее', exact: true }).click();
-    await card.getByRole('button', { name: 'Далее', exact: true }).click();
-    await expect(counter).toContainText('6 / 10');
     await card.getByRole('button', { name: 'Далее', exact: true }).click();
 
     // Files: the feature list is a collapsed accordion; the real sample slices cycle and their
     // source sits behind a «?» on the picture.
-    await expect(counter).toContainText('7 / 10');
+    await expect(counter).toContainText('6 / 8');
     await expect(card.getByRole('heading', { name: 'Мои файлы' })).toBeVisible();
     await expect(card.locator('.onboarding-mri__slice--active')).toBeVisible();
     const accordion = card.locator('.onboarding-hint__more');
@@ -165,18 +159,14 @@ for (const viewport of [
     await expect(page.locator('.onboarding')).toHaveCount(1);
 
     await card.getByRole('button', { name: 'Далее', exact: true }).click();
-    await expect(counter).toContainText('8 / 10');
+    await expect(counter).toContainText('7 / 8');
     await expect(card.getByRole('heading', { name: 'ЭКГ по фото' })).toBeVisible();
 
     await card.getByRole('button', { name: 'Далее', exact: true }).click();
-    await expect(counter).toContainText('9 / 10');
+    await expect(counter).toContainText('8 / 8');
     await expect(card.getByRole('button', { name: 'Скачать модель (в фоне)' })).toBeVisible();
     await expect(card).toContainText('только с согласия пациента');
-
-    await card.getByRole('button', { name: 'Далее', exact: true }).click();
-    await expect(counter).toContainText('10 / 10');
-    await expect(card).toContainText('Всё хранится только на твоём устройстве');
-    await page.screenshot({ path: testInfo.outputPath('step-9.png') });
+    await page.screenshot({ path: testInfo.outputPath('step-8.png') });
     await card.getByRole('button', { name: 'Начать работу' }).click();
 
     // Finish: the tour is gone, search is on screen, the core download line keeps going.
@@ -205,11 +195,11 @@ test('Escape skips the tour from the intro and the keyboard moves between steps'
   await expect(page.getByText('Привет', { exact: true })).toBeVisible({ timeout: 30_000 });
   for (let press = 0; press < 3; press += 1) await page.keyboard.press('ArrowRight');
   const counter = page.locator('.onboarding-hint__counter');
-  await expect(counter).toContainText('2 / 10');
+  await expect(counter).toContainText('2 / 8');
   await page.keyboard.press('ArrowRight');
-  await expect(counter).toContainText('3 / 10');
+  await expect(counter).toContainText('3 / 8');
   await page.keyboard.press('ArrowLeft');
-  await expect(counter).toContainText('2 / 10');
+  await expect(counter).toContainText('2 / 8');
   await page.keyboard.press('Escape');
   await expect(page.locator('.onboarding')).toHaveCount(0);
   await expect(page.locator('.search-home')).toBeVisible();
@@ -260,7 +250,7 @@ for (const scheme of ['light', 'dark'] as const) {
 async function enterTour(page: Page): Promise<void> {
   await expect(page.getByText('Привет', { exact: true })).toBeVisible({ timeout: 30_000 });
   for (let press = 0; press < 3; press += 1) await page.keyboard.press('ArrowRight');
-  await expect(page.locator('.onboarding-hint__counter')).toContainText('2 / 10');
+  await expect(page.locator('.onboarding-hint__counter')).toContainText('2 / 8');
 }
 
 for (const size of [
@@ -310,11 +300,11 @@ for (const size of [
     // The tour: on every step the card, with «Пропустить», «Назад» and «Далее», keeps clear of it.
     await page.keyboard.press('ArrowRight');
     const counter = page.locator('.onboarding-hint__counter');
-    for (let step = 2; step <= 10; step += 1) {
-      await expect(counter).toContainText(`${step} / 10`);
+    for (let step = 2; step <= 8; step += 1) {
+      await expect(counter).toContainText(`${step} / 8`);
       await page.waitForTimeout(700);
       expect(await cardCovered(), `step ${step}`).toBe(false);
-      if (step < 10) await page.keyboard.press('ArrowRight');
+      if (step < 8) await page.keyboard.press('ArrowRight');
     }
   });
 }
@@ -331,13 +321,13 @@ test('the tour card keeps below the status bar and above the gesture bar', async
   await page.goto(`${ORIGIN}/#/search`, { waitUntil: 'domcontentloaded' });
   await enterTour(page);
   const counter = page.locator('.onboarding-hint__counter');
-  for (let step = 2; step <= 10; step += 1) {
-    await expect(counter).toContainText(`${step} / 10`);
+  for (let step = 2; step <= 8; step += 1) {
+    await expect(counter).toContainText(`${step} / 8`);
     await page.waitForTimeout(700);
     const box = await page.locator('.onboarding-hint').boundingBox();
     expect(box && box.y >= 40, `step ${step}: card top`).toBe(true);
     expect(box && box.y + box.height <= 844 - 24, `step ${step}: card bottom`).toBe(true);
-    if (step < 10) await page.keyboard.press('ArrowRight');
+    if (step < 8) await page.keyboard.press('ArrowRight');
   }
 });
 
@@ -347,7 +337,7 @@ test('the arrow stops clear of the ring around the control it points at', async 
   await page.goto(`${ORIGIN}/#/search`, { waitUntil: 'domcontentloaded' });
   await enterTour(page);
   await page.keyboard.press('ArrowRight');
-  await expect(page.locator('.onboarding-hint__counter')).toContainText('3 / 10');
+  await expect(page.locator('.onboarding-hint__counter')).toContainText('3 / 8');
   await expect(page.locator('.onboarding__marks .onboarding-arrow__head')).toBeAttached();
   await page.waitForTimeout(1_200);
   const gap = await page.evaluate(() => {
@@ -386,8 +376,8 @@ test('the home carousel holds still while the tour points at one of its cards', 
   await page.goto(`${ORIGIN}/#/search`, { waitUntil: 'domcontentloaded' });
   await enterTour(page);
   const counter = page.locator('.onboarding-hint__counter');
-  for (let press = 0; press < 6; press += 1) await page.keyboard.press('ArrowRight');
-  await expect(counter).toContainText('8 / 10');
+  for (let press = 0; press < 5; press += 1) await page.keyboard.press('ArrowRight');
+  await expect(counter).toContainText('7 / 8');
   const visibleSlide = () =>
     page.evaluate(() => {
       const ecg = document.querySelector('[data-tour="ecg-entry"]')?.getBoundingClientRect();
