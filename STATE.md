@@ -106,6 +106,7 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
+| 2026-10-08 11:50 | claude-coordinator + 8 Sonnet worktree agents | UX13 owner batch 10-08: news feed/viewer, vaccination calendar, forms + shared PatientPickerRow, recording ASR prompt + encrypted transcript, search cards/cache/flicker/tools strip, reader page bubble/TOC/hero/tables, definitions ranking + modal, drug interactions/settings/route headers; then a Sonnet QA pass as a user. Rules in AGENTS.md «Interface rules» | `apps/app/src/features/{news,vaccination,forms,conversations,asr,search,history,library,reference,drug-interactions,drug-comparison,settings}/**`, `components/{Page,PatientPickerRow}*` |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 
 ## Next (claimed, not started)
