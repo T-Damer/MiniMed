@@ -13,6 +13,7 @@ import { getCalculatorRegistry } from '@/features/calculators/calculator-registr
 import { userCalculatorNewPath } from '@/features/calculators/user-calculator/user-calculator-routing';
 import { DRUG_COMPARISON_TOOL } from '@/features/drug-comparison/drug-comparison-tool';
 import { DRUG_INTERACTION_TOOL } from '@/features/drug-interactions/drug-interaction-tool';
+import { FORM_AGE_SCOPE, listFormSearchTools } from '@/features/forms/form-search-tools';
 import {
   medicationDocumentGroups,
   medicationGroupLabel,
@@ -176,6 +177,25 @@ export function searchCatalogTools(): readonly SearchCatalogTool[] {
     },
   ];
 }
+/**
+ * Official forms as tool cards. Found by number or name when a query is typed in «Все источники»;
+ * they are not part of the calculator and questionnaire sections and their counts.
+ */
+export function formCatalogTools(): readonly SearchCatalogTool[] {
+  return listFormSearchTools().map(
+    (form): SearchCatalogTool => ({
+      id: form.id,
+      scope: 'calculators',
+      icon: 'file-text',
+      title: form.title,
+      description: form.description,
+      aliases: form.aliases,
+      group: 'forms',
+      href: form.href,
+      ageScope: FORM_AGE_SCOPE,
+    }),
+  );
+}
 export const CUSTOM_QUESTIONNAIRE: SearchCatalogTool = {
   id: 'create-custom-questionnaire',
   icon: 'plus',
@@ -225,7 +245,11 @@ export function matchingCatalogTools(
     ...(scope === 'assessments' || searching ? [CUSTOM_QUESTIONNAIRE] : []),
     ...(scope === 'calculators' || searching ? [CUSTOM_CALCULATOR] : []),
   ];
-  const candidates = [...custom, ...filterByAge(rows, ageFilter)];
+  const candidates = [
+    ...custom,
+    ...filterByAge(rows, ageFilter),
+    ...(searching ? formCatalogTools() : []),
+  ];
   return candidates.filter(
     (entry) =>
       (scope === 'all' || entry.scope === scope) &&
@@ -238,6 +262,62 @@ export function matchingCatalogTools(
         ...entry.aliases,
         toolGroupLabel(entry),
       ]),
+  );
+}
+const TOOL_REQUEST_STEMS = [
+  'шкал',
+  'опросник',
+  'анкет',
+  'тест',
+  'калькулятор',
+  'расч',
+  'индекс',
+  'скрининг',
+  'критери',
+  'оценк',
+  'score',
+  'форм',
+  'вычисл',
+];
+
+function wordsOf(value: string): readonly string[] {
+  return (
+    value
+      .toLowerCase()
+      .replaceAll('ё', 'е')
+      .match(/[\p{L}\p{N}]+/gu) ?? []
+  );
+}
+
+/** The query itself asks for a scale, a questionnaire, a calculator or a form («шкала депрессии»). */
+export function queryAsksForTool(query: string): boolean {
+  return wordsOf(query).some((word) => TOOL_REQUEST_STEMS.some((stem) => word.startsWith(stem)));
+}
+
+/**
+ * A tool the query names: every typed word is a word of its title, or the query is one of its
+ * aliases whole («ИМТ», «070/у»). A bare disease name that a scale only mentions in an inflected
+ * form («депрессия» ~ «послеродовой депрессии») names no tool.
+ */
+export function toolNamesQuery(tool: SearchCatalogTool, query: string): boolean {
+  const typed = wordsOf(query);
+  if (typed.length === 0) return false;
+  const joined = typed.join(' ');
+  if (tool.aliases.some((alias) => wordsOf(alias).join(' ') === joined)) return true;
+  const title = new Set(wordsOf(tool.title));
+  return typed.every((word) => title.has(word));
+}
+
+/**
+ * Tools wait behind the documents for a bare disease name: the article is the answer, a scale that
+ * mentions the disease is a next step. They lead when the query asks for a tool or names one.
+ */
+export function toolsFollowResults(query: string, tools: readonly SearchCatalogTool[]): boolean {
+  return (
+    query.trim() !== '' &&
+    tools.length > 0 &&
+    !queryAsksForTool(query) &&
+    !tools.some((tool) => !tool.createsNew && toolNamesQuery(tool, query))
   );
 }
 export function searchGroupLabel(scope: SearchScope, id: string): string {

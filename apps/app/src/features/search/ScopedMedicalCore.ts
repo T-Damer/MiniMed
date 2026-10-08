@@ -167,6 +167,9 @@ const ADULT_AUDIENCE_WORD = /(?:взросл|совершеннолет|мужч
 const AUDIENCE_TERM =
   /^(?:ребен|ребён|дет|детск|младен|груднич|новорож|несовершеннолет|подрост|школьник|мальчик|девочк|взросл|совершеннолет|мужчин|женщин)/u;
 
+/** A matched term that is no word of the query's subject: the МКБ label, a number or a code. */
+const NON_WORD_TERM = /^(?:мкб|\d+|[a-zа-я]\d{2,3})$/u;
+
 /**
  * True when every hit of the group matched only audience words («ребёнка», «детей»): such a
  * source shares the age wording but none of the subject, and must not outrank one that does.
@@ -571,14 +574,34 @@ function clinicalCasePriority(kind: SearchResultDocumentKind | undefined): numbe
  * every other kind (medication, legal, calculator, assessment, ...) keeps the exact slot scoring and
  * audience ranking already gave it, so a named medication is never demoted by this pass. Gated on
  * the same age/sex signal `rankSearchGroupsByAudience` already uses, so a plain lookup/name query
- * without that context is untouched.
+ * without that context is untouched. With a `query`, a recommendation that matched only words a
+ * synonym brought, and only one such word («ассоциированная» for «пневмония»; neither the subject, the
+ * audience nor a code), and does not name the subject in its title, keeps its place.
  */
 export function preferClinicalRecommendationForCaseQueries(
   groups: readonly SearchResultGroup[],
+  query?: string,
 ): readonly SearchResultGroup[] {
+  const subjectStems = query ? subjectStemsOf(query) : [];
+  const matchedOnlySynonymWords = (group: SearchResultGroup): boolean => {
+    if (titleNamesSubject(group, subjectStems)) return false;
+    const words = group.results
+      .flatMap((result) => result.matchedTerms)
+      .map((term) => normalizeSurfaceText(term))
+      .filter((term) => !AUDIENCE_TERM.test(term) && !NON_WORD_TERM.test(term));
+    const distinct = new Set(words.map((word) => lightStemRussian(word)));
+    return (
+      words.length > 0 &&
+      distinct.size === 1 &&
+      !words.some((word) => subjectStems.some((s) => word.startsWith(s)))
+    );
+  };
   const relevantIndexes: number[] = [];
   groups.forEach((group, index) => {
-    if (clinicalCasePriority(group.documentKind) !== undefined) relevantIndexes.push(index);
+    const priority = clinicalCasePriority(group.documentKind);
+    if (priority === undefined) return;
+    if (priority === 0 && subjectStems.length > 0 && matchedOnlySynonymWords(group)) return;
+    relevantIndexes.push(index);
   });
   if (relevantIndexes.length < 2) return groups;
 
@@ -736,7 +759,7 @@ export class ScopedMedicalCore implements MedicalCore {
       this.scope === 'diagnosis'
         ? rankDiagnosisGroups(audienceRanked)
         : requestedAudience
-          ? preferClinicalRecommendationForCaseQueries(audienceRanked)
+          ? preferClinicalRecommendationForCaseQueries(audienceRanked, request.query)
           : audienceRanked;
     const strictIdentityRanked = preserveStrictIdentities(ranked, request.query, summaries);
     return {

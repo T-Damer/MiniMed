@@ -3,6 +3,10 @@
     "message": "Pediatrics",
     "description": "Medical specialty slug: pediatrics"
   },
+  "specialty_forms": {
+    "message": "Forms",
+    "description": "Medical specialty or tool section: official forms"
+  },
   "specialty_pulmonology": {
     "message": "Pulmonology",
     "description": "Medical specialty slug: pulmonology"

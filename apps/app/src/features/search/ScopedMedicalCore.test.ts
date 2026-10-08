@@ -1073,7 +1073,11 @@ describe('ScopedMedicalCore', () => {
             [searchResult(drug.id, 'Амоксициллин, инструкция.')],
             'Амоксициллин',
           ),
-          searchGroup(kr.id, [searchResult(kr.id, 'Внебольничная пневмония у взрослых.')]),
+          searchGroup(
+            kr.id,
+            [searchResult(kr.id, 'Внебольничная пневмония у взрослых.')],
+            'Внебольничная пневмония у взрослых',
+          ),
         ],
       },
     });
@@ -1166,6 +1170,48 @@ describe('preferClinicalRecommendationForCaseQueries', () => {
     expect(
       preferClinicalRecommendationForCaseQueries(groups).map((group) => group.documentId),
     ).toEqual(['kr', 'drug', 'icd-1', 'icd-2']);
+  });
+
+  describe('with the query (S4)', () => {
+    const recommendation = (documentId: string, terms: readonly string[]): SearchResultGroup => ({
+      ...kindGroup(documentId, 'clinical-recommendation', 1),
+      results: [{ ...searchResult(documentId, 'Текст.'), matchedTerms: [...terms] }],
+    });
+    const order = (groups: readonly SearchResultGroup[], query: string) =>
+      preferClinicalRecommendationForCaseQueries(groups, query).map((group) => group.documentId);
+
+    it('lifts a recommendation that matched the subject word or only the МКБ label', () => {
+      const groups = [
+        kindGroup('Пневмония у детей', 'reference', 3),
+        recommendation('Туберкулез у детей', ['пневмония', 'пневмон', 'детей']),
+        recommendation('Кишечные инфекции', ['мкб', 'k59']),
+      ];
+      expect(order(groups, 'пневмония у детей')).toEqual([
+        'Туберкулез у детей',
+        'Кишечные инфекции',
+        'Пневмония у детей',
+      ]);
+    });
+
+    it('lifts one that matched a whole synonym of the subject («ангина» → острый тонзиллит)', () => {
+      const groups = [
+        kindGroup('Ангина у детей', 'reference', 3),
+        recommendation('Острый тонзиллит', ['острый', 'остр', 'тонзиллит']),
+      ];
+      expect(order(groups, 'ангина у ребенка')).toEqual(['Острый тонзиллит', 'Ангина у детей']);
+    });
+
+    it('keeps one that matched a single word a synonym brought in its place', () => {
+      const groups = [
+        kindGroup('Пневмония у детей', 'reference', 3),
+        recommendation('МАЖБП у детей', ['ассоциированная', 'ассоциированн', 'детей']),
+      ];
+      expect(order(groups, 'пневмония у детей')).toEqual(['Пневмония у детей', 'МАЖБП у детей']);
+      expect(order(groups, 'ассоциированная болезнь у детей')).toEqual([
+        'МАЖБП у детей',
+        'Пневмония у детей',
+      ]);
+    });
   });
 
   it('is a no-op with fewer than two clinical-recommendation/reference groups', () => {

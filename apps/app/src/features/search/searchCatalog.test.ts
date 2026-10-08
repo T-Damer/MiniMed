@@ -4,9 +4,57 @@ import {
   CUSTOM_CALCULATOR,
   CUSTOM_QUESTIONNAIRE,
   matchingCatalogTools,
+  queryAsksForTool,
   searchCatalogSections,
   searchCatalogTools,
+  toolsFollowResults,
 } from './searchCatalog';
+
+describe('official forms in a search (S2)', () => {
+  it('finds a form by its number and opens the filling screen', () => {
+    const tools = searchCatalogTools();
+    for (const query of ['070/у', '070', 'форма 070/у', '070у']) {
+      const forms = matchingCatalogTools(tools, 'all', undefined, query).filter((entry) =>
+        entry.id.startsWith('ru.'),
+      );
+      expect(forms.map((entry) => entry.href)).toEqual(['#/notes/forms/ru.minzdrav.274n.070u']);
+      expect(forms[0]?.title).toBe(
+        'Форма № 070/у — Справка для получения путевки на санаторно-курортное лечение',
+      );
+    }
+  });
+
+  it('keeps forms out of the sections and of an empty query', () => {
+    const tools = searchCatalogTools();
+    expect(tools.some((entry) => entry.group === 'forms')).toBe(false);
+    expect(
+      matchingCatalogTools(tools, 'all', undefined, '').some((entry) => entry.group === 'forms'),
+    ).toBe(false);
+    expect(
+      matchingCatalogTools(tools, 'calculators', undefined, '070').some(
+        (entry) => entry.group === 'forms',
+      ),
+    ).toBe(false);
+  });
+});
+
+describe('tools after the documents (S5)', () => {
+  const tools = searchCatalogTools();
+  const matches = (query: string) => matchingCatalogTools(tools, 'all', undefined, query);
+
+  it('lets a bare disease name lead with its article, not with a scale that mentions it', () => {
+    expect(queryAsksForTool('Депрессия')).toBe(false);
+    expect(toolsFollowResults('Депрессия', matches('Депрессия'))).toBe(true);
+  });
+
+  it('keeps tools first when the query asks for one or names one', () => {
+    expect(toolsFollowResults('шкала депрессии', matches('шкала депрессии'))).toBe(false);
+    expect(toolsFollowResults('070/у', matches('070/у'))).toBe(false);
+    expect(toolsFollowResults('шкала Апгар', matches('шкала Апгар'))).toBe(false);
+    expect(toolsFollowResults('Апгар', matches('Апгар'))).toBe(false);
+    expect(toolsFollowResults('', matches(''))).toBe(false);
+  });
+});
 
 describe('unified tool catalog', () => {
   it('counts real tools and keeps the creation action searchable within subsections', () => {

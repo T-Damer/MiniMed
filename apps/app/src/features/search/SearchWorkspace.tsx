@@ -116,6 +116,8 @@ interface SearchWorkspaceProps {
   readonly fieldStatus?: JSX.Element;
   readonly modePicker?: JSX.Element;
   readonly catalog?: JSX.Element;
+  /** Tool cards that follow the results instead of leading them (a bare disease name). */
+  readonly catalogAfterResults?: JSX.Element;
   readonly catalogOnly?: boolean;
   readonly specialty?: string | undefined;
   readonly catalogResultCount?: number;
@@ -1513,6 +1515,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             )}
           </Show>
         </div>
+
+        {props.catalogAfterResults}
       </div>
 
       <Show when={context() || contextLoading()}>

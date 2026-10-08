@@ -545,6 +545,10 @@
     "message": "Жидкость и инфузии",
     "description": "Medical specialty or tool section: fluids"
   },
+  "specialty_forms": {
+    "message": "Формы",
+    "description": "Medical specialty or tool section: official forms"
+  },
   "specialty_medication": {
     "message": "Лекарственные расчёты",
     "description": "Medical specialty or tool section: medication"

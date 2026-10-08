@@ -79,6 +79,7 @@ import {
   SEARCH_SECTIONS,
   searchCatalogSections,
   searchCatalogTools,
+  toolsFollowResults,
   unifiedSearchSpecialty,
 } from '@/features/search/searchCatalog';
 import { searchSectionDownloadBlocks } from '@/features/search/searchSectionDownloads';
@@ -237,6 +238,42 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
                     (scope() === 'all' ? unifiedSearchSpecialty(group) : group) === specialty(),
                 ))),
     ),
+  );
+  /** Tools wait behind the documents for a bare disease name (searchCatalog `toolsFollowResults`). */
+  const toolsAfterResults = createMemo(
+    () => scope() === 'all' && toolsFollowResults(catalogQuery(), visibleTools()),
+  );
+  const catalogView = (): JSX.Element => (
+    <Show
+      when={showSectionsOverview()}
+      fallback={
+        <div class="search-section-page">
+          <UnifiedSearchCatalog
+            core={props.baseCore}
+            scope={scope()}
+            query={catalogQuery()}
+            catalogOnly={catalogOnly()}
+            hideDocuments={scope() === 'diagnosis'}
+            documents={catalogDocuments()}
+            tools={visibleTools()}
+            ageFilter={toolAgeFilter()}
+            onAgeFilter={setToolAgeFilter}
+            hiddenByAge={hiddenByAge()}
+            onOpenTool={() => {
+              if (catalogQuery().trim())
+                appendSearchHistory(catalogQuery(), scope(), visibleTools().length, specialty());
+            }}
+            loading={catalogLoading()}
+            error={catalogError()}
+          />
+        </div>
+      }
+    >
+      <SearchSectionsOverview
+        rows={sectionsOverviewRows(sourceSections(), catalogLoading())}
+        onSelect={(next) => openSection(next)}
+      />
+    </Show>
   );
   /** Default graph: the current results and their neighbours, not the whole scope. */
   const graphSelection = createMemo(() =>
@@ -865,43 +902,8 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
               />
             )
           }
-          catalog={
-            <Show
-              when={showSectionsOverview()}
-              fallback={
-                <div class="search-section-page">
-                  <UnifiedSearchCatalog
-                    core={props.baseCore}
-                    scope={scope()}
-                    query={catalogQuery()}
-                    catalogOnly={catalogOnly()}
-                    hideDocuments={scope() === 'diagnosis'}
-                    documents={catalogDocuments()}
-                    tools={visibleTools()}
-                    ageFilter={toolAgeFilter()}
-                    onAgeFilter={setToolAgeFilter}
-                    hiddenByAge={hiddenByAge()}
-                    onOpenTool={() => {
-                      if (catalogQuery().trim())
-                        appendSearchHistory(
-                          catalogQuery(),
-                          scope(),
-                          visibleTools().length,
-                          specialty(),
-                        );
-                    }}
-                    loading={catalogLoading()}
-                    error={catalogError()}
-                  />
-                </div>
-              }
-            >
-              <SearchSectionsOverview
-                rows={sectionsOverviewRows(sourceSections(), catalogLoading())}
-                onSelect={(next) => openSection(next)}
-              />
-            </Show>
-          }
+          catalog={toolsAfterResults() ? undefined : catalogView()}
+          catalogAfterResults={toolsAfterResults() ? catalogView() : undefined}
           // The field stays usable while the core opens; its status is a line at the block's bottom.
           // One line on a 375 px phone: a textarea placeholder cannot end with «…».
           placeholder={
