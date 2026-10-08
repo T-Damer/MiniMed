@@ -73,7 +73,7 @@ Owner screenshots and requests of 2026-10-08, applied by eight Sonnet worktree a
   blurred hero picture (`ReaderHero`, fullscreen on tap; inline duplicate hidden via
   `DocumentText.hiddenImageSource`); wide tables pan sideways by touch (`horizontalPan`).
 - **КР headings.** Extractor revision 4 promotes appendix titles («Приложение Б1. …»): 238 headings in
-  78 modules — reach phones only after those modules are rebuilt and republished (not done). ~1 100 bold
+  78 modules — rebuilt and republished in [KR4](#кр-appendix-headings-republished--2026-10-08-state-kr4). ~1 100 bold
   template labels («Целевая аудитория…») stay paragraphs pending an owner decision.
 - **News («Лента»).** Twitter-like feed (avatar inline, name · domain · time, titles ≤ 6 lines,
   scroll-past marks read in batches), header «Лента» + PubMed/refresh/settings, source-suggestion rail
@@ -95,6 +95,63 @@ Owner screenshots and requests of 2026-10-08, applied by eight Sonnet worktree a
 
 Not tested in this batch: physical Android/iOS devices, native Keychain/Keystore, Safari/WebKit, real
 GigaAM/Whisper downloads, real printers.
+
+## КР appendix headings republished — 2026-10-08 (STATE KR4)
+
+Owner OK 2026-10-08: rebuild and publish the clinical-recommendation modules touched by extractor revision 4
+(appendix titles «Приложение Б1. …» become headings), the same way as
+[KR3](#кр-modules-rebuilt-with-numbered-sub-headings--2026-10-07-state-kr3). All 78 modules the rule
+reaches changed because of it and were republished; the other 696 keep their catalog entry, version and URL.
+
+- **Rebuilt from the raw JSON** (`data/raw/official-clinical-documents/<id>.json`, nothing re-fetched) with the
+  committed July plan (all 78 are among the 744 earlier modules; none of the 30 newer editions): `build-documents` →
+  `compact-module-search` → e5 vectors (`embed_modules_e5.py --from-dir`, 11 373 chunks) → framed zstd. The source
+  checksum of every module is the published one, so no source-set digest or edition-sidecar row changed
+  (`catalog.clinical-editions.json` untouched).
+- **Rule effect vs importer drift** (`compare_clinical_modules.py`, plus a control build of the same 78 with only the
+  appendix rule switched off): rule off → rule on: 78 of 78 modules differ in structure, 246 sections added = **238 promoted
+  headings** (all start with «Приложение», all at level 2, every one with text of its own; 1–13 added sections per module) + 8 stored headings
+  whose path-derived section id moved because a promoted heading now sits above them (720_2 ×1, 739_2 ×6, 905_1 ×1; two of them,
+  «Приложение Г2» in 720_2 and 739_2, are now one level deeper), 380 more sections only shifted their `order_index`. Published →
+  control: 26 modules identical (the ones KR3 had already rebuilt with the current importer) and 52 with importer drift
+  only (image label «image.png» → «Иллюстрация», table captions attached to their figure; same text, other chunk ids).
+  Republished all 78: each has the rule effect.
+- **Published** to the new additive mirror branch `datasets/clinical-json-2026.10.08-f3039e82214e` (78 `.db.zst`,
+  **85.0 MB** instead of 84.8 MB, 205.0 MB installed instead of 198.9 MB; version `0.6.0-json.a547c8490524.e5`, same e5 profile
+  with recomputed vectors). Nothing existing was touched; no release. `minAppVersion` stays 0.6.46 (plain sections, any app
+  reads them; an older app shows the appendix titles as body text exactly as today). Catalog `publishedAt` 2026-10-08T17:05:00Z,
+  `catalogVersion` `kr4-appendix-headings.2026.10.08`; `catalog.shell.json` and `section-manifest.json` follow; the whole КР
+  download is 689.4 MB (was 689.2). Local copy: `output/module-zstd-json-2026-10-08/` (the KR3 copy stays for the 96 modules
+  it still serves and as the rollback copy of 26; the E2 copy for 52).
+- **Identifiers.** Document ids, titles, version labels and document-table rows are identical in all 78 modules. Sections
+  (3 697 before): 3 689 ids kept, 246 added, **8 changed** (the stored headings above). Chunks (11 544 before): 10 111 ids kept,
+  **1 433 changed** (1 262 new): 881 removed / 829 added because chunks moved under a new appendix sub-section (the rule
+  alone), the rest are the importer drift of the 52 modules. That is 1.5 % of the 95 827 chunks of the КР modules. Nothing
+  shipped references them: the released core 0.6.47 holds none of the changed chunk or section ids, nor do the
+  `clinical-medication-relations`, drug-comparison, interaction and pointer assets or any committed test or fixture; the only
+  hits are `content/definition-drafts/clinical-source-excerpts-*` (433 ids), which cite chunks of the pinned dataset commit
+  `77fe143a…` as provenance and are not resolved against modules. Stored on a device: KR highlights (keyed by chunk anchor,
+  quote-checked), copied section links and a remembered reading position fall back to the document top for a moved anchor;
+  bookmarks are per document and survive. No core, query-model or index rebuild is needed.
+- **Verified:** all 78 `.db.zst` decode with the reference `zstd` CLI to the catalog's decoded checksums and sizes, SQLite
+  integrity and foreign keys ok, one e5 vector per chunk, no orphan vectors; every mirror URL returns the catalog size and
+  SHA-256 with `access-control-allow-origin: *`; token check control → final: text lost from chunks = exactly the promoted
+  headings, nothing gained, in all 78; no section that was visible before (published or control) is hidden now and no new heading
+  is hidden (0 of 246). Catalog diff: only the 78 entries (version, sizes, artifacts, documentTable) plus `catalogVersion` and
+  `publishedAt`. `bun run typecheck`, `bun run check` (exit 0), `vitest` (494 files, 9 142 tests; the same 5 s timeout of
+  `KnowledgeGraph.test.ts` on a busy host, green alone), `pytest tools/ingest`, ruff/pyright, `bun run benchmark:all` within
+  tolerance, `bun run --cwd apps/app build`. In a Chromium build (`E2E_PORT=4193`, one worker) the new
+  `kr-appendix-heading-modules.spec.ts` installs 655_2, 283_2 and 739_2 from the catalog and opens them: each appendix
+  heading is one outline entry and one title, never body text; the KR3 specs (1062_1, 555_3, 960_1, reader structure) and
+  `module-pointer.spec.ts` are green with the e2e fixtures reading both local copies.
+- **Spot check** of all 246 titles: no dose, ICD code or unit line was promoted; the longest (≤ 291 characters) are the standard
+  УДД/УУР evidence-scale appendices («Приложение 2. Шкала оценки уровней достоверности доказательств …», «Приложение А2.3 – Шкала
+  оценки уровней убедительности рекомендаций …»); borderline but legitimate titles, kept by the rule.
+- **Not verified:** Android/WebView or a phone, slow hardware, an older app against the new data (it reads plain sections), a
+  physician review, lexical/semantic search quality on the rebuilt modules (appendix titles now reach FTS through `section_path`;
+  no benchmark of the КР modules was re-run).
+- Intermediates (`documents-main`, control build, compacted and e5 databases, decoded published copies) were deleted after
+  verification; reports, scripts and the id lists are in `data/build/official-clinical-2026-10-08/`.
 
 ## КР modules rebuilt with numbered sub-headings — 2026-10-07 (STATE KR3)
 
