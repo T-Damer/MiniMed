@@ -18,12 +18,13 @@ from .models import (
     ExtractedSource,
     ExtractionDiagnostics,
 )
-from .numbered_headings import numbered_heading_depth
+from .numbered_headings import appendix_heading_depth, numbered_heading_depth
 
 # Bumped when a change to the extraction makes a stored extraction of the same raw file stale
 # (`prepare --reuse` re-extracts anything older). 2: numbered sub-headings promoted to headings.
 # 3: a numbered paragraph stays a paragraph where promoting it would leave a heading hidden.
-EXTRACTOR_REVISION = 3
+# 4: appendix sub-titles («Приложение Б1. …») promoted to headings.
+EXTRACTOR_REVISION = 4
 
 _SPACE_PATTERN = re.compile(r"\s+")
 _SECTION_NUMBER_PATTERN = re.compile(r"^\s*(\d+(?:\.\d+)*)\.?\s+\S")
@@ -478,11 +479,15 @@ def extract_clinical_json(source: Path) -> ExtractedSource:
             promoted_metadata: dict[str, object] = {}
             if parsed.kind == "paragraph":
                 depth = numbered_heading_depth(parsed.text)
+                promoted_from = "numbered-paragraph"
+                if depth is None:
+                    depth = appendix_heading_depth(parsed.text)
+                    promoted_from = "appendix-paragraph"
                 if depth is not None:
-                    # A numbered sub-heading the source kept as a <p>: same text, read as a heading.
+                    # A sub-heading the source kept as a <p>: same text, read as a heading.
                     kind = "heading"
                     heading_level = depth
-                    promoted_metadata = {"promotedFrom": "numbered-paragraph"}
+                    promoted_metadata = {"promotedFrom": promoted_from}
                     promoted_headings += 1
             render = parsed.metadata.get("renderBlock")
             if (

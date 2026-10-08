@@ -1,10 +1,17 @@
-"""Numbered sub-headings that a clinical recommendation kept as plain paragraphs.
+"""Sub-headings that a clinical recommendation kept as plain paragraphs.
+
+Numbered ones and appendix titles.
 
 The Minzdrav JSON separates only the top-level sections; deeper headings such as
 ``1.2.2.1 Эпидемиология`` arrive as ``<p>`` text. This is the deterministic reading rule that
 recognises them, shared in spirit with ``apps/app/src/features/library/numbered-headings.ts`` (the
 app applies it at display time to modules built before this rule existed; the two are kept in step
 by ``tests/test_numbered_headings.py`` and the app's ``numbered-headings.test.ts``).
+
+Appendix titles (``Приложение Б1. Алгоритм диагностики``) follow the same way: the Minzdrav JSON
+puts a sub-appendix inside the section of its appendix group, as a ``<p>``.
+``appendix_heading_depth`` recognises them; the app has no display-time twin of this one,
+so it needs a module rebuild.
 
 The rule never rewrites text: a recognised paragraph keeps its exact wording, number included, and
 only its block kind changes.
@@ -95,3 +102,36 @@ def numbered_heading_depth(paragraph: str) -> int | None:
         if rest.endswith(".") and words > SENTENCE_WORD_LIMIT:
             return None
     return min(6, number.count(".") + 1)
+
+
+# An appendix sub-title: "Приложение Б1. ...", "Приложение Б 2. ...", "Приложение 3. ...", with a
+# dot, dash or colon after the code. The code is a letter and/or number; "№" (a reference to a
+# federal order) and a bare "Приложение к ..." never match, and a title must follow, so
+# "Приложение Г1" alone (a label) stays body text.
+APPENDIX_MAX_LENGTH = 300
+APPENDIX_MAX_WORDS = 45
+APPENDIX_DEPTH = 2
+_APPENDIX = re.compile(
+    rf"^Приложение\s*(?:[{_UPPER}]\s?\d{{0,2}}|\d{{1,2}})(?:[.\-–/]\d{{1,2}})*\s*[.:–—-]?\s*(\S.*)$"
+)
+
+
+def appendix_heading_depth(paragraph: str) -> int | None:
+    """Heading level of an appendix sub-title paragraph, else ``None``."""
+    line = paragraph.strip()
+    if not line or len(line) > APPENDIX_MAX_LENGTH or "\n" in line:
+        return None
+    match = _APPENDIX.match(line)
+    if match is None:
+        return None
+    title = match.group(1).strip()
+    first = title[0]
+    if not (first.isupper() or first in '«"'):
+        return None
+    if title.endswith((";", ",")):
+        return None
+    if _DOT_LEADERS.search(title) or _TRAILING_PAGE.search(title):
+        return None
+    if len(title.split()) > APPENDIX_MAX_WORDS:
+        return None
+    return APPENDIX_DEPTH

@@ -84,7 +84,7 @@ def test_numbered_paragraphs_are_extracted_as_sub_headings(tmp_path: Path) -> No
     blocks = extracted.pages[0].blocks
     promoted = [block for block in blocks if block.metadata.get("promotedFrom")]
 
-    assert extracted.extractor_revision == 3
+    assert extracted.extractor_revision == 4
     assert extracted.diagnostics.promoted_headings == 2
     assert [(block.text, block.kind, block.heading_level) for block in promoted] == [
         ("3.1 Консервативное лечение", "heading", 2),
@@ -257,3 +257,53 @@ def test_reuse_re_extracts_clinical_json_written_before_the_rule(tmp_path: Path)
     third = tmp_path / "third"
     report = prepare_registry(registry_path, source_root, third, reuse_from=second)
     assert report.reused_sources == 1
+
+
+def test_appendix_sub_titles_are_extracted_as_sub_headings(tmp_path: Path) -> None:
+    source = tmp_path / "911_1.json"
+    sections = [
+        {
+            "id": "doc_1",
+            "title": "Приложение Б. Алгоритмы действий врача",
+            "content": (
+                "<p>Приложение Б1. Алгоритм диагностики</p>"
+                "<p>Обследование начинают с осмотра.</p>"
+                "<p>Приложение Б2. Алгоритм лечения</p>"
+                "<p>Лечение подбирают индивидуально.</p>"
+                "<p>Приложение Г1</p>"
+                "<p>Приложение № 2 к классификациям и критериям</p>"
+            ),
+        },
+        *[
+            {
+                "id": f"doc_{index}",
+                "title": f"{index}. Раздел {index}",
+                "content": "<p>" + "Текст раздела клинической рекомендации. " * 40 + "</p>",
+            }
+            for index in range(2, 12)
+        ],
+    ]
+    source.write_text(
+        json.dumps(
+            {
+                "id": "911_1",
+                "name": "Проверочная рекомендация",
+                "obj": {"sections": [{"id": "doc_whole", "content": "dup"}, *sections]},
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    extracted = extract_clinical_json(source)
+    blocks = {block.text: block for block in extracted.pages[0].blocks}
+
+    for text in ("Приложение Б1. Алгоритм диагностики", "Приложение Б2. Алгоритм лечения"):
+        assert blocks[text].kind == "heading"
+        assert blocks[text].heading_level == 2
+        assert blocks[text].metadata["promotedFrom"] == "appendix-paragraph"
+        # The block keeps pointing at the source section it was read from.
+        assert blocks[text].metadata["sourceSectionId"] == "doc_1"
+    # A bare label and a reference to an order stay body text.
+    for text in ("Приложение Г1", "Приложение № 2 к классификациям и критериям"):
+        assert blocks[text].kind == "paragraph"
+    assert extracted.diagnostics.promoted_headings == 2
