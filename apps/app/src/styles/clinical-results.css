@@ -68,14 +68,9 @@
   white-space: nowrap;
 }
 
-.result-group-header__title,
-.result-path {
+.result-group-header__title {
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.result-category-line {
-  min-width: 0;
 }
 
 .results-more {

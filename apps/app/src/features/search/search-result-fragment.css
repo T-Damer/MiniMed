@@ -1,0 +1,71 @@
+/* A found part of a document: three lines, the rest unrolled in place by the chevron below. */
+.result-fragment {
+  display: flex;
+  flex-direction: column;
+}
+
+.result-fragment__open {
+  display: block;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.65rem 0.75rem 0.5rem;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.result-fragment__text {
+  --result-fragment-lines: 3;
+  margin: 0;
+  overflow: hidden;
+  font-family: var(--font-serif);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.result-fragment__text--collapsed {
+  max-height: calc(var(--result-fragment-lines) * 1.45em);
+}
+
+/* Where the text goes on, its last line fades out instead of ending in an ellipsis. */
+.result-fragment__text--cut {
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 1.6em), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 1.6em), transparent);
+}
+
+.result-fragment__toggle {
+  display: flex;
+  width: 100%;
+  min-height: 1.5rem;
+  margin-block-start: -0.25rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  color: var(--theme-text-muted);
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--motion-fast) var(--motion-ease);
+}
+
+.result-fragment__toggle:active {
+  color: var(--theme-text);
+}
+
+.result-fragment__toggle:focus-visible {
+  outline: var(--theme-outline-width, 2px) solid var(--theme-accent);
+  outline-offset: -0.2rem;
+}
+
+.result-fragment__toggle-icon {
+  width: 1rem;
+  height: 1rem;
+  transition: transform var(--motion-base) var(--motion-ease-out);
+}
+
+.result-fragment__toggle-icon--open {
+  transform: rotate(180deg);
+}

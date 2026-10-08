@@ -30,6 +30,18 @@ describe('presentResultSnippet', () => {
     expect(presented.text.slice(range?.start, range?.end)).toBe('Эпилепсия');
   });
 
+  it('names specialties in words, not by their catalogue slugs', () => {
+    const snippet =
+      'МКБ-10: F32, F33. Специальности: psychiatry, addiction-medicine. Возраст: Взрослые.';
+    const presented = presentResultSnippet({
+      snippet,
+      highlightedRanges: [],
+      sectionPath: ['Сведения о документе'],
+    });
+    expect(presented.text).not.toMatch(/psychiatry|addiction-medicine/u);
+    expect(presented.text).toContain('Специальности: Психиатрия');
+  });
+
   it('drops the title clause and a cut clause at the end', () => {
     const snippet =
       'Название: Эпилепсия у детей. МКБ-10: G40. Полные данные находятся в скачиваемом';

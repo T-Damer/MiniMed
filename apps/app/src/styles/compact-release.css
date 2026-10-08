@@ -655,28 +655,6 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   font-size: clamp(0.9375rem, 1.4vw, 1.125rem);
 }
 
-.search-workspace-main .result-open {
-  padding: 0.5rem 0.6875rem 0.5625rem;
-}
-
-.search-workspace-main .result-snippet {
-  margin: 0.3125rem 0;
-  font-size: 0.875rem;
-  line-height: 1.4;
-}
-
-.search-workspace-main .result-open {
-  min-height: 2.75rem;
-  padding: 0.65rem 0.75rem 0.7rem;
-}
-
-.search-workspace-main .result-snippet {
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
 /* Compact history beside search */
 .search-history-panel {
   position: sticky;

@@ -43,6 +43,7 @@ export type SearchScope =
   | 'assessments';
 export type SearchAudience = 'children' | 'adults';
 export type SearchResultDocumentKind = NonNullable<SearchResultGroup['documentKind']>;
+export type SearchResultDocumentType = NonNullable<SearchResultGroup['documentType']>;
 
 /**
  * Scopes whose packs carry e5 vectors add semantic candidates when the model is installed (ADR
@@ -395,6 +396,9 @@ function audienceLabel(ageGroups: readonly string[]): string | undefined {
 }
 
 interface SearchDocumentKindMetadata {
+  readonly sourceType?: unknown;
+  readonly documentKind?: unknown;
+  readonly terminology?: unknown;
   readonly interactiveAssessmentId?: unknown;
   readonly calculationRequired?: unknown;
   readonly interactiveCalculatorId?: unknown;
@@ -436,6 +440,31 @@ export function searchResultDocumentKind(
 }
 
 /**
+ * What a result's source is in words a reader knows (a guideline, an order, an ICD-10 entry, a
+ * definition…), read from the document's source type and catalogue metadata.
+ */
+export function searchResultDocumentType(
+  document: Pick<MedicalDocumentSummary, 'sourceType' | 'metadata'>,
+): SearchResultDocumentType {
+  if (isIcd11Document(document)) return 'icd11';
+  const kind = searchResultDocumentKind(document);
+  if (kind === 'legal') {
+    const metadata = document.metadata as SearchDocumentKindMetadata | undefined;
+    if (metadata?.documentKind === 'приказ') return 'order';
+    return metadata?.documentKind === 'федеральный закон' ? 'law' : 'legal';
+  }
+  if (kind !== 'reference') return kind;
+  const metadata = document.metadata as SearchDocumentKindMetadata | undefined;
+  if (document.sourceType === 'rls_mkb_reference' || metadata?.sourceType === 'rls_mkb_reference') {
+    return 'icd10';
+  }
+  if (metadata?.terminology || document.sourceType.startsWith('definition_reference')) {
+    return 'definition';
+  }
+  return 'reference';
+}
+
+/**
  * True when the group's title carries a subject word of the query (not an audience word): the
  * disease or drug is the document's own topic, not a passing mention in a textbook.
  */
@@ -473,7 +502,12 @@ export function rankSearchGroupsByAudience(
     return {
       ...group,
       ageGroups,
-      ...(document ? { documentKind: searchResultDocumentKind(document) } : {}),
+      ...(document
+        ? {
+            documentKind: searchResultDocumentKind(document),
+            documentType: searchResultDocumentType(document),
+          }
+        : {}),
       title: label && !group.title.startsWith('Для ') ? `${label} · ${group.title}` : group.title,
     };
   });

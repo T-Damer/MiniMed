@@ -242,6 +242,19 @@ export interface SearchResult {
   readonly category: SearchResultCategory;
 }
 
+export type SearchResultDocumentType =
+  | 'clinical-recommendation'
+  | 'medication'
+  | 'order'
+  | 'law'
+  | 'legal'
+  | 'calculator'
+  | 'assessment'
+  | 'icd10'
+  | 'icd11'
+  | 'definition'
+  | 'reference';
+
 export interface SearchResultGroup {
   /** Present only when every grouped hit resolves to the same canonical concept. */
   readonly conceptId?: string;
@@ -257,6 +270,8 @@ export interface SearchResultGroup {
     | 'calculator'
     | 'assessment'
     | 'reference';
+  /** What the source is, in words a reader knows: finer than {@link documentKind}. */
+  readonly documentType?: SearchResultDocumentType;
   readonly ageGroups?: readonly string[];
   readonly contentKind?: 'summary' | 'pointer' | 'full-text';
   readonly results: readonly SearchResult[];

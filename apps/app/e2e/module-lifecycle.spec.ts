@@ -109,10 +109,9 @@ test('installs a regulatory dataset, searches it live, and removes it without re
     .getByTestId('search-results')
     .locator('.result-group')
     .filter({ hasText: REGULATORY_QUERY });
-  await expect(installedOrder.locator('.result-group-header__kind-label')).toHaveText(
-    'Нормативный акт',
-    { timeout: 60_000 },
-  );
+  await expect(installedOrder.locator('.result-group-header__kind-label')).toHaveText('Приказ', {
+    timeout: 60_000,
+  });
   await expect(page.locator('.error-card')).toHaveCount(0);
 
   await navigationButton(page, 'База знаний').click();

@@ -140,12 +140,6 @@
   text-transform: uppercase;
 }
 
-.result-category-line {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
 .source-paragraph.context-hidden {
   display: none;
 }

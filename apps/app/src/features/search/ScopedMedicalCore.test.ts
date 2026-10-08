@@ -17,6 +17,7 @@ import {
   preferClinicalRecommendationForCaseQueries,
   ScopedMedicalCore,
   searchResultDocumentKind,
+  searchResultDocumentType,
 } from '@/features/search/ScopedMedicalCore';
 
 function document(id: string, sourceType: string): MedicalDocumentSummary {
@@ -483,6 +484,60 @@ describe('ScopedMedicalCore', () => {
     expect(documentMatchesSearchScope(unknown, 'legal')).toBe(false);
     expect(documentMatchesSearchScope(unknown, 'all')).toBe(true);
     expect(searchResultDocumentKind(unknown)).toBe('reference');
+  });
+
+  it('names what a source is in words a doctor knows', () => {
+    const pointer = (extra: Record<string, unknown>): MedicalDocumentSummary => ({
+      ...document('pointer', 'core_catalog_pointer'),
+      metadata: { contentMode: 'module-pointer', ...extra },
+    });
+    const withMetadata = (
+      sourceType: string,
+      metadata: Record<string, unknown>,
+    ): MedicalDocumentSummary => ({ ...document('doc', sourceType), metadata });
+
+    expect(
+      searchResultDocumentType(pointer({ catalogFamily: 'clinical', entityType: 'disease' })),
+    ).toBe('clinical-recommendation');
+    expect(searchResultDocumentType(pointer({ catalogFamily: 'medication' }))).toBe('medication');
+    // An ICD-10 article from the RLS catalogue is an ICD-10 entry; a site article is a reference.
+    expect(
+      searchResultDocumentType(
+        pointer({
+          catalogFamily: 'reference',
+          entityType: 'disease',
+          sourceType: 'rls_mkb_reference',
+        }),
+      ),
+    ).toBe('icd10');
+    expect(
+      searchResultDocumentType(
+        pointer({
+          catalogFamily: 'reference',
+          entityType: 'disease',
+          sourceType: 'krasotaimedicina_reference',
+        }),
+      ),
+    ).toBe('reference');
+    expect(searchResultDocumentType(document('order', 'regulatory_act_summary'))).toBe('legal');
+    expect(
+      searchResultDocumentType(withMetadata('regulatory_act_summary', { documentKind: 'приказ' })),
+    ).toBe('order');
+    expect(
+      searchResultDocumentType(
+        withMetadata('regulatory_act_summary', { documentKind: 'федеральный закон' }),
+      ),
+    ).toBe('law');
+    expect(searchResultDocumentType(document('icd11', 'who_icd11_reference'))).toBe('icd11');
+    expect(searchResultDocumentType(withMetadata('medical_reference', { terminology: {} }))).toBe(
+      'definition',
+    );
+    expect(
+      searchResultDocumentType(
+        withMetadata('medical_reference', { interactiveAssessmentId: 'epds' }),
+      ),
+    ).toBe('assessment');
+    expect(searchResultDocumentType(document('diet', 'medical_reference'))).toBe('reference');
   });
 
   it('filters core catalog pointers by family in scoped search', async () => {

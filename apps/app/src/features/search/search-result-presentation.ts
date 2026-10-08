@@ -5,6 +5,7 @@ import {
   TECHNICAL_SECTION_TITLES,
 } from '@/features/library/document-display';
 import { searchResultDocumentKind } from '@/features/search/ScopedMedicalCore';
+import { specialtyLabel } from '@/i18n/labels';
 
 /** How a technical section is named in a result line. */
 const TECHNICAL_SECTION_LABELS: Readonly<Record<string, string>> = {
@@ -64,8 +65,22 @@ const RENAMED_LABELS: readonly (readonly [string, string])[] = [
   ['Возрастные категории:', 'Возраст:'],
 ];
 
+/** The catalogue lists specialties by their slugs («psychiatry, child-psychiatry»). */
+const SPECIALTY_SLUGS =
+  /(?<=Специальности: )[a-z0-9]+(?:-[a-z0-9]+)*(?:, [a-z0-9]+(?:-[a-z0-9]+)*)*(?=\.|$)/gmu;
+
 function snippetEdits(text: string): readonly SnippetEdit[] {
   const edits: SnippetEdit[] = [];
+  for (const match of text.matchAll(SPECIALTY_SLUGS)) {
+    edits.push({
+      start: match.index,
+      end: match.index + match[0].length,
+      replacement: match[0]
+        .split(', ')
+        .map((slug) => specialtyLabel(slug))
+        .join(', '),
+    });
+  }
   for (const pattern of DROPPED_CLAUSES) {
     for (const match of text.matchAll(pattern)) {
       edits.push({ start: match.index, end: match.index + match[0].length, replacement: '' });
