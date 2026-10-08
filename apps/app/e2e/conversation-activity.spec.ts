@@ -34,9 +34,12 @@ test('the bar expands to a live window with full screen, survives a tab switch a
   const live = page.getByTestId('conversation-live');
   await expect(live).toBeVisible();
   await expect(bar).toHaveCount(0);
-  // No speech model in the test: the timer and meter stay, with a clear note.
+  // No speech model in the test: the timer and meter stay, and the model is offered in place.
   await expect(live.locator('.conversation-live__time')).toHaveText(/\d{2}:\d{2}/u);
-  await expect(live.getByText('Распознавание речи не включено')).toBeVisible();
+  await expect(
+    live.getByText('Загрузите модель, чтобы голос автоматически превращался в текст'),
+  ).toBeVisible();
+  await expect(live.getByRole('button', { name: /Скачать · \d+ МБ/u })).toBeVisible();
 
   await live.getByRole('button', { name: 'Открыть на весь экран' }).click();
   await expect(live).toHaveClass(/floating-window--fullscreen/u);

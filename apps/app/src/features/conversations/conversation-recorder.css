@@ -115,6 +115,12 @@
   background: var(--theme-surface);
 }
 
+/* Full screen: the text keeps a readable width and clears the system bars. */
+.conversation-live__body--fullscreen {
+  gap: 0.9rem;
+  padding: 1rem max(1rem, calc((100% - 44rem) / 2)) calc(var(--safe-bottom, 0px) + 1rem);
+}
+
 .conversation-live__status {
   display: flex;
   align-items: center;
@@ -155,35 +161,168 @@
   transition: transform 180ms ease-out;
 }
 
-.conversation-live__lines {
+/* The lock beside the timer: is the text safely on the device? */
+.conversation-save {
+  display: inline-grid;
+  width: 1.6rem;
+  height: 1.6rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--theme-text-muted);
+  animation: conversation-line-in var(--motion-base, 180ms) var(--motion-ease-out, ease-out) both;
+  transition:
+    color var(--motion-base, 180ms) var(--motion-ease-out, ease-out),
+    background-color var(--motion-base, 180ms) var(--motion-ease-out, ease-out);
+}
+
+.conversation-save--saved {
+  color: var(--theme-accent);
+  background: var(--theme-accent-soft);
+}
+
+.conversation-save--warning {
+  color: var(--theme-warning);
+  background: var(--theme-warning-soft);
+}
+
+.conversation-save--failed {
+  color: var(--theme-danger);
+  background: color-mix(in srgb, var(--theme-danger) 14%, transparent);
+}
+
+.conversation-save__icon {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+/*
+ * Install card and live text share one cell: the card leaves and the text arrives by
+ * cross-fading, so a model that becomes ready mid-recording never makes the window jump.
+ */
+.conversation-live__stage {
   display: grid;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.conversation-live__layer {
+  display: flex;
+  min-height: 0;
+  grid-area: 1 / 1;
+  flex-direction: column;
+  justify-content: center;
+  transition:
+    opacity var(--motion-base, 180ms) var(--motion-ease-out, ease-out),
+    transform var(--motion-base, 180ms) var(--motion-ease-out, ease-out),
+    visibility 0s linear;
+}
+
+.conversation-live__layer--hidden {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(0.5rem);
+  transition:
+    opacity var(--motion-base, 180ms) var(--motion-ease-out, ease-out),
+    transform var(--motion-base, 180ms) var(--motion-ease-out, ease-out),
+    visibility 0s linear var(--motion-base, 180ms);
+}
+
+.conversation-live__text {
+  display: flex;
   min-height: 3rem;
   flex: 1 1 auto;
-  align-content: start;
-  gap: 0.4rem;
-  margin: 0;
+  flex-direction: column;
+  gap: 0.5rem;
   padding: 0.5rem 0.6rem;
   overflow-y: auto;
   border: 1px solid var(--theme-border);
   border-radius: var(--theme-radius-control);
   background: var(--theme-surface-raised);
+  transition:
+    border-color var(--motion-base, 180ms) var(--motion-ease-out, ease-out),
+    background-color var(--motion-base, 180ms) var(--motion-ease-out, ease-out);
+}
+
+/* Full screen: the text sits on the page itself, larger, without a frame. */
+.conversation-live__text--plain {
+  padding-inline: 0;
+  border-color: transparent;
+  background: transparent;
+  font-size: 1.1rem;
+}
+
+/* Nothing recognised yet: no empty frame, only the listening dots. */
+.conversation-live__text--empty {
+  align-items: center;
+  justify-content: center;
+  border-color: transparent;
+  background: transparent;
+}
+
+.conversation-live__lines {
+  display: grid;
+  align-content: start;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
   list-style: none;
 }
 
 .conversation-live__line {
   line-height: 1.45;
+  animation: conversation-line-in var(--motion-base, 180ms) var(--motion-ease-out, ease-out) both;
 }
 
-.conversation-live__note,
-.conversation-live__hint {
+.conversation-live__problem {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
   margin: 0;
-  color: var(--theme-text-muted);
-  font-size: 0.8rem;
-  line-height: 1.4;
+  color: var(--theme-warning);
+  font-size: 0.85rem;
+}
+
+.conversation-live__problem-icon {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
 }
 
 .conversation-live__stop {
   align-self: stretch;
+}
+
+/* Listening / reading dots. */
+.conversation-pulse {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  padding: 0.25rem 0;
+  color: var(--theme-text-muted);
+}
+
+.conversation-pulse__dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.35;
+  animation: conversation-pulse var(--conversation-pulse-duration, 1.6s) ease-in-out infinite;
+}
+
+.conversation-pulse__dot:nth-child(2) {
+  animation-delay: calc(var(--conversation-pulse-duration, 1.6s) / 6);
+}
+
+.conversation-pulse__dot:nth-child(3) {
+  animation-delay: calc(var(--conversation-pulse-duration, 1.6s) / 3);
+}
+
+.conversation-pulse--working {
+  --conversation-pulse-duration: 0.9s;
+  color: var(--theme-accent);
 }
 
 .conversation-dialog__body {
@@ -214,6 +353,23 @@
   color: var(--theme-danger);
 }
 
+.conversation-dialog__transcript {
+  display: grid;
+  max-height: 11rem;
+  align-content: start;
+  gap: 0.4rem;
+  padding: 0.5rem 0.6rem;
+  overflow-y: auto;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  background: var(--theme-surface-raised);
+}
+
+.conversation-dialog__line {
+  margin: 0;
+  line-height: 1.45;
+}
+
 .conversation-dialog__actions {
   display: flex;
   justify-content: flex-end;
@@ -233,10 +389,27 @@
   }
 }
 
+@keyframes conversation-line-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.35rem);
+  }
+}
+
+@keyframes conversation-pulse {
+  40% {
+    opacity: 1;
+    transform: translateY(-0.12rem);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .conversation-bar,
   .conversation-bar__dot,
-  .conversation-live__dot {
+  .conversation-live__dot,
+  .conversation-live__line,
+  .conversation-save,
+  .conversation-pulse__dot {
     animation: none;
   }
 
