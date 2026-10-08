@@ -205,6 +205,11 @@ export function VaccinationWorkspace(props: {
   };
 
   const [previewOpen, setPreviewOpen] = createSignal(false);
+  // The undo toast belongs to the chart; it must not sit over the preview's own controls.
+  const openPreview = (): void => {
+    toast.dismiss(UNDO_TOAST_ID);
+    setPreviewOpen(true);
+  };
   const handoutHtml = createMemo(() =>
     renderVaccinationHandoutHtml(
       buildHandout(calendar, columnIds, handoutSubjectFor(child()), record.marks(), today()),
@@ -237,7 +242,7 @@ export function VaccinationWorkspace(props: {
         title={<Heading depth={1}>Календарь прививок</Heading>}
         description={`Приказы ${orderNumbers.join(', ')}`}
         help={<VaccinationHelp calendar={calendar} />}
-        actions={<VaccinationPrintThumb html={handoutHtml()} onOpen={() => setPreviewOpen(true)} />}
+        actions={<VaccinationPrintThumb html={handoutHtml()} onOpen={openPreview} />}
       />
       <SegmentedControl
         class="vax__parts"
