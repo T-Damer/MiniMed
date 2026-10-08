@@ -611,6 +611,19 @@
       "release": "reference-icd11-2026.10.6 (.db.gz asset); the SQLite and release/ copies are the local release copy",
       "bytes": 309358500,
       "modified": "2026-10-06"
+    },
+    {
+      "path": "data/build/definitions-ux13",
+      "class": "REBUILDABLE",
+      "producer": "python -m localmed_ingest.definition_candidate, then scripts/prepare-definition-reference.py --source-manifest (UX13 candidate dictionary 2026.10.08, not published)",
+      "consumers": [
+        "apps/app/e2e/core-identities-fixture.ts (the «Депрессия» case)",
+        "tools/benchmarks/src/run-sense-ranking.ts"
+      ],
+      "rebuild": "docs/DEFINITION_REFERENCE_PLAN.md, section «Senses, КР glossary coverage and the definition card»: about 5 minutes over data/raw/official-clinical-documents and data/build/krasotaimedicina-module; the candidate source directory under content/definition-drafts is deleted after the build.",
+      "note": "The installed .db (237 MB) and its .db.gz (52 MB) of edition 2026.10.08; delete once a published edition supersedes it.",
+      "bytes": 290437286,
+      "modified": "2026-10-08"
     }
   ]
 }

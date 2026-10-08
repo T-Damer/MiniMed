@@ -1,9 +1,9 @@
 {
   "database": "data/build/definitions-ux13/2026.10.08/minimed.definition.reference.2026.10.08.db",
-  "definedSenses": 22288,
-  "headwords": 16949,
-  "ambiguousHeadwords": 2991,
-  "firstSenseChangedByRanking": 921,
+  "definedSenses": 22608,
+  "headwords": 17201,
+  "ambiguousHeadwords": 3041,
+  "firstSenseChangedByRanking": 951,
   "cases": {
     "total": 6,
     "passedBefore": 5,

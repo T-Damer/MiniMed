@@ -15,6 +15,14 @@
   line-height: 1.55;
 }
 
+.reference-panel__error {
+  margin: 0;
+  color: var(--theme-danger);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
 .reference-panel__empty {
   display: grid;
   gap: 0.75rem;
@@ -220,4 +228,70 @@
     opacity: 0;
     transform: translateY(0.25rem);
   }
+}
+
+/* The dictionary is not installed: its name, size and the download. */
+.dictionary-download {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  background: var(--theme-surface-raised);
+}
+
+.dictionary-download__copy {
+  display: grid;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.dictionary-download__title {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.dictionary-download__status {
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.dictionary-download__progress {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: 0.4rem;
+  accent-color: var(--theme-accent);
+}
+
+.dictionary-download__button {
+  min-height: 2.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+
+.dictionary-download__button:active {
+  transform: scale(0.96);
+}
+
+.dictionary-download__button--quiet {
+  color: var(--theme-text);
+  background: transparent;
+}
+
+.dictionary-download__error {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--theme-danger);
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
 }

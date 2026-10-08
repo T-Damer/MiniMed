@@ -1,4 +1,4 @@
-import type { DefinitionReferenceBlock, DefinitionReferenceHit } from '@localmed/contracts';
+import type { DefinitionReferenceHit } from '@localmed/contracts';
 import { type DoctorProfile, EMPTY_DOCTOR_PROFILE } from './doctor-profile';
 import { rankSenses } from './sense-ranking';
 

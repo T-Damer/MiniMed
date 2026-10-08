@@ -133,12 +133,23 @@ export function CoreIdentityMatches(props: {
       .join(',');
   });
   // The core is part of the source: after an install the registry swaps in a core that can read it.
+  const [readFailed, setReadFailed] = createSignal(false);
   const details = createQuietResource(
     () => {
       const key = sensesKey();
       return key ? { key, core: props.core } : undefined;
     },
-    ({ core }) => loadSenseDetails(core, senseTargets()),
+    async ({ core }) => {
+      try {
+        const loaded = await loadSenseDetails(core, senseTargets());
+        setReadFailed(false);
+        return loaded;
+      } catch {
+        // Shown in place as the card's hint; the previous senses stay on screen meanwhile.
+        setReadFailed(true);
+        return [];
+      }
+    },
   );
   const ranked = createMemo(() =>
     rankSenses(
@@ -180,7 +191,8 @@ export function CoreIdentityMatches(props: {
     if (!hit) return '';
     if (hit.target.type === 'document') return 'документ в установленном наборе';
     if (!definitionHitHasText(hit)) return 'название сохранено, определения пока нет';
-    if (details.loading() || details.error()) return '';
+    if (readFailed()) return 'не удалось прочитать словарь';
+    if (details.loading()) return '';
     if (!moduleFor(hit)) return 'этот выпуск словаря сейчас недоступен';
     return 'определение в словаре, не загружено';
   };

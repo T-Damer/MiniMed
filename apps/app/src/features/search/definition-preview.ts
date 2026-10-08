@@ -1,9 +1,5 @@
 import {
-  type ContentModuleCatalogEntry,
   type CoreIdentityHit,
-  type DefinitionReferenceReply,
-  type DefinitionReferenceRequest,
-  type MedicalCore,
   normalizeCoreIdentityName,
   type SearchResultGroup,
 } from '@localmed/contracts';
@@ -100,41 +96,6 @@ export function definitionPreviewText(text: string, limit = 260): string {
   const cut = plain.slice(0, limit);
   const lastSpace = cut.lastIndexOf(' ');
   return `${(lastSpace > limit * 0.6 ? cut.slice(0, lastSpace) : cut).replace(/[\s,;:—–-]+$/u, '')}…`;
-}
-
-/**
- * The first definition (or criterion) block of a dictionary entry, read through the installed
- * reference module. `undefined` when the module is not connected or the entry has no such block;
- * errors of the reference reader propagate.
- */
-export async function loadDefinitionPreviewText(
-  core: MedicalCore,
-  hit: CoreIdentityHit,
-  module: ContentModuleCatalogEntry,
-): Promise<string | undefined> {
-  const target = hit.target;
-  const reference = core.reference?.bind(core);
-  const descriptor = module.definitionReference;
-  if (target.type !== 'definition' || !reference || !descriptor) return undefined;
-  if (descriptor.editionId !== target.editionId) return undefined;
-  const scope = { moduleId: module.id, editionId: descriptor.editionId };
-  const ask = async (
-    request: DefinitionReferenceRequest,
-  ): Promise<DefinitionReferenceReply | undefined> => {
-    const result = await reference(request);
-    if (!result.ok) throw new Error(result.error.message);
-    return result.value.op === 'unavailable' ? undefined : result.value;
-  };
-  const status = await ask({ ...scope, op: 'status' });
-  if (status?.op !== 'status' || status.editionId !== descriptor.editionId) return undefined;
-  const blocks = await ask({ ...scope, op: 'blocks', id: target.entityId });
-  if (blocks?.op !== 'blocks') return undefined;
-  const first = blocks.page.blocks.find(
-    (block) => block.role === 'definition' || block.role === 'item',
-  );
-  if (!first) return undefined;
-  const text = await ask({ ...scope, op: 'text', id: target.entityId, chunkId: first.chunkId });
-  return text?.op === 'text' && text.block ? text.block.text : undefined;
 }
 
 /** A definition quoted from a found document, for when no installed dictionary can supply one. */

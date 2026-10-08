@@ -1,0 +1,589 @@
+{
+  "format": "minimed-definition-candidate-v1",
+  "tag": "candidate-2026.10.08",
+  "replacedFirstExtractionEntries": 8260,
+  "registry": {
+    "format": "minimed-kr-registry-glossary-v1",
+    "registryDocuments": 1259,
+    "currentEditions": 763,
+    "documentsWithTermsSection": 1259,
+    "documentsWithExtractedTerms": 1219,
+    "currentEditionsWithExtractedTerms": 746,
+    "currentEditionsWithoutTerms": {
+      "count": 17,
+      "section-empty": [
+        "151_2",
+        "711_2"
+      ],
+      "states-no-terms": [
+        "1000_1",
+        "281_3",
+        "331_2",
+        "352_3",
+        "360_3",
+        "381_3",
+        "388_3",
+        "596_3",
+        "688_2",
+        "714_2",
+        "769_1",
+        "820_1",
+        "836_1",
+        "918_1",
+        "989_1"
+      ],
+      "unparsed": []
+    },
+    "diseaseDefinitionSection": "doc_crat_info_1_1",
+    "paragraphs": 16008,
+    "entriesBeforeFolding": 14395,
+    "entriesAfterFolding": 9170,
+    "foldedFromSeveralRecommendations": 2319,
+    "continuationParagraphs": 138,
+    "unparsedParagraphs": 1242,
+    "rejectedByReason": {
+      "bracket-only": 1,
+      "fragment-of-list-item": 4,
+      "score-line": 4,
+      "sentence-as-term": 144,
+      "too-short": 7,
+      "unbalanced-bracket": 73
+    },
+    "flags": {
+      "abbreviation-like": 128,
+      "bold-boundary": 331,
+      "bold-mismatch": 4,
+      "list-item": 69,
+      "section-defines-title": 26,
+      "unbalanced-source-bracket": 17
+    },
+    "readerAnchors": {
+      "anchored": 9360,
+      "no-reader-document": 4989,
+      "paragraph-not-in-reader-chunks": 46
+    },
+    "rejectedExamples": {
+      "bracket-only": [
+        {
+          "document": "899_1",
+          "term": "(англ. – cross-tolerance)",
+          "text": "(англ. – cross-tolerance) – развитие толерантности к веществу, воздействию которого индивидуум ранее не подвергался, в р"
+        }
+      ],
+      "fragment-of-list-item": [
+        {
+          "document": "78_2",
+          "term": "при стадиях 1",
+          "text": "при стадиях 1–3: появление отдаленных метастазов;"
+        },
+        {
+          "document": "82_2",
+          "term": "со сдвигом рамки",
+          "text": "• со сдвигом рамки - приводящая к нарушению нормального отсчета кодирующих триплетов (делеции или вставки участков молек"
+        },
+        {
+          "document": "82_3",
+          "term": "со сдвигом рамки",
+          "text": "со сдвигом рамки - приводящая к нарушению нормального отсчета кодирующих триплетов (делеции или вставки участков молекул"
+        },
+        {
+          "document": "844_1",
+          "term": "в случае срока развития инфекции до 90 дней инфицирование считается послеоперационным, более 90 дней",
+          "text": "в случае срока развития инфекции до 90 дней инфицирование считается послеоперационным, более 90 дней – эндогенным (гемат"
+        }
+      ],
+      "score-line": [
+        {
+          "document": "1059_1",
+          "term": "20",
+          "text": "20–30 нг/мл (50–75 нмоль/л)"
+        },
+        {
+          "document": "1059_1",
+          "term": "30",
+          "text": "30–50 нг/мл (75–125 нмоль/л)"
+        },
+        {
+          "document": "1059_1",
+          "term": "50",
+          "text": "50–60 нг/мл (125–150 нмоль/л)"
+        },
+        {
+          "document": "1059_1",
+          "term": "60",
+          "text": "60–100 нг/мл (150–250 нмоль/л)"
+        }
+      ],
+      "sentence-as-term": [
+        {
+          "document": "1000_1",
+          "term": "Диагноз «эозинофильный эзофагит» следует дифференцировать с другими заболеваниями, сопровождающимися эозинофилией пищево",
+          "text": "Диагноз «эозинофильный эзофагит» следует дифференцировать с другими заболеваниями, сопровождающимися эозинофилией пищево"
+        },
+        {
+          "document": "1000_1",
+          "term": "Заболевание имеет относительно невысокую распространенность, которая по усредненным оценкам составляет 10-40 на 100000 ч",
+          "text": "Заболевание имеет относительно невысокую распространенность, которая по усредненным оценкам составляет 10-40 на 100000 ч"
+        },
+        {
+          "document": "1011_1",
+          "term": "Избыточная крайняя плоть, фимоз и парафимоз относятся к изменениям крайней плоти полового члена и могут наблюдаться как ",
+          "text": "Избыточная крайняя плоть, фимоз и парафимоз относятся к изменениям крайней плоти полового члена и могут наблюдаться как "
+        },
+        {
+          "document": "1029_1",
+          "term": "Оптическое исследование сетчатки или головки зрительного нерва и слоя нервных волокон с помощью компьютерного анализатор",
+          "text": "Оптическое исследование сетчатки или головки зрительного нерва и слоя нервных волокон с помощью компьютерного анализатор"
+        },
+        {
+          "document": "1041_1",
+          "term": "Неполноценное питание (malnutrition) определяется как дефицит, избыток или дисбаланс в потреблении человеком калорий и/и",
+          "text": "Неполноценное питание (malnutrition) определяется как дефицит, избыток или дисбаланс в потреблении человеком калорий и/и"
+        },
+        {
+          "document": "1052_1",
+          "term": "Различают физиологический и патологический нистагм. Физиологический нистагм необходим для нормального функционирования з",
+          "text": "Различают физиологический и патологический нистагм. Физиологический нистагм необходим для нормального функционирования з"
+        }
+      ],
+      "too-short": [
+        {
+          "document": "1005_1",
+          "term": "C",
+          "text": "C — кальциноз (англ. саlcinosis)"
+        },
+        {
+          "document": "1005_1",
+          "term": "R",
+          "text": "R — болезнь Рейно (Raynaud’s phenomenon)"
+        },
+        {
+          "document": "1005_1",
+          "term": "E",
+          "text": "E — эзофагит (esophageal dysmotility)"
+        },
+        {
+          "document": "1005_1",
+          "term": "S",
+          "text": "S — склеродактилия (sclerodactyly)"
+        },
+        {
+          "document": "1005_1",
+          "term": "T",
+          "text": "T — телеангиоэктазия (telangiectasias)"
+        },
+        {
+          "document": "479_2",
+          "term": "…",
+          "text": "…** – лекарственный препарат, входящий в Перечень жизненно необходимых и важнейших лекарственных препаратов для медицинс"
+        }
+      ],
+      "unbalanced-bracket": [
+        {
+          "document": "1004_1",
+          "term": "Талассемии представляют собой гетерогенную группу нарушений гемоглобина, при которой в результате нарушенного синтеза од",
+          "text": "Талассемии представляют собой гетерогенную группу нарушений гемоглобина, при которой в результате нарушенного синтеза од"
+        },
+        {
+          "document": "1019_1",
+          "term": "При формировании окончательного диагноза данный термин служит синонимом терминов «криптогенный гепатит» или «криптогенна",
+          "text": "При формировании окончательного диагноза данный термин служит синонимом терминов «криптогенный гепатит» или «криптогенна"
+        },
+        {
+          "document": "1019_1",
+          "term": "В данные клинические рекомендации не включаются заболевания печени при гемобластозах, солидных злокачественных опухолях ",
+          "text": "В данные клинические рекомендации не включаются заболевания печени при гемобластозах, солидных злокачественных опухолях "
+        },
+        {
+          "document": "1022_1",
+          "term": "Прорезывание временных зубов является естественным физиологическим процессом, который обычно не вызывает каких-либо знач",
+          "text": "Прорезывание временных зубов является естественным физиологическим процессом, который обычно не вызывает каких-либо знач"
+        },
+        {
+          "document": "1025_1",
+          "term": "Адонис-бром (Adonis-Brom; лекарственная форма таблетки, содержат: густой экстракт горицвета",
+          "text": "Адонис-бром (Adonis-Brom; лекарственная форма таблетки, содержат: густой экстракт горицвета – 0,06907 грамма, с содержан"
+        },
+        {
+          "document": "1041_1",
+          "term": "В нашей стране достаточно долго использовался термин «гипотрофия» для детей, как первого года жизни, так и раннего возра",
+          "text": "В нашей стране достаточно долго использовался термин «гипотрофия» для детей, как первого года жизни, так и раннего возра"
+        }
+      ]
+    },
+    "unparsedExamples": [
+      {
+        "document": "1000_1",
+        "text": "Не применяются."
+      },
+      {
+        "document": "1000_1",
+        "text": "Важно, что из определения ЭоЭ исключен термин «антиген-опосредованное» заболевание, использовавшийся ранее [21]. Согласно накопленным на сегодняшний день данным"
+      },
+      {
+        "document": "1000_1",
+        "text": "Более того, было показано, что терапия ингибиторами протонного насоса, восстанавливая целостность эпителиального барьера, во многих случаях приводит не только к"
+      },
+      {
+        "document": "1001_1",
+        "text": "2. ОН, возникающий вследствие патологических изменений, связанных с отеком костного мозга или субхондральных отделов кости, чаще ассоциируется с хроническими ар"
+      },
+      {
+        "document": "1001_1",
+        "text": "3. ОН челюсти, связанный с применением бисфосфонатов (БОНЧ) для лечения костных метастазов у онкологических больных (солидные опухоли, карцинома молочной, предс"
+      },
+      {
+        "document": "1001_1",
+        "text": "4. Спорадический ОН (болезнь Пертеса, Хасса и т. д.)."
+      },
+      {
+        "document": "1001_1",
+        "text": "Рассматривают также глюкокортикоидный остеонекроз, который вместе с бисфосфонатным относят к ятрогенным."
+      },
+      {
+        "document": "1001_1",
+        "text": "Травмы ЧЛО у детей сопровождаются не только значительными повреждениями ее остром периоде, но и последствиями, связанными с задержкой развития и роста тканей ли"
+      },
+      {
+        "document": "1005_1",
+        "text": "Это форма системной склеродермии, ассоциированной с антителами к центромерам. Обычно распространяется на почки. Если в процесс вовлечены лёгкие, то это проявляе"
+      },
+      {
+        "document": "1007_1",
+        "text": "Часто при восходящем инфицировании происходит одновременное поражение, как придатка яичка, так и самого яичка. В таком случае состояние описывается как эпидидим"
+      },
+      {
+        "document": "1008_1",
+        "text": "Быстрая и точная диагностика причин дилатации и дисфункции ЛЖ чрезвычайно важна, поскольку подходы к ведению больных существенно различаются в зависимости от эт"
+      },
+      {
+        "document": "1014_1",
+        "text": "Основными заболеваниями, входящими в понятие ОЗЯ являются перекрут гидатиды яичка и перекрут гидатиды придатка яичка; перекрут яичка; острые воспалительные забо"
+      },
+      {
+        "document": "1014_1",
+        "text": "Среди острых заболеваний полового члена наиболее часто у детей встречаются баланопостит и парафимоз. Фимоз нельзя отнести к острым заболеваниям, однако он может"
+      },
+      {
+        "document": "1019_1",
+        "text": "Термин «реактивный гепатит» удобен для повседневной работы врачей, однако необходимо помнить, что это диагноз исключения."
+      },
+      {
+        "document": "1019_1",
+        "text": "Для удобства в практической работе другие гепатиты условно разделены на следующие категории:"
+      },
+      {
+        "document": "1019_1",
+        "text": "1) реактивный гепатит на фоне заболеваний желудочно-кишечного тракта (ЖКТ), диффузных заболеваний соединительной ткани (ДЗСТ) и васкулитов, эндокринных заболева"
+      },
+      {
+        "document": "1019_1",
+        "text": "2) повреждение печени при инфекционных заболеваниях (за исключением острых и хронических вирусных гепатитов);"
+      },
+      {
+        "document": "1019_1",
+        "text": "3) ишемическое повреждение печени;"
+      },
+      {
+        "document": "1019_1",
+        "text": "4) криптогенный хронический гепатит."
+      },
+      {
+        "document": "1021_1",
+        "text": "С учетом этиопатогенетической характеристики кариеса зубов как болезни, систематизируемой в МКБ-10, кариес зубов (КЗ) определяется как мультифакторное заболеван"
+      },
+      {
+        "document": "1025_1",
+        "text": "Острое отравление сердечными гликозидами и препаратами аналогичного действия (по формулировке МКБ-10) подразумевает расстройство здоровья, вызванное поступление"
+      },
+      {
+        "document": "1025_1",
+        "text": "Острое отравление сердечными гликозидами и препаратами аналогичного действия согласно классификации МКБ 10 пересмотра (Т46.0) относят к вредным воздействиям в р"
+      },
+      {
+        "document": "1025_1",
+        "text": "Группы лекарственных препаратов по АТХ классификации."
+      },
+      {
+        "document": "1025_1",
+        "text": "Ацетилдигитоксин (С01АА01)"
+      },
+      {
+        "document": "1025_1",
+        "text": "Ацетилдигоксин (С01АА02)"
+      },
+      {
+        "document": "1025_1",
+        "text": "Дигиталиса гликозидов сумма (С01АА03)"
+      },
+      {
+        "document": "1025_1",
+        "text": "Дигитоксин (С01АА04)"
+      },
+      {
+        "document": "1025_1",
+        "text": "Дигоксин (С01АА05)"
+      },
+      {
+        "document": "1025_1",
+        "text": "Ланатозид C (С01АА06)"
+      },
+      {
+        "document": "1025_1",
+        "text": "Десланозид (С01АА07)"
+      },
+      {
+        "document": "1025_1",
+        "text": "Метилдигоксин (С01АА08)"
+      },
+      {
+        "document": "1025_1",
+        "text": "Гитоформат (С01АА09)"
+      },
+      {
+        "document": "1025_1",
+        "text": "Ацетилдигоксинв комбинациях с другими средствами (С01АА52)"
+      },
+      {
+        "document": "1025_1",
+        "text": "Просцилларидин (С01АВ01)"
+      },
+      {
+        "document": "1025_1",
+        "text": "Просцилларидин в комбинации с другими средствами (С01АВ51)"
+      },
+      {
+        "document": "1025_1",
+        "text": "Цимарин (С01АС03)"
+      },
+      {
+        "document": "1025_1",
+        "text": "Кардиотонические средства негликозидной структуры"
+      },
+      {
+        "document": "1025_1",
+        "text": "Левосимендан."
+      },
+      {
+        "document": "1025_1",
+        "text": "При производстве лекарственных препаратов, в народной медицине и домашнем самолечении используются растения, содержащие СГ [1, 2, 3, 4]."
+      },
+      {
+        "document": "1025_1",
+        "text": "Фармакогнозия представляет 2 группы СГ [1]: карденолиды и буфадиенолиды."
+      }
+    ],
+    "entriesWithReaderAnchor": 7419,
+    "entriesWithCurrentEdition": 7462
+  },
+  "krasotaimedicina": {
+    "format": "minimed-krasotaimedicina-leads-v1",
+    "counts": {
+      "articles": 6068,
+      "extracted": 5854,
+      "field:allergology": 46,
+      "field:andrology": 58,
+      "field:cardiology": 230,
+      "field:cosmetology": 34,
+      "field:dentistry": 204,
+      "field:dermatology": 339,
+      "field:emergency": 84,
+      "field:endocrinology": 136,
+      "field:gastroenterology": 487,
+      "field:genetics": 249,
+      "field:gynecology": 414,
+      "field:hematology": 58,
+      "field:immunology": 30,
+      "field:infectious": 200,
+      "field:mammology": 45,
+      "field:narcology": 62,
+      "field:neurology": 500,
+      "field:oncology": 151,
+      "field:ophthalmology": 231,
+      "field:otolaryngology": 183,
+      "field:pediatrics": 697,
+      "field:phlebology": 40,
+      "field:plastic": 24,
+      "field:proctology": 97,
+      "field:psychiatry": 300,
+      "field:pulmonology": 252,
+      "field:rheumatology": 91,
+      "field:speech": 60,
+      "field:traumatology": 328,
+      "field:trichology": 18,
+      "field:urology": 186,
+      "field:venereology": 20,
+      "skipped:first-sentence-too-long": 1,
+      "skipped:first-sentence-too-short": 2,
+      "skipped:lead-is-not-term-dash-definition": 211
+    },
+    "skippedExamples": {
+      "first-sentence-too-long": [
+        "Артериальная гипотония ( Артериальная гипотензия )"
+      ],
+      "lead-is-not-term-dash-definition": [
+        "ОНР 2 уровня",
+        "Вывих ключицы",
+        "Дефицит антитромбина III",
+        "Неврит",
+        "Гипергидроз. Повышенная потливость.",
+        "Лимфома ЦНС",
+        "DICER1-синдром",
+        "Храп у детей"
+      ],
+      "first-sentence-too-short": [
+        "Уретерит",
+        "Бутиратомания"
+      ]
+    },
+    "maxSentenceWords": 60
+  },
+  "krasotaimedicinaSymptoms": {
+    "format": "minimed-krasotaimedicina-symptoms-v1",
+    "counts": {
+      "extracted": 320,
+      "field:None": 59,
+      "field:andrology": 4,
+      "field:cardiology": 6,
+      "field:dermatology": 8,
+      "field:gastroenterology": 39,
+      "field:gynecology": 10,
+      "field:hematology": 45,
+      "field:infectious": 5,
+      "field:mammology": 4,
+      "field:neurology": 16,
+      "field:ophthalmology": 16,
+      "field:otolaryngology": 12,
+      "field:psychiatry": 22,
+      "field:pulmonology": 22,
+      "field:rheumatology": 6,
+      "field:speech": 21,
+      "field:urology": 25,
+      "pages": 544,
+      "skipped:lead-is-not-term-dash-definition": 224
+    },
+    "skippedExamples": {
+      "lead-is-not-term-dash-definition": [
+        "Повышенная тактильная чувствительность",
+        "Приливы у женщин",
+        "Зеленая мокрота",
+        "Гнойные выделения из уха",
+        "Штампующая походка",
+        "Ощущение инородного тела в заднем проходе",
+        "Белые выделения из глаз",
+        "Отеки рук"
+      ]
+    },
+    "maxSentenceWords": 60
+  },
+  "senses": {
+    "definedSenses": 22566,
+    "headwords": 17195,
+    "ambiguousHeadwords": 3024,
+    "ambiguousMeasured": 2985,
+    "ambiguousWithDistinctUsage": 581,
+    "sensesByField": {
+      "allergology": 46,
+      "andrology": 62,
+      "cardiology": 1161,
+      "cosmetology": 34,
+      "dentistry": 294,
+      "dermatology": 478,
+      "emergency": 84,
+      "endocrinology": 766,
+      "gastroenterology": 1091,
+      "general": 5559,
+      "genetics": 590,
+      "gynecology": 621,
+      "hematology": 333,
+      "immunology": 62,
+      "infectious": 758,
+      "mammology": 49,
+      "narcology": 237,
+      "neonatology": 149,
+      "nephrology": 168,
+      "neurology": 1072,
+      "none": 1409,
+      "obstetrics": 331,
+      "oncology": 1377,
+      "ophthalmology": 713,
+      "orthopedics": 248,
+      "otolaryngology": 308,
+      "pediatrics": 697,
+      "phlebology": 40,
+      "phthisiology": 111,
+      "plastic": 24,
+      "proctology": 97,
+      "psychiatry": 895,
+      "pulmonology": 486,
+      "rheumatology": 373,
+      "speech": 81,
+      "traumatology": 1244,
+      "trichology": 18,
+      "urology": 480,
+      "venereology": 20
+    },
+    "sensesWithoutField": 1409,
+    "corpusDocuments": 763,
+    "corpusParagraphs": 503794
+  },
+  "inputs": 36,
+  "inputBytes": {
+    "catalog.json": 23009,
+    "ruwiktionary-2026.9.16.json": 4978494,
+    "prepared-source-excerpts-2026.09.21.json": 198440,
+    "clinical-source-excerpts-2026.09.21.part-01.json": 10195658,
+    "clinical-source-excerpts-2026.09.21.part-02.json": 10336660,
+    "clinical-source-excerpts-2026.09.21.part-03.json": 2533249,
+    "specialist-journal-active-2026.09.22__1027-4898-90541.json": 37028,
+    "specialist-journal-active-2026.09.22__1027-4898-14094.json": 60012,
+    "specialist-journal-active-2026.09.22__1027-4898-14095.json": 65401,
+    "specialist-journal-active-2026.09.22__1027-4898-14043.json": 65886,
+    "specialist-journal-active-2026.09.22__1027-4898-105915.json": 40082,
+    "specialist-journal-active-2026.09.22__rfd-7752.json": 114538,
+    "specialist-journal-active-2026.09.22__rfd-6178.json": 93312,
+    "specialist-journal-active-2026.09.22__rfd-1431.json": 77009,
+    "specialist-journal-active-2026.09.22__rfd-3577.json": 72475,
+    "specialist-journal-active-2026.09.22__pediatr-11910.json": 84832,
+    "specialist-journal-active-2026.09.22__rfd-10468.json": 107055,
+    "specialist-journal-active-2026.09.22__1027-4898-20398.json": 67560,
+    "specialist-journal-active-2026.09.22__1027-4898-34129.json": 90481,
+    "specialist-journal-active-2026.09.22__1027-4898-52656.json": 74008,
+    "specialist-journal-active-2026.09.22__1027-4898-13954.json": 52703,
+    "specialist-journal-active-2026.09.22__rfd-8759.json": 76505,
+    "specialist-journal-active-2026.09.22__rfd-6856.json": 91983,
+    "specialist-journal-active-2026.09.22__rfd-12972.json": 90124,
+    "specialist-journal-active-2026.09.22__rfd-6179.json": 160755,
+    "specialist-journal-active-2026.09.22__rfd-5928.json": 32233,
+    "specialist-teaching-active-2026.09.22-d__bundles__articles-01.json": 2644205,
+    "selected-medical-definitions-2026.09.23.json": 19924,
+    "msd-definitions-2026.09.23-b.json": 4886,
+    "clinical-glossary-and-abbreviations-2026.09.29.part-01.json": 14119202,
+    "clinical-glossary-and-abbreviations-2026.09.29.part-02.json": 5286102,
+    "kr-registry-glossary.part-01.json": 8613241,
+    "kr-registry-glossary.part-02.json": 8594096,
+    "kr-registry-glossary.part-03.json": 447595,
+    "krasotaimedicina-leads.json": 7664650,
+    "krasotaimedicina-symptoms.json": 343828
+  },
+  "manifest": "content/definition-drafts/candidate-2026.10.08/source-inputs.json",
+  "edition": {
+    "entries": 38572,
+    "discoveredNames": 7637,
+    "completedNames": 42,
+    "sources": 82,
+    "blocks": 66267,
+    "baselineSqliteBytes": 308334592,
+    "sqliteBytes": 237481984,
+    "gzipBytes": 52275358,
+    "sqliteSha256": "4580dd8bbeecfd0cd9568418cbefad81013cecaf6aa8846d2a66f2ef9dd27726",
+    "integrity": "ok",
+    "foreignKeyViolations": 0,
+    "selectedByRecordType": {
+      "abbreviation": 8369,
+      "clinical-definition": 15627,
+      "lexical-gloss": 6939
+    },
+    "version": "2026.10.08"
+  }
+}

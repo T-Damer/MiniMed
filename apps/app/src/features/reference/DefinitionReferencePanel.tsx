@@ -18,6 +18,7 @@ import {
 import { AppGlyph } from '@/components/AppGlyph';
 import { MODULE_CATALOG } from '@/features/modules/module-catalog';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
+import { DictionaryDownload } from '@/features/reference/DictionaryDownload';
 import { getDoctorProfile } from '@/features/reference/doctor-profile';
 import {
   expansionCountLabel,
@@ -31,11 +32,9 @@ import {
 } from '@/features/reference/reference-entry';
 import type { SenseSource } from '@/features/reference/sense-detail';
 import { loadTermArticle, type TermArticle } from '@/features/reference/term-article';
-import { PackageDownloadRow } from '@/features/setup/PackageDownloadRow';
 import { subscribeAppPreferences } from '@/state/app-preferences';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import { motionMs } from '@/state/motion';
-import '@/features/setup/setup.css';
 import '@/features/reference/reference.css';
 
 /** The query is searched this long after the last keystroke. */
@@ -306,18 +305,16 @@ export function DefinitionReferencePanel(props: {
               when={candidates().length > 0}
               fallback={<p class="reference-panel__description">Словарь пока не опубликован.</p>}
             >
-              <ul class="package-list">
-                <For each={candidates()}>
-                  {(module) => (
-                    <PackageDownloadRow
-                      module={module}
-                      runtime={runtime}
-                      revision={revision()}
-                      onContentChanged={props.onContentChanged}
-                    />
-                  )}
-                </For>
-              </ul>
+              <For each={candidates()}>
+                {(module) => (
+                  <DictionaryDownload
+                    module={module}
+                    runtime={runtime}
+                    revision={revision()}
+                    onContentChanged={props.onContentChanged}
+                  />
+                )}
+              </For>
             </Show>
           </div>
         }
@@ -454,7 +451,7 @@ export function DefinitionReferencePanel(props: {
       </Show>
       <Show when={error()}>
         {(message) => (
-          <p class="package-row__error" role="alert">
+          <p class="reference-panel__error" role="alert">
             {message()}
           </p>
         )}

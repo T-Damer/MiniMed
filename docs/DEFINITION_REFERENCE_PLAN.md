@@ -1,5 +1,88 @@
 # Definition reference: execution plan
 
+## Senses, КР glossary coverage and the definition card — 2026-10-08 (UX13)
+
+Owner report: «Депрессия» showed a fracture pattern; the dialog showed draft banners, a search field
+and raw source-metadata JSON. Local candidate only; nothing is published, no core is rebuilt.
+
+**Diagnosis.** Not a boundary bug: КР 904_1 (distal femur fractures) really defines «Депрессия –
+процесс формирования перелома суставной поверхности кости…». The 2026.9.30 edition held two senses
+of the word (that КР entry and a Wiktionary gloss), ordered by coverage only, and the mood disorder
+of Красота и медицина was not in the dictionary. Separately, the first КР glossary extraction
+worked on flattened text and cut some headwords at the wrong dash: of its 8 260 КР glossary and
+«Определение заболевания» entries 222 (2.7 %) had a defective headword («Гидронефроз (греч. hydōr»,
+«Антитела к … (АЦЦП, синонимы», 166 cut inside a bracket; a sentence or a score line as a term).
+
+**What changed in the data** (`definition_candidate.py` assembles it; every step is deterministic,
+no model):
+
+- `kr_registry_glossary.py` / `kr_term_boundary.py` read the raw registry HTML
+  (`data/raw/official-clinical-documents`): one paragraph per entry, the term ends at the first dash
+  outside brackets and quotations, brackets become aliases, list markers are peeled, a headword that is
+  a sentence, a score line, a list fragment or an unbalanced bracket is rejected and counted, never
+  repaired. Identical wording in several КР folds into one entry with a citation per КР.
+  Each block keeps the exact reader anchor of its chunk and the field of the КР (МКБ-10 chapter).
+- `kim_definitions.py`: the first sentence of the «Краткое описание» lead of every Красота и медицина
+  disease/syndrome article («**Термин** – …», reader anchor, page rubric = field), and of the symptom
+  pages of the crawl (the page itself is the source link; the 2026-09-28 owner decision covers
+  disease articles only, so the symptom shard needs an owner decision before publishing).
+- `definition_senses.py` + `sense_usage.py`: for every headword with two or more differently worded
+  definitions, each sense gets `field`, `meaning`, `documents` (independent sources of that meaning),
+  `authority` (3 КР «Термины и определения», 2 other official/specialist works, 1 reference sites,
+  0 general dictionaries) and **corpus usage**: every paragraph of every current КР that contains the
+  headword is given to the meaning whose own definition words it shares most (inverse-frequency
+  weights, shared words count a quarter, a strong overlap that clearly beats the runner-up is
+  required); `usage` = КР with such a paragraph, `termUsage` = КР using the headword. Glossary,
+  abbreviation and bibliography sections are not scanned. Alike-worded definitions form one meaning.
+  The signals are entity metadata (`sense`), not text; source text is untouched.
+- `sqlite_builder.write_sqlite_pack`: a pack above 20 000 chunks indexes the neighbour columns before
+  inserting; with foreign keys on, the 66 267-chunk build had not finished after 25 minutes (quadratic),
+  now 40 s.
+
+**Measurements (before → after).**
+
+| | 2026.9.30 (released) | candidate 2026.10.08 |
+|---|---:|---:|
+| entries / clinical definitions | 31 488 / 8 585 | 38 572 / 15 627 |
+| КР glossary + disease-definition entries | 8 260 (222 defective headwords) | 9 170 (0 defective; 233 paragraphs rejected and listed) |
+| current КР with ≥1 glossary term | 663 КР | 746 of 763 (the other 17: 15 state «не применяются», 2 empty) |
+| КР entries with an exact reader anchor | per block, not reported | 7 419 of 9 170 (the rest cite superseded editions or paragraphs the reader chunks split) |
+| Красота и медицина definitions | 0 | 5 854 of 6 068 articles + 320 of 544 symptom pages |
+| ambiguous headwords | not measured | 3 041 of 17 201 |
+| first sense changed by ranking | – | 951 |
+| «Депрессия», first sense | fracture pattern | mood disorder (psychiatry) |
+| installed / gzip | 192.3 MB / 42.2 MB | 237.5 MB / 52.3 MB |
+
+`tools/benchmarks/src/run-sense-ranking.ts` (cases in `tools/benchmarks/sense-queries.json`, results in
+`research/definition-senses-benchmark-2026-10-08*.json`): 6 authored headword cases 4 → 6 pass,
+including «Депрессия»; the candidate build report is `research/definition-candidate-2026-10-08.json`.
+Authored probes and one owner report, not independent clinical qualification. Left open: the headword
+grouping is by exact title (synonyms and plurals are separate headwords); a field is the field of the
+source document, so a КР on poisoning labels a neuro term «наркология»; diagnostics and treatment pages
+of the crawl (12 997) have no lead block and are not terms of this dictionary.
+
+**App.** `features/reference/sense-ranking.ts` orders the senses (usage 0.5, sources 0.15, authority
+0.25, doctor's profile up to 0.35); the card shows the best sense in the source's words, the source
+(`КР: <название>`, `Красота и медицина`) with a link to the exact anchor (or the web page), a
+«черновик» badge only for non-official sources, the other meanings as chips labelled by field.
+«Подробнее» opens the full text and every citing document; pipeline notes, JSON and the
+draft banners are gone; without the dictionary the dialog offers the download directly; the dictionary
+tool keeps one search field (debounced).
+
+**Doctor profile** (`features/reference/doctor-profile.ts`, `localStorage` `minimed.doctor-profile.v1`,
+never leaves the device): decayed weights per medical field, fed by choosing a sense chip, opening a
+sense in full and opening its source; the boost scales with the amount of evidence, so one tap
+decides nothing, and `resetDoctorProfile()` forgets everything. Not yet fed: opened recommendations
+and installed section bundles (`fieldForSpecialty` maps a specialty name to a field id) and no
+Settings row — both belong to other owners' screens.
+
+**Publishing needs:** the owner's OK for the symptom pages; a core rebuild
+(`bun run content:core:build`, reference track) so `core_identities` points at the new entries;
+`.db.zst` framing and the upload (`docs/RELEASES.md`), a catalog entry (`minAppVersion` 0.6.41 is
+enough, the card needs the new app); the Красота и медицина module for its reader anchors.
+Rebuild: `uv run --project tools/ingest python -m localmed_ingest.definition_candidate …` then
+`scripts/prepare-definition-reference.py --source-manifest content/definition-drafts/<tag>/source-inputs.json`.
+
 ## Reverse definition handler — 2026-09-23
 
 Added 4 selected MSD definitions and a bounded description-to-term path. Exact identity lookup remains first. Same-corpus developer Top-20: 10 → 30 / 32. All 12644 exact-name outputs are unchanged. This is not independent clinical search qualification. Full bounds, source limits and remaining misses: `research/definition-description-delivery-2026-09-23.md` and its JSON. No model, APK or release.
