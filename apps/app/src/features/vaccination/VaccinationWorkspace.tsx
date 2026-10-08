@@ -1,67 +1,90 @@
-import { createMemo, createSignal, For, type JSX, Match, Show, Switch } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  type JSX,
+  Match,
+  on,
+  onCleanup,
+  Show,
+  Switch,
+} from 'solid-js';
+import { toast } from 'solid-sonner';
 
 import { AppGlyph } from '@/components/AppGlyph';
-import { Button } from '@/components/Button';
-import { Disclosure } from '@/components/Disclosure';
 import { NavBack } from '@/components/NavBack';
-import { useNarrowViewport } from '@/components/narrow-viewport';
 import { Page } from '@/components/Page';
 import { SearchField } from '@/components/SearchField';
 import { SegmentedControl } from '@/components/SegmentedControl';
-import { SelectField } from '@/components/SelectField';
 import { Heading } from '@/components/Text';
+import type { StatusFocus } from '@/features/vaccination/VaccinationChartView';
+import { VaccinationChartView } from '@/features/vaccination/VaccinationChartView';
+import { VaccinationChildRow } from '@/features/vaccination/VaccinationChildRow';
+import {
+  VaccinationAgeSheet,
+  VaccinationGroupSheet,
+} from '@/features/vaccination/VaccinationDoseSheet';
 import { VaccinationEpidemicView } from '@/features/vaccination/VaccinationEpidemicView';
-import { VaccinationGridView } from '@/features/vaccination/VaccinationGridView';
-import { VaccinationNationalView } from '@/features/vaccination/VaccinationNationalView';
-import { todayIso, VaccinationPlanView } from '@/features/vaccination/VaccinationPlanView';
+import { VaccinationHelp } from '@/features/vaccination/VaccinationHelp';
 import { VaccinationPrintDialog } from '@/features/vaccination/VaccinationPrintDialog';
-import { VaccinationProcedureView } from '@/features/vaccination/VaccinationProcedureView';
-import { getVaccinationCalendar, isAgeRow } from '@/features/vaccination/vaccination-calendar';
+import { VaccinationPrintThumb } from '@/features/vaccination/VaccinationPrintThumb';
+import { VaccinationStatusBar } from '@/features/vaccination/VaccinationStatusBar';
 import {
-  type CalendarFilter,
-  type CalendarPart,
-  DEFAULT_FILTER,
-  filterEpidemicRows,
-  filterNationalRows,
-  type PopulationFilter,
-} from '@/features/vaccination/vaccination-filter';
+  getVaccinationCalendar,
+  isAgeRow,
+  type NationalRow,
+  nationalDoses,
+} from '@/features/vaccination/vaccination-calendar';
+import { buildNationalChart } from '@/features/vaccination/vaccination-chart';
 import {
-  displayIsoDate,
-  renderVaccinationPrintHtml,
-  VACCINATION_PRINT_TITLE,
-} from '@/features/vaccination/vaccination-print';
+  type ChildInput,
+  childBirthDate,
+  handoutSubjectFor,
+  hasChild,
+  NO_CHILD,
+} from '@/features/vaccination/vaccination-child';
+import { filterEpidemicRows } from '@/features/vaccination/vaccination-filter';
+import { displayIsoDate, todayIso } from '@/features/vaccination/vaccination-format';
+import { buildHandout } from '@/features/vaccination/vaccination-handout';
+import { renderVaccinationHandoutHtml } from '@/features/vaccination/vaccination-handout-print';
+import {
+  type DoseMarkState,
+  nextMarkState,
+  withMark,
+  withMarks,
+} from '@/features/vaccination/vaccination-record';
+import { createRecordState } from '@/features/vaccination/vaccination-record-state';
+import { buildChildCalendar, overdueItemIds } from '@/features/vaccination/vaccination-status';
 import { pluralRu } from '@/i18n/labels';
 import '@/styles/vaccination.css';
 
-export type VaccinationPart = CalendarPart | 'plan' | 'procedure';
-type NationalLayout = 'order' | 'grid';
+type VaccinationPart = 'national' | 'epidemic';
 
 const PART_OPTIONS = [
   { value: 'national', label: 'Национальный' },
-  { value: 'plan', label: 'План ребёнка' },
-  { value: 'epidemic', label: 'Эпидемические показания' },
-  { value: 'procedure', label: 'Порядок' },
+  { value: 'epidemic', label: 'Эпид. показания' },
 ] as const satisfies readonly { value: VaccinationPart; label: string }[];
 
-const POPULATION_OPTIONS = [
-  { value: 'all', label: 'Все' },
-  { value: 'children', label: 'Дети' },
-  { value: 'adults', label: 'Взрослые' },
-] as const satisfies readonly { value: PopulationFilter; label: string }[];
+/** Typing in the search of epidemic indications filters this long after the last key. */
+const SEARCH_DELAY_MS = 200;
 
-const LAYOUT_OPTIONS = [
-  { value: 'order', label: 'Как в приказе' },
-  { value: 'grid', label: 'Сводка по возрасту' },
-] as const satisfies readonly { value: NationalLayout; label: string }[];
+const LEGEND = [
+  { status: 'done', label: 'сделана' },
+  { status: 'planned', label: 'запланирована' },
+  { status: 'now', label: 'пора' },
+  { status: 'overdue', label: 'просрочена' },
+] as const;
 
 function rowsCaption(shown: number, total: number): string {
-  return `Показано ${shown} из ${total} ${pluralRu(total, 'строки', 'строк', 'строк')}`;
+  return `${shown} из ${total}`;
 }
 
 /**
- * «Календарь прививок»: the national calendar and the calendar by epidemic indications of order
- * 1122н as the order prints them, a summary by age, a plan from a birth date and the order of
- * procedure; filters and a print of the whole document.
+ * «Календарь прививок»: the national calendar as a table of ages × vaccinations. Choose the child
+ * and the table shows what they have, what is planned, what is due now and what is overdue; tap a
+ * cell to mark it; print the page for the child's mother. The calendar by epidemic indications is
+ * one switch away.
  */
 export function VaccinationWorkspace(props: {
   /** From the address (`?part=`); anything that is not a part of the screen is ignored. */
@@ -69,93 +92,101 @@ export function VaccinationWorkspace(props: {
   readonly onBack: () => void;
 }): JSX.Element {
   const calendar = getVaccinationCalendar();
-  const narrow = useNarrowViewport();
+  const chart = buildNationalChart(calendar);
+  const columnIds = chart.columns.map((column) => column.rowId);
+  const doses = nationalDoses(calendar);
+  const [today, setToday] = createSignal(todayIso());
+  // A page left open overnight still counts from the right day.
+  const refreshToday = (): void => {
+    setToday(todayIso());
+  };
+  document.addEventListener('visibilitychange', refreshToday);
+  onCleanup(() => document.removeEventListener('visibilitychange', refreshToday));
+
   const [part, setPart] = createSignal<VaccinationPart>(
-    PART_OPTIONS.find((option) => option.value === props.initialPart)?.value ?? 'national',
+    props.initialPart === 'epidemic' ? 'epidemic' : 'national',
   );
-  const [layout, setLayout] = createSignal<NationalLayout>('order');
-  const [filter, setFilter] = createSignal<CalendarFilter>(DEFAULT_FILTER);
-  const [previewOpen, setPreviewOpen] = createSignal(false);
-  // Built only while the preview is open: the whole document is large.
-  const printHtml = createMemo(() =>
-    previewOpen() ? renderVaccinationPrintHtml(calendar, todayIso()) : '',
+  const [child, setChild] = createSignal<ChildInput>(NO_CHILD);
+  const [focus, setFocus] = createSignal<StatusFocus>();
+  const record = createRecordState(calendar.id, () => child().profile?.id);
+
+  const canMark = (): boolean => hasChild(child()) && record.ready();
+  // Statuses wait for the card's marks: no flash of «everything overdue» before they are read.
+  const state = createMemo(() =>
+    buildChildCalendar(
+      calendar,
+      columnIds,
+      record.ready() ? childBirthDate(child()) : null,
+      today(),
+      record.marks(),
+    ),
   );
-  const patch = (next: Partial<CalendarFilter>): void => {
-    setFilter((current) => ({ ...current, ...next }));
+  // The «now» line is brought into view once per child, not on every mark.
+  const revealKey = (): string => `${child().profile?.id ?? ''}|${childBirthDate(child()) ?? ''}`;
+  createEffect(on(revealKey, () => setFocus(undefined), { defer: true }));
+
+  const update = (next: ReturnType<typeof record.marks>): void => record.update(next);
+  const cycle = (itemId: string): void => {
+    const marks = record.marks();
+    update(withMark(marks, itemId, nextMarkState(marks[itemId]?.state)));
+  };
+  const mark = (itemId: string, next: DoseMarkState | undefined, date?: string | null): void => {
+    update(withMark(record.marks(), itemId, next, date));
+  };
+  const markAll = (itemIds: readonly string[]): void => {
+    update(withMarks(record.marks(), itemIds, 'done'));
+  };
+  const markOverdue = (): void => {
+    const before = record.marks();
+    const ids = overdueItemIds(state());
+    if (ids.length === 0) return;
+    update(withMarks(before, ids, 'done'));
+    setFocus(undefined);
+    toast(
+      `Отмечено сделанными: ${ids.length} ${pluralRu(ids.length, 'прививка', 'прививки', 'прививок')}`,
+      { action: { label: 'Отменить', onClick: () => update(before) } },
+    );
   };
 
-  const nationalRows = createMemo(() => filterNationalRows(calendar.national.rows, filter()));
-  const epidemicRows = createMemo(() => filterEpidemicRows(calendar.epidemic.rows, filter()));
-  const ageOptions = [
-    { value: 'any', label: 'Любой возраст' },
-    ...calendar.national.rows
-      .filter(isAgeRow)
-      .map((row) => ({ value: row.id, label: `${row.number}. ${row.category}` })),
-  ];
-  const filtersVisible = (): boolean => part() === 'national' || part() === 'epidemic';
-  /** «Все · любой возраст», «Дети · 3. Дети 1 месяц», «Взрослые · «грипп»». */
-  const filterSummary = (): string => {
-    const current = filter();
-    const parts: string[] = [
-      POPULATION_OPTIONS.find((option) => option.value === current.population)?.label ?? 'Все',
-    ];
-    if (part() === 'national') {
-      parts.push(
-        ageOptions.find((option) => option.value === current.age)?.label ?? 'Любой возраст',
-      );
-    } else if (current.query.trim()) {
-      parts.push(`«${current.query.trim()}»`);
-    }
-    return parts.join(' · ').toLocaleLowerCase('ru-RU');
+  // Sheets keep their last content while they slide out.
+  const [ageOpen, setAgeOpen] = createSignal(false);
+  const [ageTarget, setAgeTarget] = createSignal<{ rowId: string; itemId?: string }>();
+  const [groupOpen, setGroupOpen] = createSignal(false);
+  const [groupRow, setGroupRow] = createSignal<NationalRow>();
+  const ageRow = createMemo(() => {
+    const target = ageTarget();
+    return target ? calendar.national.rows.find((row) => row.id === target.rowId) : undefined;
+  });
+  const openAge = (rowId: string, itemId?: string): void => {
+    setAgeTarget(itemId === undefined ? { rowId } : { rowId, itemId });
+    setAgeOpen(true);
   };
-  const filters = (): JSX.Element => (
-    <fieldset class="vax__filters" aria-label="Фильтры">
-      <SegmentedControl
-        class="vax__population"
-        stretch={narrow()}
-        label="Кому"
-        options={POPULATION_OPTIONS}
-        value={filter().population}
-        onChange={(value) => patch({ population: value })}
-      />
-      <Show when={part() === 'national'}>
-        <SegmentedControl
-          class="vax__layout"
-          stretch={narrow()}
-          label="Вид таблицы"
-          options={LAYOUT_OPTIONS}
-          value={layout()}
-          onChange={setLayout}
-        />
-        <SelectField
-          class="vax__age"
-          label="Возраст"
-          options={ageOptions}
-          value={filter().age}
-          onChange={(event) => patch({ age: event.currentTarget.value })}
-        />
-      </Show>
-      <Show when={part() === 'epidemic'}>
-        <SearchField
-          class="vax__query"
-          label="Инфекция или категория"
-          placeholder="Например: клещевой энцефалит"
-          value={filter().query}
-          onInput={(value) => patch({ query: value })}
-          onClear={() => patch({ query: '' })}
-        />
-      </Show>
-      <Button
-        type="button"
-        variant="quiet"
-        class="vax__reset"
-        disabled={JSON.stringify(filter()) === JSON.stringify(DEFAULT_FILTER)}
-        onClick={() => setFilter(DEFAULT_FILTER)}
-      >
-        Сбросить фильтры
-      </Button>
-    </fieldset>
+  const openGroup = (itemId: string): void => {
+    const row = doses.get(itemId)?.row;
+    if (!row) return;
+    setGroupRow(row);
+    setGroupOpen(true);
+  };
+
+  const [previewOpen, setPreviewOpen] = createSignal(false);
+  const handoutHtml = createMemo(() =>
+    renderVaccinationHandoutHtml(
+      buildHandout(calendar, columnIds, handoutSubjectFor(child()), record.marks(), today()),
+    ),
   );
+
+  const [query, setQuery] = createSignal('');
+  const [appliedQuery, setAppliedQuery] = createSignal('');
+  createEffect(
+    on(query, (next) => {
+      const timer = setTimeout(() => setAppliedQuery(next), SEARCH_DELAY_MS);
+      onCleanup(() => clearTimeout(timer));
+    }),
+  );
+  const epidemicRows = createMemo(() => filterEpidemicRows(calendar.epidemic.rows, appliedQuery()));
+
+  const groupRows = calendar.national.rows.filter((row) => !isAgeRow(row));
+  const orderNumbers = calendar.sources.map((source) => `№ ${source.orderNumber}`);
 
   return (
     <section class="vax" aria-label="Календарь прививок">
@@ -167,128 +198,164 @@ export function VaccinationWorkspace(props: {
             onClick={props.onBack}
           />
         }
-        icon={<AppGlyph name="calendar" class="page__icon-glyph" />}
         title={<Heading depth={1}>Календарь прививок</Heading>}
-        description={`Национальный календарь и календарь по эпидемическим показаниям — ${calendar.edition.editionLine}.`}
-        actions={
-          <Button
-            type="button"
-            variant="primary"
-            class="vax__print"
-            icon={<AppGlyph name="printer" />}
-            onClick={() => setPreviewOpen(true)}
-          >
-            Печать
-          </Button>
-        }
+        description={`Приказы ${orderNumbers.join(', ')}`}
+        help={<VaccinationHelp calendar={calendar} />}
+        actions={<VaccinationPrintThumb html={handoutHtml()} onOpen={() => setPreviewOpen(true)} />}
       />
-      <section class="vax__notice paper-card" aria-label="Редакция и источник">
-        <p class="vax__notice-edition">
-          Приказ № 1122н в ред. приказа № 677н: в силу с{' '}
-          {displayIsoDate(calendar.edition.inForceFrom)}, действует до{' '}
-          {displayIsoDate(calendar.edition.validUntil)}.
-        </p>
-        <p class="vax__notice-check">
-          Таблицы переписаны с официальных сканов; клиническую проверку врач ещё не проводил. У
-          каждой строки есть ссылка на страницу официального PDF.
-        </p>
-        <Disclosure variant="inline" title="Редакция, источник и проверка" defaultOpen={!narrow()}>
-          <div class="vax__notice-details">
-            <p class="vax__notice-text">
-              {calendar.edition.label}. Изменяющие приказы на портале проверены{' '}
-              {displayIsoDate(calendar.edition.checkedOn)}. Таблицы сверены с распознанным текстом
-              сканов слово в слово. Решение о вакцинации принимает врач по действующему приказу и
-              инструкции к вакцине.
-            </p>
-            <p class="vax__notice-links">
-              <For each={calendar.sources}>
-                {(source) => (
-                  <a
-                    class="vax__notice-link"
-                    href={source.publicationUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Официальная публикация: приказ № {source.orderNumber} (PDF, {source.pagesCount}{' '}
-                    {pluralRu(source.pagesCount, 'страница', 'страницы', 'страниц')})
-                  </a>
-                )}
-              </For>
-            </p>
-          </div>
-        </Disclosure>
-      </section>
       <SegmentedControl
         class="vax__parts"
         stretch
-        label="Раздел календаря"
+        label="Календарь"
         options={PART_OPTIONS}
         value={part()}
         onChange={setPart}
       />
-      <Show when={filtersVisible()}>
-        <Show when={narrow()} fallback={filters()}>
-          {/* On a phone the filters fold into one line that names the current choice, so the
-              table starts on the first screen. */}
-          <Disclosure variant="inline" title={`Фильтры: ${filterSummary()}`} defaultOpen={false}>
-            {filters()}
-          </Disclosure>
-        </Show>
-      </Show>
+      <div class="vax__child" hidden={part() !== 'national'}>
+        <VaccinationChildRow today={today()} onChange={setChild} />
+      </div>
       <Switch>
         <Match when={part() === 'national'}>
-          <p class="vax__count" role="status">
-            {rowsCaption(nationalRows().length, calendar.national.rows.length)}
-          </p>
-          <Show
-            when={nationalRows().length > 0}
-            fallback={<p class="vax__empty">Строк для выбранных условий нет.</p>}
-          >
-            <Show
-              when={layout() === 'order'}
-              fallback={<VaccinationGridView calendar={calendar} rows={nationalRows()} />}
-            >
-              <VaccinationNationalView calendar={calendar} rows={nationalRows()} />
-            </Show>
+          <Show when={record.problem()}>
+            {(message) => (
+              <p class="vax__problem" role="alert">
+                {message()}
+              </p>
+            )}
           </Show>
-        </Match>
-        <Match when={part() === 'plan'}>
-          <VaccinationPlanView calendar={calendar} />
+          <Show when={state().problem}>
+            {(message) => (
+              <p class="vax__problem" role="alert">
+                {message()}
+              </p>
+            )}
+          </Show>
+          <Show when={canMark() && state().birthDate !== null}>
+            <VaccinationStatusBar
+              counts={state().counts}
+              focus={focus()}
+              onFocus={setFocus}
+              onMarkOverdue={markOverdue}
+            />
+          </Show>
+          <VaccinationChartView
+            chart={chart}
+            child={state()}
+            canMark={canMark()}
+            focus={focus()}
+            revealKey={revealKey()}
+            onCycle={cycle}
+            onOpenAge={openAge}
+            onOpenGroup={openGroup}
+          />
+          <ul class="vax-legend" aria-label="Обозначения">
+            <For each={LEGEND}>
+              {(item) => (
+                <li class="vax-legend__item">
+                  <span class={`vax-legend__swatch vax-chip vax-chip--${item.status}`} />
+                  {item.label}
+                </li>
+              )}
+            </For>
+            <li class="vax-legend__item">
+              <span class="vax-legend__star">*</span>
+              группы риска
+            </li>
+          </ul>
+          <section class="vax-groups" aria-label="Прививки по категориям">
+            <Heading depth={2} class="vax-groups__title">
+              По категориям
+            </Heading>
+            <ul class="vax-groups__list">
+              <For each={groupRows}>
+                {(row) => (
+                  <li class="vax-groups__item">
+                    <button
+                      type="button"
+                      class="vax-groups__button"
+                      data-row-id={row.id}
+                      onClick={() => {
+                        setGroupRow(row);
+                        setGroupOpen(true);
+                      }}
+                    >
+                      <span class="vax-groups__vaccine">
+                        {row.items.map((item) => item.text).join('; ')}
+                      </span>
+                      <span class="vax-groups__who">{row.category}</span>
+                    </button>
+                  </li>
+                )}
+              </For>
+            </ul>
+          </section>
         </Match>
         <Match when={part() === 'epidemic'}>
-          <p class="vax__count" role="status">
-            {rowsCaption(epidemicRows().length, calendar.epidemic.rows.length)}
-          </p>
+          <SearchField
+            class="vax__search"
+            label="Инфекция или категория"
+            hideLabel
+            placeholder="Например: клещевой энцефалит"
+            value={query()}
+            onInput={setQuery}
+            onClear={() => setQuery('')}
+            trailing={
+              <Show when={appliedQuery() !== ''}>
+                <span class="vax__count" role="status">
+                  {rowsCaption(epidemicRows().length, calendar.epidemic.rows.length)}
+                </span>
+              </Show>
+            }
+          />
           <Show
             when={epidemicRows().length > 0}
-            fallback={<p class="vax__empty">Строк для выбранных условий нет.</p>}
+            fallback={<p class="vax__empty">Ничего не найдено.</p>}
           >
             <VaccinationEpidemicView calendar={calendar} rows={epidemicRows()} />
           </Show>
         </Match>
-        <Match when={part() === 'procedure'}>
-          <VaccinationProcedureView calendar={calendar} />
-        </Match>
       </Switch>
-      <Show when={calendar.review.notes.length > 0}>
-        <section class="vax__review paper-card" aria-label="Что проверить врачу">
-          <Heading depth={2} class="vax__review-title">
-            Что проверить по источнику
-          </Heading>
-          <ul class="vax__review-list">
-            <For each={calendar.review.notes}>
-              {(note) => <li class="vax__review-item">{note}</li>}
-            </For>
-          </ul>
-        </section>
-      </Show>
+      <footer class="vax__sources">
+        <span class="vax__sources-text">
+          Приказы Минздрава {orderNumbers.join(' и ')}. Редакция с{' '}
+          {displayIsoDate(calendar.edition.inForceFrom)} до{' '}
+          {displayIsoDate(calendar.edition.validUntil)}.
+        </span>
+        <For each={calendar.sources}>
+          {(source) => (
+            <a
+              class="vax__sources-link"
+              href={source.publicationUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <AppGlyph name="arrow-square-out" class="vax__sources-icon" />№ {source.orderNumber},
+              PDF
+            </a>
+          )}
+        </For>
+      </footer>
+      <VaccinationAgeSheet
+        open={ageOpen()}
+        calendar={calendar}
+        row={ageRow()}
+        focusItemId={ageTarget()?.itemId}
+        child={state()}
+        canMark={canMark()}
+        today={today()}
+        onMark={mark}
+        onMarkAll={markAll}
+        onClose={() => setAgeOpen(false)}
+      />
+      <VaccinationGroupSheet
+        open={groupOpen()}
+        calendar={calendar}
+        row={groupRow()}
+        onClose={() => setGroupOpen(false)}
+      />
       <VaccinationPrintDialog
         open={previewOpen()}
-        html={printHtml()}
-        printTitle={VACCINATION_PRINT_TITLE}
-        dialogTitle="Календарь прививок"
-        frameTitle="Предпросмотр печати календаря прививок"
-        note="Печатаются все три приложения приказа целиком, как в оригинале: таблицы, примечания, сноски и редакция приказа. Сводка по возрасту помечена как составленная."
+        html={handoutHtml()}
         onClose={() => setPreviewOpen(false)}
       />
     </section>

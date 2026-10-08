@@ -1,6 +1,5 @@
 import { createSignal, For, type JSX, Show } from 'solid-js';
 
-import { Button } from '@/components/Button';
 import { Disclosure } from '@/components/Disclosure';
 import { useNarrowViewport } from '@/components/narrow-viewport';
 import { VaccinationSourceLink } from '@/features/vaccination/VaccinationSourceLink';
@@ -40,11 +39,8 @@ function Amendment(props: {
     <Show when={props.row.previousEdition}>
       {(previous) => (
         <div class="vax-amendment">
-          <p class="vax-amendment__note">
-            Строка в редакции приказа № {props.row.amendedBy}. Прежняя редакция (приказ № 1122н без
-            изменений) сохранена для сверки.
-          </p>
-          <Disclosure variant="inline" title="Показать прежнюю редакцию строки">
+          <p class="vax-amendment__note">Строка в редакции приказа № {props.row.amendedBy}.</p>
+          <Disclosure variant="inline" title="Прежняя редакция строки">
             <Blocks blocks={previous().categories} />
             <VaccinationSourceLink
               calendar={props.calendar}
@@ -116,24 +112,11 @@ function EpidemicCards(props: {
   readonly rows: readonly EpidemicRow[];
 }): JSX.Element {
   const [open, setOpen] = createSignal<readonly string[]>([]);
-  const allOpen = (): boolean => props.rows.every((row) => open().includes(row.id));
   const toggle = (id: string, value: boolean): void => {
     setOpen((current) => [...current.filter((entry) => entry !== id), ...(value ? [id] : [])]);
   };
   return (
     <div class="vax-cards">
-      <div class="vax-cards__toolbar">
-        <Button
-          type="button"
-          variant="quiet"
-          class="vax-cards__toggle-all"
-          onClick={() => {
-            setOpen(allOpen() ? [] : props.rows.map((row) => row.id));
-          }}
-        >
-          {allOpen() ? 'Свернуть все строки' : 'Развернуть все строки'}
-        </Button>
-      </div>
       <ul class="vax-cards__list">
         <For each={props.rows}>
           {(row) => (

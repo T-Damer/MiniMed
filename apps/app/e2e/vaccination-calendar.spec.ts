@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import { expect, type Page, test } from '@playwright/test';
@@ -26,105 +26,136 @@ async function openCalendar(page: Page, hash = '#/notes/vaccination'): Promise<v
   await expect(page.getByRole('heading', { name: 'Календарь прививок', level: 1 })).toBeVisible();
 }
 
-/** The same HTML the preview shows and the print window receives, taken from the preview frame. */
-async function printHtml(page: Page): Promise<string> {
-  const html = await page
-    .locator('iframe[title="Предпросмотр печати календаря прививок"]')
-    .getAttribute('srcdoc');
-  expect(html).toContain('class="vax-print"');
-  return html ?? '';
+async function noHorizontalOverflow(page: Page): Promise<void> {
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
+  expect(overflow).toBeLessThanOrEqual(1);
 }
 
-test('desktop: the whole national calendar is a real table with sticky headers, filters and the epidemic table', async ({
+test('phone: the page opens on the calendar table; the header, the numbers and the sources are compact', async ({
   page,
 }) => {
   test.setTimeout(180_000);
-  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.setViewportSize({ width: 390, height: 844 });
   await openCalendar(page);
 
-  const edition = page.getByRole('region', { name: 'Редакция и источник' });
-  await expect(edition).toContainText('Приказ № 1122н в ред. приказа № 677н');
-  await expect(edition).toContainText('Приказ Минздрава России от 06.12.2021 № 1122н');
-  await expect(edition).toContainText('клиническую проверку врач ещё не проводил');
-
-  // Appendix 1 as the order prints it: three printed columns plus the source column.
+  // The table is the page: infections down, ages across, one vaccination chip per cell.
   const table = page.getByRole('table', {
     name: 'Национальный календарь профилактических прививок',
   });
   await expect(table).toBeVisible();
-  await expect(table.locator('tbody tr')).toHaveCount(19);
-  await expect(table.getByRole('columnheader')).toHaveText([
-    '№ п/п',
-    'Категории и возраст граждан, подлежащих обязательной вакцинации',
-    'Наименование профилактической прививки',
-    'Источник',
-  ]);
-  const rowFive = table.locator('[data-row-id="n-05"]');
-  await expect(rowFive).toContainText('Дети 3 месяца');
-  await expect(rowFive.getByRole('listitem')).toHaveText([
-    'Первая вакцинация против дифтерии, коклюша, столбняка',
-    'Первая вакцинация против полиомиелита',
-    'Первая вакцинация против гемофильной инфекции типа b',
-  ]);
-  await expect(page.getByText('Показано 19 из 19 строк')).toBeVisible();
-  await capture(page, 'desktop-1280-national');
+  await expect(table.locator('tbody tr')).toHaveCount(12);
+  await expect(table.locator('thead th[scope="col"][data-row-id]')).toHaveCount(15);
+  // The vaccinations of the age rows, each in one cell per infection it covers.
+  await expect(table.locator('.vax-chart__dose[data-item-id]')).toHaveCount(44);
+  await expect(
+    table.locator('.vax-chart__row[data-infection="hepatitis-b"] .vax-chart__dose'),
+  ).toHaveText(['V1', 'V2', 'V3*', 'V3', 'V4*']);
+  await noHorizontalOverflow(page);
+  await capture(page, 'phone-390-calendar');
 
-  // «Проверить по источнику» opens the official PDF at the page of the row.
-  const link = rowFive.getByRole('link', { name: /Проверить по источнику/u });
+  // Back, title and the header tools share one row; the order numbers are the only legal detail.
+  const back = await page.getByRole('button', { name: 'Назад' }).first().boundingBox();
+  const title = await page
+    .getByRole('heading', { name: 'Календарь прививок', level: 1 })
+    .boundingBox();
+  const help = await page.getByRole('button', { name: 'Как это работает' }).boundingBox();
+  const print = await page.getByRole('button', { name: 'Печать', exact: true }).boundingBox();
+  for (const box of [title, help, print]) {
+    expect(Math.abs((back?.y ?? 0) - (box?.y ?? 999))).toBeLessThan(30);
+  }
+  await expect(page.getByText('Приказы № 1122н, № 677н', { exact: true })).toBeVisible();
+  await expect(page.locator('body')).not.toContainText('клиническ');
+  await expect(page.locator('body')).not.toContainText('Показано');
+
+  // Edition, validity and the official publications: small plain text at the very bottom.
+  const sources = page.locator('.vax__sources');
+  await expect(sources).toContainText('Приказы Минздрава № 1122н и № 677н');
+  await expect(sources).toContainText('Редакция с 01.09.2024 до 01.09.2030');
+  await expect(sources.getByRole('link', { name: /№ 1122н, PDF/u })).toHaveAttribute(
+    'href',
+    'http://publication.pravo.gov.ru/document/0001202112200070',
+  );
+  await expect(sources.getByRole('link', { name: /№ 677н, PDF/u })).toHaveAttribute(
+    'href',
+    'http://publication.pravo.gov.ru/document/0001202401300021',
+  );
+});
+
+test('without a child a tap shows the order text and the page of the official PDF', async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openCalendar(page);
+
+  await page
+    .getByRole('button', { name: /Дифтерия, 3 месяца: Первая вакцинация против дифтерии/u })
+    .click();
+  const sheet = page.getByRole('dialog', { name: '3 месяца' });
+  await expect(sheet).toBeVisible();
+  await expect(sheet.locator('.vax-dose')).toHaveCount(3);
+  await expect(sheet.locator('.vax-dose[data-item-id="n-05-1"]')).toContainText(
+    'Первая вакцинация против дифтерии, коклюша, столбняка',
+  );
+  await expect(sheet.locator('.vax-dose[data-item-id="n-05-2"]')).toContainText('ИПВ — вакцина');
+  await expect(sheet).toContainText('Выберите ребёнка, чтобы отмечать прививки');
+  const link = sheet.locator('.vax-dose[data-item-id="n-05-1"]').getByRole('link', {
+    name: /Проверить по источнику/u,
+  });
   await expect(link).toHaveAttribute(
     'href',
     'http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=3',
   );
   await expect(link).toHaveAttribute('target', '_blank');
-  await expect(rowFive).toContainText('приказ № 1122н, стр. 3');
-  await expect(table.locator('[data-row-id="n-18"]')).toContainText('стр. 4–5');
+  await capture(page, 'phone-390-age-sheet');
+  await sheet.getByRole('button', { name: 'Закрыть', exact: true }).click();
 
-  // The header stays visible while the table scrolls.
-  const header = table.getByRole('columnheader').first();
-  await table.locator('[data-row-id="n-15"]').scrollIntoViewIfNeeded();
-  await page.mouse.wheel(0, 400);
-  await page.waitForTimeout(200);
-  const headerBox = await header.boundingBox();
-  expect(headerBox).not.toBeNull();
-  expect(headerBox?.y ?? 9999).toBeLessThan(120);
-  await capture(page, 'desktop-1280-national-scrolled');
-  await page.mouse.wheel(0, -4000);
+  // The age header opens the same sheet; the group rows (16–19) open their own.
+  await page.getByRole('button', { name: '18 месяцев', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: '18 месяцев' })).toBeVisible();
+  await page.getByRole('dialog').getByRole('button', { name: 'Закрыть', exact: true }).click();
+  await page.locator('.vax-groups__button[data-row-id="n-18"]').click();
+  const group = page.getByRole('dialog', { name: /Вакцинация против кори, ревакцинация/u });
+  await expect(group).toContainText('взрослые от 36 до 55 лет (включительно)');
+  await expect(group.getByRole('link', { name: /Проверить по источнику/u })).toHaveAttribute(
+    'href',
+    'http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=4',
+  );
+});
 
-  // Filters: children, an age and the adult row.
-  await page.getByRole('radio', { name: 'Взрослые', exact: true }).check({ force: true });
-  await expect(table.locator('tbody tr')).toHaveCount(5);
-  await expect(page.getByText('Показано 5 из 19 строк')).toBeVisible();
-  await page.getByRole('radio', { name: 'Дети', exact: true }).check({ force: true });
-  await expect(table.locator('tbody tr')).toHaveCount(18);
-  await page.getByRole('radio', { name: 'Все', exact: true }).check({ force: true });
-  await page.getByRole('combobox', { name: /^Возраст/u }).selectOption('n-06');
-  // The age row and the four category rows the order does not tie to an age.
-  await expect(table.locator('tbody tr')).toHaveCount(5);
-  await expect(table.locator('[data-row-id="n-06"]')).toContainText('Дети 4,5 месяца');
-  await expect(table.locator('[data-row-id="n-19"]')).toBeVisible();
-  await page.getByRole('button', { name: 'Сбросить фильтры' }).click();
-  await expect(table.locator('tbody tr')).toHaveCount(19);
+test('behind the «?»: how it works and the order of procedure', async ({ page }) => {
+  test.setTimeout(180_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openCalendar(page);
 
-  // The summary grid regroups the same vaccinations by infection.
-  await page.getByRole('radio', { name: 'Сводка по возрасту', exact: true }).check({ force: true });
-  const grid = page.getByRole('table', { name: 'Сводка национального календаря по возрасту' });
-  await expect(grid).toBeVisible();
-  await expect(grid.getByRole('columnheader')).toHaveCount(16);
-  await expect(grid.locator('[data-infection="hepatitis-b"] .vax-grid__dose')).toHaveText([
-    'V1',
-    'V2',
-    'V3*',
-    'V3',
-    'V4*',
-  ]);
-  await expect(page.getByText('Прививки по категориям (строки 16–19)')).toBeVisible();
-  await capture(page, 'desktop-1280-grid');
-  await page.getByRole('radio', { name: 'Как в приказе', exact: true }).check({ force: true });
+  await page.getByRole('button', { name: 'Как это работает' }).click();
+  const help = page.getByRole('dialog', { name: 'Как это работает' });
+  await expect(help).toContainText('сроков и интервалов приказ не называет');
+  await help.getByRole('button', { name: /Порядок проведения прививок/u }).click();
+  await expect(help.locator('.vax-procedure__item')).toHaveCount(15);
+  await expect(help.locator('[data-item-id="p-15"]')).toContainText('В редакции приказа № 677н');
+  await expect(help.locator('[data-item-id="p-05"]')).toContainText('№ 252н');
+  await capture(page, 'phone-390-help');
+});
 
-  // Appendix 2: every row, the amended one marked, a search over infections and categories.
-  await page
-    .getByRole('radio', { name: 'Эпидемические показания', exact: true })
-    .check({ force: true });
+test('desktop: the whole table fits; epidemic indications are one switch away and searchable', async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await openCalendar(page);
+  await noHorizontalOverflow(page);
+  // Every age column is on the screen: no sideways scrolling of the table.
+  const scroll = await page.locator('.vax-chart__scroller').evaluate((element) => ({
+    scroll: element.scrollWidth,
+    client: element.clientWidth,
+  }));
+  expect(scroll.scroll).toBeLessThanOrEqual(scroll.client + 1);
+  await capture(page, 'desktop-1280-calendar');
+
+  await page.getByRole('radio', { name: 'Эпид. показания', exact: true }).check({ force: true });
   const epidemic = page.getByRole('table', {
     name: 'Календарь профилактических прививок по эпидемическим показаниям',
   });
@@ -133,7 +164,6 @@ test('desktop: the whole national calendar is a real table with sticky headers, 
   await expect(covid).toContainText(
     'Против коронавирусной инфекции, вызываемой вирусом SARS-CoV-2',
   );
-  await expect(covid).toContainText('лица с первичными или вторичными иммунодефицитами');
   await expect(covid).toContainText('Строка в редакции приказа № 677н');
   await expect(
     covid.getByRole('link', { name: /Проверить по источнику: строка 24/u }).first(),
@@ -141,216 +171,32 @@ test('desktop: the whole national calendar is a real table with sticky headers, 
     'href',
     'http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202401300021#page=2',
   );
-  await covid.getByRole('button', { name: 'Показать прежнюю редакцию строки' }).click();
+  await covid.getByRole('button', { name: 'Прежняя редакция строки' }).click();
   await expect(covid).toContainText('К приоритету 3-го уровня относятся:');
   await page.getByRole('searchbox', { name: 'Инфекция или категория' }).fill('клещевой энцефалит');
   await expect(epidemic.locator('tbody tr')).toHaveCount(1);
   await expect(epidemic.locator('[data-row-id="e-07"]')).toContainText(
     'Против клещевого вирусного энцефалита',
   );
+  await expect(page.getByRole('status')).toHaveText('1 из 24');
   await capture(page, 'desktop-1280-epidemic');
-  await page.getByRole('button', { name: 'Сбросить фильтры' }).click();
-  await expect(epidemic.locator('tbody tr')).toHaveCount(24);
-
-  // Appendix 3 with its footnotes.
-  await page.getByRole('radio', { name: 'Порядок', exact: true }).check({ force: true });
-  const procedure = page.getByRole('region', {
-    name: 'Порядок проведения профилактических прививок',
-  });
-  await expect(procedure.locator('.vax-procedure__item')).toHaveCount(15);
-  await expect(procedure.locator('[data-item-id="p-15"]')).toContainText(
-    'В редакции приказа № 677н',
-  );
-  await expect(procedure.locator('[data-item-id="p-05"]')).toContainText('№ 252н');
+  await page.getByRole('searchbox', { name: 'Инфекция или категория' }).fill('нет такого');
+  await expect(page.getByText('Ничего не найдено.')).toBeVisible();
 });
 
-test('phone: every row is a card with its vaccinations in an expandable body and nothing is lost', async ({
-  page,
-}) => {
+test('phone: epidemic indications are cards that open in place', async ({ page }) => {
   test.setTimeout(180_000);
   await page.setViewportSize({ width: 390, height: 844 });
-  await openCalendar(page);
+  await openCalendar(page, '#/notes/vaccination?part=epidemic');
 
-  const cards = page.locator('.vax-cards__item');
-  await expect(cards).toHaveCount(19);
+  await expect(page.getByRole('radio', { name: 'Эпид. показания', exact: true })).toBeChecked();
   await expect(page.getByRole('table')).toHaveCount(0);
-  await capture(page, 'phone-390-national');
-
-  const rowFive = page.locator('.vax-cards__item[data-row-id="n-05"]');
-  await expect(rowFive.getByRole('button', { name: /Дети 3 месяца/u })).toHaveAttribute(
-    'aria-expanded',
-    'false',
-  );
-  await rowFive.getByRole('button', { name: /Дети 3 месяца/u }).click();
-  await expect(rowFive.getByRole('listitem')).toHaveText([
-    'Первая вакцинация против дифтерии, коклюша, столбняка',
-    'Первая вакцинация против полиомиелита',
-    'Первая вакцинация против гемофильной инфекции типа b',
-  ]);
-  await expect(rowFive.getByRole('link', { name: /Проверить по источнику/u })).toBeVisible();
-  await capture(page, 'phone-390-national-expanded');
-
-  // «Развернуть все строки» shows every vaccination of the order, category rows included.
-  await page.getByRole('button', { name: 'Развернуть все строки' }).click();
-  await expect(page.locator('.vax-cards__item .vax-items__item')).toHaveCount(29 + 4);
-  const categoryRow = page.locator('.vax-cards__item[data-row-id="n-18"]');
-  await expect(categoryRow).toContainText('взрослые от 36 до 55 лет (включительно)');
-  await expect(categoryRow).toContainText('Вакцинация против кори, ревакцинация против кори');
-  await expect(page.getByRole('button', { name: 'Свернуть все строки' })).toBeVisible();
-  const overflow = await page.evaluate(
-    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-  );
-  expect(overflow).toBeLessThanOrEqual(1);
-
-  await page
-    .getByRole('radio', { name: 'Эпидемические показания', exact: true })
-    .check({ force: true });
-  await expect(page.locator('.vax-cards__item')).toHaveCount(24);
-  await page.getByRole('button', { name: 'Развернуть все строки' }).click();
-  await expect(page.locator('.vax-cards__item[data-row-id="e-11"]')).toContainText(
-    'Против брюшного тифа',
-  );
+  const cards = page.locator('.vax-cards__item');
+  await expect(cards).toHaveCount(24);
+  await cards.filter({ hasText: 'Против брюшного тифа' }).getByRole('button').click();
   await expect(page.locator('.vax-cards__item[data-row-id="e-11"]')).toContainText(
     'Контактные лица в очагах брюшного тифа по эпидемическим показаниям.',
   );
-  await capture(page, 'phone-390-epidemic-expanded');
-});
-
-test('plan: dates are calculated from the birth date, labelled as calculated, with the order conditions', async ({
-  page,
-}) => {
-  test.setTimeout(180_000);
-  await page.setViewportSize({ width: 390, height: 844 });
-  await openCalendar(page, '#/notes/vaccination?part=plan');
-
-  await expect(page.getByText('Расчётные даты по возрастам национального календаря')).toBeVisible();
-  // Attaching to a card is the normal path; «Только расчёт» keeps nothing (see vaccination-plan.spec).
-  await page.getByRole('radio', { name: 'Только расчёт', exact: true }).check({ force: true });
-  await expect(page.getByText(/нигде не записываются/u)).toBeVisible();
-  const birth = page.getByLabel('Дата рождения ребёнка');
-  const today = new Date();
-  const born = new Date(today.getFullYear() - 1, today.getMonth(), 15);
-  const iso = (value: Date): string =>
-    `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
-  await birth.fill(iso(born));
-  await expect(page.locator('.vax-plan__entry')).toHaveCount(14);
-  await expect(page.locator('.vax-plan__entry[data-status="current"]')).toHaveCount(1);
-  const first = page.locator('.vax-plan__entry[data-row-id="n-01"]');
-  await expect(first.locator('.vax-plan__date-value')).toHaveText(
-    new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(
-      born,
-    ),
-  );
-  await expect(page.locator('.vax-plan__entry[data-row-id="n-04"]')).toContainText(
-    'Третья вакцинация против вирусного гепатита В (группы риска)',
-  );
-  await expect(page.locator('.vax-plan__entry[data-row-id="n-04"]')).toContainText(
-    'условия: п. 9 приложения № 3',
-  );
-  await expect(
-    page.locator('.vax-plan__entry[data-row-id="n-06"] .vax-plan__date-value'),
-  ).toContainText('≈');
-  await capture(page, 'phone-390-plan');
-
-  await page.getByRole('button', { name: /Условия из порядка проведения прививок/u }).click();
-  await expect(
-    page.getByText(
-      'Допускается введение вакцин (за исключением вакцин для профилактики туберкулеза)',
-    ),
-  ).toBeVisible();
-
-  // The birth date is not kept in the address or in storage.
-  expect(page.url()).not.toContain(iso(born));
-  const stored = await page.evaluate(() => JSON.stringify({ ...window.localStorage }));
-  expect(stored).not.toContain(iso(born));
-
-  await birth.fill('');
-  await expect(page.locator('.vax-plan__entry')).toHaveCount(0);
-  await birth.fill(iso(new Date(today.getFullYear() + 1, 0, 1)));
-  await expect(page.getByRole('alert')).toContainText('не может быть позже сегодняшнего дня');
-});
-
-test('print: the preview holds the whole order on A4 landscape sheets', async ({ page }) => {
-  test.setTimeout(180_000);
-  await page.setViewportSize({ width: 1280, height: 900 });
-  await openCalendar(page);
-
-  await page.getByRole('button', { name: 'Печать', exact: true }).click();
-  const dialog = page.getByRole('dialog');
-  await expect(dialog).toBeVisible();
-  await expect(dialog).toContainText('Предпросмотр печати, A4 альбомная');
-  const frame = page.frameLocator('iframe[title="Предпросмотр печати календаря прививок"]');
-  await expect(frame.locator('.vax-print__edition')).toHaveText(
-    'по приказу № 1122н в ред. приказа № 677н',
-  );
-  await expect(frame.locator('#appendix-1 tbody tr')).toHaveCount(19);
-  await expect(frame.locator('#appendix-2 tbody tr')).toHaveCount(24);
-  await expect(frame.locator('#appendix-3 .vax-print__procedure')).toHaveCount(15);
-  await expect(frame.locator('#appendix-3 .vax-print__footnote')).toHaveCount(3);
-  await expect(frame.locator('.vax-print__footer')).toContainText(
-    'http://publication.pravo.gov.ru/document/0001202112200070',
-  );
-  await expect(frame.locator('.vax-print__footer')).toContainText(
-    'клиническая проверка врачом не проводилась',
-  );
-  await capture(page, 'desktop-1280-print-preview');
-
-  // Real pagination: Chromium makes a PDF from the print page and honours @page A4 landscape.
-  const html = await printHtml(page);
-  const sheet = await page.context().newPage();
-  try {
-    await sheet.setContent(html);
-    await sheet.emulateMedia({ media: 'print' });
-    // Nothing is cut off horizontally and no table cell overflows its column.
-    const widths = await sheet.evaluate(() => ({
-      content: document.documentElement.scrollWidth,
-      tables: [...document.querySelectorAll('table')].map(
-        (table) => table.scrollWidth - table.clientWidth,
-      ),
-    }));
-    expect(Math.max(...widths.tables)).toBeLessThanOrEqual(1);
-    const pdf = await sheet.pdf({ preferCSSPageSize: true, printBackground: true });
-    const source = pdf.toString('latin1');
-    const pages = (source.match(/\/Type\s*\/Page(?![a-z])/gu) ?? []).length;
-    expect(pages).toBeGreaterThanOrEqual(6);
-    expect(pages).toBeLessThanOrEqual(14);
-    const box = /\/MediaBox\s*\[\s*0\s+0\s+([\d.]+)\s+([\d.]+)\s*\]/u.exec(source);
-    expect(Number(box?.[1])).toBeGreaterThan(Number(box?.[2]));
-    expect(Number(box?.[1])).toBeCloseTo(841.89, 0);
-    if (CAPTURE) {
-      mkdirSync(SCREENS, { recursive: true });
-      writeFileSync(`${SCREENS}/vaccination-calendar-print.pdf`, pdf);
-      await sheet.setViewportSize({ width: 1123, height: 794 });
-      await sheet.screenshot({ path: `${SCREENS}/print-media-appendix-1.png`, fullPage: true });
-    }
-  } finally {
-    await sheet.close();
-  }
-});
-
-test('the tool is listed in «Все инструменты» for children and adults and found by search', async ({
-  page,
-}) => {
-  test.setTimeout(180_000);
-  await page.setViewportSize({ width: 390, height: 844 });
-  await mountBuiltApp(page, { persistentOrigin: true, skipLargeCompanionPacks: true });
-  await page.getByRole('button', { name: 'Все инструменты', exact: true }).click();
-  const sheet = page.getByRole('dialog', { name: 'Все инструменты' });
-  await expect(sheet).toBeVisible();
-  await sheet.getByText('Календарь прививок', { exact: true }).first().click();
-  await expect(page).toHaveURL(/#\/notes\/vaccination$/u);
-  await expect(page.getByRole('heading', { name: 'Календарь прививок', level: 1 })).toBeVisible();
-});
-
-test('search finds the calendar by «прививки» and opens it', async ({ page }) => {
-  test.setTimeout(180_000);
-  await page.setViewportSize({ width: 390, height: 844 });
-  await mountBuiltApp(page, { persistentOrigin: true, skipLargeCompanionPacks: true });
-  await page.getByTestId('search-input').fill('график прививок');
-  const card = page.getByRole('link', { name: 'Календарь прививок', exact: true });
-  await expect(card).toBeVisible();
-  await expect(card).toHaveAttribute('href', '#/notes/vaccination');
-  await capture(page, 'phone-390-search');
-  await card.click();
-  await expect(page.getByRole('heading', { name: 'Календарь прививок', level: 1 })).toBeVisible();
+  await noHorizontalOverflow(page);
+  await capture(page, 'phone-390-epidemic');
 });

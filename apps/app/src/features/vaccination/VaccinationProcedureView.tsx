@@ -40,20 +40,3 @@ export function VaccinationProcedureParagraph(props: {
     </article>
   );
 }
-
-/** Appendix 3 in full: the conditions the order sets for carrying out the vaccinations. */
-export function VaccinationProcedureView(props: {
-  readonly calendar: VaccinationCalendar;
-}): JSX.Element {
-  return (
-    <section class="vax-procedure" aria-label={props.calendar.procedure.title}>
-      <p class="vax-procedure__intro">
-        Приложение № 3 приказа: {props.calendar.procedure.title.toLocaleLowerCase('ru-RU')}. Условия
-        относятся к прививкам обоих календарей.
-      </p>
-      <For each={props.calendar.procedure.items}>
-        {(item) => <VaccinationProcedureParagraph calendar={props.calendar} item={item} />}
-      </For>
-    </section>
-  );
-}

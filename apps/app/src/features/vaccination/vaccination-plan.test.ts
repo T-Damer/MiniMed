@@ -84,6 +84,15 @@ describe('child plan', () => {
     expect(plan.entries.filter((entry) => entry.status === 'current')).toHaveLength(1);
   });
 
+  it('rows that start on the same day are current together', () => {
+    const plan = buildChildPlan(rows, '2020-01-10', '2026-06-01');
+    if (plan.kind !== 'plan') throw new Error('expected a plan');
+    const current = plan.entries.filter((entry) => entry.status === 'current');
+    expect(current.map((entry) => entry.number)).toEqual(['12', '13']);
+    expect(plan.entries.find((entry) => entry.number === '11')?.status).toBe('passed');
+    expect(plan.entries.find((entry) => entry.number === '14')?.status).toBe('upcoming');
+  });
+
   it('on the birth date only the first row has been reached', () => {
     const plan = buildChildPlan(rows, '2026-03-01', '2026-03-01');
     if (plan.kind !== 'plan') throw new Error('expected a plan');

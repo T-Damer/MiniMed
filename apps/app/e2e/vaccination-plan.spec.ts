@@ -4,17 +4,20 @@ import { expect, type Page, test } from '@playwright/test';
 
 import { mountBuiltApp } from './mount-built-app';
 
-// Set VAC2_CAPTURE_DIR to write screenshots and the PDF of the diary sheet.
+// Set VAC2_CAPTURE_DIR to write screenshots and the PDF of the handout.
 const CAPTURE_DIR = process.env['VAC2_CAPTURE_DIR'];
+// The statuses depend on today: the tests run on a fixed day. A child born 2026-01-10 is then 8
+// months old: ages up to 4,5 months have passed (11 vaccinations, none marked), 6 months is now (4).
+const TODAY = new Date('2026-10-08T12:00:00');
 
-async function capture(page: Page, name: string, fullPage = false): Promise<void> {
+async function capture(page: Page, name: string): Promise<void> {
   if (!CAPTURE_DIR) return;
   mkdirSync(CAPTURE_DIR, { recursive: true });
   await page.evaluate(() => {
     for (const toast of document.querySelectorAll('[data-sonner-toast]')) toast.remove();
   });
   await page.waitForTimeout(300);
-  await page.screenshot({ path: `${CAPTURE_DIR}/${name}.png`, fullPage });
+  await page.screenshot({ path: `${CAPTURE_DIR}/${name}.png` });
 }
 
 async function createPatient(page: Page, name: string, birthDate?: string): Promise<void> {
@@ -32,17 +35,45 @@ async function createPatient(page: Page, name: string, birthDate?: string): Prom
   await expect(page.getByRole('heading', { name })).toBeVisible();
 }
 
-async function openPlan(page: Page): Promise<void> {
+async function openCalendar(page: Page): Promise<void> {
   await page.evaluate(() => {
-    window.location.hash = '#/notes/vaccination?part=plan';
+    window.location.hash = '#/notes/vaccination';
   });
   await expect(page.getByRole('heading', { name: 'Календарь прививок', level: 1 })).toBeVisible();
 }
 
+async function leaveCalendar(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    window.location.hash = '#/notes';
+  });
+  await expect(page.getByRole('heading', { name: 'Календарь прививок', level: 1 })).toHaveCount(0);
+}
+
 async function chooseChild(page: Page, name: string): Promise<void> {
-  const field = page.getByRole('combobox', { name: /Ребёнок/u });
-  await field.fill(name);
+  await page.getByRole('button', { name: /^(Выбрать|Сменить) ребёнка$/u }).click();
+  await page.getByRole('combobox', { name: 'Карточка пациента' }).fill(name);
   await page.getByRole('option', { name }).click();
+}
+
+/** Confirms the child sheet and waits for it to slide away. */
+async function closeChildSheet(page: Page): Promise<void> {
+  await page.getByRole('button', { name: 'Готово' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+}
+
+/** The tile of a status group shows its count; `now` and `overdue` follow the child's age. */
+async function counts(page: Page): Promise<Record<string, number>> {
+  const tiles = page.locator('.vax-status__tile');
+  const result: Record<string, number> = {};
+  for (const tile of await tiles.all()) {
+    const status = (await tile.getAttribute('data-status')) ?? '';
+    result[status] = Number(await tile.locator('.vax-status__count').textContent());
+  }
+  return result;
+}
+
+function dose(page: Page, itemId: string) {
+  return page.locator(`.vax-chart__dose[data-item-id="${itemId}"]`).first();
 }
 
 async function noHorizontalOverflow(page: Page): Promise<void> {
@@ -52,193 +83,235 @@ async function noHorizontalOverflow(page: Page): Promise<void> {
   expect(overflow).toBeLessThanOrEqual(1);
 }
 
-test('patient: the plan is attached to a card, kept with it and printed as the diary for the mother', async ({
+test('patient: the child row, statuses, marks kept with the card, and the handout for the mother', async ({
   page,
 }) => {
-  test.setTimeout(240_000);
-  await page.setViewportSize({ width: 1280, height: 900 });
+  test.setTimeout(300_000);
+  await page.clock.setFixedTime(TODAY);
+  await page.setViewportSize({ width: 390, height: 844 });
   await mountBuiltApp(page, { persistentOrigin: true, skipLargeCompanionPacks: true });
-  await createPatient(page, 'Аня Тестова', '2025-03-15');
+  await createPatient(page, 'Аня Тестова', '2026-01-10');
   await createPatient(page, 'Миша без даты');
-  await openPlan(page);
+  await openCalendar(page);
 
-  // Nothing is chosen yet: no plan, the way to «only calculate» is one control away.
-  await expect(page.locator('.vax-plan__entry')).toHaveCount(0);
-  await expect(page.getByRole('radio', { name: 'Только расчёт', exact: true })).toBeAttached();
+  // Nothing chosen: the row asks for a child, there are no statuses and no tiles.
+  await expect(page.locator('.vax-child__name')).toHaveText('Ребёнок');
+  await expect(page.locator('.vax-status')).toHaveCount(0);
+  await expect(page.locator('.vax-chart__now')).toHaveCount(0);
 
+  // Chosen: avatar, full name, birth date and age in one row, then the tiles and the «now» line.
   await chooseChild(page, 'Аня Тестова');
-  await expect(page.locator('.vax-child__fact-value')).toHaveText('15.03.2025');
-  await expect(page.getByText('из карточки')).toBeVisible();
-  await expect(page.locator('.vax-plan__entry')).toHaveCount(14);
-  await expect(page.getByText('План ещё не прикреплён к карточке')).toBeVisible();
-  await capture(page, 'vac2-plan-patient-1280', true);
-
-  await page.getByRole('button', { name: 'Прикрепить план к карточке' }).click();
-  await expect(page.getByRole('status').filter({ hasText: 'План прикреплён' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Обновить запись о плане' })).toBeVisible();
-
-  // The record outlives the page: leave, come back, choose the card again.
-  await page.evaluate(() => {
-    window.location.hash = '#/notes';
+  await expect(page.locator('.vax-child__name')).toHaveText('Аня Тестова');
+  await expect(page.locator('.vax-child__birth')).toHaveText('10.01.2026 · 8 мес.');
+  await expect(page.getByRole('button', { name: 'Сменить ребёнка' })).toBeVisible();
+  await expect.poll(() => counts(page)).toEqual({ done: 0, planned: 0, now: 4, overdue: 11 });
+  await expect(dose(page, 'n-01-1')).toHaveAttribute('data-status', 'overdue');
+  await expect(dose(page, 'n-07-1')).toHaveAttribute('data-status', 'now');
+  await expect(dose(page, 'n-08-1')).toHaveAttribute('data-status', 'later');
+  // A risk-group vaccination is not due for every child.
+  await expect(dose(page, 'n-04-1')).toHaveAttribute('data-status', 'optional');
+  await expect(page.locator('.vax-chart__now')).toHaveCount(1);
+  await expect(page.locator('.vax-chart__age--now')).toHaveCount(1);
+  await expect(page.locator('.vax-chart__age--now')).toHaveAttribute('data-row-id', 'n-07');
+  // The line is brought into view: it is inside the scrolling table's visible width.
+  const inView = await page.evaluate(() => {
+    const scroller = document.querySelector('.vax-chart__scroller');
+    const line = document.querySelector('.vax-chart__now');
+    if (!scroller || !line) return false;
+    const box = scroller.getBoundingClientRect();
+    const x = line.getBoundingClientRect().x;
+    return x > box.x && x < box.right;
   });
-  await expect(page.getByRole('heading', { name: 'Календарь прививок', level: 1 })).toHaveCount(0);
-  await openPlan(page);
-  await chooseChild(page, 'Аня Тестова');
-  await expect(page.getByText(/План прикреплён к карточке \d{2}\.\d{2}\.\d{4}/u)).toBeVisible();
+  expect(inView).toBe(true);
+  await noHorizontalOverflow(page);
+  await capture(page, 'vac3-chosen-390');
 
-  // The diary sheet: the chart of the calendar, the child, a date under each dose, empty marks.
-  await page.getByRole('button', { name: 'Дневник для мамы' }).click();
-  const dialog = page.getByRole('dialog');
-  await expect(dialog).toContainText('Дневник прививок');
-  const frame = page.frameLocator('iframe[title="Предпросмотр дневника прививок"]');
-  await expect(frame.locator('.vax-diary__infection')).toHaveText([
-    'Туберкулёз',
-    'Вирусный гепатит B',
-    'Пневмококковая инфекция',
-    'Коклюш',
-    'Дифтерия',
-    'Столбняк',
-    'Полиомиелит',
-    'Гемофильная инфекция',
-    'Корь',
-    'Краснуха',
-    'Эпидемический паротит',
-    'Грипп',
-  ]);
-  await expect(frame.locator('.vax-diary__child-value').first()).toHaveText('Аня Тестова');
-  await expect(frame.locator('.vax-diary__child-value').nth(1)).toHaveText('15.03.2025');
+  // A tap cycles done → planned → empty; one vaccination for three infections is marked once.
+  await dose(page, 'n-05-1').click();
+  await expect(dose(page, 'n-05-1')).toHaveAttribute('data-status', 'done');
   await expect(
-    frame.locator('tbody tr').first().locator('.vax-diary__dose-date').first(),
-  ).toHaveText('≈ 17.03.25');
-  await capture(page, 'vac2-diary-preview-1280');
+    page.locator('.vax-chart__dose[data-item-id="n-05-1"][data-status="done"]'),
+  ).toHaveCount(3);
+  await expect.poll(() => counts(page)).toMatchObject({ done: 1, overdue: 10 });
+  await dose(page, 'n-05-1').click();
+  await expect(dose(page, 'n-05-1')).toHaveAttribute('data-status', 'planned');
+  await expect.poll(() => counts(page)).toMatchObject({ done: 0, planned: 1, overdue: 10 });
+  await dose(page, 'n-05-1').click();
+  await expect(dose(page, 'n-05-1')).toHaveAttribute('data-status', 'overdue');
+
+  // A right click (a long press on a phone) opens the age with the date of the mark.
+  await dose(page, 'n-01-1').click();
+  await dose(page, 'n-05-2').click({ button: 'right' });
+  const sheet = page.getByRole('dialog', { name: '3 месяца' });
+  await expect(sheet).toBeVisible();
+  await expect(sheet).toContainText('10.04.2026');
+  const polio = sheet.locator('.vax-dose[data-item-id="n-05-2"]');
+  await expect(polio).toHaveClass(/vax-dose--focused/u);
+  await polio.locator('label', { hasText: 'Сделана' }).click();
+  await polio.getByLabel('Дата прививки').fill('2026-04-12');
+  await polio.getByLabel('Дата прививки').blur();
+  await capture(page, 'vac3-age-sheet-390');
+  await sheet.getByRole('button', { name: 'Закрыть', exact: true }).click();
+  await expect(dose(page, 'n-05-2')).toHaveAttribute('data-status', 'done');
+
+  // A tile picks its group out in the chart.
+  await page
+    .getByRole('button', { name: /Просрочено/u })
+    .first()
+    .click();
+  await expect(page.locator('.vax-chart__dose--dimmed').first()).toBeVisible();
+  await expect(
+    page.locator('.vax-chart__dose[data-status="overdue"].vax-chart__dose--dimmed'),
+  ).toHaveCount(0);
+  await expect(dose(page, 'n-07-1')).toHaveClass(/vax-chart__dose--dimmed/u);
+  await page
+    .getByRole('button', { name: /Просрочено/u })
+    .first()
+    .click();
+  await expect(page.locator('.vax-chart__dose--dimmed')).toHaveCount(0);
+
+  // Everything overdue as done in one tap, with an undo.
+  const before = await counts(page);
+  await page.getByRole('button', { name: 'Отметить просроченные как сделанные' }).click();
+  await expect.poll(() => counts(page)).toMatchObject({ overdue: 0, now: 4 });
+  await capture(page, 'vac3-all-done-390');
+  await page.getByRole('button', { name: 'Отменить' }).click();
+  await expect.poll(() => counts(page)).toEqual(before);
+
+  // The marks are saved with the card: leave, come back, choose the card again.
+  await page.waitForTimeout(900);
+  await leaveCalendar(page);
+  await openCalendar(page);
+  await expect(page.locator('.vax-status')).toHaveCount(0);
+  await chooseChild(page, 'Аня Тестова');
+  await expect.poll(() => counts(page)).toEqual(before);
+  await expect(dose(page, 'n-05-2')).toHaveAttribute('data-status', 'done');
+  await expect(dose(page, 'n-01-1')).toHaveAttribute('data-status', 'done');
+
+  // The handout: one A4 portrait page in plain words with the name, the marks and dates.
+  await page.getByRole('button', { name: 'Печать', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Лист для мамы' });
+  await expect(dialog).toBeVisible();
+  const frame = page.frameLocator('iframe[title="Предпросмотр листа для мамы"]');
+  await expect(frame.locator('.handout__value').first()).toHaveText('Аня Тестова');
+  await expect(frame.locator('.handout__value').nth(1)).toContainText('10.01.2026');
+  await expect(frame.locator('.handout__dose')).toContainText([
+    'Вирусный гепатит В — 1-я прививка',
+  ]);
+  await expect(frame.getByText('сделана 12.04.2026')).toBeVisible();
+  await expect(frame.locator('.handout__box--done')).toHaveCount(2);
+  await expect(frame.locator('body')).not.toContainText('клинич');
+  await capture(page, 'vac3-handout-390');
 
   const html = (await page
-    .locator('iframe[title="Предпросмотр дневника прививок"]')
+    .locator('iframe[title="Предпросмотр листа для мамы"]')
     .getAttribute('srcdoc')) as string;
-  const sheet = await page.context().newPage();
+  const sheetPage = await page.context().newPage();
   try {
-    await sheet.setContent(html);
-    await sheet.emulateMedia({ media: 'print' });
-    const pdf = await sheet.pdf({ preferCSSPageSize: true, printBackground: true });
+    await sheetPage.setContent(html);
+    await sheetPage.emulateMedia({ media: 'print' });
+    const pdf = await sheetPage.pdf({ preferCSSPageSize: true, printBackground: true });
     const source = pdf.toString('latin1');
     const pages = (source.match(/\/Type\s*\/Page(?![a-z])/gu) ?? []).length;
     expect(pages).toBe(1);
     const box = /\/MediaBox\s*\[\s*0\s+0\s+([\d.]+)\s+([\d.]+)\s*\]/u.exec(source);
-    expect(Number(box?.[1])).toBeCloseTo(841.89, 0);
-    expect(Number(box?.[2])).toBeCloseTo(595.28, 0);
-    const spill = await sheet.evaluate(() => ({
-      width: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-    }));
-    expect(spill.width).toBeLessThanOrEqual(1);
+    expect(Number(box?.[1])).toBeCloseTo(595.28, 0);
+    expect(Number(box?.[2])).toBeCloseTo(841.89, 0);
     if (CAPTURE_DIR) {
       mkdirSync(CAPTURE_DIR, { recursive: true });
-      writeFileSync(`${CAPTURE_DIR}/vac2-diary-personal.pdf`, pdf);
-      await sheet.setViewportSize({ width: 1123, height: 794 });
-      await sheet.screenshot({ path: `${CAPTURE_DIR}/vac2-diary-personal.png`, fullPage: true });
+      writeFileSync(`${CAPTURE_DIR}/vac3-handout.pdf`, pdf);
     }
   } finally {
-    await sheet.close();
+    await sheetPage.close();
   }
   await dialog.getByRole('button', { name: 'Закрыть', exact: true }).click();
 
-  // A card without a birth date: the date typed here is written to the card on attaching.
+  // A card without a birth date: marks work, statuses wait for the date, which goes into the card.
   await chooseChild(page, 'Миша без даты');
-  await expect(page.locator('.vax-plan__entry')).toHaveCount(0);
-  await page.getByLabel('Дата рождения ребёнка').fill('2026-01-10');
-  await expect(page.locator('.vax-plan__entry')).toHaveCount(14);
-  await page.getByRole('button', { name: 'Прикрепить план к карточке' }).click();
-  await expect(page.getByRole('status').filter({ hasText: 'План прикреплён' })).toBeVisible();
+  // The sheet stays open to ask for the date; the marks work without it.
+  await closeChildSheet(page);
+  await expect(page.locator('.vax-child__birth')).toHaveText('дата рождения не указана');
+  await expect(page.locator('.vax-status')).toHaveCount(0);
+  await expect(dose(page, 'n-01-1')).toHaveAttribute('data-status', 'later');
+  await dose(page, 'n-01-1').click();
+  await expect(dose(page, 'n-01-1')).toHaveAttribute('data-status', 'done');
+  await page.getByRole('button', { name: 'Сменить ребёнка' }).click();
+  await page.getByLabel('Дата рождения (запишется в карточку)').fill('2026-01-10');
+  await closeChildSheet(page);
+  await expect(page.locator('.vax-child__birth')).toHaveText('10.01.2026 · 8 мес.');
+  await expect.poll(() => counts(page)).toMatchObject({ done: 1, now: 4, overdue: 10 });
+  // The card keeps the date: another card and back again.
   await chooseChild(page, 'Аня Тестова');
   await chooseChild(page, 'Миша без даты');
-  await expect(page.locator('.vax-child__fact-value')).toHaveText('10.01.2026');
-  await expect(page.getByText('из карточки')).toBeVisible();
+  await expect(page.locator('.vax-child__birth')).toHaveText('10.01.2026 · 8 мес.');
+  await expect(dose(page, 'n-01-1')).toHaveAttribute('data-status', 'done');
 
   // Patient data is not left outside the vault.
   const stored = await page.evaluate(() => JSON.stringify({ ...window.localStorage }));
   expect(stored).not.toContain('Аня Тестова');
-  expect(stored).not.toContain('2025-03-15');
-  expect(page.url()).not.toContain('2025-03-15');
+  expect(stored).not.toContain('2026-01-10');
+  expect(page.url()).not.toContain('2026-01-10');
 });
 
-test('calculate only: a birth date gives the plan and the sheet, nothing is saved', async ({
-  page,
-}) => {
+test('birth date only: statuses and marks without a card, nothing is saved', async ({ page }) => {
   test.setTimeout(180_000);
+  await page.clock.setFixedTime(TODAY);
   await page.setViewportSize({ width: 390, height: 844 });
   await mountBuiltApp(page, { persistentOrigin: true, skipLargeCompanionPacks: true });
-  await openPlan(page);
-  await capture(page, 'vac2-plan-empty-390');
+  await openCalendar(page);
 
-  await page.getByRole('radio', { name: 'Только расчёт', exact: true }).check({ force: true });
-  await expect(page.getByText(/нигде не записываются/u)).toBeVisible();
-  const birth = page.getByLabel('Дата рождения ребёнка');
-  await birth.fill('2025-03-15');
-  await expect(page.locator('.vax-plan__entry')).toHaveCount(14);
-  await expect(page.locator('.vax-plan__entry[data-status="current"]')).toHaveCount(1);
-  await expect(
-    page.locator('.vax-plan__entry[data-row-id="n-06"] .vax-plan__date-value'),
-  ).toContainText('≈');
-  await expect(
-    page.locator('.vax-plan__entry[data-row-id="n-11"] .vax-plan__dose-label'),
-  ).toHaveText('RV2 · ОПВ');
-  await expect(page.getByRole('button', { name: 'Прикрепить план к карточке' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Выбрать ребёнка' }).click();
+  const birth = page.getByLabel('Или только дата рождения');
+  await birth.fill('2026-01-10');
+  await closeChildSheet(page);
+  await expect(page.locator('.vax-child__name')).toHaveText('Без карточки');
+  await expect(page.locator('.vax-child__birth')).toHaveText('10.01.2026 · 8 мес.');
+  await expect.poll(() => counts(page)).toEqual({ done: 0, planned: 0, now: 4, overdue: 11 });
+  await dose(page, 'n-01-1').click();
+  await expect.poll(() => counts(page)).toMatchObject({ done: 1, overdue: 10 });
   await noHorizontalOverflow(page);
-  await capture(page, 'vac2-plan-quick-390', true);
+  await capture(page, 'vac3-quick-390');
 
-  await page.getByRole('button', { name: /Условия из порядка проведения прививок/u }).click();
-  await expect(
-    page.getByText(
-      'Допускается введение вакцин (за исключением вакцин для профилактики туберкулеза)',
-    ),
-  ).toBeVisible();
-
-  // The sheet without a name has a blank line for it and still carries the planned dates.
-  await page.getByRole('button', { name: 'Дневник для мамы' }).click();
-  const frame = page.frameLocator('iframe[title="Предпросмотр дневника прививок"]');
-  await expect(frame.locator('.vax-diary__child-value').first()).toHaveText('');
-  await expect(frame.locator('.vax-diary__child-value').nth(1)).toHaveText('15.03.2025');
-  await capture(page, 'vac2-diary-preview-390');
+  // The handout has a blank line for the name and the date.
+  await page.getByRole('button', { name: 'Печать', exact: true }).click();
+  const frame = page.frameLocator('iframe[title="Предпросмотр листа для мамы"]');
+  await expect(frame.locator('.handout__value').first()).toHaveText('');
+  await expect(frame.locator('.handout__value').nth(1)).toContainText('10.01.2026');
   await page.getByRole('dialog').getByRole('button', { name: 'Закрыть', exact: true }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
 
   const stored = await page.evaluate(() => JSON.stringify({ ...window.localStorage }));
-  expect(stored).not.toContain('2025-03-15');
-  expect(page.url()).not.toContain('2025-03-15');
+  expect(stored).not.toContain('2026-01-10');
+  expect(page.url()).not.toContain('2026-01-10');
   const databases = await page.evaluate(async () =>
     (await indexedDB.databases()).map((database) => database.name ?? ''),
   );
   expect(databases.filter((name) => /patient/iu.test(name))).toEqual([]);
 
+  // A date that cannot be used is explained; a cleared child leaves the plain table.
+  await page.getByRole('button', { name: 'Сменить ребёнка' }).click();
   await birth.fill('2099-01-01');
+  await closeChildSheet(page);
   await expect(page.getByRole('alert')).toContainText('не может быть позже сегодняшнего дня');
-  await expect(page.getByRole('button', { name: 'Дневник для мамы' })).toHaveCount(0);
-
-  // A blank sheet needs no data at all.
-  await birth.fill('');
-  await expect(page.locator('.vax-plan__entry')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Сменить ребёнка' }).click();
+  await page.getByRole('button', { name: 'Убрать' }).click();
+  await page.getByRole('button', { name: 'Закрыть', exact: true }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.locator('.vax-child__name')).toHaveText('Ребёнок');
+  await expect(page.locator('.vax-status')).toHaveCount(0);
+  await expect(dose(page, 'n-01-1')).toHaveAttribute('data-status', 'later');
 });
 
-test('the page layout holds at phone and desktop widths', async ({ page }) => {
+test('desktop: the table, tiles and the «now» line at full width', async ({ page }) => {
   test.setTimeout(180_000);
-  await page.setViewportSize({ width: 390, height: 844 });
-  await mountBuiltApp(page, { persistentOrigin: true, skipLargeCompanionPacks: true });
-  await page.evaluate(() => {
-    window.location.hash = '#/notes/vaccination';
-  });
-  await expect(page.getByRole('heading', { name: 'Календарь прививок', level: 1 })).toBeVisible();
-  await noHorizontalOverflow(page);
-  await capture(page, 'vac2-national-390');
-  // Back button and print share the first row of the page header.
-  const back = await page.getByRole('button', { name: 'Назад' }).first().boundingBox();
-  const print = await page.getByRole('button', { name: 'Печать', exact: true }).boundingBox();
-  expect(Math.abs((back?.y ?? 0) - (print?.y ?? 999))).toBeLessThan(24);
-
+  await page.clock.setFixedTime(TODAY);
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.reload();
-  await expect(page.getByRole('heading', { name: 'Календарь прививок', level: 1 })).toBeVisible();
+  await mountBuiltApp(page, { persistentOrigin: true, skipLargeCompanionPacks: true });
+  await openCalendar(page);
+  await page.getByRole('button', { name: 'Выбрать ребёнка' }).click();
+  await page.getByLabel('Или только дата рождения').fill('2026-01-10');
+  await closeChildSheet(page);
+  await expect.poll(() => counts(page)).toMatchObject({ now: 4, overdue: 11 });
   await noHorizontalOverflow(page);
-  await capture(page, 'vac2-national-1280');
-  await page.evaluate(() => {
-    window.location.hash = '#/notes/vaccination?part=plan';
-  });
-  await capture(page, 'vac2-plan-empty-1280');
+  await capture(page, 'vac3-chosen-1280');
 });

@@ -1,55 +1,46 @@
-import type { DiarySubject } from '@/features/vaccination/vaccination-diary';
+import type { HandoutSubject } from '@/features/vaccination/vaccination-handout';
 import { parseIsoDate } from '@/features/vaccination/vaccination-plan';
 import type { PatientProfile } from '@/state/patient-domain';
 
 /**
- * Who the plan is for. A child is normally a patient card (the plan is attached to it); the doctor
- * may also just calculate from a birth date, in which case nothing is kept anywhere.
+ * Who the calendar is for. A child is normally a patient card (the marks are kept with it and the
+ * card's birth date is used); the doctor may also just enter a birth date, in which case nothing
+ * is kept anywhere.
  */
-export type ChildMode = 'patient' | 'quick';
-
 export interface ChildInput {
-  readonly mode: ChildMode;
-  /** The selected card in `patient` mode. */
+  /** The selected card; without one the child is only a birth date. */
   readonly profile: PatientProfile | undefined;
-  /** A birth date typed on the page (the only date in `quick` mode, a missing one in `patient`). */
+  /** A birth date typed on the page: the only date without a card, a missing one in a card. */
   readonly typedBirthDate: string;
-  /** A name typed for the sheet in `quick` mode; never stored. */
-  readonly typedName: string;
-  /** `patient` mode: whether the card's name goes onto the printed sheet. */
-  readonly printName: boolean;
 }
+
+export const NO_CHILD: ChildInput = { profile: undefined, typedBirthDate: '' };
 
 /** The name a card shows on a sheet: the full name when the card has one, else the display name. */
 export function patientSheetName(profile: PatientProfile): string {
   return (profile.fullName ?? profile.displayName).trim();
 }
 
-/** Birth date the plan is computed from; the card's own date wins over one typed beside it. */
+/** Birth date the calendar is worked out from; the card's own date wins over one typed beside it. */
 export function childBirthDate(input: ChildInput): string | null {
-  const stored = input.mode === 'patient' ? input.profile?.birthDate : undefined;
-  const candidate = stored ?? input.typedBirthDate;
+  const candidate = input.profile?.birthDate ?? input.typedBirthDate;
   return candidate !== '' && parseIsoDate(candidate) ? candidate : null;
 }
 
-/** Whether the plan is for a card that has no birth date yet (the typed date would be new). */
+/** Whether the typed date would be new to the card (the card has no birth date yet). */
 export function needsBirthDateInCard(input: ChildInput): boolean {
-  return (
-    input.mode === 'patient' && input.profile !== undefined && input.profile.birthDate === undefined
-  );
+  return input.profile !== undefined && input.profile.birthDate === undefined;
 }
 
-/** What goes onto the sheet. `null` while a patient is expected and none is chosen. */
-export function diarySubjectFor(input: ChildInput): DiarySubject | null {
-  if (input.mode === 'patient') {
-    if (!input.profile) return null;
-    return {
-      name: input.printName ? patientSheetName(input.profile) : null,
-      birthDate: childBirthDate(input),
-    };
-  }
+/** True once there is somebody to mark vaccinations for: a card or a valid birth date. */
+export function hasChild(input: ChildInput): boolean {
+  return input.profile !== undefined || childBirthDate(input) !== null;
+}
+
+/** What goes onto the handout. */
+export function handoutSubjectFor(input: ChildInput): HandoutSubject {
   return {
-    name: input.typedName.trim() === '' ? null : input.typedName.trim(),
+    name: input.profile ? patientSheetName(input.profile) : null,
     birthDate: childBirthDate(input),
   };
 }

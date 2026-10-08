@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest';
 import {
   type ChildInput,
   childBirthDate,
-  diarySubjectFor,
+  handoutSubjectFor,
+  hasChild,
+  NO_CHILD,
   needsBirthDateInCard,
 } from '@/features/vaccination/vaccination-child';
 import type { PatientProfile } from '@/state/patient-domain';
@@ -24,20 +26,14 @@ const BARE: PatientProfile = {
 };
 
 function input(overrides: Partial<ChildInput>): ChildInput {
-  return {
-    mode: 'patient',
-    profile: PROFILE,
-    typedBirthDate: '',
-    typedName: '',
-    printName: true,
-    ...overrides,
-  };
+  return { profile: PROFILE, typedBirthDate: '', ...overrides };
 }
 
-describe('child of the vaccination plan', () => {
+describe('child of the vaccination calendar', () => {
   it('takes the birth date and the full name from the card', () => {
-    expect(diarySubjectFor(input({}))).toEqual({ name: 'Иванова Анна', birthDate: '2025-03-15' });
-    expect(diarySubjectFor(input({ printName: false }))?.name).toBeNull();
+    expect(handoutSubjectFor(input({}))).toEqual({ name: 'Иванова Анна', birthDate: '2025-03-15' });
+    const { fullName: _fullName, ...withoutFullName } = PROFILE;
+    expect(handoutSubjectFor(input({ profile: withoutFullName })).name).toBe('Аня');
   });
 
   it('prefers the card date over one typed beside it', () => {
@@ -51,18 +47,16 @@ describe('child of the vaccination plan', () => {
     expect(needsBirthDateInCard(input({}))).toBe(false);
   });
 
-  it('has no subject until a card is chosen in patient mode', () => {
-    expect(diarySubjectFor(input({ profile: undefined }))).toBeNull();
+  it('is nobody until a card or a valid date is given', () => {
+    expect(hasChild(NO_CHILD)).toBe(false);
+    expect(hasChild(input({ profile: undefined, typedBirthDate: '2025-02-30' }))).toBe(false);
+    expect(hasChild(input({ profile: BARE }))).toBe(true);
+    expect(hasChild(input({ profile: undefined, typedBirthDate: '2025-02-28' }))).toBe(true);
   });
 
-  it('calculates from a typed date alone, keeping the optional name for the sheet only', () => {
-    const quick = input({ mode: 'quick', typedBirthDate: '2024-02-29', typedName: ' Миша ' });
-    expect(diarySubjectFor(quick)).toEqual({ name: 'Миша', birthDate: '2024-02-29' });
-    // The card of patient mode is ignored in quick mode.
-    expect(childBirthDate({ ...quick, typedBirthDate: '' })).toBeNull();
-  });
-
-  it('rejects a date that is not on the calendar', () => {
-    expect(childBirthDate(input({ mode: 'quick', typedBirthDate: '2025-02-30' }))).toBeNull();
+  it('works from a typed date alone, with no name on the sheet', () => {
+    const quick = input({ profile: undefined, typedBirthDate: '2024-02-29' });
+    expect(handoutSubjectFor(quick)).toEqual({ name: null, birthDate: '2024-02-29' });
+    expect(needsBirthDateInCard(quick)).toBe(false);
   });
 });

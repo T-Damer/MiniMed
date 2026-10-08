@@ -129,8 +129,8 @@ function entryDates(
 
 /**
  * Plan for the age rows of Appendix 1. The status marks where `today` falls among the rows:
- * rows whose age has passed, the latest age reached, and the ones still ahead. It says nothing
- * about whether a vaccination was given.
+ * rows whose age has passed, the latest age reached (every row that starts on that day), and the
+ * ones still ahead. It says nothing about whether a vaccination was given.
  */
 export function buildChildPlan(
   rows: readonly NationalRow[],
@@ -149,10 +149,11 @@ export function buildChildPlan(
     return dates ? [{ row, ...dates }] : [];
   });
   const reached = dated.filter((entry) => compareDates(entry.from, now) <= 0);
-  const current = reached[reached.length - 1]?.row.id;
+  // Rows that start on the same day (6 years and 6–7 years) are the latest age together.
+  const latest = reached[reached.length - 1]?.from;
   const entries = dated.map((entry): PlanEntry => {
     const status: PlanStatus =
-      entry.row.id === current
+      latest !== undefined && compareDates(entry.from, latest) === 0
         ? 'current'
         : compareDates(entry.from, now) < 0
           ? 'passed'

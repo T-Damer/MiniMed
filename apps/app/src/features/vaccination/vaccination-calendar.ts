@@ -82,3 +82,30 @@ export function procedureItemsFor(
 export function generalProcedureItems(calendar: VaccinationCalendar): readonly ProcedureItem[] {
   return calendar.procedure.items.filter((item) => item.appliesTo.includes('general'));
 }
+
+export interface CalendarDose {
+  readonly item: NationalItem;
+  readonly row: NationalRow;
+}
+
+/** Every vaccination of the national calendar by item id, with the row it is printed in. */
+export function nationalDoses(calendar: VaccinationCalendar): ReadonlyMap<string, CalendarDose> {
+  return new Map(
+    calendar.national.rows.flatMap((row) =>
+      row.items.map((item) => [item.id, { item, row }] as const),
+    ),
+  );
+}
+
+/**
+ * A step in the words of a parent: «1-я прививка», «прививка», «повторная прививка»,
+ * «2-я повторная прививка». The order's own wording stays on the doctor's screen.
+ */
+export function plainStepLabel(step: VaccinationStep): string {
+  const noun = step.kind === 'vaccination' ? 'прививка' : 'повторная прививка';
+  return step.ordinal === null ? noun : `${step.ordinal}-я ${noun}`;
+}
+
+export function plainDoseLabel(item: NationalItem): string {
+  return item.steps.map(plainStepLabel).join(' + ');
+}
