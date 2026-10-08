@@ -3,7 +3,7 @@ import { Dynamic } from 'solid-js/web';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
-import { startConversation } from '@/features/conversations/conversation-session';
+import { conversationSession } from '@/features/conversations/conversation-session';
 import {
   createUserLibraryDocuments,
   findExampleStudy,
@@ -82,7 +82,7 @@ const SLIDES: readonly TourSlide[] = [
         id: 'record',
         label: 'Записать беседу',
         icon: 'microphone',
-        run: () => void startConversation(),
+        run: () => conversationSession.prepare(),
       },
     ],
   },

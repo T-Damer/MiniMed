@@ -17,12 +17,11 @@ async function openLiveWindow(page: Page) {
   await page.getByRole('button', { name: 'Все инструменты', exact: true }).click();
   const sheet = page.getByRole('dialog', { name: 'Все инструменты' });
   await sheet.locator('.quick-tool-row__open', { hasText: 'Запись беседы' }).click();
-  await page
-    .locator('.conversation-bar')
-    .getByRole('button', { name: /Открыть окно с текстом/u })
-    .click();
   const live = page.getByTestId('conversation-live');
   await expect(live).toBeVisible();
+  // The window opens ready; the microphone starts with the big round button.
+  await live.getByRole('button', { name: 'Начать запись', exact: true }).click();
+  await expect(live.getByRole('button', { name: 'Стоп' })).toBeVisible();
   return live;
 }
 

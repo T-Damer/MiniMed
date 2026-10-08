@@ -118,6 +118,11 @@ export const conversationSession = {
   /** The in-memory text of a recording made in this session, if its run is still held. */
   transcript: (recordingId: string): ConversationTranscript | undefined => runs.get(recordingId),
   openWindow: () => setWindowOpen(true),
+  /**
+   * The entry from the tools list: opens the recording window ready to start. The microphone stays
+   * off until the doctor taps the big record button inside it.
+   */
+  prepare: () => setWindowOpen(true),
   closeWindow: () => {
     setWindowOpen(false);
     setWindowFullscreen(false);

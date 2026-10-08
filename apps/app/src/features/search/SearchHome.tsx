@@ -25,10 +25,7 @@ import {
   ECG_PHOTO_CALIPER_ID,
 } from '@/features/calculators/calculator-registry';
 import { EcgHomeEntry } from '@/features/calculators/EcgHomeEntry';
-import {
-  conversationSession,
-  startConversation,
-} from '@/features/conversations/conversation-session';
+import { conversationSession } from '@/features/conversations/conversation-session';
 import { DRUG_COMPARISON_TOOL } from '@/features/drug-comparison/drug-comparison-tool';
 import { DRUG_INTERACTION_TOOL } from '@/features/drug-interactions/drug-interaction-tool';
 import { SearchHistoryPanel } from '@/features/history/SearchHistoryPanel';
@@ -265,7 +262,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       icon: 'microphone',
       ageScope: APP_FEATURE_AGE_SCOPE,
       group: 'reception',
-      run: () => void startConversation(),
+      run: () => conversationSession.prepare(),
     },
     {
       id: APP_TOOL_IDS.ecgPhoto,
@@ -415,7 +412,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           action={{
             label: 'Начать запись',
             icon: 'microphone',
-            run: () => void startConversation(),
+            run: () => conversationSession.prepare(),
             ...(conversationSession.recorder() ? { unavailableReason: 'Запись уже идёт' } : {}),
           }}
           secondary={{ label: 'Пациенты', icon: 'users', href: '#/notes/patients' }}
