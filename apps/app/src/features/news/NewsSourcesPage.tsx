@@ -1,140 +1,105 @@
-import { type Accessor, createSignal, For, type JSX, Show } from 'solid-js';
+import { type Accessor, createSignal, For, type JSX, onMount, Show } from 'solid-js';
 import { toast } from 'solid-sonner';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
-import { FileButton } from '@/components/FileButton';
 import { NavBack } from '@/components/NavBack';
+import { Page } from '@/components/Page';
 import { Switch } from '@/components/Switch';
-import { NewsSourceTile } from '@/features/news/NewsSourceTile';
-import { NEWS_ADD_HASH, NEWS_PUBMED_HASH, NEWS_ROOT_HASH } from '@/features/news/news-routing';
+import { TextField } from '@/components/TextField';
+import { NewsAvatar } from '@/features/news/NewsAvatar';
+import { NewsSourceSheet, type SourceTarget } from '@/features/news/NewsSourceSheet';
+import { avatarLookOf } from '@/features/news/news-avatar';
+import { NEWS_ROOT_HASH } from '@/features/news/news-routing';
 import type { NewsSnapshot } from '@/features/news/news-service';
 import { fetchedAtLabel } from '@/features/news/news-state';
 import { getNewsService } from '@/features/news/news-store';
-import { hasItems, type Subscription } from '@/features/news/news-types';
+import type { Subscription } from '@/features/news/news-types';
 import { buildOpml, parseOpml } from '@/features/news/opml';
-import { hostLabel } from '@/features/news/source-url';
-import { suggestedFeedById } from '@/features/news/suggested-feeds';
+import { hostLabel, normalizeSourceUrl } from '@/features/news/source-url';
 import { shareSystemFile } from '@/state/native-share';
 
 function SourceRow(props: {
   readonly subscription: Subscription;
-  readonly unread: number;
-  readonly editing: boolean;
-  readonly onEdit: () => void;
-  readonly onCancelEdit: () => void;
-  readonly onRename: (title: string) => void;
+  readonly icons: Readonly<Record<string, string>>;
   readonly onImages: (enabled: boolean) => void;
   readonly onRemove: () => void;
 }): JSX.Element {
-  const [draft, setDraft] = createSignal(props.subscription.title);
-  const feed = () => props.subscription.kind === 'feed';
-  const items = () => hasItems(props.subscription.kind);
-  const glyph = () => {
-    const kind = props.subscription.kind;
-    return kind === 'pubmed' ? 'search' : kind === 'feed' ? 'rss' : 'globe';
-  };
-  const status = (): string => {
+  const detail = (): string => {
     const subscription = props.subscription;
-    if (subscription.kind === 'site') return 'Сайт — открывается в приложении';
-    if (subscription.error) return subscription.error.message;
-    return `Обновлено: ${fetchedAtLabel(subscription.fetchedAt, Date.now())}`;
+    if (subscription.error) return `${hostLabel(subscription.url)} · ${subscription.error.message}`;
+    if (subscription.kind === 'site') return `${hostLabel(subscription.url)} · сайт`;
+    return `${hostLabel(subscription.siteUrl ?? subscription.url)} · ${fetchedAtLabel(subscription.fetchedAt, Date.now())}`;
   };
   return (
     <li class="news-source" data-source={props.subscription.id}>
-      <div class="news-source__main">
-        <NewsSourceTile
-          visual={suggestedFeedById(props.subscription.suggestedId)?.visual}
-          glyph={glyph()}
-          size="small"
-        />
-        <div class="news-source__copy">
-          <Show
-            when={props.editing}
-            fallback={<span class="news-source__title">{props.subscription.title}</span>}
-          >
-            <form
-              class="news-source__rename"
-              onSubmit={(event) => {
-                event.preventDefault();
-                props.onRename(draft());
-              }}
-            >
-              <input
-                class="news-source__input"
-                type="text"
-                maxLength={120}
-                aria-label="Название источника"
-                value={draft()}
-                onInput={(event) => setDraft(event.currentTarget.value)}
-              />
-              <button type="submit" class="news-source__button">
-                Сохранить
-              </button>
-              <button type="button" class="news-source__button" onClick={props.onCancelEdit}>
-                Отмена
-              </button>
-            </form>
-          </Show>
-          <span class="news-source__host">{hostLabel(props.subscription.url)}</span>
-          <span
-            class="news-source__status"
-            classList={{ 'news-source__status--error': Boolean(props.subscription.error) }}
-          >
-            {status()}
-          </span>
-          <Show when={props.subscription.query}>
-            {(query) => <span class="news-source__status">Запрос: {query()}</span>}
-          </Show>
-          <Show when={items() && props.unread > 0}>
-            <span class="news-source__unread">Непрочитанных: {props.unread}</span>
-          </Show>
-        </div>
-      </div>
-      <div class="news-source__controls">
-        <Show when={feed()}>
-          <span class="news-source__switch">
-            <span class="news-source__switch-label">Изображения</span>
-            <Switch
-              checked={props.subscription.images}
-              onChange={props.onImages}
-              aria-label={`Показывать изображения: ${props.subscription.title}`}
-            />
-          </span>
-        </Show>
-        <button
-          type="button"
-          class="news-source__button"
-          aria-label={`Переименовать: ${props.subscription.title}`}
-          onClick={() => {
-            setDraft(props.subscription.title);
-            props.onEdit();
-          }}
+      <NewsAvatar
+        size="sm"
+        look={avatarLookOf(props.subscription, props.icons)}
+        glyph={props.subscription.kind === 'pubmed' ? 'search' : undefined}
+      />
+      <span class="news-source__copy">
+        <span class="news-source__title">{props.subscription.title}</span>
+        <span
+          class="news-source__detail"
+          classList={{ 'news-source__detail--error': Boolean(props.subscription.error) }}
         >
-          <AppGlyph name="edit" class="news-source__button-icon" />
-          Название
-        </button>
-        <button
-          type="button"
-          class="news-source__button news-source__button--danger"
-          aria-label={`Удалить: ${props.subscription.title}`}
-          onClick={props.onRemove}
-        >
-          <AppGlyph name="trash" class="news-source__button-icon" />
-          Удалить
-        </button>
-      </div>
+          {detail()}
+        </span>
+      </span>
+      <Show when={props.subscription.kind === 'feed'}>
+        <span class="news-source__images" title="Показывать изображения">
+          <AppGlyph name="image" class="news-source__images-icon" />
+          <Switch
+            checked={props.subscription.images}
+            onChange={props.onImages}
+            aria-label={`Показывать изображения: ${props.subscription.title}`}
+          />
+        </span>
+      </Show>
+      <button
+        type="button"
+        class="news-icon-button news-icon-button--quiet news-icon-button--danger"
+        aria-label={`Удалить: ${props.subscription.title}`}
+        title="Удалить"
+        onClick={props.onRemove}
+      >
+        <AppGlyph name="trash" class="news-icon-button__icon" />
+      </button>
     </li>
   );
 }
 
-export function NewsSourcesPage(props: { readonly snapshot: Accessor<NewsSnapshot> }): JSX.Element {
+/**
+ * «Источники»: adding by address and managing the list on one page. An address opens the source
+ * sheet (avatar, description, latest entries) before anything is subscribed.
+ */
+export function NewsSourcesPage(props: {
+  readonly snapshot: Accessor<NewsSnapshot>;
+  /** Opened from «+»: the address field takes focus. */
+  readonly focusAdd?: boolean;
+}): JSX.Element {
   const service = getNewsService();
-  const [editingId, setEditingId] = createSignal<string>();
+  const [address, setAddress] = createSignal('');
+  const [invalid, setInvalid] = createSignal<string>();
+  const [target, setTarget] = createSignal<SourceTarget>();
   const [removing, setRemoving] = createSignal<Subscription>();
   const [importing, setImporting] = createSignal(false);
-  const unreadOf = (id: string): number =>
-    props.snapshot().subscriptions.find((entry) => entry.id === id)?.unread ?? 0;
+  let field: HTMLInputElement | undefined;
+
+  onMount(() => {
+    if (props.focusAdd) queueMicrotask(() => field?.focus());
+  });
+
+  const check = (): void => {
+    const normalized = normalizeSourceUrl(address());
+    if (!normalized.ok) {
+      setInvalid(normalized.message);
+      return;
+    }
+    setInvalid(undefined);
+    setTarget({ kind: 'address', url: normalized.url });
+  };
 
   const exportOpml = async (): Promise<void> => {
     const blob = new Blob([buildOpml(props.snapshot().subscriptions)], {
@@ -183,47 +148,128 @@ export function NewsSourcesPage(props: { readonly snapshot: Accessor<NewsSnapsho
     }
   };
 
+  const icons = () => props.snapshot().icons;
   return (
     <section class="news-sources page-surface page-grain" data-testid="news-sources">
-      <header class="news-sources__header">
-        <NavBack
-          class="knowledge-back-button"
-          aria-label="К ленте"
-          onClick={() => {
-            window.location.hash = NEWS_ROOT_HASH;
-          }}
-        />
-        <div class="news-sources__heading">
-          <h1 class="news-sources__title">Источники</h1>
-          <p class="news-sources__description">
-            Названия, изображения и удаление. Подписки и записи хранятся только на этом устройстве.
-          </p>
-        </div>
-      </header>
-      <Show
-        when={props.snapshot().subscriptions.length > 0}
-        fallback={
-          <div class="news-sources__empty">
-            <p>Подписок пока нет.</p>
-            <a class="news-sources__link" href={NEWS_ADD_HASH}>
-              Добавить источник
-            </a>
+      <Page
+        class="news-sources__heading"
+        navigation={
+          <NavBack
+            class="knowledge-back-button"
+            aria-label="К ленте"
+            onClick={() => {
+              window.location.hash = NEWS_ROOT_HASH;
+            }}
+          />
+        }
+        title={<h1 class="news-sources__title">Источники</h1>}
+        help={
+          <>
+            <p>
+              Вставьте адрес ленты (RSS, Atom, JSON Feed) или сайта: приложение найдёт ленту само,
+              если сайт её объявляет. Запрос уйдёт только на этот адрес; источник увидит IP-адрес
+              устройства, больше ничего не отправляется.
+            </p>
+            <p>
+              Подписки и записи хранятся только на этом устройстве. Список можно сохранить в файл
+              OPML и загрузить на другом устройстве.
+            </p>
+          </>
+        }
+        actions={
+          <div class="news-sources__tools">
+            <Show when={props.snapshot().subscriptions.some((entry) => entry.kind !== 'pubmed')}>
+              <button
+                type="button"
+                class="news-icon-button"
+                aria-label="Сохранить список источников (OPML)"
+                title="Сохранить список"
+                onClick={() => void exportOpml()}
+              >
+                <AppGlyph name="share" class="news-icon-button__icon" />
+              </button>
+            </Show>
+            <label
+              class="news-icon-button"
+              classList={{ 'news-icon-button--disabled': importing() }}
+              title="Загрузить список"
+            >
+              <input
+                class="news-sources__file"
+                type="file"
+                accept=".opml,.xml,text/xml,text/x-opml,application/xml"
+                aria-label="Загрузить список источников (OPML)"
+                disabled={importing()}
+                onChange={(event) => {
+                  const input = event.currentTarget;
+                  void importOpml(input.files?.[0]).finally(() => {
+                    input.value = '';
+                  });
+                }}
+              />
+              <AppGlyph name="file-arrow-down" class="news-icon-button__icon" />
+            </label>
           </div>
         }
+      />
+
+      <form
+        class="news-sources__add"
+        noValidate
+        onSubmit={(event) => {
+          event.preventDefault();
+          check();
+        }}
+      >
+        <TextField
+          class="news-sources__field"
+          inputClass="news-sources__input"
+          label="Адрес ленты или сайта"
+          hideLabel
+          type="url"
+          inputMode="url"
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck={false}
+          placeholder="Адрес ленты или сайта"
+          value={address()}
+          ref={(element: HTMLInputElement) => {
+            field = element;
+          }}
+          onInput={(event) => {
+            setAddress(event.currentTarget.value);
+            setInvalid(undefined);
+          }}
+          name="news-source-url"
+        />
+        <button
+          type="submit"
+          class="news-icon-button news-icon-button--primary news-sources__submit"
+          aria-label="Проверить адрес"
+          title="Проверить адрес"
+          disabled={address().trim() === ''}
+        >
+          <AppGlyph name="plus" class="news-icon-button__icon" />
+        </button>
+      </form>
+      <Show when={invalid()}>
+        {(message) => (
+          <p class="news-sources__error" role="alert">
+            {message()}
+          </p>
+        )}
+      </Show>
+
+      <Show
+        when={props.snapshot().subscriptions.length > 0}
+        fallback={<p class="news-sources__empty">Подписок пока нет.</p>}
       >
         <ul class="news-sources__list">
           <For each={props.snapshot().subscriptions}>
             {(subscription) => (
               <SourceRow
                 subscription={subscription}
-                unread={unreadOf(subscription.id)}
-                editing={editingId() === subscription.id}
-                onEdit={() => setEditingId(subscription.id)}
-                onCancelEdit={() => setEditingId(undefined)}
-                onRename={(title) => {
-                  service.rename(subscription.id, title);
-                  setEditingId(undefined);
-                }}
+                icons={icons()}
                 onImages={(enabled) => service.setImages(subscription.id, enabled)}
                 onRemove={() => setRemoving(subscription)}
               />
@@ -231,35 +277,13 @@ export function NewsSourcesPage(props: { readonly snapshot: Accessor<NewsSnapsho
           </For>
         </ul>
       </Show>
-      <div class="news-sources__tools">
-        <a class="news-sources__link" href={NEWS_ADD_HASH}>
-          <AppGlyph name="plus" class="news-sources__link-icon" />
-          Добавить источник
-        </a>
-        <a class="news-sources__link" href={NEWS_PUBMED_HASH}>
-          <AppGlyph name="search" class="news-sources__link-icon" />
-          Поиск в PubMed
-        </a>
-        <Show when={props.snapshot().subscriptions.some((entry) => entry.kind !== 'pubmed')}>
-          <button type="button" class="news-sources__link" onClick={() => void exportOpml()}>
-            <AppGlyph name="share" class="news-sources__link-icon" />
-            Экспорт OPML
-          </button>
-        </Show>
-        <FileButton
-          variant="secondary"
-          accept=".opml,.xml,text/xml,text/x-opml,application/xml"
-          disabled={importing()}
-          onChange={(event) => {
-            const input = event.currentTarget;
-            void importOpml(input.files?.[0]).finally(() => {
-              input.value = '';
-            });
-          }}
-        >
-          {importing() ? 'Импортируем…' : 'Импорт OPML'}
-        </FileButton>
-      </div>
+
+      <NewsSourceSheet
+        target={target()}
+        subscriptions={props.snapshot().subscriptions}
+        icons={icons()}
+        onClose={() => setTarget(undefined)}
+      />
       <ConfirmationDialog
         open={removing() !== undefined}
         title="Удалить источник?"
@@ -274,9 +298,9 @@ export function NewsSourcesPage(props: { readonly snapshot: Accessor<NewsSnapsho
           if (!open) setRemoving(undefined);
         }}
         onConfirm={() => {
-          const target = removing();
+          const picked = removing();
           setRemoving(undefined);
-          if (target) void service.remove(target.id);
+          if (picked) void service.remove(picked.id);
         }}
       />
     </section>

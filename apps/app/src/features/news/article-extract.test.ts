@@ -31,6 +31,7 @@ const NEWS_PAGE = `<!doctype html>
       <img src="data:image/gif;base64,R0lGOD" data-src="/upload/photo.jpg" alt="Фото проверки" width="640">
       <img src="/img/pixel.gif" width="1" height="1">
       <p>${PARAGRAPH}</p>
+      <p><a href="/docs/order.pdf">Приказ об утверждении</a></p>
     </div>
     <div class="related"><h3>Читайте также</h3><ul><li><a href="/n/1">Другая новость один</a></li><li><a href="/n/2">Другая новость два</a></li></ul></div>
     <div class="comments"><p>Комментарий читателя, который не должен попасть в статью, хотя он и длинный по меркам формы.</p></div>
@@ -101,6 +102,11 @@ describe('extractArticle', () => {
     expect(images).toEqual([
       { tag: 'img', src: 'https://news.test/upload/photo.jpg', alt: 'Фото проверки' },
     ]);
+  });
+
+  it('keeps a paragraph that is a single link, and drops a block of several', () => {
+    expect(textOf(article?.content ?? [])).toContain('Приказ об утверждении');
+    expect(textOf(article?.content ?? [])).not.toContain('Другая новость');
   });
 
   it('returns nothing for a page without article-sized text', () => {

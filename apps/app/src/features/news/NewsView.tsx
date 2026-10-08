@@ -9,7 +9,6 @@ import {
   Show,
   Switch,
 } from 'solid-js';
-import { NewsAddPage } from '@/features/news/NewsAddPage';
 import { NewsListPage } from '@/features/news/NewsListPage';
 import { NewsPubmedPage } from '@/features/news/NewsPubmedPage';
 import { NewsSourcesPage } from '@/features/news/NewsSourcesPage';
@@ -26,8 +25,8 @@ export interface NewsViewProps {
 }
 
 /**
- * The «Лента» tab (ADR-0024): the list of cached items, adding and managing sources, and the
- * viewer. Routes are hashes under `#/news`, so Android Back closes the viewer first.
+ * The «Лента» tab (ADR-0024): the list of cached items, the one page for adding and managing
+ * sources, and the viewer. Routes are hashes under `#/news`, so Android Back closes the viewer first.
  */
 export function NewsView(props: NewsViewProps): JSX.Element {
   const snapshot = useNewsSnapshot();
@@ -68,7 +67,7 @@ export function NewsView(props: NewsViewProps): JSX.Element {
   return (
     <Switch>
       <Match when={route().kind === 'add'}>
-        <NewsAddPage snapshot={snapshot} />
+        <NewsSourcesPage snapshot={snapshot} focusAdd />
       </Match>
       <Match when={route().kind === 'pubmed'}>
         <NewsPubmedPage snapshot={snapshot} />

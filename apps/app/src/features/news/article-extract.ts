@@ -101,6 +101,15 @@ function measureOf(element: MarkupElement, cache: Map<MarkupElement, Measure>): 
   return measure;
 }
 
+function anchorCount(element: MarkupElement): number {
+  let count = 0;
+  for (const child of element.children) {
+    if (child.kind !== 'element') continue;
+    count += child.name === 'a' ? 1 : anchorCount(child);
+  }
+  return count;
+}
+
 function elementsOf(root: MarkupElement): MarkupElement[] {
   const out: MarkupElement[] = [];
   const walk = (element: MarkupElement): void => {
@@ -283,8 +292,17 @@ function cleaned(
       if (node.name === 'h1') continue;
       const density = measure.link / Math.max(1, measure.text);
       const block = ['div', 'ul', 'ol', 'section', 'table', 'p'].includes(node.name);
-      // Link farms («Читайте также»): mostly links and short.
-      if (block && measure.text > 0 && density > 0.65 && measure.text < 600) continue;
+      // Link farms («Читайте также»): several links making up most of a short block. A paragraph
+      // that is one link («Скачать приказ») is content.
+      if (
+        block &&
+        measure.text > 0 &&
+        density > 0.65 &&
+        measure.text < 600 &&
+        anchorCount(node) > 1
+      ) {
+        continue;
+      }
       const children = walk(node.children);
       // A wrapper emptied by the cleaning (a share bar's frame, an ad slot) is not content.
       if (children.length === 0 && node.name !== 'br' && node.name !== 'hr') continue;

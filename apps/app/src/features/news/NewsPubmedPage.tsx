@@ -14,6 +14,7 @@ import { toast } from 'solid-sonner';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { NavBack } from '@/components/NavBack';
+import { Page } from '@/components/Page';
 import { TextField } from '@/components/TextField';
 import { FeedParseError } from '@/features/news/feed-parser';
 import { NEWS_ROOT_HASH } from '@/features/news/news-routing';
@@ -73,7 +74,7 @@ function ArticleRow(props: { readonly article: PubmedArticle }): JSX.Element {
 
 /**
  * PubMed search through NCBI E-utilities (ADR-0024). User-initiated only: nothing is sent until the
- * user presses «Найти», and the notice above the button says what is sent. The result can be saved
+ * user presses «Найти», and the «?» help says what is sent. The result can be saved
  * as a source that refreshes with the others.
  */
 export function NewsPubmedPage(props: { readonly snapshot: Accessor<NewsSnapshot> }): JSX.Element {
@@ -135,22 +136,34 @@ export function NewsPubmedPage(props: { readonly snapshot: Accessor<NewsSnapshot
 
   return (
     <section class="news-pubmed page-surface page-grain" data-testid="news-pubmed">
-      <header class="news-pubmed__header">
-        <NavBack
-          class="knowledge-back-button"
-          aria-label="К ленте"
-          onClick={() => {
-            window.location.hash = NEWS_ROOT_HASH;
-          }}
-        />
-        <div class="news-pubmed__heading">
-          <h1 class="news-pubmed__page-title">Поиск в PubMed</h1>
-          <p class="news-pubmed__description">
-            Статьи из базы PubMed (NCBI), самые новые — первыми. Для точного запроса подойдут
-            английские термины и операторы AND / OR.
-          </p>
-        </div>
-      </header>
+      <Page
+        class="news-pubmed__heading"
+        navigation={
+          <NavBack
+            class="knowledge-back-button"
+            aria-label="К ленте"
+            onClick={() => {
+              window.location.hash = NEWS_ROOT_HASH;
+            }}
+          />
+        }
+        title={<h1 class="news-pubmed__page-title">Поиск в PubMed</h1>}
+        help={
+          <>
+            <p data-testid="news-pubmed-notice">
+              Текст запроса отправляется в NCBI (PubMed) — только когда вы нажимаете «Найти».
+            </p>
+            <p>
+              Статьи из базы PubMed, самые новые — первыми. Для точного запроса подойдут английские
+              термины и операторы AND / OR.
+            </p>
+            <p>
+              Сохранённый поиск отправляет запрос в NCBI при каждом обновлении ленты; отключить его
+              можно в «Источниках».
+            </p>
+          </>
+        }
+      />
 
       <form
         class="news-pubmed__form"
@@ -184,11 +197,6 @@ export function NewsPubmedPage(props: { readonly snapshot: Accessor<NewsSnapshot
           {state().kind === 'searching' ? 'Ищем…' : 'Найти'}
         </Button>
       </form>
-      <p class="news-pubmed__notice" data-testid="news-pubmed-notice">
-        <AppGlyph name="info" class="news-pubmed__notice-icon" />
-        Текст запроса отправляется в NCBI (PubMed) — только когда вы нажимаете «Найти».
-      </p>
-
       <Switch>
         <Match when={state().kind === 'failed'}>
           <p class="news-pubmed__error" role="alert">
@@ -232,10 +240,6 @@ export function NewsPubmedPage(props: { readonly snapshot: Accessor<NewsSnapshot
                     >
                       Подписаться на этот поиск
                     </Button>
-                    <p class="news-pubmed__hint">
-                      Свежие статьи будут появляться в ленте при её обновлении. Запрос уходит в NCBI
-                      при каждом обновлении; отключить можно в «Источниках».
-                    </p>
                   </>
                 }
               >

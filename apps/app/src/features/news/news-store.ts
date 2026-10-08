@@ -1,6 +1,5 @@
 import { type Accessor, createSignal, onCleanup, onMount } from 'solid-js';
 
-import { framingVerdict } from '@/features/news/framing-policy';
 import { NewsService, type NewsSnapshot } from '@/features/news/news-service';
 import {
   createBrowserNewsStorage,
@@ -56,21 +55,4 @@ export function useNewsUnreadCount(): Accessor<number> {
     });
   });
   return count;
-}
-
-/**
- * Asks the site itself (a HEAD request) whether it can be framed. Answers `undefined` when the
- * headers cannot be read (a browser without CORS access, a blocked HEAD): the viewer then relies on
- * its load timeout and the standing «Открыть в браузере» control.
- */
-export async function probeFraming(
-  url: string,
-  signal?: AbortSignal,
-): Promise<'refused' | 'allowed' | undefined> {
-  try {
-    const response = await feedTransport().fetch({ url, method: 'HEAD', timeoutMs: 6000, signal });
-    return framingVerdict(response.headers, window.location.origin);
-  } catch {
-    return undefined;
-  }
 }
