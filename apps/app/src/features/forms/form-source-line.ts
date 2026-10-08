@@ -12,6 +12,11 @@ export function orderReference(source: FormSource): string {
   return `Приказ ${issuer} от ${displayDate(source.orderDate)} № ${source.orderNumber}`;
 }
 
+/** `зарегистрирован Минюстом 27.06.2025 № 82707`. */
+export function registrationReference(source: FormSource): string {
+  return `зарегистрирован Минюстом ${displayDate(source.registration.date)} № ${source.registration.number}`;
+}
+
 /**
  * When the form is in force: «Действует с …», «Действует с … по …», or «Вступает в силу с …»
  * for an order whose date has not come yet (the blank is then a preview of the coming edition).

@@ -4,9 +4,7 @@ import { Button } from '@/components/Button';
 import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
 import { Heading } from '@/components/Text';
-import { displayDate } from '@/features/forms/form-print';
 import { listFormSchemas } from '@/features/forms/form-registry';
-import { localToday, orderReference, validityLine } from '@/features/forms/form-source-line';
 import { notesFormsPath, notesPath, notesPatientsPath } from '@/features/notes/notes-routing';
 import '@/styles/forms.css';
 
@@ -64,19 +62,6 @@ export function FormsHome(props: {
                   Заполнить форму
                 </Button>
               </div>
-              <p class="forms-home__edition">
-                {orderReference(schema.source)}, зарегистрирован Минюстом{' '}
-                {displayDate(schema.source.registration.date)} № {schema.source.registration.number}
-                . {validityLine(schema.source, localToday())}{' '}
-                <a
-                  class="forms-home__source"
-                  href={schema.source.publicationUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Официальная публикация
-                </a>
-              </p>
             </article>
           )}
         </For>

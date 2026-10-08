@@ -42,7 +42,12 @@ import {
   readFormSession,
   writeFormSession,
 } from '@/features/forms/form-session';
-import { localToday, orderReference, validityLine } from '@/features/forms/form-source-line';
+import {
+  localToday,
+  orderReference,
+  registrationReference,
+  validityLine,
+} from '@/features/forms/form-source-line';
 import { validateForm } from '@/features/forms/form-validation';
 import { type FormValue, type FormValues, fillableFields } from '@/features/forms/form-values';
 import { defaultEpisode, sectionFields } from '@/features/forms/form-view-model';
@@ -271,7 +276,7 @@ export function FormFillPage(props: FormFillPageProps): JSX.Element {
   const back = (): void =>
     props.onNavigate(props.patientId ? notesPatientsPath(props.patientId) : notesFormsPath());
   const reference = (): string =>
-    `${orderReference(props.schema.source)}, приложение № ${props.schema.source.blankAppendix.number}. ${validityLine(props.schema.source, localToday())}`;
+    `${orderReference(props.schema.source)}, ${registrationReference(props.schema.source)}, приложение № ${props.schema.source.blankAppendix.number}. ${validityLine(props.schema.source, localToday())}`;
 
   return (
     <section class="forms-workspace" aria-label={`Форма № ${props.schema.formNumber}`}>

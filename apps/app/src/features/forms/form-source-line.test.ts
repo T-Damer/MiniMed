@@ -1,7 +1,12 @@
 import type { FormSchema } from '@localmed/contracts';
 import { describe, expect, it } from 'vitest';
 import { listFormSchemas } from '@/features/forms/form-registry';
-import { localToday, orderReference, validityLine } from '@/features/forms/form-source-line';
+import {
+  localToday,
+  orderReference,
+  registrationReference,
+  validityLine,
+} from '@/features/forms/form-source-line';
 
 const source = (changes: Partial<FormSchema['source']>): FormSchema['source'] => {
   const base = listFormSchemas()[0]?.source;
@@ -24,6 +29,15 @@ describe('form source line', () => {
         }),
       ),
     ).toContain('Приказ (Министерство труда');
+  });
+
+  it('names the registration with the Ministry of Justice', () => {
+    const { registration } = source({});
+    expect(
+      registrationReference(
+        source({ registration: { ...registration, date: '2025-06-27', number: '82707' } }),
+      ),
+    ).toBe('зарегистрирован Минюстом 27.06.2025 № 82707');
   });
 
   it('says «действует» for a form in force, with the end date when the order has one', () => {
