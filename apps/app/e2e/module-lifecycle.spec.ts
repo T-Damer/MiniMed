@@ -105,13 +105,16 @@ test('installs a regulatory dataset, searches it live, and removes it without re
       timeout: 20_000,
     })
     .toBeGreaterThan(0);
+  // The installed pack changes the outcome: the list keeps its place and offers «Обновить».
+  await page.getByTestId('search-refresh-apply').click({ timeout: 60_000 });
   const installedOrder = page
     .getByTestId('search-results')
     .locator('.result-group')
     .filter({ hasText: REGULATORY_QUERY });
-  await expect(installedOrder.locator('.result-group-header__kind-label')).toHaveText('Приказ', {
-    timeout: 60_000,
-  });
+  await expect(installedOrder.locator('.result-group-header__kind-label')).toHaveText(
+    'Нормативный акт',
+    { timeout: 60_000 },
+  );
   await expect(page.locator('.error-card')).toHaveCount(0);
 
   await navigationButton(page, 'База знаний').click();

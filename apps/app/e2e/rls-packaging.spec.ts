@@ -114,6 +114,12 @@ test('an installed registry entry does not make an absent packaging document rea
       }),
     },
   });
+  // A cold profile first copies the whole core into OPFS; the pointer page waits for it.
+  await page.waitForFunction(
+    () => performance.getEntriesByName('minimed:search-ready').length > 0,
+    undefined,
+    { timeout: 120_000 },
+  );
   await page.goto(documentRoute(TARGET));
   await expect(page.locator('.document-module-pointer__error')).toContainText(
     'Набор установлен, но полный документ недоступен',
