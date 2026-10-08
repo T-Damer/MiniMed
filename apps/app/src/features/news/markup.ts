@@ -179,6 +179,49 @@ function parseTag(source: string, start: number): ParsedTag | undefined {
   return { name, attrs, selfClosing, end: close + 1 };
 }
 
+/** Elements that end an open `<p>` without a closing tag (HTML's implied end tags). */
+const CLOSES_PARAGRAPH = new Set([
+  'p',
+  'div',
+  'ul',
+  'ol',
+  'dl',
+  'table',
+  'blockquote',
+  'pre',
+  'section',
+  'article',
+  'aside',
+  'header',
+  'footer',
+  'nav',
+  'form',
+  'hr',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+]);
+
+/** Closes what HTML closes implicitly when `next` opens: `<p>a<p>b`, `<li>a<li>b`, `<td>a<td>b`. */
+function closeImplied(stack: MarkupElement[], next: string): void {
+  for (;;) {
+    const open = stack[stack.length - 1] as MarkupElement;
+    const closes =
+      (open.name === 'p' && CLOSES_PARAGRAPH.has(next)) ||
+      (open.name === 'li' && next === 'li') ||
+      ((open.name === 'dt' || open.name === 'dd') && (next === 'dt' || next === 'dd')) ||
+      ((open.name === 'td' || open.name === 'th') &&
+        (next === 'td' || next === 'th' || next === 'tr')) ||
+      (open.name === 'tr' && next === 'tr') ||
+      (open.name === 'option' && next === 'option');
+    if (!closes || stack.length <= 1) return;
+    stack.pop();
+  }
+}
+
 /**
  * Parses `source` into a synthetic `#root` element. Unmatched closing tags are ignored, unclosed
  * elements are closed at the end, text is entity-decoded (CDATA is taken literally).
@@ -262,6 +305,7 @@ export function parseMarkup(
       attrs: tag.attrs,
       children: [],
     };
+    if (mode === 'html') closeImplied(stack, tag.name);
     nodes += 1;
     top().children.push(element);
     if (mode === 'html') {

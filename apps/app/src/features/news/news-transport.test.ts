@@ -34,6 +34,17 @@ describe('decodeFeedBytes', () => {
     expect(decodeFeedBytes(new TextEncoder().encode('Привет'))).toBe('Привет');
   });
 
+  it('reads the charset a page declares in its own <meta> (old sites send none in the header)', () => {
+    const head = new TextEncoder().encode('<html><head><meta charset="windows-1251"></head>');
+    expect(decodeFeedBytes(new Uint8Array([...head, ...win1251]), 'text/html')).toContain('Привет');
+    const equiv = new TextEncoder().encode(
+      '<meta http-equiv="Content-Type" content="text/html; charset=windows-1251">',
+    );
+    expect(decodeFeedBytes(new Uint8Array([...equiv, ...win1251]), 'text/html')).toContain(
+      'Привет',
+    );
+  });
+
   it('falls back to UTF-8 for an unknown charset label', () => {
     expect(decodeFeedBytes(new TextEncoder().encode('ok'), 'text/xml; charset=nonsense-9')).toBe(
       'ok',
@@ -42,6 +53,28 @@ describe('decodeFeedBytes', () => {
 });
 
 describe('web transport', () => {
+  it('asks for the requested type and returns raw bytes for a binary request', async () => {
+    const fetchMock = vi.fn(async () =>
+      response(new Uint8Array([137, 80, 78, 71]), {
+        status: 200,
+        headers: { 'content-type': 'image/png' },
+      }),
+    );
+    const transport = createWebTransport({
+      fetch: fetchMock as unknown as typeof fetch,
+      online: () => true,
+    });
+    const result = await transport.fetch({
+      url: 'https://a.example/icon.png',
+      accept: 'image/*',
+      binary: true,
+    });
+    expect([...(result.bytes ?? [])]).toEqual([137, 80, 78, 71]);
+    expect(result.text).toBe('');
+    const init = (fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1];
+    expect(init.headers).toEqual({ Accept: 'image/*' });
+  });
+
   it('reads a feed with no credentials, no referrer and no validators', async () => {
     const fetchMock = vi.fn(async () =>
       response('<rss/>', {
@@ -157,6 +190,25 @@ describe('native transport', () => {
     expect(first?.headers['If-Modified-Since']).toBe('Sun, 04 Oct 2026 00:00:00 GMT');
     expect(first?.disableRedirects).toBe(true);
     expect(transport.conditional).toBe(true);
+  });
+
+  it('sends the requested Accept and hands back raw bytes of a page or an image', async () => {
+    const request = vi.fn<NativeHttp['request']>();
+    request.mockResolvedValue({
+      status: 200,
+      data: base64('GIF89a'),
+      headers: { 'content-type': 'image/gif' },
+      url: '',
+    });
+    const transport = createNativeTransport({ request }, () => true);
+    const result = await transport.fetch({
+      url: 'https://a.example/i.gif',
+      accept: 'image/*',
+      binary: true,
+    });
+    expect(new TextDecoder().decode(result.bytes)).toBe('GIF89a');
+    expect(result.text).toBe('');
+    expect(request.mock.calls[0]?.[0].headers['Accept']).toBe('image/*');
   });
 
   it('answers not-modified on 304, re-serializes bridge-parsed JSON and rejects error statuses', async () => {

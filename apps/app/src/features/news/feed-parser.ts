@@ -56,6 +56,10 @@ export interface ParsedFeed {
   readonly title: string;
   readonly siteUrl?: string;
   readonly language?: string;
+  /** The channel's own one-line description (plain text), for the source preview. */
+  readonly description?: string;
+  /** The feed's declared image or icon (https only), a fallback avatar when the site has no icon. */
+  readonly iconUrl?: string;
   readonly items: readonly ParsedFeedItem[];
   /** Entries that were dropped for having neither a title nor text. */
   readonly skipped: number;
@@ -144,6 +148,12 @@ function itemFromParts(
     ...(author ? { author } : {}),
     ...(published !== undefined ? { publishedAt: published } : {}),
   };
+}
+
+const MAX_DESCRIPTION_CHARS = 280;
+
+function channelDescription(text: string, limits: FeedLimits): string {
+  return snippetFrom(clean(text), Math.min(MAX_DESCRIPTION_CHARS, limits.maxSnippetChars));
 }
 
 const IMAGE_EXTENSION = /\.(?:jpe?g|png|webp|gif|avif)(?:[?#]|$)/iu;
@@ -372,11 +382,15 @@ function parseJsonFeed(text: string, baseUrl: string | undefined, limits: FeedLi
   }
   const siteUrl = safeLinkUrl(str(feed['home_page_url']), baseUrl);
   const language = str(feed['language']);
+  const description = channelDescription(str(feed['description']), limits);
+  const iconUrl = safeImageUrl(str(feed['icon']) || str(feed['favicon']), baseUrl);
   return {
     format: 'json',
     title: clean(str(feed['title'])).slice(0, limits.maxTitleChars),
     ...(siteUrl ? { siteUrl } : {}),
     ...(language ? { language } : {}),
+    ...(description ? { description } : {}),
+    ...(iconUrl ? { iconUrl } : {}),
     items,
     skipped,
   };
@@ -427,11 +441,20 @@ export function parseFeed(text: string, options: ParseFeedOptions = {}): ParsedF
     );
     const siteUrl = safeLinkUrl(firstText(channel, 'link'), baseUrl);
     const language = firstText(channel, 'language', 'dc:language');
+    const description = channelDescription(firstText(channel, 'description'), limits);
+    const imageElement = findChild(channel, 'image') ?? findChild(container, 'image');
+    const iconUrl = safeImageUrl(
+      (imageElement ? firstText(imageElement, 'url') : '') ||
+        findChild(channel, 'itunes:image')?.attrs['href'],
+      baseUrl,
+    );
     return {
       format: 'rss',
       title: clean(firstText(channel, 'title')).slice(0, limits.maxTitleChars),
       ...(siteUrl ? { siteUrl } : {}),
       ...(language ? { language } : {}),
+      ...(description ? { description } : {}),
+      ...(iconUrl ? { iconUrl } : {}),
       items,
       skipped,
     };
@@ -446,11 +469,15 @@ export function parseFeed(text: string, options: ParseFeedOptions = {}): ParsedF
     const siteLink = atomLink(atom);
     const siteUrl = safeLinkUrl(siteLink, baseUrl);
     const language = atom.attrs['xml:lang'] ?? '';
+    const description = channelDescription(atomText(findChild(atom, 'subtitle')), limits);
+    const iconUrl = safeImageUrl(firstText(atom, 'icon', 'logo'), baseUrl);
     return {
       format: 'atom',
       title: clean(atomText(findChild(atom, 'title'))).slice(0, limits.maxTitleChars),
       ...(siteUrl ? { siteUrl } : {}),
       ...(language ? { language } : {}),
+      ...(description ? { description } : {}),
+      ...(iconUrl ? { iconUrl } : {}),
       items,
       skipped,
     };

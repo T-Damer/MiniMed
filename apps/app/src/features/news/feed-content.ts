@@ -47,6 +47,13 @@ export const DEFAULT_SANITIZE_LIMITS: SanitizeLimits = {
   maxTextChars: 16_000,
 };
 
+/** An extracted article is far longer than a feed teaser: its own, still bounded, limits. */
+export const ARTICLE_SANITIZE_LIMITS: SanitizeLimits = {
+  maxDepth: 24,
+  maxNodes: 8000,
+  maxTextChars: 80_000,
+};
+
 const TAG_MAP: Readonly<Record<string, SafeTag>> = {
   p: 'p',
   div: 'div',
@@ -265,21 +272,29 @@ export function hasSafeContent(nodes: readonly SafeNode[]): boolean {
   });
 }
 
-/** Feed `html` (or text that merely looks like it) to a safe tree. */
-export function sanitizeFeedHtml(html: string, options: SanitizeOptions = {}): SafeNode[] {
-  const limits = options.limits ?? DEFAULT_SANITIZE_LIMITS;
+/** An already parsed markup tree (the article extractor's cleaned subtree) to a safe tree. */
+export function sanitizeMarkupNodes(
+  nodes: readonly MarkupNode[],
+  options: SanitizeOptions = {},
+): SafeNode[] {
   const state: SanitizeState = {
     nodes: 0,
     textChars: 0,
     truncated: false,
-    limits,
+    limits: options.limits ?? DEFAULT_SANITIZE_LIMITS,
     baseUrl: options.baseUrl,
   };
+  const out: SafeNode[] = [];
+  for (const node of nodes) out.push(...walk(node, state, 0));
+  return trimTree(out);
+}
+
+/** Feed `html` (or text that merely looks like it) to a safe tree. */
+export function sanitizeFeedHtml(html: string, options: SanitizeOptions = {}): SafeNode[] {
+  const limits = options.limits ?? DEFAULT_SANITIZE_LIMITS;
   // Raw input is clipped before parsing so a hostile item cannot make the tokenizer do unbounded work.
   const root = parseMarkup(html.slice(0, limits.maxTextChars * 4), 'html');
-  const out: SafeNode[] = [];
-  for (const child of root.children) out.push(...walk(child, state, 0));
-  return trimTree(out);
+  return sanitizeMarkupNodes(root.children, options);
 }
 
 function collectPlain(node: MarkupNode, parts: string[]): void {

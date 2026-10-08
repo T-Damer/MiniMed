@@ -93,11 +93,17 @@ function collectLinks(element: MarkupElement, out: MarkupElement[]): void {
   }
 }
 
-/** `<link rel="alternate" type="application/rss+xml">` declarations of a page, resolved against it. */
-export function discoverFeedLinks(html: string, pageUrl: string): readonly DiscoveredFeed[] {
+/** The `<link>` elements of a page's head (icons, alternates), in document order. */
+export function pageLinkElements(html: string): readonly MarkupElement[] {
   const root = parseMarkup(html.slice(0, 200_000), 'html');
   const links: MarkupElement[] = [];
   collectLinks(root, links);
+  return links;
+}
+
+/** `<link rel="alternate" type="application/rss+xml">` declarations of a page, resolved against it. */
+export function discoverFeedLinks(html: string, pageUrl: string): readonly DiscoveredFeed[] {
+  const links = pageLinkElements(html);
   const found: DiscoveredFeed[] = [];
   const seen = new Set<string>();
   for (const link of links) {

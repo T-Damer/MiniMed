@@ -15,6 +15,10 @@ export interface FeedRequest {
   readonly lastModified?: string | undefined;
   readonly timeoutMs?: number;
   readonly maxBytes?: number;
+  /** `Accept` header; feeds by default. A web page or an image asks for its own type. */
+  readonly accept?: string;
+  /** Return the raw body in `bytes` (icons) instead of decoding it as text. */
+  readonly binary?: boolean;
   readonly signal?: AbortSignal | undefined;
 }
 
@@ -23,6 +27,8 @@ export interface FeedResponse {
   /** 304: the stored copy is current; `text` is empty. */
   readonly notModified: boolean;
   readonly text: string;
+  /** The undecoded body, only for a `binary` request. */
+  readonly bytes?: Uint8Array;
   readonly finalUrl: string;
   /** Lower-case header names. */
   readonly headers: Readonly<Record<string, string>>;
@@ -70,11 +76,14 @@ function charsetOf(contentType: string | undefined, bytes: Uint8Array): string {
   const header = /charset\s*=\s*"?([\w.:-]+)/iu.exec(contentType ?? '');
   if (header?.[1]) return header[1];
   let prolog = '';
-  for (let index = 0; index < Math.min(bytes.length, 200); index += 1) {
+  for (let index = 0; index < Math.min(bytes.length, 1500); index += 1) {
     prolog += String.fromCharCode(bytes[index] as number);
   }
-  const xml = /<\?xml[^>]*encoding\s*=\s*["']([\w.:-]+)["']/iu.exec(prolog);
-  return xml?.[1] ?? 'utf-8';
+  const xml = /<\?xml[^>]*encoding\s*=\s*["']([\w.:-]+)["']/iu.exec(prolog.slice(0, 200));
+  if (xml?.[1]) return xml[1];
+  // Old Russian sites declare windows-1251 only in the page itself: <meta charset> or http-equiv.
+  const meta = /<meta[^>]+charset\s*=\s*["']?([\w.:-]+)/iu.exec(prolog);
+  return meta?.[1] ?? 'utf-8';
 }
 
 /** Feeds in windows-1251 and friends are common: the declared charset decides, UTF-8 is the default. */
@@ -188,6 +197,7 @@ export function createWebTransport(
           referrerPolicy: 'no-referrer',
           redirect: 'follow',
           cache: 'no-cache',
+          ...(request.accept ? { headers: { Accept: request.accept } } : {}),
           signal: controller.signal,
         });
         const headers = lowerHeaders(response.headers);
@@ -211,7 +221,8 @@ export function createWebTransport(
         return {
           status: response.status,
           notModified: response.status === 304,
-          text: decodeFeedBytes(bytes, headers['content-type']),
+          text: request.binary ? '' : decodeFeedBytes(bytes, headers['content-type']),
+          ...(request.binary ? { bytes } : {}),
           finalUrl: response.url || request.url,
           headers,
         };
@@ -277,6 +288,7 @@ export function createNativeTransport(
       const timeoutMs = request.timeoutMs ?? DEFAULT_TIMEOUT_MS;
       const headers: Record<string, string> = {
         Accept:
+          request.accept ??
           'application/rss+xml, application/atom+xml, application/feed+json, application/xml;q=0.9, text/xml;q=0.9, */*;q=0.5',
       };
       if (request.etag) headers['If-None-Match'] = request.etag;
@@ -356,7 +368,8 @@ export function createNativeTransport(
         return {
           status: result.status,
           notModified: false,
-          text: decodeFeedBytes(bytes, responseHeaders['content-type']),
+          text: request.binary ? '' : decodeFeedBytes(bytes, responseHeaders['content-type']),
+          ...(request.binary ? { bytes } : {}),
           finalUrl: url,
           headers: responseHeaders,
         };
