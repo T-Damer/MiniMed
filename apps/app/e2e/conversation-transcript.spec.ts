@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test';
-import { installDeviceKeyAndSpeech } from './fake-speech';
+import { installDeviceKeyAndSpeech, installFakeSpeech } from './fake-speech';
 import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
 
 const chromiumPath = process.env.CHROMIUM_PATH;
@@ -112,4 +112,163 @@ test('stopping hands the finished text to the attach dialog', async ({ page }) =
   const dialog = page.getByRole('dialog', { name: 'Запись сохранена' });
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole('region', { name: 'Текст беседы' })).toContainText('Фраза номер 1');
+});
+
+interface StoredVaultFacts {
+  readonly mode: string | undefined;
+  readonly keyExtractable: boolean | undefined;
+  readonly blobs: readonly { readonly id: string; readonly storage: string }[];
+  readonly leaks: boolean;
+}
+
+/** What the vault database holds, read straight from IndexedDB like a copy taken off the device. */
+function readVaultFacts(page: Page): Promise<StoredVaultFacts> {
+  return page.evaluate(
+    () =>
+      new Promise<StoredVaultFacts>((resolve, reject) => {
+        const open = indexedDB.open('minimed-patient-vault-v3');
+        open.onerror = () => reject(open.error);
+        open.onsuccess = () => {
+          const database = open.result;
+          const transaction = database.transaction(['vault', 'blobs']);
+          const vault = transaction.objectStore('vault').get('current');
+          const blobs = transaction.objectStore('blobs').getAll();
+          transaction.oncomplete = () => {
+            const record = vault.result as
+              | { mode?: string; key?: { extractable?: boolean }; snapshot?: unknown }
+              | undefined;
+            const files = blobs.result as { id: string; storage: string }[];
+            database.close();
+            resolve({
+              mode: record?.mode,
+              keyExtractable: record?.key?.extractable,
+              blobs: files.map(({ id, storage }) => ({ id, storage })),
+              leaks: JSON.stringify([record?.snapshot, files]).includes('Фраза'),
+            });
+          };
+          transaction.onerror = () => reject(transaction.error);
+        };
+      }),
+  );
+}
+
+async function recordUntilTextAppears(page: Page) {
+  const live = await openLiveWindow(page);
+  await live
+    .locator('.asr-model-card')
+    .getByRole('button', { name: /Скачать/u })
+    .click();
+  await expect(live.locator('.conversation-live__line').first()).toHaveText('Фраза номер 1', {
+    timeout: 40_000,
+  });
+  return live;
+}
+
+test('a browser without a vault offers to create one and saves the pending text on one tap', async ({
+  page,
+}, testInfo) => {
+  await installFakeSpeech(page);
+  await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+  const live = await recordUntilTextAppears(page);
+
+  // No keychain and no vault: the text is on screen only, and the window says so in place.
+  const offer = live.getByRole('button', { name: /Текст не сохранится/u });
+  await expect(live.locator('.conversation-offer')).toHaveClass(/conversation-offer--open/u, {
+    timeout: 15_000,
+  });
+  await expect(offer).toBeVisible();
+  await expect(offer).toContainText('Создать хранилище');
+  await expect(live.locator('.conversation-save')).toHaveCount(0);
+  expect((await readVaultFacts(page)).mode).toBeUndefined();
+  await page.screenshot({ path: testInfo.outputPath('offer-small.png') });
+
+  const timeBefore = await live.locator('.conversation-live__time').textContent();
+  await offer.click();
+
+  // The recording never paused; the text was written at once and the offer folds away.
+  await expect(live.locator('.conversation-save--saved')).toBeVisible({ timeout: 15_000 });
+  await expect(live.locator('.conversation-offer')).not.toHaveClass(/conversation-offer--open/u);
+  await expect(live.locator('.conversation-live__time')).not.toHaveText(timeBefore ?? '');
+  const facts = await readVaultFacts(page);
+  expect(facts.mode).toBe('browser-device-key');
+  expect(facts.keyExtractable).toBe(false);
+  expect(facts.blobs.find((blob) => blob.id.startsWith('conversation-transcript-'))?.storage).toBe(
+    'encrypted',
+  );
+  expect(facts.leaks).toBe(false);
+
+  // A closed tab: the next start opens the vault by its stored key and shows the text.
+  await page.goto(`${E2E_ASSET_ORIGIN}/#/notes`);
+  await page.reload();
+  const inbox = page.locator('.conversation-inbox');
+  await expect(inbox.getByText('Прервана')).toBeVisible({ timeout: 30_000 });
+  await inbox.getByRole('button', { name: 'Добавить' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Запись прервалась' });
+  await expect(dialog.getByRole('region', { name: 'Текст беседы' })).toContainText('Фраза номер 1');
+});
+
+test('the full-screen window explains the offer, and a plaintext vault is encrypted in place', async ({
+  page,
+}, testInfo) => {
+  await installFakeSpeech(page);
+  // A vault left in the old plaintext mode, with one file in it.
+  await page.addInitScript(() => {
+    const open = indexedDB.open('minimed-patient-vault-v3', 1);
+    open.onupgradeneeded = () => {
+      open.result.createObjectStore('vault');
+      open.result.createObjectStore('blobs', { keyPath: 'id' });
+    };
+    open.onsuccess = () => {
+      const database = open.result;
+      const transaction = database.transaction(['vault', 'blobs'], 'readwrite');
+      transaction.objectStore('vault').put(
+        {
+          schemaVersion: 3,
+          mode: 'unencrypted',
+          snapshot: {
+            type: 'patient-snapshot',
+            id: 'current',
+            version: 3,
+            data: {
+              schemaVersion: 2,
+              profiles: [],
+              episodes: [],
+              events: [],
+              observations: [],
+              metricDefinitions: [],
+            },
+          },
+        },
+        'current',
+      );
+      transaction.objectStore('blobs').put({
+        type: 'patient-file',
+        id: 'seed-file',
+        version: 3,
+        mimeType: 'text/plain',
+        storage: 'plaintext',
+        bytes: new TextEncoder().encode('Фраза из старого хранилища'),
+      });
+      transaction.oncomplete = () => database.close();
+    };
+  });
+  await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+  const live = await recordUntilTextAppears(page);
+
+  await live.getByRole('button', { name: 'Открыть на весь экран' }).click();
+  const offer = live.getByRole('button', { name: /Текст не сохранится/u });
+  await expect(live.locator('.conversation-offer')).toHaveClass(/conversation-offer--open/u, {
+    timeout: 15_000,
+  });
+  await expect(offer).toBeVisible();
+  await expect(offer).toContainText('Зашифровать хранилище');
+  await page.screenshot({ path: testInfo.outputPath('offer-fullscreen.png') });
+
+  await offer.click();
+  await expect(live.locator('.conversation-save--saved')).toBeVisible({ timeout: 15_000 });
+  const facts = await readVaultFacts(page);
+  expect(facts.mode).toBe('browser-device-key');
+  expect(facts.blobs.map((blob) => blob.storage)).toEqual(['encrypted', 'encrypted']);
+  expect(facts.blobs.map((blob) => blob.id)).toContain('seed-file');
+  expect(facts.leaks).toBe(false);
 });

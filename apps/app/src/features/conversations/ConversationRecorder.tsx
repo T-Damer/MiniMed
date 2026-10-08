@@ -1,7 +1,17 @@
-import { createEffect, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import {
+  createEffect,
+  createResource,
+  createSignal,
+  For,
+  type JSX,
+  onCleanup,
+  onMount,
+  Show,
+} from 'solid-js';
 import { Portal } from 'solid-js/web';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { AsciiSpinner } from '@/components/AsciiSpinner';
 import { Button } from '@/components/Button';
 import { notifyWithOpen } from '@/components/notify';
 import { OverlayDialog } from '@/components/OverlayDialog';
@@ -20,6 +30,8 @@ import {
 import {
   openEncryptedVault,
   type TranscriptSaveState,
+  type VaultOffer,
+  vaultOffer,
 } from '@/features/conversations/conversation-transcript';
 import { toastMicrophoneError } from '@/features/conversations/microphone-toast';
 import { notesPatientsPath } from '@/features/notes/notes-routing';
@@ -91,23 +103,24 @@ function RecordingBar(): JSX.Element {
   );
 }
 
-const SAVE_LABEL: Readonly<Record<Exclude<TranscriptSaveState, 'idle'>, string>> = {
+const SAVE_LABEL: Readonly<Record<Exclude<TranscriptSaveState, 'idle' | 'unsaved'>, string>> = {
   pending: 'Сохраняем текст',
   saved: 'Текст зашифрован и сохранён на устройстве',
-  unsaved: 'Текст не сохраняется: нет защищённого хранилища',
   failed: 'Не удалось сохранить текст',
 };
 
-/** A lock that says, without words on screen, whether the text is safely on the device. */
+/**
+ * A lock that says, without words on screen, whether the text is safely on the device. An
+ * unsaved text has the suggestion under the timer instead, which says the same in words.
+ */
 function SaveMark(props: { readonly state: TranscriptSaveState }): JSX.Element {
   return (
-    <Show when={props.state !== 'idle' && props.state}>
+    <Show when={props.state !== 'idle' && props.state !== 'unsaved' && props.state}>
       {(state) => (
         <span
           class="conversation-save"
           classList={{
             'conversation-save--saved': state() === 'saved',
-            'conversation-save--warning': state() === 'unsaved',
             'conversation-save--failed': state() === 'failed',
           }}
           role="img"
@@ -118,6 +131,90 @@ function SaveMark(props: { readonly state: TranscriptSaveState }): JSX.Element {
         </span>
       )}
     </Show>
+  );
+}
+
+const OFFER_ACTION: Readonly<Record<VaultOffer, string>> = {
+  create: 'Создать хранилище',
+  encrypt: 'Зашифровать хранилище',
+};
+
+const OFFER_HINT: Readonly<Record<VaultOffer, string>> = {
+  create:
+    'Беседа останется только на экране. Хранилище шифрует текст ключом этого устройства и сохраняет его сразу.',
+  encrypt:
+    'Карточки пациентов лежат без шифрования. Мы зашифруем их ключом этого устройства и сохраним текст.',
+};
+
+/**
+ * Shown while the text has no encrypted vault to go to: one tap creates the vault (or encrypts the
+ * plaintext one) and the text so far is written at once. The recording is never interrupted; the
+ * row folds away when the text is saved, leaving only the lock beside the timer.
+ */
+function VaultSuggestion(props: {
+  readonly state: TranscriptSaveState;
+  readonly roomy: boolean;
+}): JSX.Element {
+  const open = (): boolean => props.state === 'unsaved';
+  const [offer] = createResource(open, (shown) => (shown ? vaultOffer() : undefined));
+  const [busy, setBusy] = createSignal(false);
+  const [failure, setFailure] = createSignal('');
+  const kind = (): VaultOffer => offer.latest ?? 'create';
+  const enable = async (): Promise<void> => {
+    if (busy()) return;
+    setBusy(true);
+    setFailure('');
+    try {
+      await conversationSession.enableTranscriptStorage();
+    } catch (cause) {
+      setFailure(cause instanceof Error ? cause.message : 'Не удалось создать хранилище.');
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div
+      class="conversation-offer"
+      classList={{ 'conversation-offer--open': open() }}
+      inert={!open()}
+    >
+      <div class="conversation-offer__clip">
+        <button
+          type="button"
+          class="conversation-offer__chip"
+          classList={{
+            'conversation-offer__chip--roomy': props.roomy,
+            'conversation-offer__chip--failed': failure() !== '',
+          }}
+          disabled={busy()}
+          aria-label={`Текст не сохранится. ${OFFER_ACTION[kind()]}`}
+          title={OFFER_HINT[kind()]}
+          onClick={() => void enable()}
+        >
+          <span class="conversation-offer__badge" aria-hidden="true">
+            <AppGlyph name="lock" class="conversation-offer__icon" />
+          </span>
+          <span class="conversation-offer__text">
+            <span class="conversation-offer__title">
+              {failure() || 'Текст не сохранится'}
+              <Show when={!failure()}>
+                {' · '}
+                <span class="conversation-offer__action">
+                  <Show when={busy()} fallback={OFFER_ACTION[kind()]}>
+                    <AsciiSpinner class="conversation-offer__spinner" /> Готовим…
+                  </Show>
+                </span>
+              </Show>
+            </span>
+          </span>
+          <Show when={failure()}>
+            <span class="conversation-offer__action conversation-offer__action--retry">
+              Повторить
+            </span>
+          </Show>
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -214,16 +311,19 @@ function RecordingWindow(): JSX.Element {
             class="floating-window__content conversation-live__body"
             classList={{ 'conversation-live__body--fullscreen': fullscreen() }}
           >
-            <div class="conversation-live__status" role="timer" aria-live="off">
-              <span class="conversation-live__dot" aria-hidden="true" />
-              <span class="conversation-live__time">
-                {formatRecordingDuration(conversationSession.elapsedMs())}
-              </span>
-              <LevelMeter
-                class="conversation-live__meter"
-                barClass="conversation-live__meter-bar"
-              />
-              <SaveMark state={conversationSession.saveState()} />
+            <div class="conversation-live__head">
+              <div class="conversation-live__status" role="timer" aria-live="off">
+                <span class="conversation-live__dot" aria-hidden="true" />
+                <span class="conversation-live__time">
+                  {formatRecordingDuration(conversationSession.elapsedMs())}
+                </span>
+                <LevelMeter
+                  class="conversation-live__meter"
+                  barClass="conversation-live__meter-bar"
+                />
+                <SaveMark state={conversationSession.saveState()} />
+              </div>
+              <VaultSuggestion state={conversationSession.saveState()} roomy={fullscreen()} />
             </div>
             <div class="conversation-live__stage">
               <div

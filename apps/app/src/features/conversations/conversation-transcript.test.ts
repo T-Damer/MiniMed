@@ -4,6 +4,9 @@ vi.mock('@/state/patient-vault', () => ({
   addPatientBlob: vi.fn(),
   createPatientVault: vi.fn(),
   deletePatientBlob: vi.fn(),
+  encryptPatientVault: vi.fn(),
+  isEncryptedPatientVaultMode: (mode: string | undefined) =>
+    mode === 'native-keychain' || mode === 'browser-device-key',
   isPatientVaultUnlocked: vi.fn(),
   PatientVaultLockedError: class PatientVaultLockedError extends Error {},
   patientVaultStorageMode: vi.fn(),
@@ -103,6 +106,31 @@ describe('createTranscriptSaver', () => {
     saver.update(['a', 'b']);
     await saver.flush();
     expect(save).toHaveBeenCalledTimes(2);
+  });
+
+  it('retry() writes the text that was reported as not saved, once the vault exists', async () => {
+    let available = false;
+    const { save, states, saver } = setup(
+      vi.fn<Save>(async () => (available ? 'saved' : 'unavailable')),
+    );
+    saver.update(['a']);
+    await saver.flush();
+    expect(states.at(-1)).toBe('unsaved');
+    // flush() has nothing left to write: the text was handed over once.
+    await saver.flush();
+    expect(save).toHaveBeenCalledTimes(1);
+
+    available = true;
+    await saver.retry();
+    expect(save).toHaveBeenCalledTimes(2);
+    expect(save).toHaveBeenLastCalledWith(['a']);
+    expect(states.at(-1)).toBe('saved');
+  });
+
+  it('retry() with no text yet writes nothing', async () => {
+    const { save, saver } = setup();
+    await saver.retry();
+    expect(save).not.toHaveBeenCalled();
   });
 
   it('shows a failed write and retries it later without losing the text', async () => {

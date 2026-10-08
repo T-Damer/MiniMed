@@ -6,6 +6,12 @@ import type { Page } from '@playwright/test';
  * Everything else — recorder, live transcriber, autosave, vault encryption — is the built app.
  */
 export async function installDeviceKeyAndSpeech(page: Page): Promise<void> {
+  await installDeviceKey(page);
+  await installFakeSpeech(page);
+}
+
+/** The Android bridge alone: a Keystore that wraps the vault key. */
+export async function installDeviceKey(page: Page): Promise<void> {
   await page.addInitScript(() => {
     Object.assign(window, {
       CapacitorCustomPlatform: { name: 'android' },
@@ -37,7 +43,12 @@ export async function installDeviceKeyAndSpeech(page: Page): Promise<void> {
         },
       },
     });
+  });
+}
 
+/** The speech worker stand-in alone: the browser build with a model that «downloads» in a moment. */
+export async function installFakeSpeech(page: Page): Promise<void> {
+  await page.addInitScript(() => {
     const RealWorker = window.Worker;
     class FakeSpeechWorker {
       onmessage: ((event: { data: unknown }) => void) | null = null;

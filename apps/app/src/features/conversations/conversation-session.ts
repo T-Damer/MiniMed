@@ -4,6 +4,7 @@ import { formatRecordingDuration } from '@/features/asr/visit-recording';
 import {
   createTranscriptSaver,
   deleteConversationTranscript,
+  enableEncryptedVault,
   filePatientTranscript,
   readConversationTranscript,
   saveDraftTranscript,
@@ -105,6 +106,15 @@ export const conversationSession = {
   liveLines: (): readonly string[] => activeRun()?.lines() ?? [],
   /** The autosave state of the running recording's text. */
   saveState: (): TranscriptSaveState => activeRun()?.saveState() ?? 'idle',
+  /**
+   * The doctor's tap on «Создать хранилище»: makes the vault encrypted, then writes the text that
+   * could not be saved so far. Rejects with the vault's message when that fails.
+   */
+  enableTranscriptStorage: async (): Promise<void> => {
+    const run = activeRun();
+    await enableEncryptedVault();
+    await run?.saver.retry();
+  },
   /** The in-memory text of a recording made in this session, if its run is still held. */
   transcript: (recordingId: string): ConversationTranscript | undefined => runs.get(recordingId),
   openWindow: () => setWindowOpen(true),

@@ -121,6 +121,11 @@
   padding: 1rem max(1rem, calc((100% - 44rem) / 2)) calc(var(--safe-bottom, 0px) + 1rem);
 }
 
+.conversation-live__head {
+  display: flex;
+  flex-direction: column;
+}
+
 .conversation-live__status {
   display: flex;
   align-items: center;
@@ -181,11 +186,6 @@
   background: var(--theme-accent-soft);
 }
 
-.conversation-save--warning {
-  color: var(--theme-warning);
-  background: var(--theme-warning-soft);
-}
-
 .conversation-save--failed {
   color: var(--theme-danger);
   background: color-mix(in srgb, var(--theme-danger) 14%, transparent);
@@ -194,6 +194,112 @@
 .conversation-save__icon {
   width: 0.95rem;
   height: 0.95rem;
+}
+
+/*
+ * The suggestion to create the encrypted vault, under the timer. It stays mounted and folds its
+ * row from 0 to full height, so the text area below moves instead of jumping.
+ */
+.conversation-offer {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows var(--motion-base, 180ms) var(--motion-ease-out, ease-out),
+    opacity var(--motion-base, 180ms) var(--motion-ease-out, ease-out);
+}
+
+.conversation-offer--open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.conversation-offer__clip {
+  min-height: 0;
+  padding-top: 0.5rem;
+  overflow: hidden;
+}
+
+.conversation-offer__chip {
+  display: flex;
+  width: 100%;
+  min-height: 2.5rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.7rem 0.3rem 0.35rem;
+  border: 1px solid color-mix(in srgb, var(--theme-warning) 35%, transparent);
+  border-radius: 999px;
+  color: var(--theme-text);
+  background: var(--theme-warning-soft);
+  font: inherit;
+  font-size: 0.78rem;
+  text-align: start;
+  cursor: pointer;
+  transition:
+    transform var(--motion-fast, 120ms) var(--motion-ease-out, ease-out),
+    background-color var(--motion-base, 180ms) var(--motion-ease-out, ease-out);
+}
+
+.conversation-offer__chip:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.conversation-offer__chip:disabled {
+  cursor: progress;
+}
+
+.conversation-offer__chip:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 2px;
+}
+
+.conversation-offer__chip--roomy {
+  min-height: 2.75rem;
+  font-size: 0.85rem;
+}
+
+.conversation-offer__chip--failed {
+  border-color: color-mix(in srgb, var(--theme-danger) 40%, transparent);
+  background: color-mix(in srgb, var(--theme-danger) 10%, transparent);
+}
+
+.conversation-offer__badge {
+  display: inline-grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--theme-warning);
+  background: var(--theme-surface);
+}
+
+.conversation-offer__icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.conversation-offer__text {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.conversation-offer__title {
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.conversation-offer__action {
+  color: var(--theme-accent);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.conversation-offer__action--retry {
+  flex: 0 0 auto;
 }
 
 /*
@@ -411,6 +517,11 @@
   .conversation-save,
   .conversation-pulse__dot {
     animation: none;
+  }
+
+  .conversation-offer,
+  .conversation-offer__chip {
+    transition: none;
   }
 
   .conversation-bar__meter-bar,

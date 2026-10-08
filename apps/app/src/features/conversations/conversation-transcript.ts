@@ -3,6 +3,8 @@ import {
   addPatientBlob,
   createPatientVault,
   deletePatientBlob,
+  encryptPatientVault,
+  isEncryptedPatientVaultMode,
   isPatientVaultUnlocked,
   PatientVaultLockedError,
   patientVaultStorageMode,
@@ -79,7 +81,7 @@ let opening: Promise<VaultAccess> | undefined;
 
 async function openVault(): Promise<VaultAccess> {
   const mode = await patientVaultStorageMode();
-  if (mode === 'native-keychain') {
+  if (isEncryptedPatientVaultMode(mode)) {
     if (!isPatientVaultUnlocked()) await unlockPatientVault();
     return 'encrypted';
   }
@@ -97,14 +99,38 @@ async function openVault(): Promise<VaultAccess> {
 
 /**
  * Opens the vault for drafts only when its files are encrypted by a device key, without asking
- * the doctor anything. A browser vault stays closed: its plaintext mode is a deliberate choice
- * made on the patients screen, not something a recording may start by itself.
+ * the doctor anything. A browser without a vault, or with a plaintext one, stays closed: creating
+ * or encrypting it is the doctor's tap on the recording window's suggestion
+ * (`enableEncryptedVault`), not something a recording may start by itself.
  */
 export function openEncryptedVault(): Promise<VaultAccess> {
   opening ??= openVault().finally(() => {
     opening = undefined;
   });
   return opening;
+}
+
+/** What the recording window offers when the text cannot be saved. */
+export type VaultOffer = 'create' | 'encrypt';
+
+/** `create`: no vault exists yet; `encrypt`: a plaintext browser vault can be encrypted in place. */
+export async function vaultOffer(): Promise<VaultOffer | undefined> {
+  const mode = await patientVaultStorageMode();
+  if (mode === undefined) return 'create';
+  return mode === 'unencrypted' ? 'encrypt' : undefined;
+}
+
+/**
+ * The doctor's tap on the offer: creates the encrypted vault (device key on a phone, browser key
+ * elsewhere), encrypts an existing plaintext one in place, or just opens an encrypted one.
+ */
+export async function enableEncryptedVault(): Promise<void> {
+  // A draft write that is opening the vault right now finishes first, so nothing is created twice.
+  await opening?.catch(() => undefined);
+  const mode = await patientVaultStorageMode();
+  if (mode === undefined) await createPatientVault();
+  else if (mode === 'unencrypted') await encryptPatientVault();
+  else if (!isPatientVaultUnlocked()) await unlockPatientVault();
 }
 
 export type DraftSaveResult = 'saved' | 'unavailable';
@@ -174,6 +200,8 @@ export interface TranscriptSaver {
   update(lines: readonly string[]): void;
   /** Writes what is pending right now. */
   flush(): Promise<void>;
+  /** Writes the latest text again even if the last write reported it as not saved. */
+  retry(): Promise<void>;
   /** Drops pending work, for a recording that was abandoned. */
   cancel(): void;
 }
@@ -187,6 +215,7 @@ export function createTranscriptSaver(deps: {
 }): TranscriptSaver {
   let latest: readonly string[] = [];
   let dirty = false;
+  let touched = false;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let waitingSince = 0;
   let chain: Promise<void> = Promise.resolve();
@@ -226,6 +255,7 @@ export function createTranscriptSaver(deps: {
   return {
     update(lines) {
       latest = lines;
+      touched = true;
       dirty = true;
       deps.onState('pending');
       const now = Date.now();
@@ -239,6 +269,12 @@ export function createTranscriptSaver(deps: {
     flush() {
       clear();
       waitingSince = 0;
+      return write();
+    },
+    retry() {
+      clear();
+      waitingSince = 0;
+      dirty = touched;
       return write();
     },
     cancel() {
