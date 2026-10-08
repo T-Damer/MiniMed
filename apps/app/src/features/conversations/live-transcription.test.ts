@@ -73,7 +73,7 @@ describe('startLiveTranscriber', () => {
     live.stop();
   });
 
-  it('skips silence, does not re-read committed audio and stops after repeated failures', async () => {
+  it('retries a stretch that failed and stops after repeated failures', async () => {
     const recognise = vi.fn(async () => {
       throw new Error('boom');
     });
@@ -89,8 +89,90 @@ describe('startLiveTranscriber', () => {
     });
     await vi.advanceTimersByTimeAsync(10_000);
     expect(recognise).toHaveBeenCalledTimes(3);
-    expect(statuses.at(-1)).toBe('unavailable');
+    expect(statuses.at(-1)).toBe('failed');
     live.stop();
+  });
+
+  it('reads the same stretch again after a failure instead of skipping it', async () => {
+    const windows: number[] = [];
+    let attempts = 0;
+    const live = startLiveTranscriber({
+      available: () => true,
+      snapshot: () => new Blob(),
+      decode: async () => loud(seconds(10)),
+      recognise: async (samples) => {
+        windows.push(samples.length);
+        attempts += 1;
+        if (attempts === 1) throw new Error('boom');
+        return 'текст';
+      },
+      onLines: () => undefined,
+      onStatus: () => undefined,
+      intervalMs: 1_000,
+    });
+    await vi.advanceTimersByTimeAsync(2_000);
+    expect(windows).toEqual([seconds(10), seconds(10)]);
+    live.stop();
+  });
+
+  it('catches up on audio recorded before the model was ready without waiting a full interval', async () => {
+    const lengths: number[] = [];
+    const lines: (readonly string[])[] = [];
+    const live = startLiveTranscriber({
+      available: () => true,
+      snapshot: () => new Blob(),
+      decode: async () => loud(seconds(70)),
+      recognise: async (samples) => {
+        lengths.push(samples.length);
+        return `часть ${lengths.length}`;
+      },
+      onLines: (next) => lines.push(next),
+      onStatus: () => undefined,
+      intervalMs: 7_000,
+      backlogDelayMs: 100,
+    });
+    // One interval to start, then 28 s + 28 s + 14 s follow 100 ms apart.
+    await vi.advanceTimersByTimeAsync(7_000 + 400);
+    expect(lengths).toEqual([seconds(28), seconds(28), seconds(14)]);
+    expect(lines.at(-1)).toEqual(['часть 1', 'часть 2', 'часть 3']);
+    live.stop();
+  });
+
+  it('finish() reads the short tail left when the recording ends', async () => {
+    const lengths: number[] = [];
+    let total = seconds(9);
+    const live = startLiveTranscriber({
+      available: () => true,
+      snapshot: () => new Blob(),
+      decode: async () => loud(total),
+      recognise: async (samples) => {
+        lengths.push(samples.length);
+        return `часть ${lengths.length}`;
+      },
+      onLines: () => undefined,
+      onStatus: () => undefined,
+      intervalMs: 7_000,
+    });
+    await vi.advanceTimersByTimeAsync(7_000);
+    expect(lengths).toEqual([seconds(9)]);
+    // 2 s more are recorded, too short for a live step but worth reading at the end.
+    total = seconds(11);
+    await live.finish();
+    expect(lengths).toEqual([seconds(9), seconds(2)]);
+  });
+
+  it('finish() does nothing when there is no model', async () => {
+    const recognise = vi.fn(async () => 'x');
+    const live = startLiveTranscriber({
+      available: () => false,
+      snapshot: () => new Blob(),
+      decode: async () => loud(seconds(30)),
+      recognise,
+      onLines: () => undefined,
+      onStatus: () => undefined,
+    });
+    await live.finish();
+    expect(recognise).not.toHaveBeenCalled();
   });
 
   it('does not recognise silent audio', async () => {

@@ -37,6 +37,8 @@ export interface AsrModelDescriptor {
   readonly preferredForRussian: boolean;
   /** False while the weights lack a transformers.js-executable export. */
   readonly runtimeReady: boolean;
+  /** Bytes a first download transfers (q8 encoder, merged decoder and tokenizer files). */
+  readonly downloadBytes?: number;
 }
 
 /** On-device ASR candidates supported by the current transformers.js pipeline. */
@@ -50,6 +52,7 @@ export const ASR_MODELS: readonly AsrModelDescriptor[] = [
     language: 'multilingual',
     preferredForRussian: true,
     runtimeReady: true,
+    downloadBytes: 81_300_000,
   },
   {
     id: 'onnx-community/whisper-small',
@@ -60,6 +63,7 @@ export const ASR_MODELS: readonly AsrModelDescriptor[] = [
     language: 'multilingual',
     preferredForRussian: false,
     runtimeReady: true,
+    downloadBytes: 253_500_000,
   },
   {
     id: 'gigaam-v3-onnx',
@@ -113,20 +117,26 @@ export function subscribeAsr(listener: Listener): () => void {
   return () => listeners.delete(listener);
 }
 
-const progressListeners = new Map<string, ((fraction: number | null) => void) | undefined>();
+const progressListeners = new Map<string, Set<(fraction: number | null) => void>>();
 
+/** Several screens can follow one model's download (Settings and the recording window). */
 export function onAsrProgress(
   modelId: string,
   listener: (fraction: number | null) => void,
 ): () => void {
-  progressListeners.set(modelId, listener);
+  const listeners = progressListeners.get(modelId) ?? new Set();
+  listeners.add(listener);
+  progressListeners.set(modelId, listeners);
   return () => {
-    if (progressListeners.get(modelId) === listener) progressListeners.delete(modelId);
+    listeners.delete(listener);
+    if (listeners.size === 0 && progressListeners.get(modelId) === listeners) {
+      progressListeners.delete(modelId);
+    }
   };
 }
 
 function reportProgress(modelId: string, fraction: number | null): void {
-  progressListeners.get(modelId)?.(fraction);
+  for (const listener of progressListeners.get(modelId) ?? []) listener(fraction);
 }
 
 const downloadContexts = new Map<string, DownloadContext>();
