@@ -63,4 +63,23 @@ test.describe('theme switch', () => {
       .click();
     await expect(page.getByTestId('settings-status-appearance')).toHaveText('Тёмная');
   });
+
+  test('the active tab keeps a dark glyph on a light bubble in the dark theme of the built app', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await mountBuiltApp(page);
+    const colours = await page.evaluate(() => {
+      const glyph = document.querySelector('.app-bottom-nav .app-nav-button--active');
+      const bubble = document.querySelector('.app-bottom-nav__bubble');
+      if (!glyph || !bubble) return undefined;
+      return {
+        glyph: getComputedStyle(glyph).color,
+        bubble: getComputedStyle(bubble).backgroundImage,
+      };
+    });
+    // Near-black green glyph; the bubble is the cream gradient, not the dark surface.
+    expect(colours?.glyph).toBe('rgb(27, 42, 33)');
+    expect(colours?.bubble).toContain('rgb(232, 224, 204)');
+  });
 });

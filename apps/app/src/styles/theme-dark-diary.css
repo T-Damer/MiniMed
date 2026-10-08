@@ -1,0 +1,7 @@
+/*
+ * The diary page's own copy of the dark theme. Two entries importing theme-dark.css directly would
+ * turn it into a shared chunk that the built app links before main.css; dark rules that win a tie
+ * with an equally specific light rule by coming later (the tab bar's bubble and glyph) would then
+ * lose it. Inlining the file here keeps it inside each entry, in import order.
+ */
+@import "./theme-dark.css";
