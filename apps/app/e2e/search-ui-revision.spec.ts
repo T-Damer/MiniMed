@@ -151,12 +151,8 @@ for (const width of [375, 1280]) {
     await expect(page.locator('.user-library-folder-card__lock')).toHaveCount(0);
     await page.getByRole('button', { name: 'Открыть папку «Пациенты»', exact: true }).click();
     await expect(page).toHaveURL(/#\/notes\/patients/u);
-    // A fresh profile opens the modal vault dialog over the patients page; a user dismisses it
-    // with Escape before reaching the bottom navigation again.
-    const vaultDialog = page.locator('.patient-vault-dialog');
-    await expect(vaultDialog).toBeVisible();
-    await page.keyboard.press('Escape');
-    await expect(vaultDialog).toBeHidden();
+    // A fresh profile creates the encrypted vault silently: no dialog over the patients page.
+    await expect(page.locator('.patient-vault-dialog')).toHaveCount(0);
     await nav.getByRole('button', { name: /^Настройки/u }).click();
     await openSettingsPage(page, 'Внешний вид');
     await expect(

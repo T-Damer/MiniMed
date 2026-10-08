@@ -28,9 +28,6 @@ body,
 
 html {
   overscroll-behavior: none;
-  /* The page scrolls in the document: focus, find and scroll-into-view stop above the floating
-     bottom bar instead of leaving the target's text underneath it. */
-  scroll-padding-bottom: calc(var(--bottom-nav-clearance) + 0.5rem);
 }
 
 body {

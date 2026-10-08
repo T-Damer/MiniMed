@@ -41,7 +41,8 @@ async function startSampling(page: Page): Promise<void> {
             document.querySelector('[data-testid="search-skeleton"]') ?? document.body,
           ).opacity,
         ),
-        results: top('[data-testid="search-results"]'),
+        // The definition card, when the query has one, opens the results above the list.
+        results: top('.definition-preview, [data-testid="search-results"]'),
       });
       requestAnimationFrame(frame);
     };
