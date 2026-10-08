@@ -188,12 +188,15 @@ for (const splitNavigation of [false, true]) {
     await expect(specialty).toHaveAccessibleName(/Акушерство и гинекология \(\d+\)/u);
     // The counter shows “…” until documents load; wait for the number.
     await expect
-      .poll(async () =>
-        Number(
-          await allSection
-            .locator('.search-section-menu__row--child .search-section-menu__count')
-            .innerText(),
-        ),
+      .poll(
+        async () =>
+          Number(
+            await allSection
+              .locator('.search-section-menu__row--child .search-section-menu__count')
+              .innerText(),
+          ),
+        // The core can still be loading when the machine is busy.
+        { timeout: 60_000 },
       )
       .toBeGreaterThanOrEqual(21);
     await specialty.click();

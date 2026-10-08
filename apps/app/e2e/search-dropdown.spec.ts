@@ -4,6 +4,8 @@ import { selectSearchSection } from './select-search-section';
 
 for (const width of [375, 1280]) {
   test(`dropdown controls, empty sections and tool origins at ${width}px`, async ({ page }) => {
+    // The first catalog waits for the 440 MB core to open, which takes long on a busy machine.
+    test.setTimeout(180_000);
     await page.setViewportSize({ width, height: 844 });
     await mountBuiltApp(page, { splitNavigation: true, skipLargeCompanionPacks: true });
     const picker = page.getByRole('button', { name: 'Раздел поиска', exact: true });
@@ -25,7 +27,7 @@ for (const width of [375, 1280]) {
       .click();
     await selectSearchSection(page, 'Клинические рекомендации');
     await expect(page.getByTestId('search-input')).toHaveValue('');
-    await expect(page.locator('.document-library-card').first()).toBeVisible();
+    await expect(page.locator('.document-library-card').first()).toBeVisible({ timeout: 90_000 });
     await expect(page.locator('.document-library-card .clinical-tags__icon').first()).toBeVisible();
 
     await selectSearchSection(page, 'МКБ, симптомы и состояния');
@@ -57,7 +59,9 @@ for (const width of [375, 1280]) {
       .locator('.app-bottom-nav')
       .getByRole('button', { name: 'Калькуляторы', exact: true })
       .click();
-    await page.getByRole('link', { name: 'Калькуляторы', exact: true }).click();
+    // The tab restores the calculator opened before; the breadcrumb row is gone (2026-10-08), the
+    // header back button leads to the catalog.
+    await page.getByRole('button', { name: 'Назад', exact: true }).click();
     await page.getByRole('button', { name: 'Открыть раздел «Преобразование единиц»' }).click();
     const origin = page.url();
     await page.locator('[data-testid^="calculator-open-"]').first().click();

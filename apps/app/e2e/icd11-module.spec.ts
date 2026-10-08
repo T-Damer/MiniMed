@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { ContentModuleCatalogSchema } from '@localmed/contracts';
-import { expect, type Page, test } from '@playwright/test';
+import { expect, type Locator, type Page, test } from '@playwright/test';
 
 import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
 import { selectSearchSection } from './select-search-section';
@@ -63,6 +63,16 @@ async function search(page: Page, query: string): Promise<void> {
   await expect(page.getByTestId('search-results')).toBeVisible({ timeout: 60_000 });
 }
 
+// The module can finish mounting after the first results are shown; those then wait behind
+// «Обновить» instead of changing under the reader, so the test applies the offer like a person.
+async function expectGroupAfterRefresh(page: Page, group: Locator): Promise<void> {
+  await expect(async () => {
+    const apply = page.getByTestId('search-refresh-apply');
+    if (await apply.isVisible()) await apply.click();
+    await expect(group).toBeVisible({ timeout: 3_000 });
+  }).toPass({ timeout: 60_000 });
+}
+
 test('installs the optional МКБ-11 module, labels its results and opens a card', async ({
   page,
 }) => {
@@ -77,7 +87,7 @@ test('installs the optional МКБ-11 module, labels its results and opens a car
     .locator('.result-group')
     .filter({ has: page.locator('.result-group-header__kind-label', { hasText: RESULT_LABEL }) })
     .first();
-  await expect(group).toBeVisible({ timeout: 60_000 });
+  await expectGroupAfterRefresh(page, group);
   await expect(group.locator('.result-group-header__title')).toContainText('МКБ-11 (ВОЗ)');
   await expect(group.locator('.result-group-header__title')).toContainText('1A00');
   await group.locator('.result-group-header').click();
@@ -117,7 +127,7 @@ test('finds a card through a WHO Russian index term that is not in its title', a
     .filter({ has: page.locator('.result-group-header__kind-label', { hasText: RESULT_LABEL }) })
     .filter({ has: page.locator('.result-group-header__title', { hasText: '1A00' }) })
     .first();
-  await expect(group).toBeVisible({ timeout: 60_000 });
+  await expectGroupAfterRefresh(page, group);
 });
 
 test('never offers ICD-11 cards in the ICD-10 section or as an ICD-10 code', async ({ page }) => {
