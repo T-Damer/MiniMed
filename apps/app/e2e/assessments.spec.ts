@@ -32,8 +32,9 @@ test('opens personal questionnaires from the first catalog card', async ({ page 
   const search = page.getByRole('searchbox', { name: 'Найти опросник' });
   await expect(heading).toBeVisible();
   await expect(search).toBeVisible();
-  expect(await search.evaluate((element) => element.getBoundingClientRect().top)).toBeLessThan(
-    await heading.evaluate((element) => element.getBoundingClientRect().top),
+  // The title shares the header row with the back button; the search field comes under it.
+  expect(await heading.evaluate((element) => element.getBoundingClientRect().top)).toBeLessThan(
+    await search.evaluate((element) => element.getBoundingClientRect().top),
   );
   // Import is a secondary header action (an icon button); creating stays the primary action.
   await expect(page.getByRole('button', { name: 'Импортировать опросник' })).toHaveClass(
@@ -41,7 +42,7 @@ test('opens personal questionnaires from the first catalog card', async ({ page 
   );
   await expect(page.getByText('2 вопроса', { exact: true })).toBeVisible();
   const create = page
-    .locator('.assessment-user-questionnaires__search-chrome')
+    .locator('.assessment-catalog-page-header')
     .getByRole('button', { name: 'Создать опросник' });
   await expect(create).toHaveClass(/ui-button--primary/u);
   await create.click();

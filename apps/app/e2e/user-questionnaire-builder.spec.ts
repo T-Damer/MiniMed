@@ -39,7 +39,7 @@ async function openBuilder(page: Page): Promise<void> {
     window.location.hash = '#/assessments/mine';
   });
   await page
-    .locator('.assessment-user-questionnaires__search-chrome')
+    .locator('.assessment-catalog-page-header')
     .getByRole('button', { name: 'Создать опросник' })
     .click();
   await expect(page).toHaveURL(/#\/assessments\/mine\/[^/]+\/edit$/u);

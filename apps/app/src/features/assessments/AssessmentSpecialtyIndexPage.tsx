@@ -99,56 +99,53 @@ export function AssessmentSpecialtyIndexPage(props: {
 
   return (
     <>
-      <Show when={props.mineOnly}>
-        <div class="assessment-user-questionnaires__search-chrome knowledge-subroute-heading knowledge-subroute-heading--blurred">
-          <NavBack
-            class="assessment-user-questionnaires__back knowledge-subroute-heading__control"
-            aria-label={hasQuery() ? 'Очистить поиск' : 'К тестам и опросникам'}
-            onClick={() => (hasQuery() ? props.onQuery('') : props.onBack())}
-            icon={<AppGlyph name={hasQuery() ? 'close' : 'arrow-left'} />}
-          />
-          <SearchField
-            class="assessment-search route-search knowledge-subroute-heading__control"
-            value={props.query}
-            placeholder="Название, описание или вопрос"
-            label="Найти опросник"
-            hideLabel
-            onInput={props.onQuery}
-          />
-          <Button
-            type="button"
-            variant="icon"
-            class="assessment-user-questionnaires__import knowledge-subroute-heading__control"
-            aria-label="Импортировать опросник"
-            title="Импортировать опросник"
-            onClick={() => setImportOpen(true)}
-            icon={<AppGlyph name="file-arrow-down" class="assessment-user-questionnaires__icon" />}
-          />
-          <Button
-            type="button"
-            variant="icon"
-            class="assessment-user-questionnaires__create knowledge-subroute-heading__control ui-button--primary"
-            aria-label="Создать опросник"
-            title="Создать опросник"
-            onClick={props.onCreateUserQuestionnaire}
-            icon={<AppGlyph name="plus" class="assessment-user-questionnaires__icon" />}
-          />
-        </div>
-      </Show>
-
       <Page
         class="assessment-catalog-page-header"
+        {...(props.mineOnly
+          ? {
+              navigation: (
+                <NavBack
+                  class="assessment-user-questionnaires__back"
+                  aria-label="К тестам и опросникам"
+                  onClick={props.onBack}
+                />
+              ),
+              actions: (
+                <>
+                  <Button
+                    type="button"
+                    variant="icon"
+                    class="assessment-user-questionnaires__import"
+                    aria-label="Импортировать опросник"
+                    title="Импортировать опросник"
+                    onClick={() => setImportOpen(true)}
+                    icon={
+                      <AppGlyph
+                        name="file-arrow-down"
+                        class="assessment-user-questionnaires__icon"
+                      />
+                    }
+                  />
+                  <Button
+                    type="button"
+                    variant="icon"
+                    class="assessment-user-questionnaires__create ui-button--primary"
+                    aria-label="Создать опросник"
+                    title="Создать опросник"
+                    onClick={props.onCreateUserQuestionnaire}
+                    icon={<AppGlyph name="plus" class="assessment-user-questionnaires__icon" />}
+                  />
+                </>
+              ),
+            }
+          : {})}
         icon={
           <AppGlyph name={props.mineOnly ? 'notepad' : 'list-checks'} class="page__icon-glyph" />
         }
         title={
           <Heading depth={1}>{props.mineOnly ? 'Мои опросники' : 'Тесты и опросники'}</Heading>
         }
-        description={
-          props.mineOnly
-            ? 'Свои опросники: создавайте, проходите, редактируйте.'
-            : 'Тесты и шкалы, работают без сети.'
-        }
+        {...(props.mineOnly ? {} : { description: 'Тесты и шкалы, работают без сети.' })}
       />
 
       <ToolAgeFilterBar
@@ -162,19 +159,21 @@ export function AssessmentSpecialtyIndexPage(props: {
         }
       />
 
-      <Show when={!props.mineOnly}>
-        <div class="assessment-search-row">
-          <SearchField
-            class="assessment-search"
-            value={props.query}
-            placeholder="Например: Белбин, темперамент, эгограмма"
-            label="Найти тест"
-            hideLabel
-            onInput={props.onQuery}
-            onClear={() => props.onQuery('')}
-          />
-        </div>
-      </Show>
+      <div class="assessment-search-row">
+        <SearchField
+          class="assessment-search"
+          value={props.query}
+          placeholder={
+            props.mineOnly
+              ? 'Название, описание или вопрос'
+              : 'Например: Белбин, темперамент, эгограмма'
+          }
+          label={props.mineOnly ? 'Найти опросник' : 'Найти тест'}
+          hideLabel
+          onInput={props.onQuery}
+          onClear={() => props.onQuery('')}
+        />
+      </div>
 
       <Show
         when={
