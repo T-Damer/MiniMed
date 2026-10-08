@@ -85,9 +85,10 @@
     color: #d5cdbc;
   }
 
+  /* The active glyph sits on the light bubble: near-black green, 9:1 on the bubble's cream. */
   .app-bottom-nav .app-nav-button--active {
     border-color: transparent;
-    color: #3d5246;
+    color: #1b2a21;
     background: transparent;
     box-shadow: none;
   }
@@ -109,7 +110,7 @@
     }
 
     .app-bottom-nav .app-nav-button--active:hover {
-      color: #3d5246;
+      color: #1b2a21;
     }
   }
 
