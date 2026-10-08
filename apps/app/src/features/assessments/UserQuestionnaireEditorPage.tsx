@@ -8,7 +8,6 @@ import {
   onCleanup,
   Show,
 } from 'solid-js';
-import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
@@ -269,18 +268,6 @@ export function UserQuestionnaireEditorPage(props: {
             title="Назад"
             onClick={props.onBack}
             icon={<AppGlyph name="arrow-left" class="user-questionnaire-editor__icon" />}
-          />
-        }
-        breadcrumbs={
-          <AppBreadcrumbs
-            items={[
-              { label: 'Тесты', href: '#/assessments' },
-              { label: 'Мои опросники', href: '#/assessments/mine' },
-              { label: draft().title.trim() || 'Без названия' },
-            ]}
-            onNavigate={(href) => {
-              window.location.hash = href;
-            }}
           />
         }
         icon={<AppGlyph name="list-checks" class="page__icon-glyph" />}

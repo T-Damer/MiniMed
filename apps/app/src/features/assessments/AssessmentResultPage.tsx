@@ -1,6 +1,5 @@
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
-import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import {
   AppContextMenu,
   type AppContextMenuAction,
@@ -16,7 +15,6 @@ import {
   printAssessmentRecord,
   shareAssessmentRecord,
 } from '@/features/assessments/assessment-print';
-import { assessmentWorkspaceCrumbs } from '@/features/assessments/assessment-routing';
 import type {
   AssessmentDefinition,
   AssessmentRecord,
@@ -138,21 +136,13 @@ export function AssessmentResultPage(props: {
         navigation={
           <NavBack class="knowledge-back-button" aria-label="К тесту" onClick={props.onBack} />
         }
-        breadcrumbs={
-          <AppBreadcrumbs
-            items={assessmentWorkspaceCrumbs(props.definition)}
-            onNavigate={(href) => {
-              window.location.hash = href;
-            }}
-          />
-        }
         icon={<AppGlyph name="list-checks" class="page__icon-glyph" />}
         title={
           <Heading depth={3} class="assessment-subpage-title">
             {props.definition.title}
           </Heading>
         }
-        description={`${props.definition.description} · ${props.record.subjectLabel || 'Без подписи'} · ${formatDate(props.record.createdAt)}`}
+        description={`${props.record.subjectLabel || 'Без подписи'} · ${formatDate(props.record.createdAt)}`}
         actions={
           <div class="assessment-subpage-header-actions assessment-subpage-header-actions--trailing">
             <AppContextMenu

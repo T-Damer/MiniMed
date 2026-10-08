@@ -1,5 +1,4 @@
 import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
-import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
@@ -157,20 +156,9 @@ export function UserCalculatorsPage(props: {
             onClick={props.onBack}
           />
         }
-        breadcrumbs={
-          <AppBreadcrumbs
-            items={[
-              { label: 'Калькуляторы', href: '#/calculators' },
-              { label: 'Мои калькуляторы' },
-            ]}
-            onNavigate={(href) => {
-              window.location.hash = href;
-            }}
-          />
-        }
         icon={<AppGlyph name="calculator" class="page__icon-glyph" />}
         title={<Heading depth={1}>Мои калькуляторы</Heading>}
-        description="Составьте свой калькулятор: входные данные, формула и диапазоны результата. Он работает без сети и хранится только на этом устройстве."
+        description="Своя формула и диапазоны результата."
         actions={
           <div class="user-calculators__actions">
             <Button
@@ -185,14 +173,14 @@ export function UserCalculatorsPage(props: {
             />
             <Button
               type="button"
-              variant="primary"
+              variant="icon"
               class="user-calculators__create"
+              aria-label="Создать калькулятор"
+              title="Создать калькулятор"
               data-testid="user-calculators-create"
               onClick={props.onCreate}
               icon={<AppGlyph name="plus" class="user-calculators__icon" />}
-            >
-              Создать
-            </Button>
+            />
           </div>
         }
       />

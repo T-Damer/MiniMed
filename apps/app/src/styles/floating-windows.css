@@ -484,8 +484,7 @@ html:has(.floating-windows-layer--fullscreen) body {
 }
 
 .app-shell--floating-child .subpage-heading p,
-.app-shell--floating-child .assessments-heading__description,
-.app-shell--floating-child .calculator-subpage-summary {
+.app-shell--floating-child .assessments-heading__description {
   font-size: 0.78rem;
 }
 

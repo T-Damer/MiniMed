@@ -183,11 +183,11 @@ test('builds a calculator, runs it, prints it, edits it, copies it, moves its in
   await page.getByTestId('user-calculator-editor-open').click();
   await expect(page).toHaveURL(new RegExp(`#/calculators/${id}$`, 'u'));
   await expect(page.getByRole('heading', { name: 'Индекс Кетле' })).toBeVisible();
-  await expect(page.locator('.calculator-subpage-summary')).toHaveText(
+  await expect(page.locator('.calculator-subpage-header .page__description')).toHaveText(
     'Масса тела в кг на квадратный метр роста.',
   );
   // The source has no address: it is plain text, not a link to this very page.
-  await page.locator('.calculator-subpage-sources').getByText('Источники (1)').click();
+  await page.getByRole('button', { name: 'Источники (1)' }).click();
   await expect(page.locator('.calculator-subpage-sources__link')).toHaveText(
     'Авторский калькулятор · Создан пользователем',
   );
@@ -219,11 +219,6 @@ test('builds a calculator, runs it, prints it, edits it, copies it, moves its in
   expect(printed).toContain('ИМТ: 17 кг/м²');
   expect(printed).toContain('Интерпретация:\nДефицит. ИМТ ниже нормы.');
   expect(printed).toContain('Авторский калькулятор. Результат не заменяет клиническую оценку.');
-
-  // The back button and the breadcrumbs lead to the author's list, not to a section page.
-  await expect(
-    page.locator('.calculator-subpage-header').getByRole('link', { name: 'Мои калькуляторы' }),
-  ).toHaveAttribute('href', '#/calculators/mine');
 
   // Edit: rename, change the formula, and the result changes.
   await page.getByTestId('calculator-edit-own').click();
@@ -261,10 +256,7 @@ test('builds a calculator, runs it, prints it, edits it, copies it, moves its in
   await expect(page.getByTestId('calculator-result')).toContainText('Дефицит. ИМТ ниже нормы.');
 
   // The list: the age badge, the input count with its plural, copy.
-  await page
-    .locator('.calculator-subpage-header')
-    .getByRole('link', { name: 'Мои калькуляторы' })
-    .click();
+  await page.locator('.calculator-subpage-header').getByRole('button', { name: 'Назад' }).click();
   await expect(page).toHaveURL(/#\/calculators\/mine$/u);
   const original = card(page, 'Индекс массы');
   await expect(original).toContainText('2 входных значения');
@@ -317,10 +309,7 @@ test('builds a calculator, runs it, prints it, edits it, copies it, moves its in
   await expect(page.getByTestId('user-calculator-title')).toHaveValue('Индекс массы');
   await page.getByTestId('user-calculator-editor-open').click();
   await expect(page.getByRole('heading', { name: 'Индекс массы' })).toBeVisible();
-  await page
-    .locator('.calculator-subpage-header')
-    .getByRole('link', { name: 'Мои калькуляторы' })
-    .click();
+  await page.locator('.calculator-subpage-header').getByRole('button', { name: 'Назад' }).click();
   await expect(page.getByTestId('user-calculator-card')).toHaveCount(3);
 
   // The calculators of the author are in the search catalog too, and the filter hides them there.

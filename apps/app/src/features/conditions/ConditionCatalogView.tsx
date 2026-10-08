@@ -11,7 +11,6 @@ import {
   Show,
 } from 'solid-js';
 
-import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { AppGlyph } from '@/components/AppGlyph';
 import { CountBadge } from '@/components/CountBadge';
 import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
@@ -29,7 +28,6 @@ import {
   conditionSectionLabel,
 } from '@/features/conditions/condition-catalog';
 import {
-  CONDITION_CATALOG_HASH,
   conditionCatalogHash,
   parseConditionCatalogRoute,
 } from '@/features/conditions/condition-routing';
@@ -194,20 +192,9 @@ export function ConditionCatalogView(props: ConditionCatalogViewProps): JSX.Elem
                   onClick={props.onBack}
                 />
               }
-              breadcrumbs={
-                <AppBreadcrumbs
-                  items={[
-                    { label: 'База знаний', href: '#/modules/documents' },
-                    { label: 'Заболевания и состояния' },
-                  ]}
-                  onNavigate={(href) => {
-                    window.location.hash = href;
-                  }}
-                />
-              }
               icon={<AppGlyph name="book-open" class="page__icon-glyph" />}
               title={<Heading depth={1}>Заболевания и состояния</Heading>}
-              description="МКБ-10, симптомы, клинические рекомендации и справочные материалы в одном перечне."
+              description="МКБ-10, симптомы и клинические рекомендации."
             />
 
             <div
@@ -326,22 +313,6 @@ export function ConditionCatalogView(props: ConditionCatalogViewProps): JSX.Elem
                   class="knowledge-back-button"
                   aria-label={`К разделу «${conditionSectionLabel(entry().section)}»`}
                   onClick={closeEntry}
-                />
-              }
-              breadcrumbs={
-                <AppBreadcrumbs
-                  items={[
-                    { label: 'База знаний', href: '#/modules/documents' },
-                    { label: 'Заболевания и состояния', href: CONDITION_CATALOG_HASH },
-                    {
-                      label: conditionSectionLabel(entry().section),
-                      href: conditionCatalogHash(entry().section),
-                    },
-                    { label: entry().title },
-                  ]}
-                  onNavigate={(href) => {
-                    window.location.hash = href;
-                  }}
                 />
               }
               icon={<AppGlyph name="book-open" class="page__icon-glyph" />}

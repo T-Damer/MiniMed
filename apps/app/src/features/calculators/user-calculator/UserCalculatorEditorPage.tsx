@@ -8,7 +8,6 @@ import {
   onCleanup,
   Show,
 } from 'solid-js';
-import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { Checkbox } from '@/components/Checkbox';
@@ -263,19 +262,6 @@ function CalculatorEditor(props: {
             onClick={() => {
               flush();
               props.onBack();
-            }}
-          />
-        }
-        breadcrumbs={
-          <AppBreadcrumbs
-            items={[
-              { label: 'Калькуляторы', href: '#/calculators' },
-              { label: 'Мои калькуляторы', href: '#/calculators/mine' },
-              { label: draft().title || 'Без названия' },
-            ]}
-            onNavigate={(href) => {
-              flush();
-              window.location.hash = href;
             }}
           />
         }

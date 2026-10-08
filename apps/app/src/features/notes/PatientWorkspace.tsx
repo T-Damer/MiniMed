@@ -809,7 +809,7 @@ function PatientList(props: {
         class="patient-workspace__page"
         icon={<AppGlyph name="users" class="page__icon-glyph" />}
         title={<Heading depth={1}>Пациенты</Heading>}
-        description="Карточки пациентов хранятся локально. Backup этого раздела не включает личные заметки, голосовые вложения и расшифровки."
+        description="Карточки хранятся на этом устройстве."
       />
       <div class="patient-workspace__list">
         <For each={visibleProfiles()}>

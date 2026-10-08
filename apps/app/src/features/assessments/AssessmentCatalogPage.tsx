@@ -1,6 +1,5 @@
 import { For, type JSX, Show } from 'solid-js';
 
-import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { NavBack } from '@/components/NavBack';
@@ -13,7 +12,6 @@ import type {
   searchAssessments,
 } from '@/features/assessments/assessment-catalog';
 import {
-  ASSESSMENT_SECTIONS,
   type AssessmentInstallationState,
   type AssessmentSectionId,
   assessmentRequiredByModules,
@@ -21,7 +19,6 @@ import {
   isAssessmentSectionComplete,
   isAssessmentSectionFromDatabase,
 } from '@/features/assessments/assessment-packs';
-import { assessmentCatalogCrumbs } from '@/features/assessments/assessment-routing';
 import { ItemFavoriteButton, toolItem } from '@/features/search/ToolPinControls';
 import { ToolAgeBadge } from '@/features/tools/ToolAgeBadge';
 import { ToolAgeFilterBar } from '@/features/tools/ToolAgeFilterBar';
@@ -155,20 +152,6 @@ export function AssessmentCatalogPage(props: {
             aria-label={props.query.length > 0 ? 'Очистить поиск' : 'К разделам тестов'}
             onClick={() => (props.query.length > 0 ? props.onQuery('') : props.onBack())}
             icon={<AppGlyph name={props.query.length > 0 ? 'close' : 'arrow-left'} />}
-          />
-        }
-        breadcrumbs={
-          <AppBreadcrumbs
-            items={assessmentCatalogCrumbs(
-              props.specialty.title,
-              props.specialty.id,
-              props.sectionId
-                ? ASSESSMENT_SECTIONS.find((section) => section.id === props.sectionId)?.title
-                : undefined,
-            )}
-            onNavigate={(href) => {
-              window.location.hash = href;
-            }}
           />
         }
         icon={<AppGlyph name="list-checks" class="page__icon-glyph" />}

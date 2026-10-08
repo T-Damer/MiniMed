@@ -10,7 +10,6 @@ import {
   onMount,
   Show,
 } from 'solid-js';
-import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { AppGlyph } from '@/components/AppGlyph';
 import { CountBadge } from '@/components/CountBadge';
 import { stripKnownHtmlMarkupInline } from '@/components/html-markup';
@@ -374,17 +373,9 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
             onClick={props.onBack}
           />
         }
-        breadcrumbs={
-          <AppBreadcrumbs
-            items={[{ label: 'База знаний', href: '#/modules/documents' }, { label: 'Препараты' }]}
-            onNavigate={(href) => {
-              window.location.hash = href;
-            }}
-          />
-        }
         icon={<AppGlyph name="pill" class="page__icon-glyph" />}
         title={<Heading depth={1}>Препараты</Heading>}
-        description="Локальный справочник препаратов и официальных инструкций, доступный без сети."
+        description="Справочник препаратов и инструкций."
       />
       <div class="medication-view-switch">
         <SegmentedControl<CatalogViewMode>

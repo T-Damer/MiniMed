@@ -1343,7 +1343,7 @@ export function NotesView(props: {
           class="patient-notes-heading"
           icon={<AppGlyph name="notes" class="page__icon-glyph" />}
           title={<Heading depth={1}>Заметки</Heading>}
-          description="Ваши записи и пациенты. Хранятся только на этом устройстве."
+          description="Ваши записи и пациенты."
           navigation={
             <Show when={props.backToFiles}>
               <NavBack

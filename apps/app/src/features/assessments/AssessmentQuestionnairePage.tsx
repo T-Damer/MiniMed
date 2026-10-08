@@ -2,7 +2,6 @@ import { createEffect, createSignal, For, type JSX, onCleanup, onMount, Show } f
 import { Portal } from 'solid-js/web';
 import NumberFlow from 'solid-number-flow';
 
-import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import {
   AppContextMenu,
   type AppContextMenuAction,
@@ -23,7 +22,6 @@ import {
   sectionHeadingBefore,
 } from '@/features/assessments/assessment-engine';
 import { printBlankAssessment } from '@/features/assessments/assessment-print';
-import { assessmentWorkspaceCrumbs } from '@/features/assessments/assessment-routing';
 import type {
   AssessmentDefinition,
   AssessmentRecord,
@@ -360,21 +358,6 @@ export function AssessmentQuestionnairePage(props: {
         class="assessment-page-header"
         navigation={
           <AssessmentBackNav sectionTitle={props.sectionTitle} onBackToCatalog={props.onBack} />
-        }
-        breadcrumbs={
-          <div
-            ref={(element) => {
-              breadcrumbHost = element;
-            }}
-            class="assessment-questionnaire__breadcrumbs"
-          >
-            <AppBreadcrumbs
-              items={assessmentWorkspaceCrumbs(props.definition)}
-              onNavigate={(href) => {
-                window.location.hash = href;
-              }}
-            />
-          </div>
         }
         icon={<AppGlyph name="list-checks" class="page__icon-glyph" />}
         title={

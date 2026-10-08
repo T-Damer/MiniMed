@@ -929,7 +929,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
           class="module-page-header"
           icon={<AppGlyph name="folder-open" class="page__icon-glyph" />}
           title={<Heading depth={1}>База знаний</Heading>}
-          description="Скачивайте нужные разделы. После проверки они работают без интернета и участвуют в общем поиске MiniMed."
+          description="Скачайте разделы — они работают без сети."
           actions={
             <Show when={!props.embedded && pendingDownloadCount() > 0}>
               <button

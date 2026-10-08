@@ -11,15 +11,14 @@ import {
   Show,
 } from 'solid-js';
 import { toast } from 'solid-sonner';
-import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
-import { Disclosure } from '@/components/Disclosure';
 import { NavBack } from '@/components/NavBack';
 import { notifyWithOpen } from '@/components/notify';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import { Page } from '@/components/Page';
 import { PatientPickerRow } from '@/components/PatientPickerRow';
 import { QueryEmptyState } from '@/components/QueryEmptyState';
 import { SearchField } from '@/components/SearchField';
@@ -60,11 +59,7 @@ import {
   registerDownloadedCalculator,
   searchCalculators,
 } from '@/features/calculators/calculator-registry';
-import {
-  calculatorSectionCrumbs,
-  calculatorSectionPath,
-  calculatorWorkspaceCrumbs,
-} from '@/features/calculators/calculator-routing';
+import { calculatorSectionPath } from '@/features/calculators/calculator-routing';
 import { getCalculatorSchema } from '@/features/calculators/calculator-schema-catalog';
 import {
   type CalculatorSchemaEvaluation,
@@ -372,51 +367,47 @@ function CalculatorSectionPage(props: {
 
   return (
     <section class="calculator-section-page">
-      <header class="calculator-section-page-header">
-        <NavBack
-          class="calculator-section-back"
-          aria-label="К разделам калькуляторов"
-          title="К разделам"
-          onClick={props.onBack}
-        />
-        <div>
-          <AppBreadcrumbs
-            items={calculatorSectionCrumbs(props.section.title)}
-            onNavigate={(href) => {
-              window.location.hash = href;
-            }}
+      <Page
+        class="calculator-section-page-header"
+        navigation={
+          <NavBack
+            class="calculator-section-back"
+            aria-label="К разделам калькуляторов"
+            title="К разделам"
+            onClick={props.onBack}
           />
-          <Heading depth={2}>{props.section.title}</Heading>
-          <p>{props.section.description}</p>
-        </div>
-        <Show when={hasDownloads() || (!bundled() && availableCount() > 0)}>
-          <Button
-            type="button"
-            variant="icon"
-            class="calculator-section-action"
-            classList={{ 'calculator-section-remove': removable() }}
-            aria-label={
-              removable()
-                ? `Удалить раздел «${props.section.title}»`
-                : `${props.downloadLabel} — ${props.section.title}`
-            }
-            title={removable() ? 'Удалить раздел' : props.downloadLabel}
-            onClick={() =>
-              removable() ? props.onRemove(props.section.id) : props.onInstall(props.section.id)
-            }
-            icon={
-              <AppGlyph
-                class="calculator-section-action-icon"
-                name={removable() ? 'trash' : 'download'}
-              />
-            }
-          />
-        </Show>
-      </header>
+        }
+        title={<Heading depth={2}>{props.section.title}</Heading>}
+        description={props.section.description}
+        actions={
+          <Show when={hasDownloads() || (!bundled() && availableCount() > 0)}>
+            <Button
+              type="button"
+              variant="icon"
+              class="calculator-section-action"
+              classList={{ 'calculator-section-remove': removable() }}
+              aria-label={
+                removable()
+                  ? `Удалить раздел «${props.section.title}»`
+                  : `${props.downloadLabel} — ${props.section.title}`
+              }
+              title={removable() ? 'Удалить раздел' : props.downloadLabel}
+              onClick={() =>
+                removable() ? props.onRemove(props.section.id) : props.onInstall(props.section.id)
+              }
+              icon={
+                <AppGlyph
+                  class="calculator-section-action-icon"
+                  name={removable() ? 'trash' : 'download'}
+                />
+              }
+            />
+          </Show>
+        }
+      />
       <Show when={hasDownloads()}>
         <p class="calculator-section-page__status" role="status">
-          {props.downloadLabel} · {downloadSize(props.downloadableModules)}. После скачивания
-          калькуляторы раздела работают без интернета.
+          {props.downloadLabel} · {downloadSize(props.downloadableModules)}
         </p>
       </Show>
       <Show when={availableCount() === 0}>
@@ -1791,13 +1782,8 @@ export function CalculatorsView(): JSX.Element {
                                 — все калькуляторы.
                               </p>
                             </Show>
-                            <p class="archive-kicker">Разделы инструментов</p>
                             <Heading depth={1}>Калькуляторы</Heading>
-                            <p>
-                              Откройте нужный калькулятор — установленные инструменты работают без
-                              сети. Дополнительные инструменты можно скачать. Результат сохраняется
-                              на устройстве вместе с формулой и границами применения.
-                            </p>
+                            <p>Установленные инструменты работают без сети.</p>
                           </div>
                         </header>
 
@@ -1968,77 +1954,66 @@ export function CalculatorsView(): JSX.Element {
                 }
               >
                 <div class="calculator-workspace">
-                  <header class="calculator-subpage-header">
-                    <NavBack
-                      class="knowledge-back-button"
-                      aria-label="Назад"
-                      onClick={backFromCalculator}
-                    />
-                    <div class="calculator-subpage-header__content">
-                      <AppBreadcrumbs
-                        items={calculatorWorkspaceCrumbs({
-                          title: definition().title,
-                          sectionId: definition().category,
-                          sectionTitle:
-                            CALCULATOR_SECTIONS.find(
-                              (section) => section.id === definition().category,
-                            )?.title ?? 'Раздел калькуляторов',
-                        })}
-                        onNavigate={(href) => {
-                          window.location.hash = href;
-                        }}
+                  <Page
+                    class="calculator-subpage-header"
+                    navigation={
+                      <NavBack
+                        class="knowledge-back-button"
+                        aria-label="Назад"
+                        onClick={backFromCalculator}
                       />
+                    }
+                    title={
                       <Heading depth={3} class="calculator-subpage-title">
                         {definition().title}
                       </Heading>
-                      <p class="calculator-subpage-summary">{definition().summary}</p>
+                    }
+                    description={definition().summary}
+                    actions={
                       <Show when={definition().category === 'custom'}>
                         <Button
                           type="button"
-                          variant="quiet"
+                          variant="icon"
                           class="calculator-subpage-edit"
                           data-testid="calculator-edit-own"
+                          aria-label="Изменить калькулятор"
+                          title="Изменить калькулятор"
                           icon={<AppGlyph name="edit" />}
                           onClick={() => {
                             window.location.hash = userCalculatorEditPath(definition().slug);
                           }}
-                        >
-                          Изменить калькулятор
-                        </Button>
+                        />
                       </Show>
-                      <Disclosure
-                        variant="inline"
-                        class="calculator-subpage-sources"
-                        title={`Источники (${definition().sources.length})`}
-                      >
-                        <ul class="calculator-subpage-sources__list">
-                          <For each={definition().sources}>
-                            {(source) => (
-                              <li class="calculator-subpage-sources__item">
-                                <Show
-                                  when={source.url}
-                                  fallback={
-                                    <span class="calculator-subpage-sources__link">
-                                      {source.title} · {source.publisher}
-                                    </span>
-                                  }
+                    }
+                    helpTitle={`Источники (${definition().sources.length})`}
+                    help={
+                      <ul class="calculator-subpage-sources__list">
+                        <For each={definition().sources}>
+                          {(source) => (
+                            <li class="calculator-subpage-sources__item">
+                              <Show
+                                when={source.url}
+                                fallback={
+                                  <span class="calculator-subpage-sources__link">
+                                    {source.title} · {source.publisher}
+                                  </span>
+                                }
+                              >
+                                <a
+                                  class="calculator-subpage-sources__link"
+                                  href={source.url}
+                                  target="_blank"
+                                  rel="noreferrer"
                                 >
-                                  <a
-                                    class="calculator-subpage-sources__link"
-                                    href={source.url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                  >
-                                    {source.title}
-                                  </a>
-                                </Show>
-                              </li>
-                            )}
-                          </For>
-                        </ul>
-                      </Disclosure>
-                    </div>
-                  </header>
+                                  {source.title}
+                                </a>
+                              </Show>
+                            </li>
+                          )}
+                        </For>
+                      </ul>
+                    }
+                  />
 
                   <CalculatorForm
                     definition={definition()}

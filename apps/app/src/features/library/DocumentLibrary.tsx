@@ -127,7 +127,7 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
           class="archive-library-page-header"
           icon={<AppGlyph name="book-open" class="page__icon-glyph" />}
           title={<Heading depth={1}>Документы</Heading>}
-          description="Откройте рекомендации, лекарственные сведения и нормативные документы. Чтение происходит в отдельном окне поверх текущего раздела."
+          description="Рекомендации, лекарства и нормативные документы."
           actions={
             <fieldset class="library-mode-tabs library-mode-tabs--page-header">
               <legend class="sr-only">Представление библиотеки</legend>
