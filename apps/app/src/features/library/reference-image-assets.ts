@@ -11,6 +11,10 @@ const IMAGE_MIRROR =
 export const REFERENCE_IMAGE_MANIFEST_SHA256 =
   'sha256:2c94aa201d6313a621a4e3a361264b035d01935a291b20aace5212936820b42e';
 const DOCUMENT_ID = /^krasotaimedicina\.disease\.[a-f0-9]{16}$/u;
+/** True for the ids of the documents the reference-image set illustrates. */
+export function isReferenceImageDocumentId(value: unknown): value is string {
+  return typeof value === 'string' && DOCUMENT_ID.test(value);
+}
 const ASSET_PATH = /^assets\/[a-f0-9]{64}\.(?:jpg|jpeg|png|gif|webp|bmp)$/iu;
 const CONTENT_TYPE = /^image\/(?:bmp|gif|jpeg|png|webp)$/u;
 

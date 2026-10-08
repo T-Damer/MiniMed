@@ -60,16 +60,19 @@ import {
   readerSectionWeight,
 } from '@/features/library/document-reader-position';
 import { jumpReaderTo, readerOffsetWithin } from '@/features/library/document-reader-scroll';
-import { DocumentRichBlock, PreviewableImage } from '@/features/library/document-rich-block';
+import { DocumentRichBlock } from '@/features/library/document-rich-block';
 import {
   documentRenderBlockSearchText,
   resolveDocumentChunkItems,
 } from '@/features/library/document-rich-block-data';
 import { documentTextSearchText } from '@/features/library/document-text-search';
 import { isClinicalRecommendationSource } from '@/features/library/numbered-heading-sections';
+import { ReaderHero } from '@/features/library/ReaderHero';
 import { RlsMedicationPackagingPanel } from '@/features/library/RlsMedicationPackagingPanel';
-import type { ResolvedReferenceImage } from '@/features/library/reference-image-assets';
-import { getReferenceImageResolver } from '@/features/library/reference-image-assets';
+import {
+  getReferenceImageResolver,
+  isReferenceImageDocumentId,
+} from '@/features/library/reference-image-assets';
 import {
   OFFICIAL_DOCUMENT_HIGHLIGHT_CONTAINERS,
   UserDocumentHighlights,
@@ -279,61 +282,6 @@ function AllmedSupplementPanel(props: {
         </a>
       </div>
     </Disclosure>
-  );
-}
-
-function ReferencePointerImage(props: { readonly documentId: string }): JSX.Element {
-  const [image, setImage] = createSignal<ResolvedReferenceImage | null>();
-  const [failed, setFailed] = createSignal(false);
-
-  onMount(() => {
-    void getReferenceImageResolver()
-      .resolveFirst(props.documentId)
-      .then((value) => setImage(value))
-      .catch(() => setFailed(true));
-  });
-
-  return (
-    <Show
-      when={image()}
-      fallback={
-        <Show when={failed()}>
-          <p class="document-reference-image__fallback">Не удалось загрузить иллюстрацию.</p>
-        </Show>
-      }
-    >
-      {(value) => (
-        <figure class="document-reference-image document-reference-image--pointer">
-          <PreviewableImage
-            openClass="document-reference-image__open"
-            imageClass="document-reference-image__image"
-            src={value().url}
-            alt={value().alt}
-            caption={value().alt}
-            hidden={failed()}
-            onError={() => setFailed(true)}
-          />
-          <Show when={!failed()}>
-            <figcaption class="document-reference-image__caption">
-              <span>Источник: Красота и медицина</span>{' '}
-              <a
-                class="document-reference-image__source"
-                href={value().sourceUrl}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Открыть
-              </a>
-            </figcaption>
-          </Show>
-          <Show when={failed()}>
-            <p class="document-reference-image__fallback">
-              Иллюстрация недоступна в подключённом наборе.
-            </p>
-          </Show>
-        </figure>
-      )}
-    </Show>
   );
 }
 
@@ -1035,6 +983,25 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
     return (documentId: string, source: string) => resolver.resolve(documentId, source);
   });
 
+  // The illustrated reference articles carry their picture as the hero above the title; the same
+  // picture inside the text is left out once the hero has it.
+  const heroImageDocumentId = createMemo((): string | undefined => {
+    const document = props.document;
+    if (!document) return undefined;
+    if (document.sourceType === 'krasotaimedicina_reference') {
+      return isReferenceImageDocumentId(document.id) ? document.id : undefined;
+    }
+    if (
+      document.sourceType === 'core_catalog_pointer' &&
+      document.metadata['sourceKind'] === 'disease-reference'
+    ) {
+      const sourceId = document.metadata['sourceDocumentId'];
+      return isReferenceImageDocumentId(sourceId) ? sourceId : undefined;
+    }
+    return undefined;
+  });
+  const [heroImageSource, setHeroImageSource] = createSignal<string | null>(null);
+
   const copySectionLink = async (documentId: string, sectionAnchor: string): Promise<void> => {
     const url = buildDocumentSectionLink(documentId, sectionAnchor);
     try {
@@ -1276,36 +1243,43 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                   when={drugScreen()}
                   fallback={
                     <>
-                      <Show when={sourceTypeReaderLabel(documentValue().sourceType)}>
-                        {(label) => <p class="document-overlay-paper__source-label">{label()}</p>}
-                      </Show>
-                      <ReaderTitleRow item={bookmarkItem(documentValue())} bookmark={bookmark}>
-                        <h1
-                          class="document-overlay-paper__title"
-                          classList={{
-                            'document-overlay-paper__title--pointer': Boolean(props.modulePointer),
-                          }}
-                        >
-                          <QueryHighlightedText
-                            text={displayDocumentTitle(documentValue())}
-                            query={findState().query}
-                            exact={findState().mode === 'exact'}
-                            fuzzy={findState().mode === 'similar'}
-                            ranges={rangesForFindUnit(
-                              rangesByUnit(),
-                              documentValue().id,
-                              findState().query,
-                            )}
-                            unitId={documentValue().id}
-                            activeStart={
-                              activeMatch()?.unitId === documentValue().id
-                                ? activeMatch()?.start
-                                : undefined
-                            }
-                            matchClass="document-overlay-match"
-                          />
-                        </h1>
-                      </ReaderTitleRow>
+                      <ReaderHero
+                        imageDocumentId={heroImageDocumentId()}
+                        onSource={setHeroImageSource}
+                      >
+                        <Show when={sourceTypeReaderLabel(documentValue().sourceType)}>
+                          {(label) => <p class="document-overlay-paper__source-label">{label()}</p>}
+                        </Show>
+                        <ReaderTitleRow item={bookmarkItem(documentValue())} bookmark={bookmark}>
+                          <h1
+                            class="document-overlay-paper__title"
+                            classList={{
+                              'document-overlay-paper__title--pointer': Boolean(
+                                props.modulePointer,
+                              ),
+                            }}
+                          >
+                            <QueryHighlightedText
+                              text={displayDocumentTitle(documentValue())}
+                              query={findState().query}
+                              exact={findState().mode === 'exact'}
+                              fuzzy={findState().mode === 'similar'}
+                              ranges={rangesForFindUnit(
+                                rangesByUnit(),
+                                documentValue().id,
+                                findState().query,
+                              )}
+                              unitId={documentValue().id}
+                              activeStart={
+                                activeMatch()?.unitId === documentValue().id
+                                  ? activeMatch()?.start
+                                  : undefined
+                              }
+                              matchClass="document-overlay-match"
+                            />
+                          </h1>
+                        </ReaderTitleRow>
+                      </ReaderHero>
                       <header class="document-overlay-paper__header">
                         <Show when={displayDocumentSubtitle(documentValue())}>
                           {(subtitle) => <p class="document-overlay-lead">{subtitle()}</p>}
@@ -1528,21 +1502,6 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
 
                 <Show
                   when={
-                    documentValue().sourceType === 'core_catalog_pointer' &&
-                    documentValue().metadata['sourceKind'] === 'disease-reference'
-                  }
-                >
-                  <ReferencePointerImage
-                    documentId={
-                      typeof documentValue().metadata['sourceDocumentId'] === 'string'
-                        ? (documentValue().metadata['sourceDocumentId'] as string)
-                        : documentValue().id
-                    }
-                  />
-                </Show>
-
-                <Show
-                  when={
                     props.medicationProduct?.instructionFallback &&
                     props.medicationProduct.instructionDocumentId === documentValue().id
                       ? props.medicationProduct.instructionFallback
@@ -1666,6 +1625,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                                         sourceSpans={item.chunk.metadata?.['sourceSpans']}
                                         documentId={documentValue().id}
                                         resolveImage={referenceImageResolver()}
+                                        hiddenImageSource={heroImageSource() ?? undefined}
                                         core={props.core}
                                         documentLinkMatcher={documentLinkMatcher() ?? undefined}
                                         onDocumentLink={(documentId) => {

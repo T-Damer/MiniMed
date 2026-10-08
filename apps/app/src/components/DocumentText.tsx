@@ -765,6 +765,8 @@ export function DocumentText(props: {
   readonly resolveImage?:
     | ((documentId: string, source: string) => Promise<ResolvedReferenceImage | null>)
     | undefined;
+  /** An inline picture with this source is not drawn: the reader shows it elsewhere (its hero). */
+  readonly hiddenImageSource?: string | undefined;
   readonly query?: string | undefined;
   readonly exactQuery?: boolean | undefined;
   readonly fuzzyQuery?: boolean | undefined;
@@ -831,13 +833,25 @@ export function DocumentText(props: {
         }
         if (group.kind === 'image') {
           const item = group.items[0];
-          return item?.kind === 'image' ? (
-            <ReferenceImage
-              documentId={props.documentId}
-              block={item}
-              resolveImage={props.resolveImage}
-            />
-          ) : null;
+          // A tracked condition: the reader names the picture it shows elsewhere only after the lookup.
+          return (
+            <Show
+              when={
+                item?.kind === 'image' && item.source !== props.hiddenImageSource ? item : undefined
+              }
+            >
+              {(block) => {
+                const image = block();
+                return image.kind === 'image' ? (
+                  <ReferenceImage
+                    documentId={props.documentId}
+                    block={image}
+                    resolveImage={props.resolveImage}
+                  />
+                ) : null;
+              }}
+            </Show>
+          );
         }
         if (group.kind === 'bullet') {
           return (

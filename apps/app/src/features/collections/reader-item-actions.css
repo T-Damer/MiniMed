@@ -30,6 +30,8 @@
 
 .reader-title-row__bookmark {
   flex: none;
+  /* Inside a reader hero the title lets taps through to the picture; the bookmark still takes them. */
+  pointer-events: auto;
 }
 
 .reader-title-row__title {
