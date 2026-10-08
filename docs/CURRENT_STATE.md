@@ -1,6 +1,6 @@
 # Current state
 
-> Updated: 6 October 2026
+> Updated: 8 October 2026
 > Released version: `0.6.47` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
@@ -19,6 +19,82 @@ Detailed history, moved verbatim on 2026-09-24:
   baseline and runtime benchmark up to the 0.6.39 release.
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
+
+## Owner UI batch — 2026-10-08 (STATE UX13)
+
+Owner screenshots and requests of 2026-10-08, applied by eight Sonnet worktree agents and merged on
+`main`. The rules behind them are recorded in AGENTS.md «Interface rules (user decisions,
+2026-10-08)». A user-eyed QA pass follows in [qa-ux13-2026-10-08](research/qa-ux13-2026-10-08.md).
+
+- **Route header.** `Page` puts the title between the back button (`navigation`) and the tools; a `help`
+  prop renders a round «?» (sheet on phones, popover on wide screens). Settings sub-pages, drug
+  interactions/comparison, calculators, conditions, medications, modules, knowledge, notes, ICD-11,
+  medication safety, tools and the library list follow it; `FeatureCard` details and the AI page intro
+  are behind «?». Not yet: the sticky back+search bars of the knowledge-base sections (ICD-11 collection,
+  core library, law documents, user library, note templates) still put the heading under the bar.
+- **Settings.** «О приложении» (`about`) is removed; its content is in «Основные».
+- **Drug interactions.** One field; debounced suggestions; no pre-suggested «Алкоголь»; the second field
+  slides in after the first drug; missing data offers the download in place; print/share icon buttons.
+- **Patient row.** `components/PatientPickerRow.tsx` («Пациент — выберите…» → avatar, name, birth date,
+  age, change) in forms, questionnaires, calculators and vaccination (`standIn`/`chooserExtra` for a
+  birth-date-only child). `PatientCaseCombobox` is deleted. Questionnaires/calculators lost the toolbar
+  free-text subject label (typed in the note panel). Opening the chooser creates the empty vault DB.
+- **Forms.** Header `FormThumbnail` (real print rendering, 350 ms debounce, tap = preview/print); order,
+  validity and publication as small text at the bottom; larger inputs; a field's fill rule is a «?» in
+  the label only when it has one; drafts autosave (700 ms, `form-draft-store`, vault-backed) and
+  «Сохранить» approves; one progress bar; the print dialog is a printer icon + one-line banner.
+- **Vaccination calendar** (supersedes the VAC2 page below; data JSON unchanged). One ages × vaccines
+  chart with a «Национальный / Эпид. показания» switch; a child (patient card or birth date only)
+  colours cells done/planned/now/overdue with a «сейчас» line and four count tiles; tap cycles empty →
+  done → planned, long-press/age header opens a dose sheet (date, official PDF page link); marks per
+  patient card in `vaccination-record*.ts` (old diary/attachment format replaced); header print
+  thumbnail of the one-page plan for the mother (`vaccination-handout*.ts`); «Порядок» behind «?»; only
+  «Приказы № 1122н, № 677н» up front, edition/validity at the bottom; no «врач не проверял» note.
+- **Conversation recording.** In-place speech-model card (`AsrModelCard`, «Скачать · 81 МБ», progress,
+  transcription starts mid-recording from the beginning); the transcript autosaves encrypted as vault
+  blob `conversation-transcript-<recordingId>`, is filed on the card with the audio and shown on reopen
+  (crash-safe). When it cannot be saved, a chip «Текст не сохранится · Создать хранилище» /
+  «Зашифровать хранилище» creates or encrypts the vault in place.
+- **Patient vault.** New mode `browser-device-key` (non-extractable Web Crypto AES-GCM key in IndexedDB)
+  is the default in browsers and on phones without a keychain; `unencrypted` only as fallback; a
+  plaintext vault is encrypted in place in one transaction (ADR-0016 amendment). Blob writers share the
+  mutation queue (never call them inside `updatePatientVault`). Fixed: encryption inside an open IDB
+  transaction, and a spurious lock (cleared form drafts) when opening an open vault.
+- **Search.** Cards name the document type (`SearchResultGroup.documentType`: Клинические рекомендации,
+  Определение, Препарат, Приказ, Закон, МКБ-10/11, Калькулятор, Опросник, Справочник); no section
+  kickers; three-line fragments unroll in place; «Найдено ещё в N фрагментах». Background data changes
+  never show the page loader. Result cache IndexedDB `minimed-search-results` v2 keyed by
+  `app|core|modules digest|semantic` + query + scope, 50 entries LRU; history re-runs the query (no
+  snapshots). The tools strip stays under the field after a search; «Все инструменты» goes icon-only;
+  tool collections hidden (`TOOL_COLLECTIONS_VISIBLE = false`).
+- **Reader.** Page bubble bottom-left (tap → in-place input with a go arrow, instant jump, rolling
+  digits); contents rows show page numbers; uppercase path kicker removed; a document opens through one
+  loading state (`DocumentPageHost` waits for pointer/summary lookups); illustrated articles open on a
+  blurred hero picture (`ReaderHero`, fullscreen on tap; inline duplicate hidden via
+  `DocumentText.hiddenImageSource`); wide tables pan sideways by touch (`horizontalPan`).
+- **КР headings.** Extractor revision 4 promotes appendix titles («Приложение Б1. …»): 238 headings in
+  78 modules — reach phones only after those modules are rebuilt and republished (not done). ~1 100 bold
+  template labels («Целевая аудитория…») stay paragraphs pending an owner decision.
+- **News («Лента»).** Twitter-like feed (avatar inline, name · domain · time, titles ≤ 6 lines,
+  scroll-past marks read in batches), header «Лента» + PubMed/refresh/settings, source-suggestion rail
+  with a View-Transition sheet (description, latest items, subscribe), add-by-URL preview in the same
+  sheet, merged «Источники» page (avatar, name, site + update, switch, delete). In-app article reader:
+  X-Frame-Options ignored, the page fetched over the native/CORS-capable transport, readability-style
+  extraction cached in IndexedDB `minimed-news` v2 `articles`; raw page in a sandboxed `srcdoc`. Avatars
+  in `localStorage` `minimed.news.icons.v1`. ADR-0024 amended. Not tested on a device.
+- **Definitions.** «Депрессия» was a real rare sense (КР 904_1, fracture) ranked by coverage only. Senses
+  now carry field, usage (КР paragraphs closest to the sense), independent documents and authority; the
+  card shows the likeliest sense first and other senses as field chips; an on-device doctor profile
+  (`localStorage` `minimed.doctor-profile.v1`, decayed per-field weights from chip taps/opens, needs
+  several signals) adds up to 0.35. The term dialog lost the draft banners, its search field and the
+  raw-JSON tab. Registry-HTML КР glossary extraction: 9 170 entries, 0 defective headwords (was 222 of
+  8 260). Candidate dictionary 2026.10.08 (38 572 entries; 237.5 MB / 52.3 MB gz) is local only in
+  `data/build/definitions-ux13/` — publishing needs a core rebuild, framing/upload, a catalog entry, an
+  app release and the owner's OK to extend the KiM decision to symptom pages. Not done: profile feeds from
+  opened КР/sections and a Settings reset row.
+
+Not tested in this batch: physical Android/iOS devices, native Keychain/Keystore, Safari/WebKit, real
+GigaAM/Whisper downloads, real printers.
 
 ## КР modules rebuilt with numbered sub-headings — 2026-10-07 (STATE KR3)
 
@@ -606,7 +682,6 @@ on the list searches titles, descriptions and card keywords.
 | Изображения и дополнительно (`images`) | row to «Справочные изображения», packaging images module, «Предварительные материалы» | the reference images' state |
 | Внешний вид (`appearance`) | theme note (follows the device), animations, sounds, vibration, separate tabs, floating windows | «Тёмная» / «Светлая» |
 | Пациенты и данные (`data`) | patient storage description, where the notes backup lives (link to the notes), no new backup UI | «Пусто» / «Защищено» / «Без шифрования» |
-| О приложении (`about`) | technical information, links | «v0.6.50» |
 
 - Statuses are computed from the stores (download queue, e5 cache, ASR selection and cache, ECG
   package, reference-image cache, patient vault, `matchMedia`) in `use-settings-statuses.ts`; the
@@ -964,6 +1039,8 @@ taps, and the find counter shifted the typed text.
   with slow devices.
 
 ## Children's vaccination calendar (VAC2) — 2026-10-07
+
+> Superseded on 2026-10-08 by the UX13 calendar page (see «Owner UI batch» above); the data notes still apply.
 
 Owner request: polish the children's calendar page, make each child a patient record, and print a landscape
 «для мамы — личный дневник прививок» sheet shaped like the official chart.
