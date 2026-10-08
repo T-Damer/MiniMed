@@ -12,8 +12,7 @@ export type SettingsPageId =
   | 'ai'
   | 'images'
   | 'appearance'
-  | 'data'
-  | 'about';
+  | 'data';
 
 export type SettingsTileTone = 'blue' | 'orange' | 'green' | 'purple' | 'pink' | 'gray' | 'teal';
 
@@ -32,15 +31,25 @@ export const SETTINGS_PAGES: readonly SettingsPageDefinition[] = [
   {
     id: 'general',
     title: 'Основные',
-    description: 'Обновление приложения, автообновление материалов и обучение.',
+    description: 'Версия, обновления и обучение.',
     icon: 'system-fill',
     tone: 'gray',
-    keywords: ['обновление', 'версия', 'автообновление', 'обучение', 'экскурсия'],
+    keywords: [
+      'обновление',
+      'версия',
+      'автообновление',
+      'обучение',
+      'экскурсия',
+      'техническая информация',
+      'ссылки',
+      'ядро поиска',
+      'о приложении',
+    ],
   },
   {
     id: 'clinician',
     title: 'Врач и организация',
-    description: 'Подставляются в официальные формы. Хранится только на этом устройстве.',
+    description: 'Подставляются в официальные формы.',
     icon: 'users',
     tone: 'blue',
     keywords: ['огрн', 'организация', 'должность', 'фио', 'формы', 'справки'],
@@ -48,7 +57,7 @@ export const SETTINGS_PAGES: readonly SettingsPageDefinition[] = [
   {
     id: 'downloads',
     title: 'Загрузки и разделы',
-    description: 'Что уже на устройстве, что скачивается сейчас и что можно скачать.',
+    description: 'Что на устройстве и что можно скачать.',
     icon: 'download-fill',
     tone: 'green',
     keywords: ['разделы', 'очередь', 'скачать', 'специальность', 'упаковки'],
@@ -56,7 +65,7 @@ export const SETTINGS_PAGES: readonly SettingsPageDefinition[] = [
   {
     id: 'ai',
     title: 'Функции ИИ',
-    description: 'Модели, которые работают на устройстве без интернета.',
+    description: 'Модели на устройстве, без интернета.',
     icon: 'brain-fill',
     tone: 'purple',
     keywords: [
@@ -77,7 +86,7 @@ export const SETTINGS_PAGES: readonly SettingsPageDefinition[] = [
   {
     id: 'images',
     title: 'Изображения и дополнительно',
-    description: 'Иллюстрации справочника и предварительные материалы.',
+    description: 'Иллюстрации и предварительные материалы.',
     icon: 'image-fill',
     tone: 'orange',
     keywords: ['картинки', 'справочные изображения', 'иллюстрации', 'предварительные', 'черновики'],
@@ -85,7 +94,7 @@ export const SETTINGS_PAGES: readonly SettingsPageDefinition[] = [
   {
     id: 'appearance',
     title: 'Внешний вид',
-    description: 'Тема, анимации, звуки и расположение вкладок.',
+    description: 'Тема, анимации, звуки, вкладки.',
     icon: 'palette',
     tone: 'pink',
     keywords: ['тема', 'тёмная', 'анимации', 'звуки', 'вибрация', 'вкладки', 'плавающие окна'],
@@ -93,18 +102,10 @@ export const SETTINGS_PAGES: readonly SettingsPageDefinition[] = [
   {
     id: 'data',
     title: 'Пациенты и данные',
-    description: 'Где хранятся карточки пациентов и как сохранить резервную копию.',
+    description: 'Карточки пациентов и резервная копия.',
     icon: 'lock',
     tone: 'teal',
     keywords: ['пациенты', 'хранилище', 'резервная копия', 'backup', 'заметки', 'шифрование'],
-  },
-  {
-    id: 'about',
-    title: 'О приложении',
-    description: 'Версия, состояние поиска и ссылки.',
-    icon: 'info',
-    tone: 'blue',
-    keywords: ['техническая информация', 'ссылки', 'версия', 'ядро поиска'],
   },
 ];
 
@@ -113,7 +114,6 @@ export const SETTINGS_GROUPS: readonly (readonly SettingsPageId[])[] = [
   ['general', 'clinician'],
   ['downloads', 'ai', 'images'],
   ['appearance', 'data'],
-  ['about'],
 ];
 
 export function settingsPage(id: SettingsPageId): SettingsPageDefinition {

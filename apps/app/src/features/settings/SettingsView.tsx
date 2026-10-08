@@ -1,4 +1,3 @@
-import type { CoreStatus } from '@localmed/contracts';
 import {
   createMemo,
   createSignal,
@@ -13,7 +12,6 @@ import {
 import { DownloadsPage } from '@/features/downloads/DownloadsPage';
 import { ClinicianProfileSettings } from '@/features/settings/ClinicianProfileSettings';
 import { ReferenceImagesPage } from '@/features/settings/ReferenceImagesPage';
-import { SettingsAboutPage } from '@/features/settings/SettingsAboutPage';
 import { SettingsAiPage } from '@/features/settings/SettingsAiPage';
 import { SettingsAppearancePage } from '@/features/settings/SettingsAppearancePage';
 import { SettingsDataPage } from '@/features/settings/SettingsDataPage';
@@ -38,7 +36,6 @@ import { peekReturnTo, RETURN_TO_EVENT } from '@/state/return-navigation';
 import '@/styles/settings-list.css';
 
 interface SettingsViewProps extends SettingsGeneralPageProps {
-  readonly status: CoreStatus | undefined;
   /** Connects freshly downloaded packages to the search core. */
   readonly onContentChanged?: () => Promise<void>;
 }
@@ -178,7 +175,7 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
                   icon="image-fill"
                   tone="orange"
                   title="Справочные изображения"
-                  description="Иллюстрации к статьям справочника: примеры, состав набора и загрузка."
+                  description="Иллюстрации к статьям справочника."
                   showBack
                   backHash={settingsParentHash('settings/images/reference') ?? SETTINGS_ROOT_HASH}
                   backLabel="К разделу «Изображения и дополнительно»"
@@ -196,11 +193,6 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
               <Match when={current() === 'data'}>
                 {frame('data', () => (
                   <SettingsDataPage />
-                ))}
-              </Match>
-              <Match when={current() === 'about'}>
-                {frame('about', () => (
-                  <SettingsAboutPage status={props.status} />
                 ))}
               </Match>
             </Switch>

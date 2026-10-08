@@ -66,9 +66,11 @@ for (const width of [390, 1280]) {
     await expect(page).toHaveURL(/#\/notes\/drug-comparison\?/u);
     const items = page.getByTestId('comparison-item');
     await expect(items).toHaveCount(2, { timeout: 60_000 });
+    await page.getByRole('button', { name: 'Как это работает' }).click();
     await expect(page.getByTestId('comparison-notice')).toContainText(
       'Сравнение текстов инструкций, а не клиническая рекомендация',
     );
+    await page.keyboard.press('Escape');
     const columns = page.getByTestId('comparison-column');
     await expect(columns).toHaveCount(2);
     await expect(page.getByTestId('comparison-matrix')).toContainText('Код АТХ и группа');

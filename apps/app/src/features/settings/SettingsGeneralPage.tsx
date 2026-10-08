@@ -1,10 +1,14 @@
-import { createSignal, type JSX, lazy, onCleanup, onMount } from 'solid-js';
+import type { CoreStatus } from '@localmed/contracts';
+import { createSignal, type JSX, lazy, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import { Disclosure } from '@/components/Disclosure';
+import { ReleaseLinks } from '@/components/ReleaseLinks';
 import { Switch } from '@/components/Switch';
 import { restartOnboarding } from '@/features/onboarding/onboarding-state';
 import { AppUpdateChecker } from '@/features/settings/AppUpdateChecker';
+import { StatusPanel } from '@/features/status/StatusPanel';
 import {
   getModuleAutoUpdatesEnabled,
   setModuleAutoUpdatesEnabled,
@@ -19,6 +23,8 @@ const DevDownloadSettings = import.meta.env.DEV
   : undefined;
 
 export interface SettingsGeneralPageProps {
+  /** The search core status for the technical information; undefined while the core starts. */
+  readonly status: CoreStatus | undefined;
   readonly appUpdateReady: boolean;
   readonly appUpdating: boolean;
   readonly appUpdateChecking: boolean;
@@ -31,7 +37,10 @@ export interface SettingsGeneralPageProps {
   readonly onCancelAppUpdate: () => void;
 }
 
-/** «Основные»: the app update, automatic material updates and the onboarding tour. */
+/**
+ * «Основные»: the app update, automatic material updates, the onboarding tour, and the app's own
+ * data last: the search core's technical information and the project links.
+ */
 export function SettingsGeneralPage(props: SettingsGeneralPageProps): JSX.Element {
   const [moduleAutoUpdates, setModuleAutoUpdatesState] = createSignal(
     getModuleAutoUpdatesEnabled(),
@@ -90,6 +99,21 @@ export function SettingsGeneralPage(props: SettingsGeneralPageProps): JSX.Elemen
           </Button>
         </div>
       </section>
+      <Disclosure class="system-technical-panel" title="Техническая информация">
+        <Show
+          when={props.status}
+          fallback={
+            <p class="settings-section__description">
+              Ядро поиска ещё не готово. Файлы и настройки доступны.
+            </p>
+          }
+        >
+          {(status) => <StatusPanel initialStatus={status()} />}
+        </Show>
+      </Disclosure>
+      <nav class="settings-page__links" aria-label="Ссылки приложения">
+        <ReleaseLinks linkClass="settings-page__link" />
+      </nav>
     </>
   );
 }

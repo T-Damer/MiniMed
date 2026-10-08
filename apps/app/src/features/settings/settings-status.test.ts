@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  aboutStatus,
   aiStatus,
   appearanceStatus,
   asrReadiness,
@@ -146,14 +145,13 @@ describe('settings statuses', () => {
     );
   });
 
-  it('names the theme in effect, the patient storage and the version', () => {
+  it('names the theme in effect and the patient storage', () => {
     expect(appearanceStatus('dark').label).toBe('Тёмная');
     expect(appearanceStatus('light').label).toBe('Светлая');
     expect(dataStatus('empty').label).toBe('Пусто');
     expect(dataStatus('native-keychain')).toEqual({ label: 'Защищено', tone: 'ok' });
     expect(dataStatus('unencrypted').tone).toBe('attention');
     expect(dataStatus('checking').label).toBe('Проверяем…');
-    expect(aboutStatus('0.6.50').label).toBe('v0.6.50');
   });
 
   it('groups queue tasks like the download manager', () => {

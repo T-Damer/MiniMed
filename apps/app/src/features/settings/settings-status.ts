@@ -223,10 +223,6 @@ export function dataStatus(state: PatientVaultState): SettingsStatus {
   }
 }
 
-export function aboutStatus(version: string): SettingsStatus {
-  return { label: `v${version}`, tone: 'neutral' };
-}
-
 /** What the card says about where patient cards are kept; pure so it can be tested. */
 export function patientStorageDescription(state: PatientVaultState): string {
   switch (state) {

@@ -10,7 +10,6 @@ const ROWS = [
   'Изображения и дополнительно',
   'Внешний вид',
   'Пациенты и данные',
-  'О приложении',
 ] as const;
 
 async function openSettings(page: Page): Promise<void> {
@@ -57,7 +56,6 @@ test.describe('settings list on a phone', () => {
     await expect(page.getByTestId('settings-status-ai')).toHaveText('Не скачано');
     await expect(page.getByTestId('settings-status-images')).toHaveText('Не скачано');
     await expect(page.getByTestId('settings-status-data')).toHaveText('Пусто');
-    await expect(page.getByTestId('settings-status-about')).toHaveText(/^v\d+\.\d+\.\d+/u);
     await expect(page.getByTestId('settings-status-downloads')).not.toHaveText('Проверяем…', {
       timeout: 60_000,
     });

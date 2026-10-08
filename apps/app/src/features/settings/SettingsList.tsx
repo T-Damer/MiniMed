@@ -95,7 +95,7 @@ export function SettingsList(props: SettingsListProps): JSX.Element {
         }
         icon={<AppGlyph name="system" class="page__icon-glyph" />}
         title={<h1 class="settings-page__title">Настройки</h1>}
-        description="Обновления, загрузки, функции ИИ и внешний вид."
+        description="Обновления, загрузки, ИИ, внешний вид."
       />
       <SearchField
         class="settings-list__search"

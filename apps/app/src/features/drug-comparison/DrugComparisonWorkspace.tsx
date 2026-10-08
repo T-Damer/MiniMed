@@ -15,7 +15,6 @@ import { toast } from 'solid-sonner';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
-import { Disclosure } from '@/components/Disclosure';
 import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
 import { SearchField } from '@/components/SearchField';
@@ -341,29 +340,26 @@ export function DrugComparisonWorkspace(props: {
 
   return (
     <section class="drug-comparison" aria-label="Сравнение препаратов">
-      <header class="drug-comparison__chrome">
-        <NavBack
-          class="drug-comparison__back knowledge-back-button"
-          aria-label="Назад"
-          onClick={props.onBack}
-        />
-      </header>
       <Page
-        icon={<AppGlyph name="pill" class="page__icon-glyph" />}
+        navigation={
+          <NavBack
+            class="drug-comparison__back knowledge-back-button"
+            aria-label="Назад"
+            onClick={props.onBack}
+          />
+        }
         title={<Heading depth={1}>Сравнение препаратов</Heading>}
-        description="Реестровые данные и разделы официальных инструкций двух–четырёх препаратов рядом."
-      />
-      <aside class="drug-comparison__notice paper-card" role="note">
-        <p class="drug-comparison__notice-text" data-testid="comparison-notice">
-          {COMPARISON_NOTICE_SHORT}
-        </p>
-        <Disclosure variant="inline" title="Как это работает">
-          <div class="drug-comparison__how">
-            <p>
+        description="Двух–четырёх препаратов рядом"
+        help={
+          <>
+            <p class="drug-comparison__notice-text" data-testid="comparison-notice">
+              {COMPARISON_NOTICE_SHORT}
+            </p>
+            <p class="drug-comparison__help">
               Реестровые строки (МНН, группа АТХ, формы и дозировки, условия отпуска, ЖНВЛП, число
               регистраций) взяты из ЕСКЛП, ГРЛС и НСИ «АТХ» и подписаны источником.
             </p>
-            <p>
+            <p class="drug-comparison__help">
               Разделы инструкций показаны дословно из установленных текстов. Каждый пункт
               (предложение или пункт списка) приводится к общему виду: регистр, знаки, окончания
               слов, название самого препарата не учитываются. Пункты с одинаковыми словами отмечены
@@ -372,14 +368,14 @@ export function DrugComparisonWorkspace(props: {
               отмечены «у других совпадения нет»: другая инструкция может говорить о том же иными
               словами — проверьте её раздел. Ничего не пересказывается и не оценивается.
             </p>
-            <p>
+            <p class="drug-comparison__help">
               Для каждого препарата читается одна инструкция; где возможно, у всех препаратов
               берётся одна лекарственная форма. Другую инструкцию вещества можно выбрать в заголовке
               столбца. Тексты других производителей могут отличаться.
             </p>
-          </div>
-        </Disclosure>
-      </aside>
+          </>
+        }
+      />
 
       <section class="drug-comparison__picker" aria-label="Препараты для сравнения">
         <SearchField

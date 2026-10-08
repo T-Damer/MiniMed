@@ -33,7 +33,6 @@ import { isE5ModelInstalled } from '@/features/semantic/e5-model-cache';
 import { subscribeE5Model } from '@/features/semantic/e5-model-store';
 import type { SettingsPageId } from '@/features/settings/settings-pages';
 import {
-  aboutStatus,
   aiStatus,
   appearanceStatus,
   asrReadiness,
@@ -189,7 +188,6 @@ export function useSettingsStatuses(inputs: SettingsStatusInputs): Accessor<Sett
       images: imagesBase(),
       appearance: appearanceStatus(scheme()),
       data: dataStatus(vault()),
-      about: aboutStatus(RELEASE_VERSION),
     };
     return statuses;
   });
