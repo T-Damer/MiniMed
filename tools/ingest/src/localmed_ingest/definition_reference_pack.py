@@ -26,6 +26,7 @@ from .models import ContentPack, PackChunk, PackDocument, PackManifest, PackSect
 from .sqlite_builder import inspect_integrity, write_sqlite_pack
 
 MAX_INPUT_BYTES = 16 * 1024 * 1024
+MAX_INPUTS = 64
 MAX_TEXT = 262144
 KINDS = frozenset(
     {
@@ -175,6 +176,36 @@ class Entry:
     text_kind: str
     links: list[tuple[str, str]]
     receipt: str
+    sense: dict[str, object] | None = None
+
+
+SENSE_KEYS = {
+    "field": 40,
+    "fieldLabel": 80,
+    "documents": None,
+    "meaning": None,
+    "usage": None,
+    "termUsage": None,
+    "authority": None,
+}
+
+
+def sense_signals(value: object) -> dict[str, object]:
+    """Validated ranking signals of one sense (see `definition_senses`); numbers are counts."""
+    signals = obj(value)
+    unknown = set(signals) - set(SENSE_KEYS)
+    if unknown:
+        raise ValueError("Unsupported sense signal")
+    checked: dict[str, object] = {}
+    for key, item in signals.items():
+        limit = SENSE_KEYS[key]
+        if limit is None:
+            if isinstance(item, bool) or not isinstance(item, int) or not 0 <= item < 10**7:
+                raise ValueError("Invalid sense count")
+            checked[key] = item
+        else:
+            checked[key] = text(item, limit)
+    return checked
 
 
 class Projection:
@@ -350,6 +381,7 @@ class Projection:
                     "references",
                     "coverage",
                     "definitionKind",
+                    "sense",
                 }
             }
             if extra:
@@ -367,7 +399,15 @@ class Projection:
                     )
                 )
             self.entries[entry_id] = Entry(
-                entry_id, title, kind, names, coverage, TEXT_KINDS[version], links, receipt
+                entry_id,
+                title,
+                kind,
+                names,
+                coverage,
+                TEXT_KINDS[version],
+                links,
+                receipt,
+                sense_signals(row["sense"]) if "sense" in row else None,
             )
         annotations = {
             key: val
@@ -489,6 +529,7 @@ class Projection:
                         "inputSha256": entry.receipt,
                         "blockCount": len(entry.links),
                         "editionId": edition_id,
+                        **({"sense": entry.sense} if entry.sense else {}),
                     }
                     database.execute(
                         "INSERT INTO knowledge_entities VALUES (?, ?, ?, ?, ?, ?)",
@@ -584,8 +625,8 @@ def build_definition_reference(
     publication_state: str = "local-dev",
 ) -> dict[str, object]:
     projection = Projection()
-    if not inputs or len(inputs) > 32:
-        raise ValueError("Expected 1..32 explicitly selected definition inputs")
+    if not inputs or len(inputs) > MAX_INPUTS:
+        raise ValueError(f"Expected 1..{MAX_INPUTS} explicitly selected definition inputs")
     seen: set[str] = set()
     for path in inputs:
         actual = contained(input_root, path)

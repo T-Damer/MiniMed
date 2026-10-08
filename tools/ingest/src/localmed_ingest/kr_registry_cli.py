@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sqlite3
 from collections import Counter
 from contextlib import closing
@@ -31,6 +32,7 @@ from .kr_registry_glossary import (
     fold_entries,
     normalized,
     read_registry_document,
+    section_paragraphs,
 )
 
 SECTION_TITLES = ("Термины и определения", "1.1 Определение заболевания или состояния")
@@ -131,6 +133,28 @@ def split_shards(shard: dict[str, Any], *, limit: int = SHARD_BYTES) -> list[dic
     return parts
 
 
+_NOT_APPLICABLE = re.compile(
+    r"не\s+примен[яа]ю?тся|не\s+использ|не\s+вы?делен|не\s+требу|см\.?\s+раздел|"
+    r"специфическ\w+\s+термин|новые\s+и\s+узконаправленные",
+    re.IGNORECASE,
+)
+
+
+def glossary_gaps(documents: list[RegistryDocument]) -> dict[str, object]:
+    """Why current recommendations have no extracted glossary term, by reason and code."""
+    reasons: dict[str, list[str]] = {"section-empty": [], "states-no-terms": [], "unparsed": []}
+    for document in documents:
+        paragraphs = section_paragraphs(document.sections.get(SECTION_TERMS, ""))
+        body = " ".join(paragraph.text for paragraph in paragraphs)
+        if not body.strip():
+            reasons["section-empty"].append(document.code_version)
+        elif _NOT_APPLICABLE.search(body):
+            reasons["states-no-terms"].append(document.code_version)
+        else:
+            reasons["unparsed"].append(document.code_version)
+    return {"count": sum(len(codes) for codes in reasons.values()), **reasons}
+
+
 def build_report(
     stats: ExtractionStats,
     folded: list[FoldedEntry],
@@ -145,6 +169,7 @@ def build_report(
         for member in item.entries
         if member.section == SECTION_TERMS
     }
+    gaps = glossary_gaps([d for d in documents if d.current and d.code_version not in extracted])
     return {
         "format": "minimed-kr-registry-glossary-v1",
         "registryDocuments": len(documents),
@@ -152,6 +177,7 @@ def build_report(
         "documentsWithTermsSection": len(with_section),
         "documentsWithExtractedTerms": len(extracted),
         "currentEditionsWithExtractedTerms": len(extracted & current),
+        "currentEditionsWithoutTerms": gaps,
         "diseaseDefinitionSection": SECTION_DISEASE,
         "paragraphs": stats.paragraphs,
         "entriesBeforeFolding": stats.entries,
@@ -169,6 +195,23 @@ def build_report(
     }
 
 
+def extract_registry(
+    root: Path, raw: Path, reader_databases: list[Path], edition: str
+) -> tuple[list[dict[str, Any]], dict[str, object]]:
+    """Version-3 shards (split below the input cap) and the measured report, nothing written."""
+    stats = ExtractionStats()
+    documents: list[RegistryDocument] = []
+    entries: list[Entry] = []
+    for path in sorted((root / raw).glob("*.json")):
+        document = read_registry_document(path, root)
+        documents.append(document)
+        entries.extend(extract_document(document, stats))
+    anchors, outcome = resolve_anchors(entries, reader_databases)
+    folded = fold_entries(entries)
+    shard = build_shard(folded, edition=edition, anchors=anchors)
+    return split_shards(shard), build_report(stats, folded, outcome, documents)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, required=True, help="checkout that holds data/raw")
@@ -178,21 +221,13 @@ def main() -> None:
     parser.add_argument("--output-prefix", type=Path, required=True)
     parser.add_argument("--report", type=Path, required=True)
     args = parser.parse_args()
-    root = args.root.resolve()
     if args.report.exists():
         parser.error("Choose a new report path")
-    stats = ExtractionStats()
-    documents: list[RegistryDocument] = []
-    entries: list[Entry] = []
-    for path in sorted((root / args.raw).glob("*.json")):
-        document = read_registry_document(path, root)
-        documents.append(document)
-        entries.extend(extract_document(document, stats))
-    anchors, outcome = resolve_anchors(entries, list(args.reader_databases))
-    folded = fold_entries(entries)
-    shard = build_shard(folded, edition=args.edition, anchors=anchors)
+    parts, report = extract_registry(
+        args.root.resolve(), args.raw, list(args.reader_databases), args.edition
+    )
     written: list[dict[str, object]] = []
-    for part in split_shards(shard):
+    for part in parts:
         suffix = str(part["id"]).rsplit(".", 1)[-1]
         target = args.output_prefix.with_name(f"{args.output_prefix.name}.{suffix}.json")
         if target.exists():
@@ -200,7 +235,6 @@ def main() -> None:
         payload = json.dumps(part, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
         target.write_bytes(payload)
         written.append({"path": target.name, "bytes": len(payload), "entries": len(part["terms"])})
-    report = build_report(stats, folded, outcome, documents)
     report["shards"] = written
     args.report.write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"

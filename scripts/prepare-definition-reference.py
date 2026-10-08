@@ -101,6 +101,11 @@ def main() -> None:
     parser.add_argument(
         "--scope", choices=("definitions", "reference"), default="definitions"
     )
+    parser.add_argument(
+        "--source-manifest",
+        type=Path,
+        help="Candidate source manifest inside the repository (default: the committed one).",
+    )
     parser.add_argument("--supplied-root", type=Path)
     parser.add_argument("--supplied-manifest", type=Path)
     parser.add_argument(
@@ -128,7 +133,11 @@ def main() -> None:
     if not re.fullmatch(r"[a-z0-9]+(?:[.-][a-z0-9]+)*", args.version):
         parser.error("Use a lowercase version separated by dots or hyphens.")
     root = Path(__file__).resolve().parent.parent
-    source_manifest = root / "content/definition-drafts/source-inputs.json"
+    source_manifest = (
+        args.source_manifest.resolve()
+        if args.source_manifest
+        else root / "content/definition-drafts/source-inputs.json"
+    )
     inputs, expected_entries = read_source_manifest(root, source_manifest)
     for source_input in inputs:
         require_active_definition_source(obj(json.loads(source_input.read_bytes())))

@@ -7,6 +7,7 @@ from pathlib import Path
 
 from .definition_reference_pack import (
     MAX_INPUT_BYTES,
+    MAX_INPUTS,
     contained,
     digest,
     encoded,
@@ -48,8 +49,8 @@ def describe_input(root: Path, path: Path) -> dict[str, object]:
 
 def write_source_manifest(root: Path, paths: tuple[Path, ...], output: Path) -> dict[str, object]:
     rows = [describe_input(root, path) for path in paths]
-    if not 1 <= len(rows) <= 32 or len({row["path"] for row in rows}) != len(rows):
-        raise ValueError("Expected 1..32 unique definition sources")
+    if not 1 <= len(rows) <= MAX_INPUTS or len({row["path"] for row in rows}) != len(rows):
+        raise ValueError(f"Expected 1..{MAX_INPUTS} unique definition sources")
     manifest = {
         "version": 1,
         "publicationState": "local-dev",
@@ -72,7 +73,7 @@ def read_source_manifest(root: Path, manifest_path: Path) -> tuple[tuple[Path, .
         or manifest.get("reviewStatus") != "requires-review"
     ):
         raise ValueError("Unsupported source manifest")
-    rows = seq(manifest.get("inputs"), 32)
+    rows = seq(manifest.get("inputs"), MAX_INPUTS)
     if not rows:
         raise ValueError("Source manifest is empty")
     paths: list[Path] = []

@@ -99,6 +99,7 @@ def test_no_dash_means_no_pair() -> None:
         ),
         ("Толерантность (лат.", "unbalanced-bracket"),
         ("Депрессия", None),
+        ("Молекулярно-генетическое исследование уровня BCR::ABL1", None),
         ("рН", None),
         ("situs ambiguos (гетеротаксия)", None),
         ("Гипертоническая болезнь (далее ГБ)", None),
@@ -108,8 +109,9 @@ def test_term_defect(term: str, defect: str | None) -> None:
     assert term_defect(term) == defect
 
 
-def test_term_longer_than_twelve_words_is_a_sentence() -> None:
-    assert term_defect(" ".join(["слово"] * 13)) == "sentence-as-term"
+def test_term_longer_than_fourteen_words_is_a_sentence() -> None:
+    assert term_defect(" ".join(["слово"] * 14)) is None
+    assert term_defect(" ".join(["слово"] * 15)) == "sentence-as-term"
 
 
 def test_names_take_brackets_as_aliases() -> None:

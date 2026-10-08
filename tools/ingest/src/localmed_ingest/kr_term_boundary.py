@@ -27,7 +27,7 @@ _ENUMERATOR = re.compile(
     r"^\s*(?:[-*•·▪●]+|\(?[0-9]{1,2}[.)]|\(?[а-яa-z][.)]|[ivx]{1,4}[.)])\s+", re.IGNORECASE
 )
 _PUNCT_ONLY = re.compile(r"^[\W_]+$", re.UNICODE)
-MAX_TERM_WORDS = 12
+MAX_TERM_WORDS = 14
 # A lowercase start with one of these is the tail of a list item, never a term.
 _FRAGMENT_STARTS = frozenset(
     [
@@ -240,7 +240,8 @@ def term_defect(term: str) -> str | None:
     if re.match(r"^\d", bare) and re.search(r"балл", bare, re.IGNORECASE):
         return "score-line"
     words = bare.split()
-    if len(words) > MAX_TERM_WORDS or ":" in bare or _SENTENCE_MARKERS.search(bare):
+    # «BCR::ABL1» is a gene fusion; only a colon followed by a space introduces a sentence.
+    if len(words) > MAX_TERM_WORDS or re.search(r":\s", bare) or _SENTENCE_MARKERS.search(bare):
         return "sentence-as-term"
     if bare.endswith((".", "!", "?")) and len(words) > 3:
         return "sentence-as-term"

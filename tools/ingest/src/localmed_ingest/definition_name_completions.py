@@ -59,12 +59,20 @@ def apply_name_completions(projection: Projection, payload: object, receipt: str
         targets[identifier] = row
     if not targets or set(targets) != set(staged.entries):
         raise ValueError("Completion targets differ from the source record set")
-    defined_titles = {
-        normalized_name(entry.title)
-        for entry in projection.entries.values()
-        if entry.coverage in {"definition", "explicit-definition"}
-        and entry.text_kind != "source-gloss"
-    }
+    # An edition whose entries carry sense signals ranks homonyms (`definition_senses`): a second
+    # source for an already defined title is one more sense, not a silent replacement. Without
+    # signals, such a title still needs an explicit reconciliation.
+    ranks_senses = any(entry.sense for entry in projection.entries.values())
+    defined_titles = (
+        set()
+        if ranks_senses
+        else {
+            normalized_name(entry.title)
+            for entry in projection.entries.values()
+            if entry.coverage in {"definition", "explicit-definition"}
+            and entry.text_kind != "source-gloss"
+        }
+    )
     expected_blocks: set[str] = set()
     for identifier, row in targets.items():
         old = projection.entries.get(identifier)

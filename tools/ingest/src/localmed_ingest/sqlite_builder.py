@@ -63,6 +63,7 @@ def secondary_indexes_sql() -> list[str]:
     ]
 
 
+LARGE_PACK_CHUNKS = 20_000
 _ESCAPED_SEARCH_JSON = r"*\[bfnrtu]*"
 SEARCH_TEXT_STATE_KEY = "search_text_state"
 SEARCH_TEXT_EMPTIED = "normalized-text-emptied"
@@ -279,6 +280,13 @@ def write_sqlite_pack(pack: ContentPack, output: Path, *, vacuum: bool = True) -
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 section_rows,
             )
+            if len(chunk_rows) > LARGE_PACK_CHUNKS:
+                # Chunks reference their neighbours; with foreign keys on, every insert scans the
+                # whole table for referencing rows unless those columns are indexed first, which
+                # makes a pack with 100k chunks quadratic. Small packs keep the usual layout.
+                for statement in secondary_indexes_sql():
+                    if "idx_chunks_previous" in statement or "idx_chunks_next" in statement:
+                        connection.execute(statement)
             connection.executemany(
                 """INSERT INTO chunks(
                     id, document_version_id, section_id, order_index, original_text,
