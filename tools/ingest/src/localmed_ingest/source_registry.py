@@ -127,6 +127,9 @@ def _contents_entry_ids(blocks: list[ExtractedBlock]) -> set[str]:
     for block in blocks:
         if block.kind != "heading":
             continue
+        if block.metadata.get("promotedFrom") == "template-label":
+            # «Содержание (шаблон):» of a scale passport names a field, not a table of contents.
+            continue
         normalized = normalize_surface_text(block.text)
         if "содержание" in normalized or "оглавление" in normalized:
             in_contents = True

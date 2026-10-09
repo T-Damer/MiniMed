@@ -5,13 +5,17 @@ import unicodedata
 from pathlib import Path
 
 import pytest
+import yaml
 
+from localmed_ingest.builder import build_content_pack
 from localmed_ingest.clinical_json_import import bold_standalone_paragraphs, extract_clinical_json
 from localmed_ingest.clinical_template_labels import (
     is_template_label,
     load_template_labels,
     normalize_label,
 )
+from localmed_ingest.models import RegistryPack, RegistrySource, SourceRegistry
+from localmed_ingest.source_registry import prepare_registry
 
 _FILLER = [
     {
@@ -244,4 +248,76 @@ def test_bold_standalone_paragraphs_lists_the_candidates_outside_tables(tmp_path
 
     assert bold_standalone_paragraphs(source) == [
         ("2. Диагностика", "Критерии установления диагноза/состояния:")
+    ]
+
+
+def test_a_scale_passport_field_named_contents_is_not_taken_for_a_table_of_contents(
+    tmp_path: Path,
+) -> None:
+    source_root = tmp_path / "sources"
+    source_root.mkdir()
+    source = _document(
+        source_root,
+        "915_1",
+        [
+            {
+                "id": "doc_g",
+                "title": "Приложение Г1 - Г... Шкалы оценки, вопросники",
+                "content": (
+                    "<p>Приложение Г1. Шкала оценки боли</p>"
+                    "<p><strong>Тип (подчеркнуть):</strong></p>"
+                    "<p>- шкала оценки</p>"
+                    "<p><strong>Содержание (шаблон):</strong></p>"
+                    "<p>Оцените боль от 0 до 10.</p>"
+                    "<p><strong>Ключ (интерпретация):</strong></p>"
+                    "<p>0 - боли нет.</p>"
+                    "<p>Приложение Г2. Шкала оценки тревоги</p>"
+                    "<p>Описание второй шкалы.</p>"
+                ),
+            }
+        ],
+    )
+    registry = SourceRegistry(
+        pack=RegistryPack(
+            id="minimed.clinical.recommendation.915_1",
+            version="0.6.0-test",
+            schema_version=2,
+            title="Проверочная рекомендация",
+            built_at="2026-10-09T00:00:00Z",
+        ),
+        sources=[
+            RegistrySource(
+                id="kr.rf.915_1",
+                path=source.name,
+                title="Проверочная рекомендация",
+                version_label="915_1",
+                status="active",
+                format="clinical_json",
+            )
+        ],
+    )
+    registry_path = tmp_path / "registry.yaml"
+    registry_path.write_text(
+        yaml.safe_dump(registry.model_dump(by_alias=True, mode="json"), allow_unicode=True),
+        encoding="utf-8",
+    )
+    prepare_registry(registry_path, source_root, tmp_path / "workspace")
+    pack, _report = build_content_pack(tmp_path / "workspace", tmp_path / "clinical.db")
+
+    sections = {section.title: section for section in pack.documents[0].sections}
+    for title in (
+        "Приложение Г1. Шкала оценки боли",
+        "Тип (подчеркнуть):",
+        "Содержание (шаблон):",
+        "Ключ (интерпретация):",
+        "Приложение Г2. Шкала оценки тревоги",
+    ):
+        assert title in sections
+    assert sections["Содержание (шаблон):"].section_path == [
+        "Приложение Г1 - Г... Шкалы оценки, вопросники",
+        "Приложение Г1. Шкала оценки боли",
+        "Содержание (шаблон):",
+    ]
+    assert [chunk.original_text for chunk in sections["Ключ (интерпретация):"].chunks] == [
+        "0 - боли нет."
     ]
