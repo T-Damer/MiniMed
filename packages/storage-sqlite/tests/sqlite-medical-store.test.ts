@@ -4,6 +4,13 @@ import { embedPortableText, PORTABLE_HASH_PROFILE } from '@localmed/search-seman
 import { CORE_SLICE, CORE_SLICE_PACK } from '@localmed/test-fixtures';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+const yieldToEventLoop = vi.hoisted(() => vi.fn<() => Promise<void>>());
+vi.mock('../src/yield-to-event-loop', async (importOriginal) => {
+  const original = await importOriginal<typeof import('../src/yield-to-event-loop')>();
+  yieldToEventLoop.mockImplementation(original.yieldToEventLoop);
+  return { yieldToEventLoop };
+});
+
 import { createSqliteDefinitionReference } from '../src/definition-reference-reader';
 import { SQLITE_WASM_DESERIALIZE_MAX_BYTES, SqliteMedicalStore } from '../src/index';
 
@@ -122,6 +129,92 @@ describe('SqliteMedicalStore', () => {
       expect(document.metadata).not.toHaveProperty('unrelated');
     }
     expect((await store.listDocuments())[0]?.metadata['unrelated']).toHaveLength(4096);
+  });
+
+  describe('whole-pack listings', () => {
+    interface TestDatabase {
+      readonly exec: (sql: string) => void;
+      readonly selectArrays: (sql: string) => unknown[][];
+    }
+    const databaseOf = (store: SqliteMedicalStore): TestDatabase =>
+      (store as unknown as { readonly database: TestDatabase }).database;
+
+    /** The slice plus `count` copies of its first document, each with one version row. */
+    async function storeWithExtraDocuments(count: number): Promise<SqliteMedicalStore> {
+      const store = await SqliteMedicalStore.create();
+      stores.push(store);
+      await store.initialize(CORE_SLICE_PACK);
+      const database = databaseOf(store);
+      database.exec('PRAGMA foreign_keys = OFF');
+      const [first] = CORE_SLICE_PACK.documents;
+      const source = `'${first?.id.replaceAll("'", "''")}'`;
+      database.exec(`
+        WITH RECURSIVE n(i) AS (SELECT 1 UNION ALL SELECT i + 1 FROM n WHERE i < ${String(count)})
+        INSERT INTO document_versions(id, document_id, version_label, effective_from, effective_to,
+          source_checksum, extracted_at)
+        SELECT 'extra.v.' || i, 'extra.' || i, 'v', NULL, NULL, 'sha256:x', '2026-01-01T00:00:00Z'
+        FROM n;
+        WITH RECURSIVE n(i) AS (SELECT 1 UNION ALL SELECT i + 1 FROM n WHERE i < ${String(count)})
+        INSERT INTO documents(id, content_pack_id, title, short_title, source_type, status,
+          specialty_json, metadata_json, current_version_id)
+        SELECT 'extra.' || i, content_pack_id, 'Extra ' || (${String(count)} - i), NULL, source_type,
+          status, specialty_json, metadata_json, 'extra.v.' || i
+        FROM n, documents WHERE documents.id = ${source};
+      `);
+      return store;
+    }
+
+    it('lists every document in title order, whatever the batch size', async () => {
+      const store = await storeWithExtraDocuments(40);
+      const listed = await store.listDocuments();
+      expect(listed).toHaveLength(CORE_SLICE_PACK.documents.length + 40);
+      const titles = listed.map((document) => document.title);
+      expect(titles).toEqual(
+        databaseOf(store)
+          .selectArrays('SELECT title FROM documents ORDER BY title COLLATE NOCASE, id')
+          .map(([title]) => String(title)),
+      );
+      expect((await store.listNavigationDocuments()).map((document) => document.id)).toEqual(
+        listed.map((document) => document.id),
+      );
+      expect((await store.listSearchDocuments()).map((document) => document.id)).toEqual(
+        listed.map((document) => document.id),
+      );
+    });
+
+    it('lets queued messages run between slices of a long listing', async () => {
+      const store = await storeWithExtraDocuments(40);
+      let clock = 0;
+      vi.spyOn(performance, 'now').mockImplementation(() => {
+        clock += 25;
+        return clock;
+      });
+      yieldToEventLoop.mockClear();
+      expect(await store.listNavigationDocuments()).toHaveLength(
+        CORE_SLICE_PACK.documents.length + 40,
+      );
+      expect(yieldToEventLoop.mock.calls.length).toBeGreaterThan(5);
+    });
+
+    it('identifies a document by its current version, not by another version row', async () => {
+      const store = await storeWithExtraDocuments(3);
+      const database = databaseOf(store);
+      const [first] = CORE_SLICE_PACK.documents;
+      // A second, older version of the first document: only `current_version_id` tells them apart.
+      database.exec(`
+        INSERT INTO document_versions(id, document_id, version_label, effective_from, effective_to,
+          source_checksum, extracted_at)
+        VALUES ('a.older.version', '${first?.id}', 'old', NULL, NULL, 'sha256:y', '2020-01-01T00:00:00Z')
+      `);
+      const identities = await store.listDocumentIdentities();
+      const expected = database
+        .selectArrays('SELECT id, current_version_id FROM documents ORDER BY id')
+        .map(([id, versionId]) => ({ id: String(id), versionId: String(versionId) }));
+      expect(identities).toEqual(expected);
+      expect(identities.find((identity) => identity.id === first?.id)?.versionId).toBe(
+        first?.version.id,
+      );
+    });
   });
 
   it('rejects an empty database that has no schema_version metadata', async () => {

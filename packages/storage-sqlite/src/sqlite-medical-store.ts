@@ -55,6 +55,7 @@ import {
   readString,
   type SqlRow,
 } from './row-readers';
+import { yieldToEventLoop } from './yield-to-event-loop';
 
 type SahPool = Awaited<ReturnType<Sqlite3Static['installOpfsSAHPoolVfs']>>;
 
@@ -266,6 +267,69 @@ function executeStatement(statement: PreparedStatement, values: readonly Bindabl
   statement.bind(values).stepReset();
 }
 
+/** Work a whole-pack listing does before it lets queued messages (a document being opened) run. */
+const LISTING_SLICE_MS = 10;
+/** Time one listing query aims for, so a message waits for at most about one of them. */
+const LISTING_QUERY_MS = 6;
+const LISTING_FIRST_BATCH = 4;
+const LISTING_MAX_BATCH = 512;
+
+/** SQLite's NOCASE: ASCII letters fold, everything else compares as it is. */
+function foldNoCase(text: string): string {
+  return text.replace(/[A-Z]+/gu, (letters) => letters.toLowerCase());
+}
+
+/**
+ * Reads a whole-pack listing in short queries over `documents` in rowid order, then orders the
+ * result like `ORDER BY title COLLATE NOCASE, id`. A pack's documents carry metadata of up to a
+ * few hundred KB each (a drug group: 130 KB on average) and a pack lists thousands of them, so one
+ * query, or a title sort inside SQLite, blocks the pack worker for seconds and a document opened
+ * meanwhile waits behind it. Between slices the event loop runs, so a point read is answered after
+ * about one short query. `select` is a document query over `documents d` that returns
+ * `d.rowid AS doc_rowid`, `d.id` and `d.title`, and has no WHERE or ORDER BY clause.
+ */
+async function listDocumentRows<T>(
+  database: Database,
+  select: string,
+  toItem: (row: SqlRow) => T,
+): Promise<T[]> {
+  const listed: { readonly key: string; readonly id: string; readonly item: T }[] = [];
+  let after = 0;
+  let limit = LISTING_FIRST_BATCH;
+  let sliceStartedAt = performance.now();
+  for (;;) {
+    const queryStartedAt = performance.now();
+    const rows = queryRows(database, `${select} WHERE d.rowid > ? ORDER BY d.rowid LIMIT ?`, [
+      after,
+      limit,
+    ]);
+    for (const row of rows) {
+      listed.push({
+        key: foldNoCase(readString(row, 'title')),
+        id: readString(row, 'id'),
+        item: toItem(row),
+      });
+    }
+    const last = rows.at(-1);
+    if (!last || rows.length < limit) break;
+    after = readNumber(last, 'doc_rowid');
+    const now = performance.now();
+    const perRowMs = Math.max(now - queryStartedAt, 0.05) / rows.length;
+    limit = Math.min(LISTING_MAX_BATCH, Math.max(1, Math.round(LISTING_QUERY_MS / perRowMs)));
+    if (now - sliceStartedAt >= LISTING_SLICE_MS) {
+      await yieldToEventLoop();
+      sliceStartedAt = performance.now();
+    }
+  }
+  return listed
+    .toSorted((left, right) =>
+      left.key === right.key
+        ? Number(left.id > right.id) - Number(left.id < right.id)
+        : Number(left.key > right.key) - Number(left.key < right.key),
+    )
+    .map(({ item }) => item);
+}
+
 const SEARCH_METADATA_FIELDS = [
   'terminology',
   'declaredAliases',
@@ -383,7 +447,7 @@ function toChunk(row: SqlRow): ChunkRecord {
 }
 
 const DOCUMENT_SELECT = `
-  SELECT d.id, d.content_pack_id, d.title, d.short_title, d.source_type, d.status,
+  SELECT d.rowid AS doc_rowid, d.id, d.content_pack_id, d.title, d.short_title, d.source_type, d.status,
     d.specialty_json, d.metadata_json, dv.id AS version_id, dv.version_label,
     dv.effective_from, dv.effective_to, dv.source_checksum, dv.extracted_at
   FROM documents d
@@ -990,9 +1054,23 @@ export class SqliteMedicalStore implements MedicalStore {
 
   public async listDocumentIdentities(): Promise<readonly DocumentIdentity[]> {
     this.assertInitialized();
+    // `current_version_id` is the last column of `documents`, behind the metadata blob: reading it
+    // walks every document's overflow pages (1.3 s for a 345-document drug group). A document with
+    // one version is identified by that version from the small `document_versions` rows; only a
+    // document with several versions consults the column, through its own row.
     return queryRows(
       this.database,
-      'SELECT id, current_version_id FROM documents ORDER BY title COLLATE NOCASE, id',
+      `
+      SELECT d.id AS id,
+        CASE WHEN v.versions = 1 THEN v.version_id
+          ELSE (SELECT current_version_id FROM documents WHERE id = d.id) END AS current_version_id
+      FROM documents d
+      LEFT JOIN (
+        SELECT document_id, min(id) AS version_id, count(*) AS versions
+        FROM document_versions GROUP BY document_id
+      ) v ON v.document_id = d.id
+      ORDER BY d.id
+    `,
     ).map((row) => ({
       id: readString(row, 'id'),
       versionId: readString(row, 'current_version_id'),
@@ -1002,42 +1080,42 @@ export class SqliteMedicalStore implements MedicalStore {
   public async listSearchDocuments(): Promise<readonly SearchDocumentDescriptor[]> {
     this.assertInitialized();
     // Extract all paths in one call instead of repeatedly parsing each document's large metadata.
-    return queryRows(
+    return listDocumentRows(
       this.database,
       `
-      SELECT id, title, short_title, source_type,
-        json_extract(metadata_json, ${SEARCH_METADATA_FIELDS.map((key) => `'$.${key}'`).join(', ')}) AS metadata_fields FROM documents ORDER BY title COLLATE NOCASE, id
+      SELECT d.rowid AS doc_rowid, d.id, d.title, d.short_title, d.source_type,
+        json_extract(d.metadata_json, ${SEARCH_METADATA_FIELDS.map((key) => `'$.${key}'`).join(', ')}) AS metadata_fields
+      FROM documents d
     `,
-    ).map((row) => ({
-      id: readString(row, 'id'),
-      title: readString(row, 'title'),
-      shortTitle: readNullableString(row, 'short_title'),
-      sourceType: readString(row, 'source_type'),
-      metadata: projectedMetadata(row, SEARCH_METADATA_FIELDS),
-    }));
+      (row) => ({
+        id: readString(row, 'id'),
+        title: readString(row, 'title'),
+        shortTitle: readNullableString(row, 'short_title'),
+        sourceType: readString(row, 'source_type'),
+        metadata: projectedMetadata(row, SEARCH_METADATA_FIELDS),
+      }),
+    );
   }
 
   public async listNavigationDocuments(): Promise<readonly DocumentRecord[]> {
     this.assertInitialized();
-    return queryRows(
+    return listDocumentRows(
       this.database,
       `
-      SELECT d.id, d.content_pack_id, d.title, d.short_title, d.source_type, d.status,
-        d.specialty_json,
+      SELECT d.rowid AS doc_rowid, d.id, d.content_pack_id, d.title, d.short_title, d.source_type,
+        d.status, d.specialty_json,
         json_extract(d.metadata_json, ${NAVIGATION_METADATA_FIELDS.map((key) => `'$.${key}'`).join(', ')}) AS metadata_fields,
         dv.id AS version_id, dv.version_label, dv.effective_from, dv.effective_to,
         dv.source_checksum, dv.extracted_at
       FROM documents d JOIN document_versions dv ON dv.id = d.current_version_id
-      ORDER BY d.title COLLATE NOCASE, d.id
     `,
-    ).map(toDocument);
+      toDocument,
+    );
   }
 
   public async listDocuments(): Promise<readonly DocumentRecord[]> {
     this.assertInitialized();
-    return queryRows(this.database, `${DOCUMENT_SELECT} ORDER BY d.title COLLATE NOCASE`).map(
-      toDocument,
-    );
+    return listDocumentRows(this.database, DOCUMENT_SELECT, toDocument);
   }
 
   public async getDocument(id: string): Promise<DocumentRecord | null> {
