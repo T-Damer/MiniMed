@@ -1,8 +1,6 @@
 import { findCalculator } from '@/features/calculators/calculator-registry';
-import {
-  PEDIATRIC_FEEDING_PLAN_ID,
-  parsePediatricFeedingPlan,
-} from '@/features/calculators/pediatric-feeding-plan';
+import { calculatorResultLayout } from '@/features/calculators/calculator-schema-catalog';
+import { parsePediatricFeedingPlan } from '@/features/calculators/pediatric-feeding-plan';
 import { PrintManager } from '@/features/printing/print-manager';
 import type { CalculationRecord } from '@/state/calculation-history';
 import { MINIMED_WEB_APP_URL } from '../../../../../release';
@@ -45,7 +43,10 @@ export function calculationRecordOutputs(
 }
 
 export function formatCalculationRecord(record: CalculationRecord, noteTitle = ''): string {
-  if (record.calculatorId === PEDIATRIC_FEEDING_PLAN_ID && 'textValues' in record.result) {
+  if (
+    calculatorResultLayout(record.calculatorId) === 'feeding-plan' &&
+    'textValues' in record.result
+  ) {
     const plan = parsePediatricFeedingPlan(record.result.textValues);
     return [
       'Рацион ребёнка на один день',
@@ -195,7 +196,7 @@ ${calendar ? `<h2 class="feeding-sheet__calendar-title">Календарь вв�
 
 export function printCalculationRecord(record: CalculationRecord, noteTitle = ''): boolean {
   const title = findCalculator(record.calculatorId)?.title ?? 'Расчёт MiniMed';
-  if (record.calculatorId === PEDIATRIC_FEEDING_PLAN_ID) {
+  if (calculatorResultLayout(record.calculatorId) === 'feeding-plan') {
     return PrintManager.html(feedingPlanPrintHtml(record, noteTitle), title);
   }
   const text = formatCalculationRecord(record, noteTitle);

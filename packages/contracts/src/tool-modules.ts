@@ -134,6 +134,7 @@ export const CalculatorToolPreviewSchema = z.object({ ...CalculatorSchemaSchema.
   population: true,
   limitations: true,
   inputs: true,
+  bundled: true,
   sources: true,
 });
 

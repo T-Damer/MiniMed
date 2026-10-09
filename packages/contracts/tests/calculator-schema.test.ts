@@ -206,3 +206,61 @@ describe('calculator source contract', () => {
     },
   );
 });
+
+describe('declared patient, unit and layout data', () => {
+  const step = CALCULATOR_SCHEMA.steps[0];
+  if (!step) throw new Error('The fixture has a step.');
+  const withStep = (extra: Record<string, unknown>) => ({
+    ...CALCULATOR_SCHEMA,
+    steps: [{ ...step, ...extra }],
+  });
+
+  it('accepts a step that writes a patient card field', () => {
+    const result = CalculatorSchemaSchema.safeParse(
+      withStep({ patientBinding: { kind: 'profileContext', contextKey: 'estimatedDueDate' } }),
+    );
+    expect(result.success).toBe(true);
+    expect(result.data?.steps[0]?.patientBinding?.contextKey).toBe('estimatedDueDate');
+  });
+
+  it('rejects a step bound to anything but a named card field', () => {
+    expect(
+      CalculatorSchemaSchema.safeParse(withStep({ patientBinding: { kind: 'birthDate' } })).success,
+    ).toBe(false);
+    expect(
+      CalculatorSchemaSchema.safeParse(withStep({ patientBinding: { kind: 'profileContext' } }))
+        .success,
+    ).toBe(false);
+  });
+
+  it('keeps the new optional fields off a schema that does not use them', () => {
+    const parsed = CalculatorSchemaSchema.parse(CALCULATOR_SCHEMA);
+    expect(parsed.resultLayout).toBeUndefined();
+    expect(parsed.bundled).toBeUndefined();
+    expect(parsed.steps[0]?.patientBinding).toBeUndefined();
+    expect(parsed.steps[0]?.unitFromInput).toBeUndefined();
+  });
+
+  it('accepts grouped options, a unit taken from an input and a result layout', () => {
+    const result = CalculatorSchemaSchema.safeParse({
+      ...CALCULATOR_SCHEMA,
+      resultLayout: 'feeding-plan',
+      bundled: true,
+      inputs: [
+        {
+          id: 'unit',
+          label: 'Единица',
+          kind: 'select',
+          optionGroupInput: 'form',
+          options: [{ value: 1, label: 'кг', group: 'solid' }],
+          required: true,
+        },
+      ],
+      steps: [{ ...step, unitFromInput: 'unit' }],
+    });
+    expect(result.success).toBe(true);
+    expect(
+      CalculatorSchemaSchema.safeParse({ ...CALCULATOR_SCHEMA, resultLayout: 'x' }).success,
+    ).toBe(false);
+  });
+});

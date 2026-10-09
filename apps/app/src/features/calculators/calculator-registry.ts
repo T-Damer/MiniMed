@@ -19,6 +19,7 @@ import type {
   AvailableCalculatorDefinition,
   CalculatorDefinition,
 } from '@/features/calculators/calculator-types';
+import { UNIT_CONVERSION_SCHEMA } from '@/features/calculators/unit-conversion-schema';
 
 import {
   userCalculatorBlockingError,
@@ -49,30 +50,22 @@ export function clearDownloadedCalculators(): void {
 }
 
 export const CALCULATOR_REGISTRY: readonly CalculatorDefinition[] = [
-  {
-    id: 'unit-conversion',
-    version: '2.0.0',
-    slug: 'unit-conversion',
-    state: 'available',
-    title: 'Преобразование единиц',
-    shortTitle: 'Единицы',
-    aliases: ['конвертер единиц', 'мг в мл', 'кг в граммы', 'мкг мг'],
-    summary: 'Масса, длина и объём с явным промежуточным значением в базовой единице.',
-    ageScope: anyAgeScope('Определение: «Любой пользователь; не является клинической формулой».'),
-    category: 'unit-conversion',
-    clinical: false,
-    formula: 'Линейное преобразование через базовую единицу выбранной величины.',
-    population: 'Любой пользователь; не является клинической формулой.',
-    limitations: ['Не преобразует массу в объём без отдельно заданной концентрации или плотности.'],
-    inputs: [
-      { input: 'value', required: true, minimum: 0 },
-      { input: 'sourceUnit', required: true },
-      { input: 'targetUnit', required: true },
-    ],
-    sources: [],
-  },
+  calculatorCatalogDefinition(
+    {
+      id: UNIT_CONVERSION_SCHEMA.id,
+      version: '3.0.0',
+      slug: UNIT_CONVERSION_SCHEMA.slug,
+      title: UNIT_CONVERSION_SCHEMA.title,
+      shortTitle: UNIT_CONVERSION_SCHEMA.shortTitle,
+      aliases: UNIT_CONVERSION_SCHEMA.aliases,
+    },
+    UNIT_CONVERSION_SCHEMA,
+    UNIT_CONVERSION_SCHEMA.ageScope,
+  ),
   {
     id: ECG_PHOTO_CALIPER_ID,
+    bundled: true,
+    surface: 'ecg-photo',
     version: '1.4.0',
     slug: ECG_PHOTO_CALIPER_ID,
     state: 'available',
@@ -280,6 +273,7 @@ function calculatorCatalogDefinition(
       required: input.required,
       ...(input.note ? { note: input.note } : {}),
     })),
+    ...(schema.bundled ? { bundled: true } : {}),
     sources: schema.sources.map((source) => ({
       title: source.title,
       publisher: source.publisher,

@@ -148,10 +148,16 @@ test('the unit converter shows Russian units and no patient row', async ({ page 
   const from = page.getByLabel('Из единицы');
   const to = page.getByLabel('В единицу');
   await expect(from.locator('option')).toHaveText(['кг', 'г', 'мг', 'мкг']);
-  await from.selectOption('kg');
-  await to.selectOption('mg');
+  await from.selectOption({ label: 'кг' });
+  await to.selectOption({ label: 'мг' });
   await page.getByLabel('Значение').fill('2');
   await page.getByTestId('calculator-submit').click();
   await expect(page.getByTestId('calculator-result')).toContainText('мг');
   await expect(page.getByTestId('calculator-result')).not.toContainText('mg');
+
+  // Another quantity offers its own units and starts from its first pair.
+  await page.getByLabel('Величина').selectOption('volume');
+  await expect(from.locator('option')).toHaveText(['л', 'мл']);
+  await expect(to.locator('option')).toHaveText(['мл', 'л']);
+  await expect(from).toHaveValue(/./u);
 });

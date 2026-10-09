@@ -1,16 +1,12 @@
 import type { ContentModuleCatalog } from '@localmed/contracts';
 
 import { CALCULATOR_PACKS_EVENT } from '@/features/calculators/calculator-events';
-import {
-  CALCULATOR_REGISTRY,
-  ECG_PHOTO_CALIPER_ID,
-} from '@/features/calculators/calculator-registry';
+import { CALCULATOR_REGISTRY } from '@/features/calculators/calculator-registry';
 import { getCalculatorSchema } from '@/features/calculators/calculator-schema-catalog';
 import type {
   CalculatorCategory,
   CalculatorDefinition,
 } from '@/features/calculators/calculator-types';
-import { PEDIATRIC_FEEDING_PLAN_ID } from '@/features/calculators/pediatric-feeding-plan';
 import { isUserCalculatorId } from '@/features/calculators/user-calculator/user-calculator-ids';
 
 import { loadedModuleCatalog } from '@/features/modules/module-catalog-state';
@@ -64,21 +60,14 @@ export function setDatabaseCalculatorIds(ids: readonly string[]): void {
 }
 
 /**
- * Bundled tools that stay usable without an explicit section download. Keep this list short and
- * only add tools that have no external content-pack dependency.
+ * Usable without any download: the tools that ship with the app (they declare it) and the doctor's
+ * own calculators, which exist only on this device and belong to no downloadable section.
  */
-export const CORE_CALCULATOR_IDS: ReadonlySet<string> = new Set([
-  'unit-conversion',
-  ECG_PHOTO_CALIPER_ID,
-  PEDIATRIC_FEEDING_PLAN_ID,
-]);
-
-/**
- * Usable without any download: the bundled core tools and the doctor's own calculators, which exist
- * only on this device and belong to no downloadable section.
- */
-export function isAlwaysAvailableCalculator(id: string): boolean {
-  return CORE_CALCULATOR_IDS.has(id) || isUserCalculatorId(id);
+export function isAlwaysAvailableCalculator(definition: CalculatorDefinition): boolean {
+  return (
+    (definition.state === 'available' && definition.bundled === true) ||
+    isUserCalculatorId(definition.id)
+  );
 }
 
 /** «Мои калькуляторы» is a place for the doctor's own tools, never a section to install or remove. */
@@ -293,7 +282,7 @@ function installedIdsFromSections(
           definition.state === 'available' &&
           (CALCULATOR_REGISTRY.some((entry) => entry.id === definition.id) ||
             getCalculatorSchema(definition.id) !== undefined) &&
-          (isAlwaysAvailableCalculator(definition.id) ||
+          (isAlwaysAvailableCalculator(definition) ||
             [...sectionIds].some((sectionId) => belongsToSection(definition, sectionId)) ||
             calculatorIds.has(definition.id) ||
             databaseCalculatorIds.has(definition.id)),
@@ -371,8 +360,7 @@ export function isCalculatorSectionCore(
 ): boolean {
   const available = availableDefinitions(definitions, sectionId);
   return (
-    available.length > 0 &&
-    available.every((definition) => isAlwaysAvailableCalculator(definition.id))
+    available.length > 0 && available.every((definition) => isAlwaysAvailableCalculator(definition))
   );
 }
 

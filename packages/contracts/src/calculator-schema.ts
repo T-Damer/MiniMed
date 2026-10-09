@@ -48,6 +48,8 @@ export const CalculatorSourceReferenceSchema = z.object({
 export const CalculatorInputOptionSchema = z.object({
   value: z.union([z.string(), z.number()]),
   label: z.string().min(1),
+  /** Offered only while the input's `optionGroupInput` holds this value (units of one quantity). */
+  group: z.string().min(1).optional(),
 });
 
 export const CalculatorInputSchema = z.object({
@@ -60,6 +62,12 @@ export const CalculatorInputSchema = z.object({
    *  — combine with the `today()`/`addDays()`/`daysBetween()` expression functions. */
   kind: z.enum(['number', 'select', 'date', 'text', 'checkbox']),
   options: z.array(CalculatorInputOptionSchema).optional(),
+  /** Earlier select input whose value picks the options on offer here: only options with a matching
+   *  `group` are shown, and a change of that input resets this one to the first of them. */
+  optionGroupInput: z
+    .string()
+    .regex(/^[a-zA-Z_][a-zA-Z0-9_]*$/u, 'must be a valid input id')
+    .optional(),
   minimum: z.number().optional(),
   maximum: z.number().optional(),
   /** Native HTML number-input increment. Integer fields default to 1; other fields default to `any`. */
@@ -114,6 +122,15 @@ export const CalculatorStepSchema = z.object({
   valueKind: z.enum(['number', 'date', 'text']).default('number'),
   /** Form stage at which this derived value becomes available, starting at 0. */
   stepRequired: z.number().int().min(0).default(0),
+  /** Select input whose chosen option label is this value's unit (a converter's target unit); `unit`
+   *  stays the fallback for a result saved without it. */
+  unitFromInput: z
+    .string()
+    .regex(/^[a-zA-Z_][a-zA-Z0-9_]*$/u, 'must be a valid input id')
+    .optional(),
+  /** Only `profileContext`: the value is the card's field of that key — a saved result writes it
+   *  there (the due date a calculator found), the way an input binding reads it. */
+  patientBinding: CalculatorPatientBindingSchema.optional(),
 });
 
 export const CalculatorInterpretationSchema = z.object({
@@ -259,6 +276,9 @@ export const CalculatorSearchSchema = z.discriminatedUnion('kind', [
   }),
 ]);
 
+/** How the saved result is laid out; the plain list of outputs when a calculator declares none. */
+export const CalculatorResultLayoutSchema = z.enum(['feeding-plan']);
+
 export const CalculatorSchemaSchema = z
   .object({
     schemaVersion: z.literal(2),
@@ -288,6 +308,9 @@ export const CalculatorSchemaSchema = z
     observationMappings: z.array(ObservationMappingSchema).default([]),
     assertions: z.array(CalculatorAssertionSchema).default([]),
     visuals: z.array(CalculatorVisualSchema).default([]),
+    resultLayout: CalculatorResultLayoutSchema.optional(),
+    /** Usable without downloading its section (set on the few tools that ship with the app). */
+    bundled: z.boolean().optional(),
     /** Optional runtime discoverability metadata; dose rules remain external to calculator schemas. */
     search: CalculatorSearchSchema.optional(),
     sources: z.array(CalculatorSourceReferenceSchema).min(1),
@@ -321,6 +344,17 @@ export const CalculatorSchemaSchema = z
     },
   )
   .refine(
+    (schema) =>
+      schema.steps.every(
+        (step) =>
+          step.patientBinding === undefined || step.patientBinding.kind === 'profileContext',
+      ),
+    {
+      message: 'a step can only bind to a patient context field (kind profileContext)',
+      path: ['steps'],
+    },
+  )
+  .refine(
     (schema) => {
       const search = schema.search;
       if (!search) return true;
@@ -346,6 +380,7 @@ export const CalculatorSchemaSchema = z
     },
   );
 
+export type CalculatorResultLayout = z.infer<typeof CalculatorResultLayoutSchema>;
 export type CalculatorCategory = z.infer<typeof CalculatorCategorySchema>;
 export type CalculatorSourceReference = z.infer<typeof CalculatorSourceReferenceSchema>;
 export type CalculatorInputOption = z.infer<typeof CalculatorInputOptionSchema>;

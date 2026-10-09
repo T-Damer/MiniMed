@@ -54,6 +54,10 @@ export interface AvailableCalculatorDefinition {
   readonly limitations: readonly string[];
   readonly inputs: readonly CalculatorInputConstraint[];
   readonly sources: readonly CalculatorSourceReference[];
+  /** Usable without downloading its section: a tool that ships with the app. */
+  readonly bundled?: boolean;
+  /** A tool with a screen of its own instead of the generic form (declared, never found by id). */
+  readonly surface?: 'ecg-photo';
 }
 
 export interface PlannedCalculatorDefinition {

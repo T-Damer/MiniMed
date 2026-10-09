@@ -73,7 +73,28 @@ export function validateCalculatorSchema(candidate: unknown): CalculatorSchemaVa
     if (input.requiresInput && !earlierInputIds.has(input.requiresInput)) {
       errors.push(`input "${input.id}": requires unknown or later input "${input.requiresInput}".`);
     }
+    if (input.optionGroupInput) {
+      const controller = schema.inputs.find((candidate) => candidate.id === input.optionGroupInput);
+      if (!controller || !earlierInputIds.has(controller.id) || controller.kind !== 'select') {
+        errors.push(
+          `input "${input.id}": grouped by unknown, later or non-select input "${input.optionGroupInput}".`,
+        );
+      } else if ((input.options ?? []).some((option) => option.group === undefined)) {
+        errors.push(`input "${input.id}": every option needs a group.`);
+      }
+    }
     earlierInputIds.add(input.id);
+  }
+
+  for (const step of schema.steps) {
+    if (
+      step.unitFromInput &&
+      schema.inputs.find((input) => input.id === step.unitFromInput)?.kind !== 'select'
+    ) {
+      errors.push(
+        `step "${step.id}": unit comes from unknown or non-select input "${step.unitFromInput}".`,
+      );
+    }
   }
 
   for (const step of schema.steps) {

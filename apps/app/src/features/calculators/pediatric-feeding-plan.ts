@@ -1,7 +1,5 @@
 import type { TextCalculationResult } from '@/features/calculators/clinical-calculations';
 
-export const PEDIATRIC_FEEDING_PLAN_ID = 'minimed.calculator.pediatric-feeding-plan';
-
 export interface PediatricFeedingPlanDisplay {
   readonly details: string;
   readonly guide: string;

@@ -512,7 +512,7 @@ test('runs a selected calculator inline without leaving search', async ({ page }
   await expect(page).not.toHaveURL(/#\/calculators\//u);
 
   await page.getByRole('spinbutton', { name: 'Значение' }).fill('2');
-  await page.getByRole('combobox', { name: 'В единицу' }).selectOption('g');
+  await page.getByRole('combobox', { name: 'В единицу' }).selectOption({ label: 'г' });
   await page.getByRole('button', { name: 'Рассчитать и сохранить' }).click();
 
   await expect(page.getByTestId('calculator-result')).toBeVisible();

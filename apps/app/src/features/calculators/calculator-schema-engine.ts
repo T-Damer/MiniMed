@@ -45,11 +45,41 @@ export type CalculatorSchemaOutput =
   | CalculatorSchemaTextOutput
   | CalculatorSchemaVisualOutput;
 
+type CalculatorSchemaInput = CalculatorSchema['inputs'][number];
+type CalculatorSchemaInputOption = NonNullable<CalculatorSchemaInput['options']>[number];
+
+/**
+ * The options a select offers now: all of them, or — when the input is grouped by an earlier select —
+ * only those of the group that select holds (the units of the chosen quantity).
+ */
+export function calculatorInputOptions(
+  input: CalculatorSchemaInput,
+  rawInputs: Readonly<Record<string, string | number>>,
+): readonly CalculatorSchemaInputOption[] {
+  const options = input.options ?? [];
+  if (!input.optionGroupInput) return options;
+  const group = rawInputs[input.optionGroupInput];
+  return options.filter((option) => String(option.group) === String(group));
+}
+
+/** The label of the option a select holds, `undefined` for a blank or unknown value. */
+function selectedOptionLabel(
+  input: CalculatorSchemaInput,
+  rawInputs: Readonly<Record<string, string | number>>,
+): string | undefined {
+  const raw = rawInputs[input.id];
+  if (raw === undefined || raw === '') return undefined;
+  return calculatorInputOptions(input, rawInputs).find(
+    (option) => String(option.value) === String(raw),
+  )?.label;
+}
+
 export function initialCalculatorSchemaValues(schema: CalculatorSchema): Record<string, string> {
   const defaults: Record<string, string> = {};
   for (const input of schema.inputs) {
-    if (input.options?.[0]) {
-      defaults[input.id] = String(input.options[0].value);
+    const first = calculatorInputOptions(input, defaults)[0];
+    if (first) {
+      defaults[input.id] = String(first.value);
     } else if (input.kind === 'checkbox') {
       defaults[input.id] = '0';
     } else if (input.kind === 'date' && input.defaultExpression) {
@@ -57,6 +87,27 @@ export function initialCalculatorSchemaValues(schema: CalculatorSchema): Record<
     }
   }
   return defaults;
+}
+
+/**
+ * One input changed: the value is stored and every select grouped by it falls back to the first
+ * option of its new group, so a stale choice (milligrams under «Длина») never survives; options of
+ * different groups may share a value, so a kept value could not tell which unit it was.
+ */
+export function applyCalculatorInputChange(
+  schema: CalculatorSchema,
+  values: Readonly<Record<string, string>>,
+  id: string,
+  value: string,
+): Record<string, string> {
+  const next: Record<string, string> = { ...values, [id]: value };
+  for (const input of schema.inputs) {
+    if (input.optionGroupInput !== id) continue;
+    const first = calculatorInputOptions(input, next)[0];
+    if (first) next[input.id] = String(first.value);
+    else delete next[input.id];
+  }
+  return next;
 }
 
 function inputValueIsPresent(value: string | number | undefined): boolean {
@@ -118,6 +169,8 @@ export interface CalculatorSchemaEvaluation {
   readonly outputs: readonly CalculatorSchemaOutput[];
   readonly trace: readonly CalculationTraceStep[];
   readonly warnings: readonly CalculatorWarning[];
+  /** Values the card keeps (`step.patientBinding`), by context key: ISO date or number. */
+  readonly contextValues: Readonly<Record<string, string | number>>;
   readonly evaluation: {
     readonly status: EvaluationStatus;
     readonly verdict?: ReferenceVerdict;
@@ -159,6 +212,28 @@ function formatNumberOutputText(output: CalculatorSchemaNumberOutput): string {
       ? String(Math.round(output.value))
       : output.value.toFixed(output.displayPrecision);
   return output.unit ? `${rounded} ${output.unit}` : rounded;
+}
+
+/** A step's unit: the chosen option's label when it takes the unit from a select, else its own. */
+function stepUnit(
+  schema: CalculatorSchema,
+  step: CalculatorStepDefinition,
+  rawInputs: Readonly<Record<string, string | number>>,
+): string {
+  const source = step.unitFromInput
+    ? schema.inputs.find((input) => input.id === step.unitFromInput)
+    : undefined;
+  return (source && selectedOptionLabel(source, rawInputs)) ?? step.unit;
+}
+
+function recordContextValue(
+  step: CalculatorStepDefinition,
+  value: CalculatorValue,
+  into: Record<string, string | number>,
+): void {
+  const key = step.patientBinding?.contextKey;
+  if (key !== undefined && (typeof value === 'string' || typeof value === 'number'))
+    into[key] = value;
 }
 
 function formatExpressionError(label: string, error: unknown): string {
@@ -250,7 +325,7 @@ function evaluateCalculatorSchemaInner(
       }
       scope[input.id] = Number(raw);
     } else {
-      const allowed = input.options?.map((option) => option.value) ?? [];
+      const allowed = calculatorInputOptions(input, rawInputs).map((option) => option.value);
       const matched = allowed.find((option) => String(option) === String(raw));
       if (matched === undefined) {
         return failure(`${input.label}: недопустимое значение.`);
@@ -266,6 +341,7 @@ function evaluateCalculatorSchemaInner(
 
   const trace: CalculationTraceStep[] = [];
   const outputs: CalculatorSchemaOutput[] = [];
+  const contextValues: Record<string, string | number> = {};
 
   for (const step of schema.steps) {
     if (step.stepRequired > maxStep) continue;
@@ -292,6 +368,7 @@ function evaluateCalculatorSchemaInner(
         return failure(`${step.label}: результат не является корректной датой.`);
       }
       scope[step.id] = value;
+      recordContextValue(step, value, contextValues);
       // Date-valued steps are never traced: CalculationTraceStep.value is always a number.
       if (step.isOutput) {
         const formatted = formatDateRu(value);
@@ -308,6 +385,7 @@ function evaluateCalculatorSchemaInner(
         return failure(`${step.label}: результат не является текстом.`);
       }
       scope[step.id] = value;
+      recordContextValue(step, value, contextValues);
       if (step.isOutput) {
         outputs.push({ kind: 'text', id: step.id, label: step.label, text: value });
       }
@@ -318,21 +396,23 @@ function evaluateCalculatorSchemaInner(
       return failure(`${step.label}: результат не является конечным числом.`);
     }
     const expressionText = renderExpressionWithValues(node, scope as CalculatorScope);
+    const unit = stepUnit(schema, step, rawInputs);
     trace.push({
       id: step.id,
       label: step.label,
       expression: expressionText,
       value,
-      unit: step.unit,
+      unit,
     });
     scope[step.id] = value;
+    recordContextValue(step, value, contextValues);
     if (step.isOutput) {
       outputs.push({
         kind: 'number',
         id: step.id,
         label: step.label,
         value,
-        unit: step.unit,
+        unit,
         displayPrecision: step.displayPrecision,
       });
     }
@@ -415,6 +495,7 @@ function evaluateCalculatorSchemaInner(
     outputs,
     trace,
     warnings,
+    contextValues,
     evaluation,
   };
 }
@@ -549,6 +630,9 @@ export function toStoredCalculationResult(
     warnings: evaluation.warnings,
     evaluation: evaluation.evaluation,
     ...(visuals.length > 0 ? { visuals } : {}),
+    ...(Object.keys(evaluation.contextValues).length > 0
+      ? { contextValues: evaluation.contextValues }
+      : {}),
   };
 
   const hasTextOutput = evaluation.outputs.some((output) => output.kind === 'text');

@@ -81,6 +81,8 @@ export interface NumericCalculationResult {
   readonly warnings: readonly CalculatorWarning[];
   readonly evaluation?: CalculationEvaluation;
   readonly visuals?: readonly CalculationChartSpec[];
+  /** Values the patient card keeps from this result (the due date), by context key. */
+  readonly contextValues?: Readonly<Record<string, string | number>>;
 }
 
 export interface DualCalculationResult {
@@ -98,6 +100,8 @@ export interface DualCalculationResult {
   readonly warnings: readonly CalculatorWarning[];
   readonly evaluation?: CalculationEvaluation;
   readonly visuals?: readonly CalculationChartSpec[];
+  /** Values the patient card keeps from this result (the due date), by context key. */
+  readonly contextValues?: Readonly<Record<string, string | number>>;
 }
 
 export interface TextCalculationResult {
@@ -113,6 +117,8 @@ export interface TextCalculationResult {
   readonly warnings: readonly CalculatorWarning[];
   readonly evaluation?: CalculationEvaluation;
   readonly visuals?: readonly CalculationChartSpec[];
+  /** Values the patient card keeps from this result (the due date), by context key. */
+  readonly contextValues?: Readonly<Record<string, string | number>>;
 }
 
 export type StoredCalculationResult =

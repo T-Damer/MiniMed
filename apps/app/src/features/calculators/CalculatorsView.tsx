@@ -53,7 +53,6 @@ import {
 } from '@/features/calculators/calculator-print';
 import {
   clearDownloadedCalculators,
-  ECG_PHOTO_CALIPER_ID,
   findCalculator,
   getCalculatorRegistry,
   registerDownloadedCalculator,
@@ -61,11 +60,14 @@ import {
 } from '@/features/calculators/calculator-registry';
 import { calculatorSectionPath } from '@/features/calculators/calculator-routing';
 import {
+  calculatorResultLayout,
   calculatorUsesPatientData,
   getCalculatorSchema,
 } from '@/features/calculators/calculator-schema-catalog';
 import {
+  applyCalculatorInputChange,
   type CalculatorSchemaEvaluation,
+  calculatorInputOptions,
   calculatorSchemaInputsReady,
   evaluateCalculatorSchema,
   initialCalculatorSchemaValues,
@@ -77,17 +79,8 @@ import type {
 } from '@/features/calculators/calculator-types';
 import type { StoredCalculationResult } from '@/features/calculators/clinical-calculations';
 import { EcgPhotoCaliper } from '@/features/calculators/EcgPhotoCaliper';
-import {
-  PEDIATRIC_FEEDING_PLAN_ID,
-  parsePediatricFeedingPlan,
-} from '@/features/calculators/pediatric-feeding-plan';
+import { parsePediatricFeedingPlan } from '@/features/calculators/pediatric-feeding-plan';
 import { RecentCalculatorsRow } from '@/features/calculators/RecentCalculatorsRow';
-import {
-  convertQuantity,
-  type QuantityFamily,
-  unitLabel,
-  unitsForFamily,
-} from '@/features/calculators/unit-conversion';
 import { MyCalculatorsCard } from '@/features/calculators/user-calculator/MyCalculatorsCard';
 import { UserCalculatorEditorPage } from '@/features/calculators/user-calculator/UserCalculatorEditorPage';
 import { UserCalculatorsPage } from '@/features/calculators/user-calculator/UserCalculatorsPage';
@@ -162,11 +155,6 @@ function relatedCategoriesForSection(
 
 function openRecommendationCategory(categoryId: string): void {
   window.location.hash = `#/modules/documents/category/${encodeURIComponent(categoryId)}`;
-}
-
-function parseNumber(value: string): number {
-  const normalized = value.trim().replace(',', '.');
-  return normalized ? Number(normalized) : Number.NaN;
 }
 
 function formatNumber(value: number, precision = 4): string {
@@ -511,10 +499,6 @@ function CalculatorForm(props: {
   const [patientId, setPatientId] = createSignal('');
   const [episodeId, setEpisodeId] = createSignal('');
   const [patientSnapshot, setPatientSnapshot] = createSignal<PatientVaultSnapshot>();
-  const [value, setValue] = createSignal('');
-  const [family, setFamily] = createSignal<QuantityFamily>('mass');
-  const [fromUnit, setFromUnit] = createSignal('kg');
-  const [toUnit, setToUnit] = createSignal('g');
   // Generic input store for every schema-driven calculator (CALCULATOR_SCHEMA_BY_ID) — one field per
   // `schema.inputs[].id`, rendered dynamically below. Adding a new schema calculator needs no new signal.
   const [schemaValues, setSchemaValues] = createSignal<Record<string, string>>({});
@@ -531,7 +515,6 @@ function CalculatorForm(props: {
       if (protectedForm) {
         setSubjectLabel('');
         setSchemaValues({});
-        setValue('');
         setSchemaPreview(undefined);
       }
       acknowledgePatientVaultUiCleared();
@@ -569,7 +552,12 @@ function CalculatorForm(props: {
     );
   };
   const setSchemaValue = (id: string, fieldValue: string): void => {
-    setSchemaValues((previous) => ({ ...previous, [id]: fieldValue }));
+    const schema = getCalculatorSchema(props.definition.id);
+    setSchemaValues((previous) =>
+      schema
+        ? applyCalculatorInputChange(schema, previous, id, fieldValue)
+        : { ...previous, [id]: fieldValue },
+    );
   };
   const schemaDefinitionId = createMemo(() => props.definition.id);
   // A <select> shows its first <option> by default without firing onChange, so the reactive store never
@@ -579,8 +567,22 @@ function CalculatorForm(props: {
     on([schemaDefinitionId, () => props.initialValues], () => {
       const schema = getCalculatorSchema(props.definition.id);
       if (!schema) return;
+      // A patient chosen for the previous tool stays only where the new one works with a card, and
+      // then its fields fill the new inputs; a tool that takes typed numbers never writes to a card.
+      const patient = calculatorUsesPatientData(schema) ? selectedPatient() : undefined;
+      if (!patient && patientId() !== '') {
+        setPatientId('');
+        setEpisodeId('');
+        setSubjectLabel('');
+      }
+      const snapshot = patientSnapshot();
+      const bound =
+        patient && snapshot ? patientBoundCalculatorInputs(schema, patient, snapshot) : {};
       setSchemaValues({
         ...initialCalculatorSchemaValues(schema),
+        ...Object.fromEntries(
+          Object.entries(bound).map(([id, fieldValue]) => [id, String(fieldValue)]),
+        ),
         ...consumeCalculatorLaunchDraft(props.definition.id, schema.inputs),
         ...Object.fromEntries(
           Object.entries(props.initialValues ?? {}).map(([id, fieldValue]) => [
@@ -593,13 +595,6 @@ function CalculatorForm(props: {
       setSchemaPreview(undefined);
     }),
   );
-  const changeFamily = (next: QuantityFamily): void => {
-    const units = unitsForFamily(next);
-    setFamily(next);
-    setFromUnit(units[0] ?? '');
-    setToUnit(units[1] ?? units[0] ?? '');
-  };
-
   const usesPatientData = (): boolean =>
     calculatorUsesPatientData(getCalculatorSchema(props.definition.id));
   const patientProfiles = (): readonly PatientProfile[] => patientSnapshot()?.profiles ?? [];
@@ -612,7 +607,6 @@ function CalculatorForm(props: {
   const selectPatient = (nextPatientId: string): void => {
     if (patientId() && patientId() !== nextPatientId) {
       setSchemaValues({});
-      setValue('');
       setSchemaPreview(undefined);
     }
     setPatientId(nextPatientId);
@@ -683,73 +677,40 @@ function CalculatorForm(props: {
   };
 
   const submit = async (): Promise<void> => {
-    let result: StoredCalculationResult;
-    let inputSummary: string;
-
-    // Any calculator with a declarative schema (CALCULATOR_SCHEMA_BY_ID) renders and submits through this
-    // one generic path — no per-calculator case below. See calculator-schema-catalog.ts to add one.
+    // Every calculator renders and submits through its declarative schema; the screen holds no
+    // per-calculator case. See calculator-schema-catalog.ts.
     const schema = getCalculatorSchema(props.definition.id);
-    if (schema) {
-      const isFinalStep = schemaStep() >= maxSchemaStep(schema);
-      const evaluation = isFinalStep
-        ? evaluateCalculatorSchema(schema, schemaValues())
-        : evaluateCalculatorSchema(schema, schemaValues(), { maxStep: schemaStep() });
-      if (!evaluation.ok) {
-        props.onMessage(evaluation.error);
-        return;
-      }
-      if (!isFinalStep) {
-        setSchemaPreview(evaluation);
-        setSchemaStep((step) => step + 1);
-        props.onMessage('Базовая схема готова. Введите текущие потери для пересчёта.');
-        return;
-      }
-      setSchemaPreview(undefined);
-      result = toStoredCalculationResult(evaluation);
-      inputSummary = schema.inputs
-        .map((input) => {
-          const raw = schemaValues()[input.id];
-          if (raw === undefined || raw === '') return null;
-          const optionLabel = input.options?.find((option) => String(option.value) === raw)?.label;
-          return `${input.label} ${optionLabel ?? raw}${input.unit ? ` ${input.unit}` : ''}`;
-        })
-        .filter((part): part is string => part !== null)
-        .join(', ');
-      await saveRecord(result, inputSummary, schemaValues());
+    if (!schema) {
+      props.onMessage('Этот калькулятор пока недоступен.');
       return;
     }
-
-    switch (props.definition.id) {
-      case 'unit-conversion': {
-        const conversion = convertQuantity({
-          family: family(),
-          value: parseNumber(value()),
-          from: fromUnit(),
-          to: toUnit(),
-        });
-        if (!conversion.ok) {
-          props.onMessage(conversion.error.message);
-          return;
-        }
-        result = {
-          ok: true,
-          calculatorId: props.definition.id,
-          formula: props.definition.formula,
-          value: conversion.value,
-          unit: unitLabel(conversion.unit),
-          displayPrecision: 8,
-          trace: conversion.trace,
-          warnings: [],
-        };
-        inputSummary = `${value()} ${unitLabel(fromUnit())} → ${unitLabel(toUnit())}`;
-        break;
-      }
-      default:
-        props.onMessage('Этот калькулятор пока недоступен.');
-        return;
+    const isFinalStep = schemaStep() >= maxSchemaStep(schema);
+    const evaluation = isFinalStep
+      ? evaluateCalculatorSchema(schema, schemaValues())
+      : evaluateCalculatorSchema(schema, schemaValues(), { maxStep: schemaStep() });
+    if (!evaluation.ok) {
+      props.onMessage(evaluation.error);
+      return;
     }
-
-    await saveRecord(result, inputSummary, { value: value(), family: family() });
+    if (!isFinalStep) {
+      setSchemaPreview(evaluation);
+      setSchemaStep((step) => step + 1);
+      props.onMessage('Базовая схема готова. Введите текущие потери для пересчёта.');
+      return;
+    }
+    setSchemaPreview(undefined);
+    const inputSummary = schema.inputs
+      .map((input) => {
+        const raw = schemaValues()[input.id];
+        if (raw === undefined || raw === '') return null;
+        const optionLabel = calculatorInputOptions(input, schemaValues()).find(
+          (option) => String(option.value) === raw,
+        )?.label;
+        return `${input.label} ${optionLabel ?? raw}${input.unit ? ` ${input.unit}` : ''}`;
+      })
+      .filter((part): part is string => part !== null)
+      .join(', ');
+    await saveRecord(toStoredCalculationResult(evaluation), inputSummary, schemaValues());
   };
 
   return (
@@ -794,56 +755,6 @@ function CalculatorForm(props: {
                   {episode.title} · {new Date(episode.startedAt).toLocaleDateString('ru-RU')}
                 </option>
               )}
-            </For>
-          </select>
-        </label>
-      </Show>
-
-      <Show when={props.definition.id === 'unit-conversion'}>
-        <label class="calculator-form__field">
-          <span>Величина</span>
-          <select
-            class="calculator-form__select calculator-form__select--compact"
-            value={family()}
-            onChange={(event) => changeFamily(event.currentTarget.value as QuantityFamily)}
-          >
-            <option value="mass">Масса</option>
-            <option value="length">Длина</option>
-            <option value="volume">Объём</option>
-          </select>
-        </label>
-        <label class="calculator-form__field">
-          <span>Значение</span>
-          <input
-            type="number"
-            inputmode="decimal"
-            min="0"
-            step="any"
-            value={value()}
-            onInput={(event) => setValue(event.currentTarget.value)}
-          />
-        </label>
-        <label class="calculator-form__field">
-          <span>Из единицы</span>
-          <select
-            class="calculator-form__select calculator-form__select--compact"
-            value={fromUnit()}
-            onChange={(event) => setFromUnit(event.currentTarget.value)}
-          >
-            <For each={unitsForFamily(family())}>
-              {(unit) => <option value={unit}>{unitLabel(unit)}</option>}
-            </For>
-          </select>
-        </label>
-        <label class="calculator-form__field">
-          <span>В единицу</span>
-          <select
-            class="calculator-form__select calculator-form__select--compact"
-            value={toUnit()}
-            onChange={(event) => setToUnit(event.currentTarget.value)}
-          >
-            <For each={unitsForFamily(family())}>
-              {(unit) => <option value={unit}>{unitLabel(unit)}</option>}
             </For>
           </select>
         </label>
@@ -920,10 +831,13 @@ function CalculatorForm(props: {
                       class="calculator-form__select"
                       disabled={disabled()}
                       title={disabledTitle()}
-                      value={schemaValues()[input.id] ?? String(input.options?.[0]?.value ?? '')}
+                      value={
+                        schemaValues()[input.id] ??
+                        String(calculatorInputOptions(input, schemaValues())[0]?.value ?? '')
+                      }
                       onChange={(event) => setSchemaValue(input.id, event.currentTarget.value)}
                     >
-                      <For each={input.options ?? []}>
+                      <For each={calculatorInputOptions(input, schemaValues())}>
                         {(option) => <option value={String(option.value)}>{option.label}</option>}
                       </For>
                     </select>
@@ -1060,7 +974,8 @@ function CalculationResultPanel(props: {
 
   const outputs = () => calculationRecordOutputs(props.record);
   const feedingPlan = () =>
-    props.record.calculatorId === PEDIATRIC_FEEDING_PLAN_ID && 'textValues' in props.record.result
+    calculatorResultLayout(props.record.calculatorId) === 'feeding-plan' &&
+    'textValues' in props.record.result
       ? parsePediatricFeedingPlan(props.record.result.textValues)
       : undefined;
 
@@ -1397,7 +1312,7 @@ export function InlineCalculatorWorkspace(props: {
   return (
     <div class="inline-calculator-workspace">
       <Show
-        when={props.definition.id === ECG_PHOTO_CALIPER_ID}
+        when={props.definition.surface === 'ecg-photo'}
         fallback={
           <CalculatorForm
             definition={props.definition}
@@ -1534,6 +1449,9 @@ export function CalculatorsView(): JSX.Element {
   };
 
   const slug = createMemo(() => route().split('/')[1] ?? '');
+  // The form stays mounted when the link goes from one tool straight to another; the result of the
+  // tool left behind must not stay under the new one's title.
+  createEffect(on(slug, () => setActiveRecord(undefined), { defer: true }));
   const userRoute = createMemo(() => parseUserCalculatorRoute(route()));
   // `#/calculators/mine/new` makes a draft and continues in its editor; replacing the entry keeps
   // «back» from creating a second draft.
@@ -1995,7 +1913,7 @@ export function CalculatorsView(): JSX.Element {
           >
             {(definition) => (
               <Show
-                when={definition().id !== ECG_PHOTO_CALIPER_ID}
+                when={definition().surface !== 'ecg-photo'}
                 fallback={
                   // The ECG editor is a full-screen flow with no description page behind it.
                   <EcgPhotoCaliper onExit={leaveTool} />
