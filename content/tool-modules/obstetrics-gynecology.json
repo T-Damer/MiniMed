@@ -1,9 +1,9 @@
 {
   "id": "minimed.tools.obstetrics-gynecology.ru",
-  "version": "0.1.0-preview.5",
+  "version": "0.1.0-preview.6",
   "title": "Инструменты акушерства и гинекологии",
   "schemaVersion": 2,
-  "builtAt": "2026-09-04T00:00:00Z",
+  "builtAt": "2026-10-09T00:00:00Z",
   "tools": [
     {
       "id": "obstetric-bishop-score",
@@ -665,7 +665,7 @@
     {
       "id": "obstetric-edd-lmp",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "slug": "obstetric-edd-lmp",
       "title": "ПДР по дате последней менструации — правило Негеле",
       "shortTitle": "ПДР по ЛМП",
@@ -699,7 +699,8 @@
             "label": "Дата последней менструации",
             "kind": "date",
             "required": true,
-            "step": 0
+            "step": 0,
+            "patientBinding": { "kind": "profileContext", "contextKey": "lastMenstrualPeriod" }
           }
         ],
         "steps": [
@@ -811,7 +812,7 @@
     {
       "id": "obstetric-edd-ultrasound",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "slug": "obstetric-edd-ultrasound",
       "title": "ПДР по УЗИ",
       "shortTitle": "ПДР по УЗИ",
@@ -847,7 +848,8 @@
             "label": "Дата УЗИ",
             "kind": "date",
             "required": true,
-            "step": 0
+            "step": 0,
+            "patientBinding": { "kind": "profileContext", "contextKey": "gestationalAgeDate" }
           },
           {
             "id": "gaWeeksAtExam",
@@ -858,7 +860,8 @@
             "maximum": 42,
             "integer": true,
             "required": true,
-            "step": 0
+            "step": 0,
+            "patientBinding": { "kind": "profileContext", "contextKey": "gestationalAgeWeeks" }
           },
           {
             "id": "gaDaysAtExam",
@@ -869,7 +872,8 @@
             "maximum": 6,
             "integer": true,
             "required": true,
-            "step": 0
+            "step": 0,
+            "patientBinding": { "kind": "profileContext", "contextKey": "gestationalAgeDays" }
           }
         ],
         "steps": [
@@ -901,6 +905,36 @@
             "displayPrecision": 2,
             "isOutput": true,
             "valueKind": "date",
+            "stepRequired": 0
+          },
+          {
+            "id": "gaToDateRaw",
+            "label": "Срок беременности на сегодня",
+            "unit": "дней",
+            "expression": "max(280 - daysBetween(today(), edd), 0)",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "gaWeeks",
+            "label": "Срок беременности на сегодня, недель",
+            "unit": "нед",
+            "expression": "floor(gaToDateRaw / 7)",
+            "displayPrecision": 0,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "gaDaysRemainder",
+            "label": "Срок беременности на сегодня, дней",
+            "unit": "дн",
+            "expression": "gaToDateRaw - gaWeeks * 7",
+            "displayPrecision": 0,
+            "isOutput": true,
+            "valueKind": "number",
             "stepRequired": 0
           }
         ],
@@ -936,7 +970,22 @@
           "reason": "Календарный расчёт ПДР не имеет числового клинического вердикта; результат сохраняется как дата и исходный метод.",
           "sourceIds": ["obstetric-edd-ultrasound-committee-opinion-no-700"]
         },
-        "observationMappings": []
+        "observationMappings": [
+          {
+            "metricId": "obstetric-edd-ultrasound.gaWeeks",
+            "label": "Срок беременности на сегодня, недель",
+            "unit": "нед",
+            "stepId": "gaWeeks",
+            "method": "calculator:obstetric-edd-ultrasound"
+          },
+          {
+            "metricId": "obstetric-edd-ultrasound.gaDaysRemainder",
+            "label": "Срок беременности на сегодня, дней",
+            "unit": "дн",
+            "stepId": "gaDaysRemainder",
+            "method": "calculator:obstetric-edd-ultrasound"
+          }
+        ]
       },
       "sources": [
         {
@@ -951,7 +1000,7 @@
     {
       "id": "obstetric-edd-conception",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "slug": "obstetric-edd-conception",
       "title": "ПДР по дате зачатия",
       "shortTitle": "ПДР по зачатию",
@@ -985,7 +1034,8 @@
             "label": "Дата зачатия",
             "kind": "date",
             "required": true,
-            "step": 0
+            "step": 0,
+            "patientBinding": { "kind": "profileContext", "contextKey": "conceptionDate" }
           }
         ],
         "steps": [
@@ -1007,6 +1057,36 @@
             "displayPrecision": 2,
             "isOutput": true,
             "valueKind": "date",
+            "stepRequired": 0
+          },
+          {
+            "id": "gaToDateRaw",
+            "label": "Срок беременности на сегодня",
+            "unit": "дней",
+            "expression": "max(280 - daysBetween(today(), edd), 0)",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "gaWeeks",
+            "label": "Срок беременности на сегодня, недель",
+            "unit": "нед",
+            "expression": "floor(gaToDateRaw / 7)",
+            "displayPrecision": 0,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "gaDaysRemainder",
+            "label": "Срок беременности на сегодня, дней",
+            "unit": "дн",
+            "expression": "gaToDateRaw - gaWeeks * 7",
+            "displayPrecision": 0,
+            "isOutput": true,
+            "valueKind": "number",
             "stepRequired": 0
           }
         ],
@@ -1033,7 +1113,22 @@
           "reason": "Календарный расчёт ПДР не имеет числового клинического вердикта; результат сохраняется как дата и исходный метод.",
           "sourceIds": ["obstetric-edd-conception-committee-opinion-no-700"]
         },
-        "observationMappings": []
+        "observationMappings": [
+          {
+            "metricId": "obstetric-edd-conception.gaWeeks",
+            "label": "Срок беременности на сегодня, недель",
+            "unit": "нед",
+            "stepId": "gaWeeks",
+            "method": "calculator:obstetric-edd-conception"
+          },
+          {
+            "metricId": "obstetric-edd-conception.gaDaysRemainder",
+            "label": "Срок беременности на сегодня, дней",
+            "unit": "дн",
+            "stepId": "gaDaysRemainder",
+            "method": "calculator:obstetric-edd-conception"
+          }
+        ]
       },
       "sources": [
         {
@@ -1048,7 +1143,7 @@
     {
       "id": "obstetric-edd-quickening",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "slug": "obstetric-edd-quickening",
       "title": "ПДР по первому шевелению",
       "shortTitle": "ПДР по шевелению",
@@ -1084,7 +1179,8 @@
             "label": "Дата первого шевеления",
             "kind": "date",
             "required": true,
-            "step": 0
+            "step": 0,
+            "patientBinding": { "kind": "profileContext", "contextKey": "quickeningDate" }
           },
           {
             "id": "parity",
@@ -1101,7 +1197,8 @@
               }
             ],
             "required": true,
-            "step": 0
+            "step": 0,
+            "patientBinding": { "kind": "profileContext", "contextKey": "parity" }
           }
         ],
         "steps": [
@@ -1134,6 +1231,36 @@
             "isOutput": true,
             "valueKind": "date",
             "stepRequired": 0
+          },
+          {
+            "id": "gaToDateRaw",
+            "label": "Срок беременности на сегодня",
+            "unit": "дней",
+            "expression": "max(280 - daysBetween(today(), edd), 0)",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "gaWeeks",
+            "label": "Срок беременности на сегодня, недель",
+            "unit": "нед",
+            "expression": "floor(gaToDateRaw / 7)",
+            "displayPrecision": 0,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "gaDaysRemainder",
+            "label": "Срок беременности на сегодня, дней",
+            "unit": "дн",
+            "expression": "gaToDateRaw - gaWeeks * 7",
+            "displayPrecision": 0,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
           }
         ],
         "warnings": [
@@ -1163,7 +1290,22 @@
           "reason": "Календарный расчёт ПДР не имеет числового клинического вердикта; результат сохраняется как дата и исходный метод.",
           "sourceIds": ["obstetric-edd-quickening-committee-opinion-no-700"]
         },
-        "observationMappings": []
+        "observationMappings": [
+          {
+            "metricId": "obstetric-edd-quickening.gaWeeks",
+            "label": "Срок беременности на сегодня, недель",
+            "unit": "нед",
+            "stepId": "gaWeeks",
+            "method": "calculator:obstetric-edd-quickening"
+          },
+          {
+            "metricId": "obstetric-edd-quickening.gaDaysRemainder",
+            "label": "Срок беременности на сегодня, дней",
+            "unit": "дн",
+            "stepId": "gaDaysRemainder",
+            "method": "calculator:obstetric-edd-quickening"
+          }
+        ]
       },
       "sources": [
         {
@@ -1178,7 +1320,7 @@
     {
       "id": "obstetric-edd-given-date",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "slug": "obstetric-edd-given-date",
       "title": "ПДР по известному сроку на заданную дату",
       "shortTitle": "ПДР по известному сроку",
@@ -1212,7 +1354,8 @@
             "label": "Дата отсчёта",
             "kind": "date",
             "required": true,
-            "step": 0
+            "step": 0,
+            "patientBinding": { "kind": "profileContext", "contextKey": "gestationalAgeDate" }
           },
           {
             "id": "gaWeeksGiven",
@@ -1223,7 +1366,8 @@
             "maximum": 42,
             "integer": true,
             "required": true,
-            "step": 0
+            "step": 0,
+            "patientBinding": { "kind": "profileContext", "contextKey": "gestationalAgeWeeks" }
           },
           {
             "id": "gaDaysGiven",
@@ -1234,7 +1378,8 @@
             "maximum": 6,
             "integer": true,
             "required": true,
-            "step": 0
+            "step": 0,
+            "patientBinding": { "kind": "profileContext", "contextKey": "gestationalAgeDays" }
           }
         ],
         "steps": [
@@ -1267,6 +1412,36 @@
             "isOutput": true,
             "valueKind": "date",
             "stepRequired": 0
+          },
+          {
+            "id": "gaToDateRaw",
+            "label": "Срок беременности на сегодня",
+            "unit": "дней",
+            "expression": "max(280 - daysBetween(today(), edd), 0)",
+            "displayPrecision": 0,
+            "isOutput": false,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "gaWeeks",
+            "label": "Срок беременности на сегодня, недель",
+            "unit": "нед",
+            "expression": "floor(gaToDateRaw / 7)",
+            "displayPrecision": 0,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
+          },
+          {
+            "id": "gaDaysRemainder",
+            "label": "Срок беременности на сегодня, дней",
+            "unit": "дн",
+            "expression": "gaToDateRaw - gaWeeks * 7",
+            "displayPrecision": 0,
+            "isOutput": true,
+            "valueKind": "number",
+            "stepRequired": 0
           }
         ],
         "warnings": [
@@ -1297,7 +1472,22 @@
           "reason": "Календарный расчёт ПДР не имеет числового клинического вердикта; результат сохраняется как дата и исходный метод.",
           "sourceIds": ["obstetric-edd-given-date-committee-opinion-no-700"]
         },
-        "observationMappings": []
+        "observationMappings": [
+          {
+            "metricId": "obstetric-edd-given-date.gaWeeks",
+            "label": "Срок беременности на сегодня, недель",
+            "unit": "нед",
+            "stepId": "gaWeeks",
+            "method": "calculator:obstetric-edd-given-date"
+          },
+          {
+            "metricId": "obstetric-edd-given-date.gaDaysRemainder",
+            "label": "Срок беременности на сегодня, дней",
+            "unit": "дн",
+            "stepId": "gaDaysRemainder",
+            "method": "calculator:obstetric-edd-given-date"
+          }
+        ]
       },
       "sources": [
         {

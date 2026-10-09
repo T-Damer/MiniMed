@@ -18,7 +18,6 @@ import {
 } from '@/features/calculators/clinical-calculations';
 import {
   calculatorSchemaFromModules,
-  loadToolModuleCalculatorSchemas,
   loadToolModuleRecords,
 } from '@/features/calculators/tool-module-test-helpers';
 
@@ -173,14 +172,5 @@ describe('calculatorUsesPatientData', () => {
 
   it('is false for a tool without a schema, such as the unit converter', () => {
     expect(calculatorUsesPatientData(undefined)).toBe(false);
-  });
-
-  it('is false only for the few shipped calculators that neither read nor record patient data', () => {
-    const without = loadToolModuleCalculatorSchemas()
-      .filter((schema) => !calculatorUsesPatientData(schema))
-      .map((schema) => schema.id);
-    expect(without.every((id) => id.startsWith('obstetric-edd-') || id.includes('feeding'))).toBe(
-      true,
-    );
   });
 });

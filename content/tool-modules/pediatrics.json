@@ -1,9 +1,9 @@
 {
   "id": "minimed.tools.pediatrics.ru",
-  "version": "0.1.0-preview.3",
+  "version": "0.1.0-preview.4",
   "title": "Инструменты педиатрии",
   "schemaVersion": 2,
-  "builtAt": "2026-08-31T00:00:00Z",
+  "builtAt": "2026-10-09T00:00:00Z",
   "tools": [
     {
       "id": "minimed.assessment.flacc-pain-scale",
@@ -380,7 +380,7 @@
     {
       "id": "minimed.calculator.pediatric-feeding-plan",
       "kind": "calculator",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "slug": "pediatric-feeding-plan",
       "title": "Рацион и прикорм до 3 лет",
       "shortTitle": "Рацион ребёнка",
@@ -422,7 +422,8 @@
             "minimum": 0,
             "maximum": 35.9,
             "inputStep": 0.1,
-            "required": true
+            "required": true,
+            "patientBinding": { "kind": "ageAtEvent", "valueMultiplier": 12 }
           },
           {
             "id": "weightKg",
@@ -432,7 +433,13 @@
             "minimum": 1,
             "maximum": 30,
             "inputStep": 0.1,
-            "required": true
+            "required": true,
+            "patientBinding": {
+              "kind": "latestObservation",
+              "metricId": "body-mass",
+              "unit": "кг",
+              "maxAgeDays": 30
+            }
           },
           {
             "id": "feedingMode",
@@ -912,7 +919,22 @@
             "national-program-toddler-feeding-2019"
           ]
         },
-        "observationMappings": []
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.pediatric-feeding-plan.dailyVolume",
+            "label": "Объём питания за сутки",
+            "unit": "мл",
+            "stepId": "dailyVolume",
+            "method": "calculator:minimed.calculator.pediatric-feeding-plan"
+          },
+          {
+            "metricId": "minimed.calculator.pediatric-feeding-plan.dailyCalories",
+            "label": "Калорийность за сутки",
+            "unit": "ккал",
+            "stepId": "dailyCalories",
+            "method": "calculator:minimed.calculator.pediatric-feeding-plan"
+          }
+        ]
       },
       "sources": [
         {

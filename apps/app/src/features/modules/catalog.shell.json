@@ -3603,7 +3603,7 @@
       "tool": {
         "id": "minimed.calculator.pediatric-feeding-plan",
         "kind": "calculator",
-        "version": "2.0.0",
+        "version": "2.1.0",
         "slug": "pediatric-feeding-plan",
         "title": "Рацион и прикорм до 3 лет",
         "shortTitle": "Рацион ребёнка",
@@ -3643,7 +3643,11 @@
               "maximum": 35.9,
               "inputStep": 0.1,
               "required": true,
-              "step": 0
+              "step": 0,
+              "patientBinding": {
+                "kind": "ageAtEvent",
+                "valueMultiplier": 12
+              }
             },
             {
               "id": "weightKg",
@@ -3654,7 +3658,13 @@
               "maximum": 30,
               "inputStep": 0.1,
               "required": true,
-              "step": 0
+              "step": 0,
+              "patientBinding": {
+                "kind": "latestObservation",
+                "metricId": "body-mass",
+                "unit": "кг",
+                "maxAgeDays": 30
+              }
             },
             {
               "id": "feedingMode",
@@ -4681,7 +4691,7 @@
       "tool": {
         "id": "obstetric-edd-lmp",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "slug": "obstetric-edd-lmp",
         "title": "ПДР по дате последней менструации — правило Негеле",
         "shortTitle": "ПДР по ЛМП",
@@ -4710,7 +4720,11 @@
               "label": "Дата последней менструации",
               "kind": "date",
               "required": true,
-              "step": 0
+              "step": 0,
+              "patientBinding": {
+                "kind": "profileContext",
+                "contextKey": "lastMenstrualPeriod"
+              }
             }
           ],
           "sources": [
@@ -4729,7 +4743,7 @@
       "tool": {
         "id": "obstetric-edd-ultrasound",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "slug": "obstetric-edd-ultrasound",
         "title": "ПДР по УЗИ",
         "shortTitle": "ПДР по УЗИ",
@@ -4760,7 +4774,11 @@
               "label": "Дата УЗИ",
               "kind": "date",
               "required": true,
-              "step": 0
+              "step": 0,
+              "patientBinding": {
+                "kind": "profileContext",
+                "contextKey": "gestationalAgeDate"
+              }
             },
             {
               "id": "gaWeeksAtExam",
@@ -4771,7 +4789,11 @@
               "maximum": 42,
               "integer": true,
               "required": true,
-              "step": 0
+              "step": 0,
+              "patientBinding": {
+                "kind": "profileContext",
+                "contextKey": "gestationalAgeWeeks"
+              }
             },
             {
               "id": "gaDaysAtExam",
@@ -4782,7 +4804,11 @@
               "maximum": 6,
               "integer": true,
               "required": true,
-              "step": 0
+              "step": 0,
+              "patientBinding": {
+                "kind": "profileContext",
+                "contextKey": "gestationalAgeDays"
+              }
             }
           ],
           "sources": [
@@ -4801,7 +4827,7 @@
       "tool": {
         "id": "obstetric-edd-conception",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "slug": "obstetric-edd-conception",
         "title": "ПДР по дате зачатия",
         "shortTitle": "ПДР по зачатию",
@@ -4830,7 +4856,11 @@
               "label": "Дата зачатия",
               "kind": "date",
               "required": true,
-              "step": 0
+              "step": 0,
+              "patientBinding": {
+                "kind": "profileContext",
+                "contextKey": "conceptionDate"
+              }
             }
           ],
           "sources": [
@@ -4849,7 +4879,7 @@
       "tool": {
         "id": "obstetric-edd-quickening",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "slug": "obstetric-edd-quickening",
         "title": "ПДР по первому шевелению",
         "shortTitle": "ПДР по шевелению",
@@ -4880,7 +4910,11 @@
               "label": "Дата первого шевеления",
               "kind": "date",
               "required": true,
-              "step": 0
+              "step": 0,
+              "patientBinding": {
+                "kind": "profileContext",
+                "contextKey": "quickeningDate"
+              }
             },
             {
               "id": "parity",
@@ -4897,7 +4931,11 @@
                 }
               ],
               "required": true,
-              "step": 0
+              "step": 0,
+              "patientBinding": {
+                "kind": "profileContext",
+                "contextKey": "parity"
+              }
             }
           ],
           "sources": [
@@ -4916,7 +4954,7 @@
       "tool": {
         "id": "obstetric-edd-given-date",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "slug": "obstetric-edd-given-date",
         "title": "ПДР по известному сроку на заданную дату",
         "shortTitle": "ПДР по известному сроку",
@@ -4947,7 +4985,11 @@
               "label": "Дата отсчёта",
               "kind": "date",
               "required": true,
-              "step": 0
+              "step": 0,
+              "patientBinding": {
+                "kind": "profileContext",
+                "contextKey": "gestationalAgeDate"
+              }
             },
             {
               "id": "gaWeeksGiven",
@@ -4958,7 +5000,11 @@
               "maximum": 42,
               "integer": true,
               "required": true,
-              "step": 0
+              "step": 0,
+              "patientBinding": {
+                "kind": "profileContext",
+                "contextKey": "gestationalAgeWeeks"
+              }
             },
             {
               "id": "gaDaysGiven",
@@ -4969,7 +5015,11 @@
               "maximum": 6,
               "integer": true,
               "required": true,
-              "step": 0
+              "step": 0,
+              "patientBinding": {
+                "kind": "profileContext",
+                "contextKey": "gestationalAgeDays"
+              }
             }
           ],
           "sources": [
