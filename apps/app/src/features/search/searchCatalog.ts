@@ -368,9 +368,15 @@ function countsTowardSection(document: MedicalDocumentSummary, sectionId: Search
     : CLINICAL_RECOMMENDATION_SOURCE_TYPES.has(document.sourceType);
 }
 
+/**
+ * `catalogCounts` are the sections' document counts from the catalog manifest. A section's counter
+ * names an entity (recommendations, active substances) and must not depend on which packs are
+ * mounted in the core, so it takes the manifest's number; without it the mounted documents count.
+ */
 export function searchCatalogSections(
   documents: readonly MedicalDocumentSummary[],
   tools: readonly SearchCatalogTool[],
+  catalogCounts?: Readonly<Partial<Record<SearchScope, number>>>,
 ): readonly SearchCatalogSection[] {
   return SEARCH_SECTIONS.map((section) => {
     if (section.id === 'diagnosis') return { ...section, groups: [] };
@@ -422,7 +428,9 @@ export function searchCatalogSections(
       );
     return {
       ...section,
-      count: rows.length + docs.filter((entry) => countsTowardSection(entry, section.id)).length,
+      count:
+        catalogCounts?.[section.id] ??
+        rows.length + docs.filter((entry) => countsTowardSection(entry, section.id)).length,
       groups:
         section.id === 'conditions'
           ? CONDITION_GROUPS.map((group) => {

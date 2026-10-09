@@ -206,4 +206,36 @@ describe('unified tool catalog', () => {
     );
     expect(guidelines?.count).toBe(2);
   });
+  it('takes a section counter from the catalog manifest, not from the mounted documents', () => {
+    const base = {
+      shortTitle: null,
+      status: 'active' as const,
+      specialties: ['pediatrics'],
+      versionId: 'v1',
+      versionLabel: '1',
+      effectiveFrom: null,
+    };
+    const mounted = [
+      { ...base, id: 'esklp.1', title: 'МНН', sourceType: 'official_registry_summary' },
+      {
+        ...base,
+        id: 'instruction.1',
+        title: 'Инструкция',
+        sourceType: 'official_drug_instruction',
+      },
+    ];
+    const counts = { medications: 3324, guidelines: 763 };
+    const before = searchCatalogSections(mounted, [], counts);
+    const after = searchCatalogSections(
+      [...mounted, ...mounted.map((d) => ({ ...d, id: `${d.id}.b` }))],
+      [],
+      counts,
+    );
+    for (const sections of [before, after]) {
+      expect(sections.find((section) => section.id === 'medications')?.count).toBe(3324);
+      expect(sections.find((section) => section.id === 'guidelines')?.count).toBe(763);
+      // A section the manifest does not size still counts what is mounted.
+      expect(sections.find((section) => section.id === 'legal')?.count).toBe(0);
+    }
+  });
 });

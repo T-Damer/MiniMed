@@ -1,5 +1,6 @@
 import type { ContentModuleCatalogEntry, ContentModuleDownloadTask } from '@localmed/contracts';
 
+import { listedModuleDocumentCount } from '@/features/modules/module-catalog-shell-source';
 import { documentCountLabel } from '@/i18n/labels';
 
 export const MODULE_RELEASE_LABELS: Readonly<
@@ -98,9 +99,7 @@ export function primaryModuleDocumentId(module: ContentModuleCatalogEntry): stri
   return activeDocument?.documentId ?? module.documents[0]?.documentId ?? null;
 }
 
-export function moduleListedDocumentCount(module: ContentModuleCatalogEntry): number {
-  return Math.max(module.previewDocumentCount ?? 0, module.documents.length);
-}
+export const moduleListedDocumentCount = listedModuleDocumentCount;
 
 export function moduleCollectionDocumentCount(
   modules: readonly ContentModuleCatalogEntry[],

@@ -10,6 +10,12 @@ const shell: ModuleCatalogShell = z
     catalogVersion: z.string().min(1),
     publishedAt: z.string().min(1),
     coreModule: ContentModuleCatalogEntrySchema,
+    sectionDocumentCounts: z.object({
+      conditions: z.number().int().nonnegative(),
+      guidelines: z.number().int().nonnegative(),
+      medications: z.number().int().nonnegative(),
+      legal: z.number().int().nonnegative(),
+    }),
     tools: z.array(z.object({ moduleId: z.string().min(1), tool: ToolCatalogEntrySchema })),
   })
   .parse(rawShell);
@@ -24,6 +30,9 @@ export const BUNDLED_CORE_MODULE = {
   sourceSetDigest: coreModule.sourceSetDigest,
   sizes: { ...coreModule.sizes, installedBytes: coreModule.sizes.installedBytes },
 };
+
+/** What each home section holds per the catalog: stable, whatever packs are installed. */
+export const SECTION_DOCUMENT_COUNTS = shell.sectionDocumentCounts;
 
 /** Always shipped with core discovery; these entries do not imply an installed tool payload. */
 export const TOOL_CATALOG = shell.tools.map((entry) => entry.tool);

@@ -40,6 +40,12 @@
     "documents": [],
     "previewDocumentCount": 19987
   },
+  "sectionDocumentCounts": {
+    "conditions": 15904,
+    "guidelines": 763,
+    "medications": 3324,
+    "legal": 3
+  },
   "tools": [
     {
       "moduleId": "minimed.tools.gastroenterology.ru",
