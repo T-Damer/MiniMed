@@ -155,6 +155,20 @@ describe('a query that names a source', () => {
     expect(result.value.analysis.originalQuery).toBe('КиМ');
   });
 
+  it('keeps the dictionary meanings of a name spelled in full, but lists no text', async () => {
+    const base = fakeCore();
+    const result = await new ScopedMedicalCore(base.core, 'all').search(
+      lookup('Красота и медицина'),
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(base.search).toHaveBeenCalledOnce();
+    expect(base.search.mock.calls[0]?.[0].filters.documentIds).toBeUndefined();
+    expect(result.value.groups).toEqual([]);
+    expect(result.value.sourceScope).toMatchObject({ remainder: '', documentCount: 4 });
+  });
+
   it('names a collection by the card type: МКБ-10 cards also carry no publisher of their own', async () => {
     const base = fakeCore();
     await new ScopedMedicalCore(base.core, 'all').search(lookup('мкб-10 j11'));

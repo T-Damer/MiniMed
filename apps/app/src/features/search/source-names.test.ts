@@ -106,6 +106,15 @@ describe('detectSourceNameIntent', () => {
     expect(detect('РЛС')?.label).toBe('Регистр лекарственных средств России');
   });
 
+  it('tells the whole name from a short form of it', () => {
+    expect(detect('Красота и медицина')?.exactName).toBe(true);
+    expect(detect('красоте и медицине')?.exactName).toBe(true);
+    expect(detect('КиМ')?.exactName).toBe(false);
+    expect(detect('Минздрав')?.exactName).toBe(false);
+    expect(detect('Аллмед')?.exactName).toBe(false);
+    expect(detect('Allmed')?.exactName).toBe(true);
+  });
+
   it('keeps the rest of the query as the text to search inside the source', () => {
     expect(detect('Красота и медицина пневмония')?.remainder).toBe('пневмония');
     expect(detect('пневмония красота и медицина')?.remainder).toBe('пневмония');

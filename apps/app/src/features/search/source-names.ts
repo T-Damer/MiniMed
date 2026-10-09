@@ -43,6 +43,8 @@ export interface SourceNameIntent {
   readonly label: string;
   /** What is left of the query once the source name is taken out; empty for a bare name. */
   readonly remainder: string;
+  /** The query holds the source's whole name, not a short form of it («КиМ», «Минздрав»). */
+  readonly exactName: boolean;
   readonly sources: readonly SourceName[];
   readonly documentIds: ReadonlySet<string>;
 }
@@ -252,9 +254,15 @@ export function detectSourceNameIntent(
   if (tokens.length === 0 || catalog.sources.length === 0) return undefined;
   const typed = tokens.map((token) => normalizeSurfaceText(token.text));
 
-  const found: { length: number; at: number; rank: number; source: SourceName }[] = [];
+  const found: {
+    length: number;
+    at: number;
+    rank: number;
+    exact: boolean;
+    source: SourceName;
+  }[] = [];
   for (const source of catalog.sources) {
-    for (const phrase of source.phrases) {
+    for (const [phraseIndex, phrase] of source.phrases.entries()) {
       const length = phrase.length;
       if (length > typed.length) continue;
       // A name opens or closes the query; a long one may stand in the middle («приказ минздрава 203н»).
@@ -265,7 +273,13 @@ export function detectSourceNameIntent(
         }
       }
       if (at === undefined) continue;
-      found.push({ length, at, rank: at === 0 ? 0 : at + length === typed.length ? 1 : 2, source });
+      found.push({
+        length,
+        at,
+        rank: at === 0 ? 0 : at + length === typed.length ? 1 : 2,
+        exact: phraseIndex === 0,
+        source,
+      });
     }
   }
   // The longest name wins; at equal length a name at the start beats one at the end, then the middle.
@@ -273,13 +287,8 @@ export function detectSourceNameIntent(
     (left, right) => right.length - left.length || left.rank - right.rank,
   );
   if (!best || catalog.isTitle(typed.join(' '))) return undefined;
-  const sources = [
-    ...new Set(
-      found
-        .filter((entry) => entry.length === best.length && entry.at === best.at)
-        .map((entry) => entry.source),
-    ),
-  ];
+  const atBest = found.filter((entry) => entry.length === best.length && entry.at === best.at);
+  const sources = [...new Set(atBest.map((entry) => entry.source))];
   const [first] = sources;
   if (!first) return undefined;
 
@@ -301,6 +310,7 @@ export function detectSourceNameIntent(
         ? first.label
         : query.slice(named[0]?.start ?? 0, named.at(-1)?.end ?? query.length),
     remainder,
+    exactName: atBest.every((entry) => entry.exact),
     sources,
     documentIds: new Set(sources.flatMap((source) => source.documentIds)),
   };

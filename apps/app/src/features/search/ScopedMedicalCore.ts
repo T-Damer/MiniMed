@@ -804,10 +804,10 @@ export class ScopedMedicalCore implements MedicalCore {
     );
     if (inScope.size === 0) return undefined;
     const sourceScope = sourceScopeOf(intent, inScope, documents);
-    // A bare name searches nothing: the screen lists the source's documents.
+    // A bare name finds no text: the screen lists the source's documents.
     const result =
       intent.remainder === ''
-        ? await this.listingResponse(request)
+        ? await this.listingResponse(request, documents, intent.exactName)
         : await this.searchScoped({ ...request, query: intent.remainder }, documents, inScope);
     if (!result.ok || (intent.remainder !== '' && result.value.groups.length === 0)) {
       return undefined;
@@ -823,10 +823,20 @@ export class ScopedMedicalCore implements MedicalCore {
     };
   }
 
-  /** The response of a query that lists documents instead of finding passages: no groups. */
+  /**
+   * The response of a query that lists documents instead of finding passages: no groups. A name
+   * the query spells in full («МКБ-10») keeps the dictionary meanings an ordinary search finds for
+   * it; a short form («КиМ») does not borrow the meanings of an unrelated abbreviation.
+   */
   private async listingResponse(
     request: SearchRequest,
+    documents: readonly SearchDocumentDescriptor[],
+    keepMeanings: boolean,
   ): Promise<Result<SearchResponse, LocalMedError>> {
+    if (keepMeanings) {
+      const found = await this.searchScoped(request, documents);
+      if (found.ok) return { ok: true, value: { ...found.value, groups: [] } };
+    }
     const startedAt = performance.now();
     const analysis = await this.base.analyzeQuery({
       query: request.query,

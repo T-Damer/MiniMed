@@ -228,8 +228,10 @@ the Cyrillic readings of a Latin one-word name («Allmed» → «Аллмед»)
   scope is ignored.
 - The rest of the query is searched inside the source (`filters.documentIds`), `analysis.originalQuery` stays the typed text. If
   nothing is found inside the source, the typed query is searched as usual.
-- A bare name does not search: the response has no groups and `sourceScope.remainder` is empty; the screen shows the source's
-  documents with the existing document list (`DocumentLibrary`).
+- A bare name finds no text: the response has no groups and `sourceScope.remainder` is empty; the screen shows the source's
+  documents with the existing document list (`DocumentLibrary`). A name spelled in full («МКБ-10», «клинические рекомендации»)
+  keeps the dictionary meanings an ordinary search finds for it (`identities`); a short form («КиМ», «Минздрав») does not
+  borrow the meanings of an unrelated abbreviation and runs no search.
 - `SearchRequest.sourceNames: false` searches the typed words as they are; the note's «Искать везде» sends it. Such a search is
   not read from or saved to the result cache.
 
