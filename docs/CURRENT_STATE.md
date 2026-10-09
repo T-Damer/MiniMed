@@ -96,6 +96,39 @@ Owner screenshots and requests of 2026-10-08, applied by eight Sonnet worktree a
 Not tested in this batch: physical Android/iOS devices, native Keychain/Keystore, Safari/WebKit, real
 GigaAM/Whisper downloads, real printers.
 
+## Follow-ups after release 0.6.57 — 2026-10-09 (STATE UX14)
+
+- **Module install.** A hash-verified index above the 32 MiB WASM limit is validated with a sampled scan
+  (`inspectIntegrity('sampled')`: first/last rows, chunk count, FTS count from `chunks_fts_docsize`)
+  instead of `integrity_check`/`foreign_key_check`/FTS `count(*)` over OPFS, which took 100–200 s; small
+  indexes keep the full scan. After the download: 96 MiB reference pack 109–133 s → 4.6–8 s, 8.9 MB drug
+  pack 199 s → 2.3–3.4 s (loaded machine). Phases are User Timing measures `minimed:install:*`;
+  `module-install-timing.spec.ts` guards 12 s / 30 s budgets. Open: opening the target right after
+  install waits ~1–3 s behind the new module's whole-pack listing (metadata blobs; needs a migration).
+- **Home counters** come from `sectionDocumentCounts` in `catalog.shell.json` (`bun run catalog:shell`
+  after every catalog change; a unit test fails when stale): conditions 15 904, КР 763 (active
+  editions), препараты 3 324 действующих вещества, нормативные 3, plus tool counts; `formatCount` +
+  `pluralRu` everywhere on the home and the section picker. The КР list still shows all 774 pointers.
+- **Search by source name** (`features/search/source-names.ts`, `SearchResponse.sourceScope`,
+  `SearchRequest.sourceNames`; docs/SEARCH.md «Search by source name — 2026-10-09»): a source/collection
+  name in the query searches inside it («Красота и медицина пневмония»), a bare name lists the source,
+  «Искать везде» widens; names come from document metadata, not UI lists. A bare drug name opens with the
+  linked Allmed card's «Фармакологическое действие» line. `benchmark:source-names` 17/17, 13/13, 5/5;
+  other benchmarks unchanged. Not covered: «Видаль» (not in the corpus), КР publishers.
+- **Calculators.** The tab always opens the list, with a recent-calculators row
+  (`minimed.recent-calculators.v1`). The due-date calculators and the feeding plan declare patient
+  bindings again (`profileContext` binding over the card's `profile.context`: `lastMenstrualPeriod`,
+  `conceptionDate`, `gestationalAgeDate/Weeks/Days`, `quickeningDate`, `parity`); short text results
+  (the due date) are the card event's text. Tool modules obstetrics-gynecology preview.6, pediatrics
+  preview.4 (artifacts load from `main`). Open: GA-from-EDD and maternity-leave calculators don't read or
+  write the stored due date; `CalculatorsView` still branches on two tool ids.
+- **Doctor profile** is also fed by opened КР (0.3) and queued section bundles (0.6); Settings →
+  «Основные» shows it with «Сбросить».
+- **E2E.** Shared `waitForSearchReady` / `waitForSearchEditable` helpers; default expect 45 s, test
+  150 s; `core-identities.spec.ts` runs serially (shared fixture directory).
+- Removed dead code: `SearchHistoryView`, `PackageDownloadRow`, `drugDownloadPlan`; `PatientQuickCreate`
+  has its own BEM block.
+
 ## Fixes from the UX13 QA pass — 2026-10-08 (STATE UX13-QA)
 
 A Sonnet agent used the merged app as a doctor ([qa-ux13-2026-10-08](research/qa-ux13-2026-10-08.md),
@@ -106,13 +139,13 @@ A Sonnet agent used the merged app as a doctor ([qa-ux13-2026-10-08](research/qa
   «Готово»; one offer per pack in a result list («В том же наборе» on the others); the home document
   list drops a pointer once its target is installed (МКБ no longer doubles); the КР counter counts
   recommendations only. Open: installing the 96 MB pack took ~2.5 min on a loaded machine, not
-  investigated; counters are not yet sourced from the catalog manifest.
+  investigated; counters are not yet sourced from the catalog manifest (both fixed in UX14 above).
 - **Search ranking.** A typed МКБ code puts its own card first; form numbers are phrases (no I07.x for
   «070/у»); the 13 official forms are tool cards in «Все»; complaint lists favour symptom-level
   documents; synonym-only words no longer rescue unrelated КР; tools follow the article for a bare
   disease name unless a tool is asked for. Benchmarks unchanged; doctor-lookup 14 cases, R@5 1.0.
 - **Search screen.** History drawer: plain meta line, trash icon. `html` scroll-padding clears the tab
-  bar. The «Калькуляторы» tab restores the last tool.
+  bar. (The «Калькуляторы» tab restored the last tool; UX14 makes it open the list again.)
 - **Reader.** Wide tables scroll in their own box with a pinned header row and first column; the
   picture preview is a dark full-bleed stage; the hero shows the picture sharp above the title (the
   stored reference images are the source's ~200 px thumbnails); stacked sticky headings are replaced
