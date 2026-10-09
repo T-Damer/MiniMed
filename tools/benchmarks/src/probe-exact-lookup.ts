@@ -7,6 +7,7 @@
 // Everything runs lexically (`mode: 'lexical'`, `analysisMode: 'lookup'`) through ScopedMedicalCore
 // over the released packs, as the app does for these scopes. Run: `bun tools/benchmarks/src/probe-exact-lookup.ts`.
 // Extra queries: `--query="…"` (repeatable). `--misses-only` hides rows that hit at rank 1.
+// `--no-source-names` runs the state before the source-name intent.
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
@@ -20,8 +21,12 @@ import { openRealCorpus, REPOSITORY_ROOT } from './real-corpus';
 
 const args = process.argv.slice(2);
 for (const arg of args)
-  if (!/^(?:--query=.+|--misses-only)$/u.test(arg)) throw new Error(`Unknown argument ${arg}`);
+  if (!/^(?:--query=.+|--misses-only|--no-source-names)$/u.test(arg)) {
+    throw new Error(`Unknown argument ${arg}`);
+  }
 const missesOnly = args.includes('--misses-only');
+// The state before «search by source name» (2026-10-09): the typed words are never read as a source.
+const noSourceNames = args.includes('--no-source-names');
 const extraQueries = args.flatMap((arg) => (arg.startsWith('--query=') ? [arg.slice(8)] : []));
 
 interface Fixture {
@@ -99,6 +104,7 @@ const search = async (query: string, scope: SearchScope) => {
     filters: {},
     limit: 20,
     includeSuggestions: false,
+    ...(noSourceNames ? { sourceNames: false } : {}),
   });
   if (!response.ok) throw new Error(`${query}: ${response.error.message}`);
   return response.value.groups as readonly SearchResultGroup[];

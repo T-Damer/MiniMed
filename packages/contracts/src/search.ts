@@ -18,6 +18,12 @@ export const SearchRequestSchema = z.object({
   filters: SearchFiltersSchema.default({}),
   limit: z.number().int().min(1).max(100).default(20),
   includeSuggestions: z.boolean().default(true),
+  /**
+   * `false` searches the typed words as they are: a query that starts or ends with the name of a
+   * source («Красота и медицина пневмония») is otherwise searched inside that source
+   * (`SearchResponse.sourceScope`).
+   */
+  sourceNames: z.boolean().optional(),
 });
 
 export const AnalyzeQueryRequestSchema = z.object({
@@ -353,6 +359,22 @@ export interface QueryRewrite {
   readonly query: string;
 }
 
+/**
+ * Present only when the typed query started or ended with the name of a source and the search ran
+ * inside that source. UI copy: «Источник: {label}» with {documentCount} materials; an empty
+ * `remainder` is a bare source name, whose documents are listed instead of searched.
+ */
+export interface SourceScope {
+  /** Stable id of the source (several joined by «+» when one name stands for more). */
+  readonly id: string;
+  /** The source's name as its documents carry it. */
+  readonly label: string;
+  /** Distinct documents of the source in the searched scope. */
+  readonly documentCount: number;
+  /** The words searched inside the source: the typed query without the source name. */
+  readonly remainder: string;
+}
+
 export interface SearchResponse {
   /** Exact source names outside clinical FTS; each target must be resolved before opening. */
   readonly identities?: readonly CoreIdentityHit[];
@@ -368,4 +390,6 @@ export interface SearchResponse {
   readonly queryCorrection?: QueryCorrection;
   /** Present only when the layout / transliteration fallback replaced the typed query. */
   readonly queryRewrite?: QueryRewrite;
+  /** Present only when the query named a source and the search ran inside it. */
+  readonly sourceScope?: SourceScope;
 }

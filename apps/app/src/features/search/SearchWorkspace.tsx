@@ -50,6 +50,7 @@ import { ComparisonSuggestionCard } from '@/features/drug-comparison/ComparisonS
 import { parseComparisonQuery } from '@/features/drug-comparison/comparison-query';
 import { InteractionSuggestionCard } from '@/features/drug-interactions/InteractionSuggestionCard';
 import { parseInteractionQuery } from '@/features/drug-interactions/interaction-query';
+import { DocumentLibrary } from '@/features/library/DocumentLibrary';
 import { resolveReadableDocumentId } from '@/features/library/document-display';
 import {
   buildDocumentLinkPhrases,
@@ -72,11 +73,17 @@ import {
   parseCalculatorToolMention,
   replaceCalculatorToolTrigger,
 } from '@/features/search/calculator-tool-mention';
-import { type SearchScope, searchModeForScope } from '@/features/search/ScopedMedicalCore';
+import {
+  documentMatchesSearchScope,
+  type SearchScope,
+  SOURCE_COLLECTIONS,
+  searchModeForScope,
+} from '@/features/search/ScopedMedicalCore';
 import { SearchExamples } from '@/features/search/SearchExamples';
 import { type SearchMeaning, SearchMeaningChoices } from '@/features/search/SearchMeaningChoices';
 import { SearchResultGroupCard } from '@/features/search/SearchResultGroupCard';
 import { SearchResultsSkeleton } from '@/features/search/SearchResultsSkeleton';
+import { SearchSourceNote } from '@/features/search/SearchSourceNote';
 import { sameSearchOutcome } from '@/features/search/search-refresh';
 import {
   presentSourceChunkText,
@@ -84,7 +91,9 @@ import {
 } from '@/features/search/search-result-presentation';
 import '@/features/search/search-refresh.css';
 import { createLingeringFlag } from '@/features/search/search-skeleton';
+import { sourceCatalogOf } from '@/features/search/source-names';
 import '@/features/search/search-results-skeleton.css';
+import { distinctNavigationDocuments } from '@/features/search/navigation-documents';
 import { pluralRu } from '@/i18n/labels';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentInArchive } from '@/state/document-navigation';
@@ -306,6 +315,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   const submitBusy = (): boolean =>
     loading() || refreshing() || (props.searchAllowed === false && props.searchPending === true);
   const [pendingResponse, setPendingResponse] = createSignal<SearchResponse>();
+  // The query whose source name the doctor asked to search as plain words («Искать везде»).
+  const [everywhereQuery, setEverywhereQuery] = createSignal<string>();
   // A typed query waits 500 ms before it searches; the skeleton shows through that wait too.
   const [searchQueued, setSearchQueued] = createSignal(false);
   const [analysisLoading, setAnalysisLoading] = createSignal(false);
@@ -749,6 +760,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       readonly specialty?: string | undefined;
       /** Installed content changed: read the document list again, replacing the one on screen. */
       readonly reloadContextDocuments?: boolean;
+      /** The doctor asked for this outcome: it replaces the list on screen at once. */
+      readonly apply?: boolean;
     } = {},
   ): Promise<void> {
     const rawQuery = nextQuery.trim();
@@ -780,7 +793,9 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     if (response()?.analysis.originalQuery !== trimmed) setLoading(true);
     const dataVersion = await searchDataVersion();
     if (generation !== searchGeneration) return;
-    if (await showSavedSearch(trimmed, generation, specialty, dataVersion)) {
+    // A search of the plain words is neither read from nor saved to the copies of source searches.
+    const everywhere = everywhereQuery() === trimmed;
+    if (!everywhere && (await showSavedSearch(trimmed, generation, specialty, dataVersion))) {
       lastSearchedQuery = trimmed;
       const shownResponse = response();
       if (recordHistory && shownResponse)
@@ -807,6 +822,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       filters: props.filters ?? {},
       limit: 20,
       includeSuggestions: props.scope === 'diagnosis',
+      ...(everywhere ? { sourceNames: false } : {}),
     });
 
     if (generation !== searchGeneration || searchableQuery(query()) !== trimmed) return;
@@ -821,19 +837,48 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     // An automatic refresh never swaps the list under the reader: an identical outcome is applied
     // silently, a different one is offered. A search the user asked for is applied at once.
     const current = response();
-    if (refreshOfShown && !recordHistory && current && !sameSearchOutcome(current, result.value)) {
+    if (
+      refreshOfShown &&
+      !recordHistory &&
+      !options.apply &&
+      current &&
+      !sameSearchOutcome(current, result.value)
+    ) {
       setPendingResponse(result.value);
     } else {
       setPendingResponse(undefined);
       setResponse(result.value);
     }
     setDraftAnalysis(result.value.analysis);
-    void saveSearch(cacheIdentity(trimmed, specialty), dataVersion, result.value);
+    if (!everywhere) void saveSearch(cacheIdentity(trimmed, specialty), dataVersion, result.value);
     if (recordHistory) appendSearchHistory(rawQuery, props.scope, result.value, specialty);
     if (options.reloadContextDocuments || contextDocuments().length === 0) {
       await loadContextDocuments(core, generation, trimmed);
     }
   }
+
+  /** The words as typed, without reading the first of them as the name of a source. */
+  function searchEverywhere(): void {
+    setEverywhereQuery(searchableQuery(query()));
+    void runSearch(query(), false, { apply: true });
+  }
+
+  // A bare source name lists the source instead of searching it.
+  const sourceListing = createMemo((): readonly MedicalDocumentSummary[] => {
+    const source = response()?.sourceScope;
+    if (!source || source.remainder) return [];
+    const documents = contextDocuments();
+    const ids = new Set(
+      sourceCatalogOf(documents, SOURCE_COLLECTIONS)
+        .sources.filter((entry) => source.id.split('+').includes(entry.id))
+        .flatMap((entry) => entry.documentIds),
+    );
+    return distinctNavigationDocuments(
+      documents.filter(
+        (document) => ids.has(document.id) && documentMatchesSearchScope(document, props.scope),
+      ),
+    );
+  });
 
   /** Saves a finished search unless the installed data moved on while it ran. */
   async function saveSearch(
@@ -1415,6 +1460,24 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                   )}
                 </Show>
 
+                <Show when={props.scope !== 'personal' ? response()?.sourceScope : undefined}>
+                  {(source) => (
+                    <SearchSourceNote scope={source()} onSearchEverywhere={searchEverywhere} />
+                  )}
+                </Show>
+
+                <Show when={sourceListing().length > 0 ? props.core : undefined}>
+                  {(core) => (
+                    <DocumentLibrary
+                      core={core()}
+                      embedded
+                      hideGraphControl
+                      query=""
+                      documents={sourceListing()}
+                    />
+                  )}
+                </Show>
+
                 <Show when={interactionQuery()}>
                   {(asked) => <InteractionSuggestionCard names={asked().names} />}
                 </Show>
@@ -1483,6 +1546,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                     !loading() &&
                     visibleGroups().length === 0 &&
                     !response()?.identities?.length &&
+                    !response()?.sourceScope &&
                     props.scope !== 'personal'
                       ? props.emptyResults
                       : undefined

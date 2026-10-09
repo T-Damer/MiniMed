@@ -195,6 +195,69 @@ example investigation → diagnostics and medication → treatment. Each result 
 - section type and user-facing category;
 - document, version, section, chunk, and stable anchor.
 
+## Search by source name — 2026-10-09
+
+A source name («Красота и медицина», «Аллмед», «Минздрав», «МКБ-10», «клинические рекомендации») is rarely part of the indexed text, so a text search for it returned arbitrary documents (QA R5:
+«Дракункулез», «Эхинококкоз»…). A query that **starts, ends or (for a long name) contains** a known source name is now
+read as «this source» plus the words left over. Query time only; no content rebuild.
+
+**Where the names come from** (`apps/app/src/features/search/source-names.ts`; nothing is a hand-written list of sources):
+
+- the `publisher` of a catalogue record («Красота и медицина», «Регистр лекарственных средств России», «ВОЗ (WHO)»), the
+  `sourceLabel` of a snapshot («Allmed snapshot») and the `issuer` of an act («Министерство здравоохранения Российской Федерации»),
+  all read from document metadata (the search projection carries them since this change);
+- collections the app declares by document type, with the label result cards already use (`SOURCE_COLLECTIONS` in
+  `ScopedMedicalCore.ts`): «Клинические рекомендации», «МКБ-10», «МКБ-11 (ВОЗ)» (only when the module is installed), «ГРЛС» (the
+  instruction modules, only when installed).
+
+A label becomes a source when at least three documents carry it and it has at most six words (a description such as «multiple
+general medical/nutrition web sources…» is not a name). The aliases are derived from the label: the whole name without trailing
+generic words («snapshot», «России»), the words inside brackets («WHO»), the initialism of three or more words («КиМ», «РЛС»),
+the Cyrillic readings of a Latin one-word name («Allmed» → «Аллмед»), and «мин» + the start of the next word for a ministry
+(«Минздрав»). Words match by stem, so the singular and inflected forms count («клиническая рекомендация», «приказ минздрава»).
+
+**Rules.**
+
+- Lookup mode only (`analysisMode: 'lookup'`), never in «Клинический разбор», the personal, calculator and questionnaire scopes.
+- The longest name wins; at equal length a name at the start beats one at the end, then one in the middle. A name shorter than five
+  letters («КиМ», «РЛС», «ВОЗ») only opens or closes the query. Sources that share a name (the ministry that issued acts and the
+  ministry that published a reference) are searched together.
+- A query that is a document's title is never read as a source name; a name that is only part of a longer one («красота»,
+  «регистр», «мкб пневмония») is not read either.
+- The scope the doctor picked still applies: the source's documents are intersected with it. A source with no document in that
+  scope is ignored.
+- The rest of the query is searched inside the source (`filters.documentIds`), `analysis.originalQuery` stays the typed text. If
+  nothing is found inside the source, the typed query is searched as usual.
+- A bare name does not search: the response has no groups and `sourceScope.remainder` is empty; the screen shows the source's
+  documents with the existing document list (`DocumentLibrary`).
+- `SearchRequest.sourceNames: false` searches the typed words as they are; the note's «Искать везде» sends it. Such a search is
+  not read from or saved to the result cache.
+
+**What the screen shows** (`SearchSourceNote`, `data-testid="search-source-note"`): one line «Красота и медицина · «пневмония»» (a bare name: «Красота и медицина · 6 068
+материалов», with the document list below) and, for a limited search, «Искать везде». `SearchResponse.sourceScope` carries `{id, label, documentCount,
+remainder}`; the count is of distinct materials (a pointer and its installed document are one).
+
+**Measured** (`bun run benchmark:source-names`, `tools/benchmarks/source-name-queries.json`: 17 source queries, 13 negatives,
+5 overview cases; released corpus, all companion packs): sources read as expected 17/17, negatives (an unknown source such as
+«Видаль» or «ГРЛС» without the module, a disease, a drug, a part of a name) stay plain 13/13. Share of the first five results that
+belong to the named source: 0.53 as plain words → 1.00; the expected document among the first results: 8/9 → 9/9 (the plain
+search finds a name that the source's technical card prints, «приказ минздрава 1122н» it does not).
+
+**Not covered.** «Видаль» is not in the corpus; «ГРЛС» and «МКБ-11» name a source only while the instruction or ICD-11 modules are
+installed (without them the query is searched as text). Publishers of a clinical recommendation (the professional societies) are
+printed in the document text, not in the catalogue metadata the core holds. Web addresses («krasotaimedicina», «rlsnet») are not
+used as aliases: the URL is not in the search projection.
+
+### Drug overview line (S6)
+
+A drug named by its name (the typed query is the exact title or alias of the card) opens with an overview line instead of the
+catalogue identity line («Стандартизированное МНН: АМОКСИЦИЛЛИН.»): the first of the pharmacotherapeutic group, the
+pharmacological action, the indications of the document, as a source chunk, unchanged (`packages/core/src/medication-overview.ts`).
+A core pointer holds no such text, so the line is read from the product records linked to its substance
+(`linkedMnnDocumentId`: an installed instruction first, then the Allmed card with the same title). The result keeps the id of the
+document it comes from. Only the first five groups, only for lookup, and not when the query asks for a dose form, a route, a
+strength or a section («нурофен суспензия» keeps the form passage first).
+
 ## Snippets and source context
 
 Known HTML fragments and entities are converted to readable plain text before snippet offsets are

@@ -153,6 +153,7 @@
     "content:medication-safety": "bun scripts/build-medication-safety.ts",
     "benchmark:safe1": "bun tools/benchmarks/src/run-safe1-queries.ts",
     "benchmark:cmp1": "bun tools/benchmarks/src/run-cmp1-queries.ts",
+    "benchmark:source-names": "bun tools/benchmarks/src/run-source-names.ts --check",
     "content:drug-comparison": "bun scripts/build-drug-comparison.ts",
     "content:substance-fallback": "uv run --project tools/ingest python tools/ingest/scripts/build_substance_fallback.py --modules-dir data/build/grls-instruction-modules --manufacturer-report data/build/manufacturer-instruction-module/reports/minimed.medications.instructions.manufacturer-site.ru.json --report data/build/substance-fallback/report.json",
     "data:ledger": "bun scripts/data-ledger.ts",

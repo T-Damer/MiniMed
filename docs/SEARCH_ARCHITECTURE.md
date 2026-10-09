@@ -10,7 +10,9 @@ and ADR 0008. Line numbers drift; function names are the stable anchors. Checked
 
 ```text
 SearchHome / SearchWorkspace (apps/app/src/features/search)
-  → ScopedMedicalCore            scope → document filter, audience, result kinds
+  → ScopedMedicalCore            scope → document filter, audience, result kinds;
+                                 source-name intent (query «Красота и медицина пневмония» → that
+                                 source's documents + the rest of the words)
   → MedicalCore.search           packages/core/src/create-medical-core.ts
       → query plan               packages/search-lexical (lookup or clinical analysis)
       → store.search ×branch     MultiMedicalStore → one store per mounted pack
@@ -23,6 +25,7 @@ SearchHome / SearchWorkspace (apps/app/src/features/search)
       → TerminologySearchIndex.rank, exact-title sort
       → bridgeIcdRecommendations МКБ card → recommendations that list its code (S3)
       → collapse by target document
+      → drug overview line       medication-overview.ts: group / action / indications first (S6)
   → withNameVariantFallback      layout / transliteration / Latin-name retry of a weak lookup (S3)
 ```
 
@@ -247,6 +250,7 @@ that cover it through source codes only:
 | `tools/benchmarks/src/run-icd-bridge.ts` | S3 item 4: Q1 through `ScopedMedicalCore('diagnosis' \| 'guidelines')`, bridge off/on, optional `--packs=<КР modules>`, `--e5-model-dir=`, `--tunings='[…]'` |
 | `tools/benchmarks/src/build-name-variant-queries.ts` → `name-variant-queries.json`, `run-name-variants.ts` | S3 item 3: layout / Latin-spelling variants of real names plus negative controls, fallback off/on, hit@1/hit@5 and latency |
 | `S3_OFF=1` (any `openRealCorpus` benchmark), `S3_BRIDGE_JSON='{…}'` | state before S3 / tuning override for `run-real-corpus`, `run-doctor-lookup`, `run-owner-queries` |
+| `bun run benchmark:source-names` (`source-name-queries.json`) | source-name intent (read as expected, results inside the source, negatives stay plain) and the drug overview line; `--check` fails on any miss |
 | `tools/benchmarks/src/run-semantic-kr.ts` | Q1 over the e5 КР packs through MedicalCore: lexical / semantic / hybrid fusion grid |
 
 ## Pitfalls

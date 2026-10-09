@@ -21,6 +21,7 @@ import type {
   SearchResponse,
   SearchResult,
   SearchResultGroup,
+  SourceScope,
 } from '@localmed/contracts';
 import {
   hasWordPrefix,
@@ -30,6 +31,13 @@ import {
   tokenize,
 } from '@localmed/search-lexical';
 import { isIcd11Document, isIcd11DocumentId } from '@/features/icd11/icd11-document';
+import { RESULT_TYPE_VISUALS } from '@/features/search/searchResultKindVisuals';
+import {
+  detectSourceNameIntent,
+  type SourceCollection,
+  type SourceNameIntent,
+  sourceCatalogOf,
+} from '@/features/search/source-names';
 
 export type SearchScope =
   | 'diagnosis'
@@ -655,6 +663,64 @@ function preserveStrictIdentities(
     .map((entry) => entry.group);
 }
 
+/** Scopes without documents of the sources a doctor names (tools, personal notes). */
+const SOURCE_NAME_EXCLUDED_SCOPES: ReadonlySet<SearchScope> = new Set([
+  'personal',
+  'calculators',
+  'assessments',
+]);
+
+/**
+ * Collections a doctor names like a source: a kind of document with its reader-facing name
+ * («Клинические рекомендации», «МКБ-10», «МКБ-11»), taken from the labels result cards use.
+ */
+export const SOURCE_COLLECTIONS: readonly SourceCollection[] = [
+  {
+    id: 'clinical-recommendation',
+    label: RESULT_TYPE_VISUALS['clinical-recommendation'].label,
+    matches: (document) => searchResultDocumentType(document) === 'clinical-recommendation',
+  },
+  {
+    id: 'icd10',
+    label: RESULT_TYPE_VISUALS.icd10.label,
+    // A catalogue pointer to an МКБ-10 card carries the code but not the source type.
+    matches: (document) =>
+      searchResultDocumentType(document) === 'icd10' ||
+      typeof document.metadata?.['mkbCode'] === 'string',
+  },
+  {
+    id: 'icd11',
+    label: RESULT_TYPE_VISUALS.icd11.label,
+    matches: (document) => isIcd11Document(document),
+  },
+  // The instruction modules of the state register; a result card calls such a text an instruction.
+  {
+    id: 'grls-instruction',
+    label: 'ГРЛС',
+    matches: (document) => document.sourceType === 'official_drug_instruction',
+  },
+];
+
+function sourceScopeOf(
+  intent: SourceNameIntent,
+  inScope: ReadonlySet<string>,
+  documents: readonly SearchDocumentDescriptor[],
+): SourceScope {
+  // A pointer and the installed document it stands for are one material.
+  const materials = new Set<string>();
+  for (const document of documents) {
+    if (!inScope.has(document.id)) continue;
+    const target = document.metadata?.['targetDocumentId'];
+    materials.add(typeof target === 'string' ? target : document.id);
+  }
+  return {
+    id: intent.id,
+    label: intent.label,
+    documentCount: materials.size,
+    remainder: intent.remainder,
+  };
+}
+
 /**
  * A UI-level core view that keeps the public MedicalCore contract intact while constraining
  * retrieval to the source family explicitly chosen by the clinician.
@@ -705,16 +771,114 @@ export class ScopedMedicalCore implements MedicalCore {
     const documents = await this.listSearchDocuments();
     if (!documents.ok) return { ok: false, error: documents.error };
 
+    const named = await this.searchNamedSource(request, documents.value);
+    return named ?? this.searchScoped(request, documents.value);
+  }
+
+  /**
+   * A query that starts or ends with the name of a source (derived from the documents' own
+   * metadata, `source-names.ts`) is searched inside that source with the rest of the words; a bare
+   * name lists the source instead. Undefined when the query names no source in this scope, or
+   * when the words found nothing inside it: the typed query is then searched as usual.
+   */
+  private async searchNamedSource(
+    request: SearchRequest,
+    documents: readonly SearchDocumentDescriptor[],
+  ): Promise<Result<SearchResponse, LocalMedError> | undefined> {
+    if (request.sourceNames === false || request.analysisMode !== 'lookup') return undefined;
+    if (SOURCE_NAME_EXCLUDED_SCOPES.has(this.scope)) return undefined;
+    const intent = detectSourceNameIntent(
+      request.query,
+      sourceCatalogOf(documents, SOURCE_COLLECTIONS),
+    );
+    if (!intent) return undefined;
+    const inScope = new Set(
+      documents
+        .filter(
+          (document) =>
+            intent.documentIds.has(document.id) &&
+            documentMatchesSearchScope(document, this.scope) &&
+            (!this.includedDocumentIds || this.includedDocumentIds.has(document.id)),
+        )
+        .map((document) => document.id),
+    );
+    if (inScope.size === 0) return undefined;
+    const sourceScope = sourceScopeOf(intent, inScope, documents);
+    // A bare name searches nothing: the screen lists the source's documents.
+    const result =
+      intent.remainder === ''
+        ? await this.listingResponse(request)
+        : await this.searchScoped({ ...request, query: intent.remainder }, documents, inScope);
+    if (!result.ok || (intent.remainder !== '' && result.value.groups.length === 0)) {
+      return undefined;
+    }
+    return {
+      ok: true,
+      value: {
+        ...result.value,
+        // The typed text stays the query of the response: the screen matches it to the field.
+        analysis: { ...result.value.analysis, originalQuery: request.query.trim() },
+        sourceScope,
+      },
+    };
+  }
+
+  /** The response of a query that lists documents instead of finding passages: no groups. */
+  private async listingResponse(
+    request: SearchRequest,
+  ): Promise<Result<SearchResponse, LocalMedError>> {
+    const startedAt = performance.now();
+    const analysis = await this.base.analyzeQuery({
+      query: request.query,
+      includeSuggestions: false,
+    });
+    if (!analysis.ok) return analysis;
+    return {
+      ok: true,
+      value: {
+        requestId: globalThis.crypto?.randomUUID?.() ?? `listing-${Date.now()}`,
+        normalizedQuery: analysis.value.normalizedQuery,
+        elapsedMs: performance.now() - startedAt,
+        modeUsed: 'lexical',
+        analysis: analysis.value,
+        suggestions: [],
+        groups: [],
+        diagnostics: {
+          ftsQuery: '',
+          candidateCount: 0,
+          aliasMatches: [],
+          terms: [],
+          branches: [],
+          semantic: {
+            status: 'disabled',
+            requestedMode: 'lexical',
+            profileId: null,
+            candidateCount: 0,
+            elapsedMs: 0,
+            fallbackReason: null,
+          },
+        },
+      },
+    };
+  }
+
+  private async searchScoped(
+    request: SearchRequest,
+    documents: readonly SearchDocumentDescriptor[],
+    /** Only these documents may answer: the documents of a named source. */
+    restrictTo?: ReadonlySet<string>,
+  ): Promise<Result<SearchResponse, LocalMedError>> {
     const sourceTypes = SOURCE_TYPES_BY_SCOPE[this.scope];
     let result: Result<SearchResponse, LocalMedError>;
-    if (!sourceTypes) {
+    if (!sourceTypes && !restrictTo) {
       result = await this.base.search(request);
     } else {
-      const availableDocumentIds = documents.value
+      const availableDocumentIds = documents
         .filter(
           (document) =>
             documentMatchesSearchScope(document, this.scope) &&
-            (!this.includedDocumentIds || this.includedDocumentIds.has(document.id)),
+            (!this.includedDocumentIds || this.includedDocumentIds.has(document.id)) &&
+            (!restrictTo || restrictTo.has(document.id)),
         )
         .map((document) => document.id);
       const selectedDocumentIds = intersectDocumentIds(
@@ -741,20 +905,20 @@ export class ScopedMedicalCore implements MedicalCore {
       this.scope === 'medications' ? keepExplicitMedicationMatches(withoutIcd11) : withoutIcd11;
     const scopedResponse = filterMedicationDocuments(
       explicitMedicationResponse,
-      documents.value,
+      documents,
       this.scope,
     );
     const requestedAudience = inferRequestedAudience(request.query);
     const audienceRanked = rankSearchGroupsByAudience(
       scopedResponse.groups,
-      documents.value,
+      documents,
       requestedAudience,
       // Narrative cases and hybrid results keep the plain audience order; a lexical lookup names its subject.
       request.analysisMode === 'lookup' && scopedResponse.modeUsed === 'lexical'
         ? request.query
         : undefined,
     );
-    const summaries = new Map(documents.value.map((document) => [document.id, document]));
+    const summaries = new Map(documents.map((document) => [document.id, document]));
     const ranked =
       this.scope === 'diagnosis'
         ? rankDiagnosisGroups(audienceRanked)

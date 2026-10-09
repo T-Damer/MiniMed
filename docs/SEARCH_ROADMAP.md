@@ -126,6 +126,16 @@ hit@5 0.444 (rush 0.581, thoughtful 0.261), and with S3 0.278 / 0.574 (0.774, 0.
     construction. Left: the preview does not yet read a definition from a full КР that is installed but
     not among the results.
 
+18. **Source-name queries and the drug overview line** (2026-10-09; QA R5 and S6). Compared with the list first: not
+    ranking work (items 1–5, 8 stay as they are, every exact-name gate untouched) and not a content rebuild; closest are 3
+    (name variants: another way a typed name misses) and 17 (presentation). A query that starts, ends or (for a long name)
+    contains a source name — derived from the documents' `publisher` / `sourceLabel` / `issuer` and the declared collections —
+    is searched inside that source with the rest of the words; a bare name lists the source. A bare drug name opens with an
+    overview line instead of the catalogue identity line. Measured on `source-name-queries.json` (`bun run
+    benchmark:source-names`): first five results from the named source 0.53 → 1.00, expected document 8/9 → 9/9, negatives
+    13/13 plain. Left: «Видаль» (not in the corpus), publishers of a clinical recommendation (not in the catalogue metadata),
+    web addresses as aliases (not in the search projection). Details: [`SEARCH.md`](SEARCH.md), «Search by source name».
+
 ## Measured and rejected
 
 | Idea | Result | Date |

@@ -60,6 +60,8 @@ describe('SqliteMedicalStore', () => {
           terminologyMentionAnchors: { 'discovery#term': 'source#exact-anchor' },
           sourceType: 'rls_mkb_reference',
           mkbCode: 'R05',
+          publisher: 'Красота и медицина',
+          linkedMnnDocumentId: 'esklp.mnn.test',
           canonicalDefinition: { text: 'Определение', sourceDocumentId: document.id },
           unrelated: 'x'.repeat(4096),
         },
@@ -89,6 +91,11 @@ describe('SqliteMedicalStore', () => {
         icd10Codes: null,
         mkbCode: 'R05',
         nameLat: null,
+        // Query-time source names and the substance a product record is linked to.
+        publisher: 'Красота и медицина',
+        sourceLabel: null,
+        issuer: null,
+        linkedMnnDocumentId: 'esklp.mnn.test',
       });
     }
     const navigation = await store.listNavigationDocuments();

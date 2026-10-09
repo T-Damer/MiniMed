@@ -1,0 +1,177 @@
+{
+  "version": 1,
+  "description": "Search by source name and the drug overview line (2026-10-09, QA R5 and S6). Hand labels over the released corpus. `sources`: the query starts or ends with the name of a source (a publisher, a snapshot label, an issuer, a collection of documents) and must be read as such: the source and the words left over, every result from that source, and the expected document among the first results. `negatives`: queries that must stay plain text searches (unknown sources, a word that is only part of a name, an ordinary disease). `overview`: a drug named by its bare name must open with the pharmacotherapeutic group, the action or the indications of its source, not with the identity line. `needs` lists the packs (file names of apps/app/public/content) a case reads; a case whose pack is not mounted is skipped. Run: bun run benchmark:source-names.",
+  "sources": [
+    {
+      "id": "kim-bare",
+      "query": "Красота и медицина",
+      "source": "Красота и медицина",
+      "remainder": "",
+      "minDocuments": 6000
+    },
+    {
+      "id": "kim-lowercase",
+      "query": "красота и медицина",
+      "source": "Красота и медицина",
+      "remainder": ""
+    },
+    {
+      "id": "kim-initialism",
+      "query": "КиМ",
+      "source": "Красота и медицина",
+      "remainder": ""
+    },
+    {
+      "id": "kim-pneumonia",
+      "query": "Красота и медицина пневмония",
+      "source": "Красота и медицина",
+      "remainder": "пневмония",
+      "expectTitleInTop": { "title": "Пневмония", "top": 3 }
+    },
+    {
+      "id": "kim-pneumonia-last",
+      "query": "пневмония красота и медицина",
+      "source": "Красота и медицина",
+      "remainder": "пневмония",
+      "expectTitleInTop": { "title": "Пневмония", "top": 3 }
+    },
+    {
+      "id": "kim-migraine",
+      "query": "Красота и медицина мигрень",
+      "source": "Красота и медицина",
+      "remainder": "мигрень",
+      "expectTitleInTop": { "title": "Мигрень", "top": 3 }
+    },
+    {
+      "id": "allmed-bare",
+      "query": "Аллмед",
+      "source": "Allmed",
+      "remainder": "",
+      "needs": ["medications.db"],
+      "minDocuments": 4000
+    },
+    {
+      "id": "allmed-latin",
+      "query": "Allmed",
+      "source": "Allmed",
+      "remainder": "",
+      "needs": ["medications.db"]
+    },
+    {
+      "id": "allmed-nurofen",
+      "query": "аллмед нурофен",
+      "source": "Allmed",
+      "remainder": "нурофен",
+      "needs": ["medications.db"],
+      "expectIdInTop": { "id": "drug.allmed.1292", "top": 1 }
+    },
+    {
+      "id": "kr-bare",
+      "query": "клинические рекомендации",
+      "source": "Клинические рекомендации",
+      "remainder": "",
+      "minDocuments": 700
+    },
+    {
+      "id": "kr-pneumonia",
+      "query": "клинические рекомендации пневмония",
+      "source": "Клинические рекомендации",
+      "remainder": "пневмония",
+      "expectTargetInTop": { "target": "kr.rf.714_2", "top": 3 }
+    },
+    {
+      "id": "kr-singular-migraine",
+      "query": "клиническая рекомендация по мигрени",
+      "source": "Клинические рекомендации",
+      "remainder": "мигрени",
+      "expectNonEmpty": true
+    },
+    {
+      "id": "mkb10-pneumonia",
+      "query": "МКБ-10 пневмония",
+      "source": "МКБ-10",
+      "remainder": "пневмония",
+      "expectTitleInTop": { "title": "J18", "prefix": true, "top": 5 }
+    },
+    {
+      "id": "mkb10-code",
+      "query": "МКБ-10 J18.9",
+      "source": "МКБ-10",
+      "remainder": "J18.9",
+      "expectTitleInTop": { "title": "J18.9", "prefix": true, "top": 1 }
+    },
+    {
+      "id": "rls-bare",
+      "query": "РЛС",
+      "source": "Регистр лекарственных средств России",
+      "remainder": ""
+    },
+    {
+      "id": "minzdrav-bare",
+      "query": "Минздрав",
+      "needs": ["regulatory.db"],
+      "source": "Министерство здравоохранения Российской Федерации",
+      "remainder": ""
+    },
+    {
+      "id": "minzdrav-order",
+      "query": "приказ минздрава 1122н",
+      "needs": ["regulatory.db"],
+      "source": "Министерство здравоохранения Российской Федерации",
+      "remainder": "приказ 1122н",
+      "expectIdInTop": { "id": "regulatory.rf.minzdrav.1122n-2021", "top": 3 }
+    }
+  ],
+  "negatives": [
+    { "id": "plain-disease", "query": "пневмония" },
+    { "id": "plain-disease-children", "query": "пневмония у детей" },
+    { "id": "plain-drug", "query": "амоксициллин" },
+    { "id": "plain-code", "query": "J18.9" },
+    { "id": "unknown-source-vidal", "query": "Видаль" },
+    { "id": "unknown-source-vidal-drug", "query": "Видаль амоксициллин" },
+    { "id": "unknown-source-grls", "query": "ГРЛС" },
+    { "id": "unknown-source-icd11", "query": "МКБ-11" },
+    { "id": "name-part-only", "query": "красота" },
+    { "id": "name-part-medicine", "query": "медицина" },
+    { "id": "icd-word-only", "query": "мкб пневмония" },
+    { "id": "register-word", "query": "регистр" },
+    { "id": "typed-title", "query": "Мигрень" }
+  ],
+  "overview": [
+    {
+      "id": "amoxicillin",
+      "query": "амоксициллин",
+      "scope": "all",
+      "needs": ["medications.db"],
+      "firstGroupTitle": "АМОКСИЦИЛЛИН"
+    },
+    {
+      "id": "paracetamol",
+      "query": "парацетамол",
+      "scope": "all",
+      "needs": ["medications.db"],
+      "firstGroupTitle": "ПАРАЦЕТАМОЛ"
+    },
+    {
+      "id": "metformin",
+      "query": "метформин",
+      "scope": "all",
+      "needs": ["medications.db"],
+      "firstGroupTitle": "МЕТФОРМИН"
+    },
+    {
+      "id": "amoxicillin-medications-scope",
+      "query": "амоксициллин",
+      "scope": "medications",
+      "needs": ["medications.db"],
+      "firstGroupTitle": "АМОКСИЦИЛЛИН"
+    },
+    {
+      "id": "form-keeps-its-passage",
+      "query": "нурофен суспензия",
+      "scope": "all",
+      "needs": ["medications.db"],
+      "keepsFirstSnippet": true
+    }
+  ]
+}
