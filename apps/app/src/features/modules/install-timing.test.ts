@@ -1,10 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   epochNow,
+  expectInstallTarget,
   INSTALL_MEASURE_PREFIX,
   markInstallState,
   recordEpochInstallPhase,
   recordInstallDuration,
+  recordInstallTargetPainted,
   timeInstallPhase,
 } from './install-timing';
 
@@ -58,5 +60,21 @@ describe('install timing', () => {
       throw new Error('unavailable');
     });
     expect(() => markInstallState('minimed.test', 'completed')).not.toThrow();
+  });
+
+  it('measures from the completed install to the paint of the awaited target only', () => {
+    performance.mark(`${INSTALL_MEASURE_PREFIX}state:completed`);
+    expectInstallTarget('doc.target');
+    recordInstallTargetPainted('doc.other');
+    expect(installMeasures()).toHaveLength(0);
+    recordInstallTargetPainted('doc.target');
+    const [entry] = installMeasures();
+    expect(entry?.name).toBe(`${INSTALL_MEASURE_PREFIX}target-first-paint`);
+    expect((entry as PerformanceMeasure | undefined)?.detail).toEqual({ documentId: 'doc.target' });
+    const [completed] = performance.getEntriesByName(`${INSTALL_MEASURE_PREFIX}state:completed`);
+    expect(entry?.startTime).toBe(completed?.startTime);
+    // The expectation is spent: a second paint of the same document records nothing.
+    recordInstallTargetPainted('doc.target');
+    expect(installMeasures()).toHaveLength(1);
   });
 });

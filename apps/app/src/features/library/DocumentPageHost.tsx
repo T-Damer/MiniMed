@@ -1,8 +1,9 @@
-import type {
-  ContentModuleDownloadTask,
-  MedicalCore,
-  MedicalDocument,
-  MedicalDocumentSummary,
+import {
+  type ContentModuleDownloadTask,
+  type MedicalCore,
+  type MedicalDocument,
+  type MedicalDocumentSummary,
+  ok,
 } from '@localmed/contracts';
 import { fullDocumentCandidateIds } from '@localmed/core';
 import { createEffect, createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
@@ -63,7 +64,11 @@ import {
   type ClinicalEditionLink,
   clinicalEditionNotice,
 } from '@/features/modules/clinical-editions';
-import { timeInstallPhase } from '@/features/modules/install-timing';
+import {
+  expectInstallTarget,
+  recordInstallTargetPainted,
+  timeInstallPhase,
+} from '@/features/modules/install-timing';
 import { isModuleReleased } from '@/features/modules/local-packaged-modules';
 import { loadModuleCatalog } from '@/features/modules/module-catalog-state';
 import { contentModuleTaskProgress } from '@/features/modules/module-display';
@@ -216,6 +221,13 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
   };
   let loadingDocumentId: string | null = null;
   let loadedOfficialRequestId: string | null = null;
+  /**
+   * The target an installation has just read through the reconnected core: the route that opens it
+   * takes this text instead of reading it again behind the new module's other reads.
+   */
+  let installedTarget:
+    | { readonly core: MedicalCore; readonly document: MedicalDocument }
+    | undefined;
   let officialLoadGeneration = 0;
   let requestedIdentityKey = '';
   onCleanup(() => {
@@ -396,7 +408,12 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     try {
       // Read the selected document before queuing catalog SQL on the same worker/native owner.
       // Merely awaiting it first is insufficient when the catalog request was already dispatched.
-      const requested = await core.getDocument(documentId);
+      const handedOver = installedTarget;
+      installedTarget = undefined;
+      const requested =
+        handedOver?.core === core && handedOver.document.id === documentId
+          ? ok(handedOver.document)
+          : await core.getDocument(documentId);
       if (!current()) return;
       // A pointer may hand over to the document it stands for, and a clinical summary to its full
       // text: showing the stand-in first would flash it between two loading states. They wait for
@@ -714,6 +731,12 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
   createEffect(() => {
     void refreshInstructionOffer(medicationProduct(), document());
   });
+  createEffect(() => {
+    const shown = document()?.id;
+    if (shown === undefined) return;
+    // Two frames: the first commits the text, the second is the paint that followed it.
+    requestAnimationFrame(() => requestAnimationFrame(() => recordInstallTargetPainted(shown)));
+  });
 
   /** Downloads the group's instruction module, reconnects the core and opens the new text. */
   const installInstructionModule = async (): Promise<void> => {
@@ -808,6 +831,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       await installModulePointer(runtime, resolution, (progress) => {
         if (current()) setModulePointerProgress(progress);
       });
+      expectInstallTarget(resolution.pointer.targetDocumentId);
       if (!props.reconnectContent) {
         throw new Error('Набор загружен, но локальный поиск не удалось обновить.');
       }
@@ -849,6 +873,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
         );
         return;
       }
+      installedTarget = { core: refreshedCore, document: target.value };
       openDocumentOverlay(resolution.pointer.targetDocumentId, targetAnchor, {
         preferSummary: true,
         replace: true,

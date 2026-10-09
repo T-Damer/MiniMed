@@ -64,3 +64,23 @@ export function markInstallState(moduleId: string, state: string): void {
     // Diagnostics only.
   }
 }
+
+let awaitedTarget: { readonly documentId: string; readonly startedAt: number } | undefined;
+
+/**
+ * An installation of the module that holds `documentId` is done and the reader waits for that
+ * document: `recordInstallTargetPainted` closes the `target-first-paint` measure that runs from the
+ * task's `completed` instant, so it covers the core reload, the read and the render.
+ */
+export function expectInstallTarget(documentId: string): void {
+  const completed = performance.getEntriesByName(`${INSTALL_MEASURE_PREFIX}state:completed`).at(-1);
+  awaitedTarget = { documentId, startedAt: completed?.startTime ?? performance.now() };
+}
+
+/** The reader has painted `documentId`; a no-op unless an installation is waiting for it. */
+export function recordInstallTargetPainted(documentId: string): void {
+  if (awaitedTarget?.documentId !== documentId) return;
+  const { startedAt } = awaitedTarget;
+  awaitedTarget = undefined;
+  record('target-first-paint', startedAt, performance.now(), { documentId });
+}

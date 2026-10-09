@@ -32,6 +32,11 @@ interface Case {
   readonly target: string;
   /** Budget for everything after the download, in ms: ~5× what a loaded laptop needs now, 10× below the old full-file scans. */
   readonly installBudgetMs: number;
+  /**
+   * Budget for install complete -> the target painted in the reader, in ms. It no longer queues
+   * behind the new module's whole-pack listings; before that it was ~4 s (drug group), ~1.5 s (pack).
+   */
+  readonly targetBudgetMs: number;
 }
 
 const CASES: readonly Case[] = [
@@ -42,6 +47,7 @@ const CASES: readonly Case[] = [
     pointer: 'core.catalog.pointer.medication.esklp.mnn.амоксициллин-39ac47a244d081af',
     target: 'esklp.mnn.амоксициллин',
     installBudgetMs: 12_000,
+    targetBudgetMs: 3_000,
   },
   {
     name: 'reference pack (96 MiB)',
@@ -51,6 +57,7 @@ const CASES: readonly Case[] = [
       'core.catalog.pointer.reference.krasotaimedicina.disease.0007ef852d70ba32-82f435504305e1c9',
     target: 'krasotaimedicina.disease.0007ef852d70ba32',
     installBudgetMs: 30_000,
+    targetBudgetMs: 1_200,
   },
 ];
 
@@ -135,6 +142,11 @@ for (const scenario of CASES) {
       const clickedAt = await page.evaluate(() => performance.now());
       await install.click();
       await expect(page).toHaveURL(route(scenario.target), { timeout: 600_000 });
+      await page.waitForFunction(
+        () => performance.getEntriesByName('minimed:install:target-first-paint').length > 0,
+        undefined,
+        { timeout: 60_000 },
+      );
 
       const { measures, marks, swappedAt } = await page.evaluate(() => ({
         measures: performance
@@ -162,6 +174,8 @@ for (const scenario of CASES) {
       const completed = entries.find((entry) => entry.name === 'state:completed');
       expect(downloadEnd).toBeDefined();
       expect(completed).toBeDefined();
+      const targetPaint = entries.find((entry) => entry.name === 'target-first-paint');
+      expect(targetPaint).toBeDefined();
       const origin = (downloadEnd?.start ?? 0) + (downloadEnd?.duration ?? 0);
       const rows = entries.map((entry) => ({
         phase: entry.name,
@@ -177,6 +191,8 @@ for (const scenario of CASES) {
         coreReloadMs: reload ? Math.round(reload.duration) : null,
         routeSwappedMs: swappedAt === null ? null : Math.round(swappedAt - origin),
         reloadEndMs: reloadEnd === null ? null : Math.round(reloadEnd),
+        // Install complete -> the target document painted in the reader.
+        targetPaintMs: Math.round(targetPaint?.duration ?? 0),
         phases: rows,
       };
       console.log(`\n=== ${scenario.name} (after download, ms) ===`);
@@ -186,7 +202,7 @@ for (const scenario of CASES) {
         );
       }
       console.log(
-        `installed ${installMs} ms after the download; core reload ${summary.coreReloadMs ?? '-'} ms; route swapped at ${summary.routeSwappedMs ?? '-'} ms`,
+        `installed ${installMs} ms after the download; core reload ${summary.coreReloadMs ?? '-'} ms; route swapped at ${summary.routeSwappedMs ?? '-'} ms; target painted ${summary.targetPaintMs} ms after the install completed`,
       );
       if (REPORT) {
         const path = REPORT.replace(/\.json$/u, `.${scenario.moduleId}.json`);
@@ -194,6 +210,7 @@ for (const scenario of CASES) {
         await writeFile(path, JSON.stringify(summary, null, 2));
       }
       expect(installMs).toBeLessThan(scenario.installBudgetMs);
+      expect(summary.targetPaintMs).toBeLessThan(scenario.targetBudgetMs);
       await expect(page.locator('.document-module-pointer__error')).toHaveCount(0);
     } finally {
       server.close();
