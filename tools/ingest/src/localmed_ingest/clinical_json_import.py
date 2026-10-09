@@ -11,6 +11,7 @@ from typing import cast
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from .clinical_template_labels import is_template_label
 from .models import (
     BlockKind,
     ExtractedBlock,
@@ -24,7 +25,8 @@ from .numbered_headings import appendix_heading_depth, numbered_heading_depth
 # (`prepare --reuse` re-extracts anything older). 2: numbered sub-headings promoted to headings.
 # 3: a numbered paragraph stays a paragraph where promoting it would leave a heading hidden.
 # 4: appendix sub-titles («Приложение Б1. …») promoted to headings.
-EXTRACTOR_REVISION = 4
+# 5: bold standalone lines that are known labels of the official template promoted to headings.
+EXTRACTOR_REVISION = 5
 
 _SPACE_PATTERN = re.compile(r"\s+")
 _SECTION_NUMBER_PATTERN = re.compile(r"^\s*(\d+(?:\.\d+)*)\.?\s+\S")
@@ -34,6 +36,7 @@ _IMAGE_DATA_URL_PATTERN = re.compile(
 )
 _IGNORED_TAGS = {"script", "style", "noscript", "svg", "nav", "footer", "form", "button"}
 _BLOCK_TAGS = {"p", "li", "figcaption", "h1", "h2", "h3", "h4", "h5", "h6"}
+_BOLD_TAGS = {"strong", "b"}
 _FILENAME_LABEL = re.compile(
     r"^(?:[a-z0-9][a-z0-9._-]*)\.(?:png|jpe?g|gif|webp|bmp|svg)$",
     re.IGNORECASE,
@@ -147,6 +150,8 @@ class _ParsedBlock:
     text: str
     heading_level: int | None = None
     metadata: dict[str, object] = field(default_factory=dict)
+    # A paragraph whose every word is bold (a label, never a sentence with an emphasised word).
+    bold: bool = False
 
 
 class _StructuredHtmlParser(HTMLParser):
@@ -157,6 +162,8 @@ class _StructuredHtmlParser(HTMLParser):
         self._ignored_depth = 0
         self._current_tag: str | None = None
         self._current_parts: list[str] = []
+        self._bold_depth = 0
+        self._current_has_plain_text = False
         self._table_depth = 0
         self._table_rows: list[dict[str, object]] = []
         self._table_row: list[dict[str, object]] | None = None
@@ -215,6 +222,10 @@ class _StructuredHtmlParser(HTMLParser):
             self._flush_block()
             self._current_tag = lowered
             self._current_parts = []
+            self._bold_depth = 0
+            self._current_has_plain_text = False
+        elif lowered in _BOLD_TAGS and self._current_tag is not None:
+            self._bold_depth += 1
         elif lowered == "br" and self._current_tag is not None:
             self._current_parts.append("\n")
 
@@ -250,6 +261,9 @@ class _StructuredHtmlParser(HTMLParser):
                 if self._table_depth == 0:
                     self._flush_table()
             return
+        if lowered in _BOLD_TAGS and self._bold_depth:
+            self._bold_depth -= 1
+            return
         if self._current_tag == lowered:
             self._flush_block()
 
@@ -264,6 +278,9 @@ class _StructuredHtmlParser(HTMLParser):
             return
         if self._current_tag is not None:
             self._current_parts.append(data)
+            # Punctuation after a bold label («<b>Label</b>:») does not make the line plain.
+            if not self._bold_depth and any(char.isalnum() for char in data):
+                self._current_has_plain_text = True
 
     def close(self) -> None:
         self._flush_block()
@@ -360,7 +377,9 @@ class _StructuredHtmlParser(HTMLParser):
         elif tag == "li":
             self.blocks.append(_ParsedBlock(kind="list", text=f"- {text}"))
         else:
-            self.blocks.append(_ParsedBlock(kind="paragraph", text=text))
+            self.blocks.append(
+                _ParsedBlock(kind="paragraph", text=text, bold=not self._current_has_plain_text)
+            )
 
 
 def _section_heading_level(title: str) -> int:
@@ -396,6 +415,20 @@ def _hidden_headings(blocks: list[ExtractedBlock], kept: set[int]) -> set[int]:
         else:
             hidden.add(index)
     return hidden
+
+
+def _level_template_labels(blocks: list[ExtractedBlock]) -> None:
+    """Template labels are siblings one level below the latest heading that is not a label."""
+    parent_level = 1
+    for index, block in enumerate(blocks):
+        if block.kind != "heading":
+            continue
+        if block.metadata.get("promotedFrom") == "template-label":
+            level = min(6, parent_level + 1)
+            if block.heading_level != level:
+                blocks[index] = block.model_copy(update={"heading_level": level})
+        else:
+            parent_level = block.heading_level or 1
 
 
 def _demote_hidden_promoted_headings(blocks: list[ExtractedBlock]) -> int:
@@ -438,13 +471,36 @@ def _demote_hidden_promoted_headings(blocks: list[ExtractedBlock]) -> int:
     return len(promoted - kept)
 
 
-def extract_clinical_json(source: Path) -> ExtractedSource:
+def _read_official_document(source: Path) -> tuple[bytes, _OfficialClinicalDocument]:
     raw = source.read_bytes()
     try:
         payload: object = json.loads(raw)
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
         raise ValueError(f"Invalid official clinical JSON: {source.name}") from error
-    document = _OfficialClinicalDocument.model_validate(payload)
+    return raw, _OfficialClinicalDocument.model_validate(payload)
+
+
+def bold_standalone_paragraphs(source: Path) -> list[tuple[str, str]]:
+    """``(section title, text)`` of every all-bold paragraph outside tables, for mining labels."""
+    _raw, document = _read_official_document(source)
+    found: list[tuple[str, str]] = []
+    for section in document.obj.sections:
+        if section.id == "doc_whole":
+            continue
+        parser = _StructuredHtmlParser()
+        parser.feed(section.content or "")
+        parser.close()
+        title = _clean_text(section.title)
+        found.extend(
+            (title, block.text)
+            for block in parser.blocks
+            if block.kind == "paragraph" and block.bold
+        )
+    return found
+
+
+def extract_clinical_json(source: Path) -> ExtractedSource:
+    raw, document = _read_official_document(source)
 
     blocks: list[ExtractedBlock] = []
     warnings: list[str] = []
@@ -489,6 +545,14 @@ def extract_clinical_json(source: Path) -> ExtractedSource:
                     heading_level = depth
                     promoted_metadata = {"promotedFrom": promoted_from}
                     promoted_headings += 1
+                elif parsed.bold and is_template_label(parsed.text, title):
+                    # A fixed label of the official template (bold line), a sub-heading of the
+                    # section or sub-title above it; its level is set below, once the numbered
+                    # and appendix headings it sits under are final.
+                    kind = "heading"
+                    heading_level = 2
+                    promoted_metadata = {"promotedFrom": "template-label"}
+                    promoted_headings += 1
             render = parsed.metadata.get("renderBlock")
             if (
                 isinstance(render, dict)
@@ -517,7 +581,12 @@ def extract_clinical_json(source: Path) -> ExtractedSource:
             )
             order += 1
 
-    promoted_headings -= _demote_hidden_promoted_headings(blocks)
+    while True:
+        _level_template_labels(blocks)
+        demoted = _demote_hidden_promoted_headings(blocks)
+        promoted_headings -= demoted
+        if not demoted:
+            break
     character_count = sum(len(block.text) for block in blocks)
     heading_count = sum(block.kind == "heading" for block in blocks)
     table_count = sum(block.kind == "table_candidate" for block in blocks)
