@@ -70,6 +70,13 @@ import {
   toMedicalDocument,
   toMedicalSection,
 } from './mappers';
+import {
+  isMedicationDescriptor,
+  isOverviewResult,
+  overviewDocumentIds,
+  readOverviewHit,
+  withOverviewFirst,
+} from './medication-overview';
 import { nameVariantCandidates, responseNamesQuery } from './name-variant-fallback';
 import { QueryDocumentIndex } from './query-document-index';
 import {
@@ -625,6 +632,68 @@ function exactIdentityDocumentMatchesFilters(
     if (!filters.ageGroups.some((ageGroup) => ageGroups.includes(ageGroup))) return false;
   }
   return true;
+}
+
+/** A dose form, a route or a strength in the query asks for that passage, not for an overview. */
+function hasMedicationFormFacts(analysis: QueryAnalysis): boolean {
+  const context = analysis.clinicalContext;
+  return Boolean(
+    context &&
+      (context.doseForm.length > 0 || context.route.length > 0 || context.strength.length > 0),
+  );
+}
+
+/** Groups of the top results that start with their drug's overview line (`medication-overview.ts`). */
+const OVERVIEW_GROUP_LIMIT = 5;
+
+async function withMedicationOverviews(input: {
+  readonly groups: readonly SearchResultGroup[];
+  readonly enabled: boolean;
+  /** Documents the typed query names exactly: only a drug named by its name gets an overview. */
+  readonly named: ReadonlySet<string>;
+  readonly documentIndex: QueryDocumentIndex;
+  readonly store: MedicalStore;
+  readonly filters: SearchFilters;
+  readonly terms: readonly string[];
+}): Promise<readonly SearchResultGroup[]> {
+  const { groups, documentIndex } = input;
+  if (!input.enabled) return groups;
+  return Promise.all(
+    groups.map(async (group, index) => {
+      const document = documentIndex.byId.get(group.documentId);
+      const first = group.results[0];
+      if (
+        index >= OVERVIEW_GROUP_LIMIT ||
+        !document ||
+        !first ||
+        !input.named.has(group.documentId) ||
+        !isMedicationDescriptor(document) ||
+        isOverviewResult(first)
+      ) {
+        return group;
+      }
+      const hit = await readOverviewHit(
+        input.store,
+        overviewDocumentIds(group.documentId, documentIndex),
+        input.filters,
+      );
+      return hit
+        ? withOverviewFirst(
+            group,
+            toSearchResult({
+              hit,
+              branchIds: new Set(['drug-overview']),
+              branchLabels: new Set(['Кратко о препарате']),
+              terms: new Set(input.terms),
+              branchContributions: [{ branchId: 'drug-overview', score: 1 }],
+              sectionBoost: 0,
+              score: first.finalScore,
+              bestLexicalScore: first.lexicalScore,
+            }),
+          )
+        : group;
+    }),
+  );
 }
 
 function exactIdentityResult(hit: LexicalHit, terms: readonly string[], spelling: boolean) {
@@ -1610,10 +1679,21 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         modeUsed,
         analysis: plan.analysis,
         suggestions: plan.analysis.suggestions,
-        groups: collapseGroupsByTargetDocument(finalGroups, documentIndex.byId).slice(
-          0,
-          parsed.data.limit,
-        ),
+        groups: await withMedicationOverviews({
+          groups: collapseGroupsByTargetDocument(finalGroups, documentIndex.byId).slice(
+            0,
+            parsed.data.limit,
+          ),
+          enabled:
+            parsed.data.analysisMode === 'lookup' &&
+            requestedSectionType(plan.analysis.normalizedQuery) === null &&
+            !hasMedicationFormFacts(plan.analysis),
+          named: new Set([...exactIdentityDocumentIds, ...exactAliasDocumentIds]),
+          documentIndex,
+          store: options.store,
+          filters: parsed.data.filters,
+          terms: plan.terms,
+        }),
         diagnostics: {
           ftsQuery: branchDiagnostics.map((branch) => branch.ftsQuery).join(' || '),
           candidateCount: candidateIds.size,

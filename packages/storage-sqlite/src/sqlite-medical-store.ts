@@ -290,6 +290,13 @@ const SEARCH_METADATA_FIELDS = [
   'icd10Codes',
   'mkbCode',
   'nameLat',
+  // Query-time source names («Красота и медицина», «Аллмед», «Минздрав»): the publisher of a
+  // catalogue record, the label of a snapshot, the issuer of an act; and the ЕСКЛП substance a
+  // product record is linked to (a drug card's overview line).
+  'publisher',
+  'sourceLabel',
+  'issuer',
+  'linkedMnnDocumentId',
 ] as const;
 const NAVIGATION_METADATA_FIELDS = [
   ...SEARCH_METADATA_FIELDS,

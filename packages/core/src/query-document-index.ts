@@ -17,6 +17,7 @@ export class QueryDocumentIndex {
   private namePrefixes: ReadonlySet<string> | undefined;
   private latinNames: ReadonlyMap<string, readonly string[]> | undefined;
   private icdCards: ReadonlyMap<string, readonly string[]> | undefined;
+  private linkedProducts: ReadonlyMap<string, readonly string[]> | undefined;
 
   constructor(documents: readonly SearchDocumentDescriptor[]) {
     this.documents = documents;
@@ -93,6 +94,15 @@ export class QueryDocumentIndex {
     return this.latinNames.get(normalizeSurfaceText(query)) ?? [];
   }
 
+  /**
+   * Product records (an installed instruction, an Allmed card) linked to the ЕСКЛП substance
+   * `substanceDocumentId` («esklp.mnn.амоксициллин»), instructions first.
+   */
+  linkedProductIds(substanceDocumentId: string): readonly string[] {
+    this.linkedProducts ??= buildLinkedProducts(this.documents);
+    return this.linkedProducts.get(substanceDocumentId) ?? [];
+  }
+
   private addIdentity(value: string, documentId: string, index: Map<string, Set<string>>): void {
     const normalized = normalizeSurfaceText(value);
     let ids = index.get(normalized);
@@ -160,4 +170,30 @@ function buildIcdCards(
     cards.set(key, ids);
   }
   return cards;
+}
+
+function buildLinkedProducts(
+  documents: readonly SearchDocumentDescriptor[],
+): ReadonlyMap<string, readonly string[]> {
+  const products = new Map<string, SearchDocumentDescriptor[]>();
+  for (const document of documents) {
+    const substance = document.metadata['linkedMnnDocumentId'];
+    if (typeof substance !== 'string') continue;
+    const linked = products.get(substance) ?? [];
+    linked.push(document);
+    products.set(substance, linked);
+  }
+  return new Map(
+    [...products].map(([substance, linked]) => [
+      substance,
+      linked
+        .toSorted(
+          (left, right) =>
+            Number(right.sourceType === 'official_drug_instruction') -
+              Number(left.sourceType === 'official_drug_instruction') ||
+            left.id.localeCompare(right.id),
+        )
+        .map((document) => document.id),
+    ]),
+  );
 }

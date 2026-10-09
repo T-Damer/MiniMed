@@ -251,6 +251,10 @@ const NAVIGATION_DOCUMENT_SELECT = `
       'mkbCode', json_extract(d.metadata_json, '$.mkbCode'),
       'icd10Codes', json_extract(d.metadata_json, '$.icd10Codes'),
       'nameLat', json_extract(d.metadata_json, '$.nameLat'),
+      'publisher', json_extract(d.metadata_json, '$.publisher'),
+      'sourceLabel', json_extract(d.metadata_json, '$.sourceLabel'),
+      'issuer', json_extract(d.metadata_json, '$.issuer'),
+      'linkedMnnDocumentId', json_extract(d.metadata_json, '$.linkedMnnDocumentId'),
       'contentMode', json_extract(d.metadata_json, '$.contentMode'),
       'targetDocumentId', json_extract(d.metadata_json, '$.targetDocumentId'),
       'canonicalDefinition', json_extract(d.metadata_json, '$.canonicalDefinition'),
@@ -496,7 +500,12 @@ export class CapacitorMedicalStore implements MedicalStore {
         -- Query-time identity bridges (S3): МКБ codes and the Latin name of a drug.
         'icd10Codes', json_extract(metadata_json, '$.icd10Codes'),
         'mkbCode', json_extract(metadata_json, '$.mkbCode'),
-        'nameLat', json_extract(metadata_json, '$.nameLat')
+        'nameLat', json_extract(metadata_json, '$.nameLat'),
+        -- Query-time source names and the substance a product record is linked to.
+        'publisher', json_extract(metadata_json, '$.publisher'),
+        'sourceLabel', json_extract(metadata_json, '$.sourceLabel'),
+        'issuer', json_extract(metadata_json, '$.issuer'),
+        'linkedMnnDocumentId', json_extract(metadata_json, '$.linkedMnnDocumentId')
       ) AS metadata_json FROM documents ORDER BY title COLLATE NOCASE, id
     `)
       .then((rows) =>
