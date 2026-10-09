@@ -120,10 +120,8 @@ GigaAM/Whisper downloads, real printers.
   name in the query searches inside it («Красота и медицина пневмония»), a bare name lists the source,
   «Искать везде» widens; names come from document metadata, not UI lists. A bare drug name opens with the
   linked Allmed card's «Фармакологическое действие» line. `benchmark:source-names` 17/17, 13/13, 5/5;
-  other benchmarks unchanged. Not covered: «Видаль» (not in the corpus), КР publishers — the registry
-  (`Developers[].NkoName`, 193 societies for all 774 КР) has them, but the pointer builder
-  (`catalog_module_builder.py` `_clinical_pointer`) does not write them, so it needs an ingest change and a
-  core rebuild; only 12 names carry an abbreviation.
+  other benchmarks unchanged. Not covered: «Видаль» (not in the corpus). КР developer societies are not
+  a search source (owner decision 2026-10-09: the registry publisher is enough).
 - **Calculators.** The tab always opens the list, with a recent-calculators row
   (`minimed.recent-calculators.v1`). The due-date calculators and the feeding plan declare patient
   bindings again (`profileContext` binding over the card's `profile.context`: `lastMenstrualPeriod`,
