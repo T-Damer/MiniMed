@@ -103,8 +103,13 @@ GigaAM/Whisper downloads, real printers.
   instead of `integrity_check`/`foreign_key_check`/FTS `count(*)` over OPFS, which took 100–200 s; small
   indexes keep the full scan. After the download: 96 MiB reference pack 109–133 s → 4.6–8 s, 8.9 MB drug
   pack 199 s → 2.3–3.4 s (loaded machine). Phases are User Timing measures `minimed:install:*`;
-  `module-install-timing.spec.ts` guards 12 s / 30 s budgets. Open: opening the target right after
-  install waits ~1–3 s behind the new module's whole-pack listing (metadata blobs; needs a migration).
+  `module-install-timing.spec.ts` guards 12 s / 30 s budgets. Opening the target right after install
+  waited behind `current_version_id` stored after the metadata blob and single-query listings on the
+  pack worker; listings now read in yielding slices, identities come from `document_versions`, sections
+  and chunks are asked of every mount, and the route reuses the target just read.
+  `minimed:install:target-first-paint` (install complete → painted): drug group 3.7–4.3 s → ~1.0 s,
+  reference pack 1.4–1.8 s → ~0.4 s (guards 3 s / 1.2 s). Optional with a rebuilt pack: migration 012
+  (title index or a light navigation table).
 - **Home counters** come from `sectionDocumentCounts` in `catalog.shell.json` (`bun run catalog:shell`
   after every catalog change; a unit test fails when stale): conditions 15 904, КР 763 (active
   editions), препараты 3 324 действующих вещества, нормативные 3, plus tool counts; `formatCount` +
