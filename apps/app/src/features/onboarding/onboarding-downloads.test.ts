@@ -1,9 +1,9 @@
 import type { ContentModuleCatalog, ContentModuleCatalogEntry } from '@localmed/contracts';
 import { describe, expect, it } from 'vitest';
 import {
-  drugDownloadPlan,
   drugModules,
   formatDownloadSize,
+  moduleDownloadPlan,
   mriAttribution,
   parseMriManifest,
 } from './onboarding-downloads';
@@ -38,7 +38,7 @@ describe('drug download plan', () => {
 
   it('sums what is still to download', () => {
     const modules = drugModules(catalog, (module) => module.id !== 'd');
-    const plan = drugDownloadPlan(modules, (module) => module.id === 'a');
+    const plan = moduleDownloadPlan(modules, (module) => module.id === 'a');
     expect(plan.pending.map((module) => module.id)).toEqual(['b']);
     expect(plan.bytes).toBe(50 * MIB);
     expect(plan.complete).toBe(false);
@@ -46,13 +46,13 @@ describe('drug download plan', () => {
 
   it('does not guess a size when a package declares none', () => {
     const modules = drugModules(catalog, () => true);
-    expect(drugDownloadPlan(modules, () => false).bytes).toBeNull();
+    expect(moduleDownloadPlan(modules, () => false).bytes).toBeNull();
   });
 
   it('is complete only when something exists and all of it is installed', () => {
     const modules = drugModules(catalog, (module) => module.id === 'a');
-    expect(drugDownloadPlan(modules, () => true).complete).toBe(true);
-    expect(drugDownloadPlan([], () => true).complete).toBe(false);
+    expect(moduleDownloadPlan(modules, () => true).complete).toBe(true);
+    expect(moduleDownloadPlan([], () => true).complete).toBe(false);
   });
 });
 

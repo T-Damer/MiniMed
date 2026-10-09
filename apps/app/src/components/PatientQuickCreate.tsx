@@ -37,11 +37,11 @@ export function PatientQuickCreate(props: {
     }
   };
   return (
-    <fieldset class="patient-case-combobox__create" aria-label="Добавить пациента">
-      <label class="patient-case-combobox__label">
+    <fieldset class="patient-quick-create__create" aria-label="Добавить пациента">
+      <label class="patient-quick-create__label">
         Имя или псевдоним
         <input
-          class="patient-case-combobox__name"
+          class="patient-quick-create__name"
           value={name()}
           onInput={(event) => setName(event.currentTarget.value)}
           onKeyDown={(event) => {
@@ -62,7 +62,7 @@ export function PatientQuickCreate(props: {
         }}
       />
       <button
-        class="patient-case-combobox__action"
+        class="patient-quick-create__action"
         type="button"
         disabled={busy() || avatarBusy() || !name().trim()}
         onClick={() => void create()}
@@ -70,7 +70,7 @@ export function PatientQuickCreate(props: {
         {busy() ? 'Создаём…' : 'Создать пациента'}
       </button>
       <button
-        class="patient-case-combobox__action"
+        class="patient-quick-create__action"
         type="button"
         disabled={busy()}
         onClick={props.onCancel}
@@ -78,7 +78,7 @@ export function PatientQuickCreate(props: {
         Назад к списку
       </button>
       <Show when={error()}>
-        <p class="patient-case-combobox__error" role="alert">
+        <p class="patient-quick-create__error" role="alert">
           {error()}
         </p>
       </Show>

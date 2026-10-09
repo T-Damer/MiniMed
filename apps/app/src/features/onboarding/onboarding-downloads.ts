@@ -39,8 +39,6 @@ export function moduleDownloadPlan(
   };
 }
 
-export const drugDownloadPlan = moduleDownloadPlan;
-
 const MIB = 1024 * 1024;
 const GIB = MIB * 1024;
 
