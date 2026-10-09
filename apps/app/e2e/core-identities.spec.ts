@@ -7,6 +7,10 @@ import { mountBuiltApp, waitForSearchEditable } from '@localmed/app/e2e/mount-bu
 import { selectSearchSection, setClinicalAnalysis } from '@localmed/app/e2e/select-search-section';
 import { expect, test } from '@playwright/test';
 
+// The fixture is built into one shared directory: the file's tests run in one worker so two
+// workers never build or remove it at the same time.
+test.describe.configure({ mode: 'serial' });
+
 let fixture: Awaited<ReturnType<typeof prepareCoreIdentityFixture>>;
 test.beforeAll(async () => {
   fixture = await prepareCoreIdentityFixture();

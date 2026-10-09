@@ -73,9 +73,10 @@ tool keeps one search field (debounced).
 **Doctor profile** (`features/reference/doctor-profile.ts`, `localStorage` `minimed.doctor-profile.v1`,
 never leaves the device): decayed weights per medical field, fed by choosing a sense chip, opening a
 sense in full and opening its source; the boost scales with the amount of evidence, so one tap
-decides nothing, and `resetDoctorProfile()` forgets everything. Not yet fed: opened recommendations
-and installed section bundles (`fieldForSpecialty` maps a specialty name to a field id) and no
-Settings row — both belong to other owners' screens.
+decides nothing, and `resetDoctorProfile()` forgets everything. Since 2026-10-09 it is also fed by
+opening a clinical recommendation (0.3, at most 2 fields from its specialty slugs, once per document
+per session) and by queueing a section bundle (0.6, `doctor-profile-feeds.ts`); Settings → «Основные»
+shows the top fields with «Сбросить».
 
 **Published 2026-10-08 (STATE DEF4 in CURRENT_STATE.md).** What publishing needed: the owner's OK for the symptom pages (given); a core rebuild
 (`bun run content:core:build`, reference track) so `core_identities` points at the new entries;
