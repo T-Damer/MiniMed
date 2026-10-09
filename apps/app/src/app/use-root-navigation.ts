@@ -5,6 +5,7 @@ import {
   ROOT_VIEW_ORDER,
   type RootView,
   redirectLegacySettingsRoutes,
+  rootViewRestoresRoute,
   syncDocumentReadState,
   viewFromLocation,
 } from '@/app/root-view';
@@ -244,8 +245,11 @@ export function useRootNavigation() {
         return;
       }
       snapshotCurrentRoute();
+      // A tab that opens at its list forgets where it was left, scroll position included.
+      const restores = rootViewRestoresRoute(next);
+      if (!restores) scrollByView.delete(next);
       moveToRootView(next);
-      const targetHash = lastRouteByView.get(next) ?? `#/${next}`;
+      const targetHash = (restores ? lastRouteByView.get(next) : undefined) ?? `#/${next}`;
       const oldURL = window.location.href;
       window.history.replaceState({ view: next }, '', targetHash);
       window.dispatchEvent(

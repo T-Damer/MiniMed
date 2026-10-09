@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { compactRootView, countPublishedCatalogModules, viewFromLocation } from '@/app/root-view';
+import {
+  compactRootView,
+  countPublishedCatalogModules,
+  ROOT_VIEWS,
+  rootViewRestoresRoute,
+  viewFromLocation,
+} from '@/app/root-view';
 import { clearDocumentTrail } from '@/state/document-trail';
 
 function installSessionStorage(): void {
@@ -71,5 +77,13 @@ describe('countPublishedCatalogModules', () => {
         { releaseState: 'published', tags: ['individual-recommendation'] },
       ]),
     ).toBe(1);
+  });
+});
+
+describe('rootViewRestoresRoute', () => {
+  it('lets only the calculators tab open at its list', () => {
+    expect(
+      ROOT_VIEWS.filter((item) => !rootViewRestoresRoute(item.id)).map((item) => item.id),
+    ).toEqual(['calculators']);
   });
 });

@@ -59,12 +59,18 @@ for (const width of [375, 1280]) {
       .locator('.app-bottom-nav')
       .getByRole('button', { name: 'Калькуляторы', exact: true })
       .click();
-    // The tab restores the calculator opened before and the breadcrumb row is gone (2026-10-08);
-    // Back from it returns to the search it was opened from, so the catalog is opened by address.
+    // The tab always opens the list (2026-10-09) with the calculator used last in a compact row;
+    // Back from a calculator still returns to the place it was opened from.
+    await expect(page).toHaveURL(/#\/calculators$/u);
+    await expect(page.getByRole('heading', { name: 'Калькуляторы', level: 1 })).toBeVisible();
+    const recent = page.getByTestId('recent-calculators');
+    await expect(recent).toBeVisible();
+    await expect(recent.getByRole('button')).toHaveCount(1);
+    await expect(recent).toContainText('Единицы');
+    await recent.getByRole('button').click();
     await expect(page.getByRole('heading', { name: 'Преобразование единиц' })).toBeVisible();
-    await page.evaluate(() => {
-      window.location.hash = '#/calculators';
-    });
+    await page.getByRole('button', { name: 'Назад', exact: true }).click();
+    await expect(page).toHaveURL(/#\/calculators$/u);
     await page.getByRole('button', { name: 'Открыть раздел «Преобразование единиц»' }).click();
     const origin = page.url();
     await page.locator('[data-testid^="calculator-open-"]').first().click();

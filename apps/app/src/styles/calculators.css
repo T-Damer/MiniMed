@@ -916,3 +916,92 @@ html.calculator-route-open body {
     grid-template-columns: 1fr;
   }
 }
+
+/* Recently opened calculators: one quiet row above the sections. It scrolls sideways on a narrow
+   screen and rises in with the list instead of popping. */
+.recent-calculators {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  margin-block: 0.25rem 0.75rem;
+  animation: recent-calculators-in var(--motion-base) var(--motion-ease-out) both;
+}
+
+.recent-calculators__icon {
+  width: 1rem;
+  height: 1rem;
+  flex: none;
+  color: var(--theme-text-muted);
+}
+
+.recent-calculators__list {
+  display: flex;
+  min-width: 0;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.15rem 0.15rem 0.35rem;
+  overflow-x: auto;
+  list-style: none;
+  scrollbar-width: none;
+}
+
+.recent-calculators__list::-webkit-scrollbar {
+  display: none;
+}
+
+.recent-calculators__item {
+  flex: none;
+}
+
+.recent-calculators__chip {
+  max-width: 14rem;
+  min-height: 2.25rem;
+  padding: 0.3rem 0.8rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--theme-accent) 35%, var(--theme-border));
+  border-radius: 999px;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    transform var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease);
+}
+
+.recent-calculators__chip:active {
+  transform: scale(0.96);
+}
+
+.recent-calculators__chip:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .recent-calculators__chip:hover {
+    background: color-mix(in srgb, var(--theme-surface-raised) 80%, var(--theme-accent));
+  }
+}
+
+@keyframes recent-calculators-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.35rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recent-calculators {
+    animation: none;
+  }
+
+  .recent-calculators__chip {
+    transition: none;
+  }
+}

@@ -81,6 +81,7 @@ import {
   PEDIATRIC_FEEDING_PLAN_ID,
   parsePediatricFeedingPlan,
 } from '@/features/calculators/pediatric-feeding-plan';
+import { RecentCalculatorsRow } from '@/features/calculators/RecentCalculatorsRow';
 import {
   convertQuantity,
   type QuantityFamily,
@@ -138,6 +139,7 @@ import {
   PATIENT_VAULT_LOCK_EVENT,
   readPatientVault,
 } from '@/state/patient-vault';
+import { loadRecentCalculatorIds, rememberRecentCalculator } from '@/state/recent-calculators';
 import { leaveTool, returnFromTool } from '@/state/tool-navigation';
 import {
   createUserCalculator,
@@ -1587,6 +1589,29 @@ export function CalculatorsView(): JSX.Element {
       : undefined;
   });
   const [ageFilter, setAgeFilter] = createToolAgeFilter();
+  const [recentIds, setRecentIds] = createSignal(loadRecentCalculatorIds());
+  // A calculator counts as used once its workspace opens, from the list, a search card or a link.
+  createEffect(
+    on(
+      () => selected()?.id,
+      (id) => {
+        if (id) setRecentIds(rememberRecentCalculator(id));
+      },
+    ),
+  );
+  const recentCalculators = createMemo(() => {
+    const registry = calculatorRegistry();
+    const installed = installation().installedIds;
+    return filterByAge(
+      recentIds().flatMap((id) => {
+        const definition = findCalculator(id, registry);
+        return definition?.state === 'available' && installed.has(definition.id)
+          ? [definition]
+          : [];
+      }),
+      ageFilter(),
+    );
+  });
   const searched = createMemo(() => {
     calculatorRegistry();
     return searchCalculators(query());
@@ -1818,6 +1843,13 @@ export function CalculatorsView(): JSX.Element {
                           onChange={setAgeFilter}
                           hidden={searched().length - filtered().length}
                         />
+
+                        <Show when={query().trim() === ''}>
+                          <RecentCalculatorsRow
+                            calculators={recentCalculators()}
+                            onOpen={openCalculator}
+                          />
+                        </Show>
 
                         <Show
                           when={filtered().length > 0 || showMyCalculatorsCard()}

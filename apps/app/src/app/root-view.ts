@@ -39,6 +39,17 @@ export const ROOT_VIEWS: readonly RootViewItem[] = [
   { id: 'settings', label: 'Настройки', icon: 'system' },
 ];
 
+/**
+ * Tabs that always open at their own list (owner 2026-10-09): switching back to the calculators tab
+ * shows the list with the recently used calculators, not the tool left open there. Every other tab
+ * returns to the route and scroll position it was left on.
+ */
+const ROOT_VIEWS_OPENING_AT_LIST: ReadonlySet<RootView> = new Set(['calculators']);
+
+export function rootViewRestoresRoute(view: RootView): boolean {
+  return !ROOT_VIEWS_OPENING_AT_LIST.has(view);
+}
+
 export const ROOT_VIEW_ORDER = new Map(ROOT_VIEWS.map((item, index) => [item.id, index]));
 
 export const COMPACT_ROOT_VIEWS: readonly RootViewItem[] = [
