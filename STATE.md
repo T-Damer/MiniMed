@@ -106,7 +106,6 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
-| 2026-10-08 11:50 | claude-coordinator + 8 Sonnet worktree agents | UX13 owner batch 10-08: news feed/viewer, vaccination calendar, forms + shared PatientPickerRow, recording ASR prompt + encrypted transcript, search cards/cache/flicker/tools strip, reader page bubble/TOC/hero/tables, definitions ranking + modal, drug interactions/settings/route headers; then a Sonnet QA pass as a user. Rules in AGENTS.md «Interface rules» | `apps/app/src/features/{news,vaccination,forms,conversations,asr,search,history,library,reference,drug-interactions,drug-comparison,settings}/**`, `components/{Page,PatientPickerRow}*` |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 
 ## Next (claimed, not started)
@@ -167,6 +166,8 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-10-08 claude-opus (REL): release 0.6.57 (0f90c70b) — UX13 owner batch + QA fixes, KR4 data, definitions 2026.10.08 + core 0.6.57 (DEF4); CI and Pages green, dictionary Pages mirror verified (200, size, SHA-256, CORS *)
+- 2026-10-08 claude-opus + Sonnet agents (UX13, UX13-QA, KR4, DEF4): owner UI batch (rules in AGENTS.md «Interface rules»), browser device-key vault, QA pass as a doctor (`docs/research/qa-ux13-2026-10-08.md`) and its fixes, 78 КР republished with appendix headings, definitions dictionary with sense ranking; Unsloth report (`docs/research/unsloth-small-model-training-2026-10-08.md`: go for a fine-tuned e5 query side, no-go for Unsloth); see `docs/CURRENT_STATE.md`
 - 2026-10-07 claude-opus (REL): release 0.6.56 (cc5401f0) — UX10, VAC2, UX11a–c, KR3 data, UX12, flu band; CI, Pages and Android release green; prerelease v0.6.56 with APK (65.2 MB)
 - 2026-10-07 claude-opus (UX12): reader QA follow-up — a new document starts at its top, back pops history (`history.back()`, depth-stamped entries) and restores the reading position (section + offset via `jumpReaderTo`), contents column clears the bottom bar at 761–1000 px, image previews fit, КР images open in the zoomable preview, term cards clamp to 4 lines, link matcher built once per document list (longest open task 1.8 s → 0.27 s at 4× CPU); see `docs/CURRENT_STATE.md`
 - 2026-10-07 claude-opus (KR3): КР modules rebuilt with the numbered sub-heading rule — 122 of 774 modules changed (841 headings baked in; 652 untouched, no re-download), 139.0 MB zstd + e5 on the new additive branch `datasets/clinical-json-2026.10.07-197a48d1f268`, catalog entries/`publishedAt` updated; extractor revision 3 keeps a numbered paragraph a paragraph where promoting it would hide a heading (288 headings in 35 modules would have vanished from the reader); document ids unchanged, 10 section / 3 875 chunk ids moved, nothing shipped references them; app release NOT cut — `docs/CURRENT_STATE.md` «KR3»
