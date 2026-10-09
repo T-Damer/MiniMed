@@ -34,32 +34,34 @@ export function DoctorProfileSettings(): JSX.Element {
           <span class="doctor-profile-settings__summary" data-testid="doctor-profile-summary">
             {doctorProfileSummary(profile())}
           </span>
-          <SheetPopover
-            open={helpOpen()}
-            onOpenChange={setHelpOpen}
-            title="Профиль врача"
-            triggerClass="doctor-profile-settings__help-button"
-            triggerLabel="Что такое профиль врача"
-            triggerTitle="Что такое профиль врача"
-            trigger={<AppGlyph name="question" class="doctor-profile-settings__help-icon" />}
-            contentClass="doctor-profile-settings__help-panel"
-            placement="bottom-start"
-          >
-            <p class="doctor-profile-settings__help-text">
-              Приложение запоминает, в каких областях медицины вы читаете и ищете, чтобы у
-              многозначного термина первым показывать нужное значение. Данные хранятся только на
-              этом устройстве и никуда не отправляются.
-            </p>
-          </SheetPopover>
         </span>
       </div>
-      <Button
-        class="settings-row__action"
-        disabled={empty()}
-        onClick={() => setProfile(resetDoctorProfile())}
-      >
-        Сбросить
-      </Button>
+      <div class="doctor-profile-settings__actions">
+        <SheetPopover
+          open={helpOpen()}
+          onOpenChange={setHelpOpen}
+          title="Профиль врача"
+          triggerClass="doctor-profile-settings__help-button"
+          triggerLabel="Что такое профиль врача"
+          triggerTitle="Что такое профиль врача"
+          trigger={<AppGlyph name="question" class="doctor-profile-settings__help-icon" />}
+          contentClass="doctor-profile-settings__help-panel"
+          placement="bottom-start"
+        >
+          <p class="doctor-profile-settings__help-text">
+            Приложение запоминает, в каких областях медицины вы читаете и ищете, чтобы у
+            многозначного термина первым показывать нужное значение. Данные хранятся только на этом
+            устройстве и никуда не отправляются.
+          </p>
+        </SheetPopover>
+        <Button
+          class="settings-row__action"
+          disabled={empty()}
+          onClick={() => setProfile(resetDoctorProfile())}
+        >
+          Сбросить
+        </Button>
+      </div>
     </div>
   );
 }
