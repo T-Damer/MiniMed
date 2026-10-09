@@ -8,9 +8,10 @@ import { E2E_ASSET_ORIGIN } from './mount-built-app';
 
 const ROOT = resolve(import.meta.dirname, '../../..');
 // Local copies of the published zstd indexes (docs/data-ledger.json keeps them as release copies):
-// the KR4 rebuild with appendix headings first, then the KR3 rebuild with numbered sub-headings, then
-// the E2 e5 release for modules both left alone.
+// the KR5 rebuild with template-label headings first, then the KR4 rebuild with appendix headings,
+// then the KR3 rebuild with numbered sub-headings, then the E2 e5 release for modules all left alone.
 const PUBLISHED_DIRECTORIES = [
+  'output/module-zstd-json-2026-10-09',
   'output/module-zstd-json-2026-10-08',
   'output/module-zstd-json-2026-10-07',
   'output/module-zstd-e5-2026-10-05',

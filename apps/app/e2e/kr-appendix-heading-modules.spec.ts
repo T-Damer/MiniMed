@@ -7,8 +7,9 @@ import { expect, test } from '@playwright/test';
 import { E2E_ASSET_ORIGIN, mountBuiltApp, waitForSearchEditable } from './mount-built-app';
 
 const ROOT = resolve(import.meta.dirname, '../../..');
-// Local copy of the KR4 rebuild (docs/data-ledger.json): the tests serve exactly the published bytes.
-const REBUILT_DIRECTORY = 'output/module-zstd-json-2026-10-08';
+// Local copy of the KR5 rebuild (docs/data-ledger.json) that superseded the KR4 modules: the tests serve
+// exactly the published bytes.
+const REBUILT_DIRECTORY = 'output/module-zstd-json-2026-10-09';
 
 interface RebuiltModule {
   readonly officialId: string;
@@ -24,15 +25,15 @@ const MODULES: readonly RebuiltModule[] = [
   {
     officialId: '655_2',
     pointer: 'core.catalog.pointer.clinical.kr.rf.655_2-f32e4acf942e2fef',
-    visibleSections: 35,
-    visibleSectionsBefore: 33,
+    visibleSections: 50,
+    visibleSectionsBefore: 35,
     headings: [/^Приложение Б1\.\s+Схема диагностики хронического бронхита/u],
   },
   {
     officialId: '283_2',
     pointer: 'core.catalog.pointer.clinical.kr.rf.283_2-fe4c92a4870ee8ef',
-    visibleSections: 70,
-    visibleSectionsBefore: 57,
+    visibleSections: 85,
+    visibleSectionsBefore: 70,
     headings: [
       /^Приложение Б3\.\s+Алгоритм фармакотерапии обструктивной ГКМП/u,
       /^Приложение Б6\.\s+Алгоритм выбора метода редукции МЖП/u,
@@ -41,8 +42,8 @@ const MODULES: readonly RebuiltModule[] = [
   {
     officialId: '739_2',
     pointer: 'core.catalog.pointer.clinical.kr.rf.739_2-b8e9c7fcfc624cc3',
-    visibleSections: 68,
-    visibleSectionsBefore: 67,
+    visibleSections: 70,
+    visibleSectionsBefore: 68,
     headings: [
       /^Приложение Г1\s+Расширенная Шкала Статуса Инвалидизации/u,
       /^Приложение Г2\.\s+Шкала баланса Берг/u,

@@ -7,9 +7,11 @@ import { expect, test } from '@playwright/test';
 import { E2E_ASSET_ORIGIN, mountBuiltApp, waitForSearchEditable } from './mount-built-app';
 
 const ROOT = resolve(import.meta.dirname, '../../..');
-// Local copies of the KR3 rebuild and of the KR4 rebuild (appendix headings) that superseded 555_3
-// (docs/data-ledger.json): the tests serve exactly the published bytes.
+// Local copies of the KR3 rebuild, of the KR4 rebuild (appendix headings) and of the KR5 rebuild
+// (template labels) that superseded these modules (docs/data-ledger.json): the tests serve exactly
+// the published bytes.
 const REBUILT_DIRECTORIES = [
+  'output/module-zstd-json-2026-10-09',
   'output/module-zstd-json-2026-10-08',
   'output/module-zstd-json-2026-10-07',
 ];
@@ -28,23 +30,23 @@ const MODULES: readonly RebuiltModule[] = [
   {
     officialId: '1062_1',
     pointer: 'core.catalog.pointer.clinical.kr.rf.1062_1-481e31c1c5973533',
-    visibleSections: 44,
-    visibleSectionsBefore: 36,
+    visibleSections: 49,
+    visibleSectionsBefore: 44,
     headings: [/^2\.5\.2\s+Другие/u, /^1\.2\s+Нейросекреторная дисфункция/u],
   },
   {
     officialId: '555_3',
     pointer: 'core.catalog.pointer.clinical.kr.rf.555_3-a184a82d9d24f40d',
-    // 36 in the KR3 build; the KR4 rebuild (appendix headings) added three more.
-    visibleSections: 39,
-    visibleSectionsBefore: 35,
+    // 36 in the KR3 build; KR4 (appendix headings) added three, KR5 (template labels) nine more.
+    visibleSections: 48,
+    visibleSectionsBefore: 39,
     headings: [/^4\.1\.\s+Пререабилитация/u, /^4\.2\.\s+Реабилитация при хирургическом лечении/u],
   },
   {
     officialId: '960_1',
     pointer: 'core.catalog.pointer.clinical.kr.rf.960_1-86ddcd4e4dbba070',
-    visibleSections: 185,
-    visibleSectionsBefore: 127,
+    visibleSections: 205,
+    visibleSectionsBefore: 185,
     headings: [/^3\.2\.5\.9\.\s+Антагонисты витамина К/u, /^3\.7\.3\.1\.\s+Виды ГИТ/u],
   },
 ];
