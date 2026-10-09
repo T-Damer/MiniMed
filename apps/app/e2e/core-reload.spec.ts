@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { mountBuiltApp } from './mount-built-app';
+import { mountBuiltApp, waitForSearchEditable } from './mount-built-app';
 
 test('the persistent core reopens after repeated page reloads', async ({ page }) => {
   test.setTimeout(120_000);
@@ -7,9 +7,7 @@ test('the persistent core reopens after repeated page reloads', async ({ page })
   for (let attempt = 0; attempt < 3; attempt += 1) {
     await page.reload({ waitUntil: 'domcontentloaded' });
     // The field is on screen at once; it becomes editable only when the core has reopened.
-    await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
-      timeout: 60_000,
-    });
+    await waitForSearchEditable(page);
     await expect(page.getByText(/Не удалось открыть ядро MiniMed/)).toHaveCount(0);
   }
   await page.getByTestId('search-input').fill('А09');

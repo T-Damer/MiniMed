@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
+import { E2E_ASSET_ORIGIN, mountBuiltApp, waitForSearchEditable } from './mount-built-app';
 
 for (const width of [375, 1280]) {
   test(`«Мои файлы» offers «База знаний» only without its own tab, pinned folders marked, at ${width}px`, async ({
@@ -37,9 +37,7 @@ for (const width of [375, 1280]) {
   }) => {
     await page.setViewportSize({ width, height: 844 });
     await mountBuiltApp(page, { skipLargeCompanionPacks: true });
-    await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
-      timeout: 60_000,
-    });
+    await waitForSearchEditable(page);
     await page.goto(`${E2E_ASSET_ORIGIN}/#/modules/documents/user`);
     await expect(page.getByRole('region', { name: 'Ваши документы' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Открыть папку «Пациенты»' })).toBeVisible();

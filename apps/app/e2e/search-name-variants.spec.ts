@@ -1,4 +1,4 @@
-import { mountBuiltApp } from '@localmed/app/e2e/mount-built-app';
+import { mountBuiltApp, waitForSearchEditable } from '@localmed/app/e2e/mount-built-app';
 import { expect, test } from '@playwright/test';
 
 // A name typed on the wrong keyboard layout or in Latin letters finds the source document and the
@@ -8,7 +8,7 @@ test('a layout slip and a Latin spelling find the drug and name the spelling sea
 }) => {
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
   const input = page.getByTestId('search-input');
-  await expect(input).toHaveAttribute('data-search-ready', 'true', { timeout: 60_000 });
+  await waitForSearchEditable(page);
 
   for (const typed of ['ьуеащкьшт', 'metformin']) {
     await input.fill(typed);

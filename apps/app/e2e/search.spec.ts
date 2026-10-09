@@ -8,6 +8,8 @@ import {
   E2E_ASSET_ORIGIN,
   hasLocalCompanionPack,
   mountBuiltApp,
+  waitForSearchEditable,
+  waitForSearchReady,
 } from '@localmed/app/e2e/mount-built-app';
 import {
   selectSearchSection,
@@ -47,15 +49,6 @@ function clinicalRecommendationResult(page: Page): Locator {
     .first();
 }
 
-/** Knowledge-base routes stay empty until the medical core has opened. */
-async function waitForSearchReady(page: Page): Promise<void> {
-  await page.waitForFunction(
-    () => performance.getEntriesByName('minimed:search-ready').length > 0,
-    undefined,
-    { timeout: 90_000 },
-  );
-}
-
 function navigationButton(page: Page, name: string): Locator {
   return page.locator('.app-bottom-nav').getByRole('button', { name });
 }
@@ -65,9 +58,7 @@ test('opens with source lookup ready and clinical parsing as a separate mode', a
 
   await expect(page.getByTestId('search-input')).toBeVisible();
   // The field is on screen at once and editable as soon as the core has opened.
-  await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
-    timeout: 60_000,
-  });
+  await waitForSearchEditable(page);
   await expect(page.getByTestId('search-submit')).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Раздел поиска', exact: true })).toContainText(
     'Все источники',
@@ -485,9 +476,7 @@ test('renders ordinary lookup on a phone-sized browser and records query latency
   await page.setViewportSize({ width: 375, height: 844 });
   await mountBuiltApp(page, { skipLargeCompanionPacks: true, splitNavigation: false });
   // Opening the 440 MB core takes up to a minute on a busy machine; the field is editable meanwhile.
-  await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
-    timeout: 90_000,
-  });
+  await waitForSearchEditable(page);
   const timings: number[] = [];
   for (const value of ['пневмония', 'отит', 'анемия']) {
     const started = Date.now();
@@ -646,9 +635,7 @@ test('finds a recommendation section and opens local context', async ({ page }) 
 
 test('the source overlay names a medication card and drops its storage note', async ({ page }) => {
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
-  await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
-    timeout: 60_000,
-  });
+  await waitForSearchEditable(page);
   await page.getByTestId('search-input').fill('парацетамол');
   await page.getByTestId('search-submit').click();
   const group = page
@@ -673,9 +660,7 @@ test('the source overlay names a medication card and drops its storage note', as
 
 test('an abbreviation does not surface tools that only contain its letters', async ({ page }) => {
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
-  await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
-    timeout: 60_000,
-  });
+  await waitForSearchEditable(page);
   await page.getByTestId('search-input').fill('АГ');
   await page.getByTestId('search-submit').click();
   await expect(page.getByTestId('search-results')).toBeVisible({ timeout: 60_000 });
@@ -691,9 +676,7 @@ test('finds medication names in free search with the full companion', async ({ p
   );
   await mountBuiltApp(page, { includeMedicationCompanionPack: true });
   // The 10 s bound below is for the query, not for opening the core and the 500 MB companion.
-  await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
-    timeout: 90_000,
-  });
+  await waitForSearchEditable(page);
 
   await page.getByTestId('search-input').fill('цефтриаксон');
   await expect(page.locator('.result-group').first()).toContainText(/цефтриаксон/iu, {
@@ -1109,9 +1092,7 @@ test('a replayed or repeated query is answered from the versioned cache at once'
   await page.waitForFunction(() => performance.getEntriesByName('minimed:search-ready').length > 0);
   await page.waitForTimeout(3_000);
   await page.reload();
-  await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
-    timeout: 60_000,
-  });
+  await waitForSearchEditable(page);
   await page.getByTestId('search-input').fill(query);
   await page.getByTestId('search-submit').click();
   await expect(pneumoniaResult(page)).toBeVisible({ timeout: 60_000 });
@@ -1146,9 +1127,7 @@ test('a replayed or repeated query is answered from the versioned cache at once'
 
   // The copy survives a reload of the app (same data version).
   await page.reload();
-  await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
-    timeout: 60_000,
-  });
+  await waitForSearchEditable(page);
   await page.getByTestId('search-input').fill(query);
   await page.getByTestId('search-submit').click();
   await expect(pneumoniaResult(page)).toBeVisible({ timeout: 5_000 });
@@ -1218,9 +1197,7 @@ test('opens a random record of the current section', async ({ page }) => {
 test('shows neuroinfection clarifications without hiding search results', async ({ page }) => {
   test.slow();
   await mountBuiltApp(page);
-  await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
-    timeout: 90_000,
-  });
+  await waitForSearchEditable(page);
   // Clarifying questions belong to the explicit clinical mode, not to ordinary lookup.
   await setClinicalAnalysis(page, true);
   await page.getByTestId('search-input').fill('Менингит или энцефалит у ребёнка');

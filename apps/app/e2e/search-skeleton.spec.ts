@@ -1,4 +1,4 @@
-import { mountBuiltApp } from '@localmed/app/e2e/mount-built-app';
+import { mountBuiltApp, waitForSearchReady } from '@localmed/app/e2e/mount-built-app';
 import { setClinicalAnalysis } from '@localmed/app/e2e/select-search-section';
 import { expect, type Page, test } from '@playwright/test';
 
@@ -12,14 +12,6 @@ interface SlotSample {
 
 /** Below this the skeleton is still the first, fully transparent frames of its fade-in. */
 const VISIBLE_OPACITY = 0.05;
-
-async function waitForSearchReady(page: Page): Promise<void> {
-  await page.waitForFunction(
-    () => performance.getEntriesByName('minimed:search-ready').length > 0,
-    undefined,
-    { timeout: 90_000 },
-  );
-}
 
 /** Samples the skeleton's and the results' document-relative tops on every animation frame. */
 async function startSampling(page: Page): Promise<void> {

@@ -4,7 +4,7 @@ import {
   installClinicalModule,
   routeClinicalModule,
 } from './clinical-module-fixture';
-import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
+import { E2E_ASSET_ORIGIN, mountBuiltApp, waitForSearchEditable } from './mount-built-app';
 
 const VIEWPORTS = [
   { name: 'phone', width: 390, height: 844 },
@@ -99,9 +99,7 @@ for (const viewport of VIEWPORTS) {
       await routeClinicalModule(page);
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       await mountBuiltApp(page, { skipLargeCompanionPacks: true, splitNavigation: false });
-      await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
-        timeout: 60_000,
-      });
+      await waitForSearchEditable(page);
     });
 
     test('a document opened from a link starts at its top; the app back returns to the place and pops the history', async ({
@@ -180,9 +178,7 @@ test('a deep-linked document has nothing to go back to: the app back replaces it
   await routeClinicalModule(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await mountBuiltApp(page, { skipLargeCompanionPacks: true, splitNavigation: false });
-  await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
-    timeout: 60_000,
-  });
+  await waitForSearchEditable(page);
   await installClinicalModule(page);
   // A fresh page load on the document address, as a shared link or a notification opens it: the
   // entry before it belongs to another page, so the app has nothing of its own to go back to.

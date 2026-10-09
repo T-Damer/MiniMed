@@ -1,7 +1,7 @@
 import { expect, type Page, test } from '@playwright/test';
 import { installClinicalModule, routeClinicalModule } from './clinical-module-fixture';
 
-import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
+import { E2E_ASSET_ORIGIN, mountBuiltApp, waitForSearchEditable } from './mount-built-app';
 
 async function emulateNativeShell(page: Page): Promise<void> {
   await page.evaluate(() => {
@@ -116,9 +116,7 @@ for (const viewport of [
     const field = page.locator('.search-home .query-sheet');
     const pill = row.getByRole('button', { name: 'Вернуться к поиску' });
     await expect(pill).toHaveCount(0);
-    await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
-      timeout: 60_000,
-    });
+    await waitForSearchEditable(page);
 
     // A long page (results, many sections): the empty home alone may not scroll the field away.
     await page.evaluate(() => {

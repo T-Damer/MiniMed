@@ -13,9 +13,12 @@ process.env.E2E_ORIGIN ??= `http://127.0.0.1:${e2ePort}`;
 export default defineConfig({
   testDir: './apps/app/e2e',
   outputDir: './playwright/test-results',
-  // Full discovery-core startup/search is slower than the former small pilot fixture.
-  timeout: 90_000,
-  expect: { timeout: 25_000 },
+  // Full discovery-core startup/search is slower than the former small pilot fixture. Opening the
+  // core can take a minute on a busy machine, so specs that need it wait through
+  // `waitForSearchReady` (e2e/mount-built-app.ts, its own bound); the default `expect` bound covers
+  // what follows on a loaded machine and costs a passing run nothing.
+  timeout: 150_000,
+  expect: { timeout: 45_000 },
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,

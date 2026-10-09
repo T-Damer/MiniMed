@@ -1,15 +1,11 @@
-import { E2E_ASSET_ORIGIN, mountBuiltApp } from '@localmed/app/e2e/mount-built-app';
+import {
+  E2E_ASSET_ORIGIN,
+  mountBuiltApp,
+  waitForSearchReady,
+} from '@localmed/app/e2e/mount-built-app';
 import { expect, type Page, test } from '@playwright/test';
 
 /** UX8: the search header, the core status line and the compact source-card download button. */
-
-async function waitForSearchReady(page: Page): Promise<void> {
-  await page.waitForFunction(
-    () => performance.getEntriesByName('minimed:search-ready').length > 0,
-    undefined,
-    { timeout: 90_000 },
-  );
-}
 
 async function announceUpdate(page: Page): Promise<void> {
   await page.evaluate(() => {

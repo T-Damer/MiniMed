@@ -3,7 +3,11 @@ import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { readFile, rm } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { E2E_ASSET_ORIGIN, mountBuiltApp } from '@localmed/app/e2e/mount-built-app';
+import {
+  E2E_ASSET_ORIGIN,
+  mountBuiltApp,
+  waitForSearchReady,
+} from '@localmed/app/e2e/mount-built-app';
 import { ContentModuleCatalogSchema } from '@localmed/contracts';
 import { expect, test } from '@playwright/test';
 
@@ -115,11 +119,7 @@ test('an installed registry entry does not make an absent packaging document rea
     },
   });
   // A cold profile first copies the whole core into OPFS; the pointer page waits for it.
-  await page.waitForFunction(
-    () => performance.getEntriesByName('minimed:search-ready').length > 0,
-    undefined,
-    { timeout: 120_000 },
-  );
+  await waitForSearchReady(page);
   await page.goto(documentRoute(TARGET));
   await expect(page.locator('.document-module-pointer__error')).toContainText(
     'Набор установлен, но полный документ недоступен',

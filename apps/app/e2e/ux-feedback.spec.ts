@@ -1,13 +1,6 @@
-import { expect as baseExpect, test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 import { mountBuiltApp } from './mount-built-app';
-
-// Every case waits for the 440 MB core to open, which takes over the default 25 s when the machine
-// is busy (parallel agents, full e2e runs).
-const expect = baseExpect.configure({ timeout: 90_000 });
-test.beforeEach(() => {
-  test.setTimeout(180_000);
-});
 
 test('shows a verified mirrored reference illustration and keeps it available offline', async ({
   page,
@@ -19,7 +12,7 @@ test('shows a verified mirrored reference illustration and keeps it available of
       imageRequests.push(request.url());
     }
   });
-  await mountBuiltApp(page);
+  await mountBuiltApp(page, { waitForCore: true });
   const id =
     'core.catalog.pointer.reference.krasotaimedicina.disease.0007ef852d70ba32-82f435504305e1c9';
   await page.evaluate((documentId) => {
@@ -45,7 +38,7 @@ test('shows a verified mirrored reference illustration and keeps it available of
 });
 
 test('attributes every definition to its source without mixing ICD codes', async ({ page }) => {
-  await mountBuiltApp(page);
+  await mountBuiltApp(page, { waitForCore: true });
   await page.evaluate(() => {
     window.location.hash = '#/modules/documents/conditions/diseases/code%3AI42.6';
   });
@@ -67,6 +60,7 @@ test('uses source lookup even when a previous installation remembered medication
   page,
 }) => {
   await mountBuiltApp(page, {
+    waitForCore: true,
     localStorage: {
       'minimed.app-preferences.v1': JSON.stringify({ rememberSearchMode: true }),
       'minimed.search-scope.v1': 'medications',
@@ -83,7 +77,7 @@ test('uses source lookup even when a previous installation remembered medication
 });
 
 test('opens a single ICD source directly and Back returns to the catalog', async ({ page }) => {
-  await mountBuiltApp(page);
+  await mountBuiltApp(page, { waitForCore: true });
   await page.evaluate(() => {
     window.location.hash = '#/modules/documents/conditions/conditions/code%3AT51.2';
   });
@@ -102,7 +96,7 @@ test('opens a single ICD source directly and Back returns to the catalog', async
 
 test('keeps condition controls above their sticky backdrop', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await mountBuiltApp(page);
+  await mountBuiltApp(page, { waitForCore: true });
   await page.evaluate(() => {
     window.location.hash = '#/modules/documents/conditions';
   });
@@ -127,7 +121,7 @@ test('keeps condition controls above their sticky backdrop', async ({ page }) =>
 });
 
 test('opens the core graph and remains responsive to pan and zoom', async ({ page }) => {
-  await mountBuiltApp(page);
+  await mountBuiltApp(page, { waitForCore: true });
   await page.evaluate(() => {
     window.location.hash = '#/modules/documents/core-library';
   });

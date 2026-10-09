@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { ContentModuleCatalogSchema } from '@localmed/contracts';
 import { expect, test } from '@playwright/test';
-import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
+import { E2E_ASSET_ORIGIN, mountBuiltApp, waitForSearchEditable } from './mount-built-app';
 
 const ROOT = resolve(import.meta.dirname, '../../..');
 // Local copy of the KR4 rebuild (docs/data-ledger.json): the tests serve exactly the published bytes.
@@ -78,9 +78,7 @@ for (const module of MODULES) {
       (request) => request.fulfill({ body: bytes, contentType: 'application/zstd' }),
     );
     await mountBuiltApp(page, { skipLargeCompanionPacks: true });
-    await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
-      timeout: 60_000,
-    });
+    await waitForSearchEditable(page);
     await page.goto(route(module.pointer));
     await page.locator('.document-module-pointer__action').click();
     await expect(page).toHaveURL(route(`kr.rf.${module.officialId}`), { timeout: 90_000 });

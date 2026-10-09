@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
+import { E2E_ASSET_ORIGIN, mountBuiltApp, waitForSearchEditable } from './mount-built-app';
 
 const pointerId =
   'core.catalog.pointer.medication.esklp.mnn.аскорбиновая-кислота-парацетамол-bfbe39d48f8ac5dc';
@@ -36,9 +36,7 @@ test('search source context uses the same inline medication lookup', async ({ pa
   test.setTimeout(90_000);
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
   // The field takes a query while the core opens; the result wait below covers the search only.
-  await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
-    timeout: 60_000,
-  });
+  await waitForSearchEditable(page);
   await page.getByTestId('search-input').fill('АСКОРБИНОВАЯ КИСЛОТА ПАРАЦЕТАМОЛ');
   const result = page
     .locator('.result-group')

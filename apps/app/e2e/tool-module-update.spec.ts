@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 
 import { expect, type Page, test } from '@playwright/test';
 
-import { mountBuiltApp } from './mount-built-app';
+import { mountBuiltApp, waitForSearchReady } from './mount-built-app';
 
 // TOOLS1b: the age-scope rebuild (c67cd124) gave every tool module a new version. A device that
 // installed the previous version must pick the new one up by itself, and until it has, the screens
@@ -112,11 +112,7 @@ async function installOldModule(page: Page): Promise<void> {
     window.location.hash = '#/modules/documents/collection/tool';
   });
   // Package status is checked once the medical core has opened.
-  await page.waitForFunction(
-    () => performance.getEntriesByName('minimed:search-ready').length > 0,
-    undefined,
-    { timeout: 90_000 },
-  );
+  await waitForSearchReady(page);
   const card = page.locator('article', { hasText: 'Базовые клинические расчёты' }).first();
   await expect(card).toContainText(OLD_VERSION);
   await card.getByRole('button', { name: /^Скачать/u }).click();
@@ -189,11 +185,7 @@ test('while the update cannot be fetched, an older installed tool module offers 
     (route) => route.abort('internetdisconnected'),
   );
   await reloadWithShippedCatalog(page);
-  await page.waitForFunction(
-    () => performance.getEntriesByName('minimed:search-ready').length > 0,
-    undefined,
-    { timeout: 90_000 },
-  );
+  await waitForSearchReady(page);
 
   // Not updated, not broken: the tool says it needs its section and offers the download.
   await page.evaluate((route) => {

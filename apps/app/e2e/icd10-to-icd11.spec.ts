@@ -1,10 +1,10 @@
 import { expect, test } from '@playwright/test';
-import { mountBuiltApp } from './mount-built-app';
+import { mountBuiltApp, waitForSearchEditable } from './mount-built-app';
 
 test('an ICD-10-coded card names its ICD-11 codes from WHO tables', async ({ page }) => {
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
   const input = page.getByTestId('search-input');
-  await expect(input).toHaveAttribute('data-search-ready', 'true', { timeout: 90_000 });
+  await waitForSearchEditable(page);
   await input.fill('Эпилепсия и эпилептический статус');
   await page.getByTestId('search-submit').click();
   const card = page

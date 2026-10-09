@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 
 import { expect, type Page, type Route, test } from '@playwright/test';
 
-import { mountBuiltApp } from './mount-built-app';
+import { mountBuiltApp, waitForSearchReady } from './mount-built-app';
 
 // CAT1: the remote module catalog is several megabytes. It used to be cached in localStorage,
 // which refuses that size, so the cache never persisted: every start downloaded the catalog again
@@ -177,11 +177,7 @@ async function mountWithCatalogUnreachable(page: Page): Promise<number> {
   const matches = (url: URL): boolean => url.href.startsWith(CATALOG_URL);
   await page.route(matches, (route) => route.abort('internetdisconnected'));
   await mountBuiltApp(page);
-  await page.waitForFunction(
-    () => performance.getEntriesByName('minimed:search-ready').length > 0,
-    undefined,
-    { timeout: 90_000 },
-  );
+  await waitForSearchReady(page);
   // Bundled modules plus the terminology the app merges in: what the badge shows without a remote.
   await expect.poll(() => availableCount(page)).toBeGreaterThan(0);
   const baseline = (await availableCount(page)) ?? 0;

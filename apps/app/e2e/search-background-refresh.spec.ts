@@ -1,4 +1,4 @@
-import { mountBuiltApp } from '@localmed/app/e2e/mount-built-app';
+import { mountBuiltApp, waitForSearchReady } from '@localmed/app/e2e/mount-built-app';
 import { expect, type Page, test } from '@playwright/test';
 
 /**
@@ -13,14 +13,6 @@ interface PaneSample {
   readonly loader: boolean;
   readonly results: boolean;
   readonly firstGroupTop: number | undefined;
-}
-
-async function waitForSearchReady(page: Page): Promise<void> {
-  await page.waitForFunction(
-    () => performance.getEntriesByName('minimed:search-ready').length > 0,
-    undefined,
-    { timeout: 90_000 },
-  );
 }
 
 /** Records the search pane on every DOM change and every frame. */

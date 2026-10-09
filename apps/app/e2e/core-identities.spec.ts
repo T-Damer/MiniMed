@@ -3,7 +3,7 @@ import {
   prepareCoreIdentityFixture,
   routeCoreIdentityFixture,
 } from '@localmed/app/e2e/core-identities-fixture';
-import { mountBuiltApp } from '@localmed/app/e2e/mount-built-app';
+import { mountBuiltApp, waitForSearchEditable } from '@localmed/app/e2e/mount-built-app';
 import { selectSearchSection, setClinicalAnalysis } from '@localmed/app/e2e/select-search-section';
 import { expect, test } from '@playwright/test';
 
@@ -23,16 +23,7 @@ test('exact stopword meanings fold into one preview: the likeliest sense first, 
   const input = page.getByTestId('search-input');
   const identities = page.locator('section[aria-label="Определение термина"]');
   const cards = identities.getByTestId('definition-preview');
-  await expect
-    .poll(
-      async () => {
-        const error = page.locator('.search-core-status--error');
-        if (await error.isVisible()) return await error.innerText();
-        return (await input.getAttribute('data-search-ready')) === 'true' ? 'ready' : 'waiting';
-      },
-      { timeout: 60_000 },
-    )
-    .toBe('ready');
+  await waitForSearchEditable(page);
   await input.fill('НА');
   await page.getByTestId('search-submit').click();
   // Two dictionary entries of one name are one preview.
@@ -97,7 +88,7 @@ test('«Депрессия» opens with the mood disorder, the fracture pattern 
   await page.route('**/content/regulatory.db', (route) => route.abort());
   await mountBuiltApp(page, { splitNavigation: false, skipLargeCompanionPacks: true });
   const input = page.getByTestId('search-input');
-  await expect(input).toHaveAttribute('data-search-ready', 'true', { timeout: 60_000 });
+  await waitForSearchEditable(page);
   const cards = page
     .locator('section[aria-label="Определение термина"]')
     .getByTestId('definition-preview');
@@ -146,16 +137,7 @@ test('an exact document identity rejects a local copy with the wrong raw-source 
   await page.route('**/content/regulatory.db', (route) => route.abort());
   await mountBuiltApp(page, { splitNavigation: false, skipLargeCompanionPacks: true });
   const input = page.getByTestId('search-input');
-  await expect
-    .poll(
-      async () => {
-        const error = page.locator('.search-core-status--error');
-        if (await error.isVisible()) return await error.innerText();
-        return (await input.getAttribute('data-search-ready')) === 'true' ? 'ready' : 'waiting';
-      },
-      { timeout: 60_000 },
-    )
-    .toBe('ready');
+  await waitForSearchEditable(page);
   await input.fill(fixture.document.title);
   await page.getByTestId('search-submit').click();
   const identities = page.locator('section[aria-label="Определение термина"]');
@@ -180,7 +162,7 @@ test('a fresh exact document route installs its source and rejects a wrong editi
   await page.route('**/content/regulatory.db', (route) => route.abort());
   await mountBuiltApp(page, { splitNavigation: false, skipLargeCompanionPacks: true });
   const input = page.getByTestId('search-input');
-  await expect(input).toHaveAttribute('data-search-ready', 'true', { timeout: 60_000 });
+  await waitForSearchEditable(page);
   await input.fill(fixture.document.title);
   await page.getByTestId('search-submit').click();
   const identities = page.locator('section[aria-label="Определение термина"]');

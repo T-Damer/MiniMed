@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { E2E_ASSET_ORIGIN } from './mount-built-app';
+import { E2E_ASSET_ORIGIN, waitForSearchEditable } from './mount-built-app';
 
 for (const viewport of [
   { width: 390, height: 844 },
@@ -76,9 +76,7 @@ for (const viewport of [
       page.getByRole('button', { name: 'Открыть папку «До готовности ядра»' }),
     ).toBeVisible();
     await page.getByRole('button', { name: 'Поиск', exact: true }).click();
-    await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
-      timeout: 60000,
-    });
+    await waitForSearchEditable(page);
     await expect(coreStatus).toHaveCount(0);
     expect(
       await page.evaluate(

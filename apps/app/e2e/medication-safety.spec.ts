@@ -1,6 +1,6 @@
 import { expect, type Page, test } from '@playwright/test';
 import { routeInstructionModule } from './medication-module-fixture';
-import { mountBuiltApp } from './mount-built-app';
+import { mountBuiltApp, waitForSearchEditable } from './mount-built-app';
 
 // SAFE1: «X при беременности», «X при ГВ», «X ребёнку 3 лет». The antiparasitic ГРЛС instruction
 // module (a local release copy, see docs/data-ledger.json) holds the instruction of albendazole;
@@ -19,7 +19,7 @@ async function shoot(page: Page, name: string): Promise<void> {
 
 async function search(page: Page, query: string): Promise<void> {
   const input = page.getByTestId('search-input');
-  await expect(input).toHaveAttribute('data-search-ready', 'true', { timeout: 150_000 });
+  await waitForSearchEditable(page);
   await input.fill(query);
   await page.getByTestId('search-submit').click();
 }

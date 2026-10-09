@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { mountBuiltApp } from './mount-built-app';
+import { mountBuiltApp, waitForSearchReady } from './mount-built-app';
 
 for (const width of [375, 1280]) {
   test(`section downloads stay in the menu and share progress at ${width}px`, async ({ page }) => {
@@ -24,11 +24,7 @@ for (const width of [375, 1280]) {
     await mountBuiltApp(page, { skipLargeCompanionPacks: true });
     // Package status is checked once the medical core has opened; that can take longer than an
     // assertion timeout under load, and it is not what this test measures.
-    await page.waitForFunction(
-      () => performance.getEntriesByName('minimed:search-ready').length > 0,
-      undefined,
-      { timeout: 90_000 },
-    );
+    await waitForSearchReady(page);
     const picker = page.getByRole('button', { name: 'Раздел поиска', exact: true });
     await picker.click();
     const menu = page.getByRole('dialog', { name: 'Разделы поиска' });

@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test';
-import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
+import { E2E_ASSET_ORIGIN, mountBuiltApp, waitForSearchEditable } from './mount-built-app';
 
 /** The success notice for a finished download, and its link to what was installed. */
 async function openFromNotice(page: Page, text: string | RegExp, timeout = 60_000): Promise<void> {
@@ -27,9 +27,7 @@ for (const width of [375, 1280]) {
     test.setTimeout(240_000);
     await page.setViewportSize({ width, height: 844 });
     await mountBuiltApp(page, { skipLargeCompanionPacks: true });
-    await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
-      timeout: 60_000,
-    });
+    await waitForSearchEditable(page);
     await page.goto(`${E2E_ASSET_ORIGIN}/#/modules/documents`);
     await page
       .locator('article[aria-label="Открыть набор «Нормы и расчёты»"]')

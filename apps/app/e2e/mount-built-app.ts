@@ -17,6 +17,62 @@ export interface MountBuiltAppOptions {
   readonly includeMkbCompanionPack?: boolean;
   readonly includeMedicationCompanionPack?: boolean;
   readonly splitNavigation?: boolean;
+  /** Also wait until the search core has opened (see {@link waitForSearchReady}). */
+  readonly waitForCore?: boolean;
+}
+
+/**
+ * Opening the 440 MB core takes up to a minute on a busy machine (parallel agents, full runs), so
+ * it gets its own bound instead of the default `expect` timeout.
+ */
+export const CORE_READY_TIMEOUT_MS = 120_000;
+
+async function waitForCoreCondition(
+  page: Page,
+  condition: () => boolean,
+  timeout: number,
+  what: string,
+): Promise<void> {
+  try {
+    await page.waitForFunction(condition, undefined, { timeout, polling: 250 });
+  } catch (cause) {
+    const status = page.locator('.search-core-status--error');
+    const detail = (await status.count()) > 0 ? ` (core status: ${await status.innerText()})` : '';
+    throw new Error(`${what} did not happen within ${String(timeout)} ms${detail}`, { cause });
+  }
+}
+
+/**
+ * Waits until the search core has opened for the first time, on any route (the app marks it with
+ * `minimed:search-ready`). Specs that need the core call this once after mounting; specs about the
+ * loading state do not. A failed wait names the core's error status if one is shown.
+ */
+export async function waitForSearchReady(
+  page: Page,
+  timeout: number = CORE_READY_TIMEOUT_MS,
+): Promise<void> {
+  await waitForCoreCondition(
+    page,
+    () => performance.getEntriesByName('minimed:search-ready').length > 0,
+    timeout,
+    'The search core opening',
+  );
+}
+
+/**
+ * Waits until the search field is editable (`data-search-ready`): the core has opened and, after a
+ * reload of the core, has reopened. Needs the search page on screen.
+ */
+export async function waitForSearchEditable(
+  page: Page,
+  timeout: number = CORE_READY_TIMEOUT_MS,
+): Promise<void> {
+  await waitForCoreCondition(
+    page,
+    () => document.querySelector('[data-testid="search-input"][data-search-ready="true"]') !== null,
+    timeout,
+    'The search field becoming editable',
+  );
 }
 
 async function waitForWorkspace(page: Page): Promise<void> {
@@ -66,4 +122,5 @@ export async function mountBuiltApp(page: Page, options: MountBuiltAppOptions = 
   }, initialStorage);
   await page.goto(`${origin}/`, { waitUntil: 'domcontentloaded' });
   await waitForWorkspace(page);
+  if (options.waitForCore) await waitForSearchReady(page);
 }

@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { expect, type Page, test } from '@playwright/test';
 import { installClinicalModule, routeClinicalModule } from './clinical-module-fixture';
-import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
+import { E2E_ASSET_ORIGIN, mountBuiltApp, waitForSearchEditable } from './mount-built-app';
 
 const ROOT = resolve(import.meta.dirname, '../../..');
 
@@ -18,9 +18,7 @@ async function mountClinicalReader(
     skipLargeCompanionPacks: true,
     ...(options.splitNavigation === undefined ? {} : { splitNavigation: options.splitNavigation }),
   });
-  await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
-    timeout: 60_000,
-  });
+  await waitForSearchEditable(page);
   await installClinicalModule(page);
   await expect(page.locator('.document-overlay-section').first()).toBeVisible();
 }

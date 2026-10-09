@@ -1,15 +1,13 @@
 import { expect, type Page, test } from '@playwright/test';
 import { installClinicalModule, routeClinicalModule } from './clinical-module-fixture';
-import { mountBuiltApp } from './mount-built-app';
+import { mountBuiltApp, waitForSearchEditable } from './mount-built-app';
 
 const PHONE = { width: 390, height: 844 } as const;
 
 async function mountOnPhone(page: Page): Promise<void> {
   await page.setViewportSize(PHONE);
   await mountBuiltApp(page, { skipLargeCompanionPacks: true, splitNavigation: false });
-  await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
-    timeout: 60_000,
-  });
+  await waitForSearchEditable(page);
 }
 
 /** Installs the clinical module from its pointer and waits for the opened full document. */

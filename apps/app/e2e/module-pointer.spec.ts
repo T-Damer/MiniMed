@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { ContentModuleCatalogSchema } from '@localmed/contracts';
 import { expect, test } from '@playwright/test';
-import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
+import { E2E_ASSET_ORIGIN, mountBuiltApp, waitForSearchEditable } from './mount-built-app';
 
 const ROOT = resolve(import.meta.dirname, '../../..');
 // Local copies of the published zstd module indexes (docs/data-ledger.json keeps them as release
@@ -57,9 +57,7 @@ for (const cpuSlowdown of [1, 4]) {
     );
     await mountBuiltApp(page, { skipLargeCompanionPacks: true });
     // Documents open once the core is ready; a cold core start is not what this test measures.
-    await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
-      timeout: 60_000,
-    });
+    await waitForSearchEditable(page);
     if (cpuSlowdown > 1) {
       const cdp = await page.context().newCDPSession(page);
       await cdp.send('Emulation.setCPUThrottlingRate', { rate: cpuSlowdown });

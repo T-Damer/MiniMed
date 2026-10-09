@@ -1,6 +1,6 @@
 import { expect, type Page, test } from '@playwright/test';
 
-import { mountBuiltApp } from './mount-built-app';
+import { mountBuiltApp, waitForSearchEditable } from './mount-built-app';
 
 function navigationButton(page: Page, name: string) {
   return page.locator('.app-bottom-nav').getByRole('button', { name, exact: true });
@@ -180,9 +180,7 @@ test('reminders surface in the tab bar and close with a recorded condition', asy
   });
   // The separate «Заметки» tab exists once the core is ready; while it loads, notes live under
   // «Мои файлы» (the badge is there too).
-  await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
-    timeout: 90_000,
-  });
+  await waitForSearchEditable(page);
 
   // The due follow-up is loud before the section is even opened.
   const notesButton = page

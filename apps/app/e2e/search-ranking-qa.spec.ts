@@ -1,15 +1,13 @@
 import { expect, test } from '@playwright/test';
 
-import { mountBuiltApp } from './mount-built-app';
+import { mountBuiltApp, waitForSearchEditable } from './mount-built-app';
 
 // QA pass UX13, search findings S2 and S5: a form number finds the form, and a bare disease name
 // leads with its article, not with the questionnaires that mention it.
 test('a form number finds the form and nothing unrelated', async ({ page }) => {
   test.slow();
   await mountBuiltApp(page, { skipLargeCompanionPacks: true, splitNavigation: false });
-  await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
-    timeout: 90_000,
-  });
+  await waitForSearchEditable(page);
 
   await page.getByTestId('search-input').fill('070/у');
   const form = page.locator('.unified-catalog__tool[href="#/notes/forms/ru.minzdrav.274n.070u"]');
@@ -21,9 +19,7 @@ test('a form number finds the form and nothing unrelated', async ({ page }) => {
 test('a bare disease name leads with the article, tools wait behind it', async ({ page }) => {
   test.slow();
   await mountBuiltApp(page, { skipLargeCompanionPacks: true, splitNavigation: false });
-  await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
-    timeout: 90_000,
-  });
+  await waitForSearchEditable(page);
 
   await page.getByTestId('search-input').fill('Депрессия');
   await expect(page.locator('.result-group').first()).toContainText(/депресс/iu, {

@@ -1,6 +1,6 @@
 import { expect, type Page, test } from '@playwright/test';
 import { routeInstructionModule } from './medication-module-fixture';
-import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
+import { E2E_ASSET_ORIGIN, mountBuiltApp, waitForSearchEditable } from './mount-built-app';
 
 // INT1: a search over the sentences of the official instructions that name another drug. The
 // antiparasitic ГРЛС instruction module (a local release copy, see docs/data-ledger.json) holds the
@@ -32,7 +32,7 @@ test('a search for two drugs opens the tool, offers the instruction and quotes i
 
   // The search entry: names read from the query, shown on a card above the ordinary results.
   const input = page.getByTestId('search-input');
-  await expect(input).toHaveAttribute('data-search-ready', 'true', { timeout: 60_000 });
+  await waitForSearchEditable(page);
   await input.fill('албендазол взаимодействие с празиквантелом');
   await page.getByTestId('search-submit').click();
   const suggestion = page.getByTestId('interaction-suggestion');
