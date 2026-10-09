@@ -41,6 +41,7 @@ import {
 import { KnowledgeGraph } from '@/features/library/KnowledgeGraph';
 import { selectGraphNeighborhood } from '@/features/library/knowledge-graph-model';
 import { medicationDocumentGroups } from '@/features/medications/medicationGroups';
+import { SECTION_DOCUMENT_COUNTS } from '@/features/modules/module-catalog-shell';
 import { DefinitionReferencePanel } from '@/features/reference/DefinitionReferencePanel';
 import { sameDocumentList } from '@/features/search/document-list';
 import { HomeFeatureCard } from '@/features/search/HomeFeatureCard';
@@ -161,7 +162,9 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     toolRevision();
     return searchCatalogTools();
   });
-  const sections = createMemo(() => searchCatalogSections(documents(), toolRows()));
+  const sections = createMemo(() =>
+    searchCatalogSections(documents(), toolRows(), SECTION_DOCUMENT_COUNTS),
+  );
   const catalogQuickTools = createMemo(() => quickToolsFromCatalog(toolRows()));
   const downloads = useSearchSectionDownloads(
     () => props.active,
@@ -270,7 +273,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       }
     >
       <SearchSectionsOverview
-        rows={sectionsOverviewRows(sourceSections(), catalogLoading())}
+        rows={sectionsOverviewRows(sourceSections())}
         onSelect={(next) => openSection(next)}
       />
     </Show>

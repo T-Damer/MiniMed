@@ -17,8 +17,13 @@ describe('sections overview', () => {
       '21 рекомендация',
       '104 рекомендации',
       '744 рекомендации',
-      `${(3324).toLocaleString('ru-RU')} рекомендации`,
+      '3 324 рекомендации',
     ]);
+  });
+
+  it('groups every number of four digits or more with thin spaces', () => {
+    expect(formatSectionCount(9084, forms)).toBe('9 084 рекомендации');
+    expect(formatSectionCount(15_904, forms)).toBe('15 904 рекомендации');
   });
 
   it('lists only sections that say what they count, in order, and marks empty ones', () => {
@@ -40,14 +45,13 @@ describe('sections overview', () => {
       section('legal', 0, ['документ', 'документа', 'документов']),
       section('diagnosis', 0),
     ];
-    expect(sectionsOverviewRows(sections, false)).toEqual([
-      expect.objectContaining({ id: 'guidelines', countLabel: '744 рекомендации', empty: false }),
+    expect(sectionsOverviewRows(sections)).toEqual([
+      expect.objectContaining({
+        id: 'guidelines',
+        countLabel: '744 рекомендации',
+        empty: false,
+      }),
       expect.objectContaining({ id: 'legal', countLabel: '0 документов', empty: true }),
-    ]);
-    // While the catalog is counted there is no number, and nothing is reported empty yet.
-    expect(sectionsOverviewRows(sections, true).map((row) => [row.countLabel, row.empty])).toEqual([
-      [null, false],
-      [null, false],
     ]);
   });
 });

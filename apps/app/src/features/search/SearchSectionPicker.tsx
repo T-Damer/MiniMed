@@ -24,6 +24,7 @@ import {
 } from '@/features/search/searchSectionDownloads';
 import type { SearchSectionDownloads } from '@/features/search/useSearchSectionDownloads';
 import { SETTINGS_DOWNLOADS_HASH } from '@/features/settings/settings-routing';
+import { formatCount } from '@/i18n/format-count';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
 
 /** Hover or keyboard focus anywhere in a row lets its long name scroll into view. */
@@ -129,7 +130,7 @@ export function SearchSectionPicker(props: {
             <Show
               when={!props.loading && (selectedGroup()?.count ?? selected()?.count) !== undefined}
             >
-              ({selectedGroup()?.count ?? selected()?.count})
+              ({formatCount(selectedGroup()?.count ?? selected()?.count ?? 0)})
             </Show>
           </span>
           <AppGlyph name="caret-down" class="search-source-picker__icon" />
@@ -184,7 +185,7 @@ export function SearchSectionPicker(props: {
                     <button
                       class="search-section-menu__option search-section-menu__option--top"
                       type="button"
-                      aria-label={`${section().label} (${section().count})`}
+                      aria-label={`${section().label} (${formatCount(section().count ?? 0)})`}
                       onClick={() => select(section().id)}
                     >
                       <AppGlyph name={section().icon} class="search-section-menu__icon" />
@@ -203,7 +204,7 @@ export function SearchSectionPicker(props: {
                       noDownload={section().id === 'diagnosis'}
                     />
                     <span class="search-section-menu__count">
-                      {props.loading ? '…' : section().count}
+                      {props.loading ? '…' : formatCount(section().count ?? 0)}
                     </span>
                     <Show when={groups().length > 0}>
                       <button
@@ -243,7 +244,7 @@ export function SearchSectionPicker(props: {
                             <button
                               class="search-section-menu__option search-section-menu__option--child"
                               type="button"
-                              aria-label={`${group().label} (${group().count})`}
+                              aria-label={`${group().label} (${formatCount(group().count)})`}
                               onClick={() => select(section().id, group().id)}
                             >
                               <span class="search-section-menu__kinds">
@@ -275,7 +276,7 @@ export function SearchSectionPicker(props: {
                               loading={props.loading}
                             />
                             <span class="search-section-menu__count">
-                              {props.loading ? '…' : group().count}
+                              {props.loading ? '…' : formatCount(group().count)}
                             </span>
                           </div>
                         );

@@ -1,14 +1,15 @@
 import type { AppGlyphName } from '@/components/AppGlyph';
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
 import type { SearchCatalogSection } from '@/features/search/searchCatalog';
+import { formatCount } from '@/i18n/format-count';
 import { pluralRu } from '@/i18n/labels';
 
 export interface SectionOverviewRow {
   readonly id: SearchScope;
   readonly label: string;
   readonly icon: AppGlyphName;
-  /** «744 рекомендации»; null while the catalog is still being counted. */
-  readonly countLabel: string | null;
+  /** «744 рекомендации»: the section's size per the catalog, whatever is installed. */
+  readonly countLabel: string;
   readonly empty: boolean;
 }
 
@@ -17,7 +18,7 @@ export function formatSectionCount(
   count: number,
   [one, few, many]: readonly [string, string, string],
 ): string {
-  return `${count.toLocaleString('ru-RU')} ${pluralRu(count, one, few, many)}`;
+  return `${formatCount(count)} ${pluralRu(count, one, few, many)}`;
 }
 
 /**
@@ -26,7 +27,6 @@ export function formatSectionCount(
  */
 export function sectionsOverviewRows(
   sections: readonly SearchCatalogSection[],
-  loading: boolean,
 ): readonly SectionOverviewRow[] {
   return sections.flatMap((section) => {
     if (!section.countNoun) return [];
@@ -36,8 +36,8 @@ export function sectionsOverviewRows(
         id: section.id,
         label: section.label,
         icon: section.icon,
-        countLabel: loading ? null : formatSectionCount(count, section.countNoun),
-        empty: !loading && count === 0,
+        countLabel: formatSectionCount(count, section.countNoun),
+        empty: count === 0,
       },
     ];
   });

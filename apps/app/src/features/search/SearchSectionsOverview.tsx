@@ -39,11 +39,7 @@ export function SearchSectionsOverview(props: {
                   class="search-sections__count"
                   classList={{ 'search-sections__count--empty': row.empty }}
                 >
-                  {row.countLabel === null
-                    ? 'считаем…'
-                    : row.empty
-                      ? 'нет в установленных базах'
-                      : row.countLabel}
+                  {row.countLabel}
                 </span>
                 <AppGlyph name="caret-right" class="search-sections__caret" />
               </button>

@@ -33,7 +33,7 @@ for (const width of [375, 1280]) {
     const menuSearch = page.getByRole('searchbox', { name: 'Найти раздел или подраздел' });
     await menuSearch.fill('фармакология');
     const pharmacology = page.getByRole('button', { name: /^Фармакология \(/u }).first();
-    await expect(pharmacology).toHaveAccessibleName(/Фармакология \(\d+\)/u);
+    await expect(pharmacology).toHaveAccessibleName(/Фармакология \([\d\s\u202f]+\)/u);
     await page.screenshot({ path: test.info().outputPath('searchable-selector.png') });
     await pharmacology.click();
     await expect(picker).toContainText('Фармакология');
@@ -188,15 +188,17 @@ for (const splitNavigation of [false, true]) {
       has: page.getByRole('button', { name: /^Все источники/u }),
     });
     const specialty = allSection.locator('.search-section-menu__option--child');
-    await expect(specialty).toHaveAccessibleName(/Акушерство и гинекология \(\d+\)/u);
+    await expect(specialty).toHaveAccessibleName(/Акушерство и гинекология \([\d\s\u202f]+\)/u);
     // The counter shows “…” until documents load; wait for the number.
     await expect
       .poll(
         async () =>
           Number(
-            await allSection
-              .locator('.search-section-menu__row--child .search-section-menu__count')
-              .innerText(),
+            (
+              await allSection
+                .locator('.search-section-menu__row--child .search-section-menu__count')
+                .innerText()
+            ).replace(/\D/gu, ''),
           ),
         // The core can still be loading when the machine is busy.
         { timeout: 60_000 },

@@ -23,12 +23,9 @@ export async function setClinicalAnalysis(page: Page, on: boolean): Promise<void
   await expect(control).toHaveAttribute('aria-pressed', String(on));
 }
 
-/** The empty home lists sections with counts; the counts appear once the catalog has loaded. */
+/** The empty home lists sections with their catalog counts, which need no loading. */
 export async function waitForHomeSections(page: Page): Promise<void> {
   await expect(page.locator('.search-sections__row').first()).toBeVisible({ timeout: 30_000 });
-  await expect(page.locator('.search-sections__count', { hasText: 'считаем' })).toHaveCount(0, {
-    timeout: 60_000,
-  });
 }
 
 /** Opens a section's catalog from the home section list. */

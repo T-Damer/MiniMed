@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import {
   CLINICAL_DOCUMENT_ROUTE,
   installClinicalModule,
@@ -418,12 +419,27 @@ const SECTION_NOUNS: Readonly<Record<string, readonly [string, string, string]>>
   Калькуляторы: ['калькулятор', 'калькулятора', 'калькуляторов'],
 };
 
+/** Document sections are sized by the catalog manifest, whatever the core has mounted. */
+const MANIFEST_SECTIONS: Readonly<
+  Record<string, 'conditions' | 'guidelines' | 'medications' | 'legal'>
+> = {
+  'МКБ, симптомы и состояния': 'conditions',
+  'Клинические рекомендации': 'guidelines',
+  Препараты: 'medications',
+  'Нормативные документы': 'legal',
+};
+
 function russianForm(count: number, [one, few, many]: readonly [string, string, string]): string {
   const mod10 = count % 10;
   const mod100 = count % 100;
   if (mod10 === 1 && mod100 !== 11) return one;
   if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return few;
   return many;
+}
+
+/** «3 324»: thin non-breaking spaces from four digits up, as `formatCount` groups them. */
+function groupedCount(count: number): string {
+  return String(count).replace(/\B(?=(\d{3})+(?!\d))/gu, '\u202f');
 }
 
 for (const width of [375, 1280]) {
@@ -437,15 +453,17 @@ for (const width of [375, 1280]) {
     await expect(rows).toHaveCount(Object.keys(SECTION_NOUNS).length);
     // No endless all-sources catalog under the empty field.
     await expect(page.locator('.unified-catalog')).toHaveCount(0);
+    const { sectionDocumentCounts } = JSON.parse(
+      readFileSync(new URL('../src/features/modules/catalog.shell.json', import.meta.url), 'utf8'),
+    ) as { sectionDocumentCounts: Record<string, number> };
     for (const [label, forms] of Object.entries(SECTION_NOUNS)) {
       const text = (
         await rows.filter({ hasText: label }).locator('.search-sections__count').innerText()
       ).trim();
-      if (text === 'нет в установленных базах') continue;
-      const count = Number(text.replace(/\D+[^\d]*$/u, '').replace(/\D/gu, ''));
-      expect(text, label).toBe(
-        `${count.toLocaleString('ru-RU')}\u00a0${russianForm(count, forms)}`,
-      );
+      const count = Number(text.replace(/\D+$/u, '').replace(/\D/gu, ''));
+      expect(text, label).toBe(`${groupedCount(count)}\u00a0${russianForm(count, forms)}`);
+      const manifestSection = MANIFEST_SECTIONS[label];
+      if (manifestSection) expect(count, label).toBe(sectionDocumentCounts[manifestSection]);
     }
     await rows.filter({ hasText: 'Калькуляторы' }).click();
     await expect(page.getByRole('button', { name: 'Раздел поиска', exact: true })).toContainText(
