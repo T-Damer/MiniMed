@@ -106,6 +106,7 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
+| 2026-10-09 | claude-opus (KD1) | strong build-time embedding model, small on-device query model (owner 10-09; roadmap item 8): measure teachers (Giga-Embeddings 480M, multilingual-e5-large-instruct, …) on Q1 КР, then distil an e5-small-sized query encoder into the teacher's passage space; research first, nothing ships until it beats e5-small | `tools/benchmarks/embedding_eval.py`, `tools/benchmarks/embedding_distill.py`, `docs/research/embedding-distillation-*.md` |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 
 ## Next (claimed, not started)
