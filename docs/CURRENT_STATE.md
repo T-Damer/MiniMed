@@ -73,8 +73,9 @@ Owner screenshots and requests of 2026-10-08, applied by eight Sonnet worktree a
   blurred hero picture (`ReaderHero`, fullscreen on tap; inline duplicate hidden via
   `DocumentText.hiddenImageSource`); wide tables pan sideways by touch (`horizontalPan`).
 - **КР headings.** Extractor revision 4 promotes appendix titles («Приложение Б1. …»): 238 headings in
-  78 modules — rebuilt and republished in [KR4](#кр-appendix-headings-republished--2026-10-08-state-kr4). ~1 100 bold
-  template labels («Целевая аудитория…») stay paragraphs pending an owner decision.
+  78 modules — rebuilt and republished in [KR4](#кр-appendix-headings-republished--2026-10-08-state-kr4). Revision 5
+  promotes the known labels of the official template («Целевая аудитория…», «Показания к выписке …»): 3 935 headings in 741
+  modules, 737 republished in [KR5](#кр-template-labels-as-headings--2026-10-09-state-kr5); other bold lines stay text.
 - **News («Лента»).** Twitter-like feed (avatar inline, name · domain · time, titles ≤ 6 lines,
   scroll-past marks read in batches), header «Лента» + PubMed/refresh/settings, source-suggestion rail
   with a View-Transition sheet (description, latest items, subscribe), add-by-URL preview in the same
@@ -226,6 +227,86 @@ replaces the 18.8 MB of 2026.9.30).
 **Not verified:** the Pages mirror and its CORS (needs the deploy), Android download/install of the new gzip core and of the
 zstd dictionary on a device, any older app build against the new entry (reader rules checked in code only), a
 physician review of any text.
+
+## КР template labels as headings — 2026-10-09 (STATE KR5)
+
+Owner decision 2026-10-09 («only known template labels»): the fixed labels of the official Minzdrav КР template, which the
+source JSON keeps as bold standalone lines, become headings; every other bold line stays text. The affected modules were
+rebuilt and republished the same way as [KR4](#кр-appendix-headings-republished--2026-10-08-state-kr4).
+
+- **The label list** (`tools/ingest/src/localmed_ingest/clinical_template_labels.json`, with the counts): 78 normalised
+  wordings (case, ё/е, spaces, a trailing colon or full stop, spaces around «/», Unicode form — the source mixes composed and
+  decomposed «й») in 7 sections: hospitalisation indications of section 6 (19: «Показания для плановой / экстренной
+  госпитализации …», «Показания к выписке пациента …» and their «… являются:» forms), diagnosis criteria of section 2 (6), the
+  quality-criteria groups (2), Appendix А1 (5: «Конфликт интересов», «Блок по организации медицинской помощи» …), А2 (33:
+  «Целевая аудитория данных клинических рекомендаций:», «Порядок обновления клинических рекомендаций.», the methods of evidence
+  collection, analysis and validation, «Экономический анализ», «Консультация и экспертная оценка» …), А3 (3: «Связанные документы» …)
+  and the passport fields of the Г scales (10: «Содержание (шаблон):», «Ключ (интерпретация):», «Тип (подчеркнуть):» …). Mined
+  from the bold standalone lines of the 774 current КР (15 049 distinct lines, 28 053 document occurrences;
+  `tools/ingest/scripts/mine_clinical_template_labels.py candidates`) and reviewed by hand: a label must recur in at least 6
+  documents, be template wording, and be taken **only inside its section** (a generic «Содержание:» or «Рабочая группа:» is a label
+  in Appendix Г or А2 only). Left out on purpose: evidence-level lines («Уровень убедительности …», «УДД 4 УУР С», «ЕОК …»),
+  «Комментарии:» after single recommendations, table and scale captions («Таблица 1. Шкала оценки …»), «Схема N», «N баллов», doses,
+  author lists («РУКОВОДИТЕЛИ:», «Президиум рабочей группы:»), patient-information topics of Appendix В, disease-specific
+  sub-headings («Диетотерапия», «Обезболивание»), and template-adjacent wording below the threshold (e.g. «Показания к госпитализации»,
+  4 documents; «Условия оказания медицинских услуг.», «Форма помощи.»). `recount` re-checks the counts from the raw files.
+- **Extractor revision 5** (`clinical_json_import`): the parser now knows whether a paragraph is all bold (bold punctuation
+  aside); a bold paragraph whose normalised text is a listed label of the section it sits in becomes a heading **one level below the
+  latest heading that is not itself a label** (level 2 under a stored section, 3 under a promoted «Приложение Г1. …»; stored deeper
+  headings give 4–5), keeping its wording, source section id and block id (`promotedFrom: template-label`). Hidden headings are
+  avoided with the same fixed point as KR3/KR4 (`_demote_hidden_promoted_headings`, now run with levels recomputed after each
+  round): of 3 963 candidate lines in the 774 documents 3 935 are headings, 28 stay paragraphs because nothing sits under them
+  (10 «Методология сбора доказательств» followed directly by the next label, 5 «Методология валидизации рекомендаций», single
+  Г fields). The first build showed a second hiding mechanism: `source_registry._contents_entry_ids` treats any heading containing
+  «содержание» as the start of a table of contents and turns the headings after it into plain text, so «Содержание (шаблон):» of a
+  scale passport swallowed the next appendix titles (130 modules lost headings); template labels are now excluded from that
+  detector. Tests: `tests/test_clinical_template_labels.py` (24, with real source lines and a pack-level case for «Содержание
+  (шаблон):»), `tests/test_clinical_json_numbered_headings.py` (revision).
+- **Rule effect vs importer drift** (`compare_clinical_modules.py`, plus a control build of all 774 modules with only the label
+  rule switched off): control → final: **741 modules differ** in structure (3 944 sections added = promoted headings, 1–45 per
+  module; 3 204 at level 2, 638 at level 3, 102 at level 4), 33 identical. Published → control: 202 identical, 564 importer drift
+  only (image label, table captions attached to their figure), 8 structure differences older than the rule (see below). Four of
+  the 741 were **not republished**: 385_3, 406_3, 694_2 and 713_2 carry stored `<h2>«Приложение А3.6 …»</h2>` headings that the
+  current importer folds into the restated paragraph after them (the published build kept them as headings); rebuilding them would
+  hide 3 visible appendix titles each, with or without the label rule. They need an importer decision (the `h2` followed by an
+  identical paragraph is turned into body text) before they are rebuilt, and remain as published. The other 4 of the 8 older
+  differences (507_3, 571_2, 723_2, 988_1) keep their section count and lose no visible title.
+- **Published** to the new additive mirror branch `datasets/clinical-json-2026.10.09-17bb72b87531` (737 `.db.zst`,
+  **664.4 MB** instead of 662.2 MB, 1 660 MB installed; version `0.6.0-json.24c087c586ee.e5`, same e5 profile with recomputed
+  vectors; 92 339 chunks). Nothing existing was touched, no release, `main` not pushed. `minAppVersion` stays 0.6.46 (plain sections;
+  an older app shows the labels as body text exactly as today). Catalog `publishedAt` 2026-10-09T07:10:00Z, `catalogVersion`
+  `kr5-template-labels.2026.10.09`; `catalog.shell.json` and `section-manifest.json` regenerated (the whole КР download is 691.6 MB).
+  Catalog diff: only the 737 clinical entries (`version`, `sizes`, `artifacts`, `documentTable`, `sourceSetDigest`) and the two
+  top-level fields `catalogVersion` and `publishedAt`; no capability changed. The 11 re-saved editions (115_2, 25_2, 507_3, 535_2,
+  758_1–762_1, 771_1, 937_1) now record their current raw-file checksum in digest and document table (as 998_1 did in KR3); the
+  editions sidecar (`catalog.clinical-editions.json`) rebuilt from the registry is byte-identical, so it needed no change. Local
+  copy: `output/module-zstd-json-2026-10-09/` (the KR4, KR3 and E2 copies stay for the 37 modules not republished and as rollback copies).
+- **Identifiers** (737 modules). Document ids, titles, version labels and document-table rows are identical. Sections (34 192
+  before): 34 183 ids kept, 3 925 added, **9 changed** (stored headings whose path-derived id moved because a label heading now sits
+  above them). Chunks (91 855 before): 79 695 ids kept, **12 160 changed** (12 644 new) = 12.7 % of the 95 611 chunks of the 774 КР
+  modules; the rule alone moves 7 013 of them (control → final), the rest is the importer drift of the modules rebuilt with the
+  current importer. The released core 0.6.57 holds none of the changed chunk or section ids, nor do the
+  `clinical-medication-relations` and core-pointer assets; the only hits are committed provenance files that cite chunks of the
+  pinned dataset commit and are not resolved against modules (`content/definition-drafts/clinical-*` — 1 039 + 775 + 253 + 205 + 2 ids,
+  and one generated report, `packages/tester-box/reports/latest.json`). Stored on a device: KR highlights (keyed by chunk anchor,
+  quote-checked), copied section links and a remembered reading position fall back to the document top for a moved anchor;
+  bookmarks are per document and survive. No core, query-model or index rebuild is needed.
+- **Verified:** all 737 `.db.zst` decode with the reference `zstd` CLI to the catalog's decoded checksums and sizes, SQLite
+  integrity and foreign keys ok, one e5 vector per chunk, no orphan vectors; every mirror URL returns the catalog size and SHA-256 with
+  `access-control-allow-origin: *` (3 SSL resets retried and ok); token check control → final: text lost from chunks = exactly the
+  promoted headings, nothing gained, in all 741; no section that is visible in the published or control module is hidden now and none
+  of the 3 944 new headings is hidden (the four exceptions above are excluded). `bun run typecheck`, `bun run check` (no errors),
+  `vitest` (modules and sections), `bun run python:check` (1 381 tests, ruff, pyright), `bun run build:app`. In a Chromium
+  build (`E2E_PORT=4215`) the new `kr-template-label-modules.spec.ts` installs 655_2, 283_2 and 1062_1 from the catalog, opens them
+  and clicks the outline entry of two labels each: each label is one outline entry and one title, never body text, and the outline
+  scrolls it into view; the KR3/KR4 specs (visible-section counts updated for the labels), `kr-reader-structure`, `module-pointer`
+  and four reader specs are green with the e2e fixtures reading the new local copy first.
+- **Not verified:** Android/WebView or a phone, a visual check at 375 px (no UI code changed), an older app against the new data (it
+  reads plain sections), a physician review of the 78 labels and their levels, lexical/semantic search quality on the rebuilt
+  modules (label titles now reach FTS through `section_path`; no КР benchmark was re-run, the core is untouched so `benchmark:all` was not
+  re-run), the Pages deploy.
+- Intermediates (builds, control builds, compacted and e5 databases, decoded published copies) were deleted; reports, scripts, the
+  id lists and the removed-id lists are in `data/build/official-clinical-2026-10-09/`.
 
 ## КР appendix headings republished — 2026-10-08 (STATE KR4)
 
