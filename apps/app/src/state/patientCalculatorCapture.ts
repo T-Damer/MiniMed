@@ -1,11 +1,15 @@
 import type { CalculatorSchema } from '@localmed/contracts';
 import type { PatientProfile } from '@/state/patient-domain';
 
-/** Capture only schema-declared patient fields; age never becomes an invented birth date. */
+/**
+ * Capture only schema-declared patient fields; age never becomes an invented birth date. `outputs`
+ * are the values the result found for steps bound to a card field (the due date), by context key.
+ */
 export function capturePatientCalculatorInputs(
   profile: PatientProfile,
   schema: CalculatorSchema,
   inputs: Readonly<Record<string, string | number>>,
+  outputs: Readonly<Record<string, string | number>> = {},
 ): {
   readonly profile: PatientProfile;
   readonly context: Readonly<Record<string, string | number>>;
@@ -60,6 +64,16 @@ export function capturePatientCalculatorInputs(
           inputId: field.id,
         });
     }
+  }
+  for (const step of schema.steps) {
+    const key = step.patientBinding?.contextKey;
+    const found = key === undefined ? undefined : outputs[key];
+    if (key === undefined || found === undefined) continue;
+    if (typeof found === 'number' && !Number.isFinite(found))
+      throw new Error('Некорректное значение в данных калькулятора.');
+    context[key] = found;
+    if (next.context?.[key] !== found)
+      next = { ...next, context: { ...next.context, [key]: found } };
   }
   return { profile: next, context, measurements };
 }

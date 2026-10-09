@@ -5,7 +5,10 @@ import {
   toStoredCalculationResult,
 } from '@/features/calculators/calculator-schema-engine';
 import { parsePediatricFeedingPlan } from '@/features/calculators/pediatric-feeding-plan';
-import { calculatorSchemaFromModules } from '@/features/calculators/tool-module-test-helpers';
+import {
+  calculatorSchemaFromModules,
+  loadToolModuleCalculatorSchemas,
+} from '@/features/calculators/tool-module-test-helpers';
 
 const schema = calculatorSchemaFromModules('minimed.calculator.pediatric-feeding-plan');
 
@@ -54,5 +57,36 @@ describe('pediatric feeding plan schema', () => {
     expect(allergic.allergyPlan).toContain('гречневой, рисовой или кукурузной');
     expect(allergic.meals[1]?.food).toContain('Безглютеновая каша');
     expect(allergic.calendar).toHaveLength(7);
+  });
+});
+
+describe('the feeding-plan result layout', () => {
+  it('is declared by the schema, and by no other shipped calculator', () => {
+    expect(schema.resultLayout).toBe('feeding-plan');
+    expect(schema.bundled).toBe(true);
+    const others = loadToolModuleCalculatorSchemas()
+      .filter((candidate) => candidate.id !== schema.id)
+      .filter((candidate) => candidate.resultLayout !== undefined || candidate.bundled === true);
+    expect(others.map((candidate) => candidate.id)).toEqual([]);
+  });
+
+  it('is a text result carrying every id the sheet reads', () => {
+    const result = evaluateCalculatorSchema(schema, {
+      ageMonths: 4,
+      weightKg: 6,
+      feedingMode: 'formula',
+      complementaryStatus: 'not-started',
+      feedsPerDay: 6,
+      formulaKcalPer100Ml: 67,
+      measuredBreastMilkPerFeedMl: 0,
+      intoleranceCategory: 'none',
+    });
+    if (!result.ok) throw new Error(result.error);
+    const stored = toStoredCalculationResult(result);
+    if (!('textValues' in stored)) throw new Error('The plan is a text result.');
+    const ids = stored.textValues.map((item) => item.id);
+    expect(ids).toEqual(
+      expect.arrayContaining(['ageMonthsOut', 'dailyVolume', 'dailyCalories', 'meal1Food']),
+    );
   });
 });

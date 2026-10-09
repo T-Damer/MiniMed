@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.pediatrics.ru",
-  "version": "0.1.0-preview.4",
+  "version": "0.1.0-preview.5",
   "title": "Инструменты педиатрии",
   "schemaVersion": 2,
   "builtAt": "2026-10-09T00:00:00Z",
@@ -380,7 +380,7 @@
     {
       "id": "minimed.calculator.pediatric-feeding-plan",
       "kind": "calculator",
-      "version": "2.1.0",
+      "version": "2.2.0",
       "slug": "pediatric-feeding-plan",
       "title": "Рацион и прикорм до 3 лет",
       "shortTitle": "Рацион ребёнка",
@@ -407,6 +407,8 @@
         "category": "pediatrics",
         "tags": ["fluids"],
         "clinical": true,
+        "bundled": true,
+        "resultLayout": "feeding-plan",
         "formulaDisplay": "До 12 месяцев: возрастная потребность в энергии × фактическая масса; после года: возрастная суточная потребность. Объём смеси учитывает её энергетическую плотность.",
         "population": "Доношенные дети от рождения до 35,9 месяца; лечебный рацион требует подтверждённого диагноза и клинического выбора смеси.",
         "limitations": [

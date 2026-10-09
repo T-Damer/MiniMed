@@ -88,6 +88,8 @@ const DUE_DATE_SECTION = {
     'obstetric-edd-conception',
     'obstetric-edd-quickening',
     'obstetric-edd-given-date',
+    'obstetric-ga-from-edd',
+    'obstetric-maternity-leave',
   ],
 };
 const FEEDING_SECTION = { title: 'Педиатрия', slugs: ['pediatric-feeding-plan'] };
@@ -171,6 +173,21 @@ test('a patient fills the feeding plan and keeps the last period and the due dat
   await openCalculator(page, 'obstetric-edd-lmp');
   await selectPatient(page, 'Пациент ПДР');
   await expect(page.getByLabel('Дата последней менструации')).toHaveValue('2026-05-01');
+
+  // The due date found above fills the two calculators that start from it.
+  // The patient stays when a link goes straight from one tool to another, and fills the new inputs.
+  for (const slug of ['obstetric-ga-from-edd', 'obstetric-maternity-leave']) {
+    await openCalculator(page, slug);
+    await expect(page.getByLabel('Предполагаемая дата родов')).toHaveValue('2027-02-05');
+    await expect(page.getByTestId('calculator-result')).toHaveCount(0);
+  }
+  await page.getByTestId('calculator-submit').click();
+  await expect(page.getByTestId('calculator-result')).toContainText('Начало отпуска');
+  // The unit converter works on typed numbers: it neither keeps the patient nor writes to the card.
+  await openCalculator(page, 'unit-conversion');
+  await expect(page.locator('.patient-picker-row')).toHaveCount(0);
+  await expect(page.getByTestId('calculator-episode-select')).toHaveCount(0);
+  await expect(page.getByTestId('calculator-result')).toHaveCount(0);
 
   await page.getByRole('button', { name: 'Заметки', exact: true }).click();
   await page.getByRole('button', { name: 'Пациенты', exact: true }).click();

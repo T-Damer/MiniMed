@@ -1,11 +1,23 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import {
   calculationRecordOutputs,
   formatCalculationRecord,
   printCalculationRecord,
 } from '@/features/calculators/calculator-print';
+import {
+  clearDownloadedCalculatorSchemas,
+  registerDownloadedCalculatorSchema,
+} from '@/features/calculators/calculator-schema-catalog';
+import { loadToolModuleRecords } from '@/features/calculators/tool-module-test-helpers';
 import type { CalculationRecord } from '@/state/calculation-history';
+
+// The feeding plan is laid out as a sheet because its schema declares so, not because of its id.
+beforeAll(() => {
+  for (const record of loadToolModuleRecords(['content/tool-modules/pediatrics.json']))
+    registerDownloadedCalculatorSchema(record);
+});
+afterAll(clearDownloadedCalculatorSchemas);
 
 function buildRecord(): CalculationRecord {
   return {

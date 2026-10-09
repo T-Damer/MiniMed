@@ -21,7 +21,10 @@ import {
   emptyPatientVaultSnapshot,
   type PatientVaultSnapshot,
 } from '@/state/patient-domain';
-import { recordCalculatorResultForPatient } from '@/state/patient-tool-recording';
+import {
+  patientBoundCalculatorInputs,
+  recordCalculatorResultForPatient,
+} from '@/state/patient-tool-recording';
 import {
   addPatientBlob,
   createPatientInVault,
@@ -365,7 +368,24 @@ describe('patient vault storage modes', () => {
     lockPatientVault();
     const restored = await unlockPatientVault();
     expect(restored.events[0]?.text).toContain('5 февраля 2027');
-    expect(restored.profiles[0]?.context).toEqual({ lastMenstrualPeriod: '2026-05-01' });
+    expect(restored.profiles[0]?.context).toEqual({
+      lastMenstrualPeriod: '2026-05-01',
+      estimatedDueDate: '2027-02-05',
+    });
+    expect(restored.events[0]?.provenance?.contextSnapshot).toMatchObject({
+      estimatedDueDate: '2027-02-05',
+    });
+    // The stored due date fills the two calculators that start from it.
+    const profile = restored.profiles[0];
+    if (!profile) throw new Error('The card was not restored.');
+    for (const [id, inputId] of [
+      ['obstetric-ga-from-edd', 'eddDate'],
+      ['obstetric-maternity-leave', 'eddDate'],
+    ] as const) {
+      expect(
+        patientBoundCalculatorInputs(calculatorSchemaFromModules(id), profile, restored),
+      ).toEqual({ [inputId]: '2027-02-05' });
+    }
     expect(restored.events[0]?.observations.map((observation) => observation.metricId)).toEqual([
       'obstetric-edd-lmp.gaWeeks',
       'obstetric-edd-lmp.gaDaysRemainder',

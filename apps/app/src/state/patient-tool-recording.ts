@@ -251,7 +251,12 @@ export async function recordCalculatorResultForPatient(input: {
       ? normalizedCalculatorInputs(schema, input.rawInputs)
       : input.rawInputs;
     const captured = schema
-      ? capturePatientCalculatorInputs(profile, schema, normalizedInputs)
+      ? capturePatientCalculatorInputs(
+          profile,
+          schema,
+          normalizedInputs,
+          input.result.contextValues,
+        )
       : undefined;
     const contextSnapshot = schema
       ? {

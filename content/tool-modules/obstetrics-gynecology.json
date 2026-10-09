@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.obstetrics-gynecology.ru",
-  "version": "0.1.0-preview.6",
+  "version": "0.1.0-preview.7",
   "title": "Инструменты акушерства и гинекологии",
   "schemaVersion": 2,
   "builtAt": "2026-10-09T00:00:00Z",
@@ -665,7 +665,7 @@
     {
       "id": "obstetric-edd-lmp",
       "kind": "calculator",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "slug": "obstetric-edd-lmp",
       "title": "ПДР по дате последней менструации — правило Негеле",
       "shortTitle": "ПДР по ЛМП",
@@ -722,7 +722,8 @@
             "displayPrecision": 2,
             "isOutput": true,
             "valueKind": "date",
-            "stepRequired": 0
+            "stepRequired": 0,
+            "patientBinding": { "kind": "profileContext", "contextKey": "estimatedDueDate" }
           },
           {
             "id": "gaToDateRaw",
@@ -812,7 +813,7 @@
     {
       "id": "obstetric-edd-ultrasound",
       "kind": "calculator",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "slug": "obstetric-edd-ultrasound",
       "title": "ПДР по УЗИ",
       "shortTitle": "ПДР по УЗИ",
@@ -905,7 +906,8 @@
             "displayPrecision": 2,
             "isOutput": true,
             "valueKind": "date",
-            "stepRequired": 0
+            "stepRequired": 0,
+            "patientBinding": { "kind": "profileContext", "contextKey": "estimatedDueDate" }
           },
           {
             "id": "gaToDateRaw",
@@ -1000,7 +1002,7 @@
     {
       "id": "obstetric-edd-conception",
       "kind": "calculator",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "slug": "obstetric-edd-conception",
       "title": "ПДР по дате зачатия",
       "shortTitle": "ПДР по зачатию",
@@ -1057,7 +1059,8 @@
             "displayPrecision": 2,
             "isOutput": true,
             "valueKind": "date",
-            "stepRequired": 0
+            "stepRequired": 0,
+            "patientBinding": { "kind": "profileContext", "contextKey": "estimatedDueDate" }
           },
           {
             "id": "gaToDateRaw",
@@ -1143,7 +1146,7 @@
     {
       "id": "obstetric-edd-quickening",
       "kind": "calculator",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "slug": "obstetric-edd-quickening",
       "title": "ПДР по первому шевелению",
       "shortTitle": "ПДР по шевелению",
@@ -1230,7 +1233,8 @@
             "displayPrecision": 2,
             "isOutput": true,
             "valueKind": "date",
-            "stepRequired": 0
+            "stepRequired": 0,
+            "patientBinding": { "kind": "profileContext", "contextKey": "estimatedDueDate" }
           },
           {
             "id": "gaToDateRaw",
@@ -1320,7 +1324,7 @@
     {
       "id": "obstetric-edd-given-date",
       "kind": "calculator",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "slug": "obstetric-edd-given-date",
       "title": "ПДР по известному сроку на заданную дату",
       "shortTitle": "ПДР по известному сроку",
@@ -1411,7 +1415,8 @@
             "displayPrecision": 2,
             "isOutput": true,
             "valueKind": "date",
-            "stepRequired": 0
+            "stepRequired": 0,
+            "patientBinding": { "kind": "profileContext", "contextKey": "estimatedDueDate" }
           },
           {
             "id": "gaToDateRaw",
@@ -1502,7 +1507,7 @@
     {
       "id": "obstetric-ga-from-edd",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "slug": "obstetric-ga-from-edd",
       "title": "Срок беременности по известной ПДР",
       "shortTitle": "Срок по ПДР",
@@ -1538,7 +1543,8 @@
             "label": "Предполагаемая дата родов",
             "kind": "date",
             "required": true,
-            "step": 0
+            "step": 0,
+            "patientBinding": { "kind": "profileContext", "contextKey": "estimatedDueDate" }
           },
           {
             "id": "asOfDate",
@@ -1654,7 +1660,7 @@
     {
       "id": "obstetric-maternity-leave",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "slug": "obstetric-maternity-leave",
       "title": "Сроки отпуска по беременности и родам",
       "shortTitle": "Декретный отпуск",
@@ -1691,7 +1697,8 @@
             "label": "Предполагаемая дата родов",
             "kind": "date",
             "required": true,
-            "step": 0
+            "step": 0,
+            "patientBinding": { "kind": "profileContext", "contextKey": "estimatedDueDate" }
           },
           {
             "id": "pregnancyType",

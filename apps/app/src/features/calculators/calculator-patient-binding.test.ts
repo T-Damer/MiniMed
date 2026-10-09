@@ -162,6 +162,113 @@ describe('due-date calculators', () => {
   });
 });
 
+describe('the stored due date', () => {
+  const FROM_DUE_DATE_IDS = ['obstetric-ga-from-edd', 'obstetric-maternity-leave'] as const;
+  const card = (context: Record<string, string | number> = {}) => ({
+    ...createPatientProfile({ displayName: 'Тест' }).profile,
+    context,
+  });
+  const dueDateInputs: Record<(typeof DUE_DATE_IDS)[number], Record<string, string | number>> = {
+    'obstetric-edd-lmp': { lmpDate: '2026-05-01' },
+    'obstetric-edd-ultrasound': { examDate: '2026-05-01', gaWeeksAtExam: 8, gaDaysAtExam: 2 },
+    'obstetric-edd-conception': { conceptionDate: '2026-05-15' },
+    'obstetric-edd-quickening': { quickeningDate: '2026-09-01', parity: 'primigravida' },
+    'obstetric-edd-given-date': { referenceDate: '2026-05-01', gaWeeksGiven: 8, gaDaysGiven: 2 },
+  };
+
+  it.each(DUE_DATE_IDS)('%s writes the due date it found as an ISO date', (id) => {
+    const schema = calculatorSchemaFromModules(id);
+    const evaluation = evaluateCalculatorSchema(schema, dueDateInputs[id]);
+    if (!evaluation.ok) throw new Error(evaluation.error);
+    expect(evaluation.contextValues).toEqual({
+      estimatedDueDate: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/u),
+    });
+    const stored = toStoredCalculationResult(evaluation);
+    expect(stored.contextValues).toEqual(evaluation.contextValues);
+
+    const profile = card();
+    const captured = capturePatientCalculatorInputs(
+      profile,
+      schema,
+      dueDateInputs[id],
+      stored.contextValues,
+    );
+    expect(captured.profile.context?.['estimatedDueDate']).toBe(
+      evaluation.contextValues['estimatedDueDate'],
+    );
+    expect(captured.context['estimatedDueDate']).toBe(evaluation.contextValues['estimatedDueDate']);
+  });
+
+  it('is the date the calculator prints', () => {
+    const schema = calculatorSchemaFromModules('obstetric-edd-lmp');
+    const evaluation = evaluateCalculatorSchema(schema, { lmpDate: '2026-05-01' });
+    if (!evaluation.ok) throw new Error(evaluation.error);
+    expect(evaluation.contextValues).toEqual({ estimatedDueDate: '2027-02-05' });
+  });
+
+  it('replaces an older due date and leaves the card alone when nothing changed', () => {
+    const schema = calculatorSchemaFromModules('obstetric-edd-lmp');
+    const profile = card({ estimatedDueDate: '2027-01-01' });
+    const replaced = capturePatientCalculatorInputs(
+      profile,
+      schema,
+      { lmpDate: '2026-05-01' },
+      { estimatedDueDate: '2027-02-05' },
+    );
+    expect(replaced.profile.context).toEqual({
+      estimatedDueDate: '2027-02-05',
+      lastMenstrualPeriod: '2026-05-01',
+    });
+    const same = card({ estimatedDueDate: '2027-02-05', lastMenstrualPeriod: '2026-05-01' });
+    expect(
+      capturePatientCalculatorInputs(
+        same,
+        schema,
+        { lmpDate: '2026-05-01' },
+        { estimatedDueDate: '2027-02-05' },
+      ).profile,
+    ).toBe(same);
+  });
+
+  it('writes nothing without a result value', () => {
+    const schema = calculatorSchemaFromModules('obstetric-edd-lmp');
+    const profile = card();
+    expect(capturePatientCalculatorInputs(profile, schema, {}).profile).toBe(profile);
+  });
+
+  it.each(FROM_DUE_DATE_IDS)(
+    '%s fills the due date from the card and writes a changed one back',
+    (id) => {
+      const schema = calculatorSchemaFromModules(id);
+      expect(calculatorUsesPatientData(schema)).toBe(true);
+      expect(schema.inputs.find((input) => input.id === 'eddDate')?.patientBinding).toEqual({
+        kind: 'profileContext',
+        contextKey: 'estimatedDueDate',
+      });
+      const profile = card({ estimatedDueDate: '2027-02-05' });
+      const snapshot = emptyPatientVaultSnapshot();
+      expect(patientBoundCalculatorInputs(schema, profile, snapshot)).toEqual({
+        eddDate: '2027-02-05',
+      });
+      // A card without a due date prefills nothing: the field stays empty for the doctor to fill.
+      expect(patientBoundCalculatorInputs(schema, card(), snapshot)).toEqual({});
+      const changed = capturePatientCalculatorInputs(profile, schema, { eddDate: '2027-03-01' });
+      expect(changed.profile.context).toEqual({ estimatedDueDate: '2027-03-01' });
+    },
+  );
+
+  it('is the one key the due-date calculators write and the two others read', () => {
+    const keys = (id: string, where: 'inputs' | 'steps') => {
+      const schema = calculatorSchemaFromModules(id);
+      return (where === 'inputs' ? schema.inputs : schema.steps)
+        .map((entry) => entry.patientBinding?.contextKey)
+        .filter((key) => key === 'estimatedDueDate');
+    };
+    for (const id of DUE_DATE_IDS) expect(keys(id, 'steps')).toEqual(['estimatedDueDate']);
+    for (const id of FROM_DUE_DATE_IDS) expect(keys(id, 'inputs')).toEqual(['estimatedDueDate']);
+  });
+});
+
 describe('feeding plan', () => {
   const schema = calculatorSchemaFromModules(FEEDING_PLAN_ID);
 

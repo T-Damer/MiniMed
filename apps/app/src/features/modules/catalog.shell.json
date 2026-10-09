@@ -3603,7 +3603,7 @@
       "tool": {
         "id": "minimed.calculator.pediatric-feeding-plan",
         "kind": "calculator",
-        "version": "2.1.0",
+        "version": "2.2.0",
         "slug": "pediatric-feeding-plan",
         "title": "Рацион и прикорм до 3 лет",
         "shortTitle": "Рацион ребёнка",
@@ -3804,6 +3804,7 @@
               "step": 0
             }
           ],
+          "bundled": true,
           "sources": [
             {
               "title": "Программа оптимизации вскармливания детей первого года жизни в Российской Федерации",
@@ -4691,7 +4692,7 @@
       "tool": {
         "id": "obstetric-edd-lmp",
         "kind": "calculator",
-        "version": "1.1.0",
+        "version": "1.2.0",
         "slug": "obstetric-edd-lmp",
         "title": "ПДР по дате последней менструации — правило Негеле",
         "shortTitle": "ПДР по ЛМП",
@@ -4743,7 +4744,7 @@
       "tool": {
         "id": "obstetric-edd-ultrasound",
         "kind": "calculator",
-        "version": "1.1.0",
+        "version": "1.2.0",
         "slug": "obstetric-edd-ultrasound",
         "title": "ПДР по УЗИ",
         "shortTitle": "ПДР по УЗИ",
@@ -4827,7 +4828,7 @@
       "tool": {
         "id": "obstetric-edd-conception",
         "kind": "calculator",
-        "version": "1.1.0",
+        "version": "1.2.0",
         "slug": "obstetric-edd-conception",
         "title": "ПДР по дате зачатия",
         "shortTitle": "ПДР по зачатию",
@@ -4879,7 +4880,7 @@
       "tool": {
         "id": "obstetric-edd-quickening",
         "kind": "calculator",
-        "version": "1.1.0",
+        "version": "1.2.0",
         "slug": "obstetric-edd-quickening",
         "title": "ПДР по первому шевелению",
         "shortTitle": "ПДР по шевелению",
@@ -4954,7 +4955,7 @@
       "tool": {
         "id": "obstetric-edd-given-date",
         "kind": "calculator",
-        "version": "1.1.0",
+        "version": "1.2.0",
         "slug": "obstetric-edd-given-date",
         "title": "ПДР по известному сроку на заданную дату",
         "shortTitle": "ПДР по известному сроку",
@@ -5038,7 +5039,7 @@
       "tool": {
         "id": "obstetric-ga-from-edd",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "slug": "obstetric-ga-from-edd",
         "title": "Срок беременности по известной ПДР",
         "shortTitle": "Срок по ПДР",
@@ -5069,7 +5070,11 @@
               "label": "Предполагаемая дата родов",
               "kind": "date",
               "required": true,
-              "step": 0
+              "step": 0,
+              "patientBinding": {
+                "kind": "profileContext",
+                "contextKey": "estimatedDueDate"
+              }
             },
             {
               "id": "asOfDate",
@@ -5097,7 +5102,7 @@
       "tool": {
         "id": "obstetric-maternity-leave",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "slug": "obstetric-maternity-leave",
         "title": "Сроки отпуска по беременности и родам",
         "shortTitle": "Декретный отпуск",
@@ -5129,7 +5134,11 @@
               "label": "Предполагаемая дата родов",
               "kind": "date",
               "required": true,
-              "step": 0
+              "step": 0,
+              "patientBinding": {
+                "kind": "profileContext",
+                "contextKey": "estimatedDueDate"
+              }
             },
             {
               "id": "pregnancyType",
