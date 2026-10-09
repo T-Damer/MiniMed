@@ -32,7 +32,11 @@ Published calculator definitions use `schemaVersion: 2` only. Each definition de
 `observationMappings`. A mapping can expose a final input, derived step, or output as a canonical
 `metricId`/unit for longitudinal patient dynamics. `patientBinding` may fill only explicitly declared
 fields such as date of birth, biological sex, age on the event date, or a recent measurement; the
-selector is always an explicit `patientId` and never a name match.
+selector is always an explicit `patientId` and never a name match. A `profileContext` binding (with a
+`contextKey`) reads a named field of the card's context, such as the last menstrual period, and a saved
+result writes the entered value back under that key; the event keeps the value it used. Observations are
+numeric only, so a text result short enough for one line (a due date) is also stored as the card event's
+text.
 
 When a selected patient is present, the completed result captures normalized inputs, the selected
 context, definition version, provenance, and a structured reference verdict in the encrypted patient

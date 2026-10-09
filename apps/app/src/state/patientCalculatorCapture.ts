@@ -39,6 +39,15 @@ export function capturePatientCalculatorInputs(
         throw new Error('Некорректная дата рождения в данных калькулятора.');
       context['birthDate'] = raw;
       if (!next.birthDate) next = { ...next, birthDate: raw };
+    } else if (binding.kind === 'profileContext') {
+      // A named card field (the last menstrual period, say): the entered value is the card's
+      // current one, so a changed value replaces the stored one and the event keeps what was used.
+      if (!binding.contextKey) continue;
+      if (typeof raw === 'number' && !Number.isFinite(raw))
+        throw new Error('Некорректное значение в данных калькулятора.');
+      context[binding.contextKey] = raw;
+      if (next.context?.[binding.contextKey] !== raw)
+        next = { ...next, context: { ...next.context, [binding.contextKey]: raw } };
     } else {
       const value = Number(raw) / (binding.valueMultiplier ?? 1);
       if (!Number.isFinite(value)) throw new Error('Некорректное измерение в данных калькулятора.');

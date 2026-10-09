@@ -1361,6 +1361,9 @@ export function patientBindingValue(
     return profile.birthDate?.slice(0, 10);
   }
   if (binding.kind === 'biologicalSex') return profile.biologicalSex;
+  if (binding.kind === 'profileContext') {
+    return binding.contextKey ? profile.context?.[binding.contextKey] : undefined;
+  }
   if (binding.kind === 'ageAtEvent') {
     if (!profile.birthDate) return undefined;
     return ageInYearsOnDate(profile.birthDate, eventDate);

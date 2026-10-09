@@ -4,6 +4,7 @@ import {
   evaluateCalculatorSchema,
   toStoredCalculationResult,
 } from '@/features/calculators/calculator-schema-engine';
+import { calculatorSchemaFromModules } from '@/features/calculators/tool-module-test-helpers';
 import {
   deleteConversationTranscript,
   enableEncryptedVault,
@@ -342,6 +343,33 @@ describe('patient vault storage modes', () => {
         expect.objectContaining({ metricId: 'body-mass', unit: 'кг', value: 65 }),
       ]),
     );
+  });
+
+  it('keeps a due date in the card event and the dating input in the card context', async () => {
+    await createPatientVault({ allowUnencrypted: true });
+    const created = await createPatientInVault({ displayName: 'Беременная' });
+    const schema = calculatorSchemaFromModules('obstetric-edd-lmp');
+    const rawInputs = { lmpDate: '2026-05-01' };
+    const evaluated = evaluateCalculatorSchema(schema, rawInputs);
+    if (!evaluated.ok) throw new Error(evaluated.error);
+    await recordCalculatorResultForPatient({
+      patientId: created.patientId,
+      recordId: 'edd-calculation',
+      calculatorId: schema.id,
+      calculatorVersion: '1.1.0',
+      title: schema.title,
+      schema,
+      rawInputs,
+      result: toStoredCalculationResult(evaluated),
+    });
+    lockPatientVault();
+    const restored = await unlockPatientVault();
+    expect(restored.events[0]?.text).toContain('5 февраля 2027');
+    expect(restored.profiles[0]?.context).toEqual({ lastMenstrualPeriod: '2026-05-01' });
+    expect(restored.events[0]?.observations.map((observation) => observation.metricId)).toEqual([
+      'obstetric-edd-lmp.gaWeeks',
+      'obstetric-edd-lmp.gaDaysRemainder',
+    ]);
   });
 
   it('stores web snapshots as plaintext and reopens them without a password', async () => {

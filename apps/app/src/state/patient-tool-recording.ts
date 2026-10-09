@@ -124,9 +124,38 @@ export function patientBoundCalculatorInputs(
       !(input.options ?? []).some((option) => String(option.value) === String(value))
     )
       continue;
-    values[input.id] = typeof value === 'number' ? value * (binding.valueMultiplier ?? 1) : value;
+    values[input.id] = typeof value === 'number' ? boundNumber(input, binding, value) : value;
   }
   return values;
+}
+
+/**
+ * A measurement is placed as stored. An age is derived from the birth date and the event date, so
+ * it is cut down to the field's own step: never rounded up past what the child has lived.
+ */
+function boundNumber(
+  input: CalculatorSchema['inputs'][number],
+  binding: NonNullable<CalculatorSchema['inputs'][number]['patientBinding']>,
+  value: number,
+): number {
+  const scaled = value * (binding.valueMultiplier ?? 1);
+  if (binding.kind !== 'ageAtEvent' || !input.inputStep) return scaled;
+  return Number((Math.floor(scaled / input.inputStep + 1e-9) * input.inputStep).toFixed(6));
+}
+
+const EVENT_RESULT_TEXT_LIMIT = 280;
+
+/**
+ * A short text result (a due date) is the line of its card event: observations carry numbers only,
+ * so the date would not reach the card otherwise. A long plan stays in the saved calculation.
+ */
+function resultText(result: StoredCalculationResult): string | undefined {
+  if (!('textValues' in result)) return undefined;
+  const text = result.textValues
+    .filter((line) => line.text.trim() !== '')
+    .map((line) => `${line.label}: ${line.text}`)
+    .join('\n');
+  return text !== '' && text.length <= EVENT_RESULT_TEXT_LIMIT ? text : undefined;
 }
 
 function calculatorObservationValue(
@@ -250,6 +279,7 @@ export async function recordCalculatorResultForPatient(input: {
           context: contextSnapshot,
           capturedAt: occurredAt,
         };
+    const eventText = resultText(input.result);
     const observations: Omit<PatientObservation, 'id' | 'patientId' | 'eventId'>[] = [];
     for (const mapping of mappings) {
       const value = calculatorObservationValue(mapping, input.result, normalizedInputs);
@@ -294,6 +324,7 @@ export async function recordCalculatorResultForPatient(input: {
       ...(episodeId ? { episodeId } : {}),
       occurredAt,
       title: input.title,
+      ...(eventText ? { text: eventText } : {}),
       provenance: {
         toolId: input.calculatorId,
         toolVersion: input.calculatorVersion,

@@ -113,6 +113,7 @@ export const CalculatorPatientBindingKindSchema = z.enum([
   'ageAtEvent',
   'latestObservation',
   'latestMeasurement',
+  'profileContext',
 ]);
 
 /** Explicit patient context lookup. There is intentionally no name/label binding. */
@@ -120,6 +121,9 @@ export const CalculatorPatientBindingSchema = z
   .object({
     kind: CalculatorPatientBindingKindSchema,
     metricId: MappingIdSchema.optional(),
+    /** Key of a named field of the patient card context (`profileContext`), e.g. the last
+     *  menstrual period; the input fills from it and a saved result writes the value back. */
+    contextKey: MappingIdSchema.optional(),
     unit: z.string().min(1).optional(),
     maxAgeDays: z.number().int().nonnegative().optional(),
     /** Multiplies a numeric patient value before it is placed into the calculator input. */
@@ -130,7 +134,11 @@ export const CalculatorPatientBindingSchema = z
       !['latestObservation', 'latestMeasurement'].includes(binding.kind) ||
       binding.metricId !== undefined,
     { message: 'latest observation binding requires metricId', path: ['metricId'] },
-  );
+  )
+  .refine((binding) => binding.kind !== 'profileContext' || binding.contextKey !== undefined, {
+    message: 'profile context binding requires contextKey',
+    path: ['contextKey'],
+  });
 
 export type CalculatorPatientBinding = z.infer<typeof CalculatorPatientBindingSchema>;
 

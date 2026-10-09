@@ -97,6 +97,18 @@ describe('clinical observation contracts', () => {
     ).toBe(false);
   });
 
+  it('requires a context key for profile-context bindings', () => {
+    expect(CalculatorPatientBindingSchema.safeParse({ kind: 'profileContext' }).success).toBe(
+      false,
+    );
+    expect(
+      CalculatorPatientBindingSchema.parse({
+        kind: 'profileContext',
+        contextKey: 'lastMenstrualPeriod',
+      }),
+    ).toMatchObject({ contextKey: 'lastMenstrualPeriod' });
+  });
+
   it('keeps the reference verdict bounds and provenance in the snapshot shape', () => {
     const verdict = ReferenceVerdictSchema.parse({
       rangeId: 'normal',
