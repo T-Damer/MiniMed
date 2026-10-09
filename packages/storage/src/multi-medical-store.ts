@@ -264,8 +264,15 @@ export class MultiMedicalStore implements MedicalStore {
   }
 
   public async getSectionsByDocument(documentId: string): Promise<readonly SectionRecord[]> {
-    const mount = await this.findMount((store) => store.getDocument(documentId));
-    return mount ? mount.store.getSectionsByDocument(documentId) : [];
+    this.assertInitialized();
+    // Document ids are unique across the active mounts, so only the mount that holds the document
+    // returns rows. Asking each mount directly spares a full `getDocument` (its whole metadata,
+    // sent across the worker boundary) per call just to find that mount.
+    return (
+      await Promise.all(
+        this.activeMounts().map(({ store }) => store.getSectionsByDocument(documentId)),
+      )
+    ).flat();
   }
 
   public async getSection(id: string): Promise<SectionRecord | null> {
@@ -273,8 +280,12 @@ export class MultiMedicalStore implements MedicalStore {
   }
 
   public async getChunksByDocument(documentId: string): Promise<readonly ChunkRecord[]> {
-    const mount = await this.findMount((store) => store.getDocument(documentId));
-    return mount ? mount.store.getChunksByDocument(documentId) : [];
+    this.assertInitialized();
+    return (
+      await Promise.all(
+        this.activeMounts().map(({ store }) => store.getChunksByDocument(documentId)),
+      )
+    ).flat();
   }
 
   public async getChunksBySection(sectionId: string): Promise<readonly ChunkRecord[]> {

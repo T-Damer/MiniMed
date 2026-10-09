@@ -186,6 +186,25 @@ describe('MultiMedicalStore', () => {
     expect(hits.map((hit) => hit.document.id)).toEqual(['clinical.fever', 'core.topic']);
   });
 
+  it("reads a document's sections and chunks from the mount that holds it", async () => {
+    const core = await store(seed({ packId: 'core', documentId: 'core.topic', term: 'лихорадка' }));
+    const clinical = await store(
+      seed({ packId: 'clinical', documentId: 'clinical.fever', term: 'лихорадка' }),
+    );
+    const multi = new MultiMedicalStore([
+      { moduleId: 'core', store: core, required: true },
+      { moduleId: 'clinical', store: clinical },
+    ]);
+    await multi.initialize();
+
+    const sections = await multi.getSectionsByDocument('clinical.fever');
+    const chunks = await multi.getChunksByDocument('clinical.fever');
+
+    expect(sections.map((section) => section.id)).toEqual(['clinical.fever@1/section']);
+    expect(chunks.map((chunk) => chunk.sectionId)).toEqual(['clinical.fever@1/section']);
+    expect(await multi.getSectionsByDocument('missing.document')).toEqual([]);
+  });
+
   it('removes disabled optional modules from search without closing them', async () => {
     const core = await store(seed({ packId: 'core', documentId: 'core.topic', term: 'кашель' }));
     const clinical = await store(
