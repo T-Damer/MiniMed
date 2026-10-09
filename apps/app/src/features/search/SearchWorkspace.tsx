@@ -708,6 +708,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
 
   function updateQuery(value: string, debounce = true): void {
     if (searchableQuery(value) !== searchableQuery(query())) setRequestedInlineCalculator();
+    // «Искать везде» belongs to the words it was asked for; an edited query names sources again.
+    if (searchableQuery(value) !== everywhereQuery()) setEverywhereQuery(undefined);
     setQuery(value);
     if (response()?.analysis.originalQuery !== searchableQuery(value)) {
       setResponse(undefined);
