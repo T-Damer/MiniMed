@@ -498,7 +498,7 @@
         "apps/app/e2e/clinical-module-fixture.ts, module-pointer.spec.ts"
       ],
       "rebuild": "uv run tools/ingest/scripts/embed_modules_e5.py --family clinical --source <published zstd dirs> --out data/build/clinical-e5/decoded; bun scripts/reframe-modules-e5.ts --family clinical --decoded-dir data/build/clinical-e5/decoded --out-dir output/module-zstd-e5-2026-10-05 --tag clinical-e5-2026.10.05",
-      "note": "774 single-КР modules with e5-small passage vectors; published 2026-10-05 to datasets/clinical-e5-2026.10.05; kept as the local release copy. 122 of them were superseded on 2026-10-07 by output/module-zstd-json-2026-10-07 (STATE KR3); this copy stays for the other 652 modules and as the rollback copy. 52 of the remaining modules were superseded on 2026-10-08 (STATE KR4, output/module-zstd-json-2026-10-08).",
+      "note": "774 single-КР modules with e5-small passage vectors; published 2026-10-05 to datasets/clinical-e5-2026.10.05; kept as the local release copy. 122 of them were superseded on 2026-10-07 by output/module-zstd-json-2026-10-07 (STATE KR3); this copy stays for the other 652 modules and as the rollback copy. 52 of the remaining modules were superseded on 2026-10-08 (STATE KR4, output/module-zstd-json-2026-10-08). Most of the remaining modules were superseded on 2026-10-09 by output/module-zstd-json-2026-10-09 (STATE KR5); this copy stays as the rollback copy.",
       "bytes": 688576048,
       "modified": "2026-10-05"
     },
@@ -512,7 +512,7 @@
       ],
       "release": "branch datasets/clinical-json-2026.10.07-197a48d1f268 (122 .db.zst)",
       "rebuild": "uv run --project tools/ingest medbase-clinical-catalog build-documents (plan data/build/official-clinical-source-plan, 10-02 plan for the 30 newer editions; source data/raw/official-clinical-documents) -> medbase compact-module-search -> uv run tools/ingest/scripts/embed_modules_e5.py --family clinical --from-dir <compacted> --out <e5/decoded> -> bun scripts/republish-clinical-modules.ts --decoded-dir <e5/decoded> --out-dir output/module-zstd-json-2026-10-07 --snapshot-id clinical-json-2026.10.07-197a48d1f268 --published-at 2026-10-07T15:40:00Z --write-catalog (~15 min; the module list is data/build/official-clinical-2026-10-07/changed-ids.txt)",
-      "note": "Local release copy of the 122 КР modules rebuilt with numbered sub-headings; the intermediate builds were deleted after verification. 26 of them were superseded on 2026-10-08 by output/module-zstd-json-2026-10-08 (STATE KR4); this copy stays for the other 96 modules and as the rollback copy.",
+      "note": "Local release copy of the 122 КР modules rebuilt with numbered sub-headings; the intermediate builds were deleted after verification. 26 of them were superseded on 2026-10-08 by output/module-zstd-json-2026-10-08 (STATE KR4); this copy stays for the other 96 modules and as the rollback copy. 117 of its 122 modules were superseded on 2026-10-09 by output/module-zstd-json-2026-10-09 (STATE KR5).",
       "bytes": 139061640,
       "modified": "2026-10-07"
     },
@@ -526,9 +526,23 @@
       ],
       "release": "branch datasets/clinical-json-2026.10.08-f3039e82214e (78 .db.zst)",
       "rebuild": "uv run --project tools/ingest medbase-clinical-catalog build-documents (plan data/build/official-clinical-source-plan, --official-id for the 78 modules; source data/raw/official-clinical-documents) -> medbase compact-module-search -> uv run tools/ingest/scripts/embed_modules_e5.py --family clinical --from-dir <compacted> --out <e5/decoded> -> bun scripts/republish-clinical-modules.ts --decoded-dir <e5/decoded> --out-dir output/module-zstd-json-2026-10-08 --snapshot-id clinical-json-2026.10.08-f3039e82214e --published-at 2026-10-08T17:05:00Z --write-catalog (~10 min; the module list is data/build/official-clinical-2026-10-08/changed-ids.txt)",
-      "note": "Local release copy of the 78 КР modules rebuilt with appendix headings (238 promoted titles); the intermediate builds (control, compacted, e5 decoded, published decoded) were deleted after verification.",
+      "note": "Local release copy of the 78 КР modules rebuilt with appendix headings (238 promoted titles); the intermediate builds (control, compacted, e5 decoded, published decoded) were deleted after verification. 72 of its 78 modules were superseded on 2026-10-09 by output/module-zstd-json-2026-10-09 (STATE KR5); this copy stays for the other 6 modules and as the rollback copy.",
       "bytes": 85035562,
       "modified": "2026-10-08"
+    },
+    {
+      "path": "output/module-zstd-json-2026-10-09",
+      "class": "RELEASED",
+      "producer": "STATE KR5: build-documents (July and 10-02 plans, extractor revision 5: template labels) -> medbase compact-module-search -> tools/ingest/scripts/embed_modules_e5.py --from-dir -> scripts/republish-clinical-modules.ts",
+      "consumers": [
+        "catalog.preview.json minimed.clinical.recommendation.* of the 737 rebuilt modules (tag clinical-json-2026.10.09-17bb72b87531)",
+        "apps/app/e2e/clinical-module-fixture.ts, module-pointer.spec.ts, kr-numbered-heading-modules.spec.ts, kr-appendix-heading-modules.spec.ts, kr-template-label-modules.spec.ts"
+      ],
+      "release": "branch datasets/clinical-json-2026.10.09-17bb72b87531 (737 .db.zst)",
+      "rebuild": "uv run --project tools/ingest medbase-clinical-catalog build-documents --all (plan data/build/official-clinical-source-plan for the 744 earlier modules, data/build/official-clinical-2026-10-02/source-plan for the 30 newer; source data/raw/official-clinical-documents) -> medbase compact-module-search -> uv run tools/ingest/scripts/embed_modules_e5.py --family clinical --from-dir <compacted> --out <e5/decoded> -> bun scripts/republish-clinical-modules.ts --decoded-dir <e5/decoded> --out-dir output/module-zstd-json-2026-10-09 --snapshot-id clinical-json-2026.10.09-17bb72b87531 --published-at 2026-10-09T07:10:00Z --write-catalog (~45 min; the module list is data/build/official-clinical-2026-10-09/changed-ids.txt)",
+      "note": "Local release copy of the 737 КР modules rebuilt with KR template labels as headings (3 925 promoted); the intermediate builds (rule-off control, compacted, e5 decoded, published decoded) were deleted after verification. It supersedes most of the KR4, KR3 and E2 copies, which stay for the 37 modules not republished and as rollback copies.",
+      "bytes": 664825773,
+      "modified": "2026-10-09"
     },
     {
       "path": "output/module-zstd-drug-e5-2026-10-05",
