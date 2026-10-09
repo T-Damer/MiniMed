@@ -526,13 +526,18 @@ function compareScores(left: VectorScore, right: VectorScore): number {
   return right.score - left.score || left.chunkId.localeCompare(right.chunkId);
 }
 
+export type IntegrityScan = 'full' | 'sampled';
+
 export interface SqliteIntegrityReport {
+  readonly scan?: IntegrityScan;
   readonly integrity: string;
   readonly foreignKeyViolations: number;
   readonly chunkCount: number;
   readonly ftsRowCount: number;
   readonly embeddingProfileCount: number;
   readonly embeddingCount: number;
+  /** Wall time of each check, for install timings. */
+  readonly timingsMs?: Readonly<Record<string, number>>;
 }
 
 /**
@@ -1472,18 +1477,65 @@ export class SqliteMedicalStore implements MedicalStore {
       .slice(0, request.limit);
   }
 
-  public async inspectIntegrity(): Promise<SqliteIntegrityReport> {
+  /**
+   * `full` walks every page (`integrity_check`, `foreign_key_check`) and counts the FTS rows by
+   * reading the indexed content. `sampled` is for packs whose bytes were already verified against
+   * a published SHA-256: reading the whole file through an OPFS handle took 80-200 s for a 630 MB
+   * module (native SQLite: 4 s), so it probes the b-tree edges and counts the FTS rows from the
+   * index's own row-size table instead.
+   */
+  public async inspectIntegrity(scan: IntegrityScan = 'full'): Promise<SqliteIntegrityReport> {
     this.assertInitialized();
-    return {
-      integrity: String(this.database.selectValue('PRAGMA integrity_check')),
-      foreignKeyViolations: queryRows(this.database, 'PRAGMA foreign_key_check').length,
-      chunkCount: Number(this.database.selectValue('SELECT count(*) FROM chunks')),
-      ftsRowCount: Number(this.database.selectValue('SELECT count(*) FROM chunks_fts')),
-      embeddingProfileCount: Number(
-        this.database.selectValue('SELECT count(*) FROM embedding_profiles'),
-      ),
-      embeddingCount: Number(this.database.selectValue('SELECT count(*) FROM chunk_embeddings')),
+    const timingsMs: Record<string, number> = {};
+    const timed = <T>(name: string, run: () => T): T => {
+      const startedAt = performance.now();
+      try {
+        return run();
+      } finally {
+        timingsMs[name] = performance.now() - startedAt;
+      }
     };
+    const count = (table: string): number =>
+      Number(this.database.selectValue(`SELECT count(*) FROM ${table}`));
+    const integrity =
+      scan === 'full'
+        ? timed('integrity_check', () =>
+            String(this.database.selectValue('PRAGMA integrity_check')),
+          )
+        : timed('probe_edges', () => this.probeTableEdges());
+    return {
+      scan,
+      integrity,
+      foreignKeyViolations:
+        scan === 'full'
+          ? timed(
+              'foreign_key_check',
+              () => queryRows(this.database, 'PRAGMA foreign_key_check').length,
+            )
+          : 0,
+      chunkCount: timed('count_chunks', () => count('chunks')),
+      ftsRowCount: timed('count_fts', () =>
+        scan === 'sampled' && hasTable(this.database, 'chunks_fts_docsize')
+          ? count('chunks_fts_docsize')
+          : count('chunks_fts'),
+      ),
+      embeddingProfileCount: count('embedding_profiles'),
+      embeddingCount: timed('count_embeddings', () => count('chunk_embeddings')),
+      timingsMs,
+    };
+  }
+
+  /** Reads the first and last row of the content tables: damage there fails at once. */
+  private probeTableEdges(): string {
+    try {
+      for (const table of ['documents', 'document_versions', 'sections', 'chunks']) {
+        this.database.selectValue(`SELECT * FROM ${table} ORDER BY rowid LIMIT 1`);
+        this.database.selectValue(`SELECT * FROM ${table} ORDER BY rowid DESC LIMIT 1`);
+      }
+      return 'ok';
+    } catch (cause) {
+      return cause instanceof Error ? cause.message : 'unreadable';
+    }
   }
 
   public async listToolDefinitions(): Promise<readonly ToolDefinitionRecord[]> {

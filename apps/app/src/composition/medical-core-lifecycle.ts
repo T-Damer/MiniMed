@@ -1,6 +1,7 @@
 import type { CoreStatus, MedicalCore } from '@localmed/contracts';
 
 import { RetirableMedicalCore } from '@/composition/retirable-medical-core';
+import { timeInstallPhase } from '@/features/modules/install-timing';
 
 export interface InitializedMedicalCore {
   readonly core: MedicalCore;
@@ -18,8 +19,8 @@ async function closeQuietly(core: MedicalCore): Promise<void> {
 export async function initializeMedicalCore(
   factory: () => Promise<MedicalCore>,
 ): Promise<InitializedMedicalCore> {
-  const core = await factory();
-  const initialized = await core.initialize();
+  const core = await timeInstallPhase('core-create', factory);
+  const initialized = await timeInstallPhase('core-initialize', () => core.initialize());
   if (!initialized.ok) {
     await closeQuietly(core);
     throw new Error(initialized.error.message);

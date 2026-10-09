@@ -472,6 +472,10 @@ describe('browser module runtime storage', () => {
     });
     expect(workers).toHaveLength(1);
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:module-1');
+    // The installer verified this index's SHA-256; a page walk over OPFS handles is skipped.
+    expect(workers[0]?.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ method: 'inspectIntegrity', args: ['sampled'] }),
+    );
 
     const smallStore = {
       initialize: vi.fn(async () => ({
@@ -489,6 +493,7 @@ describe('browser module runtime storage', () => {
     const smallResult = await validator.validate(moduleEntry('minimed.small'), smallBytes);
 
     expect(smallResult.valid).toBe(true);
+    expect(smallStore.inspectIntegrity).toHaveBeenCalledWith('full');
     expect(createFromBytes).toHaveBeenCalledWith(smallBytes);
     expect(workers).toHaveLength(1);
     expect(URL.createObjectURL).toHaveBeenCalledOnce();

@@ -144,6 +144,53 @@ describe('SqliteMedicalStore', () => {
     });
   });
 
+  it('answers the same counts from the sampled scan as from the full one, without walking pages', async () => {
+    const store = await SqliteMedicalStore.create();
+    stores.push(store);
+    await store.initialize(CORE_SLICE_PACK);
+    const full = await store.inspectIntegrity('full');
+    const sampled = await store.inspectIntegrity('sampled');
+    expect(full.scan).toBe('full');
+    expect(sampled).toMatchObject({
+      scan: 'sampled',
+      integrity: 'ok',
+      foreignKeyViolations: 0,
+      chunkCount: full.chunkCount,
+      ftsRowCount: full.ftsRowCount,
+    });
+    expect(Object.keys(full.timingsMs ?? {})).toContain('integrity_check');
+    expect(Object.keys(sampled.timingsMs ?? {})).not.toContain('integrity_check');
+    expect(Object.keys(sampled.timingsMs ?? {})).not.toContain('foreign_key_check');
+  });
+
+  it('counts the sampled FTS rows from the index, so a half-built index still fails', async () => {
+    const store = await SqliteMedicalStore.create();
+    stores.push(store);
+    await store.initialize(CORE_SLICE_PACK);
+    const database = (
+      store as unknown as { readonly database: { readonly exec: (sql: string) => void } }
+    ).database;
+    database.exec(
+      'DELETE FROM chunks_fts_docsize WHERE id IN (SELECT id FROM chunks_fts_docsize LIMIT 1)',
+    );
+    const sampled = await store.inspectIntegrity('sampled');
+    expect(sampled.chunkCount).toBe(SLICE_CHUNK_COUNT);
+    expect(sampled.ftsRowCount).toBe(SLICE_CHUNK_COUNT - 1);
+  });
+
+  it('reports an unreadable table from the sampled probes', async () => {
+    const store = await SqliteMedicalStore.create();
+    stores.push(store);
+    await store.initialize(CORE_SLICE_PACK);
+    const database = (
+      store as unknown as { readonly database: { readonly exec: (sql: string) => void } }
+    ).database;
+    database.exec('PRAGMA foreign_keys = OFF');
+    database.exec('DROP TABLE document_versions');
+    const sampled = await store.inspectIntegrity('sampled');
+    expect(sampled.integrity).not.toBe('ok');
+  });
+
   it('builds the migration-010 external-content index from chunks for a JSON seed', async () => {
     const store = await SqliteMedicalStore.create();
     stores.push(store);

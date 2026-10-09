@@ -13,8 +13,15 @@ export interface EncodedModuleIndex {
 /** Size of one write handed to the OPFS pool; also the progress granularity of an import. */
 const OUTPUT_SLICE_BYTES = 4 * 1024 * 1024;
 
+/** Wall time the reader spent decoding frames and hashing slices, for install timings. */
+export interface DecodedIndexStats {
+  decodeMs: number;
+  hashMs: number;
+}
+
 export interface DecodedIndexReaderOptions {
   readonly signal?: AbortSignal;
+  readonly stats?: DecodedIndexStats;
   /** Lets the caller's event loop breathe (progress, cancellation) between decoded frames. */
   readonly yieldToEventLoop?: () => Promise<void>;
 }
@@ -58,7 +65,9 @@ export function createDecodedIndexReader(
     if (window !== null && window > MAX_ZSTD_WINDOW_BYTES) {
       throw new Error('Архив базы собран со слишком большим окном zstd.');
     }
+    const decodeStartedAt = performance.now();
     const decoded = decompress(archive);
+    if (options.stats) options.stats.decodeMs += performance.now() - decodeStartedAt;
     if (decoded.byteLength !== frame.contentBytes) {
       throw new Error('Распакованная база имеет неверный размер.');
     }
@@ -90,7 +99,9 @@ export function createDecodedIndexReader(
     if (produced > encoded.decodedSizeBytes) {
       throw new Error('Распакованная база превышает размер из каталога.');
     }
+    const hashStartedAt = performance.now();
     hash.update(slice);
+    if (options.stats) options.stats.hashMs += performance.now() - hashStartedAt;
     return slice;
   };
 }

@@ -71,6 +71,14 @@ describe.skipIf(!zstdAvailable)('framed zstd index reader', () => {
     await expect(read()).resolves.toBeUndefined();
   });
 
+  it('accounts for the time it spent decoding and hashing', async () => {
+    const encoded = encodedIndex(decoded, 250_000);
+    const stats = { decodeMs: 0, hashMs: 0 };
+    await drain(createDecodedIndexReader(encoded, { yieldToEventLoop: noYield, stats }));
+    expect(stats.decodeMs).toBeGreaterThan(0);
+    expect(stats.hashMs).toBeGreaterThan(0);
+  });
+
   it('does not report the end of a stream whose checksum differs', async () => {
     const encoded = encodedIndex(decoded, 250_000);
     const wrong = { ...encoded, decodedSha256: `sha256:${'0'.repeat(64)}` };

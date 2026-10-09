@@ -7,14 +7,26 @@ import type {
   OpfsPackWorkerRequest,
   OpfsPackWorkerResponse,
 } from '@/composition/opfs-pack-protocol';
-import { createDecodedIndexReader } from '@/features/modules/encoded-index-reader';
+import {
+  createDecodedIndexReader,
+  type DecodedIndexStats,
+} from '@/features/modules/encoded-index-reader';
+import { type EpochInstallPhase, epochNow } from '@/features/modules/install-timing';
 
 let store: SqliteMedicalStore | undefined;
 let downloadApproval: { id: number; resolve: () => void } | undefined;
 /** Bytes streamed into OPFS so far; reported again when installation starts. */
 let importedBytes = 0;
 
-function opfsSource(options: OpfsPackWorkerOpenOptions): OpfsPackSource {
+/** Where an import spent its time, on this worker's clock. */
+interface ImportTimings {
+  firstReadAt?: number;
+  /** Total time spent producing bytes (decode, hash); the rest of the import is writing. */
+  readMs: number;
+  stats: DecodedIndexStats;
+}
+
+function opfsSource(options: OpfsPackWorkerOpenOptions, timings: ImportTimings): OpfsPackSource {
   if ('url' in options) return { kind: 'url', url: options.url };
   if ('installed' in options)
     return { kind: 'installed', byteLength: options.installed.byteLength };
@@ -24,8 +36,50 @@ function opfsSource(options: OpfsPackWorkerOpenOptions): OpfsPackSource {
     byteLength: encoded.decodedSizeBytes,
     // Decoded straight into the pool one frame at a time; the checksum is verified before the
     // last chunk is reported, so a mismatch leaves no file behind.
-    open: () => createDecodedIndexReader(encoded),
+    open: () => {
+      const read = createDecodedIndexReader(encoded, { stats: timings.stats });
+      return async () => {
+        timings.firstReadAt ??= epochNow();
+        const startedAt = performance.now();
+        try {
+          return await read();
+        } finally {
+          timings.readMs += performance.now() - startedAt;
+        }
+      };
+    },
   };
+}
+
+function importPhases(
+  timings: ImportTimings,
+  openedAt: number,
+  lockAcquiredAt: number,
+  importedAt: number | undefined,
+  readyAt: number,
+): readonly EpochInstallPhase[] {
+  const phases: EpochInstallPhase[] = [
+    { phase: 'worker-open', startEpochMs: openedAt, endEpochMs: readyAt },
+  ];
+  if (timings.firstReadAt === undefined || importedAt === undefined) return phases;
+  const importMs = importedAt - timings.firstReadAt;
+  // decode, hash and write alternate slice by slice, so each is reported as its summed duration
+  // laid out from the start of the import.
+  const writeMs = Math.max(0, importMs - timings.readMs);
+  const aggregate = (phase: string, ms: number): EpochInstallPhase => ({
+    phase,
+    startEpochMs: timings.firstReadAt as number,
+    endEpochMs: (timings.firstReadAt as number) + ms,
+  });
+  phases.push(
+    { phase: 'pool-open', startEpochMs: lockAcquiredAt, endEpochMs: timings.firstReadAt },
+    { phase: 'import', startEpochMs: timings.firstReadAt, endEpochMs: importedAt },
+    aggregate('import-decode', timings.stats.decodeMs),
+    aggregate('import-hash', timings.stats.hashMs),
+    aggregate('import-write', writeMs),
+    { phase: 'db-open', startEpochMs: importedAt, endEpochMs: readyAt },
+  );
+  return phases;
 }
 
 self.onmessage = async (event: MessageEvent<OpfsPackWorkerRequest>): Promise<void> => {
@@ -38,6 +92,7 @@ self.onmessage = async (event: MessageEvent<OpfsPackWorkerRequest>): Promise<voi
       return;
     }
     if (message.type === 'open') {
+      const openedAt = epochNow();
       if (store) throw new Error('OPFS pack worker is already open.');
       // A pool owns exclusive filesystem handles until its worker terminates. Keep the matching
       // browser lock for that lifetime so a reload waits for the old worker's teardown.
@@ -67,12 +122,26 @@ self.onmessage = async (event: MessageEvent<OpfsPackWorkerRequest>): Promise<voi
         status: 'lock-acquired',
       } satisfies OpfsPackWorkerResponse);
       importedBytes = 0;
+      const lockAcquiredAt = epochNow();
+      const timings: ImportTimings = { readMs: 0, stats: { decodeMs: 0, hashMs: 0 } };
+      let importedAt: number | undefined;
       const next = await SqliteMedicalStore.createFromOpfsSource(
-        opfsSource(message),
+        opfsSource(message, timings),
         message.databaseName,
         {
           fetchTimeoutMs: message.fetchTimeoutMs,
           poolName: message.poolName,
+          onImportInstalling: () => {
+            importedAt = epochNow();
+            if (!message.waitForDownloadApproval) return;
+            self.postMessage({
+              id: message.id,
+              event: 'download-progress',
+              loaded: importedBytes,
+              total: importedBytes,
+              phase: 'installing',
+            } satisfies OpfsPackWorkerResponse);
+          },
           ...(message.waitForDownloadApproval
             ? {
                 beforeImport: () =>
@@ -92,20 +161,17 @@ self.onmessage = async (event: MessageEvent<OpfsPackWorkerRequest>): Promise<voi
                     total,
                   } satisfies OpfsPackWorkerResponse);
                 },
-                onImportInstalling: () =>
-                  self.postMessage({
-                    id: message.id,
-                    event: 'download-progress',
-                    loaded: importedBytes,
-                    total: importedBytes,
-                    phase: 'installing',
-                  } satisfies OpfsPackWorkerResponse),
               }
             : {}),
         },
       );
       const health = await next.initialize();
       store = next;
+      self.postMessage({
+        id: message.id,
+        event: 'timing',
+        phases: importPhases(timings, openedAt, lockAcquiredAt, importedAt, epochNow()),
+      } satisfies OpfsPackWorkerResponse);
       self.postMessage({ id: message.id, result: health } satisfies OpfsPackWorkerResponse);
       return;
     }

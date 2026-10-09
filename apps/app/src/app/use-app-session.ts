@@ -14,6 +14,7 @@ import {
   cancelQueuedAndroidApkDownload,
   startQueuedAndroidApkDownload,
 } from '@/features/downloads/native-apk-download';
+import { recordInstallPhase } from '@/features/modules/install-timing';
 import { WorkerSearchMedicalCore } from '@/features/search/WorkerSearchMedicalCore';
 import {
   coreAutoDownloadAllowed,
@@ -401,7 +402,9 @@ export function useAppSession() {
     // The installed set the next core is built from; saved searches are labelled with it once
     // that core is the one searching, never earlier.
     const dataVersion = readInstalledDataVersion();
+    const reloadStartedAt = performance.now();
     await swapMedicalCore(current, createSessionCore, (candidate) => {
+      recordInstallPhase('core-reload-open', reloadStartedAt);
       // Publish the new core before the previous one closes: readers must never be handed a core
       // that is shutting down («DB has been closed» right after an install).
       const previousSearchCore = searchCore();
@@ -412,6 +415,7 @@ export function useAppSession() {
       setReady(candidate);
       if (previousSearchCore) void previousSearchCore.close();
     });
+    recordInstallPhase('core-reload', reloadStartedAt);
     setDownloadedModuleCount(
       moduleRuntimeService?.peekContentModuleRuntime()?.listInstalled().length ?? 0,
     );

@@ -13,6 +13,7 @@ import { createRegisteredExternalMedicalCore } from '@/composition/external-medi
 import { WorkerOpfsMedicalStore } from '@/composition/worker-opfs-medical-store';
 import { getDownloadQueue } from '@/features/downloads/download-service';
 import { loadInstalledModuleMounts } from '@/features/modules/browser-module-runtime';
+import { timeInstallPhase } from '@/features/modules/install-timing';
 import { downloadFileWithRetry, hasRetainedFileDownload } from '@/features/network/download-retry';
 import { E5_QUERY_EMBEDDER } from '@/features/semantic/e5-query-embedder';
 
@@ -480,7 +481,7 @@ async function withInstalledModules(
 ): Promise<MedicalStore> {
   let installedModules: readonly MedicalStoreMount[] = [];
   try {
-    installedModules = await loadInstalledModuleMounts();
+    installedModules = await timeInstallPhase('core-mount-modules', loadInstalledModuleMounts);
   } catch (cause) {
     console.warn('Downloaded content modules could not be opened; using the built-in base.', cause);
   }

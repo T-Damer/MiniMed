@@ -35,6 +35,11 @@ import { getDownloadQueue } from '@/features/downloads/download-service';
 import { resolveContentModuleArtifactUrl } from '@/features/modules/artifact-url';
 import { canStreamEncodedIndex } from '@/features/modules/encoded-index-reader';
 import {
+  markInstallState,
+  recordInstallDuration,
+  timeInstallPhase,
+} from '@/features/modules/install-timing';
+import {
   contentModuleNeedsInstall,
   isModuleReleased,
   localPackagedModulesToInstall,
@@ -374,16 +379,24 @@ class BrowserModuleDownloader implements ContentModuleArtifactDownloader {
     }
     const resolvedUrl = resolveContentModuleArtifactUrl(artifact.url);
     const cacheKey = artifact.sha256 ?? `${artifact.id}:${resolvedUrl}`;
-    return downloadWithRetry({
-      ...(module ? { jobId: `module:${module.id}@${module.version}`, trackProgress: false } : {}),
-      url: resolvedUrl,
-      cacheKey,
-      expectedBytes: artifact.sizeBytes,
-      signal,
-      retryDelaysMs: MODULE_RETRY_DELAYS_MS,
-      retryMissingAssets: false,
-      onProgress: ({ downloadedBytes, totalBytes }) => onProgress({ downloadedBytes, totalBytes }),
-    });
+    return timeInstallPhase(
+      'download',
+      () =>
+        downloadWithRetry({
+          ...(module
+            ? { jobId: `module:${module.id}@${module.version}`, trackProgress: false }
+            : {}),
+          url: resolvedUrl,
+          cacheKey,
+          expectedBytes: artifact.sizeBytes,
+          signal,
+          retryDelaysMs: MODULE_RETRY_DELAYS_MS,
+          retryMissingAssets: false,
+          onProgress: ({ downloadedBytes, totalBytes }) =>
+            onProgress({ downloadedBytes, totalBytes }),
+        }),
+      { artifactId: artifact.id, bytes: artifact.sizeBytes },
+    );
   }
 }
 
@@ -424,7 +437,18 @@ export class BrowserModuleBackend implements ContentModuleArtifactBackend {
    * the catalog's decoded size and SHA-256 on the way: neither the decoded file nor a second copy
    * of it ever exists in memory or IndexedDB. Anything else takes the generic decode path.
    */
-  public async stageEncodedIndex(
+  public stageEncodedIndex(
+    module: ContentModuleCatalogEntry,
+    artifact: ModuleArtifact,
+    encoded: Uint8Array,
+    signal: AbortSignal,
+  ): Promise<StagedContentModuleArtifact | null> {
+    return timeInstallPhase('stage-encoded', () =>
+      this.stageEncodedIndexTimed(module, artifact, encoded, signal),
+    );
+  }
+
+  private async stageEncodedIndexTimed(
     module: ContentModuleCatalogEntry,
     artifact: ModuleArtifact,
     encoded: Uint8Array,
@@ -462,7 +486,7 @@ export class BrowserModuleBackend implements ContentModuleArtifactBackend {
         fetchTimeoutMs: MODULE_OPFS_FETCH_TIMEOUT_MS,
         poolName: opfsPool,
       });
-      await store.close();
+      await timeInstallPhase('stage-close', () => store.close());
       signal.throwIfAborted();
     } catch (cause) {
       await this.discardStaging(module.id, module.version);
@@ -471,7 +495,14 @@ export class BrowserModuleBackend implements ContentModuleArtifactBackend {
     return { artifactId: artifact.id, kind: artifact.kind, sizeBytes: decodedSizeBytes, token };
   }
 
-  public async activate(
+  public activate(
+    module: ContentModuleCatalogEntry,
+    artifacts: readonly StagedContentModuleArtifact[],
+  ) {
+    return timeInstallPhase('activate', () => this.activateTimed(module, artifacts));
+  }
+
+  private async activateTimed(
     module: ContentModuleCatalogEntry,
     artifacts: readonly StagedContentModuleArtifact[],
   ) {
@@ -663,7 +694,11 @@ export class BrowserModuleBackend implements ContentModuleArtifactBackend {
 }
 
 export class BrowserModuleValidator implements ContentModuleIndexValidator {
-  public async validate(module: ContentModuleCatalogEntry, indexBytes: Uint8Array | null) {
+  public validate(module: ContentModuleCatalogEntry, indexBytes: Uint8Array | null) {
+    return timeInstallPhase('validate', () => this.validateTimed(module, indexBytes));
+  }
+
+  private async validateTimed(module: ContentModuleCatalogEntry, indexBytes: Uint8Array | null) {
     let store: SqliteMedicalStore | WorkerOpfsMedicalStore | null = null;
     try {
       const artifact = module.artifacts.find((entry) => entry.kind === 'index');
@@ -672,17 +707,30 @@ export class BrowserModuleValidator implements ContentModuleIndexValidator {
       if (indexBytes === null) {
         // Streamed into OPFS by the backend: open that copy, never import another.
         if (!artifact?.decodedSizeBytes) throw new Error('Для базы не указан размер распаковки.');
-        store = await openModuleStore(
-          module.id,
-          module.version,
-          { opfsBytes: artifact.decodedSizeBytes },
-          indexSha256,
+        const opfsBytes = artifact.decodedSizeBytes;
+        store = await timeInstallPhase('validate-open', () =>
+          openModuleStore(module.id, module.version, { opfsBytes }, indexSha256),
         );
       } else {
-        store = await openModuleStore(module.id, module.version, indexBytes, indexSha256);
+        const bytes = indexBytes;
+        store = await timeInstallPhase('validate-open', () =>
+          openModuleStore(module.id, module.version, bytes, indexSha256),
+        );
       }
-      const health = await store.initialize();
-      const integrity = await store.inspectIntegrity();
+      const opened = store;
+      const health = await timeInstallPhase('validate-initialize', () => opened.initialize());
+      // The installer verified the SHA-256 of these exact bytes, so a large pack skips the
+      // whole-file page walk (80-200 s through OPFS handles for a 630 MB module).
+      const scan = isLargeIndex(artifact?.decodedSizeBytes ?? indexBytes?.byteLength ?? 0)
+        ? 'sampled'
+        : 'full';
+      const integrityStartedAt = performance.now();
+      const integrity = await timeInstallPhase('validate-integrity', () =>
+        opened.inspectIntegrity(scan),
+      );
+      for (const [check, durationMs] of Object.entries(integrity.timingsMs ?? {})) {
+        recordInstallDuration(`validate-integrity:${check}`, integrityStartedAt, durationMs);
+      }
       const schemaCompatible = health.schemaVersion === module.compatibility.schemaVersion;
       let referenceValid = false;
       if (module.definitionReference) {
@@ -728,7 +776,10 @@ export class BrowserModuleValidator implements ContentModuleIndexValidator {
         message: cause instanceof Error ? cause.message : 'Не удалось проверить загруженную базу.',
       };
     } finally {
-      await store?.close().catch(() => undefined);
+      const closing = store;
+      if (closing) {
+        await timeInstallPhase('validate-close', () => closing.close()).catch(() => undefined);
+      }
     }
   }
 }
@@ -821,6 +872,7 @@ export class BrowserContentModuleRuntime {
       decodeModuleIndex,
     );
     this.installer.subscribe((task) => {
+      if (task.state !== 'downloading') markInstallState(task.moduleId, task.state);
       if (task.state === 'completed') {
         retireSupersededModuleDownloads(getDownloadQueue(), task.moduleId, task.version);
         this.clearRetry(task.moduleId, task.version);

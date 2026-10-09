@@ -4,7 +4,9 @@ import type {
   SearchFilters,
 } from '@localmed/contracts';
 import type { LexicalSearchRequest, VectorScore, VectorSearchRequest } from '@localmed/storage';
+import type { IntegrityScan } from '@localmed/storage-sqlite';
 import type { EncodedModuleIndex } from '@/features/modules/encoded-index-reader';
+import type { EpochInstallPhase } from '@/features/modules/install-timing';
 
 export type OpfsPackWorkerMethod =
   | 'reference'
@@ -52,6 +54,12 @@ export type OpfsPackWorkerResponse =
   | { readonly id: number; readonly event: 'download-required' }
   | {
       readonly id: number;
+      readonly event: 'timing';
+      /** Phases of the open on the worker's clock, as epoch milliseconds. */
+      readonly phases: readonly EpochInstallPhase[];
+    }
+  | {
+      readonly id: number;
       readonly event: 'download-progress';
       readonly loaded: number;
       /** 0 when the size of the streamed bytes is unknown (for example, compressed in transit). */
@@ -80,7 +88,7 @@ export type OpfsPackWorkerCallArgs = {
   readonly reference: readonly [request: DefinitionReferenceRequest];
   readonly initialize: readonly [seed?: ContentPackSeed];
   readonly getHealth: readonly [];
-  readonly inspectIntegrity: readonly [];
+  readonly inspectIntegrity: readonly [scan?: IntegrityScan];
   readonly listDocumentIdentities: readonly [];
   readonly lookupCoreIdentities: readonly [query: string];
   readonly listSearchDocuments: readonly [];

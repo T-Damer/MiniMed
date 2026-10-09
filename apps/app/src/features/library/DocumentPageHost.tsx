@@ -63,6 +63,7 @@ import {
   type ClinicalEditionLink,
   clinicalEditionNotice,
 } from '@/features/modules/clinical-editions';
+import { timeInstallPhase } from '@/features/modules/install-timing';
 import { isModuleReleased } from '@/features/modules/local-packaged-modules';
 import { loadModuleCatalog } from '@/features/modules/module-catalog-state';
 import { contentModuleTaskProgress } from '@/features/modules/module-display';
@@ -815,7 +816,9 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       if (!refreshedCore) throw new Error('Локальный поиск ещё не готов.');
       // Reading the target proves it is connected. The new core's document list starts cold
       // (~3 s for 20 000 documents) and is not needed to show the text, so it loads afterwards.
-      const target = await refreshedCore.getDocument(resolution.pointer.targetDocumentId);
+      const target = await timeInstallPhase('pointer-read-target', () =>
+        refreshedCore.getDocument(resolution.pointer.targetDocumentId),
+      );
       if (!target.ok || !target.value.sections.some((section) => section.chunks.length > 0)) {
         throw new Error('Набор загружен, но полный документ не удалось прочитать.');
       }

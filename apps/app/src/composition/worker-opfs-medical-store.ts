@@ -18,8 +18,7 @@ import type {
   VectorScore,
   VectorSearchRequest,
 } from '@localmed/storage';
-import type { SqliteIntegrityReport } from '@localmed/storage-sqlite';
-
+import type { IntegrityScan, SqliteIntegrityReport } from '@localmed/storage-sqlite';
 import type {
   OpfsPackWorkerCallArgs,
   OpfsPackWorkerLockStatus,
@@ -27,6 +26,7 @@ import type {
   OpfsPackWorkerOpenOptions,
   OpfsPackWorkerResponse,
 } from '@/composition/opfs-pack-protocol';
+import { recordEpochInstallPhase } from '@/features/modules/install-timing';
 
 type PendingCall = {
   readonly resolve: (result: unknown) => void;
@@ -77,7 +77,9 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
       if ('event' in event.data) {
         const message = event.data;
         if (this.connectionClosed) return;
-        if (message.event === 'download-progress') {
+        if (message.event === 'timing') {
+          for (const phase of message.phases) recordEpochInstallPhase(phase);
+        } else if (message.event === 'download-progress') {
           this.downloadUi?.onProgress({
             loaded: message.loaded,
             total: message.total,
@@ -223,8 +225,12 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
     return this.call('getHealth', []);
   }
 
-  public inspectIntegrity(): Promise<SqliteIntegrityReport> {
-    return this.owner.request('call', 'inspectIntegrity', []) as Promise<SqliteIntegrityReport>;
+  public inspectIntegrity(scan?: IntegrityScan): Promise<SqliteIntegrityReport> {
+    return this.owner.request(
+      'call',
+      'inspectIntegrity',
+      scan === undefined ? [] : [scan],
+    ) as Promise<SqliteIntegrityReport>;
   }
 
   public listDocumentIdentities(): Promise<readonly DocumentIdentity[]> {
