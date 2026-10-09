@@ -85,6 +85,14 @@ roadmap ideas.
   indexes above the 32 MiB WASM limit, IndexedDB for small ones. Never write the bytes of a large
   index to IndexedDB, and remove a module's OPFS pools together with its rows (the orphan sweep in
   `browser-module-runtime.ts` does it; the staging lock keeps it away from installs in progress).
+- Module install validation never walks a large index page by page. The installer has already
+  verified the SHA-256 of the exact bytes, and `PRAGMA integrity_check` / `foreign_key_check` /
+  `count(*) FROM chunks_fts` read the whole file through OPFS handles (80–200 s for a 630 MB
+  module, native SQLite 4 s), so an index above the 32 MiB WASM limit gets
+  `inspectIntegrity('sampled')`: schema and table-edge probes plus counts from the index's own
+  row-size table. Phase timings of an install are `minimed:install:*` User Timing measures
+  (`features/modules/install-timing.ts`); `apps/app/e2e/module-install-timing.spec.ts` prints them
+  and fails when an install slips back above its budget.
 
 - Every artifact download — content modules and model weights alike — goes through
   `downloadWithRetry`. Never call `downloadWithResume` directly from a feature; the retry layer is
