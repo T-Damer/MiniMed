@@ -1,0 +1,52 @@
+.doctor-profile-settings__summary {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.doctor-profile-settings__help-button {
+  display: inline-grid;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  place-items: center;
+  margin: -0.5rem 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--theme-text-muted);
+  background: none;
+  cursor: pointer;
+  transition:
+    transform var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease);
+}
+
+.doctor-profile-settings__help-button:active {
+  transform: scale(0.96);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .doctor-profile-settings__help-button:hover {
+    color: var(--theme-text);
+    background: var(--theme-accent-soft);
+  }
+}
+
+.doctor-profile-settings__help-icon {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.doctor-profile-settings__help-panel {
+  max-width: min(24rem, calc(100vw - 2rem));
+  padding: 1rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.875rem;
+  background: var(--theme-surface-raised);
+  box-shadow: var(--shadow-paper);
+}
+
+.doctor-profile-settings__help-text {
+  margin: 0;
+  line-height: 1.45;
+}

@@ -8,6 +8,7 @@ import { ReleaseLinks } from '@/components/ReleaseLinks';
 import { Switch } from '@/components/Switch';
 import { restartOnboarding } from '@/features/onboarding/onboarding-state';
 import { AppUpdateChecker } from '@/features/settings/AppUpdateChecker';
+import { DoctorProfileSettings } from '@/features/settings/DoctorProfileSettings';
 import { StatusPanel } from '@/features/status/StatusPanel';
 import {
   getModuleAutoUpdatesEnabled,
@@ -98,6 +99,7 @@ export function SettingsGeneralPage(props: SettingsGeneralPageProps): JSX.Elemen
             Пройти заново
           </Button>
         </div>
+        <DoctorProfileSettings />
       </section>
       <Disclosure class="system-technical-panel" title="Техническая информация">
         <Show

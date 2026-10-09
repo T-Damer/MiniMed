@@ -6,6 +6,7 @@ import {
   type DrugDownloadPlan,
   moduleDownloadPlan,
 } from '@/features/onboarding/onboarding-downloads';
+import { noteSectionsInstalled } from '@/features/reference/doctor-profile-feeds';
 import { sectionManifest } from './section-manifest';
 import { buildSections, type Section, selectedModules, skippedGroupKey } from './section-model';
 import { type SectionStatus, sectionStatus } from './section-plan';
@@ -92,6 +93,12 @@ export function useSectionDownload(onContentChanged: () => Promise<void>): Secti
     start: async () => {
       const pending = plan().pending;
       if (pending.length === 0) return;
+      const chosen = selected();
+      noteSectionsInstalled(
+        (sections() ?? [])
+          .filter((section) => chosen.has(section.id))
+          .map((section) => section.title),
+      );
       setSelected(new Set<string>());
       await installer.start(pending);
     },

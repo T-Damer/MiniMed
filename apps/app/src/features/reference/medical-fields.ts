@@ -50,16 +50,38 @@ export const MEDICAL_FIELDS: readonly MedicalField[] = [
   { id: 'emergency', label: 'неотложные состояния', stems: ['скорая'] },
 ];
 
-/** The field a specialty name points at («Психиатрия», «психиатр-нарколог» → first match). */
-export function fieldForSpecialty(name: string): string | undefined {
-  const words = name
+function nameWords(name: string): readonly string[] {
+  return name
     .toLowerCase()
     .replaceAll('ё', 'е')
     .split(/[^\p{L}]+/u)
     .filter(Boolean);
-  for (const word of words) {
+}
+
+/** The field a specialty name points at («Психиатрия», «психиатр-нарколог» → first match). */
+export function fieldForSpecialty(name: string): string | undefined {
+  return fieldsForSpecialty(name)[0];
+}
+
+/** Every distinct field a name mentions, in reading order («Гематология и онкология»). */
+export function fieldsForSpecialty(name: string): readonly string[] {
+  const found: string[] = [];
+  for (const word of nameWords(name)) {
     const match = MEDICAL_FIELDS.find((field) => field.stems.some((stem) => word.startsWith(stem)));
-    if (match) return match.id;
+    if (match && !found.includes(match.id)) found.push(match.id);
   }
-  return undefined;
+  return found;
+}
+
+/** The field named by a catalogue specialty slug («child-psychiatry» → psychiatry), if its words are a field id. */
+export function fieldForSpecialtySlug(slug: string): string | undefined {
+  return slug
+    .split('-')
+    .map((word) => MEDICAL_FIELDS.find((field) => field.id === word)?.id)
+    .find((id) => id !== undefined);
+}
+
+/** The label of a field id, or the id itself when the table does not know it. */
+export function medicalFieldLabel(id: string): string {
+  return MEDICAL_FIELDS.find((field) => field.id === id)?.label ?? id;
 }

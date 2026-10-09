@@ -127,7 +127,9 @@ import type {
 } from '@/features/modules/clinical-editions';
 import { formatFullTextDownloadLabel } from '@/features/modules/module-display';
 import type { ModulePointerResolution } from '@/features/modules/module-pointer-install';
+import { noteRecommendationOpened } from '@/features/reference/doctor-profile-feeds';
 import { searchResultDocumentKind } from '@/features/search/ScopedMedicalCore';
+import { specialtyLabel } from '@/i18n/labels';
 import { buildDocumentSectionLink, openDocumentOverlay } from '@/state/document-navigation';
 import type { DocumentTrail } from '@/state/document-trail';
 import {
@@ -897,6 +899,12 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
       unregister();
       window.clearTimeout(positionTimer);
     });
+  });
+
+  // Opening a recommendation teaches the on-device doctor profile its specialty (once per document).
+  createEffect(() => {
+    const document = props.document;
+    if (document) noteRecommendationOpened(document, specialtyLabel);
   });
 
   let initialScrollKey: string | undefined;
