@@ -114,14 +114,19 @@ GigaAM/Whisper downloads, real printers.
   name in the query searches inside it («Красота и медицина пневмония»), a bare name lists the source,
   «Искать везде» widens; names come from document metadata, not UI lists. A bare drug name opens with the
   linked Allmed card's «Фармакологическое действие» line. `benchmark:source-names` 17/17, 13/13, 5/5;
-  other benchmarks unchanged. Not covered: «Видаль» (not in the corpus), КР publishers.
+  other benchmarks unchanged. Not covered: «Видаль» (not in the corpus), КР publishers — the registry
+  (`Developers[].NkoName`, 193 societies for all 774 КР) has them, but the pointer builder
+  (`catalog_module_builder.py` `_clinical_pointer`) does not write them, so it needs an ingest change and a
+  core rebuild; only 12 names carry an abbreviation.
 - **Calculators.** The tab always opens the list, with a recent-calculators row
   (`minimed.recent-calculators.v1`). The due-date calculators and the feeding plan declare patient
   bindings again (`profileContext` binding over the card's `profile.context`: `lastMenstrualPeriod`,
   `conceptionDate`, `gestationalAgeDate/Weeks/Days`, `quickeningDate`, `parity`); short text results
   (the due date) are the card event's text. Tool modules obstetrics-gynecology preview.6, pediatrics
-  preview.4 (artifacts load from `main`). Open: GA-from-EDD and maternity-leave calculators don't read or
-  write the stored due date; `CalculatorsView` still branches on two tool ids.
+  preview.4 (artifacts load from `main`). The five due-date calculators write `estimatedDueDate`; «Срок по
+  ПДР» and maternity leave read it (obstetrics-gynecology preview.7, pediatrics preview.5). No screen
+  branches on a tool id: the unit converter is a built-in schema, and `resultLayout`, `bundled` and the
+  registry `surface` replace the old id checks (guarded by a unit test).
 - **Doctor profile** is also fed by opened КР (0.3) and queued section bundles (0.6); Settings →
   «Основные» shows it with «Сбросить».
 - **E2E.** Shared `waitForSearchReady` / `waitForSearchEditable` helpers; default expect 45 s, test

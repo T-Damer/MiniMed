@@ -38,6 +38,14 @@ result writes the entered value back under that key; the event keeps the value i
 numeric only, so a text result short enough for one line (a due date) is also stored as the card event's
 text.
 
+A derived step can carry its own `profileContext` `patientBinding`: the five due-date calculators write
+the computed ПДР under `estimatedDueDate`, which «Срок по ПДР» and the maternity-leave calculator read
+back as their prefilled input. Screens render schema data only and never branch on a tool id
+(`calculator-no-tool-id-branches.test.ts`): grouped selects (`option.group`, `input.optionGroupInput`)
+and `step.unitFromInput` describe the unit converter (a built-in schema), `resultLayout: 'feeding-plan'`
+picks the feeding-plan sheet, `bundled` marks tools that need no module, and the registry `surface`
+names a special editor (`ecg-photo`).
+
 When a selected patient is present, the completed result captures normalized inputs, the selected
 context, definition version, provenance, and a structured reference verdict in the encrypted patient
 vault. A missing or unverified reference remains visible as “Оценка недоступна”; the engine does not
