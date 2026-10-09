@@ -6,7 +6,7 @@ import type { AddressInfo } from 'node:net';
 import { dirname, resolve } from 'node:path';
 import { ContentModuleCatalogSchema } from '@localmed/contracts';
 import { expect, test } from '@playwright/test';
-import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
+import { E2E_ASSET_ORIGIN, mountBuiltApp, waitForSearchReady } from './mount-built-app';
 
 /**
  * Install-phase timings of two real modules: the 96 MiB «Красота и медицина» reference pack (630 MB
@@ -121,9 +121,7 @@ for (const scenario of CASES) {
           'minimed.app-preferences.v1': JSON.stringify({ experimentalModulesEnabled: true }),
         },
       });
-      await expect(page.getByTestId('search-input')).toHaveAttribute('data-search-ready', 'true', {
-        timeout: 120_000,
-      });
+      await waitForSearchReady(page);
       await page.goto(route(scenario.pointer));
       await page.evaluate(() => {
         (window as unknown as { __routeSwappedAt?: number }).__routeSwappedAt = undefined;
