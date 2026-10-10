@@ -42,6 +42,15 @@ QUERY_PREFIX = {
     "intfloat/multilingual-e5-base": "query: ",
     "deepvk/USER-base": "query: ",
     "google/embeddinggemma-2": "task: search result | query: ",
+    "intfloat/multilingual-e5-large-instruct": (
+        "Instruct: Given a medical query, retrieve relevant passages that answer the query\nQuery: "
+    ),
+    "ai-sage/Giga-Embeddings-instruct-480M-0826": (
+        "Instruct: Given a query, retrieve relevant passages\nQuery: "
+    ),
+    "ai-sage/Giga-Embeddings-instruct-3B-0826": (
+        "Instruct: Given a query, retrieve relevant passages\nQuery: "
+    ),
 }
 PASSAGE_PREFIX = {
     "intfloat/multilingual-e5-small": "passage: ",
@@ -56,6 +65,11 @@ TITLED_PASSAGES = {"google/embeddinggemma-2"}
 # Multimodal models loaded with their text encoder only (the vision/audio encoders stay unloaded).
 TEXT_ONLY_CONFIG = {
     "google/embeddinggemma-2": {"vision_config": None, "audio_config": None},
+}
+# Models that ship their own modelling code: loaded only at the revision whose code was read
+# (Giga: a 116-line wrapper turning Qwen3 attention bidirectional, no I/O; reviewed 2026-10-09).
+REMOTE_CODE_REVISION = {
+    "ai-sage/Giga-Embeddings-instruct-480M-0826": "1763d603adac8057bd6482a708001b0ed2e0a903",
 }
 PASSAGE_CHARS = 1200
 TOP_CHUNKS = 400
@@ -143,6 +157,17 @@ def load_model(model: str):
         return (
             SentenceTransformer(
                 model, device=device, config_kwargs=TEXT_ONLY_CONFIG[model]
+            ),
+            device,
+        )
+    if model in REMOTE_CODE_REVISION:
+        return (
+            SentenceTransformer(
+                model,
+                device=device,
+                revision=REMOTE_CODE_REVISION[model],
+                trust_remote_code=True,
+                model_kwargs={"torch_dtype": torch.bfloat16},
             ),
             device,
         )

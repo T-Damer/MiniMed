@@ -1,0 +1,687 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#   "numpy>=2", "onnx>=1.17", "onnxruntime>=1.20", "pillow>=11", "pyyaml>=6",
+#   "sentence-transformers>=6.1", "torch>=2.4", "torchvision", "transformers>=5.19",
+# ]
+# ///
+"""Strong build-time teacher, small on-device query encoder (STATE KD1, search roadmap item 8).
+
+A large embedding model (the teacher) encodes the КР passages once, on the build machine. The phone
+keeps a query encoder the size of the shipped e5-small (the student), trained to place a query where
+the teacher would place it, so its vectors are compared with the teacher's passage vectors. The
+student learns the teacher's *query function*, not relevance labels: any Russian medical text works
+as training input, and no benchmark query or its source record is used.
+
+    W=<scratch work dir of embedding_eval.py: corpus.jsonl, icd-queries.jsonl, emb-<teacher>.npy>
+    uv run tools/benchmarks/embedding_distill.py texts --work $W
+    uv run tools/benchmarks/embedding_distill.py targets --work $W --teacher ai-sage/Giga-Embeddings-instruct-480M-0826
+    uv run tools/benchmarks/embedding_distill.py project --work $W --teacher … --dims 384
+    uv run tools/benchmarks/embedding_distill.py train --work $W --teacher … --dims 384 --out $W/student-…
+    uv run tools/benchmarks/embedding_distill.py evaluate --work $W --teacher … --dims 384 --student $W/student-…
+    uv run tools/benchmarks/embedding_distill.py export --student $W/student-… --out $W/onnx/<name>
+
+Nothing here ships in the app; private sources stay local and the forum set (licence unknown) is
+never used, because the student's weights would ship.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import math
+import random
+import re
+import statistics
+import sys
+import time
+from collections import defaultdict
+from pathlib import Path
+
+import numpy as np
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import embedding_eval as ee
+
+REPO = Path(__file__).resolve().parents[2]
+RAW = REPO / "data/raw/query-datasets"
+STUDENT_BASE = "intfloat/multilingual-e5-small"
+STUDENT_PREFIX = "query: "
+MAX_TOKENS = 128
+SEED = 20261009
+CORPUS_SPANS = 160_000
+NEIGHBOURS = 16
+
+
+def clean(value: str) -> str:
+    return re.sub(r"\s+", " ", value).strip()
+
+
+def key(value: str) -> str:
+    return ee.normalize(value)
+
+
+def benchmark_texts(work: Path) -> set[str]:
+    return {
+        key(json.loads(line)["query"])
+        for line in (work / "icd-queries.jsonl").read_text().splitlines()
+        if line
+    } | {
+        key(q["query"])
+        for q in json.loads(
+            (REPO / "tools/benchmarks/retrieval-icd-queries.json").read_text()
+        )["queries"]
+    }
+
+
+def rumedprime_texts() -> list[str]:
+    """Complaints and histories of events outside the RuMedTop3 dev/test ids Q1 samples from."""
+    held_out = {
+        json.loads(line)["idx"]
+        for name in ("top3-dev_v1.jsonl", "top3-test_v1.jsonl")
+        for line in (RAW / "rumedprime" / name).read_text().splitlines()
+        if line.strip()
+    }
+    texts = []
+    lines = (RAW / "rumedprime/RuMedPrimeData.tsv").read_text().splitlines()[1:]
+    for line in lines:
+        symptoms, anamnesis, _icd, _patient, event, *_ = line.split("\t") + [""] * 6
+        if event in held_out:
+            continue
+        for value in (symptoms, anamnesis[:400]):
+            value = clean(value)
+            if len(value) >= 12 and "*" not in value:
+                texts.append(value)
+    return texts
+
+
+def ruccod_texts() -> list[str]:
+    """Train-split conclusions and their annotated phrases (Q1 test is the test split)."""
+    texts = []
+    base = RAW / "ruccod/data/ruccod_train"
+    for path in sorted(base.glob("*.txt")):
+        for sentence in re.split(r"(?<=[.;])\s+", path.read_text()):
+            sentence = clean(sentence)
+            if len(sentence) >= 8:
+                texts.append(sentence[:400])
+    for path in sorted(base.glob("*.ann")):
+        for line in path.read_text().splitlines():
+            parts = line.split("\t")
+            if line.startswith("T") and len(parts) >= 3 and len(parts[2]) >= 5:
+                texts.append(clean(parts[2]))
+    return texts
+
+
+def icd_names() -> list[str]:
+    import yaml
+
+    names = yaml.safe_load((RAW / "ruccod/data/mkb2descr.yaml").read_text())
+    return [
+        clean(re.sub(r"\([A-Z]\d\d(?:\.\d)?-[A-Z]\d\d(?:\.\d)?\)", "", str(v)))
+        for v in names.values()
+        if v and len(str(v)) >= 4
+    ]
+
+
+def corpus_texts(rows: list[dict], rng: random.Random) -> list[str]:
+    """Titles, section names, leading sentences and short word spans of the КР chunks."""
+    texts = {row["title"] for row in rows}
+    for row in rows:
+        for part in row["sectionPath"].split(" / "):
+            if len(part) >= 4:
+                texts.add(part)
+    sample = rng.sample(rows, min(CORPUS_SPANS, len(rows)))
+    for index, row in enumerate(sample):
+        words = row["text"].split()
+        if len(words) < 4:
+            continue
+        if index % 2 == 0:
+            texts.add(
+                clean(re.split(r"(?<=[.!?])\s", row["text"], maxsplit=1)[0])[:300]
+            )
+        length = rng.randint(3, 14)
+        start = rng.randint(0, max(0, len(words) - length))
+        texts.add(clean(" ".join(words[start : start + length])))
+    return sorted(texts)
+
+
+def texts(work: Path) -> None:
+    rng = random.Random(SEED)
+    blocked = benchmark_texts(work)
+    rows = ee.load_corpus(work)
+    pools = {
+        "rumedprime": rumedprime_texts(),
+        "ruccod": ruccod_texts(),
+        "icd": icd_names(),
+        "corpus": corpus_texts(rows, rng),
+    }
+    seen: set[str] = set()
+    out = []
+    for source, values in pools.items():
+        kept = 0
+        for value in values:
+            k = key(value)
+            if len(k) < 4 or k in seen or k in blocked:
+                continue
+            seen.add(k)
+            out.append({"text": value, "source": source})
+            kept += 1
+        print(f"texts: {source} {kept} of {len(values)}")
+    rng.shuffle(out)
+    (work / "distill-texts.jsonl").write_text(
+        "\n".join(json.dumps(r, ensure_ascii=False) for r in out) + "\n"
+    )
+    print(f"texts: {len(out)} in total, {len(blocked)} benchmark texts excluded")
+
+
+def load_texts(work: Path) -> list[dict]:
+    return [
+        json.loads(line)
+        for line in (work / "distill-texts.jsonl").read_text().splitlines()
+        if line
+    ]
+
+
+def targets(work: Path, teacher: str, batch: int) -> None:
+    """The teacher's own query vectors of every training text (instruction prefix included)."""
+    rows = load_texts(work)
+    model, device = ee.load_model(teacher)
+    model.max_seq_length = MAX_TOKENS
+    prefix = ee.QUERY_PREFIX.get(teacher, "")
+    shard_dir = work / f"targets-{ee.slug(teacher)}.shards"
+    shard_dir.mkdir(exist_ok=True)
+    started = time.perf_counter()
+    for start in range(0, len(rows), ee.SHARD):
+        path = shard_dir / f"{start:07d}.npy"
+        if path.exists():
+            continue
+        part = model.encode(
+            [prefix + r["text"] for r in rows[start : start + ee.SHARD]],
+            batch_size=batch,
+            normalize_embeddings=True,
+            convert_to_numpy=True,
+        ).astype(np.float16)
+        np.save(path, part)
+        print(
+            f"targets: {min(start + ee.SHARD, len(rows))}/{len(rows)} on {device}, "
+            f"{time.perf_counter() - started:.0f}s",
+            flush=True,
+        )
+    vectors = np.concatenate([np.load(p) for p in sorted(shard_dir.glob("*.npy"))])
+    np.save(work / f"targets-{ee.slug(teacher)}.npy", vectors)
+    print(f"targets: {vectors.shape} in {time.perf_counter() - started:.0f}s")
+
+
+def unit(vectors: np.ndarray) -> np.ndarray:
+    vectors = vectors.astype(np.float32)
+    return vectors / np.linalg.norm(vectors, axis=-1, keepdims=True).clip(1e-6)
+
+
+def projection_path(work: Path, teacher: str, dims: int) -> Path:
+    return work / f"projection-{ee.slug(teacher)}-{dims}.npy"
+
+
+def project(work: Path, teacher: str, dims: int) -> None:
+    """Uncentred principal directions of the teacher's passage vectors (keeps dot products)."""
+    passages = unit(np.load(work / f"emb-{ee.slug(teacher)}.npy"))
+    if dims >= passages.shape[1]:
+        basis = np.eye(passages.shape[1], dtype=np.float32)
+    else:
+        values, vectors = np.linalg.eigh(passages.T @ passages)
+        basis = vectors[:, np.argsort(-values)[:dims]].astype(np.float32)
+        kept = values[np.argsort(-values)[:dims]].sum() / values.sum()
+        print(f"project: {teacher} → {dims} dims keeps {kept:.3f} of the energy")
+    np.save(projection_path(work, teacher, dims), basis)
+
+
+def projected(work: Path, teacher: str, dims: int, vectors: np.ndarray) -> np.ndarray:
+    return unit(unit(vectors) @ np.load(projection_path(work, teacher, dims)))
+
+
+def neighbours(passages: np.ndarray, queries: np.ndarray, k: int) -> np.ndarray:
+    import torch
+
+    device = "mps" if torch.backends.mps.is_available() else "cpu"
+    store = torch.from_numpy(passages).to(device, torch.float16)
+    out = []
+    for start in range(0, len(queries), 4096):
+        q = torch.from_numpy(queries[start : start + 4096]).to(device, torch.float16)
+        out.append((q @ store.T).topk(k, dim=1).indices.cpu().numpy())
+    return np.concatenate(out)
+
+
+def build_student(dims: int, device: str):
+    from sentence_transformers import SentenceTransformer, models
+
+    base = SentenceTransformer(STUDENT_BASE, device=device)
+    base.max_seq_length = MAX_TOKENS
+    width = base.encode(["x"]).shape[1]
+    head = models.Dense(width, dims, bias=False, activation_function=None)
+    student = SentenceTransformer(modules=[base[0], base[1], head], device=device)
+    student.max_seq_length = MAX_TOKENS
+    return student, base
+
+
+def encode_raw(model, texts: list[str], device: str):
+    features = model.preprocess(texts)
+    features = {k: v.to(device) if hasattr(v, "to") else v for k, v in features.items()}
+    return model(features)["sentence_embedding"]
+
+
+def train(
+    work: Path,
+    teacher: str,
+    dims: int,
+    out: Path,
+    epochs: float,
+    batch: int,
+    rank_weight: float,
+    temperature: float,
+    encoder_lr: float,
+) -> None:
+    import torch
+    import torch.nn.functional as F
+
+    torch.manual_seed(SEED)
+    device = "mps" if torch.backends.mps.is_available() else "cpu"
+    rows = load_texts(work)
+    goal = projected(
+        work, teacher, dims, np.load(work / f"targets-{ee.slug(teacher)}.npy")
+    )
+    passages = projected(
+        work, teacher, dims, np.load(work / f"emb-{ee.slug(teacher)}.npy")
+    )
+    near = neighbours(passages, goal, NEIGHBOURS)
+    student, base = build_student(dims, device)
+
+    # Least-squares start for the head: e5-small's pooled vectors onto the teacher targets.
+    sample = list(range(min(20_000, len(rows))))
+    with torch.no_grad():
+        pooled = base.encode(
+            [STUDENT_PREFIX + rows[i]["text"] for i in sample],
+            batch_size=256,
+            convert_to_numpy=True,
+        )
+    solution, *_ = np.linalg.lstsq(pooled, goal[sample], rcond=None)
+    student[2].linear.weight.data = torch.from_numpy(solution.T.copy()).to(device)
+
+    encoder_params = list(student[0].parameters())
+    head_params = list(student[2].parameters())
+    optimizer = torch.optim.AdamW(
+        [
+            {"params": encoder_params, "lr": encoder_lr},
+            {"params": head_params, "lr": 5e-4},
+        ],
+        weight_decay=0.01,
+    )
+    steps = math.ceil(len(rows) / batch * epochs)
+    warmup = max(1, steps // 20)
+    scheduler = torch.optim.lr_scheduler.LambdaLR(
+        optimizer,
+        lambda s: (
+            min(1.0, (s + 1) / warmup) * max(0.0, (steps - s) / max(1, steps - warmup))
+        ),
+    )
+    store = torch.from_numpy(passages).to(device)
+    targets_t = torch.from_numpy(goal).to(device)
+    order = np.random.default_rng(SEED).permutation(len(rows))
+    student.train()
+    started = time.perf_counter()
+    log = []
+    for step in range(steps):
+        index = order[(step * batch) % len(rows) : (step * batch) % len(rows) + batch]
+        if len(index) < 2:
+            continue
+        s = F.normalize(
+            encode_raw(
+                student, [STUDENT_PREFIX + rows[i]["text"] for i in index], device
+            ),
+            dim=-1,
+        )
+        t = targets_t[index]
+        loss_cos = (1 - (s * t).sum(-1)).mean()
+        loss = loss_cos
+        if rank_weight > 0:
+            pool = store[
+                torch.from_numpy(np.unique(near[index].reshape(-1))).to(device)
+            ]
+            teacher_logits = (t @ pool.T) / temperature
+            student_logits = (s @ pool.T) / temperature
+            loss_rank = F.kl_div(
+                F.log_softmax(student_logits, -1),
+                F.log_softmax(teacher_logits, -1),
+                log_target=True,
+                reduction="batchmean",
+            )
+            loss = loss + rank_weight * loss_rank
+        optimizer.zero_grad()
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(student.parameters(), 1.0)
+        optimizer.step()
+        scheduler.step()
+        if step % 100 == 0 or step == steps - 1:
+            entry = {
+                "step": step,
+                "of": steps,
+                "loss": round(float(loss), 4),
+                "cos": round(1 - float(loss_cos), 4),
+                "seconds": round(time.perf_counter() - started),
+            }
+            log.append(entry)
+            print(json.dumps(entry), flush=True)
+    student.eval()
+    out.mkdir(parents=True, exist_ok=True)
+    student.save(str(out))
+    (out / "distill-train.json").write_text(
+        json.dumps(
+            {
+                "teacher": teacher,
+                "dims": dims,
+                "base": STUDENT_BASE,
+                "texts": len(rows),
+                "epochs": epochs,
+                "batch": batch,
+                "rankWeight": rank_weight,
+                "temperature": temperature,
+                "encoderLr": encoder_lr,
+                "log": log,
+            },
+            indent=1,
+        )
+    )
+
+
+def ranking_metrics(ranked: list[str], relevant: dict[str, int]) -> dict[str, float]:
+    first = next((i + 1 for i, d in enumerate(ranked[:10]) if d in relevant), None)
+    strict = next(
+        (i + 1 for i, d in enumerate(ranked[:5]) if relevant.get(d) == 3), None
+    )
+    return {
+        "at1": float(first == 1),
+        "at5": float(first is not None and first <= 5),
+        "strictAt5": float(strict is not None),
+        "mrr10": 0.0 if first is None else 1 / first,
+    }
+
+
+def paired(
+    a: list[float], b: list[float], rng: np.random.Generator
+) -> tuple[float, float, float]:
+    diff = np.array(b) - np.array(a)
+    boot = [diff[rng.integers(0, len(diff), len(diff))].mean() for _ in range(10_000)]
+    return (
+        float(diff.mean()),
+        float(np.percentile(boot, 2.5)),
+        float(np.percentile(boot, 97.5)),
+    )
+
+
+def evaluate(work: Path, teacher: str, dims: int, students: list[Path]) -> None:
+    import torch
+    from sentence_transformers import SentenceTransformer
+
+    rows = ee.load_corpus(work)
+    queries = [
+        json.loads(line)
+        for line in (work / "icd-queries.jsonl").read_text().splitlines()
+        if line
+    ]
+    texts_ = [q["query"] for q in queries]
+    runs: dict[str, tuple[np.ndarray, np.ndarray]] = {}
+
+    e5 = SentenceTransformer(STUDENT_BASE, device="cpu")
+    runs["e5-small (shipped)"] = (
+        ee.quantize(unit(np.load(work / f"emb-{ee.slug(STUDENT_BASE)}.npy")), "int8"),
+        e5.encode([STUDENT_PREFIX + t for t in texts_], normalize_embeddings=True),
+    )
+    teacher_passages = ee.quantize(
+        projected(work, teacher, dims, np.load(work / f"emb-{ee.slug(teacher)}.npy")),
+        "int8",
+    )
+    teacher_model, _ = ee.load_model(teacher)
+    teacher_queries = teacher_model.encode(
+        [ee.QUERY_PREFIX.get(teacher, "") + t for t in texts_],
+        normalize_embeddings=True,
+    )
+    runs[f"teacher@{dims}"] = (
+        teacher_passages,
+        projected(work, teacher, dims, teacher_queries),
+    )
+    del teacher_model
+    latency: dict[str, float] = {}
+    for path in students:
+        student = SentenceTransformer(str(path), device="cpu")
+        runs[f"student {path.name}"] = (
+            teacher_passages,
+            unit(student.encode([STUDENT_PREFIX + t for t in texts_])),
+        )
+        torch.set_num_threads(1)
+        timings = []
+        for t in texts_[:50]:
+            started = time.perf_counter()
+            student.encode([STUDENT_PREFIX + t])
+            timings.append((time.perf_counter() - started) * 1000)
+        latency[path.name] = round(statistics.median(timings), 1)
+        torch.set_num_threads(8)
+
+    per_query: dict[str, list[dict[str, float]]] = {}
+    for name, (store, query_vectors) in runs.items():
+        scored = []
+        for index, q in enumerate(queries):
+            groups = ee.semantic_groups(store @ unit(query_vectors[index]), rows)
+            scored.append(ranking_metrics([d for d, _ in groups], q["relevantKr"]))
+        per_query[name] = scored
+
+    rng = np.random.default_rng(SEED)
+    baseline = per_query["e5-small (shipped)"]
+    report = {}
+    for name, scored in per_query.items():
+        slices = defaultdict(list)
+        for q, s in zip(queries, scored):
+            for slice_ in ("all", f"source:{q['source']}", f"split:{q['split']}"):
+                slices[slice_].append(s)
+        entry = {
+            slice_: {k: round(statistics.fmean(r[k] for r in rs), 3) for k in rs[0]}
+            | {"n": len(rs)}
+            for slice_, rs in sorted(slices.items())
+        }
+        if name != "e5-small (shipped)":
+            for metric in ("at1", "at5"):
+                mean, low, high = paired(
+                    [r[metric] for r in baseline], [r[metric] for r in scored], rng
+                )
+                entry[f"delta_{metric}_vs_e5"] = [
+                    round(mean, 3),
+                    round(low, 3),
+                    round(high, 3),
+                ]
+        report[name] = entry
+        a = entry["all"]
+        print(
+            f"{name:40} @1 {a['at1']:.3f} @5 {a['at5']:.3f} strict@5 {a['strictAt5']:.3f} "
+            f"mrr {a['mrr10']:.3f} | complaints @5 {entry['source:rumedprime']['at5']:.3f} "
+            f"diagnoses @5 {entry['source:ruccod']['at5']:.3f}"
+            + (
+                f" | Δ@5 {entry['delta_at5_vs_e5']} Δ@1 {entry['delta_at1_vs_e5']}"
+                if "delta_at5_vs_e5" in entry
+                else ""
+            )
+        )
+    report["studentQueryCpu1ThreadMs"] = latency
+    print("student query, 1 CPU thread p50 ms:", latency)
+    (work / f"report-distill-{ee.slug(teacher)}-{dims}.json").write_text(
+        json.dumps(report, ensure_ascii=False, indent=1)
+    )
+
+
+def export(student_dir: Path, out: Path) -> None:
+    """transformers.js layout: fp32 graph plus the int8 `onnx/model_quantized.onnx` the app loads.
+
+    The head is applied to every token before the app's mean pooling (pooling is linear), so the graph
+    keeps e5's interface and returns `last_hidden_state` already in the teacher space. The head's
+    MatMul stays fp32: it reads the final LayerNorm output, whose outlier channels do not survive 8-bit
+    dynamic activations (cosine to PyTorch fell to −0.02); weights are quantised per channel.
+    """
+    import shutil
+
+    import onnx
+    import onnxruntime as ort
+    import torch
+    from onnxruntime.quantization import QuantType, quantize_dynamic
+    from sentence_transformers import SentenceTransformer
+
+    student = SentenceTransformer(str(student_dir), device="cpu")
+    student.eval()
+    weight = student[2].linear.weight.detach().clone()
+
+    class Projected(torch.nn.Module):
+        def __init__(self) -> None:
+            super().__init__()
+            self.model = student[0].auto_model
+            self.register_buffer("w", weight.T.contiguous())
+
+        def forward(self, input_ids, attention_mask, token_type_ids):
+            hidden = self.model(
+                input_ids=input_ids,
+                attention_mask=attention_mask,
+                token_type_ids=token_type_ids,
+            ).last_hidden_state
+            return hidden @ self.w
+
+    (out / "onnx").mkdir(parents=True, exist_ok=True)
+    full, quantized = out / "onnx/model.onnx", out / "onnx/model_quantized.onnx"
+    sample = student.tokenizer([STUDENT_PREFIX + "боль в груди"], return_tensors="pt")
+    axes = {0: "batch", 1: "sequence"}
+    torch.onnx.export(
+        Projected().eval(),
+        (
+            sample["input_ids"],
+            sample["attention_mask"],
+            torch.zeros_like(sample["input_ids"]),
+        ),
+        str(full),
+        input_names=["input_ids", "attention_mask", "token_type_ids"],
+        output_names=["last_hidden_state"],
+        dynamic_axes={
+            name: axes
+            for name in (
+                "input_ids",
+                "attention_mask",
+                "token_type_ids",
+                "last_hidden_state",
+            )
+        },
+        opset_version=14,
+        dynamo=False,
+    )
+    graph = onnx.load(str(full), load_external_data=False).graph
+    head = [
+        n.name
+        for n in graph.node
+        if n.op_type == "MatMul" and "last_hidden_state" in n.output
+    ]
+    quantize_dynamic(
+        str(full),
+        str(quantized),
+        weight_type=QuantType.QUInt8,
+        per_channel=True,
+        nodes_to_exclude=head,
+    )
+    for name in (
+        "config.json",
+        "tokenizer.json",
+        "tokenizer_config.json",
+        "special_tokens_map.json",
+    ):
+        if (student_dir / name).exists():
+            shutil.copy(student_dir / name, out / name)
+
+    texts = [
+        STUDENT_PREFIX + t
+        for t in (
+            "болит желудок после еды",
+            "кашель с мокротой и температура 38 третий день",
+            "Хроническая сердечная недостаточность",
+            "сыпь у ребенка после антибиотика",
+        )
+    ]
+    reference = student.encode(texts, normalize_embeddings=True)
+    for path in (full, quantized):
+        session = ort.InferenceSession(str(path))
+        cosines = []
+        for text, ref in zip(texts, reference):
+            enc = student.tokenizer([text], return_tensors="np")
+            ids = enc["input_ids"].astype(np.int64)
+            hidden = session.run(
+                None,
+                {
+                    "input_ids": ids,
+                    "attention_mask": enc["attention_mask"].astype(np.int64),
+                    "token_type_ids": np.zeros_like(ids),
+                },
+            )[0][0].mean(0)
+            cosines.append(float(hidden / np.linalg.norm(hidden) @ ref))
+        print(
+            f"export: {path.name} {path.stat().st_size / 1e6:.1f} MB, "
+            f"cosine to PyTorch min {min(cosines):.4f}"
+        )
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    sub = parser.add_subparsers(dest="command", required=True)
+    t = sub.add_parser("texts")
+    t.add_argument("--work", type=Path, required=True)
+    g = sub.add_parser("targets")
+    g.add_argument("--work", type=Path, required=True)
+    g.add_argument("--teacher", required=True)
+    g.add_argument("--batch", type=int, default=64)
+    p = sub.add_parser("project")
+    p.add_argument("--work", type=Path, required=True)
+    p.add_argument("--teacher", required=True)
+    p.add_argument("--dims", type=int, required=True)
+    r = sub.add_parser("train")
+    r.add_argument("--work", type=Path, required=True)
+    r.add_argument("--teacher", required=True)
+    r.add_argument("--dims", type=int, required=True)
+    r.add_argument("--out", type=Path, required=True)
+    r.add_argument("--epochs", type=float, default=2.0)
+    r.add_argument("--batch", type=int, default=128)
+    r.add_argument("--rank-weight", type=float, default=1.0)
+    r.add_argument("--temperature", type=float, default=0.05)
+    r.add_argument("--encoder-lr", type=float, default=4e-5)
+    v = sub.add_parser("evaluate")
+    v.add_argument("--work", type=Path, required=True)
+    v.add_argument("--teacher", required=True)
+    v.add_argument("--dims", type=int, required=True)
+    v.add_argument("--student", type=Path, action="append", default=[])
+    x = sub.add_parser("export")
+    x.add_argument("--student", type=Path, required=True)
+    x.add_argument("--out", type=Path, required=True)
+    args = parser.parse_args()
+    if args.command == "export":
+        export(args.student, args.out)
+    elif args.command == "texts":
+        texts(args.work)
+    elif args.command == "targets":
+        targets(args.work, args.teacher, args.batch)
+    elif args.command == "project":
+        project(args.work, args.teacher, args.dims)
+    elif args.command == "train":
+        train(
+            args.work,
+            args.teacher,
+            args.dims,
+            args.out,
+            args.epochs,
+            args.batch,
+            args.rank_weight,
+            args.temperature,
+            args.encoder_lr,
+        )
+    else:
+        evaluate(args.work, args.teacher, args.dims, args.student)
+
+
+if __name__ == "__main__":
+    main()

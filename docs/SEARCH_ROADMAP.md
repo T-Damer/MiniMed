@@ -63,6 +63,14 @@ and the list is updated when the proposal is better. How search works today:
    20 (size and latency first); a larger embedding model for КР only if a phone measurement allows
    (EmbeddingGemma 2 measured 2026-10-07: complaints R@5 0.255 → 0.303, not significant, query 66×
    slower — see the rejected table).
+   **8a. Strong build-time model, small on-device query encoder** (KD1, owner 2026-10-09; replaces
+   «a larger embedding model … if a phone measurement allows»): Giga-Embeddings-instruct 480M encodes
+   the КР passages at build time (projected to 384 d, int8 as today); an e5-small-sized student trained
+   to reproduce Giga's query vectors runs on the phone (119 MB int8, 3.7 ms p50 on one CPU thread). Q1,
+   330 queries, semantic only: R@5 0.458 → 0.576 (+0.118, 95 % CI +0.070…+0.167), R@1 0.282 → 0.358,
+   complaints R@5 0.261 → 0.448; int8 export 0.585 / 0.345. Measured, not shipped; next: app-path hybrid
+   with re-fitted fusion, drug-indication check, hosting of the student, rebuild —
+   [`research/embedding-distillation-2026-10-09.md`](research/embedding-distillation-2026-10-09.md).
 9. **Explain semantic hits.** Highlight the best-matching sentence of a vector hit, since no query
    word may occur in it.
 10. **Approximate vector search** only when a phone measurement of the exact scan exceeds ~300 ms.
