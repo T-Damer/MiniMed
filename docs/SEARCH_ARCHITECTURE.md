@@ -43,8 +43,8 @@ The UI never touches SQL. Every store implements the `MedicalStore` port
 | `guidelines` | `auto` | `lookup` | no |
 | everything else (`all`, `medications`, `legal`, `conditions`, …) | `lexical` | `lookup` | no |
 
-`auto` adds e5 semantic candidates only when the e5 model is downloaded and the mounted КР modules
-carry the e5 profile; otherwise it is the same lexical search. `patient-notes.ts` also searches
+`auto` adds semantic candidates only when the query model is downloaded and the mounted КР modules
+carry its profile (`KD1_PROFILE`); otherwise it is the same lexical search. `patient-notes.ts` also searches
 with `mode: 'auto'`.
 
 `ScopedMedicalCore.ts` wraps the core per scope: `documentMatchesSearchScope` maps a scope to
@@ -136,15 +136,16 @@ always survive.
 Runs when `mode !== 'lexical'` and `createMedicalCore({embedder})` was given a `QueryEmbedder`
 (`packages/search-semantic`: `{ profile, input?, fusion?, embedQuery(text) → {profileId, values,
 norm} }`). The app passes `E5_QUERY_EMBEDDER` (`apps/app/src/features/semantic`), a
-`NeuralQueryEmbedder` over `E5_SMALL_PROFILE` with `E5_SMALL_FUSION`; details and numbers in
-[`SEMANTIC_RETRIEVAL.md`](SEMANTIC_RETRIEVAL.md).
+`NeuralQueryEmbedder` over `KD1_PROFILE` with `KD1_FUSION`: passages encoded at build time by
+Giga-Embeddings 480M, queries on the device by a distilled e5-small-sized student (KD1); details and
+numbers in [`SEMANTIC_RETRIEVAL.md`](SEMANTIC_RETRIEVAL.md).
 
 1. `store.listEmbeddingProfiles()` (cached per open pack) → the first profile `profilesCompatible`
    with the embedder's (same id, dimensions, format, normalisation, generator, generator version,
    fingerprint).
 2. `embedQuery(text)`: `input: 'original-query'` (neural) sends the user's wording with the
    profile's `query: ` prefix; the default sends `semanticQueryText(analysis)` (joined normalised
-   positive facts), which the feature-hash profile was tuned for. The e5 embedder runs in a worker
+   positive facts), which the feature-hash profile was tuned for. The query embedder runs in a worker
    and rejects with `semantic-model-not-installed` until the model is downloaded.
 3. `store.searchVector({profileId, vector, norm, filters, limit: max(limit × 5, 50)})`.
    `MultiMedicalStore` is two-phase when every mount implements it: `scoreVectors` per pack
@@ -157,7 +158,8 @@ norm} }`). The app passes `E5_QUERY_EMBEDDER` (`apps/app/src/features/semantic`)
    - `hybrid`: lexical score / best lexical × `lexicalWeight`; semantic strength = cosine relative
      to the query's best cosine within `band` (0…1; raw cosine without a band); vector-only hit =
      strength × `vectorOnlyWeight`; found by both = lexical part + strength × `corroborationWeight`
-     + 0.04. e5: band 0.10, weights 0.5 / 0.8 / 0.3. Legacy: no band, 0.78 / 0.62 / 0.22.
+     + 0.04. KD1: band 0.50, weights 0.3 / 0.8 / 0.3 (student cosines spread wider than e5's,
+     which used band 0.10, 0.5 / 0.8 / 0.3). Legacy: no band, 0.78 / 0.62 / 0.22.
    Exact-alias documents and the exact subject title survive the cut as in lexical fusion.
 
 Any failure falls back to lexical and is reported in `diagnostics.semantic` (`status`,
@@ -167,9 +169,10 @@ Any failure falls back to lexical and is reported in `diagnostics.semantic` (`st
 Data: `embedding_profiles(id, dimensions, vector_format='int8', normalization='l2', generator,
 generator_version, fingerprint UNIQUE, metadata_json)` and `chunk_embeddings(profile_id, chunk_id,
 vector BLOB, vector_norm)`. Vectors are L2-normalised, ×127, rounded half away from zero
-(`quantizeEmbedding`). КР modules carry `localmed.e5-small.384.int8.v1` since mirror tag
-`clinical-e5-2026.10.05`; other packs carry no vectors (or the old feature-hash scaffold, which the
-e5 embedder ignores). The Capacitor native store answers `scoreVectors` only if the plugin exposes
+(`quantizeEmbedding`). КР modules carry `localmed.kd1-giga480m.384.int8.v1` since mirror tag
+`clinical-kd1-2026.10.11`, the ГРЛС instruction and Allmed modules on their indication sections
+(tags `…-kd1`); other packs carry no vectors (or the old feature-hash scaffold, which the embedder
+ignores). The Capacitor native store answers `scoreVectors` only if the plugin exposes
 `searchVectors`; installed modules are mounted through the browser runtime (WASM/OPFS
 `SqliteMedicalStore`), so they use the JS scan above.
 
@@ -251,7 +254,7 @@ that cover it through source codes only:
 | `tools/benchmarks/src/build-name-variant-queries.ts` → `name-variant-queries.json`, `run-name-variants.ts` | S3 item 3: layout / Latin-spelling variants of real names plus negative controls, fallback off/on, hit@1/hit@5 and latency |
 | `S3_OFF=1` (any `openRealCorpus` benchmark), `S3_BRIDGE_JSON='{…}'` | state before S3 / tuning override for `run-real-corpus`, `run-doctor-lookup`, `run-owner-queries` |
 | `bun run benchmark:source-names` (`source-name-queries.json`) | source-name intent (read as expected, results inside the source, negatives stay plain) and the drug overview line; `--check` fails on any miss |
-| `tools/benchmarks/src/run-semantic-kr.ts` | Q1 over the e5 КР packs through MedicalCore: lexical / semantic / hybrid fusion grid |
+| `tools/benchmarks/src/run-semantic-kr.ts` | Q1 over the embedded КР packs through MedicalCore: lexical / semantic / hybrid, `--grid` over fusion constants |
 
 ## Pitfalls
 

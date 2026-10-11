@@ -1,21 +1,23 @@
 /**
- * Frames e5-embedded modules (`tools/ingest/scripts/embed_modules_e5.py`) as zstd under new mirror
+ * Frames re-embedded modules (`tools/ingest/scripts/embed_modules.py`) as zstd under new mirror
  * tags and points the catalog at them. Nothing is uploaded; the committed catalog is only written
  * with --write-catalog, after `scripts/publish-module-zstd-mirror.sh … --create` for every tag.
  *
- *   bun scripts/reframe-modules-e5.ts --family clinical --decoded-dir data/build/clinical-e5/decoded \
- *     --out-dir output/module-zstd-e5-2026-10-05 --tag clinical-e5-2026.10.05 [--write-catalog]
- *   bun scripts/reframe-modules-e5.ts --family medications --decoded-dir data/build/drug-e5/decoded \
- *     --out-dir output/module-zstd-drug-e5-2026-10-05 [--write-catalog]
+ *   bun scripts/reframe-modules.ts --marker kd1 --family clinical \
+ *     --decoded-dir data/build/clinical-kd1/decoded --out-dir output/module-zstd-kd1-2026-10-10 \
+ *     --tag clinical-kd1-2026.10.10 [--write-catalog]
+ *   bun scripts/reframe-modules.ts --marker kd1 --family medications \
+ *     --decoded-dir data/build/drug-kd1/decoded --out-dir output/module-zstd-drug-kd1-2026-10-10
  *
  * clinical: `clinical-<id>-<old tag>.db.zst` becomes `clinical-<id>-<tag>.db.zst` under `--tag`.
- * medications (ГРЛС instructions, Allmed): the file name stays and the tag becomes `<old tag>-e5`,
- * so every source release keeps its own mirror branch (`--family esklp` layout when publishing).
+ * medications (ГРЛС instructions, Allmed): the file name stays and the tag becomes
+ * `<source tag>-<marker>` (an earlier embedding marker is replaced), so every source release keeps
+ * its own mirror branch (`--family esklp` layout when publishing).
  *
  * Only `embedding_profiles`/`chunk_embeddings` differ from the published modules, so the source
- * set, document table and artifact ids stay; the module version gets a `.e5` suffix and the
- * artifact its new URL, checksums and sizes. Every archive is decoded again and compared with the
- * SQLite's SHA-256 before it is accepted.
+ * set, document table and artifact ids stay; the module version's embedding suffix becomes
+ * `.<marker>` and the artifact gets its new URL, checksums and sizes. Every archive is decoded again
+ * and compared with the SQLite's SHA-256 before it is accepted.
  */
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
@@ -33,6 +35,8 @@ const FAMILY_IDS = {
   medications: ['minimed.medications.instructions.', 'minimed.medications.ru'],
 } as const;
 const RELEASE_BASE = 'https://github.com/T-Damer/MiniMed/releases/download';
+/** Same exclusion as `embed_modules.py`: published after E3 and never embedded. */
+const EXCLUDED_IDS = new Set(['minimed.medications.instructions.manufacturer-site.ru']);
 
 const { values } = parseArgs({
   options: {
@@ -40,6 +44,7 @@ const { values } = parseArgs({
     'decoded-dir': { type: 'string' },
     'out-dir': { type: 'string' },
     tag: { type: 'string' },
+    marker: { type: 'string' },
     'write-catalog': { type: 'boolean', default: false },
     'catalog-out': { type: 'string' },
   },
@@ -48,7 +53,12 @@ const family = values.family as keyof typeof FAMILY_IDS | undefined;
 const decodedDir = values['decoded-dir'];
 const outDir = values['out-dir'];
 const tag = values.tag;
+const marker = values.marker;
+/** Embedding markers of earlier and current vector profiles, replaced rather than stacked. */
+const EMBEDDING_MARKER = /[-.](?:e5|kd1)$/u;
 if (
+  !marker ||
+  !/^[a-z0-9]+$/u.test(marker) ||
   !family ||
   !(family in FAMILY_IDS) ||
   !decodedDir ||
@@ -56,7 +66,7 @@ if (
   (family === 'clinical' && (!tag || !/^clinical-[a-z0-9.-]+$/u.test(tag)))
 ) {
   throw new Error(
-    'Usage: bun scripts/reframe-modules-e5.ts --family clinical|medications --decoded-dir DIR --out-dir DIR [--tag clinical-…] [--write-catalog]',
+    'Usage: bun scripts/reframe-modules.ts --marker NAME --family clinical|medications --decoded-dir DIR --out-dir DIR [--tag clinical-…] [--write-catalog]',
   );
 }
 
@@ -76,7 +86,7 @@ function target(
     };
   }
   if (!fileName.startsWith('minimed.medications.') || !fileName.endsWith('.db.zst')) return null;
-  const newTag = oldTag.endsWith('-e5') ? oldTag : `${oldTag}-e5`;
+  const newTag = `${oldTag.replace(EMBEDDING_MARKER, '')}-${marker}`;
   return { decodedName: fileName.slice(0, -'.zst'.length), newTag, newFileName: fileName };
 }
 
@@ -98,6 +108,7 @@ const files: Array<{
 for (const module of raw.modules) {
   const ids: readonly string[] = FAMILY_IDS[family];
   if (!ids.some((prefix) => module.id === prefix || module.id.startsWith(prefix))) continue;
+  if (EXCLUDED_IDS.has(module.id)) continue;
   const artifact = module.artifacts.find((entry) => entry['kind'] === 'index');
   const url = artifact?.['url'];
   if (!artifact || typeof url !== 'string' || artifact['compression'] !== 'zstd') continue;
@@ -152,8 +163,7 @@ for (const module of raw.modules) {
     downloadBytes: sizeBytes,
     installedBytes: decodedSizeBytes,
   };
-  const version = String(module['version']);
-  if (!version.endsWith('.e5')) module['version'] = `${version}.e5`;
+  module['version'] = `${String(module['version']).replace(EMBEDDING_MARKER, '')}.${marker}`;
   files.push({
     moduleId: module.id,
     tag: mapped.newTag,

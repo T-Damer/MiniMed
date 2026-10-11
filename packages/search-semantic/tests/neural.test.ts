@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { E5_SMALL_PROFILE, NeuralQueryEmbedder, quantizeEmbedding } from '../src';
+import { KD1_PROFILE, NeuralQueryEmbedder, quantizeEmbedding } from '../src';
 
 describe('neural query embeddings', () => {
   it('quantizes like the Python builder: L2, ×127, half away from zero', () => {
@@ -13,20 +13,20 @@ describe('neural query embeddings', () => {
 
   it('embeds the original wording with the profile query prefix', async () => {
     const seen: string[] = [];
-    const embedder = new NeuralQueryEmbedder(E5_SMALL_PROFILE, async (text) => {
+    const embedder = new NeuralQueryEmbedder(KD1_PROFILE, async (text) => {
       seen.push(text);
       return Float32Array.from({ length: 384 }, (_, index) => (index === 0 ? 1 : 0));
     });
     const vector = await embedder.embedQuery('кашель три недели');
     expect(seen).toEqual(['query: кашель три недели']);
     expect(embedder.input).toBe('original-query');
-    expect(vector.profileId).toBe(E5_SMALL_PROFILE.id);
+    expect(vector.profileId).toBe(KD1_PROFILE.id);
     expect(vector.values[0]).toBe(127);
     expect(vector.norm).toBe(127);
   });
 
   it('rejects a model output of another dimension', async () => {
-    const embedder = new NeuralQueryEmbedder(E5_SMALL_PROFILE, async () => new Float32Array(8));
+    const embedder = new NeuralQueryEmbedder(KD1_PROFILE, async () => new Float32Array(8));
     await expect(embedder.embedQuery('x')).rejects.toThrow(RangeError);
   });
 });

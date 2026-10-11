@@ -17,7 +17,7 @@ const PUBLISHED_DIRECTORY = 'output/module-zstd-2026-10-01/esklp-compacted';
 const POINTER = 'core.catalog.pointer.medication.esklp.mnn.албендазол-062d3e89c1c0b8dd';
 export const INSTRUCTION_MODULE_ID = 'minimed.medications.instructions.antiparasitic.ru';
 const INSTRUCTION_DIRECTORY =
-  'output/module-zstd-drug-e5-2026-10-05/grls-instructions-2026.10.05-056961ab2b54-e5';
+  'output/module-zstd-drug-kd1-2026-10-11/grls-instructions-2026.10.05-056961ab2b54-kd1';
 
 const documentRoute = (id: string) =>
   `${E2E_ASSET_ORIGIN}/#/modules/documents/d/${Buffer.from(id).toString('base64url')}`;

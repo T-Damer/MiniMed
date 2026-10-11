@@ -62,16 +62,26 @@ def key(value: str) -> str:
 
 
 def benchmark_texts(work: Path) -> set[str]:
-    return {
+    """Every `query` string of every benchmark file, plus the working query set."""
+
+    def queries(value: object) -> list[str]:
+        if isinstance(value, dict):
+            found = [value["query"]] if isinstance(value.get("query"), str) else []
+            return found + [q for item in value.values() for q in queries(item)]
+        if isinstance(value, list):
+            return [q for item in value for q in queries(item)]
+        return []
+
+    blocked = {
         key(json.loads(line)["query"])
         for line in (work / "icd-queries.jsonl").read_text().splitlines()
         if line
-    } | {
-        key(q["query"])
-        for q in json.loads(
-            (REPO / "tools/benchmarks/retrieval-icd-queries.json").read_text()
-        )["queries"]
     }
+    for path in sorted((REPO / "tools/benchmarks").rglob("*.json")):
+        if "node_modules" in path.parts:
+            continue
+        blocked |= {key(q) for q in queries(json.loads(path.read_text()))}
+    return blocked
 
 
 def rumedprime_texts() -> list[str]:
@@ -145,7 +155,42 @@ def corpus_texts(rows: list[dict], rng: random.Random) -> list[str]:
     return sorted(texts)
 
 
-def texts(work: Path) -> None:
+INDICATION_SECTIONS = """
+    WHERE s.section_type = 'indications'
+       OR s.title IN ('Показания', 'Показания к применению', 'ПОКАЗАНИЯ К ПРИМЕНЕНИЮ')"""
+
+
+def indication_texts(packs: Path, rng: random.Random) -> list[str]:
+    """Drug names and indication fragments of the drug modules the medications scope embeds."""
+    import sqlite3
+
+    found: set[str] = set()
+    for path in sorted(packs.glob("*.db")):
+        db = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+        query = f"""SELECT d.title, c.original_text
+                      FROM chunks c
+                      JOIN document_versions v ON v.id = c.document_version_id
+                      JOIN documents d ON d.id = v.document_id
+                      JOIN sections s ON s.id = c.section_id {INDICATION_SECTIONS}"""
+        for title, text in db.execute(query):
+            found.add(clean(title))
+            sentences = [
+                clean(part)
+                for part in re.split(r"(?<=[.;:])\s+", text)
+                if len(part) >= 8
+            ]
+            if sentences:
+                found.add(rng.choice(sentences)[:300])
+            words = text.split()
+            if len(words) >= 4:
+                length = rng.randint(3, 10)
+                start = rng.randint(0, max(0, len(words) - length))
+                found.add(clean(" ".join(words[start : start + length])))
+        db.close()
+    return sorted(found)
+
+
+def texts(work: Path, drug_packs: Path | None) -> None:
     rng = random.Random(SEED)
     blocked = benchmark_texts(work)
     rows = ee.load_corpus(work)
@@ -155,6 +200,8 @@ def texts(work: Path) -> None:
         "icd": icd_names(),
         "corpus": corpus_texts(rows, rng),
     }
+    if drug_packs is not None:
+        pools["indications"] = indication_texts(drug_packs, rng)
     seen: set[str] = set()
     out = []
     for source, values in pools.items():
@@ -183,33 +230,46 @@ def load_texts(work: Path) -> list[dict]:
 
 
 def targets(work: Path, teacher: str, batch: int) -> None:
-    """The teacher's own query vectors of every training text (instruction prefix included)."""
+    """The teacher's own query vectors of every training text (instruction prefix included).
+
+    `targets-<teacher>.npy` is stored with the texts it encodes (`.texts.json`); a later text set
+    reuses every vector whose text it already has and encodes only the new ones.
+    """
     rows = load_texts(work)
-    model, device = ee.load_model(teacher)
-    model.max_seq_length = MAX_TOKENS
-    prefix = ee.QUERY_PREFIX.get(teacher, "")
-    shard_dir = work / f"targets-{ee.slug(teacher)}.shards"
-    shard_dir.mkdir(exist_ok=True)
+    wanted = [r["text"] for r in rows]
+    out = work / f"targets-{ee.slug(teacher)}.npy"
+    known_path = out.with_suffix(".texts.json")
+    known: dict[str, np.ndarray] = {}
+    if out.exists() and known_path.exists():
+        previous = np.load(out)
+        known = dict(zip(json.loads(known_path.read_text()), previous, strict=True))
+    missing = sorted({t for t in wanted if t not in known})
+    print(
+        f"targets: {len(wanted) - len(missing)} reused, {len(missing)} to encode",
+        flush=True,
+    )
     started = time.perf_counter()
-    for start in range(0, len(rows), ee.SHARD):
-        path = shard_dir / f"{start:07d}.npy"
-        if path.exists():
-            continue
-        part = model.encode(
-            [prefix + r["text"] for r in rows[start : start + ee.SHARD]],
-            batch_size=batch,
-            normalize_embeddings=True,
-            convert_to_numpy=True,
-        ).astype(np.float16)
-        np.save(path, part)
-        print(
-            f"targets: {min(start + ee.SHARD, len(rows))}/{len(rows)} on {device}, "
-            f"{time.perf_counter() - started:.0f}s",
-            flush=True,
-        )
-    vectors = np.concatenate([np.load(p) for p in sorted(shard_dir.glob("*.npy"))])
-    np.save(work / f"targets-{ee.slug(teacher)}.npy", vectors)
-    print(f"targets: {vectors.shape} in {time.perf_counter() - started:.0f}s")
+    if missing:
+        model, device = ee.load_model(teacher)
+        model.max_seq_length = MAX_TOKENS
+        prefix = ee.QUERY_PREFIX.get(teacher, "")
+        for start in range(0, len(missing), ee.SHARD):
+            part = missing[start : start + ee.SHARD]
+            vectors = model.encode(
+                [prefix + t for t in part],
+                batch_size=batch,
+                normalize_embeddings=True,
+                convert_to_numpy=True,
+            ).astype(np.float16)
+            known.update(zip(part, vectors, strict=True))
+            print(
+                f"targets: {min(start + ee.SHARD, len(missing))}/{len(missing)} on {device}, "
+                f"{time.perf_counter() - started:.0f}s",
+                flush=True,
+            )
+    np.save(out, np.stack([known[t] for t in wanted]))
+    known_path.write_text(json.dumps(wanted, ensure_ascii=False))
+    print(f"targets: {len(wanted)} in {time.perf_counter() - started:.0f}s")
 
 
 def unit(vectors: np.ndarray) -> np.ndarray:
@@ -632,6 +692,9 @@ def main() -> None:
     sub = parser.add_subparsers(dest="command", required=True)
     t = sub.add_parser("texts")
     t.add_argument("--work", type=Path, required=True)
+    t.add_argument(
+        "--drug-packs", type=Path, help="decoded drug modules: indication texts"
+    )
     g = sub.add_parser("targets")
     g.add_argument("--work", type=Path, required=True)
     g.add_argument("--teacher", required=True)
@@ -662,7 +725,7 @@ def main() -> None:
     if args.command == "export":
         export(args.student, args.out)
     elif args.command == "texts":
-        texts(args.work)
+        texts(args.work, args.drug_packs)
     elif args.command == "targets":
         targets(args.work, args.teacher, args.batch)
     elif args.command == "project":

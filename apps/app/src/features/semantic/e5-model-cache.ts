@@ -62,6 +62,18 @@ export function validStored(file: E5ModelFile, stored: StoredModelFile | undefin
   return stored?.sha256 === file.sha256 && stored.data.size === file.sizeBytes;
 }
 
+/** Deletes stored files of any other model revision (an earlier query encoder). */
+export async function removeStaleModelFiles(): Promise<void> {
+  if (typeof indexedDB === 'undefined') return;
+  const current = new Set(E5_MODEL_FILES.map(fileKey));
+  await withStore('readwrite', async (store) => {
+    const keys = await requestResult(store.getAllKeys());
+    for (const key of keys) {
+      if (typeof key === 'string' && !current.has(key)) await requestResult(store.delete(key));
+    }
+  });
+}
+
 /** The verified bytes of one pinned file, or null while the model is not installed. */
 export async function readE5ModelFile(path: string): Promise<Blob | null> {
   const file = E5_MODEL_FILES.find((candidate) => candidate.path === path);

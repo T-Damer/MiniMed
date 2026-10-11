@@ -106,7 +106,7 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
-| 2026-10-09 | claude-opus (KD1) | strong build-time embedding model, small on-device query model (owner 10-09; roadmap item 8a): research done (Giga 480M teacher, e5-small-sized student, Q1 R@5 0.458 → 0.576); next app-path hybrid + fusion re-fit, drug-indication check, student hosting (owner), rebuild | `tools/benchmarks/embedding_eval.py`, `tools/benchmarks/embedding_distill.py`, `docs/research/embedding-distillation-*.md` |
+| 2026-10-09 | claude-opus (KD1) | strong build-time embedding model, small on-device query model (owner 10-09; roadmap 8a): switched 2026-10-11 (modules + app); continuing to improve (owner 10-11) | `tools/benchmarks/embedding_eval.py`, `tools/benchmarks/embedding_distill.py`, `tools/ingest/scripts/embed_modules.py`, `scripts/reframe-modules.ts`, `scripts/publish-query-model-mirror.sh`, `apps/app/src/features/semantic/**`, `packages/search-semantic/src/profile.ts`, `docs/research/embedding-distillation-*.md` |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 
 ## Next (claimed, not started)
@@ -167,6 +167,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-10-11 claude-opus (KD1 switch): Giga-480M passage vectors (projected to 384) on all 774 КР + 16 drug modules (`datasets/clinical-kd1-2026.10.11`, `…-kd1`), distilled query encoder v3 (`datasets/kd1-query-encoder-2026.10.11`, 130 MB, ONNX in two verified parts), `KD1_FUSION` fit on Q1 dev; MedicalCore Q1 test R@5 0.497 → 0.564, R@1 0.301 → 0.344, complaints 0.278 → 0.430; drug indications hit@5 0.911 → 0.844 (45 q, not significant), names unchanged; catalog, fixtures and build scripts moved to the KD1 copies; `docs/research/embedding-distillation-2026-10-09.md`
 - 2026-10-10 claude-opus (KD1 research): Giga-Embeddings 480M as a build-time teacher (Q1 R@5 0.591 vs e5-small 0.458) distilled into an e5-small-sized query encoder: R@5 0.576 (+0.118, CI +0.070…+0.167), R@1 0.358, complaints 0.261 → 0.448, int8 ONNX 119 MB / 3.7 ms; `docs/research/embedding-distillation-2026-10-09.md`, roadmap item 8a; nothing in the app changed
 - 2026-10-08 claude-opus (REL): release 0.6.57 (0f90c70b) — UX13 owner batch + QA fixes, KR4 data, definitions 2026.10.08 + core 0.6.57 (DEF4); CI and Pages green, dictionary Pages mirror verified (200, size, SHA-256, CORS *)
 - 2026-10-08 claude-opus + Sonnet agents (UX13, UX13-QA, KR4, DEF4): owner UI batch (rules in AGENTS.md «Interface rules»), browser device-key vault, QA pass as a doctor (`docs/research/qa-ux13-2026-10-08.md`) and its fixes, 78 КР republished with appendix headings, definitions dictionary with sense ranking; Unsloth report (`docs/research/unsloth-small-model-training-2026-10-08.md`: go for a fine-tuned e5 query side, no-go for Unsloth); see `docs/CURRENT_STATE.md`

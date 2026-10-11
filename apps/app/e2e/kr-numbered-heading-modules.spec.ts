@@ -7,14 +7,9 @@ import { expect, test } from '@playwright/test';
 import { E2E_ASSET_ORIGIN, mountBuiltApp, waitForSearchEditable } from './mount-built-app';
 
 const ROOT = resolve(import.meta.dirname, '../../..');
-// Local copies of the KR3 rebuild, of the KR4 rebuild (appendix headings) and of the KR5 rebuild
-// (template labels) that superseded these modules (docs/data-ledger.json): the tests serve exactly
-// the published bytes.
-const REBUILT_DIRECTORIES = [
-  'output/module-zstd-json-2026-10-09',
-  'output/module-zstd-json-2026-10-08',
-  'output/module-zstd-json-2026-10-07',
-];
+// Local copy of the KD1 republish that carries every КР module since 2026-10-11 (KR3 numbered
+// sub-headings included; docs/data-ledger.json): the tests serve exactly the published bytes.
+const REBUILT_DIRECTORIES = ['output/module-zstd-kd1-2026-10-11'];
 
 interface RebuiltModule {
   readonly officialId: string;

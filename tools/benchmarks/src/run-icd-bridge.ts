@@ -16,9 +16,10 @@ import { resolve } from 'node:path';
 
 import { env, pipeline } from '@huggingface/transformers';
 import type { MedicalCore, SearchResultGroup } from '@localmed/contracts';
-import { E5_SMALL_FUSION, E5_SMALL_PROFILE, NeuralQueryEmbedder } from '@localmed/search-semantic';
+import { KD1_FUSION, KD1_PROFILE, NeuralQueryEmbedder } from '@localmed/search-semantic';
 
 import { ScopedMedicalCore } from '../../../apps/app/src/features/search/ScopedMedicalCore';
+import { E5_MODEL_ID } from '../../../apps/app/src/features/semantic/e5-model';
 import { openRealCorpus } from './real-corpus';
 
 const argument = (name: string, fallback: string): string =>
@@ -40,14 +41,14 @@ let embedder: NeuralQueryEmbedder | undefined;
 if (modelDirectory) {
   env.allowRemoteModels = false;
   env.localModelPath = `${resolve(modelDirectory)}/`;
-  const extractor = await pipeline('feature-extraction', 'Xenova/multilingual-e5-small', {
+  const extractor = await pipeline('feature-extraction', E5_MODEL_ID, {
     dtype: 'q8',
   });
   embedder = new NeuralQueryEmbedder(
-    E5_SMALL_PROFILE,
+    KD1_PROFILE,
     async (text) =>
       (await extractor(text, { pooling: 'mean', normalize: true })).data as Float32Array,
-    E5_SMALL_FUSION,
+    KD1_FUSION,
   );
 }
 const packsDirectory = argument('packs', '');

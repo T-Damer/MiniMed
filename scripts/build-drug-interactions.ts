@@ -42,7 +42,7 @@ const OUTPUT = join(ROOT, 'apps/app/src/features/drug-interactions/data/interact
 const REPORT = join(ROOT, 'data/build/drug-interactions/report.json');
 /** Where the published instruction-module bytes are kept locally (the release copies). */
 const MODULE_DIRECTORIES = [
-  'output/module-zstd-drug-e5-2026-10-05/grls-instructions-2026.10.05-056961ab2b54-e5',
+  'output/module-zstd-drug-kd1-2026-10-11/grls-instructions-2026.10.05-056961ab2b54-kd1',
   'data/build/manufacturer-instruction-module/zst',
 ].map((directory) => join(ROOT, directory));
 

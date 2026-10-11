@@ -48,7 +48,43 @@ fixed FNV-1a feature space. Python and TypeScript share golden vectors. This pro
 complete local vector pipeline, spelling/surface proximity, compact persistence, profile matching,
 and fallback behavior. It is **not** evidence of medical semantic understanding.
 
-## Neural profile: e5-small for clinical recommendations (STATE E2, 2026-10-05)
+## Current neural profile: KD1 — strong build-time model, distilled query model (2026-10-11)
+
+| Field | Value |
+|---|---|
+| Profile | `localmed.kd1-giga480m.384.int8.v1` (`KD1_PROFILE`, `KD1_FUSION`) |
+| Passage model | `ai-sage/Giga-Embeddings-instruct-480M-0826` @ `1763d603` (MIT; own modelling code read and pinned), bf16 on the build machine |
+| Projection | 1024 → 384, leading uncentred principal directions of the КР passage vectors, `giga480m-projection-384.npy` (SHA-256 `097ec035…`, part of the fingerprint) |
+| Query model | `minimed/kd1-query-encoder` (student v3: multilingual-e5-small distilled from Giga, 384×384 head folded into the graph), int8 ONNX, mirror branch `datasets/kd1-query-encoder-2026.10.11` |
+| Passage text | title + `. ` + section path + `. ` + chunk text, 1 200 chars, 256 tokens, no prefix |
+| Query text | `query: ` + the user's original wording |
+| Pooling | passages: Giga mean, L2, projection, L2; queries: mean, L2; then the int8 quantisation above |
+| Packs | the 774 single-КР modules (96 095 chunks, tag `clinical-kd1-2026.10.11`) and the indication sections of the 15 ГРЛС instruction modules + Allmed (14 116 chunks, tags `…-kd1`) |
+| Download | optional, Settings → «Поиск по смыслу», 130 MB (the ONNX graph in two verified parts, joined and checked again before it is stored); files of an earlier model revision are deleted on install |
+
+Build: `uv run tools/ingest/scripts/embed_modules.py --projection data/build/kd1/giga480m-projection-384.npy
+--family clinical|medications …` (≈ 1 h for the КР on an M2 Max, batch 16 — larger Metal command
+buffers were aborted by macOS), then `bun scripts/reframe-modules.ts --marker kd1 …`. The student is
+trained with `tools/benchmarks/embedding_distill.py` (`texts`, `targets`, `project`, `train`,
+`evaluate`, `export`) and published with `scripts/publish-query-model-mirror.sh`.
+
+Through MedicalCore (`run-semantic-kr.ts`, `run-semantic-drugs.ts`), the same 2026-10-09 modules,
+e5 vs KD1; fusion chosen on the Q1 dev split:
+
+| Q1 КР, clinical hybrid | R@1 | R@5 | MRR@10 | complaints R@5 | diagnoses R@5 |
+|---|---:|---:|---:|---:|---:|
+| e5-small, test (163) | 0.301 | 0.497 | 0.383 | 0.278 | 0.702 |
+| **KD1, test (163)** | **0.344** | **0.564** | **0.441** | **0.430** | 0.690 |
+| e5-small, all (330) | 0.267 | 0.473 | 0.356 | 0.285 | 0.661 |
+| **KD1, all (330)** | **0.318** | **0.561** | **0.426** | **0.430** | **0.691** |
+
+Drug search (medications scope, hybrid): indication hit@1 0.600 → 0.600, hit@5 0.911 → 0.844 (45
+queries: 5 lost, 2 gained; most of e5's lost hits were a single weak match at rank 3–5, one real loss
+— «от молочницы», where lexical «молоч-» matches outrank the fluconazole the vectors put first);
+trade-name top-1 1.00 → 1.00. Query encoder: 3.7 ms p50 on one CPU thread (e5 4.3 ms). Method,
+variants and every number: [`research/embedding-distillation-2026-10-09.md`](research/embedding-distillation-2026-10-09.md).
+
+## Previous neural profile: e5-small for clinical recommendations (STATE E2, 2026-10-05 – 2026-10-11)
 
 | Field | Value |
 |---|---|

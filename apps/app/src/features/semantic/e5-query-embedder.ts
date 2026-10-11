@@ -1,4 +1,4 @@
-import { E5_SMALL_FUSION, E5_SMALL_PROFILE, NeuralQueryEmbedder } from '@localmed/search-semantic';
+import { KD1_FUSION, KD1_PROFILE, NeuralQueryEmbedder } from '@localmed/search-semantic';
 import type { E5EmbedMessage, E5WorkerOutMessage } from './e5.worker';
 import { isE5ModelInstalled } from './e5-model-cache';
 
@@ -60,4 +60,4 @@ async function encode(text: string): Promise<Float32Array> {
   });
 }
 
-export const E5_QUERY_EMBEDDER = new NeuralQueryEmbedder(E5_SMALL_PROFILE, encode, E5_SMALL_FUSION);
+export const E5_QUERY_EMBEDDER = new NeuralQueryEmbedder(KD1_PROFILE, encode, KD1_FUSION);

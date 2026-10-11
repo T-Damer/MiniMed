@@ -1,9 +1,16 @@
 import { getDownloadQueue } from '@/features/downloads/download-service';
 import { downloadWithRetry } from '@/features/network/download-retry';
 import { invalidateSemanticState } from '@/state/search-data-version';
-import { E5_DOWNLOAD_ID, E5_MODEL_FILES, E5_MODEL_TOTAL_BYTES, e5FileUrl } from './e5-model';
+import {
+  E5_DOWNLOAD_ID,
+  E5_MODEL_FILES,
+  E5_MODEL_TOTAL_BYTES,
+  type E5ModelPart,
+  e5FileUrl,
+} from './e5-model';
 import {
   fileKey,
+  removeStaleModelFiles,
   requestResult,
   type StoredModelFile,
   storedFile,
@@ -40,24 +47,43 @@ export function installE5Model(signal?: AbortSignal): Promise<void> {
         totalBytes: E5_MODEL_TOTAL_BYTES,
       },
       async (context) => {
+        // Files of a previous model revision are never read again.
+        await removeStaleModelFiles();
         let completed = 0;
+        const fetchVerified = async (part: E5ModelPart, offset: number): Promise<Uint8Array> => {
+          const bytes = await downloadWithRetry({
+            jobId: context.id,
+            trackProgress: false,
+            url: e5FileUrl(part.path),
+            cacheKey: `semantic-model:${E5_DOWNLOAD_ID}/${part.path}:${part.sha256}`,
+            expectedBytes: part.sizeBytes,
+            signal: context.signal,
+            retryMissingAssets: false,
+            onProgress: ({ downloadedBytes }) =>
+              context.progress(offset + downloadedBytes, E5_MODEL_TOTAL_BYTES),
+          });
+          context.phase('verifying');
+          if (bytes.byteLength !== part.sizeBytes || (await sha256Hex(bytes)) !== part.sha256) {
+            throw new Error(`Файл модели ${part.path} не прошёл проверку.`);
+          }
+          return bytes;
+        };
         for (const file of E5_MODEL_FILES) {
           context.signal.throwIfAborted();
           if (!validStored(file, await storedFile(file))) {
-            const bytes = await downloadWithRetry({
-              jobId: context.id,
-              trackProgress: false,
-              url: e5FileUrl(file.path),
-              cacheKey: `semantic-model:${fileKey(file)}:${file.sha256}`,
-              expectedBytes: file.sizeBytes,
-              signal: context.signal,
-              retryMissingAssets: false,
-              onProgress: ({ downloadedBytes }) =>
-                context.progress(completed + downloadedBytes, E5_MODEL_TOTAL_BYTES),
-            });
-            context.phase('verifying');
-            if (bytes.byteLength !== file.sizeBytes || (await sha256Hex(bytes)) !== file.sha256) {
-              throw new Error(`Файл модели ${file.path} не прошёл проверку.`);
+            let bytes: Uint8Array;
+            if (file.parts) {
+              bytes = new Uint8Array(file.sizeBytes);
+              let offset = 0;
+              for (const part of file.parts) {
+                bytes.set(await fetchVerified(part, completed + offset), offset);
+                offset += part.sizeBytes;
+              }
+              if (offset !== file.sizeBytes || (await sha256Hex(bytes)) !== file.sha256) {
+                throw new Error(`Файл модели ${file.path} не прошёл проверку.`);
+              }
+            } else {
+              bytes = await fetchVerified(file, completed);
             }
             const record: StoredModelFile = {
               key: fileKey(file),

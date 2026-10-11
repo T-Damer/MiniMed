@@ -1,11 +1,14 @@
 /**
- * Measures e5-small semantic search on clinical recommendations through the application's own
- * MedicalCore (STATE E2). Mounts the e5-embedded КР packs, embeds queries with the same pinned ONNX
- * model the app downloads (transformers.js, onnxruntime-node here) and scores the Q1 real-language
- * queries (`retrieval-icd-queries.json`, КР relevance only) per search configuration.
+ * Measures semantic search on clinical recommendations through the application's own MedicalCore
+ * (STATE E2, KD1). Mounts the КР packs carrying `KD1_PROFILE` vectors, embeds queries with the same
+ * pinned ONNX model the app downloads (transformers.js, onnxruntime-node here) and scores the Q1
+ * real-language queries (`retrieval-icd-queries.json`, КР relevance only) per search configuration.
  *
- *   bun tools/benchmarks/src/run-semantic-kr.ts --packs=data/build/clinical-e5/decoded \
- *     --model-dir=<dir holding Xenova/multilingual-e5-small/…> [--split=dev] [--out=report.json]
+ *   bun tools/benchmarks/src/run-semantic-kr.ts --packs=data/build/clinical-kd1/decoded \
+ *     --model-dir=<dir holding minimed/kd1-query-encoder/…> [--split=dev] [--grid] [--out=…]
+ *
+ * `--grid` adds clinical-hybrid runs over a grid of fusion constants (`--bands=0.1,0.2`,
+ * `--lexical-weights=0.3,0.5`); choose them on dev only.
  *
  * `--model-dir` is a local copy of the pinned files listed in
  * `apps/app/src/features/semantic/e5-model.ts`; nothing is fetched from the network.
@@ -16,13 +19,14 @@ import { env, pipeline } from '@huggingface/transformers';
 import type { SearchRequest } from '@localmed/contracts';
 import { createMedicalCore } from '@localmed/core';
 import {
-  E5_SMALL_FUSION,
-  E5_SMALL_PROFILE,
+  KD1_FUSION,
+  KD1_PROFILE,
   LEGACY_SEMANTIC_FUSION,
   NeuralQueryEmbedder,
   type SemanticFusion,
 } from '@localmed/search-semantic';
 import { MultiMedicalStore } from '@localmed/storage';
+import { E5_MODEL_ID } from '../../../apps/app/src/features/semantic/e5-model';
 import { createBunFileMedicalStore } from './bun-sqlite-medical-store';
 
 function argument(name: string, fallback?: string): string {
@@ -50,7 +54,7 @@ const packs = readdirSync(packsDirectory)
 
 env.allowRemoteModels = false;
 env.localModelPath = `${resolve(argument('model-dir'))}/`;
-const extractor = await pipeline('feature-extraction', 'Xenova/multilingual-e5-small', {
+const extractor = await pipeline('feature-extraction', E5_MODEL_ID, {
   dtype: 'q8',
 });
 const embeddings = new Map<string, Promise<Float32Array>>();
@@ -91,14 +95,26 @@ for (const method of ['search', 'searchVector'] as const) {
 
 const FUSIONS: Record<string, SemanticFusion> = {
   legacy: LEGACY_SEMANTIC_FUSION,
-  e5: E5_SMALL_FUSION,
+  kd1: KD1_FUSION,
 };
+const numbers = (name: string, fallback: string) => argument(name, fallback).split(',').map(Number);
+const GRID: Record<string, SemanticFusion> = process.argv.includes('--grid')
+  ? Object.fromEntries(
+      numbers('bands', '0.05,0.1,0.15,0.2,0.3').flatMap((band) =>
+        numbers('lexical-weights', '0.3,0.5,0.7').map((lexicalWeight) => [
+          `band ${band} lex ${lexicalWeight}`,
+          { band, lexicalWeight, vectorOnlyWeight: 0.8, corroborationWeight: 0.3 },
+        ]),
+      ),
+    )
+  : {};
+Object.assign(FUSIONS, GRID);
 const cores = new Map<string, ReturnType<typeof createMedicalCore>>();
 for (const [name, fusion] of Object.entries(FUSIONS)) {
   const core = createMedicalCore({
     store,
     platform: 'test',
-    embedder: new NeuralQueryEmbedder(E5_SMALL_PROFILE, encode, fusion),
+    embedder: new NeuralQueryEmbedder(KD1_PROFILE, encode, fusion),
   });
   const initialized = await core.initialize();
   if (!initialized.ok) throw new Error(initialized.error.message);
@@ -128,9 +144,17 @@ const CONFIGS: Record<string, Config> = {
   'clinical lexical': { mode: 'lexical', analysisMode: 'clinical', fusion: 'legacy' },
   'lookup semantic': { mode: 'semantic', analysisMode: 'lookup', fusion: 'legacy' },
   ...Object.fromEntries(
-    Object.keys(FUSIONS).flatMap((fusion) => [
-      [`lookup hybrid ${fusion}`, { mode: 'hybrid', analysisMode: 'lookup', fusion }],
-      [`clinical hybrid ${fusion}`, { mode: 'hybrid', analysisMode: 'clinical', fusion }],
+    Object.keys(FUSIONS)
+      .filter((fusion) => !(fusion in GRID))
+      .flatMap((fusion) => [
+        [`lookup hybrid ${fusion}`, { mode: 'hybrid', analysisMode: 'lookup', fusion }],
+        [`clinical hybrid ${fusion}`, { mode: 'hybrid', analysisMode: 'clinical', fusion }],
+      ]),
+  ),
+  ...Object.fromEntries(
+    Object.keys(GRID).map((fusion) => [
+      `clinical hybrid ${fusion}`,
+      { mode: 'hybrid', analysisMode: 'clinical', fusion },
     ]),
   ),
 };

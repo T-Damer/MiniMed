@@ -498,7 +498,7 @@
         "apps/app/e2e/clinical-module-fixture.ts, module-pointer.spec.ts"
       ],
       "rebuild": "uv run tools/ingest/scripts/embed_modules_e5.py --family clinical --source <published zstd dirs> --out data/build/clinical-e5/decoded; bun scripts/reframe-modules-e5.ts --family clinical --decoded-dir data/build/clinical-e5/decoded --out-dir output/module-zstd-e5-2026-10-05 --tag clinical-e5-2026.10.05",
-      "note": "774 single-КР modules with e5-small passage vectors; published 2026-10-05 to datasets/clinical-e5-2026.10.05; kept as the local release copy. 122 of them were superseded on 2026-10-07 by output/module-zstd-json-2026-10-07 (STATE KR3); this copy stays for the other 652 modules and as the rollback copy. 52 of the remaining modules were superseded on 2026-10-08 (STATE KR4, output/module-zstd-json-2026-10-08). Most of the remaining modules were superseded on 2026-10-09 by output/module-zstd-json-2026-10-09 (STATE KR5); this copy stays as the rollback copy.",
+      "note": "774 single-КР modules with e5-small passage vectors; published 2026-10-05 to datasets/clinical-e5-2026.10.05; kept as the local release copy. 122 of them were superseded on 2026-10-07 by output/module-zstd-json-2026-10-07 (STATE KR3); this copy stays for the other 652 modules and as the rollback copy. 52 of the remaining modules were superseded on 2026-10-08 (STATE KR4, output/module-zstd-json-2026-10-08). Most of the remaining modules were superseded on 2026-10-09 by output/module-zstd-json-2026-10-09 (STATE KR5); this copy stays as the rollback copy. On 2026-10-11 (STATE KD1) every КР module was republished with KD1 vectors (output/module-zstd-kd1-2026-10-11); this copy is the input of that rebuild and the e5 rollback copy.",
       "bytes": 688576048,
       "modified": "2026-10-05"
     },
@@ -512,7 +512,7 @@
       ],
       "release": "branch datasets/clinical-json-2026.10.07-197a48d1f268 (122 .db.zst)",
       "rebuild": "uv run --project tools/ingest medbase-clinical-catalog build-documents (plan data/build/official-clinical-source-plan, 10-02 plan for the 30 newer editions; source data/raw/official-clinical-documents) -> medbase compact-module-search -> uv run tools/ingest/scripts/embed_modules_e5.py --family clinical --from-dir <compacted> --out <e5/decoded> -> bun scripts/republish-clinical-modules.ts --decoded-dir <e5/decoded> --out-dir output/module-zstd-json-2026-10-07 --snapshot-id clinical-json-2026.10.07-197a48d1f268 --published-at 2026-10-07T15:40:00Z --write-catalog (~15 min; the module list is data/build/official-clinical-2026-10-07/changed-ids.txt)",
-      "note": "Local release copy of the 122 КР modules rebuilt with numbered sub-headings; the intermediate builds were deleted after verification. 26 of them were superseded on 2026-10-08 by output/module-zstd-json-2026-10-08 (STATE KR4); this copy stays for the other 96 modules and as the rollback copy. 117 of its 122 modules were superseded on 2026-10-09 by output/module-zstd-json-2026-10-09 (STATE KR5).",
+      "note": "Local release copy of the 122 КР modules rebuilt with numbered sub-headings; the intermediate builds were deleted after verification. 26 of them were superseded on 2026-10-08 by output/module-zstd-json-2026-10-08 (STATE KR4); this copy stays for the other 96 modules and as the rollback copy. 117 of its 122 modules were superseded on 2026-10-09 by output/module-zstd-json-2026-10-09 (STATE KR5). On 2026-10-11 (STATE KD1) every КР module was republished with KD1 vectors (output/module-zstd-kd1-2026-10-11); this copy is the input of that rebuild and the e5 rollback copy.",
       "bytes": 139061640,
       "modified": "2026-10-07"
     },
@@ -526,7 +526,7 @@
       ],
       "release": "branch datasets/clinical-json-2026.10.08-f3039e82214e (78 .db.zst)",
       "rebuild": "uv run --project tools/ingest medbase-clinical-catalog build-documents (plan data/build/official-clinical-source-plan, --official-id for the 78 modules; source data/raw/official-clinical-documents) -> medbase compact-module-search -> uv run tools/ingest/scripts/embed_modules_e5.py --family clinical --from-dir <compacted> --out <e5/decoded> -> bun scripts/republish-clinical-modules.ts --decoded-dir <e5/decoded> --out-dir output/module-zstd-json-2026-10-08 --snapshot-id clinical-json-2026.10.08-f3039e82214e --published-at 2026-10-08T17:05:00Z --write-catalog (~10 min; the module list is data/build/official-clinical-2026-10-08/changed-ids.txt)",
-      "note": "Local release copy of the 78 КР modules rebuilt with appendix headings (238 promoted titles); the intermediate builds (control, compacted, e5 decoded, published decoded) were deleted after verification. 72 of its 78 modules were superseded on 2026-10-09 by output/module-zstd-json-2026-10-09 (STATE KR5); this copy stays for the other 6 modules and as the rollback copy.",
+      "note": "Local release copy of the 78 КР modules rebuilt with appendix headings (238 promoted titles); the intermediate builds (control, compacted, e5 decoded, published decoded) were deleted after verification. 72 of its 78 modules were superseded on 2026-10-09 by output/module-zstd-json-2026-10-09 (STATE KR5); this copy stays for the other 6 modules and as the rollback copy. On 2026-10-11 (STATE KD1) every КР module was republished with KD1 vectors (output/module-zstd-kd1-2026-10-11); this copy is the input of that rebuild and the e5 rollback copy.",
       "bytes": 85035562,
       "modified": "2026-10-08"
     },
@@ -540,7 +540,7 @@
       ],
       "release": "branch datasets/clinical-json-2026.10.09-17bb72b87531 (737 .db.zst)",
       "rebuild": "uv run --project tools/ingest medbase-clinical-catalog build-documents --all (plan data/build/official-clinical-source-plan for the 744 earlier modules, data/build/official-clinical-2026-10-02/source-plan for the 30 newer; source data/raw/official-clinical-documents) -> medbase compact-module-search -> uv run tools/ingest/scripts/embed_modules_e5.py --family clinical --from-dir <compacted> --out <e5/decoded> -> bun scripts/republish-clinical-modules.ts --decoded-dir <e5/decoded> --out-dir output/module-zstd-json-2026-10-09 --snapshot-id clinical-json-2026.10.09-17bb72b87531 --published-at 2026-10-09T07:10:00Z --write-catalog (~45 min; the module list is data/build/official-clinical-2026-10-09/changed-ids.txt)",
-      "note": "Local release copy of the 737 КР modules rebuilt with KR template labels as headings (3 925 promoted); the intermediate builds (rule-off control, compacted, e5 decoded, published decoded) were deleted after verification. It supersedes most of the KR4, KR3 and E2 copies, which stay for the 37 modules not republished and as rollback copies.",
+      "note": "Local release copy of the 737 КР modules rebuilt with KR template labels as headings (3 925 promoted); the intermediate builds (rule-off control, compacted, e5 decoded, published decoded) were deleted after verification. It supersedes most of the KR4, KR3 and E2 copies, which stay for the 37 modules not republished and as rollback copies. On 2026-10-11 (STATE KD1) every КР module was republished with KD1 vectors (output/module-zstd-kd1-2026-10-11); this copy is the input of that rebuild and the e5 rollback copy.",
       "bytes": 664825773,
       "modified": "2026-10-09"
     },
@@ -552,7 +552,7 @@
         "catalog.preview.json ГРЛС instruction and Allmed modules (tags grls-instructions-2026.10.05-056961ab2b54-e5, allmed-2026.10.05-2d39a7fc2b43-e5)"
       ],
       "rebuild": "uv run tools/ingest/scripts/embed_modules_e5.py --family medications --source data/build/grls-instruction-modules/zst --source data/build/allmed-module/zst --out data/build/drug-e5/decoded; bun scripts/reframe-modules-e5.ts --family medications --decoded-dir data/build/drug-e5/decoded --out-dir output/module-zstd-drug-e5-2026-10-05",
-      "note": "16 medication modules with e5 vectors for their indication sections (14 116 chunks); published 2026-10-05; kept as the local release copy. Supersedes data/build/grls-instruction-modules/zst and data/build/allmed-module/zst as release copies.",
+      "note": "16 medication modules with e5 vectors for their indication sections (14 116 chunks); published 2026-10-05; kept as the local release copy. Supersedes data/build/grls-instruction-modules/zst and data/build/allmed-module/zst as release copies. Superseded on 2026-10-11 by output/module-zstd-drug-kd1-2026-10-11 (STATE KD1); kept as its input and the e5 rollback copy.",
       "bytes": 283358006,
       "modified": "2026-10-05"
     },
@@ -652,6 +652,47 @@
       "note": "Build output of the published core 0.6.57 (same bytes as the release asset).",
       "bytes": 445677568,
       "modified": "2026-10-08"
+    },
+    {
+      "path": "output/module-zstd-kd1-2026-10-11",
+      "class": "RELEASED",
+      "producer": "STATE KD1: tools/ingest/scripts/embed_modules.py --family clinical then scripts/reframe-modules.ts --marker kd1",
+      "consumers": [
+        "catalog.preview.json minimed.clinical.recommendation.* (tag clinical-kd1-2026.10.11)"
+      ],
+      "release": "branch datasets/clinical-kd1-2026.10.11 (774 .db.zst)",
+      "rebuild": "uv run tools/ingest/scripts/embed_modules.py --projection data/build/kd1/giga480m-projection-384.npy --family clinical --source output/module-zstd-json-2026-10-09 --source output/module-zstd-json-2026-10-08 --source output/module-zstd-json-2026-10-07 --source output/module-zstd-e5-2026-10-05 --out data/build/clinical-kd1/decoded; bun scripts/reframe-modules.ts --marker kd1 --family clinical --decoded-dir data/build/clinical-kd1/decoded --out-dir output/module-zstd-kd1-2026-10-11 --tag clinical-kd1-2026.10.11 (~1 h GPU)",
+      "note": "Local release copy of the 774 single-КР modules with Giga-480M passage vectors projected to 384 d (localmed.kd1-giga480m.384.int8.v1); only embedding_profiles/chunk_embeddings differ from the KR5/KR4/KR3/E2 copies. Decoded copies and encoder shards were deleted after verification.",
+      "bytes": 691308728,
+      "modified": "2026-10-11"
+    },
+    {
+      "path": "output/module-zstd-drug-kd1-2026-10-11",
+      "class": "RELEASED",
+      "producer": "STATE KD1: tools/ingest/scripts/embed_modules.py --family medications then scripts/reframe-modules.ts --marker kd1 --family medications",
+      "consumers": [
+        "catalog.preview.json ГРЛС instruction and Allmed modules (tags grls-instructions-2026.10.05-056961ab2b54-kd1, allmed-2026.10.05-2d39a7fc2b43-kd1)"
+      ],
+      "release": "branches datasets/grls-instructions-2026.10.05-056961ab2b54-kd1, datasets/allmed-2026.10.05-2d39a7fc2b43-kd1",
+      "rebuild": "uv run tools/ingest/scripts/embed_modules.py --projection data/build/kd1/giga480m-projection-384.npy --family medications --source output/module-zstd-drug-e5-2026-10-05/grls-instructions-2026.10.05-056961ab2b54-e5 --source output/module-zstd-drug-e5-2026-10-05/allmed-2026.10.05-2d39a7fc2b43-e5 --out data/build/drug-kd1/decoded; bun scripts/reframe-modules.ts --marker kd1 --family medications --decoded-dir data/build/drug-kd1/decoded --out-dir output/module-zstd-drug-kd1-2026-10-11",
+      "note": "16 medication modules with KD1 vectors for their indication sections (14 116 chunks); local release copy.",
+      "bytes": 283363914,
+      "modified": "2026-10-11"
+    },
+    {
+      "path": "data/build/kd1",
+      "class": "RELEASED",
+      "producer": "STATE KD1: tools/benchmarks/embedding_distill.py texts/targets/project/train/export (student v3), ONNX split in two parts",
+      "consumers": [
+        "apps/app/src/features/semantic/e5-model.ts (pinned files)",
+        "scripts/publish-query-model-mirror.sh",
+        "tools/ingest/scripts/embed_modules.py (giga480m-projection-384.npy, also at data/build/kd1/)"
+      ],
+      "release": "branch datasets/kd1-query-encoder-2026.10.11",
+      "rebuild": "see docs/research/embedding-distillation-2026-10-09.md (Giga corpus + target encoding ~1.5 h, training ~75 min on MPS); not bit-identical on retraining — keep this copy",
+      "note": "query-encoder/: the on-device query encoder (config, tokenizer, int8 ONNX in two parts), the passage projection and the training log as published; giga480m-projection-384.npy: the projection embed_modules.py reads (same bytes); rebuild.log. Benchmarks need a model dir with the joined ONNX: cat query-encoder/onnx/model_quantized.onnx.part-* > <dir>/minimed/kd1-query-encoder/onnx/model_quantized.onnx plus the three JSON files.",
+      "bytes": 139211597,
+      "modified": "2026-10-11"
     }
   ]
 }

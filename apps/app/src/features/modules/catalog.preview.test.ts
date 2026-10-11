@@ -49,7 +49,7 @@ describe('catalog.preview.json', () => {
       throw new Error('Missing Allmed medications companion module.');
     }
     expect(medicationsModule).toMatchObject({
-      version: 'allmed-c8e85a688094.e5',
+      version: 'allmed-c8e85a688094.kd1',
       title: 'Лекарственные препараты — дополнительный справочник Allmed',
       description:
         'Локальный дополнительный справочник Allmed с названиями, формами и справочными сведениями; не является официальным реестром ГРЛС, полной инструкцией или источником доверенных дозировок.',
@@ -58,10 +58,10 @@ describe('catalog.preview.json', () => {
       tags: ['drugs', 'allmed', 'supplemental-reference'],
       sourceSetDigest: 'sha256:7b8a22cef1a7bb7338765106b57dfdf52f60f21f7b8570a4bf74443d34b55200',
       sizes: {
-        // The search-compacted build of the same source set with e5 vectors for its indication
+        // The search-compacted build of the same source set with KD1 vectors for its indication
         // sections, as framed zstd.
-        downloadBytes: 50_354_612,
-        installedBytes: 279_375_872,
+        downloadBytes: 50_351_101,
+        installedBytes: 279_420_928,
         sourceAssetsDownloadBytes: null,
         precision: 'exact',
       },
@@ -78,8 +78,8 @@ describe('catalog.preview.json', () => {
     expect(medicationsModule.artifacts[0]).toMatchObject({
       kind: 'index',
       compression: 'zstd',
-      url: 'https://github.com/T-Damer/MiniMed/releases/download/allmed-2026.10.05-2d39a7fc2b43-e5/minimed.medications.ru.db.zst',
-      decodedSizeBytes: 279_375_872,
+      url: 'https://github.com/T-Damer/MiniMed/releases/download/allmed-2026.10.05-2d39a7fc2b43-kd1/minimed.medications.ru.db.zst',
+      decodedSizeBytes: 279_420_928,
       // The source set is the one of the unchanged Allmed snapshot, so installed copies stay valid.
       sourceSetDigest: medicationsModule.sourceSetDigest,
     });
@@ -142,7 +142,7 @@ describe('catalog.preview.json', () => {
         compression: 'zstd',
         url: expect.stringMatching(
           new RegExp(
-            `^https://github.com/T-Damer/MiniMed/releases/download/grls-instructions-2026\\.10\\.05-[0-9a-f]{12}-e5/${module.id.replaceAll('.', '\\.')}\\.db\\.zst$`,
+            `^https://github.com/T-Damer/MiniMed/releases/download/grls-instructions-2026\\.10\\.05-[0-9a-f]{12}-kd1/${module.id.replaceAll('.', '\\.')}\\.db\\.zst$`,
             'u',
           ),
         ),

@@ -4,7 +4,7 @@
  * modules and searches through the app's own `ScopedMedicalCore('conditions')`.
  *
  *   bun tools/benchmarks/src/run-semantic-reference.ts --packs=data/build/ref-e5/decoded \
- *     --model-dir=<dir holding Xenova/multilingual-e5-small/…> [--out=report.json]
+ *     --model-dir=<dir holding minimed/kd1-query-encoder/…> [--out=report.json]
  *
  * Sets: `reverse-term-queries.json` (a top group's title contains a stem) and the Q1 queries with
  * МКБ-card relevance from `retrieval-icd-queries.json` (any graded card in the top 5). Name lookup:
@@ -15,9 +15,10 @@ import { basename, resolve } from 'node:path';
 import { env, pipeline } from '@huggingface/transformers';
 import type { SearchRequest } from '@localmed/contracts';
 import { createMedicalCore } from '@localmed/core';
-import { E5_SMALL_FUSION, E5_SMALL_PROFILE, NeuralQueryEmbedder } from '@localmed/search-semantic';
+import { KD1_FUSION, KD1_PROFILE, NeuralQueryEmbedder } from '@localmed/search-semantic';
 import { MultiMedicalStore } from '@localmed/storage';
 import { ScopedMedicalCore } from '../../../apps/app/src/features/search/ScopedMedicalCore';
+import { E5_MODEL_ID } from '../../../apps/app/src/features/semantic/e5-model';
 import { createBunFileMedicalStore } from './bun-sqlite-medical-store';
 
 function argument(name: string): string {
@@ -34,7 +35,7 @@ const packs = readdirSync(resolve(argument('packs')))
 
 env.allowRemoteModels = false;
 env.localModelPath = `${resolve(argument('model-dir'))}/`;
-const extractor = await pipeline('feature-extraction', 'Xenova/multilingual-e5-small', {
+const extractor = await pipeline('feature-extraction', E5_MODEL_ID, {
   dtype: 'q8',
 });
 const embeddings = new Map<string, Promise<Float32Array>>();
@@ -79,7 +80,7 @@ for (const method of ['search', 'searchVector'] as const) {
 const core = createMedicalCore({
   store,
   platform: 'test',
-  embedder: new NeuralQueryEmbedder(E5_SMALL_PROFILE, encode, E5_SMALL_FUSION),
+  embedder: new NeuralQueryEmbedder(KD1_PROFILE, encode, KD1_FUSION),
 });
 const initialized = await core.initialize();
 if (!initialized.ok) throw new Error(initialized.error.message);

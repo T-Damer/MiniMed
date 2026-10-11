@@ -1,6 +1,6 @@
 # Current state
 
-> Updated: 8 October 2026
+> Updated: 11 October 2026
 > Released version: `0.6.47` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
@@ -19,6 +19,27 @@ Detailed history, moved verbatim on 2026-09-24:
   baseline and runtime benchmark up to the 0.6.39 release.
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
+
+## Semantic search: strong build-time model, distilled query model — 2026-10-11 (STATE KD1)
+
+- **What changed.** The КР modules and the indication sections of the ГРЛС instruction and Allmed
+  modules carry `localmed.kd1-giga480m.384.int8.v1` vectors: passages encoded on the build machine
+  by Giga-Embeddings-instruct 480M and projected to 384 dimensions. «Поиск по смыслу» downloads the
+  matching query encoder (multilingual-e5-small distilled from Giga, 130 MB) instead of the Xenova e5
+  export; the e5 profile is gone (DEV format policy). Fusion `KD1_FUSION` (band 0.5, lexical 0.3)
+  was chosen on the Q1 dev split.
+- **Measured** (MedicalCore, clinical hybrid): Q1 test R@1 0.301 → 0.344, R@5 0.497 → 0.564,
+  complaints R@5 0.278 → 0.430; drug indications hit@1 0.600 → 0.600, hit@5 0.911 → 0.844 (45
+  queries); trade-name top-1 1.00. [`research/embedding-distillation-2026-10-09.md`](research/embedding-distillation-2026-10-09.md),
+  [`SEMANTIC_RETRIEVAL.md`](SEMANTIC_RETRIEVAL.md).
+- **Data.** Model files on `datasets/kd1-query-encoder-2026.10.11` (ONNX in two parts below the git
+  blob limit, joined and verified on the device; earlier model revisions are deleted from IndexedDB
+  on install). Modules on `datasets/clinical-kd1-2026.10.11` and `datasets/<source tag>-kd1`.
+- **Build.** `tools/ingest/scripts/embed_modules.py --projection data/build/kd1/giga480m-projection-384.npy`
+  (renamed from `embed_modules_e5.py`; every КР rebuild uses it now, ≈ 1 h of GPU for all 774) and
+  `scripts/reframe-modules.ts --marker kd1`. Student training: `tools/benchmarks/embedding_distill.py`.
+- **Not done.** Phone timing of the student in the WebView; an installed e5 model must be
+  downloaded again (the profile changed, so search stays lexical until then).
 
 ## Owner UI batch — 2026-10-08 (STATE UX13)
 

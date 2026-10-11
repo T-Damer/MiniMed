@@ -29,35 +29,39 @@ export function profilesCompatible(left: EmbeddingProfile, right: EmbeddingProfi
 }
 
 /**
- * intfloat/multilingual-e5-small passage vectors of the released clinical-recommendation modules
- * (`tools/ingest/scripts/embed_modules_e5.py`, which holds the same literal). Queries are
- * embedded on device with the ONNX export of the same model (`apps/app/src/features/semantic`).
+ * KD1 vectors (STATE KD1, docs/research/embedding-distillation-2026-10-09.md): passages encoded on
+ * the build machine by Giga-Embeddings-instruct 480M and projected to 384 dimensions
+ * (`tools/ingest/scripts/embed_modules.py`, which holds the same literal); queries embedded on
+ * device by the distilled e5-small-sized student (`apps/app/src/features/semantic`).
  */
-export const E5_SMALL_PROFILE = {
-  id: 'localmed.e5-small.384.int8.v1',
+export const KD1_PROFILE = {
+  id: 'localmed.kd1-giga480m.384.int8.v1',
   dimensions: 384,
   vectorFormat: 'int8',
   normalization: 'l2',
-  generator: 'intfloat/multilingual-e5-small',
-  generatorVersion: '614241f622f53c4eeff9890bdc4f31cfecc418b3',
-  fingerprint: 'e5-small:614241f6:passage-title-section-1200c-256t:mean:l2:int8x127',
+  generator: 'ai-sage/Giga-Embeddings-instruct-480M-0826',
+  generatorVersion: '1763d603adac8057bd6482a708001b0ed2e0a903',
+  fingerprint:
+    'giga480m:1763d603:passage-title-section-1200c-256t:mean:l2:pca384-097ec035:l2:int8x127',
   metadata: {
     intendedUse: 'clinical-recommendation-semantic-search',
     neuralModel: true,
+    queryEncoder: 'kd1-student-v3 (multilingual-e5-small distilled from the passage model)',
     queryPrefix: 'query: ',
-    passagePrefix: 'passage: ',
+    passagePrefix: '',
     passageText: 'title. section path. chunk text, first 1200 characters, 256 tokens',
   },
 } as const satisfies EmbeddingProfile;
 
 /**
- * Hybrid calibration of `E5_SMALL_PROFILE`, chosen on the Q1 dev split (167 real-language queries
- * with КР relevance, `tools/benchmarks/src/run-semantic-kr.ts`): R@5 0.096 lexical → 0.467 clinical
- * hybrid; the feature-hash constants gave 0.138. See docs/SEMANTIC_RETRIEVAL.md.
+ * Hybrid calibration of `KD1_PROFILE`, chosen on the Q1 dev split (167 queries with КР relevance,
+ * `run-semantic-kr.ts --grid`): clinical hybrid R@5 0.461 with the e5 constants → 0.551, MRR 0.367 →
+ * 0.414. Student cosines spread wider than e5's, so the band is wider and lexical evidence weighs
+ * less; band 0.3–0.5 and lexical weight 0.1–0.3 score the same on dev, this is the middle.
  */
-export const E5_SMALL_FUSION = {
-  band: 0.1,
-  lexicalWeight: 0.5,
+export const KD1_FUSION = {
+  band: 0.5,
+  lexicalWeight: 0.3,
   vectorOnlyWeight: 0.8,
   corroborationWeight: 0.3,
 } as const satisfies SemanticFusion;

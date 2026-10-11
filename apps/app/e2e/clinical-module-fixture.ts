@@ -7,15 +7,9 @@ import { expect, type Page, test } from '@playwright/test';
 import { E2E_ASSET_ORIGIN } from './mount-built-app';
 
 const ROOT = resolve(import.meta.dirname, '../../..');
-// Local copies of the published zstd indexes (docs/data-ledger.json keeps them as release copies):
-// the KR5 rebuild with template-label headings first, then the KR4 rebuild with appendix headings,
-// then the KR3 rebuild with numbered sub-headings, then the E2 e5 release for modules all left alone.
-const PUBLISHED_DIRECTORIES = [
-  'output/module-zstd-json-2026-10-09',
-  'output/module-zstd-json-2026-10-08',
-  'output/module-zstd-json-2026-10-07',
-  'output/module-zstd-e5-2026-10-05',
-];
+// Local copy of the published zstd indexes (docs/data-ledger.json keeps it as the release copy):
+// every КР module since the KD1 republish of 2026-10-11.
+const PUBLISHED_DIRECTORIES = ['output/module-zstd-kd1-2026-10-11'];
 const MODULE_ID = 'minimed.clinical.recommendation.1006_1';
 export const CLINICAL_POINTER_ID = 'core.catalog.pointer.clinical.kr.rf.1006_1-1151be108d81d0ac';
 

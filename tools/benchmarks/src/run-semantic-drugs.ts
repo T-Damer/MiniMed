@@ -1,11 +1,11 @@
 /**
  * Measures drug search by indication («таблетки от головы») and checks that drug-name lookup does
- * not regress when the medications scope adds e5 candidates (STATE E3). Mounts core.db, the
- * e5-embedded ГРЛС instruction + Allmed modules and the ЕСКЛП modules, as «Скачать препараты»
+ * not regress when the medications scope adds semantic candidates (STATE E3, KD1). Mounts core.db, the
+ * KD1-embedded ГРЛС instruction + Allmed modules and the ЕСКЛП modules, as «Скачать препараты»
  * installs them, and searches through the app's own `ScopedMedicalCore('medications')`.
  *
- *   bun tools/benchmarks/src/run-semantic-drugs.ts --drug-packs=data/build/drug-e5/decoded \
- *     --esklp-packs=<decoded ЕСКЛП modules> --model-dir=<dir holding Xenova/multilingual-e5-small/…>
+ *   bun tools/benchmarks/src/run-semantic-drugs.ts --drug-packs=data/build/drug-kd1/decoded \
+ *     --esklp-packs=<decoded ЕСКЛП modules> --model-dir=<dir holding minimed/kd1-query-encoder/…>
  *
  * Indication relevance (`drug-indication-queries.json`): a group counts when its document's INN
  * (ГРЛС `inn`, Allmed `ingredientNames`, ЕСКЛП МНН id) contains an acceptable INN stem. Name
@@ -16,9 +16,10 @@ import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, resolve } from 'node:path';
 import { env, pipeline } from '@huggingface/transformers';
 import { createMedicalCore } from '@localmed/core';
-import { E5_SMALL_FUSION, E5_SMALL_PROFILE, NeuralQueryEmbedder } from '@localmed/search-semantic';
+import { KD1_FUSION, KD1_PROFILE, NeuralQueryEmbedder } from '@localmed/search-semantic';
 import { MultiMedicalStore } from '@localmed/storage';
 import { ScopedMedicalCore } from '../../../apps/app/src/features/search/ScopedMedicalCore';
+import { E5_MODEL_ID } from '../../../apps/app/src/features/semantic/e5-model';
 import { createBunFileMedicalStore } from './bun-sqlite-medical-store';
 
 function argument(name: string): string {
@@ -37,7 +38,7 @@ const packs = [argument('drug-packs'), argument('esklp-packs')].flatMap((directo
 
 env.allowRemoteModels = false;
 env.localModelPath = `${resolve(argument('model-dir'))}/`;
-const extractor = await pipeline('feature-extraction', 'Xenova/multilingual-e5-small', {
+const extractor = await pipeline('feature-extraction', E5_MODEL_ID, {
   dtype: 'q8',
 });
 const embeddings = new Map<string, Promise<Float32Array>>();
@@ -82,7 +83,7 @@ for (const method of ['search', 'searchVector'] as const) {
 const core = createMedicalCore({
   store,
   platform: 'test',
-  embedder: new NeuralQueryEmbedder(E5_SMALL_PROFILE, encode, E5_SMALL_FUSION),
+  embedder: new NeuralQueryEmbedder(KD1_PROFILE, encode, KD1_FUSION),
 });
 const initialized = await core.initialize();
 if (!initialized.ok) throw new Error(initialized.error.message);

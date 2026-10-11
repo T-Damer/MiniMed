@@ -1,9 +1,9 @@
 # Strong build-time embedding model, small on-device query encoder, 2026-10-09
 
-Research (STATE KD1, search roadmap item 8; owner request 2026-10-09: «strong preparation model, small
-on target device»). Nothing in the app changed yet.
+STATE KD1, search roadmap item 8a; owner request 2026-10-09: «strong preparation model, small on target
+device». Adopted 2026-10-11 with student v3: modules republished, app switched (see «App path»).
 
-Verdict: **adopt the approach.** Giga-Embeddings-instruct 480M encodes the КР passages on the build
+Verdict: **adopted.** Giga-Embeddings-instruct 480M encodes the КР passages on the build
 machine; a query encoder of exactly e5-small's size, trained to place a query where Giga places it,
 runs on the phone. On the Q1 real-language queries the student (v2) nearly matches its teacher and
 beats the shipped e5-small on both measures that matter: a relevant recommendation in the top 5 0.458 →
@@ -72,20 +72,25 @@ showed a clear gain; it is not measured.
 | e5-small (shipped) | 0.282 | 0.458 | 0.415 | 0.360 | 0.261 | 0.655 | — | — |
 | teacher, projected to 384 | 0.336 | 0.582 | 0.500 | 0.449 | 0.455 | 0.709 | +0.124 (+0.073…+0.176) | +0.055 (+0.006…+0.103) |
 | student v1 (2 epochs, encoder lr 4e-5) | 0.318 | 0.542 | 0.473 | 0.412 | 0.400 | 0.685 | +0.085 (+0.036…+0.133) | +0.036 (−0.009…+0.082) |
-| **student v2** (4 epochs, encoder lr 1e-4) | **0.358** | **0.576** | **0.494** | **0.457** | **0.448** | **0.703** | **+0.118 (+0.070…+0.167)** | **+0.076 (+0.027…+0.124)** |
+| student v2 (4 epochs, encoder lr 1e-4) | 0.358 | 0.576 | 0.494 | 0.457 | 0.448 | 0.703 | +0.118 (+0.070…+0.167) | +0.076 (+0.027…+0.124) |
+| **student v3** (v2 + drug indication texts) | **0.376** | **0.585** | **0.491** | **0.467** | **0.467** | **0.703** | **+0.127 (+0.079…+0.179)** | **+0.094 (+0.048…+0.139)** |
 
 Paired bootstrap, 10 000 resamples. v2 was chosen over v1 on dev (R@5 0.557 → 0.581, MRR 0.399 →
 0.458); test is reported, not tuned on:
 
-| Split | e5-small | teacher@384 | v1 | v2 |
-|---|---:|---:|---:|---:|
-| dev R@1 / R@5 | 0.263 / 0.425 | 0.317 / 0.587 | 0.287 / 0.557 | 0.341 / 0.581 |
-| test R@1 / R@5 | 0.301 / 0.491 | 0.356 / 0.577 | 0.350 / 0.528 | 0.374 / 0.571 |
+| Split | e5-small | teacher@384 | v1 | v2 | v3 |
+|---|---:|---:|---:|---:|---:|
+| dev R@1 / R@5 | 0.263 / 0.425 | 0.317 / 0.587 | 0.287 / 0.557 | 0.341 / 0.581 | 0.353 / 0.617 |
+| test R@1 / R@5 | 0.301 / 0.491 | 0.356 / 0.577 | 0.350 / 0.528 | 0.374 / 0.571 | 0.399 / 0.552 |
 
 Training: batch 128, head learning rate 5e-4, linear warm-up 5 % and decay; v1 2 646 steps (30 min on
 MPS), v2 5 292 steps (62 min). Cosine of the student to the teacher's projected query vector ends at
 0.68 (v1) and 0.74 (v2) — far from a copy, yet the ranking term makes it order passages like the
-teacher; v2's R@1 even exceeds the teacher's. Two variants were tried in total.
+teacher; v2's R@1 even exceeds the teacher's. v3 adds 35 225 drug names and indication fragments of
+the ГРЛС and Allmed modules to the training texts (204 500 in total) and excludes every `query` of
+every benchmark file under `tools/benchmarks` (1 880 texts), 6 391 steps, 74 min; the teacher targets
+of the earlier texts are reused by text. Three variants were trained in total; v3 was chosen on dev
+(R@5 0.581 → 0.617).
 
 ## On-device export
 
@@ -115,16 +120,56 @@ p1 0.986, mean 0.993. That is below the e5 export's minimum (0.993) and the 0.99
 but retrieval through the int8 vectors is not worse than through PyTorch, so the tolerance for this
 profile should be stated on retrieval (R@5 within 0.01 of PyTorch) rather than on the minimum cosine.
 
-## Still to do before shipping
+v3 (shipped): `onnx/model_quantized.onnx` 118 972 175 bytes, SHA-256 `14019498…`, cosine to PyTorch
+min 0.991 on the export check; published in two parts on `datasets/kd1-query-encoder-2026.10.11`.
 
-1. App-path measurement through `MedicalCore` (`run-semantic-kr.ts`): the hybrid fusion
-   (`E5_SMALL_FUSION`) is calibrated to e5's 0.8–0.9 cosine band and must be re-fit on dev for the new
-   score distribution; release gates (`benchmark:real:release`, `benchmark:all`) within tolerance.
-2. The drug-indication vectors (E3) share the query model: re-embed them with Giga + P and check
-   indication hit@5 (0.91 today) does not regress; otherwise the two families need separate profiles.
-3. Phone measurement of the student through the WebView (WASM), same as e5 today.
-4. Hosting: the student's ONNX/tokenizer files need a pinned home (the e5 files come from the
-   Xenova repository on Hugging Face) — an owner decision.
-5. Rebuild: Giga over all e5-carrying modules (КР ≈ 1 h on MPS), new profile
-   `localmed.kd1-giga480m-student.384.int8.v1`, republish, host the student files with pinned
-   checksums, ADR 0008 profile rules unchanged.
+## App path (MedicalCore), 2026-10-11
+
+`run-semantic-kr.ts` and `run-semantic-drugs.ts` over the same modules (published 2026-10-09; e5 vectors
+as published, KD1 vectors from `embed_modules.py`, cross-checked against the research vectors: cosine
+≥ 0.9989 on 1 986 sampled chunks), queries through the int8 ONNX exports and transformers.js.
+
+**Fusion.** With e5's constants (band 0.1, lexical weight 0.5) clinical hybrid fell below KD1's own
+semantic ranking on dev (R@5 0.461 vs 0.551): student cosines spread wider than e5's 0.8–0.9, so a
+0.1 band keeps only a few vector hits and lexical candidates dominate. Grid on dev (band 0.05–1,
+lexical weight 0.1–0.7): a plateau at band 0.3–0.5 and lexical weight 0.1–0.3 (R@5 0.551, MRR
+0.41); `KD1_FUSION` is band 0.5, lexical weight 0.3 (the plateau's most lexical point, which keeps
+exact names safest). The two dev grid runs give «lookup semantic» R@5 0.551 and 0.563 for the same
+model and modules (two queries), so differences below ~0.015 on dev are noise.
+
+| Q1 КР, clinical hybrid | R@1 | R@5 | strict R@5 | MRR@10 | complaints R@5 | diagnoses R@5 |
+|---|---:|---:|---:|---:|---:|---:|
+| e5, test (163) | 0.301 | 0.497 | 0.448 | 0.383 | 0.278 | 0.702 |
+| **KD1 v3, test (163)** | **0.344** | **0.564** | **0.485** | **0.441** | **0.430** | 0.690 |
+| e5, all (330) | 0.267 | 0.473 | 0.415 | 0.356 | 0.285 | 0.661 |
+| KD1 v2, all | 0.309 | 0.545 | 0.464 | 0.418 | 0.418 | 0.673 |
+| **KD1 v3, all** | **0.318** | **0.561** | **0.482** | **0.426** | **0.430** | **0.691** |
+
+Median search time is unchanged (clinical hybrid p50 184–189 ms over 774 modules in Bun).
+
+**Drugs** (medications scope, 45 colloquial indication queries, 100 trade names):
+
+| | indication hit@1 | hit@5 | precision@5 | name top-1 |
+|---|---:|---:|---:|---:|
+| e5, hybrid | 0.600 | 0.911 | 0.573 | 1.00 |
+| KD1 v2, e5 fusion | 0.467 | 0.733 | 0.400 | 1.00 |
+| KD1 v2, `KD1_FUSION` | 0.644 | 0.844 | 0.556 | 1.00 |
+| **KD1 v3, `KD1_FUSION`** | **0.600** | **0.844** | **0.569** | **1.00** |
+
+Per query (e5 → v3, hybrid, top 5): 5 lost, 2 gained. Four of the lost ones were a single weak hit
+at rank 3–5 in a list that was otherwise wrong for both models («таблетки от головы»: e5 Низорал,
+Комбитропил, **Эксенза**, Ксамиол, Бетаксолол; v3 caffeine, Папазол, vinpocetine; «антибиотик при
+ангине», «для разжижения крови», «мочегонное от отеков»). One is a real loss: «от молочницы» — e5
+5/5 fluconazole; v3 semantic puts fluconazole first, but in hybrid lexical matches of «молоч-»
+(lactation products) take the top five. Gained: «при повышенном давлении» (e5 had glaucoma drops
+only), «от укачивания». Adding the indication texts to the student (v3) did not move hit@5, so the
+gap is not the student's training mix. Not significant on 45 queries; recorded, not hidden.
+
+## Left
+
+1. Phone measurement of the student through the WebView (WASM), as for e5 (the export has the same
+   architecture and graph size plus one 384×384 MatMul).
+2. «от молочницы»-type lexical false friends in the medications scope: a stem match inside an
+   unrelated word outranks the vector ranking at lexical weight 0.3.
+3. Release gates (`benchmark:real:release`) run on core.db without vectors and are unaffected; the
+   semantic sets above are the measurement of this change.

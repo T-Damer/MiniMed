@@ -1,40 +1,42 @@
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["numpy>=2", "sentence-transformers>=3.4", "torch>=2.4"]
+# dependencies = ["numpy>=2", "sentence-transformers>=6.1", "torch>=2.4", "transformers>=5.19"]
 # ///
-"""Give released modules e5-small passage vectors (STATE E2/E3, ADR 0008).
+"""Give released modules the KD1 passage vectors (STATE KD1, E2/E3, ADR 0008).
+
+Passages are encoded by Giga-Embeddings-instruct 480M on the build machine and projected to 384
+dimensions with the fixed matrix `--projection` (its SHA-256 is part of the profile fingerprint);
+the phone embeds queries with the distilled e5-small-sized student
+(docs/research/embedding-distillation-2026-10-09.md).
 
 Local-only build stage. `--family clinical`: every chunk of the single-recommendation modules
-(`minimed.clinical.recommendation.*`), replacing the feature-hash scaffold. `--family medications`:
-only the indication sections («Показания», «Показания к применению», section type `indications`) of
-the ГРЛС instruction modules and the Allmed module, which is what a query such as «таблетки от
-головы» needs. `--family reference`: the code/name and synonym rows of the МКБ cards and the short
-description, overview and symptom sections of the disease articles (description → term). Input is
-the published framed-zstd index of each module, found by the file name of its catalog URL in one of
-`--source` directories and checked against the catalog `sha256`. Each index is decoded into `--out`;
-inside that copy only `embedding_profiles` and `chunk_embeddings` change. Documents, sections,
-chunks, FTS and `content_packs` keep their content. Run `scripts/reframe-modules-e5.ts` afterwards.
+(`minimed.clinical.recommendation.*`). `--family medications`: only the indication sections
+(«Показания», «Показания к применению», section type `indications`) of the ГРЛС instruction
+modules and the Allmed module, which is what a query such as «таблетки от головы» needs.
+`--family reference`: the code/name and synonym rows of the МКБ cards and the short description,
+overview and symptom sections of the disease articles (description → term). Input is the published
+framed-zstd index of each module, found by the file name of its catalog URL in one of `--source`
+directories and checked against the catalog `sha256`. Each index is decoded into `--out`; inside
+that copy only `embedding_profiles` and `chunk_embeddings` change. Documents, sections, chunks, FTS
+and `content_packs` keep their content. Run `scripts/reframe-modules.ts` afterwards.
 
-Passage text matches the measured E1 setup (docs/research/embeddings-kr-2026-10-02.md):
-`"passage: " + title + ". " + section path + ". " + chunk text`, cut to 1 200 characters and
-256 tokens, mean-pooled, L2-normalised, then the ADR 0008 int8 quantisation (times 127, round half
-away from zero). The app embeds queries as `"query: " + text` with the ONNX export of the same
-model (`apps/app/src/features/semantic/e5-model.ts`).
+Passage text matches the measured setup: `title + ". " + section path + ". " + chunk text`, cut to
+1 200 characters and 256 tokens, no prefix (Giga encodes documents without an instruction),
+mean-pooled, L2-normalised, projected, L2-normalised again, then the ADR 0008 int8 quantisation
+(times 127, round half away from zero). The app embeds queries as `"query: " + text` with the
+student's ONNX export (`apps/app/src/features/semantic/e5-model.ts`).
 
-    uv run tools/ingest/scripts/embed_modules_e5.py --family clinical \\
-      --source output/module-zstd-2026-10-01/clinical-compacted \\
-      --source data/build/official-clinical-2026-10-02/zst \\
-      --out data/build/clinical-e5/decoded
+    P=data/build/kd1/giga480m-projection-384.npy
+    uv run tools/ingest/scripts/embed_modules.py --projection $P --family clinical \\
+      --source output/module-zstd-json-2026-10-09 --source output/module-zstd-json-2026-10-08 \\
+      --out data/build/clinical-kd1/decoded
+    uv run tools/ingest/scripts/embed_modules.py --projection $P --family medications \\
+      --source output/module-zstd-drug-e5-2026-10-05 --out data/build/drug-kd1/decoded
 
-    uv run tools/ingest/scripts/embed_modules_e5.py --family medications \\
-      --source data/build/grls-instruction-modules/zst --source data/build/allmed-module/zst \\
-      --out data/build/drug-e5/decoded
-
-    # Freshly rebuilt, already compacted modules (STATE KR3): no catalog, nothing to decode; the
-    # databases of --from-dir are copied to --out and embedded there.
-    uv run tools/ingest/scripts/embed_modules_e5.py --family clinical \\
-      --from-dir data/build/official-clinical-2026-10-07/compacted \\
-      --out data/build/official-clinical-2026-10-07/e5/decoded
+    # Freshly rebuilt, already compacted modules: no catalog, nothing to decode; the databases of
+    # --from-dir are copied to --out and embedded there.
+    uv run tools/ingest/scripts/embed_modules.py --projection $P --family clinical \\
+      --from-dir data/build/<build>/compacted --out data/build/<build>/kd1/decoded
 
 Encoding runs in shards saved as they finish (`--out/../shards-<family>`), so a stopped run resumes.
 """
@@ -65,31 +67,42 @@ FAMILIES = {
     },
     "medications": {
         "ids": ("minimed.medications.instructions.", "minimed.medications.ru"),
+        # Published after E3 and never embedded; indication search covers the ГРЛС + Allmed modules.
+        "exclude": ("minimed.medications.instructions.manufacturer-site.ru",),
         "chunks": """WHERE s.section_type = 'indications'
                OR s.title IN ('Показания', 'Показания к применению', 'ПОКАЗАНИЯ К ПРИМЕНЕНИЮ')""",
     },
 }
 
-MODEL = "intfloat/multilingual-e5-small"
-MODEL_REVISION = "614241f622f53c4eeff9890bdc4f31cfecc418b3"
-PASSAGE_PREFIX = "passage: "
+# Giga ships its own modelling file (Qwen3 with bidirectional attention, 116 lines, no I/O); it
+# is loaded only at the revision whose code was read
+# (docs/research/embedding-distillation-2026-10-09.md).
+MODEL = "ai-sage/Giga-Embeddings-instruct-480M-0826"
+MODEL_REVISION = "1763d603adac8057bd6482a708001b0ed2e0a903"
+PROJECTION_SHA256 = "097ec0357f7c8fde2535189a0a7172faf3fcc4b509cb4ba0662631281931174d"
 PASSAGE_CHARS = 1200
 MAX_TOKENS = 256
+# Small batches keep each Metal command buffer short: longer ones were aborted by macOS
+# («Impacting Interactivity») and can leave vectors unwritten.
+BATCH = 16
 SHARD = 10_000
-# Must equal E5_SMALL_PROFILE in packages/search-semantic/src/profile.ts.
+# Must equal KD1_PROFILE in packages/search-semantic/src/profile.ts.
 PROFILE = {
-    "id": "localmed.e5-small.384.int8.v1",
+    "id": "localmed.kd1-giga480m.384.int8.v1",
     "dimensions": 384,
     "vector_format": "int8",
     "normalization": "l2",
     "generator": MODEL,
     "generator_version": MODEL_REVISION,
-    "fingerprint": "e5-small:614241f6:passage-title-section-1200c-256t:mean:l2:int8x127",
+    "fingerprint": (
+        "giga480m:1763d603:passage-title-section-1200c-256t:mean:l2:pca384-097ec035:l2:int8x127"
+    ),
     "metadata": {
         "intendedUse": "clinical-recommendation-semantic-search",
         "neuralModel": True,
+        "queryEncoder": "kd1-student-v3 (multilingual-e5-small distilled from the passage model)",
         "queryPrefix": "query: ",
-        "passagePrefix": PASSAGE_PREFIX,
+        "passagePrefix": "",
         "passageText": "title. section path. chunk text, first 1200 characters, 256 tokens",
     },
 }
@@ -112,6 +125,8 @@ def released_modules(family: str, sources: list[Path]) -> list[tuple[str, Path, 
             module["id"] == prefix or module["id"].startswith(prefix)
             for prefix in FAMILIES[family]["ids"]
         ):
+            continue
+        if module["id"] in FAMILIES[family].get("exclude", ()):
             continue
         artifact = next((a for a in module.get("artifacts", []) if a["kind"] == "index"), None)
         if not artifact or artifact.get("compression") != "zstd":
@@ -157,8 +172,7 @@ def passages(path: Path, chunk_filter: str) -> list[tuple[str, str]]:
     return [
         (
             chunk_id,
-            PASSAGE_PREFIX
-            + f"{title}. {' / '.join(json.loads(path_json) or [])}. {text}"[:PASSAGE_CHARS],
+            f"{title}. {' / '.join(json.loads(path_json) or [])}. {text}"[:PASSAGE_CHARS],
         )
         for chunk_id, title, path_json, text in rows
     ]
@@ -171,12 +185,29 @@ def quantize(vectors: np.ndarray) -> np.ndarray:
     return np.clip(rounded, -127, 127).astype(np.int8)
 
 
+def load_projection(path: Path) -> np.ndarray:
+    if sha256(path) != f"sha256:{PROJECTION_SHA256}":
+        raise SystemExit(f"{path} is not the projection of {PROFILE['id']}")
+    return np.load(path).astype(np.float32)
+
+
+def project(vectors: np.ndarray, projection: np.ndarray) -> np.ndarray:
+    unit = vectors / np.linalg.norm(vectors, axis=1, keepdims=True).clip(1e-12)
+    return unit @ projection
+
+
 def encode(texts: list[str], shards: Path) -> np.ndarray:
     import torch
     from sentence_transformers import SentenceTransformer
 
     device = "mps" if torch.backends.mps.is_available() else "cpu"
-    model = SentenceTransformer(MODEL, revision=MODEL_REVISION, device=device)
+    model = SentenceTransformer(
+        MODEL,
+        revision=MODEL_REVISION,
+        device=device,
+        trust_remote_code=True,
+        model_kwargs={"torch_dtype": torch.bfloat16},
+    )
     model.max_seq_length = MAX_TOKENS
     shards.mkdir(parents=True, exist_ok=True)
     started = time.perf_counter()
@@ -186,7 +217,7 @@ def encode(texts: list[str], shards: Path) -> np.ndarray:
             continue
         part = model.encode(
             texts[start : start + SHARD],
-            batch_size=64,
+            batch_size=BATCH,
             normalize_embeddings=True,
             convert_to_numpy=True,
         ).astype(np.float32)
@@ -252,7 +283,9 @@ def main() -> None:
         help="embed the databases of this directory (copied to --out) instead of released archives",
     )
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--projection", type=Path, required=True)
     args = parser.parse_args()
+    projection = load_projection(args.projection)
     if args.from_dir is None and not args.source:
         parser.error("give --source (released archives) or --from-dir (rebuilt databases)")
 
@@ -273,7 +306,9 @@ def main() -> None:
 
     per_module = [passages(path, family["chunks"]) for path in databases]
     texts = [text for rows in per_module for _, text in rows]
-    vectors = quantize(encode(texts, args.out.parent / f"shards-{args.family}"))
+    vectors = quantize(
+        project(encode(texts, args.out.parent / f"shards-{args.family}"), projection)
+    )
     if len(vectors) != len(texts):
         raise SystemExit(f"{len(vectors)} vectors for {len(texts)} passages: remove stale shards")
 
