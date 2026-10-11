@@ -70,8 +70,9 @@ and the list is updated when the proposal is better. How search works today:
    (130 MB download, 3.7 ms p50 on one CPU thread), since 2026-10-11 also trained on train-split
    complaint/diagnosis → КР pairs (student v4c; no Q1 record, patient or source file). Through
    MedicalCore, clinical hybrid, Q1 test: R@1 0.301 → 0.454, R@5 0.497 → 0.718, complaints R@5
-   0.278 → 0.633 (v3 without pairs: 0.344 / 0.564 / 0.430). The pairs share Q1's ICD mapping, so
-   item 7 (owner queries) is the independent check. Drug indications hit@1 0.600 → 0.578, hit@5
+   0.278 → 0.633 (v3 without pairs: 0.344 / 0.564 / 0.430). The pairs share Q1's ICD mapping; on
+   the owner's own queries that name a КР (45, independent targets) R@5 0.667 → 0.822, R@1 0.400 →
+   0.578 (v3 0.844 / 0.533: the supervised term is even there). Drug indications hit@1 0.600 → 0.578, hit@5
    0.911 → 0.867 (45 queries; the model reads «молочница» as «молочная железа»), trade names unchanged —
    [`research/embedding-distillation-2026-10-09.md`](research/embedding-distillation-2026-10-09.md).
 9. **Explain semantic hits.** Highlight the best-matching sentence of a vector hit, since no query

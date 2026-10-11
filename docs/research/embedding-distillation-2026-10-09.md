@@ -227,7 +227,21 @@ Published as `datasets/kd1-query-encoder-2026.10.11.2`.
 
 Caveat: the pair labels and Q1's relevance come from the same registry ICD mapping, so Q1 measures
 how well the model learned that mapping on unseen patients and phrases; it is not an independent
-judgement of relevance. The owner query set (roadmap item 7) is the check that does not share it.
+judgement of relevance. The owner's own queries (`owner-queries.json`, hand-chosen targets) do not
+share it (`run-semantic-kr.ts --set=owner`, the same modules and app path; e5 from the pre-KD1
+commit with the same benchmark file):
+
+| Owner queries naming a КР (45), clinical hybrid | R@1 | R@5 | MRR | thoughtful R@5 (21) | rush R@5 (24) |
+|---|---:|---:|---:|---:|---:|
+| e5 | 0.400 | 0.667 | 0.499 | 0.571 | 0.750 |
+| KD1 v3 | 0.533 | 0.844 | 0.674 | 0.762 | 0.917 |
+| **KD1 v4c** | **0.578** | 0.822 | **0.682** | 0.714 | 0.917 |
+
+KD1 is a large, independent gain over e5 in the owner's wording (R@5 +0.16–0.18). v4c against v3 is
+even (two queries better at R@1, one worse at R@5 in hybrid; semantic only 0.578 / 0.867 vs 0.533 /
+0.822): the supervised term's +0.15 on Q1 is mostly the ICD mapping it learned and does not carry
+over to independent queries — nor does it cost anything there. v4c stays for its R@1 and complaint
+gains.
 
 ## Left
 
@@ -235,6 +249,5 @@ judgement of relevance. The owner query set (roadmap item 7) is the check that d
    architecture and graph size plus one 384×384 MatMul).
 2. «от молочницы»: a semantic confusion of the model (thrush read as breast), not a lexical one;
    the recommendation pairs do not cover drug indications.
-3. An independent relevance check of v4c on the owner's own queries (roadmap item 7).
-4. Release gates (`benchmark:real:release`) run on core.db without vectors and are unaffected; the
+3. Release gates (`benchmark:real:release`) run on core.db without vectors and are unaffected; the
    semantic sets above are the measurement of this change.

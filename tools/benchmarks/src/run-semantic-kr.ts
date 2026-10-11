@@ -8,7 +8,9 @@
  *     --model-dir=<dir holding minimed/kd1-query-encoder/…> [--split=dev] [--grid] [--out=…]
  *
  * `--grid` adds clinical-hybrid runs over a grid of fusion constants (`--bands=0.1,0.2`,
- * `--lexical-weights=0.3,0.5`); choose them on dev only.
+ * `--lexical-weights=0.3,0.5`); choose them on dev only. `--set=owner` scores the owner's own
+ * queries (`owner-queries.json`) that name a recommendation instead: any expected КР in the top 5
+ * counts, sliced by style (rush / thoughtful); their relevance does not come from ICD codes.
  *
  * `--model-dir` is a local copy of the pinned files listed in
  * `apps/app/src/features/semantic/e5-model.ts`; nothing is fetched from the network.
@@ -123,20 +125,45 @@ for (const [name, fusion] of Object.entries(FUSIONS)) {
 const legacyCore = cores.get('legacy');
 if (!legacyCore) throw new Error('Missing legacy core');
 
-const benchmark = JSON.parse(
-  readFileSync(resolve(import.meta.dirname, '../retrieval-icd-queries.json'), 'utf8'),
-) as { queries: IcdQuery[] };
-const queries = benchmark.queries
-  .filter((query) => split === 'all' || query.split === split)
-  .map((query) => ({
-    ...query,
-    kr: new Map(
-      query.relevant
-        .filter((item) => item.kind === 'clinical-recommendation')
-        .map((item) => [item.documentId, item.grade]),
-    ),
-  }))
-  .filter((query) => query.kr.size > 0);
+interface OwnerQuery {
+  readonly id: string;
+  readonly style: string;
+  readonly query: string;
+  readonly expectedTargets: readonly string[];
+}
+const ownerSet = argument('set', 'icd') === 'owner';
+const queries = ownerSet
+  ? (
+      JSON.parse(readFileSync(resolve(import.meta.dirname, '../owner-queries.json'), 'utf8')) as {
+        queries: OwnerQuery[];
+      }
+    ).queries
+      .map((query) => ({
+        id: query.id,
+        query: query.query,
+        source: query.style,
+        kr: new Map(
+          query.expectedTargets
+            .filter((target) => target.startsWith('kr.rf.'))
+            .map((target) => [target, 3]),
+        ),
+      }))
+      .filter((query) => query.kr.size > 0)
+  : (
+      JSON.parse(
+        readFileSync(resolve(import.meta.dirname, '../retrieval-icd-queries.json'), 'utf8'),
+      ) as { queries: IcdQuery[] }
+    ).queries
+      .filter((query) => split === 'all' || query.split === split)
+      .map((query) => ({
+        ...query,
+        kr: new Map(
+          query.relevant
+            .filter((item) => item.kind === 'clinical-recommendation')
+            .map((item) => [item.documentId, item.grade]),
+        ),
+      }))
+      .filter((query) => query.kr.size > 0);
 
 type Config = Pick<SearchRequest, 'mode' | 'analysisMode'> & { readonly fusion: string };
 const CONFIGS: Record<string, Config> = {

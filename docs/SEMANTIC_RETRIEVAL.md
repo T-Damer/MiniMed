@@ -82,7 +82,14 @@ e5 vs KD1; fusion chosen on the Q1 dev split:
 
 v4c's pair labels share Q1's ICD mapping (on unseen patients and phrases), so its Q1 numbers measure
 that mapping, not independent relevance; uncovered recommendations lose a little (self-retrieval
-probe R@1 −0.024).
+probe R@1 −0.024). The owner's own queries are the independent check
+(`run-semantic-kr.ts --set=owner`):
+
+| Owner queries naming a КР (45), clinical hybrid | R@1 | R@5 | MRR | thoughtful R@5 (21) | rush R@5 (24) |
+|---|---:|---:|---:|---:|---:|
+| e5 | 0.400 | 0.667 | 0.499 | 0.571 | 0.750 |
+| KD1 v3 | 0.533 | 0.844 | 0.674 | 0.762 | 0.917 |
+| **KD1 v4c** | **0.578** | 0.822 | **0.682** | 0.714 | 0.917 |
 
 Drug search (medications scope, hybrid, 45 indication queries): hit@1 / hit@5 e5 0.600 / 0.911,
 v3 0.600 / 0.844, v4c 0.578 / 0.867. Most of e5's hits that KD1 lost were a single weak match at

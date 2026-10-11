@@ -30,8 +30,8 @@ Detailed history, moved verbatim on 2026-09-24:
   profile is gone (DEV format policy). Fusion `KD1_FUSION` (band 0.5, lexical 0.3) was chosen on the
   Q1 dev split.
 - **Measured** (MedicalCore, clinical hybrid): Q1 test R@1 0.301 → 0.454, R@5 0.497 → 0.718,
-  complaints R@5 0.278 → 0.633 (labels share Q1's ICD mapping; owner queries are the independent
-  check, not yet run); drug indications hit@1 0.600 → 0.578, hit@5 0.911 → 0.867 (45 queries);
+  complaints R@5 0.278 → 0.633 (labels share Q1's ICD mapping); the owner's own queries naming a КР
+  (45, independent): R@5 0.667 → 0.822, R@1 0.400 → 0.578; drug indications hit@1 0.600 → 0.578, hit@5 0.911 → 0.867 (45 queries);
   trade-name top-1 1.00. [`research/embedding-distillation-2026-10-09.md`](research/embedding-distillation-2026-10-09.md),
   [`SEMANTIC_RETRIEVAL.md`](SEMANTIC_RETRIEVAL.md).
 - **Data.** Model files on `datasets/kd1-query-encoder-2026.10.11.2` (ONNX in two parts below the git
