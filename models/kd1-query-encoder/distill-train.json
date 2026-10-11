@@ -1,0 +1,146 @@
+{
+ "teacher": "ai-sage/Giga-Embeddings-instruct-480M-0826",
+ "dims": 384,
+ "base": "intfloat/multilingual-e5-small",
+ "texts": 204500,
+ "epochs": 2.0,
+ "batch": 128,
+ "rankWeight": 1.0,
+ "temperature": 0.05,
+ "encoderLr": 3e-05,
+ "init": "/private/tmp/claude-501/-Users-d-Projects-Personal-MiniMed/30dc9256-0069-42f1-81e9-2e6ab730191f/scratchpad/kd1/student-giga-384-v3",
+ "steps": 1500,
+ "pairs": 5350,
+ "pairWeight": 0.3,
+ "pairBatch": 64,
+ "log": [
+  {
+   "step": 0,
+   "of": 1500,
+   "loss": 1.1974,
+   "cos": 0.7543,
+   "pair": 2.3671,
+   "seconds": 1
+  },
+  {
+   "step": 100,
+   "of": 1500,
+   "loss": 1.215,
+   "cos": 0.7416,
+   "pair": 2.3589,
+   "seconds": 88
+  },
+  {
+   "step": 200,
+   "of": 1500,
+   "loss": 1.1497,
+   "cos": 0.7249,
+   "pair": 1.9173,
+   "seconds": 175
+  },
+  {
+   "step": 300,
+   "of": 1500,
+   "loss": 1.0742,
+   "cos": 0.7275,
+   "pair": 1.6985,
+   "seconds": 262
+  },
+  {
+   "step": 400,
+   "of": 1500,
+   "loss": 1.0086,
+   "cos": 0.7331,
+   "pair": 1.5641,
+   "seconds": 350
+  },
+  {
+   "step": 500,
+   "of": 1500,
+   "loss": 1.0096,
+   "cos": 0.7164,
+   "pair": 1.4635,
+   "seconds": 437
+  },
+  {
+   "step": 600,
+   "of": 1500,
+   "loss": 0.9226,
+   "cos": 0.719,
+   "pair": 1.1577,
+   "seconds": 524
+  },
+  {
+   "step": 700,
+   "of": 1500,
+   "loss": 0.9308,
+   "cos": 0.7101,
+   "pair": 1.0943,
+   "seconds": 610
+  },
+  {
+   "step": 800,
+   "of": 1500,
+   "loss": 0.8852,
+   "cos": 0.7059,
+   "pair": 0.9062,
+   "seconds": 696
+  },
+  {
+   "step": 900,
+   "of": 1500,
+   "loss": 1.027,
+   "cos": 0.7185,
+   "pair": 1.3719,
+   "seconds": 781
+  },
+  {
+   "step": 1000,
+   "of": 1500,
+   "loss": 0.8952,
+   "cos": 0.7166,
+   "pair": 0.9253,
+   "seconds": 868
+  },
+  {
+   "step": 1100,
+   "of": 1500,
+   "loss": 0.89,
+   "cos": 0.725,
+   "pair": 1.0545,
+   "seconds": 955
+  },
+  {
+   "step": 1200,
+   "of": 1500,
+   "loss": 0.865,
+   "cos": 0.7286,
+   "pair": 1.0168,
+   "seconds": 1042
+  },
+  {
+   "step": 1300,
+   "of": 1500,
+   "loss": 0.8041,
+   "cos": 0.7221,
+   "pair": 0.7791,
+   "seconds": 1130
+  },
+  {
+   "step": 1400,
+   "of": 1500,
+   "loss": 0.8483,
+   "cos": 0.7332,
+   "pair": 1.0244,
+   "seconds": 1218
+  },
+  {
+   "step": 1499,
+   "of": 1500,
+   "loss": 0.8545,
+   "cos": 0.7217,
+   "pair": 0.8958,
+   "seconds": 1303
+  }
+ ]
+}
