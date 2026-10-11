@@ -20,6 +20,33 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## «Препараты» search with every drug package installed — 2026-10-11 (STATE PERF3)
+
+With all 32 drug packages installed (343 MB, about 3 GB on the device), a search in «Препараты» took
+5–14 s on an Android 16 emulator, and the first one after a cold start several minutes. Measured
+with `tools/benchmarks/src/run-medication-latency.ts` (host, native SQLite) and by timing the
+app's calls to its 23 OPFS pack workers through the WebView DevTools protocol; two causes:
+
+- **Lexical window over the FTS source view.** The per-document window step of lexical search read
+  `chunk_id` / `document_version_id` back from `chunks_fts`; on external-content packs (migration
+  010) that materialises one row of the source view (four joins, chunk text, JSON) per window row.
+  It now reads them from `chunks` by rowid (the FTS rowid is the chunk rowid there); older packs
+  keep reading the FTS columns. One ЕСКЛП module: 790 → 9 ms natively, 1 221 → 9 ms in SQLite
+  WASM, same rows. Both stores (`storage-sqlite`, `storage-capacitor`).
+- **Vector joins scanning `documents`.** Vector hydration, the vector-index build and filtered
+  vector scoring joined `documents d ON d.current_version_id = c.document_version_id`, which no
+  index serves: SQLite scanned the whole documents table per chunk row (Allmed: 4 708 documents) —
+  4.2 s to hydrate 50 hits over OPFS, minutes to build a large module's vector index on first use.
+  They now reach the document by primary key (`d.id = dv.document_id AND d.current_version_id =
+  dv.id`, the same rows).
+
+Results: host, medications scope, lexical, warm (145 queries): indication p50 1 055 → 938 ms, p90
+2 401 → 1 544 ms; trade names p50 744 → 597 ms, p90 2 446 → 1 182 ms; top five identical for 145 of
+145. Emulator: first query after a cold start minutes → 21 s; later queries p50 ≈ 8.5 → 5 s
+(2–10 s by query). What remains is FTS ranking in WASM — 23 pack workers on 4 emulator cores, a
+common prefix («таблетк»*, «витамин»*) matching thousands of rows per module; a 16 MB page cache
+per pack did not change it (kept at 2 MB). `benchmark:all` within tolerance. Not measured on a phone.
+
 ## Semantic search: strong build-time model, distilled query model — 2026-10-11 (STATE KD1)
 
 - **What changed.** The КР modules and the indication sections of the ГРЛС instruction and Allmed

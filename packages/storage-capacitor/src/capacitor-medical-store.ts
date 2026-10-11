@@ -805,14 +805,21 @@ export class CapacitorMedicalStore implements MedicalStore {
       appendMetadataFilterClauses(clauses, bind, request.filters);
     }
 
-    // Rank rowids first and read chunk_id only for the bounded window: an external-content
-    // index (migration 010) resolves UNINDEXED columns through its source view per row.
+    // Rank rowids first and read chunk_id only for the bounded window. An external-content index
+    // (migration 010) would resolve its UNINDEXED columns through the source view, one view-row
+    // materialisation per window row (790 ms for a 400-row window of an ЕСКЛП module, natively);
+    // there the FTS rowid is the chunk rowid, so the window reads the chunks base table instead
+    // (9 ms, same rows). Older packs store the columns in the FTS table and keep reading them.
+    const windowSource = external
+      ? 'CROSS JOIN chunks window_source ON window_source.rowid = ranked.fts_rowid'
+      : 'JOIN chunks_fts window_source ON window_source.rowid = ranked.fts_rowid';
+    const windowChunkId = external ? 'window_source.id' : 'window_source.chunk_id';
     const candidateRows = await this.query(
       `SELECT chunk_id, bm25_rank
        FROM (
-         SELECT window_fts.chunk_id AS chunk_id, ranked.bm25_rank AS bm25_rank,
+         SELECT ${windowChunkId} AS chunk_id, ranked.bm25_rank AS bm25_rank,
            row_number() OVER (
-             PARTITION BY window_fts.document_version_id ORDER BY ranked.bm25_rank
+             PARTITION BY window_source.document_version_id ORDER BY ranked.bm25_rank
            ) AS document_order
          FROM (
            SELECT chunks_fts.rowid AS fts_rowid,
@@ -823,7 +830,7 @@ export class CapacitorMedicalStore implements MedicalStore {
            ORDER BY bm25_rank
            LIMIT ?
          ) ranked
-         JOIN chunks_fts window_fts ON window_fts.rowid = ranked.fts_rowid
+         ${windowSource}
        )
        WHERE document_order <= ?
        ORDER BY bm25_rank

@@ -317,8 +317,8 @@ describe('CapacitorMedicalStore', () => {
     expect(plugin.calls[0]?.sql).toContain("name = 'chunks_fts'");
     const candidateCall = plugin.calls.at(-2);
     const hydrationCall = plugin.calls.at(-1);
-    expect(candidateCall?.sql).toContain('window_fts.chunk_id AS chunk_id');
-    expect(candidateCall?.sql).toContain('PARTITION BY window_fts.document_version_id');
+    expect(candidateCall?.sql).toContain('AS chunk_id, ranked.bm25_rank AS bm25_rank');
+    expect(candidateCall?.sql).toContain('PARTITION BY window_source.document_version_id');
     expect(candidateCall?.sql).toContain('bm25(chunks_fts');
     expect(candidateCall?.sql).not.toContain('c.original_text');
     expect(JSON.parse(candidateCall?.argsJson ?? '[]')).toEqual([

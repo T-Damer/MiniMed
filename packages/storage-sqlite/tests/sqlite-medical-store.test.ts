@@ -457,7 +457,7 @@ describe('SqliteMedicalStore', () => {
 
     const sqlCalls = exec.mock.calls.map(([sql]) => sql);
     const candidateIndex = sqlCalls.findIndex((sql) =>
-      sql.includes('window_fts.chunk_id AS chunk_id'),
+      sql.includes('AS chunk_id, ranked.bm25_rank AS bm25_rank'),
     );
     const hydrationIndex = sqlCalls.findIndex(
       (sql) => sql.includes('c.original_text') && sql.includes('WHERE c.id IN'),
@@ -465,6 +465,11 @@ describe('SqliteMedicalStore', () => {
     expect(candidateIndex).toBeGreaterThanOrEqual(0);
     expect(hydrationIndex).toBe(candidateIndex + 1);
     expect(sqlCalls[candidateIndex]).not.toContain('c.original_text');
+    // An external-content index (the generated schema) reads the window's chunk columns from the
+    // chunks table by rowid, not through the FTS source view (one view row per window row).
+    expect(sqlCalls[candidateIndex]).toContain(
+      'CROSS JOIN chunks window_source ON window_source.rowid = ranked.fts_rowid',
+    );
     expect(sqlCalls[hydrationIndex]).toContain('c.original_text');
   });
 

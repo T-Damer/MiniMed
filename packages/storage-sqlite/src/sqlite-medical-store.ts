@@ -446,6 +446,15 @@ function toChunk(row: SqlRow): ChunkRecord {
   };
 }
 
+/**
+ * The document whose current version holds the chunk, reached through its primary key. Joining on
+ * `d.current_version_id = c.document_version_id` instead has no index to use: SQLite scanned the
+ * whole documents table for every chunk row — 4.2 s to hydrate 50 vector hits of the Allmed module
+ * over OPFS, minutes to build a large module's vector index. Needs `dv` joined to the chunk version.
+ */
+const CURRENT_DOCUMENT_JOIN =
+  'JOIN documents d ON d.id = dv.document_id AND d.current_version_id = dv.id';
+
 const DOCUMENT_SELECT = `
   SELECT d.rowid AS doc_rowid, d.id, d.content_pack_id, d.title, d.short_title, d.source_type, d.status,
     d.specialty_json, d.metadata_json, dv.id AS version_id, dv.version_label,
@@ -1300,8 +1309,8 @@ export class SqliteMedicalStore implements MedicalStore {
         dv.source_checksum, dv.extracted_at
       FROM chunks c
       JOIN sections s ON s.id = c.section_id
-      JOIN documents d ON d.current_version_id = c.document_version_id
       JOIN document_versions dv ON dv.id = c.document_version_id
+      ${CURRENT_DOCUMENT_JOIN}
       WHERE c.id IN (SELECT value FROM json_each(?))`,
       [JSON.stringify([...scoreByChunk.keys()])],
     );
@@ -1335,7 +1344,8 @@ export class SqliteMedicalStore implements MedicalStore {
        FROM chunk_embeddings ce
        JOIN chunks c ON c.id = ce.chunk_id
        JOIN sections s ON s.id = c.section_id
-       JOIN documents d ON d.current_version_id = c.document_version_id
+       JOIN document_versions dv ON dv.id = c.document_version_id
+       ${CURRENT_DOCUMENT_JOIN}
        WHERE ce.profile_id = ?
        ORDER BY ce.chunk_id`,
       [profileId],
@@ -1375,7 +1385,8 @@ export class SqliteMedicalStore implements MedicalStore {
        FROM chunk_embeddings ce
        JOIN chunks c ON c.id = ce.chunk_id
        JOIN sections s ON s.id = c.section_id
-       JOIN documents d ON d.current_version_id = c.document_version_id
+       JOIN document_versions dv ON dv.id = c.document_version_id
+       ${CURRENT_DOCUMENT_JOIN}
        WHERE ${clauses.join(' AND ')}`,
       bind,
     );
@@ -1492,15 +1503,22 @@ export class SqliteMedicalStore implements MedicalStore {
       appendMetadataFilterClauses(clauses, bind, request.filters);
     }
 
-    // Rank rowids first and read chunk_id only for the bounded window: an external-content
-    // index (migration 010) resolves UNINDEXED columns through its source view per row.
+    // Rank rowids first and read chunk_id only for the bounded window. An external-content index
+    // (migration 010) would resolve its UNINDEXED columns through the source view, one view-row
+    // materialisation per window row (790 ms for a 400-row window of an ЕСКЛП module, natively);
+    // there the FTS rowid is the chunk rowid, so the window reads the chunks base table instead
+    // (9 ms, same rows). Older packs store the columns in the FTS table and keep reading them.
+    const windowSource = external
+      ? 'CROSS JOIN chunks window_source ON window_source.rowid = ranked.fts_rowid'
+      : 'JOIN chunks_fts window_source ON window_source.rowid = ranked.fts_rowid';
+    const windowChunkId = external ? 'window_source.id' : 'window_source.chunk_id';
     const candidateRows = queryRows(
       this.database,
       `SELECT chunk_id, bm25_rank
        FROM (
-         SELECT window_fts.chunk_id AS chunk_id, ranked.bm25_rank AS bm25_rank,
+         SELECT ${windowChunkId} AS chunk_id, ranked.bm25_rank AS bm25_rank,
            row_number() OVER (
-             PARTITION BY window_fts.document_version_id ORDER BY ranked.bm25_rank
+             PARTITION BY window_source.document_version_id ORDER BY ranked.bm25_rank
            ) AS document_order
          FROM (
            SELECT chunks_fts.rowid AS fts_rowid,
@@ -1511,7 +1529,7 @@ export class SqliteMedicalStore implements MedicalStore {
            ORDER BY bm25_rank
            LIMIT ?
          ) ranked
-         JOIN chunks_fts window_fts ON window_fts.rowid = ranked.fts_rowid
+         ${windowSource}
        )
        WHERE document_order <= ?
        ORDER BY bm25_rank
