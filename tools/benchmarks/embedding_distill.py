@@ -338,9 +338,22 @@ def train(
     rank_weight: float,
     temperature: float,
     encoder_lr: float,
+    init: Path | None = None,
+    steps_override: int | None = None,
+    pairs_path: Path | None = None,
+    pair_weight: float = 1.0,
+    pair_batch: int = 64,
 ) -> None:
+    """Distillation (cosine + ranking KL); with `pairs_path` also a supervised InfoNCE term.
+
+    A pair is a train-split complaint or diagnosis phrase and its relevant recommendations
+    (`build-distill-pairs.ts`). Its positive is the teacher's best-scoring chunk among those
+    documents; negatives are the other positives of the batch and the teacher's own nearest
+    chunks of other documents. The passage vectors stay the teacher's: only queries move.
+    """
     import torch
     import torch.nn.functional as F
+    from sentence_transformers import SentenceTransformer
 
     torch.manual_seed(SEED)
     device = "mps" if torch.backends.mps.is_available() else "cpu"
@@ -352,18 +365,42 @@ def train(
         work, teacher, dims, np.load(work / f"emb-{ee.slug(teacher)}.npy")
     )
     near = neighbours(passages, goal, NEIGHBOURS)
-    student, base = build_student(dims, device)
+    if init is not None:
+        student = SentenceTransformer(str(init), device=device)
+        student.max_seq_length = MAX_TOKENS
+    else:
+        student, base = build_student(dims, device)
+        # Least-squares start for the head: e5-small's pooled vectors onto the teacher targets.
+        sample = list(range(min(20_000, len(rows))))
+        with torch.no_grad():
+            pooled = base.encode(
+                [STUDENT_PREFIX + rows[i]["text"] for i in sample],
+                batch_size=256,
+                convert_to_numpy=True,
+            )
+        solution, *_ = np.linalg.lstsq(pooled, goal[sample], rcond=None)
+        student[2].linear.weight.data = torch.from_numpy(solution.T.copy()).to(device)
 
-    # Least-squares start for the head: e5-small's pooled vectors onto the teacher targets.
-    sample = list(range(min(20_000, len(rows))))
-    with torch.no_grad():
-        pooled = base.encode(
-            [STUDENT_PREFIX + rows[i]["text"] for i in sample],
-            batch_size=256,
-            convert_to_numpy=True,
-        )
-    solution, *_ = np.linalg.lstsq(pooled, goal[sample], rcond=None)
-    student[2].linear.weight.data = torch.from_numpy(solution.T.copy()).to(device)
+    pair_rows: list[dict] = []
+    if pairs_path is not None:
+        chunk_docs = np.array([row["documentId"] for row in ee.load_corpus(work)])
+        doc_chunks: dict[str, np.ndarray] = {
+            doc: np.flatnonzero(chunk_docs == doc) for doc in np.unique(chunk_docs)
+        }
+        text_index = {r["text"]: i for i, r in enumerate(rows)}
+        for line in pairs_path.read_text().splitlines():
+            pair = json.loads(line)
+            i = text_index.get(pair["text"])
+            docs = [d for d in pair["positives"] if d in doc_chunks]
+            if i is None or not docs:
+                continue
+            chunks = np.concatenate([doc_chunks[d] for d in docs])
+            best = int(chunks[np.argmax(passages[chunks] @ goal[i])])
+            negatives = [int(c) for c in near[i] if chunk_docs[c] not in docs][:4]
+            pair_rows.append(
+                {"row": i, "docs": set(docs), "chunks": [best, *negatives]}
+            )
+        print(f"pairs: {len(pair_rows)} usable", flush=True)
 
     encoder_params = list(student[0].parameters())
     head_params = list(student[2].parameters())
@@ -374,7 +411,7 @@ def train(
         ],
         weight_decay=0.01,
     )
-    steps = math.ceil(len(rows) / batch * epochs)
+    steps = steps_override or math.ceil(len(rows) / batch * epochs)
     warmup = max(1, steps // 20)
     scheduler = torch.optim.lr_scheduler.LambdaLR(
         optimizer,
@@ -385,6 +422,7 @@ def train(
     store = torch.from_numpy(passages).to(device)
     targets_t = torch.from_numpy(goal).to(device)
     order = np.random.default_rng(SEED).permutation(len(rows))
+    pair_order = np.random.default_rng(SEED + 1).permutation(max(1, len(pair_rows)))
     student.train()
     started = time.perf_counter()
     log = []
@@ -414,6 +452,31 @@ def train(
                 reduction="batchmean",
             )
             loss = loss + rank_weight * loss_rank
+        loss_pair = torch.zeros((), device=device)
+        if pair_rows:
+            start = (step * pair_batch) % len(pair_rows)
+            chosen = [pair_rows[j] for j in pair_order[start : start + pair_batch]]
+            pool_ids = np.unique([c for pair in chosen for c in pair["chunks"]])
+            pool = store[torch.from_numpy(pool_ids).to(device)]
+            pool_docs = chunk_docs[pool_ids]
+            positive = torch.tensor(
+                np.array([[d in pair["docs"] for d in pool_docs] for pair in chosen]),
+                device=device,
+            )
+            q = F.normalize(
+                encode_raw(
+                    student,
+                    [STUDENT_PREFIX + rows[pair["row"]]["text"] for pair in chosen],
+                    device,
+                ),
+                dim=-1,
+            )
+            logits = (q @ pool.T) / temperature
+            loss_pair = (
+                torch.logsumexp(logits, -1)
+                - torch.logsumexp(logits.masked_fill(~positive, float("-inf")), -1)
+            ).mean()
+            loss = loss + pair_weight * loss_pair
         optimizer.zero_grad()
         loss.backward()
         torch.nn.utils.clip_grad_norm_(student.parameters(), 1.0)
@@ -425,6 +488,7 @@ def train(
                 "of": steps,
                 "loss": round(float(loss), 4),
                 "cos": round(1 - float(loss_cos), 4),
+                "pair": round(float(loss_pair), 4),
                 "seconds": round(time.perf_counter() - started),
             }
             log.append(entry)
@@ -444,6 +508,11 @@ def train(
                 "rankWeight": rank_weight,
                 "temperature": temperature,
                 "encoderLr": encoder_lr,
+                "init": str(init) if init else None,
+                "steps": steps,
+                "pairs": len(pair_rows),
+                "pairWeight": pair_weight,
+                "pairBatch": pair_batch,
                 "log": log,
             },
             indent=1,
@@ -555,6 +624,10 @@ def evaluate(work: Path, teacher: str, dims: int, students: list[Path]) -> None:
                     round(low, 3),
                     round(high, 3),
                 ]
+        entry["perQuery"] = {
+            q["query_id"]: {"at1": r["at1"], "at5": r["at5"]}
+            for q, r in zip(queries, scored)
+        }
         report[name] = entry
         a = entry["all"]
         print(
@@ -713,6 +786,13 @@ def main() -> None:
     r.add_argument("--rank-weight", type=float, default=1.0)
     r.add_argument("--temperature", type=float, default=0.05)
     r.add_argument("--encoder-lr", type=float, default=4e-5)
+    r.add_argument("--init", type=Path, help="continue from a trained student")
+    r.add_argument("--steps", type=int, help="override the step count of --epochs")
+    r.add_argument(
+        "--pairs", type=Path, help="supervised pairs (build-distill-pairs.ts)"
+    )
+    r.add_argument("--pair-weight", type=float, default=1.0)
+    r.add_argument("--pair-batch", type=int, default=64)
     v = sub.add_parser("evaluate")
     v.add_argument("--work", type=Path, required=True)
     v.add_argument("--teacher", required=True)
@@ -741,6 +821,11 @@ def main() -> None:
             args.rank_weight,
             args.temperature,
             args.encoder_lr,
+            args.init,
+            args.steps,
+            args.pairs,
+            args.pair_weight,
+            args.pair_batch,
         )
     else:
         evaluate(args.work, args.teacher, args.dims, args.student)

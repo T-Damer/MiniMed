@@ -10,7 +10,7 @@
  * because a plain git blob must stay under 100 MB.
  */
 export const E5_MODEL_ID = 'minimed/kd1-query-encoder';
-export const E5_MODEL_REVISION = 'kd1-query-encoder-2026.10.11';
+export const E5_MODEL_REVISION = 'kd1-query-encoder-2026.10.11.2';
 
 const MIRROR_BASE = `https://raw.githubusercontent.com/T-Damer/MiniMed/datasets/${E5_MODEL_REVISION}/models/kd1-query-encoder`;
 
@@ -38,8 +38,8 @@ export const E5_MODEL_FILES: readonly E5ModelFile[] = [
   },
   {
     path: 'tokenizer_config.json',
-    sizeBytes: 408,
-    sha256: '277f5c176756cd784d10b9eddfedd5ebd2281d7791d5682fb2dace09080a2f16',
+    sizeBytes: 598,
+    sha256: '6511362e9104a0c50d56581c8e37d9303ed6d71cb411085209fe7e8ac58bad90',
   },
   {
     path: 'tokenizer.json',
@@ -49,17 +49,17 @@ export const E5_MODEL_FILES: readonly E5ModelFile[] = [
   {
     path: 'onnx/model_quantized.onnx',
     sizeBytes: 118_972_175,
-    sha256: '14019498821496b8248f1a172994110758161ba1d1ea2d0e9472338e4096b671',
+    sha256: '29754e981ab18fe149c110329d424add58f83ed50b4b16a51a3ba0a3d7a7c937',
     parts: [
       {
         path: 'onnx/model_quantized.onnx.part-0',
         sizeBytes: 62_914_560,
-        sha256: '4b4fe50f6b1dcdea52e02f0aba8948a77842e92b68dfd53727361ecffc58e696',
+        sha256: '5afa39d6fbb946af4c770c08112d62805dc3e439c098a1488ac3b40471a86b17',
       },
       {
         path: 'onnx/model_quantized.onnx.part-1',
         sizeBytes: 56_057_615,
-        sha256: 'b076c79729a7673ad12d59a2bbb0ea41b2da4370974b0c756e0c9e8d29fa2813',
+        sha256: '6194a2f7b7447c2168186d576628e352d138b7cfb4e024ff7dbb977ccd8a13b7',
       },
     ],
   },

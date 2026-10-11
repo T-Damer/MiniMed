@@ -67,10 +67,12 @@ and the list is updated when the proposal is better. How search works today:
    «a larger embedding model … if a phone measurement allows») — done 2026-10-11. Giga-Embeddings-
    instruct 480M encodes the КР and drug-indication passages at build time (projected to 384 d, int8
    as before); an e5-small-sized student trained to reproduce Giga's query vectors runs on the phone
-   (130 MB download, 3.7 ms p50 on one CPU thread). Through MedicalCore, clinical hybrid, Q1 test:
-   R@1 0.301 → 0.344, R@5 0.497 → 0.564, complaints R@5 0.278 → 0.430; all 330: R@5 0.473 → 0.561.
-   Drug indications hit@1 0.600 → 0.600, hit@5 0.911 → 0.844 (45 queries, not significant; one real
-   loss from a lexical false friend), trade names unchanged —
+   (130 MB download, 3.7 ms p50 on one CPU thread), since 2026-10-11 also trained on train-split
+   complaint/diagnosis → КР pairs (student v4c; no Q1 record, patient or source file). Through
+   MedicalCore, clinical hybrid, Q1 test: R@1 0.301 → 0.454, R@5 0.497 → 0.718, complaints R@5
+   0.278 → 0.633 (v3 without pairs: 0.344 / 0.564 / 0.430). The pairs share Q1's ICD mapping, so
+   item 7 (owner queries) is the independent check. Drug indications hit@1 0.600 → 0.578, hit@5
+   0.911 → 0.867 (45 queries; the model reads «молочница» as «молочная железа»), trade names unchanged —
    [`research/embedding-distillation-2026-10-09.md`](research/embedding-distillation-2026-10-09.md).
 9. **Explain semantic hits.** Highlight the best-matching sentence of a vector hit, since no query
    word may occur in it.

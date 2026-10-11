@@ -46,7 +46,8 @@ export const KD1_PROFILE = {
   metadata: {
     intendedUse: 'clinical-recommendation-semantic-search',
     neuralModel: true,
-    queryEncoder: 'kd1-student-v3 (multilingual-e5-small distilled from the passage model)',
+    queryEncoder:
+      'minimed/kd1-query-encoder (multilingual-e5-small distilled from the passage model; revision pinned by the app)',
     queryPrefix: 'query: ',
     passagePrefix: '',
     passageText: 'title. section path. chunk text, first 1200 characters, 256 tokens',

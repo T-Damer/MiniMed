@@ -689,8 +689,8 @@
         "tools/ingest/scripts/embed_modules.py (giga480m-projection-384.npy, also at data/build/kd1/)"
       ],
       "release": "branch datasets/kd1-query-encoder-2026.10.11",
-      "rebuild": "see docs/research/embedding-distillation-2026-10-09.md (Giga corpus + target encoding ~1.5 h, training ~75 min on MPS); not bit-identical on retraining — keep this copy",
-      "note": "query-encoder/: the on-device query encoder (config, tokenizer, int8 ONNX in two parts), the passage projection and the training log as published; giga480m-projection-384.npy: the projection embed_modules.py reads (same bytes); rebuild.log. Benchmarks need a model dir with the joined ONNX: cat query-encoder/onnx/model_quantized.onnx.part-* > <dir>/minimed/kd1-query-encoder/onnx/model_quantized.onnx plus the three JSON files.",
+      "rebuild": "see docs/research/embedding-distillation-2026-10-09.md (Giga corpus + target encoding ~1.5 h, v3 training ~75 min, v4c +25 min with build-distill-pairs.ts pairs on MPS); not bit-identical on retraining — keep this copy",
+      "note": "query-encoder/: the on-device query encoder (student v4c, published as datasets/kd1-query-encoder-2026.10.11.2; v3 was datasets/kd1-query-encoder-2026.10.11) (config, tokenizer, int8 ONNX in two parts), the passage projection and the training log as published; giga480m-projection-384.npy: the projection embed_modules.py reads (same bytes); rebuild.log. Benchmarks need a model dir with the joined ONNX: cat query-encoder/onnx/model_quantized.onnx.part-* > <dir>/minimed/kd1-query-encoder/onnx/model_quantized.onnx plus the three JSON files.",
       "bytes": 139211597,
       "modified": "2026-10-11"
     }

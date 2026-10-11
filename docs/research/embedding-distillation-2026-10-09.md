@@ -1,7 +1,8 @@
 # Strong build-time embedding model, small on-device query encoder, 2026-10-09
 
 STATE KD1, search roadmap item 8a; owner request 2026-10-09: «strong preparation model, small on target
-device». Adopted 2026-10-11 with student v3: modules republished, app switched (see «App path»).
+device». Adopted 2026-10-11: modules republished, app switched with student v3, then the query side
+replaced by student v4c (supervised term, see «Supervised query side»).
 
 Verdict: **adopted.** Giga-Embeddings-instruct 480M encodes the КР passages on the build
 machine; a query encoder of exactly e5-small's size, trained to place a query where Giga places it,
@@ -160,16 +161,80 @@ Per query (e5 → v3, hybrid, top 5): 5 lost, 2 gained. Four of the lost ones we
 at rank 3–5 in a list that was otherwise wrong for both models («таблетки от головы»: e5 Низорал,
 Комбитропил, **Эксенза**, Ксамиол, Бетаксолол; v3 caffeine, Папазол, vinpocetine; «антибиотик при
 ангине», «для разжижения крови», «мочегонное от отеков»). One is a real loss: «от молочницы» — e5
-5/5 fluconazole; v3 semantic puts fluconazole first, but in hybrid lexical matches of «молоч-»
-(lactation products) take the top five. Gained: «при повышенном давлении» (e5 had glaucoma drops
+5/5 fluconazole; for KD1 every top hit is a vector match (lexical score 0) and the model ranks
+mastopathy and lactation products above fluconazole (cosine 0.28–0.23 vs 0.17: «молочница» read as
+«молочная железа»); semantic mode happens to list the fluconazole leaflet first through group
+ordering, hybrid follows the cosines. Gained: «при повышенном давлении» (e5 had glaucoma drops
 only), «от укачивания». Adding the indication texts to the student (v3) did not move hit@5, so the
 gap is not the student's training mix. Not significant on 45 queries; recorded, not hidden.
+
+## Supervised query side (student v4), 2026-10-11
+
+The student matched its teacher (v3 R@5 0.585 vs Giga@384 0.582), so copying better could not help
+further. v4 adds a supervised InfoNCE term against the fixed Giga passage vectors: a train-split
+complaint or diagnosis phrase, positive = the teacher's best-scoring chunk of a recommendation whose
+registry ICD-10 codes cover the phrase's code (Q1's grade-3 relation), negatives = the other
+positives of the batch and the teacher's nearest chunks of other documents
+(`tools/benchmarks/src/build-distill-pairs.ts`, `embedding_distill.py train --pairs --init`). It
+continues from v3 for 1 500 steps (encoder lr 3e-5), keeping the distillation terms.
+
+**Leakage found and removed.** The first pair set excluded Q1's records but not their patients: 92
+of the 195 Q1 complaint patients had other visits among the training pairs (48 dev, 45 test), and a
+patient's visits repeat complaints and diagnosis. That run reached R@5 0.779 and was discarded. The
+pair builder now drops every visit of a Q1 patient and every RuCCoD train file that holds a Q1 dev
+record: 5 931 pairs over 437 recommendations, patient overlap 0. Diagnosis phrases still have close
+neighbours in training (9 of 100 RuCCoD test queries at trigram Jaccard ≥ 0.8 — disease names
+repeat), so a strict subset without any training phrase at Jaccard ≥ 0.6 is reported too. The
+unlabelled distillation texts of v1–v3 still contain other visits of Q1 patients; they carry no
+labels, only the teacher's own vectors, which the students did not exceed.
+
+| Q1 (research harness) | dev R@1 / R@5 / MRR | test R@1 / R@5 | strict test (126) R@1 / R@5 / complaints R@5 |
+|---|---|---|---|
+| e5-small | 0.263 / 0.425 / 0.338 | 0.301 / 0.491 | 0.254 / 0.421 / 0.225 |
+| v3 | 0.353 / 0.617 / 0.463 | 0.399 / 0.552 | 0.341 / 0.508 / 0.394 |
+| v3 + 1 500 distillation steps (control) | 0.365 / 0.623 / 0.469 | 0.405 / 0.564 | 0.349 / 0.516 / 0.408 |
+| v4b, pair weight 1.0 | 0.569 / 0.790 / 0.666 | 0.595 / 0.773 | 0.548 / 0.730 / 0.732 |
+| **v4c, pair weight 0.3** | 0.539 / **0.802** / 0.655 | **0.595 / 0.779** | **0.548 / 0.738 / 0.732** |
+
+**Coverage probe.** Only 6 Q1 queries target a recommendation without pairs, so Q1 cannot show
+whether supervision crowds out the 337 uncovered documents. A self-retrieval probe takes 15 words of
+each document's complaints / clinical-picture section as the query and its own document as the
+answer (771 documents):
+
+| | with pairs R@1 / R@5 | without pairs R@1 / R@5 |
+|---|---|---|
+| v3 | 0.600 / 0.832 | 0.533 / 0.738 |
+| control | 0.609 / 0.837 | 0.542 / 0.744 |
+| v4b (weight 1.0) | 0.570 / 0.837 | 0.482 / 0.720 |
+| **v4c (weight 0.3)** | **0.609 / 0.839** | **0.509 / 0.729** |
+
+v4c keeps the Q1 gain of v4b with half its cost on uncovered documents (R@1 −0.024, R@5 −0.009 vs
+v3); it was chosen on dev and the probe.
+
+**App path, v4c** (MedicalCore, the same KD1 modules, `KD1_FUSION` unchanged — a dev grid over band
+0.5–2 and lexical weight 0–0.3 is flat within one or two queries):
+
+| Clinical hybrid | test R@1 | test R@5 | test complaints R@5 | all R@1 | all R@5 |
+|---|---:|---:|---:|---:|---:|
+| e5 | 0.301 | 0.497 | 0.278 | 0.267 | 0.473 |
+| v3 | 0.344 | 0.564 | 0.430 | 0.318 | 0.561 |
+| **v4c** | **0.454** | **0.718** | **0.633** | **0.436** | **0.727** |
+
+Drugs with v4c: indication hit@1 0.578, hit@5 0.867, precision@5 0.596 (v3 0.600 / 0.844 / 0.569;
+e5 0.600 / 0.911 / 0.573); trade-name top-1 1.00. The int8 export's cosine to PyTorch is lower than
+v3's (min 0.976 on the export check), but the app-path numbers above are measured through it.
+Published as `datasets/kd1-query-encoder-2026.10.11.2`.
+
+Caveat: the pair labels and Q1's relevance come from the same registry ICD mapping, so Q1 measures
+how well the model learned that mapping on unseen patients and phrases; it is not an independent
+judgement of relevance. The owner query set (roadmap item 7) is the check that does not share it.
 
 ## Left
 
 1. Phone measurement of the student through the WebView (WASM), as for e5 (the export has the same
    architecture and graph size plus one 384×384 MatMul).
-2. «от молочницы»-type lexical false friends in the medications scope: a stem match inside an
-   unrelated word outranks the vector ranking at lexical weight 0.3.
-3. Release gates (`benchmark:real:release`) run on core.db without vectors and are unaffected; the
+2. «от молочницы»: a semantic confusion of the model (thrush read as breast), not a lexical one;
+   the recommendation pairs do not cover drug indications.
+3. An independent relevance check of v4c on the owner's own queries (roadmap item 7).
+4. Release gates (`benchmark:real:release`) run on core.db without vectors and are unaffected; the
    semantic sets above are the measurement of this change.

@@ -55,7 +55,7 @@ and fallback behavior. It is **not** evidence of medical semantic understanding.
 | Profile | `localmed.kd1-giga480m.384.int8.v1` (`KD1_PROFILE`, `KD1_FUSION`) |
 | Passage model | `ai-sage/Giga-Embeddings-instruct-480M-0826` @ `1763d603` (MIT; own modelling code read and pinned), bf16 on the build machine |
 | Projection | 1024 → 384, leading uncentred principal directions of the КР passage vectors, `giga480m-projection-384.npy` (SHA-256 `097ec035…`, part of the fingerprint) |
-| Query model | `minimed/kd1-query-encoder` (student v3: multilingual-e5-small distilled from Giga, 384×384 head folded into the graph), int8 ONNX, mirror branch `datasets/kd1-query-encoder-2026.10.11` |
+| Query model | `minimed/kd1-query-encoder` (student v4c: multilingual-e5-small distilled from Giga plus a supervised term on train-split complaint/diagnosis → КР pairs, 384×384 head folded into the graph), int8 ONNX, mirror branch `datasets/kd1-query-encoder-2026.10.11.2` |
 | Passage text | title + `. ` + section path + `. ` + chunk text, 1 200 chars, 256 tokens, no prefix |
 | Query text | `query: ` + the user's original wording |
 | Pooling | passages: Giga mean, L2, projection, L2; queries: mean, L2; then the int8 quantisation above |
@@ -74,14 +74,20 @@ e5 vs KD1; fusion chosen on the Q1 dev split:
 | Q1 КР, clinical hybrid | R@1 | R@5 | MRR@10 | complaints R@5 | diagnoses R@5 |
 |---|---:|---:|---:|---:|---:|
 | e5-small, test (163) | 0.301 | 0.497 | 0.383 | 0.278 | 0.702 |
-| **KD1, test (163)** | **0.344** | **0.564** | **0.441** | **0.430** | 0.690 |
+| KD1 student v3, test (163) | 0.344 | 0.564 | 0.441 | 0.430 | 0.690 |
+| **KD1 student v4c, test (163)** | **0.454** | **0.718** | **0.568** | **0.633** | **0.798** |
 | e5-small, all (330) | 0.267 | 0.473 | 0.356 | 0.285 | 0.661 |
-| **KD1, all (330)** | **0.318** | **0.561** | **0.426** | **0.430** | **0.691** |
+| KD1 student v3, all (330) | 0.318 | 0.561 | 0.426 | 0.430 | 0.691 |
+| **KD1 student v4c, all (330)** | **0.436** | **0.727** | **0.555** | **0.636** | **0.818** |
 
-Drug search (medications scope, hybrid): indication hit@1 0.600 → 0.600, hit@5 0.911 → 0.844 (45
-queries: 5 lost, 2 gained; most of e5's lost hits were a single weak match at rank 3–5, one real loss
-— «от молочницы», where lexical «молоч-» matches outrank the fluconazole the vectors put first);
-trade-name top-1 1.00 → 1.00. Query encoder: 3.7 ms p50 on one CPU thread (e5 4.3 ms). Method,
+v4c's pair labels share Q1's ICD mapping (on unseen patients and phrases), so its Q1 numbers measure
+that mapping, not independent relevance; uncovered recommendations lose a little (self-retrieval
+probe R@1 −0.024).
+
+Drug search (medications scope, hybrid, 45 indication queries): hit@1 / hit@5 e5 0.600 / 0.911,
+v3 0.600 / 0.844, v4c 0.578 / 0.867. Most of e5's hits that KD1 lost were a single weak match at
+rank 3–5; the one real loss is «от молочницы», where the model ranks mastopathy and lactation
+products above fluconazole. Trade-name top-1 1.00 throughout. Query encoder: 3.7 ms p50 on one CPU thread (e5 4.3 ms). Method,
 variants and every number: [`research/embedding-distillation-2026-10-09.md`](research/embedding-distillation-2026-10-09.md).
 
 ## Previous neural profile: e5-small for clinical recommendations (STATE E2, 2026-10-05 – 2026-10-11)
