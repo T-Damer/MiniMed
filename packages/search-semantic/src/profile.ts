@@ -62,6 +62,10 @@ export const KD1_PROFILE = {
  */
 export const KD1_FUSION = {
   band: 0.5,
+  // Student cosines: best hit p10 0.31–0.38 per query set; the «от молочницы» kind of query whose
+  // vectors know nothing peaks at 0.22–0.24 and falls back to lexical ranking (dev R@5 −1 query,
+  // owner queries unchanged, drug «от молочницы» found).
+  confidence: { low: 0.25, high: 0.35 },
   lexicalWeight: 0.3,
   vectorOnlyWeight: 0.8,
   corroborationWeight: 0.3,

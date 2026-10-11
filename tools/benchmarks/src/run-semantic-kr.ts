@@ -8,7 +8,8 @@
  *     --model-dir=<dir holding minimed/kd1-query-encoder/…> [--split=dev] [--grid] [--out=…]
  *
  * `--grid` adds clinical-hybrid runs over a grid of fusion constants (`--bands=0.1,0.2`,
- * `--lexical-weights=0.3,0.5`); choose them on dev only. `--set=owner` scores the owner's own
+ * `--lexical-weights=0.3,0.5`, `--corroboration-weights=0.3,0.6`, `--confidence='none;0.25,0.35'`);
+ * choose them on dev only. `--set=owner` scores the owner's own
  * queries (`owner-queries.json`) that name a recommendation instead: any expected КР in the top 5
  * counts, sliced by style (rush / thoughtful); their relevance does not come from ICD codes.
  *
@@ -103,10 +104,29 @@ const numbers = (name: string, fallback: string) => argument(name, fallback).spl
 const GRID: Record<string, SemanticFusion> = process.argv.includes('--grid')
   ? Object.fromEntries(
       numbers('bands', '0.05,0.1,0.15,0.2,0.3').flatMap((band) =>
-        numbers('lexical-weights', '0.3,0.5,0.7').map((lexicalWeight) => [
-          `band ${band} lex ${lexicalWeight}`,
-          { band, lexicalWeight, vectorOnlyWeight: 0.8, corroborationWeight: 0.3 },
-        ]),
+        numbers('lexical-weights', '0.3,0.5,0.7').flatMap((lexicalWeight) =>
+          numbers('corroboration-weights', '0.3').flatMap((corroborationWeight) =>
+            argument('confidence', 'none')
+              .split(';')
+              .map((spec) => {
+                const [low, high] = spec.split(',').map(Number);
+                const confidence =
+                  low !== undefined && high !== undefined && !Number.isNaN(low)
+                    ? { confidence: { low, high } }
+                    : {};
+                return [
+                  `band ${band} lex ${lexicalWeight} corr ${corroborationWeight} conf ${spec}`,
+                  {
+                    band,
+                    lexicalWeight,
+                    vectorOnlyWeight: 0.8,
+                    corroborationWeight,
+                    ...confidence,
+                  },
+                ];
+              }),
+          ),
+        ),
       ),
     )
   : {};

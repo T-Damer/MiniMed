@@ -73,7 +73,9 @@ and the list is updated when the proposal is better. How search works today:
    0.278 → 0.633 (v3 without pairs: 0.344 / 0.564 / 0.430). The pairs share Q1's ICD mapping; on
    the owner's own queries that name a КР (45, independent targets) R@5 0.667 → 0.822, R@1 0.400 →
    0.578 (v3 0.844 / 0.533: the supervised term is even there). Drug indications hit@1 0.600 → 0.578, hit@5
-   0.911 → 0.867 (45 queries; the model reads «молочница» as «молочная железа»), trade names unchanged —
+   0.911 → 0.867 (45 queries), trade names unchanged; queries whose vectors are unsure (best cosine
+   below 0.25–0.35, e.g. «от молочницы», which the student reads as «молочная железа») fall back to
+   lexical ranking (`SemanticFusion.confidence`) —
    [`research/embedding-distillation-2026-10-09.md`](research/embedding-distillation-2026-10-09.md).
 9. **Explain semantic hits.** Highlight the best-matching sentence of a vector hit, since no query
    word may occur in it.

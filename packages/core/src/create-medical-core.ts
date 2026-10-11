@@ -955,10 +955,20 @@ function fuseSemanticResults(
 ): readonly SearchResult[] {
   const maximumLexical = Math.max(0.000_001, ...lexicalResults.map((result) => result.finalScore));
   const bestCosine = Math.max(0, ...vectorHits.map((hit) => hit.score));
+  const confidence = fusion.confidence
+    ? Math.max(
+        0,
+        Math.min(
+          1,
+          (bestCosine - fusion.confidence.low) / (fusion.confidence.high - fusion.confidence.low),
+        ),
+      )
+    : 1;
   const semanticStrength = (cosine: number): number =>
-    fusion.band === undefined
+    confidence *
+    (fusion.band === undefined
       ? Math.max(0, cosine)
-      : Math.max(0, Math.min(1, (cosine - (bestCosine - fusion.band)) / fusion.band));
+      : Math.max(0, Math.min(1, (cosine - (bestCosine - fusion.band)) / fusion.band)));
   const byChunk = new Map<string, SearchResult>();
 
   if (mode === 'hybrid') {

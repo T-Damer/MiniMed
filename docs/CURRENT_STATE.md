@@ -45,6 +45,11 @@ Detailed history, moved verbatim on 2026-09-24:
   60–80 s; owner case queries over 26 installed КР found in the top 5 for 39 of 45, results in 685 ms
   (p50); the first semantic query after installing or updating the app or model takes 6–9 s once.
   `tools/ingest/scripts/verify_embedded_release.py` verifies the release (790 modules, model).
+- **Fusion confidence.** `KD1_FUSION.confidence` lets a query whose vectors are unsure (best cosine
+  below 0.25–0.35) rank by its lexical evidence: «от молочницы» finds fluconazole; owner queries
+  unchanged. «депрессия ST» in a short query still reaches the depression КР.
+- **Drug search latency.** With all 32 drug packages installed, «Препараты» queries took 5–14 s on
+  the emulator (lexical work over ~3 GB of modules; KD1's vector stage is cheap there) — open.
 - **Not done.** A physical phone; an installed e5 model must be downloaded again (the profile
   changed, so search stays lexical until then).
 

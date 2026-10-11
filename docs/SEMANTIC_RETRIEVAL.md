@@ -92,7 +92,12 @@ probe R@1 −0.024). The owner's own queries are the independent check
 | **KD1 v4c** | **0.578** | 0.822 | **0.682** | 0.714 | 0.917 |
 
 Drug search (medications scope, hybrid, 45 indication queries): hit@1 / hit@5 e5 0.600 / 0.911,
-v3 0.600 / 0.844, v4c 0.578 / 0.867. Most of e5's hits that KD1 lost were a single weak match at
+v3 0.600 / 0.844, v4c 0.578 / 0.867 (also with the confidence gate below).
+
+`KD1_FUSION.confidence` (0.25–0.35) scales semantic strength by the query's best cosine: the student
+peaks at 0.22–0.24 for «от молочницы», below the 10th percentile of every real query set
+(0.31–0.41), and such a query now ranks by its lexical evidence (fluconazole found); Q1 dev −1 query
+at R@5, owner queries unchanged, Q1 test R@1 0.454 → 0.460. Most of e5's hits that KD1 lost were a single weak match at
 rank 3–5; the one real loss is «от молочницы», where the model ranks mastopathy and lactation
 products above fluconazole. Trade-name top-1 1.00 throughout. Query encoder: 3.7 ms p50 on one CPU thread (e5 4.3 ms). Method,
 variants and every number: [`research/embedding-distillation-2026-10-09.md`](research/embedding-distillation-2026-10-09.md).

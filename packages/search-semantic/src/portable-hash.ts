@@ -28,6 +28,13 @@ export interface QueryEmbedder {
  */
 export interface SemanticFusion {
   readonly band?: number;
+  /**
+   * Absolute calibration on top of `band`: every semantic strength is multiplied by how far the
+   * query's best cosine lies between `low` (0, the vectors found nothing they are sure of) and
+   * `high` (1). A query whose vectors are unsure falls back to lexical ranking instead of letting
+   * the relatively best weak hit count as a strong one.
+   */
+  readonly confidence?: { readonly low: number; readonly high: number };
   readonly lexicalWeight: number;
   /** Weight of a chunk found only by vectors. */
   readonly vectorOnlyWeight: number;

@@ -158,8 +158,10 @@ numbers in [`SEMANTIC_RETRIEVAL.md`](SEMANTIC_RETRIEVAL.md).
    - `hybrid`: lexical score / best lexical × `lexicalWeight`; semantic strength = cosine relative
      to the query's best cosine within `band` (0…1; raw cosine without a band); vector-only hit =
      strength × `vectorOnlyWeight`; found by both = lexical part + strength × `corroborationWeight`
-     + 0.04. KD1: band 0.50, weights 0.3 / 0.8 / 0.3 (student cosines spread wider than e5's,
-     which used band 0.10, 0.5 / 0.8 / 0.3). Legacy: no band, 0.78 / 0.62 / 0.22.
+     + 0.04. With `confidence {low, high}` every strength is also multiplied by where the query's
+     best cosine lies between `low` (0) and `high` (1), so unsure vectors fall back to lexical
+     ranking. KD1: band 0.50, confidence 0.25–0.35, weights 0.3 / 0.8 / 0.3 (student cosines spread
+     wider than e5's, which used band 0.10, 0.5 / 0.8 / 0.3). Legacy: no band, 0.78 / 0.62 / 0.22.
    Exact-alias documents and the exact subject title survive the cut as in lexical fusion.
 
 Any failure falls back to lexical and is reported in `diagnostics.semantic` (`status`,

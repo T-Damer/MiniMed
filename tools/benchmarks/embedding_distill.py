@@ -190,7 +190,54 @@ def indication_texts(packs: Path, rng: random.Random) -> list[str]:
     return sorted(found)
 
 
-def texts(work: Path, drug_packs: Path | None) -> None:
+def indication_sentences(packs: Path) -> list[str]:
+    """Every sentence of the indication sections (lay words such as «молочница» live there)."""
+    import sqlite3
+
+    found: set[str] = set()
+    for path in sorted(packs.glob("*.db")):
+        db = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+        query = f"""SELECT c.original_text
+                      FROM chunks c JOIN sections s ON s.id = c.section_id {INDICATION_SECTIONS}"""
+        for (text,) in db.execute(query):
+            for part in re.split(r"(?<=[.;:])\s+", text):
+                if 8 <= len(part.strip()) <= 300:
+                    found.add(clean(part))
+        db.close()
+    return sorted(found)
+
+
+def alias_terms(core: Path) -> list[str]:
+    """Names and the colloquial or alternative names the core's sources give for them."""
+    import sqlite3
+
+    db = sqlite3.connect(f"file:{core}?mode=ro", uri=True)
+    found = {
+        clean(value)
+        for row in db.execute("SELECT canonical_term, alias FROM aliases")
+        for value in row
+        if isinstance(value, str) and 3 <= len(value.strip()) <= 120
+    }
+    db.close()
+    return sorted(found)
+
+
+def short_spans(rows: list[dict], rng: random.Random) -> list[str]:
+    """One 2–6-word span of every КР chunk: the length of a hurried query."""
+    found: set[str] = set()
+    for row in rows:
+        words = row["text"].split()
+        if len(words) < 3:
+            continue
+        length = rng.randint(2, 6)
+        start = rng.randint(0, max(0, len(words) - length))
+        found.add(clean(" ".join(words[start : start + length])))
+    return sorted(found)
+
+
+def texts(
+    work: Path, drug_packs: Path | None, core: Path | None = None, spans: bool = False
+) -> None:
     rng = random.Random(SEED)
     blocked = benchmark_texts(work)
     rows = ee.load_corpus(work)
@@ -202,6 +249,15 @@ def texts(work: Path, drug_packs: Path | None) -> None:
     }
     if drug_packs is not None:
         pools["indications"] = indication_texts(drug_packs, rng)
+    # Later additions draw from their own generator, so the earlier pools stay text-identical and
+    # their teacher targets are reused.
+    extra = random.Random(SEED + 2)
+    if drug_packs is not None and core is not None:
+        pools["indication-sentences"] = indication_sentences(drug_packs)
+    if core is not None:
+        pools["aliases"] = alias_terms(core)
+    if spans:
+        pools["short-spans"] = short_spans(rows, extra)
     seen: set[str] = set()
     out = []
     for source, values in pools.items():
@@ -343,6 +399,8 @@ def train(
     pairs_path: Path | None = None,
     pair_weight: float = 1.0,
     pair_batch: int = 64,
+    extra_passages: Path | None = None,
+    hard_mining: bool = False,
 ) -> None:
     """Distillation (cosine + ranking KL); with `pairs_path` also a supervised InfoNCE term.
 
@@ -364,6 +422,15 @@ def train(
     passages = projected(
         work, teacher, dims, np.load(work / f"emb-{ee.slug(teacher)}.npy")
     )
+    chunk_docs = np.array([row["documentId"] for row in ee.load_corpus(work)])
+    if extra_passages is not None:
+        # Already projected vectors of other families (the drug indication sections), so the
+        # ranking term also teaches how queries order those passages.
+        extra = unit(np.load(extra_passages))
+        extra_docs = json.loads(extra_passages.with_suffix(".docs.json").read_text())
+        passages = np.concatenate([passages, extra])
+        chunk_docs = np.concatenate([chunk_docs, np.array(extra_docs)])
+        print(f"passages: {len(passages)} ({len(extra)} extra)", flush=True)
     near = neighbours(passages, goal, NEIGHBOURS)
     if init is not None:
         student = SentenceTransformer(str(init), device=device)
@@ -383,7 +450,6 @@ def train(
 
     pair_rows: list[dict] = []
     if pairs_path is not None:
-        chunk_docs = np.array([row["documentId"] for row in ee.load_corpus(work)])
         doc_chunks: dict[str, np.ndarray] = {
             doc: np.flatnonzero(chunk_docs == doc) for doc in np.unique(chunk_docs)
         }
@@ -422,12 +488,32 @@ def train(
     store = torch.from_numpy(passages).to(device)
     targets_t = torch.from_numpy(goal).to(device)
     order = np.random.default_rng(SEED).permutation(len(rows))
+    if hard_mining:
+        # Half of every batch uniform, half in proportion to how far the starting student is from
+        # the teacher on that text: rare words and false friends get seen far more often.
+        with torch.no_grad():
+            start = unit(
+                student.encode(
+                    [STUDENT_PREFIX + r["text"] for r in rows],
+                    batch_size=256,
+                    convert_to_numpy=True,
+                )
+            )
+        gap = np.clip(1 - (start * goal).sum(-1), 1e-4, None)
+        weights = 0.5 / len(rows) + 0.5 * gap / gap.sum()
+        order = np.random.default_rng(SEED).choice(
+            len(rows), size=max(len(rows), steps * batch), p=weights / weights.sum()
+        )
+        print(
+            f"hard mining: mean gap {gap.mean():.3f}, p90 {np.percentile(gap, 90):.3f}",
+            flush=True,
+        )
     pair_order = np.random.default_rng(SEED + 1).permutation(max(1, len(pair_rows)))
     student.train()
     started = time.perf_counter()
     log = []
     for step in range(steps):
-        index = order[(step * batch) % len(rows) : (step * batch) % len(rows) + batch]
+        index = order[(step * batch) % len(order) : (step * batch) % len(order) + batch]
         if len(index) < 2:
             continue
         s = F.normalize(
@@ -768,6 +854,12 @@ def main() -> None:
     t.add_argument(
         "--drug-packs", type=Path, help="decoded drug modules: indication texts"
     )
+    t.add_argument(
+        "--core", type=Path, help="core.db: alias terms (and every indication sentence)"
+    )
+    t.add_argument(
+        "--short-spans", action="store_true", help="a 2-6-word span of every КР chunk"
+    )
     g = sub.add_parser("targets")
     g.add_argument("--work", type=Path, required=True)
     g.add_argument("--teacher", required=True)
@@ -793,6 +885,16 @@ def main() -> None:
     )
     r.add_argument("--pair-weight", type=float, default=1.0)
     r.add_argument("--pair-batch", type=int, default=64)
+    r.add_argument(
+        "--extra-passages",
+        type=Path,
+        help="projected vectors (+ .docs.json) of other families",
+    )
+    r.add_argument(
+        "--hard-mining",
+        action="store_true",
+        help="oversample texts far from the teacher",
+    )
     v = sub.add_parser("evaluate")
     v.add_argument("--work", type=Path, required=True)
     v.add_argument("--teacher", required=True)
@@ -805,7 +907,7 @@ def main() -> None:
     if args.command == "export":
         export(args.student, args.out)
     elif args.command == "texts":
-        texts(args.work, args.drug_packs)
+        texts(args.work, args.drug_packs, args.core, args.short_spans)
     elif args.command == "targets":
         targets(args.work, args.teacher, args.batch)
     elif args.command == "project":
@@ -826,6 +928,8 @@ def main() -> None:
             args.pairs,
             args.pair_weight,
             args.pair_batch,
+            args.extra_passages,
+            args.hard_mining,
         )
     else:
         evaluate(args.work, args.teacher, args.dims, args.student)

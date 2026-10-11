@@ -16,7 +16,12 @@ import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, resolve } from 'node:path';
 import { env, pipeline } from '@huggingface/transformers';
 import { createMedicalCore } from '@localmed/core';
-import { KD1_FUSION, KD1_PROFILE, NeuralQueryEmbedder } from '@localmed/search-semantic';
+import {
+  KD1_FUSION,
+  KD1_PROFILE,
+  NeuralQueryEmbedder,
+  type SemanticFusion,
+} from '@localmed/search-semantic';
 import { MultiMedicalStore } from '@localmed/storage';
 import { ScopedMedicalCore } from '../../../apps/app/src/features/search/ScopedMedicalCore';
 import { E5_MODEL_ID } from '../../../apps/app/src/features/semantic/e5-model';
@@ -83,7 +88,16 @@ for (const method of ['search', 'searchVector'] as const) {
 const core = createMedicalCore({
   store,
   platform: 'test',
-  embedder: new NeuralQueryEmbedder(KD1_PROFILE, encode, KD1_FUSION),
+  // `--fusion='{"band":0.5,…}'` measures candidate constants; KD1_FUSION otherwise.
+  embedder: new NeuralQueryEmbedder(
+    KD1_PROFILE,
+    encode,
+    process.argv.find((item) => item.startsWith('--fusion='))
+      ? (JSON.parse(
+          process.argv.find((item) => item.startsWith('--fusion='))?.slice(9) ?? '{}',
+        ) as SemanticFusion)
+      : KD1_FUSION,
+  ),
 });
 const initialized = await core.initialize();
 if (!initialized.ok) throw new Error(initialized.error.message);

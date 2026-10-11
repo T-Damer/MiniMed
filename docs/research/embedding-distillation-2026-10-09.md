@@ -271,12 +271,56 @@ Debug APK (Capacitor, the published catalog and model) on an Android 16 arm64 em
 pins, every mirror file by git blob hash, and every module's checksums, profile and vector coverage
 (790 modules, model and mirrors: OK on 2026-10-11).
 
+## False friends, 2026-10-11
+
+Teacher against student (v4c), same passage vectors, top 5: for «от молочницы», «таблетки/свечи от
+молочницы» the teacher returns fluconazole, miconazole, natamycin; the student returns mastopathy and
+contraceptive products. For «депрессия сегмента ST на ЭКГ» the teacher stays cardiac; the student
+puts the depression КР second. Controls («мастопатия», «депрессия, потеря интереса») are right for
+both. The vectors of the modules are fine; the student did not learn the teacher's reading.
+
+Two student variants did not fix it and were not kept: v5 (v4c + 148 016 more training texts — every
+core alias and canonical term, every sentence of the indication sections, a 2–6-word span of every
+КР chunk; dev R@5 0.802 → 0.754) and v6 (v5's texts + the drug indication passages in the ranking
+term + sampling texts in proportion to the student–teacher gap; dev R@5 0.784). Both still rank
+mastopathy products first for «от молочницы».
+
+What the vectors *say* about such a query is measurable: the student's best cosine. Per query set,
+its 10th percentile is 0.38 (Q1 complaints), 0.41 (Q1 diagnoses), 0.35 (owner queries), 0.31 (drug
+indications); the «молочница» queries peak at 0.22–0.24. Hybrid fusion used only the cosine relative
+to the query's best one (`band`), so the best of a set of weak hits counted as fully strong.
+`SemanticFusion.confidence` multiplies every semantic strength by where the best cosine lies between
+`low` and `high`; `KD1_FUSION.confidence = {low: 0.25, high: 0.35}`. When the vectors are unsure, the
+ranking falls back to lexical evidence.
+
+| clinical hybrid | Q1 dev R@1 / R@5 | Q1 test R@1 / R@5 | owner R@1 / R@5 | drugs hit@1 / hit@5 |
+|---|---|---|---|---|
+| `KD1_FUSION` before | 0.425 / 0.749 | 0.454 / 0.718 | 0.556 / 0.822 | 0.578 / 0.867 |
+| **with confidence** | 0.425 / 0.743 | **0.460** / 0.718 | 0.556 / 0.822 | 0.578 / 0.867 |
+| + corroboration 0.6 | 0.401 / 0.743 | — | — | 0.511 / 0.844 |
+
+In the drug set «от молочницы» is found (Ацилакт, Флуконазол ШТАДА, ТАЛС, натрия тетраборат) and one
+weak hit of «давление» (a glaucoma-drop list either way) drops out. On the emulator, five thrush
+wordings: fluconazole in the top 3 for «молочница», «молочница у женщин чем лечить», «лечение
+молочницы у женщин»; «средство от молочницы» falls back to weak lexical matches of «средство».
+Raising `corroborationWeight` (a chunk found by both lexical and vector search should not score below
+a vector-only one) would help «депрессия ST», whose vectors are confident (0.46), but costs dev R@1
+and drug hit@1, so it was not adopted.
+
+**Drug search on the device.** All 32 drug packages installed through «Скачать препараты» (343 MB):
+indications such as «таблетки от головы» (кофеин, папаверин, Нурофен), «от изжоги» (Изжогофф,
+Гевискон), «снотворное» (мелатонин), «мазь от грибка ногтей» (Экзодерил, Экзонафтин) are right, but a
+query takes 5–14 s in «Препараты» against 0.7 s for КР. On the host the lexical part alone takes
+0.9–5.5 s over those modules; the vector stage is cheap in the app's cached WASM store. This is
+lexical work over ~3 GB of drug modules, not KD1; it is a separate task.
+
 ## Left
 
 1. Phone measurement of the student through the WebView (WASM), as for e5 (the export has the same
    architecture and graph size plus one 384×384 MatMul).
-2. Semantic false friends: «от молочницы» (thrush read as breast; the pairs do not cover drug
-   indications), «депрессия ST» (ST depression read as the mood disorder).
-3. A physical phone: first-query and steady query times in a real WebView.
-4. Release gates (`benchmark:real:release`) run on core.db without vectors and are unaffected; the
+2. «депрессия ST» (ST depression read as the mood disorder) with a short query; «средство от
+   молочницы»-type queries where the confidence fallback meets weak lexical evidence.
+3. «Препараты» search latency with all drug modules installed (5–14 s on the emulator).
+4. A physical phone: first-query and steady query times in a real WebView.
+5. Release gates (`benchmark:real:release`) run on core.db without vectors and are unaffected; the
    semantic sets above are the measurement of this change.

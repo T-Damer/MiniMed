@@ -1237,6 +1237,46 @@ describe('MedicalCore', () => {
     expect(response.value.groups[0]?.results[0]?.semanticScore).not.toBeNull();
   });
 
+  it('lets an unsure vector stage fall back to lexical ranking (fusion confidence)', async () => {
+    const base = new PortableHashEmbedder(PORTABLE_HASH_PROFILE);
+    // No cosine reaches `low`: every semantic strength is gated to zero.
+    const unsure = {
+      profile: base.profile,
+      fusion: {
+        lexicalWeight: 0.78,
+        vectorOnlyWeight: 0.62,
+        corroborationWeight: 0.22,
+        confidence: { low: 2, high: 3 },
+      },
+      embedQuery: (text: string) => base.embedQuery(text),
+    };
+    const core = createMedicalCore({
+      store: new InMemoryMedicalStore(),
+      seed: CORE_SLICE_PACK,
+      platform: 'test',
+      embedder: unsure,
+    });
+    cores.push(core);
+    const request = {
+      query: 'Боль переместилась из околопупочной области вправо вниз, была рвота',
+      filters: {},
+      limit: 10,
+      includeSuggestions: false,
+    } as const;
+
+    const hybrid = await core.search({ ...request, mode: 'hybrid' });
+    const lexical = await core.search({ ...request, mode: 'lexical' });
+    if (!hybrid.ok || !lexical.ok) throw new Error('search failed');
+    expect(hybrid.value.modeUsed).toBe('hybrid');
+    expect(hybrid.value.groups.map((group) => group.documentId)).toEqual(
+      lexical.value.groups.map((group) => group.documentId),
+    );
+    const vectorOnly = hybrid.value.groups
+      .flatMap((group) => group.results)
+      .filter((result) => result.lexicalScore === 0);
+    for (const result of vectorOnly) expect(result.finalScore).toBe(0);
+  });
+
   it('falls back to lexical search on an incompatible embedding profile', async () => {
     const store = new InMemoryMedicalStore();
     const incompatibleEmbedder = new PortableHashEmbedder({
