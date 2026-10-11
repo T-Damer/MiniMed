@@ -51,6 +51,8 @@ export function installE5Model(signal?: AbortSignal): Promise<void> {
         await removeStaleModelFiles();
         let completed = 0;
         const fetchVerified = async (part: E5ModelPart, offset: number): Promise<Uint8Array> => {
+          // Each file or part is verified as soon as it arrives; the next one is a download again.
+          context.phase('downloading');
           const bytes = await downloadWithRetry({
             jobId: context.id,
             trackProgress: false,

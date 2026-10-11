@@ -1296,7 +1296,12 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                     <span class="query-index__text">
                       {analysisLoading()
                         ? 'Обновляем разбор…'
-                        : `Распознано ${analysis().facts.length} полей · показать детали`}
+                        : `Распознано ${analysis().facts.length} ${pluralRu(
+                            analysis().facts.length,
+                            'поле',
+                            'поля',
+                            'полей',
+                          )} · показать детали`}
                     </span>
                   </span>
                 </summary>

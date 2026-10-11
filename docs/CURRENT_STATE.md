@@ -41,8 +41,12 @@ Detailed history, moved verbatim on 2026-09-24:
   (renamed from `embed_modules_e5.py`; every КР rebuild uses it now, ≈ 1 h of GPU for all 774) and
   `scripts/reframe-modules.ts --marker kd1`. Student training: `tools/benchmarks/embedding_distill.py`
   (pairs: `tools/benchmarks/src/build-distill-pairs.ts`).
-- **Not done.** Phone timing of the student in the WebView; an installed e5 model must be
-  downloaded again (the profile changed, so search stays lexical until then).
+- **Emulator** (Android 16 arm64, debug APK, published data): model download 130 MB verified in
+  60–80 s; owner case queries over 26 installed КР found in the top 5 for 39 of 45, results in 685 ms
+  (p50); the first semantic query after installing or updating the app or model takes 6–9 s once.
+  `tools/ingest/scripts/verify_embedded_release.py` verifies the release (790 modules, model).
+- **Not done.** A physical phone; an installed e5 model must be downloaded again (the profile
+  changed, so search stays lexical until then).
 
 ## Owner UI batch — 2026-10-08 (STATE UX13)
 

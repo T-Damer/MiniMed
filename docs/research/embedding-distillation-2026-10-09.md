@@ -243,11 +243,40 @@ even (two queries better at R@1, one worse at R@5 in hybrid; semantic only 0.578
 over to independent queries — nor does it cost anything there. v4c stays for its R@1 and complaint
 gains.
 
+## Emulator check, 2026-10-11
+
+Debug APK (Capacitor, the published catalog and model) on an Android 16 arm64 emulator
+(`sdk_gphone64_arm64`, Chrome 133 WebView), driven through the WebView DevTools socket:
+
+- First run: core 72 MB from the release, then Settings → «Поиск по смыслу»: 130 MB from
+  `datasets/kd1-query-encoder-2026.10.11.2`, both ONNX parts and the joined file verified, «Готово к
+  работе» in 60–80 s. The 26 КР the owner queries name installed through their pointer pages; the
+  installed records carry the `.kd1` versions.
+- The 45 owner queries naming a КР, typed into the search box in «Клинический разбор» over those 26
+  modules: vectors used in 41, the expected КР in the top 5 for 39 (thoughtful 19/21, rush 20/24),
+  first for 20; submit → rendered results p50 685 ms, p90 1.4 s.
+- First semantic query after the app or the model is installed or updated: 5.9–8.7 s (once);
+  later cold starts 0.7–1.0 s. Loading the model when the search box gets focus made no measurable
+  difference here and was not kept.
+- Fixed from the run: the model card stayed on «Проверяем файлы…» while later files and parts
+  downloaded (the phase was never set back; old since E2), its «Как это работает» still described
+  e5-small; the fact counter said «Распознано 1 полей».
+- Seen: «Давящая боль за грудиной, депрессия ST» puts the depression КР first (ACS second and
+  third; with the full case sentence ACS is first) — the model reads «депрессия ST» as the mood
+  disorder, like «молочница» as the breast.
+- Not done: a physical phone (the emulator runs on Apple silicon, faster than a phone), drug
+  modules on the device.
+
+`tools/ingest/scripts/verify_embedded_release.py --marker kd1` re-checks the release offline: app
+pins, every mirror file by git blob hash, and every module's checksums, profile and vector coverage
+(790 modules, model and mirrors: OK on 2026-10-11).
+
 ## Left
 
 1. Phone measurement of the student through the WebView (WASM), as for e5 (the export has the same
    architecture and graph size plus one 384×384 MatMul).
-2. «от молочницы»: a semantic confusion of the model (thrush read as breast), not a lexical one;
-   the recommendation pairs do not cover drug indications.
-3. Release gates (`benchmark:real:release`) run on core.db without vectors and are unaffected; the
+2. Semantic false friends: «от молочницы» (thrush read as breast; the pairs do not cover drug
+   indications), «депрессия ST» (ST depression read as the mood disorder).
+3. A physical phone: first-query and steady query times in a real WebView.
+4. Release gates (`benchmark:real:release`) run on core.db without vectors and are unaffected; the
    semantic sets above are the measurement of this change.
