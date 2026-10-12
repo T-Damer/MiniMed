@@ -58,9 +58,11 @@ function appendProvenanceErrors(
   }
 }
 
-async function loadAllRecords(): Promise<readonly ToolDefinitionRecord[]> {
+async function loadAllRecords(
+  modulePaths: readonly string[] = TOOL_MODULES,
+): Promise<readonly ToolDefinitionRecord[]> {
   const records: ToolDefinitionRecord[] = [];
-  for (const modulePath of TOOL_MODULES) {
+  for (const modulePath of modulePaths) {
     const module = JSON.parse(await readFile(modulePath, 'utf8')) as {
       schemaVersion?: unknown;
       tools: readonly unknown[];
@@ -222,6 +224,19 @@ function lintRecord(record: ToolDefinitionRecord): readonly string[] {
 
 async function main(): Promise<void> {
   const path = process.argv[2];
+  // `--modules a.json b.json` lints draft modules that are not yet in TOOL_MODULES (no catalog totals).
+  if (path === '--modules') {
+    const records = await loadAllRecords(process.argv.slice(3));
+    const errors = records.flatMap(lintRecord);
+    if (errors.length > 0) {
+      console.error('Tool modules have invalid v2 definitions');
+      for (const error of errors) console.error(`  - ${error}`);
+      process.exitCode = 1;
+      return;
+    }
+    console.log(`tool modules ok (${records.length} tools)`);
+    return;
+  }
   if (!path) {
     const records = await loadAllRecords();
     const errors = records.flatMap(lintRecord);

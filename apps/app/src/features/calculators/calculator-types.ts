@@ -15,6 +15,15 @@ export type CalculatorCategory =
   | 'hematology'
   | 'pediatrics'
   | 'neonatology'
+  | 'intensive-care'
+  | 'surgery'
+  | 'neurology'
+  | 'pulmonology'
+  | 'endocrinology'
+  | 'laboratory'
+  | 'rheumatology'
+  | 'oncology'
+  | 'urology'
   | 'custom';
 
 export interface CalculatorSourceReference {

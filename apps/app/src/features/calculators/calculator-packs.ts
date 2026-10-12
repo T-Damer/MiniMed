@@ -47,6 +47,15 @@ const SECTION_IDS = new Set<CalculatorSectionId>([
   'hematology',
   'pediatrics',
   'neonatology',
+  'intensive-care',
+  'surgery',
+  'neurology',
+  'pulmonology',
+  'endocrinology',
+  'laboratory',
+  'rheumatology',
+  'oncology',
+  'urology',
   'custom',
 ]);
 
@@ -144,6 +153,15 @@ export const CALCULATOR_SECTION_CATEGORY_IDS: Readonly<
   hematology: [],
   pediatrics: ['minimed.clinical.pediatrics.gastro-nutrition'],
   neonatology: ['minimed.clinical.neonatology.ru'],
+  'intensive-care': [],
+  surgery: [],
+  neurology: [],
+  pulmonology: [],
+  endocrinology: [],
+  laboratory: [],
+  rheumatology: [],
+  oncology: [],
+  urology: ['minimed.clinical.nephrology-urology.ru'],
   custom: [],
 };
 
@@ -212,6 +230,51 @@ export const CALCULATOR_SECTIONS: readonly CalculatorSectionDefinition[] = [
     id: 'pediatrics',
     title: 'Педиатрия',
     description: 'Кормления, прикорм и дневной рацион для детей до 3 лет.',
+  },
+  {
+    id: 'intensive-care',
+    title: 'Реанимация и интенсивная терапия',
+    description: 'Тяжесть состояния, сепсис, органная дисфункция и седация.',
+  },
+  {
+    id: 'surgery',
+    title: 'Хирургия и травма',
+    description: 'Тяжесть травмы, периоперационный риск и хирургические шкалы.',
+  },
+  {
+    id: 'neurology',
+    title: 'Неврология и реабилитация',
+    description: 'Инсульт, нейродегенеративные болезни, функциональный статус и уход.',
+  },
+  {
+    id: 'pulmonology',
+    title: 'Пульмонология и инфекции',
+    description: 'Пневмония, ХОБЛ и инфекционные шкалы.',
+  },
+  {
+    id: 'endocrinology',
+    title: 'Эндокринология и обмен',
+    description: 'Инсулинорезистентность, диабет, щитовидная железа и энергообмен.',
+  },
+  {
+    id: 'laboratory',
+    title: 'Лабораторные расчёты',
+    description: 'Липиды, печёночные и почечные коэффициенты, производные показатели анализов.',
+  },
+  {
+    id: 'rheumatology',
+    title: 'Ревматология и дерматология',
+    description: 'Активность артритов, СКВ, спондилоартритов и псориаза.',
+  },
+  {
+    id: 'oncology',
+    title: 'Онкология',
+    description: 'Ответ опухоли, функциональный статус и дозы химиопрепаратов.',
+  },
+  {
+    id: 'urology',
+    title: 'Урология',
+    description: 'Простатические симптомы, эректильная функция и нефрометрия.',
   },
   {
     id: 'custom',

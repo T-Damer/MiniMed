@@ -31,6 +31,15 @@ export const CalculatorCategorySchema = z.enum([
   'hematology',
   'neonatology',
   'pediatrics',
+  'intensive-care',
+  'surgery',
+  'neurology',
+  'pulmonology',
+  'endocrinology',
+  'laboratory',
+  'rheumatology',
+  'oncology',
+  'urology',
   /** Calculators the doctor made in the app («Мои калькуляторы»); never shipped in a content module. */
   'custom',
 ]);
