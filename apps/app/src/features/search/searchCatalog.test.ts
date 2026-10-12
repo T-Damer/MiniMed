@@ -100,11 +100,20 @@ describe('unified tool catalog', () => {
   });
   it('lists no tool for a clinical abbreviation that only occurs inside longer words', () => {
     const tools = searchCatalogTools();
-    for (const abbreviation of ['АГ', 'ОКС', 'ХСН']) {
-      expect(
-        matchingCatalogTools(tools, 'all', undefined, abbreviation).map((entry) => entry.title),
-      ).toEqual([]);
-    }
+    expect(matchingCatalogTools(tools, 'all', undefined, 'АГ').map((entry) => entry.title)).toEqual(
+      [],
+    );
+    // ОКС and ХСН are whole-word aliases of the cardiology scales, not substrings of longer words.
+    expect(
+      matchingCatalogTools(tools, 'all', undefined, 'ОКС').map((entry) => entry.title),
+    ).toEqual([
+      'TIMI — нестабильная стенокардия и ИМ без подъёма ST',
+      'CRUSADE — риск кровотечения при ИМ без подъёма ST',
+      'HEART — боль в груди в отделении неотложной помощи',
+    ]);
+    expect(
+      matchingCatalogTools(tools, 'all', undefined, 'ХСН').map((entry) => entry.title),
+    ).toEqual(['Функциональный класс по NYHA']);
     // A word start still finds a tool while the query is being typed.
     const scales = matchingCatalogTools(tools, 'all', undefined, 'шк').map((entry) => entry.title);
     expect(scales.length).toBeGreaterThan(0);

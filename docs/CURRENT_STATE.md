@@ -20,6 +20,27 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Cardiology and thromboembolism calculators — 2026-10-12 (STATE CALC-CARDIO)
+
+- **New tool module** `content/tool-modules/cardiology.json` → `minimed.tools.cardiology.ru` 0.1.0-preview.1
+  (17 calculators, `category: cardiology`, built DB `apps/app/public/content/modules/minimed-tools-cardiology-0.1.0-preview.1.db`,
+  catalog entry + shell regenerated with `bun run content:catalog:tools`): Wells PE (Wells 2000), Wells DVT
+  (Wells 2003, three-tier cut-points from Wells 1997), revised Geneva (Le Gal 2006), PERC (Kline 2004/2008),
+  TIMI UA/NSTEMI (Antman 2000), TIMI STEMI (Morrow 2000), RCRI (Lee 1999), CRUSADE (Subherwal 2009), Killip
+  (1967), NYHA (1994), CCS angina class (Campeau 1976), HEART (Six 2008; bands from Backus 2013), Duke
+  treadmill score (Mark 1987/1991), PESI (Aujesky 2005), sPESI (Jiménez 2010), Padua (Barbar 2010),
+  HEMORR₂HAGES (Gage 2006). Points, cut-points and rates come from the publications (PubMed abstracts or
+  the paper itself); bands carry the published event rates and say which cohort they come from. Behaviour
+  is schema data only (`interpretations` + `evaluation.rules`); no UI change.
+- **Not added, on purpose:** GRACE 2.0 and SCORE2 / Framingham / PROCAM / ACC-AHA PCE / EuroSCORE II
+  (regression coefficients or nomograms that were not reproduced from the publication), SAMe-TT₂R₂ (the paper's
+  abstract cuts at ≥2, widely cited as >2), DAPT, Duke endocarditis criteria (diagnostic criteria, not a score).
+- Tests: `apps/app/src/features/calculators/cardiology-tool-module.test.ts` (worked cases from the published
+  point tables with every cut-point edge), `tools/ingest/tests/test_tool_modules.py`; counters in
+  `tool-catalog.test.ts`, `tool-age-scope-audit.test.ts` (86 tools, 69 calculators in the registry) and the
+  `lint-calculator-schema.ts` totals (67 calculators, 19 assessments) were updated. The frozen native golden
+  exports (`native-tools-golden.json`) were not regenerated.
+
 ## «Препараты» search with every drug package installed — 2026-10-11 (STATE PERF3)
 
 With all 32 drug packages installed (343 MB, about 3 GB on the device), a search in «Препараты» took

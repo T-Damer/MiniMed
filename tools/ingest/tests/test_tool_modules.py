@@ -44,3 +44,23 @@ def test_build_core_clinical_tool_module_keeps_all_calculators(tmp_path: Path) -
         assert connection.execute(
             "SELECT count(*) FROM tool_definitions WHERE kind = 'calculator'"
         ).fetchone() == (calculator_count,)
+
+
+def test_build_cardiology_tool_module_keeps_all_calculators(tmp_path: Path) -> None:
+    root = Path(__file__).resolve().parents[3]
+    source = root / "content/tool-modules/cardiology.json"
+    module, _checksum = load_tool_module(source)
+    output = tmp_path / "cardiology.db"
+    source_count = sum(len(tool.sources) for tool in module.tools)
+
+    report = build_tool_module(source, output)
+
+    assert len(module.tools) == 17
+    assert all(tool.kind == "calculator" for tool in module.tools)
+    assert report["toolCount"] == 17
+    assert report["sourceCount"] == source_count
+    with sqlite3.connect(output) as connection:
+        assert connection.execute("PRAGMA integrity_check").fetchone() == ("ok",)
+        assert connection.execute(
+            "SELECT count(*) FROM tool_definitions WHERE category = 'cardiology'"
+        ).fetchone() == (17,)

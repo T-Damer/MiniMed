@@ -1,0 +1,4630 @@
+{
+  "id": "minimed.tools.cardiology.ru",
+  "version": "0.1.0-preview.1",
+  "title": "Кардиология и тромбоэмболии: шкалы и расчёты",
+  "schemaVersion": 2,
+  "builtAt": "2026-10-12T00:00:00Z",
+  "tools": [
+    {
+      "id": "minimed.calculator.wells-pe",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "wells-pe-probability",
+      "title": "Wells — вероятность ТЭЛА",
+      "shortTitle": "Wells (ТЭЛА)",
+      "aliases": [
+        "Wells PE",
+        "критерии Wells",
+        "критерии Уэллса",
+        "критерии Велла",
+        "тромбоэмболия лёгочной артерии",
+        "ТЭЛА"
+      ],
+      "bankId": "cardiology",
+      "bankLabel": "Кардиология",
+      "category": "cardiology",
+      "description": "Балльная оценка клинической вероятности тромбоэмболии лёгочной артерии по семи признакам.",
+      "estimatedMinutes": 2,
+      "audience": "Взрослые с подозрением на ТЭЛА; не заменяет диагностический алгоритм",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.wells-pe",
+        "slug": "wells-pe-probability",
+        "title": "Wells — вероятность ТЭЛА",
+        "shortTitle": "Wells (ТЭЛА)",
+        "aliases": [
+          "Wells PE",
+          "критерии Wells",
+          "критерии Уэллса",
+          "критерии Велла",
+          "тромбоэмболия лёгочной артерии",
+          "ТЭЛА"
+        ],
+        "summary": "Балльная оценка клинической вероятности тромбоэмболии лёгочной артерии по семи признакам.",
+        "ageScope": {
+          "groups": ["adults"],
+          "minAge": {
+            "value": 18,
+            "unit": "years"
+          },
+          "basis": "Определение: «Взрослые с подозрением на ТЭЛА»; в исходной работе обследовались взрослые амбулаторные пациенты."
+        },
+        "category": "cardiology",
+        "clinical": true,
+        "formulaDisplay": "Признаки ТГВ 3 + ТЭЛА вероятнее других диагнозов 3 + ЧСС >100 1,5 + иммобилизация/операция 1,5 + ТГВ/ТЭЛА в анамнезе 1,5 + кровохарканье 1 + опухоль 1",
+        "population": "Взрослые амбулаторные пациенты с подозрением на ТЭЛА.",
+        "limitations": [
+          "Шкала оценивает претестовую вероятность и применяется вместе с D-димером или визуализацией по принятому алгоритму.",
+          "Пункт «другой диагноз менее вероятен» отражает суждение врача и не вычисляется по данным.",
+          "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
+        ],
+        "inputs": [
+          {
+            "id": "dvtSigns",
+            "label": "Клинические признаки ТГВ",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Отёк и болезненность по ходу глубоких вен ноги."
+          },
+          {
+            "id": "peMostLikely",
+            "label": "ТЭЛА вероятнее другого диагноза или не менее вероятна",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "В исходной шкале: «нет альтернативного диагноза, который вероятнее ТЭЛА»."
+          },
+          {
+            "id": "heartRate",
+            "label": "ЧСС",
+            "unit": "уд/мин",
+            "kind": "number",
+            "minimum": 20,
+            "maximum": 300,
+            "required": true,
+            "integer": true
+          },
+          {
+            "id": "immobilisationSurgery",
+            "label": "Иммобилизация ≥3 суток или операция за последние 4 недели",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "previousVte",
+            "label": "ТГВ или ТЭЛА в анамнезе",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "hemoptysis",
+            "label": "Кровохарканье",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "malignancy",
+            "label": "Злокачественная опухоль",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Лечение сейчас или в последние 6 месяцев, либо паллиативная помощь."
+          }
+        ],
+        "steps": [
+          {
+            "id": "score",
+            "label": "Wells (ТЭЛА)",
+            "unit": "баллов",
+            "expression": "dvtSigns * 3 + peMostLikely * 3 + cond(heartRate > 100, 1.5, 0) + immobilisationSurgery * 1.5 + previousVte * 1.5 + hemoptysis + malignancy",
+            "displayPrecision": 1,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "decision-support",
+            "message": "Используйте результат как часть клинического решения, а не как самостоятельное назначение или отмену обследования и лечения."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "score < 2",
+            "message": "Менее 2 баллов: низкая клиническая вероятность ТЭЛА; по двухуровневой схеме — ТЭЛА маловероятна (≤4)."
+          },
+          {
+            "when": "score <= 4",
+            "message": "2–4 балла: средняя вероятность; по двухуровневой схеме — ТЭЛА маловероятна (≤4)."
+          },
+          {
+            "when": "score <= 6",
+            "message": "4,5–6 баллов: средняя вероятность; по двухуровневой схеме — ТЭЛА вероятна (>4)."
+          },
+          {
+            "when": "1",
+            "message": "Более 6 баллов: высокая клиническая вероятность ТЭЛА; ТЭЛА вероятна."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Wells PS, Anderson DR, Rodger M, et al. Derivation of a simple clinical model to categorize patients probability of pulmonary embolism: increasing the models utility with the SimpliRED D-dimer",
+            "publisher": "Thrombosis and Haemostasis",
+            "version": "2000",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/10744147/",
+            "page": "83(3):416-420",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score < 2",
+              "verdict": {
+                "rangeId": "low",
+                "title": "Низкая вероятность",
+                "explanation": "Менее 2 баллов: низкая клиническая вероятность ТЭЛА; по двухуровневой схеме — ТЭЛА маловероятна (≤4).",
+                "attentionLevel": "none",
+                "sourceIds": ["wells-pe-probability-wells-2000"]
+              }
+            },
+            {
+              "when": "score <= 4",
+              "verdict": {
+                "rangeId": "moderate-unlikely",
+                "title": "Средняя вероятность",
+                "explanation": "2–4 балла: средняя вероятность; по двухуровневой схеме — ТЭЛА маловероятна (≤4).",
+                "attentionLevel": "moderate",
+                "sourceIds": ["wells-pe-probability-wells-2000"]
+              }
+            },
+            {
+              "when": "score <= 6",
+              "verdict": {
+                "rangeId": "moderate-likely",
+                "title": "Средняя вероятность",
+                "explanation": "4,5–6 баллов: средняя вероятность; по двухуровневой схеме — ТЭЛА вероятна (>4).",
+                "attentionLevel": "moderate",
+                "sourceIds": ["wells-pe-probability-wells-2000"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "high",
+                "title": "Высокая вероятность",
+                "explanation": "Более 6 баллов: высокая клиническая вероятность ТЭЛА; ТЭЛА вероятна.",
+                "attentionLevel": "high",
+                "sourceIds": ["wells-pe-probability-wells-2000"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["wells-pe-probability-wells-2000"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.wells-pe.score",
+            "label": "Wells (ТЭЛА)",
+            "unit": "баллов",
+            "stepId": "score",
+            "method": "calculator:minimed.calculator.wells-pe"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "wells-pe-probability-wells-2000",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Wells PS, Anderson DR, Rodger M, et al. Derivation of a simple clinical model to categorize patients probability of pulmonary embolism: increasing the models utility with the SimpliRED D-dimer",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/10744147/",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.wells-dvt",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "wells-dvt-probability",
+      "title": "Wells — вероятность ТГВ",
+      "shortTitle": "Wells (ТГВ)",
+      "aliases": ["Wells DVT", "критерии Wells", "критерии Уэллса", "тромбоз глубоких вен", "ТГВ"],
+      "bankId": "cardiology",
+      "bankLabel": "Кардиология",
+      "category": "cardiology",
+      "description": "Балльная оценка клинической вероятности тромбоза глубоких вен нижних конечностей по десяти признакам.",
+      "estimatedMinutes": 2,
+      "audience": "Взрослые с подозрением на ТГВ нижних конечностей; не заменяет диагностический алгоритм",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.wells-dvt",
+        "slug": "wells-dvt-probability",
+        "title": "Wells — вероятность ТГВ",
+        "shortTitle": "Wells (ТГВ)",
+        "aliases": [
+          "Wells DVT",
+          "критерии Wells",
+          "критерии Уэллса",
+          "тромбоз глубоких вен",
+          "ТГВ"
+        ],
+        "summary": "Балльная оценка клинической вероятности тромбоза глубоких вен нижних конечностей по десяти признакам.",
+        "ageScope": {
+          "groups": ["adults"],
+          "minAge": {
+            "value": 18,
+            "unit": "years"
+          },
+          "basis": "Определение: «Взрослые с подозрением на ТГВ»; в исходной работе обследовались взрослые амбулаторные пациенты."
+        },
+        "category": "cardiology",
+        "clinical": true,
+        "formulaDisplay": "Сумма десяти признаков по +1 (опухоль, паралич/гипс, постельный режим/операция, болезненность по ходу вен, отёк всей ноги, отёк голени ≥3 см, ямочный отёк, коллатерали, ТГВ в анамнезе) − 2, если другой диагноз не менее вероятен",
+        "population": "Взрослые амбулаторные пациенты с подозрением на ТГВ нижней конечности.",
+        "limitations": [
+          "Шкала оценивает претестовую вероятность и применяется вместе с D-димером и ультразвуковым исследованием по принятому алгоритму.",
+          "Пункт «другой диагноз не менее вероятен» отражает суждение врача и не вычисляется по данным.",
+          "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
+        ],
+        "inputs": [
+          {
+            "id": "activeCancer",
+            "label": "Активная опухоль",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Лечение сейчас или в последние 6 месяцев, либо паллиативная помощь."
+          },
+          {
+            "id": "paralysisCast",
+            "label": "Паралич, парез или недавняя гипсовая иммобилизация ноги",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "bedriddenSurgery",
+            "label": "Постельный режим ≥3 суток или большая операция за последние 12 недель",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Операция под общей или регионарной анестезией."
+          },
+          {
+            "id": "localTenderness",
+            "label": "Болезненность при пальпации по ходу глубоких вен",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "entireLegSwollen",
+            "label": "Отёк всей ноги",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "calfSwelling",
+            "label": "Отёк голени больше чем на 3 см по сравнению со здоровой",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Измерение на 10 см ниже бугристости большеберцовой кости."
+          },
+          {
+            "id": "pittingEdema",
+            "label": "Ямочный отёк только на стороне поражения",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "collateralVeins",
+            "label": "Коллатеральные поверхностные вены (не варикозные)",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "previousDvt",
+            "label": "ТГВ в анамнезе (документированный)",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "alternativeDiagnosis",
+            "label": "Другой диагноз не менее вероятен, чем ТГВ",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          }
+        ],
+        "steps": [
+          {
+            "id": "score",
+            "label": "Wells (ТГВ)",
+            "unit": "баллов",
+            "expression": "activeCancer + paralysisCast + bedriddenSurgery + localTenderness + entireLegSwollen + calfSwelling + pittingEdema + collateralVeins + previousDvt - alternativeDiagnosis * 2",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "decision-support",
+            "message": "Используйте результат как часть клинического решения, а не как самостоятельное назначение или отмену обследования и лечения."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "score >= 3",
+            "message": "3 балла и более: ТГВ вероятен; высокая вероятность по трёхуровневой схеме (Wells, 1997)."
+          },
+          {
+            "when": "score >= 2",
+            "message": "2 балла: ТГВ вероятен (двухуровневая схема, Wells, 2003); по трёхуровневой — средняя вероятность."
+          },
+          {
+            "when": "score >= 1",
+            "message": "1 балл: ТГВ маловероятен (двухуровневая схема); по трёхуровневой — средняя вероятность. При отрицательном D-димере в исследовании 2003 г. УЗИ не выполняли."
+          },
+          {
+            "when": "1",
+            "message": "0 баллов и менее: ТГВ маловероятен; низкая вероятность по трёхуровневой схеме. При отрицательном D-димере в исследовании 2003 г. УЗИ не выполняли."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Wells PS, Anderson DR, Rodger M, et al. Evaluation of D-dimer in the diagnosis of suspected deep-vein thrombosis",
+            "publisher": "New England Journal of Medicine",
+            "version": "2003",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/14507948/",
+            "page": "349(13):1227-1235",
+            "reviewedAt": "2026-10-12"
+          },
+          {
+            "title": "Wells PS, Anderson DR, Bormanis J, et al. Value of assessment of pretest probability of deep-vein thrombosis in clinical management",
+            "publisher": "Lancet",
+            "version": "1997",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/9428249/",
+            "page": "350(9094):1795-1798",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score >= 3",
+              "verdict": {
+                "rangeId": "high",
+                "title": "Высокая вероятность",
+                "explanation": "3 балла и более: ТГВ вероятен; высокая вероятность по трёхуровневой схеме (Wells, 1997).",
+                "attentionLevel": "high",
+                "sourceIds": [
+                  "wells-dvt-probability-wells-2003",
+                  "wells-dvt-probability-wells-1997"
+                ]
+              }
+            },
+            {
+              "when": "score >= 2",
+              "verdict": {
+                "rangeId": "likely",
+                "title": "ТГВ вероятен",
+                "explanation": "2 балла: ТГВ вероятен (двухуровневая схема, Wells, 2003); по трёхуровневой — средняя вероятность.",
+                "attentionLevel": "moderate",
+                "sourceIds": [
+                  "wells-dvt-probability-wells-2003",
+                  "wells-dvt-probability-wells-1997"
+                ]
+              }
+            },
+            {
+              "when": "score >= 1",
+              "verdict": {
+                "rangeId": "unlikely-moderate",
+                "title": "ТГВ маловероятен",
+                "explanation": "1 балл: ТГВ маловероятен (двухуровневая схема); по трёхуровневой — средняя вероятность. При отрицательном D-димере в исследовании 2003 г. УЗИ не выполняли.",
+                "attentionLevel": "none",
+                "sourceIds": [
+                  "wells-dvt-probability-wells-2003",
+                  "wells-dvt-probability-wells-1997"
+                ]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "unlikely-low",
+                "title": "ТГВ маловероятен",
+                "explanation": "0 баллов и менее: ТГВ маловероятен; низкая вероятность по трёхуровневой схеме. При отрицательном D-димере в исследовании 2003 г. УЗИ не выполняли.",
+                "attentionLevel": "none",
+                "sourceIds": [
+                  "wells-dvt-probability-wells-2003",
+                  "wells-dvt-probability-wells-1997"
+                ]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["wells-dvt-probability-wells-2003", "wells-dvt-probability-wells-1997"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.wells-dvt.score",
+            "label": "Wells (ТГВ)",
+            "unit": "баллов",
+            "stepId": "score",
+            "method": "calculator:minimed.calculator.wells-dvt"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "wells-dvt-probability-wells-2003",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Wells PS, Anderson DR, Rodger M, et al. Evaluation of D-dimer in the diagnosis of suspected deep-vein thrombosis",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/14507948/",
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "wells-dvt-probability-wells-1997",
+          "kind": "literature",
+          "relation": "interpretation",
+          "title": "Wells PS, Anderson DR, Bormanis J, et al. Value of assessment of pretest probability of deep-vein thrombosis in clinical management",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/9428249/",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.revised-geneva",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "revised-geneva-pe-probability",
+      "title": "Пересмотренная шкала Geneva — вероятность ТЭЛА",
+      "shortTitle": "Geneva (ТЭЛА)",
+      "aliases": [
+        "revised Geneva score",
+        "Geneva score",
+        "шкала Женева",
+        "женевская шкала",
+        "вероятность ТЭЛА"
+      ],
+      "bankId": "cardiology",
+      "bankLabel": "Кардиология",
+      "category": "cardiology",
+      "description": "Балльная оценка клинической вероятности ТЭЛА только по клиническим признакам, без суждения врача.",
+      "estimatedMinutes": 2,
+      "audience": "Взрослые с подозрением на ТЭЛА в отделении неотложной помощи; не заменяет диагностический алгоритм",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.revised-geneva",
+        "slug": "revised-geneva-pe-probability",
+        "title": "Пересмотренная шкала Geneva — вероятность ТЭЛА",
+        "shortTitle": "Geneva (ТЭЛА)",
+        "aliases": [
+          "revised Geneva score",
+          "Geneva score",
+          "шкала Женева",
+          "женевская шкала",
+          "вероятность ТЭЛА"
+        ],
+        "summary": "Балльная оценка клинической вероятности ТЭЛА только по клиническим признакам, без суждения врача.",
+        "ageScope": {
+          "groups": ["adults"],
+          "minAge": {
+            "value": 18,
+            "unit": "years"
+          },
+          "basis": "Определение: «Взрослые с подозрением на ТЭЛА»; в исходной работе — пациенты отделений неотложной помощи, возраст от 18 лет."
+        },
+        "category": "cardiology",
+        "clinical": true,
+        "formulaDisplay": "Возраст >65 1 + ТГВ/ТЭЛА в анамнезе 3 + операция/перелом 2 + опухоль 2 + боль в ноге 3 + кровохарканье 2 + ЧСС (75–94: 3; ≥95: 5) + боль при пальпации вен и отёк 4",
+        "population": "Взрослые в отделении неотложной помощи с подозрением на ТЭЛА.",
+        "limitations": [
+          "Шкала оценивает претестовую вероятность и применяется вместе с D-димером или визуализацией по принятому алгоритму.",
+          "Согласие разных врачей по отдельным пунктам в исходной работе не изучалось.",
+          "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
+        ],
+        "inputs": [
+          {
+            "id": "ageYears",
+            "label": "Возраст",
+            "unit": "лет",
+            "kind": "number",
+            "minimum": 18,
+            "maximum": 120,
+            "required": true,
+            "integer": true,
+            "patientBinding": {
+              "kind": "ageAtEvent"
+            }
+          },
+          {
+            "id": "previousVte",
+            "label": "ТГВ или ТЭЛА в анамнезе",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "surgeryFracture",
+            "label": "Операция под общей анестезией или перелом нижней конечности за последний месяц",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "malignancy",
+            "label": "Активная злокачественная опухоль",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "unilateralLegPain",
+            "label": "Боль в одной нижней конечности",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "hemoptysis",
+            "label": "Кровохарканье",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "heartRate",
+            "label": "ЧСС",
+            "unit": "уд/мин",
+            "kind": "number",
+            "minimum": 20,
+            "maximum": 300,
+            "required": true,
+            "integer": true
+          },
+          {
+            "id": "palpationEdema",
+            "label": "Боль при пальпации глубоких вен ноги и односторонний отёк",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          }
+        ],
+        "steps": [
+          {
+            "id": "score",
+            "label": "Geneva (ТЭЛА)",
+            "unit": "баллов",
+            "expression": "cond(ageYears > 65, 1, 0) + previousVte * 3 + surgeryFracture * 2 + malignancy * 2 + unilateralLegPain * 3 + hemoptysis * 2 + cond(heartRate >= 95, 5, cond(heartRate >= 75, 3, 0)) + palpationEdema * 4",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "decision-support",
+            "message": "Используйте результат как часть клинического решения, а не как самостоятельное назначение или отмену обследования и лечения."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "score <= 3",
+            "message": "0–3 балла: низкая вероятность ТЭЛА; в проверочной выборке ТЭЛА выявлена у 8 %."
+          },
+          {
+            "when": "score <= 10",
+            "message": "4–10 баллов: средняя вероятность ТЭЛА; в проверочной выборке — 28 %."
+          },
+          {
+            "when": "1",
+            "message": "11 баллов и более: высокая вероятность ТЭЛА; в проверочной выборке — 74 %."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Le Gal G, Righini M, Roy PM, et al. Prediction of pulmonary embolism in the emergency department: the revised Geneva score",
+            "publisher": "Annals of Internal Medicine",
+            "version": "2006",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/16461960/",
+            "page": "144(3):165-171",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score <= 3",
+              "verdict": {
+                "rangeId": "low",
+                "title": "Низкая вероятность",
+                "explanation": "0–3 балла: низкая вероятность ТЭЛА; в проверочной выборке ТЭЛА выявлена у 8 %.",
+                "attentionLevel": "none",
+                "sourceIds": ["revised-geneva-pe-probability-le-gal-2006"]
+              }
+            },
+            {
+              "when": "score <= 10",
+              "verdict": {
+                "rangeId": "intermediate",
+                "title": "Средняя вероятность",
+                "explanation": "4–10 баллов: средняя вероятность ТЭЛА; в проверочной выборке — 28 %.",
+                "attentionLevel": "moderate",
+                "sourceIds": ["revised-geneva-pe-probability-le-gal-2006"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "high",
+                "title": "Высокая вероятность",
+                "explanation": "11 баллов и более: высокая вероятность ТЭЛА; в проверочной выборке — 74 %.",
+                "attentionLevel": "high",
+                "sourceIds": ["revised-geneva-pe-probability-le-gal-2006"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["revised-geneva-pe-probability-le-gal-2006"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.revised-geneva.score",
+            "label": "Geneva (ТЭЛА)",
+            "unit": "баллов",
+            "stepId": "score",
+            "method": "calculator:minimed.calculator.revised-geneva"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "revised-geneva-pe-probability-le-gal-2006",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Le Gal G, Righini M, Roy PM, et al. Prediction of pulmonary embolism in the emergency department: the revised Geneva score",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/16461960/",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.perc",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "perc-pe-rule-out",
+      "title": "PERC — правило исключения ТЭЛА",
+      "shortTitle": "PERC",
+      "aliases": ["PERC", "PE rule-out criteria", "критерии исключения ТЭЛА", "ТЭЛА без D-димера"],
+      "bankId": "cardiology",
+      "bankLabel": "Кардиология",
+      "category": "cardiology",
+      "description": "Восемь критериев, позволяющих не назначать D-димер при низкой клинической вероятности ТЭЛА.",
+      "estimatedMinutes": 2,
+      "audience": "Взрослые с подозрением на ТЭЛА и низкой клинической вероятностью; не заменяет диагностический алгоритм",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.perc",
+        "slug": "perc-pe-rule-out",
+        "title": "PERC — правило исключения ТЭЛА",
+        "shortTitle": "PERC",
+        "aliases": [
+          "PERC",
+          "PE rule-out criteria",
+          "критерии исключения ТЭЛА",
+          "ТЭЛА без D-димера"
+        ],
+        "summary": "Восемь критериев, позволяющих не назначать D-димер при низкой клинической вероятности ТЭЛА.",
+        "ageScope": {
+          "groups": ["adults"],
+          "minAge": {
+            "value": 18,
+            "unit": "years"
+          },
+          "basis": "Определение: «Взрослые»; правило выведено у пациентов отделений неотложной помощи, у которых заподозрена ТЭЛА."
+        },
+        "category": "cardiology",
+        "clinical": true,
+        "formulaDisplay": "Число выявленных критериев PERC: возраст ≥50, ЧСС ≥100, SaO₂ <95 %, отёк одной ноги, кровохарканье, операция/травма за 4 недели, ТГВ/ТЭЛА в анамнезе, приём эстрогенов",
+        "population": "Взрослые пациенты отделений неотложной помощи с подозрением на ТЭЛА, у которых врач оценивает вероятность как низкую (<15 %).",
+        "limitations": [
+          "Правило применяют только при низкой клинической вероятности ТЭЛА; при средней и высокой вероятности оно не исключает диагноз.",
+          "Правило выведено в отделениях неотложной помощи США; у иных групп пациентов его надёжность не показана.",
+          "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
+        ],
+        "inputs": [
+          {
+            "id": "lowSuspicion",
+            "label": "Врач оценивает вероятность ТЭЛА как низкую (<15 %)",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Исходное условие применения правила: низкая претестовая вероятность по суждению врача."
+          },
+          {
+            "id": "ageYears",
+            "label": "Возраст",
+            "unit": "лет",
+            "kind": "number",
+            "minimum": 18,
+            "maximum": 120,
+            "required": true,
+            "integer": true,
+            "patientBinding": {
+              "kind": "ageAtEvent"
+            }
+          },
+          {
+            "id": "heartRate",
+            "label": "ЧСС",
+            "unit": "уд/мин",
+            "kind": "number",
+            "minimum": 20,
+            "maximum": 300,
+            "required": true,
+            "integer": true
+          },
+          {
+            "id": "spo2",
+            "label": "SaO₂ (SpO₂) на воздухе",
+            "unit": "%",
+            "kind": "number",
+            "minimum": 50,
+            "maximum": 100,
+            "required": true,
+            "inputStep": 1
+          },
+          {
+            "id": "legSwelling",
+            "label": "Отёк одной ноги",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "hemoptysis",
+            "label": "Кровохарканье",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "surgeryTrauma",
+            "label": "Операция или травма с госпитализацией за последние 4 недели",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "previousVte",
+            "label": "ТГВ или ТЭЛА в анамнезе",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "hormones",
+            "label": "Приём эстрогенов (в т. ч. контрацептивов, заместительная терапия)",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          }
+        ],
+        "steps": [
+          {
+            "id": "positiveCriteria",
+            "label": "Критериев PERC выявлено",
+            "unit": "из 8",
+            "expression": "cond(ageYears >= 50, 1, 0) + cond(heartRate >= 100, 1, 0) + cond(spo2 < 95, 1, 0) + legSwelling + hemoptysis + surgeryTrauma + previousVte + hormones",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "decision-support",
+            "message": "Используйте результат как часть клинического решения, а не как самостоятельное назначение или отмену обследования и лечения."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "(positiveCriteria == 0) * lowSuspicion",
+            "message": "Выявлено 0 из 8 критериев при низкой вероятности: ТЭЛА можно не искать с D-димером; в проспективной проверке частота ТЭЛА или смерти — 1,0 %."
+          },
+          {
+            "when": "positiveCriteria == 0",
+            "message": "Критериев PERC нет, но вероятность ТЭЛА не низкая: правило не исключает диагноз, используйте шкалу вероятности и D-димер."
+          },
+          {
+            "when": "1",
+            "message": "Выявлен хотя бы один критерий: ТЭЛА не исключена правилом, нужна оценка вероятности и D-димер или визуализация."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Kline JA, Mitchell AM, Kabrhel C, Richman PB, Courtney DM. Clinical criteria to prevent unnecessary diagnostic testing in emergency department patients with suspected pulmonary embolism",
+            "publisher": "Journal of Thrombosis and Haemostasis",
+            "version": "2004",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15304025/",
+            "page": "2(8):1247-1255",
+            "reviewedAt": "2026-10-12"
+          },
+          {
+            "title": "Kline JA, Courtney DM, Kabrhel C, et al. Prospective multicenter evaluation of the pulmonary embolism rule-out criteria",
+            "publisher": "Journal of Thrombosis and Haemostasis",
+            "version": "2008",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/18318689/",
+            "page": "6(5):772-780",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "(positiveCriteria == 0) * lowSuspicion",
+              "verdict": {
+                "rangeId": "rule-out",
+                "title": "PERC отрицательно",
+                "explanation": "Выявлено 0 из 8 критериев при низкой вероятности: ТЭЛА можно не искать с D-димером; в проспективной проверке частота ТЭЛА или смерти — 1,0 %.",
+                "attentionLevel": "none",
+                "sourceIds": ["perc-pe-rule-out-kline-2008"]
+              }
+            },
+            {
+              "when": "positiveCriteria == 0",
+              "verdict": {
+                "rangeId": "not-applicable",
+                "title": "Правило неприменимо",
+                "explanation": "Критериев PERC нет, но вероятность ТЭЛА не низкая: правило не исключает диагноз, используйте шкалу вероятности и D-димер.",
+                "attentionLevel": "moderate",
+                "sourceIds": ["perc-pe-rule-out-kline-2008"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "positive",
+                "title": "PERC положительно",
+                "explanation": "Выявлен хотя бы один критерий: ТЭЛА не исключена правилом, нужна оценка вероятности и D-димер или визуализация.",
+                "attentionLevel": "moderate",
+                "sourceIds": ["perc-pe-rule-out-kline-2004"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["perc-pe-rule-out-kline-2004", "perc-pe-rule-out-kline-2008"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.perc.score",
+            "label": "PERC",
+            "unit": "из 8",
+            "stepId": "positiveCriteria",
+            "method": "calculator:minimed.calculator.perc"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "perc-pe-rule-out-kline-2004",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Kline JA, Mitchell AM, Kabrhel C, Richman PB, Courtney DM. Clinical criteria to prevent unnecessary diagnostic testing in emergency department patients with suspected pulmonary embolism",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/15304025/",
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "perc-pe-rule-out-kline-2008",
+          "kind": "literature",
+          "relation": "interpretation",
+          "title": "Kline JA, Courtney DM, Kabrhel C, et al. Prospective multicenter evaluation of the pulmonary embolism rule-out criteria",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/18318689/",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.timi-nstemi",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "timi-ua-nstemi-risk",
+      "title": "TIMI — нестабильная стенокардия и ИМ без подъёма ST",
+      "shortTitle": "TIMI (НС/ИМбпST)",
+      "aliases": [
+        "TIMI UA/NSTEMI",
+        "TIMI risk score",
+        "шкала TIMI",
+        "нестабильная стенокардия",
+        "ИМ без подъёма ST",
+        "ОКС без подъёма ST"
+      ],
+      "bankId": "cardiology",
+      "bankLabel": "Кардиология",
+      "category": "cardiology",
+      "description": "Семь признаков, по одному баллу каждый, оценивают 14-дневный риск смерти, инфаркта и срочной реваскуляризации.",
+      "estimatedMinutes": 2,
+      "audience": "Взрослые с нестабильной стенокардией или инфарктом миокарда без подъёма ST; не является автоматическим выбором тактики",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.timi-nstemi",
+        "slug": "timi-ua-nstemi-risk",
+        "title": "TIMI — нестабильная стенокардия и ИМ без подъёма ST",
+        "shortTitle": "TIMI (НС/ИМбпST)",
+        "aliases": [
+          "TIMI UA/NSTEMI",
+          "TIMI risk score",
+          "шкала TIMI",
+          "нестабильная стенокардия",
+          "ИМ без подъёма ST",
+          "ОКС без подъёма ST"
+        ],
+        "summary": "Семь признаков, по одному баллу каждый, оценивают 14-дневный риск смерти, инфаркта и срочной реваскуляризации.",
+        "ageScope": {
+          "groups": ["adults"],
+          "minAge": {
+            "value": 18,
+            "unit": "years"
+          },
+          "basis": "Определение: «Взрослые с нестабильной стенокардией или ИМ без подъёма ST»; ввод возраста от 18 лет."
+        },
+        "category": "cardiology",
+        "clinical": true,
+        "formulaDisplay": "Возраст ≥65 + ≥3 факторов риска ИБС + стеноз ≥50 % + аспирин за 7 суток + ≥2 приступов за 24 ч + сдвиг ST + повышенные маркеры",
+        "population": "Взрослые с нестабильной стенокардией или инфарктом миокарда без подъёма ST.",
+        "limitations": [
+          "Шкала выведена в рандомизированных исследованиях TIMI 11B и ESSENCE; в обычной практике риск может отличаться.",
+          "Тактику ведения определяет врач по всей клинической картине; балл не заменяет другие шкалы риска.",
+          "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
+        ],
+        "inputs": [
+          {
+            "id": "ageYears",
+            "label": "Возраст",
+            "unit": "лет",
+            "kind": "number",
+            "minimum": 18,
+            "maximum": 120,
+            "required": true,
+            "integer": true,
+            "patientBinding": {
+              "kind": "ageAtEvent"
+            }
+          },
+          {
+            "id": "riskFactors",
+            "label": "Три и более фактора риска ИБС",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Семейный анамнез ИБС, артериальная гипертензия, гиперхолестеринемия, сахарный диабет, курение."
+          },
+          {
+            "id": "knownStenosis",
+            "label": "Известный стеноз коронарной артерии ≥50 %",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "aspirin",
+            "label": "Приём аспирина за последние 7 суток",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "severeAngina",
+            "label": "Два и более приступа стенокардии за последние 24 часа",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "stDeviation",
+            "label": "Отклонение сегмента ST ≥0,5 мм на ЭКГ",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "cardiacMarkers",
+            "label": "Повышены сердечные маркеры (тропонин или МВ-КФК)",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          }
+        ],
+        "steps": [
+          {
+            "id": "score",
+            "label": "TIMI (НС/ИМбпST)",
+            "unit": "баллов",
+            "expression": "cond(ageYears >= 65, 1, 0) + riskFactors + knownStenosis + aspirin + severeAngina + stDeviation + cardiacMarkers",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "decision-support",
+            "message": "Используйте результат как часть клинического решения, а не как самостоятельное назначение или отмену обследования и лечения."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "score <= 1",
+            "message": "0–1 балл: за 14 дней смерть, инфаркт или срочная реваскуляризация — 4,7 % (когорта TIMI 11B)."
+          },
+          {
+            "when": "score == 2",
+            "message": "2 балла: 8,3 % за 14 дней (когорта TIMI 11B)."
+          },
+          {
+            "when": "score == 3",
+            "message": "3 балла: 13,2 % за 14 дней (когорта TIMI 11B)."
+          },
+          {
+            "when": "score == 4",
+            "message": "4 балла: 19,9 % за 14 дней (когорта TIMI 11B)."
+          },
+          {
+            "when": "score == 5",
+            "message": "5 баллов: 26,2 % за 14 дней (когорта TIMI 11B)."
+          },
+          {
+            "when": "1",
+            "message": "6–7 баллов: 40,9 % за 14 дней (когорта TIMI 11B)."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Antman EM, Cohen M, Bernink PJ, et al. The TIMI risk score for unstable angina/non-ST elevation MI: a method for prognostication and therapeutic decision making",
+            "publisher": "JAMA",
+            "version": "2000",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/10938172/",
+            "page": "284(7):835-842",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score <= 1",
+              "verdict": {
+                "rangeId": "s0-1",
+                "title": "0–1 балл",
+                "explanation": "0–1 балл: за 14 дней смерть, инфаркт или срочная реваскуляризация — 4,7 % (когорта TIMI 11B).",
+                "attentionLevel": "none",
+                "sourceIds": ["timi-ua-nstemi-risk-antman-2000"]
+              }
+            },
+            {
+              "when": "score == 2",
+              "verdict": {
+                "rangeId": "s2",
+                "title": "2 балла",
+                "explanation": "2 балла: 8,3 % за 14 дней (когорта TIMI 11B).",
+                "attentionLevel": "none",
+                "sourceIds": ["timi-ua-nstemi-risk-antman-2000"]
+              }
+            },
+            {
+              "when": "score == 3",
+              "verdict": {
+                "rangeId": "s3",
+                "title": "3 балла",
+                "explanation": "3 балла: 13,2 % за 14 дней (когорта TIMI 11B).",
+                "attentionLevel": "none",
+                "sourceIds": ["timi-ua-nstemi-risk-antman-2000"]
+              }
+            },
+            {
+              "when": "score == 4",
+              "verdict": {
+                "rangeId": "s4",
+                "title": "4 балла",
+                "explanation": "4 балла: 19,9 % за 14 дней (когорта TIMI 11B).",
+                "attentionLevel": "none",
+                "sourceIds": ["timi-ua-nstemi-risk-antman-2000"]
+              }
+            },
+            {
+              "when": "score == 5",
+              "verdict": {
+                "rangeId": "s5",
+                "title": "5 баллов",
+                "explanation": "5 баллов: 26,2 % за 14 дней (когорта TIMI 11B).",
+                "attentionLevel": "none",
+                "sourceIds": ["timi-ua-nstemi-risk-antman-2000"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "s6-7",
+                "title": "6–7 баллов",
+                "explanation": "6–7 баллов: 40,9 % за 14 дней (когорта TIMI 11B).",
+                "attentionLevel": "none",
+                "sourceIds": ["timi-ua-nstemi-risk-antman-2000"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["timi-ua-nstemi-risk-antman-2000"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.timi-nstemi.score",
+            "label": "TIMI (НС/ИМбпST)",
+            "unit": "баллов",
+            "stepId": "score",
+            "method": "calculator:minimed.calculator.timi-nstemi"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "timi-ua-nstemi-risk-antman-2000",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Antman EM, Cohen M, Bernink PJ, et al. The TIMI risk score for unstable angina/non-ST elevation MI: a method for prognostication and therapeutic decision making",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/10938172/",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.timi-stemi",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "timi-stemi-mortality",
+      "title": "TIMI — инфаркт миокарда с подъёмом ST",
+      "shortTitle": "TIMI (ИМпST)",
+      "aliases": [
+        "TIMI STEMI",
+        "TIMI risk score STEMI",
+        "шкала TIMI",
+        "ИМ с подъёмом ST",
+        "летальность при ИМпST"
+      ],
+      "bankId": "cardiology",
+      "bankLabel": "Кардиология",
+      "category": "cardiology",
+      "description": "Сумма девяти признаков при поступлении оценивает 30-дневную летальность при инфаркте миокарда с подъёмом ST.",
+      "estimatedMinutes": 2,
+      "audience": "Взрослые с инфарктом миокарда с подъёмом ST, подходящие для тромболизиса; не является автоматическим выбором тактики",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.timi-stemi",
+        "slug": "timi-stemi-mortality",
+        "title": "TIMI — инфаркт миокарда с подъёмом ST",
+        "shortTitle": "TIMI (ИМпST)",
+        "aliases": [
+          "TIMI STEMI",
+          "TIMI risk score STEMI",
+          "шкала TIMI",
+          "ИМ с подъёмом ST",
+          "летальность при ИМпST"
+        ],
+        "summary": "Сумма девяти признаков при поступлении оценивает 30-дневную летальность при инфаркте миокарда с подъёмом ST.",
+        "ageScope": {
+          "groups": ["adults"],
+          "minAge": {
+            "value": 18,
+            "unit": "years"
+          },
+          "basis": "Определение: «Взрослые с инфарктом миокарда с подъёмом ST»; ввод возраста от 18 лет."
+        },
+        "category": "cardiology",
+        "clinical": true,
+        "formulaDisplay": "Возраст (65–74: 2; ≥75: 3) + СД/АГ/стенокардия 1 + САД <100 3 + ЧСС >100 2 + Killip II–IV 2 + масса <67 кг 1 + передний подъём ST или блокада ЛНПГ 1 + время до лечения >4 ч 1",
+        "population": "Взрослые с инфарктом миокарда с подъёмом ST, которым показан тромболизис (когорта InTIME-II).",
+        "limitations": [
+          "Шкала выведена у пациентов, получавших тромболизис; при первичном ЧКВ её точность не изучалась в исходной работе.",
+          "Тактику ведения определяет врач по всей клинической картине.",
+          "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
+        ],
+        "inputs": [
+          {
+            "id": "ageYears",
+            "label": "Возраст",
+            "unit": "лет",
+            "kind": "number",
+            "minimum": 18,
+            "maximum": 120,
+            "required": true,
+            "integer": true,
+            "patientBinding": {
+              "kind": "ageAtEvent"
+            }
+          },
+          {
+            "id": "dmHtnAngina",
+            "label": "Сахарный диабет, артериальная гипертензия или стенокардия в анамнезе",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "systolicBp",
+            "label": "Систолическое АД",
+            "unit": "мм рт. ст.",
+            "kind": "number",
+            "minimum": 40,
+            "maximum": 300,
+            "required": true,
+            "integer": true
+          },
+          {
+            "id": "heartRate",
+            "label": "ЧСС",
+            "unit": "уд/мин",
+            "kind": "number",
+            "minimum": 20,
+            "maximum": 300,
+            "required": true,
+            "integer": true
+          },
+          {
+            "id": "killip2to4",
+            "label": "Класс Killip II–IV",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "weightKg",
+            "label": "Масса тела",
+            "unit": "кг",
+            "kind": "number",
+            "minimum": 20,
+            "maximum": 300,
+            "required": true,
+            "inputStep": 0.1
+          },
+          {
+            "id": "anteriorOrLbbb",
+            "label": "Подъём ST в передних отведениях или блокада левой ножки пучка Гиса",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "delayOver4h",
+            "label": "Время от начала симптомов до лечения более 4 часов",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          }
+        ],
+        "steps": [
+          {
+            "id": "score",
+            "label": "TIMI (ИМпST)",
+            "unit": "баллов",
+            "expression": "cond(ageYears >= 75, 3, cond(ageYears >= 65, 2, 0)) + dmHtnAngina + cond(systolicBp < 100, 3, 0) + cond(heartRate > 100, 2, 0) + killip2to4 * 2 + cond(weightKg < 67, 1, 0) + anteriorOrLbbb + delayOver4h",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "decision-support",
+            "message": "Используйте результат как часть клинического решения, а не как самостоятельное назначение или отмену обследования и лечения."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "score == 0",
+            "message": "0 баллов: 30-дневная летальность 0,8 % (когорта InTIME-II)."
+          },
+          {
+            "when": "score == 1",
+            "message": "1 балл: 30-дневная летальность 1,6 % (когорта InTIME-II)."
+          },
+          {
+            "when": "score == 2",
+            "message": "2 балла: 30-дневная летальность 2,2 % (когорта InTIME-II)."
+          },
+          {
+            "when": "score == 3",
+            "message": "3 балла: 30-дневная летальность 4,4 % (когорта InTIME-II)."
+          },
+          {
+            "when": "score == 4",
+            "message": "4 балла: 30-дневная летальность 7,3 % (когорта InTIME-II)."
+          },
+          {
+            "when": "score == 5",
+            "message": "5 баллов: 30-дневная летальность 12,4 % (когорта InTIME-II)."
+          },
+          {
+            "when": "score == 6",
+            "message": "6 баллов: 30-дневная летальность 16,1 % (когорта InTIME-II)."
+          },
+          {
+            "when": "score == 7",
+            "message": "7 баллов: 30-дневная летальность 23,4 % (когорта InTIME-II)."
+          },
+          {
+            "when": "score == 8",
+            "message": "8 баллов: 30-дневная летальность 26,8 % (когорта InTIME-II)."
+          },
+          {
+            "when": "1",
+            "message": "Более 8 баллов: 30-дневная летальность 35,9 % (когорта InTIME-II)."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Morrow DA, Antman EM, Charlesworth A, et al. TIMI risk score for ST-elevation myocardial infarction: a convenient, bedside, clinical score for risk assessment at presentation",
+            "publisher": "Circulation",
+            "version": "2000",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/11044416/",
+            "page": "102(17):2031-2037",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score == 0",
+              "verdict": {
+                "rangeId": "s0",
+                "title": "0 баллов",
+                "explanation": "0 баллов: 30-дневная летальность 0,8 % (когорта InTIME-II).",
+                "attentionLevel": "none",
+                "sourceIds": ["timi-stemi-mortality-morrow-2000"]
+              }
+            },
+            {
+              "when": "score == 1",
+              "verdict": {
+                "rangeId": "s1",
+                "title": "1 балл",
+                "explanation": "1 балл: 30-дневная летальность 1,6 % (когорта InTIME-II).",
+                "attentionLevel": "none",
+                "sourceIds": ["timi-stemi-mortality-morrow-2000"]
+              }
+            },
+            {
+              "when": "score == 2",
+              "verdict": {
+                "rangeId": "s2",
+                "title": "2 балла",
+                "explanation": "2 балла: 30-дневная летальность 2,2 % (когорта InTIME-II).",
+                "attentionLevel": "none",
+                "sourceIds": ["timi-stemi-mortality-morrow-2000"]
+              }
+            },
+            {
+              "when": "score == 3",
+              "verdict": {
+                "rangeId": "s3",
+                "title": "3 балла",
+                "explanation": "3 балла: 30-дневная летальность 4,4 % (когорта InTIME-II).",
+                "attentionLevel": "none",
+                "sourceIds": ["timi-stemi-mortality-morrow-2000"]
+              }
+            },
+            {
+              "when": "score == 4",
+              "verdict": {
+                "rangeId": "s4",
+                "title": "4 балла",
+                "explanation": "4 балла: 30-дневная летальность 7,3 % (когорта InTIME-II).",
+                "attentionLevel": "none",
+                "sourceIds": ["timi-stemi-mortality-morrow-2000"]
+              }
+            },
+            {
+              "when": "score == 5",
+              "verdict": {
+                "rangeId": "s5",
+                "title": "5 баллов",
+                "explanation": "5 баллов: 30-дневная летальность 12,4 % (когорта InTIME-II).",
+                "attentionLevel": "none",
+                "sourceIds": ["timi-stemi-mortality-morrow-2000"]
+              }
+            },
+            {
+              "when": "score == 6",
+              "verdict": {
+                "rangeId": "s6",
+                "title": "6 баллов",
+                "explanation": "6 баллов: 30-дневная летальность 16,1 % (когорта InTIME-II).",
+                "attentionLevel": "none",
+                "sourceIds": ["timi-stemi-mortality-morrow-2000"]
+              }
+            },
+            {
+              "when": "score == 7",
+              "verdict": {
+                "rangeId": "s7",
+                "title": "7 баллов",
+                "explanation": "7 баллов: 30-дневная летальность 23,4 % (когорта InTIME-II).",
+                "attentionLevel": "none",
+                "sourceIds": ["timi-stemi-mortality-morrow-2000"]
+              }
+            },
+            {
+              "when": "score == 8",
+              "verdict": {
+                "rangeId": "s8",
+                "title": "8 баллов",
+                "explanation": "8 баллов: 30-дневная летальность 26,8 % (когорта InTIME-II).",
+                "attentionLevel": "none",
+                "sourceIds": ["timi-stemi-mortality-morrow-2000"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "s9plus",
+                "title": "Более 8 баллов",
+                "explanation": "Более 8 баллов: 30-дневная летальность 35,9 % (когорта InTIME-II).",
+                "attentionLevel": "none",
+                "sourceIds": ["timi-stemi-mortality-morrow-2000"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["timi-stemi-mortality-morrow-2000"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.timi-stemi.score",
+            "label": "TIMI (ИМпST)",
+            "unit": "баллов",
+            "stepId": "score",
+            "method": "calculator:minimed.calculator.timi-stemi"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "timi-stemi-mortality-morrow-2000",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Morrow DA, Antman EM, Charlesworth A, et al. TIMI risk score for ST-elevation myocardial infarction: a convenient, bedside, clinical score for risk assessment at presentation",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/11044416/",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.rcri",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "rcri-lee-cardiac-risk",
+      "title": "RCRI (Lee) — кардиальный риск внесердечной операции",
+      "shortTitle": "RCRI",
+      "aliases": [
+        "RCRI",
+        "Revised Cardiac Risk Index",
+        "индекс Lee",
+        "шкала Lee",
+        "периоперационный кардиальный риск"
+      ],
+      "bankId": "cardiology",
+      "bankLabel": "Кардиология",
+      "category": "cardiology",
+      "description": "Шесть факторов, по одному баллу, оценивают риск крупных сердечных осложнений после плановой внесердечной операции.",
+      "estimatedMinutes": 2,
+      "audience": "Взрослые перед плановой крупной внесердечной операцией; не является заключением о допуске к операции",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.rcri",
+        "slug": "rcri-lee-cardiac-risk",
+        "title": "RCRI (Lee) — кардиальный риск внесердечной операции",
+        "shortTitle": "RCRI",
+        "aliases": [
+          "RCRI",
+          "Revised Cardiac Risk Index",
+          "индекс Lee",
+          "шкала Lee",
+          "периоперационный кардиальный риск"
+        ],
+        "summary": "Шесть факторов, по одному баллу, оценивают риск крупных сердечных осложнений после плановой внесердечной операции.",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "Определение: «Взрослые перед внесердечной операцией»; в исходной работе — пациенты от 50 лет."
+        },
+        "category": "cardiology",
+        "clinical": true,
+        "formulaDisplay": "Операция высокого риска + ИБС + сердечная недостаточность + цереброваскулярное заболевание + инсулин + креатинин >2,0 мг/дл",
+        "population": "Пациенты от 50 лет, направленные на плановую крупную внесердечную операцию (исходная когорта).",
+        "limitations": [
+          "Индекс выведен у стабильных пациентов перед плановыми операциями; при неотложных операциях его применимость не показана.",
+          "Индекс не заменяет оценку функционального резерва и клиническое решение о дообследовании.",
+          "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
+        ],
+        "inputs": [
+          {
+            "id": "highRiskSurgery",
+            "label": "Операция высокого риска",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Внутрибрюшная, внутригрудная или надпаховая сосудистая операция."
+          },
+          {
+            "id": "ischemicHeartDisease",
+            "label": "Ишемическая болезнь сердца",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Инфаркт в анамнезе, положительная нагрузочная проба, стенокардия, приём нитратов, патологический зубец Q."
+          },
+          {
+            "id": "heartFailure",
+            "label": "Сердечная недостаточность в анамнезе",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Застойная СН, отёк лёгких, ночная одышка, хрипы с двух сторон или III тон, перераспределение сосудистого рисунка на рентгенограмме."
+          },
+          {
+            "id": "cerebrovascular",
+            "label": "Инсульт или ТИА в анамнезе",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "insulin",
+            "label": "Лечение инсулином до операции",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "creatinine",
+            "label": "Креатинин сыворотки >2,0 мг/дл (>177 мкмоль/л)",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          }
+        ],
+        "steps": [
+          {
+            "id": "score",
+            "label": "RCRI",
+            "unit": "баллов",
+            "expression": "highRiskSurgery + ischemicHeartDisease + heartFailure + cerebrovascular + insulin + creatinine",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "decision-support",
+            "message": "Используйте результат как часть клинического решения, а не как самостоятельное назначение или отмену обследования и лечения."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "score == 0",
+            "message": "0 баллов (класс I): крупные сердечные осложнения у 0,4 % (проверочная когорта)."
+          },
+          {
+            "when": "score == 1",
+            "message": "1 балл (класс II): 0,9 % (проверочная когорта)."
+          },
+          {
+            "when": "score == 2",
+            "message": "2 балла (класс III): 6,6 % (проверочная когорта)."
+          },
+          {
+            "when": "1",
+            "message": "3 балла и более (класс IV): 11 % (проверочная когорта). Осложнения: инфаркт, отёк лёгких, фибрилляция желудочков или остановка сердца, полная АВ-блокада."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Lee TH, Marcantonio ER, Mangione CM, et al. Derivation and prospective validation of a simple index for prediction of cardiac risk of major noncardiac surgery",
+            "publisher": "Circulation",
+            "version": "1999",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/10477528/",
+            "page": "100(10):1043-1049",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score == 0",
+              "verdict": {
+                "rangeId": "class-1",
+                "title": "Класс I",
+                "explanation": "0 баллов (класс I): крупные сердечные осложнения у 0,4 % (проверочная когорта).",
+                "attentionLevel": "none",
+                "sourceIds": ["rcri-lee-cardiac-risk-lee-1999"]
+              }
+            },
+            {
+              "when": "score == 1",
+              "verdict": {
+                "rangeId": "class-2",
+                "title": "Класс II",
+                "explanation": "1 балл (класс II): 0,9 % (проверочная когорта).",
+                "attentionLevel": "none",
+                "sourceIds": ["rcri-lee-cardiac-risk-lee-1999"]
+              }
+            },
+            {
+              "when": "score == 2",
+              "verdict": {
+                "rangeId": "class-3",
+                "title": "Класс III",
+                "explanation": "2 балла (класс III): 6,6 % (проверочная когорта).",
+                "attentionLevel": "moderate",
+                "sourceIds": ["rcri-lee-cardiac-risk-lee-1999"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "class-4",
+                "title": "Класс IV",
+                "explanation": "3 балла и более (класс IV): 11 % (проверочная когорта). Осложнения: инфаркт, отёк лёгких, фибрилляция желудочков или остановка сердца, полная АВ-блокада.",
+                "attentionLevel": "high",
+                "sourceIds": ["rcri-lee-cardiac-risk-lee-1999"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["rcri-lee-cardiac-risk-lee-1999"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.rcri.score",
+            "label": "RCRI",
+            "unit": "баллов",
+            "stepId": "score",
+            "method": "calculator:minimed.calculator.rcri"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "rcri-lee-cardiac-risk-lee-1999",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Lee TH, Marcantonio ER, Mangione CM, et al. Derivation and prospective validation of a simple index for prediction of cardiac risk of major noncardiac surgery",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/10477528/",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.crusade",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "crusade-bleeding-score",
+      "title": "CRUSADE — риск кровотечения при ИМ без подъёма ST",
+      "shortTitle": "CRUSADE",
+      "aliases": [
+        "CRUSADE bleeding score",
+        "шкала CRUSADE",
+        "риск кровотечения при ОКС",
+        "кровотечение при ИМ"
+      ],
+      "bankId": "cardiology",
+      "bankLabel": "Кардиология",
+      "category": "cardiology",
+      "description": "Восемь исходных показателей оценивают риск крупного кровотечения в стационаре при инфаркте миокарда без подъёма ST.",
+      "estimatedMinutes": 3,
+      "audience": "Взрослые с инфарктом миокарда без подъёма ST при поступлении; не является автоматическим выбором антитромботической терапии",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.crusade",
+        "slug": "crusade-bleeding-score",
+        "title": "CRUSADE — риск кровотечения при ИМ без подъёма ST",
+        "shortTitle": "CRUSADE",
+        "aliases": [
+          "CRUSADE bleeding score",
+          "шкала CRUSADE",
+          "риск кровотечения при ОКС",
+          "кровотечение при ИМ"
+        ],
+        "summary": "Восемь исходных показателей оценивают риск крупного кровотечения в стационаре при инфаркте миокарда без подъёма ST.",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "Определение: «Взрослые с инфарктом миокарда без подъёма ST»; нижняя граница возраста в определении не указана."
+        },
+        "category": "cardiology",
+        "clinical": true,
+        "formulaDisplay": "Гематокрит + клиренс креатинина + ЧСС + пол + признаки СН + сосудистое заболевание + диабет + САД",
+        "population": "Взрослые с инфарктом миокарда без подъёма ST (регистр CRUSADE, стационары США).",
+        "limitations": [
+          "Шкала оценивает исходный риск и не учитывает последующее лечение; она не заменяет оценку риска ишемических событий.",
+          "Клиренс креатинина рассчитывают по формуле Кокрофта — Голта.",
+          "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
+        ],
+        "inputs": [
+          {
+            "id": "hematocrit",
+            "label": "Гематокрит при поступлении",
+            "unit": "%",
+            "kind": "number",
+            "minimum": 10,
+            "maximum": 70,
+            "required": true,
+            "inputStep": 0.1
+          },
+          {
+            "id": "creatinineClearance",
+            "label": "Клиренс креатинина",
+            "unit": "мл/мин",
+            "kind": "number",
+            "minimum": 1,
+            "maximum": 300,
+            "required": true,
+            "inputStep": 0.1,
+            "labelTooltip": "По формуле Кокрофта — Голта."
+          },
+          {
+            "id": "heartRate",
+            "label": "ЧСС",
+            "unit": "уд/мин",
+            "kind": "number",
+            "minimum": 20,
+            "maximum": 300,
+            "required": true,
+            "integer": true
+          },
+          {
+            "id": "sexFemale",
+            "label": "Пол",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Мужской"
+              },
+              {
+                "value": 1,
+                "label": "Женский"
+              }
+            ]
+          },
+          {
+            "id": "heartFailureSigns",
+            "label": "Признаки сердечной недостаточности при поступлении",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "vascularDisease",
+            "label": "Сосудистое заболевание в анамнезе",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Заболевание периферических артерий или инсульт."
+          },
+          {
+            "id": "diabetes",
+            "label": "Сахарный диабет",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "systolicBp",
+            "label": "Систолическое АД",
+            "unit": "мм рт. ст.",
+            "kind": "number",
+            "minimum": 40,
+            "maximum": 300,
+            "required": true,
+            "integer": true
+          }
+        ],
+        "steps": [
+          {
+            "id": "score",
+            "label": "CRUSADE",
+            "unit": "баллов",
+            "expression": "cond(hematocrit < 31, 9, cond(hematocrit < 34, 7, cond(hematocrit < 37, 3, cond(hematocrit < 40, 2, 0)))) + cond(creatinineClearance <= 15, 39, cond(creatinineClearance <= 30, 35, cond(creatinineClearance <= 60, 28, cond(creatinineClearance <= 90, 17, cond(creatinineClearance <= 120, 7, 0))))) + cond(heartRate <= 70, 0, cond(heartRate <= 80, 1, cond(heartRate <= 90, 3, cond(heartRate <= 100, 6, cond(heartRate <= 110, 8, cond(heartRate <= 120, 10, 11)))))) + sexFemale * 8 + heartFailureSigns * 7 + vascularDisease * 6 + diabetes * 6 + cond(systolicBp <= 90, 10, cond(systolicBp <= 100, 8, cond(systolicBp <= 120, 5, cond(systolicBp <= 180, 1, cond(systolicBp <= 200, 3, 5)))))",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "decision-support",
+            "message": "Используйте результат как часть клинического решения, а не как самостоятельное назначение или отмену обследования и лечения."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "score <= 20",
+            "message": "20 баллов и менее: очень низкий риск; крупное кровотечение в стационаре у 3,1 %."
+          },
+          {
+            "when": "score <= 30",
+            "message": "21–30 баллов: низкий риск; 5,5 %."
+          },
+          {
+            "when": "score <= 40",
+            "message": "31–40 баллов: умеренный риск; 8,6 %."
+          },
+          {
+            "when": "score <= 50",
+            "message": "41–50 баллов: высокий риск; 11,9 %."
+          },
+          {
+            "when": "1",
+            "message": "Более 50 баллов: очень высокий риск; 19,5 %."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Subherwal S, Bach RG, Chen AY, et al. Baseline risk of major bleeding in non-ST-segment-elevation myocardial infarction: the CRUSADE Bleeding Score",
+            "publisher": "Circulation",
+            "version": "2009",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/19332461/",
+            "page": "119(14):1873-1882",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score <= 20",
+              "verdict": {
+                "rangeId": "very-low",
+                "title": "Очень низкий риск",
+                "explanation": "20 баллов и менее: очень низкий риск; крупное кровотечение в стационаре у 3,1 %.",
+                "attentionLevel": "none",
+                "sourceIds": ["crusade-bleeding-score-subherwal-2009"]
+              }
+            },
+            {
+              "when": "score <= 30",
+              "verdict": {
+                "rangeId": "low",
+                "title": "Низкий риск",
+                "explanation": "21–30 баллов: низкий риск; 5,5 %.",
+                "attentionLevel": "none",
+                "sourceIds": ["crusade-bleeding-score-subherwal-2009"]
+              }
+            },
+            {
+              "when": "score <= 40",
+              "verdict": {
+                "rangeId": "moderate",
+                "title": "Умеренный риск",
+                "explanation": "31–40 баллов: умеренный риск; 8,6 %.",
+                "attentionLevel": "moderate",
+                "sourceIds": ["crusade-bleeding-score-subherwal-2009"]
+              }
+            },
+            {
+              "when": "score <= 50",
+              "verdict": {
+                "rangeId": "high",
+                "title": "Высокий риск",
+                "explanation": "41–50 баллов: высокий риск; 11,9 %.",
+                "attentionLevel": "high",
+                "sourceIds": ["crusade-bleeding-score-subherwal-2009"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "very-high",
+                "title": "Очень высокий риск",
+                "explanation": "Более 50 баллов: очень высокий риск; 19,5 %.",
+                "attentionLevel": "high",
+                "sourceIds": ["crusade-bleeding-score-subherwal-2009"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["crusade-bleeding-score-subherwal-2009"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.crusade.score",
+            "label": "CRUSADE",
+            "unit": "баллов",
+            "stepId": "score",
+            "method": "calculator:minimed.calculator.crusade"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "crusade-bleeding-score-subherwal-2009",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Subherwal S, Bach RG, Chen AY, et al. Baseline risk of major bleeding in non-ST-segment-elevation myocardial infarction: the CRUSADE Bleeding Score",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/19332461/",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.killip-class",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "killip-class",
+      "title": "Классификация Killip",
+      "shortTitle": "Killip",
+      "aliases": [
+        "Killip",
+        "класс Killip",
+        "Killip–Kimball",
+        "острая сердечная недостаточность при ИМ"
+      ],
+      "bankId": "cardiology",
+      "bankLabel": "Кардиология",
+      "category": "cardiology",
+      "description": "Четыре класса тяжести острой сердечной недостаточности при инфаркте миокарда по клиническим признакам.",
+      "estimatedMinutes": 1,
+      "audience": "Взрослые с острым инфарктом миокарда",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.killip-class",
+        "slug": "killip-class",
+        "title": "Классификация Killip",
+        "shortTitle": "Killip",
+        "aliases": [
+          "Killip",
+          "класс Killip",
+          "Killip–Kimball",
+          "острая сердечная недостаточность при ИМ"
+        ],
+        "summary": "Четыре класса тяжести острой сердечной недостаточности при инфаркте миокарда по клиническим признакам.",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "Определение: «Взрослые с острым инфарктом миокарда»; в исходной работе — пациенты коронарного отделения."
+        },
+        "category": "cardiology",
+        "clinical": true,
+        "formulaDisplay": "Выбор класса I–IV по клиническим признакам сердечной недостаточности",
+        "population": "Взрослые с острым инфарктом миокарда.",
+        "limitations": [
+          "Классификация описывает состояние при осмотре; класс меняется со временем, оценку повторяют.",
+          "Исходная работа 1967 года описывает лечение до эры реперфузии; современные показатели исходов иные.",
+          "Класс не заменяет оценку гемодинамики и других шкал риска."
+        ],
+        "inputs": [
+          {
+            "id": "killipClass",
+            "label": "Клинические признаки",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 1,
+                "label": "I — признаков сердечной недостаточности нет"
+              },
+              {
+                "value": 2,
+                "label": "II — влажные хрипы в лёгких, III тон, признаки венозной гипертензии"
+              },
+              {
+                "value": 3,
+                "label": "III — выраженный отёк лёгких, хрипы над всеми полями"
+              },
+              {
+                "value": 4,
+                "label": "IV — кардиогенный шок: САД ≤90 мм рт. ст., олигурия, цианоз, потливость"
+              }
+            ]
+          }
+        ],
+        "steps": [
+          {
+            "id": "classValue",
+            "label": "Класс по Killip",
+            "unit": "класс",
+            "expression": "killipClass",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "decision-support",
+            "message": "Используйте результат как часть клинического решения, а не как самостоятельное назначение или отмену обследования и лечения."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "classValue == 1",
+            "message": "Класс I: клинических признаков сердечной недостаточности нет."
+          },
+          {
+            "when": "classValue == 2",
+            "message": "Класс II: умеренная сердечная недостаточность — хрипы, III тон, венозная гипертензия."
+          },
+          {
+            "when": "classValue == 3",
+            "message": "Класс III: отёк лёгких."
+          },
+          {
+            "when": "1",
+            "message": "Класс IV: кардиогенный шок."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Killip T 3rd, Kimball JT. Treatment of myocardial infarction in a coronary care unit: a two year experience with 250 patients",
+            "publisher": "American Journal of Cardiology",
+            "version": "1967",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/6059183/",
+            "page": "20(4):457-464",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "classValue == 1",
+              "verdict": {
+                "rangeId": "class-1",
+                "title": "Класс I",
+                "explanation": "Класс I: клинических признаков сердечной недостаточности нет.",
+                "attentionLevel": "none",
+                "sourceIds": ["killip-class-killip-1967"]
+              }
+            },
+            {
+              "when": "classValue == 2",
+              "verdict": {
+                "rangeId": "class-2",
+                "title": "Класс II",
+                "explanation": "Класс II: умеренная сердечная недостаточность — хрипы, III тон, венозная гипертензия.",
+                "attentionLevel": "moderate",
+                "sourceIds": ["killip-class-killip-1967"]
+              }
+            },
+            {
+              "when": "classValue == 3",
+              "verdict": {
+                "rangeId": "class-3",
+                "title": "Класс III",
+                "explanation": "Класс III: отёк лёгких.",
+                "attentionLevel": "high",
+                "sourceIds": ["killip-class-killip-1967"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "class-4",
+                "title": "Класс IV",
+                "explanation": "Класс IV: кардиогенный шок.",
+                "attentionLevel": "urgent",
+                "sourceIds": ["killip-class-killip-1967"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["killip-class-killip-1967"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.killip-class.score",
+            "label": "Killip",
+            "unit": "класс",
+            "stepId": "classValue",
+            "method": "calculator:minimed.calculator.killip-class"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "killip-class-killip-1967",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Killip T 3rd, Kimball JT. Treatment of myocardial infarction in a coronary care unit: a two year experience with 250 patients",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/6059183/",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.nyha-class",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "nyha-functional-class",
+      "title": "Функциональный класс по NYHA",
+      "shortTitle": "NYHA",
+      "aliases": [
+        "NYHA",
+        "функциональный класс ХСН",
+        "класс сердечной недостаточности",
+        "New York Heart Association"
+      ],
+      "bankId": "cardiology",
+      "bankLabel": "Кардиология",
+      "category": "cardiology",
+      "description": "Четыре функциональных класса по выраженности симптомов при физической нагрузке.",
+      "estimatedMinutes": 1,
+      "audience": "Взрослые с заболеваниями сердца и сердечной недостаточностью",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.nyha-class",
+        "slug": "nyha-functional-class",
+        "title": "Функциональный класс по NYHA",
+        "shortTitle": "NYHA",
+        "aliases": [
+          "NYHA",
+          "функциональный класс ХСН",
+          "класс сердечной недостаточности",
+          "New York Heart Association"
+        ],
+        "summary": "Четыре функциональных класса по выраженности симптомов при физической нагрузке.",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "Определение: «Взрослые с заболеваниями сердца»; для детей используют отдельные модификации классификации."
+        },
+        "category": "cardiology",
+        "clinical": true,
+        "formulaDisplay": "Выбор класса I–IV по переносимости физической нагрузки",
+        "population": "Взрослые с заболеванием сердца, у которых оценивают переносимость нагрузки.",
+        "limitations": [
+          "Класс субъективен и зависит от рассказа пациента; его меняют при изменении состояния.",
+          "Класс отражает симптомы, а не стадию болезни и не риск исходов."
+        ],
+        "inputs": [
+          {
+            "id": "nyhaClass",
+            "label": "Переносимость нагрузки",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 1,
+                "label": "I — обычная нагрузка не вызывает утомляемости, сердцебиения, одышки"
+              },
+              {
+                "value": 2,
+                "label": "II — небольшое ограничение; в покое жалоб нет, обычная нагрузка вызывает симптомы"
+              },
+              {
+                "value": 3,
+                "label": "III — выраженное ограничение; в покое жалоб нет, меньшая нагрузка вызывает симптомы"
+              },
+              {
+                "value": 4,
+                "label": "IV — любая активность вызывает дискомфорт; симптомы могут быть в покое"
+              }
+            ]
+          }
+        ],
+        "steps": [
+          {
+            "id": "classValue",
+            "label": "Класс по NYHA",
+            "unit": "класс",
+            "expression": "nyhaClass",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "decision-support",
+            "message": "Используйте результат как часть клинического решения, а не как самостоятельное назначение или отмену обследования и лечения."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "classValue == 1",
+            "message": "Класс I: заболевание сердца не ограничивает физическую активность."
+          },
+          {
+            "when": "classValue == 2",
+            "message": "Класс II: небольшое ограничение физической активности."
+          },
+          {
+            "when": "classValue == 3",
+            "message": "Класс III: выраженное ограничение физической активности."
+          },
+          {
+            "when": "1",
+            "message": "Класс IV: симптомы возможны в покое, любая активность их усиливает."
+          }
+        ],
+        "sources": [
+          {
+            "title": "The Criteria Committee of the New York Heart Association. Nomenclature and Criteria for Diagnosis of Diseases of the Heart and Great Vessels",
+            "publisher": "Little, Brown & Co (Boston)",
+            "version": "9th edition, 1994",
+            "page": "253-256",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "classValue == 1",
+              "verdict": {
+                "rangeId": "class-1",
+                "title": "Класс I",
+                "explanation": "Класс I: заболевание сердца не ограничивает физическую активность.",
+                "attentionLevel": "none",
+                "sourceIds": ["nyha-functional-class-nyha-1994"]
+              }
+            },
+            {
+              "when": "classValue == 2",
+              "verdict": {
+                "rangeId": "class-2",
+                "title": "Класс II",
+                "explanation": "Класс II: небольшое ограничение физической активности.",
+                "attentionLevel": "none",
+                "sourceIds": ["nyha-functional-class-nyha-1994"]
+              }
+            },
+            {
+              "when": "classValue == 3",
+              "verdict": {
+                "rangeId": "class-3",
+                "title": "Класс III",
+                "explanation": "Класс III: выраженное ограничение физической активности.",
+                "attentionLevel": "moderate",
+                "sourceIds": ["nyha-functional-class-nyha-1994"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "class-4",
+                "title": "Класс IV",
+                "explanation": "Класс IV: симптомы возможны в покое, любая активность их усиливает.",
+                "attentionLevel": "high",
+                "sourceIds": ["nyha-functional-class-nyha-1994"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["nyha-functional-class-nyha-1994"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.nyha-class.score",
+            "label": "NYHA",
+            "unit": "класс",
+            "stepId": "classValue",
+            "method": "calculator:minimed.calculator.nyha-class"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "nyha-functional-class-nyha-1994",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "The Criteria Committee of the New York Heart Association. Nomenclature and Criteria for Diagnosis of Diseases of the Heart and Great Vessels",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.ccs-angina-class",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "ccs-angina-class",
+      "title": "Класс стенокардии по CCS",
+      "shortTitle": "CCS (стенокардия)",
+      "aliases": [
+        "CCS",
+        "Canadian Cardiovascular Society",
+        "функциональный класс стенокардии",
+        "класс стенокардии напряжения"
+      ],
+      "bankId": "cardiology",
+      "bankLabel": "Кардиология",
+      "category": "cardiology",
+      "description": "Четыре класса тяжести стенокардии напряжения по уровню нагрузки, вызывающей приступ.",
+      "estimatedMinutes": 1,
+      "audience": "Взрослые со стенокардией напряжения",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.ccs-angina-class",
+        "slug": "ccs-angina-class",
+        "title": "Класс стенокардии по CCS",
+        "shortTitle": "CCS (стенокардия)",
+        "aliases": [
+          "CCS",
+          "Canadian Cardiovascular Society",
+          "функциональный класс стенокардии",
+          "класс стенокардии напряжения"
+        ],
+        "summary": "Четыре класса тяжести стенокардии напряжения по уровню нагрузки, вызывающей приступ.",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "Определение: «Взрослые со стенокардией напряжения»."
+        },
+        "category": "cardiology",
+        "clinical": true,
+        "formulaDisplay": "Выбор класса I–IV по нагрузке, вызывающей приступ стенокардии",
+        "population": "Взрослые со стенокардией напряжения.",
+        "limitations": [
+          "Класс зависит от рассказа пациента и условий нагрузки; его оценивают повторно при изменении состояния.",
+          "Автор классификации отмечал неточность критерия «стенокардия может быть в покое» в IV классе."
+        ],
+        "inputs": [
+          {
+            "id": "ccsClass",
+            "label": "Нагрузка, вызывающая приступ",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 1,
+                "label": "I — обычная нагрузка не вызывает приступов; они бывают при интенсивной, быстрой или длительной нагрузке"
+              },
+              {
+                "value": 2,
+                "label": "II — небольшое ограничение: приступы при быстрой ходьбе или подъёме, после еды, на холоде, ветру, при волнении"
+              },
+              {
+                "value": 3,
+                "label": "III — выраженное ограничение: приступы при ходьбе на 1–2 квартала по ровному месту или подъёме на один пролёт"
+              },
+              {
+                "value": 4,
+                "label": "IV — любая нагрузка вызывает дискомфорт; приступ возможен в покое"
+              }
+            ]
+          }
+        ],
+        "steps": [
+          {
+            "id": "classValue",
+            "label": "Класс по CCS",
+            "unit": "класс",
+            "expression": "ccsClass",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "decision-support",
+            "message": "Используйте результат как часть клинического решения, а не как самостоятельное назначение или отмену обследования и лечения."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "classValue == 1",
+            "message": "Класс I: стенокардия только при интенсивной нагрузке."
+          },
+          {
+            "when": "classValue == 2",
+            "message": "Класс II: небольшое ограничение повседневной активности."
+          },
+          {
+            "when": "classValue == 3",
+            "message": "Класс III: выраженное ограничение повседневной активности."
+          },
+          {
+            "when": "1",
+            "message": "Класс IV: любая нагрузка вызывает дискомфорт, приступ возможен в покое."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Campeau L. Grading of angina pectoris (letter)",
+            "publisher": "Circulation",
+            "version": "1976",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/947585/",
+            "page": "54(3):522-523",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "classValue == 1",
+              "verdict": {
+                "rangeId": "class-1",
+                "title": "Класс I",
+                "explanation": "Класс I: стенокардия только при интенсивной нагрузке.",
+                "attentionLevel": "none",
+                "sourceIds": ["ccs-angina-class-campeau-1976"]
+              }
+            },
+            {
+              "when": "classValue == 2",
+              "verdict": {
+                "rangeId": "class-2",
+                "title": "Класс II",
+                "explanation": "Класс II: небольшое ограничение повседневной активности.",
+                "attentionLevel": "none",
+                "sourceIds": ["ccs-angina-class-campeau-1976"]
+              }
+            },
+            {
+              "when": "classValue == 3",
+              "verdict": {
+                "rangeId": "class-3",
+                "title": "Класс III",
+                "explanation": "Класс III: выраженное ограничение повседневной активности.",
+                "attentionLevel": "moderate",
+                "sourceIds": ["ccs-angina-class-campeau-1976"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "class-4",
+                "title": "Класс IV",
+                "explanation": "Класс IV: любая нагрузка вызывает дискомфорт, приступ возможен в покое.",
+                "attentionLevel": "high",
+                "sourceIds": ["ccs-angina-class-campeau-1976"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["ccs-angina-class-campeau-1976"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.ccs-angina-class.score",
+            "label": "CCS (стенокардия)",
+            "unit": "класс",
+            "stepId": "classValue",
+            "method": "calculator:minimed.calculator.ccs-angina-class"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "ccs-angina-class-campeau-1976",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Campeau L. Grading of angina pectoris (letter)",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/947585/",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.heart-score",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "heart-score-chest-pain",
+      "title": "HEART — боль в груди в отделении неотложной помощи",
+      "shortTitle": "HEART",
+      "aliases": [
+        "HEART score",
+        "шкала HEART",
+        "боль в груди",
+        "ОКС",
+        "риск серьёзных кардиальных событий"
+      ],
+      "bankId": "cardiology",
+      "bankLabel": "Кардиология",
+      "category": "cardiology",
+      "description": "Пять компонентов (анамнез, ЭКГ, возраст, факторы риска, тропонин) оценивают риск серьёзных кардиальных событий при боли в груди.",
+      "estimatedMinutes": 2,
+      "audience": "Взрослые с болью в груди в отделении неотложной помощи; не является решением о выписке",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.heart-score",
+        "slug": "heart-score-chest-pain",
+        "title": "HEART — боль в груди в отделении неотложной помощи",
+        "shortTitle": "HEART",
+        "aliases": [
+          "HEART score",
+          "шкала HEART",
+          "боль в груди",
+          "ОКС",
+          "риск серьёзных кардиальных событий"
+        ],
+        "summary": "Пять компонентов (анамнез, ЭКГ, возраст, факторы риска, тропонин) оценивают риск серьёзных кардиальных событий при боли в груди.",
+        "ageScope": {
+          "groups": ["adults"],
+          "minAge": {
+            "value": 18,
+            "unit": "years"
+          },
+          "basis": "Определение: «Взрослые с болью в груди»; ввод возраста от 18 лет."
+        },
+        "category": "cardiology",
+        "clinical": true,
+        "formulaDisplay": "Анамнез (0–2) + ЭКГ (0–2) + возраст (0–2) + факторы риска (0–2) + тропонин (0–2)",
+        "population": "Взрослые, обратившиеся в отделение неотложной помощи с болью в груди.",
+        "limitations": [
+          "Оценка анамнеза остаётся суждением врача; шкала не вычисляет её по данным.",
+          "Порог тропонина зависит от метода: используйте референсные значения своей лаборатории.",
+          "Не превращайте балл автоматически в решение о выписке или госпитализации."
+        ],
+        "inputs": [
+          {
+            "id": "history",
+            "label": "Анамнез",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Малоподозрительный или неподозрительный"
+              },
+              {
+                "value": 1,
+                "label": "Умеренно подозрительный"
+              },
+              {
+                "value": 2,
+                "label": "Высоко подозрительный"
+              }
+            ],
+            "labelTooltip": "Оценка врача по характеру боли, связи с нагрузкой, реакции на нитраты."
+          },
+          {
+            "id": "ecg",
+            "label": "ЭКГ",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Норма"
+              },
+              {
+                "value": 1,
+                "label": "Неспецифические нарушения реполяризации"
+              },
+              {
+                "value": 2,
+                "label": "Значимая депрессия ST"
+              }
+            ]
+          },
+          {
+            "id": "ageYears",
+            "label": "Возраст",
+            "unit": "лет",
+            "kind": "number",
+            "minimum": 18,
+            "maximum": 120,
+            "required": true,
+            "integer": true,
+            "patientBinding": {
+              "kind": "ageAtEvent"
+            }
+          },
+          {
+            "id": "riskFactors",
+            "label": "Факторы риска",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "1–2 фактора"
+              },
+              {
+                "value": 2,
+                "label": "3 и более или атеросклеротическое заболевание в анамнезе"
+              }
+            ],
+            "labelTooltip": "Сахарный диабет, курение, артериальная гипертензия, гиперхолестеринемия, отягощённая наследственность, ожирение."
+          },
+          {
+            "id": "troponin",
+            "label": "Тропонин",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Не выше нормы"
+              },
+              {
+                "value": 1,
+                "label": "Выше нормы, менее чем в 3 раза"
+              },
+              {
+                "value": 2,
+                "label": "В 3 раза выше нормы и более"
+              }
+            ]
+          }
+        ],
+        "steps": [
+          {
+            "id": "score",
+            "label": "HEART",
+            "unit": "баллов",
+            "expression": "history + ecg + cond(ageYears >= 65, 2, cond(ageYears > 45, 1, 0)) + riskFactors + troponin",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "decision-support",
+            "message": "Используйте результат как часть клинического решения, а не как самостоятельное назначение или отмену обследования и лечения."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "score <= 3",
+            "message": "0–3 балла: низкий риск; серьёзные кардиальные события за 6 недель у 1,7 % (Backus, 2013); в исходной работе 2008 г. — 2,5 %."
+          },
+          {
+            "when": "score <= 6",
+            "message": "4–6 баллов: умеренный риск; 16,6 % (Backus, 2013); в исходной работе 2008 г. — 20,3 %."
+          },
+          {
+            "when": "1",
+            "message": "7–10 баллов: высокий риск; 50,1 % (Backus, 2013); в исходной работе 2008 г. — 72,7 %."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Backus BE, Six AJ, Kelder JC, et al. A prospective validation of the HEART score for chest pain patients at the emergency department",
+            "publisher": "International Journal of Cardiology",
+            "version": "2013",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/23465250/",
+            "page": "168(3):2153-2158",
+            "reviewedAt": "2026-10-12"
+          },
+          {
+            "title": "Six AJ, Backus BE, Kelder JC. Chest pain in the emergency room: value of the HEART score",
+            "publisher": "Netherlands Heart Journal",
+            "version": "2008",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/18665203/",
+            "page": "16(6):191-196",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score <= 3",
+              "verdict": {
+                "rangeId": "low",
+                "title": "Низкий риск",
+                "explanation": "0–3 балла: низкий риск; серьёзные кардиальные события за 6 недель у 1,7 % (Backus, 2013); в исходной работе 2008 г. — 2,5 %.",
+                "attentionLevel": "none",
+                "sourceIds": ["heart-score-chest-pain-backus-2013"]
+              }
+            },
+            {
+              "when": "score <= 6",
+              "verdict": {
+                "rangeId": "moderate",
+                "title": "Умеренный риск",
+                "explanation": "4–6 баллов: умеренный риск; 16,6 % (Backus, 2013); в исходной работе 2008 г. — 20,3 %.",
+                "attentionLevel": "moderate",
+                "sourceIds": ["heart-score-chest-pain-backus-2013"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "high",
+                "title": "Высокий риск",
+                "explanation": "7–10 баллов: высокий риск; 50,1 % (Backus, 2013); в исходной работе 2008 г. — 72,7 %.",
+                "attentionLevel": "high",
+                "sourceIds": ["heart-score-chest-pain-backus-2013"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["heart-score-chest-pain-backus-2013", "heart-score-chest-pain-six-2008"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.heart-score.score",
+            "label": "HEART",
+            "unit": "баллов",
+            "stepId": "score",
+            "method": "calculator:minimed.calculator.heart-score"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "heart-score-chest-pain-backus-2013",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Backus BE, Six AJ, Kelder JC, et al. A prospective validation of the HEART score for chest pain patients at the emergency department",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/23465250/",
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "heart-score-chest-pain-six-2008",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Six AJ, Backus BE, Kelder JC. Chest pain in the emergency room: value of the HEART score",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/18665203/",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.duke-treadmill-score",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "duke-treadmill-score",
+      "title": "Индекс Duke — тредмил-тест",
+      "shortTitle": "Duke (тредмил)",
+      "aliases": [
+        "Duke treadmill score",
+        "DTS",
+        "индекс Дюка",
+        "тредмил-тест",
+        "нагрузочная проба",
+        "прогноз при ИБС"
+      ],
+      "bankId": "cardiology",
+      "bankLabel": "Кардиология",
+      "category": "cardiology",
+      "description": "Формула по времени нагрузки, смещению ST и стенокардии при тредмил-тесте оценивает прогноз при подозрении на ИБС.",
+      "estimatedMinutes": 2,
+      "audience": "Взрослые с подозрением на ИБС после нагрузочной пробы на тредмиле",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.duke-treadmill-score",
+        "slug": "duke-treadmill-score",
+        "title": "Индекс Duke — тредмил-тест",
+        "shortTitle": "Duke (тредмил)",
+        "aliases": [
+          "Duke treadmill score",
+          "DTS",
+          "индекс Дюка",
+          "тредмил-тест",
+          "нагрузочная проба",
+          "прогноз при ИБС"
+        ],
+        "summary": "Формула по времени нагрузки, смещению ST и стенокардии при тредмил-тесте оценивает прогноз при подозрении на ИБС.",
+        "ageScope": {
+          "groups": ["adults"],
+          "minAge": {
+            "value": 18,
+            "unit": "years"
+          },
+          "basis": "Определение: «Взрослые с подозрением на ИБС»; в исходных работах — пациенты, направленные на нагрузочную пробу."
+        },
+        "category": "cardiology",
+        "clinical": true,
+        "formulaDisplay": "Время нагрузки (мин) − 5 × максимальное смещение ST (мм) − 4 × индекс стенокардии",
+        "population": "Взрослые с подозрением на ИБС, выполнившие нагрузочную пробу на тредмиле (протокол Брюса).",
+        "limitations": [
+          "Индекс выведен и проверен для пробы на тредмиле; для велоэргометрии и других протоколов его не применяют без отдельной проверки.",
+          "Смещение ST — наибольшее из депрессии или подъёма во время нагрузки или после неё.",
+          "Индекс не заменяет клиническую оценку и решение о коронарографии."
+        ],
+        "inputs": [
+          {
+            "id": "exerciseMinutes",
+            "label": "Время нагрузки",
+            "unit": "мин",
+            "kind": "number",
+            "minimum": 0,
+            "maximum": 60,
+            "required": true,
+            "inputStep": 0.5
+          },
+          {
+            "id": "stDeviationMm",
+            "label": "Максимальное смещение ST",
+            "unit": "мм",
+            "kind": "number",
+            "minimum": 0,
+            "maximum": 10,
+            "required": true,
+            "inputStep": 0.5,
+            "labelTooltip": "Наибольшее смещение сегмента ST (депрессия или подъём) во время нагрузки или после неё; 0, если смещения нет."
+          },
+          {
+            "id": "anginaIndex",
+            "label": "Индекс стенокардии",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Стенокардии нет"
+              },
+              {
+                "value": 1,
+                "label": "Стенокардия не помешала пробе"
+              },
+              {
+                "value": 2,
+                "label": "Стенокардия прервала пробу"
+              }
+            ]
+          }
+        ],
+        "steps": [
+          {
+            "id": "score",
+            "label": "Индекс Duke",
+            "unit": "баллов",
+            "expression": "exerciseMinutes - 5 * stDeviationMm - 4 * anginaIndex",
+            "displayPrecision": 1,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "decision-support",
+            "message": "Используйте результат как часть клинического решения, а не как самостоятельное назначение или отмену обследования и лечения."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "score >= 5",
+            "message": "+5 и выше: низкий риск; 4-летняя выживаемость 99 % (амбулаторная когорта, Mark, 1991)."
+          },
+          {
+            "when": "score >= -10",
+            "message": "От −10 до +4: промежуточный риск."
+          },
+          {
+            "when": "1",
+            "message": "Ниже −10: высокий риск; 4-летняя выживаемость 79 % (амбулаторная когорта, Mark, 1991)."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Mark DB, Hlatky MA, Harrell FE Jr, et al. Exercise treadmill score for predicting prognosis in coronary artery disease",
+            "publisher": "Annals of Internal Medicine",
+            "version": "1987",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/3579066/",
+            "page": "106(6):793-800",
+            "reviewedAt": "2026-10-12"
+          },
+          {
+            "title": "Mark DB, Shaw L, Harrell FE Jr, et al. Prognostic value of a treadmill exercise score in outpatients with suspected coronary artery disease",
+            "publisher": "New England Journal of Medicine",
+            "version": "1991",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/1875969/",
+            "page": "325(12):849-853",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score >= 5",
+              "verdict": {
+                "rangeId": "low",
+                "title": "Низкий риск",
+                "explanation": "+5 и выше: низкий риск; 4-летняя выживаемость 99 % (амбулаторная когорта, Mark, 1991).",
+                "attentionLevel": "none",
+                "sourceIds": ["duke-treadmill-score-mark-1991"]
+              }
+            },
+            {
+              "when": "score >= -10",
+              "verdict": {
+                "rangeId": "moderate",
+                "title": "Промежуточный риск",
+                "explanation": "От −10 до +4: промежуточный риск.",
+                "attentionLevel": "moderate",
+                "sourceIds": ["duke-treadmill-score-mark-1991"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "high",
+                "title": "Высокий риск",
+                "explanation": "Ниже −10: высокий риск; 4-летняя выживаемость 79 % (амбулаторная когорта, Mark, 1991).",
+                "attentionLevel": "high",
+                "sourceIds": ["duke-treadmill-score-mark-1991"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["duke-treadmill-score-mark-1987", "duke-treadmill-score-mark-1991"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.duke-treadmill-score.score",
+            "label": "Duke (тредмил)",
+            "unit": "баллов",
+            "stepId": "score",
+            "method": "calculator:minimed.calculator.duke-treadmill-score"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "duke-treadmill-score-mark-1987",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Mark DB, Hlatky MA, Harrell FE Jr, et al. Exercise treadmill score for predicting prognosis in coronary artery disease",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/3579066/",
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "duke-treadmill-score-mark-1991",
+          "kind": "literature",
+          "relation": "interpretation",
+          "title": "Mark DB, Shaw L, Harrell FE Jr, et al. Prognostic value of a treadmill exercise score in outpatients with suspected coronary artery disease",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/1875969/",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.pesi",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "pesi-pe-severity",
+      "title": "PESI — тяжесть ТЭЛА",
+      "shortTitle": "PESI",
+      "aliases": [
+        "PESI",
+        "Pulmonary Embolism Severity Index",
+        "индекс тяжести ТЭЛА",
+        "прогноз при ТЭЛА"
+      ],
+      "bankId": "cardiology",
+      "bankLabel": "Кардиология",
+      "category": "cardiology",
+      "description": "Одиннадцать показателей при поступлении относят пациента с ТЭЛА к одному из пяти классов риска 30-дневной смертности.",
+      "estimatedMinutes": 3,
+      "audience": "Взрослые с подтверждённой ТЭЛА; не является автоматическим выбором места лечения",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.pesi",
+        "slug": "pesi-pe-severity",
+        "title": "PESI — тяжесть ТЭЛА",
+        "shortTitle": "PESI",
+        "aliases": [
+          "PESI",
+          "Pulmonary Embolism Severity Index",
+          "индекс тяжести ТЭЛА",
+          "прогноз при ТЭЛА"
+        ],
+        "summary": "Одиннадцать показателей при поступлении относят пациента с ТЭЛА к одному из пяти классов риска 30-дневной смертности.",
+        "ageScope": {
+          "groups": ["adults"],
+          "minAge": {
+            "value": 18,
+            "unit": "years"
+          },
+          "basis": "Определение: «Взрослые с подтверждённой ТЭЛА»; ввод возраста от 18 лет."
+        },
+        "category": "cardiology",
+        "clinical": true,
+        "formulaDisplay": "Возраст (годы) + мужской пол 10 + опухоль 30 + ХСН 10 + хроническое заболевание лёгких 10 + ЧСС ≥110 20 + САД <100 30 + ЧДД ≥30 20 + температура <36 °C 20 + нарушение сознания 60 + SaO₂ <90 % 20",
+        "population": "Взрослые с подтверждённой острой ТЭЛА.",
+        "limitations": [
+          "Индекс оценивает риск смерти за 30 дней, а не решает вопрос о месте лечения: учитывайте противопоказания к амбулаторному лечению.",
+          "Индекс выведен по данным стационаров; проверочные выборки были небольшими.",
+          "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
+        ],
+        "inputs": [
+          {
+            "id": "ageYears",
+            "label": "Возраст",
+            "unit": "лет",
+            "kind": "number",
+            "minimum": 18,
+            "maximum": 120,
+            "required": true,
+            "integer": true,
+            "patientBinding": {
+              "kind": "ageAtEvent"
+            }
+          },
+          {
+            "id": "maleSex",
+            "label": "Пол",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Женский"
+              },
+              {
+                "value": 1,
+                "label": "Мужской"
+              }
+            ]
+          },
+          {
+            "id": "cancer",
+            "label": "Злокачественная опухоль",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "heartFailure",
+            "label": "Хроническая сердечная недостаточность",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "chronicLungDisease",
+            "label": "Хроническое заболевание лёгких",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "heartRate",
+            "label": "ЧСС",
+            "unit": "уд/мин",
+            "kind": "number",
+            "minimum": 20,
+            "maximum": 300,
+            "required": true,
+            "integer": true
+          },
+          {
+            "id": "systolicBp",
+            "label": "Систолическое АД",
+            "unit": "мм рт. ст.",
+            "kind": "number",
+            "minimum": 40,
+            "maximum": 300,
+            "required": true,
+            "integer": true
+          },
+          {
+            "id": "respiratoryRate",
+            "label": "Частота дыхания",
+            "unit": "в мин",
+            "kind": "number",
+            "minimum": 4,
+            "maximum": 80,
+            "required": true,
+            "integer": true
+          },
+          {
+            "id": "temperature",
+            "label": "Температура тела",
+            "unit": "°C",
+            "kind": "number",
+            "minimum": 30,
+            "maximum": 45,
+            "required": true,
+            "inputStep": 0.1
+          },
+          {
+            "id": "alteredMentalStatus",
+            "label": "Нарушение сознания",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Дезориентация, сонливость, ступор или кома."
+          },
+          {
+            "id": "spo2",
+            "label": "SaO₂ (SpO₂) на воздухе",
+            "unit": "%",
+            "kind": "number",
+            "minimum": 50,
+            "maximum": 100,
+            "required": true,
+            "inputStep": 1
+          }
+        ],
+        "steps": [
+          {
+            "id": "score",
+            "label": "PESI",
+            "unit": "баллов",
+            "expression": "ageYears + maleSex * 10 + cancer * 30 + heartFailure * 10 + chronicLungDisease * 10 + cond(heartRate >= 110, 20, 0) + cond(systolicBp < 100, 30, 0) + cond(respiratoryRate >= 30, 20, 0) + cond(temperature < 36, 20, 0) + alteredMentalStatus * 60 + cond(spo2 < 90, 20, 0)",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "decision-support",
+            "message": "Используйте результат как часть клинического решения, а не как самостоятельное назначение или отмену обследования и лечения."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "score <= 65",
+            "message": "65 баллов и менее (класс I): очень низкий риск; 30-дневная смертность 0–1,6 %."
+          },
+          {
+            "when": "score <= 85",
+            "message": "66–85 баллов (класс II): низкий риск; 1,7–3,5 %."
+          },
+          {
+            "when": "score <= 105",
+            "message": "86–105 баллов (класс III): умеренный риск; 3,2–7,1 %."
+          },
+          {
+            "when": "score <= 125",
+            "message": "106–125 баллов (класс IV): высокий риск; 4,0–11,4 %."
+          },
+          {
+            "when": "1",
+            "message": "Более 125 баллов (класс V): очень высокий риск; 10,0–24,5 %."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Aujesky D, Obrosky DS, Stone RA, et al. Derivation and validation of a prognostic model for pulmonary embolism",
+            "publisher": "American Journal of Respiratory and Critical Care Medicine",
+            "version": "2005",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/16020800/",
+            "page": "172(8):1041-1046",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score <= 65",
+              "verdict": {
+                "rangeId": "class-1",
+                "title": "Класс I",
+                "explanation": "65 баллов и менее (класс I): очень низкий риск; 30-дневная смертность 0–1,6 %.",
+                "attentionLevel": "none",
+                "sourceIds": ["pesi-pe-severity-aujesky-2005"]
+              }
+            },
+            {
+              "when": "score <= 85",
+              "verdict": {
+                "rangeId": "class-2",
+                "title": "Класс II",
+                "explanation": "66–85 баллов (класс II): низкий риск; 1,7–3,5 %.",
+                "attentionLevel": "none",
+                "sourceIds": ["pesi-pe-severity-aujesky-2005"]
+              }
+            },
+            {
+              "when": "score <= 105",
+              "verdict": {
+                "rangeId": "class-3",
+                "title": "Класс III",
+                "explanation": "86–105 баллов (класс III): умеренный риск; 3,2–7,1 %.",
+                "attentionLevel": "moderate",
+                "sourceIds": ["pesi-pe-severity-aujesky-2005"]
+              }
+            },
+            {
+              "when": "score <= 125",
+              "verdict": {
+                "rangeId": "class-4",
+                "title": "Класс IV",
+                "explanation": "106–125 баллов (класс IV): высокий риск; 4,0–11,4 %.",
+                "attentionLevel": "high",
+                "sourceIds": ["pesi-pe-severity-aujesky-2005"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "class-5",
+                "title": "Класс V",
+                "explanation": "Более 125 баллов (класс V): очень высокий риск; 10,0–24,5 %.",
+                "attentionLevel": "high",
+                "sourceIds": ["pesi-pe-severity-aujesky-2005"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["pesi-pe-severity-aujesky-2005"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.pesi.score",
+            "label": "PESI",
+            "unit": "баллов",
+            "stepId": "score",
+            "method": "calculator:minimed.calculator.pesi"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "pesi-pe-severity-aujesky-2005",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Aujesky D, Obrosky DS, Stone RA, et al. Derivation and validation of a prognostic model for pulmonary embolism",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/16020800/",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.spesi",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "spesi-pe-severity",
+      "title": "sPESI — упрощённый индекс тяжести ТЭЛА",
+      "shortTitle": "sPESI",
+      "aliases": ["sPESI", "simplified PESI", "упрощённый PESI", "прогноз при ТЭЛА"],
+      "bankId": "cardiology",
+      "bankLabel": "Кардиология",
+      "category": "cardiology",
+      "description": "Шесть показателей делят пациентов с ТЭЛА на низкий и высокий риск 30-дневной смертности.",
+      "estimatedMinutes": 2,
+      "audience": "Взрослые с подтверждённой ТЭЛА; не является автоматическим выбором места лечения",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.spesi",
+        "slug": "spesi-pe-severity",
+        "title": "sPESI — упрощённый индекс тяжести ТЭЛА",
+        "shortTitle": "sPESI",
+        "aliases": ["sPESI", "simplified PESI", "упрощённый PESI", "прогноз при ТЭЛА"],
+        "summary": "Шесть показателей делят пациентов с ТЭЛА на низкий и высокий риск 30-дневной смертности.",
+        "ageScope": {
+          "groups": ["adults"],
+          "minAge": {
+            "value": 18,
+            "unit": "years"
+          },
+          "basis": "Определение: «Взрослые с подтверждённой ТЭЛА»; ввод возраста от 18 лет."
+        },
+        "category": "cardiology",
+        "clinical": true,
+        "formulaDisplay": "Возраст >80 + опухоль + хроническое сердечно-лёгочное заболевание + ЧСС ≥110 + САД <100 + SaO₂ <90 % (по 1 баллу)",
+        "population": "Взрослые с подтверждённой острой ТЭЛА.",
+        "limitations": [
+          "Индекс оценивает риск смерти за 30 дней, а не решает вопрос о месте лечения: учитывайте противопоказания к амбулаторному лечению.",
+          "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
+        ],
+        "inputs": [
+          {
+            "id": "ageYears",
+            "label": "Возраст",
+            "unit": "лет",
+            "kind": "number",
+            "minimum": 18,
+            "maximum": 120,
+            "required": true,
+            "integer": true,
+            "patientBinding": {
+              "kind": "ageAtEvent"
+            }
+          },
+          {
+            "id": "cancer",
+            "label": "Злокачественная опухоль",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "cardiopulmonaryDisease",
+            "label": "Хроническая сердечная недостаточность или хроническое заболевание лёгких",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "heartRate",
+            "label": "ЧСС",
+            "unit": "уд/мин",
+            "kind": "number",
+            "minimum": 20,
+            "maximum": 300,
+            "required": true,
+            "integer": true
+          },
+          {
+            "id": "systolicBp",
+            "label": "Систолическое АД",
+            "unit": "мм рт. ст.",
+            "kind": "number",
+            "minimum": 40,
+            "maximum": 300,
+            "required": true,
+            "integer": true
+          },
+          {
+            "id": "spo2",
+            "label": "SaO₂ (SpO₂) на воздухе",
+            "unit": "%",
+            "kind": "number",
+            "minimum": 50,
+            "maximum": 100,
+            "required": true,
+            "inputStep": 1
+          }
+        ],
+        "steps": [
+          {
+            "id": "score",
+            "label": "sPESI",
+            "unit": "баллов",
+            "expression": "cond(ageYears > 80, 1, 0) + cancer + cardiopulmonaryDisease + cond(heartRate >= 110, 1, 0) + cond(systolicBp < 100, 1, 0) + cond(spo2 < 90, 1, 0)",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "decision-support",
+            "message": "Используйте результат как часть клинического решения, а не как самостоятельное назначение или отмену обследования и лечения."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "score == 0",
+            "message": "0 баллов: низкий риск; 30-дневная смертность 1,0 % в исходной и 1,1 % в проверочной когорте."
+          },
+          {
+            "when": "1",
+            "message": "1 балл и более: высокий риск; 30-дневная смертность 10,9 % в исходной и 8,9 % в проверочной когорте."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Jiménez D, Aujesky D, Moores L, et al. Simplification of the pulmonary embolism severity index for prognostication in patients with acute symptomatic pulmonary embolism",
+            "publisher": "Archives of Internal Medicine",
+            "version": "2010",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/20696966/",
+            "page": "170(15):1383-1389",
+            "reviewedAt": "2026-10-12"
+          },
+          {
+            "title": "Aujesky D, Obrosky DS, Stone RA, et al. Derivation and validation of a prognostic model for pulmonary embolism",
+            "publisher": "American Journal of Respiratory and Critical Care Medicine",
+            "version": "2005",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/16020800/",
+            "page": "172(8):1041-1046",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score == 0",
+              "verdict": {
+                "rangeId": "low",
+                "title": "Низкий риск",
+                "explanation": "0 баллов: низкий риск; 30-дневная смертность 1,0 % в исходной и 1,1 % в проверочной когорте.",
+                "attentionLevel": "none",
+                "sourceIds": ["spesi-pe-severity-jimenez-2010"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "high",
+                "title": "Высокий риск",
+                "explanation": "1 балл и более: высокий риск; 30-дневная смертность 10,9 % в исходной и 8,9 % в проверочной когорте.",
+                "attentionLevel": "high",
+                "sourceIds": ["spesi-pe-severity-jimenez-2010"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["spesi-pe-severity-jimenez-2010", "spesi-pe-severity-aujesky-2005"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.spesi.score",
+            "label": "sPESI",
+            "unit": "баллов",
+            "stepId": "score",
+            "method": "calculator:minimed.calculator.spesi"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "spesi-pe-severity-jimenez-2010",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Jiménez D, Aujesky D, Moores L, et al. Simplification of the pulmonary embolism severity index for prognostication in patients with acute symptomatic pulmonary embolism",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/20696966/",
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "spesi-pe-severity-aujesky-2005",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Aujesky D, Obrosky DS, Stone RA, et al. Derivation and validation of a prognostic model for pulmonary embolism",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/16020800/",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.padua",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "padua-vte-risk",
+      "title": "Padua — риск ВТЭ у терапевтических пациентов",
+      "shortTitle": "Padua",
+      "aliases": [
+        "Padua Prediction Score",
+        "шкала Падуя",
+        "риск венозных тромбоэмболий",
+        "профилактика ВТЭ",
+        "ВТЭО"
+      ],
+      "bankId": "cardiology",
+      "bankLabel": "Кардиология",
+      "category": "cardiology",
+      "description": "Одиннадцать факторов оценивают риск венозных тромбоэмболий у госпитализированных терапевтических пациентов.",
+      "estimatedMinutes": 3,
+      "audience": "Взрослые терапевтические пациенты в стационаре; не является автоматическим назначением профилактики",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.padua",
+        "slug": "padua-vte-risk",
+        "title": "Padua — риск ВТЭ у терапевтических пациентов",
+        "shortTitle": "Padua",
+        "aliases": [
+          "Padua Prediction Score",
+          "шкала Падуя",
+          "риск венозных тромбоэмболий",
+          "профилактика ВТЭ",
+          "ВТЭО"
+        ],
+        "summary": "Одиннадцать факторов оценивают риск венозных тромбоэмболий у госпитализированных терапевтических пациентов.",
+        "ageScope": {
+          "groups": ["adults"],
+          "minAge": {
+            "value": 18,
+            "unit": "years"
+          },
+          "basis": "Определение: «Взрослые госпитализированные терапевтические пациенты»; ввод возраста от 18 лет."
+        },
+        "category": "cardiology",
+        "clinical": true,
+        "formulaDisplay": "Опухоль 3 + ВТЭ в анамнезе 3 + сниженная подвижность 3 + тромбофилия 3 + травма/операция 2 + возраст ≥70 1 + сердечная/дыхательная недостаточность 1 + ИМ/инсульт 1 + инфекция/ревматологическое заболевание 1 + ожирение 1 + гормональная терапия 1",
+        "population": "Взрослые пациенты терапевтического отделения (без хирургического профиля).",
+        "limitations": [
+          "Шкала не учитывает риск кровотечения: профилактику назначают после его оценки.",
+          "Шкала выведена у терапевтических пациентов и не предназначена для хирургических.",
+          "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
+        ],
+        "inputs": [
+          {
+            "id": "activeCancer",
+            "label": "Активная опухоль",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Метастазы или химио-, лучевая терапия менее 6 месяцев назад."
+          },
+          {
+            "id": "previousVte",
+            "label": "ТГВ или ТЭЛА в анамнезе",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Кроме тромбоза поверхностных вен."
+          },
+          {
+            "id": "reducedMobility",
+            "label": "Сниженная подвижность",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Постельный режим с выходом в туалет не менее 3 суток."
+          },
+          {
+            "id": "thrombophilia",
+            "label": "Известная тромбофилия",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Дефицит антитромбина, протеина C или S, фактор V Лейден, мутация протромбина G20210A, антифосфолипидный синдром."
+          },
+          {
+            "id": "traumaSurgery",
+            "label": "Травма или операция за последний месяц",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "ageYears",
+            "label": "Возраст",
+            "unit": "лет",
+            "kind": "number",
+            "minimum": 18,
+            "maximum": 120,
+            "required": true,
+            "integer": true,
+            "patientBinding": {
+              "kind": "ageAtEvent"
+            }
+          },
+          {
+            "id": "heartRespiratoryFailure",
+            "label": "Сердечная или дыхательная недостаточность",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "miStroke",
+            "label": "Острый инфаркт миокарда или ишемический инсульт",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "infectionRheumatic",
+            "label": "Острая инфекция или ревматологическое заболевание",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "obesity",
+            "label": "Ожирение (ИМТ ≥30 кг/м²)",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "hormones",
+            "label": "Гормональная терапия",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Гормональная заместительная терапия или пероральные контрацептивы."
+          }
+        ],
+        "steps": [
+          {
+            "id": "score",
+            "label": "Padua",
+            "unit": "баллов",
+            "expression": "activeCancer * 3 + previousVte * 3 + reducedMobility * 3 + thrombophilia * 3 + traumaSurgery * 2 + cond(ageYears >= 70, 1, 0) + heartRespiratoryFailure + miStroke + infectionRheumatic + obesity + hormones",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "decision-support",
+            "message": "Используйте результат как часть клинического решения, а не как самостоятельное назначение или отмену обследования и лечения."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "score < 4",
+            "message": "Менее 4 баллов: низкий риск; ВТЭ за 90 дней у 0,3 %."
+          },
+          {
+            "when": "1",
+            "message": "4 балла и более: высокий риск; ВТЭ за 90 дней у 11,0 % без профилактики и у 2,2 % при адекватной профилактике."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Barbar S, Noventa F, Rossetto V, et al. A risk assessment model for the identification of hospitalized medical patients at risk for venous thromboembolism: the Padua Prediction Score",
+            "publisher": "Journal of Thrombosis and Haemostasis",
+            "version": "2010",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/20738765/",
+            "page": "8(11):2450-2457",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score < 4",
+              "verdict": {
+                "rangeId": "low",
+                "title": "Низкий риск",
+                "explanation": "Менее 4 баллов: низкий риск; ВТЭ за 90 дней у 0,3 %.",
+                "attentionLevel": "none",
+                "sourceIds": ["padua-vte-risk-barbar-2010"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "high",
+                "title": "Высокий риск",
+                "explanation": "4 балла и более: высокий риск; ВТЭ за 90 дней у 11,0 % без профилактики и у 2,2 % при адекватной профилактике.",
+                "attentionLevel": "high",
+                "sourceIds": ["padua-vte-risk-barbar-2010"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["padua-vte-risk-barbar-2010"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.padua.score",
+            "label": "Padua",
+            "unit": "баллов",
+            "stepId": "score",
+            "method": "calculator:minimed.calculator.padua"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "padua-vte-risk-barbar-2010",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Barbar S, Noventa F, Rossetto V, et al. A risk assessment model for the identification of hospitalized medical patients at risk for venous thromboembolism: the Padua Prediction Score",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/20738765/",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.hemorr2hages",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "hemorr2hages-bleeding-risk",
+      "title": "HEMORR₂HAGES — риск кровотечения при фибрилляции предсердий",
+      "shortTitle": "HEMORR₂HAGES",
+      "aliases": [
+        "HEMORR2HAGES",
+        "риск кровотечения",
+        "кровотечение на варфарине",
+        "фибрилляция предсердий"
+      ],
+      "bankId": "cardiology",
+      "bankLabel": "Кардиология",
+      "category": "cardiology",
+      "description": "Одиннадцать факторов оценивают риск кровотечения у пожилых пациентов с фибрилляцией предсердий на антикоагулянтах.",
+      "estimatedMinutes": 3,
+      "audience": "Взрослые с фибрилляцией предсердий, получающие или рассматриваемые на антикоагулянт; не является автоматическим отказом от лечения",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.hemorr2hages",
+        "slug": "hemorr2hages-bleeding-risk",
+        "title": "HEMORR₂HAGES — риск кровотечения при фибрилляции предсердий",
+        "shortTitle": "HEMORR₂HAGES",
+        "aliases": [
+          "HEMORR2HAGES",
+          "риск кровотечения",
+          "кровотечение на варфарине",
+          "фибрилляция предсердий"
+        ],
+        "summary": "Одиннадцать факторов оценивают риск кровотечения у пожилых пациентов с фибрилляцией предсердий на антикоагулянтах.",
+        "ageScope": {
+          "groups": ["adults"],
+          "minAge": {
+            "value": 18,
+            "unit": "years"
+          },
+          "basis": "Определение: «Взрослые с фибрилляцией предсердий»; ввод возраста от 18 лет; в исходной работе — пожилые пациенты."
+        },
+        "category": "cardiology",
+        "clinical": true,
+        "formulaDisplay": "Печёночная или почечная болезнь 1 + алкоголь 1 + опухоль 1 + возраст >75 1 + тромбоциты/аспирин 1 + кровотечение в анамнезе 2 + неконтролируемая АГ 1 + анемия 1 + генетические факторы 1 + риск падений 1 + инсульт 1",
+        "population": "Пожилые пациенты с фибрилляцией предсердий (регистр NRAF, получатели Medicare).",
+        "limitations": [
+          "Шкала выведена у пожилых пациентов, получавших варфарин; у молодых и при приёме иных антикоагулянтов её точность не изучалась в исходной работе.",
+          "Модифицируемые факторы риска — повод их скорректировать, а не отказаться от антикоагуляции.",
+          "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
+        ],
+        "inputs": [
+          {
+            "id": "hepaticRenal",
+            "label": "Заболевание печени или почек",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "ethanol",
+            "label": "Злоупотребление алкоголем",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "malignancy",
+            "label": "Злокачественная опухоль",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "ageYears",
+            "label": "Возраст",
+            "unit": "лет",
+            "kind": "number",
+            "minimum": 18,
+            "maximum": 120,
+            "required": true,
+            "integer": true,
+            "patientBinding": {
+              "kind": "ageAtEvent"
+            }
+          },
+          {
+            "id": "platelets",
+            "label": "Снижение числа или функции тромбоцитов",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Включая приём аспирина."
+          },
+          {
+            "id": "rebleeding",
+            "label": "Кровотечение в анамнезе (риск повторного)",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Даёт 2 балла."
+          },
+          {
+            "id": "hypertension",
+            "label": "Неконтролируемая артериальная гипертензия",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "anemia",
+            "label": "Анемия",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "genetic",
+            "label": "Генетические факторы",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Полиморфизмы CYP2C9, влияющие на метаболизм варфарина."
+          },
+          {
+            "id": "fallRisk",
+            "label": "Высокий риск падений",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "stroke",
+            "label": "Инсульт в анамнезе",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          }
+        ],
+        "steps": [
+          {
+            "id": "score",
+            "label": "HEMORR₂HAGES",
+            "unit": "баллов",
+            "expression": "hepaticRenal + ethanol + malignancy + cond(ageYears > 75, 1, 0) + platelets + rebleeding * 2 + hypertension + anemia + genetic + fallRisk + stroke",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "decision-support",
+            "message": "Используйте результат как часть клинического решения, а не как самостоятельное назначение или отмену обследования и лечения."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "score == 0",
+            "message": "0 баллов: 1,9 кровотечения на 100 пациенто-лет приёма варфарина."
+          },
+          {
+            "when": "score == 1",
+            "message": "1 балл: 2,5 кровотечения на 100 пациенто-лет приёма варфарина."
+          },
+          {
+            "when": "score == 2",
+            "message": "2 балла: 5,3 кровотечения на 100 пациенто-лет приёма варфарина."
+          },
+          {
+            "when": "score == 3",
+            "message": "3 балла: 8,4 кровотечения на 100 пациенто-лет приёма варфарина."
+          },
+          {
+            "when": "score == 4",
+            "message": "4 балла: 10,4 кровотечения на 100 пациенто-лет приёма варфарина."
+          },
+          {
+            "when": "1",
+            "message": "5 баллов и более: 12,3 кровотечения на 100 пациенто-лет приёма варфарина."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Gage BF, Yan Y, Milligan PE, et al. Clinical classification schemes for predicting hemorrhage: results from the National Registry of Atrial Fibrillation (NRAF)",
+            "publisher": "American Heart Journal",
+            "version": "2006",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/16504638/",
+            "page": "151(3):713-719",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score == 0",
+              "verdict": {
+                "rangeId": "s0",
+                "title": "0 баллов",
+                "explanation": "0 баллов: 1,9 кровотечения на 100 пациенто-лет приёма варфарина.",
+                "attentionLevel": "none",
+                "sourceIds": ["hemorr2hages-bleeding-risk-gage-2006"]
+              }
+            },
+            {
+              "when": "score == 1",
+              "verdict": {
+                "rangeId": "s1",
+                "title": "1 балл",
+                "explanation": "1 балл: 2,5 кровотечения на 100 пациенто-лет приёма варфарина.",
+                "attentionLevel": "none",
+                "sourceIds": ["hemorr2hages-bleeding-risk-gage-2006"]
+              }
+            },
+            {
+              "when": "score == 2",
+              "verdict": {
+                "rangeId": "s2",
+                "title": "2 балла",
+                "explanation": "2 балла: 5,3 кровотечения на 100 пациенто-лет приёма варфарина.",
+                "attentionLevel": "none",
+                "sourceIds": ["hemorr2hages-bleeding-risk-gage-2006"]
+              }
+            },
+            {
+              "when": "score == 3",
+              "verdict": {
+                "rangeId": "s3",
+                "title": "3 балла",
+                "explanation": "3 балла: 8,4 кровотечения на 100 пациенто-лет приёма варфарина.",
+                "attentionLevel": "none",
+                "sourceIds": ["hemorr2hages-bleeding-risk-gage-2006"]
+              }
+            },
+            {
+              "when": "score == 4",
+              "verdict": {
+                "rangeId": "s4",
+                "title": "4 балла",
+                "explanation": "4 балла: 10,4 кровотечения на 100 пациенто-лет приёма варфарина.",
+                "attentionLevel": "none",
+                "sourceIds": ["hemorr2hages-bleeding-risk-gage-2006"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "s5plus",
+                "title": "5 баллов и более",
+                "explanation": "5 баллов и более: 12,3 кровотечения на 100 пациенто-лет приёма варфарина.",
+                "attentionLevel": "none",
+                "sourceIds": ["hemorr2hages-bleeding-risk-gage-2006"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["hemorr2hages-bleeding-risk-gage-2006"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.hemorr2hages.score",
+            "label": "HEMORR₂HAGES",
+            "unit": "баллов",
+            "stepId": "score",
+            "method": "calculator:minimed.calculator.hemorr2hages"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "hemorr2hages-bleeding-risk-gage-2006",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Gage BF, Yan Y, Milligan PE, et al. Clinical classification schemes for predicting hemorrhage: results from the National Registry of Atrial Fibrillation (NRAF)",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/16504638/",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    }
+  ]
+}

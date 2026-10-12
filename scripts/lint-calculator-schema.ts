@@ -17,6 +17,7 @@ const TOOL_MODULES = [
   'content/tool-modules/obstetrics-gynecology.json',
   'content/tool-modules/psychology.json',
   'content/tool-modules/pediatrics-growth.json',
+  'content/tool-modules/cardiology.json',
 ] as const;
 
 function mappingReference(mapping: {
@@ -226,9 +227,9 @@ async function main(): Promise<void> {
     const errors = records.flatMap(lintRecord);
     const calculators = records.filter((record) => record.kind === 'calculator').length;
     const assessments = records.filter((record) => record.kind === 'assessment').length;
-    if (calculators !== 50 || assessments !== 19) {
+    if (calculators !== 67 || assessments !== 19) {
       errors.push(
-        `expected 50 calculators and 19 assessments, got ${calculators} and ${assessments}`,
+        `expected 67 calculators and 19 assessments, got ${calculators} and ${assessments}`,
       );
     }
     if (errors.length > 0) {
