@@ -103,13 +103,16 @@ describe('unified tool catalog', () => {
     expect(matchingCatalogTools(tools, 'all', undefined, 'АГ').map((entry) => entry.title)).toEqual(
       [],
     );
-    // ОКС and ХСН are whole-word aliases of the cardiology scales, not substrings of longer words.
+    // ОКС and ХСН are whole-word aliases of the cardiology scales, not substrings of longer words
+    // (not «оксигенация»).
     expect(
       matchingCatalogTools(tools, 'all', undefined, 'ОКС').map((entry) => entry.title),
     ).toEqual([
       'TIMI — нестабильная стенокардия и ИМ без подъёма ST',
       'CRUSADE — риск кровотечения при ИМ без подъёма ST',
       'HEART — боль в груди в отделении неотложной помощи',
+      'GRACE — риск смерти в стационаре при ОКС',
+      'GRACE — риск смерти за 6 месяцев при ОКС',
     ]);
     expect(
       matchingCatalogTools(tools, 'all', undefined, 'ХСН').map((entry) => entry.title),

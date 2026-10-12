@@ -197,5 +197,31 @@ describe('gastroenterology tool module', () => {
       if (!maximum.ok) throw new Error('unreachable');
       expect(maximum.value.scores[0]?.rawScore).toBe(9);
     });
+    it('uses the bands of the Russian ulcerative colitis guideline (КР 193_2)', () => {
+      const partialMayo = ToolDefinitionRecordSchema.parse(
+        loadGastroModule().tools.find(
+          (tool) => (tool as { id?: string }).id === 'minimed.assessment.partial-mayo-score',
+        ),
+      );
+      const definition = partialMayo.definition as unknown as AssessmentDefinition;
+      const headline = (stool: number, bleeding: number, global: number) => {
+        const result = scoreAssessment(definition, {
+          'partial-mayo-stool-frequency': stool,
+          'partial-mayo-rectal-bleeding': bleeding,
+          'partial-mayo-physician-global': global,
+        });
+        if (!result.ok) throw new Error(result.error);
+        return result.value.headline;
+      };
+      expect(headline(0, 0, 0)).toContain('ремиссия');
+      expect(headline(1, 0, 0)).toContain('ремиссия');
+      expect(headline(0, 1, 0)).toContain('Лёгкая');
+      expect(headline(1, 0, 1)).toContain('Лёгкая');
+      expect(headline(2, 1, 0)).toContain('Среднетяжёлая');
+      expect(headline(2, 2, 1)).toContain('Среднетяжёлая');
+      expect(headline(2, 2, 2)).toContain('Тяжёлая');
+      expect(headline(3, 3, 3)).toContain('Тяжёлая');
+      expect(JSON.stringify(partialMayo)).not.toContain('18471528');
+    });
   });
 });

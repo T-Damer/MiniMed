@@ -55,12 +55,12 @@ def test_build_cardiology_tool_module_keeps_all_calculators(tmp_path: Path) -> N
 
     report = build_tool_module(source, output)
 
-    assert len(module.tools) == 17
+    assert len(module.tools) == 34
     assert all(tool.kind == "calculator" for tool in module.tools)
-    assert report["toolCount"] == 17
+    assert report["toolCount"] == len(module.tools)
     assert report["sourceCount"] == source_count
     with sqlite3.connect(output) as connection:
         assert connection.execute("PRAGMA integrity_check").fetchone() == ("ok",)
         assert connection.execute(
             "SELECT count(*) FROM tool_definitions WHERE category = 'cardiology'"
-        ).fetchone() == (17,)
+        ).fetchone() == (sum(1 for tool in module.tools if tool.category == "cardiology"),)

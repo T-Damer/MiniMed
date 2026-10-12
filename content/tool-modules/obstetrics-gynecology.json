@@ -1,9 +1,9 @@
 {
   "id": "minimed.tools.obstetrics-gynecology.ru",
-  "version": "0.1.0-preview.7",
+  "version": "0.1.0-preview.8",
   "title": "Инструменты акушерства и гинекологии",
   "schemaVersion": 2,
-  "builtAt": "2026-10-09T00:00:00Z",
+  "builtAt": "2026-10-12T00:00:00Z",
   "tools": [
     {
       "id": "obstetric-bishop-score",
@@ -4472,6 +4472,502 @@
           "title": "Скрининг настроения Whooley (2 вопроса)",
           "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC1497134/",
           "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "obstetric-vte-risk-rcog",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "obstetric-vte-risk-rcog",
+      "title": "Риск ВТЭО при беременности и после родов — RCOG",
+      "shortTitle": "Риск ВТЭО (RCOG)",
+      "aliases": [
+        "RCOG Green-top 37a",
+        "Green-top 37a",
+        "тромбопрофилактика у беременных",
+        "тромбопрофилактика после родов",
+        "профилактика ВТЭО в родах",
+        "акушерская тромбоэмболия",
+        "НМГ после кесарева сечения",
+        "риск тромбоза беременных"
+      ],
+      "bankId": "obstetrics",
+      "bankLabel": "Акушерство",
+      "category": "obstetrics",
+      "description": "Сумма баллов факторов риска ВТЭО: до родов решает о профилактике НМГ с I триместра или с 28-й недели, после родов — о сроке не менее 10 дней или 6 недель.",
+      "estimatedMinutes": 3,
+      "audience": "Беременные и родильницы; оценку проводит врач при постановке на учёт, госпитализации и в родильном отделении.",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "obstetric-vte-risk-rcog",
+        "slug": "obstetric-vte-risk-rcog",
+        "title": "Риск ВТЭО при беременности и после родов — RCOG",
+        "shortTitle": "Риск ВТЭО (RCOG)",
+        "aliases": [
+          "RCOG Green-top 37a",
+          "Green-top 37a",
+          "тромбопрофилактика у беременных",
+          "тромбопрофилактика после родов",
+          "профилактика ВТЭО в родах",
+          "акушерская тромбоэмболия",
+          "НМГ после кесарева сечения",
+          "риск тромбоза беременных"
+        ],
+        "summary": "Сумма баллов факторов риска ВТЭО: до родов решает о профилактике НМГ с I триместра или с 28-й недели, после родов — о сроке не менее 10 дней или 6 недель.",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "Определение: «Беременные и родильницы»; возрастной предел в источниках не указан, группа «Взрослые» выбрана по профилю акушерской помощи; возраст старше 35 лет — отдельный фактор риска."
+        },
+        "category": "obstetrics",
+        "clinical": true,
+        "formulaDisplay": "RCOG 37a, Приложение III: сумма баллов (ВТЭО в анамнезе 3–4, тромбофилия высокого риска 3, сопутствующее заболевание 3, операция 3, неукротимая рвота 3, СГЯ 4, кесарево сечение в родах 2, ожирение ИМТ ≥40 — 2, остальные факторы по 1). До родов ≥4 — НМГ с I триместра, 3 — с 28-й недели; после родов ≥2 — не менее 10 дней",
+        "population": "Беременные и родильницы: при постановке на учёт, госпитализации до родов и в родильном отделении.",
+        "limitations": [
+          "Оценку повторяют после родов, при госпитализации, операции и появлении нового фактора риска; факторы после родов учитываются только в режиме «После родов».",
+          "Противопоказания к НМГ и риск кровотечения оценивают отдельно, баланс обсуждают с гематологом; дозу НМГ подбирают по массе тела.",
+          "Сумма баллов — основание рассмотреть профилактику, а не назначение; при ВТЭО в анамнезе и тромбофилиях тактику определяют по категориям риска (RCOG, Приложение IV) вместе со специалистом."
+        ],
+        "inputs": [
+          {
+            "id": "stage",
+            "label": "Когда проводится оценка",
+            "kind": "select",
+            "options": [
+              {
+                "value": 0,
+                "label": "Во время беременности"
+              },
+              {
+                "value": 1,
+                "label": "После родов"
+              }
+            ],
+            "required": true
+          },
+          {
+            "id": "prevVte",
+            "label": "Предшествующее ВТЭО",
+            "kind": "select",
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 4,
+                "label": "Да (кроме единственного эпизода после большой операции)"
+              },
+              {
+                "value": 3,
+                "label": "Да, единственный эпизод после большой операции"
+              }
+            ],
+            "required": true
+          },
+          {
+            "id": "highThrombophilia",
+            "label": "Тромбофилия высокого риска",
+            "kind": "checkbox",
+            "required": false,
+            "defaultExpression": "0",
+            "labelTooltip": "Дефицит антитромбина, протеина C или S; гомозиготность либо сочетание низкорисковых форм (фактор V Лейден, протромбин G20210A)."
+          },
+          {
+            "id": "comorbidity",
+            "label": "Тяжёлое сопутствующее заболевание",
+            "kind": "checkbox",
+            "required": false,
+            "defaultExpression": "0",
+            "labelTooltip": "Онкологическое заболевание, сердечная недостаточность, активная СКВ, воспалительная полиартропатия или ВЗК, нефротический синдром, сахарный диабет 1 типа с нефропатией, серповидноклеточная анемия, внутривенная наркомания в настоящее время."
+          },
+          {
+            "id": "familyHistory",
+            "label": "ВТЭО у родственника 1-й степени",
+            "kind": "checkbox",
+            "required": false,
+            "defaultExpression": "0",
+            "labelTooltip": "Неспровоцированное или связанное с приёмом эстрогенов."
+          },
+          {
+            "id": "lowThrombophilia",
+            "label": "Тромбофилия низкого риска, без ВТЭО",
+            "kind": "checkbox",
+            "required": false,
+            "defaultExpression": "0",
+            "labelTooltip": "Гетерозиготность по фактору V Лейден или протромбину G20210A."
+          },
+          {
+            "id": "age35",
+            "label": "Возраст старше 35 лет",
+            "kind": "checkbox",
+            "required": false,
+            "defaultExpression": "0"
+          },
+          {
+            "id": "obesity",
+            "label": "Ожирение",
+            "kind": "select",
+            "options": [
+              {
+                "value": 0,
+                "label": "ИМТ <30"
+              },
+              {
+                "value": 1,
+                "label": "ИМТ 30–39,9"
+              },
+              {
+                "value": 2,
+                "label": "ИМТ ≥40"
+              }
+            ],
+            "required": true,
+            "labelTooltip": "ИМТ по массе тела при постановке на учёт."
+          },
+          {
+            "id": "parity3",
+            "label": "Родов в анамнезе ≥3",
+            "kind": "checkbox",
+            "required": false,
+            "defaultExpression": "0"
+          },
+          {
+            "id": "smoker",
+            "label": "Курение",
+            "kind": "checkbox",
+            "required": false,
+            "defaultExpression": "0"
+          },
+          {
+            "id": "varicose",
+            "label": "Выраженное варикозное расширение вен",
+            "kind": "checkbox",
+            "required": false,
+            "defaultExpression": "0",
+            "labelTooltip": "Симптомное, выше колена или с флебитом, отёком, изменениями кожи."
+          },
+          {
+            "id": "preeclampsia",
+            "label": "Преэклампсия при этой беременности",
+            "kind": "checkbox",
+            "required": false,
+            "defaultExpression": "0"
+          },
+          {
+            "id": "art",
+            "label": "ВРТ / ЭКО (только до родов)",
+            "kind": "checkbox",
+            "required": false,
+            "defaultExpression": "0"
+          },
+          {
+            "id": "multiple",
+            "label": "Многоплодная беременность",
+            "kind": "checkbox",
+            "required": false,
+            "defaultExpression": "0"
+          },
+          {
+            "id": "deliveryMode",
+            "label": "Родоразрешение (после родов)",
+            "kind": "select",
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет / роды без пособий"
+              },
+              {
+                "value": 1,
+                "label": "Плановое кесарево сечение"
+              },
+              {
+                "value": 2,
+                "label": "Кесарево сечение в родах"
+              },
+              {
+                "value": 3,
+                "label": "Полостные или ротационные щипцы, вакуум-экстракция"
+              }
+            ],
+            "required": true,
+            "labelTooltip": "Учитывается только при оценке после родов."
+          },
+          {
+            "id": "prolongedLabour",
+            "label": "Затяжные роды (>24 ч)",
+            "kind": "checkbox",
+            "required": false,
+            "defaultExpression": "0",
+            "labelTooltip": "Учитывается только при оценке после родов."
+          },
+          {
+            "id": "pph",
+            "label": "Кровотечение >1 л или переливание крови",
+            "kind": "checkbox",
+            "required": false,
+            "defaultExpression": "0",
+            "labelTooltip": "Учитывается только при оценке после родов."
+          },
+          {
+            "id": "preterm",
+            "label": "Преждевременные роды (<37+0 нед)",
+            "kind": "checkbox",
+            "required": false,
+            "defaultExpression": "0",
+            "labelTooltip": "Учитывается только при оценке после родов."
+          },
+          {
+            "id": "stillbirth",
+            "label": "Мертворождение при этой беременности",
+            "kind": "checkbox",
+            "required": false,
+            "defaultExpression": "0",
+            "labelTooltip": "Учитывается только при оценке после родов."
+          },
+          {
+            "id": "surgery",
+            "label": "Операция при беременности или после родов",
+            "kind": "checkbox",
+            "required": false,
+            "defaultExpression": "0",
+            "labelTooltip": "Кроме ушивания промежности сразу после родов; например аппендэктомия, послеродовая стерилизация."
+          },
+          {
+            "id": "hyperemesis",
+            "label": "Неукротимая рвота",
+            "kind": "checkbox",
+            "required": false,
+            "defaultExpression": "0"
+          },
+          {
+            "id": "ohss",
+            "label": "СГЯ (только I триместр)",
+            "kind": "checkbox",
+            "required": false,
+            "defaultExpression": "0",
+            "labelTooltip": "Учитывается только при оценке до родов."
+          },
+          {
+            "id": "infection",
+            "label": "Системная инфекция сейчас",
+            "kind": "checkbox",
+            "required": false,
+            "defaultExpression": "0",
+            "labelTooltip": "Требующая внутривенных антибиотиков или госпитализации, например пневмония, пиелонефрит, инфекция раны."
+          },
+          {
+            "id": "immobility",
+            "label": "Ограничение подвижности, обезвоживание",
+            "kind": "checkbox",
+            "required": false,
+            "defaultExpression": "0",
+            "labelTooltip": "Например постельный режим ≥3 дней при боли в области таза."
+          },
+          {
+            "id": "antenatalLmwh",
+            "label": "НМГ назначались в эту беременность",
+            "kind": "checkbox",
+            "required": false,
+            "defaultExpression": "0",
+            "labelTooltip": "Нужно для оценки после родов."
+          }
+        ],
+        "steps": [
+          {
+            "id": "preexisting",
+            "label": "Исходные факторы риска",
+            "unit": "баллов",
+            "expression": "prevVte + highThrombophilia * 3 + comorbidity * 3 + familyHistory + lowThrombophilia + age35 + obesity + parity3 + smoker + varicose",
+            "displayPrecision": 0,
+            "isOutput": false
+          },
+          {
+            "id": "obstetric",
+            "label": "Акушерские факторы риска",
+            "unit": "баллов",
+            "expression": "preeclampsia + multiple + cond(stage == 0, art, 0) + cond(stage == 1, cond(deliveryMode == 0, 0, cond(deliveryMode == 2, 2, 1)) + prolongedLabour + pph + preterm + stillbirth, 0)",
+            "displayPrecision": 0,
+            "isOutput": false
+          },
+          {
+            "id": "transient",
+            "label": "Преходящие факторы риска",
+            "unit": "баллов",
+            "expression": "surgery * 3 + hyperemesis * 3 + cond(stage == 0, ohss * 4, 0) + infection + immobility",
+            "displayPrecision": 0,
+            "isOutput": false
+          },
+          {
+            "id": "total",
+            "label": "Сумма баллов риска ВТЭО",
+            "unit": "баллов",
+            "expression": "preexisting + obstetric + transient",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "sixWeekCategory",
+            "label": "Категория высокого риска после родов (1 — да)",
+            "unit": "да/нет",
+            "expression": "cond(stage == 1, max(max(cond(prevVte > 0, 1, 0), highThrombophilia), max(lowThrombophilia * familyHistory, antenatalLmwh)), 0)",
+            "displayPrecision": 0,
+            "isOutput": false
+          }
+        ],
+        "warnings": [],
+        "interpretations": [
+          {
+            "when": "(stage == 0) * (total >= 4)",
+            "message": "До родов ≥4 баллов: рассмотреть тромбопрофилактику НМГ с I триместра. При очень высоком риске (ВТЭО на длительной антикоагуляции, дефицит антитромбина, АФС с ВТЭО) нужен специалист по гемостазу и беременности."
+          },
+          {
+            "when": "(stage == 0) * (total == 3)",
+            "message": "До родов 3 балла: рассмотреть тромбопрофилактику НМГ с 28-й недели."
+          },
+          {
+            "when": "stage == 0",
+            "message": "До родов менее 3 баллов: ранняя мобилизация и профилактика обезвоживания; при госпитализации рассмотреть тромбопрофилактику."
+          },
+          {
+            "when": "sixWeekCategory == 1",
+            "message": "После родов высокий риск (ВТЭО в анамнезе, тромбофилия высокого риска, тромбофилия низкого риска с семейным анамнезом или НМГ во время беременности): НМГ не менее 6 недель."
+          },
+          {
+            "when": "total >= 3",
+            "message": "После родов ≥3 баллов: по КР РФ (Приложение Г3) тромбопрофилактика до 6 недель; по RCOG — не менее 10 дней, с продлением при сохраняющихся факторах или более чем трёх факторах."
+          },
+          {
+            "when": "total == 2",
+            "message": "После родов 2 балла: тромбопрофилактика НМГ не менее 10 дней."
+          },
+          {
+            "when": "1",
+            "message": "После родов менее 2 баллов: ранняя мобилизация и профилактика обезвоживания; при пребывании в стационаре ≥3 дней или повторной госпитализации в послеродовом периоде рассмотреть тромбопрофилактику."
+          }
+        ],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "Reducing the Risk of Venous Thromboembolism during Pregnancy and the Puerperium (Green-top Guideline No. 37a)",
+            "publisher": "Royal College of Obstetricians and Gynaecologists",
+            "version": "April 2015",
+            "url": "https://www.rcog.org.uk/media/qejfhcaj/gtg-37a.pdf",
+            "page": "Appendix III (risk assessment), Appendix I (flowchart), Appendix IV",
+            "reviewedAt": "2026-10-12"
+          },
+          {
+            "title": "Венозные осложнения во время беременности и послеродовом периоде. Акушерская тромбоэмболия",
+            "publisher": "Минздрав России, клинические рекомендации",
+            "version": "2025, редакция 2",
+            "url": "https://cr.minzdrav.gov.ru/view-cr/723_2",
+            "page": "Приложение Г3",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "(stage == 0) * (total >= 4)",
+              "verdict": {
+                "rangeId": "antenatal-first-trimester",
+                "title": "До родов: ≥4 баллов",
+                "explanation": "До родов ≥4 баллов: рассмотреть тромбопрофилактику НМГ с I триместра. При очень высоком риске (ВТЭО на длительной антикоагуляции, дефицит антитромбина, АФС с ВТЭО) нужен специалист по гемостазу и беременности.",
+                "attentionLevel": "high",
+                "sourceIds": ["obstetric-vte-risk-rcog-gtg37a", "obstetric-vte-risk-rcog-kr723"]
+              }
+            },
+            {
+              "when": "(stage == 0) * (total == 3)",
+              "verdict": {
+                "rangeId": "antenatal-from-28-weeks",
+                "title": "До родов: 3 балла",
+                "explanation": "До родов 3 балла: рассмотреть тромбопрофилактику НМГ с 28-й недели.",
+                "attentionLevel": "moderate",
+                "sourceIds": ["obstetric-vte-risk-rcog-gtg37a", "obstetric-vte-risk-rcog-kr723"]
+              }
+            },
+            {
+              "when": "stage == 0",
+              "verdict": {
+                "rangeId": "antenatal-lower",
+                "title": "До родов: менее 3 баллов",
+                "explanation": "До родов менее 3 баллов: ранняя мобилизация и профилактика обезвоживания; при госпитализации рассмотреть тромбопрофилактику.",
+                "attentionLevel": "none",
+                "sourceIds": ["obstetric-vte-risk-rcog-gtg37a", "obstetric-vte-risk-rcog-kr723"]
+              }
+            },
+            {
+              "when": "sixWeekCategory == 1",
+              "verdict": {
+                "rangeId": "postnatal-six-weeks-high-risk",
+                "title": "После родов: высокий риск",
+                "explanation": "После родов высокий риск (ВТЭО в анамнезе, тромбофилия высокого риска, тромбофилия низкого риска с семейным анамнезом или НМГ во время беременности): НМГ не менее 6 недель.",
+                "attentionLevel": "high",
+                "sourceIds": ["obstetric-vte-risk-rcog-gtg37a", "obstetric-vte-risk-rcog-kr723"]
+              }
+            },
+            {
+              "when": "total >= 3",
+              "verdict": {
+                "rangeId": "postnatal-three-or-more",
+                "title": "После родов: ≥3 баллов",
+                "explanation": "После родов ≥3 баллов: по КР РФ (Приложение Г3) тромбопрофилактика до 6 недель; по RCOG — не менее 10 дней, с продлением при сохраняющихся факторах или более чем трёх факторах.",
+                "attentionLevel": "high",
+                "sourceIds": ["obstetric-vte-risk-rcog-gtg37a", "obstetric-vte-risk-rcog-kr723"]
+              }
+            },
+            {
+              "when": "total == 2",
+              "verdict": {
+                "rangeId": "postnatal-ten-days",
+                "title": "После родов: 2 балла",
+                "explanation": "После родов 2 балла: тромбопрофилактика НМГ не менее 10 дней.",
+                "attentionLevel": "moderate",
+                "sourceIds": ["obstetric-vte-risk-rcog-gtg37a", "obstetric-vte-risk-rcog-kr723"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "postnatal-lower",
+                "title": "После родов: менее 2 баллов",
+                "explanation": "После родов менее 2 баллов: ранняя мобилизация и профилактика обезвоживания; при пребывании в стационаре ≥3 дней или повторной госпитализации в послеродовом периоде рассмотреть тромбопрофилактику.",
+                "attentionLevel": "none",
+                "sourceIds": ["obstetric-vte-risk-rcog-gtg37a", "obstetric-vte-risk-rcog-kr723"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["obstetric-vte-risk-rcog-gtg37a", "obstetric-vte-risk-rcog-kr723"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "obstetric-vte-risk-rcog.total",
+            "label": "Сумма баллов риска ВТЭО (RCOG)",
+            "unit": "баллов",
+            "stepId": "total",
+            "method": "calculator:obstetric-vte-risk-rcog"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "obstetric-vte-risk-rcog-gtg37a",
+          "kind": "guideline",
+          "relation": "methodology",
+          "title": "Reducing the Risk of Venous Thromboembolism during Pregnancy and the Puerperium (Green-top Guideline No. 37a), Appendix III",
+          "url": "https://www.rcog.org.uk/media/qejfhcaj/gtg-37a.pdf",
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "obstetric-vte-risk-rcog-kr723",
+          "kind": "clinical-recommendation",
+          "relation": "clinical-context",
+          "title": "Клинические рекомендации «Венозные осложнения во время беременности и послеродовом периоде. Акушерская тромбоэмболия» (2025), Приложение Г3",
+          "url": "https://cr.minzdrav.gov.ru/view-cr/723_2",
+          "reviewedAt": "2026-10-12"
         }
       ]
     }

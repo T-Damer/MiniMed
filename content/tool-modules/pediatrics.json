@@ -1,9 +1,9 @@
 {
   "id": "minimed.tools.pediatrics.ru",
-  "version": "0.1.0-preview.5",
+  "version": "0.1.0-preview.6",
   "title": "Инструменты педиатрии",
   "schemaVersion": 2,
-  "builtAt": "2026-10-09T00:00:00Z",
+  "builtAt": "2026-10-12T00:00:00Z",
   "tools": [
     {
       "id": "minimed.assessment.flacc-pain-scale",
@@ -954,6 +954,502 @@
           "title": "Программа оптимизации питания детей в возрасте от 1 года до 3 лет",
           "url": "https://www.pediatr-russia.ru/information/dokumenty/other-docs/optimizatsii-pitaniya-detej-v-vozraste-1-god-3-let-v-rf.pdf",
           "reviewedAt": "2026-08-31"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.clinical-dehydration-scale",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "clinical-dehydration-scale",
+      "title": "Клиническая шкала дегидратации (CDS)",
+      "shortTitle": "CDS",
+      "aliases": [
+        "Clinical Dehydration Scale",
+        "CDS",
+        "шкала дегидратации",
+        "степень дегидратации у детей",
+        "обезвоживание у ребёнка",
+        "гастроэнтерит дегидратация"
+      ],
+      "bankId": "pediatrics",
+      "bankLabel": "Педиатрия",
+      "category": "pediatrics",
+      "description": "Четыре признака (вид, глаза, слизистые, слёзы) по 0–2 балла: нет, лёгкая или средняя и тяжёлая дегидратация при гастроэнтерите.",
+      "estimatedMinutes": 1,
+      "audience": "Дети с острым гастроэнтеритом; оценку проводит врач или медсестра при осмотре.",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.clinical-dehydration-scale",
+        "slug": "clinical-dehydration-scale",
+        "title": "Клиническая шкала дегидратации (CDS)",
+        "shortTitle": "CDS",
+        "aliases": [
+          "Clinical Dehydration Scale",
+          "CDS",
+          "шкала дегидратации",
+          "степень дегидратации у детей",
+          "обезвоживание у ребёнка",
+          "гастроэнтерит дегидратация"
+        ],
+        "summary": "Четыре признака (вид, глаза, слизистые, слёзы) по 0–2 балла: нет, лёгкая или средняя и тяжёлая дегидратация при гастроэнтерите.",
+        "ageScope": {
+          "groups": ["children"],
+          "minAge": {
+            "value": 1,
+            "unit": "months"
+          },
+          "maxAge": {
+            "value": 59,
+            "unit": "months"
+          },
+          "basis": "Шкала выведена у детей 1–36 мес. с гастроэнтеритом (Friedman 2004) и проверена у детей от 1 мес. до 5 лет (Goldman 2008)."
+        },
+        "category": "pediatrics",
+        "clinical": true,
+        "formulaDisplay": "CDS (Friedman 2004): общий вид + глаза + слизистые + слёзы, каждый признак 0–2 балла (всего 0–8); 0 — нет, 1–4 — лёгкая, 5–8 — средняя и тяжёлая дегидратация",
+        "population": "Дети от 1 месяца до 5 лет с острым гастроэнтеритом.",
+        "limitations": [
+          "Шкала выведена и проверена при гастроэнтерите у детей от 1 месяца до 5 лет; при других причинах обезвоживания и вне этого возраста применимость не показана.",
+          "Результат не заменяет взвешивание, оценку жизненных показателей и клиническое решение о регидратации."
+        ],
+        "inputs": [
+          {
+            "id": "appearance",
+            "label": "Общий вид",
+            "kind": "select",
+            "options": [
+              {
+                "value": 0,
+                "label": "Нормальный"
+              },
+              {
+                "value": 1,
+                "label": "Жажда, беспокойство, раздражительность"
+              },
+              {
+                "value": 2,
+                "label": "Вялость, сонливость, холодный, потный"
+              }
+            ],
+            "required": true
+          },
+          {
+            "id": "eyes",
+            "label": "Глаза",
+            "kind": "select",
+            "options": [
+              {
+                "value": 0,
+                "label": "Нормальные"
+              },
+              {
+                "value": 1,
+                "label": "Слегка запавшие"
+              },
+              {
+                "value": 2,
+                "label": "Запавшие"
+              }
+            ],
+            "required": true
+          },
+          {
+            "id": "mucous",
+            "label": "Слизистые оболочки (язык)",
+            "kind": "select",
+            "options": [
+              {
+                "value": 0,
+                "label": "Влажные"
+              },
+              {
+                "value": 1,
+                "label": "Липкие"
+              },
+              {
+                "value": 2,
+                "label": "Сухие"
+              }
+            ],
+            "required": true
+          },
+          {
+            "id": "tears",
+            "label": "Слёзы",
+            "kind": "select",
+            "options": [
+              {
+                "value": 0,
+                "label": "В норме"
+              },
+              {
+                "value": 1,
+                "label": "Снижены"
+              },
+              {
+                "value": 2,
+                "label": "Отсутствуют"
+              }
+            ],
+            "required": true
+          }
+        ],
+        "steps": [
+          {
+            "id": "total",
+            "label": "Сумма баллов CDS",
+            "unit": "из 8",
+            "expression": "appearance + eyes + mucous + tears",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [],
+        "interpretations": [
+          {
+            "when": "total == 0",
+            "message": "0 баллов: дегидратации нет."
+          },
+          {
+            "when": "total <= 4",
+            "message": "1–4 балла: лёгкая дегидратация."
+          },
+          {
+            "when": "1",
+            "message": "5–8 баллов: дегидратация средней или тяжёлой степени."
+          }
+        ],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "Development of a clinical dehydration scale for use in children between 1 and 36 months of age",
+            "publisher": "The Journal of Pediatrics",
+            "version": "2004",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15289767/",
+            "page": "145(2):201-207",
+            "reviewedAt": "2026-10-12"
+          },
+          {
+            "title": "Validation of the clinical dehydration scale for children with acute gastroenteritis",
+            "publisher": "Pediatrics",
+            "version": "2008",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/18762524/",
+            "page": "122(3):545-549",
+            "reviewedAt": "2026-10-12"
+          },
+          {
+            "title": "Вирусные кишечные инфекции (гастроэнтериты) у детей",
+            "publisher": "Минздрав России, клинические рекомендации",
+            "version": "2025",
+            "url": "https://cr.minzdrav.gov.ru/view-cr/925_1",
+            "page": "Приложение Г1",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "total == 0",
+              "verdict": {
+                "rangeId": "none",
+                "title": "Дегидратации нет",
+                "explanation": "0 баллов: дегидратации нет.",
+                "attentionLevel": "none",
+                "sourceIds": ["cds-goldman-2008", "cds-kr925"]
+              }
+            },
+            {
+              "when": "total <= 4",
+              "verdict": {
+                "rangeId": "mild",
+                "title": "Лёгкая дегидратация",
+                "explanation": "1–4 балла: лёгкая дегидратация.",
+                "attentionLevel": "low",
+                "sourceIds": ["cds-goldman-2008", "cds-kr925"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "moderate-severe",
+                "title": "Дегидратация средней или тяжёлой степени",
+                "explanation": "5–8 баллов: дегидратация средней или тяжёлой степени.",
+                "attentionLevel": "high",
+                "sourceIds": ["cds-goldman-2008", "cds-kr925"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["cds-friedman-2004", "cds-goldman-2008", "cds-kr925"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.clinical-dehydration-scale.score",
+            "label": "Сумма баллов CDS",
+            "unit": "из 8",
+            "stepId": "total",
+            "method": "calculator:minimed.calculator.clinical-dehydration-scale"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "cds-friedman-2004",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Friedman JN, Goldman RD, Srivastava R, Parkin PC. Development of a clinical dehydration scale for use in children between 1 and 36 months of age",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/15289767/",
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "cds-goldman-2008",
+          "kind": "literature",
+          "relation": "interpretation",
+          "title": "Goldman RD, Friedman JN, Parkin PC. Validation of the clinical dehydration scale for children with acute gastroenteritis",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/18762524/",
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "cds-kr925",
+          "kind": "clinical-recommendation",
+          "relation": "clinical-context",
+          "title": "Клинические рекомендации «Вирусные кишечные инфекции (гастроэнтериты) у детей» (2025), Приложение Г1",
+          "url": "https://cr.minzdrav.gov.ru/view-cr/925_1",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.acute-malnutrition-who",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "acute-malnutrition-who",
+      "title": "Острая недостаточность питания у детей 6–59 мес. — критерии ВОЗ",
+      "shortTitle": "Острая БЭН (ВОЗ)",
+      "aliases": [
+        "острая недостаточность питания",
+        "БЭН у детей",
+        "истощение у детей",
+        "wasting",
+        "SAM MAM",
+        "тяжёлая острая недостаточность питания",
+        "масса к росту z-score",
+        "MUAC окружность плеча",
+        "нутритивные отёки"
+      ],
+      "bankId": "pediatrics",
+      "bankLabel": "Педиатрия",
+      "category": "pediatrics",
+      "description": "Степень острой недостаточности питания по z-score массы к росту, окружности плеча и нутритивным отёкам: нет, умеренная или тяжёлая.",
+      "estimatedMinutes": 1,
+      "audience": "Дети 6–59 месяцев; z-score массы к росту берут из антропометрии ВОЗ.",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.acute-malnutrition-who",
+        "slug": "acute-malnutrition-who",
+        "title": "Острая недостаточность питания у детей 6–59 мес. — критерии ВОЗ",
+        "shortTitle": "Острая БЭН (ВОЗ)",
+        "aliases": [
+          "острая недостаточность питания",
+          "БЭН у детей",
+          "истощение у детей",
+          "wasting",
+          "SAM MAM",
+          "тяжёлая острая недостаточность питания",
+          "масса к росту z-score",
+          "MUAC окружность плеча",
+          "нутритивные отёки"
+        ],
+        "summary": "Степень острой недостаточности питания по z-score массы к росту, окружности плеча и нутритивным отёкам: нет, умеренная или тяжёлая.",
+        "ageScope": {
+          "groups": ["children"],
+          "minAge": {
+            "value": 6,
+            "unit": "months"
+          },
+          "maxAge": {
+            "value": 59,
+            "unit": "months"
+          },
+          "basis": "Определение: критерии ВОЗ 2023 для детей 6–59 месяцев; у детей младше 6 месяцев ВОЗ использует отдельные критерии риска нарушения роста."
+        },
+        "category": "pediatrics",
+        "clinical": true,
+        "formulaDisplay": "ВОЗ 2023: тяжёлая — z-score массы к росту <−3, или MUAC <115 мм, или нутритивные отёки; умеренная — z-score <−2 или MUAC 115–<125 мм без отёков",
+        "population": "Дети от 6 до 59 месяцев при оценке острой недостаточности питания (истощения).",
+        "limitations": [
+          "Критерии ВОЗ применяют к детям 6–59 месяцев; у детей младше 6 месяцев используют отдельные критерии, у детей старше 5 лет и старше 1 года в клинической практике РФ — оценку по КР «Недостаточность питания у детей старше 1 года» (ИМТ и масса к возрасту).",
+          "Хроническую недостаточность (низкий рост к возрасту) и избыточную массу расчёт не оценивает; z-score массы к росту берут из антропометрии по стандартам ВОЗ.",
+          "Результат не заменяет клиническую оценку питания, аппетита и сопутствующих заболеваний; один замер не окончательный."
+        ],
+        "inputRequirements": [
+          {
+            "kind": "atLeastOne",
+            "inputIds": ["wfhz", "muac"],
+            "message": "Укажите z-score массы к росту или окружность плеча."
+          }
+        ],
+        "inputs": [
+          {
+            "id": "wfhz",
+            "label": "Z-score массы к длине/росту (ВОЗ)",
+            "unit": "SD",
+            "kind": "number",
+            "minimum": -10,
+            "maximum": 10,
+            "inputStep": 0.01,
+            "required": false,
+            "labelTooltip": "Рассчитывается по стандартам ВОЗ в калькуляторе антропометрии детей."
+          },
+          {
+            "id": "muac",
+            "label": "Окружность плеча (MUAC)",
+            "unit": "мм",
+            "kind": "number",
+            "minimum": 50,
+            "maximum": 250,
+            "inputStep": 1,
+            "required": false,
+            "labelTooltip": "Середина плеча, лента MUAC; критерий для детей 6–59 месяцев."
+          },
+          {
+            "id": "edema",
+            "label": "Двусторонние отёки стоп с ямкой",
+            "kind": "checkbox",
+            "required": false,
+            "defaultExpression": "0",
+            "labelTooltip": "Нутритивные отёки: на обеих стопах остаётся ямка после надавливания."
+          }
+        ],
+        "steps": [
+          {
+            "id": "degree",
+            "label": "Степень острой недостаточности питания",
+            "unit": "из 2",
+            "expression": "max(edema * 2, max(cond(present(wfhz), cond(wfhz < -3, 2, cond(wfhz < -2, 1, 0)), 0), cond(present(muac), cond(muac < 115, 2, cond(muac < 125, 1, 0)), 0)))",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [],
+        "interpretations": [
+          {
+            "when": "degree == 2",
+            "message": "Тяжёлая острая недостаточность питания: z-score массы к росту <−3, и/или окружность плеча <115 мм, и/или нутритивные отёки."
+          },
+          {
+            "when": "degree == 1",
+            "message": "Умеренная острая недостаточность питания: z-score массы к росту ≥−3 и <−2 и/или окружность плеча от 115 мм до менее 125 мм, без нутритивных отёков."
+          },
+          {
+            "when": "1",
+            "message": "Критериев острой недостаточности питания по ВОЗ нет: z-score массы к росту ≥−2, окружность плеча ≥125 мм, отёков нет."
+          }
+        ],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "WHO guideline on the prevention and management of wasting and nutritional oedema (acute malnutrition) in infants and children under 5 years",
+            "publisher": "World Health Organization",
+            "version": "2023",
+            "url": "https://www.who.int/publications/i/item/9789240082830",
+            "page": "Определения тяжёлой (SAM) и умеренной (MAM) острой недостаточности питания",
+            "reviewedAt": "2026-10-12"
+          },
+          {
+            "title": "WHO child growth standards and the identification of severe acute malnutrition in infants and children: a joint statement by WHO and UNICEF",
+            "publisher": "World Health Organization, UNICEF",
+            "version": "2009",
+            "url": "https://www.who.int/publications/i/item/9789241598163",
+            "page": "Граница MUAC 115 мм",
+            "reviewedAt": "2026-10-12"
+          },
+          {
+            "title": "Недостаточность питания у детей старше 1 года (Белково-энергетическая недостаточность)",
+            "publisher": "Минздрав России, клинические рекомендации",
+            "version": "2026",
+            "url": "https://cr.minzdrav.gov.ru/view-cr/1041_1",
+            "page": "Раздел 1.5, оценка по z-score",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "degree == 2",
+              "verdict": {
+                "rangeId": "severe",
+                "title": "Тяжёлая острая недостаточность питания",
+                "explanation": "Тяжёлая острая недостаточность питания: z-score массы к росту <−3, и/или окружность плеча <115 мм, и/или нутритивные отёки.",
+                "attentionLevel": "urgent",
+                "sourceIds": ["acute-malnutrition-who-2023", "acute-malnutrition-who-unicef-2009"]
+              }
+            },
+            {
+              "when": "degree == 1",
+              "verdict": {
+                "rangeId": "moderate",
+                "title": "Умеренная острая недостаточность питания",
+                "explanation": "Умеренная острая недостаточность питания: z-score массы к росту ≥−3 и <−2 и/или окружность плеча от 115 мм до менее 125 мм, без нутритивных отёков.",
+                "attentionLevel": "moderate",
+                "sourceIds": ["acute-malnutrition-who-2023"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "none",
+                "title": "Критериев острой недостаточности нет",
+                "explanation": "Критериев острой недостаточности питания по ВОЗ нет: z-score массы к росту ≥−2, окружность плеча ≥125 мм, отёков нет.",
+                "attentionLevel": "none",
+                "sourceIds": ["acute-malnutrition-who-2023"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": [
+            "acute-malnutrition-who-2023",
+            "acute-malnutrition-who-unicef-2009",
+            "acute-malnutrition-kr1041"
+          ]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.acute-malnutrition-who.degree",
+            "label": "Степень острой недостаточности питания",
+            "unit": "из 2",
+            "stepId": "degree",
+            "method": "calculator:minimed.calculator.acute-malnutrition-who"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "acute-malnutrition-who-2023",
+          "kind": "guideline",
+          "relation": "methodology",
+          "title": "WHO guideline on the prevention and management of wasting and nutritional oedema (acute malnutrition) in infants and children under 5 years",
+          "url": "https://www.who.int/publications/i/item/9789240082830",
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "acute-malnutrition-who-unicef-2009",
+          "kind": "guideline",
+          "relation": "interpretation",
+          "title": "WHO child growth standards and the identification of severe acute malnutrition in infants and children: a joint statement by WHO and UNICEF",
+          "url": "https://www.who.int/publications/i/item/9789241598163",
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "acute-malnutrition-kr1041",
+          "kind": "clinical-recommendation",
+          "relation": "clinical-context",
+          "title": "Клинические рекомендации «Недостаточность питания у детей старше 1 года (Белково-энергетическая недостаточность)» (2026)",
+          "url": "https://cr.minzdrav.gov.ru/view-cr/1041_1",
+          "reviewedAt": "2026-10-12"
         }
       ]
     }

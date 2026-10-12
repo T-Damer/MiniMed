@@ -25,6 +25,16 @@ function registerCoreClinicalCalculators(): void {
   }
 }
 
+/** The renal section spans core-clinical and the metabolic-lab module, so a complete section needs both. */
+function registerRenalCalculators(): void {
+  for (const record of loadToolModuleRecords([
+    'content/tool-modules/core-clinical.json',
+    'content/tool-modules/metabolic-lab.json',
+  ])) {
+    if (record.kind === 'calculator') registerDownloadedCalculator(record);
+  }
+}
+
 function registerObstetricsCalculators(): void {
   for (const record of loadToolModuleRecords(['content/tool-modules/obstetrics-gynecology.json'])) {
     if (record.kind === 'calculator') registerDownloadedCalculator(record);
@@ -35,7 +45,7 @@ afterEach(() => setDatabaseCalculatorIds([]));
 
 describe('calculator packs', () => {
   it('installs a complete section and removes its tools together', () => {
-    registerCoreClinicalCalculators();
+    registerRenalCalculators();
     const registry = getCalculatorRegistry();
     const ids = calculatorIdsInSection('renal', registry);
     const installed = installCalculatorSection('renal', registry);
@@ -115,7 +125,7 @@ describe('calculator packs', () => {
   });
 
   it('treats module-backed calculators as already installed without a download flag', () => {
-    registerCoreClinicalCalculators();
+    registerRenalCalculators();
     const registry = getCalculatorRegistry();
     const ids = calculatorIdsInSection('renal', registry);
     setDatabaseCalculatorIds(ids);

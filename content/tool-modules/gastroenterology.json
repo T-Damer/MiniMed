@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.gastroenterology.ru",
-  "version": "0.1.0-preview.4",
+  "version": "0.1.0-preview.5",
   "title": "Инструменты гастроэнтерологии",
   "schemaVersion": 2,
   "builtAt": "2026-08-15T00:00:00Z",
@@ -1461,40 +1461,36 @@
         ],
         "interpretations": [
           {
-            "minScore": 0,
-            "maxScore": 1,
             "scaleId": "partial-mayo-total",
-            "headline": "Ремиссия (Partial Mayo 0–1)",
-            "message": "0–1 балл соответствует ремиссии по валидированной градации Lewis et al. 2008."
+            "when": "cond(score <= 1, cond(answer_partial_mayo_rectal_bleeding == 0, 1, 0), 0)",
+            "headline": "Клиническая ремиссия (Partial Mayo 0–1)",
+            "message": "0–1 балл при нулевом ректальном кровотечении: клиническая ремиссия по клиническим рекомендациям «Язвенный колит»."
           },
           {
-            "minScore": 2,
-            "maxScore": 4,
             "scaleId": "partial-mayo-total",
-            "headline": "Лёгкая активность (Partial Mayo 2–4)",
-            "message": "2–4 балла соответствуют лёгкой активности по валидированной градации Lewis et al. 2008."
+            "when": "score <= 2",
+            "headline": "Лёгкая атака (Partial Mayo 1–2)",
+            "message": "1–2 балла: лёгкая атака язвенного колита по клиническим рекомендациям; 1 балл с ректальным кровотечением тоже относят сюда."
           },
           {
-            "minScore": 5,
-            "maxScore": 6,
             "scaleId": "partial-mayo-total",
-            "headline": "Умеренная активность (Partial Mayo 5–6)",
-            "message": "5–6 баллов соответствуют умеренной активности по валидированной градации Lewis et al. 2008."
+            "when": "score <= 5",
+            "headline": "Среднетяжёлая атака (Partial Mayo 3–5)",
+            "message": "3–5 баллов: среднетяжёлая атака язвенного колита по клиническим рекомендациям."
           },
           {
-            "minScore": 7,
-            "maxScore": 9,
             "scaleId": "partial-mayo-total",
-            "headline": "Тяжёлая активность (Partial Mayo 7–9)",
-            "message": "7–9 баллов соответствуют тяжёлой активности по валидированной градации Lewis et al. 2008."
+            "when": "1",
+            "headline": "Тяжёлая атака (Partial Mayo 6–9)",
+            "message": "6 баллов и более: тяжёлая атака язвенного колита по клиническим рекомендациям."
           }
         ],
         "disclaimer": "Частичный Mayo — клинический индекс активности без эндоскопии; не заменяет полный индекс Mayo и не является самостоятельным диагнозом.",
-        "evidenceNote": "Три компонента по 0–3 балла; суммарный диапазон 0–9; градации активности валидированы Lewis et al. 2008.",
+        "evidenceNote": "Три компонента по 0–3 балла; суммарный диапазон 0–9; группы атаки — по клиническим рекомендациям «Язвенный колит» (Lewis et al. 2008 валидировали компоненты и изменение балла, а не группы активности).",
         "license": {
           "kind": "third-party-attributed",
           "notice": "Частичный индекс Mayo описан в публикации Lewis et al.; MiniMed не является правообладателем инструмента.",
-          "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/18471528/"
+          "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/18623174/"
         },
         "schemaVersion": 2,
         "evaluation": {
@@ -1502,7 +1498,7 @@
           "rules": [],
           "missingContext": [],
           "reason": "Для этого результата ещё не объявлены декларативные правила оценки; шкала и её пороги показаны только как справочная интерпретация.",
-          "sourceIds": ["partial-mayo-lewis-2008", "partial-mayo-lewis-2008-interpretation"]
+          "sourceIds": ["partial-mayo-lewis-2008", "partial-mayo-kr-193"]
         },
         "observationMappings": [
           {
@@ -1519,17 +1515,19 @@
           "id": "partial-mayo-lewis-2008",
           "kind": "literature",
           "relation": "methodology",
-          "title": "Use of the noninvasive components of the Mayo score to assess ulcerative colitis activity",
-          "url": "https://pubmed.ncbi.nlm.nih.gov/18471528/",
-          "reviewedAt": "2026-08-17"
+          "title": "Use of the noninvasive components of the Mayo score to assess clinical response in ulcerative colitis",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/18623174/",
+          "reviewedAt": "2026-10-12"
         },
         {
-          "id": "partial-mayo-lewis-2008-interpretation",
-          "kind": "literature",
+          "id": "partial-mayo-kr-193",
+          "kind": "clinical-recommendation",
           "relation": "interpretation",
-          "title": "Use of the noninvasive components of the Mayo score to assess ulcerative colitis activity",
-          "url": "https://pubmed.ncbi.nlm.nih.gov/18471528/",
-          "reviewedAt": "2026-08-17"
+          "title": "Клинические рекомендации: Язвенный колит (КР 193_2)",
+          "url": null,
+          "moduleId": "minimed.clinical.recommendation.193_2",
+          "documentId": "kr.rf.193_2",
+          "reviewedAt": "2026-10-12"
         }
       ]
     }

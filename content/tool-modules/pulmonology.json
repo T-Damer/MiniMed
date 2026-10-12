@@ -1,0 +1,2076 @@
+{
+  "id": "minimed.tools.pulmonology.ru",
+  "version": "0.1.0-preview.1",
+  "title": "Пульмонология и инфекции: шкалы пневмонии и боли в горле",
+  "schemaVersion": 2,
+  "builtAt": "2026-10-12T00:00:00Z",
+  "tools": [
+    {
+      "id": "minimed.calculator.curb-65",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "curb-65-pneumonia-severity",
+      "title": "CURB-65 — тяжесть внебольничной пневмонии",
+      "shortTitle": "CURB-65",
+      "aliases": [
+        "CURB-65",
+        "CURB65",
+        "шкала CURB-65",
+        "внебольничная пневмония",
+        "тяжесть пневмонии",
+        "риск смерти при пневмонии",
+        "выбор места лечения пневмонии"
+      ],
+      "bankId": "pulmonology",
+      "bankLabel": "Пульмонология и инфекции",
+      "category": "pulmonology",
+      "description": "Балльная оценка риска смерти при внебольничной пневмонии по пяти признакам.",
+      "estimatedMinutes": 2,
+      "audience": "Взрослые с внебольничной пневмонией; не заменяет клиническую оценку",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.curb-65",
+        "slug": "curb-65-pneumonia-severity",
+        "title": "CURB-65 — тяжесть внебольничной пневмонии",
+        "shortTitle": "CURB-65",
+        "aliases": [
+          "CURB-65",
+          "CURB65",
+          "шкала CURB-65",
+          "внебольничная пневмония",
+          "тяжесть пневмонии",
+          "риск смерти при пневмонии",
+          "выбор места лечения пневмонии"
+        ],
+        "summary": "Балльная оценка риска смерти при внебольничной пневмонии по пяти признакам.",
+        "ageScope": {
+          "groups": ["adults"],
+          "minAge": {
+            "value": 18,
+            "unit": "years"
+          },
+          "basis": "Определение: «Взрослые с внебольничной пневмонией»; в исходной работе — госпитализированные взрослые, ввод возраста от 18 лет."
+        },
+        "category": "pulmonology",
+        "clinical": true,
+        "formulaDisplay": "Нарушение сознания 1 + мочевина >7 ммоль/л 1 + ЧДД ≥30 1 + САД <90 или ДАД ≤60 мм рт. ст. 1 + возраст ≥65 лет 1",
+        "population": "Взрослые с внебольничной пневмонией.",
+        "limitations": [
+          "Шкала оценивает риск смерти за 30 дней и помогает выбрать место лечения; решение зависит также от сопутствующих заболеваний, гипоксемии и возможности наблюдения дома.",
+          "Исходная работа выполнена на госпитализированных пациентах; для амбулаторных больных чаще применяют CRB-65 без мочевины.",
+          "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
+        ],
+        "inputs": [
+          {
+            "id": "confusion",
+            "label": "Нарушение сознания",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Новая дезориентация во времени, месте или личности, обусловленная пневмонией."
+          },
+          {
+            "id": "urea",
+            "label": "Мочевина крови",
+            "unit": "ммоль/л",
+            "kind": "number",
+            "minimum": 0.5,
+            "maximum": 100,
+            "required": true,
+            "inputStep": 0.1,
+            "labelTooltip": "Порог шкалы — больше 7 ммоль/л (азот мочевины)."
+          },
+          {
+            "id": "respiratoryRate",
+            "label": "Частота дыхания",
+            "unit": "в мин",
+            "kind": "number",
+            "minimum": 4,
+            "maximum": 80,
+            "required": true,
+            "integer": true
+          },
+          {
+            "id": "systolicBp",
+            "label": "Систолическое АД",
+            "unit": "мм рт. ст.",
+            "kind": "number",
+            "minimum": 40,
+            "maximum": 300,
+            "required": true,
+            "integer": true,
+            "patientBinding": {
+              "kind": "latestObservation",
+              "metricId": "blood-pressure-systolic",
+              "unit": "мм рт. ст.",
+              "maxAgeDays": 1
+            }
+          },
+          {
+            "id": "diastolicBp",
+            "label": "Диастолическое АД",
+            "unit": "мм рт. ст.",
+            "kind": "number",
+            "minimum": 20,
+            "maximum": 200,
+            "required": true,
+            "integer": true,
+            "patientBinding": {
+              "kind": "latestObservation",
+              "metricId": "blood-pressure-diastolic",
+              "unit": "мм рт. ст.",
+              "maxAgeDays": 1
+            }
+          },
+          {
+            "id": "ageYears",
+            "label": "Возраст",
+            "unit": "лет",
+            "kind": "number",
+            "minimum": 18,
+            "maximum": 120,
+            "required": true,
+            "integer": true,
+            "patientBinding": {
+              "kind": "ageAtEvent"
+            }
+          }
+        ],
+        "steps": [
+          {
+            "id": "score",
+            "label": "CURB-65",
+            "unit": "баллов",
+            "expression": "confusion + cond(urea > 7, 1, 0) + cond(respiratoryRate >= 30, 1, 0) + cond(systolicBp < 90, 1, cond(diastolicBp <= 60, 1, 0)) + cond(ageYears >= 65, 1, 0)",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "decision-support",
+            "message": "Используйте результат как часть клинического решения, а не как самостоятельное назначение или отмену обследования и лечения."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "score <= 1",
+            "message": "0–1 балл: низкий риск; 30-дневная летальность в исходной работе 0,7–3,2 %; возможно амбулаторное лечение."
+          },
+          {
+            "when": "score <= 2",
+            "message": "2 балла: промежуточный риск; рассмотрите госпитализацию или наблюдение в стационаре."
+          },
+          {
+            "when": "score <= 3",
+            "message": "3 балла: высокий риск; летальность в исходной работе 17 %; показана госпитализация."
+          },
+          {
+            "when": "1",
+            "message": "4–5 баллов: очень высокий риск; летальность в исходной работе 41,5–57 %; неотложная госпитализация, оцените показания к ОРИТ."
+          }
+        ],
+        "assertions": [
+          {
+            "when": "diastolicBp > systolicBp",
+            "error": "Диастолическое АД не может превышать систолическое."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Lim WS, van der Eerden MM, Laing R, et al. Defining community acquired pneumonia severity on presentation to hospital: an international derivation and validation study",
+            "publisher": "Thorax",
+            "version": "2003",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/12728155/",
+            "page": "58(5):377-382",
+            "reviewedAt": "2026-10-12"
+          },
+          {
+            "title": "Клинические рекомендации: Внебольничная пневмония у взрослых (КР 654_2)",
+            "publisher": "Министерство здравоохранения Российской Федерации",
+            "version": "Редакция 2024",
+            "url": "https://cr.minzdrav.gov.ru/view-cr/654_2",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score <= 1",
+              "verdict": {
+                "rangeId": "low",
+                "title": "Низкий риск",
+                "explanation": "0–1 балл: низкий риск; 30-дневная летальность в исходной работе 0,7–3,2 %; возможно амбулаторное лечение.",
+                "attentionLevel": "none",
+                "sourceIds": [
+                  "curb-65-pneumonia-severity-curb-65-lim-2003",
+                  "curb-65-pneumonia-severity-kr-654-2"
+                ]
+              }
+            },
+            {
+              "when": "score <= 2",
+              "verdict": {
+                "rangeId": "intermediate",
+                "title": "Промежуточный риск",
+                "explanation": "2 балла: промежуточный риск; рассмотрите госпитализацию или наблюдение в стационаре.",
+                "attentionLevel": "moderate",
+                "sourceIds": [
+                  "curb-65-pneumonia-severity-curb-65-lim-2003",
+                  "curb-65-pneumonia-severity-kr-654-2"
+                ]
+              }
+            },
+            {
+              "when": "score <= 3",
+              "verdict": {
+                "rangeId": "high",
+                "title": "Высокий риск",
+                "explanation": "3 балла: высокий риск; летальность в исходной работе 17 %; показана госпитализация.",
+                "attentionLevel": "high",
+                "sourceIds": [
+                  "curb-65-pneumonia-severity-curb-65-lim-2003",
+                  "curb-65-pneumonia-severity-kr-654-2"
+                ]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "very-high",
+                "title": "Очень высокий риск",
+                "explanation": "4–5 баллов: очень высокий риск; летальность в исходной работе 41,5–57 %; неотложная госпитализация, оцените показания к ОРИТ.",
+                "attentionLevel": "urgent",
+                "sourceIds": [
+                  "curb-65-pneumonia-severity-curb-65-lim-2003",
+                  "curb-65-pneumonia-severity-kr-654-2"
+                ]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": [
+            "curb-65-pneumonia-severity-curb-65-lim-2003",
+            "curb-65-pneumonia-severity-kr-654-2"
+          ]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.curb-65.score",
+            "label": "CURB-65",
+            "unit": "баллов",
+            "stepId": "score",
+            "method": "calculator:minimed.calculator.curb-65"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "curb-65-pneumonia-severity-curb-65-lim-2003",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Lim WS, van der Eerden MM, Laing R, et al. Defining community acquired pneumonia severity on presentation to hospital: an international derivation and validation study",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/12728155/",
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "curb-65-pneumonia-severity-kr-654-2",
+          "kind": "clinical-recommendation",
+          "relation": "interpretation",
+          "title": "Клинические рекомендации: Внебольничная пневмония у взрослых (КР 654_2)",
+          "moduleId": "minimed.clinical.recommendation.654_2",
+          "documentId": "kr.rf.654_2",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.crb-65",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "crb-65-pneumonia-severity",
+      "title": "CRB-65 — тяжесть внебольничной пневмонии без анализов",
+      "shortTitle": "CRB-65",
+      "aliases": [
+        "CRB-65",
+        "CRB65",
+        "шкала CRB-65",
+        "пневмония без мочевины",
+        "пневмония амбулаторно",
+        "риск смерти при пневмонии"
+      ],
+      "bankId": "pulmonology",
+      "bankLabel": "Пульмонология и инфекции",
+      "category": "pulmonology",
+      "description": "Упрощённая версия CURB-65: четыре признака без анализа мочевины, подходит для приёма и амбулатории.",
+      "estimatedMinutes": 2,
+      "audience": "Взрослые с внебольничной пневмонией на приёме или в приёмном отделении; не заменяет клиническую оценку",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.crb-65",
+        "slug": "crb-65-pneumonia-severity",
+        "title": "CRB-65 — тяжесть внебольничной пневмонии без анализов",
+        "shortTitle": "CRB-65",
+        "aliases": [
+          "CRB-65",
+          "CRB65",
+          "шкала CRB-65",
+          "пневмония без мочевины",
+          "пневмония амбулаторно",
+          "риск смерти при пневмонии"
+        ],
+        "summary": "Упрощённая версия CURB-65: четыре признака без анализа мочевины, подходит для приёма и амбулатории.",
+        "ageScope": {
+          "groups": ["adults"],
+          "minAge": {
+            "value": 18,
+            "unit": "years"
+          },
+          "basis": "Определение: «Взрослые с внебольничной пневмонией»; в работе Bauer 2006 — амбулаторные и госпитализированные взрослые, ввод возраста от 18 лет."
+        },
+        "category": "pulmonology",
+        "clinical": true,
+        "formulaDisplay": "Нарушение сознания 1 + ЧДД ≥30 1 + САД <90 или ДАД ≤60 мм рт. ст. 1 + возраст ≥65 лет 1",
+        "population": "Взрослые с внебольничной пневмонией, в том числе амбулаторные.",
+        "limitations": [
+          "Шкала не учитывает мочевину, гипоксемию и сопутствующие заболевания; при низком балле оцените их отдельно.",
+          "В госпитальной выборке CRB без возраста пропускал часть смертей; поэтому используется вариант с возрастом (CRB-65).",
+          "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
+        ],
+        "inputs": [
+          {
+            "id": "confusion",
+            "label": "Нарушение сознания",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Новая дезориентация во времени, месте или личности, обусловленная пневмонией."
+          },
+          {
+            "id": "respiratoryRate",
+            "label": "Частота дыхания",
+            "unit": "в мин",
+            "kind": "number",
+            "minimum": 4,
+            "maximum": 80,
+            "required": true,
+            "integer": true
+          },
+          {
+            "id": "systolicBp",
+            "label": "Систолическое АД",
+            "unit": "мм рт. ст.",
+            "kind": "number",
+            "minimum": 40,
+            "maximum": 300,
+            "required": true,
+            "integer": true,
+            "patientBinding": {
+              "kind": "latestObservation",
+              "metricId": "blood-pressure-systolic",
+              "unit": "мм рт. ст.",
+              "maxAgeDays": 1
+            }
+          },
+          {
+            "id": "diastolicBp",
+            "label": "Диастолическое АД",
+            "unit": "мм рт. ст.",
+            "kind": "number",
+            "minimum": 20,
+            "maximum": 200,
+            "required": true,
+            "integer": true,
+            "patientBinding": {
+              "kind": "latestObservation",
+              "metricId": "blood-pressure-diastolic",
+              "unit": "мм рт. ст.",
+              "maxAgeDays": 1
+            }
+          },
+          {
+            "id": "ageYears",
+            "label": "Возраст",
+            "unit": "лет",
+            "kind": "number",
+            "minimum": 18,
+            "maximum": 120,
+            "required": true,
+            "integer": true,
+            "patientBinding": {
+              "kind": "ageAtEvent"
+            }
+          }
+        ],
+        "steps": [
+          {
+            "id": "score",
+            "label": "CRB-65",
+            "unit": "баллов",
+            "expression": "confusion + cond(respiratoryRate >= 30, 1, 0) + cond(systolicBp < 90, 1, cond(diastolicBp <= 60, 1, 0)) + cond(ageYears >= 65, 1, 0)",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "decision-support",
+            "message": "Используйте результат как часть клинического решения, а не как самостоятельное назначение или отмену обследования и лечения."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "score < 1",
+            "message": "0 баллов: низкий риск; возможно амбулаторное лечение."
+          },
+          {
+            "when": "score <= 2",
+            "message": "1–2 балла: промежуточный риск; рассмотрите оценку и наблюдение в стационаре."
+          },
+          {
+            "when": "1",
+            "message": "3–4 балла: высокий риск; неотложная госпитализация."
+          }
+        ],
+        "assertions": [
+          {
+            "when": "diastolicBp > systolicBp",
+            "error": "Диастолическое АД не может превышать систолическое."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Bauer TT, Ewig S, Marre R, Suttorp N, Welte T. CRB-65 predicts death from community-acquired pneumonia",
+            "publisher": "Journal of Internal Medicine",
+            "version": "2006",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/16789984/",
+            "page": "260(1):93-101",
+            "reviewedAt": "2026-10-12"
+          },
+          {
+            "title": "Lim WS, van der Eerden MM, Laing R, et al. Defining community acquired pneumonia severity on presentation to hospital: an international derivation and validation study",
+            "publisher": "Thorax",
+            "version": "2003",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/12728155/",
+            "page": "58(5):377-382",
+            "reviewedAt": "2026-10-12"
+          },
+          {
+            "title": "Клинические рекомендации: Внебольничная пневмония у взрослых (КР 654_2)",
+            "publisher": "Министерство здравоохранения Российской Федерации",
+            "version": "Редакция 2024",
+            "url": "https://cr.minzdrav.gov.ru/view-cr/654_2",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score < 1",
+              "verdict": {
+                "rangeId": "low",
+                "title": "Низкий риск",
+                "explanation": "0 баллов: низкий риск; возможно амбулаторное лечение.",
+                "attentionLevel": "none",
+                "sourceIds": [
+                  "crb-65-bauer-2006",
+                  "crb-65-pneumonia-severity-curb-65-lim-2003",
+                  "crb-65-pneumonia-severity-kr-654-2"
+                ]
+              }
+            },
+            {
+              "when": "score <= 2",
+              "verdict": {
+                "rangeId": "intermediate",
+                "title": "Промежуточный риск",
+                "explanation": "1–2 балла: промежуточный риск; рассмотрите оценку и наблюдение в стационаре.",
+                "attentionLevel": "moderate",
+                "sourceIds": [
+                  "crb-65-bauer-2006",
+                  "crb-65-pneumonia-severity-curb-65-lim-2003",
+                  "crb-65-pneumonia-severity-kr-654-2"
+                ]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "high",
+                "title": "Высокий риск",
+                "explanation": "3–4 балла: высокий риск; неотложная госпитализация.",
+                "attentionLevel": "high",
+                "sourceIds": [
+                  "crb-65-bauer-2006",
+                  "crb-65-pneumonia-severity-curb-65-lim-2003",
+                  "crb-65-pneumonia-severity-kr-654-2"
+                ]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": [
+            "crb-65-bauer-2006",
+            "crb-65-pneumonia-severity-curb-65-lim-2003",
+            "crb-65-pneumonia-severity-kr-654-2"
+          ]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.crb-65.score",
+            "label": "CRB-65",
+            "unit": "баллов",
+            "stepId": "score",
+            "method": "calculator:minimed.calculator.crb-65"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "crb-65-bauer-2006",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Bauer TT, Ewig S, Marre R, Suttorp N, Welte T. CRB-65 predicts death from community-acquired pneumonia",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/16789984/",
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "crb-65-pneumonia-severity-curb-65-lim-2003",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Lim WS, van der Eerden MM, Laing R, et al. Defining community acquired pneumonia severity on presentation to hospital: an international derivation and validation study",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/12728155/",
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "crb-65-pneumonia-severity-kr-654-2",
+          "kind": "clinical-recommendation",
+          "relation": "interpretation",
+          "title": "Клинические рекомендации: Внебольничная пневмония у взрослых (КР 654_2)",
+          "moduleId": "minimed.clinical.recommendation.654_2",
+          "documentId": "kr.rf.654_2",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.psi-port",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "psi-port-pneumonia-severity",
+      "title": "PSI/PORT — индекс тяжести пневмонии",
+      "shortTitle": "PSI/PORT",
+      "aliases": [
+        "PSI",
+        "PORT",
+        "Pneumonia Severity Index",
+        "индекс тяжести пневмонии",
+        "шкала PORT",
+        "Fine",
+        "класс риска пневмонии",
+        "внебольничная пневмония"
+      ],
+      "bankId": "pulmonology",
+      "bankLabel": "Пульмонология и инфекции",
+      "category": "pulmonology",
+      "description": "Двухступенчатая оценка риска смерти при внебольничной пневмонии: класс I по критериям, классы II–V по сумме баллов.",
+      "estimatedMinutes": 4,
+      "audience": "Взрослые с внебольничной пневмонией; не заменяет клиническую оценку",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.psi-port",
+        "slug": "psi-port-pneumonia-severity",
+        "title": "PSI/PORT — индекс тяжести пневмонии",
+        "shortTitle": "PSI/PORT",
+        "aliases": [
+          "PSI",
+          "PORT",
+          "Pneumonia Severity Index",
+          "индекс тяжести пневмонии",
+          "шкала PORT",
+          "Fine",
+          "класс риска пневмонии",
+          "внебольничная пневмония"
+        ],
+        "summary": "Двухступенчатая оценка риска смерти при внебольничной пневмонии: класс I по критериям, классы II–V по сумме баллов.",
+        "ageScope": {
+          "groups": ["adults"],
+          "minAge": {
+            "value": 18,
+            "unit": "years"
+          },
+          "basis": "Определение: «Взрослые с внебольничной пневмонией»; в исходной работе — взрослые амбулаторные и госпитализированные пациенты, ввод от 18 лет."
+        },
+        "category": "pulmonology",
+        "clinical": true,
+        "formulaDisplay": "Класс I: возраст ≤50 лет без сопутствующих болезней и изменений при осмотре. Иначе: возраст (женщинам −10) + дом престарелых 10 + опухоль 30 + печень 20 + ХСН 10 + ЦВБ 10 + почки 10 + сознание 20 + ЧДД ≥30 20 + САД <90 20 + температура <35 или ≥40 15 + ЧСС ≥125 10 + pH <7,35 30 + мочевина 20 + Na <130 20 + глюкоза 10 + Ht <30 % 10 + PaO₂ <60 или SaO₂ <90 % 10 + выпот 10",
+        "population": "Взрослые с внебольничной пневмонией.",
+        "limitations": [
+          "Класс I определяется первым шагом без анализов; для классов II–V нужны все лабораторные и рентгенологические показатели — отсутствующие не считаются нормальными.",
+          "Шкала оценивает 30-дневную летальность и помогает выбрать место лечения; учитывайте также гипоксемию, социальные условия и возможность приёма препаратов внутрь.",
+          "Пороги азота мочевины и глюкозы взяты в мг/дл исходной работы и пересчитаны в ммоль/л.",
+          "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
+        ],
+        "inputs": [
+          {
+            "id": "ageYears",
+            "label": "Возраст",
+            "unit": "лет",
+            "kind": "number",
+            "minimum": 18,
+            "maximum": 120,
+            "required": true,
+            "integer": true,
+            "patientBinding": {
+              "kind": "ageAtEvent"
+            }
+          },
+          {
+            "id": "sex",
+            "label": "Пол",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": "female",
+                "label": "Женский"
+              },
+              {
+                "value": "male",
+                "label": "Мужской"
+              }
+            ],
+            "patientBinding": {
+              "kind": "biologicalSex"
+            }
+          },
+          {
+            "id": "nursingHome",
+            "label": "Проживание в доме престарелых или учреждении длительного ухода",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "neoplasm",
+            "label": "Злокачественная опухоль",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Активная или выявленная в течение последнего года; кроме базально- и плоскоклеточного рака кожи."
+          },
+          {
+            "id": "liverDisease",
+            "label": "Тяжёлое хроническое заболевание печени",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Цирроз или хронический активный гепатит."
+          },
+          {
+            "id": "heartFailure",
+            "label": "Застойная сердечная недостаточность",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Систолическая или диастолическая дисфункция левого желудочка, документированная."
+          },
+          {
+            "id": "cerebrovascular",
+            "label": "Цереброваскулярное заболевание",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Инсульт, ТИА или остаточные явления по КТ/МРТ."
+          },
+          {
+            "id": "renalDisease",
+            "label": "Тяжёлое хроническое заболевание почек",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Подтверждённое хроническое заболевание или повышение креатинина/азота мочевины."
+          },
+          {
+            "id": "alteredMentalStatus",
+            "label": "Нарушение сознания",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Дезориентация, сонливость, ступор или кома — новые, не объясняемые другими причинами."
+          },
+          {
+            "id": "respiratoryRate",
+            "label": "Частота дыхания",
+            "unit": "в мин",
+            "kind": "number",
+            "minimum": 4,
+            "maximum": 80,
+            "required": true,
+            "integer": true
+          },
+          {
+            "id": "systolicBp",
+            "label": "Систолическое АД",
+            "unit": "мм рт. ст.",
+            "kind": "number",
+            "minimum": 40,
+            "maximum": 300,
+            "required": true,
+            "integer": true,
+            "patientBinding": {
+              "kind": "latestObservation",
+              "metricId": "blood-pressure-systolic",
+              "unit": "мм рт. ст.",
+              "maxAgeDays": 1
+            }
+          },
+          {
+            "id": "temperature",
+            "label": "Температура тела",
+            "unit": "°C",
+            "kind": "number",
+            "minimum": 30,
+            "maximum": 45,
+            "required": true,
+            "inputStep": 0.1
+          },
+          {
+            "id": "heartRate",
+            "label": "ЧСС",
+            "unit": "уд/мин",
+            "kind": "number",
+            "minimum": 20,
+            "maximum": 300,
+            "required": true,
+            "integer": true
+          },
+          {
+            "id": "arterialPh",
+            "label": "pH артериальной крови",
+            "kind": "number",
+            "minimum": 6.5,
+            "maximum": 8.0,
+            "required": false,
+            "inputStep": 0.01,
+            "labelTooltip": "Нужен, если пациент не относится к классу I."
+          },
+          {
+            "id": "urea",
+            "label": "Мочевина крови",
+            "unit": "ммоль/л",
+            "kind": "number",
+            "minimum": 0.5,
+            "maximum": 100,
+            "required": false,
+            "inputStep": 0.1,
+            "labelTooltip": "Порог шкалы — азот мочевины ≥30 мг/дл (≈10,7 ммоль/л мочевины)."
+          },
+          {
+            "id": "sodium",
+            "label": "Натрий сыворотки",
+            "unit": "ммоль/л",
+            "kind": "number",
+            "minimum": 90,
+            "maximum": 190,
+            "required": false,
+            "integer": true
+          },
+          {
+            "id": "glucose",
+            "label": "Глюкоза сыворотки",
+            "unit": "ммоль/л",
+            "kind": "number",
+            "minimum": 1,
+            "maximum": 80,
+            "required": false,
+            "inputStep": 0.1,
+            "labelTooltip": "Порог шкалы — ≥250 мг/дл (≈13,9 ммоль/л)."
+          },
+          {
+            "id": "hematocrit",
+            "label": "Гематокрит",
+            "unit": "%",
+            "kind": "number",
+            "minimum": 5,
+            "maximum": 70,
+            "required": false,
+            "inputStep": 0.1
+          },
+          {
+            "id": "pao2",
+            "label": "PaO₂",
+            "unit": "мм рт. ст.",
+            "kind": "number",
+            "minimum": 20,
+            "maximum": 600,
+            "required": false,
+            "integer": true,
+            "labelTooltip": "Достаточно PaO₂ или SaO₂/SpO₂."
+          },
+          {
+            "id": "spo2",
+            "label": "SaO₂ (SpO₂)",
+            "unit": "%",
+            "kind": "number",
+            "minimum": 50,
+            "maximum": 100,
+            "required": false,
+            "integer": true
+          },
+          {
+            "id": "pleuralEffusion",
+            "label": "Плевральный выпот на рентгенограмме",
+            "kind": "select",
+            "required": false,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          }
+        ],
+        "steps": [
+          {
+            "id": "classOneFlag",
+            "label": "Критерии класса I выполнены (1 — да)",
+            "unit": "признак",
+            "expression": "cond(ageYears <= 50, 1, 0) * cond(neoplasm + liverDisease + heartFailure + cerebrovascular + renalDisease == 0, 1, 0) * cond(alteredMentalStatus + cond(respiratoryRate >= 30, 1, 0) + cond(systolicBp < 90, 1, 0) + cond(temperature < 35, 1, cond(temperature >= 40, 1, 0)) + cond(heartRate >= 125, 1, 0) == 0, 1, 0)",
+            "displayPrecision": 0,
+            "isOutput": false
+          },
+          {
+            "id": "demographics",
+            "label": "Возраст и пол",
+            "unit": "баллов",
+            "expression": "cond(sex == \"male\", ageYears, ageYears - 10) + nursingHome * 10",
+            "displayPrecision": 0,
+            "isOutput": false
+          },
+          {
+            "id": "comorbidities",
+            "label": "Сопутствующие заболевания",
+            "unit": "баллов",
+            "expression": "neoplasm * 30 + liverDisease * 20 + heartFailure * 10 + cerebrovascular * 10 + renalDisease * 10",
+            "displayPrecision": 0,
+            "isOutput": false
+          },
+          {
+            "id": "findings",
+            "label": "Изменения при осмотре",
+            "unit": "баллов",
+            "expression": "alteredMentalStatus * 20 + cond(respiratoryRate >= 30, 20, 0) + cond(systolicBp < 90, 20, 0) + cond(temperature < 35, 15, cond(temperature >= 40, 15, 0)) + cond(heartRate >= 125, 10, 0)",
+            "displayPrecision": 0,
+            "isOutput": false
+          },
+          {
+            "id": "laboratory",
+            "label": "Лабораторные и рентгенологические данные",
+            "unit": "баллов",
+            "expression": "cond(present(arterialPh), cond(arterialPh < 7.35, 30, 0), 0) + cond(present(urea), cond(urea >= 10.7, 20, 0), 0) + cond(present(sodium), cond(sodium < 130, 20, 0), 0) + cond(present(glucose), cond(glucose >= 13.9, 10, 0), 0) + cond(present(hematocrit), cond(hematocrit < 30, 10, 0), 0) + 10 * max(cond(present(pao2), cond(pao2 < 60, 1, 0), 0), cond(present(spo2), cond(spo2 < 90, 1, 0), 0)) + cond(present(pleuralEffusion), pleuralEffusion * 10, 0)",
+            "displayPrecision": 0,
+            "isOutput": false
+          },
+          {
+            "id": "points",
+            "label": "Сумма баллов (для классов II–V)",
+            "unit": "баллов",
+            "expression": "demographics + comorbidities + findings + laboratory",
+            "displayPrecision": 0,
+            "isOutput": false
+          },
+          {
+            "id": "riskClass",
+            "label": "Класс риска PSI",
+            "unit": "класс",
+            "expression": "cond(classOneFlag == 1, 1, cond(points <= 70, 2, cond(points <= 90, 3, cond(points <= 130, 4, 5))))",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "decision-support",
+            "message": "Используйте результат как часть клинического решения, а не как самостоятельное назначение или отмену обследования и лечения."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "riskClass <= 1",
+            "message": "Класс I: низкий риск; 30-дневная летальность 0,1–0,4 %; амбулаторное лечение."
+          },
+          {
+            "when": "riskClass <= 2",
+            "message": "Класс II (до 70 баллов): летальность 0,6–0,7 %; амбулаторное лечение."
+          },
+          {
+            "when": "riskClass <= 3",
+            "message": "Класс III (71–90 баллов): летальность 0,9–2,8 %; кратковременная госпитализация."
+          },
+          {
+            "when": "riskClass <= 4",
+            "message": "Класс IV (91–130 баллов): летальность 8,5–9,3 %; госпитализация."
+          },
+          {
+            "when": "1",
+            "message": "Класс V (более 130 баллов): летальность 27,0–31,1 %; госпитализация, возможно в ОРИТ."
+          }
+        ],
+        "assertions": [
+          {
+            "when": "(1 - classOneFlag) * ((1 - present(arterialPh)) + (1 - present(urea)) + (1 - present(sodium)) + (1 - present(glucose)) + (1 - present(hematocrit)) + (1 - max(present(pao2), present(spo2))) + (1 - present(pleuralEffusion))) > 0",
+            "error": "Для классов II–V заполните pH, мочевину, натрий, глюкозу, гематокрит, PaO₂ или SpO₂ и данные о плевральном выпоте."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Fine MJ, Auble TE, Yealy DM, et al. A prediction rule to identify low-risk patients with community-acquired pneumonia",
+            "publisher": "New England Journal of Medicine",
+            "version": "1997",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/8995086/",
+            "page": "336(4):243-250",
+            "reviewedAt": "2026-10-12"
+          },
+          {
+            "title": "Клинические рекомендации: Внебольничная пневмония у взрослых (КР 654_2)",
+            "publisher": "Министерство здравоохранения Российской Федерации",
+            "version": "Редакция 2024",
+            "url": "https://cr.minzdrav.gov.ru/view-cr/654_2",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "riskClass <= 1",
+              "verdict": {
+                "rangeId": "class-1",
+                "title": "Класс I",
+                "explanation": "Класс I: низкий риск; 30-дневная летальность 0,1–0,4 %; амбулаторное лечение.",
+                "attentionLevel": "none",
+                "sourceIds": ["psi-fine-1997", "psi-port-pneumonia-severity-kr-654-2"]
+              }
+            },
+            {
+              "when": "riskClass <= 2",
+              "verdict": {
+                "rangeId": "class-2",
+                "title": "Класс II",
+                "explanation": "Класс II (до 70 баллов): летальность 0,6–0,7 %; амбулаторное лечение.",
+                "attentionLevel": "low",
+                "sourceIds": ["psi-fine-1997", "psi-port-pneumonia-severity-kr-654-2"]
+              }
+            },
+            {
+              "when": "riskClass <= 3",
+              "verdict": {
+                "rangeId": "class-3",
+                "title": "Класс III",
+                "explanation": "Класс III (71–90 баллов): летальность 0,9–2,8 %; кратковременная госпитализация.",
+                "attentionLevel": "moderate",
+                "sourceIds": ["psi-fine-1997", "psi-port-pneumonia-severity-kr-654-2"]
+              }
+            },
+            {
+              "when": "riskClass <= 4",
+              "verdict": {
+                "rangeId": "class-4",
+                "title": "Класс IV",
+                "explanation": "Класс IV (91–130 баллов): летальность 8,5–9,3 %; госпитализация.",
+                "attentionLevel": "high",
+                "sourceIds": ["psi-fine-1997", "psi-port-pneumonia-severity-kr-654-2"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "class-5",
+                "title": "Класс V",
+                "explanation": "Класс V (более 130 баллов): летальность 27,0–31,1 %; госпитализация, возможно в ОРИТ.",
+                "attentionLevel": "urgent",
+                "sourceIds": ["psi-fine-1997", "psi-port-pneumonia-severity-kr-654-2"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["psi-fine-1997", "psi-port-pneumonia-severity-kr-654-2"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.psi-port.riskClass",
+            "label": "PSI/PORT",
+            "unit": "класс",
+            "stepId": "riskClass",
+            "method": "calculator:minimed.calculator.psi-port"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "psi-fine-1997",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Fine MJ, Auble TE, Yealy DM, et al. A prediction rule to identify low-risk patients with community-acquired pneumonia",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/8995086/",
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "psi-port-pneumonia-severity-kr-654-2",
+          "kind": "clinical-recommendation",
+          "relation": "interpretation",
+          "title": "Клинические рекомендации: Внебольничная пневмония у взрослых (КР 654_2)",
+          "moduleId": "minimed.clinical.recommendation.654_2",
+          "documentId": "kr.rf.654_2",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.smart-cop",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "smart-cop-pneumonia-icu",
+      "title": "SMART-COP — потребность в ИВЛ или вазопрессорах при пневмонии",
+      "shortTitle": "SMART-COP",
+      "aliases": [
+        "SMART-COP",
+        "SMARTCOP",
+        "шкала SMART-COP",
+        "тяжёлая внебольничная пневмония",
+        "ОРИТ при пневмонии",
+        "потребность в ИВЛ",
+        "вазопрессоры при пневмонии"
+      ],
+      "bankId": "pulmonology",
+      "bankLabel": "Пульмонология и инфекции",
+      "category": "pulmonology",
+      "description": "Балльная оценка вероятности, что при внебольничной пневмонии потребуется ИВЛ или вазопрессоры.",
+      "estimatedMinutes": 3,
+      "audience": "Взрослые с внебольничной пневмонией; не заменяет клиническую оценку",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.smart-cop",
+        "slug": "smart-cop-pneumonia-icu",
+        "title": "SMART-COP — потребность в ИВЛ или вазопрессорах при пневмонии",
+        "shortTitle": "SMART-COP",
+        "aliases": [
+          "SMART-COP",
+          "SMARTCOP",
+          "шкала SMART-COP",
+          "тяжёлая внебольничная пневмония",
+          "ОРИТ при пневмонии",
+          "потребность в ИВЛ",
+          "вазопрессоры при пневмонии"
+        ],
+        "summary": "Балльная оценка вероятности, что при внебольничной пневмонии потребуется ИВЛ или вазопрессоры.",
+        "ageScope": {
+          "groups": ["adults"],
+          "minAge": {
+            "value": 18,
+            "unit": "years"
+          },
+          "basis": "Определение: «Взрослые с внебольничной пневмонией»; в исходной работе — взрослые, ввод возраста от 18 лет."
+        },
+        "category": "pulmonology",
+        "clinical": true,
+        "formulaDisplay": "САД <90 2 + мультилобарная инфильтрация 1 + альбумин <35 г/л 1 + ЧДД (≥25 до 50 лет, ≥30 старше) 1 + ЧСС ≥125 1 + сознание 1 + оксигенация 2 + pH <7,35 2",
+        "population": "Взрослые с внебольничной пневмонией.",
+        "limitations": [
+          "Шкала предсказывает потребность в интенсивной респираторной или вазопрессорной поддержке, а не летальность; для неё есть CURB-65 и PSI.",
+          "Оксигенация считается положительной, если выполнен любой из критериев: SpO₂, PaO₂ или PaO₂/FiO₂.",
+          "Низкий балл не отменяет оценки показаний к госпитализации; не применяйте при выраженной иммуносупрессии.",
+          "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
+        ],
+        "inputs": [
+          {
+            "id": "ageYears",
+            "label": "Возраст",
+            "unit": "лет",
+            "kind": "number",
+            "minimum": 18,
+            "maximum": 120,
+            "required": true,
+            "integer": true,
+            "patientBinding": {
+              "kind": "ageAtEvent"
+            },
+            "labelTooltip": "От возраста зависят пороги ЧДД и оксигенации (до 50 лет и старше)."
+          },
+          {
+            "id": "systolicBp",
+            "label": "Систолическое АД",
+            "unit": "мм рт. ст.",
+            "kind": "number",
+            "minimum": 40,
+            "maximum": 300,
+            "required": true,
+            "integer": true,
+            "patientBinding": {
+              "kind": "latestObservation",
+              "metricId": "blood-pressure-systolic",
+              "unit": "мм рт. ст.",
+              "maxAgeDays": 1
+            }
+          },
+          {
+            "id": "multilobar",
+            "label": "Инфильтрация более чем в одной доле на рентгенограмме",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "albumin",
+            "label": "Альбумин плазмы",
+            "unit": "г/л",
+            "kind": "number",
+            "minimum": 5,
+            "maximum": 70,
+            "required": true,
+            "inputStep": 0.1,
+            "labelTooltip": "Порог шкалы — ниже 35 г/л (3,5 г/дл)."
+          },
+          {
+            "id": "respiratoryRate",
+            "label": "Частота дыхания",
+            "unit": "в мин",
+            "kind": "number",
+            "minimum": 4,
+            "maximum": 80,
+            "required": true,
+            "integer": true
+          },
+          {
+            "id": "heartRate",
+            "label": "ЧСС",
+            "unit": "уд/мин",
+            "kind": "number",
+            "minimum": 20,
+            "maximum": 300,
+            "required": true,
+            "integer": true
+          },
+          {
+            "id": "confusion",
+            "label": "Нарушение сознания",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Новая дезориентация или спутанность."
+          },
+          {
+            "id": "spo2",
+            "label": "SpO₂ (SaO₂)",
+            "unit": "%",
+            "kind": "number",
+            "minimum": 50,
+            "maximum": 100,
+            "required": false,
+            "integer": true,
+            "labelTooltip": "Достаточно одного из показателей оксигенации."
+          },
+          {
+            "id": "pao2",
+            "label": "PaO₂",
+            "unit": "мм рт. ст.",
+            "kind": "number",
+            "minimum": 20,
+            "maximum": 600,
+            "required": false,
+            "integer": true
+          },
+          {
+            "id": "pf",
+            "label": "PaO₂/FiO₂",
+            "unit": "мм рт. ст.",
+            "kind": "number",
+            "minimum": 30,
+            "maximum": 700,
+            "required": false,
+            "integer": true,
+            "labelTooltip": "При дыхании кислородом."
+          },
+          {
+            "id": "arterialPh",
+            "label": "pH артериальной крови",
+            "kind": "number",
+            "minimum": 6.5,
+            "maximum": 8.0,
+            "required": true,
+            "inputStep": 0.01
+          }
+        ],
+        "inputRequirements": [
+          {
+            "kind": "atLeastOne",
+            "inputIds": ["spo2", "pao2", "pf"],
+            "message": "Укажите SpO₂, PaO₂ или PaO₂/FiO₂."
+          }
+        ],
+        "steps": [
+          {
+            "id": "oxygenFlag",
+            "label": "Оксигенация снижена (1 — да)",
+            "unit": "признак",
+            "expression": "max(max(cond(present(spo2), cond(spo2 <= cond(ageYears <= 50, 93, 90), 1, 0), 0), cond(present(pao2), cond(pao2 < cond(ageYears <= 50, 70, 60), 1, 0), 0)), cond(present(pf), cond(pf < cond(ageYears <= 50, 333, 250), 1, 0), 0))",
+            "displayPrecision": 0,
+            "isOutput": false
+          },
+          {
+            "id": "score",
+            "label": "SMART-COP",
+            "unit": "баллов",
+            "expression": "cond(systolicBp < 90, 2, 0) + multilobar + cond(albumin < 35, 1, 0) + cond(ageYears <= 50, cond(respiratoryRate >= 25, 1, 0), cond(respiratoryRate >= 30, 1, 0)) + cond(heartRate >= 125, 1, 0) + confusion + oxygenFlag * 2 + cond(arterialPh < 7.35, 2, 0)",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "decision-support",
+            "message": "Используйте результат как часть клинического решения, а не как самостоятельное назначение или отмену обследования и лечения."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "score <= 2",
+            "message": "0–2 балла: низкий риск потребности в ИВЛ или вазопрессорах."
+          },
+          {
+            "when": "score <= 4",
+            "message": "3–4 балла: умеренный риск (около 1 из 8); порог ≥3 выявил 92 % пациентов, которым потребовалась поддержка."
+          },
+          {
+            "when": "score <= 6",
+            "message": "5–6 баллов: высокий риск (около 1 из 3); оцените показания к ОРИТ."
+          },
+          {
+            "when": "1",
+            "message": "7 баллов и более: очень высокий риск (около 2 из 3); оцените показания к ОРИТ."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Charles PG, Wolfe R, Whitby M, et al. SMART-COP: a tool for predicting the need for intensive respiratory or vasopressor support in community-acquired pneumonia",
+            "publisher": "Clinical Infectious Diseases",
+            "version": "2008",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/18558884/",
+            "page": "47(3):375-384",
+            "reviewedAt": "2026-10-12"
+          },
+          {
+            "title": "Клинические рекомендации: Внебольничная пневмония у взрослых (КР 654_2)",
+            "publisher": "Министерство здравоохранения Российской Федерации",
+            "version": "Редакция 2024",
+            "url": "https://cr.minzdrav.gov.ru/view-cr/654_2",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score <= 2",
+              "verdict": {
+                "rangeId": "low",
+                "title": "Низкий риск",
+                "explanation": "0–2 балла: низкий риск потребности в ИВЛ или вазопрессорах.",
+                "attentionLevel": "none",
+                "sourceIds": [
+                  "smart-cop-pneumonia-icu-smart-cop-charles-2008",
+                  "smart-cop-pneumonia-icu-kr-654-2"
+                ]
+              }
+            },
+            {
+              "when": "score <= 4",
+              "verdict": {
+                "rangeId": "moderate",
+                "title": "Умеренный риск",
+                "explanation": "3–4 балла: умеренный риск (около 1 из 8); порог ≥3 выявил 92 % пациентов, которым потребовалась поддержка.",
+                "attentionLevel": "moderate",
+                "sourceIds": [
+                  "smart-cop-pneumonia-icu-smart-cop-charles-2008",
+                  "smart-cop-pneumonia-icu-kr-654-2"
+                ]
+              }
+            },
+            {
+              "when": "score <= 6",
+              "verdict": {
+                "rangeId": "high",
+                "title": "Высокий риск",
+                "explanation": "5–6 баллов: высокий риск (около 1 из 3); оцените показания к ОРИТ.",
+                "attentionLevel": "high",
+                "sourceIds": [
+                  "smart-cop-pneumonia-icu-smart-cop-charles-2008",
+                  "smart-cop-pneumonia-icu-kr-654-2"
+                ]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "very-high",
+                "title": "Очень высокий риск",
+                "explanation": "7 баллов и более: очень высокий риск (около 2 из 3); оцените показания к ОРИТ.",
+                "attentionLevel": "urgent",
+                "sourceIds": [
+                  "smart-cop-pneumonia-icu-smart-cop-charles-2008",
+                  "smart-cop-pneumonia-icu-kr-654-2"
+                ]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": [
+            "smart-cop-pneumonia-icu-smart-cop-charles-2008",
+            "smart-cop-pneumonia-icu-kr-654-2"
+          ]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.smart-cop.score",
+            "label": "SMART-COP",
+            "unit": "баллов",
+            "stepId": "score",
+            "method": "calculator:minimed.calculator.smart-cop"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "smart-cop-pneumonia-icu-smart-cop-charles-2008",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Charles PG, Wolfe R, Whitby M, et al. SMART-COP: a tool for predicting the need for intensive respiratory or vasopressor support in community-acquired pneumonia",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/18558884/",
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "smart-cop-pneumonia-icu-kr-654-2",
+          "kind": "clinical-recommendation",
+          "relation": "clinical-context",
+          "title": "Клинические рекомендации: Внебольничная пневмония у взрослых (КР 654_2)",
+          "moduleId": "minimed.clinical.recommendation.654_2",
+          "documentId": "kr.rf.654_2",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.smrt-co",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "smrt-co-pneumonia-icu",
+      "title": "SMRT-CO — потребность в ИВЛ или вазопрессорах без анализов",
+      "shortTitle": "SMRT-CO",
+      "aliases": [
+        "SMRT-CO",
+        "SMRTCO",
+        "шкала SMRT-CO",
+        "SMART-COP без анализов",
+        "пневмония ОРИТ без лаборатории"
+      ],
+      "bankId": "pulmonology",
+      "bankLabel": "Пульмонология и инфекции",
+      "category": "pulmonology",
+      "description": "Вариант SMART-COP без альбумина, PaO₂ и pH: подходит, когда анализов ещё нет.",
+      "estimatedMinutes": 2,
+      "audience": "Взрослые с внебольничной пневмонией; не заменяет клиническую оценку",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.smrt-co",
+        "slug": "smrt-co-pneumonia-icu",
+        "title": "SMRT-CO — потребность в ИВЛ или вазопрессорах без анализов",
+        "shortTitle": "SMRT-CO",
+        "aliases": [
+          "SMRT-CO",
+          "SMRTCO",
+          "шкала SMRT-CO",
+          "SMART-COP без анализов",
+          "пневмония ОРИТ без лаборатории"
+        ],
+        "summary": "Вариант SMART-COP без альбумина, PaO₂ и pH: подходит, когда анализов ещё нет.",
+        "ageScope": {
+          "groups": ["adults"],
+          "minAge": {
+            "value": 18,
+            "unit": "years"
+          },
+          "basis": "Определение: «Взрослые с внебольничной пневмонией»; в исходной работе — взрослые, ввод возраста от 18 лет."
+        },
+        "category": "pulmonology",
+        "clinical": true,
+        "formulaDisplay": "САД <90 2 + мультилобарная инфильтрация 1 + ЧДД (≥25 до 50 лет, ≥30 старше) 1 + ЧСС ≥125 1 + сознание 1 + оксигенация (SpO₂ или PaO₂/FiO₂) 2",
+        "population": "Взрослые с внебольничной пневмонией.",
+        "limitations": [
+          "Вариант без лабораторных показателей менее точен, чем полный SMART-COP; при появлении анализов пересчитайте полную шкалу.",
+          "Оксигенация считается положительной, если выполнен любой из критериев: SpO₂ или PaO₂/FiO₂.",
+          "Не применяйте при выраженной иммуносупрессии.",
+          "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
+        ],
+        "inputs": [
+          {
+            "id": "ageYears",
+            "label": "Возраст",
+            "unit": "лет",
+            "kind": "number",
+            "minimum": 18,
+            "maximum": 120,
+            "required": true,
+            "integer": true,
+            "patientBinding": {
+              "kind": "ageAtEvent"
+            },
+            "labelTooltip": "От возраста зависят пороги ЧДД и оксигенации (до 50 лет и старше)."
+          },
+          {
+            "id": "systolicBp",
+            "label": "Систолическое АД",
+            "unit": "мм рт. ст.",
+            "kind": "number",
+            "minimum": 40,
+            "maximum": 300,
+            "required": true,
+            "integer": true,
+            "patientBinding": {
+              "kind": "latestObservation",
+              "metricId": "blood-pressure-systolic",
+              "unit": "мм рт. ст.",
+              "maxAgeDays": 1
+            }
+          },
+          {
+            "id": "multilobar",
+            "label": "Инфильтрация более чем в одной доле на рентгенограмме",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "respiratoryRate",
+            "label": "Частота дыхания",
+            "unit": "в мин",
+            "kind": "number",
+            "minimum": 4,
+            "maximum": 80,
+            "required": true,
+            "integer": true
+          },
+          {
+            "id": "heartRate",
+            "label": "ЧСС",
+            "unit": "уд/мин",
+            "kind": "number",
+            "minimum": 20,
+            "maximum": 300,
+            "required": true,
+            "integer": true
+          },
+          {
+            "id": "confusion",
+            "label": "Нарушение сознания",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ],
+            "labelTooltip": "Новая дезориентация или спутанность."
+          },
+          {
+            "id": "spo2",
+            "label": "SpO₂ (SaO₂)",
+            "unit": "%",
+            "kind": "number",
+            "minimum": 50,
+            "maximum": 100,
+            "required": false,
+            "integer": true,
+            "labelTooltip": "Достаточно одного из показателей оксигенации."
+          },
+          {
+            "id": "pf",
+            "label": "PaO₂/FiO₂",
+            "unit": "мм рт. ст.",
+            "kind": "number",
+            "minimum": 30,
+            "maximum": 700,
+            "required": false,
+            "integer": true,
+            "labelTooltip": "При дыхании кислородом."
+          }
+        ],
+        "inputRequirements": [
+          {
+            "kind": "atLeastOne",
+            "inputIds": ["spo2", "pf"],
+            "message": "Укажите SpO₂ или PaO₂/FiO₂."
+          }
+        ],
+        "steps": [
+          {
+            "id": "oxygenFlag",
+            "label": "Оксигенация снижена (1 — да)",
+            "unit": "признак",
+            "expression": "max(cond(present(spo2), cond(spo2 <= cond(ageYears <= 50, 93, 90), 1, 0), 0), cond(present(pf), cond(pf < cond(ageYears <= 50, 333, 250), 1, 0), 0))",
+            "displayPrecision": 0,
+            "isOutput": false
+          },
+          {
+            "id": "score",
+            "label": "SMRT-CO",
+            "unit": "баллов",
+            "expression": "cond(systolicBp < 90, 2, 0) + multilobar + cond(ageYears <= 50, cond(respiratoryRate >= 25, 1, 0), cond(respiratoryRate >= 30, 1, 0)) + cond(heartRate >= 125, 1, 0) + confusion + oxygenFlag * 2",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "decision-support",
+            "message": "Используйте результат как часть клинического решения, а не как самостоятельное назначение или отмену обследования и лечения."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "score <= 1",
+            "message": "0–1 балл: низкий риск потребности в ИВЛ или вазопрессорах."
+          },
+          {
+            "when": "score <= 2",
+            "message": "2 балла: умеренный риск потребности в ИВЛ или вазопрессорах."
+          },
+          {
+            "when": "1",
+            "message": "3 балла и более: высокий риск потребности в ИВЛ или вазопрессорах; оцените показания к ОРИТ."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Charles PG, Wolfe R, Whitby M, et al. SMART-COP: a tool for predicting the need for intensive respiratory or vasopressor support in community-acquired pneumonia",
+            "publisher": "Clinical Infectious Diseases",
+            "version": "2008",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/18558884/",
+            "page": "47(3):375-384",
+            "reviewedAt": "2026-10-12"
+          },
+          {
+            "title": "Клинические рекомендации: Внебольничная пневмония у взрослых (КР 654_2)",
+            "publisher": "Министерство здравоохранения Российской Федерации",
+            "version": "Редакция 2024",
+            "url": "https://cr.minzdrav.gov.ru/view-cr/654_2",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score <= 1",
+              "verdict": {
+                "rangeId": "low",
+                "title": "Низкий риск",
+                "explanation": "0–1 балл: низкий риск потребности в ИВЛ или вазопрессорах.",
+                "attentionLevel": "none",
+                "sourceIds": [
+                  "smrt-co-pneumonia-icu-smart-cop-charles-2008",
+                  "smrt-co-pneumonia-icu-kr-654-2"
+                ]
+              }
+            },
+            {
+              "when": "score <= 2",
+              "verdict": {
+                "rangeId": "moderate",
+                "title": "Умеренный риск",
+                "explanation": "2 балла: умеренный риск потребности в ИВЛ или вазопрессорах.",
+                "attentionLevel": "moderate",
+                "sourceIds": [
+                  "smrt-co-pneumonia-icu-smart-cop-charles-2008",
+                  "smrt-co-pneumonia-icu-kr-654-2"
+                ]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "high",
+                "title": "Высокий риск",
+                "explanation": "3 балла и более: высокий риск потребности в ИВЛ или вазопрессорах; оцените показания к ОРИТ.",
+                "attentionLevel": "high",
+                "sourceIds": [
+                  "smrt-co-pneumonia-icu-smart-cop-charles-2008",
+                  "smrt-co-pneumonia-icu-kr-654-2"
+                ]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": [
+            "smrt-co-pneumonia-icu-smart-cop-charles-2008",
+            "smrt-co-pneumonia-icu-kr-654-2"
+          ]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.smrt-co.score",
+            "label": "SMRT-CO",
+            "unit": "баллов",
+            "stepId": "score",
+            "method": "calculator:minimed.calculator.smrt-co"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "smrt-co-pneumonia-icu-smart-cop-charles-2008",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Charles PG, Wolfe R, Whitby M, et al. SMART-COP: a tool for predicting the need for intensive respiratory or vasopressor support in community-acquired pneumonia",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/18558884/",
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "smrt-co-pneumonia-icu-kr-654-2",
+          "kind": "clinical-recommendation",
+          "relation": "clinical-context",
+          "title": "Клинические рекомендации: Внебольничная пневмония у взрослых (КР 654_2)",
+          "moduleId": "minimed.clinical.recommendation.654_2",
+          "documentId": "kr.rf.654_2",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.mcisaac-pharyngitis",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "mcisaac-sore-throat-score",
+      "title": "McIsaac — стрептококковая ангина (модифицированная шкала Centor)",
+      "shortTitle": "McIsaac",
+      "aliases": [
+        "McIsaac",
+        "Centor",
+        "модифицированная шкала Centor",
+        "шкала Центора",
+        "шкала Мак-Айзека",
+        "стрептококковый тонзиллит",
+        "ангина",
+        "боль в горле",
+        "острый тонзиллофарингит"
+      ],
+      "bankId": "pulmonology",
+      "bankLabel": "Пульмонология и инфекции",
+      "category": "pulmonology",
+      "description": "Оценка вероятности стрептококка группы A при боли в горле по четырём признакам с поправкой на возраст.",
+      "estimatedMinutes": 2,
+      "audience": "Дети от 3 лет и взрослые с острой болью в горле; не заменяет клиническую оценку",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.mcisaac-pharyngitis",
+        "slug": "mcisaac-sore-throat-score",
+        "title": "McIsaac — стрептококковая ангина (модифицированная шкала Centor)",
+        "shortTitle": "McIsaac",
+        "aliases": [
+          "McIsaac",
+          "Centor",
+          "модифицированная шкала Centor",
+          "шкала Центора",
+          "шкала Мак-Айзека",
+          "стрептококковый тонзиллит",
+          "ангина",
+          "боль в горле",
+          "острый тонзиллофарингит"
+        ],
+        "summary": "Оценка вероятности стрептококка группы A при боли в горле по четырём признакам с поправкой на возраст.",
+        "ageScope": {
+          "groups": ["children", "adults"],
+          "minAge": {
+            "value": 3,
+            "unit": "years"
+          },
+          "basis": "Определение: «Дети от 3 лет и взрослые»; в работе Fine 2012 оценивались пациенты от 3 лет."
+        },
+        "category": "pulmonology",
+        "clinical": true,
+        "formulaDisplay": "Температура >38 °C 1 + налёт или отёк миндалин 1 + болезненные передние шейные узлы 1 + нет кашля 1; возраст 3–14 лет +1, 45 лет и старше −1; результат ограничен 0–4",
+        "population": "Дети от 3 лет и взрослые с острой болью в горле.",
+        "limitations": [
+          "Вероятности получены в амбулаторной сети США (Fine 2012) и могут отличаться в вашей популяции; шкала не заменяет экспресс-тест или посев.",
+          "Баллы −1 и 5 приведены к 0 и 4, как в публикации Fine 2012.",
+          "Тактика по баллам следует клиническим рекомендациям; при лихорадке, налёте и узлах учитывайте также эпидемиологический контекст.",
+          "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
+        ],
+        "inputs": [
+          {
+            "id": "ageYears",
+            "label": "Возраст",
+            "unit": "лет",
+            "kind": "number",
+            "minimum": 3,
+            "maximum": 120,
+            "required": true,
+            "integer": true,
+            "patientBinding": {
+              "kind": "ageAtEvent"
+            }
+          },
+          {
+            "id": "temperature",
+            "label": "Температура тела",
+            "unit": "°C",
+            "kind": "number",
+            "minimum": 34,
+            "maximum": 43,
+            "required": true,
+            "inputStep": 0.1
+          },
+          {
+            "id": "tonsilExudate",
+            "label": "Отёк миндалин или налёт на миндалинах",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "tenderNodes",
+            "label": "Увеличенные болезненные передние шейные лимфоузлы",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          },
+          {
+            "id": "noCough",
+            "label": "Кашля нет",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Да"
+              }
+            ]
+          }
+        ],
+        "steps": [
+          {
+            "id": "ageScore",
+            "label": "Поправка на возраст",
+            "unit": "баллов",
+            "expression": "cond(ageYears <= 14, 1, cond(ageYears >= 45, -1, 0))",
+            "displayPrecision": 0,
+            "isOutput": false
+          },
+          {
+            "id": "rawScore",
+            "label": "Сумма до приведения",
+            "unit": "баллов",
+            "expression": "cond(temperature > 38, 1, 0) + tonsilExudate + tenderNodes + noCough + ageScore",
+            "displayPrecision": 0,
+            "isOutput": false
+          },
+          {
+            "id": "score",
+            "label": "McIsaac",
+            "unit": "баллов",
+            "expression": "max(0, min(4, rawScore))",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "decision-support",
+            "message": "Используйте результат как часть клинического решения, а не как самостоятельное назначение или отмену обследования и лечения."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "score < 1",
+            "message": "0 баллов: стрептококк группы A находят примерно у 8 %; бактериологическое исследование и антибиотик не показаны."
+          },
+          {
+            "when": "score < 2",
+            "message": "1 балл: стрептококк группы A находят примерно у 14 %; бактериологическое исследование и антибиотик не показаны."
+          },
+          {
+            "when": "score < 3",
+            "message": "2 балла: стрептококк группы A находят примерно у 23 %; антибиотик — по результату экспресс-теста или посева."
+          },
+          {
+            "when": "score < 4",
+            "message": "3 балла: стрептококк группы A находят примерно у 37 %; антибиотик — по результату экспресс-теста или посева."
+          },
+          {
+            "when": "1",
+            "message": "4–5 баллов: стрептококк группы A находят примерно у 55 %; клинические рекомендации допускают антибиотик по клинической картине."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Fine AM, Nizet V, Mandl KD. Large-scale validation of the Centor and McIsaac scores to predict group A streptococcal pharyngitis",
+            "publisher": "Archives of Internal Medicine",
+            "version": "2012",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/22566485/",
+            "page": "172(11):847-852",
+            "reviewedAt": "2026-10-12"
+          },
+          {
+            "title": "McIsaac WJ, White D, Tannenbaum D, Low DE. A clinical score to reduce unnecessary antibiotic use in patients with sore throat",
+            "publisher": "Canadian Medical Association Journal",
+            "version": "1998",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/9475915/",
+            "page": "158(1):75-83",
+            "reviewedAt": "2026-10-12"
+          },
+          {
+            "title": "Клинические рекомендации: Острый тонзиллит и фарингит (острый тонзиллофарингит) (КР 306_3)",
+            "publisher": "Министерство здравоохранения Российской Федерации",
+            "version": "Редакция 2024",
+            "url": "https://cr.minzdrav.gov.ru/view-cr/306_3",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score < 1",
+              "verdict": {
+                "rangeId": "score-0",
+                "title": "0 баллов",
+                "explanation": "0 баллов: стрептококк группы A находят примерно у 8 %; бактериологическое исследование и антибиотик не показаны.",
+                "attentionLevel": "none",
+                "sourceIds": ["mcisaac-fine-2012", "mcisaac-1998", "kr-306-3"]
+              }
+            },
+            {
+              "when": "score < 2",
+              "verdict": {
+                "rangeId": "score-1",
+                "title": "1 балл",
+                "explanation": "1 балл: стрептококк группы A находят примерно у 14 %; бактериологическое исследование и антибиотик не показаны.",
+                "attentionLevel": "none",
+                "sourceIds": ["mcisaac-fine-2012", "mcisaac-1998", "kr-306-3"]
+              }
+            },
+            {
+              "when": "score < 3",
+              "verdict": {
+                "rangeId": "score-2",
+                "title": "2 балла",
+                "explanation": "2 балла: стрептококк группы A находят примерно у 23 %; антибиотик — по результату экспресс-теста или посева.",
+                "attentionLevel": "low",
+                "sourceIds": ["mcisaac-fine-2012", "mcisaac-1998", "kr-306-3"]
+              }
+            },
+            {
+              "when": "score < 4",
+              "verdict": {
+                "rangeId": "score-3",
+                "title": "3 балла",
+                "explanation": "3 балла: стрептококк группы A находят примерно у 37 %; антибиотик — по результату экспресс-теста или посева.",
+                "attentionLevel": "moderate",
+                "sourceIds": ["mcisaac-fine-2012", "mcisaac-1998", "kr-306-3"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "score-4",
+                "title": "4 балла",
+                "explanation": "4–5 баллов: стрептококк группы A находят примерно у 55 %; клинические рекомендации допускают антибиотик по клинической картине.",
+                "attentionLevel": "high",
+                "sourceIds": ["mcisaac-fine-2012", "mcisaac-1998", "kr-306-3"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["mcisaac-fine-2012", "mcisaac-1998", "kr-306-3"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.mcisaac-pharyngitis.score",
+            "label": "McIsaac",
+            "unit": "баллов",
+            "stepId": "score",
+            "method": "calculator:minimed.calculator.mcisaac-pharyngitis"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "mcisaac-fine-2012",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Fine AM, Nizet V, Mandl KD. Large-scale validation of the Centor and McIsaac scores to predict group A streptococcal pharyngitis",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/22566485/",
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "mcisaac-1998",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "McIsaac WJ, White D, Tannenbaum D, Low DE. A clinical score to reduce unnecessary antibiotic use in patients with sore throat",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/9475915/",
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "kr-306-3",
+          "kind": "clinical-recommendation",
+          "relation": "interpretation",
+          "title": "Клинические рекомендации: Острый тонзиллит и фарингит (острый тонзиллофарингит) (КР 306_3)",
+          "moduleId": "minimed.clinical.recommendation.306_3",
+          "documentId": "kr.rf.306_3",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    }
+  ]
+}

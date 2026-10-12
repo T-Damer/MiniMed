@@ -20,6 +20,33 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## MedSolutions gap calculators — 2026-10-12 (STATE CALC-ALL)
+
+- **Source of the list:** the friend-shared MedElement «Справочник врача» databases
+  (`data/raw/medsolutions-spravochnik-vracha/`, gitignored). Its 253 calculators (`mes.sqlite`) are HTML prose,
+  so nothing was imported: each missing tool was rebuilt as a schemaVersion 2 definition from its primary
+  publication or current КР, with MedSolutions used only as a checklist and cross-check. Many MedSolutions
+  errors were found and the primary source followed (list in `docs/research/calculator-review-queue-2026-10-12.md`).
+- **Catalog:** 86 → 245 tools (221 calculators, 24 assessments) in 16 modules. New modules
+  `minimed.tools.{intensive-care,surgery-trauma,neurology-rehab,metabolic-lab,pulmonology,medication-dosing,rheum-gi-onco-uro}.ru`
+  0.1.0-preview.1; extended cardiology 0.2.0-preview.1 (GRACE, SCORE2/SCORE2-OP, Framingham, PROCAM, PCE,
+  EuroSCORE II, DAPT, SAMe-TT₂R₂, ESRS, ABI, Smith, LVMI, Mehran, CEAP, ХАН), obstetrics-gynecology preview.8
+  (RCOG VTE risk), pediatrics preview.6 (CDS dehydration, WHO acute malnutrition), psychology preview.5 (Zung
+  SDS/SAS, HAM-D 17), gastroenterology preview.5 (partial Mayo: correct Lewis 2008 PMID, bands from КР 193_2).
+  All updated modules require app **0.6.59** (`minAppVersion`), because they use the new categories and `ln()`.
+- **Engine and sections:** `ln()` in calculator expressions, the user formula editor and the frozen Kotlin twin;
+  nine calculator sections (intensive-care, surgery, neurology, pulmonology, endocrinology, laboratory,
+  rheumatology, oncology, urology); `lint-calculator-schema.ts --modules <paths>` lints draft modules.
+- **Left out on purpose:** licensed item wording (MMSE, Beck, FIM, 16PF, Rorschach, MoCA, GMFCS, MACS, PPS, EDSS,
+  CAT, IIEF-5, GerdQ, Lazarus, PARI), unpublished models (FRAX, GRACE 2.0), items without a verifiable primary
+  source, obsolete Clark/Young dose rules. Review queue with secondary-source items and licence questions
+  (Zung, Barthel, Rivermead, PAINAD, FINDRISC, BASDAI/BASFI): `docs/research/calculator-review-queue-2026-10-12.md`.
+- **Not covered by this batch:** Vidal drug data, the Citilab lab reference (`analyzes.sqlite`) and TNM from the
+  same extraction — local-only, not committed to the public repo; diets and the ICD/МЭС code layer are next.
+- **Checks:** vitest 16 241, pytest 1 382, typecheck, build, schema lint (221/24), native source check and
+  `benchmark:all` pass; `bun run check` fails only on the pre-existing `docs/data-ledger.json` formatting. No
+  browser/device run; frozen native golden exports not regenerated.
+
 ## Cardiology and thromboembolism calculators — 2026-10-12 (STATE CALC-CARDIO)
 
 - **New tool module** `content/tool-modules/cardiology.json` → `minimed.tools.cardiology.ru` 0.1.0-preview.1

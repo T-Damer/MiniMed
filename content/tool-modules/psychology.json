@@ -1,9 +1,9 @@
 {
   "id": "minimed.tools.psychology.ru",
-  "version": "0.1.0-preview.4",
+  "version": "0.1.0-preview.5",
   "title": "Инструменты психологии и психиатрии",
   "schemaVersion": 2,
-  "builtAt": "2026-09-04T00:00:00Z",
+  "builtAt": "2026-10-12T00:00:00Z",
   "tools": [
     {
       "id": "minimed.assessment.braverman-behavioral",
@@ -1887,6 +1887,1306 @@
           "documentId": null,
           "url": "https://psytests.org/depr/shas.html",
           "reviewedAt": "2026-09-02"
+        }
+      ]
+    },
+    {
+      "id": "minimed.assessment.zung-sds",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "zung-self-rating-depression",
+      "title": "Шкала самооценки депрессии Цунга (SDS)",
+      "shortTitle": "Шкала Цунга (депрессия)",
+      "aliases": [
+        "Zung SDS",
+        "Zung Self-Rating Depression Scale",
+        "шкала Цунга",
+        "шкала депрессии Цунга",
+        "самооценка депрессии",
+        "SDS"
+      ],
+      "bankId": "psychiatry",
+      "bankLabel": "Психиатрия",
+      "category": "self-reflection",
+      "description": "Двадцать утверждений о самочувствии за последнюю неделю (20–80 баллов) для самооценки выраженности депрессии. Оцените, как часто это было верно для вас за последнюю неделю.",
+      "estimatedMinutes": 7,
+      "audience": "Взрослые; скрининг и динамика, не диагноз",
+      "definition": {
+        "id": "minimed.assessment.zung-sds",
+        "slug": "zung-self-rating-depression",
+        "title": "Шкала самооценки депрессии Цунга (SDS)",
+        "shortTitle": "Шкала Цунга (депрессия)",
+        "aliases": [
+          "Zung SDS",
+          "Zung Self-Rating Depression Scale",
+          "шкала Цунга",
+          "шкала депрессии Цунга",
+          "самооценка депрессии",
+          "SDS"
+        ],
+        "bankId": "psychiatry",
+        "bankLabel": "Психиатрия",
+        "category": "self-reflection",
+        "description": "Двадцать утверждений о самочувствии за последнюю неделю (20–80 баллов) для самооценки выраженности депрессии. Оцените, как часто это было верно для вас за последнюю неделю.",
+        "estimatedMinutes": 7,
+        "audience": "Взрослые; скрининг и динамика, не диагноз",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "Определение: «Взрослые»."
+        },
+        "responseOptions": [
+          {
+            "value": 1,
+            "label": "Редко или никогда"
+          },
+          {
+            "value": 2,
+            "label": "Иногда"
+          },
+          {
+            "value": 3,
+            "label": "Часто"
+          },
+          {
+            "value": 4,
+            "label": "Почти всегда"
+          }
+        ],
+        "scales": [
+          {
+            "id": "zung-sds-total",
+            "label": "Сумма баллов шкалы Цунга (депрессия)",
+            "shortLabel": "Цунг (депрессия)",
+            "description": "Сумма 20 ответов по 1–4 балла; 10 пунктов оцениваются в обратном порядке. Диапазон 20–80 баллов; индекс = сумма × 1,25 (25–100). Градации индекса: ниже 50 — норма; 50–59 — лёгкая или умеренная; 60–69 — умеренная или тяжёлая; 70 и выше — тяжёлая депрессия."
+          }
+        ],
+        "questions": [
+          {
+            "id": "zung-self-rating-depression-01",
+            "prompt": "Я чувствую подавленность и тоску",
+            "scaleId": "zung-sds-total"
+          },
+          {
+            "id": "zung-self-rating-depression-02",
+            "prompt": "Утром я чувствую себя лучше всего",
+            "scaleId": "zung-sds-total",
+            "reverse": true
+          },
+          {
+            "id": "zung-self-rating-depression-03",
+            "prompt": "У меня бывают приступы плача или хочется плакать",
+            "scaleId": "zung-sds-total"
+          },
+          {
+            "id": "zung-self-rating-depression-04",
+            "prompt": "Ночью я плохо сплю",
+            "scaleId": "zung-sds-total"
+          },
+          {
+            "id": "zung-self-rating-depression-05",
+            "prompt": "Аппетит у меня такой же, как всегда",
+            "scaleId": "zung-sds-total",
+            "reverse": true
+          },
+          {
+            "id": "zung-self-rating-depression-06",
+            "prompt": "Интимная жизнь по-прежнему приносит мне удовольствие",
+            "scaleId": "zung-sds-total",
+            "reverse": true
+          },
+          {
+            "id": "zung-self-rating-depression-07",
+            "prompt": "Я замечаю, что худею",
+            "scaleId": "zung-sds-total"
+          },
+          {
+            "id": "zung-self-rating-depression-08",
+            "prompt": "Меня беспокоят запоры",
+            "scaleId": "zung-sds-total"
+          },
+          {
+            "id": "zung-self-rating-depression-09",
+            "prompt": "Сердце у меня бьётся чаще обычного",
+            "scaleId": "zung-sds-total"
+          },
+          {
+            "id": "zung-self-rating-depression-10",
+            "prompt": "Я устаю без причины",
+            "scaleId": "zung-sds-total"
+          },
+          {
+            "id": "zung-self-rating-depression-11",
+            "prompt": "Мысли у меня ясные, как раньше",
+            "scaleId": "zung-sds-total",
+            "reverse": true
+          },
+          {
+            "id": "zung-self-rating-depression-12",
+            "prompt": "Мне легко делать то, что я привык делать",
+            "scaleId": "zung-sds-total",
+            "reverse": true
+          },
+          {
+            "id": "zung-self-rating-depression-13",
+            "prompt": "Я беспокоен и не могу усидеть на месте",
+            "scaleId": "zung-sds-total"
+          },
+          {
+            "id": "zung-self-rating-depression-14",
+            "prompt": "Я надеюсь на будущее",
+            "scaleId": "zung-sds-total",
+            "reverse": true
+          },
+          {
+            "id": "zung-self-rating-depression-15",
+            "prompt": "Я раздражительнее, чем обычно",
+            "scaleId": "zung-sds-total"
+          },
+          {
+            "id": "zung-self-rating-depression-16",
+            "prompt": "Мне легко принимать решения",
+            "scaleId": "zung-sds-total",
+            "reverse": true
+          },
+          {
+            "id": "zung-self-rating-depression-17",
+            "prompt": "Я чувствую, что полезен и нужен",
+            "scaleId": "zung-sds-total",
+            "reverse": true
+          },
+          {
+            "id": "zung-self-rating-depression-18",
+            "prompt": "Моя жизнь достаточно насыщена",
+            "scaleId": "zung-sds-total",
+            "reverse": true
+          },
+          {
+            "id": "zung-self-rating-depression-19",
+            "prompt": "Я чувствую, что другим было бы лучше, если бы я умер",
+            "scaleId": "zung-sds-total"
+          },
+          {
+            "id": "zung-self-rating-depression-20",
+            "prompt": "Меня по-прежнему радует то, что радовало раньше",
+            "scaleId": "zung-sds-total",
+            "reverse": true
+          }
+        ],
+        "interpretations": [
+          {
+            "minScore": 20,
+            "maxScore": 39,
+            "scaleId": "zung-sds-total",
+            "headline": "Ниже порога депрессии",
+            "message": "20–39 баллов (индекс ниже 50): значение в пределах нормы."
+          },
+          {
+            "minScore": 40,
+            "maxScore": 47,
+            "scaleId": "zung-sds-total",
+            "headline": "Лёгкая или умеренная депрессия",
+            "message": "40–47 баллов (индекс 50–59): лёгкая или умеренная депрессия; обсудите результат с врачом."
+          },
+          {
+            "minScore": 48,
+            "maxScore": 55,
+            "scaleId": "zung-sds-total",
+            "headline": "Умеренная или тяжёлая депрессия",
+            "message": "48–55 баллов (индекс 60–69): умеренная или тяжёлая депрессия; нужна консультация врача."
+          },
+          {
+            "minScore": 56,
+            "maxScore": 80,
+            "scaleId": "zung-sds-total",
+            "headline": "Тяжёлая депрессия",
+            "message": "56–80 баллов (индекс 70 и выше): тяжёлая депрессия; нужна очная консультация врача."
+          }
+        ],
+        "disclaimer": "Шкала Цунга оценивает выраженность депрессивных симптомов и не устанавливает диагноз. Пункт о том, что другим было бы лучше без вас, требует внимания: при любых мыслях о самоповреждении или смерти сразу обратитесь за помощью к врачу или в экстренную службу.",
+        "evidenceNote": "Шкала опубликована W. W. K. Zung (1965); 20 пунктов, 10 из них обратные (2, 5, 6, 11, 12, 14, 16, 17, 18, 20). Индекс (сумма × 1,25) и его градации — по Zung (1973), приведены в Dunstan и соавт. (2017); там же показано, что лучший порог скрининга — индекс около 55 (сумма 44). Формулировки пунктов — перевод MiniMed, не официальная русская адаптация (Балашова, 1988).",
+        "license": {
+          "kind": "third-party-attributed",
+          "notice": "Шкала самооценки депрессии: W. W. K. Zung, 1965. MiniMed не является правообладателем шкалы; формулировки пунктов даны в авторском переводе MiniMed. Статус авторских прав на текст шкалы не подтверждён источником.",
+          "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/14221692/"
+        },
+        "schemaVersion": 2,
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score_zung_sds_total <= 39",
+              "verdict": {
+                "rangeId": "normal",
+                "title": "Ниже порога депрессии",
+                "explanation": "20–39 баллов (индекс ниже 50): значение в пределах нормы.",
+                "attentionLevel": "none",
+                "lowerBound": 20,
+                "upperBound": 39,
+                "sourceIds": [
+                  "zung-self-rating-depression-zung-1965",
+                  "zung-self-rating-depression-zung-1973",
+                  "zung-self-rating-depression-dunstan-2017"
+                ]
+              }
+            },
+            {
+              "when": "score_zung_sds_total <= 47",
+              "verdict": {
+                "rangeId": "mild-moderate",
+                "title": "Лёгкая или умеренная депрессия",
+                "explanation": "40–47 баллов (индекс 50–59): лёгкая или умеренная депрессия; обсудите результат с врачом.",
+                "attentionLevel": "low",
+                "lowerBound": 40,
+                "upperBound": 47,
+                "sourceIds": [
+                  "zung-self-rating-depression-zung-1965",
+                  "zung-self-rating-depression-zung-1973",
+                  "zung-self-rating-depression-dunstan-2017"
+                ]
+              }
+            },
+            {
+              "when": "score_zung_sds_total <= 55",
+              "verdict": {
+                "rangeId": "moderate-severe",
+                "title": "Умеренная или тяжёлая депрессия",
+                "explanation": "48–55 баллов (индекс 60–69): умеренная или тяжёлая депрессия; нужна консультация врача.",
+                "attentionLevel": "moderate",
+                "lowerBound": 48,
+                "upperBound": 55,
+                "sourceIds": [
+                  "zung-self-rating-depression-zung-1965",
+                  "zung-self-rating-depression-zung-1973",
+                  "zung-self-rating-depression-dunstan-2017"
+                ]
+              }
+            },
+            {
+              "when": "score_zung_sds_total >= 56",
+              "verdict": {
+                "rangeId": "severe",
+                "title": "Тяжёлая депрессия",
+                "explanation": "56–80 баллов (индекс 70 и выше): тяжёлая депрессия; нужна очная консультация врача.",
+                "attentionLevel": "high",
+                "lowerBound": 56,
+                "upperBound": 80,
+                "sourceIds": [
+                  "zung-self-rating-depression-zung-1965",
+                  "zung-self-rating-depression-zung-1973",
+                  "zung-self-rating-depression-dunstan-2017"
+                ]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": [
+            "zung-self-rating-depression-zung-1965",
+            "zung-self-rating-depression-zung-1973",
+            "zung-self-rating-depression-dunstan-2017"
+          ]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.assessment.zung-sds.zung-sds-total",
+            "label": "Сумма баллов шкалы Цунга (депрессия)",
+            "unit": "баллы",
+            "scaleId": "zung-sds-total",
+            "method": "assessment:minimed.assessment.zung-sds"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "zung-self-rating-depression-zung-1965",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Zung WWK. A self-rating depression scale. Arch Gen Psychiatry. 1965;12:63-70",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://pubmed.ncbi.nlm.nih.gov/14221692/",
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "zung-self-rating-depression-zung-1973",
+          "kind": "literature",
+          "relation": "interpretation",
+          "title": "Zung WWK. From art to science: the diagnosis and treatment of depression. Arch Gen Psychiatry. 1973;29(3):328-337 (градации индекса)",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://pubmed.ncbi.nlm.nih.gov/4724142/",
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "zung-self-rating-depression-dunstan-2017",
+          "kind": "literature",
+          "relation": "clinical-context",
+          "title": "Dunstan DA, Scott N, Todd AK. Screening for anxiety and depression: reassessing the utility of the Zung scales. BMC Psychiatry. 2017;17:329",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://pubmed.ncbi.nlm.nih.gov/28886698/",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.assessment.zung-sas",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "zung-self-rating-anxiety",
+      "title": "Шкала самооценки тревоги Цунга (SAS)",
+      "shortTitle": "Шкала Цунга (тревога)",
+      "aliases": [
+        "Zung SAS",
+        "Zung Self-Rating Anxiety Scale",
+        "шкала тревоги Цунга",
+        "самооценка тревоги",
+        "тревога",
+        "SAS"
+      ],
+      "bankId": "psychiatry",
+      "bankLabel": "Психиатрия",
+      "category": "self-reflection",
+      "description": "Двадцать утверждений о самочувствии за последнюю неделю (20–80 баллов) для самооценки выраженности тревоги. Оцените, как часто это было верно для вас за последнюю неделю.",
+      "estimatedMinutes": 7,
+      "audience": "Взрослые; скрининг и динамика, не диагноз",
+      "definition": {
+        "id": "minimed.assessment.zung-sas",
+        "slug": "zung-self-rating-anxiety",
+        "title": "Шкала самооценки тревоги Цунга (SAS)",
+        "shortTitle": "Шкала Цунга (тревога)",
+        "aliases": [
+          "Zung SAS",
+          "Zung Self-Rating Anxiety Scale",
+          "шкала тревоги Цунга",
+          "самооценка тревоги",
+          "тревога",
+          "SAS"
+        ],
+        "bankId": "psychiatry",
+        "bankLabel": "Психиатрия",
+        "category": "self-reflection",
+        "description": "Двадцать утверждений о самочувствии за последнюю неделю (20–80 баллов) для самооценки выраженности тревоги. Оцените, как часто это было верно для вас за последнюю неделю.",
+        "estimatedMinutes": 7,
+        "audience": "Взрослые; скрининг и динамика, не диагноз",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "Определение: «Взрослые»."
+        },
+        "responseOptions": [
+          {
+            "value": 1,
+            "label": "Редко или никогда"
+          },
+          {
+            "value": 2,
+            "label": "Иногда"
+          },
+          {
+            "value": 3,
+            "label": "Часто"
+          },
+          {
+            "value": 4,
+            "label": "Почти всегда"
+          }
+        ],
+        "scales": [
+          {
+            "id": "zung-sas-total",
+            "label": "Сумма баллов шкалы Цунга (тревога)",
+            "shortLabel": "Цунг (тревога)",
+            "description": "Сумма 20 ответов по 1–4 балла; 5 пунктов оцениваются в обратном порядке. Диапазон 20–80 баллов; индекс = сумма × 1,25 (25–100). Порог индекса: 45 (Zung, 1980) или 50 (Zung, 1971)."
+          }
+        ],
+        "questions": [
+          {
+            "id": "zung-self-rating-anxiety-01",
+            "prompt": "Я чувствую себя более нервным и тревожным, чем обычно",
+            "scaleId": "zung-sas-total"
+          },
+          {
+            "id": "zung-self-rating-anxiety-02",
+            "prompt": "Я без причины чувствую страх",
+            "scaleId": "zung-sas-total"
+          },
+          {
+            "id": "zung-self-rating-anxiety-03",
+            "prompt": "Я легко расстраиваюсь или впадаю в панику",
+            "scaleId": "zung-sas-total"
+          },
+          {
+            "id": "zung-self-rating-anxiety-04",
+            "prompt": "Мне кажется, что я разваливаюсь на части",
+            "scaleId": "zung-sas-total"
+          },
+          {
+            "id": "zung-self-rating-anxiety-05",
+            "prompt": "Я чувствую, что всё в порядке и ничего плохого не случится",
+            "scaleId": "zung-sas-total",
+            "reverse": true
+          },
+          {
+            "id": "zung-self-rating-anxiety-06",
+            "prompt": "У меня дрожат руки и ноги",
+            "scaleId": "zung-sas-total"
+          },
+          {
+            "id": "zung-self-rating-anxiety-07",
+            "prompt": "Меня беспокоят головные боли, боли в шее и спине",
+            "scaleId": "zung-sas-total"
+          },
+          {
+            "id": "zung-self-rating-anxiety-08",
+            "prompt": "Я чувствую слабость и быстро устаю",
+            "scaleId": "zung-sas-total"
+          },
+          {
+            "id": "zung-self-rating-anxiety-09",
+            "prompt": "Я спокоен и без труда могу усидеть на месте",
+            "scaleId": "zung-sas-total",
+            "reverse": true
+          },
+          {
+            "id": "zung-self-rating-anxiety-10",
+            "prompt": "Я чувствую, что сердце бьётся быстро",
+            "scaleId": "zung-sas-total"
+          },
+          {
+            "id": "zung-self-rating-anxiety-11",
+            "prompt": "У меня бывают приступы головокружения",
+            "scaleId": "zung-sas-total"
+          },
+          {
+            "id": "zung-self-rating-anxiety-12",
+            "prompt": "У меня бывают обмороки или состояния, близкие к обмороку",
+            "scaleId": "zung-sas-total"
+          },
+          {
+            "id": "zung-self-rating-anxiety-13",
+            "prompt": "Я дышу легко",
+            "scaleId": "zung-sas-total",
+            "reverse": true
+          },
+          {
+            "id": "zung-self-rating-anxiety-14",
+            "prompt": "Я ощущаю онемение и покалывание в пальцах рук и ног",
+            "scaleId": "zung-sas-total"
+          },
+          {
+            "id": "zung-self-rating-anxiety-15",
+            "prompt": "Меня беспокоят боли в животе и расстройство желудка",
+            "scaleId": "zung-sas-total"
+          },
+          {
+            "id": "zung-self-rating-anxiety-16",
+            "prompt": "Мне приходится часто мочиться",
+            "scaleId": "zung-sas-total"
+          },
+          {
+            "id": "zung-self-rating-anxiety-17",
+            "prompt": "Мои руки обычно сухие и тёплые",
+            "scaleId": "zung-sas-total",
+            "reverse": true
+          },
+          {
+            "id": "zung-self-rating-anxiety-18",
+            "prompt": "Лицо у меня краснеет, я ощущаю жар",
+            "scaleId": "zung-sas-total"
+          },
+          {
+            "id": "zung-self-rating-anxiety-19",
+            "prompt": "Я легко засыпаю и хорошо отдыхаю ночью",
+            "scaleId": "zung-sas-total",
+            "reverse": true
+          },
+          {
+            "id": "zung-self-rating-anxiety-20",
+            "prompt": "Мне снятся кошмары",
+            "scaleId": "zung-sas-total"
+          }
+        ],
+        "interpretations": [
+          {
+            "minScore": 20,
+            "maxScore": 35,
+            "scaleId": "zung-sas-total",
+            "headline": "Ниже порога тревоги",
+            "message": "20–35 баллов (индекс ниже 45): ниже порога тревоги."
+          },
+          {
+            "minScore": 36,
+            "maxScore": 39,
+            "scaleId": "zung-sas-total",
+            "headline": "Выше позднего порога",
+            "message": "36–39 баллов (индекс 45–49): выше порога Zung (1980), ниже порога Zung (1971); тревога возможна."
+          },
+          {
+            "minScore": 40,
+            "maxScore": 80,
+            "scaleId": "zung-sas-total",
+            "headline": "Выше обоих порогов",
+            "message": "40–80 баллов (индекс 50 и выше): выше порогов тревоги; обсудите результат с врачом."
+          }
+        ],
+        "disclaimer": "Шкала Цунга оценивает выраженность тревожных симптомов и не устанавливает диагноз; соматические пункты могут отражать другие болезни. Обсудите результат с врачом.",
+        "evidenceNote": "Шкала опубликована W. W. K. Zung (1971); 20 пунктов, 5 из них обратные (5, 9, 13, 17, 19). Порог индекса 50 — по Zung (1971), 45 — по Zung (1980), приведены в Dunstan и Scott (2020). Градации на лёгкую, умеренную и тяжёлую тревогу в научной литературе не опубликованы, поэтому не заданы. Формулировки пунктов — перевод MiniMed, не официальная русская адаптация (Бевз, 1999).",
+        "license": {
+          "kind": "third-party-attributed",
+          "notice": "Шкала самооценки тревоги: W. W. K. Zung, 1971. MiniMed не является правообладателем шкалы; формулировки пунктов даны в авторском переводе MiniMed. Статус авторских прав на текст шкалы не подтверждён источником.",
+          "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/5172928/"
+        },
+        "schemaVersion": 2,
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score_zung_sas_total <= 35",
+              "verdict": {
+                "rangeId": "below",
+                "title": "Ниже порога тревоги",
+                "explanation": "20–35 баллов (индекс ниже 45): ниже порога тревоги.",
+                "attentionLevel": "none",
+                "lowerBound": 20,
+                "upperBound": 35,
+                "sourceIds": [
+                  "zung-self-rating-anxiety-zung-1971",
+                  "zung-self-rating-anxiety-dunstan-2020"
+                ]
+              }
+            },
+            {
+              "when": "score_zung_sas_total <= 39",
+              "verdict": {
+                "rangeId": "between",
+                "title": "Выше позднего порога",
+                "explanation": "36–39 баллов (индекс 45–49): выше порога Zung (1980), ниже порога Zung (1971); тревога возможна.",
+                "attentionLevel": "low",
+                "lowerBound": 36,
+                "upperBound": 39,
+                "sourceIds": [
+                  "zung-self-rating-anxiety-zung-1971",
+                  "zung-self-rating-anxiety-dunstan-2020"
+                ]
+              }
+            },
+            {
+              "when": "score_zung_sas_total >= 40",
+              "verdict": {
+                "rangeId": "above",
+                "title": "Выше обоих порогов",
+                "explanation": "40–80 баллов (индекс 50 и выше): выше порогов тревоги; обсудите результат с врачом.",
+                "attentionLevel": "moderate",
+                "lowerBound": 40,
+                "upperBound": 80,
+                "sourceIds": [
+                  "zung-self-rating-anxiety-zung-1971",
+                  "zung-self-rating-anxiety-dunstan-2020"
+                ]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": [
+            "zung-self-rating-anxiety-zung-1971",
+            "zung-self-rating-anxiety-dunstan-2020"
+          ]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.assessment.zung-sas.zung-sas-total",
+            "label": "Сумма баллов шкалы Цунга (тревога)",
+            "unit": "баллы",
+            "scaleId": "zung-sas-total",
+            "method": "assessment:minimed.assessment.zung-sas"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "zung-self-rating-anxiety-zung-1971",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Zung WWK. A rating instrument for anxiety disorders. Psychosomatics. 1971;12(6):371-379",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://pubmed.ncbi.nlm.nih.gov/5172928/",
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "zung-self-rating-anxiety-dunstan-2020",
+          "kind": "literature",
+          "relation": "interpretation",
+          "title": "Dunstan DA, Scott N. Norms for Zung's Self-rating Anxiety Scale. BMC Psychiatry. 2020;20:90",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32111187/",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.assessment.hamilton-depression",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "hamilton-depression-rating-scale",
+      "title": "Шкала депрессии Гамильтона (HAM-D, 17 пунктов)",
+      "shortTitle": "Шкала Гамильтона (HAM-D)",
+      "aliases": [
+        "HAM-D",
+        "HDRS",
+        "Hamilton Depression Rating Scale",
+        "шкала Гамильтона",
+        "шкала депрессии Гамильтона",
+        "HDRS-17"
+      ],
+      "bankId": "psychiatry",
+      "bankLabel": "Психиатрия",
+      "category": "self-reflection",
+      "description": "Семнадцать пунктов, по которым врач оценивает выраженность депрессии после беседы с пациентом (0–52 балла).",
+      "estimatedMinutes": 15,
+      "audience": "Взрослые с депрессией; заполняет врач или обученный специалист",
+      "definition": {
+        "id": "minimed.assessment.hamilton-depression",
+        "slug": "hamilton-depression-rating-scale",
+        "title": "Шкала депрессии Гамильтона (HAM-D, 17 пунктов)",
+        "shortTitle": "Шкала Гамильтона (HAM-D)",
+        "aliases": [
+          "HAM-D",
+          "HDRS",
+          "Hamilton Depression Rating Scale",
+          "шкала Гамильтона",
+          "шкала депрессии Гамильтона",
+          "HDRS-17"
+        ],
+        "bankId": "psychiatry",
+        "bankLabel": "Психиатрия",
+        "category": "self-reflection",
+        "description": "Семнадцать пунктов, по которым врач оценивает выраженность депрессии после беседы с пациентом (0–52 балла).",
+        "estimatedMinutes": 15,
+        "audience": "Взрослые с депрессией; заполняет врач или обученный специалист",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "Определение: «Взрослые»."
+        },
+        "responseOptions": [
+          {
+            "value": 0,
+            "label": "0"
+          },
+          {
+            "value": 1,
+            "label": "1"
+          },
+          {
+            "value": 2,
+            "label": "2"
+          },
+          {
+            "value": 3,
+            "label": "3"
+          },
+          {
+            "value": 4,
+            "label": "4"
+          }
+        ],
+        "scales": [
+          {
+            "id": "hamd-17-total",
+            "label": "Сумма баллов HAM-D (17 пунктов)",
+            "shortLabel": "HAM-D",
+            "description": "Сумма 17 пунктов: девять оцениваются по 0–4 балла, восемь — по 0–2. Диапазон 0–52 балла. Градации: 0–7 — норма; 8–13 — лёгкая; 14–18 — умеренная; 19–22 — тяжёлая; 23 и выше — крайне тяжёлая депрессия."
+          }
+        ],
+        "questions": [
+          {
+            "id": "hamilton-depression-rating-scale-01",
+            "prompt": "1. Депрессивное настроение",
+            "scaleId": "hamd-17-total",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Отсутствует"
+              },
+              {
+                "value": 1,
+                "label": "Только при расспросе"
+              },
+              {
+                "value": 2,
+                "label": "Высказывается спонтанно"
+              },
+              {
+                "value": 3,
+                "label": "Проявляется невербально: мимика, поза, голос, плач"
+              },
+              {
+                "value": 4,
+                "label": "В высказываниях и невербально практически только эти чувства"
+              }
+            ]
+          },
+          {
+            "id": "hamilton-depression-rating-scale-02",
+            "prompt": "2. Чувство вины",
+            "scaleId": "hamd-17-total",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Отсутствует"
+              },
+              {
+                "value": 1,
+                "label": "Самоупрёки, чувство, что подвёл людей"
+              },
+              {
+                "value": 2,
+                "label": "Идеи вины, размышления об ошибках и грехах"
+              },
+              {
+                "value": 3,
+                "label": "Болезнь воспринимается как наказание; бредовые идеи вины"
+              },
+              {
+                "value": 4,
+                "label": "Обвиняющие голоса и/или угрожающие зрительные галлюцинации"
+              }
+            ]
+          },
+          {
+            "id": "hamilton-depression-rating-scale-03",
+            "prompt": "3. Суицид",
+            "scaleId": "hamd-17-total",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Отсутствует"
+              },
+              {
+                "value": 1,
+                "label": "Чувствует, что жить не стоит"
+              },
+              {
+                "value": 2,
+                "label": "Желает себе смерти или думает о ней"
+              },
+              {
+                "value": 3,
+                "label": "Суицидальные мысли или жесты"
+              },
+              {
+                "value": 4,
+                "label": "Попытки самоубийства (любая серьёзная попытка)"
+              }
+            ]
+          },
+          {
+            "id": "hamilton-depression-rating-scale-04",
+            "prompt": "4. Бессонница в начале ночи",
+            "scaleId": "hamd-17-total",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Иногда трудно заснуть (дольше получаса)"
+              },
+              {
+                "value": 2,
+                "label": "Трудно заснуть каждую ночь"
+              }
+            ]
+          },
+          {
+            "id": "hamilton-depression-rating-scale-05",
+            "prompt": "5. Бессонница посреди ночи",
+            "scaleId": "hamd-17-total",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Беспокойный, неспокойный сон"
+              },
+              {
+                "value": 2,
+                "label": "Просыпается ночью (любое вставание с постели, кроме мочеиспускания)"
+              }
+            ]
+          },
+          {
+            "id": "hamilton-depression-rating-scale-06",
+            "prompt": "6. Бессонница под утро",
+            "scaleId": "hamd-17-total",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Просыпается рано, но снова засыпает"
+              },
+              {
+                "value": 2,
+                "label": "Не может заснуть после раннего пробуждения"
+              }
+            ]
+          },
+          {
+            "id": "hamilton-depression-rating-scale-07",
+            "prompt": "7. Работа и активность",
+            "scaleId": "hamd-17-total",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Трудностей нет"
+              },
+              {
+                "value": 1,
+                "label": "Мысли и чувства несостоятельности, усталость, слабость"
+              },
+              {
+                "value": 2,
+                "label": "Потеря интереса к делам и работе (прямо или косвенно)"
+              },
+              {
+                "value": 3,
+                "label": "Снижение активности или продуктивности (в стационаре: менее 3 часов занятий в день)"
+              },
+              {
+                "value": 4,
+                "label": "Перестал работать из-за болезни (в стационаре: нет занятий или не справляется с рутиной без помощи)"
+              }
+            ]
+          },
+          {
+            "id": "hamilton-depression-rating-scale-08",
+            "prompt": "8. Заторможенность",
+            "scaleId": "hamd-17-total",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Речь и мышление в норме"
+              },
+              {
+                "value": 1,
+                "label": "Лёгкая заторможенность при беседе"
+              },
+              {
+                "value": 2,
+                "label": "Явная заторможенность при беседе"
+              },
+              {
+                "value": 3,
+                "label": "Беседа затруднена"
+              },
+              {
+                "value": 4,
+                "label": "Ступор"
+              }
+            ]
+          },
+          {
+            "id": "hamilton-depression-rating-scale-09",
+            "prompt": "9. Ажитация",
+            "scaleId": "hamd-17-total",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Суетливость"
+              },
+              {
+                "value": 2,
+                "label": "Теребит руки, волосы и т. п."
+              },
+              {
+                "value": 3,
+                "label": "Двигается, не может усидеть на месте"
+              },
+              {
+                "value": 4,
+                "label": "Заламывает руки, грызёт ногти, рвёт волосы, кусает губы"
+              }
+            ]
+          },
+          {
+            "id": "hamilton-depression-rating-scale-10",
+            "prompt": "10. Психическая тревога",
+            "scaleId": "hamd-17-total",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Субъективное напряжение и раздражительность"
+              },
+              {
+                "value": 2,
+                "label": "Беспокоится по пустякам"
+              },
+              {
+                "value": 3,
+                "label": "Тревога видна по лицу или речи"
+              },
+              {
+                "value": 4,
+                "label": "Страхи высказывает без расспроса"
+              }
+            ]
+          },
+          {
+            "id": "hamilton-depression-rating-scale-11",
+            "prompt": "11. Соматическая тревога",
+            "scaleId": "hamd-17-total",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Слабая"
+              },
+              {
+                "value": 2,
+                "label": "Умеренная"
+              },
+              {
+                "value": 3,
+                "label": "Сильная"
+              },
+              {
+                "value": 4,
+                "label": "Крайне выраженная, нарушает жизнь"
+              }
+            ]
+          },
+          {
+            "id": "hamilton-depression-rating-scale-12",
+            "prompt": "12. Желудочно-кишечные соматические симптомы",
+            "scaleId": "hamd-17-total",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Потеря аппетита, но ест без принуждения"
+              },
+              {
+                "value": 2,
+                "label": "Ест только с уговорами или нужны слабительные и препараты для ЖКТ"
+              }
+            ]
+          },
+          {
+            "id": "hamilton-depression-rating-scale-13",
+            "prompt": "13. Общие соматические симптомы",
+            "scaleId": "hamd-17-total",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Тяжесть в конечностях, спине или голове, боли, потеря энергии"
+              },
+              {
+                "value": 2,
+                "label": "Любой чёткий симптом"
+              }
+            ]
+          },
+          {
+            "id": "hamilton-depression-rating-scale-14",
+            "prompt": "14. Генитальные симптомы",
+            "scaleId": "hamd-17-total",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Слабо выражены"
+              },
+              {
+                "value": 2,
+                "label": "Выражены"
+              }
+            ]
+          },
+          {
+            "id": "hamilton-depression-rating-scale-15",
+            "prompt": "15. Ипохондрия",
+            "scaleId": "hamd-17-total",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Сосредоточенность на собственном теле"
+              },
+              {
+                "value": 2,
+                "label": "Озабоченность здоровьем"
+              },
+              {
+                "value": 3,
+                "label": "Частые жалобы, просьбы о помощи"
+              },
+              {
+                "value": 4,
+                "label": "Ипохондрический бред"
+              }
+            ]
+          },
+          {
+            "id": "hamilton-depression-rating-scale-16",
+            "prompt": "16. Потеря массы тела",
+            "scaleId": "hamd-17-total",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Нет"
+              },
+              {
+                "value": 1,
+                "label": "Вероятная потеря, связанная с болезнью"
+              },
+              {
+                "value": 2,
+                "label": "Определённая потеря"
+              }
+            ]
+          },
+          {
+            "id": "hamilton-depression-rating-scale-17",
+            "prompt": "17. Критика к болезни",
+            "scaleId": "hamd-17-total",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Признаёт, что болен депрессией"
+              },
+              {
+                "value": 1,
+                "label": "Признаёт болезнь, но объясняет питанием, климатом, переутомлением или вирусом"
+              },
+              {
+                "value": 2,
+                "label": "Отрицает болезнь"
+              }
+            ]
+          }
+        ],
+        "interpretations": [
+          {
+            "minScore": 0,
+            "maxScore": 7,
+            "scaleId": "hamd-17-total",
+            "headline": "Норма",
+            "message": "0–7 баллов: депрессивных симптомов нет или они в пределах нормы."
+          },
+          {
+            "minScore": 8,
+            "maxScore": 13,
+            "scaleId": "hamd-17-total",
+            "headline": "Лёгкая депрессия",
+            "message": "8–13 баллов: лёгкая депрессия."
+          },
+          {
+            "minScore": 14,
+            "maxScore": 18,
+            "scaleId": "hamd-17-total",
+            "headline": "Умеренная депрессия",
+            "message": "14–18 баллов: умеренная депрессия."
+          },
+          {
+            "minScore": 19,
+            "maxScore": 22,
+            "scaleId": "hamd-17-total",
+            "headline": "Тяжёлая депрессия",
+            "message": "19–22 балла: тяжёлая депрессия."
+          },
+          {
+            "minScore": 23,
+            "maxScore": 52,
+            "scaleId": "hamd-17-total",
+            "headline": "Крайне тяжёлая депрессия",
+            "message": "23 балла и более: крайне тяжёлая депрессия."
+          }
+        ],
+        "disclaimer": "Шкала заполняется врачом по результатам клинической беседы и не заменяет диагностику. Любой балл по пункту «Суицид» выше 0 требует немедленной оценки риска.",
+        "evidenceNote": "Шкала разработана M. Hamilton (1960, 1967); оценивается 17 пунктов (дополнительные пункты 18–21 в сумму не входят). Градации приведены по клиническим рекомендациям «Депрессивный эпизод, рекуррентное депрессивное расстройство» (Минздрав РФ, 2024; для 23 баллов использовано общепринятое «23 и выше»). Эмпирические пороги в амбулаторной выборке были выше (Zimmerman, 2013). Формулировки пунктов — перевод MiniMed.",
+        "license": {
+          "kind": "third-party-attributed",
+          "notice": "Шкала депрессии Гамильтона: M. Hamilton, 1960. Шкала считается общедоступной (NINDS Common Data Elements). Формулировки пунктов даны в авторском переводе MiniMed по клиническим рекомендациям Минздрава РФ.",
+          "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/14399272/"
+        },
+        "schemaVersion": 2,
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score_hamd_17_total <= 7",
+              "verdict": {
+                "rangeId": "normal",
+                "title": "Норма",
+                "explanation": "0–7 баллов: депрессивных симптомов нет или они в пределах нормы.",
+                "attentionLevel": "none",
+                "lowerBound": 0,
+                "upperBound": 7,
+                "sourceIds": [
+                  "hamilton-depression-rating-scale-hamilton-1960",
+                  "hamilton-depression-rating-scale-hamilton-1967",
+                  "hamilton-depression-rating-scale-ru-depression-2024",
+                  "hamilton-depression-rating-scale-zimmerman-2013"
+                ]
+              }
+            },
+            {
+              "when": "score_hamd_17_total <= 13",
+              "verdict": {
+                "rangeId": "mild",
+                "title": "Лёгкая депрессия",
+                "explanation": "8–13 баллов: лёгкая депрессия.",
+                "attentionLevel": "low",
+                "lowerBound": 8,
+                "upperBound": 13,
+                "sourceIds": [
+                  "hamilton-depression-rating-scale-hamilton-1960",
+                  "hamilton-depression-rating-scale-hamilton-1967",
+                  "hamilton-depression-rating-scale-ru-depression-2024",
+                  "hamilton-depression-rating-scale-zimmerman-2013"
+                ]
+              }
+            },
+            {
+              "when": "score_hamd_17_total <= 18",
+              "verdict": {
+                "rangeId": "moderate",
+                "title": "Умеренная депрессия",
+                "explanation": "14–18 баллов: умеренная депрессия.",
+                "attentionLevel": "moderate",
+                "lowerBound": 14,
+                "upperBound": 18,
+                "sourceIds": [
+                  "hamilton-depression-rating-scale-hamilton-1960",
+                  "hamilton-depression-rating-scale-hamilton-1967",
+                  "hamilton-depression-rating-scale-ru-depression-2024",
+                  "hamilton-depression-rating-scale-zimmerman-2013"
+                ]
+              }
+            },
+            {
+              "when": "score_hamd_17_total <= 22",
+              "verdict": {
+                "rangeId": "severe",
+                "title": "Тяжёлая депрессия",
+                "explanation": "19–22 балла: тяжёлая депрессия.",
+                "attentionLevel": "high",
+                "lowerBound": 19,
+                "upperBound": 22,
+                "sourceIds": [
+                  "hamilton-depression-rating-scale-hamilton-1960",
+                  "hamilton-depression-rating-scale-hamilton-1967",
+                  "hamilton-depression-rating-scale-ru-depression-2024",
+                  "hamilton-depression-rating-scale-zimmerman-2013"
+                ]
+              }
+            },
+            {
+              "when": "score_hamd_17_total >= 23",
+              "verdict": {
+                "rangeId": "very-severe",
+                "title": "Крайне тяжёлая депрессия",
+                "explanation": "23 балла и более: крайне тяжёлая депрессия.",
+                "attentionLevel": "urgent",
+                "lowerBound": 23,
+                "upperBound": 52,
+                "sourceIds": [
+                  "hamilton-depression-rating-scale-hamilton-1960",
+                  "hamilton-depression-rating-scale-hamilton-1967",
+                  "hamilton-depression-rating-scale-ru-depression-2024",
+                  "hamilton-depression-rating-scale-zimmerman-2013"
+                ]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": [
+            "hamilton-depression-rating-scale-hamilton-1960",
+            "hamilton-depression-rating-scale-hamilton-1967",
+            "hamilton-depression-rating-scale-ru-depression-2024",
+            "hamilton-depression-rating-scale-zimmerman-2013"
+          ]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.assessment.hamilton-depression.hamd-17-total",
+            "label": "Сумма баллов HAM-D (17 пунктов)",
+            "unit": "баллы",
+            "scaleId": "hamd-17-total",
+            "method": "assessment:minimed.assessment.hamilton-depression"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "hamilton-depression-rating-scale-hamilton-1960",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Hamilton M. A rating scale for depression. J Neurol Neurosurg Psychiatry. 1960;23:56-62",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://pubmed.ncbi.nlm.nih.gov/14399272/",
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "hamilton-depression-rating-scale-hamilton-1967",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Hamilton M. Development of a rating scale for primary depressive illness. Br J Soc Clin Psychol. 1967;6:278-296",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://pubmed.ncbi.nlm.nih.gov/6080235/",
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "hamilton-depression-rating-scale-ru-depression-2024",
+          "kind": "guideline",
+          "relation": "interpretation",
+          "title": "Клинические рекомендации «Депрессивный эпизод, рекуррентное депрессивное расстройство» (Российское общество психиатров; Минздрав РФ), приложение Г1",
+          "moduleId": null,
+          "documentId": null,
+          "url": null,
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "hamilton-depression-rating-scale-zimmerman-2013",
+          "kind": "literature",
+          "relation": "clinical-context",
+          "title": "Zimmerman M, Martinez JH, Young D, Chelminski I, Dalrymple K. Severity classification on the Hamilton Depression Rating Scale. J Affect Disord. 2013;150(2):384-388",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://pubmed.ncbi.nlm.nih.gov/23759278/",
+          "reviewedAt": "2026-10-12"
         }
       ]
     }

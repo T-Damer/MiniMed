@@ -18,6 +18,13 @@ const TOOL_MODULES = [
   'content/tool-modules/psychology.json',
   'content/tool-modules/pediatrics-growth.json',
   'content/tool-modules/cardiology.json',
+  'content/tool-modules/intensive-care.json',
+  'content/tool-modules/surgery-trauma.json',
+  'content/tool-modules/neurology-rehab.json',
+  'content/tool-modules/metabolic-lab.json',
+  'content/tool-modules/pulmonology.json',
+  'content/tool-modules/medication-dosing.json',
+  'content/tool-modules/rheum-gi-onco-uro.json',
 ] as const;
 
 function mappingReference(mapping: {
@@ -242,9 +249,9 @@ async function main(): Promise<void> {
     const errors = records.flatMap(lintRecord);
     const calculators = records.filter((record) => record.kind === 'calculator').length;
     const assessments = records.filter((record) => record.kind === 'assessment').length;
-    if (calculators !== 67 || assessments !== 19) {
+    if (calculators !== 221 || assessments !== 24) {
       errors.push(
-        `expected 67 calculators and 19 assessments, got ${calculators} and ${assessments}`,
+        `expected 221 calculators and 24 assessments, got ${calculators} and ${assessments}`,
       );
     }
     if (errors.length > 0) {

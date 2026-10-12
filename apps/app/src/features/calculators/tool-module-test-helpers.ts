@@ -17,6 +17,13 @@ export const TOOL_MODULE_FILES = [
   'content/tool-modules/obstetrics-gynecology.json',
   'content/tool-modules/psychology.json',
   'content/tool-modules/cardiology.json',
+  'content/tool-modules/intensive-care.json',
+  'content/tool-modules/surgery-trauma.json',
+  'content/tool-modules/neurology-rehab.json',
+  'content/tool-modules/metabolic-lab.json',
+  'content/tool-modules/pulmonology.json',
+  'content/tool-modules/medication-dosing.json',
+  'content/tool-modules/rheum-gi-onco-uro.json',
 ] as const;
 
 export function loadToolModuleRecords(

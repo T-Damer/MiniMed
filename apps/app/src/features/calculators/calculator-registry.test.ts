@@ -61,7 +61,11 @@ describe('calculator registry', () => {
     expect(findCalculator('adult-egfr-ckd-epi-2021')).toMatchObject({
       title: expect.stringContaining('CKD-EPI'),
     });
-    expect(searchCalculators('шварца')).toHaveLength(1);
+    // Both Schwartz equations answer the query: bedside CKiD 2009 and the Lyon variant.
+    expect(searchCalculators('шварца').map((calculator) => calculator.id)).toEqual([
+      'pediatric-egfr-schwartz-2009',
+      'minimed.calculator.egfr-schwartz-lyon',
+    ]);
     expect(findCalculator('missing-calculator')).toBeUndefined();
   });
 

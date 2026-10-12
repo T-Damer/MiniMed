@@ -1,0 +1,1364 @@
+{
+  "id": "minimed.tools.medication-dosing.ru",
+  "version": "0.1.0-preview.1",
+  "title": "Дозирование лекарств: расчёты доз, растворов и скорости введения",
+  "schemaVersion": 2,
+  "builtAt": "2026-10-12T00:00:00Z",
+  "tools": [
+    {
+      "id": "minimed.calculator.glucocorticoid-equivalent-dose",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "glucocorticoid-dose-conversion",
+      "title": "Пересчёт доз глюкокортикоидов",
+      "shortTitle": "Эквивалент ГКС",
+      "aliases": [
+        "эквивалентные дозы ГКС",
+        "преднизолон в дексаметазон",
+        "гидрокортизон в преднизолон",
+        "метилпреднизолон преднизолон",
+        "замена глюкокортикоида",
+        "дексаметазон",
+        "преднизолон",
+        "стероиды перевод доз"
+      ],
+      "bankId": "medication-dosing",
+      "bankLabel": "Дозирование лекарств",
+      "category": "medication",
+      "description": "Эквивалентная доза системного глюкокортикоида при замене одного препарата на другой.",
+      "estimatedMinutes": 1,
+      "audience": "Любой возраст; только для приёма внутрь и внутривенного введения",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.glucocorticoid-equivalent-dose",
+        "slug": "glucocorticoid-dose-conversion",
+        "title": "Пересчёт доз глюкокортикоидов",
+        "shortTitle": "Эквивалент ГКС",
+        "aliases": [
+          "эквивалентные дозы ГКС",
+          "преднизолон в дексаметазон",
+          "гидрокортизон в преднизолон",
+          "метилпреднизолон преднизолон",
+          "замена глюкокортикоида",
+          "дексаметазон",
+          "преднизолон",
+          "стероиды перевод доз"
+        ],
+        "summary": "Эквивалентная доза системного глюкокортикоида при замене одного препарата на другой.",
+        "ageScope": {
+          "groups": ["neonates", "children", "adults"],
+          "basis": "Определение: коэффициенты эквивалентности не зависят от возраста; ограничений по возрасту в источнике нет."
+        },
+        "category": "medication",
+        "clinical": true,
+        "formulaDisplay": "Доза нового препарата = доза исходного × (эквивалентная доза нового / эквивалентная доза исходного); за 1 принят гидрокортизон 20 мг",
+        "population": "Пациенты, которым меняют системный глюкокортикоид; внутрь или внутривенно.",
+        "limitations": [
+          "Эквивалентные дозы ориентировочные и относятся к приёму внутрь и внутривенному введению; для внутримышечного, внутрисуставного и местного применения не подходят.",
+          "Не учитывает длительность действия и минералокортикоидную активность: при замене на дексаметазон или бетаметазон схему и частоту приёма подбирают отдельно.",
+          "Результат не является назначением; при длительной терапии учитывайте подавление надпочечников и схему снижения дозы."
+        ],
+        "inputs": [
+          {
+            "id": "fromDrug",
+            "label": "Исходный препарат",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 2,
+                "label": "Гидрокортизон"
+              },
+              {
+                "value": 1,
+                "label": "Кортизон"
+              },
+              {
+                "value": 3,
+                "label": "Преднизон"
+              },
+              {
+                "value": 4,
+                "label": "Преднизолон"
+              },
+              {
+                "value": 5,
+                "label": "Метилпреднизолон"
+              },
+              {
+                "value": 6,
+                "label": "Триамцинолон"
+              },
+              {
+                "value": 7,
+                "label": "Дексаметазон"
+              },
+              {
+                "value": 8,
+                "label": "Бетаметазон"
+              }
+            ]
+          },
+          {
+            "id": "dose",
+            "label": "Доза исходного препарата",
+            "unit": "мг",
+            "kind": "number",
+            "minimum": 0.01,
+            "maximum": 2000,
+            "required": true,
+            "inputStep": 0.01
+          },
+          {
+            "id": "toDrug",
+            "label": "Новый препарат",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 4,
+                "label": "Преднизолон"
+              },
+              {
+                "value": 3,
+                "label": "Преднизон"
+              },
+              {
+                "value": 2,
+                "label": "Гидрокортизон"
+              },
+              {
+                "value": 1,
+                "label": "Кортизон"
+              },
+              {
+                "value": 5,
+                "label": "Метилпреднизолон"
+              },
+              {
+                "value": 6,
+                "label": "Триамцинолон"
+              },
+              {
+                "value": 7,
+                "label": "Дексаметазон"
+              },
+              {
+                "value": 8,
+                "label": "Бетаметазон"
+              }
+            ]
+          }
+        ],
+        "steps": [
+          {
+            "id": "fromEquivalent",
+            "label": "Эквивалентная доза исходного",
+            "unit": "мг",
+            "expression": "cond(fromDrug == 1, 25, cond(fromDrug == 2, 20, cond(fromDrug == 3, 5, cond(fromDrug == 4, 5, cond(fromDrug == 5, 4, cond(fromDrug == 6, 4, cond(fromDrug == 7, 0.75, cond(fromDrug == 8, 0.6, 0))))))))",
+            "displayPrecision": 2,
+            "isOutput": false
+          },
+          {
+            "id": "toEquivalent",
+            "label": "Эквивалентная доза нового",
+            "unit": "мг",
+            "expression": "cond(toDrug == 1, 25, cond(toDrug == 2, 20, cond(toDrug == 3, 5, cond(toDrug == 4, 5, cond(toDrug == 5, 4, cond(toDrug == 6, 4, cond(toDrug == 7, 0.75, cond(toDrug == 8, 0.6, 0))))))))",
+            "displayPrecision": 2,
+            "isOutput": false
+          },
+          {
+            "id": "newDose",
+            "label": "Доза нового препарата",
+            "unit": "мг",
+            "expression": "dose * toEquivalent / fromEquivalent",
+            "displayPrecision": 2,
+            "isOutput": true
+          },
+          {
+            "id": "prednisolone",
+            "label": "В пересчёте на преднизолон",
+            "unit": "мг",
+            "expression": "dose * 5 / fromEquivalent",
+            "displayPrecision": 2,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "oral-iv-only",
+            "message": "Пересчёт только для приёма внутрь и внутривенного введения."
+          },
+          {
+            "code": "verify-dose",
+            "message": "Дозу, разведение и скорость подтверждайте по инструкции препарата и протоколу отделения."
+          }
+        ],
+        "interpretations": [],
+        "sources": [
+          {
+            "title": "Liu D, Ahmet A, Ward L, et al. A practical guide to the monitoring and management of the complications of systemic corticosteroid therapy",
+            "publisher": "Allergy, Asthma & Clinical Immunology",
+            "version": "2013",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/23947590/",
+            "page": "9(1):30",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "not-applicable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Расчёт дозы или объёма не имеет клинического вердикта.",
+          "sourceIds": ["glucocorticoid-equivalents-liu-2013"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.glucocorticoid-equivalent-dose.prednisolone",
+            "label": "Эквивалент в преднизолоне",
+            "unit": "мг",
+            "stepId": "prednisolone",
+            "method": "calculator:minimed.calculator.glucocorticoid-equivalent-dose"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "glucocorticoid-equivalents-liu-2013",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Liu D, Ahmet A, Ward L, et al. A practical guide to the monitoring and management of the complications of systemic corticosteroid therapy",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/23947590/",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.paracetamol-dose",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "paracetamol-dose",
+      "title": "Доза парацетамола",
+      "shortTitle": "Парацетамол",
+      "aliases": [
+        "парацетамол детям",
+        "парацетамол мг/кг",
+        "жаропонижающее доза",
+        "доза парацетамола по весу",
+        "максимальная суточная доза парацетамола",
+        "суспензия парацетамола мл"
+      ],
+      "bankId": "medication-dosing",
+      "bankLabel": "Дозирование лекарств",
+      "category": "medication",
+      "description": "Разовая и максимальная суточная доза парацетамола внутрь по массе тела ребёнка или для взрослого, с пересчётом в миллилитры.",
+      "estimatedMinutes": 1,
+      "audience": "Дети от 3 месяцев и взрослые; приём внутрь",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.paracetamol-dose",
+        "slug": "paracetamol-dose",
+        "title": "Доза парацетамола",
+        "shortTitle": "Парацетамол",
+        "aliases": [
+          "парацетамол детям",
+          "парацетамол мг/кг",
+          "жаропонижающее доза",
+          "доза парацетамола по весу",
+          "максимальная суточная доза парацетамола",
+          "суспензия парацетамола мл"
+        ],
+        "summary": "Разовая и максимальная суточная доза парацетамола внутрь по массе тела ребёнка или для взрослого, с пересчётом в миллилитры.",
+        "ageScope": {
+          "groups": ["children", "adults"],
+          "minAge": {
+            "value": 3,
+            "unit": "months"
+          },
+          "basis": "КР по ОРВИ у детей: парацетамол противопоказан до 3 месяцев."
+        },
+        "category": "medication",
+        "clinical": true,
+        "formulaDisplay": "Ребёнок: разовая 10–15 мг/кг (не более 1000 мг), интервал не менее 6 ч, не более 60 мг/кг в сутки (не более 4000 мг). Взрослый: 500–1000 мг каждые 4–6 ч, не более 4000 мг в сутки",
+        "population": "Дети от 3 месяцев и взрослые, которым парацетамол назначен внутрь.",
+        "limitations": [
+          "Для ребёнка разовая доза не превышает взрослую (1000 мг), суточная — 4000 мг.",
+          "Учитывайте все препараты с парацетамолом, печёночную недостаточность, голодание и приём алкоголя: инструкция конкретного препарата может ограничивать дозу сильнее.",
+          "Объём считается по введённой концентрации суспензии; проверьте её на упаковке. Результат не является назначением."
+        ],
+        "inputs": [
+          {
+            "id": "patientGroup",
+            "label": "Пациент",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 1,
+                "label": "Ребёнок (от 3 месяцев)"
+              },
+              {
+                "value": 2,
+                "label": "Взрослый"
+              }
+            ]
+          },
+          {
+            "id": "weightKg",
+            "label": "Масса тела",
+            "unit": "кг",
+            "kind": "number",
+            "minimum": 4,
+            "maximum": 150,
+            "required": false,
+            "inputStep": 0.1,
+            "patientBinding": {
+              "kind": "latestObservation",
+              "metricId": "body-mass",
+              "unit": "кг",
+              "maxAgeDays": 365
+            },
+            "labelTooltip": "Нужна для ребёнка."
+          },
+          {
+            "id": "concentration",
+            "label": "Концентрация суспензии",
+            "unit": "мг/мл",
+            "kind": "number",
+            "minimum": 1,
+            "maximum": 100,
+            "required": false,
+            "inputStep": 0.1,
+            "labelTooltip": "Например, 120 мг в 5 мл — это 24 мг/мл. Оставьте пустым для таблеток."
+          }
+        ],
+        "steps": [
+          {
+            "id": "weight",
+            "label": "Масса тела",
+            "unit": "кг",
+            "expression": "cond(present(weightKg), weightKg, 0)",
+            "displayPrecision": 1,
+            "isOutput": false
+          },
+          {
+            "id": "singleLow",
+            "label": "Разовая доза, от",
+            "unit": "мг",
+            "expression": "cond(patientGroup == 1, 10 * weight, 500)",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "singleHigh",
+            "label": "Разовая доза, до",
+            "unit": "мг",
+            "expression": "cond(patientGroup == 1, min(15 * weight, 1000), 1000)",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "dailyMax",
+            "label": "Максимум в сутки",
+            "unit": "мг",
+            "expression": "cond(patientGroup == 1, min(60 * weight, 4000), 4000)",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "minInterval",
+            "label": "Интервал между приёмами, не менее",
+            "unit": "ч",
+            "expression": "cond(patientGroup == 1, 6, 4)",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "volumeLow",
+            "label": "Разовый объём, от",
+            "unit": "мл",
+            "expression": "optional(present(concentration), singleLow / concentration)",
+            "displayPrecision": 1,
+            "isOutput": true
+          },
+          {
+            "id": "volumeHigh",
+            "label": "Разовый объём, до",
+            "unit": "мл",
+            "expression": "optional(present(concentration), singleHigh / concentration)",
+            "displayPrecision": 1,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "daily-limit",
+            "message": "Не превышайте суточный максимум с учётом всех источников парацетамола."
+          },
+          {
+            "code": "verify-dose",
+            "message": "Дозу, разведение и скорость подтверждайте по инструкции препарата и протоколу отделения."
+          }
+        ],
+        "interpretations": [],
+        "assertions": [
+          {
+            "when": "(patientGroup == 1) * (weight <= 0) > 0",
+            "error": "Для ребёнка укажите массу тела."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Клинические рекомендации: Острый тонзиллит и фарингит (острый тонзиллофарингит) (КР 306_3)",
+            "publisher": "Министерство здравоохранения Российской Федерации",
+            "version": "Редакция 2024",
+            "url": "https://cr.minzdrav.gov.ru/view-cr/306_3",
+            "reviewedAt": "2026-10-12"
+          },
+          {
+            "title": "Клинические рекомендации: Острая респираторная вирусная инфекция (ОРВИ) (КР 25_3)",
+            "publisher": "Министерство здравоохранения Российской Федерации",
+            "version": "Редакция 2026",
+            "url": "https://cr.minzdrav.gov.ru/view-cr/25_3",
+            "reviewedAt": "2026-10-12"
+          },
+          {
+            "title": "Клинические рекомендации: Острые респираторные вирусные инфекции (ОРВИ) у взрослых (КР 724_2)",
+            "publisher": "Министерство здравоохранения Российской Федерации",
+            "version": "Редакция 2025",
+            "url": "https://cr.minzdrav.gov.ru/view-cr/724_2",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "not-applicable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Расчёт дозы или объёма не имеет клинического вердикта.",
+          "sourceIds": ["paracetamol-kr-306-3", "paracetamol-kr-25-3", "paracetamol-kr-724-2"]
+        },
+        "observationMappings": []
+      },
+      "sources": [
+        {
+          "id": "paracetamol-kr-306-3",
+          "kind": "clinical-recommendation",
+          "relation": "interpretation",
+          "title": "Клинические рекомендации: Острый тонзиллит и фарингит (острый тонзиллофарингит) (КР 306_3)",
+          "moduleId": "minimed.clinical.recommendation.306_3",
+          "documentId": "kr.rf.306_3",
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "paracetamol-kr-25-3",
+          "kind": "clinical-recommendation",
+          "relation": "interpretation",
+          "title": "Клинические рекомендации: Острая респираторная вирусная инфекция (ОРВИ) (КР 25_3)",
+          "moduleId": "minimed.clinical.recommendation.25_3",
+          "documentId": "kr.rf.25_3",
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "paracetamol-kr-724-2",
+          "kind": "clinical-recommendation",
+          "relation": "interpretation",
+          "title": "Клинические рекомендации: Острые респираторные вирусные инфекции (ОРВИ) у взрослых (КР 724_2)",
+          "moduleId": "minimed.clinical.recommendation.724_2",
+          "documentId": "kr.rf.724_2",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.dose-by-bsa",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "dose-by-body-surface-area",
+      "title": "Доза по площади поверхности тела",
+      "shortTitle": "Доза по ППТ",
+      "aliases": [
+        "доза на м2",
+        "мг/м2",
+        "дозирование по площади тела",
+        "химиотерапия расчёт дозы",
+        "Дюбуа",
+        "Хайкок",
+        "Гехан Джордж",
+        "доза по поверхности тела"
+      ],
+      "bankId": "medication-dosing",
+      "bankLabel": "Дозирование лекарств",
+      "category": "medication",
+      "description": "Доза препарата, назначенная на 1 м² поверхности тела: площадь по выбранной формуле и итоговая разовая доза.",
+      "estimatedMinutes": 2,
+      "audience": "Любой возраст, если протокол или инструкция задают дозу на м²",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.dose-by-bsa",
+        "slug": "dose-by-body-surface-area",
+        "title": "Доза по площади поверхности тела",
+        "shortTitle": "Доза по ППТ",
+        "aliases": [
+          "доза на м2",
+          "мг/м2",
+          "дозирование по площади тела",
+          "химиотерапия расчёт дозы",
+          "Дюбуа",
+          "Хайкок",
+          "Гехан Джордж",
+          "доза по поверхности тела"
+        ],
+        "summary": "Доза препарата, назначенная на 1 м² поверхности тела: площадь по выбранной формуле и итоговая разовая доза.",
+        "ageScope": {
+          "groups": ["neonates", "children", "adults"],
+          "basis": "Определение: расчёт по площади поверхности тела применяют по протоколу или инструкции препарата; возрастных ограничений формулы не заданы."
+        },
+        "category": "medication",
+        "clinical": true,
+        "formulaDisplay": "Доза = ППТ × доза на 1 м². ППТ: Mosteller √(рост×масса/3600); Du Bois 0,007184×масса^0,425×рост^0,725; Haycock 0,024265×масса^0,5378×рост^0,3964; Gehan–George 0,0235×масса^0,51456×рост^0,42246",
+        "population": "Пациенты с известными ростом и массой, которым препарат назначен по площади поверхности тела.",
+        "limitations": [
+          "Формула площади даёт оценку; используйте ту, что указана в протоколе или инструкции препарата.",
+          "Учитывайте предельную разовую дозу и снижение дозы по протоколу при органной недостаточности и токсичности.",
+          "Единицы дозы сохраняются: вводите дозу на 1 м² и читайте результат в тех же единицах."
+        ],
+        "inputs": [
+          {
+            "id": "heightCm",
+            "label": "Рост",
+            "unit": "см",
+            "kind": "number",
+            "minimum": 20,
+            "maximum": 260,
+            "required": true,
+            "inputStep": 0.1,
+            "patientBinding": {
+              "kind": "latestObservation",
+              "metricId": "body-height",
+              "unit": "см",
+              "maxAgeDays": 365
+            }
+          },
+          {
+            "id": "weightKg",
+            "label": "Масса",
+            "unit": "кг",
+            "kind": "number",
+            "minimum": 0.3,
+            "maximum": 500,
+            "required": true,
+            "inputStep": 0.1,
+            "patientBinding": {
+              "kind": "latestObservation",
+              "metricId": "body-mass",
+              "unit": "кг",
+              "maxAgeDays": 365
+            }
+          },
+          {
+            "id": "formula",
+            "label": "Формула площади",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 1,
+                "label": "Mosteller"
+              },
+              {
+                "value": 2,
+                "label": "Du Bois"
+              },
+              {
+                "value": 3,
+                "label": "Haycock"
+              },
+              {
+                "value": 4,
+                "label": "Gehan–George"
+              }
+            ]
+          },
+          {
+            "id": "dosePerM2",
+            "label": "Доза на 1 м²",
+            "unit": "мг/м²",
+            "kind": "number",
+            "minimum": 0.0001,
+            "maximum": 100000,
+            "required": true,
+            "inputStep": 0.01
+          },
+          {
+            "id": "maxDose",
+            "label": "Предельная разовая доза по протоколу",
+            "unit": "мг",
+            "kind": "number",
+            "minimum": 0.0001,
+            "maximum": 1000000,
+            "required": false,
+            "inputStep": 0.01,
+            "labelTooltip": "Если задана, результат не превысит её."
+          }
+        ],
+        "steps": [
+          {
+            "id": "bsa",
+            "label": "Площадь поверхности тела",
+            "unit": "м²",
+            "expression": "cond(formula == 1, sqrt(heightCm * weightKg / 3600), cond(formula == 2, 0.007184 * pow(weightKg, 0.425) * pow(heightCm, 0.725), cond(formula == 3, 0.024265 * pow(weightKg, 0.5378) * pow(heightCm, 0.3964), 0.0235 * pow(weightKg, 0.51456) * pow(heightCm, 0.42246))))",
+            "displayPrecision": 3,
+            "isOutput": true
+          },
+          {
+            "id": "calculatedDose",
+            "label": "Расчётная доза",
+            "unit": "мг",
+            "expression": "bsa * dosePerM2",
+            "displayPrecision": 2,
+            "isOutput": false
+          },
+          {
+            "id": "dose",
+            "label": "Доза к введению",
+            "unit": "мг",
+            "expression": "cond(present(maxDose), min(calculatedDose, maxDose), calculatedDose)",
+            "displayPrecision": 2,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "verify-dose",
+            "message": "Дозу, разведение и скорость подтверждайте по инструкции препарата и протоколу отделения."
+          }
+        ],
+        "interpretations": [],
+        "sources": [
+          {
+            "title": "Mosteller RD. Simplified calculation of body-surface area",
+            "publisher": "New England Journal of Medicine",
+            "version": "1987",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/3657876/",
+            "page": "317(17):1098",
+            "reviewedAt": "2026-10-12"
+          },
+          {
+            "title": "Du Bois D, Du Bois EF. A formula to estimate the approximate surface area if height and weight be known",
+            "publisher": "Nutrition",
+            "version": "1989 (reprint of 1916)",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/2520314/",
+            "page": "5(5):303-311",
+            "reviewedAt": "2026-10-12"
+          },
+          {
+            "title": "Haycock GB, Schwartz GJ, Wisotsky DH. Geometric method for measuring body surface area: a height-weight formula validated in infants, children, and adults",
+            "publisher": "Journal of Pediatrics",
+            "version": "1978",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/650346/",
+            "page": "93(1):62-66",
+            "reviewedAt": "2026-10-12"
+          },
+          {
+            "title": "Gehan EA, George SL. Estimation of human body surface area from height and weight",
+            "publisher": "Cancer Chemotherapy Reports",
+            "version": "1970",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/5527019/",
+            "page": "54(4):225-235",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "not-applicable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Расчёт дозы или объёма не имеет клинического вердикта.",
+          "sourceIds": [
+            "bsa-mosteller-1987",
+            "bsa-dubois-1916",
+            "bsa-haycock-1978",
+            "bsa-gehan-george-1970"
+          ]
+        },
+        "observationMappings": []
+      },
+      "sources": [
+        {
+          "id": "bsa-mosteller-1987",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Mosteller RD. Simplified calculation of body-surface area",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/3657876/",
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "bsa-dubois-1916",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Du Bois D, Du Bois EF. A formula to estimate the approximate surface area if height and weight be known",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/2520314/",
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "bsa-haycock-1978",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Haycock GB, Schwartz GJ, Wisotsky DH. Geometric method for measuring body surface area: a height-weight formula validated in infants, children, and adults",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/650346/",
+          "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "bsa-gehan-george-1970",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Gehan EA, George SL. Estimation of human body surface area from height and weight",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/5527019/",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.iv-drip-rate",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "iv-drip-rate-drops-per-minute",
+      "title": "Скорость капельного введения (капель в минуту)",
+      "shortTitle": "Капли в минуту",
+      "aliases": [
+        "капельница скорость",
+        "капли в минуту",
+        "скорость инфузии капель",
+        "кап/мин",
+        "расчёт капельницы",
+        "количество капель в мл"
+      ],
+      "bankId": "medication-dosing",
+      "bankLabel": "Дозирование лекарств",
+      "category": "medication",
+      "description": "Число капель в минуту для заданного объёма и времени введения через систему с известным числом капель в 1 мл.",
+      "estimatedMinutes": 1,
+      "audience": "Любой возраст; гравитационные инфузионные системы",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.iv-drip-rate",
+        "slug": "iv-drip-rate-drops-per-minute",
+        "title": "Скорость капельного введения (капель в минуту)",
+        "shortTitle": "Капли в минуту",
+        "aliases": [
+          "капельница скорость",
+          "капли в минуту",
+          "скорость инфузии капель",
+          "кап/мин",
+          "расчёт капельницы",
+          "количество капель в мл"
+        ],
+        "summary": "Число капель в минуту для заданного объёма и времени введения через систему с известным числом капель в 1 мл.",
+        "ageScope": {
+          "groups": ["neonates", "children", "adults"],
+          "basis": "Определение: арифметика объёма и времени; возраст не используется."
+        },
+        "category": "medication",
+        "clinical": true,
+        "formulaDisplay": "Капель в минуту = объём, мл × капель в 1 мл / время, мин",
+        "population": "Инфузия через гравитационную систему с известным числом капель в 1 мл.",
+        "limitations": [
+          "Число капель в 1 мл указано на упаковке системы; обычно 20 для стандартной и 60 для микрокапельной.",
+          "Размер капли зависит от раствора и положения камеры: контролируйте объём по факту; для точной скорости используйте инфузомат.",
+          "Не подходит для препаратов, у которых скорость введения задана в мкг/кг/мин: для них есть отдельный расчёт."
+        ],
+        "inputs": [
+          {
+            "id": "volumeMl",
+            "label": "Объём раствора",
+            "unit": "мл",
+            "kind": "number",
+            "minimum": 1,
+            "maximum": 5000,
+            "required": true,
+            "inputStep": 1
+          },
+          {
+            "id": "duration",
+            "label": "Время введения",
+            "kind": "number",
+            "minimum": 0.5,
+            "maximum": 4320,
+            "required": true,
+            "inputStep": 0.5
+          },
+          {
+            "id": "durationUnit",
+            "label": "Единица времени",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 1,
+                "label": "мин"
+              },
+              {
+                "value": 60,
+                "label": "ч"
+              }
+            ]
+          },
+          {
+            "id": "dropFactor",
+            "label": "Капель в 1 мл системы",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 20,
+                "label": "20 (стандартная)"
+              },
+              {
+                "value": 60,
+                "label": "60 (микрокапельная)"
+              },
+              {
+                "value": 15,
+                "label": "15"
+              },
+              {
+                "value": 10,
+                "label": "10"
+              }
+            ]
+          }
+        ],
+        "steps": [
+          {
+            "id": "totalMinutes",
+            "label": "Время введения",
+            "unit": "мин",
+            "expression": "duration * durationUnit",
+            "displayPrecision": 0,
+            "isOutput": false
+          },
+          {
+            "id": "dropsPerMinute",
+            "label": "Скорость",
+            "unit": "капель/мин",
+            "expression": "volumeMl * dropFactor / totalMinutes",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "dropsPerTenSeconds",
+            "label": "Капель за 10 секунд",
+            "unit": "капель",
+            "expression": "dropsPerMinute / 6",
+            "displayPrecision": 1,
+            "isOutput": true
+          },
+          {
+            "id": "mlPerHour",
+            "label": "Скорость",
+            "unit": "мл/ч",
+            "expression": "volumeMl * 60 / totalMinutes",
+            "displayPrecision": 1,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "verify-dose",
+            "message": "Дозу, разведение и скорость подтверждайте по инструкции препарата и протоколу отделения."
+          }
+        ],
+        "interpretations": [],
+        "sources": [
+          {
+            "title": "ГОСТ Р ИСО 8536-4-2022. Устройства инфузионные медицинского назначения. Часть 4. Инфузионные наборы однократного применения, гравитационная подача",
+            "publisher": "Росстандарт",
+            "version": "2022",
+            "url": "https://cn.gostinfo.ru/catalog/Details/?id=6895830",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "not-applicable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Расчёт дозы или объёма не имеет клинического вердикта.",
+          "sourceIds": ["iv-drip-rate-gost-8536-4"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.iv-drip-rate.dropsPerMinute",
+            "label": "Скорость капельной инфузии",
+            "unit": "капель/мин",
+            "stepId": "dropsPerMinute",
+            "method": "calculator:minimed.calculator.iv-drip-rate"
+          },
+          {
+            "metricId": "minimed.calculator.iv-drip-rate.mlPerHour",
+            "label": "Скорость инфузии",
+            "unit": "мл/ч",
+            "stepId": "mlPerHour",
+            "method": "calculator:minimed.calculator.iv-drip-rate"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "iv-drip-rate-gost-8536-4",
+          "kind": "regulatory",
+          "relation": "methodology",
+          "title": "ГОСТ Р ИСО 8536-4-2022. Устройства инфузионные медицинского назначения. Часть 4. Инфузионные наборы однократного применения, гравитационная подача",
+          "url": "https://cn.gostinfo.ru/catalog/Details/?id=6895830",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.infusion-rate-mcg-kg-min",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "infusion-rate-ml-per-hour",
+      "title": "Скорость инфузии (мкг/кг/мин в мл/ч)",
+      "shortTitle": "Мкг/кг/мин в мл/ч",
+      "aliases": [
+        "скорость инфузии мл/ч",
+        "мкг/кг/мин",
+        "инфузомат расчёт",
+        "дозатор шприцевой",
+        "норадреналин скорость",
+        "дофамин скорость",
+        "разведение для инфузомата"
+      ],
+      "bankId": "medication-dosing",
+      "bankLabel": "Дозирование лекарств",
+      "category": "medication",
+      "description": "Скорость шприцевого дозатора в мл/ч по дозе в мкг/кг/мин, массе тела и разведению.",
+      "estimatedMinutes": 2,
+      "audience": "Любой возраст; препараты, дозируемые в мкг/кг/мин",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.infusion-rate-mcg-kg-min",
+        "slug": "infusion-rate-ml-per-hour",
+        "title": "Скорость инфузии (мкг/кг/мин в мл/ч)",
+        "shortTitle": "Мкг/кг/мин в мл/ч",
+        "aliases": [
+          "скорость инфузии мл/ч",
+          "мкг/кг/мин",
+          "инфузомат расчёт",
+          "дозатор шприцевой",
+          "норадреналин скорость",
+          "дофамин скорость",
+          "разведение для инфузомата"
+        ],
+        "summary": "Скорость шприцевого дозатора в мл/ч по дозе в мкг/кг/мин, массе тела и разведению.",
+        "ageScope": {
+          "groups": ["neonates", "children", "adults"],
+          "basis": "Определение: арифметика единиц; возраст не используется."
+        },
+        "category": "medication",
+        "clinical": true,
+        "formulaDisplay": "Скорость, мл/ч = доза, мкг/кг/мин × масса, кг × 60 / концентрация, мкг/мл; концентрация = количество препарата, мг × 1000 / объём раствора, мл",
+        "population": "Пациенты, которым препарат вводят дозатором в мкг/кг/мин.",
+        "limitations": [
+          "Расчёт не учитывает объём заполнения магистрали и задержку при смене шприца.",
+          "Проверьте единицы дозы по инструкции: мкг/кг/мин, мкг/кг/ч и мг/ч отличаются в десятки раз.",
+          "Разведение и допустимая концентрация зависят от препарата; результат не является назначением."
+        ],
+        "inputs": [
+          {
+            "id": "doseMcgKgMin",
+            "label": "Доза",
+            "unit": "мкг/кг/мин",
+            "kind": "number",
+            "minimum": 0.001,
+            "maximum": 1000,
+            "required": true,
+            "inputStep": 0.001
+          },
+          {
+            "id": "weightKg",
+            "label": "Масса тела",
+            "unit": "кг",
+            "kind": "number",
+            "minimum": 0.3,
+            "maximum": 300,
+            "required": true,
+            "inputStep": 0.1,
+            "patientBinding": {
+              "kind": "latestObservation",
+              "metricId": "body-mass",
+              "unit": "кг",
+              "maxAgeDays": 365
+            }
+          },
+          {
+            "id": "drugMg",
+            "label": "Препарат в растворе",
+            "unit": "мг",
+            "kind": "number",
+            "minimum": 0.001,
+            "maximum": 100000,
+            "required": true,
+            "inputStep": 0.001
+          },
+          {
+            "id": "volumeMl",
+            "label": "Объём раствора",
+            "unit": "мл",
+            "kind": "number",
+            "minimum": 0.1,
+            "maximum": 5000,
+            "required": true,
+            "inputStep": 0.1
+          }
+        ],
+        "steps": [
+          {
+            "id": "concentration",
+            "label": "Концентрация",
+            "unit": "мкг/мл",
+            "expression": "drugMg * 1000 / volumeMl",
+            "displayPrecision": 1,
+            "isOutput": false
+          },
+          {
+            "id": "perMinute",
+            "label": "Нужно в минуту",
+            "unit": "мкг/мин",
+            "expression": "doseMcgKgMin * weightKg",
+            "displayPrecision": 2,
+            "isOutput": false
+          },
+          {
+            "id": "rate",
+            "label": "Скорость инфузии",
+            "unit": "мл/ч",
+            "expression": "perMinute * 60 / concentration",
+            "displayPrecision": 2,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "verify-dose",
+            "message": "Дозу, разведение и скорость подтверждайте по инструкции препарата и протоколу отделения."
+          }
+        ],
+        "interpretations": [],
+        "sources": [
+          {
+            "title": "The International System of Units (SI Brochure)",
+            "publisher": "BIPM",
+            "version": "9th edition",
+            "url": "https://www.bipm.org/en/publications/si-brochure",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "not-applicable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Расчёт дозы или объёма не имеет клинического вердикта.",
+          "sourceIds": ["infusion-rate-si-brochure"]
+        },
+        "observationMappings": []
+      },
+      "sources": [
+        {
+          "id": "infusion-rate-si-brochure",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "The International System of Units (SI Brochure)",
+          "url": "https://www.bipm.org/en/publications/si-brochure",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.solution-percent-concentration",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "solution-percent-concentration",
+      "title": "Процентная концентрация раствора",
+      "shortTitle": "Концентрация, %",
+      "aliases": [
+        "процент раствора",
+        "массо-объёмный процент",
+        "г в 100 мл",
+        "процентная концентрация",
+        "мг/мл в проценты",
+        "% раствора"
+      ],
+      "bankId": "medication-dosing",
+      "bankLabel": "Дозирование лекарств",
+      "category": "medication",
+      "description": "Процентная концентрация (г в 100 мл) по массе вещества и объёму раствора.",
+      "estimatedMinutes": 1,
+      "audience": "Любой возраст; растворы твёрдых веществ",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.solution-percent-concentration",
+        "slug": "solution-percent-concentration",
+        "title": "Процентная концентрация раствора",
+        "shortTitle": "Концентрация, %",
+        "aliases": [
+          "процент раствора",
+          "массо-объёмный процент",
+          "г в 100 мл",
+          "процентная концентрация",
+          "мг/мл в проценты",
+          "% раствора"
+        ],
+        "summary": "Процентная концентрация (г в 100 мл) по массе вещества и объёму раствора.",
+        "ageScope": {
+          "groups": ["neonates", "children", "adults"],
+          "basis": "Определение: арифметика концентрации; возраст не используется."
+        },
+        "category": "medication",
+        "clinical": true,
+        "formulaDisplay": "Концентрация, % = масса вещества, г / объём раствора, мл × 100 (1 % = 10 мг/мл)",
+        "population": "Растворы твёрдого вещества в жидкости.",
+        "limitations": [
+          "Это массо-объёмный процент (г в 100 мл раствора); процент по массе (г в 100 г) или по объёму требует плотности или объёма вещества.",
+          "Объём — это объём готового раствора, а не растворителя."
+        ],
+        "inputs": [
+          {
+            "id": "substance",
+            "label": "Масса вещества",
+            "kind": "number",
+            "minimum": 1e-6,
+            "maximum": 1000000,
+            "required": true,
+            "inputStep": 0.001
+          },
+          {
+            "id": "massUnit",
+            "label": "Единица массы",
+            "kind": "select",
+            "required": true,
+            "options": [
+              {
+                "value": 1,
+                "label": "мг"
+              },
+              {
+                "value": 1000,
+                "label": "г"
+              },
+              {
+                "value": 0.001,
+                "label": "мкг"
+              }
+            ]
+          },
+          {
+            "id": "volumeMl",
+            "label": "Объём раствора",
+            "unit": "мл",
+            "kind": "number",
+            "minimum": 0.01,
+            "maximum": 100000,
+            "required": true,
+            "inputStep": 0.01
+          }
+        ],
+        "steps": [
+          {
+            "id": "massMg",
+            "label": "Масса вещества",
+            "unit": "мг",
+            "expression": "substance * massUnit",
+            "displayPrecision": 3,
+            "isOutput": false
+          },
+          {
+            "id": "mgPerMl",
+            "label": "Концентрация",
+            "unit": "мг/мл",
+            "expression": "massMg / volumeMl",
+            "displayPrecision": 3,
+            "isOutput": true
+          },
+          {
+            "id": "percent",
+            "label": "Процентная концентрация",
+            "unit": "%",
+            "expression": "mgPerMl / 10",
+            "displayPrecision": 3,
+            "isOutput": true
+          }
+        ],
+        "warnings": [],
+        "interpretations": [],
+        "sources": [
+          {
+            "title": "United States Pharmacopeia 35–National Formulary 30. Terms and definitions: 8.130 Percent; 8.140 Percentage Concentrations",
+            "publisher": "United States Pharmacopeial Convention",
+            "version": "USP 35–NF 30 (2012)",
+            "url": "https://www.drugfuture.com/Pharmacopoeia/USP35/data/v35300/usp35nf30s0_m99989s9.html",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "not-applicable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Расчёт дозы или объёма не имеет клинического вердикта.",
+          "sourceIds": ["solution-percent-concentration-solution-percent-usp-35"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.solution-percent-concentration.percent",
+            "label": "Концентрация раствора",
+            "unit": "%",
+            "stepId": "percent",
+            "method": "calculator:minimed.calculator.solution-percent-concentration"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "solution-percent-concentration-solution-percent-usp-35",
+          "kind": "regulatory",
+          "relation": "methodology",
+          "title": "United States Pharmacopeia 35–National Formulary 30. Terms and definitions: 8.130 Percent; 8.140 Percentage Concentrations",
+          "url": "https://www.drugfuture.com/Pharmacopoeia/USP35/data/v35300/usp35nf30s0_m99989s9.html",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.solution-substance-content",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "solution-substance-content",
+      "title": "Содержание вещества в растворе",
+      "shortTitle": "Вещество в растворе",
+      "aliases": [
+        "сколько грамм в растворе",
+        "процент в граммы",
+        "количество вещества в растворе",
+        "мг в ампуле по проценту",
+        "раствор процент в мг"
+      ],
+      "bankId": "medication-dosing",
+      "bankLabel": "Дозирование лекарств",
+      "category": "medication",
+      "description": "Масса вещества в заданном объёме раствора с известной процентной концентрацией.",
+      "estimatedMinutes": 1,
+      "audience": "Любой возраст; растворы твёрдых веществ",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.solution-substance-content",
+        "slug": "solution-substance-content",
+        "title": "Содержание вещества в растворе",
+        "shortTitle": "Вещество в растворе",
+        "aliases": [
+          "сколько грамм в растворе",
+          "процент в граммы",
+          "количество вещества в растворе",
+          "мг в ампуле по проценту",
+          "раствор процент в мг"
+        ],
+        "summary": "Масса вещества в заданном объёме раствора с известной процентной концентрацией.",
+        "ageScope": {
+          "groups": ["neonates", "children", "adults"],
+          "basis": "Определение: арифметика концентрации; возраст не используется."
+        },
+        "category": "medication",
+        "clinical": true,
+        "formulaDisplay": "Масса, г = концентрация, % × объём раствора, мл / 100 (1 % = 10 мг/мл)",
+        "population": "Растворы твёрдого вещества в жидкости с концентрацией в г на 100 мл.",
+        "limitations": [
+          "Это массо-объёмный процент (г в 100 мл раствора); для процентов по массе или по объёму результат будет неверным.",
+          "Для сравнения с дозой в мг проверьте, в каких единицах указана концентрация на упаковке."
+        ],
+        "inputs": [
+          {
+            "id": "percent",
+            "label": "Концентрация",
+            "unit": "%",
+            "kind": "number",
+            "minimum": 0.0001,
+            "maximum": 100,
+            "required": true,
+            "inputStep": 0.0001
+          },
+          {
+            "id": "volumeMl",
+            "label": "Объём раствора",
+            "unit": "мл",
+            "kind": "number",
+            "minimum": 0.01,
+            "maximum": 100000,
+            "required": true,
+            "inputStep": 0.01
+          }
+        ],
+        "steps": [
+          {
+            "id": "mgPerMl",
+            "label": "Концентрация",
+            "unit": "мг/мл",
+            "expression": "percent * 10",
+            "displayPrecision": 3,
+            "isOutput": false
+          },
+          {
+            "id": "massMg",
+            "label": "Масса вещества",
+            "unit": "мг",
+            "expression": "mgPerMl * volumeMl",
+            "displayPrecision": 2,
+            "isOutput": true
+          },
+          {
+            "id": "massG",
+            "label": "Масса вещества",
+            "unit": "г",
+            "expression": "massMg / 1000",
+            "displayPrecision": 4,
+            "isOutput": true
+          }
+        ],
+        "warnings": [],
+        "interpretations": [],
+        "sources": [
+          {
+            "title": "United States Pharmacopeia 35–National Formulary 30. Terms and definitions: 8.130 Percent; 8.140 Percentage Concentrations",
+            "publisher": "United States Pharmacopeial Convention",
+            "version": "USP 35–NF 30 (2012)",
+            "url": "https://www.drugfuture.com/Pharmacopoeia/USP35/data/v35300/usp35nf30s0_m99989s9.html",
+            "reviewedAt": "2026-10-12"
+          }
+        ],
+        "evaluation": {
+          "status": "not-applicable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Расчёт дозы или объёма не имеет клинического вердикта.",
+          "sourceIds": ["solution-substance-content-solution-percent-usp-35"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.solution-substance-content.massMg",
+            "label": "Масса вещества в растворе",
+            "unit": "мг",
+            "stepId": "massMg",
+            "method": "calculator:minimed.calculator.solution-substance-content"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "solution-substance-content-solution-percent-usp-35",
+          "kind": "regulatory",
+          "relation": "methodology",
+          "title": "United States Pharmacopeia 35–National Formulary 30. Terms and definitions: 8.130 Percent; 8.140 Percentage Concentrations",
+          "url": "https://www.drugfuture.com/Pharmacopoeia/USP35/data/v35300/usp35nf30s0_m99989s9.html",
+          "reviewedAt": "2026-10-12"
+        }
+      ]
+    }
+  ]
+}

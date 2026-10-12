@@ -26,6 +26,13 @@ const DUE_DATE_IDS = [
   'obstetric-edd-quickening',
   'obstetric-edd-given-date',
 ] as const;
+/**
+ * Pure unit arithmetic with no patient quantity to read or store: its result is in a unit chosen per
+ * run, so recording it would mix analytes under one metric.
+ */
+const NO_PATIENT_DATA_IDS: ReadonlySet<string> = new Set([
+  'minimed.calculator.lab-unit-conversion',
+]);
 const FEEDING_PLAN_ID = 'minimed.calculator.pediatric-feeding-plan';
 
 afterEach(() => {
@@ -35,7 +42,7 @@ afterEach(() => {
 describe('calculators that declare patient data', () => {
   it('every shipped schema reads from or records into the patient card', () => {
     const without = loadToolModuleCalculatorSchemas()
-      .filter((schema) => !calculatorUsesPatientData(schema))
+      .filter((schema) => !NO_PATIENT_DATA_IDS.has(schema.id) && !calculatorUsesPatientData(schema))
       .map((schema) => schema.id);
     expect(without).toEqual([]);
   });

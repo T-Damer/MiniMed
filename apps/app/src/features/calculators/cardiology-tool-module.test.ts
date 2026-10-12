@@ -62,7 +62,7 @@ describe('cardiology tool module', () => {
     const source = JSON.parse(readFileSync(resolve(process.cwd(), MODULE_FILE), 'utf8')) as {
       tools: readonly unknown[];
     };
-    expect(source.tools).toHaveLength(17);
+    expect(source.tools).toHaveLength(34);
     for (const rawTool of source.tools) {
       const record = ToolDefinitionRecordSchema.parse(rawTool);
       expect(record.sources.length).toBeGreaterThan(0);
