@@ -224,6 +224,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   );
   let refreshedOnce = false;
   let unsubscribeTask: (() => void) | undefined;
+  let unsubscribeCatalog: (() => void) | undefined;
   let reconnectPending = false;
   let moduleCatalogHeading: HTMLDivElement | undefined;
 
@@ -231,8 +232,12 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
 
   const bindRuntime = (nextCatalog: ContentModuleCatalog): void => {
     unsubscribeTask?.();
+    unsubscribeCatalog?.();
     const nextRuntime = getContentModuleRuntime(nextCatalog);
     setRuntime(nextRuntime);
+    // The runtime's catalog also lists the modules installed from files, which no remote catalog has.
+    setCatalog(nextRuntime.getCatalog());
+    unsubscribeCatalog = nextRuntime.subscribeCatalog(() => setCatalog(nextRuntime.getCatalog()));
     setInstalled(nextRuntime.listInstalled());
     setTasks(nextRuntime.listTasks());
     unsubscribeTask = nextRuntime.subscribe(() => {
@@ -327,6 +332,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   });
   onCleanup(() => {
     unsubscribeTask?.();
+    unsubscribeCatalog?.();
     window.removeEventListener('hashchange', syncSelectionFromLocation);
     window.removeEventListener(CONTENT_CHANGED_EVENT, refreshOverviewDocumentCounts);
   });
@@ -537,7 +543,6 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     try {
       // Opening the catalog is the user asking for it: this refresh may download on a metered link.
       const result = await refreshContentModuleCatalog({ userInitiated: true });
-      setCatalog(result.catalog);
       setWarning(result.warning);
       bindRuntime(result.catalog);
     } finally {

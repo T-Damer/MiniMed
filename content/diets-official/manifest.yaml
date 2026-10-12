@@ -1,0 +1,6 @@
+id: minimed.diets.official
+version: 0.1.0-f1b6de77
+schemaVersion: 2
+title: 'Лечебное питание: приказы Минздрава России №330, №395н, №1008н'
+builtAt: '2026-10-12T17:33:27Z'
+publicationState: local-dev

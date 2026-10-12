@@ -1,7 +1,8 @@
-import type {
-  ContentModuleCatalogEntry,
-  ContentModuleDownloadTask,
-  InstalledContentModule,
+import {
+  type ContentModuleCatalogEntry,
+  type ContentModuleDownloadTask,
+  hasLocalModuleArtifacts,
+  type InstalledContentModule,
 } from '@localmed/contracts';
 import { For, type JSX, Show } from 'solid-js';
 
@@ -82,14 +83,19 @@ export function ContentModuleCard(props: ContentModuleCardProps): JSX.Element {
         onClick={props.module.required ? props.onOpenCore : props.onInspect}
       />
       <div class="module-card__topline">
-        <span
-          class={`module-state ${
-            installedLabel()
-              ? 'module-state--installed'
-              : `module-state--${props.module.releaseState}`
-          }`}
-        >
-          {installedLabel() ? 'Установлено' : MODULE_RELEASE_LABELS[props.module.releaseState]}
+        <span class="module-card__badges">
+          <span
+            class={`module-state ${
+              installedLabel()
+                ? 'module-state--installed'
+                : `module-state--${props.module.releaseState}`
+            }`}
+          >
+            {installedLabel() ? 'Установлено' : MODULE_RELEASE_LABELS[props.module.releaseState]}
+          </span>
+          <Show when={hasLocalModuleArtifacts(props.module)}>
+            <span class="module-state module-state--local">Из файла</span>
+          </Show>
         </span>
         <small class="module-card__version">{props.module.version}</small>
       </div>

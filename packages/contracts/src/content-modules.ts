@@ -226,6 +226,23 @@ export const ContentModuleCatalogEntrySchema = z.preprocess(
     }),
 );
 
+/**
+ * Artifact URL scheme of a personal-use module bundle (`<stem>.minimed-module.zip`): the artifact
+ * is the ZIP entry at `minimed-local:<path-in-zip>`. The entry schema accepts it so the bundle's
+ * `module.json` validates like any catalog entry; a public or cached catalog must never carry it.
+ */
+export const LOCAL_MODULE_URL_SCHEME = 'minimed-local:';
+
+export function isLocalModuleArtifactUrl(url: string | null | undefined): boolean {
+  return typeof url === 'string' && url.startsWith(LOCAL_MODULE_URL_SCHEME);
+}
+
+export function hasLocalModuleArtifacts(module: {
+  readonly artifacts: readonly { readonly url: string | null }[];
+}): boolean {
+  return module.artifacts.some((artifact) => isLocalModuleArtifactUrl(artifact.url));
+}
+
 /** Release state alone does not prove that a prepared, verifiable index can be installed.
  * Keep local previews in discovery, but never advertise them as downloads.
  */

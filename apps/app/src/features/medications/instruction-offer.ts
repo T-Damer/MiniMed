@@ -51,5 +51,9 @@ export function instructionOfferLabel(offer: InstructionModuleOffer): string {
   return `Скачать инструкции группы «${offer.groupTitle}»${size}`;
 }
 
-export const INSTRUCTION_UNAVAILABLE_NOTICE =
-  'Полная официальная инструкция пока недоступна — показана краткая справка Allmed.';
+/** «…показана краткая справка Allmed» (or «Видаль», «Allmed и Видаль»: the sources on screen). */
+export function instructionUnavailableNotice(sourceLabel: string): string {
+  return `Полная официальная инструкция пока недоступна — показана краткая справка ${sourceLabel}.`;
+}
+
+export const INSTRUCTION_UNAVAILABLE_NOTICE = instructionUnavailableNotice('Allmed');

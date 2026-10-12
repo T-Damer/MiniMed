@@ -1,0 +1,531 @@
+aliases:
+- id: diets-system-fbb52b595b
+  canonicalTerm: 'Система стандартных диет: варианты и номерные столы'
+  alias: стол 4
+  category: reference
+  weight: 1.2
+- id: diets-system-ddaeb17d73
+  canonicalTerm: 'Система стандартных диет: варианты и номерные столы'
+  alias: стол 12
+  category: reference
+  weight: 1.2
+- id: diets-system-86bdad4631
+  canonicalTerm: 'Система стандартных диет: варианты и номерные столы'
+  alias: приказ 330
+  category: reference
+  weight: 1.3
+- id: diets-system-4475f7180c
+  canonicalTerm: 'Система стандартных диет: варианты и номерные столы'
+  alias: приказ №330
+  category: reference
+  weight: 1.3
+- id: diets-system-955c5c9688
+  canonicalTerm: 'Система стандартных диет: варианты и номерные столы'
+  alias: 1008н
+  category: reference
+  weight: 1.3
+- id: diets-system-83cca4601b
+  canonicalTerm: 'Система стандартных диет: варианты и номерные столы'
+  alias: приказ 1008н
+  category: reference
+  weight: 1.3
+- id: diets-system-14565fcc62
+  canonicalTerm: 'Система стандартных диет: варианты и номерные столы'
+  alias: лечебное питание
+  category: reference
+  weight: 1.3
+- id: diets-system-81dc0728d7
+  canonicalTerm: 'Система стандартных диет: варианты и номерные столы'
+  alias: стандартные диеты
+  category: reference
+  weight: 1.3
+- id: diets-system-ac4e6bf784
+  canonicalTerm: 'Система стандартных диет: варианты и номерные столы'
+  alias: система стандартных диет
+  category: reference
+  weight: 1.3
+- id: diets-system-0c48a15a86
+  canonicalTerm: 'Система стандартных диет: варианты и номерные столы'
+  alias: номерные диеты
+  category: reference
+  weight: 1.3
+- id: diets-ovd-569c5e47bb
+  canonicalTerm: Основной вариант стандартной диеты (ОВД)
+  alias: стол 1
+  category: reference
+  weight: 1.5
+- id: diets-ovd-82c57c5d56
+  canonicalTerm: Основной вариант стандартной диеты (ОВД)
+  alias: диета номер 1
+  category: reference
+  weight: 1.3
+- id: diets-ovd-7920928001
+  canonicalTerm: Основной вариант стандартной диеты (ОВД)
+  alias: стол 2
+  category: reference
+  weight: 1.5
+- id: diets-ovd-8604962ff8
+  canonicalTerm: Основной вариант стандартной диеты (ОВД)
+  alias: диета номер 2
+  category: reference
+  weight: 1.3
+- id: diets-ovd-8f9bcde929
+  canonicalTerm: Основной вариант стандартной диеты (ОВД)
+  alias: стол 3
+  category: reference
+  weight: 1.5
+- id: diets-ovd-76fcf00191
+  canonicalTerm: Основной вариант стандартной диеты (ОВД)
+  alias: диета номер 3
+  category: reference
+  weight: 1.3
+- id: diets-ovd-7ff56e9935
+  canonicalTerm: Основной вариант стандартной диеты (ОВД)
+  alias: стол 5
+  category: reference
+  weight: 1.5
+- id: diets-ovd-7f36d78d0a
+  canonicalTerm: Основной вариант стандартной диеты (ОВД)
+  alias: диета номер 5
+  category: reference
+  weight: 1.3
+- id: diets-ovd-a8454bfe70
+  canonicalTerm: Основной вариант стандартной диеты (ОВД)
+  alias: стол 6
+  category: reference
+  weight: 1.5
+- id: diets-ovd-fbd2fff0b0
+  canonicalTerm: Основной вариант стандартной диеты (ОВД)
+  alias: диета номер 6
+  category: reference
+  weight: 1.3
+- id: diets-ovd-88d431350e
+  canonicalTerm: Основной вариант стандартной диеты (ОВД)
+  alias: стол 7
+  category: reference
+  weight: 1.5
+- id: diets-ovd-72754e27b5
+  canonicalTerm: Основной вариант стандартной диеты (ОВД)
+  alias: диета номер 7
+  category: reference
+  weight: 1.3
+- id: diets-ovd-1b4a1a75af
+  canonicalTerm: Основной вариант стандартной диеты (ОВД)
+  alias: стол 9
+  category: reference
+  weight: 1.5
+- id: diets-ovd-e4156f0334
+  canonicalTerm: Основной вариант стандартной диеты (ОВД)
+  alias: диета номер 9
+  category: reference
+  weight: 1.3
+- id: diets-ovd-f9049c3633
+  canonicalTerm: Основной вариант стандартной диеты (ОВД)
+  alias: стол 10
+  category: reference
+  weight: 1.5
+- id: diets-ovd-3725490b84
+  canonicalTerm: Основной вариант стандартной диеты (ОВД)
+  alias: диета номер 10
+  category: reference
+  weight: 1.3
+- id: diets-ovd-c3f50b3a4f
+  canonicalTerm: Основной вариант стандартной диеты (ОВД)
+  alias: стол 13
+  category: reference
+  weight: 1.5
+- id: diets-ovd-c59c4db7cf
+  canonicalTerm: Основной вариант стандартной диеты (ОВД)
+  alias: диета номер 13
+  category: reference
+  weight: 1.3
+- id: diets-ovd-0ffb2daf96
+  canonicalTerm: Основной вариант стандартной диеты (ОВД)
+  alias: стол 14
+  category: reference
+  weight: 1.5
+- id: diets-ovd-9b7e71a8da
+  canonicalTerm: Основной вариант стандартной диеты (ОВД)
+  alias: диета номер 14
+  category: reference
+  weight: 1.3
+- id: diets-ovd-d30b51006b
+  canonicalTerm: Основной вариант стандартной диеты (ОВД)
+  alias: стол 15
+  category: reference
+  weight: 1.5
+- id: diets-ovd-f85de02eb4
+  canonicalTerm: Основной вариант стандартной диеты (ОВД)
+  alias: диета номер 15
+  category: reference
+  weight: 1.3
+- id: diets-ovd-e22019aee5
+  canonicalTerm: Основной вариант стандартной диеты (ОВД)
+  alias: ОВД
+  category: reference
+  weight: 1.4
+- id: diets-ovd-d250cad2e6
+  canonicalTerm: Основной вариант стандартной диеты (ОВД)
+  alias: ОВД диета
+  category: reference
+  weight: 1.4
+- id: diets-ovd-8fd00ec3cb
+  canonicalTerm: Основной вариант стандартной диеты (ОВД)
+  alias: основной вариант стандартной диеты
+  category: reference
+  weight: 1.4
+- id: diets-shd-0bd2b73d7e
+  canonicalTerm: Вариант диеты с механическим и химическим щажением (ЩД)
+  alias: стол 1б
+  category: reference
+  weight: 1.5
+- id: diets-shd-5a852c802a
+  canonicalTerm: Вариант диеты с механическим и химическим щажением (ЩД)
+  alias: диета номер 1б
+  category: reference
+  weight: 1.3
+- id: diets-shd-fd5e84a6f6
+  canonicalTerm: Вариант диеты с механическим и химическим щажением (ЩД)
+  alias: стол 4б
+  category: reference
+  weight: 1.5
+- id: diets-shd-aa956e8e07
+  canonicalTerm: Вариант диеты с механическим и химическим щажением (ЩД)
+  alias: диета номер 4б
+  category: reference
+  weight: 1.3
+- id: diets-shd-6395a070c2
+  canonicalTerm: Вариант диеты с механическим и химическим щажением (ЩД)
+  alias: стол 4в
+  category: reference
+  weight: 1.5
+- id: diets-shd-c1dcfc4f60
+  canonicalTerm: Вариант диеты с механическим и химическим щажением (ЩД)
+  alias: диета номер 4в
+  category: reference
+  weight: 1.3
+- id: diets-shd-46ef920df7
+  canonicalTerm: Вариант диеты с механическим и химическим щажением (ЩД)
+  alias: стол 5п
+  category: reference
+  weight: 1.5
+- id: diets-shd-854f5ccbc5
+  canonicalTerm: Вариант диеты с механическим и химическим щажением (ЩД)
+  alias: диета номер 5п
+  category: reference
+  weight: 1.3
+- id: diets-shd-6776171787
+  canonicalTerm: Вариант диеты с механическим и химическим щажением (ЩД)
+  alias: ЩД
+  category: reference
+  weight: 1.4
+- id: diets-shd-0cb470abbf
+  canonicalTerm: Вариант диеты с механическим и химическим щажением (ЩД)
+  alias: щадящая диета
+  category: reference
+  weight: 1.4
+- id: diets-shd-03aa8da05d
+  canonicalTerm: Вариант диеты с механическим и химическим щажением (ЩД)
+  alias: диета щадящая
+  category: reference
+  weight: 1.4
+- id: diets-vbd-6987439e1d
+  canonicalTerm: Вариант диеты с повышенным количеством белка (высокобелковая диета, ВБД)
+  alias: стол 4э
+  category: reference
+  weight: 1.5
+- id: diets-vbd-7a7c741734
+  canonicalTerm: Вариант диеты с повышенным количеством белка (высокобелковая диета, ВБД)
+  alias: диета номер 4э
+  category: reference
+  weight: 1.3
+- id: diets-vbd-084886d532
+  canonicalTerm: Вариант диеты с повышенным количеством белка (высокобелковая диета, ВБД)
+  alias: стол 4аг
+  category: reference
+  weight: 1.5
+- id: diets-vbd-e9b1708def
+  canonicalTerm: Вариант диеты с повышенным количеством белка (высокобелковая диета, ВБД)
+  alias: диета номер 4аг
+  category: reference
+  weight: 1.3
+- id: diets-vbd-46ef920df7
+  canonicalTerm: Вариант диеты с повышенным количеством белка (высокобелковая диета, ВБД)
+  alias: стол 5п
+  category: reference
+  weight: 1.5
+- id: diets-vbd-854f5ccbc5
+  canonicalTerm: Вариант диеты с повышенным количеством белка (высокобелковая диета, ВБД)
+  alias: диета номер 5п
+  category: reference
+  weight: 1.3
+- id: diets-vbd-d7d2498a90
+  canonicalTerm: Вариант диеты с повышенным количеством белка (высокобелковая диета, ВБД)
+  alias: стол 7в
+  category: reference
+  weight: 1.5
+- id: diets-vbd-1d2ae3bff7
+  canonicalTerm: Вариант диеты с повышенным количеством белка (высокобелковая диета, ВБД)
+  alias: диета номер 7в
+  category: reference
+  weight: 1.3
+- id: diets-vbd-0e9387f199
+  canonicalTerm: Вариант диеты с повышенным количеством белка (высокобелковая диета, ВБД)
+  alias: стол 7г
+  category: reference
+  weight: 1.5
+- id: diets-vbd-7be530e9f8
+  canonicalTerm: Вариант диеты с повышенным количеством белка (высокобелковая диета, ВБД)
+  alias: диета номер 7г
+  category: reference
+  weight: 1.3
+- id: diets-vbd-4e22e2772f
+  canonicalTerm: Вариант диеты с повышенным количеством белка (высокобелковая диета, ВБД)
+  alias: стол 9б
+  category: reference
+  weight: 1.5
+- id: diets-vbd-b291923ff1
+  canonicalTerm: Вариант диеты с повышенным количеством белка (высокобелковая диета, ВБД)
+  alias: диета номер 9б
+  category: reference
+  weight: 1.3
+- id: diets-vbd-429c9982af
+  canonicalTerm: Вариант диеты с повышенным количеством белка (высокобелковая диета, ВБД)
+  alias: стол 10б
+  category: reference
+  weight: 1.5
+- id: diets-vbd-bb8dc3f30b
+  canonicalTerm: Вариант диеты с повышенным количеством белка (высокобелковая диета, ВБД)
+  alias: диета номер 10б
+  category: reference
+  weight: 1.3
+- id: diets-vbd-2e44ccda06
+  canonicalTerm: Вариант диеты с повышенным количеством белка (высокобелковая диета, ВБД)
+  alias: стол 11
+  category: reference
+  weight: 1.5
+- id: diets-vbd-ef42b21005
+  canonicalTerm: Вариант диеты с повышенным количеством белка (высокобелковая диета, ВБД)
+  alias: диета номер 11
+  category: reference
+  weight: 1.3
+- id: diets-vbd-0f05fc1bb5
+  canonicalTerm: Вариант диеты с повышенным количеством белка (высокобелковая диета, ВБД)
+  alias: стол R-I
+  category: reference
+  weight: 1.5
+- id: diets-vbd-1f90b58546
+  canonicalTerm: Вариант диеты с повышенным количеством белка (высокобелковая диета, ВБД)
+  alias: стол R-II
+  category: reference
+  weight: 1.5
+- id: diets-vbd-cb189ad872
+  canonicalTerm: Вариант диеты с повышенным количеством белка (высокобелковая диета, ВБД)
+  alias: ВБД
+  category: reference
+  weight: 1.4
+- id: diets-vbd-33469659aa
+  canonicalTerm: Вариант диеты с повышенным количеством белка (высокобелковая диета, ВБД)
+  alias: высокобелковая диета
+  category: reference
+  weight: 1.4
+- id: diets-vbd-f245bc40b8
+  canonicalTerm: Вариант диеты с повышенным количеством белка (высокобелковая диета, ВБД)
+  alias: диета высокобелковая
+  category: reference
+  weight: 1.4
+- id: diets-vbd-5acb527e4a
+  canonicalTerm: Вариант диеты с повышенным количеством белка (высокобелковая диета, ВБД)
+  alias: высокобелковая
+  category: reference
+  weight: 1.4
+- id: diets-nbd-436b5af541
+  canonicalTerm: Вариант диеты с пониженным количеством белка (низкобелковая диета, НБД)
+  alias: стол 7б
+  category: reference
+  weight: 1.5
+- id: diets-nbd-894d9ffe52
+  canonicalTerm: Вариант диеты с пониженным количеством белка (низкобелковая диета, НБД)
+  alias: диета номер 7б
+  category: reference
+  weight: 1.3
+- id: diets-nbd-335d5f1895
+  canonicalTerm: Вариант диеты с пониженным количеством белка (низкобелковая диета, НБД)
+  alias: стол 7а
+  category: reference
+  weight: 1.5
+- id: diets-nbd-4b53fd0714
+  canonicalTerm: Вариант диеты с пониженным количеством белка (низкобелковая диета, НБД)
+  alias: диета номер 7а
+  category: reference
+  weight: 1.3
+- id: diets-nbd-4e2065161a
+  canonicalTerm: Вариант диеты с пониженным количеством белка (низкобелковая диета, НБД)
+  alias: НБД
+  category: reference
+  weight: 1.4
+- id: diets-nbd-a6aa6afe43
+  canonicalTerm: Вариант диеты с пониженным количеством белка (низкобелковая диета, НБД)
+  alias: низкобелковая
+  category: reference
+  weight: 1.4
+- id: diets-nbd-479a988e13
+  canonicalTerm: Вариант диеты с пониженным количеством белка (низкобелковая диета, НБД)
+  alias: низкобелковая диета
+  category: reference
+  weight: 1.4
+- id: diets-nkd-4cb6d8601e
+  canonicalTerm: Вариант диеты с пониженной калорийностью (низкокалорийная диета, НКД)
+  alias: стол 8
+  category: reference
+  weight: 1.5
+- id: diets-nkd-bf90e38e43
+  canonicalTerm: Вариант диеты с пониженной калорийностью (низкокалорийная диета, НКД)
+  alias: диета номер 8
+  category: reference
+  weight: 1.3
+- id: diets-nkd-73a45be0c7
+  canonicalTerm: Вариант диеты с пониженной калорийностью (низкокалорийная диета, НКД)
+  alias: стол 8а
+  category: reference
+  weight: 1.5
+- id: diets-nkd-66876d67fc
+  canonicalTerm: Вариант диеты с пониженной калорийностью (низкокалорийная диета, НКД)
+  alias: диета номер 8а
+  category: reference
+  weight: 1.3
+- id: diets-nkd-6e8b787d74
+  canonicalTerm: Вариант диеты с пониженной калорийностью (низкокалорийная диета, НКД)
+  alias: стол 8о
+  category: reference
+  weight: 1.5
+- id: diets-nkd-0b9ca7fa50
+  canonicalTerm: Вариант диеты с пониженной калорийностью (низкокалорийная диета, НКД)
+  alias: диета номер 8о
+  category: reference
+  weight: 1.3
+- id: diets-nkd-ff553a70e3
+  canonicalTerm: Вариант диеты с пониженной калорийностью (низкокалорийная диета, НКД)
+  alias: стол 9а
+  category: reference
+  weight: 1.5
+- id: diets-nkd-d1cac9f905
+  canonicalTerm: Вариант диеты с пониженной калорийностью (низкокалорийная диета, НКД)
+  alias: диета номер 9а
+  category: reference
+  weight: 1.3
+- id: diets-nkd-a9db1e000c
+  canonicalTerm: Вариант диеты с пониженной калорийностью (низкокалорийная диета, НКД)
+  alias: стол 10с
+  category: reference
+  weight: 1.5
+- id: diets-nkd-c203113c14
+  canonicalTerm: Вариант диеты с пониженной калорийностью (низкокалорийная диета, НКД)
+  alias: диета номер 10с
+  category: reference
+  weight: 1.3
+- id: diets-nkd-86f5657178
+  canonicalTerm: Вариант диеты с пониженной калорийностью (низкокалорийная диета, НКД)
+  alias: НКД
+  category: reference
+  weight: 1.4
+- id: diets-nkd-361f955d13
+  canonicalTerm: Вариант диеты с пониженной калорийностью (низкокалорийная диета, НКД)
+  alias: низкокалорийная
+  category: reference
+  weight: 1.4
+- id: diets-nkd-f01a0fe902
+  canonicalTerm: Вариант диеты с пониженной калорийностью (низкокалорийная диета, НКД)
+  alias: низкокалорийная диета
+  category: reference
+  weight: 1.4
+- id: diets-vkd-2e44ccda06
+  canonicalTerm: Вариант диеты с повышенной калорийностью (высококалорийная диета, ВКД)
+  alias: стол 11
+  category: reference
+  weight: 1.5
+- id: diets-vkd-ef42b21005
+  canonicalTerm: Вариант диеты с повышенной калорийностью (высококалорийная диета, ВКД)
+  alias: диета номер 11
+  category: reference
+  weight: 1.3
+- id: diets-vkd-54e40dcb5c
+  canonicalTerm: Вариант диеты с повышенной калорийностью (высококалорийная диета, ВКД)
+  alias: ВКД
+  category: reference
+  weight: 1.4
+- id: diets-vkd-3be52436a8
+  canonicalTerm: Вариант диеты с повышенной калорийностью (высококалорийная диета, ВКД)
+  alias: высококалорийная
+  category: reference
+  weight: 1.4
+- id: diets-vkd-1cf7a5d925
+  canonicalTerm: Вариант диеты с повышенной калорийностью (высококалорийная диета, ВКД)
+  alias: высококалорийная диета
+  category: reference
+  weight: 1.4
+- id: diets-children-pregnancy-86b5cfe4c8
+  canonicalTerm: Диеты для детей старше 1 года, беременных и кормящих женщин
+  alias: диета беременных
+  category: reference
+  weight: 1.4
+- id: diets-children-pregnancy-c5048f7799
+  canonicalTerm: Диеты для детей старше 1 года, беременных и кормящих женщин
+  alias: диета при беременности
+  category: reference
+  weight: 1.4
+- id: diets-children-pregnancy-74c046ad3f
+  canonicalTerm: Диеты для детей старше 1 года, беременных и кормящих женщин
+  alias: питание беременных
+  category: reference
+  weight: 1.4
+- id: diets-children-pregnancy-ed1fe8ff0f
+  canonicalTerm: Диеты для детей старше 1 года, беременных и кормящих женщин
+  alias: питание кормящих
+  category: reference
+  weight: 1.4
+- id: diets-children-pregnancy-07454ce45a
+  canonicalTerm: Диеты для детей старше 1 года, беременных и кормящих женщин
+  alias: диета кормящих
+  category: reference
+  weight: 1.4
+- id: diets-children-pregnancy-4bfbe9faa3
+  canonicalTerm: Диеты для детей старше 1 года, беременных и кормящих женщин
+  alias: диеты для детей
+  category: reference
+  weight: 1.4
+- id: diets-norms-395n-4042862a1c
+  canonicalTerm: Нормы лечебного питания (приказ №395н)
+  alias: 395н
+  category: reference
+  weight: 1.4
+- id: diets-norms-395n-85d60edb2c
+  canonicalTerm: Нормы лечебного питания (приказ №395н)
+  alias: приказ 395н
+  category: reference
+  weight: 1.4
+- id: diets-norms-395n-9d8b7ce6f7
+  canonicalTerm: Нормы лечебного питания (приказ №395н)
+  alias: нормы лечебного питания
+  category: reference
+  weight: 1.4
+- id: diets-norms-395n-6d4bcd452b
+  canonicalTerm: Нормы лечебного питания (приказ №395н)
+  alias: нормы питания
+  category: reference
+  weight: 1.4
+- id: diets-instruction-tables-7e82f33e0e
+  canonicalTerm: Наборы продуктов и замены (таблицы к инструкции №330)
+  alias: замена продуктов
+  category: reference
+  weight: 1.4
+- id: diets-instruction-tables-ddbe1299d8
+  canonicalTerm: Наборы продуктов и замены (таблицы к инструкции №330)
+  alias: взаимозаменяемость продуктов
+  category: reference
+  weight: 1.4
+- id: diets-instruction-tables-5bdad3f36e
+  canonicalTerm: Наборы продуктов и замены (таблицы к инструкции №330)
+  alias: таблицы приказа 330
+  category: reference
+  weight: 1.4

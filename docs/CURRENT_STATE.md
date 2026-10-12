@@ -1,6 +1,6 @@
 # Current state
 
-> Updated: 11 October 2026
+> Updated: 12 October 2026
 > Released version: `0.6.47` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
@@ -19,6 +19,51 @@ Detailed history, moved verbatim on 2026-09-24:
   baseline and runtime benchmark up to the 0.6.39 release.
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
+
+## MedSolutions follow-up: diets, code layer, modules from a file — 2026-10-12 (STATE MS2)
+
+- **Diets (public):** `minimed.reference.diets.ru` «Лечебное питание», 10 documents (153 KB): the six standard
+  diet variants (ОВД, ЩД, ВБД, НБД, НКД, ВКД) with the exact №330 Table 1 rows (ред. 19.02.2024, as amended by
+  №70н), the №395н food sets and the №1008н rows; children over 1 year / pregnancy / lactation (№1008н
+  Appendix 3); the full №395н norms; №330 Tables 2а–7 (machine-extracted, one status note); the variant ↔
+  numbered-diet map. Numbered tables («стол 5») are navigation aliases of their variant. Prepared Markdown in
+  `content/diets-official/` is regenerated from `data/raw/diets-official/` by `bun run content:module:diets`.
+  Research: `docs/research/medsolutions-diets-2026-10-12.md`. The numbered (Певзнер) diets have no official
+  text (USSR order №540 only names them), so their details are a personal-use module (below).
+- **Sick-leave periods on МКБ-10 cards:** the Минздрав/ФСС letter of 21.08.2000 №2510/9362-34 (text from the
+  pravo.ppt.ru mirror; 872 rows, 1 371 period pairs) → lazy chunk `features/sick-leave/sick-leave-periods.json`
+  (`bun scripts/build-sick-leave-periods.ts`), a folded «Больничный: N–M дней» panel under the title of an
+  ICD-10 card (its `mkbCode`) or a КР (its `icd10Codes`) — never on drug, TNM or other documents that only
+  mention codes. Diff against the MedSolutions copy: 746/776 agree, 8 conflicts listed in
+  `docs/research/medsolutions-code-layer-2026-10-12.md`.
+- **Номенклатура медицинских услуг (№804н):** `minimed.reference.medical-services.ru`, НСИ OID
+  1.2.643.5.1.13.13.11.1070 v2.10 (2021-04-06; `scripts/fetch-nsi-dictionary.sh … medical-services`), 725
+  documents by class + section (10 450 active and 471 abolished services, 1.6 MB), new source type
+  `code_reference` (outside «Клинические рекомендации»), `bun run content:module:medical-services`. Code search
+  (`A16.20.005`) finds the section; abbreviations like «МРТ» do not.
+- **Not taken:** MedSolutions federal standards (`fmes.sqlite`, 727/732 are 2012 orders, many replaced), Moscow
+  МЭС (obsolete), КСГ op-codes (yearly, stale). Current standards of care would need pravo.gov.ru.
+- **Install a module from a file:** Settings → «Загрузки и разделы» → «Модули из файла». Bundle
+  `<stem>.minimed-module.zip` = STORED ZIP with `module.json` (one catalog entry, artifact URLs
+  `minimed-local:artifacts/<file>`) + the artifacts; `medbase bundle-local-module` writes it. Entries persist in
+  IndexedDB, carry an «Из файла» badge, are never offered for download or updated, and a remote catalog with a
+  `minimed-local:` URL is rejected. Format in `docs/CONTENT_MODULES.md`. Web e2e
+  `module-file-import.spec.ts`; Android file picker and a ~100 MB bundle not tested.
+- **Personal-use modules (never committed, pushed or uploaded — the repo is public):** built into the gitignored
+  `output/local-modules/` from `data/raw/medsolutions-spravochnik-vracha/`:
+  `bun run content:local:lab-tnm` → «Лабораторные нормы (личное)» (1 668 analyses, ranges by sex/age exactly as
+  the source, 13 MB) and «TNM (личное)» (59 sites, UICC/AJCC 8th edition, 0.6 MB); `content:local:pevzner` →
+  «Диеты по Певзнеру (личное)» (27 tables, 0.2 MB); `content:local:vidal` → «Видаль (личное)» (6 269 monographs,
+  92 MB download / 517 MB installed; shown on the drug screen like Allmed through a data-driven source label;
+  «zip and full» in the app were one database, `db_archive` is the compressed download). Guard test
+  `personal-use-modules.test.ts` fails if a `minimed.local.*` module or a `personal-use-only` entry reaches the
+  public catalogs or `public/content/modules/`.
+- **App version:** all new modules and bundles require **0.6.59** (the calculator categories in the same catalog
+  already make 0.6.58 reject it).
+- **Checks:** vitest 16 313, pytest 1 446, Biome, typecheck, build, native source check, `benchmark:all`; browser
+  (dev): module-file import of the real TNM bundle, search and reader, panel placement. Not tested: Android
+  device, an МКБ-10 card with the panel inside the real app (unit + harness only), the Vidal bundle through the
+  import, clinical review of the diet tables 2а–7.
 
 ## MedSolutions gap calculators — 2026-10-12 (STATE CALC-ALL)
 
@@ -41,8 +86,8 @@ Detailed history, moved verbatim on 2026-09-24:
   CAT, IIEF-5, GerdQ, Lazarus, PARI), unpublished models (FRAX, GRACE 2.0), items without a verifiable primary
   source, obsolete Clark/Young dose rules. Review queue with secondary-source items and licence questions
   (Zung, Barthel, Rivermead, PAINAD, FINDRISC, BASDAI/BASFI): `docs/research/calculator-review-queue-2026-10-12.md`.
-- **Not covered by this batch:** Vidal drug data, the Citilab lab reference (`analyzes.sqlite`) and TNM from the
-  same extraction — local-only, not committed to the public repo; diets and the ICD/МЭС code layer are next.
+- **Not covered by this batch:** Vidal, the Citilab lab reference, TNM, diets and the code layer — done in MS2
+  (next section).
 - **Checks:** vitest 16 241, pytest 1 382, typecheck, build, schema lint (221/24), native source check and
   `benchmark:all` pass; `bun run check` fails only on the pre-existing `docs/data-ledger.json` formatting. No
   browser/device run; frozen native golden exports not regenerated.

@@ -51,6 +51,7 @@ import {
   rememberMedicationProduct,
 } from '@/features/medications/medication-navigation';
 import {
+  isReferenceSnapshotContentMode,
   type MedicationProduct,
   type MedicationReadingMode,
   medicationReadingChoices,
@@ -120,6 +121,18 @@ function normalizedTradeName(value: string): string {
   return value.toLocaleLowerCase('ru-RU').replaceAll('ё', 'е').replace(/\s+/gu, ' ').trim();
 }
 
+/** «ТЕСТОВИН (для приема внутрь)» is the trade name «ТЕСТОВИН» with a dosage-form qualifier. */
+function withoutQualifier(title: string): string {
+  return title.replace(/\s*\([^()]*\)\s*$/u, '');
+}
+
+function titleNamesTradeName(title: string, tradeName: string): boolean {
+  const wanted = normalizedTradeName(tradeName);
+  return (
+    normalizedTradeName(title) === wanted || normalizedTradeName(withoutQualifier(title)) === wanted
+  );
+}
+
 function linkedAllmedSummaries(
   summaries: readonly MedicalDocumentSummary[],
   mnnDocumentId: string,
@@ -128,8 +141,8 @@ function linkedAllmedSummaries(
     const metadata = summary.metadata;
     return (
       summary.sourceType === 'allmed_reference' &&
-      metadata?.['contentMode'] === 'allmed-snapshot' &&
-      metadata['linkedMnnDocumentId'] === mnnDocumentId
+      isReferenceSnapshotContentMode(metadata?.['contentMode']) &&
+      metadata?.['linkedMnnDocumentId'] === mnnDocumentId
     );
   });
 }
@@ -142,8 +155,7 @@ async function loadTradeNameSupplements(
   product?: MedicationProduct,
 ): Promise<readonly TradeNameSupplement[]> {
   const candidates = linkedAllmedSummaries(summaries, mnnDocumentId).filter(
-    (summary) =>
-      !tradeName || normalizedTradeName(summary.title) === normalizedTradeName(tradeName),
+    (summary) => !tradeName || titleNamesTradeName(summary.title, tradeName),
   );
   const documents = await Promise.all(candidates.map((summary) => core.getDocument(summary.id)));
   const uniqueByTradeName = new Map<string, TradeNameSupplement>();
@@ -153,7 +165,8 @@ async function loadTradeNameSupplements(
     if (!supplement || supplement.product.linkedMnnDocumentId !== mnnDocumentId) continue;
     // Same substance and trade name are not enough: an entry for another dosage form stays out.
     if (product && !allmedMatchesProduct(product, supplement.product)) continue;
-    const key = normalizedTradeName(supplement.product.tradeName);
+    // One entry per source and trade name: Allmed and Видаль may both describe a product.
+    const key = `${supplement.product.referenceSourceName ?? ''}|${normalizedTradeName(supplement.product.tradeName)}`;
     if (!uniqueByTradeName.has(key)) uniqueByTradeName.set(key, supplement);
   }
   return [...uniqueByTradeName.values()];

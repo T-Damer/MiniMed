@@ -2,6 +2,7 @@ import {
   type ContentModuleCatalog,
   type ContentModuleCatalogEntry,
   hasDownloadableModuleIndex,
+  hasLocalModuleArtifacts,
   type InstalledContentModule,
 } from '@localmed/contracts';
 import type { OverviewDocumentCounts } from '@/features/modules/overview-document-counts';
@@ -13,13 +14,15 @@ export const PACKAGED_MEDICATIONS_SIZE_BYTES = 514_322_432;
 
 /**
  * A module the catalog lets the user install right now: everything published,
- * plus preview ("Experimental") packs while the settings toggle is on.
+ * plus preview ("Experimental") packs while the settings toggle is on. A module installed from a
+ * file is never offered: its bytes exist only in the file the owner picks.
  */
 export function isModuleReleased(
   module: Pick<ContentModuleCatalogEntry, 'releaseState' | 'artifacts' | 'sourceSetDigest'>,
 ): boolean {
   return (
     hasDownloadableModuleIndex(module) &&
+    !hasLocalModuleArtifacts(module) &&
     (module.releaseState === 'published' ||
       (module.releaseState === 'preview' && getExperimentalModulesEnabled()))
   );

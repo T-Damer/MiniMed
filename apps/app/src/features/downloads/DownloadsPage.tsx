@@ -1,6 +1,7 @@
 import type { JSX } from 'solid-js';
 
 import { ContentDownloadStatus } from '@/features/modules/ContentDownloadStatus';
+import { ModuleFileImport } from '@/features/modules/ModuleFileImport';
 import { SectionDownloads } from '@/features/sections/SectionDownloads';
 
 /**
@@ -23,6 +24,9 @@ export function DownloadsPage(props: {
         </p>
         <SectionDownloads onContentChanged={props.onContentChanged ?? (() => Promise.resolve())} />
       </section>
+      <ModuleFileImport
+        {...(props.onContentChanged ? { onContentChanged: props.onContentChanged } : {})}
+      />
       <ContentDownloadStatus />
     </>
   );

@@ -1,9 +1,11 @@
-import type {
-  ContentModuleCatalog,
-  ContentModuleCatalogEntry,
-  ContentModuleDownloadTask,
-  InstalledContentModule,
-  ToolDefinitionRecord,
+import {
+  type ContentModuleCatalog,
+  type ContentModuleCatalogEntry,
+  type ContentModuleDownloadTask,
+  hasLocalModuleArtifacts,
+  type InstalledContentModule,
+  isLocalModuleArtifactUrl,
+  type ToolDefinitionRecord,
 } from '@localmed/contracts';
 import {
   type ContentModuleArtifactBackend,
@@ -40,11 +42,30 @@ import {
   timeInstallPhase,
 } from '@/features/modules/install-timing';
 import {
+  downloadLocalBundleArtifact,
+  registerLocalBundle,
+  releaseLocalBundle,
+} from '@/features/modules/local-bundle-sources';
+import {
+  loadLocalModuleEntries,
+  localModuleEntries,
+  mergeLocalModuleEntries,
+  removeLocalModuleEntries,
+  saveLocalModuleEntry,
+  subscribeLocalModuleEntries,
+} from '@/features/modules/local-module-entries';
+import {
   contentModuleNeedsInstall,
   isModuleReleased,
   localPackagedModulesToInstall,
 } from '@/features/modules/local-packaged-modules';
 import { BUNDLED_CORE_MODULE } from '@/features/modules/module-catalog-shell';
+import {
+  assertBundleCanInstall,
+  describeModuleImportFailure,
+  ModuleFileImportError,
+  type OpenedModuleBundle,
+} from '@/features/modules/module-file-import';
 import { decodeModuleIndex } from '@/features/modules/module-index-compression';
 import {
   type ModuleIndexPayload,
@@ -367,6 +388,9 @@ class BrowserModuleDownloader implements ContentModuleArtifactDownloader {
     module?: Pick<ContentModuleCatalogEntry, 'id' | 'version'>,
   ): Promise<Uint8Array> {
     if (!artifact.url) throw new Error('Для набора не указан адрес загрузки.');
+    if (isLocalModuleArtifactUrl(artifact.url)) {
+      return downloadLocalBundleArtifact(artifact, signal, onProgress, module);
+    }
     if (
       artifact.compression !== 'none' &&
       !(
@@ -559,6 +583,8 @@ export class BrowserModuleBackend implements ContentModuleArtifactBackend {
         };
       })
       .filter((artifact): artifact is StoredModuleArtifact => artifact !== null);
+    // A module from a file has no remote catalog entry: keep its descriptor before it can be active.
+    if (hasLocalModuleArtifacts(module)) await saveLocalModuleEntry(module);
     const database = await openDatabase();
     try {
       const previousTransaction = database.transaction(ACTIVE_STORE, 'readonly');
@@ -821,8 +847,24 @@ function createRegistry(): PersistentInstalledModuleRegistry {
   return registry;
 }
 
+/** Which modules from files the catalog shows: the ids and versions, to tell when it changed. */
+function localEntriesSignature(entries: readonly ContentModuleCatalogEntry[]): string {
+  return entries
+    .map((entry) => `${entry.id}@${entry.version}:${entry.sourceSetDigest}`)
+    .sort()
+    .join('|');
+}
+
 export class BrowserContentModuleRuntime {
+  /** The catalog the app handed over: public modules only. */
+  private baseCatalog: ContentModuleCatalog;
+  /** `baseCatalog` plus the modules installed from files (and the one being installed). */
   private catalog: ContentModuleCatalog;
+  private localSignature = '';
+  private readonly pendingLocalEntries = new Map<string, ContentModuleCatalogEntry>();
+  private readonly localTaskIds = new Set<string>();
+  private readonly catalogListeners = new Set<() => void>();
+  private readonly unsubscribeLocalEntries: () => void;
   private readonly registry: PersistentInstalledModuleRegistry;
   private readonly backend = new BrowserModuleBackend();
   private readonly installer: ForegroundContentModuleInstaller;
@@ -842,8 +884,9 @@ export class BrowserContentModuleRuntime {
   };
 
   public constructor(catalog: ContentModuleCatalog) {
-    this.catalog = catalog;
+    this.baseCatalog = catalog;
     this.registry = createRegistry();
+    this.catalog = this.withLocalEntries(catalog);
     for (const installed of this.registry.list()) {
       if (
         catalog.modules.some(
@@ -857,7 +900,7 @@ export class BrowserContentModuleRuntime {
       }
     }
     this.installer = new ForegroundContentModuleInstaller(
-      catalog,
+      this.catalog,
       {
         appVersion: RELEASE_VERSION,
         schemaVersion: 2,
@@ -890,6 +933,7 @@ export class BrowserContentModuleRuntime {
         discardPendingModuleInstall(task.moduleId, task.version);
       } else if (task.state === 'failed') {
         if (
+          !this.localTaskIds.has(task.id) &&
           !task.errorMessage?.toLowerCase().includes('http 404') &&
           isTransientDownloadError(new Error(task.errorMessage ?? ''))
         ) {
@@ -932,7 +976,11 @@ export class BrowserContentModuleRuntime {
           },
         },
       );
+      this.finishLocalInstall(task);
     });
+    this.localSignature = localEntriesSignature(this.localEntryCandidates());
+    this.unsubscribeLocalEntries = subscribeLocalModuleEntries(() => this.refreshLocalEntries());
+    void loadLocalModuleEntries().then(() => this.pruneLocalEntries());
     window.addEventListener('online', this.handleOnline);
     recoverPendingModuleInstalls(
       this,
@@ -1194,6 +1242,104 @@ export class BrowserContentModuleRuntime {
     });
   }
 
+  /**
+   * The descriptors of modules installed from files that apply now: the one matching the active
+   * version in the registry, and a bundle being installed.
+   */
+  private localEntryCandidates(): readonly ContentModuleCatalogEntry[] {
+    const chosen = new Map<string, ContentModuleCatalogEntry>();
+    for (const entry of localModuleEntries()) {
+      if (this.registry.get(entry.id)?.version === entry.version) chosen.set(entry.id, entry);
+    }
+    for (const entry of this.pendingLocalEntries.values()) chosen.set(entry.id, entry);
+    return [...chosen.values()];
+  }
+
+  private withLocalEntries(base: ContentModuleCatalog): ContentModuleCatalog {
+    return mergeLocalModuleEntries(base, this.localEntryCandidates());
+  }
+
+  /** Rebuilds the catalog when the set of modules from files changed. */
+  private refreshLocalEntries(): void {
+    if (this.disposed) return;
+    const candidates = this.localEntryCandidates();
+    const signature = localEntriesSignature(candidates);
+    if (signature === this.localSignature) return;
+    this.localSignature = signature;
+    this.catalog = mergeLocalModuleEntries(this.baseCatalog, candidates);
+    this.installer.updateCatalog(this.catalog);
+    this.emitCatalogChanged();
+  }
+
+  private emitCatalogChanged(): void {
+    for (const listener of this.catalogListeners) listener();
+  }
+
+  /** Called when the catalog gained or lost a module installed from a file. */
+  public subscribeCatalog(listener: () => void): () => void {
+    this.catalogListeners.add(listener);
+    return () => this.catalogListeners.delete(listener);
+  }
+
+  /** Descriptors of versions that are neither active, kept for rollback nor being installed. */
+  private async pruneLocalEntries(): Promise<void> {
+    if (this.disposed) return;
+    const ids = new Set(localModuleEntries().map((entry) => entry.id));
+    for (const moduleId of ids) {
+      const installed = this.registry.get(moduleId);
+      const keep = new Set<string>(
+        installed ? [installed.version, ...installed.previousVersions] : [],
+      );
+      for (const pending of this.pendingLocalEntries.values()) {
+        if (pending.id === moduleId) keep.add(pending.version);
+      }
+      await removeLocalModuleEntries(moduleId, keep).catch((cause: unknown) => {
+        console.warn(`Unable to prune the descriptors of ${moduleId}.`, cause);
+      });
+    }
+  }
+
+  private finishLocalInstall(task: ContentModuleDownloadTask): void {
+    if (!this.localTaskIds.has(task.id)) return;
+    if (task.state !== 'completed' && task.state !== 'failed' && task.state !== 'cancelled') return;
+    const key = versionKey(task.moduleId, task.version);
+    releaseLocalBundle(task.moduleId, task.version);
+    this.pendingLocalEntries.delete(key);
+    this.refreshLocalEntries();
+    if (task.state !== 'completed') void this.pruneLocalEntries();
+  }
+
+  /**
+   * Installs a module from a chosen file through the ordinary install path; the bundle supplies
+   * the bytes in place of a download. Throws {@link ModuleFileImportError} (a short Russian
+   * message) when the module cannot be installed at all; later failures arrive as a failed task.
+   */
+  public installFromBundle(bundle: OpenedModuleBundle): ContentModuleDownloadTask {
+    const entry = bundle.entry;
+    assertBundleCanInstall(entry, this.baseCatalog, this.registry.get(entry.id));
+    const key = versionKey(entry.id, entry.version);
+    registerLocalBundle(bundle);
+    this.pendingLocalEntries.set(key, entry);
+    this.refreshLocalEntries();
+    try {
+      const task = this.installer.install({
+        moduleId: entry.id,
+        version: entry.version,
+        includeSourceAssets: entry.artifacts.some((artifact) => artifact.kind === 'source-assets'),
+      });
+      this.localTaskIds.add(task.id);
+      return task;
+    } catch (cause) {
+      releaseLocalBundle(entry.id, entry.version);
+      this.pendingLocalEntries.delete(key);
+      this.refreshLocalEntries();
+      throw new ModuleFileImportError(
+        describeModuleImportFailure(cause instanceof Error ? cause.message : null),
+        { cause },
+      );
+    }
+  }
+
   public listInstalled(): readonly InstalledContentModule[] {
     return this.registry.list().filter((module) => module.moduleId !== CORE_MODULE_ID);
   }
@@ -1255,11 +1401,13 @@ export class BrowserContentModuleRuntime {
   }
 
   public updateCatalog(catalog: ContentModuleCatalog): void {
-    this.catalog = catalog;
-    this.installer.updateCatalog(catalog);
+    this.baseCatalog = catalog;
+    this.catalog = this.withLocalEntries(catalog);
+    this.localSignature = localEntriesSignature(this.localEntryCandidates());
+    this.installer.updateCatalog(this.catalog);
     recoverPendingModuleInstalls(
       this,
-      catalog,
+      this.catalog,
       new Set(this.listInstalled().map((module) => module.moduleId)),
     );
     this.reconcileAssessmentDependencies();
@@ -1280,6 +1428,9 @@ export class BrowserContentModuleRuntime {
   public retry(taskId: string): ContentModuleDownloadTask {
     const task = this.installer.listTasks().find((candidate) => candidate.id === taskId);
     if (!task) throw new Error(`Неизвестная задача загрузки: ${taskId}.`);
+    if (this.localTaskIds.has(taskId)) {
+      throw new ModuleFileImportError('Выберите файл модуля ещё раз.');
+    }
     const module = this.catalog.modules.find(
       (candidate) => candidate.id === task.moduleId && candidate.version === task.version,
     );
@@ -1293,7 +1444,7 @@ export class BrowserContentModuleRuntime {
       const key = this.retryKey(task.moduleId, task.version);
       if (retried.has(key)) continue;
       retried.add(key);
-      if (task.state !== 'failed') continue;
+      if (task.state !== 'failed' || this.localTaskIds.has(task.id)) continue;
       this.retry(task.id);
     }
   }
@@ -1324,6 +1475,8 @@ export class BrowserContentModuleRuntime {
       this.invalidateAssessmentDependencyScans(module.moduleId);
     }
     this.assessmentDependencyScans.clear();
+    this.unsubscribeLocalEntries();
+    this.catalogListeners.clear();
     window.removeEventListener('online', this.handleOnline);
   }
 
@@ -1336,6 +1489,10 @@ export class BrowserContentModuleRuntime {
         () => this.backend.remove(moduleId),
       );
       removeAssessmentModuleDependencies(moduleId, getAssessmentCatalog());
+      await removeLocalModuleEntries(moduleId, new Set()).catch((cause: unknown) => {
+        console.warn(`Unable to forget the descriptor of ${moduleId}.`, cause);
+      });
+      this.refreshLocalEntries();
       this.scheduleOrphanSweep();
     } catch (cause) {
       this.restoreAssessmentDependencyScan(moduleId);
@@ -1378,6 +1535,7 @@ export class BrowserContentModuleRuntime {
       throw cause;
     }
 
+    this.refreshLocalEntries();
     try {
       await this.syncAssessmentDependencies(moduleId, installed.version);
     } catch (cause) {

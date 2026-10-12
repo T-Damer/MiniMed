@@ -1,9 +1,15 @@
 /**
- * Which Allmed reference entry may be shown with which registry product. The link is exact:
- * the same ЕСКЛП substance (the Allmed entry's `linkedMnnDocumentId`), the same trade name, and a
- * dosage form that does not contradict the product's. An Allmed entry for one trade name often
- * lists several forms in one text, so a form only rules an entry out when both sides name forms
- * and share none of them. Nothing is matched across different substances or by similarity.
+ * Which reference-text entry (Allmed, Видаль: source type `allmed_reference`) may be shown with
+ * which registry product. The link is exact, by either of two keys:
+ *
+ * - the same ЕСКЛП substance (the entry's `linkedMnnDocumentId`), the same trade name, and a
+ *   dosage form that does not contradict the product's. An entry for one trade name often lists
+ *   several forms in one text, so a form only rules an entry out when both sides name forms and
+ *   share none of them;
+ * - the product's registration number is one of the registrations the entry declares it covers
+ *   (`servedRegistrationNumbers`), within the same ЕСКЛП substance when both sides name one.
+ *
+ * Nothing is matched across different substances or by similarity.
  */
 import type { MedicationProduct } from '@/features/medications/medication-record';
 
@@ -54,11 +60,15 @@ function tradeNameKey(value: string): string {
     .toLocaleLowerCase('ru-RU')
     .replaceAll('ё', 'е')
     .replace(/[®™©]/gu, '')
+    .replace(/\s*\+\s*/gu, '+')
     .replace(/\s+/gu, ' ')
     .trim();
 }
 
-type MatchedProduct = Pick<MedicationProduct, 'mnnDocumentId' | 'tradeName' | 'presentations'>;
+type MatchedProduct = Pick<
+  MedicationProduct,
+  'mnnDocumentId' | 'tradeName' | 'presentations' | 'registrationNumber'
+>;
 
 /** False only when both sides name dosage forms and they have no class in common. */
 export function dosageFormsCompatible(
@@ -77,12 +87,24 @@ export function dosageFormsCompatible(
   return [...productClasses].some((formClass) => allmedClasses.has(formClass));
 }
 
+function registrationKey(value: string): string {
+  return value.replace(/\s+/gu, '').toLocaleUpperCase('ru-RU');
+}
+
+/** True when the entry declares the product's registration among those its text covers. */
+function servesRegistration(product: MatchedProduct, allmed: MedicationProduct): boolean {
+  const served = allmed.servedRegistrationNumbers;
+  if (!served || served.length === 0 || !product.registrationNumber) return false;
+  const wanted = registrationKey(product.registrationNumber);
+  return served.some((number) => registrationKey(number) === wanted);
+}
+
 export function allmedMatchesProduct(product: MatchedProduct, allmed: MedicationProduct): boolean {
+  if (allmed.sourceKind !== 'allmed' || product.mnnDocumentId === null) return false;
+  if (allmed.linkedMnnDocumentId !== product.mnnDocumentId) return false;
   return (
-    allmed.sourceKind === 'allmed' &&
-    product.mnnDocumentId !== null &&
-    allmed.linkedMnnDocumentId === product.mnnDocumentId &&
-    tradeNameKey(allmed.tradeName) === tradeNameKey(product.tradeName) &&
-    dosageFormsCompatible(product, allmed)
+    (tradeNameKey(allmed.tradeName) === tradeNameKey(product.tradeName) &&
+      dosageFormsCompatible(product, allmed)) ||
+    servesRegistration(product, allmed)
   );
 }

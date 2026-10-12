@@ -14,6 +14,7 @@ import { displayDrugName, drugNameKey } from '@/features/medications/drug-screen
 import {
   parseEsklpMedicationProducts,
   parseMedicationProduct,
+  referenceSourceLabel,
 } from '@/features/medications/medication-record';
 
 /**
@@ -248,7 +249,11 @@ export function buildMedicationLinkSummary(
   const effect = input.instruction ? instructionEffect(input.instruction) : null;
 
   const registry =
-    product?.sourceKind === 'allmed' ? 'Allmed' : product?.sourceKind === 'grls' ? 'ГРЛС' : 'ЕСКЛП';
+    product?.sourceKind === 'allmed'
+      ? referenceSourceLabel(product.referenceSourceName ? [product.referenceSourceName] : [])
+      : product?.sourceKind === 'grls'
+        ? 'ГРЛС'
+        : 'ЕСКЛП';
   const edition = document.versionLabel ? displayDate(document.versionLabel) : null;
   return {
     title: displayDrugName(product ? product.tradeName : substanceName),

@@ -499,6 +499,40 @@ describe('loadContentModuleCatalog', () => {
     });
   });
 
+  it('refuses a remote catalog that names local bundle files', async () => {
+    const remote = catalog('remote', NEWER);
+    const [core] = remote.modules;
+    if (!core) throw new Error('fixture has no module');
+    const poisoned = {
+      ...remote,
+      modules: [
+        {
+          ...core,
+          sourceSetDigest: `sha256:${'b'.repeat(64)}`,
+          artifacts: [
+            {
+              id: 'core-index',
+              kind: 'index',
+              required: true,
+              url: 'minimed-local:artifacts/core.db.gz',
+              sha256: `sha256:${'a'.repeat(64)}`,
+              sizeBytes: 1,
+              compression: 'none',
+              sourceSetDigest: `sha256:${'b'.repeat(64)}`,
+            },
+          ],
+        },
+      ],
+    };
+    const result = await loadContentModuleCatalog(
+      options({ fetcher: async () => response({ status: 200, body: poisoned }) }),
+    );
+
+    expect(result.source).toBe('bundled');
+    expect(result.catalog.catalogVersion).toBe('bundled');
+    expect(result.warning).toContain('локальных файлов');
+  });
+
   it('uses bundled catalog when network and cache are unavailable', async () => {
     const result = await loadContentModuleCatalog(
       options({

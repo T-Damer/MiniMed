@@ -22,6 +22,12 @@ from .catalog_module_builder import (
     build_core_reference_pointers,
 )
 from .clinical_queries import import_real_pocqi_benchmark
+from .code_reference import prepare_medical_services
+from .code_reference import report_json as code_reference_report_json
+from .code_reference_distribution import package_medical_services_module
+from .diets_distribution import package_diets_module
+from .diets_official import prepare_diets_official
+from .diets_official import report_json as diets_report_json
 from .drug_sources import collect_drug_sources
 from .icd11_api_fetch import fetch_icd11_api
 from .icd11_distribution import package_icd11_module
@@ -41,6 +47,19 @@ from .knowledge import (
 from .krasotaimedicina_crawl import DEFAULT_SEEDS, crawl_krasotaimedicina
 from .krasotaimedicina_distribution import package_krasotaimedicina_module
 from .krasotaimedicina_prepare import prepare_krasotaimedicina
+from .local_module_bundle import bundle_local_module
+from .local_reference_common import ensure_gitignored, package_local_module
+from .local_reference_lab import SPEC as LOCAL_LAB_SPEC
+from .local_reference_lab import prepare_lab_reference
+from .local_reference_pevzner import SPEC as LOCAL_PEVZNER_SPEC
+from .local_reference_pevzner import prepare_pevzner_diets
+from .local_reference_tnm import SPEC as LOCAL_TNM_SPEC
+from .local_reference_tnm import prepare_tnm
+from .local_reference_vidal import (
+    DEFAULT_DB_VERSION,
+    load_esklp_identities_from_modules,
+    prepare_vidal_medications,
+)
 from .mkb_reference_upgrade import upgrade_mkb_reference_database, write_upgrade_report
 from .module_search_compaction import MIGRATION_ID, migrate_module_search
 from .pdf_import import import_pdf
@@ -463,6 +482,178 @@ def package_icd11_command(
     """Gzip the built ICD-11 pack and write its catalog entry."""
     report = package_icd11_module(
         database, output, version=version, min_app_version=min_app_version, raw_root=raw_root
+    )
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+
+
+@app.command("prepare-code-reference")
+def prepare_code_reference_command(
+    raw_input: Annotated[Path, typer.Option("--raw-input", exists=True, file_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+) -> None:
+    """Prepare the NSI medical-services nomenclature (OID 1.2.643.5.1.13.13.11.1070) as Markdown."""
+    typer.echo(code_reference_report_json(prepare_medical_services(raw_input, output)))
+
+
+@app.command("package-code-reference")
+def package_code_reference_command(
+    database: Annotated[Path, typer.Option("--database", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+    version: Annotated[str, typer.Option("--version")],
+    min_app_version: Annotated[str, typer.Option("--min-app-version")],
+) -> None:
+    """Gzip the built medical-services pack and write its catalog entry."""
+    report = package_medical_services_module(
+        database, output, version=version, min_app_version=min_app_version
+    )
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+
+
+@app.command("prepare-diets")
+def prepare_diets_command(
+    raw_input: Annotated[Path, typer.Option("--raw-input", exists=True, file_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+) -> None:
+    """Prepare the official therapeutic-nutrition Markdown (orders 330, 395n, 1008n, 70n)."""
+    typer.echo(diets_report_json(prepare_diets_official(raw_input, output)))
+
+
+@app.command("package-diets")
+def package_diets_command(
+    database: Annotated[Path, typer.Option("--database", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+    version: Annotated[str, typer.Option("--version")],
+    min_app_version: Annotated[str, typer.Option("--min-app-version")],
+) -> None:
+    """Gzip the built therapeutic-nutrition pack and write its catalog entry."""
+    report = package_diets_module(
+        database, output, version=version, min_app_version=min_app_version
+    )
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+
+
+@app.command("bundle-local-module")
+def bundle_local_module_command(
+    entry: Annotated[Path, typer.Option("--entry", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output", dir_okay=False)],
+    artifacts_dir: Annotated[
+        Path | None,
+        typer.Option(
+            "--artifacts-dir",
+            exists=True,
+            file_okay=False,
+            help="Directory of the artifact files; defaults to the entry's directory.",
+        ),
+    ] = None,
+) -> None:
+    """Wrap a packaged module into a personal-use <stem>.minimed-module.zip (never published)."""
+    report = bundle_local_module(entry, output, artifacts_dir=artifacts_dir)
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+
+
+@app.command("prepare-local-lab")
+def prepare_local_lab_command(
+    raw_input: Annotated[Path, typer.Option("--raw-input", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+) -> None:
+    """Personal-use lab norms workspace from analyzes.sqlite (output must be gitignored)."""
+    ensure_gitignored(output)
+    report = prepare_lab_reference(raw_input, output)
+    typer.echo(json.dumps(report.__dict__, ensure_ascii=False, indent=2))
+
+
+@app.command("prepare-local-tnm")
+def prepare_local_tnm_command(
+    raw_input: Annotated[Path, typer.Option("--raw-input", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+) -> None:
+    """Personal-use TNM workspace from tnm.sqlite (output must be gitignored)."""
+    ensure_gitignored(output)
+    report = prepare_tnm(raw_input, output)
+    typer.echo(json.dumps(report.__dict__, ensure_ascii=False, indent=2))
+
+
+@app.command("prepare-local-vidal")
+def prepare_local_vidal_command(
+    raw_input: Annotated[Path, typer.Option("--raw-input", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+    db_version: Annotated[
+        int, typer.Option("--db-version", min=1, help="Vidal database version of the download.")
+    ] = DEFAULT_DB_VERSION,
+    esklp_modules: Annotated[
+        Path | None,
+        typer.Option(
+            "--esklp-modules",
+            exists=True,
+            file_okay=False,
+            help="Directory of released ESKLP module databases (links documents to a substance).",
+        ),
+    ] = None,
+    esklp_ledger: Annotated[
+        Path | None,
+        typer.Option(
+            "--esklp-ledger",
+            exists=True,
+            dir_okay=False,
+            help="JSON identity ledger or ESKLP pointer SQLite (instead of --esklp-modules).",
+        ),
+    ] = None,
+) -> None:
+    """Personal-use Vidal drug workspace from vidal.db (output must be gitignored)."""
+    ensure_gitignored(output)
+    identities = (
+        load_esklp_identities_from_modules(esklp_modules)
+        if esklp_modules
+        else load_esklp_mnn_identities(esklp_ledger)
+        if esklp_ledger
+        else None
+    )
+    report = prepare_vidal_medications(
+        raw_input, output, db_version=db_version, esklp_identities=identities
+    )
+    typer.echo(json.dumps(report.model_dump(by_alias=True), ensure_ascii=False, indent=2))
+
+
+@app.command("prepare-local-pevzner")
+def prepare_local_pevzner_command(
+    raw_input: Annotated[Path, typer.Option("--raw-input", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+) -> None:
+    """Personal-use Pevzner diets workspace from mes.sqlite (output must be gitignored)."""
+    ensure_gitignored(output)
+    report = prepare_pevzner_diets(raw_input, output)
+    typer.echo(json.dumps(report.__dict__, ensure_ascii=False, indent=2))
+
+
+@app.command("package-local-pevzner")
+def package_local_pevzner_command(
+    database: Annotated[Path, typer.Option("--database", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+    version: Annotated[str, typer.Option("--version")],
+    min_app_version: Annotated[str, typer.Option("--min-app-version")],
+) -> None:
+    """Gzip a built personal Pevzner pack and write its catalog entry (gitignored output)."""
+    report = package_local_module(
+        LOCAL_PEVZNER_SPEC, database, output, version=version, min_app_version=min_app_version
+    )
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+
+
+@app.command("package-local-reference")
+def package_local_reference_command(
+    module: Annotated[str, typer.Option("--module", help="lab or tnm")],
+    database: Annotated[Path, typer.Option("--database", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+    version: Annotated[str, typer.Option("--version")],
+    min_app_version: Annotated[str, typer.Option("--min-app-version")],
+) -> None:
+    """Gzip a built personal-use lab/TNM pack and write its catalog entry (gitignored output)."""
+    specs = {"lab": LOCAL_LAB_SPEC, "tnm": LOCAL_TNM_SPEC}
+    if module not in specs:
+        raise typer.BadParameter("Use --module lab or --module tnm")
+    ensure_gitignored(output)
+    report = package_local_module(
+        specs[module], database, output, version=version, min_app_version=min_app_version
     )
     typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
 

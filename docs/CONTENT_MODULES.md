@@ -84,6 +84,53 @@ may point to a new edition, but every edition URL is paired with exact size, SHA
 list, rights state, and `sourceSetDigest`. Updating the channel catalog does not modify an installed
 edition.
 
+## Modules installed from a file
+
+Reference data kept for personal use (drug monographs, lab reference ranges, staging systems under a
+personal licence) is never published: not in the repository, not as a release asset, not in a
+catalog. The owner builds such a module locally, copies **one file** to the device and installs it
+from Settings → «Загрузки и разделы» → «Модули из файла» (icon button, aria-label «Установить модуль
+из файла»).
+
+Bundle `<stem>.minimed-module.zip`, a ZIP whose entries are STORED (no compression, no ZIP64):
+
+| Entry | Content |
+| --- | --- |
+| `module.json` | one complete catalog entry (`ContentModuleCatalogEntrySchema`), exactly what `package_module` writes to `<stem>.catalog-entry.json`; `releaseState` is `published` or `preview`, never `core`/`required` |
+| `artifacts/<file>` | every artifact, bytes untouched, at the path its `artifacts[].url` names |
+
+Artifact URLs read `minimed-local:<path-in-zip>` (relative, no `..`, no leading `/`). The entry
+schema accepts the scheme so `module.json` validates like any entry; a remote or cached catalog that
+contains it is rejected (`hasLocalModuleArtifacts` in `loadContentModuleCatalog`). Index artifacts
+are `none`, `gzip` or `zstd`, source assets `zip`, with the same `sha256`/`sizeBytes`/`decodedSha256`
+as in a public module.
+
+Build one from a packaged module (`package_module` / `package-icd11`: the `.catalog-entry.json` and
+its artifact files side by side):
+
+```bash
+uv run --project tools/ingest medbase bundle-local-module \
+  --entry output/<module>/<stem>.catalog-entry.json \
+  --output output/local-modules/<stem>.minimed-module.zip
+```
+
+The writer (`local_module_bundle.py`) verifies size and SHA-256 of every artifact (and the gzip
+round trip), rewrites the URLs, and writes a deterministic ZIP (sorted entries, fixed timestamps).
+**Personal-use bundles go to the gitignored `output/local-modules/` only; they are never committed,
+uploaded, attached to a release or mirrored.**
+
+In the app the file goes through the ordinary install path (checksum → decode → OPFS/IndexedDB →
+registry → mount) with the bytes read from the chosen file instead of a download. The ZIP directory
+is read first and each artifact is sliced out of the file on demand, so a 100 MB module is held in
+memory once. The file is rejected, with a short Russian message, when it is not a module bundle, is
+compressed, has an invalid entry, points outside itself, lacks an artifact or has another size, when
+its id belongs to a public catalog module, or when the checksum, the app/schema version or the
+database integrity check fails. The entry is kept in its own IndexedDB database
+(`minimed-local-modules`, `features/modules/local-module-entries.ts`) and merged into the runtime's
+catalog, so the module survives restarts and catalog refreshes. It is listed with an «Из файла»
+badge, can be deleted, is never offered as a download and is never updated from the remote catalog;
+a newer file with the same id replaces it, and the previous version stays available for rollback.
+
 ## Version coupling
 
 An edition identifies one exact selected source set. Its manifest records:

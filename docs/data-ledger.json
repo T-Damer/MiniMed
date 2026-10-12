@@ -693,6 +693,31 @@
       "note": "query-encoder/: the on-device query encoder (student v4c, published as datasets/kd1-query-encoder-2026.10.11.2; v3 was datasets/kd1-query-encoder-2026.10.11) (config, tokenizer, int8 ONNX in two parts), the passage projection and the training log as published; giga480m-projection-384.npy: the projection embed_modules.py reads (same bytes); rebuild.log. Benchmarks need a model dir with the joined ONNX: cat query-encoder/onnx/model_quantized.onnx.part-* > <dir>/minimed/kd1-query-encoder/onnx/model_quantized.onnx plus the three JSON files.",
       "bytes": 139211597,
       "modified": "2026-10-11"
+    },
+    {
+      "path": "data/raw/medsolutions-spravochnik-vracha",
+      "class": "SOURCE",
+      "producer": "adb pull of ru.medsolutions (MedElement «Справочник врача») v5.1.1 APK + external data; SQLCipher assets decrypted (see SOURCE.md)",
+      "consumers": [
+        "bun run content:local:lab-tnm",
+        "bun run content:local:pevzner",
+        "bun run content:local:vidal"
+      ],
+      "note": "Personal-use extraction 2026-10-12. databases/ holds plaintext SQLite incl. Vidal (vidal.db, runtime-downloaded) and decrypted APK assets (analyzes/fmes/smp/tnm). Only local copy; re-pull requires the app installed on-device. Never commit or upload.",
+      "bytes": 362512418,
+      "modified": "2026-10-12"
+    },
+    {
+      "path": "output/local-modules",
+      "class": "REBUILDABLE",
+      "producer": "bun run content:local:lab-tnm, content:local:pevzner, content:local:vidal (over data/raw/medsolutions-spravochnik-vracha)",
+      "consumers": [
+        "owner installs *.minimed-module.zip on the device (Settings → Загрузки → install from file)"
+      ],
+      "rebuild": "Re-run the three content:local:* scripts (~10 min).",
+      "note": "Personal-use modules (Vidal, Citilab lab reference, TNM, Pevzner diets). Never commit, push or upload: the repository is public.",
+      "bytes": 120024859,
+      "modified": "2026-10-12"
     }
   ]
 }

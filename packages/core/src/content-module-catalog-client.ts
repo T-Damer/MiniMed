@@ -1,4 +1,8 @@
-import { type ContentModuleCatalog, ContentModuleCatalogSchema } from '@localmed/contracts';
+import {
+  type ContentModuleCatalog,
+  ContentModuleCatalogSchema,
+  hasLocalModuleArtifacts,
+} from '@localmed/contracts';
 
 export type ContentModuleCatalogSource = 'remote' | 'cache' | 'bundled';
 
@@ -95,7 +99,9 @@ function parseCacheRecord(value: unknown): ContentModuleCatalogCacheRecord | nul
   let catalog: ContentModuleCatalog | null = null;
   if (source['catalog'] !== null) {
     const parsedCatalog = ContentModuleCatalogSchema.safeParse(source['catalog']);
-    if (!parsedCatalog.success) return null;
+    if (!parsedCatalog.success || parsedCatalog.data.modules.some(hasLocalModuleArtifacts)) {
+      return null;
+    }
     catalog = parsedCatalog.data;
   }
   return {
@@ -239,6 +245,9 @@ export async function loadContentModuleCatalog(
     if (!response.ok) throw new Error(`Каталог модулей недоступен: HTTP ${response.status}.`);
 
     const remote = ContentModuleCatalogSchema.parse(await response.json());
+    if (remote.modules.some(hasLocalModuleArtifacts)) {
+      throw new Error('Каталог модулей содержит адреса локальных файлов.');
+    }
     const checkedAt = now();
     const resolved = newestCandidate([
       bundledCandidate,

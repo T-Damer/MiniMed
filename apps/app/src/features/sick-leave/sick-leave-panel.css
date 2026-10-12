@@ -1,0 +1,180 @@
+/* «Больничный» row of an ICD-10 card. Motion follows AGENTS.md: the shared tokens, transform and
+   opacity only. */
+.sick-leave {
+  margin-block: 0.5rem;
+  animation: sick-leave-enter var(--motion-base) var(--motion-ease-out) both;
+}
+
+@keyframes sick-leave-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.3rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.sick-leave__title {
+  font-weight: 600;
+}
+
+.sick-leave__body {
+  display: grid;
+  gap: 1rem;
+}
+
+.sick-leave__entry {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.sick-leave__entry-heading {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.sick-leave__code {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.sick-leave__group {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.sick-leave__rows {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sick-leave__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.3rem 0 0.3rem 0.7rem;
+  border-inline-start: 2px solid var(--theme-border);
+  line-height: 1.4;
+}
+
+.sick-leave__row--heading {
+  color: var(--theme-text-muted);
+  font-size: 0.9rem;
+}
+
+.sick-leave__features {
+  min-width: 0;
+}
+
+.sick-leave__period {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  text-align: end;
+}
+
+.sick-leave__mark {
+  margin-inline-start: 0.15em;
+  color: var(--theme-text-muted);
+  font-size: 0.7em;
+  font-weight: 600;
+}
+
+.sick-leave__footnotes {
+  display: grid;
+  gap: 0.1rem;
+  margin: 0;
+  padding: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  list-style: none;
+}
+
+.sick-leave__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.sick-leave__source {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.sick-leave__help-button {
+  display: inline-grid;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--theme-text-muted);
+  background: none;
+  cursor: pointer;
+  transition:
+    color var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
+}
+
+.sick-leave__help-button:active {
+  transform: scale(0.96);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sick-leave__help-button:hover {
+    color: var(--theme-text);
+    background: var(--theme-accent-soft);
+  }
+}
+
+.sick-leave__help-icon {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.sick-leave__help-panel {
+  max-width: min(24rem, calc(100vw - 2rem));
+  padding: 1rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.875rem;
+  background: var(--theme-surface-raised);
+  box-shadow: var(--shadow-paper);
+}
+
+.sick-leave__help-text {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.sick-leave__help-body {
+  display: grid;
+  gap: 0.6rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sick-leave {
+    animation: none;
+  }
+
+  .sick-leave__help-button {
+    transition: none;
+  }
+}

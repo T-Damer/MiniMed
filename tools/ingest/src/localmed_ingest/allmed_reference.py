@@ -613,6 +613,21 @@ def _resolve_allmed_mapping(
     return "unmatched", ()
 
 
+def link_composition_to_esklp(
+    ingredient_names: Sequence[str],
+    crosswalk: Mapping[str, tuple[str, ...]],
+) -> tuple[AllmedMappingStatus, tuple[str, ...]]:
+    """Link a list of active-ingredient names to ESKLP substance documents by exact composition."""
+    return _resolve_allmed_mapping(ingredient_names, crosswalk)
+
+
+def composition_identity_keys(ingredient_names: Iterable[str]) -> list[str]:
+    """The normalized per-ingredient identity keys that a composition crosswalk matches on."""
+    return sorted(
+        {key for name in ingredient_names for key in _ingredient_identity_keys(name) if key}
+    )
+
+
 def export_allmed_reference(input_path: Path, output: Path) -> AllmedReferenceExport:
     """Export raw Allmed rows as review-only candidates, without clinical transformation."""
     if not input_path.is_file():

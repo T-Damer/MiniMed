@@ -98,9 +98,9 @@ import {
   fallbackNotice,
 } from '@/features/medications/instruction-fallback';
 import {
-  INSTRUCTION_UNAVAILABLE_NOTICE,
   type InstructionModuleOffer,
   instructionOfferLabel,
+  instructionUnavailableNotice,
 } from '@/features/medications/instruction-offer';
 import {
   type InstructionSourceInfo,
@@ -108,15 +108,16 @@ import {
 } from '@/features/medications/instruction-source';
 import { openMedicationCatalogSearch } from '@/features/medications/medication-navigation';
 import {
-  ALLMED_SOURCE_URL,
   type ResolvedMedicationPackagingImage,
   resolveMedicationPackagingImage,
 } from '@/features/medications/medication-packaging-images';
 import {
+  DEFAULT_REFERENCE_SOURCE_NAME,
   type MedicationProduct,
   type MedicationReadingMode,
   medicationReadingChoices,
   parseEsklpMedicationProducts,
+  referenceSourceLabel,
   type TradeNameSupplement,
 } from '@/features/medications/medication-record';
 import { useMfgCountries } from '@/features/medications/use-mfg-countries';
@@ -129,6 +130,7 @@ import { formatFullTextDownloadLabel } from '@/features/modules/module-display';
 import type { ModulePointerResolution } from '@/features/modules/module-pointer-install';
 import { noteRecommendationOpened } from '@/features/reference/doctor-profile-feeds';
 import { searchResultDocumentKind } from '@/features/search/ScopedMedicalCore';
+import { SickLeavePanel } from '@/features/sick-leave/SickLeavePanel';
 import { specialtyLabel } from '@/i18n/labels';
 import { buildDocumentSectionLink, openDocumentOverlay } from '@/state/document-navigation';
 import type { DocumentTrail } from '@/state/document-trail';
@@ -276,32 +278,55 @@ function AllmedSupplementPanel(props: {
         <Show when={props.supplement.product.shortDescription}>
           {(description) => <p class="document-allmed-supplement__description">{description()}</p>}
         </Show>
-        <a
-          class="document-allmed-supplement__source"
-          href={ALLMED_SOURCE_URL}
-          rel="noreferrer"
-          target="_blank"
-        >
-          Источник: allmed.pro
-        </a>
+        <Show when={referenceSourceHost(props.supplement.product)}>
+          {(host) => (
+            <a
+              class="document-allmed-supplement__source"
+              href={props.supplement.product.referenceSourceUrl}
+              rel="noreferrer"
+              target="_blank"
+            >
+              Источник: {host()}
+            </a>
+          )}
+        </Show>
       </div>
     </Disclosure>
+  );
+}
+
+/** The host of a reference source's public page, for the «Источник» link; none without a page. */
+function referenceSourceHost(product: MedicationProduct): string | null {
+  if (!product.referenceSourceUrl) return null;
+  try {
+    return new URL(product.referenceSourceUrl).host;
+  } catch {
+    return null;
+  }
+}
+
+/** The reference sources of the panels on screen, e.g. «Allmed», «Видаль», «Allmed и Видаль». */
+function supplementSourceLabel(supplements: readonly TradeNameSupplement[]): string {
+  return referenceSourceLabel(
+    supplements.flatMap((supplement) =>
+      supplement.product.referenceSourceName ? [supplement.product.referenceSourceName] : [],
+    ),
   );
 }
 
 const OFFER_NOTE =
   'Официальной инструкции для этого препарата нет на устройстве: она может быть в наборе инструкций его группы.';
 
-const ALLMED_FALLBACK_NOTICE =
-  'Справочный материал Allmed; не является официальной инструкцией ГРЛС.';
-
-/** The notice Allmed's own entry carries; one is enough for the section. */
-function allmedNotice(supplements: readonly TradeNameSupplement[]): string {
+/** The notice the reference entries carry; one per distinct text is enough for the section. */
+function supplementNotice(supplements: readonly TradeNameSupplement[]): string {
+  const notices = new Set<string>();
   for (const supplement of supplements) {
     const notice = supplement.document.metadata['sourceNotice'];
-    if (typeof notice === 'string' && notice.trim()) return notice.trim();
+    if (typeof notice === 'string' && notice.trim()) notices.add(notice.trim());
   }
-  return ALLMED_FALLBACK_NOTICE;
+  return notices.size > 0
+    ? [...notices].join(' ')
+    : `Справочный материал ${supplementSourceLabel(supplements)}; не является официальной инструкцией ГРЛС.`;
 }
 
 function InstructionSourcePanel(props: { readonly info: InstructionSourceInfo }): JSX.Element {
@@ -449,7 +474,9 @@ function MedicationProductPanel(props: {
     !props.product.instructionFallback
       ? ['Сайт производителя']
       : []),
-    ...(props.product.supplementalDescription || props.product.imageReference ? ['Allmed'] : []),
+    ...(props.product.supplementalDescription || props.product.imageReference
+      ? (props.product.supplementalSourceNames ?? [DEFAULT_REFERENCE_SOURCE_NAME])
+      : []),
   ];
   const links = () =>
     [
@@ -1304,6 +1331,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                             document={documentValue()}
                             onContentChanged={props.onContentChanged}
                           />
+                          <SickLeavePanel document={documentValue()} />
                         </Show>
                         <Show when={props.editionNotice}>
                           {(notice) => (
@@ -1484,7 +1512,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                       id="document-allmed-supplements-title"
                       class="document-allmed-supplements__title"
                     >
-                      Справочные материалы Allmed
+                      Справочные материалы {supplementSourceLabel(props.supplementalPanels ?? [])}
                     </h2>
                     <Show
                       when={
@@ -1492,11 +1520,13 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                       }
                     >
                       <p class="document-allmed-supplements__plaque" role="note">
-                        {INSTRUCTION_UNAVAILABLE_NOTICE}
+                        {instructionUnavailableNotice(
+                          supplementSourceLabel(props.supplementalPanels ?? []),
+                        )}
                       </p>
                     </Show>
                     <p class="document-allmed-supplements__notice">
-                      {allmedNotice(props.supplementalPanels ?? [])}
+                      {supplementNotice(props.supplementalPanels ?? [])}
                     </p>
                     <div class="document-allmed-supplements__list">
                       <For each={props.supplementalPanels ?? []}>

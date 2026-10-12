@@ -1,0 +1,91 @@
+.module-file-import {
+  display: grid;
+  min-width: 0;
+  gap: 0.625rem;
+  padding: 1rem 1.1rem;
+}
+
+.module-file-import__head {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.module-file-import__title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+}
+
+.module-file-import__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.module-file-import__glyph {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.module-file-import__mark {
+  --download-progress-mark-size: 1.25rem;
+}
+
+.module-file-import__status {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.85rem;
+  animation: module-file-import-in var(--motion-base) var(--motion-ease-out);
+}
+
+.module-file-import__list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: 0.375rem;
+  list-style: none;
+}
+
+.module-file-import__item {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.5rem 0.5rem 0.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  background: var(--theme-surface);
+  animation: module-file-import-in var(--motion-base) var(--motion-ease-out);
+}
+
+.module-file-import__copy {
+  display: grid;
+  min-width: 0;
+}
+
+.module-file-import__name {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.module-file-import__meta {
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
+}
+
+@keyframes module-file-import-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.375rem);
+  }
+}

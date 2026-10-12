@@ -3,10 +3,10 @@ import type JSZip from 'jszip';
 
 import { readActiveInstalledSourceAssets } from '@/features/modules/browser-module-runtime';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
-import { safePackagingImageReference } from './medication-record';
+import { ALLMED_REFERENCE_URL, safePackagingImageReference } from './medication-record';
 
 export const MEDICATION_PACKAGING_IMAGES_MODULE_ID = 'minimed.medications.packaging-images.ru';
-export const ALLMED_SOURCE_URL = 'https://allmed.pro/';
+export const ALLMED_SOURCE_URL = ALLMED_REFERENCE_URL;
 
 export function medicationPackagingImagesDownloadBytes(
   module: ContentModuleCatalogEntry,

@@ -25,8 +25,6 @@
  * app resolves to `raw.githubusercontent.com/<owner>/<repo>/datasets/<tag>/modules/<file>.db.zst`
  * (`artifact-url.ts`); `scripts/publish-module-zstd-mirror.sh --family esklp --tag <tag>` uploads them.
  */
-import { Database } from 'bun:sqlite';
-import { createHash } from 'node:crypto';
 import {
   existsSync,
   mkdirSync,
@@ -42,6 +40,7 @@ import {
   ContentModuleCatalogSchema,
   serializeContentModuleCatalog,
 } from '../packages/contracts/src/content-modules';
+import { readPackIdentity, sourceSetDigest } from './lib/module-pack-identity';
 import {
   encodeFramed,
   fileSha256,
@@ -58,69 +57,6 @@ const MANUFACTURER_ID = 'minimed.medications.instructions.manufacturer-site.ru';
 const DDINTER_ID = 'minimed.reference.ddinter-severity.ru';
 
 type Raw = Record<string, unknown>;
-
-interface DocumentIdentity {
-  readonly documentId: string;
-  readonly documentVersionId: string;
-  readonly sourceChecksum: string;
-}
-
-interface PackIdentity {
-  readonly id: string;
-  readonly version: string;
-  readonly title: string;
-  readonly packChecksum: string;
-  readonly documents: readonly DocumentIdentity[];
-  readonly instructionKinds: Readonly<Record<string, number>>;
-}
-
-function readPackIdentity(path: string): PackIdentity {
-  const database = new Database(path, { readonly: true });
-  try {
-    const packs = database
-      .query('SELECT id, version, title, checksum AS packChecksum FROM content_packs')
-      .all() as Array<{ id: string; version: string; title: string; packChecksum: string }>;
-    if (packs.length !== 1 || !packs[0]) throw new Error(`${path}: expected exactly one pack.`);
-    const rows = database
-      .query(
-        `SELECT d.id AS documentId, dv.id AS documentVersionId, dv.source_checksum AS sourceChecksum
-         FROM documents d JOIN document_versions dv ON dv.id = d.current_version_id
-         ORDER BY d.id, dv.id`,
-      )
-      .all() as DocumentIdentity[];
-    const kinds: Record<string, number> = {};
-    for (const row of database
-      .query(
-        `SELECT json_extract(metadata_json, '$.documentKind') AS kind, count(*) AS n
-         FROM documents GROUP BY 1`,
-      )
-      .all() as Array<{ kind: string | null; n: number }>) {
-      kinds[row.kind ?? 'none'] = row.n;
-    }
-    return { ...packs[0], documents: rows, instructionKinds: kinds };
-  } finally {
-    database.close();
-  }
-}
-
-/** The digest of `esklp_release.py`: sorted identities as compact JSON. */
-function sourceSetDigest(documents: readonly DocumentIdentity[]): string {
-  const sorted = [...documents].sort((a, b) =>
-    a.documentId === b.documentId
-      ? a.documentVersionId < b.documentVersionId
-        ? -1
-        : 1
-      : a.documentId < b.documentId
-        ? -1
-        : 1,
-  );
-  const payload = sorted.map((item) => ({
-    documentId: item.documentId,
-    documentVersionId: item.documentVersionId,
-    sourceChecksum: item.sourceChecksum,
-  }));
-  return `sha256:${createHash('sha256').update(JSON.stringify(payload)).digest('hex')}`;
-}
 
 const GROUP_TITLES: Readonly<Record<string, string>> = {
   'alimentary-metabolism': 'Пищеварительный тракт и обмен веществ',

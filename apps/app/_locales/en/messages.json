@@ -95,6 +95,10 @@
     "message": "Clinical pediatrics",
     "description": "Module catalog collection id: pediatrics"
   },
+  "collection_medical-services": {
+    "message": "Medical services nomenclature",
+    "description": "Module catalog collection id: medical-services"
+  },
   "document_count_one": {
     "message": "$1 document",
     "description": "Document count with English singular form",

@@ -62,6 +62,28 @@ export interface MedicationProduct {
   readonly registrationDate: string | null;
   readonly pharmacotherapeuticGroups: readonly string[];
   readonly presentations: readonly MedicationPresentation[];
+  /** A reference-text product (`sourceKind: 'allmed'`): the source's name, e.g. «Allmed», «Видаль». */
+  readonly referenceSourceName?: string;
+  /** Where the reference text comes from, when it has a public page (https only). */
+  readonly referenceSourceUrl?: string;
+  /** Registrations a reference text declares it covers; matched exactly against a registry product. */
+  readonly servedRegistrationNumbers?: readonly string[];
+  /** The reference sources whose text is merged into a registry product's short version. */
+  readonly supplementalSourceNames?: readonly string[];
+}
+
+/** The source name of a reference text that does not declare one (the first such source). */
+export const DEFAULT_REFERENCE_SOURCE_NAME = 'Allmed';
+export const ALLMED_REFERENCE_URL = 'https://allmed.pro/';
+
+/**
+ * «Allmed», «Видаль», «Allmed и Видаль»: the sources named in a label, in the order given and
+ * without repeats. Falls back to the default source when none is known.
+ */
+export function referenceSourceLabel(names: readonly string[] | undefined): string {
+  const unique = [...new Set(names ?? [])];
+  if (unique.length === 0) return DEFAULT_REFERENCE_SOURCE_NAME;
+  return unique.length === 1 ? (unique[0] ?? DEFAULT_REFERENCE_SOURCE_NAME) : unique.join(' и ');
 }
 
 interface MedicationMetadata extends Readonly<Record<string, unknown>> {
@@ -84,6 +106,11 @@ interface MedicationMetadata extends Readonly<Record<string, unknown>> {
   readonly route?: unknown;
   readonly packages?: unknown;
   readonly allmedId?: unknown;
+  readonly referenceId?: unknown;
+  readonly referenceSourceKey?: unknown;
+  readonly referenceSourceName?: unknown;
+  readonly referenceSourceUrl?: unknown;
+  readonly registrationNumbers?: unknown;
   readonly nameLat?: unknown;
   readonly productionForm?: unknown;
   readonly mnnDocumentId?: unknown;
@@ -433,15 +460,21 @@ export function mergeAllmedSupplementalText(
 ): MedicationProduct {
   if (product.sourceKind === 'allmed' || !product.mnnDocumentId) return product;
   const matched = supplements.filter((supplement) => allmedMatchesProduct(product, supplement));
-  const texts = matched
-    .map((supplement) => supplement.shortDescription)
-    .filter((text): text is string => Boolean(text));
+  const withText = matched.filter((supplement) => supplement.shortDescription);
+  const texts = withText.map((supplement) => supplement.shortDescription);
   const imageReference = matched.find((supplement) => supplement.imageReference)?.imageReference;
   if (texts.length === 0 && !imageReference) return product;
   return {
     ...product,
     ...(texts.length > 0 ? { supplementalDescription: [...new Set(texts)].join('\n\n') } : {}),
     ...(imageReference ? { imageReference } : {}),
+    supplementalSourceNames: [
+      ...new Set(
+        matched.map(
+          (supplement) => supplement.referenceSourceName ?? DEFAULT_REFERENCE_SOURCE_NAME,
+        ),
+      ),
+    ],
   };
 }
 
@@ -600,39 +633,71 @@ export function parseMedicationProduct(
   return null;
 }
 
+/** `contentMode` of a third-party drug reference text: Allmed's own, and the generic one. */
+const ALLMED_CONTENT_MODE = 'allmed-snapshot';
+const REFERENCE_CONTENT_MODE = 'drug-reference-snapshot';
+
+export function isReferenceSnapshotContentMode(contentMode: unknown): boolean {
+  return contentMode === ALLMED_CONTENT_MODE || contentMode === REFERENCE_CONTENT_MODE;
+}
+
+/**
+ * A third-party drug reference text (source type `allmed_reference`): the Allmed snapshot, or any
+ * other reference that declares `contentMode: 'drug-reference-snapshot'` with `referenceSourceKey`,
+ * `referenceSourceName` and `referenceId`. Optional metadata: `tradeName` (the matching name when
+ * the title carries more, e.g. a dosage-form qualifier), `registrationNumbers` (registrations the
+ * text covers), `productionForm`, `nameLat`, `shortDescription`, `linkedMnnDocumentId`.
+ */
 export function parseAllmedMedicationProduct(document: MedicalDocument): MedicationProduct | null {
   const metadata = document.metadata as MedicationMetadata;
-  if (document.sourceType !== 'allmed_reference' || metadata.contentMode !== 'allmed-snapshot') {
+  if (
+    document.sourceType !== 'allmed_reference' ||
+    !isReferenceSnapshotContentMode(metadata.contentMode)
+  ) {
     return null;
   }
-  const allmedId = typeof metadata.allmedId === 'number' ? metadata.allmedId : null;
-  const tradeName = stringValue(document.title);
-  if (allmedId === null || !tradeName) return null;
+  const isAllmed = metadata.contentMode === ALLMED_CONTENT_MODE;
+  const sourceKey = isAllmed ? 'allmed' : stringValue(metadata.referenceSourceKey);
+  const referenceId = isAllmed
+    ? typeof metadata.allmedId === 'number'
+      ? String(metadata.allmedId)
+      : null
+    : scalarStringValue(metadata.referenceId);
+  const tradeName = stringValue(metadata.tradeName) ?? stringValue(document.title);
+  if (!sourceKey || referenceId === null || !tradeName) return null;
+  const sourceName = isAllmed
+    ? DEFAULT_REFERENCE_SOURCE_NAME
+    : (stringValue(metadata.referenceSourceName) ?? sourceKey);
+  const sourceUrl = isAllmed ? ALLMED_REFERENCE_URL : stringValue(metadata.referenceSourceUrl);
+  const servedRegistrations = stringList(metadata.registrationNumbers);
   const dosageForm = stringValue(metadata.productionForm) ?? 'Не указана';
   const imageReference = safePackagingImageReference(metadata.img);
   return {
     sourceKind: 'allmed',
     registrationDocumentId: document.id,
     grlsRegistrationDocumentId: null,
-    // An Allmed monograph is a reference summary, not the official instruction.
+    // A reference monograph is a summary, not the official instruction.
     instructionDocumentId: null,
     mnnDocumentId: null,
     linkedMnnDocumentId: stringValue(metadata.linkedMnnDocumentId),
     smnnCode: null,
     smnnCodes: [],
     klpCodes: [],
-    registrationNumber: `allmed:${allmedId}`,
+    registrationNumber: `${sourceKey}:${referenceId}`,
     tradeName,
     inn: stringValue(metadata.nameLat) ?? 'Не указано',
     ...(imageReference ? { imageReference } : {}),
     shortDescription: stringValue(metadata.shortDescription) ?? stringValue(metadata.description),
     supplementalDescription: null,
-    registrationStatus: 'Справочник Allmed',
+    registrationStatus: `Справочник ${sourceName}`,
     prescriptionStatus: null,
     holder: null,
     manufacturer: null,
     registrationDate: null,
     pharmacotherapeuticGroups: [],
+    referenceSourceName: sourceName,
+    ...(sourceUrl?.startsWith('https://') ? { referenceSourceUrl: sourceUrl } : {}),
+    ...(servedRegistrations.length > 0 ? { servedRegistrationNumbers: servedRegistrations } : {}),
     presentations: [
       {
         dosageForm,
@@ -692,10 +757,18 @@ export function medicationReadingChoices(
 ): MedicationReadingChoices {
   const hasInstruction = product.instructionDocumentId !== null;
   const hasShort = product.instructionDocumentId !== openedDocumentId;
-  const hasAllmed = product.sourceKind === 'allmed' || product.supplementalDescription !== null;
+  const hasReference = product.sourceKind === 'allmed' || product.supplementalDescription !== null;
+  const referenceNames =
+    product.sourceKind === 'allmed' && product.referenceSourceName
+      ? [product.referenceSourceName]
+      : product.supplementalSourceNames;
   return {
     options: [
-      { value: 'short', label: hasAllmed ? 'Кратко (Allmed)' : 'Кратко', disabled: !hasShort },
+      {
+        value: 'short',
+        label: hasReference ? `Кратко (${referenceSourceLabel(referenceNames)})` : 'Кратко',
+        disabled: !hasShort,
+      },
       { value: 'instruction', label: 'Инструкция', disabled: !hasInstruction },
     ],
     initialMode: hasShort ? 'short' : 'instruction',
