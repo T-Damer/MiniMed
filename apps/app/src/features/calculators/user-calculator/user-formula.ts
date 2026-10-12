@@ -30,6 +30,7 @@ const FUNCTION_ARITY: ReadonlyMap<string, number> = new Map([
   ['floor', 1],
   ['pow', 2],
   ['exp', 1],
+  ['ln', 1],
   ['cond', 3],
 ]);
 
@@ -51,6 +52,7 @@ export const USER_FORMULA_FUNCTIONS: readonly UserFormulaFunction[] = [
   { name: 'floor', arity: 1, example: 'floor(a)', hint: 'Округление вниз' },
   { name: 'pow', arity: 2, example: 'pow(a; b)', hint: 'Степень: a в степени b' },
   { name: 'exp', arity: 1, example: 'exp(a)', hint: 'Экспонента' },
+  { name: 'ln', arity: 1, example: 'ln(a)', hint: 'Натуральный логарифм' },
   {
     name: 'cond',
     arity: 3,

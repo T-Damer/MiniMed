@@ -7,6 +7,7 @@ import dev.localmed.nativespike.shared.text.jsNumberToString
 import kotlin.math.abs
 import kotlin.math.exp
 import kotlin.math.floor
+import kotlin.math.ln
 import kotlin.math.sqrt
 
 internal class ToolExpressionError(message: String) : IllegalArgumentException(message)
@@ -18,7 +19,7 @@ internal sealed interface ToolExpressionNode {
     data class Call(val name: String, val args: List<ToolExpressionNode>) : ToolExpressionNode
 }
 private data class Token(val kind: String, val value: String = "")
-private val functionArities = mapOf("min" to 2, "max" to 2, "abs" to 1, "sqrt" to 1, "round" to 1, "floor" to 1, "pow" to 2, "exp" to 1, "cond" to 3, "optional" to 2, "present" to 1, "today" to 0, "addDays" to 2, "daysBetween" to 2, "yearsBetween" to 2, "whoLmsZ" to 4, "whoLmsValue" to 4, "whoPercentile" to 1, "whoBand" to 2, "aapBpHeightPercentile" to 3, "aapBpThreshold" to 5, "aapBpCategory" to 5, "aapBpCategoryLabel" to 1, "gailRisk" to 8, "asccpRiskBand" to 6)
+private val functionArities = mapOf("min" to 2, "max" to 2, "abs" to 1, "sqrt" to 1, "round" to 1, "floor" to 1, "pow" to 2, "exp" to 1, "ln" to 1, "cond" to 3, "optional" to 2, "present" to 1, "today" to 0, "addDays" to 2, "daysBetween" to 2, "yearsBetween" to 2, "whoLmsZ" to 4, "whoLmsValue" to 4, "whoPercentile" to 1, "whoBand" to 2, "aapBpHeightPercentile" to 3, "aapBpThreshold" to 5, "aapBpCategory" to 5, "aapBpCategoryLabel" to 1, "gailRisk" to 8, "asccpRiskBand" to 6)
 private val operators = listOf("==", "!=", "<=", ">=", "<", ">", "+", "-", "*", "/", "^")
 private val comparisons = setOf("==", "!=", "<", "<=", ">", ">=")
 internal fun toolJsWhitespace(c: Char) = c in "\u0009\u000a\u000b\u000c\u000d\u0020\u00a0\u1680\u2028\u2029\u202f\u205f\u3000\ufeff" || c in '\u2000'..'\u200a'
@@ -136,7 +137,7 @@ internal class ToolExpression(private val bank: NativeToolBank, private val cont
             "aapBpCategoryLabel" -> text(aap.categoryLabel(s(0)))
             "gailRisk" -> number(risk.gail(n(0), n(1), s(2), n(3), n(4), n(5), n(6), n(7)))
             "asccpRiskBand" -> number(risk.cervical(n(0), s(1), s(2), s(3), s(4), s(5)))
-            else -> { val values = args.map { toolAsNumber(evaluate(it, scope)) }; number(when(name) { "min" -> minOf(values[0], values[1]); "max" -> maxOf(values[0], values[1]); "abs" -> abs(values[0]); "sqrt" -> sqrt(values[0]); "round" -> jsMathRound(values[0]); "floor" -> floor(values[0]); "pow" -> toolPower(values[0], values[1]); "exp" -> exp(values[0]); else -> throw ToolExpressionError("Unknown function \"$name\".") }) }
+            else -> { val values = args.map { toolAsNumber(evaluate(it, scope)) }; number(when(name) { "min" -> minOf(values[0], values[1]); "max" -> maxOf(values[0], values[1]); "abs" -> abs(values[0]); "sqrt" -> sqrt(values[0]); "round" -> jsMathRound(values[0]); "floor" -> floor(values[0]); "pow" -> toolPower(values[0], values[1]); "exp" -> exp(values[0]); "ln" -> ln(values[0]); else -> throw ToolExpressionError("Unknown function \"$name\".") }) }
         }
     }
     fun render(node: ToolExpressionNode, scope: Map<String, NativeToolInput>): String {

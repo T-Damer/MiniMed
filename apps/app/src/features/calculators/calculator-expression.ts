@@ -124,6 +124,7 @@ const KNOWN_FUNCTIONS: Readonly<Record<string, number>> = {
   floor: 1,
   pow: 2,
   exp: 1,
+  ln: 1,
   cond: 3,
   optional: 2,
   present: 1,
@@ -563,6 +564,8 @@ function evaluateCall(
       return (values[0] ?? NaN) ** (values[1] ?? NaN);
     case 'exp':
       return Math.exp(values[0] ?? NaN);
+    case 'ln':
+      return Math.log(values[0] ?? NaN);
     default:
       throw new CalculatorExpressionError(`Unknown function "${name}".`);
   }

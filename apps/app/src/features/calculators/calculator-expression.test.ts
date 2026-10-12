@@ -30,6 +30,12 @@ describe('calculator expression parser/evaluator', () => {
     expect(evaluateCalculatorExpression('pow(2, 10)', {})).toBe(1024);
   });
 
+  it('supports ln as the inverse of exp', () => {
+    expect(evaluateCalculatorExpression('ln(exp(2.5))', {})).toBeCloseTo(2.5, 12);
+    expect(evaluateCalculatorExpression('ln(1)', {})).toBe(0);
+    expect(Number.isNaN(evaluateCalculatorExpression('ln(-1)', {}))).toBe(true);
+  });
+
   it('branches with cond() on numeric comparisons', () => {
     expect(evaluateCalculatorExpression('cond(age >= 18, 1, 0)', { age: 20 })).toBe(1);
     expect(evaluateCalculatorExpression('cond(age >= 18, 1, 0)', { age: 10 })).toBe(0);
