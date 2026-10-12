@@ -4,6 +4,35 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.58] - 2026-10-12
+
+- Search by meaning: a new pair of models. Guideline fragments and drug indications are turned into
+  vectors in advance by a large model (Giga-Embeddings); on the phone a small model (130 MB, based on
+  multilingual-e5-small) trained to imitate it reads the query. Complaints and diagnoses in your own
+  words find the right guideline in the top five far more often (test set 50 % → 72 %; complaints
+  43 % → 63 %); a query the model is unsure about falls back to word search. Download the model again
+  in Settings → «Поиск по смыслу»; the old one is removed. All guidelines and drug instruction packs
+  download again (new vectors, same text).
+- «Препараты» with every drug pack installed: the first search after start takes seconds instead of
+  minutes, later searches are about twice as fast; the results are unchanged.
+- Downloads: a large pack is ready seconds after the download instead of minutes (the 96 MB reference
+  pack ~5 s, the drug group ~3 s), and the document you tapped opens about a second later, not after
+  the whole pack is listed.
+- Clinical guidelines: recurring template labels («Целевая аудитория…», «Порядок обновления…») are
+  headings in 737 guidelines, so the contents and the section line show them (all guidelines download
+  again).
+- Search: a source name in the query searches inside it («Красота и медицина пневмония», «Аллмед»,
+  «КиМ»), «Искать везде» widens again; a drug name opens with its pharmacological action line; home
+  counters are stable and name what they count («763 рекомендации», «3 324 действующих вещества»).
+- Calculators: the tab always opens the list, with recent calculators on top; the due-date calculators
+  and the feeding plan take the patient again and fill in from the card; the computed due date is
+  saved to the card and fills «Срок по ПДР» and the maternity-leave calculator; switching tools no
+  longer leaves the previous result on screen.
+- Definitions: the doctor profile also learns from opened guidelines and downloaded sections; Settings
+  → «Основные» shows it with «Сбросить».
+- Fixes: the model download no longer stays on «Проверяем файлы…»; «Распознано 1 поле» instead of
+  «1 полей».
+
 ## [0.6.57] - 2026-10-08
 
 - Screens are lighter: the title sits next to the back button, explanations open from a round «?»,
