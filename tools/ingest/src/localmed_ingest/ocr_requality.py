@@ -42,6 +42,13 @@ from .models import (
     ExtractedSource,
     ExtractionOptions,
 )
+from .ocr_second_opinion import (
+    TESSERACT_TOOL,
+    AltInfo,
+    AltLine,
+    choose_reading,
+    matching_alternative,
+)
 from .ocr_text_cleanup import (
     CYRILLIC_LETTERS,
     Lexicon,
@@ -254,13 +261,29 @@ def assemble_lines(page: Mapping[str, Any]) -> list[Line]:
     ]
 
 
-def raw_blocks_from_vision(payload: Mapping[str, Any], pages: set[int]) -> list[RawBlock]:
+def raw_blocks_from_vision(
+    payload: Mapping[str, Any],
+    pages: set[int],
+    alternatives: Mapping[int, Sequence[AltLine]] | None = None,
+    lexicon: Lexicon | None = None,
+) -> tuple[list[RawBlock], dict[tuple[int, int], AltInfo]]:
+    """Blocks of the recognised pages and, per (page, order), what a second engine said."""
     blocks: list[RawBlock] = []
+    infos: dict[tuple[int, int], AltInfo] = {}
     for page in cast(list[Mapping[str, Any]], payload.get("pages", [])):
         number = int(page["page"])
         if number not in pages:
             continue
+        second = (alternatives or {}).get(number)
         for order, line in enumerate(assemble_lines(page)):
+            text = line.text
+            if second and lexicon is not None and not line.columnar:
+                alt = matching_alternative((line.x0, line.y0, line.x1, line.y1), second)
+                info = choose_reading(line.text, alt.text, lexicon) if alt else None
+                if info is not None:
+                    infos[(number, order)] = info
+                    if info.chosen == "tesseract" and alt is not None:
+                        text = alt.text
             blocks.append(
                 RawBlock(
                     page=number,
@@ -268,7 +291,7 @@ def raw_blocks_from_vision(payload: Mapping[str, Any], pages: set[int]) -> list[
                     page_height=float(page["height"]),
                     order_index=order,
                     bbox=(line.x0, line.y0, line.x1, line.y1),
-                    text=line.text,
+                    text=text,
                     font_size=None,
                     font_name=None,
                     bold=False,
@@ -277,7 +300,7 @@ def raw_blocks_from_vision(payload: Mapping[str, Any], pages: set[int]) -> list[
                     confidence=line.confidence,
                 )
             )
-    return blocks
+    return blocks, infos
 
 
 # ---------------------------------------------------------------------------------------------
@@ -295,6 +318,9 @@ class CleanupCounters:
     hyphens_joined: int = 0
     uncertain_number_paragraphs: int = 0
     uncertain_numbers: int = 0
+    second_opinion_lines: int = 0
+    second_opinion_replaced: int = 0
+    digit_disagreements: int = 0
     word_edits: Counter[str] | None = None
     edit_samples: Counter[tuple[str, str]] | None = None
 
@@ -359,6 +385,17 @@ def _merge(
         round(max(box[2] for box in boxes), 3),
         round(max(box[3] for box in boxes), 3),
     ]
+    alternatives = [
+        {"id": block.id, **cast(dict[str, Any], block.metadata["alt"])}
+        for block in blocks
+        if "alt" in block.metadata
+    ]
+    extra: dict[str, Any] = {}
+    if alternatives:
+        extra["ocrAlternatives"] = alternatives
+        if any(item["digitsDiffer"] for item in alternatives):
+            extra["review"] = "ocr-uncertain-number"
+            extra["enginesDisagreeOnNumbers"] = True
     counters.lines_joined += len(blocks) - 1
     counters.hyphens_joined += hyphens
     if len(blocks) > 1:
@@ -369,7 +406,8 @@ def _merge(
             "bbox": union,
             "line_count": sum(block.line_count for block in blocks),
             "metadata": {
-                **first.metadata,
+                **{key: value for key, value in first.metadata.items() if key != "alt"},
+                **extra,
                 "blocks": [block.id for block in blocks],
                 "lines": [
                     {
@@ -391,6 +429,7 @@ def refine_page(
     lexicon: Lexicon | None,
     protected: Sequence[str],
     counters: CleanupCounters,
+    alt_infos: Mapping[int, AltInfo] | None = None,
 ) -> ExtractedPage:
     """Stamps, headings, reflow and word rules for one OCR page."""
     prepared: list[ExtractedBlock] = []
@@ -402,6 +441,17 @@ def refine_page(
         confidence = confidences.get(block.order_index)
         if confidence is not None:
             metadata["confidence"] = round(confidence, 4)
+        info = (alt_infos or {}).get(block.order_index)
+        if info is not None:
+            metadata["alt"] = {
+                "engine": TESSERACT_TOOL,
+                "chosen": info.chosen,
+                "other": info.other_text,
+                "digitsDiffer": info.digits_differ,
+            }
+            counters.second_opinion_lines += 1
+            counters.second_opinion_replaced += info.chosen == "tesseract"
+            counters.digit_disagreements += info.digits_differ
         current = block.model_copy(update={"metadata": metadata})
         text, fused = split_inline_stamp(current.text)
         if fused is not None:
@@ -620,6 +670,7 @@ def extract_with_vision(
     lexicon: Lexicon | None,
     *,
     protected: Sequence[str] = (),
+    alternatives: Mapping[int, Sequence[AltLine]] | None = None,
     options: ExtractionOptions | None = None,
     thresholds: QualityThresholds | None = None,
 ) -> ExtractedSource:
@@ -641,19 +692,31 @@ def extract_with_vision(
                 raw_blocks.extend(native)
             else:
                 ocr_pages.add(number)
-        vision_blocks = raw_blocks_from_vision(payload, ocr_pages)
+        vision_blocks, alt_by_line = raw_blocks_from_vision(
+            payload, ocr_pages, alternatives, lexicon
+        )
         raw_blocks.extend(vision_blocks)
         raw_blocks.sort(key=lambda block: (block.page, block.order_index))
         body_font = pdf_import._weighted_body_font(raw_blocks, configured)  # pyright: ignore[reportPrivateUsage]
         pages, removed = pdf_import._classify_blocks(raw_blocks, body_font, configured)  # pyright: ignore[reportPrivateUsage]
         confidences: dict[int, dict[int, float | None]] = {}
+        alt_by_page: dict[int, dict[int, AltInfo]] = {}
+        for (alt_page, alt_order), alt_info in alt_by_line.items():
+            alt_by_page.setdefault(alt_page, {})[alt_order] = alt_info
         for block in vision_blocks:
             confidences.setdefault(block.page, {})[block.order_index] = block.confidence
         refined: list[ExtractedPage] = []
         for page in pages:
             if page.page in ocr_pages:
                 refined.append(
-                    refine_page(page, confidences.get(page.page, {}), lexicon, protected, counters)
+                    refine_page(
+                        page,
+                        confidences.get(page.page, {}),
+                        lexicon,
+                        protected,
+                        counters,
+                        alt_by_page.get(page.page),
+                    )
                 )
             else:
                 refined.append(page)
@@ -694,7 +757,8 @@ def extract_with_vision(
     if ocr_pages:
         words = len(words_of(included_text))
         ratio = unknown_word_ratio(included_text, lexicon) if lexicon is not None else None
-        per_1000 = counters.uncertain_numbers * 1000 / words if words else 0.0
+        doubtful = counters.uncertain_numbers + counters.digit_disagreements
+        per_1000 = doubtful * 1000 / words if words else 0.0
         grade, reasons = grade_quality(
             mean_confidence=signal.mean_confidence if signal else None,
             low_confidence_ratio=signal.low_confidence_ratio if signal else None,
@@ -711,6 +775,19 @@ def extract_with_vision(
                 "ocr_quality_reasons": reasons,
                 "ocr_cleanup": {
                     "tool": OCR_TOOL,
+                    **(
+                        {
+                            "secondOpinion": {
+                                "tool": TESSERACT_TOOL,
+                                "pages": sorted(alternatives),
+                                "linesCompared": counters.second_opinion_lines,
+                                "linesReplaced": counters.second_opinion_replaced,
+                                "digitDisagreements": counters.digit_disagreements,
+                            }
+                        }
+                        if alternatives
+                        else {}
+                    ),
                     "pagesRecognised": sorted(ocr_pages),
                     "pageMarks": counters.page_marks,
                     "headingsRecovered": counters.headings_recovered,

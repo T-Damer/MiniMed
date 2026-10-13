@@ -23,6 +23,7 @@ import yaml
 from .grls_document_kind import classify_scan_document
 from .grls_text_manifest import _text_digest as text_digest  # pyright: ignore[reportPrivateUsage]
 from .ocr_requality import extract_with_vision
+from .ocr_second_opinion import TESSERACT_TOOL, AltLine, load_alt_lines
 from .ocr_text_cleanup import COMPOUND_TOKEN, Lexicon
 from .source_registry import extraction_front_matter, render_body
 
@@ -75,6 +76,16 @@ class DocumentResult:
     extraction_json: dict[str, Any]
 
 
+def second_opinion_pages(directory: Path | None, pdf_sha256: str) -> dict[int, list[AltLine]]:
+    """The Tesseract pages read for this PDF (`grls_ocr_second_opinion.py`), by page number."""
+    if directory is None:
+        return {}
+    folder = directory / pdf_sha256.removeprefix("sha256:")
+    if not folder.is_dir():
+        return {}
+    return {int(path.stem): load_alt_lines(path) for path in sorted(folder.glob("*.json"))}
+
+
 def reprepare_document(
     *,
     row: Mapping[str, Any],
@@ -83,6 +94,7 @@ def reprepare_document(
     payload: Mapping[str, Any],
     lexicon: Lexicon,
     workspace_label: str,
+    second_opinion_dir: Path | None = None,
 ) -> DocumentResult:
     old_text = old_markdown.read_text(encoding="utf-8")
     front, old_body = split_markdown(old_text)
@@ -92,7 +104,10 @@ def reprepare_document(
         for key in ("tradeName", "inn", "holder")
         for word in COMPOUND_TOKEN.findall(str(metadata.get(key) or ""))
     ]
-    extracted = extract_with_vision(pdf_path, payload, lexicon, protected=protected)
+    alternatives = second_opinion_pages(second_opinion_dir, str(row["pdfSha256"]))
+    extracted = extract_with_vision(
+        pdf_path, payload, lexicon, protected=protected, alternatives=alternatives or None
+    )
     body = render_body(extracted, source_id=str(row["sourceId"]))
     metadata["extraction"] = extraction_front_matter(extracted)
     front["metadata"] = metadata
@@ -114,7 +129,11 @@ def reprepare_document(
         "documentKindReason": kind.reason,
         "ocr": diagnostics.text_extraction_mode == "ocr",
         "ocrEngine": diagnostics.ocr_engine,
-        "ocrTool": "macos-vision" if diagnostics.ocr_pages else None,
+        "ocrTool": (
+            ("macos-vision+" + TESSERACT_TOOL if cleanup.get("secondOpinion") else "macos-vision")
+            if diagnostics.ocr_pages
+            else None
+        ),
         "ocrMeanConfidence": diagnostics.ocr_mean_confidence,
         "ocrLowConfidenceRatio": diagnostics.ocr_low_confidence_ratio,
         "textSha256": text_digest(body),
@@ -125,6 +144,7 @@ def reprepare_document(
         "wordCount": cleanup.get("wordCount"),
         "unknownWordRatio": cleanup.get("unknownWordRatio"),
         "uncertainNumbers": cleanup.get("uncertainNumbers"),
+        "secondOpinion": cleanup.get("secondOpinion"),
         "wordEdits": sum(cast(dict[str, int], cleanup.get("wordEdits") or {}).values()),
         "pageMarks": cleanup.get("pageMarks"),
         "before": {

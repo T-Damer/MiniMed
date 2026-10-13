@@ -20,8 +20,8 @@ from collections import Counter
 from pathlib import Path
 from typing import Any, cast
 
-from localmed_ingest.grls_instruction_sections import find_grls_section_boundaries
 from localmed_ingest.grls_ocr_requality import plain_text, read_jsonl, split_markdown
+from localmed_ingest.markdown_parser import expand_grls_instruction_sections, parse_sections
 from localmed_ingest.ocr_text_cleanup import Lexicon, stamp_kind
 from localmed_ingest.sqlite_builder import repository_root
 
@@ -31,14 +31,15 @@ WORD = re.compile(r"[а-яёА-ЯЁ]{4,}")
 TERMINAL = re.compile(r"[.!?:;»)]\s*$")
 
 
-def measure(documents: list[tuple[str, int]], lexicon: Lexicon) -> dict[str, Any]:
-    """`documents` are (plain text, page count)."""
+def measure(documents: list[tuple[str, int, bool]], lexicon: Lexicon) -> dict[str, Any]:
+    """`documents` are (Markdown body, page count, is an instruction)."""
     words = unknown = stamps = paragraphs = unterminated = 0
     lengths: list[int] = []
     ratios: list[float] = []
     sections: Counter[str] = Counter()
     long_documents = 0
-    for text, pages in documents:
+    for body, pages, is_instruction in documents:
+        text = plain_text(body)
         doc_words = [w.casefold() for w in WORD.findall(text)]
         doc_unknown = sum(1 for w in doc_words if lexicon.cyrillic.get(w, 0) < 3)
         words += len(doc_words)
@@ -55,8 +56,13 @@ def measure(documents: list[tuple[str, int]], lexicon: Lexicon) -> dict[str, Any
             paragraphs += 1
             lengths.append(len(line))
             unterminated += 0 if TERMINAL.search(line) else 1
-            found.update(b.section_type for b in find_grls_section_boundaries(line))
-        if pages >= 3:
+        if pages >= 3 and is_instruction:
+            # the builder's own segmentation: Markdown headings plus inline standard headings
+            found = {
+                section.section_type
+                for section in expand_grls_instruction_sections(parse_sections(body))
+                if section.section_type
+            }
             long_documents += 1
             for name in ("dosage", "indications", "contraindications"):
                 sections[name] += name in found
@@ -90,8 +96,8 @@ def main() -> None:
     lexicon = Lexicon.from_json(json.loads(args.lexicon.read_text(encoding="utf-8")))
     manifest = {str(r["sourceId"]): r for r in read_jsonl(args.manifest) if r.get("sourceId")}
     overlay = read_jsonl(args.overlay)
-    before: list[tuple[str, int]] = []
-    after: list[tuple[str, int]] = []
+    before: list[tuple[str, int, bool]] = []
+    after: list[tuple[str, int, bool]] = []
     grades: Counter[str] = Counter()
     kinds_before: Counter[str] = Counter()
     kinds_after: Counter[str] = Counter()
@@ -103,8 +109,9 @@ def main() -> None:
         old_path = (REPO / "tools" / "ingest" / str(old["workspace"])).resolve() / f"{source_id}.md"
         new_path = (REPO / "tools" / "ingest" / str(row["workspace"])).resolve() / f"{source_id}.md"
         pages = int(row.get("pageCount") or 1)
-        before.append((plain_text(split_markdown(old_path.read_text("utf-8"))[1]), pages))
-        after.append((plain_text(split_markdown(new_path.read_text("utf-8"))[1]), pages))
+        instruction = row.get("documentKind") in {"national-instruction", "leaflet", "ohlp"}
+        before.append((split_markdown(old_path.read_text("utf-8"))[1], pages, instruction))
+        after.append((split_markdown(new_path.read_text("utf-8"))[1], pages, instruction))
         kinds_before[str(old.get("documentKind") or "unknown")] += 1
         kinds_after[str(row.get("documentKind"))] += 1
         grades[
@@ -121,7 +128,7 @@ def main() -> None:
         replaced += bool(row.get("textSource"))
     report = {
         "documents": len(overlay),
-        "pages": sum(p for _, p in before),
+        "pages": sum(p for _, p, _ in before),
         "before": measure(before, lexicon),
         "after": measure(after, lexicon),
         "kindsBefore": dict(kinds_before),

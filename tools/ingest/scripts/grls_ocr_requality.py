@@ -58,6 +58,14 @@ def main() -> None:
     )
     parser.add_argument("--overlay", type=Path, default=BUILD / "grls-ocr-quality.jsonl")
     parser.add_argument("--limit", type=int, default=0)
+    (
+        parser.add_argument(
+            "--second-opinion-dir",
+            type=Path,
+            default=BUILD / "grls-ocr-tesseract",
+            help="Tesseract pages from grls_ocr_second_opinion.py (merged where present)",
+        ),
+    )
     parser.add_argument("--only", nargs="*", default=[])
     parser.add_argument(
         "--extra-checksums", type=Path, help="file with one extra pdfSha256 per line"
@@ -117,6 +125,7 @@ def main() -> None:
             payload=json.loads(vision.read_text(encoding="utf-8")),
             lexicon=lexicon,
             workspace_label=workspace_label,
+            second_opinion_dir=args.second_opinion_dir,
         )
         write_document(args.workspace, str(row["sourceId"]), result)
         existing[str(row["sourceId"])] = result.overlay

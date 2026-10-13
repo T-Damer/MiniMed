@@ -51,6 +51,9 @@ def test_normalize_unicode_spacing_and_numero() -> None:
         ("cootbetctbyet экспертному отчету", "expert-report"),
         ("ЭКСПЕРТНЫЙ ОТЧЕТ", "expert-report"),
         ("ВЕРСИИ ДОКУМЕНТА", "expert-report"),
+        ("10 СООТВЕТСТВУЕТ ЭКСПЕРТНОМУ ОТЧЕТУ", "expert-report"),
+        ("§ COOTBETCTE ЭКСПЕРТНОМУ ОТЧЕТУ", "expert-report"),
+        ("З СООТВЕТСТВУЕТ ЭКСПЕРТНОМУ ОТЧЕТУ", "expert-report"),
         ("от 27.05.2025 № 13386", "expert-report"),
         ("МИНЗДРАВ РОССИИ", "approval"),
         ("СОГЛАСОВАНО", "approval"),
@@ -198,3 +201,19 @@ def test_numbers_are_never_modified_by_word_rules() -> None:
     cleaned = clean_words("по 1О мг и 5l0 мг, Стах 500 мr", LEXICON)
     for fragment in ("1О", "5l0", "500", "мr"):
         assert fragment in cleaned.text
+
+
+def test_a_dropped_first_letter_is_restored_when_the_word_is_unique() -> None:
+    lexicon = Lexicon(cyrillic={"условия": 3000, "отпуска": 3000})
+    assert correct_word("словия", lexicon) == "условия"
+    assert clean_words("словия отпуска", lexicon).text == "условия отпуска"
+
+
+def test_the_patient_leaflet_title_word_is_repaired() -> None:
+    for variant in ("вкладьи", "вкладьш", "вкладьни", "вклады"):
+        cleaned = clean_words(f"Листок-{variant} – информация для пациента", None)
+        assert cleaned.text == "Листок-вкладыш – информация для пациента", variant
+        assert cleaned.edits[0].rule == "known-term"
+    # real word forms are not touched
+    assert clean_words("листок-вкладыша", None).edits == []
+    assert clean_words("Листок-вкладыш", None).edits == []

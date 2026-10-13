@@ -75,6 +75,7 @@ SUBSTITUTIONS: tuple[tuple[str, str], ...] = (
 )
 MIN_CORRECTION_DOCUMENT_FREQUENCY = 30
 MIN_CORRECTABLE_LENGTH = 5
+MIN_FIRST_LETTER_DOCUMENT_FREQUENCY = 1000
 # Grammatical endings differ between real words («-ую»/«-ых»): no edit in the last characters.
 ENDING_GUARD = 2
 
@@ -160,7 +161,7 @@ _STAMP_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     (
         "expert-report",
         re.compile(
-            r"^(?:соответствует|ответствует|сответствует|соответству\w*|соотв\w*)\s+экспертн\w*"
+            r"^(?:\S\s+)?(?:соответствует|ответствует|сответствует|соответству\w*|соотв\w*)\s+экспертн\w*"
             r"(?:\s+отчет\w*)?\b"
         ),
     ),
@@ -187,8 +188,13 @@ _STAMP_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
 _INLINE_SEQUENCE = re.compile(r"\(?\s*ПОСЛЕДОВАТЕЛЬНОСТЬ\s*\d{3,4}\s*\)?", re.IGNORECASE)
 
 
+_LEADING_NOISE = re.compile(r"^[\s\d§\-–—_|.,:;()\[\]]{1,8}(?=[^\s\d§\-–—_|.,:;()\[\]])")
+
+
 def _fold_for_stamp(text: str) -> str:
-    return re.sub(r"\s+", " ", text.casefold().translate(_LOOKALIKE_FOLD)).strip()
+    folded = re.sub(r"\s+", " ", text.casefold().translate(_LOOKALIKE_FOLD)).strip()
+    # the page number printed next to a stamp («10 СООТВЕТСТВУЕТ ЭКСПЕРТНОМУ ОТЧЕТУ»)
+    return _LEADING_NOISE.sub("", folded)
 
 
 def stamp_kind(text: str) -> str | None:
@@ -339,11 +345,13 @@ def _candidates(word: str) -> set[str]:
             if index + len(wrong) <= len(word) - ENDING_GUARD:
                 found.add(word[:index] + right + word[index + len(wrong) :])
             start = index + 1
-    # a dropped letter
+    # a dropped letter inside the word
     if len(word) >= MIN_CORRECTABLE_LENGTH:
         for index in range(1, len(word) - ENDING_GUARD + 1):
             for letter in CYRILLIC_LETTERS:
                 found.add(word[:index] + letter + word[index:])
+        # …and the capital «У» the scans of «Условия» lose: only for a very common word
+        found.add("у" + word)
     return found
 
 
@@ -367,7 +375,12 @@ def correct_word(
     hits = {
         candidate
         for candidate in _candidates(folded)
-        if lexicon.cyrillic.get(candidate, 0) >= MIN_CORRECTION_DOCUMENT_FREQUENCY
+        if lexicon.cyrillic.get(candidate, 0)
+        >= (
+            MIN_FIRST_LETTER_DOCUMENT_FREQUENCY
+            if candidate == "у" + folded
+            else MIN_CORRECTION_DOCUMENT_FREQUENCY
+        )
     }
     if len(hits) != 1:
         return None
@@ -406,12 +419,32 @@ def unify_script(word: str, lexicon: Lexicon) -> str | None:
     return None
 
 
+_LEAFLET_TITLE = re.compile(r"(листок)(\s*[-–—]\s*)(вклад\w{1,4})(?![а-яё])", re.IGNORECASE)
+_LEAFLET_WORD_FORMS = frozenset(
+    {"вкладыш", "вкладыша", "вкладышу", "вкладышем", "вкладыше", "вкладыши", "вкладышей"}
+)
+
+
+def _fix_leaflet_title(text: str, edits: list[WordEdit]) -> str:
+    """«Листок-вкладьи» → «Листок-вкладыш»: the title word of a patient leaflet, misread."""
+
+    def repair(match: re.Match[str]) -> str:
+        variant = match.group(3)
+        if variant.casefold() in _LEAFLET_WORD_FORMS or len(variant) > 9:
+            return match.group(0)
+        edits.append(WordEdit(variant, _restore_case(variant, "вкладыш"), "known-term"))
+        return match.group(1) + match.group(2) + _restore_case(variant, "вкладыш")
+
+    return _LEAFLET_TITLE.sub(repair, text)
+
+
 def clean_words(
     text: str, lexicon: Lexicon | None, *, protected: Iterable[str] = ()
 ) -> CleanedText:
     """Apply the word-level rules to one paragraph; every change is listed in `edits`."""
     edits: list[WordEdit] = []
     guard = frozenset(word.casefold() for word in protected)
+    text = _fix_leaflet_title(text, edits)
     sentence_start = True
 
     def replace(match: re.Match[str]) -> str:

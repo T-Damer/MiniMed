@@ -249,6 +249,19 @@ asset with `bun run content:substance-fallback` and commit `apps/app/src/feature
 for registrations without an own text, the donors whose documents the modules now hold
 ([ADR-0023](adr/0023-same-substance-instruction-fallback.md), `CURRENT_STATE.md` «Same-substance instruction fallback»).
 
+## OCR quality pass (OCR1, 2026-10-14)
+
+The OCR-derived texts are re-prepared by `tools/ingest/scripts/grls_ocr_vision_cache.py` (the same Vision engine,
+raw payload and per-line confidence cached in `data/build/grls-ocr-vision`, intermediate) and
+`tools/ingest/scripts/grls_ocr_requality.py lexicon|run|siblings|manufacturer`. Rules and measurements:
+[research/ocr-quality-2026-10-14.md](research/ocr-quality-2026-10-14.md), `CURRENT_STATE.md` «OCR1». The result is a
+second prepared workspace (`data/intermediate/grls-ocr-cleaned`) and the overlay `data/build/grls-ocr-quality.jsonl`
+(one row per PDF checksum: workspace, content kind, quality grade, confidence, counters); the text manifest and the
+collector's workspaces are not modified. `read_manifest_rows` of the module builder joins the overlay, so
+`build_grls_instruction_modules.py` builds from the cleaned text, and `content/grls-reviewed-ocr/` still wins for a
+reviewed document. New OCR documents the collector delivers are cleaned by running the same two scripts (the cache
+step takes `--checksums`).
+
 ## Next action
 
 Continue the repaired current-site resolver in bounded eight-worker batches. Use
