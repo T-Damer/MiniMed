@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.surgery-trauma.ru",
-  "version": "0.1.0-preview.2",
+  "version": "0.1.0-preview.3",
   "title": "Хирургия, травма и анестезиология: шкалы и расчёты",
   "schemaVersion": 2,
   "builtAt": "2026-10-13T00:00:00Z",
@@ -143,6 +143,30 @@
           {
             "when": "1",
             "message": "T-RTS 11 и менее: хотя бы один показатель вне нормы — критерий направления в травмоцентр по Champion (1989). Чем ниже T-RTS, тем тяжелее состояние."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_triageRts",
+            "valueId": "triageRts",
+            "minimum": 0,
+            "maximum": 12,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Есть нарушения",
+                "attentionLevel": "high",
+                "interpretation": 1
+              },
+              {
+                "from": 12,
+                "label": "Показатели в норме",
+                "attentionLevel": "none",
+                "interpretation": 0
+              }
+            ]
           }
         ],
         "sources": [
@@ -400,6 +424,16 @@
           }
         ],
         "interpretations": [],
+        "scoreScales": [
+          {
+            "id": "scale_survival",
+            "valueId": "survival",
+            "minimum": 0,
+            "maximum": 100,
+            "layout": "proportional",
+            "bands": []
+          }
+        ],
         "sources": [
           {
             "title": "Boyd CR, Tolson MA, Copes WS. Evaluating trauma care: the TRISS method. Trauma Score and the Injury Severity Score",
@@ -894,6 +928,48 @@
             "message": "ISS 75: есть повреждение с AIS 6, несовместимое с жизнью."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_iss",
+            "valueId": "iss",
+            "minimum": 0,
+            "maximum": 75,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Лёгкая травма",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 9,
+                "label": "Умеренная травма",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 16,
+                "label": "Тяжёлая травма",
+                "attentionLevel": "high",
+                "interpretation": 2
+              },
+              {
+                "from": 25,
+                "label": "Крайне тяжёлая травма",
+                "attentionLevel": "urgent",
+                "interpretation": 3
+              },
+              {
+                "from": 75,
+                "label": "Максимальная оценка",
+                "attentionLevel": "urgent",
+                "interpretation": 4
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Baker SP, O'Neill B, Haddon W Jr, Long WB. The injury severity score: a method for describing patients with multiple injuries and evaluating emergency care",
@@ -1175,6 +1251,30 @@
           {
             "when": "1",
             "message": "9–10 баллов: лёгкая травма; в исходной работе такие пострадавшие выписывались домой."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_crams",
+            "valueId": "crams",
+            "minimum": 0,
+            "maximum": 10,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Тяжёлая травма",
+                "attentionLevel": "high",
+                "interpretation": 0
+              },
+              {
+                "from": 9,
+                "label": "Лёгкая травма",
+                "attentionLevel": "none",
+                "interpretation": 1
+              }
+            ]
           }
         ],
         "sources": [
@@ -1462,6 +1562,42 @@
           {
             "when": "1",
             "message": "0–2 балла: плановый осмотр (зелёный), в пределах 4 часов."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_tews",
+            "valueId": "tews",
+            "minimum": 0,
+            "maximum": 17,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Планово (зелёный)",
+                "attentionLevel": "none",
+                "interpretation": 3
+              },
+              {
+                "from": 3,
+                "label": "Срочный (жёлтый)",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 5,
+                "label": "Очень срочный (оранжевый)",
+                "attentionLevel": "high",
+                "interpretation": 1
+              },
+              {
+                "from": 7,
+                "label": "Неотложный (красный)",
+                "attentionLevel": "urgent",
+                "interpretation": 0
+              }
+            ]
           }
         ],
         "sources": [
@@ -2005,6 +2141,48 @@
             "message": "Более 45 баллов: критическое; летальность 100 % по данным источника."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 12,
+            "maximum": 87,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 12,
+                "label": "Удовлетворительное",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 13,
+                "label": "Средней тяжести",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 21,
+                "label": "Тяжёлое",
+                "attentionLevel": "high",
+                "interpretation": 2
+              },
+              {
+                "from": 32,
+                "label": "Крайне тяжёлое",
+                "attentionLevel": "urgent",
+                "interpretation": 3
+              },
+              {
+                "from": 46,
+                "label": "Критическое",
+                "attentionLevel": "urgent",
+                "interpretation": 4
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Указания по военно-полевой хирургии. МО РФ, 8-е издание. Приложение: шкалы ВПХ-СП, ВПХ-СГ-(II), ВПХ-СС, ВПХ-СУ, ВПХ-УЛ, ВПХ-ЭХ",
@@ -2517,6 +2695,48 @@
           {
             "when": "1",
             "message": "Более 50 баллов: критическое; летальность 100 % по данным источника."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 22,
+            "maximum": 93,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 22,
+                "label": "Удовлетворительное",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 23,
+                "label": "Средней тяжести",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 33,
+                "label": "Тяжёлое",
+                "attentionLevel": "high",
+                "interpretation": 2
+              },
+              {
+                "from": 41,
+                "label": "Крайне тяжёлое",
+                "attentionLevel": "urgent",
+                "interpretation": 3
+              },
+              {
+                "from": 51,
+                "label": "Критическое",
+                "attentionLevel": "urgent",
+                "interpretation": 4
+              }
+            ]
           }
         ],
         "sources": [
@@ -3289,6 +3509,48 @@
             "message": "99 баллов и более: критическое; летальность 100 % по данным источника."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 30,
+            "maximum": 150,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 30,
+                "label": "Удовлетворительное",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 33,
+                "label": "Средней тяжести",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 50,
+                "label": "Тяжёлое",
+                "attentionLevel": "high",
+                "interpretation": 2
+              },
+              {
+                "from": 70,
+                "label": "Крайне тяжёлое",
+                "attentionLevel": "urgent",
+                "interpretation": 3
+              },
+              {
+                "from": 99,
+                "label": "Критическое",
+                "attentionLevel": "urgent",
+                "interpretation": 4
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Указания по военно-полевой хирургии. МО РФ, 8-е издание. Приложение: шкалы ВПХ-СП, ВПХ-СГ-(II), ВПХ-СС, ВПХ-СУ, ВПХ-УЛ, ВПХ-ЭХ",
@@ -3674,6 +3936,30 @@
             "message": "Менее 15 баллов: диагностический порог ушиба сердца по шкале не достигнут; решение принимает врач по клинической картине."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 52,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Порог не достигнут",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 15,
+                "label": "Ушиб сердца",
+                "attentionLevel": "high",
+                "interpretation": 0
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Указания по военно-полевой хирургии. МО РФ, 8-е издание. Приложение: шкалы ВПХ-СП, ВПХ-СГ-(II), ВПХ-СС, ВПХ-СУ, ВПХ-УЛ, ВПХ-ЭХ",
@@ -3956,6 +4242,36 @@
             "message": "Менее 9 баллов: диагностический порог ушиба лёгкого по шкале не достигнут; решение принимает врач по клинической картине."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 38,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Порог не достигнут",
+                "attentionLevel": "low",
+                "interpretation": 2
+              },
+              {
+                "from": 9,
+                "label": "Ушиб лёгкого вероятен",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 20,
+                "label": "Ушиб лёгкого вероятен",
+                "attentionLevel": "high",
+                "interpretation": 0
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Указания по военно-полевой хирургии. МО РФ, 8-е издание. Приложение: шкалы ВПХ-СП, ВПХ-СГ-(II), ВПХ-СС, ВПХ-СУ, ВПХ-УЛ, ВПХ-ЭХ",
@@ -4209,6 +4525,36 @@
             "message": "6 баллов и более: сердечно-сосудистые осложнения 20,0 %, дыхательные 13,8 %; эндохирургические операции в обычном исполнении противопоказаны, лапароскопию выполняют с лапаролифтом, торакоскопию — с двулёгочной вентиляцией."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 23,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Минимальный риск",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 4,
+                "label": "Вероятный риск",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 6,
+                "label": "Высокий риск",
+                "attentionLevel": "urgent",
+                "interpretation": 2
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Указания по военно-полевой хирургии. МО РФ, 8-е издание. Приложение: шкалы ВПХ-СП, ВПХ-СГ-(II), ВПХ-СС, ВПХ-СУ, ВПХ-УЛ, ВПХ-ЭХ",
@@ -4446,6 +4792,48 @@
           {
             "when": "asa == 5",
             "message": "ASA V: умирающий пациент, выживание без операции маловероятно — например, разрыв аневризмы, массивная травма, внутричерепное кровоизлияние с масс-эффектом."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_asa",
+            "valueId": "asa",
+            "minimum": 1,
+            "maximum": 6,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 1,
+                "label": "I",
+                "attentionLevel": "none"
+              },
+              {
+                "from": 2,
+                "label": "II",
+                "attentionLevel": "none"
+              },
+              {
+                "from": 3,
+                "label": "III",
+                "attentionLevel": "moderate"
+              },
+              {
+                "from": 4,
+                "label": "IV",
+                "attentionLevel": "high"
+              },
+              {
+                "from": 5,
+                "label": "V",
+                "attentionLevel": "urgent"
+              },
+              {
+                "from": 6,
+                "label": "VI",
+                "attentionLevel": "urgent"
+              }
+            ]
           }
         ],
         "sources": [
@@ -4802,6 +5190,48 @@
             "message": "Более 8 баллов: класс V, крайне высокий риск."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 1.5,
+            "maximum": 12,
+            "step": 0.5,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 1.5,
+                "label": "I — незначительный",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 2,
+                "label": "II — умеренный",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 3.5,
+                "label": "III — значительный",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 5.5,
+                "label": "IV — высокий",
+                "attentionLevel": "high",
+                "interpretation": 3
+              },
+              {
+                "from": 8.5,
+                "label": "V — крайне высокий",
+                "attentionLevel": "urgent",
+                "interpretation": 4
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Московское научное общество анестезиологов-реаниматологов. Классификация операционно-анестезиологического риска МНОАР (1989)",
@@ -5064,6 +5494,42 @@
           {
             "when": "1",
             "message": "26 баллов и более, класс IV: жизнеугрожающие осложнения у 22 %, смерть от сердечных причин у 56 % (4 из 18 и 10 из 18 пациентов в исходной работе)."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 53,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Класс I",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 6,
+                "label": "Класс II",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 13,
+                "label": "Класс III",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 26,
+                "label": "Класс IV",
+                "attentionLevel": "urgent",
+                "interpretation": 3
+              }
+            ]
           }
         ],
         "sources": [
@@ -5347,6 +5813,36 @@
             "message": "Более 30 баллов, класс III: высокий риск кардиальных осложнений."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 100,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Класс I",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 16,
+                "label": "Класс II",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 31,
+                "label": "Класс III",
+                "attentionLevel": "high",
+                "interpretation": 2
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Detsky AS, Abrams HB, McLaughlin JR, et al. Predicting cardiac complications in patients undergoing non-cardiac surgery",
@@ -5619,6 +6115,36 @@
           {
             "when": "1",
             "message": "45 баллов и более: высокий риск послеоперационных лёгочных осложнений (в исходной работе 44,9 % и 42,1 %)."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 123,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Низкий риск",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 26,
+                "label": "Умеренный риск",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 45,
+                "label": "Высокий риск",
+                "attentionLevel": "high",
+                "interpretation": 2
+              }
+            ]
           }
         ],
         "sources": [
@@ -6052,6 +6578,42 @@
           {
             "when": "1",
             "message": "5 баллов и более: высокий риск, ВТЭ около 6 % без профилактики; обычно показана фармакологическая профилактика, если нет высокого риска кровотечения."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 85,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Очень низкий риск",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "label": "Низкий риск",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 3,
+                "label": "Умеренный риск",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 5,
+                "label": "Высокий риск",
+                "attentionLevel": "high",
+                "interpretation": 3
+              }
+            ]
           }
         ],
         "sources": [
@@ -6659,6 +7221,32 @@
           }
         ],
         "interpretations": [],
+        "scoreScales": [
+          {
+            "id": "scale_possumMortality",
+            "valueId": "possumMortality",
+            "minimum": 0,
+            "maximum": 100,
+            "layout": "proportional",
+            "bands": []
+          },
+          {
+            "id": "scale_pPossumMortality",
+            "valueId": "pPossumMortality",
+            "minimum": 0,
+            "maximum": 100,
+            "layout": "proportional",
+            "bands": []
+          },
+          {
+            "id": "scale_possumMorbidity",
+            "valueId": "possumMorbidity",
+            "minimum": 0,
+            "maximum": 100,
+            "layout": "proportional",
+            "bands": []
+          }
+        ],
         "sources": [
           {
             "title": "Copeland GP, Jones D, Walters M. POSSUM: a scoring system for surgical audit",
@@ -6915,6 +7503,36 @@
             "message": "Более 29 баллов: III степень; летальность в среднем 59,1 % (Billing, 1994)."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 47,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "I степень",
+                "attentionLevel": "low",
+                "interpretation": 0
+              },
+              {
+                "from": 21,
+                "label": "II степень",
+                "attentionLevel": "high",
+                "interpretation": 1
+              },
+              {
+                "from": 30,
+                "label": "III степень",
+                "attentionLevel": "urgent",
+                "interpretation": 2
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Linder MM, Wacha H, Feldmann U, et al. Der Mannheimer Peritonitis-Index. Ein Instrument zur intraoperativen Prognose der Peritonitis",
@@ -7149,6 +7767,42 @@
           {
             "when": "1",
             "message": "15 баллов и более: релапаротомия потребовалась во всех случаях."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 32,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Низкая частота",
+                "attentionLevel": "low",
+                "interpretation": 0
+              },
+              {
+                "from": 11,
+                "label": "Повышенная частота",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 13,
+                "label": "Высокая частота",
+                "attentionLevel": "high",
+                "interpretation": 2
+              },
+              {
+                "from": 15,
+                "label": "Релапаротомия вероятна",
+                "attentionLevel": "urgent",
+                "interpretation": 3
+              }
+            ]
           }
         ],
         "sources": [
@@ -7483,6 +8137,42 @@
             "message": "7 и более критериев: летальность около 100 % (по обзорам)."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_criteria",
+            "valueId": "criteria",
+            "minimum": 0,
+            "maximum": 11,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Лёгкое течение",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 3,
+                "label": "Среднее течение",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 5,
+                "label": "Тяжёлое течение",
+                "attentionLevel": "high",
+                "interpretation": 2
+              },
+              {
+                "from": 7,
+                "label": "Крайне тяжёлое течение",
+                "attentionLevel": "urgent",
+                "interpretation": 3
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Ranson JH, Rifkind KM, Turner JW. Prognostic signs and nonoperative peritoneal lavage in acute pancreatitis",
@@ -7801,6 +8491,63 @@
           {
             "when": "1",
             "message": "8 баллов и более: повторное кровотечение у 41,8 %, летальность 41,1 %."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 11,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 0,
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "attentionLevel": "none",
+                "interpretation": 1
+              },
+              {
+                "from": 2,
+                "attentionLevel": "none",
+                "interpretation": 2
+              },
+              {
+                "from": 3,
+                "attentionLevel": "moderate",
+                "interpretation": 3
+              },
+              {
+                "from": 4,
+                "attentionLevel": "moderate",
+                "interpretation": 4
+              },
+              {
+                "from": 5,
+                "attentionLevel": "moderate",
+                "interpretation": 5
+              },
+              {
+                "from": 6,
+                "attentionLevel": "high",
+                "interpretation": 6
+              },
+              {
+                "from": 7,
+                "attentionLevel": "high",
+                "interpretation": 7
+              },
+              {
+                "from": 8,
+                "attentionLevel": "urgent",
+                "interpretation": 8
+              }
+            ]
           }
         ],
         "sources": [
@@ -8599,6 +9346,29 @@
             "message": "Объём превышает 60 % ОЦК: по протоколу общий объём гемотрансфузий не должен быть больше; пересмотрите желаемый гемоглобин или разделите переливание."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_fractionOfBloodVolume",
+            "valueId": "fractionOfBloodVolume",
+            "minimum": 0,
+            "maximum": 100,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "В пределах 60 % ОЦК",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 60,
+                "label": "Более 60 % ОЦК",
+                "attentionLevel": "high",
+                "interpretation": 1
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Клинический протокол «Использование препаратов донорской крови у новорожденных». Министерство здравоохранения Республики Казахстан",
@@ -8915,6 +9685,36 @@
           {
             "when": "1",
             "message": "Более 14 баллов: опасность образования пролежней невелика."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 5,
+            "maximum": 20,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 5,
+                "label": "Пролежни очень вероятны",
+                "attentionLevel": "high",
+                "interpretation": 0
+              },
+              {
+                "from": 13,
+                "label": "Есть опасность пролежней",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 15,
+                "label": "Опасность невелика",
+                "attentionLevel": "none",
+                "interpretation": 2
+              }
+            ]
           }
         ],
         "sources": [
@@ -9361,6 +10161,30 @@
             "message": "Более 25 баллов: риск развития пролежней по шкале не выявлен."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 9,
+            "maximum": 36,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 9,
+                "label": "Есть риск пролежней",
+                "attentionLevel": "moderate",
+                "interpretation": 0
+              },
+              {
+                "from": 26,
+                "label": "Риск по шкале не выявлен",
+                "attentionLevel": "none",
+                "interpretation": 1
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "ГОСТ Р 56819-2015 Надлежащая медицинская практика. Инфологическая модель. Профилактика пролежней. Приложение Б, таблицы Б.3 и Б.4",
@@ -9666,6 +10490,36 @@
             "message": "45 баллов и более: высокий риск падения; специальные меры профилактики."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 125,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Риск не выявлен",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 25,
+                "label": "Низкий риск",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 45,
+                "label": "Высокий риск",
+                "attentionLevel": "high",
+                "interpretation": 2
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Morse JM, Morse RM, Tylko SJ. Development of a scale to identify the fall-prone patient",
@@ -9871,6 +10725,48 @@
           {
             "when": "vip == 5",
             "message": "Ступень 5: выраженный тромбофлебит. Начать лечение и сменить катетер."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_vip",
+            "valueId": "vip",
+            "minimum": 0,
+            "maximum": 5,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 0,
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 2,
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 3,
+                "attentionLevel": "moderate",
+                "interpretation": 3
+              },
+              {
+                "from": 4,
+                "attentionLevel": "high",
+                "interpretation": 4
+              },
+              {
+                "from": 5,
+                "attentionLevel": "urgent",
+                "interpretation": 5
+              }
+            ]
           }
         ],
         "sources": [

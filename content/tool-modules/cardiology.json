@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.cardiology.ru",
-  "version": "0.2.0-preview.2",
+  "version": "0.2.0-preview.3",
   "title": "Кардиология и тромбоэмболии: шкалы и расчёты",
   "schemaVersion": 2,
   "builtAt": "2026-10-13T00:00:00Z",
@@ -201,6 +201,42 @@
           {
             "when": "1",
             "message": "Более 6 баллов: высокая клиническая вероятность ТЭЛА; ТЭЛА вероятна."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 12.5,
+            "step": 0.5,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Низкая вероятность",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 2,
+                "label": "Средняя вероятность",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 4.5,
+                "label": "Средняя вероятность",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 6.5,
+                "label": "Высокая вероятность",
+                "attentionLevel": "high",
+                "interpretation": 3
+              }
+            ]
           }
         ],
         "sources": [
@@ -525,6 +561,42 @@
           {
             "when": "1",
             "message": "0 баллов и менее: ТГВ маловероятен; низкая вероятность по трёхуровневой схеме (ТГВ у 5,0 % в объединённом анализе, Wells, 2006). При отрицательном D-димере в исследовании 2003 г. УЗИ не выполняли."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": -2,
+            "maximum": 9,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": -2,
+                "label": "ТГВ маловероятен",
+                "attentionLevel": "none",
+                "interpretation": 3
+              },
+              {
+                "from": 1,
+                "label": "ТГВ маловероятен",
+                "attentionLevel": "none",
+                "interpretation": 2
+              },
+              {
+                "from": 2,
+                "label": "ТГВ вероятен",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 3,
+                "label": "Высокая вероятность",
+                "attentionLevel": "high",
+                "interpretation": 0
+              }
+            ]
           }
         ],
         "sources": [
@@ -877,6 +949,36 @@
             "message": "11 баллов и более: высокая вероятность ТЭЛА; в проверочной выборке — 74 %."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 22,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Низкая вероятность",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 4,
+                "label": "Средняя вероятность",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 11,
+                "label": "Высокая вероятность",
+                "attentionLevel": "high",
+                "interpretation": 2
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Le Gal G, Righini M, Roy PM, et al. Prediction of pulmonary embolism in the emergency department: the revised Geneva score",
@@ -1149,6 +1251,17 @@
           {
             "when": "1",
             "message": "Выявлен хотя бы один критерий: ТЭЛА не исключена правилом, нужна оценка вероятности и D-димер или визуализация."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_positiveCriteria",
+            "valueId": "positiveCriteria",
+            "minimum": 0,
+            "maximum": 8,
+            "step": 1,
+            "layout": "proportional",
+            "bands": []
           }
         ],
         "sources": [
@@ -1440,6 +1553,48 @@
           {
             "when": "1",
             "message": "6–7 баллов: 40,9 % за 14 дней (когорта TIMI 11B)."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 7,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 2,
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 3,
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 4,
+                "attentionLevel": "moderate",
+                "interpretation": 3
+              },
+              {
+                "from": 5,
+                "attentionLevel": "high",
+                "interpretation": 4
+              },
+              {
+                "from": 6,
+                "attentionLevel": "urgent",
+                "interpretation": 5
+              }
+            ]
           }
         ],
         "sources": [
@@ -1756,6 +1911,68 @@
           {
             "when": "1",
             "message": "Более 8 баллов: 30-дневная летальность 35,9 % (когорта InTIME-II)."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 14,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 0,
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "attentionLevel": "none",
+                "interpretation": 1
+              },
+              {
+                "from": 2,
+                "attentionLevel": "low",
+                "interpretation": 2
+              },
+              {
+                "from": 3,
+                "attentionLevel": "low",
+                "interpretation": 3
+              },
+              {
+                "from": 4,
+                "attentionLevel": "moderate",
+                "interpretation": 4
+              },
+              {
+                "from": 5,
+                "attentionLevel": "moderate",
+                "interpretation": 5
+              },
+              {
+                "from": 6,
+                "attentionLevel": "high",
+                "interpretation": 6
+              },
+              {
+                "from": 7,
+                "attentionLevel": "high",
+                "interpretation": 7
+              },
+              {
+                "from": 8,
+                "attentionLevel": "urgent",
+                "interpretation": 8
+              },
+              {
+                "from": 9,
+                "attentionLevel": "urgent",
+                "interpretation": 9
+              }
+            ]
           }
         ],
         "sources": [
@@ -2078,6 +2295,42 @@
             "message": "3 балла и более (класс IV): 11 % (проверочная когорта). Осложнения: инфаркт, отёк лёгких, фибрилляция желудочков или остановка сердца, полная АВ-блокада."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 6,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Класс I",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "label": "Класс II",
+                "attentionLevel": "none",
+                "interpretation": 1
+              },
+              {
+                "from": 2,
+                "label": "Класс III",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 3,
+                "label": "Класс IV",
+                "attentionLevel": "high",
+                "interpretation": 3
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Lee TH, Marcantonio ER, Mangione CM, et al. Derivation and prospective validation of a simple index for prediction of cardiac risk of major noncardiac surgery",
@@ -2347,6 +2600,48 @@
             "message": "Более 50 баллов: очень высокий риск; 19,5 %."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 1,
+            "maximum": 96,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 1,
+                "label": "Очень низкий риск",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 21,
+                "label": "Низкий риск",
+                "attentionLevel": "none",
+                "interpretation": 1
+              },
+              {
+                "from": 31,
+                "label": "Умеренный риск",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 41,
+                "label": "Высокий риск",
+                "attentionLevel": "high",
+                "interpretation": 3
+              },
+              {
+                "from": 51,
+                "label": "Очень высокий риск",
+                "attentionLevel": "high",
+                "interpretation": 4
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Subherwal S, Bach RG, Chen AY, et al. Baseline risk of major bleeding in non-ST-segment-elevation myocardial infarction: the CRUSADE Bleeding Score",
@@ -2540,6 +2835,42 @@
             "message": "Класс IV: кардиогенный шок."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_classValue",
+            "valueId": "classValue",
+            "minimum": 1,
+            "maximum": 4,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 1,
+                "label": "Класс I",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 2,
+                "label": "Класс II",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 3,
+                "label": "Класс III",
+                "attentionLevel": "high",
+                "interpretation": 2
+              },
+              {
+                "from": 4,
+                "label": "Класс IV",
+                "attentionLevel": "urgent",
+                "interpretation": 3
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Killip T 3rd, Kimball JT. Treatment of myocardial infarction in a coronary care unit: a two year experience with 250 patients",
@@ -2722,6 +3053,42 @@
             "message": "Класс IV: любая нагрузка вызывает дискомфорт; симптомы сердечной недостаточности или стенокардии возможны в покое, при нагрузке дискомфорт усиливается."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_classValue",
+            "valueId": "classValue",
+            "minimum": 1,
+            "maximum": 4,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 1,
+                "label": "Класс I",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 2,
+                "label": "Класс II",
+                "attentionLevel": "none",
+                "interpretation": 1
+              },
+              {
+                "from": 3,
+                "label": "Класс III",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 4,
+                "label": "Класс IV",
+                "attentionLevel": "high",
+                "interpretation": 3
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "The Criteria Committee of the New York Heart Association. Nomenclature and Criteria for Diagnosis of Diseases of the Heart and Great Vessels",
@@ -2900,6 +3267,42 @@
           {
             "when": "1",
             "message": "Класс IV: любая нагрузка вызывает дискомфорт, приступ возможен в покое."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_classValue",
+            "valueId": "classValue",
+            "minimum": 1,
+            "maximum": 4,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 1,
+                "label": "Класс I",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 2,
+                "label": "Класс II",
+                "attentionLevel": "none",
+                "interpretation": 1
+              },
+              {
+                "from": 3,
+                "label": "Класс III",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 4,
+                "label": "Класс IV",
+                "attentionLevel": "high",
+                "interpretation": 3
+              }
+            ]
           }
         ],
         "sources": [
@@ -3174,6 +3577,36 @@
             "message": "7–10 баллов: высокий риск; 50,1 % (Backus, 2013); в исходной работе 2008 г. — 72,7 %."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 10,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Низкий риск",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 4,
+                "label": "Умеренный риск",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 7,
+                "label": "Высокий риск",
+                "attentionLevel": "high",
+                "interpretation": 2
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Backus BE, Six AJ, Kelder JC, et al. A prospective validation of the HEART score for chest pain patients at the emergency department",
@@ -3382,6 +3815,35 @@
           {
             "when": "1",
             "message": "Ниже −10: высокий риск; 4-летняя выживаемость 79 % (амбулаторная когорта, Mark, 1991)."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": -30,
+            "maximum": 20,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": -30,
+                "label": "Высокий риск",
+                "attentionLevel": "high",
+                "interpretation": 2
+              },
+              {
+                "from": -10,
+                "label": "Промежуточный риск",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 5,
+                "label": "Низкий риск",
+                "attentionLevel": "none",
+                "interpretation": 0
+              }
+            ]
           }
         ],
         "sources": [
@@ -3701,6 +4163,48 @@
             "message": "Более 125 баллов (класс V): очень высокий риск; 10,0–24,5 %."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 200,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Класс I",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 66,
+                "label": "Класс II",
+                "attentionLevel": "none",
+                "interpretation": 1
+              },
+              {
+                "from": 86,
+                "label": "Класс III",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 106,
+                "label": "Класс IV",
+                "attentionLevel": "high",
+                "interpretation": 3
+              },
+              {
+                "from": 126,
+                "label": "Класс V",
+                "attentionLevel": "high",
+                "interpretation": 4
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Aujesky D, Obrosky DS, Stone RA, et al. Derivation and validation of a prognostic model for pulmonary embolism",
@@ -3928,6 +4432,30 @@
           {
             "when": "1",
             "message": "1 балл и более: высокий риск; 30-дневная смертность 10,9 % в исходной и 8,9 % в проверочной когорте."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 6,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Низкий риск",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "label": "Высокий риск",
+                "attentionLevel": "high",
+                "interpretation": 1
+              }
+            ]
           }
         ],
         "sources": [
@@ -4261,6 +4789,30 @@
             "message": "4 балла и более: высокий риск; ВТЭ за 90 дней у 11,0 % без профилактики и у 2,2 % при адекватной профилактике."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 20,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Низкий риск",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 4,
+                "label": "Высокий риск",
+                "attentionLevel": "high",
+                "interpretation": 1
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Barbar S, Noventa F, Rossetto V, et al. A risk assessment model for the identification of hospitalized medical patients at risk for venous thromboembolism: the Padua Prediction Score",
@@ -4586,6 +5138,48 @@
           {
             "when": "1",
             "message": "5 баллов и более: 12,3 кровотечения на 100 пациенто-лет приёма варфарина."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 12,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 0,
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 2,
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 3,
+                "attentionLevel": "moderate",
+                "interpretation": 3
+              },
+              {
+                "from": 4,
+                "attentionLevel": "high",
+                "interpretation": 4
+              },
+              {
+                "from": 5,
+                "attentionLevel": "urgent",
+                "interpretation": 5
+              }
+            ]
           }
         ],
         "sources": [
@@ -4972,6 +5566,36 @@
             "message": "Более 140 баллов: высокий риск; летальность в стационаре более 3 %."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 250,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Низкий риск",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 109,
+                "label": "Промежуточный риск",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 141,
+                "label": "Высокий риск",
+                "attentionLevel": "high",
+                "interpretation": 2
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Granger CB, Goldberg RJ, Dabbous O, et al. Predictors of hospital mortality in the Global Registry of Acute Coronary Events",
@@ -5355,6 +5979,36 @@
           {
             "when": "1",
             "message": "Более 118 баллов: высокий риск; летальность за 6 месяцев более 8 %."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 250,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Низкий риск",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 89,
+                "label": "Промежуточный риск",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 119,
+                "label": "Высокий риск",
+                "attentionLevel": "high",
+                "interpretation": 2
+              }
+            ]
           }
         ],
         "sources": [
@@ -5818,6 +6472,36 @@
             "message": "Очень высокий риск: от 7,5 % до 50 лет, от 10 % в 50–69 лет, от 15 % с 70 лет."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_riskCategory",
+            "valueId": "riskCategory",
+            "minimum": 0,
+            "maximum": 2,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Низкий или умеренный риск",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "label": "Высокий риск",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 2,
+                "label": "Очень высокий риск",
+                "attentionLevel": "high",
+                "interpretation": 2
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "SCORE2 working group and ESC Cardiovascular risk collaboration. SCORE2 risk prediction algorithms: new models to estimate 10-year risk of cardiovascular disease in Europe",
@@ -6232,6 +6916,36 @@
             "message": "Более 20 % за 10 лет: по ATP III риск приравнивают к риску при ИБС."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_riskBand",
+            "valueId": "riskBand",
+            "minimum": 0,
+            "maximum": 2,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Риск менее 10 %",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "label": "Риск 10–20 %",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 2,
+                "label": "Риск более 20 %",
+                "attentionLevel": "high",
+                "interpretation": 2
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Expert Panel on Detection, Evaluation, and Treatment of High Blood Cholesterol in Adults. Executive Summary of the Third Report of the National Cholesterol Education Program (NCEP) (Adult Treatment Panel III)",
@@ -6570,6 +7284,36 @@
           {
             "when": "1",
             "message": "54 балла и более: 20 % и выше за 10 лет — высокий риск."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_points",
+            "valueId": "points",
+            "minimum": 0,
+            "maximum": 87,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Риск менее 10 %",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 45,
+                "label": "Риск 10–20 %",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 54,
+                "label": "Риск 20 % и выше",
+                "attentionLevel": "high",
+                "interpretation": 2
+              }
+            ]
           }
         ],
         "sources": [
@@ -6965,6 +7709,41 @@
           {
             "when": "1",
             "message": "20 % и выше за 10 лет: высокий риск."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_riskPercent",
+            "valueId": "riskPercent",
+            "minimum": 0,
+            "maximum": 40,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Низкий риск",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 5,
+                "label": "Пограничный риск",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 7.5,
+                "label": "Промежуточный риск",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 20,
+                "label": "Высокий риск",
+                "attentionLevel": "high",
+                "interpretation": 3
+              }
+            ]
           }
         ],
         "sources": [
@@ -7499,6 +8278,16 @@
             "message": "Вероятность смерти в стационаре после операции на сердце; модель не задаёт пороговых категорий, минимум значения — 0,50 %."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_mortality",
+            "valueId": "mortality",
+            "minimum": 0,
+            "maximum": 100,
+            "layout": "proportional",
+            "bands": []
+          }
+        ],
         "sources": [
           {
             "title": "Nashef SAM, Roques F, Sharples LD, et al. EuroSCORE II",
@@ -7790,6 +8579,28 @@
             "message": "2 балла и более: продление, вероятно, полезно — тромбоз стента или инфаркт 2,7 % против 5,7 %, кровотечения 1,8 % против 1,4 % (DAPT)."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": -2,
+            "maximum": 10,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": -2,
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 2,
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Yeh RW, Secemsky EA, Kereiakes DJ, et al. Development and validation of a prediction rule for benefit and harm of dual antiplatelet therapy beyond 1 year after percutaneous coronary intervention",
@@ -8022,6 +8833,28 @@
           {
             "when": "1",
             "message": "2 балла и более: вероятен плохой контроль МНО на антагонистах витамина К; нужны дополнительные меры или другой антикоагулянт."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 8,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 2,
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              }
+            ]
           }
         ],
         "sources": [
@@ -8301,6 +9134,38 @@
             "message": "Более 6 баллов: за год повторный инсульт 6,8 %, сердечно-сосудистые события 11,5 % (REACH)."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 9,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 3,
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 5,
+                "attentionLevel": "high",
+                "interpretation": 2
+              },
+              {
+                "from": 7,
+                "attentionLevel": "high",
+                "interpretation": 3
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Weimar C, Diener HC, Alberts MJ, et al. The Essen Stroke Risk Score predicts recurrent cardiovascular events: a validation within the REduction of Atherothrombosis for Continued Health (REACH) registry",
@@ -8567,6 +9432,66 @@
             "message": "ЛПИ 1,00–1,40: норма."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_abiRight",
+            "valueId": "abiRight",
+            "minimum": 0.2,
+            "maximum": 1.8,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0.2,
+                "label": "ЗПА",
+                "attentionLevel": "high"
+              },
+              {
+                "from": 0.91,
+                "label": "Пограничный",
+                "attentionLevel": "moderate"
+              },
+              {
+                "from": 1,
+                "label": "Норма",
+                "attentionLevel": "none"
+              },
+              {
+                "from": 1.41,
+                "label": "Несжимаемые",
+                "attentionLevel": "moderate"
+              }
+            ]
+          },
+          {
+            "id": "scale_abiLeft",
+            "valueId": "abiLeft",
+            "minimum": 0.2,
+            "maximum": 1.8,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0.2,
+                "label": "ЗПА",
+                "attentionLevel": "high"
+              },
+              {
+                "from": 0.91,
+                "label": "Пограничный",
+                "attentionLevel": "moderate"
+              },
+              {
+                "from": 1,
+                "label": "Норма",
+                "attentionLevel": "none"
+              },
+              {
+                "from": 1.41,
+                "label": "Несжимаемые",
+                "attentionLevel": "moderate"
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Gerhard-Herman MD, Gornik HL, Barrett C, et al. 2016 AHA/ACC Guideline on the Management of Patients With Lower Extremity Peripheral Artery Disease",
@@ -8765,6 +9690,29 @@
           {
             "when": "1",
             "message": "Выше 23,4: вероятен инфаркт миокарда с подъёмом ST (чувствительность 86 %, специфичность 91 %)."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_index",
+            "valueId": "index",
+            "minimum": 0,
+            "maximum": 50,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Ранняя реполяризация",
+                "attentionLevel": "low",
+                "interpretation": 0
+              },
+              {
+                "from": 23.4,
+                "label": "Инфаркт с подъёмом ST",
+                "attentionLevel": "high",
+                "interpretation": 1
+              }
+            ]
           }
         ],
         "sources": [
@@ -9033,6 +9981,42 @@
           {
             "when": "1",
             "message": "Выраженное отклонение: выше 148 г/м² у мужчин, выше 121 г/м² у женщин."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_lvhGrade",
+            "valueId": "lvhGrade",
+            "minimum": 0,
+            "maximum": 3,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Масса в норме",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "label": "Гипертрофия лёгкая",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 2,
+                "label": "Гипертрофия умеренная",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 3,
+                "label": "Гипертрофия выраженная",
+                "attentionLevel": "high",
+                "interpretation": 3
+              }
+            ]
           }
         ],
         "sources": [
@@ -9331,6 +10315,42 @@
           {
             "when": "1",
             "message": "16 баллов и более: очень высокий риск; нефропатия 57,3 %, диализ 12,6 %."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 30,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Низкий риск",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 6,
+                "label": "Умеренный риск",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 11,
+                "label": "Высокий риск",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 16,
+                "label": "Очень высокий риск",
+                "attentionLevel": "high",
+                "interpretation": 3
+              }
+            ]
           }
         ],
         "sources": [
@@ -9743,6 +10763,48 @@
           {
             "when": "1",
             "message": "C6: открытая венозная язва."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_cNumber",
+            "valueId": "cNumber",
+            "minimum": 0,
+            "maximum": 6,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "C0–C1",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 2,
+                "label": "C2",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 3,
+                "label": "C3",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 4,
+                "label": "C4–C5",
+                "attentionLevel": "moderate",
+                "interpretation": 3
+              },
+              {
+                "from": 6,
+                "label": "C6",
+                "attentionLevel": "high",
+                "interpretation": 4
+              }
+            ]
           }
         ],
         "sources": [
@@ -10330,6 +11392,48 @@
             "message": "C6: открытая венозная язва."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_cNumber",
+            "valueId": "cNumber",
+            "minimum": 0,
+            "maximum": 6,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "C0–C1",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 2,
+                "label": "C2",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 3,
+                "label": "C3",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 4,
+                "label": "C4–C5",
+                "attentionLevel": "moderate",
+                "interpretation": 3
+              },
+              {
+                "from": 6,
+                "label": "C6",
+                "attentionLevel": "high",
+                "interpretation": 4
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Eklöf B, Rutherford RB, Bergan JJ, et al. Revision of the CEAP classification for chronic venous disorders: consensus statement",
@@ -10634,6 +11738,53 @@
           {
             "when": "1",
             "message": "Обширный дефект тканей (Резерфорд: major tissue loss): Фонтейн IV, Покровский IV, Резерфорд степень III, категория 6."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_rutherfordCategory",
+            "valueId": "rutherfordCategory",
+            "minimum": 0,
+            "maximum": 6,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 0,
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 2,
+                "attentionLevel": "low",
+                "interpretation": 2
+              },
+              {
+                "from": 3,
+                "attentionLevel": "moderate",
+                "interpretation": 3
+              },
+              {
+                "from": 4,
+                "attentionLevel": "high",
+                "interpretation": 4
+              },
+              {
+                "from": 5,
+                "attentionLevel": "high",
+                "interpretation": 5
+              },
+              {
+                "from": 6,
+                "attentionLevel": "high",
+                "interpretation": 6
+              }
+            ]
           }
         ],
         "sources": [

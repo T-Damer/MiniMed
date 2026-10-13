@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.emergency.ru",
-  "version": "0.1.0-preview.3",
+  "version": "0.1.0-preview.4",
   "title": "Инструменты неотложной помощи",
   "schemaVersion": 2,
   "builtAt": "2026-08-17T00:00:00Z",
@@ -164,6 +164,36 @@
           "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/4436844/"
         },
         "schemaVersion": 2,
+        "scoreScales": [
+          {
+            "id": "scale_gcs_total",
+            "valueId": "gcs-total",
+            "minimum": 3,
+            "maximum": 15,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 3,
+                "label": "Тяжёлая",
+                "attentionLevel": "urgent",
+                "interpretation": 2
+              },
+              {
+                "from": 9,
+                "label": "Умеренная",
+                "attentionLevel": "high",
+                "interpretation": 1
+              },
+              {
+                "from": 13,
+                "label": "Лёгкая",
+                "attentionLevel": "low",
+                "interpretation": 0
+              }
+            ]
+          }
+        ],
         "evaluation": {
           "status": "unavailable",
           "rules": [],
@@ -401,6 +431,36 @@
           "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/3946867/"
         },
         "schemaVersion": 2,
+        "scoreScales": [
+          {
+            "id": "scale_alvarado_total",
+            "valueId": "alvarado-total",
+            "minimum": 0,
+            "maximum": 10,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Маловероятен",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 5,
+                "label": "Промежуточная",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 7,
+                "label": "Вероятен",
+                "attentionLevel": "high",
+                "interpretation": 2
+              }
+            ]
+          }
+        ],
         "evaluation": {
           "status": "unavailable",
           "rules": [],
@@ -521,6 +581,29 @@
           }
         ],
         "assertions": [],
+        "scoreScales": [
+          {
+            "id": "scale_shockIndex",
+            "valueId": "shockIndex",
+            "minimum": 0,
+            "maximum": 2,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "< 0,9",
+                "attentionLevel": "none",
+                "interpretation": 1
+              },
+              {
+                "from": 0.9,
+                "label": "≥ 0,9",
+                "attentionLevel": "high",
+                "interpretation": 0
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Shock index revisited: a fast guide to transfusion requirement?",

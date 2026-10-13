@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.pulmonology.ru",
-  "version": "0.1.0-preview.2",
+  "version": "0.1.0-preview.3",
   "title": "Пульмонология и инфекции: шкалы пневмонии и боли в горле",
   "schemaVersion": 2,
   "builtAt": "2026-10-13T00:00:00Z",
@@ -183,6 +183,42 @@
           {
             "when": "diastolicBp > systolicBp",
             "error": "Диастолическое АД не может превышать систолическое."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 5,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Низкий риск",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 2,
+                "label": "Промежуточный риск",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 3,
+                "label": "Высокий риск",
+                "attentionLevel": "high",
+                "interpretation": 2
+              },
+              {
+                "from": 4,
+                "label": "Очень высокий риск",
+                "attentionLevel": "urgent",
+                "interpretation": 3
+              }
+            ]
           }
         ],
         "sources": [
@@ -455,6 +491,36 @@
           {
             "when": "diastolicBp > systolicBp",
             "error": "Диастолическое АД не может превышать систолическое."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 4,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Низкий риск",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "label": "Промежуточный риск",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 3,
+                "label": "Высокий риск",
+                "attentionLevel": "high",
+                "interpretation": 2
+              }
+            ]
           }
         ],
         "sources": [
@@ -1010,6 +1076,48 @@
             "error": "Для классов II–V заполните pH, мочевину, натрий, глюкозу, гематокрит, PaO₂ или SpO₂ и данные о плевральном выпоте."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_riskClass",
+            "valueId": "riskClass",
+            "minimum": 1,
+            "maximum": 5,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 1,
+                "label": "Класс I",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 2,
+                "label": "Класс II",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 3,
+                "label": "Класс III",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 4,
+                "label": "Класс IV",
+                "attentionLevel": "high",
+                "interpretation": 3
+              },
+              {
+                "from": 5,
+                "label": "Класс V",
+                "attentionLevel": "urgent",
+                "interpretation": 4
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Fine MJ, Auble TE, Yealy DM, et al. A prediction rule to identify low-risk patients with community-acquired pneumonia",
@@ -1380,6 +1488,42 @@
             "message": "7 баллов и более: очень высокий риск (около 2 из 3); оцените показания к ОРИТ."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 11,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Низкий риск",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 3,
+                "label": "Умеренный риск",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 5,
+                "label": "Высокий риск",
+                "attentionLevel": "high",
+                "interpretation": 2
+              },
+              {
+                "from": 7,
+                "label": "Очень высокий риск",
+                "attentionLevel": "urgent",
+                "interpretation": 3
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Charles PG, Wolfe R, Whitby M, et al. SMART-COP: a tool for predicting the need for intensive respiratory or vasopressor support in community-acquired pneumonia",
@@ -1693,6 +1837,36 @@
             "message": "3 балла и более: высокий риск потребности в ИВЛ или вазопрессорах; оцените показания к ОРИТ."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 8,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Низкий риск",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 2,
+                "label": "Умеренный риск",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 3,
+                "label": "Высокий риск",
+                "attentionLevel": "high",
+                "interpretation": 2
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Charles PG, Wolfe R, Whitby M, et al. SMART-COP: a tool for predicting the need for intensive respiratory or vasopressor support in community-acquired pneumonia",
@@ -1974,6 +2148,43 @@
           {
             "when": "1",
             "message": "4–5 баллов: стрептококк группы A находят примерно у 55 %; клинические рекомендации допускают антибиотик по клинической картине."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 4,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 0,
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "attentionLevel": "none",
+                "interpretation": 1
+              },
+              {
+                "from": 2,
+                "attentionLevel": "low",
+                "interpretation": 2
+              },
+              {
+                "from": 3,
+                "attentionLevel": "moderate",
+                "interpretation": 3
+              },
+              {
+                "from": 4,
+                "attentionLevel": "high",
+                "interpretation": 4
+              }
+            ]
           }
         ],
         "sources": [

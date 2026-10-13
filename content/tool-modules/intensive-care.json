@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.intensive-care.ru",
-  "version": "0.1.0-preview.2",
+  "version": "0.1.0-preview.3",
   "title": "Интенсивная терапия и сепсис: шкалы и расчёты",
   "schemaVersion": 2,
   "builtAt": "2026-10-13T00:00:00Z",
@@ -252,6 +252,36 @@
             "message": "Более 11 баллов: в ОРИТ при исходном или максимальном SOFA выше 11 летальность превышала 80 % (Ferreira, 2001)."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 24,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Ниже порога дисфункции",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 2,
+                "label": "Органная дисфункция",
+                "attentionLevel": "high",
+                "interpretation": 1
+              },
+              {
+                "from": 12,
+                "label": "Очень высокий балл",
+                "attentionLevel": "urgent",
+                "interpretation": 2
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Vincent JL, Moreno R, Takala J, et al. The SOFA (Sepsis-related Organ Failure Assessment) score to describe organ dysfunction/failure",
@@ -486,6 +516,30 @@
           {
             "when": "1",
             "message": "2–3 балла: больничная летальность выше в 3–14 раз, чем при менее 2 баллах; оцените органную дисфункцию (SOFA), инфекцию и усильте наблюдение."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 3,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Ниже порога",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 2,
+                "label": "Повышенный риск",
+                "attentionLevel": "high",
+                "interpretation": 1
+              }
+            ]
           }
         ],
         "sources": [
@@ -733,6 +787,30 @@
           {
             "when": "1",
             "message": "2 и более критерия: SIRS по ACCP/SCCM; признак системного воспаления, не обязательно инфекции — ищите причину."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 4,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "SIRS не выполнен",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 2,
+                "label": "SIRS",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              }
+            ]
           }
         ],
         "sources": [
@@ -1054,6 +1132,36 @@
             "message": "0–4 балла: низкий клинический риск; наблюдение по плану, частота — по сумме баллов (0 баллов — не реже раза в 12 часов, 1–4 — раз в 4–6 часов)."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 20,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Низкий",
+                "attentionLevel": "low",
+                "interpretation": 3
+              },
+              {
+                "from": 5,
+                "label": "Средний",
+                "attentionLevel": "high",
+                "interpretation": 1
+              },
+              {
+                "from": 7,
+                "label": "Высокий",
+                "attentionLevel": "urgent",
+                "interpretation": 0
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Royal College of Physicians. National Early Warning Score (NEWS) 2: Standardising the assessment of acute-illness severity in the NHS",
@@ -1309,6 +1417,30 @@
           {
             "when": "1",
             "message": "5 и более баллов: повышен риск смерти (ОШ 5,4) и перевода в ОРИТ (ОШ 10,9); нужна оценка врачом и решение об уровне наблюдения."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 14,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Ниже порога",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 5,
+                "label": "Повышенный риск",
+                "attentionLevel": "high",
+                "interpretation": 1
+              }
+            ]
           }
         ],
         "sources": [
@@ -1830,6 +1962,58 @@
           {
             "when": "1",
             "message": "35 баллов и выше: ориентировочная летальность 85 % без операции и 88 % после операции."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 71,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 5,
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 10,
+                "attentionLevel": "low",
+                "interpretation": 2
+              },
+              {
+                "from": 15,
+                "attentionLevel": "moderate",
+                "interpretation": 3
+              },
+              {
+                "from": 20,
+                "attentionLevel": "high",
+                "interpretation": 4
+              },
+              {
+                "from": 25,
+                "attentionLevel": "high",
+                "interpretation": 5
+              },
+              {
+                "from": 30,
+                "attentionLevel": "urgent",
+                "interpretation": 6
+              },
+              {
+                "from": 35,
+                "attentionLevel": "urgent",
+                "interpretation": 7
+              }
+            ]
           }
         ],
         "sources": [
@@ -2381,6 +2565,16 @@
             "message": "Показана расчётная вероятность госпитальной смерти по модели SAPS II; она описывает группы сходных пациентов и не предсказывает исход отдельного человека."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_mortality",
+            "valueId": "mortality",
+            "minimum": 0,
+            "maximum": 100,
+            "layout": "proportional",
+            "bands": []
+          }
+        ],
         "sources": [
           {
             "title": "Le Gall JR, Lemeshow S, Saulnier F. A new Simplified Acute Physiology Score (SAPS II) based on a European/North American multicenter study",
@@ -2649,6 +2843,53 @@
           {
             "when": "1",
             "message": "Более 20 баллов: смертность в ОРИТ около 100 % в исходной когорте."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 24,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 5,
+                "attentionLevel": "low",
+                "interpretation": 2
+              },
+              {
+                "from": 9,
+                "attentionLevel": "moderate",
+                "interpretation": 3
+              },
+              {
+                "from": 13,
+                "attentionLevel": "high",
+                "interpretation": 4
+              },
+              {
+                "from": 17,
+                "attentionLevel": "urgent",
+                "interpretation": 5
+              },
+              {
+                "from": 21,
+                "attentionLevel": "urgent",
+                "interpretation": 6
+              }
+            ]
           }
         ],
         "sources": [
@@ -3101,6 +3342,16 @@
             "message": "Показана расчётная вероятность госпитальной смерти по модели MPM II при поступлении; она описывает группы сходных пациентов и не предсказывает исход отдельного человека."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_mortality",
+            "valueId": "mortality",
+            "minimum": 0,
+            "maximum": 100,
+            "layout": "proportional",
+            "bands": []
+          }
+        ],
         "sources": [
           {
             "title": "Lemeshow S, Teres D, Klar J, et al. Mortality Probability Models (MPM II) based on an international cohort of intensive care unit patients",
@@ -3457,6 +3708,16 @@
             "message": "Показана расчётная вероятность госпитальной смерти по модели MPM II для выбранного срока; она описывает группы сходных пациентов и не предсказывает исход отдельного человека."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_mortality",
+            "valueId": "mortality",
+            "minimum": 0,
+            "maximum": 100,
+            "layout": "proportional",
+            "bands": []
+          }
+        ],
         "sources": [
           {
             "title": "Lemeshow S, Teres D, Klar J, et al. Mortality Probability Models (MPM II) based on an international cohort of intensive care unit patients",
@@ -3692,6 +3953,36 @@
             "message": "Более 2,5 балла: тяжёлое повреждение лёгких (ОРДС)."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 4,
+            "step": 0.25,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Нет повреждения",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 0.25,
+                "label": "Лёгкое или умеренное повреждение",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 2.75,
+                "label": "Тяжёлое повреждение (ОРДС)",
+                "attentionLevel": "urgent",
+                "interpretation": 2
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Murray JF, Matthay MA, Luce JM, Flick MR. An expanded definition of the adult respiratory distress syndrome",
@@ -3919,6 +4210,68 @@
           {
             "when": "score == -5",
             "message": "−5: не пробуждается — нет реакции на голос и физическое раздражение."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": -5,
+            "maximum": 4,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": -5,
+                "attentionLevel": "high",
+                "interpretation": 9
+              },
+              {
+                "from": -4,
+                "attentionLevel": "high",
+                "interpretation": 8
+              },
+              {
+                "from": -3,
+                "attentionLevel": "moderate",
+                "interpretation": 7
+              },
+              {
+                "from": -2,
+                "attentionLevel": "low",
+                "interpretation": 6
+              },
+              {
+                "from": -1,
+                "attentionLevel": "none",
+                "interpretation": 5
+              },
+              {
+                "from": 0,
+                "attentionLevel": "none",
+                "interpretation": 4
+              },
+              {
+                "from": 1,
+                "attentionLevel": "low",
+                "interpretation": 3
+              },
+              {
+                "from": 2,
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 3,
+                "attentionLevel": "high",
+                "interpretation": 1
+              },
+              {
+                "from": 4,
+                "attentionLevel": "high",
+                "interpretation": 0
+              }
+            ]
           }
         ],
         "sources": [
@@ -4188,6 +4541,54 @@
             "message": "Уровень 6: нет ответа на раздражители."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 1,
+            "maximum": 6,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 1,
+                "label": "Уровень 1 — Беспокоен",
+                "attentionLevel": "low",
+                "interpretation": 0
+              },
+              {
+                "from": 2,
+                "label": "Уровень 2 — Спокоен",
+                "attentionLevel": "none",
+                "interpretation": 1
+              },
+              {
+                "from": 3,
+                "label": "Уровень 3 — Реагирует на команды",
+                "attentionLevel": "none",
+                "interpretation": 2
+              },
+              {
+                "from": 4,
+                "label": "Уровень 4 — Быстрый ответ",
+                "attentionLevel": "none",
+                "interpretation": 3
+              },
+              {
+                "from": 5,
+                "label": "Уровень 5 — Вялый ответ",
+                "attentionLevel": "moderate",
+                "interpretation": 4
+              },
+              {
+                "from": 6,
+                "label": "Уровень 6 — Нет реакции",
+                "attentionLevel": "high",
+                "interpretation": 5
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Ramsay MA, Savege TM, Simpson BR, Goodwin R. Controlled sedation with alphaxalone-alphadolone",
@@ -4433,6 +4834,37 @@
             "message": "100 мм рт. ст. и менее: тяжёлый ОРДС по оксигенации; летальность в когорте 45 %."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_ratio",
+            "valueId": "ratio",
+            "minimum": 0,
+            "maximum": 500,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Тяжёлый ОРДС",
+                "attentionLevel": "urgent"
+              },
+              {
+                "from": 100,
+                "label": "Умеренный ОРДС",
+                "attentionLevel": "high"
+              },
+              {
+                "from": 200,
+                "label": "Лёгкий ОРДС",
+                "attentionLevel": "moderate"
+              },
+              {
+                "from": 300,
+                "label": "Выше 300",
+                "attentionLevel": "none"
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "ARDS Definition Task Force; Ranieri VM, Rubenfeld GD, Thompson BT, et al. Acute respiratory distress syndrome: the Berlin Definition",
@@ -4620,6 +5052,29 @@
           {
             "when": "1",
             "message": "105 дых/мин/л и более: прогнозируется неудача отлучения от ИВЛ."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_rsbi",
+            "valueId": "rsbi",
+            "minimum": 0,
+            "maximum": 250,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Успех вероятен",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 105,
+                "label": "Неудача вероятна",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              }
+            ]
           }
         ],
         "sources": [
@@ -4820,6 +5275,29 @@
           {
             "when": "1",
             "message": "Баланс ниже 0: потери азота превышают поступление — преобладает катаболизм; пересмотрите питательную поддержку."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_balance",
+            "valueId": "balance",
+            "minimum": -20,
+            "maximum": 20,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": -20,
+                "label": "Отрицательный",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 0,
+                "label": "Положительный или нулевой",
+                "attentionLevel": "none",
+                "interpretation": 0
+              }
+            ]
           }
         ],
         "sources": [
@@ -5066,6 +5544,30 @@
             "message": "Менее 5 баллов: явный ДВС не подтверждён, возможен неявный (non-overt) ДВС; повторите оценку через 1–2 дня."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 8,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Явный ДВС не подтверждён",
+                "attentionLevel": "none",
+                "interpretation": 1
+              },
+              {
+                "from": 5,
+                "label": "Явный ДВС",
+                "attentionLevel": "urgent",
+                "interpretation": 0
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Taylor FB Jr, Toh CH, Hoots WK, Wada H, Levi M. Towards definition, clinical and laboratory criteria, and a scoring system for disseminated intravascular coagulation",
@@ -5268,6 +5770,30 @@
           {
             "when": "1",
             "message": "3 балла и более (порог более 2,5: чувствительность 81 %, специфичность 74 %): оцените показания к ранней противогрибковой терапии."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 5,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Ниже порога",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 3,
+                "label": "Выше порога",
+                "attentionLevel": "high",
+                "interpretation": 1
+              }
+            ]
           }
         ],
         "sources": [

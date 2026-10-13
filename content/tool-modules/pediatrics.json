@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.pediatrics.ru",
-  "version": "0.1.0-preview.7",
+  "version": "0.1.0-preview.8",
   "title": "Инструменты педиатрии",
   "schemaVersion": 2,
   "builtAt": "2026-10-12T00:00:00Z",
@@ -182,6 +182,17 @@
           "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/9220806/"
         },
         "schemaVersion": 2,
+        "scoreScales": [
+          {
+            "id": "scale_flacc_total",
+            "valueId": "flacc-total",
+            "minimum": 0,
+            "maximum": 10,
+            "step": 1,
+            "layout": "proportional",
+            "bands": []
+          }
+        ],
         "evaluation": {
           "status": "unavailable",
           "rules": [],
@@ -1121,6 +1132,36 @@
           }
         ],
         "assertions": [],
+        "scoreScales": [
+          {
+            "id": "scale_total",
+            "valueId": "total",
+            "minimum": 0,
+            "maximum": 8,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Дегидратации нет",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "label": "Лёгкая дегидратация",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 5,
+                "label": "Средняя / тяжёлая",
+                "attentionLevel": "high",
+                "interpretation": 2
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Development of a clinical dehydration scale for use in children between 1 and 36 months of age",
@@ -1349,6 +1390,36 @@
           }
         ],
         "assertions": [],
+        "scoreScales": [
+          {
+            "id": "scale_degree",
+            "valueId": "degree",
+            "minimum": 0,
+            "maximum": 2,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Нет",
+                "attentionLevel": "none",
+                "interpretation": 2
+              },
+              {
+                "from": 1,
+                "label": "Умеренная",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 2,
+                "label": "Тяжёлая",
+                "attentionLevel": "urgent",
+                "interpretation": 0
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "WHO guideline on the prevention and management of wasting and nutritional oedema (acute malnutrition) in infants and children under 5 years",

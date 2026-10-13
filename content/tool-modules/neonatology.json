@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.neonatology.ru",
-  "version": "0.1.0-preview.4",
+  "version": "0.1.0-preview.5",
   "title": "Инструменты неонатологии",
   "schemaVersion": 2,
   "builtAt": "2026-08-15T00:00:00Z",
@@ -380,6 +380,36 @@
           }
         ],
         "schemaVersion": 2,
+        "scoreScales": [
+          {
+            "id": "scale_silverman_andersen_total",
+            "valueId": "silverman-andersen-total",
+            "minimum": 0,
+            "maximum": 10,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Лёгкий",
+                "attentionLevel": "low",
+                "interpretation": 0
+              },
+              {
+                "from": 5,
+                "label": "Умеренный",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 7,
+                "label": "Тяжёлый",
+                "attentionLevel": "high",
+                "interpretation": 2
+              }
+            ]
+          }
+        ],
         "evaluation": {
           "status": "unavailable",
           "rules": [],
@@ -625,6 +655,36 @@
           }
         ],
         "schemaVersion": 2,
+        "scoreScales": [
+          {
+            "id": "scale_downes_vidyasagar_total",
+            "valueId": "downes-vidyasagar-total",
+            "minimum": 0,
+            "maximum": 10,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Лёгкий",
+                "attentionLevel": "low",
+                "interpretation": 0
+              },
+              {
+                "from": 5,
+                "label": "Умеренный",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 8,
+                "label": "Тяжёлый",
+                "attentionLevel": "high",
+                "interpretation": 2
+              }
+            ]
+          }
+        ],
         "evaluation": {
           "status": "unavailable",
           "rules": [],
@@ -780,6 +840,29 @@
           }
         ],
         "assertions": [],
+        "scoreScales": [
+          {
+            "id": "scale_weightLossPercent",
+            "valueId": "weightLossPercent",
+            "minimum": 0,
+            "maximum": 20,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "≤ 10 %",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 10,
+                "label": "> 10 %",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "First Office Visit, 3-5 Days",
@@ -1446,6 +1529,33 @@
             "error": "Итоговый балл выше валидируемого диапазона New Ballard. Проверьте корректность введённых пунктов; ожидается диапазон -10..50."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_gestationalAgeByScoreWeeks",
+            "valueId": "gestationalAgeByScoreWeeks",
+            "minimum": 20,
+            "maximum": 44,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 20,
+                "label": "< 26 нед",
+                "interpretation": 0
+              },
+              {
+                "from": 26,
+                "label": "26–38 нед",
+                "interpretation": 1
+              },
+              {
+                "from": 39,
+                "label": "≥ 39 нед",
+                "interpretation": 2
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "The New Ballard Score scoresheet",
@@ -1805,6 +1915,42 @@
             "version": "Lawrence et al. 1993",
             "url": "https://pubmed.ncbi.nlm.nih.gov/8413140/",
             "reviewedAt": "2026-08-15"
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_nips_total",
+            "valueId": "nips-total",
+            "minimum": 0,
+            "maximum": 7,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Нет боли",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 2,
+                "label": "Лёгкая",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 3,
+                "label": "Умеренная",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 5,
+                "label": "Выраженная",
+                "attentionLevel": "high",
+                "interpretation": 3
+              }
+            ]
           }
         ],
         "evaluation": {

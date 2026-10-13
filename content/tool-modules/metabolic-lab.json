@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.metabolic-lab.ru",
-  "version": "0.1.0-preview.2",
+  "version": "0.1.0-preview.3",
   "title": "Почки, эндокринология и лабораторные формулы: расчёты",
   "schemaVersion": 2,
   "builtAt": "2026-10-13T00:00:00Z",
@@ -271,6 +271,42 @@
             "message": "Стадия 3: креатинин в 3 раза и более, повышение до ≥4,0 мг/дл (≥353,6 мкмоль/л), начало заместительной терапии, у детей рСКФ <35 мл/мин/1,73 м² либо диурез <0,3 мл/кг/ч не менее 24 ч или анурия не менее 12 ч."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_stage",
+            "valueId": "stage",
+            "minimum": 0,
+            "maximum": 3,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Критерии ОПП не выполнены",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "label": "ОПП, стадия 1",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 2,
+                "label": "ОПП, стадия 2",
+                "attentionLevel": "high",
+                "interpretation": 2
+              },
+              {
+                "from": 3,
+                "label": "ОПП, стадия 3",
+                "attentionLevel": "urgent",
+                "interpretation": 3
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "KDIGO Clinical Practice Guideline for Acute Kidney Injury",
@@ -503,6 +539,42 @@
           {
             "when": "1",
             "message": "Очень высокий риск неблагоприятных исходов ХБП."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_riskLevel",
+            "valueId": "riskLevel",
+            "minimum": 0,
+            "maximum": 3,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Низкий риск",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "label": "Умеренно повышенный риск",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 2,
+                "label": "Высокий риск",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 3,
+                "label": "Очень высокий риск",
+                "attentionLevel": "high",
+                "interpretation": 3
+              }
+            ]
           }
         ],
         "sources": [
@@ -844,6 +916,42 @@
             "message": "Стадия 3: креатинин более чем в 3 раза, ≥4,0 мг/дл с приростом ≥0,5 мг/дл, заместительная терапия либо диурез <0,3 мл/кг/ч 24 ч или анурия 12 ч."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_stage",
+            "valueId": "stage",
+            "minimum": 0,
+            "maximum": 3,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Критерии не выполнены",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "label": "Стадия 1",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 2,
+                "label": "Стадия 2",
+                "attentionLevel": "high",
+                "interpretation": 2
+              },
+              {
+                "from": 3,
+                "label": "Стадия 3",
+                "attentionLevel": "urgent",
+                "interpretation": 3
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Mehta RL, Kellum JA, Shah SV, et al. Acute Kidney Injury Network: report of an initiative to improve outcomes in acute kidney injury",
@@ -1173,6 +1281,54 @@
             "message": "Класс E: терминальная стадия болезни почек — необходимость диализа более 3 месяцев."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_classCode",
+            "valueId": "classCode",
+            "minimum": 0,
+            "maximum": 5,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Критерии не выполнены",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "label": "R — риск",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 2,
+                "label": "I — повреждение",
+                "attentionLevel": "high",
+                "interpretation": 2
+              },
+              {
+                "from": 3,
+                "label": "F — недостаточность",
+                "attentionLevel": "urgent",
+                "interpretation": 3
+              },
+              {
+                "from": 4,
+                "label": "L — потеря функции",
+                "attentionLevel": "urgent",
+                "interpretation": 4
+              },
+              {
+                "from": 5,
+                "label": "E — терминальная ХБП",
+                "attentionLevel": "urgent",
+                "interpretation": 5
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Bellomo R, Ronco C, Kellum JA, Mehta RL, Palevsky P. Acute renal failure - definition, outcome measures, animal models, fluid therapy and information technology needs: the Second International Consensus Conference of the Acute Dialysis Quality Initiative (ADQI) Group",
@@ -1438,6 +1594,53 @@
           {
             "when": "1",
             "message": "G5: СКФ менее 15 — терминальная почечная недостаточность."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_egfrRounded",
+            "valueId": "egfrRounded",
+            "minimum": 0,
+            "maximum": 120,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "G5",
+                "attentionLevel": "urgent",
+                "interpretation": 5
+              },
+              {
+                "from": 15,
+                "label": "G4",
+                "attentionLevel": "high",
+                "interpretation": 4
+              },
+              {
+                "from": 30,
+                "label": "G3b",
+                "attentionLevel": "moderate",
+                "interpretation": 3
+              },
+              {
+                "from": 45,
+                "label": "G3a",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 60,
+                "label": "G2",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 90,
+                "label": "G1",
+                "attentionLevel": "none",
+                "interpretation": 0
+              }
+            ]
           }
         ],
         "sources": [
@@ -1768,6 +1971,53 @@
             "message": "G5: СКФ менее 15 — терминальная почечная недостаточность."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_egfrRounded",
+            "valueId": "egfrRounded",
+            "minimum": 0,
+            "maximum": 120,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "G5",
+                "attentionLevel": "urgent",
+                "interpretation": 5
+              },
+              {
+                "from": 15,
+                "label": "G4",
+                "attentionLevel": "high",
+                "interpretation": 4
+              },
+              {
+                "from": 30,
+                "label": "G3b",
+                "attentionLevel": "moderate",
+                "interpretation": 3
+              },
+              {
+                "from": 45,
+                "label": "G3a",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 60,
+                "label": "G2",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 90,
+                "label": "G1",
+                "attentionLevel": "none",
+                "interpretation": 0
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "De Souza VC, Rabilloud M, Cochat P, et al. Schwartz formula: is one k-coefficient adequate for all children?",
@@ -2057,6 +2307,27 @@
             "message": "20:1 и ниже: чаще внутрипочечная (ренальная) причина."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_ratio",
+            "valueId": "ratio",
+            "minimum": 0,
+            "maximum": 40,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "20:1 и ниже",
+                "interpretation": 1
+              },
+              {
+                "from": 20,
+                "label": "Выше 20:1",
+                "interpretation": 0
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Agrawal M, Swartz R. Acute renal failure",
@@ -2291,6 +2562,35 @@
           {
             "when": "1",
             "message": "Выше 0,02: семейная гипокальциурическая гиперкальциемия маловероятна."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_cccr",
+            "valueId": "cccr",
+            "minimum": 0,
+            "maximum": 0.04,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "< 0,01",
+                "attentionLevel": "moderate",
+                "interpretation": 0
+              },
+              {
+                "from": 0.01,
+                "label": "0,01–0,02",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 0.02,
+                "label": "> 0,02",
+                "attentionLevel": "none",
+                "interpretation": 2
+              }
+            ]
           }
         ],
         "sources": [
@@ -2882,6 +3182,36 @@
             "message": "45 баллов и более: тиреотоксический криз весьма вероятен."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 140,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Криз маловероятен",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 25,
+                "label": "Возможен предкриз",
+                "attentionLevel": "high",
+                "interpretation": 1
+              },
+              {
+                "from": 45,
+                "label": "Криз весьма вероятен",
+                "attentionLevel": "urgent",
+                "interpretation": 2
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Burch HB, Wartofsky L. Life-threatening thyrotoxicosis. Thyroid storm",
@@ -3229,6 +3559,48 @@
           {
             "when": "1",
             "message": "Более 20 баллов: очень высокий риск; сахарный диабет 2 типа в течение 10 лет — 1 из 2 (50%)."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 26,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Низкий риск",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 7,
+                "label": "Слегка повышен",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 12,
+                "label": "Умеренный риск",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 15,
+                "label": "Высокий риск",
+                "attentionLevel": "high",
+                "interpretation": 3
+              },
+              {
+                "from": 21,
+                "label": "Очень высокий риск",
+                "attentionLevel": "high",
+                "interpretation": 4
+              }
+            ]
           }
         ],
         "sources": [
@@ -4031,6 +4403,27 @@
             "error": "Проверьте значения глюкозы и инсулина."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_quicki",
+            "valueId": "quicki",
+            "minimum": 0.25,
+            "maximum": 0.5,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0.25,
+                "attentionLevel": "moderate",
+                "interpretation": 0
+              },
+              {
+                "from": 0.357,
+                "attentionLevel": "none",
+                "interpretation": 1
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Katz A, Nambi SS, Mather K, et al. Quantitative insulin sensitivity check index: a simple, accurate method for assessing insulin sensitivity in humans",
@@ -4250,6 +4643,48 @@
           {
             "when": "1",
             "message": "Натощак 7,0 и более либо через 2 часа 11,1 ммоль/л и более: значения соответствуют критериям сахарного диабета; диагноз ставит врач."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_category",
+            "valueId": "category",
+            "minimum": 0,
+            "maximum": 4,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Норма",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "label": "НГН",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 2,
+                "label": "НТГ",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 3,
+                "label": "НГН + НТГ",
+                "attentionLevel": "moderate",
+                "interpretation": 3
+              },
+              {
+                "from": 4,
+                "label": "Диабет",
+                "attentionLevel": "high",
+                "interpretation": 4
+              }
+            ]
           }
         ],
         "sources": [
@@ -4794,6 +5229,42 @@
             "message": "BRI 6,91 и выше (5-й квинтиль): смертность от всех причин выше, чем в 3-м квинтиле (отношение рисков 1,49). Это положение в когорте США, а не диагностический порог."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_bri",
+            "valueId": "bri",
+            "minimum": 0,
+            "maximum": 12,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Первый квинтиль",
+                "interpretation": 0
+              },
+              {
+                "from": 3.41,
+                "label": "Второй квинтиль",
+                "interpretation": 1
+              },
+              {
+                "from": 4.45,
+                "label": "Третий квинтиль",
+                "interpretation": 2
+              },
+              {
+                "from": 5.46,
+                "label": "Четвёртый квинтиль",
+                "interpretation": 3
+              },
+              {
+                "from": 6.91,
+                "label": "Пятый квинтиль",
+                "interpretation": 4
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Thomas DM, Bredlau C, Bosy-Westphal A, et al. Relationships between body roundness with body fat and visceral adipose tissue emerging from a new geometrical model",
@@ -5259,6 +5730,32 @@
           {
             "when": "volumeSecond <= volumeFirst",
             "error": "Объём не вырос: время удвоения не определено."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_vdtDays",
+            "valueId": "vdtDays",
+            "minimum": 0,
+            "maximum": 800,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "attentionLevel": "high",
+                "interpretation": 2
+              },
+              {
+                "from": 400,
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 600,
+                "attentionLevel": "low",
+                "interpretation": 0
+              }
+            ]
           }
         ],
         "sources": [
@@ -6094,6 +6591,37 @@
             "message": "2 и более: значение выше 2 характерно для алкогольного гепатита."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_ratio",
+            "valueId": "ratio",
+            "minimum": 0,
+            "maximum": 4,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "< 1",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "label": "1–1,5",
+                "interpretation": 1
+              },
+              {
+                "from": 1.5,
+                "label": "1,5–2",
+                "interpretation": 2
+              },
+              {
+                "from": 2,
+                "label": "≥ 2",
+                "interpretation": 3
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Botros M, Sikaris KA. The De Ritis ratio: the test of time",
@@ -6380,6 +6908,27 @@
             "message": "Индекс не выше нуля: стеатогепатит скорее неалкогольный (на отметке 0 чувствительность 85–96%, специфичность 67–100% в когортах Dunn)."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_ani",
+            "valueId": "ani",
+            "minimum": -10,
+            "maximum": 10,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": -10,
+                "label": "В пользу неалкогольной",
+                "interpretation": 1
+              },
+              {
+                "from": 0,
+                "label": "В пользу алкогольной",
+                "interpretation": 0
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Dunn W, Angulo P, Sanderson S, et al. Utility of a new model to diagnose an alcohol basis for steatohepatitis",
@@ -6575,6 +7124,35 @@
           {
             "when": "1",
             "message": "3 и более: адекватный ответ костного мозга на анемию (кровопотеря, гемолиз)."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_rpi",
+            "valueId": "rpi",
+            "minimum": 0,
+            "maximum": 5,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "< 2",
+                "attentionLevel": "moderate",
+                "interpretation": 0
+              },
+              {
+                "from": 2,
+                "label": "2–3",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 3,
+                "label": "≥ 3",
+                "attentionLevel": "none",
+                "interpretation": 2
+              }
+            ]
           }
         ],
         "sources": [
@@ -7478,6 +8056,35 @@
           {
             "when": "serumIron > tibc",
             "error": "Железо сыворотки не может превышать ОЖСС: проверьте значения и единицы."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_tsat",
+            "valueId": "tsat",
+            "minimum": 0,
+            "maximum": 100,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "< 16 %",
+                "attentionLevel": "moderate",
+                "interpretation": 0
+              },
+              {
+                "from": 16,
+                "label": "16–45 %",
+                "attentionLevel": "none",
+                "interpretation": 1
+              },
+              {
+                "from": 45,
+                "label": "> 45 %",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              }
+            ]
           }
         ],
         "sources": [

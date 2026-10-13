@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.psychology.ru",
-  "version": "0.1.0-preview.5",
+  "version": "0.1.0-preview.6",
   "title": "Инструменты психологии и психиатрии",
   "schemaVersion": 2,
   "builtAt": "2026-10-12T00:00:00Z",
@@ -1802,6 +1802,42 @@
           "sourceUrl": "https://ojs3.gpmu.org/index.php/Un-ther-journal/article/view/4125"
         },
         "schemaVersion": 2,
+        "scoreScales": [
+          {
+            "id": "scale_shas_total",
+            "valueId": "shas-total",
+            "minimum": 30,
+            "maximum": 120,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 30,
+                "label": "Нет астении",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 51,
+                "label": "Слабая",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 76,
+                "label": "Умеренная",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 101,
+                "label": "Выраженная",
+                "attentionLevel": "high",
+                "interpretation": 3
+              }
+            ]
+          }
+        ],
         "evaluation": {
           "status": "verdict",
           "rules": [
@@ -1907,7 +1943,7 @@
       ],
       "bankId": "psychiatry",
       "bankLabel": "Психиатрия",
-      "category": "self-reflection",
+      "category": "depression-anxiety",
       "description": "Двадцать утверждений о самочувствии за последнюю неделю (20–80 баллов) для самооценки выраженности депрессии. Оцените, как часто это было верно для вас за последнюю неделю.",
       "estimatedMinutes": 7,
       "audience": "Взрослые; скрининг и динамика, не диагноз",
@@ -1926,7 +1962,7 @@
         ],
         "bankId": "psychiatry",
         "bankLabel": "Психиатрия",
-        "category": "self-reflection",
+        "category": "depression-anxiety",
         "description": "Двадцать утверждений о самочувствии за последнюю неделю (20–80 баллов) для самооценки выраженности депрессии. Оцените, как часто это было верно для вас за последнюю неделю.",
         "estimatedMinutes": 7,
         "audience": "Взрослые; скрининг и динамика, не диагноз",
@@ -2110,6 +2146,42 @@
           "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/14221692/"
         },
         "schemaVersion": 2,
+        "scoreScales": [
+          {
+            "id": "scale_zung_sds_total",
+            "valueId": "zung-sds-total",
+            "minimum": 20,
+            "maximum": 80,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 20,
+                "label": "Ниже порога",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 40,
+                "label": "Лёгкая–умеренная",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 48,
+                "label": "Умеренная–тяжёлая",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 56,
+                "label": "Тяжёлая",
+                "attentionLevel": "high",
+                "interpretation": 3
+              }
+            ]
+          }
+        ],
         "evaluation": {
           "status": "verdict",
           "rules": [
@@ -2245,7 +2317,7 @@
       ],
       "bankId": "psychiatry",
       "bankLabel": "Психиатрия",
-      "category": "self-reflection",
+      "category": "depression-anxiety",
       "description": "Двадцать утверждений о самочувствии за последнюю неделю (20–80 баллов) для самооценки выраженности тревоги. Оцените, как часто это было верно для вас за последнюю неделю.",
       "estimatedMinutes": 7,
       "audience": "Взрослые; скрининг и динамика, не диагноз",
@@ -2264,7 +2336,7 @@
         ],
         "bankId": "psychiatry",
         "bankLabel": "Психиатрия",
-        "category": "self-reflection",
+        "category": "depression-anxiety",
         "description": "Двадцать утверждений о самочувствии за последнюю неделю (20–80 баллов) для самооценки выраженности тревоги. Оцените, как часто это было верно для вас за последнюю неделю.",
         "estimatedMinutes": 7,
         "audience": "Взрослые; скрининг и динамика, не диагноз",
@@ -2436,6 +2508,36 @@
           "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/5172928/"
         },
         "schemaVersion": 2,
+        "scoreScales": [
+          {
+            "id": "scale_zung_sas_total",
+            "valueId": "zung-sas-total",
+            "minimum": 20,
+            "maximum": 80,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 20,
+                "label": "Ниже порога",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 36,
+                "label": "Выше позднего порога",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 40,
+                "label": "Выше обоих порогов",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              }
+            ]
+          }
+        ],
         "evaluation": {
           "status": "verdict",
           "rules": [
@@ -2541,7 +2643,7 @@
       ],
       "bankId": "psychiatry",
       "bankLabel": "Психиатрия",
-      "category": "self-reflection",
+      "category": "depression-anxiety",
       "description": "Семнадцать пунктов, по которым врач оценивает выраженность депрессии после беседы с пациентом (0–52 балла).",
       "estimatedMinutes": 15,
       "audience": "Взрослые с депрессией; заполняет врач или обученный специалист",
@@ -2560,7 +2662,7 @@
         ],
         "bankId": "psychiatry",
         "bankLabel": "Психиатрия",
-        "category": "self-reflection",
+        "category": "depression-anxiety",
         "description": "Семнадцать пунктов, по которым врач оценивает выраженность депрессии после беседы с пациентом (0–52 балла).",
         "estimatedMinutes": 15,
         "audience": "Взрослые с депрессией; заполняет врач или обученный специалист",
@@ -3040,6 +3142,48 @@
           "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/14399272/"
         },
         "schemaVersion": 2,
+        "scoreScales": [
+          {
+            "id": "scale_hamd_17_total",
+            "valueId": "hamd-17-total",
+            "minimum": 0,
+            "maximum": 52,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Норма",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 8,
+                "label": "Лёгкая",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 14,
+                "label": "Умеренная",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 19,
+                "label": "Тяжёлая",
+                "attentionLevel": "high",
+                "interpretation": 3
+              },
+              {
+                "from": 23,
+                "label": "Крайне тяжёлая",
+                "attentionLevel": "urgent",
+                "interpretation": 4
+              }
+            ]
+          }
+        ],
         "evaluation": {
           "status": "verdict",
           "rules": [

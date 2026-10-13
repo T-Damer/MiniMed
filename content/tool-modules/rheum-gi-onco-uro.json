@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.rheum-gi-onco-uro.ru",
-  "version": "0.1.0-preview.2",
+  "version": "0.1.0-preview.3",
   "title": "Ревматология, гастроэнтерология, онкология и урология: шкалы и расчёты",
   "schemaVersion": 2,
   "builtAt": "2026-10-13T00:00:00Z",
@@ -133,6 +133,41 @@
           {
             "when": "1",
             "message": "Более 5,1: высокая активность заболевания."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_das28",
+            "valueId": "das28",
+            "minimum": 0,
+            "maximum": 10,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Ремиссия",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 2.6,
+                "label": "Низкая активность",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 3.2,
+                "label": "Умеренная активность",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 5.1,
+                "label": "Высокая активность",
+                "attentionLevel": "high",
+                "interpretation": 3
+              }
+            ]
           }
         ],
         "sources": [
@@ -353,6 +388,41 @@
           {
             "when": "1",
             "message": "Более 4,6: высокая активность заболевания."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_das28",
+            "valueId": "das28",
+            "minimum": 0,
+            "maximum": 10,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Ремиссия",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 2.4,
+                "label": "Низкая активность",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 2.9,
+                "label": "Умеренная активность",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 4.6,
+                "label": "Высокая активность",
+                "attentionLevel": "high",
+                "interpretation": 3
+              }
+            ]
           }
         ],
         "sources": [
@@ -613,6 +683,41 @@
             "message": "Более 3,5: очень высокая активность."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_asdas",
+            "valueId": "asdas",
+            "minimum": 0,
+            "maximum": 6,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Неактивная болезнь",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1.3,
+                "label": "Умеренная активность",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 2.1,
+                "label": "Высокая активность",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 3.5,
+                "label": "Очень высокая активность",
+                "attentionLevel": "high",
+                "interpretation": 3
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Lukas C, Landewé R, Sieper J, et al. Development of an ASAS-endorsed disease activity score (ASDAS) in patients with ankylosing spondylitis",
@@ -867,6 +972,41 @@
           {
             "when": "1",
             "message": "Более 3,5: очень высокая активность."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_asdas",
+            "valueId": "asdas",
+            "minimum": 0,
+            "maximum": 6,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Неактивная болезнь",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1.3,
+                "label": "Умеренная активность",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 2.1,
+                "label": "Высокая активность",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 3.5,
+                "label": "Очень высокая активность",
+                "attentionLevel": "high",
+                "interpretation": 3
+              }
+            ]
           }
         ],
         "sources": [
@@ -1128,6 +1268,27 @@
             "message": "4 и более: порог активной болезни в критериях ASAS для назначения ингибиторов ФНО."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_basdai",
+            "valueId": "basdai",
+            "minimum": 0,
+            "maximum": 10,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 4,
+                "attentionLevel": "high",
+                "interpretation": 1
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Garrett S, Jenkinson T, Kennedy LG, et al. A new approach to defining disease status in ankylosing spondylitis: the Bath Ankylosing Spondylitis Disease Activity Index",
@@ -1372,6 +1533,16 @@
           }
         ],
         "interpretations": [],
+        "scoreScales": [
+          {
+            "id": "scale_basfi",
+            "valueId": "basfi",
+            "minimum": 0,
+            "maximum": 10,
+            "layout": "proportional",
+            "bands": []
+          }
+        ],
         "sources": [
           {
             "title": "Calin A, Garrett S, Whitelock H, et al. A new approach to defining functional ability in ankylosing spondylitis: the development of the Bath Ankylosing Spondylitis Functional Index",
@@ -1912,6 +2083,48 @@
           {
             "when": "1",
             "message": "20 баллов и более: относительный риск смерти в течение 6 месяцев в когорте Cook 2000 составлял 14,11 по сравнению с 0."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_sledai",
+            "valueId": "sledai",
+            "minimum": 0,
+            "maximum": 105,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "SLEDAI-2K 0",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "label": "SLEDAI-2K 1–5",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 6,
+                "label": "SLEDAI-2K 6–10",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 11,
+                "label": "SLEDAI-2K 11–19",
+                "attentionLevel": "high",
+                "interpretation": 3
+              },
+              {
+                "from": 20,
+                "label": "SLEDAI-2K 20 и более",
+                "attentionLevel": "urgent",
+                "interpretation": 4
+              }
+            ]
           }
         ],
         "sources": [
@@ -2849,6 +3062,17 @@
           }
         ],
         "interpretations": [],
+        "scoreScales": [
+          {
+            "id": "scale_damage",
+            "valueId": "damage",
+            "minimum": 0,
+            "maximum": 47,
+            "step": 1,
+            "layout": "proportional",
+            "bands": []
+          }
+        ],
         "sources": [
           {
             "title": "Gladman D, Ginzler E, Goldsmith C, et al. The development and initial validation of the Systemic Lupus International Collaborating Clinics/American College of Rheumatology damage index for systemic lupus erythematosus",
@@ -3046,6 +3270,30 @@
           {
             "when": "1",
             "message": "6 баллов и более: определённый ревматоидный артрит по критериям ACR/EULAR 2010."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 10,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Не определён",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 6,
+                "label": "Определённый РА",
+                "attentionLevel": "high",
+                "interpretation": 1
+              }
+            ]
           }
         ],
         "sources": [
@@ -4051,6 +4299,27 @@
             "message": "Более 10: умеренная или тяжёлая степень по европейскому консенсусу («правило десяти»; учитывают также BSA и DLQI)."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_pasi",
+            "valueId": "pasi",
+            "minimum": 0,
+            "maximum": 72,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 10,
+                "attentionLevel": "high",
+                "interpretation": 1
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Fredriksson T, Pettersson U. Severe psoriasis - oral therapy with a new retinoid",
@@ -4424,6 +4693,42 @@
             "message": "Более 450 баллов: тяжёлая активность."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_cdai",
+            "valueId": "cdai",
+            "minimum": 0,
+            "maximum": 600,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Ремиссия",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 150,
+                "label": "Лёгкая активность",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 301,
+                "label": "Умеренная активность",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 451,
+                "label": "Тяжёлая активность",
+                "attentionLevel": "high",
+                "interpretation": 3
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Best WR, Becktel JM, Singleton JW, Kern F Jr. Development of a Crohn's disease activity index. National Cooperative Crohn's Disease Study",
@@ -4726,6 +5031,42 @@
           "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/3317057/"
         },
         "schemaVersion": 2,
+        "scoreScales": [
+          {
+            "id": "scale_mayo_total",
+            "valueId": "mayo-total",
+            "minimum": 0,
+            "maximum": 12,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Ремиссия",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 3,
+                "label": "Лёгкая",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 6,
+                "label": "Умеренная",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 10,
+                "label": "Тяжёлая",
+                "attentionLevel": "high",
+                "interpretation": 3
+              }
+            ]
+          }
+        ],
         "evaluation": {
           "status": "verdict",
           "rules": [
@@ -5008,6 +5349,30 @@
           "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/29315993/"
         },
         "schemaVersion": 2,
+        "scoreScales": [
+          {
+            "id": "scale_eckardt_total",
+            "valueId": "eckardt-total",
+            "minimum": 0,
+            "maximum": 12,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Ремиссия",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 4,
+                "label": "Симптомы сохраняются",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              }
+            ]
+          }
+        ],
         "evaluation": {
           "status": "verdict",
           "rules": [
@@ -5221,6 +5586,43 @@
           {
             "when": "1",
             "message": "40 баллов и более: летальность за 3 месяца около 71,3% (Wiesner 2003)."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_meld",
+            "valueId": "meld",
+            "minimum": 6,
+            "maximum": 40,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 6,
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 10,
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 20,
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 30,
+                "attentionLevel": "high",
+                "interpretation": 3
+              },
+              {
+                "from": 40,
+                "attentionLevel": "urgent",
+                "interpretation": 4
+              }
+            ]
           }
         ],
         "sources": [
@@ -5489,6 +5891,17 @@
           }
         ],
         "interpretations": [],
+        "scoreScales": [
+          {
+            "id": "scale_meld",
+            "valueId": "meld",
+            "minimum": 6,
+            "maximum": 40,
+            "step": 1,
+            "layout": "proportional",
+            "bands": []
+          }
+        ],
         "sources": [
           {
             "title": "Kamath PS, Wiesner RH, Malinchoc M, et al. A model to predict survival in patients with end-stage liver disease",
@@ -5727,6 +6140,17 @@
           }
         ],
         "interpretations": [],
+        "scoreScales": [
+          {
+            "id": "scale_meld3",
+            "valueId": "meld3",
+            "minimum": 6,
+            "maximum": 40,
+            "step": 1,
+            "layout": "proportional",
+            "bands": []
+          }
+        ],
         "sources": [
           {
             "title": "Kim WR, Mannalithara A, Heimbach JK, et al. MELD 3.0: the Model for End-Stage Liver Disease updated for the modern era",
@@ -5873,6 +6297,27 @@
           {
             "when": "1",
             "message": "32 и более: тяжёлый алкогольный гепатит; рассматривают глюкокортикоиды при отсутствии противопоказаний."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_df",
+            "valueId": "df",
+            "minimum": 0,
+            "maximum": 100,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 32,
+                "attentionLevel": "high",
+                "interpretation": 1
+              }
+            ]
           }
         ],
         "sources": [
@@ -6127,6 +6572,29 @@
             "message": "0,45 и более: нет ответа на глюкокортикоиды; 6-месячная выживаемость 25% (Louvet 2007)."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_lille",
+            "valueId": "lille",
+            "minimum": 0,
+            "maximum": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Ответ на лечение",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 0.45,
+                "label": "Нет ответа",
+                "attentionLevel": "high",
+                "interpretation": 1
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Louvet A, Naveau S, Abdelnour M, et al. The Lille model: a new tool for therapeutic strategy in patients with severe alcoholic hepatitis treated with steroids",
@@ -6340,6 +6808,35 @@
           {
             "when": "1",
             "message": "Более 0,676: выраженный фиброз (F3–F4) вероятен."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_nfs",
+            "valueId": "nfs",
+            "minimum": -4,
+            "maximum": 4,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": -4,
+                "label": "Низкий риск",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": -1.455,
+                "label": "Неопределённо",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 0.676,
+                "label": "Высокий риск",
+                "attentionLevel": "high",
+                "interpretation": 2
+              }
+            ]
           }
         ],
         "sources": [
@@ -6807,6 +7304,36 @@
             "message": "20–35 баллов: выраженные симптомы."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_ipssScore",
+            "valueId": "ipssScore",
+            "minimum": 0,
+            "maximum": 35,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Лёгкие симптомы",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 8,
+                "label": "Умеренные симптомы",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 20,
+                "label": "Выраженные симптомы",
+                "attentionLevel": "high",
+                "interpretation": 2
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Barry MJ, Fowler FJ Jr, O'Leary MP, et al. The American Urological Association symptom index for benign prostatic hyperplasia",
@@ -7059,6 +7586,36 @@
           {
             "when": "1",
             "message": "10–12 баллов: высокая сложность опухоли."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_renalScore",
+            "valueId": "renalScore",
+            "minimum": 4,
+            "maximum": 12,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 4,
+                "label": "Низкая сложность",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 7,
+                "label": "Умеренная сложность",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 10,
+                "label": "Высокая сложность",
+                "attentionLevel": "high",
+                "interpretation": 2
+              }
+            ]
           }
         ],
         "sources": [
@@ -7508,6 +8065,42 @@
             "message": "Прогрессирование (PD): рост суммы целевых очагов не менее чем на 20% и на 5 мм от надира, новые очаги или явное прогрессирование нецелевых очагов."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_overallCode",
+            "valueId": "overallCode",
+            "minimum": 0,
+            "maximum": 3,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Полный ответ",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "label": "Частичный ответ",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 2,
+                "label": "Стабилизация",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 3,
+                "label": "Прогрессирование",
+                "attentionLevel": "high",
+                "interpretation": 3
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Eisenhauer EA, Therasse P, Bogaerts J, et al. New response evaluation criteria in solid tumours: revised RECIST guideline (version 1.1)",
@@ -7755,6 +8348,30 @@
           {
             "when": "1",
             "message": "Выполнен хотя бы один критерий: по Galsky et al. пациент считается непригодным для цисплатина."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_criteriaMet",
+            "valueId": "criteriaMet",
+            "minimum": 0,
+            "maximum": 5,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Критерии не выполнены",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "label": "Непригоден для цисплатина",
+                "attentionLevel": "high",
+                "interpretation": 1
+              }
+            ]
           }
         ],
         "sources": [

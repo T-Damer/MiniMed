@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.obstetrics-gynecology.ru",
-  "version": "0.1.0-preview.8",
+  "version": "0.1.0-preview.9",
   "title": "Инструменты акушерства и гинекологии",
   "schemaVersion": 2,
   "builtAt": "2026-10-12T00:00:00Z",
@@ -201,6 +201,33 @@
           }
         ],
         "assertions": [],
+        "scoreScales": [
+          {
+            "id": "scale_total",
+            "valueId": "total",
+            "minimum": 0,
+            "maximum": 13,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Незрелая",
+                "interpretation": 2
+              },
+              {
+                "from": 6,
+                "label": "Промежуточная",
+                "interpretation": 1
+              },
+              {
+                "from": 8,
+                "label": "Зрелая",
+                "interpretation": 0
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Pelvic scoring for elective induction",
@@ -2651,6 +2678,16 @@
         ],
         "interpretations": [],
         "assertions": [],
+        "scoreScales": [
+          {
+            "id": "scale_successProbability",
+            "valueId": "successProbability",
+            "minimum": 0,
+            "maximum": 100,
+            "layout": "proportional",
+            "bands": []
+          }
+        ],
         "sources": [
           {
             "title": "Prediction of vaginal birth after cesarean delivery",
@@ -2995,6 +3032,16 @@
         ],
         "interpretations": [],
         "assertions": [],
+        "scoreScales": [
+          {
+            "id": "scale_successProbability",
+            "valueId": "successProbability",
+            "minimum": 0,
+            "maximum": 100,
+            "layout": "proportional",
+            "bands": []
+          }
+        ],
         "sources": [
           {
             "title": "Development of a nomogram for prediction of vaginal birth after cesarean delivery",
@@ -3248,6 +3295,24 @@
         ],
         "interpretations": [],
         "assertions": [],
+        "scoreScales": [
+          {
+            "id": "scale_fiveYearRisk",
+            "valueId": "fiveYearRisk",
+            "minimum": 0,
+            "maximum": 20,
+            "layout": "proportional",
+            "bands": []
+          },
+          {
+            "id": "scale_lifetimeRisk",
+            "valueId": "lifetimeRisk",
+            "minimum": 0,
+            "maximum": 100,
+            "layout": "proportional",
+            "bands": []
+          }
+        ],
         "sources": [
           {
             "title": "About the Breast Cancer Risk Assessment Tool",
@@ -3496,6 +3561,36 @@
           }
         ],
         "assertions": [],
+        "scoreScales": [
+          {
+            "id": "scale_asccpBand",
+            "valueId": "asccpBand",
+            "minimum": 1,
+            "maximum": 3,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 1,
+                "label": "Низкий",
+                "attentionLevel": "none",
+                "interpretation": 2
+              },
+              {
+                "from": 2,
+                "label": "Промежуточный",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 3,
+                "label": "Высокий",
+                "attentionLevel": "high",
+                "interpretation": 0
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Management Guidelines",
@@ -3770,6 +3865,36 @@
           "sourceUrl": "https://www.ncbi.nlm.nih.gov/books/NBK470569/"
         },
         "schemaVersion": 2,
+        "scoreScales": [
+          {
+            "id": "scale_apgar_total",
+            "valueId": "apgar-total",
+            "minimum": 0,
+            "maximum": 10,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Значительное угнетение",
+                "attentionLevel": "urgent",
+                "interpretation": 2
+              },
+              {
+                "from": 4,
+                "label": "Умеренное угнетение",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 7,
+                "label": "Норма",
+                "attentionLevel": "none",
+                "interpretation": 0
+              }
+            ]
+          }
+        ],
         "evaluation": {
           "status": "unavailable",
           "rules": [],
@@ -4132,6 +4257,30 @@
           "sourceUrl": "https://med.by/methods/pdf/full/158-1203.pdf#page=7"
         },
         "schemaVersion": 2,
+        "scoreScales": [
+          {
+            "id": "scale_epds_total",
+            "valueId": "epds-total",
+            "minimum": 0,
+            "maximum": 30,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "< 8",
+                "attentionLevel": "none",
+                "interpretation": 3
+              },
+              {
+                "from": 8,
+                "label": "≥ 8",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              }
+            ]
+          }
+        ],
         "evaluation": {
           "status": "unavailable",
           "rules": [],
@@ -4325,6 +4474,30 @@
           "sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6320479/"
         },
         "schemaVersion": 2,
+        "scoreScales": [
+          {
+            "id": "scale_fg_total",
+            "valueId": "fg-total",
+            "minimum": 0,
+            "maximum": 36,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Нет гирсутизма",
+                "attentionLevel": "none",
+                "interpretation": 1
+              },
+              {
+                "from": 8,
+                "label": "Гирсутизм",
+                "attentionLevel": "moderate",
+                "interpretation": 0
+              }
+            ]
+          }
+        ],
         "evaluation": {
           "status": "unavailable",
           "rules": [],
@@ -4447,6 +4620,30 @@
           "sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC1497134/"
         },
         "schemaVersion": 2,
+        "scoreScales": [
+          {
+            "id": "scale_whooley_total",
+            "valueId": "whooley-total",
+            "minimum": 0,
+            "maximum": 2,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Отрицательный",
+                "attentionLevel": "none",
+                "interpretation": 1
+              },
+              {
+                "from": 1,
+                "label": "Положительный",
+                "attentionLevel": "moderate",
+                "interpretation": 0
+              }
+            ]
+          }
+        ],
         "evaluation": {
           "status": "unavailable",
           "rules": [],

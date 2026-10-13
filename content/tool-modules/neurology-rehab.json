@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.neurology-rehab.ru",
-  "version": "0.1.0-preview.2",
+  "version": "0.1.0-preview.3",
   "title": "Неврология, реабилитация и функциональный статус: шкалы и расчёты",
   "schemaVersion": 2,
   "builtAt": "2026-10-13T00:00:00Z",
@@ -450,6 +450,48 @@
             "message": "21–42 балла: тяжёлый инсульт."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 42,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Нет симптомов инсульта",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "label": "Малый инсульт",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 5,
+                "label": "Умеренный инсульт",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 16,
+                "label": "Умеренно тяжёлый инсульт",
+                "attentionLevel": "high",
+                "interpretation": 3
+              },
+              {
+                "from": 21,
+                "label": "Тяжёлый инсульт",
+                "attentionLevel": "urgent",
+                "interpretation": 4
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Brott T, Adams HP Jr, Olinger CP, et al. Measurements of acute cerebral infarction: a clinical examination scale",
@@ -722,6 +764,54 @@
           {
             "when": "1",
             "message": "5 баллов: тяжёлое ограничение; постоянный уход и наблюдение."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 5,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Нет симптомов",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "label": "Нет значимых ограничений",
+                "attentionLevel": "none",
+                "interpretation": 1
+              },
+              {
+                "from": 2,
+                "label": "Лёгкое ограничение",
+                "attentionLevel": "low",
+                "interpretation": 2
+              },
+              {
+                "from": 3,
+                "label": "Умеренное ограничение",
+                "attentionLevel": "moderate",
+                "interpretation": 3
+              },
+              {
+                "from": 4,
+                "label": "Выраженное ограничение",
+                "attentionLevel": "high",
+                "interpretation": 4
+              },
+              {
+                "from": 5,
+                "label": "Тяжёлое ограничение",
+                "attentionLevel": "high",
+                "interpretation": 5
+              }
+            ]
           }
         ],
         "sources": [
@@ -1058,6 +1148,36 @@
             "message": "6–7 баллов: высокий риск; 8,1 % за 2 суток, 11,7 % за 7 суток, 17,8 % за 90 суток."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 7,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Низкий риск",
+                "attentionLevel": "low",
+                "interpretation": 0
+              },
+              {
+                "from": 4,
+                "label": "Умеренный риск",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 6,
+                "label": "Высокий риск",
+                "attentionLevel": "urgent",
+                "interpretation": 2
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Johnston SC, Rothwell PM, Nguyen-Huynh MN, et al. Validation and refinement of scores to predict very early stroke risk after transient ischaemic attack",
@@ -1348,6 +1468,36 @@
             "message": "8–13 баллов: высокий риск; за 90 суток инсульт у 40,9 % в китайской когорте проверки (Song, 2013)."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 13,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Низкий риск",
+                "attentionLevel": "low",
+                "interpretation": 0
+              },
+              {
+                "from": 4,
+                "label": "Умеренный риск",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 8,
+                "label": "Высокий риск",
+                "attentionLevel": "urgent",
+                "interpretation": 2
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Merwick A, Albers GW, Amarenco P, et al. Addition of brain and carotid imaging to the ABCD² score to identify patients at early risk of stroke after transient ischaemic attack: a multicentre observational study",
@@ -1605,6 +1755,48 @@
           {
             "when": "1",
             "message": "Степень V: глубокая кома, децеребрационная ригидность, умирающий вид."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 1,
+            "maximum": 5,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 1,
+                "label": "Степень I",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 2,
+                "label": "Степень II",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 3,
+                "label": "Степень III",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 4,
+                "label": "Степень IV",
+                "attentionLevel": "high",
+                "interpretation": 3
+              },
+              {
+                "from": 5,
+                "label": "Степень V",
+                "attentionLevel": "urgent",
+                "interpretation": 4
+              }
+            ]
           }
         ],
         "sources": [
@@ -1887,6 +2079,30 @@
             "message": "4–5 баллов: вероятна окклюзия крупной артерии (порог ≥4: чувствительность 0,81, специфичность 0,89)."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 5,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Окклюзия менее вероятна",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 4,
+                "label": "Вероятна окклюзия крупной артерии",
+                "attentionLevel": "urgent",
+                "interpretation": 1
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Llanes JN, Kidwell CS, Starkman S, et al. The Los Angeles Motor Scale (LAMS): a new measure to characterize stroke severity in the field",
@@ -2086,6 +2302,48 @@
           {
             "when": "1",
             "message": "Стадия 5: пациент прикован к постели или коляске, если ему не помогают."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 1,
+            "maximum": 5,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 1,
+                "label": "Стадия 1",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 2,
+                "label": "Стадия 2",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 3,
+                "label": "Стадия 3",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 4,
+                "label": "Стадия 4",
+                "attentionLevel": "high",
+                "interpretation": 3
+              },
+              {
+                "from": 5,
+                "label": "Стадия 5",
+                "attentionLevel": "urgent",
+                "interpretation": 4
+              }
+            ]
           }
         ],
         "sources": [
@@ -2336,6 +2594,66 @@
           {
             "when": "1",
             "message": "Стадия 5: пациент прикован к постели или коляске, если ему не помогают."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 5,
+            "step": 0.5,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Стадия 0",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "label": "Стадия 1",
+                "attentionLevel": "none",
+                "interpretation": 1
+              },
+              {
+                "from": 1.5,
+                "label": "Стадия 1,5",
+                "attentionLevel": "low",
+                "interpretation": 2
+              },
+              {
+                "from": 2,
+                "label": "Стадия 2",
+                "attentionLevel": "low",
+                "interpretation": 3
+              },
+              {
+                "from": 2.5,
+                "label": "Стадия 2,5",
+                "attentionLevel": "moderate",
+                "interpretation": 4
+              },
+              {
+                "from": 3,
+                "label": "Стадия 3",
+                "attentionLevel": "moderate",
+                "interpretation": 5
+              },
+              {
+                "from": 4,
+                "label": "Стадия 4",
+                "attentionLevel": "high",
+                "interpretation": 6
+              },
+              {
+                "from": 5,
+                "label": "Стадия 5",
+                "attentionLevel": "urgent",
+                "interpretation": 7
+              }
+            ]
           }
         ],
         "sources": [
@@ -2688,6 +3006,48 @@
             "message": "AIS E: чувствительность и сила нормальны во всех сегментах у пациента с ранее бывшим дефицитом."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 1,
+            "maximum": 5,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 1,
+                "label": "AIS A",
+                "attentionLevel": "urgent",
+                "interpretation": 0
+              },
+              {
+                "from": 2,
+                "label": "AIS B",
+                "attentionLevel": "high",
+                "interpretation": 1
+              },
+              {
+                "from": 3,
+                "label": "AIS C",
+                "attentionLevel": "high",
+                "interpretation": 2
+              },
+              {
+                "from": 4,
+                "label": "AIS D",
+                "attentionLevel": "moderate",
+                "interpretation": 3
+              },
+              {
+                "from": 5,
+                "label": "AIS E",
+                "attentionLevel": "none",
+                "interpretation": 4
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Rupp R, Biering-Sørensen F, Burns SP, et al. International Standards for Neurological Classification of Spinal Cord Injury: Revised 2019",
@@ -2978,6 +3338,73 @@
           {
             "when": "1",
             "message": "0 %: вегетативные функции нарушены; пациент прикован к постели."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 100,
+            "step": 10,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 0,
+                "attentionLevel": "urgent",
+                "interpretation": 10
+              },
+              {
+                "from": 10,
+                "attentionLevel": "urgent",
+                "interpretation": 9
+              },
+              {
+                "from": 20,
+                "attentionLevel": "urgent",
+                "interpretation": 8
+              },
+              {
+                "from": 30,
+                "attentionLevel": "high",
+                "interpretation": 7
+              },
+              {
+                "from": 40,
+                "attentionLevel": "high",
+                "interpretation": 6
+              },
+              {
+                "from": 50,
+                "attentionLevel": "moderate",
+                "interpretation": 5
+              },
+              {
+                "from": 60,
+                "attentionLevel": "moderate",
+                "interpretation": 4
+              },
+              {
+                "from": 70,
+                "attentionLevel": "low",
+                "interpretation": 3
+              },
+              {
+                "from": 80,
+                "attentionLevel": "low",
+                "interpretation": 2
+              },
+              {
+                "from": 90,
+                "attentionLevel": "none",
+                "interpretation": 1
+              },
+              {
+                "from": 100,
+                "attentionLevel": "none",
+                "interpretation": 0
+              }
+            ]
           }
         ],
         "sources": [
@@ -3517,6 +3944,48 @@
             "message": "100 баллов: независимость в самообслуживании; не означает, что пациент может жить один."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 100,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Полная зависимость",
+                "attentionLevel": "urgent",
+                "interpretation": 0
+              },
+              {
+                "from": 21,
+                "label": "Выраженная зависимость",
+                "attentionLevel": "high",
+                "interpretation": 1
+              },
+              {
+                "from": 61,
+                "label": "Умеренная зависимость",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 91,
+                "label": "Лёгкая зависимость",
+                "attentionLevel": "low",
+                "interpretation": 3
+              },
+              {
+                "from": 100,
+                "label": "Независимость",
+                "attentionLevel": "none",
+                "interpretation": 4
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Mahoney FI, Barthel DW. Functional evaluation: the Barthel Index",
@@ -3937,6 +4406,17 @@
           }
         ],
         "interpretations": [],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 15,
+            "step": 1,
+            "layout": "proportional",
+            "bands": []
+          }
+        ],
         "sources": [
           {
             "title": "Collen FM, Wade DT, Robb GF, Bradshaw CM. The Rivermead Mobility Index: a further development of the Rivermead Motor Assessment",
@@ -4159,6 +4639,42 @@
             "message": "7–10 баллов: выраженные признаки боли (градация условная, автором не задана)."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 10,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Боль не выявлена",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "label": "Слабые признаки боли",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 4,
+                "label": "Умеренные признаки боли",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 7,
+                "label": "Выраженные признаки боли",
+                "attentionLevel": "high",
+                "interpretation": 3
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Warden V, Hurley AC, Volicer L. Development and psychometric evaluation of the Pain Assessment in Advanced Dementia (PAINAD) scale",
@@ -4339,6 +4855,42 @@
           {
             "when": "1",
             "message": "75–100 мм: сильная боль (Jensen, 2003)."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 100,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Боли нет",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 5,
+                "label": "Слабая боль",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 45,
+                "label": "Умеренная боль",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 75,
+                "label": "Сильная боль",
+                "attentionLevel": "high",
+                "interpretation": 3
+              }
+            ]
           }
         ],
         "sources": [
@@ -4620,6 +5172,48 @@
             "message": "Статус 4: полная инвалидность; самообслуживание невозможно, постоянно в постели или кресле."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 4,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Статус 0",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "label": "Статус 1",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 2,
+                "label": "Статус 2",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 3,
+                "label": "Статус 3",
+                "attentionLevel": "high",
+                "interpretation": 3
+              },
+              {
+                "from": 4,
+                "label": "Статус 4",
+                "attentionLevel": "urgent",
+                "interpretation": 4
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Oken MM, Creech RH, Tormey DC, et al. Toxicity and response criteria of the Eastern Cooperative Oncology Group",
@@ -4876,6 +5470,36 @@
           {
             "when": "1",
             "message": "10–40: не способен обслуживать себя; нужен уход, равный больничному, болезнь может быстро прогрессировать."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 10,
+            "maximum": 100,
+            "step": 10,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 10,
+                "label": "Группа C",
+                "attentionLevel": "high",
+                "interpretation": 2
+              },
+              {
+                "from": 50,
+                "label": "Группа B",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 80,
+                "label": "Группа A",
+                "attentionLevel": "none",
+                "interpretation": 0
+              }
+            ]
           }
         ],
         "sources": [
@@ -5148,6 +5772,36 @@
           {
             "when": "1",
             "message": "Более 6 баллов: выживаемость менее 3 недель (чувствительность 80 %, специфичность 85 %); медиана 5 суток (Stone, 2008)."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 15,
+            "step": 0.5,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Порог 6 недель не достигнут",
+                "attentionLevel": "moderate",
+                "interpretation": 0
+              },
+              {
+                "from": 4.5,
+                "label": "Прогноз менее 6 недель",
+                "attentionLevel": "high",
+                "interpretation": 1
+              },
+              {
+                "from": 6.5,
+                "label": "Прогноз менее 3 недель",
+                "attentionLevel": "urgent",
+                "interpretation": 2
+              }
+            ]
           }
         ],
         "sources": [
@@ -5570,6 +6224,47 @@
           {
             "when": "1",
             "message": "Более 15: низкая работоспособность сердца; при таком результате нужна оценка врача."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": -2,
+            "maximum": 20,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": -2,
+                "label": "Очень хорошая",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 0,
+                "label": "Хорошая",
+                "attentionLevel": "none",
+                "interpretation": 1
+              },
+              {
+                "from": 5,
+                "label": "Средняя",
+                "attentionLevel": "low",
+                "interpretation": 2
+              },
+              {
+                "from": 10,
+                "label": "Недостаточная",
+                "attentionLevel": "moderate",
+                "interpretation": 3
+              },
+              {
+                "from": 15,
+                "label": "Низкая",
+                "attentionLevel": "high",
+                "interpretation": 4
+              }
+            ]
           }
         ],
         "sources": [
@@ -6163,6 +6858,36 @@
           {
             "when": "1",
             "message": "19 баллов и более: тяжёлая абстиненция; при судорогах, делирии или новых галлюцинациях — осложнённая."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 67,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Лёгкая абстиненция",
+                "attentionLevel": "low",
+                "interpretation": 0
+              },
+              {
+                "from": 10,
+                "label": "Умеренная абстиненция",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 19,
+                "label": "Тяжёлая абстиненция",
+                "attentionLevel": "urgent",
+                "interpretation": 2
+              }
+            ]
           }
         ],
         "sources": [

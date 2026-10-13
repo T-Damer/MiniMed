@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.gastroenterology.ru",
-  "version": "0.1.0-preview.5",
+  "version": "0.1.0-preview.6",
   "title": "Инструменты гастроэнтерологии",
   "schemaVersion": 2,
   "builtAt": "2026-08-15T00:00:00Z",
@@ -225,6 +225,42 @@
           "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/17681163/"
         },
         "schemaVersion": 2,
+        "scoreScales": [
+          {
+            "id": "scale_pucai_total",
+            "valueId": "pucai-total",
+            "minimum": 0,
+            "maximum": 85,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Ремиссия",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 10,
+                "label": "Лёгкая",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 35,
+                "label": "Умеренная",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 65,
+                "label": "Тяжёлая",
+                "attentionLevel": "high",
+                "interpretation": 3
+              }
+            ]
+          }
+        ],
         "evaluation": {
           "status": "unavailable",
           "rules": [],
@@ -575,6 +611,36 @@
           }
         ],
         "assertions": [],
+        "scoreScales": [
+          {
+            "id": "scale_selectedBristolType",
+            "valueId": "selectedBristolType",
+            "minimum": 1,
+            "maximum": 7,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 1,
+                "label": "Запор",
+                "attentionLevel": "moderate",
+                "interpretation": 0
+              },
+              {
+                "from": 3,
+                "label": "Норма",
+                "attentionLevel": "none",
+                "interpretation": 2
+              },
+              {
+                "from": 6,
+                "label": "Диарея",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Bristol Stool Form Scale",
@@ -962,6 +1028,42 @@
           }
         ],
         "assertions": [],
+        "scoreScales": [
+          {
+            "id": "scale_hbi",
+            "valueId": "hbi",
+            "minimum": 0,
+            "maximum": 30,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Ремиссия",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 5,
+                "label": "Лёгкая",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 8,
+                "label": "Умеренная",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 17,
+                "label": "Тяжёлая",
+                "attentionLevel": "high",
+                "interpretation": 3
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Simple index of Crohn's-disease activity",
@@ -1296,6 +1398,36 @@
           "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/2172984/"
         },
         "schemaVersion": 2,
+        "scoreScales": [
+          {
+            "id": "scale_vesikari_total",
+            "valueId": "vesikari-total",
+            "minimum": 0,
+            "maximum": 20,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Лёгкий",
+                "attentionLevel": "low",
+                "interpretation": 0
+              },
+              {
+                "from": 7,
+                "label": "Умеренный",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 11,
+                "label": "Тяжёлый",
+                "attentionLevel": "high",
+                "interpretation": 2
+              }
+            ]
+          }
+        ],
         "evaluation": {
           "status": "unavailable",
           "rules": [],
@@ -1493,6 +1625,42 @@
           "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/18623174/"
         },
         "schemaVersion": 2,
+        "scoreScales": [
+          {
+            "id": "scale_partial_mayo_total",
+            "valueId": "partial-mayo-total",
+            "minimum": 0,
+            "maximum": 9,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Ремиссия",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 2,
+                "label": "Лёгкая",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 3,
+                "label": "Среднетяжёлая",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 6,
+                "label": "Тяжёлая",
+                "attentionLevel": "high",
+                "interpretation": 3
+              }
+            ]
+          }
+        ],
         "evaluation": {
           "status": "unavailable",
           "rules": [],

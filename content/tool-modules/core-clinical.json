@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.core-clinical.ru",
-  "version": "0.1.0-preview.4",
+  "version": "0.1.0-preview.5",
   "title": "Базовые клинические расчёты",
   "schemaVersion": 2,
   "builtAt": "2026-08-18T00:00:00Z",
@@ -1517,6 +1517,27 @@
             "message": "Интерпретация индекса не является диагнозом и не заменяет клиническое обследование."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_mentzer",
+            "valueId": "mentzer",
+            "minimum": 5,
+            "maximum": 30,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 5,
+                "label": "< 13",
+                "interpretation": 0
+              },
+              {
+                "from": 13,
+                "label": "≥ 13",
+                "interpretation": 1
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "A simple mathematical index for differentiating iron deficiency anemia from thalassemia trait",
@@ -1866,6 +1887,17 @@
             "message": "Используйте балл как часть совместного клинического решения, а не как самостоятельное назначение лечения."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 9,
+            "step": 1,
+            "layout": "proportional",
+            "bands": []
+          }
+        ],
         "sources": [
           {
             "title": "The CHA2DS2-VASc score identifies those patients with atrial fibrillation",
@@ -2084,6 +2116,17 @@
             "message": "Высокий HAS-BLED требует контроля факторов риска и наблюдения, но сам по себе не запрещает антикоагуляцию."
           }
         ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 0,
+            "maximum": 9,
+            "step": 1,
+            "layout": "proportional",
+            "bands": []
+          }
+        ],
         "sources": [
           {
             "title": "A novel user-friendly score (HAS-BLED) to assess 1-year risk of major bleeding",
@@ -2286,6 +2329,36 @@
           {
             "code": "classification",
             "message": "Вводите именно баллы выбранной валидированной версии Child–Pugh; приложение не подменяет клиническую оценку компонентов."
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_score",
+            "valueId": "score",
+            "minimum": 5,
+            "maximum": 15,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 5,
+                "label": "Класс A",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 7,
+                "label": "Класс B",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 10,
+                "label": "Класс C",
+                "attentionLevel": "high",
+                "interpretation": 2
+              }
+            ]
           }
         ],
         "sources": [
