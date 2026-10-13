@@ -2,7 +2,32 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
-const read = (path) => readFileSync(resolve(root, path), 'utf8');
+
+/**
+ * A source file for substring checks. `includes` ignores whitespace on both sides, so a check names
+ * the code that must exist and does not break when the formatter re-wraps a line (`foo(\n  {` vs
+ * `foo({`). `match` and `indexOf` see the raw text.
+ */
+class Source {
+  constructor(text) {
+    this.text = text;
+    this.compact = text.replace(/\s+/gu, '');
+  }
+
+  includes(needle) {
+    return this.compact.includes(needle.replace(/\s+/gu, ''));
+  }
+
+  match(pattern) {
+    return this.text.match(pattern);
+  }
+
+  indexOf(needle, from) {
+    return this.text.indexOf(needle, from);
+  }
+}
+
+const read = (path) => new Source(readFileSync(resolve(root, path), 'utf8'));
 
 const files = {
   editor: read('apps/app/src/features/notes/NoteMarkdownEditor.tsx'),
@@ -45,6 +70,10 @@ const files = {
   diaryTests: read('apps/app/src/features/diary/diary.test.ts'),
   diaryServiceWorker: read('apps/app/public/diary/sw.js'),
   diary: read('apps/app/src/diary/DiaryApp.tsx'),
+  diaryList: read('apps/app/src/diary/DiaryList.tsx'),
+  diaryEntryForm: read('apps/app/src/diary/DiaryEntryForm.tsx'),
+  diaryFields: read('apps/app/src/diary/diary-fields.tsx'),
+  diaryDarkTheme: read('apps/app/src/styles/theme-dark-diary.css'),
   diaryMain: read('apps/app/src/diary/main.tsx'),
   vite: read('apps/app/vite.config.ts'),
   appPackage: read('apps/app/package.json'),
@@ -62,7 +91,7 @@ function sourceSection(source, startMarker, endMarker) {
   const start = source.indexOf(startMarker);
   if (start < 0) return '';
   const end = source.indexOf(endMarker, start + startMarker.length);
-  return source.slice(start, end < 0 ? source.length : end);
+  return source.text.slice(start, end < 0 ? source.text.length : end);
 }
 
 const replaceFileSection = sourceSection(
@@ -163,7 +192,7 @@ const checks = [
       files.asr.includes('export async function removeAsrModel(') &&
       files.asr.includes('await deleteCachedAsrModel(id)') &&
       files.asr.includes('clearResumableDownloadsByPrefix(') &&
-      files.asrSettings.includes('Удалить речевую модель?') &&
+      files.asrSettings.includes('Удалить модель с устройства?') &&
       files.asrSettings.includes('Удалить модель'),
   ],
   [
@@ -184,8 +213,8 @@ const checks = [
     'Whisper fetch guard handles Request inputs',
     files.worker.includes('input instanceof Request') &&
       files.worker.includes('request?.url ?? String(input)') &&
-      files.worker.includes("request.method !== 'GET'") &&
-      files.worker.includes("request.headers.get('range')") &&
+      files.worker.includes("parts.method !== 'GET'") &&
+      files.worker.includes("parts.headers.get('range')") &&
       files.workerTests.includes('accepts a pinned Hugging Face Request') &&
       files.workerTests.includes('rejects non-GET Request inputs') &&
       files.workerTests.includes('rejects unsupported Request Range headers'),
@@ -299,7 +328,7 @@ const checks = [
         'does not delete a transcript when replacement fails before touching the file store',
       ) &&
       files.noteFilesTests.includes(
-        "expect(transcripts.get(fileId)?.text).toBe('Нельзя потерять этот текст')",
+        "expect(transcripts.get(fileId)?.['text']).toBe('Нельзя потерять этот текст')",
       ),
   ],
   [
@@ -310,8 +339,8 @@ const checks = [
         'const canWrite = (): boolean => !cancelledTranscriptions.has(input.fileId)',
       ) &&
       files.noteTranscription.includes('await putTranscript(next, canWrite)') &&
-      files.noteTranscription.includes('await putTranscript({') &&
-      files.noteTranscription.includes('}, canWrite)') &&
+      files.noteTranscription.includes('await putTranscript(\n{') &&
+      files.noteTranscription.includes('canWrite,\n)') &&
       files.noteTranscription.includes(
         'if (noteIds.has(active.noteId)) cancelTranscription(fileId)',
       ),
@@ -330,8 +359,7 @@ const checks = [
   [
     'transcript can be deleted without deleting audio',
     files.transcriptPanel.includes('Удалить расшифровку') &&
-      files.transcriptPanel.includes('Исходная') &&
-      files.transcriptPanel.includes('аудиозапись останется в заметке'),
+      files.transcriptPanel.includes('Исходная аудиозапись останется в заметке.'),
   ],
   [
     'note/card deletion journals retention cleanup',
@@ -352,7 +380,9 @@ const checks = [
     'patient backup scope and destructive import are explicit',
     files.patientWorkspace.includes('Импорт заменит текущие карточки пациентов') &&
       files.patientWorkspace.includes('Личные заметки, голосовые вложения и их расшифровки') &&
-      files.patientWorkspace.includes('Backup этого раздела не включает личные заметки') &&
+      files.patientWorkspace.includes(
+        'Личные заметки, голосовые вложения и расшифровки в него не входят',
+      ) &&
       files.patientWorkspace.includes("label: 'Экспорт карточек пациентов'") &&
       files.patientWorkspace.includes("label: 'Импорт карточек пациентов'"),
   ],
@@ -375,15 +405,12 @@ const checks = [
       files.patientWorkspace.includes('<TextArea') &&
       !files.patientWorkspace.includes('inputClass="patient-workspace__control"') &&
       !files.patientWorkspace.includes('textareaClass="patient-workspace__control"') &&
-      files.patientWorkspace.includes(
-        '<Button\n          class="patient-workspace__quick-action"',
-      ) &&
-      !files.patientWorkspace.includes(
-        '<button\n          class="patient-workspace__quick-action"',
-      ) &&
+      files.patientWorkspace.includes('<Button class="patient-workspace__quick-action"') &&
+      !files.patientWorkspace.includes('<button class="patient-workspace__quick-action"') &&
       files.patientWorkspace.includes('class="patient-workspace__event-action"') &&
-      files.patientWorkspaceCss.includes('select.patient-workspace__control') &&
-      files.patientWorkspaceCss.includes('output.patient-workspace__control') &&
+      // Selects come from the shared SelectField; the page keeps no control styling of its own.
+      files.patientWorkspace.includes('<SelectField') &&
+      !files.patientWorkspaceCss.includes('patient-workspace__control') &&
       !files.patientWorkspaceCss.includes('.patient-workspace__event-revision-input'),
   ],
   [
@@ -436,9 +463,7 @@ const checks = [
       files.personalNotesBackup.includes('Контрольная сумма вложения') &&
       files.personalNotesBackup.includes('const previous = await capturePersonalNotesState()') &&
       files.personalNotesBackup.includes('await applyPersonalNotesState(previous)') &&
-      files.personalNotesBackup.includes(
-        'mergeCardState(previous, prepared, backup.scope.cardId)',
-      ) &&
+      files.personalNotesBackup.includes('mergeCardState(previous, prepared, scopedCardId)') &&
       files.personalNotesBackup.includes('clearPatientNoteWorkingState(') &&
       files.notes.includes('parsePersonalNotesBackup(JSON.parse(raw) as unknown)') &&
       files.notes.includes('importPersonalNotesBackup(backup)') &&
@@ -503,14 +528,16 @@ const checks = [
   [
     'diary service worker caches only static assets',
     files.diaryServiceWorker.includes(
-      "STATIC_DESTINATIONS = new Set(['document', 'script', 'style', 'font', 'worker', 'image'])",
-    ) && files.diaryServiceWorker.includes('!STATIC_DESTINATIONS.has(request.destination)'),
+      "STATIC_DESTINATIONS = new Set(['document', 'script', 'style', 'font', 'worker', 'image', 'manifest'",
+    ) &&
+      files.diaryServiceWorker.includes('!STATIC_DESTINATIONS.has(request.destination)') &&
+      files.diaryServiceWorker.includes("request.method !== 'GET'"),
   ],
   [
     'stored diary has explicit local deletion',
-    files.diary.includes('Удалить этот дневник и все его локальные записи с этого устройства?') &&
-      files.diary.includes('current.store.remove(diary.id)') &&
-      files.diary.includes('variant="danger"'),
+    files.diaryList.includes('и все его записи с этого устройства?') &&
+      files.diaryList.includes('props.store.remove(diary.invitation.id)') &&
+      files.diaryList.includes('variant="danger"'),
   ],
   [
     'diary QR photos and camera lifecycle are bounded',
@@ -530,12 +557,20 @@ const checks = [
       files.diaryPanel.includes('<FileButton'),
   ],
   [
+    // The standalone page ships its own labelled-field wrapper (diary-fields) around the shared
+    // Button; no raw input sits in the app shell.
     'standalone diary shared controls',
     !files.diary.includes('<input') &&
-      files.diary.includes('<TextField') &&
-      files.diary.includes('<Button'),
+      files.diary.includes('<Button') &&
+      files.diaryEntryForm.includes('<Field') &&
+      files.diaryEntryForm.includes('<Button') &&
+      files.diaryFields.includes('role="alert"'),
   ],
-  ['standalone diary dark theme', files.diaryMain.includes('@/styles/theme-dark.css')],
+  [
+    'standalone diary dark theme',
+    files.diaryMain.includes('@/styles/theme-dark-diary.css') &&
+      files.diaryDarkTheme.includes('./theme-dark.css'),
+  ],
   [
     'Vite multi-page diary entry',
     files.vite.includes("diary: fileURLToPath(new URL('./diary/index.html'"),

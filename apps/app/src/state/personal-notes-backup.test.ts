@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import {
   type IndexedDbDoubleOptions,
@@ -88,6 +88,25 @@ const snapshot = {
     },
   ],
 };
+
+// Every case re-imports the module graph after `vi.resetModules()`. The first import transforms
+// it, which on a loaded machine can outlast a case's time limit; pay for it once, in a hook.
+beforeAll(async () => {
+  installEnvironment();
+  try {
+    await import('./personal-notes-backup');
+  } finally {
+    vi.resetModules();
+    vi.unstubAllGlobals();
+  }
+}, 120_000);
+
+/** Lets fire-and-forget work settle: macrotask turns, a count and not a clock. */
+async function settle(done: () => boolean, turns = 2_000): Promise<void> {
+  for (let turn = 0; turn < turns && !done(); turn += 1) {
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+  }
+}
 
 afterEach(() => {
   vi.resetModules();
@@ -260,9 +279,8 @@ describe('portable personal-notes backup', () => {
     const backup = await exportPersonalNotesBackup();
 
     expect(backup.transcripts.map((item) => item.fileId)).toEqual(['file-audio']);
-    await vi.waitFor(() => {
-      expect(env.transcripts.has('file-orphan')).toBe(false);
-    });
+    await settle(() => !env.transcripts.has('file-orphan'));
+    expect(env.transcripts.has('file-orphan')).toBe(false);
     expect(env.transcripts.has('file-audio')).toBe(true);
   });
 
