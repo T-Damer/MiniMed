@@ -10,9 +10,9 @@ import {
 } from '@/features/library/highlight-popup-placement';
 import { highlightStatusNote } from '@/features/library/highlight-status';
 import { UserHighlightPopup } from '@/features/library/UserHighlightPopup';
+import { createDocumentHighlightStore } from '@/features/library/use-document-highlights';
 import { openReaderDictionary } from '@/features/reader-dictionary/reader-dictionary-state';
 import { cleanSelection } from '@/features/reader-dictionary/selection-term';
-import { createDocumentHighlightStore } from '@/features/library/use-document-highlights';
 import {
   addUserHighlight,
   removeUserHighlight,

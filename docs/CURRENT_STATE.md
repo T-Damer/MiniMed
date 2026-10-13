@@ -129,7 +129,7 @@ edition, even at another position and with different punctuation. Pure engine in
 - Migration: IndexedDB version 2 upgrades every stored record in place (`upgradeHighlight`: selector from
   the saved quote, `exact`, origin); the same function runs on load, idempotently. Context
   (prefix/suffix) is filled from the text the first time the document is opened.
-- UI: reader menu «Выделения» (user text/Markdown/DOCX documents, PDFs, every official document) opens a
+- UI: reader menu «Выделения» (user text/Markdown/DOCX documents, PDFs, КР) opens a
   sheet listing the highlights, the not-found ones first with their words, jump, remove, and «open the
   earlier edition» for carried ones (`DocumentHighlightsSheet`). The popup of an existing mark names its
   origin/uncertainty.
@@ -1551,8 +1551,8 @@ Owner feedback 2026-10-07, three items. Branch `worktree-agent-a6b8b452dd6b115fe
   Same IndexedDB store, colours and removal-by-tap as user documents. Marks are anchored to the
   rendered chunk (anchor + character offsets + quote); a mark whose text moved (reading rule or a new
   edition) was hidden, not repainted over other words; since 2026-10-13 it is re-anchored by its
-  text-quote selector (see «Highlights across editions», R1a). Every official document the reader
-  shows can be highlighted now, not only КР.
+  text-quote selector (see «Highlights across editions», R1a). Still only КР among official documents
+  (other ones get the dictionary lookup only, see «Reader dictionary on selection»).
 - Popup placement (`highlight-popup-placement.ts`): mouse — above the selection as before; touch
   (`pointer: coarse`) — below the selection past the drag handles (the system menu opens above it),
   docked above the bottom navigation when there is no room below.
