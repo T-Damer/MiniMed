@@ -4,7 +4,7 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { DownloadProgressMark } from '@/components/DownloadProgressMark';
 import { isModuleReleased } from '@/features/modules/local-packaged-modules';
-import { formatModuleBytes } from '@/features/modules/module-display';
+import { contentModuleTaskProgress, formatModuleBytes } from '@/features/modules/module-display';
 import { useModuleInstaller } from '@/features/sections/use-module-installer';
 import { SEVERITY_MODULE_ID } from './interaction-severity';
 
@@ -31,6 +31,16 @@ export function SeverityDownloadOffer(props: {
         (task) => task.moduleId === SEVERITY_MODULE_ID && !FINISHED_TASK_STATES.has(task.state),
       ) ??
       false);
+  const percent = (): number | null => {
+    const task = installer
+      .snapshot()
+      ?.tasks.find(
+        (candidate) =>
+          candidate.moduleId === SEVERITY_MODULE_ID && !FINISHED_TASK_STATES.has(candidate.state),
+      );
+    const value = task ? contentModuleTaskProgress(task) : null;
+    return value === null ? null : Math.min(99, Math.round(value * 100));
+  };
   const size = () => {
     const bytes = entry()?.sizes.downloadBytes;
     return typeof bytes === 'number' ? formatModuleBytes(bytes) : null;
@@ -38,14 +48,10 @@ export function SeverityDownloadOffer(props: {
   return (
     <Show when={!installed()}>
       <section
-        class="drug-interactions__severity-offer paper-card"
+        class="drug-interactions__severity-offer"
         aria-label="Метки степени риска"
         data-testid="severity-offer"
       >
-        <p class="drug-interactions__offers-text">
-          Метки степени риска из базы DDInter 2.0. Лицензия CC BY-NC-SA 4.0, использование
-          некоммерческое.
-        </p>
         <Show
           when={entry()}
           fallback={
@@ -73,14 +79,19 @@ export function SeverityDownloadOffer(props: {
                 data-testid="severity-offer-button"
                 icon={
                   <Show when={active()} fallback={<AppGlyph name="download" />}>
-                    <DownloadProgressMark state="running" progress={null} />
+                    <DownloadProgressMark
+                      state="running"
+                      progress={percent() === null ? null : (percent() ?? 0) / 100}
+                    />
                   </Show>
                 }
                 onClick={() => void installer.start([module()])}
               >
                 {active()
-                  ? 'Скачиваем…'
-                  : `Скачать метки степени риска (DDInter)${size() ? `, ${size()}` : ''}`}
+                  ? percent() === null
+                    ? 'Скачиваем…'
+                    : `Скачиваем… ${percent()}%`
+                  : `Скачать метки степени риска${size() ? ` · ${size()}` : ''}`}
               </Button>
             </Show>
           )}

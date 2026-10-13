@@ -179,6 +179,8 @@ function PairCard(props: {
   readonly view: PairView;
   /** The download of a missing instruction sits in the card that needs it. */
   readonly offers: boolean;
+  /** The severity labels are not installed: a pair with quotable sentences says so in its header. */
+  readonly severityMissing: boolean;
   readonly onContentChanged: () => Promise<void>;
 }): JSX.Element {
   return (
@@ -194,7 +196,20 @@ function PairCard(props: {
         <p class="drug-interactions__pair-status" data-testid="interaction-pair-status">
           {pairStatusText(props.view)}
         </p>
-        <Show when={props.view.severity}>
+        <Show
+          when={props.view.severity}
+          fallback={
+            <Show
+              when={
+                props.severityMissing && props.view.sides.some((side) => side.quotes.length > 0)
+              }
+            >
+              <p class="drug-interactions__severity-unset" data-testid="interaction-severity-unset">
+                Степень не указана
+              </p>
+            </Show>
+          }
+        >
           {(severity) => (
             <div class="drug-interactions__severity" data-testid="interaction-severity">
               <span
@@ -427,6 +442,9 @@ export function InteractionPairsPanel(props: {
             <PairCard
               view={view}
               offers={props.offers !== false}
+              severityMissing={
+                quotablePairCount() > 0 && provenance.state === 'ready' && provenance() === null
+              }
               onContentChanged={onContentChanged}
             />
           )}
