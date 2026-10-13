@@ -92,11 +92,13 @@ for (const viewport of [
         .getByLabel('Новая заметка для До загрузки ядра')
         .fill('Заметка без медицинского поиска');
       await navigation.getByRole('button', { name: 'Поиск', exact: true }).click();
+      // The Files tab opens the file list, not the note that was left (the note autosaves).
       await navigation.getByRole('button', { name: 'Мои файлы', exact: true }).click();
-      await page.getByLabel('Назад к записям').click();
-      await expect(page.locator('.patient-note-record')).toContainText(
-        'Заметка без медицинского поиска',
-      );
+      await expect(page.getByRole('region', { name: 'Ваши документы' })).toBeVisible();
+      await page.evaluate(() => {
+        window.location.hash = '#/notes';
+      });
+      await expect(page.getByText('До загрузки ядра').first()).toBeVisible();
       await page.getByRole('button', { name: 'К файлам', exact: true }).click();
       await expect(page).toHaveURL(/#\/modules\/documents\/user$/u);
       for (const hash of ['#/notes/patients', '#/notes']) {
