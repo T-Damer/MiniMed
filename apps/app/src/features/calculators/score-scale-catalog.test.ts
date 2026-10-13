@@ -87,7 +87,9 @@ describe('score scales across the tool catalog', () => {
             identifiers(interpretation.when).filter((name) => known.has(name)),
           ),
         );
-        return used.size === 1;
+        // One calculated result, not an input such as the child's age that only selects a note.
+        const [only] = [...used];
+        return used.size === 1 && schema.steps.some((step) => step.id === only);
       })
       .map((schema) => schema.id);
     expect(missing).toEqual([]);

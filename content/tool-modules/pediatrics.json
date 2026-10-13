@@ -2969,6 +2969,48 @@
           }
         ],
         "assertions": [],
+        "scoreScales": [
+          {
+            "id": "scale_degree",
+            "valueId": "degree",
+            "minimum": 0,
+            "maximum": 4,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Нет",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "label": "I степень",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 2,
+                "label": "II степень",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 3,
+                "label": "III степень",
+                "attentionLevel": "high",
+                "interpretation": 3
+              },
+              {
+                "from": 4,
+                "label": "IV степень",
+                "attentionLevel": "urgent",
+                "interpretation": 4
+              }
+            ]
+          }
+        ],
         "sources": [
           {
             "title": "Детские болезни (Почивалов А. В. и др.)",

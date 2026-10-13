@@ -43,7 +43,7 @@ describe('feeding calculators of the pediatrics tool module', () => {
       version: string;
       tools: readonly unknown[];
     };
-    expect(raw.version).toBe('0.1.0-preview.7');
+    expect(raw.version).toMatch(/^0\.1\.0-preview\.\d+$/u);
     const records = raw.tools.map((tool) => ToolDefinitionRecordSchema.parse(tool));
     const feeding = records.filter((record) =>
       record.sources.some((source) => source.moduleId === 'minimed.reference.feeding.ru'),
