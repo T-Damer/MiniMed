@@ -503,6 +503,21 @@
       "modified": "2026-10-05"
     },
     {
+      "path": "output/allmed-images-2026.10.13-c8e85a688094",
+      "class": "RELEASED",
+      "producer": "STATE IMG1: uv run --project tools/ingest medbase build-allmed-image-pack --input ~/Downloads/allmed_tinybase.db --output data/build/allmed-images --mirror-tag allmed-images-2026.10.13-c8e85a688094 (mirror/ copied here; the download cache was deleted)",
+      "consumers": [
+        "catalog.preview.json minimed.medications.packaging-images.ru",
+        "apps/app/e2e/packaging-image-source.spec.ts",
+        "tools/ingest/tests/test_allmed_image_pack_published.py"
+      ],
+      "release": "branch datasets/allmed-images-2026.10.13-c8e85a688094 (index + 16 ZIP shards)",
+      "rebuild": "same command; resume re-downloads ~279 MB from allmed.pro (4 214 photos, ~25 min at 8 workers)",
+      "note": "Local release copy of the published Allmed packaging-photo pack (index, 16 shards, catalog fragment, build report). Keep while the project is active; the Allmed snapshot input is ~/Downloads/allmed_tinybase.db.",
+      "bytes": 281367944,
+      "modified": "2026-10-13"
+    },
+    {
       "path": "output/module-zstd-json-2026-10-07",
       "class": "RELEASED",
       "producer": "STATE KR3: build-documents (July/10-02 plans, numbered sub-headings) -> compact-module-search -> tools/ingest/scripts/embed_modules_e5.py --from-dir -> scripts/republish-clinical-modules.ts",

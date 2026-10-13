@@ -8,7 +8,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from zipfile import ZipFile
 
-from localmed_ingest.allmed_images import build_allmed_image_pack
+from localmed_ingest.allmed_images import build_allmed_image_pack, shard_of
 
 
 class FakeImageResponse:
@@ -79,25 +79,35 @@ def test_builds_deterministic_image_zip_and_index(tmp_path: Path) -> None:
     assert report.duplicate_references == 1
     assert report.successful_references == 2
     assert report.failed_references == 0
-    assert report.zip is not None
+    assert report.source_assets
     assert report.index is not None
     assert report.catalog_manifest is not None
     assert report.source_set_digest is not None
     assert len(calls) == 2
 
-    with ZipFile(report.zip) as archive:
-        names = archive.namelist()
-        assert len(names) == 3
-        assert all(".." not in name.split("/") for name in names)
-        assert names == [
-            "manifest.json",
-            "img/preparations/1.png",
-            "img/preparations/2.jpg",
-        ]
-        manifest = json.loads(archive.read("manifest.json"))
-    assert manifest["rawDatabaseSha256"] == report.raw_database_sha256
-    assert manifest["images"]["img/preparations/1.png"]["allmedIds"] == [1, 3]
-    assert manifest["images"]["img/preparations/2.jpg"]["contentType"] == "image/jpeg"
+    shard_images: dict[str, dict[str, dict[str, object]]] = {}
+    for shard in report.source_assets:
+        with ZipFile(shard.path) as archive:
+            names = archive.namelist()
+            assert names[0] == "manifest.json"
+            assert all(".." not in name.split("/") for name in names)
+            manifest = json.loads(archive.read("manifest.json"))
+        assert names[1:] == sorted(manifest["images"])
+        assert manifest["rawDatabaseSha256"] == report.raw_database_sha256
+        assert manifest["fetchedAt"]
+        assert shard.image_count == len(manifest["images"])
+        for reference, record in manifest["images"].items():
+            assert shard_of(reference) == shard.shard
+            shard_images[shard.shard] = {**shard_images.get(shard.shard, {}), reference: record}
+    merged = {ref: rec for images in shard_images.values() for ref, rec in images.items()}
+    assert sorted(merged) == ["img/preparations/1.png", "img/preparations/2.jpg"]
+    assert merged["img/preparations/1.png"]["allmedIds"] == [1, 3]
+    assert merged["img/preparations/2.jpg"]["contentType"] == "image/jpeg"
+    for reference, record in merged.items():
+        assert str(record["sha256"]).startswith("sha256:")
+        assert record["sourceUrl"] == f"https://allmed.pro/{reference}"
+        assert record["allmedIds"]
+        assert int(str(record["size"])) > 0
 
     manifest_digest = f"sha256:{hashlib.sha256(Path(report.manifest).read_bytes()).hexdigest()}"
     document_version_id = "medications.packaging-images@allmed-images-"
@@ -131,29 +141,30 @@ def test_builds_deterministic_image_zip_and_index(tmp_path: Path) -> None:
     module = catalog["modules"][0]
     assert module["id"] == "minimed.medications.packaging-images.ru"
     assert module["releaseState"] == "preview"
-    assert "experimental" in module["tags"]
+    assert "packaging-images" in module["tags"]
+    assert module["kind"] == "reference"
     assert module["sourceSetDigest"] == source_set_digest
     assert report.source_set_digest == source_set_digest
     assert module["documents"][0]["sourceChecksum"] == manifest_digest
     assert module["sourceSetDigest"] != module["documents"][0]["sourceChecksum"]
-    index_artifact, source_asset_artifact = module["artifacts"]
-    assert source_asset_artifact["required"] is True
-    assert source_asset_artifact["compression"] == "zip"
-    required_total = index_artifact["sizeBytes"] + source_asset_artifact["sizeBytes"]
+    index_artifact, *source_asset_artifacts = module["artifacts"]
+    assert len(source_asset_artifacts) == len(report.source_assets)
+    for artifact, shard in zip(source_asset_artifacts, report.source_assets, strict=True):
+        assert artifact["kind"] == "source-assets"
+        assert artifact["required"] is True
+        assert artifact["compression"] == "zip"
+        assert artifact["sha256"] == shard.sha256
+        assert artifact["id"].endswith(f"-{shard.shard}")
+    assets_total = sum(artifact["sizeBytes"] for artifact in source_asset_artifacts)
+    required_total = index_artifact["sizeBytes"] + assets_total
     assert module["sizes"]["downloadBytes"] == required_total
     assert module["sizes"]["installedBytes"] == required_total
-    assert module["sizes"]["sourceAssetsDownloadBytes"] == source_asset_artifact["sizeBytes"]
+    assert module["sizes"]["sourceAssetsDownloadBytes"] == assets_total
+    assert module["compatibility"]["minAppVersion"] == "0.6.60"
     assert {
         (dependency["moduleId"], dependency["versionRange"], dependency["required"])
         for dependency in module["dependencies"]
-    } >= {
-        ("minimed.core.ru", "^1.0.0", True),
-        (
-            "minimed.medications.ru",
-            f"allmed-{report.raw_database_sha256.removeprefix('sha256:')[:12]}",
-            True,
-        ),
-    }
+    } == {("minimed.core.ru", "^1.0.0", True)}
 
 
 def test_resume_skips_checksum_valid_cached_images(tmp_path: Path) -> None:
@@ -183,7 +194,7 @@ def test_resume_skips_checksum_valid_cached_images(tmp_path: Path) -> None:
 
     assert unexpected_calls == []
     assert resumed.complete is True
-    assert resumed.zip_sha256 == first.zip_sha256
+    assert resumed.source_assets == first.source_assets
     assert resumed.index_sha256 == first.index_sha256
     assert (
         Path(resumed.catalog_manifest or "").read_bytes()
@@ -212,15 +223,14 @@ def test_packages_successes_and_reports_invalid_reference(tmp_path: Path) -> Non
     assert report.safe_references == 2
     assert report.failed_references == 1
     assert "img/preparations/" in report.failures
-    assert report.zip is not None
+    assert report.source_assets
     assert report.index is not None
     assert report.catalog_manifest is not None
-    with ZipFile(report.zip) as archive:
-        assert len(archive.namelist()) == 3
-        assert archive.namelist()[0] == "manifest.json"
+    assert sum(shard.image_count for shard in report.source_assets) == 2
     manifest = json.loads(Path(report.manifest).read_text(encoding="utf-8"))
     assert manifest["failures"]["img/preparations/"]["allmedIds"] == [4]
     catalog = json.loads(Path(report.catalog_manifest).read_text(encoding="utf-8"))
     module = catalog["modules"][0]
     assert module["releaseState"] == "preview"
     assert module["documents"][0]["sourceAssetArtifactId"] == module["artifacts"][1]["id"]
+    assert all(artifact["url"] is None for artifact in module["artifacts"])

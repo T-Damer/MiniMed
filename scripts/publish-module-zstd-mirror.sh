@@ -2,7 +2,7 @@
 # Adds repacked `.db.zst` module indexes to a dataset mirror branch WITHOUT touching what is there
 # (older app versions keep reading the `.db` files). Run it only after the owner agreed to publish.
 #
-#   scripts/publish-module-zstd-mirror.sh --family esklp|clinical --tag <release tag> \
+#   scripts/publish-module-zstd-mirror.sh --family esklp|clinical|packaging-images --tag <release tag> \
 #     --source-dir <repack out dir> [--create] [--dry-run]
 #
 # `--create` starts the branch `datasets/<tag>` (an orphan commit with a README) when it does not
@@ -12,6 +12,9 @@
 # Layout on the branch `datasets/<tag>` (what artifact-url.ts resolves):
 #   esklp:    modules/<file>.db.zst
 #   clinical: apps/app/public/content/clinical/<file>.db.zst
+#   packaging-images: modules/minimed.medications.packaging-images.ru.{db,source-assets-<x>.zip}
+#     (the Allmed photo pack: an index and 16 ZIP shards of 15-22 MB each; the pack builder's
+#     `build-allmed-image-pack --mirror-tag <tag>` writes these files into its `mirror/` directory)
 # The files are plain git blobs (each far below the 100 MB limit): raw.githubusercontent.com serves
 # them with CORS and without LFS bandwidth quota. The existing `.db` LFS files stay.
 #
@@ -37,11 +40,17 @@ BRANCH="datasets/${TAG}"
 case "$FAMILY" in
   esklp) TARGET="modules" ;;
   clinical) TARGET="apps/app/public/content/clinical" ;;
-  *) echo "family must be esklp or clinical" >&2; exit 2 ;;
+  packaging-images) TARGET="modules" ;;
+  *) echo "family must be esklp, clinical or packaging-images" >&2; exit 2 ;;
 esac
 
-count="$(find "$SOURCE_DIR" -maxdepth 1 -type f -name '*.db.zst' | wc -l | tr -d ' ')"
-[[ "$count" -ge 1 ]] || { echo "no .db.zst files in $SOURCE_DIR" >&2; exit 1; }
+if [[ "$FAMILY" == "packaging-images" ]]; then
+  FILE_PATTERN='minimed.medications.packaging-images.ru.*'
+else
+  FILE_PATTERN='*.db.zst'
+fi
+count="$(find "$SOURCE_DIR" -maxdepth 1 -type f -name "$FILE_PATTERN" | wc -l | tr -d ' ')"
+[[ "$count" -ge 1 ]] || { echo "no ${FILE_PATTERN} files in $SOURCE_DIR" >&2; exit 1; }
 echo "$count files -> $BRANCH:$TARGET/ (additive, no force)"
 [[ "$DRY_RUN" -eq 1 ]] && exit 0
 
@@ -62,10 +71,16 @@ else
   exit 1
 fi
 mkdir -p "$WORKDIR/$TARGET"
-find "$SOURCE_DIR" -maxdepth 1 -type f -name '*.db.zst' -exec cp -f {} "$WORKDIR/$TARGET"/ \;
-# The branch tracks `*.db` in LFS only; a `.db.zst` must stay a plain blob.
-if git -C "$WORKDIR" check-attr filter -- "$TARGET/probe.db.zst" | grep -q 'lfs'; then
-  echo "refusing: .db.zst would be stored in LFS on $BRANCH" >&2
+find "$SOURCE_DIR" -maxdepth 1 -type f -name "$FILE_PATTERN" -exec cp -f {} "$WORKDIR/$TARGET"/ \;
+# The branch tracks `*.db` in LFS only; the published files must stay plain blobs.
+for probe in probe.db.zst probe.db probe.zip; do
+  if git -C "$WORKDIR" check-attr filter -- "$TARGET/$probe" | grep -q 'lfs'; then
+    echo "refusing: $probe would be stored in LFS on $BRANCH" >&2
+    exit 1
+  fi
+done
+if find "$WORKDIR/$TARGET" -maxdepth 1 -type f -size +99M | grep -q .; then
+  echo "refusing: a file reaches GitHub's 100 MB blob limit" >&2
   exit 1
 fi
 git -C "$WORKDIR" add "$TARGET"

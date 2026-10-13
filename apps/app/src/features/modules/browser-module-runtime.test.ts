@@ -11,6 +11,7 @@ import {
   BrowserModuleBackend,
   BrowserModuleValidator,
   ensureBundledCore,
+  listActiveInstalledSourceAssetIds,
   loadInstalledModuleMounts,
   readActiveInstalledSourceAssets,
 } from '@/features/modules/browser-module-runtime';
@@ -390,6 +391,59 @@ describe('browser module runtime storage', () => {
     );
     await backend.remove(module.id);
     expect(await readActiveInstalledSourceAssets(module.id)).toBeNull();
+  });
+
+  it('keeps every source-assets ZIP in its own row and reads one without the others', async () => {
+    installWritableModuleDatabase();
+    const backend = new BrowserModuleBackend();
+    const asset = (id: string, size: number) => ({
+      id,
+      kind: 'source-assets' as const,
+      required: true,
+      url: `https://example.test/${id}.zip`,
+      sha256: CHECKSUM,
+      sizeBytes: size,
+      compression: 'zip' as const,
+      sourceSetDigest: CHECKSUM,
+    });
+    const module = {
+      ...moduleEntry(),
+      artifacts: [
+        {
+          id: 'index',
+          kind: 'index' as const,
+          required: true,
+          url: 'https://example.test/index.db',
+          sha256: CHECKSUM,
+          sizeBytes: 3,
+          compression: 'none' as const,
+          sourceSetDigest: CHECKSUM,
+        },
+        asset('pack-source-assets-a', 2),
+        asset('pack-source-assets-b', 1),
+      ],
+    } satisfies ContentModuleCatalogEntry;
+    const [indexArtifact, shardA, shardB] = module.artifacts;
+    if (!indexArtifact || !shardA || !shardB) throw new Error('expected module artifacts');
+    const index = await backend.stage(module, indexArtifact, new Uint8Array([1, 2, 3]));
+    const stagedA = await backend.stage(module, shardA, new Uint8Array([4, 5]));
+    const stagedB = await backend.stage(module, shardB, new Uint8Array([6]));
+
+    const receipt = await backend.activate(module, [index, stagedA, stagedB]);
+
+    expect(receipt.installedSizeBytes).toBe(6);
+    expect(await listActiveInstalledSourceAssetIds(module.id)).toEqual([
+      'pack-source-assets-a',
+      'pack-source-assets-b',
+    ]);
+    expect(await readActiveInstalledSourceAssets(module.id, 'pack-source-assets-b')).toEqual(
+      new Uint8Array([6]),
+    );
+    expect(await readActiveInstalledSourceAssets(module.id, 'pack-source-assets-a')).toEqual(
+      new Uint8Array([4, 5]),
+    );
+    await backend.remove(module.id);
+    expect(await listActiveInstalledSourceAssetIds(module.id)).toEqual([]);
   });
 
   it('returns null for an old installed record without source-assets', async () => {

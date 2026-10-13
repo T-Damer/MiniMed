@@ -283,6 +283,20 @@
   margin: 0;
 }
 
+.document-allmed-supplement__frame {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  line-height: 0;
+}
+
+/* An overlay in the photo's corner. */
+.document-allmed-supplement__image-source {
+  position: absolute;
+  right: 0.4rem;
+  bottom: 0.4rem;
+}
+
 .document-allmed-supplement__image {
   display: block;
   max-width: min(100%, 18rem);
@@ -292,7 +306,6 @@
   border-radius: 0.4rem;
 }
 
-.document-allmed-supplement__caption,
 .document-allmed-supplement__source {
   color: var(--theme-text-muted, var(--ink-muted));
   font-size: 0.7rem;

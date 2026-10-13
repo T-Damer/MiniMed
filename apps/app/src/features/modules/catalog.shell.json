@@ -1,6 +1,6 @@
 {
-  "catalogVersion": "kr5-template-labels.2026.10.09",
-  "publishedAt": "2026-10-13T21:15:00Z",
+  "catalogVersion": "packaging-images.2026.10.13",
+  "publishedAt": "2026-10-13T21:30:00Z",
   "coreModule": {
     "id": "minimed.core.ru",
     "version": "1.0.0-preview.8",

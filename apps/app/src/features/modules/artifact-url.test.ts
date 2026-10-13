@@ -168,6 +168,18 @@ describe('resolveContentModuleArtifactUrl', () => {
     ).toBe(
       'https://raw.githubusercontent.com/T-Damer/MiniMed/datasets/allmed-2026.10.05-abc123/modules/minimed.medications.ru.db.zst',
     );
+    for (const file of [
+      'minimed.medications.packaging-images.ru.db',
+      'minimed.medications.packaging-images.ru.source-assets-b.zip',
+    ]) {
+      expect(
+        resolveContentModuleArtifactUrl(
+          `https://github.com/T-Damer/MiniMed/releases/download/allmed-images-2026.10.13-abc123/${file}`,
+        ),
+      ).toBe(
+        `https://raw.githubusercontent.com/T-Damer/MiniMed/datasets/allmed-images-2026.10.13-abc123/modules/${file}`,
+      );
+    }
     expect(
       resolveContentModuleArtifactUrl(
         'https://github.com/T-Damer/MiniMed/releases/download/manufacturer-instructions-2026.10.05-abc123/minimed.medications.instructions.manufacturer-site.ru.db.zst',

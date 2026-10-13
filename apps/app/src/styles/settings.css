@@ -191,7 +191,6 @@
 
 .packaging-images-settings__title,
 .packaging-images-settings__subtitle,
-.packaging-images-settings__description,
 .packaging-images-settings__meta,
 .packaging-images-settings__notice,
 .packaging-images-settings__error,
@@ -211,23 +210,6 @@
   color: var(--theme-text-muted);
   font-size: 0.75rem;
   line-height: 1.4;
-}
-
-.packaging-images-settings__description {
-  color: var(--theme-text);
-  font-size: 0.8125rem;
-  line-height: 1.45;
-}
-
-.packaging-images-settings__badge {
-  flex: 0 0 auto;
-  padding: 0.15rem 0.4rem;
-  border: 1px solid var(--theme-border);
-  border-radius: 999px;
-  color: var(--theme-text-muted);
-  font-family: var(--font-mono);
-  font-size: var(--type-micro);
-  line-height: 1.2;
 }
 
 .packaging-images-settings__error {

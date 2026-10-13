@@ -132,6 +132,7 @@ def build_allmed_image_pack_command(
     retries: Annotated[int, typer.Option("--retries", min=0, max=8)] = 3,
     timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 30.0,
     resume: Annotated[bool, typer.Option("--resume")] = False,
+    mirror_tag: Annotated[str | None, typer.Option("--mirror-tag")] = None,
 ) -> None:
     """Download Allmed packaging images and build a resumable source-assets pack."""
     report = build_allmed_image_pack(
@@ -141,6 +142,7 @@ def build_allmed_image_pack_command(
         retries=retries,
         timeout_seconds=timeout_seconds,
         resume=resume,
+        mirror_tag=mirror_tag,
     )
     typer.echo(json.dumps(report.model_dump(by_alias=True), ensure_ascii=False, indent=2))
 

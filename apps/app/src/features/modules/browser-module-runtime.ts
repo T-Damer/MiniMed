@@ -96,9 +96,11 @@ import { downloadWithRetry, isTransientDownloadError } from '@/features/network/
 import { RELEASE_VERSION } from '../../../../../release';
 
 const DATABASE_NAME = 'minimed-content-modules-v1';
-const DATABASE_VERSION = 1;
+const DATABASE_VERSION = 2;
 const VERSIONS_STORE = 'versions';
 const ACTIVE_STORE = 'active';
+/** One row per source-assets ZIP, so reading one image shard never loads the others. */
+const SOURCE_ASSETS_STORE = 'source-assets';
 const CORE_MODULE_ID = 'minimed.core.ru';
 const MODULE_RETRY_DELAYS_MS = [1_000, 2_500, 5_000] as const;
 const MODULE_REQUEUE_DELAY_MS = 15_000;
@@ -120,7 +122,10 @@ interface StoredModuleVersion {
   readonly indexStorage?: 'opfs';
   readonly indexSizeBytes?: number;
   readonly indexSha256?: string;
+  /** Rows written before the per-artifact store keep the ZIP bytes here. */
   readonly sourceAssets?: readonly StoredModuleArtifact[];
+  /** Artifact ids whose ZIP rows live in `SOURCE_ASSETS_STORE`. */
+  readonly sourceAssetIds?: readonly string[];
   readonly sourceSetDigest: string;
   readonly installedAt: string;
 }
@@ -129,6 +134,14 @@ interface StoredModuleArtifact {
   readonly artifactId: string;
   readonly compression: 'zip';
   readonly bytes: ArrayBuffer;
+}
+
+interface StoredSourceAssetRow extends StoredModuleArtifact {
+  readonly key: string;
+}
+
+function sourceAssetRowKey(moduleId: string, version: string, artifactId: string): string {
+  return `${versionKey(moduleId, version)}#${artifactId}`;
 }
 
 interface ActiveModulePointer {
@@ -177,6 +190,9 @@ async function openDatabase(): Promise<IDBDatabase> {
       }
       if (!database.objectStoreNames.contains(ACTIVE_STORE)) {
         database.createObjectStore(ACTIVE_STORE, { keyPath: 'moduleId' });
+      }
+      if (!database.objectStoreNames.contains(SOURCE_ASSETS_STORE)) {
+        database.createObjectStore(SOURCE_ASSETS_STORE, { keyPath: 'key' });
       }
     };
     request.onsuccess = () => resolve(request.result);
@@ -371,10 +387,44 @@ export async function readActiveInstalledSourceAssets(
     );
     if (!active) return null;
     const stored = await readVersion(database, moduleId, active.version);
+    const rowId = stored?.sourceAssetIds?.find(
+      (candidate) => artifactId === undefined || candidate === artifactId,
+    );
+    if (stored && rowId !== undefined) {
+      const transaction = database.transaction(SOURCE_ASSETS_STORE, 'readonly');
+      const row = await requestResult(
+        transaction
+          .objectStore(SOURCE_ASSETS_STORE)
+          .get(sourceAssetRowKey(moduleId, active.version, rowId)) as IDBRequest<
+          StoredSourceAssetRow | undefined
+        >,
+      );
+      await transactionDone(transaction);
+      return row ? new Uint8Array(row.bytes) : null;
+    }
     const artifact = stored?.sourceAssets?.find(
       (candidate) => artifactId === undefined || candidate.artifactId === artifactId,
     );
     return artifact ? new Uint8Array(artifact.bytes.slice(0)) : null;
+  } finally {
+    database.close();
+  }
+}
+
+/** Artifact ids of the source-assets ZIPs of the active version, without reading their bytes. */
+export async function listActiveInstalledSourceAssetIds(
+  moduleId: string,
+): Promise<readonly string[]> {
+  if (!('indexedDB' in globalThis)) return [];
+  const database = await openDatabase();
+  try {
+    const active = (await readActivePointers(database)).find(
+      (pointer) => pointer.moduleId === moduleId,
+    );
+    if (!active) return [];
+    const stored = await readVersion(database, moduleId, active.version);
+    if (stored?.sourceAssetIds) return stored.sourceAssetIds;
+    return stored?.sourceAssets?.map((artifact) => artifact.artifactId) ?? [];
   } finally {
     database.close();
   }
@@ -595,7 +645,10 @@ export class BrowserModuleBackend implements ContentModuleArtifactBackend {
       );
       await transactionDone(previousTransaction);
 
-      const transaction = database.transaction([VERSIONS_STORE, ACTIVE_STORE], 'readwrite');
+      const transaction = database.transaction(
+        [VERSIONS_STORE, ACTIVE_STORE, SOURCE_ASSETS_STORE],
+        'readwrite',
+      );
       const stored: StoredModuleVersion = {
         key: versionKey(module.id, module.version),
         ...(module.definitionReference ? { definitionReference: module.definitionReference } : {}),
@@ -605,11 +658,20 @@ export class BrowserModuleBackend implements ContentModuleArtifactBackend {
           ? { indexStorage: 'opfs' as const, indexSizeBytes: decodedSize }
           : { bytes: moduleIndexBlob(staged.bytes) }),
         ...(indexSha256 ? { indexSha256 } : {}),
-        ...(sourceAssets.length > 0 ? { sourceAssets } : {}),
+        ...(sourceAssets.length > 0
+          ? { sourceAssetIds: sourceAssets.map((artifact) => artifact.artifactId) }
+          : {}),
         sourceSetDigest: module.sourceSetDigest ?? '',
         installedAt: new Date().toISOString(),
       };
       transaction.objectStore(VERSIONS_STORE).put(stored);
+      for (const artifact of sourceAssets) {
+        const row: StoredSourceAssetRow = {
+          ...artifact,
+          key: sourceAssetRowKey(module.id, module.version, artifact.artifactId),
+        };
+        transaction.objectStore(SOURCE_ASSETS_STORE).put(row);
+      }
       transaction.objectStore(ACTIVE_STORE).put({ moduleId: module.id, version: module.version });
       await transactionDone(transaction);
       staged.committed = true;
@@ -687,8 +749,15 @@ export class BrowserModuleBackend implements ContentModuleArtifactBackend {
   public async remove(moduleId: string): Promise<void> {
     const database = await openDatabase();
     try {
-      const transaction = database.transaction([VERSIONS_STORE, ACTIVE_STORE], 'readwrite');
+      const transaction = database.transaction(
+        [VERSIONS_STORE, ACTIVE_STORE, SOURCE_ASSETS_STORE],
+        'readwrite',
+      );
       transaction.objectStore(ACTIVE_STORE).delete(moduleId);
+      const assetStore = transaction.objectStore(SOURCE_ASSETS_STORE);
+      for (const key of await requestResult(assetStore.getAllKeys())) {
+        if (String(key).startsWith(`${moduleId}@`)) assetStore.delete(key);
+      }
       const store = transaction.objectStore(VERSIONS_STORE);
       const keys = await requestResult(store.getAllKeys());
       for (const key of keys) {

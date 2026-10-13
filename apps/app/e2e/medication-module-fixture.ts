@@ -12,6 +12,8 @@ import { E2E_ASSET_ORIGIN } from './mount-built-app';
  * its published bytes, kept as the local release copy (docs/data-ledger.json), and open a card.
  */
 const ROOT = resolve(import.meta.dirname, '../../..');
+// The local release copies stay in the main checkout; an agent worktree (`<main>/.claude/worktrees/…`) reads them there.
+const DATA_ROOT = existsSync(resolve(ROOT, 'output')) ? ROOT : resolve(ROOT, '../../..');
 export const MEDICATION_MODULE_ID = 'minimed.medications.antiparasitic.ru';
 const PUBLISHED_DIRECTORY = 'output/module-zstd-2026-10-01/esklp-compacted';
 const POINTER = 'core.catalog.pointer.medication.esklp.mnn.албендазол-062d3e89c1c0b8dd';
@@ -33,7 +35,7 @@ export async function routeMedicationModule(page: Page): Promise<void> {
     ?.artifacts[0];
   if (!artifact?.url) throw new Error('Missing medication module artifact');
   const fileName = new URL(artifact.url).pathname.split('/').at(-1) ?? '';
-  const localPath = resolve(ROOT, PUBLISHED_DIRECTORY, fileName);
+  const localPath = resolve(DATA_ROOT, PUBLISHED_DIRECTORY, fileName);
   test.skip(!existsSync(localPath), `The published module file ${fileName} is local-only.`);
   const bytes = await readFile(localPath);
   expect(`sha256:${createHash('sha256').update(bytes).digest('hex')}`).toBe(artifact.sha256);
@@ -57,7 +59,7 @@ export async function routeInstructionModule(page: Page): Promise<void> {
     ?.artifacts[0];
   if (!artifact?.url) throw new Error('Missing instruction module artifact');
   const fileName = new URL(artifact.url).pathname.split('/').at(-1) ?? '';
-  const localPath = resolve(ROOT, INSTRUCTION_DIRECTORY, fileName);
+  const localPath = resolve(DATA_ROOT, INSTRUCTION_DIRECTORY, fileName);
   test.skip(!existsSync(localPath), `The published module file ${fileName} is local-only.`);
   const bytes = await readFile(localPath);
   expect(`sha256:${createHash('sha256').update(bytes).digest('hex')}`).toBe(artifact.sha256);

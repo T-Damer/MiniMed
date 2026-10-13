@@ -1,7 +1,10 @@
 import type { ContentModuleCatalogEntry } from '@localmed/contracts';
 import type JSZip from 'jszip';
 
-import { readActiveInstalledSourceAssets } from '@/features/modules/browser-module-runtime';
+import {
+  listActiveInstalledSourceAssetIds,
+  readActiveInstalledSourceAssets,
+} from '@/features/modules/browser-module-runtime';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { ALLMED_REFERENCE_URL, safePackagingImageReference } from './medication-record';
 
@@ -24,19 +27,42 @@ interface ManifestImageRecord {
 interface ParsedImageArchive {
   readonly archive: JSZip;
   readonly images: ReadonlyMap<string, ManifestImageRecord>;
+  readonly fetchedAt: string | null;
 }
+
+/** Name of the source shown for every packaging image. */
+export const PACKAGING_IMAGE_SOURCE_NAME = 'Allmed';
+
+/** Shard ZIPs kept open at once: a drug screen touches a handful of images, not the whole pack. */
+const OPEN_SHARD_LIMIT = 2;
 
 export interface ResolvedMedicationPackagingImage {
   readonly reference: string;
   readonly url: string;
   readonly sourceUrl: string;
   readonly contentType: string;
+  /** Date (YYYY-MM-DD) the source file was fetched, when the pack records it. */
+  readonly fetchedAt: string | null;
 }
 
 export interface MedicationPackagingImageResolverOptions {
   readonly moduleId?: string;
-  readonly artifactId?: string;
   readonly readSourceAssets?: (moduleId: string, artifactId?: string) => Promise<Uint8Array | null>;
+  readonly listSourceAssetIds?: (moduleId: string) => Promise<readonly string[]>;
+}
+
+/**
+ * The shard of an image: the first hex digit of the SHA-256 of its reference. The pack builder
+ * (`shard_of` in `allmed_images.py`) uses the same rule, one source-assets ZIP per digit.
+ */
+export async function packagingImageShard(reference: string): Promise<string> {
+  const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(reference));
+  return (new Uint8Array(hash)[0] ?? 0).toString(16).padStart(2, '0').slice(0, 1);
+}
+
+function fetchedDate(value: unknown): string | null {
+  const text = stringValue(value);
+  return text && /^\d{4}-\d{2}-\d{2}$/u.test(text) ? text : null;
 }
 
 function recordValue(value: unknown): Readonly<Record<string, unknown>> | null {
@@ -88,7 +114,10 @@ function manifestImageRecord(reference: string, value: unknown): ManifestImageRe
   return { sourceUrl, contentType, sha256, size };
 }
 
-function parseManifest(value: unknown): ReadonlyMap<string, ManifestImageRecord> | null {
+function parseManifest(value: unknown): {
+  readonly images: ReadonlyMap<string, ManifestImageRecord>;
+  readonly fetchedAt: string | null;
+} | null {
   const manifest = recordValue(value);
   const sourceUrl = stringValue(manifest?.['sourceUrl']);
   const images = recordValue(manifest?.['images']);
@@ -100,7 +129,7 @@ function parseManifest(value: unknown): ReadonlyMap<string, ManifestImageRecord>
     const parsed = manifestImageRecord(reference, record);
     if (parsed) result.set(reference, parsed);
   }
-  return result;
+  return { images: result, fetchedAt: fetchedDate(manifest?.['fetchedAt']) };
 }
 
 async function digest(bytes: Uint8Array): Promise<string> {
@@ -112,11 +141,12 @@ async function digest(bytes: Uint8Array): Promise<string> {
 
 export class MedicationPackagingImageResolver {
   private readonly moduleId: string;
-  private readonly artifactId: string | undefined;
   private readonly readSourceAssets: (
     moduleId: string,
     artifactId?: string,
   ) => Promise<Uint8Array | null>;
+  private readonly listSourceAssetIds: (moduleId: string) => Promise<readonly string[]>;
+  /** Open shard archives, oldest first; at most `OPEN_SHARD_LIMIT`. */
   private readonly archives = new Map<string, Promise<ParsedImageArchive | null>>();
   private readonly images = new Map<string, Promise<ResolvedMedicationPackagingImage | null>>();
   private readonly objectUrls = new Set<string>();
@@ -126,22 +156,18 @@ export class MedicationPackagingImageResolver {
 
   public constructor(options: MedicationPackagingImageResolverOptions = {}) {
     this.moduleId = options.moduleId ?? MEDICATION_PACKAGING_IMAGES_MODULE_ID;
-    this.artifactId = options.artifactId;
     this.readSourceAssets = options.readSourceAssets ?? readActiveInstalledSourceAssets;
+    this.listSourceAssetIds = options.listSourceAssetIds ?? listActiveInstalledSourceAssetIds;
     if (typeof window !== 'undefined') {
       window.addEventListener(CONTENT_CHANGED_EVENT, this.handleContentChanged);
     }
   }
 
-  private cacheKey(): string {
-    return `${this.moduleId}\u001f${this.artifactId ?? ''}`;
-  }
-
-  private async loadArchive(): Promise<ParsedImageArchive | null> {
-    const bytes = await this.readSourceAssets(this.moduleId, this.artifactId);
+  private async loadArchive(artifactId: string): Promise<ParsedImageArchive | null> {
+    const bytes = await this.readSourceAssets(this.moduleId, artifactId);
     if (!bytes) return null;
     const jsZip = await import('jszip');
-    const archive = await jsZip.default.loadAsync(Uint8Array.from(bytes));
+    const archive = await jsZip.default.loadAsync(bytes);
     const manifestFile = archive.file('manifest.json');
     if (!manifestFile || manifestFile.dir) return null;
     const manifestText = await manifestFile.async('text');
@@ -151,22 +177,35 @@ export class MedicationPackagingImageResolver {
     } catch {
       return null;
     }
-    const images = parseManifest(manifest);
-    return images ? { archive, images } : null;
+    const parsed = parseManifest(manifest);
+    return parsed ? { archive, images: parsed.images, fetchedAt: parsed.fetchedAt } : null;
   }
 
-  private archive(): Promise<ParsedImageArchive | null> {
-    const key = this.cacheKey();
-    let pending = this.archives.get(key);
-    if (!pending) {
-      pending = this.loadArchive();
-      this.archives.set(key, pending);
+  private archive(artifactId: string): Promise<ParsedImageArchive | null> {
+    let pending = this.archives.get(artifactId);
+    if (pending) {
+      // Refresh the position: the most recently used shard is evicted last.
+      this.archives.delete(artifactId);
+      this.archives.set(artifactId, pending);
+      return pending;
+    }
+    pending = this.loadArchive(artifactId);
+    this.archives.set(artifactId, pending);
+    while (this.archives.size > OPEN_SHARD_LIMIT) {
+      const oldest = this.archives.keys().next().value;
+      if (oldest === undefined) break;
+      this.archives.delete(oldest);
     }
     return pending;
   }
 
   private async loadImage(reference: string): Promise<ResolvedMedicationPackagingImage | null> {
-    const parsed = await this.archive();
+    const shard = await packagingImageShard(reference);
+    const artifactId = (await this.listSourceAssetIds(this.moduleId)).find((candidate) =>
+      candidate.endsWith(`-${shard}`),
+    );
+    if (!artifactId) return null;
+    const parsed = await this.archive(artifactId);
     const manifestImage = parsed?.images.get(reference);
     if (!parsed || !manifestImage) return null;
     const file = parsed.archive.file(reference);
@@ -188,17 +227,17 @@ export class MedicationPackagingImageResolver {
       url,
       sourceUrl: manifestImage.sourceUrl,
       contentType: manifestImage.contentType,
+      fetchedAt: parsed.fetchedAt,
     };
   }
 
   public resolve(referenceValue: unknown): Promise<ResolvedMedicationPackagingImage | null> {
     const reference = safePackagingImageReference(referenceValue);
     if (!reference) return Promise.resolve(null);
-    const key = `${this.cacheKey()}\u001f${reference}`;
-    let pending = this.images.get(key);
+    let pending = this.images.get(reference);
     if (!pending) {
       pending = this.loadImage(reference).catch(() => null);
-      this.images.set(key, pending);
+      this.images.set(reference, pending);
     }
     return pending;
   }

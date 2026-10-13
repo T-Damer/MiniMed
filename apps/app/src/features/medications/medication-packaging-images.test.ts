@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import {
   MedicationPackagingImageResolver,
+  packagingImageShard,
   type ResolvedMedicationPackagingImage,
 } from './medication-packaging-images';
 
@@ -37,6 +38,7 @@ async function imageArchive(): Promise<Uint8Array> {
       rawDatabaseSourceUrl: 'https://allmed.pro',
       schemaVersion: 1,
       sourceUrl: 'https://allmed.pro',
+      fetchedAt: '2026-10-13',
       successfulReferences: 1,
       totalBytes: image.byteLength,
       totalReferences: 1,
@@ -47,15 +49,28 @@ async function imageArchive(): Promise<Uint8Array> {
   return archive.generateAsync({ type: 'uint8array' });
 }
 
+const listSourceAssetIds = async (): Promise<readonly string[]> => [
+  'pack-source-assets-v1-5',
+  'pack-source-assets-v1-b',
+];
+
 afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
 
+describe('packagingImageShard', () => {
+  it('uses the first hex digit of the reference SHA-256, like the pack builder', async () => {
+    // sha256('img/preparations/1.jpg') starts with 0xb0, '2.jpg' with 0x53 (checked in Python).
+    await expect(packagingImageShard('img/preparations/1.jpg')).resolves.toBe('b');
+    await expect(packagingImageShard('img/preparations/2.jpg')).resolves.toBe('5');
+  });
+});
+
 describe('MedicationPackagingImageResolver', () => {
   it('rejects unsafe references before reading the installed archive', async () => {
     const readSourceAssets = vi.fn(async () => imageArchive());
-    const resolver = new MedicationPackagingImageResolver({ readSourceAssets });
+    const resolver = new MedicationPackagingImageResolver({ readSourceAssets, listSourceAssetIds });
 
     await expect(resolver.resolve('../1.jpg')).resolves.toBeNull();
     await expect(resolver.resolve('https://allmed.pro/img/preparations/1.jpg')).resolves.toBeNull();
@@ -74,7 +89,7 @@ describe('MedicationPackagingImageResolver', () => {
       addEventListener: (event: string, listener: () => void) => listeners.set(event, listener),
       removeEventListener: (event: string) => listeners.delete(event),
     });
-    const resolver = new MedicationPackagingImageResolver({ readSourceAssets });
+    const resolver = new MedicationPackagingImageResolver({ readSourceAssets, listSourceAssetIds });
 
     const first = await resolver.resolve('img/preparations/1.jpg');
     const second = await resolver.resolve('img/preparations/1.jpg');
@@ -84,9 +99,14 @@ describe('MedicationPackagingImageResolver', () => {
       url: 'blob:packaging-1',
       sourceUrl: 'https://allmed.pro/img/preparations/1.jpg',
       contentType: 'image/jpeg',
+      fetchedAt: '2026-10-13',
     });
     expect(second).toBe(first);
     expect(readSourceAssets).toHaveBeenCalledOnce();
+    expect(readSourceAssets).toHaveBeenCalledWith(
+      'minimed.medications.packaging-images.ru',
+      'pack-source-assets-v1-b',
+    );
     expect(createObjectURL).toHaveBeenCalledOnce();
 
     listeners.get(CONTENT_CHANGED_EVENT)?.();

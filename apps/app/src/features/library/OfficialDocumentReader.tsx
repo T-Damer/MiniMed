@@ -120,6 +120,7 @@ import {
   referenceSourceLabel,
   type TradeNameSupplement,
 } from '@/features/medications/medication-record';
+import { PackagingImageSource } from '@/features/medications/PackagingImageSource';
 import { useMfgCountries } from '@/features/medications/use-mfg-countries';
 import { useSubstanceFallback } from '@/features/medications/use-substance-fallback';
 import type {
@@ -264,15 +265,18 @@ function AllmedSupplementPanel(props: {
         <Show when={image()}>
           {(resolvedImage) => (
             <figure class="document-allmed-supplement__figure">
-              <img
-                class="document-allmed-supplement__image"
-                src={resolvedImage().url}
-                alt={`Фото упаковки: ${props.supplement.product.tradeName}`}
-                loading="lazy"
-              />
-              <figcaption class="document-allmed-supplement__caption">
-                Фото упаковки из справочного материала Allmed
-              </figcaption>
+              <div class="document-allmed-supplement__frame">
+                <img
+                  class="document-allmed-supplement__image"
+                  src={resolvedImage().url}
+                  alt={`Фото упаковки: ${props.supplement.product.tradeName}`}
+                  loading="lazy"
+                />
+                <PackagingImageSource
+                  image={resolvedImage()}
+                  class="document-allmed-supplement__image-source"
+                />
+              </div>
             </figure>
           )}
         </Show>

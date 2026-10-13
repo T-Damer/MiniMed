@@ -19,10 +19,11 @@ The relational layer is the source of truth for structured drug data. Vectors ar
 - blocks an enabled source when the catalog does not affirm offline-storage rights.
 
 The catalog records separate permissions for offline storage, derivative processing, and
-redistribution. Owner-supplied Allmed data and packaging assets may be used in a private local pack
-for this personal project. Public releases still require an explicit redistribution decision: the
-[Allmed terms](https://allmed.pro/information/rules) require written permission for copying,
-distribution, and publication while the footer contains a contradictory source-link allowance.
+redistribution. Owner-supplied Allmed data and packaging assets are used for this personal project;
+the owner decided on 2026-10-13 to publish the packaging-image pack with the source shown on every
+photo. The [Allmed terms](https://allmed.pro/information/rules) still require written permission for
+copying, distribution, and publication while the footer contains a contradictory source-link
+allowance; the owner accepted that risk, it is not resolved.
 GRLS text sent to an external AI remains a separate third-party-processing decision. The verified
 ESKLP preview is published separately as identity-only content.
 
@@ -31,25 +32,49 @@ identity/registration lookup. Those modules remain metadata-only (`trustedDoseDa
 gated by the Experimental setting. ESKLP authority here covers identity and registration facts, not
 indications or dosing; exact measured core coverage is recorded in [CURRENT_STATE.md](CURRENT_STATE.md).
 
-### Local Allmed packaging-image candidate
+### Allmed packaging-image pack (published 2026-10-13)
 
-The current non-published candidate is stored under
-`/private/tmp/minimed-allmed-images.WoT7jU` and was revalidated on 2 September 2026:
+Owner decision 2026-10-13: the pack is published (personal-use app); every photo shows a «?» with its
+source instead of a rights gate. Rebuilt from the unchanged Allmed snapshot (SHA-256 `c8e85a68…`):
 
-- module: `minimed.medications.packaging-images.ru@allmed-images-c8e85a688094`;
-- 4,244 source references, 4,218 distinct references, 4,214 downloaded images, 4 failures;
-- `index.db`: 307,200 bytes, SHA-256
-  `6db13ac2f494b5ff7e3114fb020a219bb53283172bc5a8fd134f3b0daa1f21d1`;
-- `source-assets.zip`: 280,899,019 bytes, SHA-256
-  `fdfc8bb715908c5b5bcdb0c9e4969815ccb94d222b2ca96338cfaa6546fdfd21`;
-- source-set digest:
-  `sha256:040d384670c8d75ffbc62d593f30a629a80d24afd44df93ec546131d627de48a`.
+- module `minimed.medications.packaging-images.ru@allmed-images-c8e85a688094`, `kind: reference` (so
+  the drug bundles «Скачать препараты» do not pull it in; it is an opt-in in Settings → Изображения),
+  `releaseState: preview`, `minAppVersion` 0.6.60 (needs the sharded reader);
+- 4 244 source references, 4 218 distinct, **4 214 images** (279.0 MB, the original bytes: no
+  re-encoding, so checksums and provenance are exact), 4 failures (empty file names in the source rows);
+- an index (`index.db`, 442 368 bytes, SHA-256 `e3dd4f33…`) and **16 ZIP shards** of 15.8–22.2 MB. A
+  shard is the first hex digit of the SHA-256 of the image reference (`shard_of` in
+  `allmed_images.py`, `packagingImageShard` in the app). Each shard has its own `manifest.json`
+  (per image: checksum, size, content type, source URL, Allmed drug ids; pack-level `fetchedAt`);
+- the app stores each ZIP as its own IndexedDB row (store `source-assets`, database v2) and keeps at
+  most two shards open, so one photo reads ~17 MB, not the whole pack;
+- mirror: branch `datasets/allmed-images-2026.10.13-c8e85a688094`,
+  `modules/minimed.medications.packaging-images.ru.{db,source-assets-<x>.zip}` as plain blobs served
+  by raw.githubusercontent.com (CORS), published with
+  `scripts/publish-module-zstd-mirror.sh --family packaging-images`; the catalog URLs are the
+  `releases/download/<tag>/…` form that `artifact-url.ts` maps to that branch;
+- catalog entry added to `catalog.preview.json` (`catalogVersion` `packaging-images.2026.10.13`).
 
-The generated catalog fragment deliberately keeps both artifact URLs `null`. The Settings card,
-download/install/remove flow, source-assets resolver, per-image checksum validation, and medication
-reader rendering are implemented, but the production catalog must not include this module until
-written redistribution permission resolves the contradictory Allmed terms/footer language. The
-temporary directory is not a release archive and may be removed by the operating system.
+Rebuild (only when the snapshot changes; resume reuses cached downloads; never overwrite a published
+tag, use a new `--mirror-tag`):
+
+```bash
+uv run --project tools/ingest medbase build-allmed-image-pack --input <allmed_tinybase.db> \
+  --output data/build/allmed-images --mirror-tag allmed-images-<date>-<hash12>
+scripts/publish-module-zstd-mirror.sh --family packaging-images --tag <tag> \
+  --source-dir data/build/allmed-images/mirror --create
+bun scripts/upsert-catalog-module.ts apps/app/src/features/modules/catalog.preview.json <entry.json> && bun run catalog:shell
+```
+
+The local release copy is `output/allmed-images-2026.10.13-c8e85a688094/` (index, 16 shards, catalog
+fragment, build report); the download cache was deleted after verification. Integrity is covered by
+`tools/ingest/tests/test_allmed_image_pack_published.py` (every image has checksum, source URL and
+a drug link into the Allmed snapshot) and `apps/app/src/features/modules/packaging-images-catalog.test.ts`.
+
+In the app each packaging photo (drug-screen header and the Allmed supplement panel) carries a round
+«?» (aria-label «Источник изображения») that opens a popover (sheet on phones): site name (Allmed),
+the source file's address as a link and the day it was fetched. The credit line and caption were
+removed. E2E: `apps/app/e2e/packaging-image-source.spec.ts` (local release copies, `E2E_PORT=4185`).
 
 ## End-to-end workflow
 

@@ -1,0 +1,76 @@
+/* The «?» over a packaging photo and the source panel it opens. */
+
+.packaging-image-source__button {
+  display: inline-grid;
+  width: 1.875rem;
+  height: 1.875rem;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--theme-border);
+  border-radius: 50%;
+  color: var(--theme-text-muted);
+  background: color-mix(in srgb, var(--theme-surface-raised) 84%, transparent);
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition:
+    transform var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease),
+    color var(--motion-fast) var(--motion-ease);
+}
+
+.packaging-image-source__button:active {
+  transform: scale(0.96);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .packaging-image-source__button:hover {
+    color: var(--theme-text);
+    background: var(--theme-surface-raised);
+  }
+}
+
+.packaging-image-source__icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.packaging-image-source__panel {
+  max-width: min(22rem, calc(100vw - 2rem));
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.875rem;
+  background: var(--theme-surface-raised);
+  box-shadow: var(--shadow-paper);
+  animation: packaging-image-source-in var(--motion-base) var(--motion-ease-out);
+}
+
+@keyframes packaging-image-source-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+.packaging-image-source__body {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.packaging-image-source__site {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.packaging-image-source__link {
+  color: var(--theme-text);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+  text-underline-offset: var(--theme-text-underline-offset);
+}
+
+.packaging-image-source__date {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.8rem;
+}

@@ -5,10 +5,10 @@ import { ItemBookmarkMenu } from '@/features/collections/ItemBookmarkMenu';
 import type { ReaderBookmark } from '@/features/collections/ReaderItemActions';
 import type { DrugHeaderModel } from '@/features/medications/drug-screen';
 import {
-  ALLMED_SOURCE_URL,
   type ResolvedMedicationPackagingImage,
   resolveMedicationPackagingImage,
 } from '@/features/medications/medication-packaging-images';
+import { PackagingImageSource } from '@/features/medications/PackagingImageSource';
 import type { ItemRefInput } from '@/state/item-collections';
 
 import '@/features/medications/drug-screen.css';
@@ -56,6 +56,7 @@ export function DrugScreenHeader(props: {
               />
             </div>
             <div class="drug-header__veil" aria-hidden="true" />
+            <PackagingImageSource image={resolved()} class="drug-header__image-source" />
           </>
         )}
       </Show>
@@ -106,19 +107,6 @@ export function DrugScreenHeader(props: {
             <For each={props.header.meta}>
               {(item) => <span class="drug-header__meta-item">{item}</span>}
             </For>
-          </p>
-        </Show>
-        <Show when={image()}>
-          <p class="drug-header__credit">
-            Фото упаковки:{' '}
-            <a
-              class="drug-header__credit-link"
-              href={ALLMED_SOURCE_URL}
-              rel="noreferrer"
-              target="_blank"
-            >
-              Allmed
-            </a>
           </p>
         </Show>
       </div>

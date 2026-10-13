@@ -12,6 +12,10 @@ const MEDICATION_MIRROR_TAG =
 /** Module files of the mirrored medication tags: drug modules and the DDInter severity labels. */
 const MEDICATION_MIRROR_FILE = /^minimed\.(?:medications\.|reference\.ddinter-)/u;
 
+/** The Allmed packaging-photo pack: tag `allmed-images-<snapshot>`, files `minimed.medications.packaging-images.ru.*`. */
+const PACKAGING_IMAGES_MIRROR_TAG_PREFIX = 'allmed-images-';
+const PACKAGING_IMAGES_MIRROR_FILE_PREFIX = 'minimed.medications.packaging-images.ru.';
+
 const RAW_GITHUB_MODULE_BASE =
   'https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules';
 export function usesLocalModuleArtifacts(): boolean {
@@ -77,6 +81,14 @@ export function resolveContentModuleArtifactUrl(url: string): string {
       ) {
         // Compressed modules are small enough for plain git blobs on the mirror branch; raw
         // serves them with browser CORS and without LFS bandwidth quota.
+        return `https://raw.githubusercontent.com/${owner}/${repo}/datasets/${releaseTag}/modules/${fileName}`;
+      }
+      if (
+        releaseTag.startsWith(PACKAGING_IMAGES_MIRROR_TAG_PREFIX) &&
+        fileName.startsWith(PACKAGING_IMAGES_MIRROR_FILE_PREFIX) &&
+        /\.(?:db|zip)$/u.test(fileName)
+      ) {
+        // The photo pack: an index and ZIP shards of about 16 MB, plain git blobs on the mirror.
         return `https://raw.githubusercontent.com/${owner}/${repo}/datasets/${releaseTag}/modules/${fileName}`;
       }
       if (

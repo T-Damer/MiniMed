@@ -171,14 +171,9 @@ export function PackagingImagesSettings(props: PackagingImagesSettingsProps = {}
                 <p class="packaging-images-settings__subtitle">Справочные изображения Allmed</p>
               </div>
             </div>
-            <span class="packaging-images-settings__badge">Experimental</span>
           </header>
-          <p class="packaging-images-settings__description">
-            Отдельный офлайн-пакет изображений. Он не заменяет официальные данные ЕСКЛП.
-          </p>
           <p class="packaging-images-settings__meta">
-            {formatModuleBytes(medicationPackagingImagesDownloadBytes(current()))} · версия{' '}
-            {current().version}
+            {formatModuleBytes(medicationPackagingImagesDownloadBytes(current()))}
           </p>
           <Show when={visibility() === 'disabled'}>
             <p class="packaging-images-settings__notice">Пакет ещё не опубликован.</p>

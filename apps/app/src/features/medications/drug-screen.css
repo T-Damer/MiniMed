@@ -162,15 +162,13 @@
   overflow-wrap: anywhere;
 }
 
-.drug-header__credit {
-  margin: 0.5rem 0 0;
-  color: var(--ink-faint);
-  font-size: var(--type-micro);
-}
-
-.drug-header__credit-link {
-  color: inherit;
-  text-underline-offset: var(--theme-text-underline-offset);
+/* The «?» sits in the photo layer's corner: an overlay, not part of the text flow. */
+.drug-header__image-source {
+  z-index: 3;
+  grid-area: 1 / 1;
+  align-self: end;
+  justify-self: end;
+  margin: 0 0.625rem 0.625rem 0;
 }
 
 @media (prefers-color-scheme: dark) {

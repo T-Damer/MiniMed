@@ -73,6 +73,30 @@ It opens a sheet (`features/reader-dictionary/`, mounted once in `App.tsx`, code
   «Файлы на тему» (B1 idea queue) remain open; nominative candidates are heuristic endings, not a
   morphological dictionary, so irregular forms fall back to the core's own matching.
 
+## Allmed packaging photos published, «?» source on every photo — 2026-10-13 (STATE IMG1)
+
+Owner 2026-10-13: «just show a "?" on the image; clicking it shows the image source».
+
+- **Pack published:** 4 214 photos (279.0 MB, original bytes), 16 ZIP shards of 15.8–22.2 MB + a 442 KB
+  index on `datasets/allmed-images-2026.10.13-c8e85a688094` (plain blobs, raw.githubusercontent.com,
+  CORS and checksums verified against the local copy), catalog entry `minimed.medications.packaging-images.ru`
+  (`kind: reference`, opt-in in Settings → Изображения, not in «Скачать препараты»), `minAppVersion` 0.6.60,
+  `publishedAt` 2026-10-13T21:10Z. Details, rebuild and publishing commands: `docs/DRUG_KNOWLEDGE_PIPELINE.md`.
+- **Why shards:** GitHub blobs are limited to 100 MB and the old single 281 MB ZIP would have been read into
+  memory whole (IndexedDB clone + copy + JSZip) for every photo. The shard of a photo is the first hex digit
+  of the SHA-256 of its reference; each ZIP is its own row in a new IndexedDB store (`source-assets`,
+  database version 2) and the resolver keeps two open.
+- **UI:** a round «?» (aria-label «Источник изображения») over the photo in the drug-screen header and in the
+  Allmed supplement panel opens a popover (sheet at phone width): «Allmed», the source file address as a link,
+  «Получено 13 октября 2026 г.». The credit line, the caption and the settings card's «Experimental» badge
+  and raw version were removed.
+- **Checks:** pytest (pack builder, published-pack integrity: every image has checksum, source URL and drug
+  link), vitest (resolver, shard rule, popover view, URL mapping, catalog entry, IndexedDB shards), targeted
+  e2e `packaging-image-source.spec.ts` (real Allmed module + photo pack from local copies, install through
+  the UI, popover at 375×812 light/dark and wide). Not tested: a phone/Android WebView (install stages all 17
+  artifacts in memory, 279 MB), the app update path from IndexedDB v1 on a device with installed modules,
+  other drug photos than Немозол.
+
 ## Misspelt words in search — 2026-10-13 (STATE TYPO1)
 
 Owner report: «Помоач» (for «Помрач») and «Оменция» (for «Аменция») found nothing, although most
@@ -3924,14 +3948,13 @@ layer), consolidated editions of the federal laws, a clinician review of the par
   still lacks complete verified drug instructions, legal/normative material,
   vaccination calendars, nutrition, growth, development, and calculation-rule sources. The complete
   clinical-recommendation snapshot is not yet a complete physician knowledge base.
-- A separate Allmed packaging-image pack is built locally with 4,214 images and 4 rejected source
-  references; its exact local ZIP/index artifacts are recorded in
-  [DRUG_KNOWLEDGE_PIPELINE.md](DRUG_KNOWLEDGE_PIPELINE.md). It is not published or in the application
-  catalog because the source terms require written permission for copying, distribution, and
-  publication while the footer is contradictory, so the pack remains local-dev only and packaging
-  images remain outside the production core. The Settings card, module installer/remover, installed
-  source-assets resolver, image checksum validation, and medication-reader rendering are already
-  implemented and activate when an authorized catalog entry is supplied. Dose/indication coverage and clinical-grade
+- The Allmed packaging-image pack (4,214 photos, 279 MB, 16 ZIP shards) is published as an opt-in
+  module (Settings → Изображения) on `datasets/allmed-images-2026.10.13-c8e85a688094` and listed in the
+  catalog (needs app 0.6.60); each photo shows a «?» with its source (see
+  [DRUG_KNOWLEDGE_PIPELINE.md](DRUG_KNOWLEDGE_PIPELINE.md)). The Allmed terms still require written
+  permission for redistribution; the owner accepted that on 2026-10-13. Photos are not in the
+  production core and the pack is not part of the «Скачать препараты» bundle. Not measured on a
+  phone: install memory (all 17 artifacts are staged in memory before activation). Dose/indication coverage and clinical-grade
   diagnostic/dose validation are also not complete. The larger generated clinician-query benchmark
   for Recall@5, MRR@5, and section recall remains pending.
 - The full GRLS export has no confirmed ATC field; the codes come from ЕСКЛП (83 % of its МНН cards carry one, 59 % a
@@ -3987,8 +4010,8 @@ described above.
    locally scheduled
    notifications, note-image persistence, and the published Pages `/app/`.
 3. Build and qualify the missing dose/indication corpus from source-backed rules, including
-   clarification/abstention behavior; resolve Allmed packaging-image rights before considering a
-   distributable/cataloged module, while keeping image assets outside the core database.
+   clarification/abstention behavior. (The Allmed packaging-image pack is published, outside the core
+   database; the rights question was decided by the owner on 2026-10-13.)
 4. Rebuild the antiinfectives instruction module so the reviewed oseltamivir text replaces the OCR text (DQ1);
    other OCR instructions stay flagged.
 5. Expand real Russian clinician-query, unsupported-answer, and source-scope benchmark coverage.

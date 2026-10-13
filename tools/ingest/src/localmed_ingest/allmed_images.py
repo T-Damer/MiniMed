@@ -13,6 +13,7 @@ import urllib.request
 from collections.abc import Callable, Mapping
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from contextlib import AbstractContextManager
+from datetime import UTC, datetime
 from email.message import Message
 from pathlib import Path
 from typing import Literal, Protocol, cast
@@ -35,7 +36,11 @@ IMAGE_PACK_TITLE = "Фото упаковок препаратов"
 IMAGE_PACK_BUILT_AT = "2026-09-01T00:00:00Z"
 _CHECKPOINT_FILENAME = "download-checkpoint.json"
 _MANIFEST_FILENAME = "manifest.json"
-_ZIP_FILENAME = "source-assets.zip"
+_SOURCE_ASSETS_NAME = "source-assets-<shard>.zip"
+_ZIP_FILENAME_TEMPLATE = "source-assets-{shard}.zip"
+_MIRROR_DIRNAME = "mirror"
+_MIRROR_FILE_PREFIX = "minimed.medications.packaging-images.ru"
+_GITHUB_RELEASE_BASE = "https://github.com/T-Damer/MiniMed/releases/download"
 _INDEX_FILENAME = "index.db"
 _EDITION_FILENAME = "edition-manifest.json"
 _CATALOG_FILENAME = "catalog-fragment.json"
@@ -44,7 +49,7 @@ _CACHE_DIRNAME = "cache"
 _INDEX_WORKSPACE_DIRNAME = "index-authoring"
 _CHUNK_SIZE = 1024 * 1024
 _IMAGE_DOCUMENT_ID = "medications.packaging-images"
-_MIN_APP_VERSION = "0.6.0"
+_MIN_APP_VERSION = "0.6.60"
 _CORE_CATALOG_VERSION = "1"
 _TRANSIENT_HTTP_STATUS_CODES = frozenset({408, 425, 429, 500, 502, 503, 504})
 _IMAGE_CONTENT_TYPES: dict[str, frozenset[str]] = {
@@ -87,6 +92,7 @@ class AllmedImageFailure(CamelModel):
 class AllmedImageManifest(CamelModel):
     schema_version: Literal[1] = 1
     source_url: str
+    fetched_at: str | None = None
     raw_database_sha256: str
     raw_database_source_url: str
     total_references: int = Field(ge=0)
@@ -95,6 +101,16 @@ class AllmedImageManifest(CamelModel):
     total_bytes: int = Field(ge=0)
     images: dict[str, AllmedImageRecord]
     failures: dict[str, AllmedImageFailure]
+
+
+class AllmedImageShard(CamelModel):
+    """One source-assets ZIP: the images whose reference hashes to `shard`."""
+
+    shard: str
+    path: str
+    sha256: str
+    size_bytes: int
+    image_count: int
 
 
 class AllmedImagePackReport(CamelModel):
@@ -120,9 +136,8 @@ class AllmedImagePackReport(CamelModel):
     failures: dict[str, AllmedImageFailure]
     manifest: str
     checkpoint: str
-    zip: str | None = None
-    zip_sha256: str | None = None
-    zip_size_bytes: int | None = None
+    source_assets: list[AllmedImageShard] = Field(default_factory=lambda: list[AllmedImageShard]())
+    mirror_dir: str | None = None
     index: str | None = None
     index_sha256: str | None = None
     index_size_bytes: int | None = None
@@ -365,13 +380,26 @@ def _load_checkpoint(
     return completed, failures
 
 
+def _fetch_date(cache_root: Path, completed: Mapping[str, AllmedImageRecord]) -> str | None:
+    """UTC date of the newest cached download: deterministic for a given cache."""
+    latest = max(
+        ((cache_root / reference).stat().st_mtime for reference in completed),
+        default=None,
+    )
+    if latest is None:
+        return None
+    return datetime.fromtimestamp(latest, tz=UTC).date().isoformat()
+
+
 def _manifest(
     raw: _RawImageReferences,
     completed: Mapping[str, AllmedImageRecord],
     failures: Mapping[str, AllmedImageFailure],
+    cache_root: Path,
 ) -> AllmedImageManifest:
     return AllmedImageManifest(
         source_url=ALLMED_SOURCE_URL,
+        fetched_at=_fetch_date(cache_root, completed),
         raw_database_sha256=raw.raw_database_sha256,
         raw_database_source_url=ALLMED_SOURCE_URL,
         total_references=raw.total_references,
@@ -413,6 +441,25 @@ def _fixed_zip_info(name: str) -> ZipInfo:
     return info
 
 
+def shard_of(reference: str) -> str:
+    """Shard of an image: the first hex digit of the SHA-256 of its reference (16 shards).
+
+    The app computes the same digit, so it opens one small ZIP per image instead of the whole pack.
+    """
+    return hashlib.sha256(reference.encode("utf-8")).hexdigest()[0]
+
+
+def _shard_manifest_bytes(image_manifest: AllmedImageManifest, references: list[str]) -> bytes:
+    payload = image_manifest.model_dump(by_alias=True, mode="json")
+    payload["images"] = {reference: payload["images"][reference] for reference in references}
+    payload["failures"] = {}
+    payload["successfulReferences"] = len(references)
+    payload["totalBytes"] = sum(payload["images"][reference]["size"] for reference in references)
+    return (json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode(
+        "utf-8"
+    )
+
+
 def _build_zip(
     output: Path,
     manifest_bytes: bytes,
@@ -430,6 +477,31 @@ def _build_zip(
             ):
                 shutil.copyfileobj(source, destination, length=_CHUNK_SIZE)
     temporary.replace(output)
+
+
+def _build_shards(
+    output: Path,
+    image_manifest: AllmedImageManifest,
+    references: list[str],
+    cache_root: Path,
+) -> list[AllmedImageShard]:
+    by_shard: dict[str, list[str]] = {}
+    for reference in references:
+        by_shard.setdefault(shard_of(reference), []).append(reference)
+    shards: list[AllmedImageShard] = []
+    for shard, members in sorted(by_shard.items()):
+        path = output / _ZIP_FILENAME_TEMPLATE.format(shard=shard)
+        _build_zip(path, _shard_manifest_bytes(image_manifest, members), members, cache_root)
+        shards.append(
+            AllmedImageShard(
+                shard=shard,
+                path=str(path),
+                sha256=sha256_file(path),
+                size_bytes=path.stat().st_size,
+                image_count=len(members),
+            )
+        )
+    return shards
 
 
 def _write_index_workspace(
@@ -474,7 +546,7 @@ def _write_index_workspace(
         "imageCount": image_count,
         "imageBytes": image_bytes,
         "failureCount": failure_count,
-        "sourceAssetsArtifact": _ZIP_FILENAME,
+        "sourceAssetsArtifact": _SOURCE_ASSETS_NAME,
     }
     document = [
         "---",
@@ -495,7 +567,7 @@ def _write_index_workspace(
         f"  imageCount: {image_count}",
         f"  imageBytes: {image_bytes}",
         f"  failureCount: {failure_count}",
-        f"  sourceAssetsArtifact: {_ZIP_FILENAME}",
+        f"  sourceAssetsArtifact: {_SOURCE_ASSETS_NAME}",
         "---",
         "",
         "# Фото упаковок препаратов",
@@ -517,32 +589,43 @@ def _write_catalog_fragment(
     output: Path,
     *,
     version: str,
-    medications_version: str,
     source_checksum: str,
     source_set_digest: str,
     index_path: Path,
-    zip_path: Path,
+    shards: list[AllmedImageShard],
+    mirror_tag: str | None,
     image_count: int,
     image_bytes: int,
     failure_count: int,
 ) -> Path:
     index_artifact_id = f"{IMAGE_PACK_ID}-index-{version}"
-    source_asset_artifact_id = f"{IMAGE_PACK_ID}-source-assets-{version}"
+
+    def artifact_url(mirror_file: str) -> str | None:
+        if mirror_tag is None:
+            return None
+        return f"{_GITHUB_RELEASE_BASE}/{mirror_tag}/{mirror_file}"
+
+    shard_ids = {
+        shard.shard: f"{IMAGE_PACK_ID}-source-assets-{version}-{shard.shard}" for shard in shards
+    }
+    assets_bytes = sum(shard.size_bytes for shard in shards)
     module = {
         "id": IMAGE_PACK_ID,
         "version": version,
-        "kind": "medication",
+        # `reference`, not `medication`: the drug bundles install every medication module, and a
+        # 270 MB photo pack is an opt-in from Settings → Изображения.
+        "kind": "reference",
         "collection": "shared",
         "title": IMAGE_PACK_TITLE,
         "description": (
-            "Экспериментальный отдельный пакет фотографий упаковок препаратов Allmed. "
-            f"Успешно загружено: {image_count}; ошибок источника: {failure_count}."
+            "Фотографии упаковок препаратов из справочника Allmed; у каждой фотографии "
+            f"указан источник. Фотографий: {image_count}."
         ),
         "required": False,
         "releaseState": "preview",
         "specialties": [],
         "populations": ["all"],
-        "tags": ["experimental", "packaging-images", "allmed"],
+        "tags": ["packaging-images", "allmed"],
         "compatibility": {
             "minAppVersion": _MIN_APP_VERSION,
             "maxAppVersion": None,
@@ -556,16 +639,11 @@ def _write_catalog_fragment(
                 "versionRange": "^1.0.0",
                 "required": True,
             },
-            {
-                "moduleId": "minimed.medications.ru",
-                "versionRange": medications_version,
-                "required": True,
-            },
         ],
         "sizes": {
-            "downloadBytes": index_path.stat().st_size + zip_path.stat().st_size,
-            "installedBytes": index_path.stat().st_size + zip_path.stat().st_size,
-            "sourceAssetsDownloadBytes": zip_path.stat().st_size,
+            "downloadBytes": index_path.stat().st_size + assets_bytes,
+            "installedBytes": index_path.stat().st_size + assets_bytes,
+            "sourceAssetsDownloadBytes": assets_bytes,
             "precision": "exact",
         },
         "capabilities": {
@@ -582,22 +660,25 @@ def _write_catalog_fragment(
                 "id": index_artifact_id,
                 "kind": "index",
                 "required": True,
-                "url": None,
+                "url": artifact_url(f"{_MIRROR_FILE_PREFIX}.db"),
                 "sha256": sha256_file(index_path),
                 "sizeBytes": index_path.stat().st_size,
                 "compression": "none",
                 "sourceSetDigest": source_set_digest,
             },
-            {
-                "id": source_asset_artifact_id,
-                "kind": "source-assets",
-                "required": True,
-                "url": None,
-                "sha256": sha256_file(zip_path),
-                "sizeBytes": zip_path.stat().st_size,
-                "compression": "zip",
-                "sourceSetDigest": source_set_digest,
-            },
+            *(
+                {
+                    "id": shard_ids[shard.shard],
+                    "kind": "source-assets",
+                    "required": True,
+                    "url": artifact_url(f"{_MIRROR_FILE_PREFIX}.source-assets-{shard.shard}.zip"),
+                    "sha256": shard.sha256,
+                    "sizeBytes": shard.size_bytes,
+                    "compression": "zip",
+                    "sourceSetDigest": source_set_digest,
+                }
+                for shard in shards
+            ),
         ],
         "documents": [
             {
@@ -606,7 +687,7 @@ def _write_catalog_fragment(
                 "sourceChecksum": source_checksum,
                 "status": "active",
                 "indexArtifactId": index_artifact_id,
-                "sourceAssetArtifactId": source_asset_artifact_id,
+                "sourceAssetArtifactId": shard_ids[shards[0].shard],
                 "title": IMAGE_PACK_TITLE,
             }
         ],
@@ -627,6 +708,17 @@ def _write_catalog_fragment(
     return path
 
 
+def _link_mirror_files(output: Path, index_path: Path, shards: list[AllmedImageShard]) -> Path:
+    """Hard links under the file names the dataset mirror serves (no second copy on disk)."""
+    mirror = output / _MIRROR_DIRNAME
+    shutil.rmtree(mirror, ignore_errors=True)
+    mirror.mkdir()
+    os.link(index_path, mirror / f"{_MIRROR_FILE_PREFIX}.db")
+    for shard in shards:
+        os.link(shard.path, mirror / f"{_MIRROR_FILE_PREFIX}.source-assets-{shard.shard}.zip")
+    return mirror
+
+
 def build_allmed_image_pack(
     input_path: Path,
     output: Path,
@@ -635,6 +727,7 @@ def build_allmed_image_pack(
     retries: int = 3,
     timeout_seconds: float = 30.0,
     resume: bool = False,
+    mirror_tag: str | None = None,
     opener: ImageOpener | None = None,
 ) -> AllmedImagePackReport:
     """Download Allmed packaging images and build a deterministic index/ZIP pair."""
@@ -709,7 +802,7 @@ def build_allmed_image_pack(
             )
     elapsed_seconds = max(time.perf_counter() - started, 0.0)
 
-    image_manifest = _manifest(raw, completed, failures)
+    image_manifest = _manifest(raw, completed, failures, cache_root)
     manifest_path = output / _MANIFEST_FILENAME
     _write_json_atomic(manifest_path, image_manifest.model_dump(by_alias=True, mode="json"))
     manifest_digest = sha256_file(manifest_path)
@@ -750,8 +843,8 @@ def build_allmed_image_pack(
         document_version_id=document_version_id,
         source_checksum=manifest_digest,
     )
-    zip_path = output / _ZIP_FILENAME
-    _build_zip(zip_path, manifest_bytes, sorted(completed), cache_root)
+    del manifest_bytes
+    shards = _build_shards(output, image_manifest, sorted(completed), cache_root)
     index_workspace = output / _INDEX_WORKSPACE_DIRNAME
     _write_index_workspace(
         index_workspace,
@@ -775,15 +868,16 @@ def build_allmed_image_pack(
     catalog_manifest_path = _write_catalog_fragment(
         output,
         version=version,
-        medications_version=f"allmed-{raw.raw_database_sha256.removeprefix('sha256:')[:12]}",
         source_checksum=manifest_digest,
         source_set_digest=source_set_digest,
         index_path=index_path,
-        zip_path=zip_path,
+        shards=shards,
+        mirror_tag=mirror_tag,
         image_count=len(completed),
         image_bytes=downloaded_bytes,
         failure_count=len(failures),
     )
+    mirror_dir = _link_mirror_files(output, index_path, shards) if mirror_tag else None
     return AllmedImagePackReport(
         input=str(input_path),
         output=str(output),
@@ -807,9 +901,8 @@ def build_allmed_image_pack(
         failures=failures,
         manifest=str(manifest_path),
         checkpoint=str(checkpoint_path),
-        zip=str(zip_path),
-        zip_sha256=sha256_file(zip_path),
-        zip_size_bytes=zip_path.stat().st_size,
+        source_assets=shards,
+        mirror_dir=str(mirror_dir) if mirror_dir else None,
         index=str(index_path),
         index_sha256=sha256_file(index_path),
         index_size_bytes=index_path.stat().st_size,
