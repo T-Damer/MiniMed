@@ -249,6 +249,19 @@ and seven books were used; the text is published for personal use while the repo
   FTS checked against the built index only), a clinician's review of the numbers; МР 2.3.1.2432-08 itself is not in
   the library (child values come from the workbook).
 
+## Score scales and tool information — 2026-10-13 (STATE SCALE1)
+
+Owner request: results of tools with score bands were text only. Every numeric result with bands now draws a banded
+track with a marker at the value (colour by severity, band labels and cut-points, the band's interpretation under
+it); equal-width segments for classes (NYHA, KDIGO, ASA), a plain gauge for risk percentages. Declared as data
+(`scoreScales`, optional, so older apps ignore it), rendered on screen and in print, covered by a catalog-wide test.
+178 of 245 tools have one — see [CALCULATORS.md](CALCULATORS.md) «Score scales and tool information». The calculator
+result is scrolled into view after «Рассчитать» (smooth unless animations are off). Licence, attribution and source
+notes moved out of the page body into an «Информация» menu item plus one small source line at the bottom of calculator
+and assessment pages; assessments gained the section «Депрессия и тревога» (Zung SDS/SAS, HAM-D 17; psychology module
+0.1.0-preview.6 needs app 0.6.60, the other 13 rebuilt modules stay at 0.6.59 since `scoreScales` is optional).
+Not tested: Android/device, Safari, a real printer; the verdict `attentionLevel`s of about 25 tools are still all `none`.
+
 ## Misspelt words in search — 2026-10-13 (STATE TYPO1)
 
 Owner report: «Помоач» (for «Помрач») and «Оменция» (for «Аменция») found nothing, although most

@@ -1,5 +1,9 @@
 import { z } from 'zod';
-import { CalculatorSchemaSchema, CalculatorVisualSchema } from './calculator-schema';
+import {
+  CalculatorSchemaSchema,
+  CalculatorVisualSchema,
+  ScoreScaleSchema,
+} from './calculator-schema';
 import {
   HttpUrlSchema,
   ObservationMappingSchema,
@@ -39,56 +43,76 @@ const AssessmentInterpretationSchema = z
     }
   });
 
-export const AssessmentDefinitionSchema = z.object({
-  schemaVersion: z.literal(2),
-  id: z.string().min(1),
-  slug: z.string().min(1),
-  title: z.string().min(1),
-  shortTitle: z.string().min(1),
-  aliases: z.array(z.string().min(1)),
-  bankId: z.string().min(1),
-  bankLabel: z.string().min(1),
-  category: z.string().min(1),
-  description: z.string().min(1),
-  estimatedMinutes: z.number().int().positive(),
-  /** Who fills it in, in words («Взрослые; заполняет специалист»). */
-  audience: z.string().min(1),
-  /** Whose age the questionnaire is for (children with a range, adults, any age); required. */
-  ageScope: ToolAgeScopeSchema,
-  responseOptions: z.array(
-    z.object({ value: AssessmentResponseValueSchema, label: z.string().min(1) }),
-  ),
-  scales: z.array(
-    z.object({
-      id: z.string().min(1),
-      label: z.string().min(1),
-      shortLabel: z.string().min(1),
-      description: z.string().min(1),
+export const AssessmentDefinitionSchema = z
+  .object({
+    schemaVersion: z.literal(2),
+    id: z.string().min(1),
+    slug: z.string().min(1),
+    title: z.string().min(1),
+    shortTitle: z.string().min(1),
+    aliases: z.array(z.string().min(1)),
+    bankId: z.string().min(1),
+    bankLabel: z.string().min(1),
+    category: z.string().min(1),
+    description: z.string().min(1),
+    estimatedMinutes: z.number().int().positive(),
+    /** Who fills it in, in words («Взрослые; заполняет специалист»). */
+    audience: z.string().min(1),
+    /** Whose age the questionnaire is for (children with a range, adults, any age); required. */
+    ageScope: ToolAgeScopeSchema,
+    responseOptions: z.array(
+      z.object({ value: AssessmentResponseValueSchema, label: z.string().min(1) }),
+    ),
+    scales: z.array(
+      z.object({
+        id: z.string().min(1),
+        label: z.string().min(1),
+        shortLabel: z.string().min(1),
+        description: z.string().min(1),
+      }),
+    ),
+    questions: z.array(
+      z.object({
+        id: z.string().min(1),
+        prompt: z.string().min(1),
+        scaleId: z.string().min(1),
+        reverse: z.literal(true).optional(),
+        responseOptions: z
+          .array(z.object({ value: AssessmentResponseValueSchema, label: z.string().min(1) }))
+          .optional(),
+      }),
+    ),
+    disclaimer: z.string().min(1),
+    evidenceNote: z.string().min(1),
+    interpretations: z.array(AssessmentInterpretationSchema).optional(),
+    visuals: z.array(CalculatorVisualSchema).default([]),
+    /** Banded score tracks drawn under the result; `valueId` is the id of one of `scales`. */
+    scoreScales: z.array(ScoreScaleSchema).default([]),
+    evaluation: ToolEvaluationSchema,
+    observationMappings: z.array(ObservationMappingSchema).default([]),
+    license: z.object({
+      kind: z.enum(['project-original', 'public-domain-derived', 'third-party-attributed']),
+      notice: z.string().min(1),
+      sourceUrl: HttpUrlSchema.optional(),
     }),
-  ),
-  questions: z.array(
-    z.object({
-      id: z.string().min(1),
-      prompt: z.string().min(1),
-      scaleId: z.string().min(1),
-      reverse: z.literal(true).optional(),
-      responseOptions: z
-        .array(z.object({ value: AssessmentResponseValueSchema, label: z.string().min(1) }))
-        .optional(),
-    }),
-  ),
-  disclaimer: z.string().min(1),
-  evidenceNote: z.string().min(1),
-  interpretations: z.array(AssessmentInterpretationSchema).optional(),
-  visuals: z.array(CalculatorVisualSchema).default([]),
-  evaluation: ToolEvaluationSchema,
-  observationMappings: z.array(ObservationMappingSchema).default([]),
-  license: z.object({
-    kind: z.enum(['project-original', 'public-domain-derived', 'third-party-attributed']),
-    notice: z.string().min(1),
-    sourceUrl: HttpUrlSchema.optional(),
-  }),
-});
+  })
+  .refine(
+    (definition) =>
+      definition.scoreScales.every(
+        (scale) =>
+          definition.scales.some((candidate) => candidate.id === scale.valueId) &&
+          scale.bands.every(
+            (band) =>
+              band.interpretation === undefined ||
+              band.interpretation < (definition.interpretations?.length ?? 0),
+          ),
+      ),
+    {
+      message:
+        'score scales must reference one of the questionnaire scales and, for a band, an existing interpretation',
+      path: ['scoreScales'],
+    },
+  );
 
 export const ToolSourceLinkSchema = z.object({
   id: z.string().min(1),

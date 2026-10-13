@@ -11,6 +11,7 @@ import {
   Show,
 } from 'solid-js';
 import { toast } from 'solid-sonner';
+import { AppContextMenu, requestContextMenu } from '@/components/AppContextMenu';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
@@ -24,6 +25,11 @@ import { QueryEmptyState } from '@/components/QueryEmptyState';
 import { SearchField } from '@/components/SearchField';
 import { Heading } from '@/components/Text';
 import { CalculatorChart } from '@/features/calculators/CalculatorChart';
+import {
+  CalculatorInfoDialog,
+  CalculatorSourcesBody,
+  calculatorSourcesFootnote,
+} from '@/features/calculators/CalculatorInfo';
 import { USER_CALCULATORS_EVENT } from '@/features/calculators/calculator-events';
 import { consumeCalculatorLaunchDraft } from '@/features/calculators/calculator-launch-draft';
 import type {
@@ -81,6 +87,8 @@ import type { StoredCalculationResult } from '@/features/calculators/clinical-ca
 import { EcgPhotoCaliper } from '@/features/calculators/EcgPhotoCaliper';
 import { parsePediatricFeedingPlan } from '@/features/calculators/pediatric-feeding-plan';
 import { RecentCalculatorsRow } from '@/features/calculators/RecentCalculatorsRow';
+import { ScoreScale } from '@/features/calculators/ScoreScale';
+import { scaledValueIds, warningsBesideScales } from '@/features/calculators/score-scale';
 import { MyCalculatorsCard } from '@/features/calculators/user-calculator/MyCalculatorsCard';
 import { UserCalculatorEditorPage } from '@/features/calculators/user-calculator/UserCalculatorEditorPage';
 import { UserCalculatorsPage } from '@/features/calculators/user-calculator/UserCalculatorsPage';
@@ -119,6 +127,7 @@ import {
   loadCalculationHistory,
   saveCalculationRecord,
 } from '@/state/calculation-history';
+import { motionRate } from '@/state/motion';
 import type { PatientProfile, PatientVaultSnapshot } from '@/state/patient-domain';
 import { addPatientNote, createPatientCard, loadPatientNotes } from '@/state/patient-notes';
 import {
@@ -973,6 +982,13 @@ function CalculationResultPanel(props: {
   const [newCardTitle, setNewCardTitle] = createSignal('');
 
   const outputs = () => calculationRecordOutputs(props.record);
+  // A value drawn on a score scale is not repeated as a plain tile, nor is the text the scale writes.
+  const plainOutputs = () => {
+    const scaled = scaledValueIds(props.record.result.scales);
+    return outputs().filter((item) => item.id === undefined || !scaled.has(item.id));
+  };
+  const besideWarnings = () =>
+    warningsBesideScales(props.record.result.warnings, props.record.result.scales);
   const feedingPlan = () =>
     calculatorResultLayout(props.record.calculatorId) === 'feeding-plan' &&
     'textValues' in props.record.result
@@ -1010,8 +1026,27 @@ function CalculationResultPanel(props: {
     props.onMessage('Расчёт записан в карточку пациента.');
   };
 
+  let resultElement: HTMLElement | undefined;
+  // A fresh result is brought into view (it lands below the form); smooth unless animations are off.
+  createEffect(
+    on(
+      () => props.record.id,
+      () => {
+        if (props.inline) return;
+        const frame = requestAnimationFrame(() => {
+          resultElement?.scrollIntoView({
+            behavior: motionRate() === 0 ? 'auto' : 'smooth',
+            block: 'start',
+          });
+        });
+        onCleanup(() => cancelAnimationFrame(frame));
+      },
+    ),
+  );
+
   return (
     <section
+      ref={resultElement}
       class="calculator-result paper-card"
       classList={{ 'calculator-result--inline': props.inline ?? false }}
       data-testid="calculator-result"
@@ -1029,16 +1064,21 @@ function CalculationResultPanel(props: {
               <h2>{props.definition.shortTitle}</h2>
               <small>{props.record.inputSummary}</small>
             </header>
-            <div class="calculator-output-list">
-              <For each={outputs()}>
-                {(item) => (
-                  <div>
-                    <span>{item.label}</span>
-                    <strong>{item.display}</strong>
-                  </div>
-                )}
-              </For>
-            </div>
+            <Show when={plainOutputs().length > 0}>
+              <div class="calculator-output-list">
+                <For each={plainOutputs()}>
+                  {(item) => (
+                    <div>
+                      <span>{item.label}</span>
+                      <strong>{item.display}</strong>
+                    </div>
+                  )}
+                </For>
+              </div>
+            </Show>
+            <For each={props.record.result.scales ?? []}>
+              {(scale) => <ScoreScale spec={scale} />}
+            </For>
             <For each={props.record.result.visuals ?? []}>
               {(chart, index) => (
                 <CalculatorChart
@@ -1064,11 +1104,9 @@ function CalculationResultPanel(props: {
                 Источники и ограничения
               </Button>
             </div>
-            <Show when={props.record.result.warnings.length > 0}>
+            <Show when={besideWarnings().length > 0}>
               <div class="calculator-warnings">
-                <For each={props.record.result.warnings}>
-                  {(warning) => <p>{warning.message}</p>}
-                </For>
+                <For each={besideWarnings()}>{(warning) => <p>{warning.message}</p>}</For>
               </div>
             </Show>
           </>
@@ -1223,30 +1261,7 @@ function CalculationResultPanel(props: {
           </ol>
         </Show>
         <Show when={detailsOpen() === 'sources'}>
-          <p>{props.definition.population}</p>
-          <ul>
-            <For each={props.definition.limitations}>{(limitation) => <li>{limitation}</li>}</For>
-          </ul>
-          <For each={props.definition.sources}>
-            {(source) => (
-              <p class="calculator-source-reference">
-                <Show
-                  when={source.url}
-                  fallback={<span class="calculator-source-reference__title">{source.title}</span>}
-                >
-                  <a
-                    class="calculator-source-reference__link"
-                    href={source.url}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {source.title}
-                  </a>
-                </Show>{' '}
-                · {source.publisher} · {source.version} · проверено {source.reviewedAt}
-              </p>
-            )}
-          </For>
+          <CalculatorSourcesBody definition={props.definition} />
         </Show>
       </OverlayDialog>
 
@@ -1355,6 +1370,7 @@ export function CalculatorsView(): JSX.Element {
     loadCalculationHistory(),
   );
   const [activeRecord, setActiveRecord] = createSignal<CalculationRecord>();
+  const [infoOpen, setInfoOpen] = createSignal(false);
   const [pendingDeletion, setPendingDeletion] = createSignal<{
     readonly kind: 'section' | 'record';
     readonly id: string;
@@ -1936,48 +1952,45 @@ export function CalculatorsView(): JSX.Element {
                     }
                     description={definition().summary}
                     actions={
-                      <Show when={definition().category === 'custom'}>
-                        <Button
-                          type="button"
-                          variant="icon"
-                          class="calculator-subpage-edit"
-                          data-testid="calculator-edit-own"
-                          aria-label="Изменить калькулятор"
-                          title="Изменить калькулятор"
-                          icon={<AppGlyph name="edit" />}
-                          onClick={() => {
-                            window.location.hash = userCalculatorEditPath(definition().slug);
-                          }}
-                        />
-                      </Show>
-                    }
-                    helpTitle={`Источники (${definition().sources.length})`}
-                    help={
-                      <ul class="calculator-subpage-sources__list">
-                        <For each={definition().sources}>
-                          {(source) => (
-                            <li class="calculator-subpage-sources__item">
-                              <Show
-                                when={source.url}
-                                fallback={
-                                  <span class="calculator-subpage-sources__link">
-                                    {source.title} · {source.publisher}
-                                  </span>
-                                }
-                              >
-                                <a
-                                  class="calculator-subpage-sources__link"
-                                  href={source.url}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                >
-                                  {source.title}
-                                </a>
-                              </Show>
-                            </li>
-                          )}
-                        </For>
-                      </ul>
+                      <div class="calculator-subpage-actions">
+                        <Show when={definition().category === 'custom'}>
+                          <Button
+                            type="button"
+                            variant="icon"
+                            class="calculator-subpage-edit"
+                            data-testid="calculator-edit-own"
+                            aria-label="Изменить калькулятор"
+                            title="Изменить калькулятор"
+                            icon={<AppGlyph name="edit" />}
+                            onClick={() => {
+                              window.location.hash = userCalculatorEditPath(definition().slug);
+                            }}
+                          />
+                        </Show>
+                        <AppContextMenu
+                          actions={[
+                            {
+                              id: 'info',
+                              label: 'Информация',
+                              icon: 'info',
+                              onSelect: () => setInfoOpen(true),
+                            },
+                          ]}
+                          hideButton
+                          class="calculator-subpage-menu"
+                        >
+                          <Button
+                            type="button"
+                            variant="icon"
+                            class="calculator-subpage-menu-button"
+                            data-testid="calculator-menu"
+                            aria-label="Действия"
+                            title="Действия"
+                            onClick={requestContextMenu}
+                            icon={<AppGlyph name="menu" />}
+                          />
+                        </AppContextMenu>
+                      </div>
                     }
                   />
 
@@ -2002,6 +2015,15 @@ export function CalculatorsView(): JSX.Element {
                       />
                     )}
                   </Show>
+
+                  <Show when={calculatorSourcesFootnote(definition())}>
+                    {(note) => <p class="calculator-footnote">{note()}</p>}
+                  </Show>
+                  <CalculatorInfoDialog
+                    definition={definition()}
+                    open={infoOpen()}
+                    onClose={() => setInfoOpen(false)}
+                  />
                 </div>
               </Show>
             )}

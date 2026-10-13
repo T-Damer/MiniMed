@@ -174,9 +174,9 @@ export function AssessmentQuestionnairePage(props: {
       onSelect: printBlank,
     },
     {
-      id: 'methodology',
-      label: 'Методика и ограничения',
-      icon: 'question',
+      id: 'info',
+      label: 'Информация',
+      icon: 'info',
       onSelect: () => setMethodologyOpen(true),
     },
   ];
@@ -384,10 +384,10 @@ export function AssessmentQuestionnairePage(props: {
                   type="button"
                   variant="icon"
                   class="knowledge-back-button assessment-help-button"
-                  aria-label="Методика и ограничения"
-                  title="Методика и ограничения"
+                  aria-label="Информация"
+                  title="Информация"
                   onClick={() => setMethodologyOpen(true)}
-                  icon={<AppGlyph name="question" class="assessment-help-button__icon" />}
+                  icon={<AppGlyph name="info" class="assessment-help-button__icon" />}
                 />
               </div>
             }
@@ -582,6 +582,8 @@ export function AssessmentQuestionnairePage(props: {
           </Button>
         </div>
       </form>
+
+      <p class="assessment-footnote">{props.definition.license.notice}</p>
 
       <Show when={props.active && answered() > 0 && nextButtonHost()}>
         {(host) => (

@@ -75,6 +75,11 @@ export const ASSESSMENT_SECTIONS: readonly AssessmentSectionDefinition[] = [
     description: 'Опросники для структурированной саморефлексии и описания личностного профиля.',
   },
   {
+    id: 'depression-anxiety',
+    title: 'Депрессия и тревога',
+    description: 'Шкалы самооценки и оценки специалистом выраженности депрессии и тревоги.',
+  },
+  {
     id: 'work-style',
     title: 'Стиль работы и управления',
     description: 'Инструменты для разбора рабочего поведения, управления и принятия решений.',
@@ -154,6 +159,7 @@ const SECTION_IDS = new Set(ASSESSMENT_SECTIONS.map((section) => section.id));
 export const ASSESSMENT_SECTION_MODULE_IDS: Readonly<Partial<Record<AssessmentSectionId, string>>> =
   {
     'self-reflection': 'minimed.tools.psychology.ru',
+    'depression-anxiety': 'minimed.tools.psychology.ru',
     'work-style': 'minimed.tools.psychology.ru',
     'team-role': 'minimed.tools.psychology.ru',
     temperament: 'minimed.tools.psychology.ru',

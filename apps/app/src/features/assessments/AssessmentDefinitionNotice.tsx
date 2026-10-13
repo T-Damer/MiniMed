@@ -1,7 +1,6 @@
 import { isHttpUrl } from '@localmed/contracts';
 import { For, type JSX, Show } from 'solid-js';
 
-import { AppGlyph } from '@/components/AppGlyph';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import type { AssessmentDefinition } from '@/features/assessments/assessment-types';
 
@@ -9,34 +8,15 @@ export function AssessmentDefinitionNotice(props: {
   readonly definition: AssessmentDefinition;
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
-  readonly showTrigger?: boolean;
 }): JSX.Element {
   const licenseSourceUrl = props.definition.license.sourceUrl;
   const safeLicenseSourceUrl =
     licenseSourceUrl && isHttpUrl(licenseSourceUrl) ? licenseSourceUrl : undefined;
   return (
     <>
-      <Show when={props.showTrigger !== false}>
-        <button
-          type="button"
-          class="assessment-methodology-trigger"
-          aria-haspopup="dialog"
-          onClick={() => props.onOpenChange(true)}
-        >
-          <span class="assessment-methodology-trigger__icon" aria-hidden="true">
-            <AppGlyph name="list" class="assessment-methodology-trigger__glyph" />
-          </span>
-          <span class="assessment-methodology-trigger__content">
-            <strong class="assessment-methodology-trigger__label">Методика и ограничения</strong>
-            <small class="assessment-methodology-trigger__hint">
-              О подходе, источниках и правовом статусе
-            </small>
-          </span>
-        </button>
-      </Show>
       <OverlayDialog
         open={props.open}
-        title="Методика и ограничения"
+        title="Информация"
         class="assessment-methodology-dialog"
         onClose={() => props.onOpenChange(false)}
       >

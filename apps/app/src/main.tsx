@@ -29,6 +29,7 @@ import '@/styles/medications.css';
 import '@/styles/conditions.css';
 import '@/styles/assessments.css';
 import '@/styles/calculators.css';
+import '@/styles/score-scale.css';
 import '@/styles/tool-routes.css';
 import '@/styles/settings.css';
 import '@/styles/tool-link-icons.css';

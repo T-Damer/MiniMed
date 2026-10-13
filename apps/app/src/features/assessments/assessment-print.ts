@@ -10,6 +10,10 @@ import type {
   AssessmentImage,
   AssessmentRecord,
 } from '@/features/assessments/assessment-types';
+import {
+  SCORE_SCALE_PRINT_CSS,
+  scoreScalePrintHtml,
+} from '@/features/calculators/score-scale-print';
 import { PrintManager } from '@/features/printing/print-manager';
 import { MINIMED_WEB_APP_URL } from '../../../../../release';
 
@@ -109,6 +113,7 @@ function printableHtml(
     .image { break-inside: avoid; margin: 0; }
     .image img { display: block; width: 100%; max-height: 78mm; object-fit: contain; border: 1px solid var(--print-rule-color); }
     .image figcaption { margin-top: 1mm; font-size: var(--print-footer-size); }
+    ${SCORE_SCALE_PRINT_CSS}
     .schema-chart-print { max-width: 145mm; margin: 0 auto 4mm; break-inside: avoid; }
     .schema-chart-print__svg { display: block; width: 100%; height: auto; color: #17201c; }
     .schema-chart-print__field { fill: #fff; stroke: #84968d; stroke-width: 1; }
@@ -196,7 +201,10 @@ export function printAssessmentRecord(
       : '';
   const charts =
     record.kind === 'completed'
-      ? (record.result.visuals ?? []).map(assessmentChartPrintSvg).join('')
+      ? [
+          ...(record.result.scales ?? []).map((scale) => scoreScalePrintHtml(scale)),
+          ...(record.result.visuals ?? []).map(assessmentChartPrintSvg),
+        ].join('')
       : '';
   return printText(
     definition.title,

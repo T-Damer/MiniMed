@@ -27,6 +27,8 @@ export type EvaluationStatus = z.infer<typeof EvaluationStatusSchema>;
 
 export const ReferenceAttentionLevelSchema = z.enum(['none', 'low', 'moderate', 'high', 'urgent']);
 
+export type ReferenceAttentionLevel = z.infer<typeof ReferenceAttentionLevelSchema>;
+
 /** A snapshot of the rule used to explain one deterministic result. */
 export const ReferenceVerdictSchema = z
   .object({

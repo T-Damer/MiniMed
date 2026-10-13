@@ -1,5 +1,6 @@
 import type { EvaluationStatus, ReferenceVerdict } from '@localmed/contracts';
 import type { CalculationTraceStep } from '@/features/calculators/calculator-types';
+import type { ScoreScaleSpec } from '@/features/calculators/score-scale';
 
 export type CreatinineUnit = 'mg/dl' | 'umol/l';
 export type BiologicalSex = 'female' | 'male';
@@ -81,6 +82,7 @@ export interface NumericCalculationResult {
   readonly warnings: readonly CalculatorWarning[];
   readonly evaluation?: CalculationEvaluation;
   readonly visuals?: readonly CalculationChartSpec[];
+  readonly scales?: readonly ScoreScaleSpec[];
   /** Values the patient card keeps from this result (the due date), by context key. */
   readonly contextValues?: Readonly<Record<string, string | number>>;
 }
@@ -100,6 +102,7 @@ export interface DualCalculationResult {
   readonly warnings: readonly CalculatorWarning[];
   readonly evaluation?: CalculationEvaluation;
   readonly visuals?: readonly CalculationChartSpec[];
+  readonly scales?: readonly ScoreScaleSpec[];
   /** Values the patient card keeps from this result (the due date), by context key. */
   readonly contextValues?: Readonly<Record<string, string | number>>;
 }
@@ -117,6 +120,7 @@ export interface TextCalculationResult {
   readonly warnings: readonly CalculatorWarning[];
   readonly evaluation?: CalculationEvaluation;
   readonly visuals?: readonly CalculationChartSpec[];
+  readonly scales?: readonly ScoreScaleSpec[];
   /** Values the patient card keeps from this result (the due date), by context key. */
   readonly contextValues?: Readonly<Record<string, string | number>>;
 }

@@ -4,6 +4,7 @@ import {
   CalculatorPatientBindingSchema,
   HttpUrlSchema,
   ObservationMappingSchema,
+  ReferenceAttentionLevelSchema,
   ToolEvaluationSchema,
 } from './clinical-observations';
 import { ToolAgeScopeSchema } from './tool-age-scope';
@@ -262,6 +263,82 @@ export const CalculatorVisualSchema = z.object({
   heightPx: z.number().int().min(80).max(600).optional(),
 });
 
+/** One band of a score scale: from its first value up to the first value of the next band. */
+export const ScoreScaleBandSchema = z.object({
+  /** First value the band covers, in the units of the scale's value; bands are listed in ascending order. */
+  from: z.number().finite(),
+  /** Short name of the band («Низкий риск», «III класс»). */
+  label: z.string().min(1).optional(),
+  /** How much attention the band calls for; the track is coloured by it, neutral when absent. */
+  attentionLevel: ReferenceAttentionLevelSchema.optional(),
+  /** Index into the definition's `interpretations` whose text explains the band. */
+  interpretation: z.number().int().min(0).optional(),
+});
+
+/**
+ * A banded track drawn under a numeric result: the bands side by side, a marker at the value and the
+ * text of the band it falls in. Pure presentation data — the verdict rules and interpretations
+ * stay the authority for what a result means, and a catalog test keeps the two in step. Without
+ * bands the track is a plain gauge between `minimum` and `maximum`.
+ */
+export const ScoreScaleSchema = z
+  .object({
+    id: z.string().regex(/^[a-zA-Z_][a-zA-Z0-9_]*$/u, 'must be a valid expression variable name'),
+    /** The numeric value the marker shows: a calculator output/step/input id, or an assessment scale id. */
+    valueId: z.string().min(1),
+    label: z.string().min(1).optional(),
+    /** Lowest and highest value of the track: the range worth drawing — a value beyond it is held at the end and marked. */
+    minimum: z.number().finite(),
+    maximum: z.number().finite(),
+    /** Distance between two neighbouring values (1 for point scores); a value then fills a cell of
+     *  this width, so a boundary falls between two values instead of on one. */
+    step: z.number().positive().finite().optional(),
+    /** `equal` gives every band the same width (classes such as NYHA I–IV); `proportional` scales by value. */
+    layout: z.enum(['proportional', 'equal']).default('proportional'),
+    bands: z.array(ScoreScaleBandSchema).default([]),
+  })
+  .superRefine((scale, context) => {
+    if (scale.maximum <= scale.minimum) {
+      context.addIssue({
+        code: 'custom',
+        path: ['maximum'],
+        message: 'must be greater than minimum',
+      });
+    }
+    for (const [index, band] of scale.bands.entries()) {
+      if (band.from < scale.minimum || band.from > scale.maximum) {
+        context.addIssue({
+          code: 'custom',
+          path: ['bands', index, 'from'],
+          message: 'must lie between minimum and maximum',
+        });
+      }
+      const previous = scale.bands[index - 1];
+      if (previous && band.from <= previous.from) {
+        context.addIssue({
+          code: 'custom',
+          path: ['bands', index, 'from'],
+          message: 'bands must be in strictly ascending order',
+        });
+      }
+    }
+    const first = scale.bands[0];
+    if (first && first.from !== scale.minimum) {
+      context.addIssue({
+        code: 'custom',
+        path: ['bands', 0, 'from'],
+        message: 'the first band starts at minimum',
+      });
+    }
+    if (scale.layout === 'equal' && scale.bands.length < 2) {
+      context.addIssue({
+        code: 'custom',
+        path: ['layout'],
+        message: 'equal layout needs at least two bands',
+      });
+    }
+  });
+
 const CalculatorSearchBindingsSchema = z.object({
   weightKgInputId: z.string().min(1).optional(),
   ageYearsInputId: z.string().min(1).optional(),
@@ -317,6 +394,8 @@ export const CalculatorSchemaSchema = z
     observationMappings: z.array(ObservationMappingSchema).default([]),
     assertions: z.array(CalculatorAssertionSchema).default([]),
     visuals: z.array(CalculatorVisualSchema).default([]),
+    /** Banded score tracks drawn under the result (see `ScoreScaleSchema`). */
+    scoreScales: z.array(ScoreScaleSchema).default([]),
     resultLayout: CalculatorResultLayoutSchema.optional(),
     /** Usable without downloading its section (set on the few tools that ship with the app). */
     bundled: z.boolean().optional(),
@@ -350,6 +429,28 @@ export const CalculatorSchemaSchema = z
     {
       message: 'input requirements must reference existing inputs',
       path: ['inputRequirements'],
+    },
+  )
+  .refine(
+    (schema) => {
+      const valueIds = new Set([
+        ...schema.inputs.map((input) => input.id),
+        ...schema.steps.map((step) => step.id),
+      ]);
+      return schema.scoreScales.every(
+        (scale) =>
+          valueIds.has(scale.valueId) &&
+          scale.bands.every(
+            (band) =>
+              band.interpretation === undefined ||
+              band.interpretation < schema.interpretations.length,
+          ),
+      );
+    },
+    {
+      message:
+        'score scales must reference an existing input or step and, for a band, an existing interpretation',
+      path: ['scoreScales'],
     },
   )
   .refine(
@@ -399,6 +500,8 @@ export type CalculatorStepDefinition = z.infer<typeof CalculatorStepSchema>;
 export type CalculatorWarning = z.infer<typeof CalculatorWarningSchema>;
 export type CalculatorInterpretation = z.infer<typeof CalculatorInterpretationSchema>;
 export type CalculatorAssertion = z.infer<typeof CalculatorAssertionSchema>;
+export type ScoreScaleBand = z.infer<typeof ScoreScaleBandSchema>;
+export type ScoreScaleDefinition = z.infer<typeof ScoreScaleSchema>;
 export type CalculatorVisualDataset = z.infer<typeof CalculatorVisualDatasetSchema>;
 export type CalculatorVisualDefinition = z.infer<typeof CalculatorVisualSchema>;
 export type CalculatorSearch = z.infer<typeof CalculatorSearchSchema>;

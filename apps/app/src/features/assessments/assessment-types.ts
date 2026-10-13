@@ -3,11 +3,13 @@ import type {
   EvaluationStatus,
   ObservationMapping,
   ReferenceVerdict,
+  ScoreScaleDefinition,
   ToolAgeScope,
   ToolEvaluation,
   ToolSourceLink,
 } from '@localmed/contracts';
 import type { CalculationChartSpec } from '@/features/calculators/clinical-calculations';
+import type { ScoreScaleSpec } from '@/features/calculators/score-scale';
 
 export type AssessmentResponseValue = number;
 
@@ -114,6 +116,7 @@ export interface AssessmentDefinition {
    */
   readonly interpretationMode?: 'first' | 'per-scale';
   readonly visuals?: readonly AssessmentVisualDefinition[];
+  readonly scoreScales?: readonly ScoreScaleDefinition[];
   readonly evaluation?: ToolEvaluation;
   readonly observationMappings?: readonly ObservationMapping[];
   readonly license: AssessmentLicense;
@@ -147,6 +150,7 @@ export interface ScoredAssessment {
   readonly summary: string;
   readonly disclaimer: string;
   readonly visuals?: readonly CalculationChartSpec[];
+  readonly scales?: readonly ScoreScaleSpec[];
   readonly evaluation?: AssessmentEvaluation;
 }
 

@@ -23,6 +23,7 @@ import type {
   StoredCalculationResult,
   TextCalculationResult,
 } from '@/features/calculators/clinical-calculations';
+import { buildScoreScaleSpec, type ScoreScaleSpec } from '@/features/calculators/score-scale';
 
 export interface CalculatorSchemaNumberOutput {
   readonly kind: 'number';
@@ -169,6 +170,8 @@ export interface CalculatorSchemaEvaluation {
   readonly outputs: readonly CalculatorSchemaOutput[];
   readonly trace: readonly CalculationTraceStep[];
   readonly warnings: readonly CalculatorWarning[];
+  /** Banded score tracks with the result placed on them (final evaluations only). */
+  readonly scales: readonly ScoreScaleSpec[];
   /** Values the card keeps (`step.patientBinding`), by context key: ISO date or number. */
   readonly contextValues: Readonly<Record<string, string | number>>;
   readonly evaluation: {
@@ -421,6 +424,7 @@ function evaluateCalculatorSchemaInner(
   if (outputs.length === 0) return failure('Калькулятор не определил ни одного результата.');
 
   const warnings: CalculatorWarning[] = [...schema.warnings];
+  let matchedInterpretation: number | undefined;
   let evaluation: CalculatorSchemaEvaluation['evaluation'] = {
     status: schema.evaluation.status,
     missingContext: schema.evaluation.missingContext,
@@ -439,7 +443,7 @@ function evaluateCalculatorSchemaInner(
       }
       if (triggered === 1) return failure(assertion.error);
     }
-    for (const interpretation of schema.interpretations) {
+    for (const [index, interpretation] of schema.interpretations.entries()) {
       let matched: CalculatorValue;
       try {
         matched = evaluateCalculatorExpression(interpretation.when, scope as CalculatorScope);
@@ -448,6 +452,7 @@ function evaluateCalculatorSchemaInner(
       }
       if (matched === 1) {
         warnings.push({ code: 'interpretation', message: interpretation.message });
+        matchedInterpretation = index;
         break;
       }
     }
@@ -488,6 +493,11 @@ function evaluateCalculatorSchemaInner(
   }
   outputs.push(...visualOutputs);
 
+  const scales =
+    options.maxStep === undefined
+      ? scoreScaleSpecs(schema, scope, rawInputs, matchedInterpretation)
+      : [];
+
   return {
     ok: true,
     calculatorId: schema.id,
@@ -495,9 +505,40 @@ function evaluateCalculatorSchemaInner(
     outputs,
     trace,
     warnings,
+    scales,
     contextValues,
     evaluation,
   };
+}
+
+/** Places the result on each declared scale whose value was calculated (a skipped optional step has none). */
+function scoreScaleSpecs(
+  schema: CalculatorSchema,
+  scope: Readonly<Record<string, CalculatorValue>>,
+  rawInputs: Readonly<Record<string, string | number>>,
+  matchedInterpretation: number | undefined,
+): ScoreScaleSpec[] {
+  const specs: ScoreScaleSpec[] = [];
+  for (const scale of schema.scoreScales) {
+    const value = scope[scale.valueId];
+    if (typeof value !== 'number' || !Number.isFinite(value)) continue;
+    const step = schema.steps.find((candidate) => candidate.id === scale.valueId);
+    const input = step
+      ? undefined
+      : schema.inputs.find((candidate) => candidate.id === scale.valueId);
+    const unit = step ? stepUnit(schema, step, rawInputs) : input?.unit;
+    specs.push(
+      buildScoreScaleSpec(scale, {
+        value,
+        ...(unit ? { unit } : {}),
+        precision: step?.displayPrecision ?? 2,
+        label: step?.label ?? input?.label ?? scale.id,
+        matchedInterpretation,
+        interpretationText: (index) => schema.interpretations[index]?.message,
+      }),
+    );
+  }
+  return specs;
 }
 
 type CalculatorVisualEvaluation =
@@ -630,6 +671,7 @@ export function toStoredCalculationResult(
     warnings: evaluation.warnings,
     evaluation: evaluation.evaluation,
     ...(visuals.length > 0 ? { visuals } : {}),
+    ...(evaluation.scales.length > 0 ? { scales: evaluation.scales } : {}),
     ...(Object.keys(evaluation.contextValues).length > 0
       ? { contextValues: evaluation.contextValues }
       : {}),

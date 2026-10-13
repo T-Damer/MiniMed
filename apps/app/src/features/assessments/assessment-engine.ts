@@ -20,6 +20,7 @@ import {
   type CalculatorChartSpec,
   evaluateCalculatorVisual,
 } from '@/features/calculators/calculator-schema-engine';
+import { buildScoreScaleSpec, type ScoreScaleSpec } from '@/features/calculators/score-scale';
 
 function questionResponseOptions(
   definition: AssessmentDefinition,
@@ -126,6 +127,28 @@ function assessmentScoreScope(
   return scope;
 }
 
+/** Places each declared scale's questionnaire score on its track; the headline and summary stay the result's own text. */
+function assessmentScoreScaleSpecs(
+  definition: AssessmentDefinition,
+  scores: readonly AssessmentScaleScore[],
+  matchedInterpretation: number | undefined,
+): ScoreScaleSpec[] {
+  const specs: ScoreScaleSpec[] = [];
+  for (const scale of definition.scoreScales ?? []) {
+    const score = scores.find((candidate) => candidate.scaleId === scale.valueId);
+    if (!score) continue;
+    specs.push(
+      buildScoreScaleSpec(scale, {
+        value: score.rawScore,
+        precision: 0,
+        label: score.label,
+        matchedInterpretation,
+      }),
+    );
+  }
+  return specs;
+}
+
 function roundedPercent(value: number): number {
   return Math.round(value * 10) / 10;
 }
@@ -140,6 +163,8 @@ function genericHeadline(scores: readonly AssessmentScaleScore[]): string {
 interface ClinicalInterpretation {
   readonly headline: string;
   readonly summary: string;
+  /** Index of the matched band in `definition.interpretations` (absent for a per-scale summary). */
+  readonly bandIndex?: number;
 }
 
 function resolveScaleRawScore(
@@ -198,10 +223,10 @@ function schemaDrivenInterpretation(
   if (definition.interpretationMode === 'per-scale') {
     return perScaleInterpretation(definition, scores, interpretations);
   }
-  for (const band of interpretations) {
+  for (const [bandIndex, band] of interpretations.entries()) {
     if (band.when) {
       if (evaluateCalculatorExpression(band.when, scope) === 1) {
-        return { headline: band.headline, summary: band.message };
+        return { headline: band.headline, summary: band.message, bandIndex };
       }
       continue;
     }
@@ -209,7 +234,7 @@ function schemaDrivenInterpretation(
     if (rawScore === undefined || band.minScore === undefined || band.maxScore === undefined)
       continue;
     if (rawScore >= band.minScore && rawScore <= band.maxScore) {
-      return { headline: band.headline, summary: band.message };
+      return { headline: band.headline, summary: band.message, bandIndex };
     }
   }
   return undefined;
@@ -344,6 +369,8 @@ export function scoreAssessment(
     if (evaluated.output) visuals.push(evaluated.output.chart);
   }
 
+  const scales = assessmentScoreScaleSpecs(definition, scores, clinical?.bandIndex);
+
   return {
     ok: true,
     value: {
@@ -355,6 +382,7 @@ export function scoreAssessment(
       summary: buildSummary(scores, clinical),
       disclaimer: definition.disclaimer,
       ...(visuals.length > 0 ? { visuals } : {}),
+      ...(scales.length > 0 ? { scales } : {}),
       evaluation: assessmentEvaluation(definition, scores),
     },
   };

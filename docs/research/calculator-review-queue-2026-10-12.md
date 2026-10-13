@@ -98,8 +98,9 @@ neither can output the composed CEAP string). A future «reference» tool kind w
 
 - **Licences:** Zung SDS/SAS, Barthel (paraphrased wording), Rivermead, PAINAD, FINDRISC, BASDAI/BASFI — no explicit
   reuse licence found; item wording is our own paraphrase with attribution. Decide before the repo stays public.
-- **Assessment section:** Zung SDS/SAS and HAM-D sit in the `self-reflection` section; a «Депрессия и тревога»
-  section would fit better.
+- **Assessment section (done 2026-10-13):** «Депрессия и тревога» holds Zung SDS/SAS and HAM-D 17; EPDS and Whooley stay
+  in the obstetric «Психологический скрининг» section (same module). Licence notes of unclear instruments now sit
+  behind «Информация» and as a small source line, not up front.
 - **Goeke–Savelyeva gestosis score:** historical (not in the 2021/2024 preeclampsia КР); can be added with a
   «historical» limitation from secondary sources if wanted.
 

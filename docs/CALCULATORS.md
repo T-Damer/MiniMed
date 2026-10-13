@@ -127,6 +127,49 @@ Fenton 2025 is not approximated from chart pixels or replaced by the 2013 refere
 coefficients and official oracle cases must be obtained from University of Calgary with terms that
 allow offline embedding and redistribution before that calculator can be released.
 
+## Score scales and tool information (2026-10-13, SCALE1)
+
+A numeric result can declare a **score scale** (`scoreScales` on a calculator, or on an assessment with `valueId`
+naming one of its `scales`): a horizontal track split into bands, a marker at the patient's value and the text of
+the band it falls in. It is pure presentation data (`ScoreScaleSchema` in `packages/contracts`); the screen
+(`ScoreScale.tsx`), the print sheet (`score-scale-print.ts`) and the tests all read one geometry
+(`score-scale.ts`), and no code knows a tool id.
+
+- `bands[].from` is the first value of a band (ascending, the first equals `minimum`); `label` is its short name,
+  `attentionLevel` (`none` … `urgent`, the same ordinal as a verdict rule) colours it, a band without one is neutral.
+  A decreasing-is-worse scale (GCS, Barthel, eGFR) simply gives the low bands the high level. `interpretation` is the
+  index of the interpretation whose text is written under the track; the interpretation the engine matched wins over
+  the value's position, so a text and its band never disagree.
+- `step` is the distance between neighbouring values (1 for point scores): a value then fills a cell, a boundary
+  falls between two values and the marker is never on an edge. No `step` means a continuous quantity.
+- `layout: 'equal'` gives every band the same width (NYHA I–IV, KDIGO stages, ASA); `proportional` scales by value.
+  Without `bands` the track is a plain gauge (risk and mortality percentages).
+- The marker slides in with the motion tokens (`--motion-slow`), so Settings → «Анимации» retimes or stops it.
+  Values beyond `minimum`/`maximum` are held at the end of the track.
+- The engine emits `scales` next to `visuals` in the stored result; a value shown on a scale is not repeated as a
+  plain tile, nor is the interpretation text a scale writes. Print draws the same scale with fixed colours and a legend.
+- `score-scale-catalog.test.ts` reads every tool module: each single-score interpretation cascade must have a scale
+  (exceptions are named there with the reason), and each band is replayed against the interpretations.
+
+Coverage at introduction: 178 of 245 tools carry 182 scales — 160 with bands (142 calculators and 18 assessments,
+incl. hand-written scales for multi-variable cascades such as NEWS2, Berlin P/F, ABI, ASA, Hoehn–Yahr modified) and 18
+plain gauges (risk and mortality percentages, scores without published bands). Left without a scale: cascades that
+depend on several variables or are codes rather than scores (HOMA-IR, Matsuda, LDL, adrenal washout, EULAR/ACR SLE,
+RCOG VTE, COVID-19 severity classes, Kerdo), and tools with no numeric band at all (conversions, doses, dates,
+growth z-scores, feeding plans). Band severity comes from the verdict rule where it already ran in one direction,
+and was assigned by rank otherwise (about 25 tools whose rules were all `none`); no verdict rule was changed, so a
+few rules still say `none` for a high-risk band — correcting them is a data-review item (CALCV).
+
+**Tool information.** Instrument licence, attribution and source notes are not shown up front. A calculator page has
+an «Информация» item in its actions menu (summary, population, limits, sources) and one small plain source line at
+the bottom; an assessment has the same item (its former «Методика и ограничения» dialog) and a small source and
+status line at the bottom of the questionnaire and of the result. Instruments with unclear licences keep their
+attribution in that line and dialog.
+
+**Assessment section.** «Депрессия и тревога» (category `depression-anxiety`, specialty «Психиатрия») holds the
+Zung SDS/SAS and HAM-D 17. EPDS and Whooley stay in the obstetric «Психологический скрининг» section: they ship in
+the obstetrics module, and a section downloads as one module.
+
 ## References display
 
 Every calculator page exposes its source links in a native disclosure before data entry. The saved-result

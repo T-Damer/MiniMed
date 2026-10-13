@@ -18,8 +18,11 @@ import {
 import type {
   AssessmentDefinition,
   AssessmentRecord,
+  ScoredAssessment,
 } from '@/features/assessments/assessment-types';
 import { Chart } from '@/features/calculators/CalculatorChart';
+import { ScoreScale } from '@/features/calculators/ScoreScale';
+import { scaledValueIds } from '@/features/calculators/score-scale';
 import {
   attachedResultNoteTitle,
   snapshotAssessmentForNote,
@@ -37,6 +40,12 @@ function formatDate(value: string): string {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(date);
+}
+
+/** Scores the result does not already draw on a score scale. */
+function unscaledScores(result: ScoredAssessment): ScoredAssessment['scores'] {
+  const scaled = scaledValueIds(result.scales);
+  return result.scores.filter((score) => !scaled.has(score.scaleId));
 }
 
 export function AssessmentResultPage(props: {
@@ -80,6 +89,12 @@ export function AssessmentResultPage(props: {
       icon: 'list-checks',
       disabled: props.record.kind !== 'completed',
       onSelect: () => printResult(true),
+    },
+    {
+      id: 'info',
+      label: 'Информация',
+      icon: 'info',
+      onSelect: () => setMethodologyOpen(true),
     },
   ];
 
@@ -154,21 +169,12 @@ export function AssessmentResultPage(props: {
                 type="button"
                 variant="icon"
                 class="knowledge-back-button assessment-result-print-button"
-                aria-label="Печать результата"
-                title="Печать результата"
+                aria-label="Действия"
+                title="Действия"
                 onClick={requestContextMenu}
-                icon={<AppGlyph name="printer" class="assessment-result-print-button__icon" />}
+                icon={<AppGlyph name="menu" class="assessment-result-print-button__icon" />}
               />
             </AppContextMenu>
-            <Button
-              type="button"
-              variant="icon"
-              class="knowledge-back-button assessment-help-button"
-              aria-label="Методика и ограничения"
-              title="Методика и ограничения"
-              onClick={() => setMethodologyOpen(true)}
-              icon={<AppGlyph name="question" class="assessment-help-button__icon" />}
-            />
           </div>
         }
       />
@@ -228,6 +234,7 @@ export function AssessmentResultPage(props: {
             <Show when={result().summary.trim()}>
               <p class="assessment-result-summary__text">{result().summary}</p>
             </Show>
+            <For each={result().scales ?? []}>{(scale) => <ScoreScale spec={scale} />}</For>
             <For each={result().visuals ?? []}>
               {(visual) => (
                 <Chart
@@ -237,9 +244,9 @@ export function AssessmentResultPage(props: {
                 />
               )}
             </For>
-            <Show when={result().scores.length > 0}>
+            <Show when={unscaledScores(result()).length > 0}>
               <div class="assessment-score-list">
-                <For each={result().scores}>
+                <For each={unscaledScores(result())}>
                   {(score) => (
                     <div class="assessment-score-list__row">
                       <span class="assessment-score-list__label">
@@ -267,7 +274,6 @@ export function AssessmentResultPage(props: {
       <AssessmentDefinitionNotice
         definition={props.definition}
         open={methodologyOpen()}
-        showTrigger={false}
         onOpenChange={setMethodologyOpen}
       />
 
@@ -320,6 +326,8 @@ export function AssessmentResultPage(props: {
           Удалить
         </Button>
       </div>
+
+      <p class="assessment-footnote">{props.definition.license.notice}</p>
 
       <Show when={notePanelOpen() && !props.record.patientId}>
         <section class="assessment-note-panel paper-card assessment-result-page__full">

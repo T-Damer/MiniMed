@@ -1,6 +1,10 @@
 import { findCalculator } from '@/features/calculators/calculator-registry';
 import { calculatorResultLayout } from '@/features/calculators/calculator-schema-catalog';
 import { parsePediatricFeedingPlan } from '@/features/calculators/pediatric-feeding-plan';
+import {
+  SCORE_SCALE_PRINT_CSS,
+  scoreScalePrintHtml,
+} from '@/features/calculators/score-scale-print';
 import { PrintManager } from '@/features/printing/print-manager';
 import type { CalculationRecord } from '@/state/calculation-history';
 import { MINIMED_WEB_APP_URL } from '../../../../../release';
@@ -23,20 +27,26 @@ export function formatCalculatorNumber(value: number, precision: number): string
 
 export function calculationRecordOutputs(
   record: CalculationRecord,
-): readonly { readonly label: string; readonly display: string }[] {
+): readonly { readonly id?: string; readonly label: string; readonly display: string }[] {
   const result = record.result;
   if ('textValues' in result) {
-    return result.textValues.map((item) => ({ label: item.label, display: item.text }));
+    return result.textValues.map((item) => ({
+      ...(item.id ? { id: item.id } : {}),
+      label: item.label,
+      display: item.text,
+    }));
   }
   if ('value' in result) {
     return [
       {
+        ...(result.outputId ? { id: result.outputId } : {}),
         label: result.label ?? 'Результат',
         display: `${formatCalculatorNumber(result.value, result.displayPrecision)} ${result.unit}`,
       },
     ];
   }
   return result.values.map((item) => ({
+    ...(item.id ? { id: item.id } : {}),
     label: item.label,
     display: `${formatCalculatorNumber(item.value, item.displayPrecision)} ${item.unit}`,
   }));
@@ -209,10 +219,12 @@ export function printCalculationRecord(record: CalculationRecord, noteTitle = ''
 body{font-family:system-ui,-apple-system,sans-serif;max-width:800px;margin:40px auto;padding:0 24px;line-height:1.45;color:#111}
 pre{white-space:pre-wrap;font:inherit;border:1px solid #bbb;border-radius:12px;padding:20px}
 small{color:#555}
+${SCORE_SCALE_PRINT_CSS}
 @media print{body{margin:0 auto;max-width:190mm;padding:0 4mm}button{display:none}}
 </style>
 </head>
 <body>
+${(record.result.scales ?? []).map((scale) => scoreScalePrintHtml(scale, { text: false })).join('\n')}
 <pre>${escapeHtml(text)}</pre>
 <small>MiniMed · <a href="${MINIMED_WEB_APP_URL}">${MINIMED_WEB_APP_URL}</a></small>
 </body>
