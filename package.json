@@ -25,6 +25,7 @@
     "check:write": "biome check --write .",
     "typecheck": "bun run --filter '@localmed/*' --if-present typecheck",
     "test:unit": "bun run content:restore:core && vitest run",
+    "test:data:release": "MINIMED_RELEASE_DATA=1 vitest run packages/storage-sqlite/tests/shipped-packs.data.test.ts",
     "test:python": "uv run --project tools/ingest pytest tools/ingest/tests",
     "test": "bun run test:unit && bun run test:python",
     "test:watch": "vitest",
