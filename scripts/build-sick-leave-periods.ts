@@ -48,6 +48,36 @@ const CODE_CORRECTIONS: readonly {
 ];
 
 /**
+ * Period values the mirror prints differently from the other independent copies of the letter
+ * (cross-check of 2026-10-13: docs.cntd.ru / library.mededtech.ru, forens-med.ru and the
+ * consultant.ru tables; the Consultant text and pravo.ppt.ru agree with each other everywhere, so they
+ * count as one copy). Each fix needs the printed value to be found exactly once for the code; the
+ * printed value stays in the asset (`valueCorrections`). The rest of the 2026-10-13 comparison
+ * (H00.1, L60.0, E24.0, S52.2.x, S82.2.1, T22.3, I11.0, S61.-, B75) kept the pravo.ppt.ru reading.
+ */
+const VALUE_CORRECTIONS: readonly {
+  readonly code: string;
+  readonly printed: string;
+  readonly period: string;
+  readonly basis: string;
+}[] = [
+  {
+    code: 'A01.0',
+    printed: '34 - 45',
+    period: '35 - 45',
+    basis:
+      'Kodeks (docs.cntd.ru) and forens-med.ru print 35-45; the Consultant/pravo.ppt.ru text 34-45',
+  },
+  {
+    code: 'H44.0',
+    printed: '23 - 35',
+    period: '25 - 35',
+    basis:
+      'Kodeks (docs.cntd.ru) and forens-med.ru print 25-35; the Consultant/pravo.ppt.ru text 23-35',
+  },
+];
+
+/**
  * Rows whose box-drawing layout puts a feature and its period on different lines, so the generic
  * reading cannot pair them. Each fix is checked against the text the parser produced, so a changed
  * source stops the build instead of being patched silently; the report lists them.
@@ -189,6 +219,7 @@ const groupIndex = (group: string | null): number => {
 const MISSING_FOOTNOTE_MARK = / ?\*$/u;
 const unexplainedMarks: string[] = [];
 
+const appliedValueFixes = new Set<number>();
 const appliedFixes = new Set<number>();
 const entries = letter.entries.map((entry, index) => {
   const { code, printed } = corrected[index] ?? fail('corrections out of step');
@@ -205,6 +236,13 @@ const entries = letter.entries.map((entry, index) => {
           period = period.replace(MISSING_FOOTNOTE_MARK, '');
           unexplainedMarks.push(code);
         }
+        const valueFix = VALUE_CORRECTIONS.findIndex(
+          (candidate) => candidate.code === code && candidate.printed === period,
+        );
+        if (valueFix >= 0) {
+          appliedValueFixes.add(valueFix);
+          period = VALUE_CORRECTIONS[valueFix]?.period ?? fail('value fix out of range');
+        }
         return [item.features, period, noteList(entry.table, item.notes)];
       });
   return [
@@ -217,6 +255,8 @@ const entries = letter.entries.map((entry, index) => {
     printed,
   ];
 });
+if (appliedValueFixes.size !== VALUE_CORRECTIONS.length)
+  fail('a value correction no longer matches the parsed letter; check VALUE_CORRECTIONS');
 if (appliedFixes.size !== LAYOUT_FIXES.length)
   fail('a layout fix no longer matches the parsed letter; check LAYOUT_FIXES');
 
@@ -230,6 +270,14 @@ const asset = {
     mirror: source.url,
   },
   notes: { advisory, deviation },
+  valueCorrections: VALUE_CORRECTIONS.map((item) => [
+    item.code,
+    item.printed,
+    item.period,
+    item.basis,
+  ]),
+  /** Per entry, in the same order: `[table of the letter (1-16), «Номер строки по форме N 16-ВН»]`. */
+  provenance: letter.entries.map((entry) => [entry.table, entry.formLines]),
   footnotes,
   groups,
   blocks: letter.blocks.map((block) => [
@@ -248,6 +296,8 @@ console.log(
 );
 for (const fix of LAYOUT_FIXES)
   console.log(`layout fix ${fix.code} (table ${String(fix.table)}): ${fix.reason}`);
+for (const fix of VALUE_CORRECTIONS)
+  console.log(`value ${fix.code}: ${fix.printed} -> ${fix.period} (${fix.basis})`);
 for (const fix of CODE_CORRECTIONS)
   console.log(`corrected ${fix.printed} -> ${fix.code}: ${fix.reason}`);
 if (unexplainedMarks.length > 0)
