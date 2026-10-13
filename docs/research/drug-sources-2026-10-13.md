@@ -98,18 +98,24 @@ Pilot check on the first 61 stored files (text layer via PyMuPDF, no OCR): 0 mis
 INN, 10 (5 BY dossiers) are scans without a text layer and go through the existing macOS Vision OCR path. BY files take
 ~1.5 s, KZ ~2 s.
 
-Group coverage (INN + form class, my approximation of the loop's metric): 3 559 → 3 628 groups covered (+69, +21 of them
-ЖНВЛП), i.e. 8 % of the groups still uncovered, about as many as 10 daily ГРЛС windows at today's yield.
+Download result (2026-10-13/14, ~2.5 h at the polite pace): **950 of 1 018 documents stored (565 BY, 385 KZ; 867 PDF +
+51 DOCX + earlier 32 PDF; 711 MB)**; 68 failed, all but a few Kazakh ids that answer HTTP 500/400 on both files
+(33 registers, repeatable) and three timeouts. **370 of the 377 registrations hold at least one stored document (ЖНВЛП
+186), 369 of them both a leaflet and an ОХЛП.** `manifest` was run on the 30-file pilot only (OCR of scans on a loaded
+machine took 31 min): 32 rows, all accepted, 0 mismatches; it was not run on the full set (the scans, ≈15 % of BY
+files, need Vision OCR; ~hours).
 
-Collection state when this note was written: see `CURRENT_STATE.md` «G2» (the last count). Not built into a module:
-no module builder exists for this source class yet and the OCR share (scans) and the acceptance policy for another
-state's stamped text are an owner decision, so no pack, catalog or release asset changed.
+Group coverage (INN + form class, my approximation of the loop's metric): 3 559 → 3 625 groups covered (+66, +20 of
+them ЖНВЛП), i.e. 8 % of the groups still uncovered, about as many as 9 daily ГРЛС windows at today's yield.
+
+Not built into a module: no module builder exists for this source class yet, the OCR share and the acceptance policy
+for another state's stamped text are an owner decision, so no pack, catalog or release asset changed.
 
 ## 4. Recommendations
 
 1. Keep the ГРЛС loop running (restart command in the handoff); restart it once after the next `git pull` so the
    representative change applies.
-2. Finish the BY/KZ download (resumable, ≈1 018 requests ≈ 2 h), run `manifest`, then add a module builder next to
+2. Run `manifest` over the 950 files (OCR for the scans), then add a module builder next to
    `manufacturer_instruction_modules.py` (source class `eaeu-sister-register`, country visible, ОХЛП shown as such). Owner
    decision needed on showing a Belarus/Kazakhstan-stamped text for a Russian registration.
 3. Ask НЦЭСМП for the ОХЛП/ЛВ of the ~6 300 EAEU registrations (the only scaling path); the CSV exists (plan 02.10.2026).

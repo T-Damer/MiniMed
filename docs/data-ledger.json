@@ -631,6 +631,15 @@
       "modified": "2026-10-02"
     },
     {
+      "path": "data/raw/eaeu-sister-registers",
+      "class": "SOURCE",
+      "producer": "medbase-eaeu-sister-registers lists/collect/manifest (G2, 2026-10-13; docs/research/drug-sources-2026-10-13.md): leaflets and ОХЛП of EAEU dossiers from rceth.by (Belarus) and register.ndda.kz (Kazakhstan), source class eaeu-sister-register",
+      "consumers": [],
+      "note": "entries-BY/KZ.jsonl (listing snapshots with checksum and fetch time), files/<country>/<sha256>.pdf|docx (950 files), state.jsonl (fetch ledger), manifest.jsonl (derived by manifest; pilot rows only). Never mixed with data/raw/grls-instructions-active.",
+      "bytes": 714551296,
+      "modified": "2026-10-14"
+    },
+    {
       "path": "data/build/icd11-module",
       "class": "RELEASED",
       "producer": "bun run content:module:icd11",

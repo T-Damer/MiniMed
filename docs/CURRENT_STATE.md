@@ -2889,10 +2889,11 @@ Owner 2026-10-13: «resurrect the collector, or search for a drugs db once again
   leaflet and ОХЛП as plain files without a CAPTCHA.
 - **Collector `medbase-eaeu-sister-registers`** (`eaeu_sister_registers.py`, 16 tests on fixtures): listings → candidates
   by shared dossier number → polite resumable download → manifest per (registration, document) with source class
-  `eaeu-sister-register`, country, URL, sha256, fetch time, `Last-Modified`, text check. Missing registrations covered:
-  **377 (4.6 %), ЖНВЛП 190 (6.2 %), 1 018 documents each with ЛВ and ОХЛП** (ГРЛС gave 5 ОХЛП so far); +69 «INN + form» groups
-  (+21 ЖНВЛП). Raw files in `data/raw/eaeu-sister-registers/` (private, ignored). Pilot check on the first 61 files:
-  0 mismatches, 10 scans for OCR.
+  `eaeu-sister-register`, country, URL, sha256, fetch time, `Last-Modified`, text check. Missing registrations matched:
+  **377 (4.6 %), ЖНВЛП 190 (6.2 %); 1 018 documents listed, 950 downloaded (565 BY, 385 KZ, 711 MB; ~65 Kazakh ids answer
+  HTTP 500)**, so 370 registrations (ЖНВЛП 186) hold a leaflet and, for 369, an ОХЛП (ГРЛС gave 5 ОХЛП so far); +66
+  «INN + form» groups (+20 ЖНВЛП). Raw files in `data/raw/eaeu-sister-registers/` (private, ignored; ledger entry added).
+  `manifest` ran on the 30-file pilot (32 rows, 0 mismatches); on the full set it needs Vision OCR for the scans (≈15 %).
 - **Not done / owner decisions:** no module builder for this source class, no pack, catalog or release change; showing a
   Belarus/Kazakhstan-stamped text for a Russian registration needs an owner decision; the three further manufacturer
   adapters (ns03.ru, dalkhimpharm.ru, avexima.ru) and an official НЦЭСМП request remain open.
