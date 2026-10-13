@@ -38,13 +38,27 @@
   text-align: left;
   white-space: pre-wrap;
   overflow-wrap: break-word;
-  cursor: text;
+  /* Taps go through to the field, except on the marked letters. */
+  pointer-events: none;
   animation: search-correction-in var(--motion-base) var(--motion-ease-out);
 }
 
-.search-correction:focus-visible {
+.search-correction__fix {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.search-correction__fix:focus-visible {
+  border-radius: 0.1875rem;
   outline: 2px solid var(--theme-accent);
-  outline-offset: -2px;
 }
 
 .search-correction__text {

@@ -123,7 +123,7 @@ rule — only when the typed query names nothing:
    walks an implicit trie over the sorted vocabulary with a weighted edit distance and reads the
    cost at every depth, so the typed word is matched to the *beginning* of a name: «помоач» →
    «помрач», not to a whole word. A neighbouring key (ЙЦУКЕН, QWERTY), a sound-alike letter
-   (о/а, е/и, и/ы, з/с, д/т, б/п…), a soft or hard sign or a doubled letter costs 0.5; any other
+   (о/а, е/и, и/ы, з/с, д/т, б/п…), a soft or hard sign, a doubled letter or a vowel the typed word dropped («ибупрофн») costs 0.5; any other
    edit 1; two swapped letters 0.6; a typed ending of up to two letters kept after a corrected stem
    0.25 per letter («оменции» → «аменции»). Budget: 0.5 up to five letters, 1 up to eight, 1.5 up
    to eleven, 2 beyond. Ties go to a whole name, then the length nearest the typed one, then the
@@ -143,7 +143,8 @@ rule — only when the typed query names nothing:
    its title stem was in the query, which a misspelt name never is.
 5. The search box draws the typed text over the field with the wrong letters struck out in red and
    the right letters added in green (`SearchCorrectionOverlay`, letter alignment in
-   `search-correction.ts`); a tap puts the corrected text in the field. `createMedicalCore({
+   `search-correction.ts`); a tap on the marked letters puts the corrected text in the field, a tap
+   anywhere else reaches the field and hides the correction until the next search. `createMedicalCore({
    spellingCorrection: false })` switches it off for measurements.
 
 ## 3. Lexical retrieval

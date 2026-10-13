@@ -115,6 +115,16 @@ function gapCost(letter: string, previous: string | undefined): number {
   return SILENT.has(letter) || letter === previous ? CHEAP : FULL;
 }
 
+const VOWELS = new Set('аеиоуыэюяaeiouy');
+
+/**
+ * A letter of the name the typed word lacks: fast typing drops vowels («ибупрофн»), so a missing
+ * vowel is as cheap as a neighbouring key; otherwise as `gapCost`.
+ */
+function missingCost(letter: string, previous: string | undefined): number {
+  return VOWELS.has(letter) ? CHEAP : gapCost(letter, previous);
+}
+
 const NAME_WORD = /[0-9a-zа-я]+/gu;
 
 /**
@@ -233,13 +243,13 @@ export function correctWord(word: string, vocabulary: NameVocabulary): WordCorre
       const end = lowerBound(words, `${childPrefix}￿`, start, high);
       const next = new Float64Array(length + 1);
       const previousLetter = prefix[depth - 1];
-      next[0] = (row[0] ?? 0) + gapCost(letter, previousLetter);
+      next[0] = (row[0] ?? 0) + missingCost(letter, previousLetter);
       let rowMin = next[0] ?? 0;
       for (let index = 1; index <= length; index += 1) {
         const typedLetter = typed[index - 1] ?? '';
         let cost = Math.min(
           (row[index - 1] ?? 0) + substitutionCost(typedLetter, letter),
-          (row[index] ?? 0) + gapCost(letter, previousLetter),
+          (row[index] ?? 0) + missingCost(letter, previousLetter),
           (next[index - 1] ?? 0) + gapCost(typedLetter, typed[index - 2]),
         );
         if (

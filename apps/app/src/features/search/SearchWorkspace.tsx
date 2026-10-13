@@ -399,9 +399,13 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   });
 
   // A misspelt word the search corrected, drawn over the field while the box still holds it.
+  // Tapping the field to edit hides it until the next search (`runSearch` shows it again).
+  const [correctionDismissed, setCorrectionDismissed] = createSignal(false);
   const correction = createMemo(() => {
     const corrected = props.scope !== 'personal' ? response()?.queryCorrection : undefined;
-    return corrected ? correctionPieces(query(), corrected.corrections) : null;
+    return corrected && !correctionDismissed()
+      ? correctionPieces(query(), corrected.corrections)
+      : null;
   });
 
   function applyCorrection(text: string): void {
@@ -787,6 +791,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     const rawQuery = nextQuery.trim();
     const trimmed = searchableQuery(nextQuery);
     setSearchQueued(false);
+    setCorrectionDismissed(false);
     if (props.catalogOnly) {
       if (recordHistory && rawQuery)
         appendSearchHistory(rawQuery, props.scope, props.catalogResultCount ?? 0, props.specialty);
@@ -1111,6 +1116,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             }
             value={query()}
             onInput={(event) => {
+              setCorrectionDismissed(true);
               updateQuery(event.currentTarget.value);
               resizeTextarea(event.currentTarget);
               syncToolPicker(
@@ -1121,6 +1127,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             onKeyDown={handleKeyDown}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
+            onPointerDown={() => setCorrectionDismissed(true)}
             placeholder={
               props.placeholder ?? 'Например: 5 лет, мальчик, второй день кашляет и температурит…'
             }

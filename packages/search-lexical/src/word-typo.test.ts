@@ -80,6 +80,11 @@ describe('word forms', () => {
     expect(correctWord('аменцией', drugs)).toBeNull();
   });
 
+  it('repairs a dropped vowel to the whole name, not a neighbouring-key prefix («ибупрофн»)', () => {
+    const drugs = buildNameVocabulary(['ибупрофен', 'ибупрофена']);
+    expect(correctWord('ибупрофн', drugs)?.corrected).toBe('ибупрофен');
+  });
+
   it('prefers a whole name to the beginning of another at the same cost', () => {
     const drugs = buildNameVocabulary(['цефтриаксон', 'цефтриаксоновый']);
     expect(correctWord('цефтриаксн', drugs)?.corrected).toBe('цефтриаксон');

@@ -21,7 +21,14 @@ test('a misspelt first letter is corrected in the search box', async ({ page }) 
       .first(),
   ).toBeVisible();
 
-  await correction.click();
+  // A tap on the plain text reaches the field and hides the correction for editing.
+  await input.click({ position: { x: 4, y: 4 } });
+  await expect(correction).toHaveCount(0);
+  await expect(input).toHaveValue('оменция');
+
+  await page.getByTestId('search-submit').click();
+  await expect(correction).toBeVisible({ timeout: 30_000 });
+  await correction.getByRole('button', { name: 'Исправить на «аменция»' }).click();
   await expect(input).toHaveValue('аменция');
   await expect(correction).toHaveCount(0);
 
