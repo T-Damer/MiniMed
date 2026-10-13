@@ -1,0 +1,8 @@
+{"@odata.context":"x","value":[
+{"registrationNumberId":"000554","drugCountryRegistrationDetails":[
+ {"drugTradeName":"Кордарон","unifiedCountryCode":{"value":"RU","codeListId":"P.CLS.019"},"drugRegistrationCertificateDetails":{"registrationCertificateId":"ЛП-№(000554)-(РГ-RU)"}},
+ {"drugTradeName":"КОРДАРОН®","unifiedCountryCode":{"value":"BY","codeListId":"P.CLS.019"},"drugRegistrationCertificateDetails":null},
+ {"drugTradeName":"Кордарон®","unifiedCountryCode":{"value":"KZ","codeListId":"P.CLS.019"}}]},
+{"registrationNumberId":null,"drugCountryRegistrationDetails":[
+ {"drugTradeName":"Эваскор","unifiedCountryCode":{"value":"BY","codeListId":"P.CLS.019"}}]}
+]}

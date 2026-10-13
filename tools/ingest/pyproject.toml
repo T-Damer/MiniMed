@@ -17,6 +17,7 @@ medbase-clinical-catalog = "localmed_ingest.clinical_catalog_cli:app"
 medbase-regulated-catalog = "localmed_ingest.regulated_catalog_cli:app"
 medbase-catalog-modules = "localmed_ingest.catalog_module_cli:app"
 medbase-manufacturer-instructions = "localmed_ingest.manufacturer_instructions_cli:app"
+medbase-eaeu-sister-registers = "localmed_ingest.eaeu_sister_registers_cli:app"
 
 medbase-terminology = "localmed_ingest.terminology_cli:app"
 

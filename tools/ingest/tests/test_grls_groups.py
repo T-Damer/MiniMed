@@ -164,6 +164,28 @@ def test_queue_picks_one_originator_per_uncovered_group_essential_first() -> Non
     assert stats.essential_groups_total == 1 and stats.essential_groups_covered == 0
 
 
+def test_representative_prefers_a_number_the_search_can_find() -> None:
+    eaeu = "ЛП-№(000092)-(РГ-RU)"
+    eaeu_foreign = "ЛП-№(000093)-(РГ-RU)"
+    records = [
+        record("ЛС-001138", "ибупрофен", "таблетки", country="Германия", registered="01.01.2005"),
+        record(eaeu, "ибупрофен", "таблетки", registered="01.01.2020"),
+        record(eaeu_foreign, "ибупрофен", "таблетки", country="Франция", registered="01.01.2021"),
+    ]
+    plan = {"ЛС-001138", eaeu, eaeu_foreign}
+    picks, _ = build_group_queue(records, plan, covered_numbers=set(), permanent_failures={})
+    # an older national number is tried only after the EAEU ones; among EAEU the originator wins
+    assert [pick.registration_number for pick in picks] == [eaeu_foreign]
+    picks, _ = build_group_queue(
+        records, plan, covered_numbers=set(), permanent_failures={eaeu_foreign: 2}
+    )
+    assert [pick.registration_number for pick in picks] == [eaeu]
+    only_legacy, _ = build_group_queue(
+        records[:1], plan, covered_numbers=set(), permanent_failures={}
+    )
+    assert [pick.registration_number for pick in only_legacy] == ["ЛС-001138"]
+
+
 def test_failed_representative_is_replaced_and_unreachable_groups_are_counted() -> None:
     records = [
         record("ORIG", "ибупрофен", "таблетки", country="Германия"),

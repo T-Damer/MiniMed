@@ -2470,6 +2470,33 @@ delays, backoff on 429/503, no CAPTCHA handling, resumable state ledger, never o
   are untouched; the confidence is recorded only for PDFs extracted since this change (older OCR
   documents have the flag and the unknown-word proxy only).
 
+## ГРЛС loop restart and sister-register pilot — 2026-10-13 (STATE G2)
+
+Owner 2026-10-13: «resurrect the collector, or search for a drugs db once again». Full numbers and the source table:
+[research/drug-sources-2026-10-13.md](research/drug-sources-2026-10-13.md).
+
+- **Loop restarted** at its existing polite rate (probe with one registration, ≤50 per window, 10–20 s between requests,
+  24 h wait, stop at the first CAPTCHA, one instance). It had died with the host reboot of 2026-10-05 10:16 (no
+  `LOOP stopped`, no `STOP`), not with a site block. First window after the restart: 1 + 14 registrations (7 stored,
+  7 «search-miss», CAPTCHA); groups 2 973/4 383, ЖНВЛП groups 977/1 138. `scripts/grls-collect-daily.sh start|status|stop`
+  restarts it after a reboot (reads the previous `nextAttemptAt`; no LaunchAgent), command in
+  `GRLS_INGESTION_HANDOFF.md`. Group representatives now prefer EAEU numbers (31/31 found since 10-04 against 3/16 for
+  older national numbers), effective at the next `stop`/`start` on updated code.
+- **Sources re-checked:** the Union register OData (`opendata.eaeunion.org/odata`, 55 563 records) holds no document texts
+  (`drugDocumentsDetails` is null in all 1 563 sampled records) but maps each dossier to its member states;
+  `lk.regmed.ru` ОХЛП/ЛВ downloads stay behind an image CAPTCHA (not touched); mirrors, archives, aggregators: nothing
+  new. **New and usable: the registers of Belarus (rceth.by) and Kazakhstan (register.ndda.kz)** publish the dossier's
+  leaflet and ОХЛП as plain files without a CAPTCHA.
+- **Collector `medbase-eaeu-sister-registers`** (`eaeu_sister_registers.py`, 16 tests on fixtures): listings → candidates
+  by shared dossier number → polite resumable download → manifest per (registration, document) with source class
+  `eaeu-sister-register`, country, URL, sha256, fetch time, `Last-Modified`, text check. Missing registrations covered:
+  **377 (4.6 %), ЖНВЛП 190 (6.2 %), 1 018 documents each with ЛВ and ОХЛП** (ГРЛС gave 5 ОХЛП so far); +69 «INN + form» groups
+  (+21 ЖНВЛП). Raw files in `data/raw/eaeu-sister-registers/` (private, ignored). Pilot check on the first 61 files:
+  0 mismatches, 10 scans for OCR.
+- **Not done / owner decisions:** no module builder for this source class, no pack, catalog or release change; showing a
+  Belarus/Kazakhstan-stamped text for a Russian registration needs an owner decision; the three further manufacturer
+  adapters (ns03.ru, dalkhimpharm.ru, avexima.ru) and an official НЦЭСМП request remain open.
+
 ## Official ГРЛС instructions and Allmed as downloadable modules — 2026-10-05 (STATE GI1)
 
 The ~8 950 collected ГРЛС instructions were in no module; now they ship, one module per ЕСКЛП group, and the

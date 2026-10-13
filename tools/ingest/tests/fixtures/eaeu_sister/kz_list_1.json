@@ -1,0 +1,5 @@
+{"data":[
+{"id":99000803,"sourceId":"43e8bbce","oid":"5d8a040a2946bf042f938cc3","drugTradeName":"Ликсиана®","regNumber":"ЛП-№000022-РГ-KZ","mnn":"эдоксабан","lekFormName":"","producerName":"1. Даиичи Санкио Еуроп","countryName":"1. ГЕРМАНИЯ","regDate":"2019-11-13T00:00:00","expirationDate":"2024-11-12T00:00:00","sourceType":"Eaes","atcCode":"B01AF03","atcName":"Эдоксабан"},
+{"id":9578,"sourceId":"618ab877","oid":"9578","drugTradeName":"Бускопан®","regNumber":"РК-ЛС-5№000022","mnn":"Гиосцина бутилбромид","lekFormName":"Суппозитории ректальные","sourceType":"National"},
+{"id":99001925,"sourceId":"1e94f84a","oid":"65fd316f","drugTradeName":"Белогент","regNumber":"ЛП-№006489-ГП-KZ","mnn":"бетаметазон, гентамицин","lekFormName":"крем для наружного применения","sourceType":"Eaes"}
+],"currentPage":1,"lastPage":2,"perPage":2,"total":3}

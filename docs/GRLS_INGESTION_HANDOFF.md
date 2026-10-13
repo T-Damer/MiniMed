@@ -145,6 +145,45 @@ caffeinate -i -w <pid> &
 - Pace: unknown until the first windows complete. At ~85 s per registration a window of 50 takes ~70 min; at one
   window per day the remaining 8 325 would take years, so the order above matters.
 
+### Restart after a reboot (2026-10-13)
+
+The loop is a plain detached process, so a reboot or logout ends it (it died with the reboot of 2026-10-05 10:16; nothing
+restarts it, and no LaunchAgent is installed on purpose). It is resumable: state is the append-only ledger and
+`progress.json` keeps the next attempt time. To start it again, from any checkout (the private data lives in the
+main checkout):
+
+```
+MINIMED_ROOT=/Users/d/Projects/Personal/MiniMed /Users/d/Projects/Personal/MiniMed/scripts/grls-collect-daily.sh start
+```
+
+`status` prints the pids, the loop status, next attempt and coverage; `stop` writes the `STOP` file. `start` refuses
+to run a second instance, starts the same command as above (`--queue groups --manifest …`, 50 per window, 24 h) in its
+own session with `caffeinate`, logs to `stdout-daily.log`, and passes the previous `nextAttemptAt` as
+`--first-attempt-at` when it is still in the future, so a restart never adds a window. After a longer gap it probes
+with one registration first. A CAPTCHA is never solved or worked around; do not run several instances.
+
+Group representatives now prefer an EAEU number (`ЛП-№(…)-(РГ-RU)`) over the older national formats: since 2026-10-04
+31 of 31 EAEU picks were found by the search against 3 of 16 older numbers. A loop started before that change picks it
+up after `stop` + `start` on a checkout that contains `grls_groups.py` from 2026-10-13 or later.
+
+### Sister registers (Belarus, Kazakhstan; G2, 2026-10-13)
+
+The EAEU dossier number is shared by all member states, and `rceth.by` and `register.ndda.kz` publish the dossier's
+leaflet and ОХЛП without a CAPTCHA. `medbase-eaeu-sister-registers` (`eaeu_sister_registers.py`) lists their EAEU
+entries, matches the missing Russian registrations by dossier number (377 registrations, ЖНВЛП 190, 1 018 documents),
+downloads politely into `data/raw/eaeu-sister-registers/` (source class `eaeu-sister-register`, never into the ГРЛС
+raw tree) and writes a manifest with country, URL, checksum and fetch time per file. Commands and numbers:
+[research/drug-sources-2026-10-13.md](research/drug-sources-2026-10-13.md). Resume/finish the download:
+
+```
+cd tools/ingest && uv run --frozen medbase-eaeu-sister-registers collect --country BY --country KZ \
+  --plan ../../data/build/grls-instructions-active-plan-02.10.2026.json \
+  --grls-state ../../data/build/grls-instructions-active-state.jsonl \
+  --catalog ../../data/raw/official-grls-registry/catalog-02.10.2026.json \
+  --grls-raw-root ../../data/raw/grls-instructions-active \
+  --raw-root ../../data/raw/eaeu-sister-registers --max-documents 2000
+```
+
 ### Real-difference queue: one text per «МНН + лекарственная форма» (owner decision 2026-10-04)
 
 A window reaches the CAPTCHA after only ~13–14 registrations (2026-10-03 and 2026-10-04 alike), so the queue
