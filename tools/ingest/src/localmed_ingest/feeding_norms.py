@@ -361,6 +361,7 @@ class VerifyReport:
     checked: int
     weak: int
     failures: list[str]
+    scan_blocks: int = 0
 
 
 def verify_feeding_sources(
@@ -371,10 +372,18 @@ def verify_feeding_sources(
 ) -> VerifyReport:
     """Check every verbatim block against the PDF text layer of its book in ``library``."""
     reader = read_page or _read_pdf_page
-    checked = weak = 0
+    checked = weak = scan_blocks = 0
     failures: list[str] = []
     for path in sorted(directory.glob(f"{DOCUMENT_PREFIX}*.md")):
         front, body = split_front_matter(path.read_text(encoding="utf-8"), path.name)
+        scans = {
+            str(book["id"])
+            for book in cast(
+                "list[dict[str, Any]]",
+                _mapping(front["metadata"], path.name).get("sourceBooks") or [],
+            )
+            if book.get("textLayer") is False
+        }
         books = {
             str(book["id"]): library / str(book["privateLibraryFile"])
             for book in cast(
@@ -391,6 +400,11 @@ def verify_feeding_sources(
             if marker:
                 payload = _mapping(json.loads(marker.group(1)), path.name)
                 active = payload.get("contentMode") == "verbatim"
+                if active and str(payload.get("bookId")) in scans:
+                    scan_blocks += 1  # a scan without a text layer: transcribed from the image
+                    active = False
+                    pending_caption = None
+                    continue
                 if not active:
                     pending_caption = None
                     continue
@@ -427,7 +441,7 @@ def verify_feeding_sources(
             text = stripped[2:] if stripped.startswith("- ") else stripped
             if not _spans_pages(text, page, page_clean):
                 failures.append(f"{path.name}:{number} text: {text[:100]}")
-    return VerifyReport(checked, weak, failures)
+    return VerifyReport(checked, weak, failures, scan_blocks)
 
 
 @lru_cache(maxsize=8)

@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.pediatrics.ru",
-  "version": "0.1.0-preview.6",
+  "version": "0.1.0-preview.7",
   "title": "Инструменты педиатрии",
   "schemaVersion": 2,
   "builtAt": "2026-10-12T00:00:00Z",
@@ -1450,6 +1450,1789 @@
           "title": "Клинические рекомендации «Недостаточность питания у детей старше 1 года (Белково-энергетическая недостаточность)» (2026)",
           "url": "https://cr.minzdrav.gov.ru/view-cr/1041_1",
           "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.newborn-feeding-volume",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "newborn-feeding-volume",
+      "title": "Объём питания новорождённого по дню жизни (первые 10 дней)",
+      "shortTitle": "Питание новорождённого",
+      "aliases": [
+        "формула Финкельштейна",
+        "формула Тура",
+        "формула Филатова",
+        "формула Зайцевой",
+        "формула Шабалова",
+        "правило десятки",
+        "сколько молока новорождённому",
+        "объём питания новорождённого",
+        "разовый объём новорождённому"
+      ],
+      "bankId": "pediatrics",
+      "bankLabel": "Педиатрия",
+      "category": "neonatology",
+      "description": "Суточный объём питания по Финкельштейну–Туру и Филатову–Зайцевой, разовый — по правилу десятки и Шабалову, по дню жизни и массе при рождении.",
+      "estimatedMinutes": 1,
+      "audience": "Доношенные новорождённые первых 10 суток; заполняет медицинский специалист",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.newborn-feeding-volume",
+        "slug": "newborn-feeding-volume",
+        "title": "Объём питания новорождённого по дню жизни (первые 10 дней)",
+        "shortTitle": "Питание новорождённого",
+        "aliases": [
+          "формула Финкельштейна",
+          "формула Тура",
+          "формула Филатова",
+          "формула Зайцевой",
+          "формула Шабалова",
+          "правило десятки",
+          "сколько молока новорождённому",
+          "объём питания новорождённого",
+          "разовый объём новорождённому"
+        ],
+        "summary": "Суточный объём молока по Финкельштейну–Туру и Филатову–Зайцевой, разовый объём по правилу десятки и по Шабалову для первых 10 суток жизни доношенного новорождённого.",
+        "ageScope": {
+          "groups": ["neonates"],
+          "maxAge": {
+            "value": 10,
+            "unit": "days"
+          },
+          "basis": "Определение: формулы «первых 10 суток жизни для доношенных новорожденных» (Почивалов и др., 2021, с. 204)."
+        },
+        "category": "neonatology",
+        "clinical": true,
+        "formulaDisplay": "Финкельштейн–Тур: суточный объём = n × 70 при массе при рождении < 3200 г, n × 80 при ≥ 3200 г; Филатов–Зайцева: суточный объём = 2 % массы при рождении (г) × n; разовый объём: 10 × n (правило десятки) и 3 × масса при рождении (кг) × n (Шабалов); n — день жизни.",
+        "population": "Доношенные новорождённые первых 10 суток жизни; кормление грудью ведут по требованию, расчётные объёмы — ориентир.",
+        "limitations": [
+          "Формулы относятся к доношенным детям; недоношенным и маловесным объём определяют индивидуально.",
+          "Источники не оговаривают массу при рождении ровно 3200 г: здесь для 3200 г и выше применён множитель 80.",
+          "Шабалов (Неонатология, 7-е изд.): формулу Финкельштейна–Тура используют до 7–8-го дня жизни.",
+          "Расчёт не заменяет наблюдение за прибавкой массы, диурезом и стулом; кормление по требованию (Программа оптимизации вскармливания, 2019)."
+        ],
+        "inputs": [
+          {
+            "id": "dayOfLife",
+            "label": "День жизни (n)",
+            "unit": "сут.",
+            "kind": "number",
+            "minimum": 1,
+            "maximum": 10,
+            "inputStep": 1,
+            "integer": true,
+            "required": true,
+            "labelTooltip": "n в формулах: первые сутки — 1."
+          },
+          {
+            "id": "birthWeightG",
+            "label": "Масса тела при рождении",
+            "unit": "г",
+            "kind": "number",
+            "minimum": 2000,
+            "maximum": 5500,
+            "inputStep": 10,
+            "required": true
+          }
+        ],
+        "steps": [
+          {
+            "id": "finkelsteinMultiplier",
+            "label": "Множитель Финкельштейна–Тура",
+            "unit": "мл/сут",
+            "expression": "cond(birthWeightG < 3200, 70, 80)",
+            "displayPrecision": 0,
+            "isOutput": false
+          },
+          {
+            "id": "finkelsteinTurDaily",
+            "label": "Суточный объём по Финкельштейну–Туру",
+            "unit": "мл/сут",
+            "expression": "dayOfLife * finkelsteinMultiplier",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "filatovZaitsevaDaily",
+            "label": "Суточный объём по Филатову–Зайцевой",
+            "unit": "мл/сут",
+            "expression": "0.02 * birthWeightG * dayOfLife",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "ruleOfTenFeed",
+            "label": "Разовый объём по правилу десятки",
+            "unit": "мл/кормл.",
+            "expression": "10 * dayOfLife",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "shabalovFeed",
+            "label": "Разовый объём по Шабалову",
+            "unit": "мл/кормл.",
+            "expression": "3 * (birthWeightG / 1000) * dayOfLife",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "newborn-volume-guide",
+            "message": "Расчётные объёмы — ориентир для доношенных; у новорождённых на грудном вскармливании объём определяет кормление по требованию."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "dayOfLife >= 8",
+            "message": "С 8-го дня: по Шабалову формулу Финкельштейна–Тура используют до 7–8-го дня; с 10-го дня суточный объём — около 1/5 массы тела, обычно не более 700–750 мл (калькулятор «Объём питания ребёнка старше 10 дней»)."
+          },
+          {
+            "when": "birthWeightG < 2500",
+            "message": "Масса при рождении ниже 2500 г: книги дают формулы для доношенных новорождённых; объём определяют индивидуально."
+          },
+          {
+            "when": "1",
+            "message": "Суточный объём делят на число кормлений; разовые объёмы по правилу десятки и по Шабалову — отдельные ориентиры, источники не сводились в один результат."
+          }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Источники приводят формулы и ориентиры объёма, а не диапазон нормы с вердиктом; решение о назначенном объёме принимает врач по прибавкам массы и состоянию ребёнка.",
+          "sourceIds": [
+            "newborn-volume-poch2014",
+            "newborn-volume-poch2021",
+            "newborn-volume-shabalov",
+            "newborn-volume-kapitan",
+            "newborn-volume-programme"
+          ]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.newborn-feeding-volume.finkelsteinTurDaily",
+            "label": "Суточный объём по Финкельштейну–Туру",
+            "unit": "мл/сут",
+            "stepId": "finkelsteinTurDaily",
+            "method": "calculator:minimed.calculator.newborn-feeding-volume"
+          },
+          {
+            "metricId": "minimed.calculator.newborn-feeding-volume.filatovZaitsevaDaily",
+            "label": "Суточный объём по Филатову–Зайцевой",
+            "unit": "мл/сут",
+            "stepId": "filatovZaitsevaDaily",
+            "method": "calculator:minimed.calculator.newborn-feeding-volume"
+          },
+          {
+            "metricId": "minimed.calculator.newborn-feeding-volume.ruleOfTenFeed",
+            "label": "Разовый объём по правилу десятки",
+            "unit": "мл/кормл.",
+            "stepId": "ruleOfTenFeed",
+            "method": "calculator:minimed.calculator.newborn-feeding-volume"
+          },
+          {
+            "metricId": "minimed.calculator.newborn-feeding-volume.shabalovFeed",
+            "label": "Разовый объём по Шабалову",
+            "unit": "мл/кормл.",
+            "stepId": "shabalovFeed",
+            "method": "calculator:minimed.calculator.newborn-feeding-volume"
+          }
+        ],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "Детские болезни (Почивалов А. В. и др.)",
+            "publisher": "ВГМА им. Н. Н. Бурденко",
+            "version": "2014",
+            "page": "с. 26",
+            "reviewedAt": "2026-10-13"
+          },
+          {
+            "title": "Клиническое исследование ребенка (Почивалов А. В., Мошурова Л. В., Звягин А. А.)",
+            "publisher": "ВГМУ им. Н. Н. Бурденко",
+            "version": "2021",
+            "page": "с. 204–205",
+            "reviewedAt": "2026-10-13"
+          },
+          {
+            "title": "Неонатология (Шабалов Н. П.), 7-е изд., т. 1",
+            "publisher": "Н. П. Шабалов",
+            "version": "7-е издание",
+            "page": "гл. 6, PDF с. 245",
+            "reviewedAt": "2026-10-13"
+          },
+          {
+            "title": "Пропедевтика детских болезней с уходом за детьми (Капитан Т. В.), 6-е изд.",
+            "publisher": "МЕДпресс-информ",
+            "version": "2019",
+            "page": "с. 459",
+            "reviewedAt": "2026-10-13"
+          },
+          {
+            "title": "Программа оптимизации вскармливания детей первого года жизни в РФ",
+            "publisher": "Союз педиатров России, НМИЦ здоровья детей",
+            "version": "2019",
+            "page": "с. 21",
+            "reviewedAt": "2026-10-13"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "newborn-volume-poch2014",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Почивалов и др. Детские болезни, 2014, с. 26: расчёт питания в первые 10 дней",
+          "moduleId": "minimed.reference.feeding.ru",
+          "documentId": "reference.feeding.daily-volume-methods",
+          "url": null,
+          "reviewedAt": "2026-10-13"
+        },
+        {
+          "id": "newborn-volume-poch2021",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Почивалов, Мошурова, Звягин. Клиническое исследование ребенка, 2021, с. 204–205",
+          "moduleId": "minimed.reference.feeding.ru",
+          "documentId": "reference.feeding.daily-volume-methods",
+          "url": null,
+          "reviewedAt": "2026-10-13"
+        },
+        {
+          "id": "newborn-volume-shabalov",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Шабалов Н. П. Неонатология, 7-е изд., т. 1, гл. 6 (PDF с. 245)",
+          "moduleId": "minimed.reference.feeding.ru",
+          "documentId": "reference.feeding.daily-volume-methods",
+          "url": null,
+          "reviewedAt": "2026-10-13"
+        },
+        {
+          "id": "newborn-volume-kapitan",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Капитан Т. В. Пропедевтика детских болезней, 6-е изд., 2019, с. 459: формулы и решённые примеры",
+          "moduleId": "minimed.reference.feeding.ru",
+          "documentId": "reference.feeding.kapitan-volume-and-regime",
+          "url": null,
+          "reviewedAt": "2026-10-13"
+        },
+        {
+          "id": "newborn-volume-programme",
+          "kind": "literature",
+          "relation": "clinical-context",
+          "title": "Программа оптимизации вскармливания, 2019, с. 21: кормление по требованию",
+          "moduleId": "minimed.reference.feeding.ru",
+          "documentId": "reference.feeding.breastfeeding",
+          "url": null,
+          "reviewedAt": "2026-10-13"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.infant-feeding-volume-methods",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "infant-feeding-volume-methods",
+      "title": "Суточный объём питания ребёнка 10 дней – 12 месяцев (объёмный, калорийный, Шкарин)",
+      "shortTitle": "Объём питания до года",
+      "aliases": [
+        "объём питания грудничка",
+        "суточный объём питания",
+        "объёмный метод расчёта питания",
+        "калорийный метод расчёта питания",
+        "формула Шкарина",
+        "метод Маслова",
+        "сколько молока ребёнку в 3 месяца",
+        "сколько смеси ребёнку",
+        "объём кормления по возрасту",
+        "разовый объём кормления"
+      ],
+      "bankId": "pediatrics",
+      "bankLabel": "Педиатрия",
+      "category": "pediatrics",
+      "description": "Суточный и разовый объём молока или смеси по возрасту и массе: объёмный и калорийный методы, формула Шкарина, предельные объёмы Программы 2019.",
+      "estimatedMinutes": 2,
+      "audience": "Дети от 10 дней до 12 месяцев; заполняет медицинский специалист",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.infant-feeding-volume-methods",
+        "slug": "infant-feeding-volume-methods",
+        "title": "Суточный объём питания ребёнка 10 дней – 12 месяцев (объёмный, калорийный, Шкарин)",
+        "shortTitle": "Объём питания до года",
+        "aliases": [
+          "объём питания грудничка",
+          "суточный объём питания",
+          "объёмный метод расчёта питания",
+          "калорийный метод расчёта питания",
+          "формула Шкарина",
+          "метод Маслова",
+          "сколько молока ребёнку в 3 месяца",
+          "сколько смеси ребёнку",
+          "объём кормления по возрасту",
+          "разовый объём кормления"
+        ],
+        "summary": "Суточный объём молока или смеси разными методами по возрасту и массе: объёмный (1/5–1/9 массы), калорийный по Маслову и по Программе 2019 (115 и 110 ккал/кг с предельными объёмами), формула Шкарина; разовый объём по числу кормлений.",
+        "ageScope": {
+          "groups": ["neonates", "children"],
+          "minAge": {
+            "value": 10,
+            "unit": "days"
+          },
+          "maxAge": {
+            "value": 11,
+            "unit": "months"
+          },
+          "basis": "Определение: расчёт питания «старше 10 дней жизни до 12 месяцев» (Почивалов и др., 2021, с. 204)."
+        },
+        "category": "pediatrics",
+        "clinical": true,
+        "formulaDisplay": "Объёмный: масса × 1/5 (до 2 мес), 1/6 (2–4), 1/7 (4–6), 1/8 (6–9), 1/9 (9–12; у Капитан 1/8–1/9 для 6–12 мес.), не более 1000 мл; калорийный: масса × ккал/кг × 100 / ккал в 100 мл (Маслов: 120–125, 115–120, 110–115, 100–105 ккал/кг по четвертям года; Программа 2019: 115 до 6 мес и 110 затем, с пределами 850, 900, 1000 мл); Шкарин: 800 − 50 × (8 − n) мл до 8 недель, 800 + 50 × (n − 2) мл после 2 мес (n — недели или месяцы).",
+        "population": "Доношенные дети от 10 дней до 12 месяцев на грудном, смешанном и искусственном вскармливании; со 2-го полугодия книги дают фиксированный объём.",
+        "limitations": [
+          "Методы дают разные числа; источники не сводились к одному значению, каждый метод показан отдельно.",
+          "Границы возрастных периодов (2, 4, 6, 9 мес) приняты верхними невключительными; в книгах они пересекаются.",
+          "С 6 месяцев объём молока или смеси уменьшается по мере введения прикорма; книги дают общий объём около 1000 мл (Почивалов 2021) или 1000–1100 мл (конспект).",
+          "Недоношенные, дети с недостаточностью питания, избыточной массой тела и сердечной недостаточностью: расчёт индивидуальный (Программа 2019, гл. 7, 8, 20).",
+          "Энергетическая плотность женского молока в книгах Почивалова и Капитан — 700 ккал/л (70 ккал/100 мл); для смеси берут значение с маркировки.",
+          "Капитан (2019): калорийный метод Маслова — 115 ккал/кг в 1–6 мес. и 110 ккал/кг в 7–12 мес., суточный объём пищи у ребёнка раннего грудного возраста не более 1 л; метод применяют только до введения прикорма."
+        ],
+        "inputs": [
+          {
+            "id": "ageMonths",
+            "label": "Возраст ребёнка",
+            "unit": "мес.",
+            "kind": "number",
+            "minimum": 0.33,
+            "maximum": 11.9,
+            "inputStep": 0.1,
+            "required": true,
+            "patientBinding": {
+              "kind": "ageAtEvent",
+              "valueMultiplier": 12
+            }
+          },
+          {
+            "id": "weightKg",
+            "label": "Масса ребёнка",
+            "unit": "кг",
+            "kind": "number",
+            "minimum": 2.5,
+            "maximum": 14,
+            "inputStep": 0.1,
+            "required": true,
+            "patientBinding": {
+              "kind": "latestObservation",
+              "metricId": "body-mass",
+              "unit": "кг",
+              "maxAgeDays": 30
+            }
+          },
+          {
+            "id": "milkKcalPer100Ml",
+            "label": "Энергетическая плотность молока или смеси",
+            "unit": "ккал/100 мл",
+            "kind": "number",
+            "minimum": 50,
+            "maximum": 100,
+            "inputStep": 0.1,
+            "required": false,
+            "defaultExpression": "70",
+            "note": "женское молоко 70 (700 ккал/л); смесь — по маркировке"
+          },
+          {
+            "id": "feedsPerDay",
+            "label": "Кормлений в сутки",
+            "unit": "раз",
+            "kind": "number",
+            "minimum": 3,
+            "maximum": 10,
+            "inputStep": 1,
+            "integer": true,
+            "required": false,
+            "defaultExpression": "cond(ageMonths < 4.5, 6, 5)",
+            "note": "по книгам: до 2 мес 6–7, 2–4,5 мес 6, затем 5"
+          }
+        ],
+        "steps": [
+          {
+            "id": "volumetricFraction",
+            "label": "Доля массы тела (объёмный метод)",
+            "unit": "доля",
+            "expression": "cond(ageMonths < 2, 1 / 5, cond(ageMonths < 4, 1 / 6, cond(ageMonths < 6, 1 / 7, cond(ageMonths < 9, 1 / 8, 1 / 9))))",
+            "displayPrecision": 4,
+            "isOutput": false
+          },
+          {
+            "id": "volumetricRaw",
+            "label": "Объём по доле массы до ограничения",
+            "unit": "мл/сут",
+            "expression": "weightKg * 1000 * volumetricFraction",
+            "displayPrecision": 0,
+            "isOutput": false
+          },
+          {
+            "id": "volumetricDaily",
+            "label": "Суточный объём, объёмный метод",
+            "unit": "мл/сут",
+            "expression": "min(volumetricRaw, 1000)",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "maslovLowKcalPerKg",
+            "label": "Маслов: нижняя граница",
+            "unit": "ккал/кг",
+            "expression": "cond(cond(ageMonths < 3, 1, cond(ageMonths < 6, 2, cond(ageMonths < 9, 3, 4))) == 1, 120, cond(cond(ageMonths < 3, 1, cond(ageMonths < 6, 2, cond(ageMonths < 9, 3, 4))) == 2, 115, cond(cond(ageMonths < 3, 1, cond(ageMonths < 6, 2, cond(ageMonths < 9, 3, 4))) == 3, 110, 100)))",
+            "displayPrecision": 0,
+            "isOutput": false
+          },
+          {
+            "id": "maslovHighKcalPerKg",
+            "label": "Маслов: верхняя граница",
+            "unit": "ккал/кг",
+            "expression": "cond(cond(ageMonths < 3, 1, cond(ageMonths < 6, 2, cond(ageMonths < 9, 3, 4))) == 1, 125, cond(cond(ageMonths < 3, 1, cond(ageMonths < 6, 2, cond(ageMonths < 9, 3, 4))) == 2, 120, cond(cond(ageMonths < 3, 1, cond(ageMonths < 6, 2, cond(ageMonths < 9, 3, 4))) == 3, 115, 105)))",
+            "displayPrecision": 0,
+            "isOutput": false
+          },
+          {
+            "id": "maslovDailyLow",
+            "label": "Суточный объём, калорийный метод (Маслов), нижняя граница",
+            "unit": "мл/сут",
+            "expression": "weightKg * maslovLowKcalPerKg * 100 / milkKcalPer100Ml",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "maslovDailyHigh",
+            "label": "Суточный объём, калорийный метод (Маслов), верхняя граница",
+            "unit": "мл/сут",
+            "expression": "weightKg * maslovHighKcalPerKg * 100 / milkKcalPer100Ml",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "programmeKcalPerKg",
+            "label": "Программа 2019: энергия на кг массы",
+            "unit": "ккал/кг",
+            "expression": "cond(ageMonths < 7, 115, 110)",
+            "displayPrecision": 0,
+            "isOutput": false
+          },
+          {
+            "id": "programmeRaw",
+            "label": "Объём по Программе до ограничения",
+            "unit": "мл/сут",
+            "expression": "weightKg * programmeKcalPerKg * 100 / milkKcalPer100Ml",
+            "displayPrecision": 0,
+            "isOutput": false
+          },
+          {
+            "id": "programmeCap",
+            "label": "Программа 2019: предельный объём",
+            "unit": "мл/сут",
+            "expression": "cond(ageMonths >= 5, 1000, cond(ageMonths >= 4, 900, cond(ageMonths >= 3, 850, 10000)))",
+            "displayPrecision": 0,
+            "isOutput": false
+          },
+          {
+            "id": "programmeDaily",
+            "label": "Суточный объём, калорийный метод (Программа 2019)",
+            "unit": "мл/сут",
+            "expression": "min(programmeRaw, programmeCap)",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "kapitanDaily",
+            "label": "Суточный объём, калорийный метод (Капитан, не более 1 л)",
+            "unit": "мл/сут",
+            "expression": "min(programmeRaw, 1000)",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "ageWeeks",
+            "label": "Возраст в полных неделях",
+            "unit": "нед.",
+            "expression": "floor(ageMonths * 4.345)",
+            "displayPrecision": 0,
+            "isOutput": false
+          },
+          {
+            "id": "shkarinRaw",
+            "label": "Формула Шкарина до ограничения",
+            "unit": "мл/сут",
+            "expression": "cond(ageMonths < 2, 800 - 50 * (8 - ageWeeks), 800 + 50 * (floor(ageMonths) - 2))",
+            "displayPrecision": 0,
+            "isOutput": false
+          },
+          {
+            "id": "shkarinDaily",
+            "label": "Суточный объём по формуле Шкарина",
+            "unit": "мл/сут",
+            "expression": "min(shkarinRaw, 1000)",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "singleFeedVolumetric",
+            "label": "Разовый объём, объёмный метод",
+            "unit": "мл/кормл.",
+            "expression": "volumetricDaily / feedsPerDay",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "singleFeedProgramme",
+            "label": "Разовый объём, Программа 2019",
+            "unit": "мл/кормл.",
+            "expression": "programmeDaily / feedsPerDay",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "singleFeedShkarin",
+            "label": "Разовый объём, формула Шкарина",
+            "unit": "мл/кормл.",
+            "expression": "shkarinDaily / feedsPerDay",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "feeding-methods-differ",
+            "message": "Методы дают разные значения: источники не сводились к одному числу. Достаточность питания оценивают по прибавке массы тела."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "ageMonths >= 6",
+            "message": "С 6 месяцев книги дают фиксированный объём: 5 кормлений по 200 мл, суточный объём около 1000 мл (Почивалов 2021, с. 205; в конспекте PITANIE — 1000–1100 мл, расчёт не проводят); объём молока или смеси уменьшается по мере введения прикорма (таблица 5.1 Программы 2019)."
+          },
+          {
+            "when": "ageMonths >= 3",
+            "message": "Программа 2019: на фактическую массу тела расчёт калорийным методом, предельные объёмы 850 мл (3 мес), 900 мл (4 мес), 1000 мл (после 5 мес); объёмный метод и формула Шкарина даны по Почивалову и рабочей тетради."
+          },
+          {
+            "when": "1",
+            "message": "Объёмный метод, калорийные методы и формула Шкарина показаны раздельно; для грудного вскармливания расчёт — ориентир, кормление ведут по требованию."
+          }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Источники приводят формулы и ориентиры объёма, а не диапазон нормы с вердиктом; решение о назначенном объёме принимает врач по прибавкам массы и состоянию ребёнка.",
+          "sourceIds": [
+            "infant-volume-programme",
+            "infant-volume-poch2014",
+            "infant-volume-poch2021",
+            "infant-volume-workbook",
+            "infant-volume-kapitan"
+          ]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.infant-feeding-volume-methods.volumetricDaily",
+            "label": "Суточный объём, объёмный метод",
+            "unit": "мл/сут",
+            "stepId": "volumetricDaily",
+            "method": "calculator:minimed.calculator.infant-feeding-volume-methods"
+          },
+          {
+            "metricId": "minimed.calculator.infant-feeding-volume-methods.maslovDailyLow",
+            "label": "Суточный объём, Маслов (нижняя граница)",
+            "unit": "мл/сут",
+            "stepId": "maslovDailyLow",
+            "method": "calculator:minimed.calculator.infant-feeding-volume-methods"
+          },
+          {
+            "metricId": "minimed.calculator.infant-feeding-volume-methods.maslovDailyHigh",
+            "label": "Суточный объём, Маслов (верхняя граница)",
+            "unit": "мл/сут",
+            "stepId": "maslovDailyHigh",
+            "method": "calculator:minimed.calculator.infant-feeding-volume-methods"
+          },
+          {
+            "metricId": "minimed.calculator.infant-feeding-volume-methods.programmeDaily",
+            "label": "Суточный объём, Программа 2019",
+            "unit": "мл/сут",
+            "stepId": "programmeDaily",
+            "method": "calculator:minimed.calculator.infant-feeding-volume-methods"
+          },
+          {
+            "metricId": "minimed.calculator.infant-feeding-volume-methods.kapitanDaily",
+            "label": "Суточный объём, калорийный метод (Капитан)",
+            "unit": "мл/сут",
+            "stepId": "kapitanDaily",
+            "method": "calculator:minimed.calculator.infant-feeding-volume-methods"
+          },
+          {
+            "metricId": "minimed.calculator.infant-feeding-volume-methods.shkarinDaily",
+            "label": "Суточный объём по формуле Шкарина",
+            "unit": "мл/сут",
+            "stepId": "shkarinDaily",
+            "method": "calculator:minimed.calculator.infant-feeding-volume-methods"
+          },
+          {
+            "metricId": "minimed.calculator.infant-feeding-volume-methods.singleFeedVolumetric",
+            "label": "Разовый объём, объёмный метод",
+            "unit": "мл/кормл.",
+            "stepId": "singleFeedVolumetric",
+            "method": "calculator:minimed.calculator.infant-feeding-volume-methods"
+          },
+          {
+            "metricId": "minimed.calculator.infant-feeding-volume-methods.singleFeedProgramme",
+            "label": "Разовый объём, Программа 2019",
+            "unit": "мл/кормл.",
+            "stepId": "singleFeedProgramme",
+            "method": "calculator:minimed.calculator.infant-feeding-volume-methods"
+          },
+          {
+            "metricId": "minimed.calculator.infant-feeding-volume-methods.singleFeedShkarin",
+            "label": "Разовый объём, формула Шкарина",
+            "unit": "мл/кормл.",
+            "stepId": "singleFeedShkarin",
+            "method": "calculator:minimed.calculator.infant-feeding-volume-methods"
+          }
+        ],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "Программа оптимизации вскармливания детей первого года жизни в РФ",
+            "publisher": "Союз педиатров России, НМИЦ здоровья детей",
+            "version": "2019",
+            "page": "с. 30, прил. 1 (с. 90)",
+            "reviewedAt": "2026-10-13"
+          },
+          {
+            "title": "Детские болезни (Почивалов А. В. и др.)",
+            "publisher": "ВГМА им. Н. Н. Бурденко",
+            "version": "2014",
+            "page": "с. 26",
+            "reviewedAt": "2026-10-13"
+          },
+          {
+            "title": "Клиническое исследование ребенка (Почивалов А. В., Мошурова Л. В., Звягин А. А.)",
+            "publisher": "ВГМУ им. Н. Н. Бурденко",
+            "version": "2021",
+            "page": "с. 205",
+            "reviewedAt": "2026-10-13"
+          },
+          {
+            "title": "Рабочая тетрадь по дисциплине «Нутрициология»",
+            "publisher": "ВГМУ им. Н. Н. Бурденко",
+            "version": "2018",
+            "page": "с. 46",
+            "reviewedAt": "2026-10-13"
+          },
+          {
+            "title": "Пропедевтика детских болезней с уходом за детьми (Капитан Т. В.), 6-е изд.",
+            "publisher": "МЕДпресс-информ",
+            "version": "2019",
+            "page": "с. 459–460",
+            "reviewedAt": "2026-10-13"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "infant-volume-programme",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Программа оптимизации вскармливания, 2019, с. 30 и прил. 1: 115 ккал/кг, предельные объёмы",
+          "moduleId": "minimed.reference.feeding.ru",
+          "documentId": "reference.feeding.formula-feeding",
+          "url": null,
+          "reviewedAt": "2026-10-13"
+        },
+        {
+          "id": "infant-volume-poch2014",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Почивалов и др. Детские болезни, 2014, с. 26: объёмный, калорийный методы, формула Шкарина",
+          "moduleId": "minimed.reference.feeding.ru",
+          "documentId": "reference.feeding.daily-volume-methods",
+          "url": null,
+          "reviewedAt": "2026-10-13"
+        },
+        {
+          "id": "infant-volume-poch2021",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Почивалов, Мошурова, Звягин, 2021, с. 205: пример калорийного расчёта",
+          "moduleId": "minimed.reference.feeding.ru",
+          "documentId": "reference.feeding.daily-volume-methods",
+          "url": null,
+          "reviewedAt": "2026-10-13"
+        },
+        {
+          "id": "infant-volume-workbook",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Рабочая тетрадь «Нутрициология», с. 46: методы, формула Шкарина, частота кормлений",
+          "moduleId": "minimed.reference.feeding.ru",
+          "documentId": "reference.feeding.daily-volume-methods",
+          "url": null,
+          "reviewedAt": "2026-10-13"
+        },
+        {
+          "id": "infant-volume-kapitan",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Капитан Т. В. Пропедевтика детских болезней, 6-е изд., 2019, с. 459–461: методы Гейбнера и Черни, Маслова, примеры",
+          "moduleId": "minimed.reference.feeding.ru",
+          "documentId": "reference.feeding.kapitan-volume-and-regime",
+          "url": null,
+          "reviewedAt": "2026-10-13"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.child-energy-volume-over-one-year",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "child-energy-volume-over-one-year",
+      "title": "Суточная калорийность и объём питания ребёнка 1–3 лет",
+      "shortTitle": "Питание ребёнка 1–3 лет",
+      "aliases": [
+        "калорийность питания ребёнка 2 года",
+        "суточная калорийность старше года",
+        "1000 + 100n",
+        "суточный объём пищи ребёнка старше года",
+        "распределение калорийности по приёмам пищи",
+        "сколько калорий ребёнку 2 года",
+        "питание ребёнка 3 года"
+      ],
+      "bankId": "pediatrics",
+      "bankLabel": "Педиатрия",
+      "category": "pediatrics",
+      "description": "Суточная калорийность и объём пищи ребёнка 1–3 лет по формулам учебников и распределение калорийности по приёмам пищи.",
+      "estimatedMinutes": 1,
+      "audience": "Дети 1–3 лет; заполняет медицинский специалист",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.child-energy-volume-over-one-year",
+        "slug": "child-energy-volume-over-one-year",
+        "title": "Суточная калорийность и объём питания ребёнка 1–3 лет",
+        "shortTitle": "Питание ребёнка 1–3 лет",
+        "aliases": [
+          "калорийность питания ребёнка 2 года",
+          "суточная калорийность старше года",
+          "1000 + 100n",
+          "суточный объём пищи ребёнка старше года",
+          "распределение калорийности по приёмам пищи",
+          "сколько калорий ребёнку 2 года",
+          "питание ребёнка 3 года"
+        ],
+        "summary": "Суточная калорийность 1000 + 100n и объём пищи 1200 + 100n (n — возраст в годах) с распределением калорийности по приёмам пищи по изданию 2014 или 2021 года и нормой МР 2.3.1.2432-08 для сравнения.",
+        "ageScope": {
+          "groups": ["children"],
+          "minAge": {
+            "value": 1,
+            "unit": "years"
+          },
+          "maxAge": {
+            "value": 2,
+            "unit": "years"
+          },
+          "basis": "Определение: раздел «Питание детей старше года» для возраста 1–3 лет (Почивалов и др., 2021, с. 210–212); верхняя граница формулы в книгах не указана."
+        },
+        "category": "pediatrics",
+        "clinical": true,
+        "formulaDisplay": "Калорийность = 1000 + 100 × n ккал; объём = 1200 + 100 × n (г или мл, не считая чая и напитков), n — возраст в годах; распределение: издание 2021 — завтрак 25 %, обед 30–35 %, полдник 15–20 %, ужин 20 %; издание 2014 — 25 %, 35–40 %, 10–15 %, 25 %.",
+        "population": "Здоровые дети 1–3 лет; книги не оговаривают верхнюю границу применения формулы, в модуле она ограничена возрастом раздела 1–3 года.",
+        "limitations": [
+          "Издания 2014 и 2021 года по-разному распределяют калорийность по приёмам пищи; выбор издания — на стороне пользователя.",
+          "Формула учебника и норма МР 2.3.1.2432-08 (1200 ккал для второго года, 1400 для третьего) отличаются; оба значения показаны.",
+          "Расчёт — для здорового ребёнка; лечебное питание определяет врач."
+        ],
+        "inputs": [
+          {
+            "id": "ageYears",
+            "label": "Возраст ребёнка",
+            "unit": "лет",
+            "kind": "number",
+            "minimum": 1,
+            "maximum": 2.99,
+            "inputStep": 0.01,
+            "required": true,
+            "patientBinding": {
+              "kind": "ageAtEvent"
+            }
+          },
+          {
+            "id": "edition",
+            "label": "Издание книги для распределения калорийности",
+            "kind": "select",
+            "options": [
+              {
+                "value": 2021,
+                "label": "2021: завтрак 25 %, обед 30–35 %, полдник 15–20 %, ужин 20 %"
+              },
+              {
+                "value": 2014,
+                "label": "2014: завтрак 25 %, обед 35–40 %, полдник 10–15 %, ужин 25 %"
+              }
+            ],
+            "required": true
+          }
+        ],
+        "steps": [
+          {
+            "id": "dailyKcal",
+            "label": "Суточная калорийность",
+            "unit": "ккал",
+            "expression": "1000 + 100 * ageYears",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "dailyVolumeMl",
+            "label": "Суточный объём пищи (без чая и напитков)",
+            "unit": "г/мл",
+            "expression": "1200 + 100 * ageYears",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "kcalBreakfast",
+            "label": "Завтрак",
+            "unit": "ккал",
+            "expression": "round(dailyKcal * 0.25)",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "kcalLunchLow",
+            "label": "Обед, от",
+            "unit": "ккал",
+            "expression": "round(dailyKcal * cond(edition == 2021, 0.30, 0.35))",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "kcalLunchHigh",
+            "label": "Обед, до",
+            "unit": "ккал",
+            "expression": "round(dailyKcal * cond(edition == 2021, 0.35, 0.40))",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "kcalSnackLow",
+            "label": "Полдник, от",
+            "unit": "ккал",
+            "expression": "round(dailyKcal * cond(edition == 2021, 0.15, 0.10))",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "kcalSnackHigh",
+            "label": "Полдник, до",
+            "unit": "ккал",
+            "expression": "round(dailyKcal * cond(edition == 2021, 0.20, 0.15))",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "kcalDinner",
+            "label": "Ужин",
+            "unit": "ккал",
+            "expression": "round(dailyKcal * cond(edition == 2021, 0.20, 0.25))",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "normKcalMr",
+            "label": "Норма МР 2.3.1.2432-08 для этого года жизни",
+            "unit": "ккал",
+            "expression": "cond(ageYears < 2, 1200, 1400)",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "child-formula-vs-norm",
+            "message": "Формула учебника и норма МР 2.3.1.2432-08 для второго и третьего года жизни дают разные значения; источники не сглаживались."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "ageYears < 2",
+            "message": "Второй год жизни: норма МР 2.3.1.2432-08 — 1200 ккал/сут (рабочая тетрадь ВГМУ, с. 41; Почивалов 2021, с. 212); по формуле учебника — на 100 ккал меньше при 1 году."
+          },
+          {
+            "when": "1",
+            "message": "Третий год жизни: норма МР 2.3.1.2432-08 — 1400 ккал/сут (рабочая тетрадь ВГМУ, с. 41; Почивалов 2021, с. 212); формула учебника для 2–3 лет даёт 1200–1300 ккал."
+          }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Источники приводят формулы и ориентиры объёма, а не диапазон нормы с вердиктом; решение о назначенном объёме принимает врач по прибавкам массы и состоянию ребёнка.",
+          "sourceIds": [
+            "child-over-one-poch2021",
+            "child-over-one-poch2014",
+            "child-over-one-norms"
+          ]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.child-energy-volume-over-one-year.dailyKcal",
+            "label": "Суточная калорийность",
+            "unit": "ккал",
+            "stepId": "dailyKcal",
+            "method": "calculator:minimed.calculator.child-energy-volume-over-one-year"
+          },
+          {
+            "metricId": "minimed.calculator.child-energy-volume-over-one-year.dailyVolumeMl",
+            "label": "Суточный объём пищи",
+            "unit": "г/мл",
+            "stepId": "dailyVolumeMl",
+            "method": "calculator:minimed.calculator.child-energy-volume-over-one-year"
+          },
+          {
+            "metricId": "minimed.calculator.child-energy-volume-over-one-year.kcalBreakfast",
+            "label": "Завтрак",
+            "unit": "ккал",
+            "stepId": "kcalBreakfast",
+            "method": "calculator:minimed.calculator.child-energy-volume-over-one-year"
+          },
+          {
+            "metricId": "minimed.calculator.child-energy-volume-over-one-year.kcalLunchLow",
+            "label": "Обед, от",
+            "unit": "ккал",
+            "stepId": "kcalLunchLow",
+            "method": "calculator:minimed.calculator.child-energy-volume-over-one-year"
+          },
+          {
+            "metricId": "minimed.calculator.child-energy-volume-over-one-year.kcalLunchHigh",
+            "label": "Обед, до",
+            "unit": "ккал",
+            "stepId": "kcalLunchHigh",
+            "method": "calculator:minimed.calculator.child-energy-volume-over-one-year"
+          },
+          {
+            "metricId": "minimed.calculator.child-energy-volume-over-one-year.kcalSnackLow",
+            "label": "Полдник, от",
+            "unit": "ккал",
+            "stepId": "kcalSnackLow",
+            "method": "calculator:minimed.calculator.child-energy-volume-over-one-year"
+          },
+          {
+            "metricId": "minimed.calculator.child-energy-volume-over-one-year.kcalSnackHigh",
+            "label": "Полдник, до",
+            "unit": "ккал",
+            "stepId": "kcalSnackHigh",
+            "method": "calculator:minimed.calculator.child-energy-volume-over-one-year"
+          },
+          {
+            "metricId": "minimed.calculator.child-energy-volume-over-one-year.kcalDinner",
+            "label": "Ужин",
+            "unit": "ккал",
+            "stepId": "kcalDinner",
+            "method": "calculator:minimed.calculator.child-energy-volume-over-one-year"
+          },
+          {
+            "metricId": "minimed.calculator.child-energy-volume-over-one-year.normKcalMr",
+            "label": "Норма МР 2.3.1.2432-08",
+            "unit": "ккал",
+            "stepId": "normKcalMr",
+            "method": "calculator:minimed.calculator.child-energy-volume-over-one-year"
+          }
+        ],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "Клиническое исследование ребенка (Почивалов А. В., Мошурова Л. В., Звягин А. А.)",
+            "publisher": "ВГМУ им. Н. Н. Бурденко",
+            "version": "2021",
+            "page": "с. 211–212",
+            "reviewedAt": "2026-10-13"
+          },
+          {
+            "title": "Детские болезни (Почивалов А. В. и др.)",
+            "publisher": "ВГМА им. Н. Н. Бурденко",
+            "version": "2014",
+            "page": "с. 31",
+            "reviewedAt": "2026-10-13"
+          },
+          {
+            "title": "Рабочая тетрадь по дисциплине «Нутрициология»",
+            "publisher": "ВГМУ им. Н. Н. Бурденко",
+            "version": "2018",
+            "page": "с. 41 (МР 2.3.1.2432-08)",
+            "reviewedAt": "2026-10-13"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "child-over-one-poch2021",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Почивалов, Мошурова, Звягин, 2021, с. 211–212: расчёт питания детей старше 1 года",
+          "moduleId": "minimed.reference.feeding.ru",
+          "documentId": "reference.feeding.children-over-one-year",
+          "url": null,
+          "reviewedAt": "2026-10-13"
+        },
+        {
+          "id": "child-over-one-poch2014",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Почивалов и др. Детские болезни, 2014, с. 31",
+          "moduleId": "minimed.reference.feeding.ru",
+          "documentId": "reference.feeding.children-over-one-year",
+          "url": null,
+          "reviewedAt": "2026-10-13"
+        },
+        {
+          "id": "child-over-one-norms",
+          "kind": "literature",
+          "relation": "interpretation",
+          "title": "Рабочая тетрадь «Нутрициология», с. 41: нормы МР 2.3.1.2432-08 для детей",
+          "moduleId": "minimed.reference.feeding.ru",
+          "documentId": "reference.feeding.children-nutrient-norms",
+          "url": null,
+          "reviewedAt": "2026-10-13"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.fruit-puree-juice-volume",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "fruit-puree-juice-volume",
+      "title": "Объём фруктового пюре и сока в прикорме (4–12 месяцев)",
+      "shortTitle": "Фруктовое пюре и сок",
+      "aliases": [
+        "сколько сока ребёнку",
+        "объём сока в прикорме",
+        "фруктовое пюре сколько давать",
+        "формула 10 × n сок",
+        "прикорм фруктовое пюре по месяцам"
+      ],
+      "bankId": "pediatrics",
+      "bankLabel": "Педиатрия",
+      "category": "pediatrics",
+      "description": "Суточный объём фруктового пюре и сока по формуле 10 × n и по таблице 5.1 Программы 2019.",
+      "estimatedMinutes": 1,
+      "audience": "Дети 4–12 месяцев, получающие прикорм; заполняет медицинский специалист",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.fruit-puree-juice-volume",
+        "slug": "fruit-puree-juice-volume",
+        "title": "Объём фруктового пюре и сока в прикорме (4–12 месяцев)",
+        "shortTitle": "Фруктовое пюре и сок",
+        "aliases": [
+          "сколько сока ребёнку",
+          "объём сока в прикорме",
+          "фруктовое пюре сколько давать",
+          "формула 10 × n сок",
+          "прикорм фруктовое пюре по месяцам"
+        ],
+        "summary": "Суточный объём фруктового сока и пюре по формулам 10 × n и 10 × n − 10 (не более 100 мл) и значения таблицы 5.1 Программы 2019 для возраста в месяцах.",
+        "ageScope": {
+          "groups": ["children"],
+          "minAge": {
+            "value": 4,
+            "unit": "months"
+          },
+          "maxAge": {
+            "value": 12,
+            "unit": "months"
+          },
+          "basis": "Определение: прикорм «в первый год жизни», таблица 5.1 даёт значения с 4–5 месяцев (Программа 2019, с. 32)."
+        },
+        "category": "pediatrics",
+        "clinical": true,
+        "formulaDisplay": "Объём сока и пюре за сутки = 10 × n или 10 × n − 10 мл, но не более 100 мл (n — возраст в месяцах); таблица 5.1: пюре 5–50 (4–5 мес), 60, 70, 80, 90–100 (9–12 мес), сок 5–60 (8 мес), 80–100 (9–12 мес).",
+        "population": "Здоровые дети, получающие прикорм; сок вводят после основных видов прикорма, не между кормлениями.",
+        "limitations": [
+          "По Почивалову (2014, с. 28) сок в суточный объём питания не входит.",
+          "Фруктовое пюре не должно быть первым прикормом (Программа 2019, с. 31).",
+          "При избыточной массе тела соки нежелательны (Программа 2019, гл. 8)."
+        ],
+        "inputs": [
+          {
+            "id": "ageMonths",
+            "label": "Возраст ребёнка",
+            "unit": "мес.",
+            "kind": "number",
+            "minimum": 4,
+            "maximum": 12,
+            "inputStep": 1,
+            "integer": true,
+            "required": true,
+            "patientBinding": {
+              "kind": "ageAtEvent",
+              "valueMultiplier": 12
+            }
+          }
+        ],
+        "steps": [
+          {
+            "id": "formulaHigh",
+            "label": "По формуле 10 × n",
+            "unit": "мл/сут",
+            "expression": "min(10 * ageMonths, 100)",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "formulaLow",
+            "label": "По формуле 10 × n − 10",
+            "unit": "мл/сут",
+            "expression": "min(10 * ageMonths - 10, 100)",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "pureeFrom",
+            "label": "Таблица 5.1: фруктовое пюре, от",
+            "unit": "г",
+            "expression": "cond(ageMonths < 6, 5, cond(ageMonths < 7, 60, cond(ageMonths < 8, 70, cond(ageMonths < 9, 80, 90))))",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "pureeTo",
+            "label": "Таблица 5.1: фруктовое пюре, до",
+            "unit": "г",
+            "expression": "cond(ageMonths < 6, 50, cond(ageMonths < 7, 60, cond(ageMonths < 8, 70, cond(ageMonths < 9, 80, 100))))",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "juiceFrom",
+            "label": "Таблица 5.1: фруктовый сок, от",
+            "unit": "мл",
+            "expression": "cond(ageMonths < 8, 0, cond(ageMonths < 9, 5, 80))",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "juiceTo",
+            "label": "Таблица 5.1: фруктовый сок, до",
+            "unit": "мл",
+            "expression": "cond(ageMonths < 8, 0, cond(ageMonths < 9, 60, 100))",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "juice-after-main-foods",
+            "message": "Соки назначают лишь после введения всех основных видов прикорма; сок и пюре дают в 2–3 приёма, в одном кормлении их не сочетают."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "ageMonths < 8",
+            "message": "По таблице 5.1 Программы 2019 соки вводят с 8 месяцев; до этого возраста значения сока равны нулю, пюре — как в таблице."
+          },
+          {
+            "when": "1",
+            "message": "Формула Почивалова даёт два значения (10 × n и 10 × n − 10), таблица 5.1 — диапазон; источники приведены раздельно."
+          }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Источники приводят формулы и ориентиры объёма, а не диапазон нормы с вердиктом; решение о назначенном объёме принимает врач по прибавкам массы и состоянию ребёнка.",
+          "sourceIds": ["juice-poch2014", "juice-programme"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.fruit-puree-juice-volume.formulaHigh",
+            "label": "Объём сока и пюре по формуле 10 × n",
+            "unit": "мл/сут",
+            "stepId": "formulaHigh",
+            "method": "calculator:minimed.calculator.fruit-puree-juice-volume"
+          },
+          {
+            "metricId": "minimed.calculator.fruit-puree-juice-volume.formulaLow",
+            "label": "Объём сока и пюре по формуле 10 × n − 10",
+            "unit": "мл/сут",
+            "stepId": "formulaLow",
+            "method": "calculator:minimed.calculator.fruit-puree-juice-volume"
+          },
+          {
+            "metricId": "minimed.calculator.fruit-puree-juice-volume.pureeFrom",
+            "label": "Фруктовое пюре, от",
+            "unit": "г",
+            "stepId": "pureeFrom",
+            "method": "calculator:minimed.calculator.fruit-puree-juice-volume"
+          },
+          {
+            "metricId": "minimed.calculator.fruit-puree-juice-volume.pureeTo",
+            "label": "Фруктовое пюре, до",
+            "unit": "г",
+            "stepId": "pureeTo",
+            "method": "calculator:minimed.calculator.fruit-puree-juice-volume"
+          },
+          {
+            "metricId": "minimed.calculator.fruit-puree-juice-volume.juiceFrom",
+            "label": "Фруктовый сок, от",
+            "unit": "мл",
+            "stepId": "juiceFrom",
+            "method": "calculator:minimed.calculator.fruit-puree-juice-volume"
+          },
+          {
+            "metricId": "minimed.calculator.fruit-puree-juice-volume.juiceTo",
+            "label": "Фруктовый сок, до",
+            "unit": "мл",
+            "stepId": "juiceTo",
+            "method": "calculator:minimed.calculator.fruit-puree-juice-volume"
+          }
+        ],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "Детские болезни (Почивалов А. В. и др.)",
+            "publisher": "ВГМА им. Н. Н. Бурденко",
+            "version": "2014",
+            "page": "с. 28",
+            "reviewedAt": "2026-10-13"
+          },
+          {
+            "title": "Программа оптимизации вскармливания детей первого года жизни в РФ",
+            "publisher": "Союз педиатров России, НМИЦ здоровья детей",
+            "version": "2019",
+            "page": "таблица 5.1, с. 32",
+            "reviewedAt": "2026-10-13"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "juice-poch2014",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Почивалов и др. Детские болезни, 2014, с. 28: формула объёма сока и пюре",
+          "moduleId": "minimed.reference.feeding.ru",
+          "documentId": "reference.feeding.complementary-feeding",
+          "url": null,
+          "reviewedAt": "2026-10-13"
+        },
+        {
+          "id": "juice-programme",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Программа оптимизации вскармливания, 2019, таблица 5.1 (с. 32)",
+          "moduleId": "minimed.reference.feeding.ru",
+          "documentId": "reference.feeding.complementary-feeding",
+          "url": null,
+          "reviewedAt": "2026-10-13"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.hypogalactia-degree",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "hypogalactia-degree",
+      "title": "Степень гипогалактии по дефициту молока",
+      "shortTitle": "Степень гипогалактии",
+      "aliases": [
+        "гипогалактия степени",
+        "дефицит грудного молока",
+        "степень гипогалактии I II III IV",
+        "недостаток молока у матери",
+        "контрольное кормление"
+      ],
+      "bankId": "pediatrics",
+      "bankLabel": "Педиатрия",
+      "category": "pediatrics",
+      "description": "Дефицит грудного молока в процентах от необходимого объёма и степень гипогалактии I–IV.",
+      "estimatedMinutes": 1,
+      "audience": "Матери и дети на грудном вскармливании; заполняет медицинский специалист",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.hypogalactia-degree",
+        "slug": "hypogalactia-degree",
+        "title": "Степень гипогалактии по дефициту молока",
+        "shortTitle": "Степень гипогалактии",
+        "aliases": [
+          "гипогалактия степени",
+          "дефицит грудного молока",
+          "степень гипогалактии I II III IV",
+          "недостаток молока у матери",
+          "контрольное кормление"
+        ],
+        "summary": "Дефицит молока в процентах от необходимого суточного объёма и степень гипогалактии: I — до 25 %, II — 25–50 %, III — 50–75 %, IV — более 75 %.",
+        "ageScope": {
+          "groups": ["neonates", "children"],
+          "maxAge": {
+            "value": 11,
+            "unit": "months"
+          },
+          "basis": "Определение: гипогалактия — снижение секреции молока у матери ребёнка первого года жизни (Почивалов и др., 2014, с. 30)."
+        },
+        "category": "pediatrics",
+        "clinical": true,
+        "formulaDisplay": "Дефицит, % = (необходимый объём − полученный объём) / необходимый объём × 100; степень: I — до 25 %, II — 25–50 %, III — 50–75 %, IV — более 75 %.",
+        "population": "Матери и дети на грудном вскармливании; объём молока определяют по контрольным кормлениям в течение 2–3 дней.",
+        "limitations": [
+          "Границы степеней в книгах пересекаются (25, 50, 75 %); здесь степень повышается при значении строго выше границы.",
+          "Программа 2019: контрольные взвешивания до и после кормления оценивают лишь объём за эти кормления и не являются объективным признаком достаточности лактации; основной критерий — прибавка массы тела ребёнка.",
+          "Истинная первичная гипогалактия — менее 5 % женщин; чаще снижение молока связано с условиями кормления (Программа 2019, с. 23)."
+        ],
+        "inputs": [
+          {
+            "id": "requiredMl",
+            "label": "Необходимый суточный объём питания",
+            "unit": "мл/сут",
+            "kind": "number",
+            "minimum": 200,
+            "maximum": 1200,
+            "inputStep": 10,
+            "required": true,
+            "labelTooltip": "По возрасту и массе ребёнка, например калькулятор «Объём питания ребёнка старше 10 дней»."
+          },
+          {
+            "id": "receivedMl",
+            "label": "Объём молока за сутки по контрольным кормлениям",
+            "unit": "мл/сут",
+            "kind": "number",
+            "minimum": 0,
+            "maximum": 1500,
+            "inputStep": 10,
+            "required": true
+          }
+        ],
+        "steps": [
+          {
+            "id": "deficitMl",
+            "label": "Недостающий объём",
+            "unit": "мл/сут",
+            "expression": "max(requiredMl - receivedMl, 0)",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "deficitPercent",
+            "label": "Дефицит молока",
+            "unit": "%",
+            "expression": "deficitMl / requiredMl * 100",
+            "displayPrecision": 1,
+            "isOutput": true
+          },
+          {
+            "id": "degree",
+            "label": "Степень гипогалактии (0 — дефицита нет)",
+            "unit": "ст.",
+            "expression": "cond(deficitPercent <= 0, 0, cond(deficitPercent <= 25, 1, cond(deficitPercent <= 50, 2, cond(deficitPercent <= 75, 3, 4))))",
+            "displayPrecision": 0,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "hypogalactia-weight-gain",
+            "message": "Достаточность лактации оценивают прежде всего по прибавке массы тела ребёнка; контрольные кормления — вспомогательный метод (Программа оптимизации вскармливания, 2019)."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "degree == 0",
+            "message": "Дефицита молока по контрольным кормлениям нет."
+          },
+          {
+            "when": "degree == 1",
+            "message": "Гипогалактия I степени: дефицит до 25 % необходимого объёма (Почивалов, 2014; конспект PITANIE)."
+          },
+          {
+            "when": "degree == 2",
+            "message": "Гипогалактия II степени: дефицит 25–50 % необходимого объёма (Почивалов, 2014; конспект PITANIE)."
+          },
+          {
+            "when": "degree == 3",
+            "message": "Гипогалактия III степени: дефицит 50–75 % необходимого объёма (Почивалов, 2014; конспект PITANIE)."
+          },
+          {
+            "when": "1",
+            "message": "Гипогалактия IV степени: дефицит более 75 % необходимого объёма (Почивалов, 2014; конспект PITANIE)."
+          }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Источники приводят формулы и ориентиры объёма, а не диапазон нормы с вердиктом; решение о назначенном объёме принимает врач по прибавкам массы и состоянию ребёнка.",
+          "sourceIds": ["hypogalactia-poch2014", "hypogalactia-pitanie", "hypogalactia-programme"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.hypogalactia-degree.deficitMl",
+            "label": "Недостающий объём",
+            "unit": "мл/сут",
+            "stepId": "deficitMl",
+            "method": "calculator:minimed.calculator.hypogalactia-degree"
+          },
+          {
+            "metricId": "minimed.calculator.hypogalactia-degree.deficitPercent",
+            "label": "Дефицит молока",
+            "unit": "%",
+            "stepId": "deficitPercent",
+            "method": "calculator:minimed.calculator.hypogalactia-degree"
+          },
+          {
+            "metricId": "minimed.calculator.hypogalactia-degree.degree",
+            "label": "Степень гипогалактии",
+            "unit": "ст.",
+            "stepId": "degree",
+            "method": "calculator:minimed.calculator.hypogalactia-degree"
+          }
+        ],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "Детские болезни (Почивалов А. В. и др.)",
+            "publisher": "ВГМА им. Н. Н. Бурденко",
+            "version": "2014",
+            "page": "с. 30–31",
+            "reviewedAt": "2026-10-13"
+          },
+          {
+            "title": "Конспект «Питание» (PITANIE.pdf)",
+            "publisher": "составитель не установлен",
+            "version": "2022",
+            "page": "с. 3",
+            "reviewedAt": "2026-10-13"
+          },
+          {
+            "title": "Программа оптимизации вскармливания детей первого года жизни в РФ",
+            "publisher": "Союз педиатров России, НМИЦ здоровья детей",
+            "version": "2019",
+            "page": "с. 23–25",
+            "reviewedAt": "2026-10-13"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "hypogalactia-poch2014",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Почивалов и др. Детские болезни, 2014, с. 30–31: степени гипогалактии",
+          "moduleId": "minimed.reference.feeding.ru",
+          "documentId": "reference.feeding.daily-volume-methods",
+          "url": null,
+          "reviewedAt": "2026-10-13"
+        },
+        {
+          "id": "hypogalactia-pitanie",
+          "kind": "literature",
+          "relation": "clinical-context",
+          "title": "Конспект PITANIE.pdf, с. 3: степени гипогалактии",
+          "moduleId": "minimed.reference.feeding.ru",
+          "documentId": "reference.feeding.daily-volume-methods",
+          "url": null,
+          "reviewedAt": "2026-10-13"
+        },
+        {
+          "id": "hypogalactia-programme",
+          "kind": "literature",
+          "relation": "clinical-context",
+          "title": "Программа оптимизации вскармливания, 2019, с. 23–25: оценка достаточности лактации",
+          "moduleId": "minimed.reference.feeding.ru",
+          "documentId": "reference.feeding.breastfeeding",
+          "url": null,
+          "reviewedAt": "2026-10-13"
+        }
+      ]
+    },
+    {
+      "id": "minimed.calculator.undernutrition-energy-protein-target",
+      "kind": "calculator",
+      "version": "1.0.0",
+      "slug": "undernutrition-energy-protein-target",
+      "title": "Целевая энергия и белок при недостаточности питания (до года)",
+      "shortTitle": "Энергия и белок при БЭН",
+      "aliases": [
+        "калорийность при недостаточности питания",
+        "питание при гипотрофии",
+        "120–160 ккал/кг",
+        "белок 3–4,5 г/кг",
+        "диетотерапия недостаточности питания",
+        "энергетическая потребность при БЭН"
+      ],
+      "bankId": "pediatrics",
+      "bankLabel": "Педиатрия",
+      "category": "pediatrics",
+      "description": "Целевые суточные энергия и белок на фактическую массу тела при недостаточности питания у ребёнка первого года и нормы здорового ребёнка для сравнения.",
+      "estimatedMinutes": 1,
+      "audience": "Дети первого года жизни с недостаточностью питания; заполняет медицинский специалист",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.calculator.undernutrition-energy-protein-target",
+        "slug": "undernutrition-energy-protein-target",
+        "title": "Целевая энергия и белок при недостаточности питания (до года)",
+        "shortTitle": "Энергия и белок при БЭН",
+        "aliases": [
+          "калорийность при недостаточности питания",
+          "питание при гипотрофии",
+          "120–160 ккал/кг",
+          "белок 3–4,5 г/кг",
+          "диетотерапия недостаточности питания",
+          "энергетическая потребность при БЭН"
+        ],
+        "summary": "Целевая энергия 120–160 ккал/кг (в исключительных случаях до 220) и белок от 3–4,5 до 6 г/кг в сутки на фактическую массу тела при недостаточности питания; нормы здорового ребёнка для сравнения.",
+        "ageScope": {
+          "groups": ["neonates", "children"],
+          "minAge": {
+            "value": 1,
+            "unit": "months"
+          },
+          "maxAge": {
+            "value": 11,
+            "unit": "months"
+          },
+          "basis": "Определение: диетотерапия недостаточности питания у детей первого года жизни старше 1 месяца (Программа 2019, гл. 7.2)."
+        },
+        "category": "pediatrics",
+        "clinical": true,
+        "formulaDisplay": "Энергия = масса (кг) × 120–160 ккал/кг (исключительно до 220); белок = масса (кг) × 3–4,5 до 6 г/кг; здоровые: 115 ккал/кг и 2,2–2,6 г/кг белка до 6 мес, 110 ккал/кг и 2,9 г/кг после 6 мес.",
+        "population": "Дети первого года жизни с недостаточностью питания; расчёт на фактическую массу тела, повышение постепенно по переносимости.",
+        "limitations": [
+          "Калорийность повышают постепенно с учётом переносимости; периоды адаптации, репарации и усиленного питания Программа описывает отдельно.",
+          "Оптимальная энергия и белок индивидуальны и зависят от степени недостаточности питания, тяжести заболевания и усвоения.",
+          "При хронической сердечной недостаточности, недоношенности, избыточной массе тела — отдельные подходы (Программа 2019, гл. 7.3, 8, 20)."
+        ],
+        "inputs": [
+          {
+            "id": "weightKg",
+            "label": "Фактическая масса ребёнка",
+            "unit": "кг",
+            "kind": "number",
+            "minimum": 2,
+            "maximum": 12,
+            "inputStep": 0.1,
+            "required": true,
+            "patientBinding": {
+              "kind": "latestObservation",
+              "metricId": "body-mass",
+              "unit": "кг",
+              "maxAgeDays": 30
+            }
+          },
+          {
+            "id": "ageMonths",
+            "label": "Возраст ребёнка",
+            "unit": "мес.",
+            "kind": "number",
+            "minimum": 1,
+            "maximum": 11.9,
+            "inputStep": 0.1,
+            "required": true,
+            "patientBinding": {
+              "kind": "ageAtEvent",
+              "valueMultiplier": 12
+            }
+          }
+        ],
+        "steps": [
+          {
+            "id": "energyLow",
+            "label": "Энергия, нижняя граница (120 ккал/кг)",
+            "unit": "ккал/сут",
+            "expression": "weightKg * 120",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "energyHigh",
+            "label": "Энергия, верхняя граница (160 ккал/кг)",
+            "unit": "ккал/сут",
+            "expression": "weightKg * 160",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "energyExceptional",
+            "label": "Энергия в исключительных случаях (220 ккал/кг)",
+            "unit": "ккал/сут",
+            "expression": "weightKg * 220",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "proteinFrom",
+            "label": "Белок, от (3 г/кг)",
+            "unit": "г/сут",
+            "expression": "weightKg * 3",
+            "displayPrecision": 1,
+            "isOutput": true
+          },
+          {
+            "id": "proteinTo",
+            "label": "Белок, до (4,5 г/кг)",
+            "unit": "г/сут",
+            "expression": "weightKg * 4.5",
+            "displayPrecision": 1,
+            "isOutput": true
+          },
+          {
+            "id": "proteinMax",
+            "label": "Белок, предел (6 г/кг)",
+            "unit": "г/сут",
+            "expression": "weightKg * 6",
+            "displayPrecision": 1,
+            "isOutput": true
+          },
+          {
+            "id": "healthyEnergy",
+            "label": "Норма здорового ребёнка по энергии",
+            "unit": "ккал/сут",
+            "expression": "weightKg * cond(ageMonths < 6, 115, 110)",
+            "displayPrecision": 0,
+            "isOutput": true
+          },
+          {
+            "id": "healthyProteinFrom",
+            "label": "Норма здорового ребёнка по белку, от",
+            "unit": "г/сут",
+            "expression": "weightKg * cond(ageMonths < 6, 2.2, 2.9)",
+            "displayPrecision": 1,
+            "isOutput": true
+          },
+          {
+            "id": "healthyProteinTo",
+            "label": "Норма здорового ребёнка по белку, до",
+            "unit": "г/сут",
+            "expression": "weightKg * cond(ageMonths < 6, 2.6, 2.9)",
+            "displayPrecision": 1,
+            "isOutput": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "undernutrition-gradual",
+            "message": "Целевые значения достигают постепенно, оценивая переносимость пищи; адекватность диетотерапии оценивают по динамике антропометрических показателей."
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "1",
+            "message": "Таблица 7.3 Программы 2019: энергия 120–160 ккал/кг и белок 3–4,5–6 г/кг в сутки при недостаточности питания против 115 или 110 ккал/кг и 2,2–2,9 г/кг у здоровых детей."
+          }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Источники приводят формулы и ориентиры объёма, а не диапазон нормы с вердиктом; решение о назначенном объёме принимает врач по прибавкам массы и состоянию ребёнка.",
+          "sourceIds": ["undernutrition-programme-72", "undernutrition-programme-73"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.calculator.undernutrition-energy-protein-target.energyLow",
+            "label": "Энергия, нижняя граница",
+            "unit": "ккал/сут",
+            "stepId": "energyLow",
+            "method": "calculator:minimed.calculator.undernutrition-energy-protein-target"
+          },
+          {
+            "metricId": "minimed.calculator.undernutrition-energy-protein-target.energyHigh",
+            "label": "Энергия, верхняя граница",
+            "unit": "ккал/сут",
+            "stepId": "energyHigh",
+            "method": "calculator:minimed.calculator.undernutrition-energy-protein-target"
+          },
+          {
+            "metricId": "minimed.calculator.undernutrition-energy-protein-target.energyExceptional",
+            "label": "Энергия в исключительных случаях",
+            "unit": "ккал/сут",
+            "stepId": "energyExceptional",
+            "method": "calculator:minimed.calculator.undernutrition-energy-protein-target"
+          },
+          {
+            "metricId": "minimed.calculator.undernutrition-energy-protein-target.proteinFrom",
+            "label": "Белок, от",
+            "unit": "г/сут",
+            "stepId": "proteinFrom",
+            "method": "calculator:minimed.calculator.undernutrition-energy-protein-target"
+          },
+          {
+            "metricId": "minimed.calculator.undernutrition-energy-protein-target.proteinTo",
+            "label": "Белок, до",
+            "unit": "г/сут",
+            "stepId": "proteinTo",
+            "method": "calculator:minimed.calculator.undernutrition-energy-protein-target"
+          },
+          {
+            "metricId": "minimed.calculator.undernutrition-energy-protein-target.proteinMax",
+            "label": "Белок, предел",
+            "unit": "г/сут",
+            "stepId": "proteinMax",
+            "method": "calculator:minimed.calculator.undernutrition-energy-protein-target"
+          },
+          {
+            "metricId": "minimed.calculator.undernutrition-energy-protein-target.healthyEnergy",
+            "label": "Норма здорового ребёнка по энергии",
+            "unit": "ккал/сут",
+            "stepId": "healthyEnergy",
+            "method": "calculator:minimed.calculator.undernutrition-energy-protein-target"
+          },
+          {
+            "metricId": "minimed.calculator.undernutrition-energy-protein-target.healthyProteinFrom",
+            "label": "Норма здорового ребёнка по белку, от",
+            "unit": "г/сут",
+            "stepId": "healthyProteinFrom",
+            "method": "calculator:minimed.calculator.undernutrition-energy-protein-target"
+          },
+          {
+            "metricId": "minimed.calculator.undernutrition-energy-protein-target.healthyProteinTo",
+            "label": "Норма здорового ребёнка по белку, до",
+            "unit": "г/сут",
+            "stepId": "healthyProteinTo",
+            "method": "calculator:minimed.calculator.undernutrition-energy-protein-target"
+          }
+        ],
+        "assertions": [],
+        "sources": [
+          {
+            "title": "Программа оптимизации вскармливания детей первого года жизни в РФ",
+            "publisher": "Союз педиатров России, НМИЦ здоровья детей",
+            "version": "2019",
+            "page": "гл. 7.2, с. 40–41; таблица 7.3, с. 41",
+            "reviewedAt": "2026-10-13"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "undernutrition-programme-72",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Программа оптимизации вскармливания, 2019, с. 40–41: целевая калорийность и белок",
+          "moduleId": "minimed.reference.feeding.ru",
+          "documentId": "reference.feeding.special-feeding-conditions",
+          "url": null,
+          "reviewedAt": "2026-10-13"
+        },
+        {
+          "id": "undernutrition-programme-73",
+          "kind": "literature",
+          "relation": "interpretation",
+          "title": "Программа оптимизации вскармливания, 2019, таблица 7.3 (с. 40)",
+          "moduleId": "minimed.reference.feeding.ru",
+          "documentId": "reference.feeding.infant-norms",
+          "url": null,
+          "reviewedAt": "2026-10-13"
         }
       ]
     }

@@ -11,11 +11,18 @@ same rights/redistribution review as any other content input (see [CALCULATORS.m
 - `ПДБ/Kapitan-Propedevtika_detskikh_boleznei.djvu` — propaedeutics of children's diseases; chosen
   primary calculator-formula source. **Format blocker**: `.djvu` is not accepted by the OCR pilot below
   and needs a local djvu→PDF conversion first.
-- `ПДБ/pochivalov-_db_uchebnik.pdf` — propaedeutics textbook; already PDF, ready for OCR.
+- `ПДБ/pochivalov-_db_uchebnik.pdf` — «Детские болезни», Воронеж 2014 (OCR text layer; feeding formulas pp. 14–15,
+  24–32 used for the feeding module); `ПДБ/ПДБМетодичка_less.pdf` — Почивалов, Мошурова, Звягин «Клиническое
+  исследование ребенка», Воронеж 2021 (scan with OCR layer, two printed pages per PDF page; pp. 28–31, 201–213 used).
 - `ПДБ/ПроцентильМЖ.pdf` — boy/girl percentile tables; fast cross-check against the WHO tables already
   cited in `who-child-growth-standards.md`.
-- `ПДБ/кормление_1год.pdf`, `ПДБ/PITANIE.pdf` — infant feeding norms.
-- `Нутрициология/Рабочая тетрадь Нутрициология 28.02.2021.pdf` — nutrition workbook.
+- `ПДБ/кормление_1год.pdf` — «Программа оптимизации вскармливания детей первого года жизни в РФ», методические
+  рекомендации, Союз педиатров России / НМИЦ здоровья детей, 2019 (111 pages with a text layer); `ПДБ/PITANIE.pdf`
+  — a 2022 student summary of unknown authorship (11 pages); `Нутрициология/Рабочая тетрадь Нутрициология
+  28.02.2021.pdf` — ВГМУ workbook (2018 approval), carries the МР 2.3.1.2432-08 child norm table. **Extracted
+  2026-10-13** with Почивалов 2014/2021, Шабалов and Капитан pp. 458–461 into `content/feeding-norms/` and the
+  module `minimed.reference.feeding.ru`; see the document «Источники, расхождения и проблемы» in the module
+  for pages, what was not carried and every disagreement between the books.
 - `Поликлиника/Тесты поликлиника 2012/НПР.doc` — neuropsychic development norms by age; candidate for a
   developmental-milestones assessment. **Format blocker**: legacy `.doc`, needs conversion to `.docx`.
 - `Поликлиника/Тесты поликлиника 2012/Комплексная оценка состояния здоровья детей.doc` — child

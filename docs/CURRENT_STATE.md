@@ -98,6 +98,64 @@ Owner 2026-10-13: «just show a "?" on the image; clicking it shows the image so
   artifacts in memory, 279 MB), the app update path from IndexedDB v1 on a device with installed modules,
   other drug photos than Немозол.
 
+## Feeding norms from books — 2026-10-13 (STATE FEED1)
+
+Owner request «Feeding norms should be extracted from books». The private library `Med/` was surveyed
+and seven books were used; the text is published for personal use while the repository is public
+(owner decision 2026-10-13; `rightsStatus: personal-library-private-use`, rights not cleared).
+
+- **Module `minimed.reference.feeding.ru` «Нормы питания»** (2026.10.13, `minAppVersion` 0.6.59, preview):
+  16 documents, 47 tables / 484 table rows, 138 cited blocks, 198 search aliases (including «прикорм»,
+  «объём кормления», «сколько молока ребёнку 3 месяца»), 178 chunks, 1.8 MB index, 390 KB gzip
+  (`apps/app/public/content/modules/minimed.reference.feeding.2026.10.13.db.gz`). Prepared Markdown lives in
+  `content/feeding-norms/` (reference.feeding.*), built by `bun run content:module:feeding` (prepare →
+  lint → build → package → catalog entry → shell).
+- **Sources** (every block names book, edition and page): the national feeding programme (Союз педиатров
+  России, НМИЦ здоровья детей, 2019, ISBN 978-5-6042256-5-3; the current edition in the library) printed pp.
+  12–45, 49–52, 83–86, 90, 94; Почивалов и др. «Детские болезни» (Воронеж 2014) and «Клиническое
+  исследование ребенка» (2021); the ВГМУ nutrition workbook (с. 40, 41, 46, 47); Шабалов «Неонатология»
+  (7-е изд., т. 1, гл. 6); Т. В. Капитан «Пропедевтика детских болезней» (6-е изд., 2019, с. 458–461, a scan
+  transcribed from the page images); the student summary `PITANIE.pdf` (2022, author unknown, used only where
+  no textbook has the same content and labelled as a summary). Not used and why: the document «Источники,
+  расхождения и проблемы» in the module.
+- **Content:** pregnancy and lactation norms and food sets (tables 1.1–2.4); breastfeeding rules (regime,
+  colostrum volumes 3.1, top-up indications, weight gains, expressed-milk storage 3.2, contraindications);
+  formula feeding; the complementary schedule (5.1) and rules; five volume formulas of three textbooks and a
+  summary (Finkelstein–Tur, Filatov–Zaitseva, rule of ten, Shabalov, volumetric, caloric, Shkarin) plus
+  Kapitan's solved examples; feeding regime; infant norms (appendix 1, 7.3) and the full МР 2.3.1.2432-08
+  table for children 0–18 (from the workbook, merged cells expanded, checked against the scan); milk
+  composition; weight/length gains (6.1, 7.1, WHO monthly increments by z-score for boys and girls); vitamin D
+  prophylaxis; preterm feeding after discharge; undernutrition, ХСН (7.4–7.8) and overweight.
+- **Verification:** `medbase verify-feeding --input content/feeding-norms --library Med` compares every verbatim
+  block with the PDF text layer (878 blocks checked, 0 failed; 107 table rows only cell-wise because the print
+  merges cells; 9 Kapitan blocks are scan transcriptions). Tables whose cells the text layer flattens
+  (Table 6.3, the МР table, Table 7.1, schedule table) were checked against page images. CI cannot run it (no
+  library); `tools/ingest/tests/test_feeding_norms.py` checks the citation contract (marker, book, SHA-256,
+  pages, visible «Источник» line per block), the book values of the main tables and the build.
+- **Problems marked** (details in the module and `LITERATURE_REVIEW_QUEUE.md`): sources disagree (kcal/kg by
+  quarter 120–125…100–105 vs 115/110; daily-volume caps 850/900/1000 vs 1000 vs «may exceed 1 L»; calorie
+  split of meals 2014 vs 2021; complementary schedule tables of 2014/2021 vs the 2019 programme; vitamin D
+  400 vs 1000 IU; niacin 7–12 мес 4 vs 7 mg; zinc/magnesium/iodine of Kapitan vs appendix 1); OCR defects of
+  the two Voronezh textbooks; the Kapitan OCR draft has a wrong example (1/8 for 1/6); Table 3.1 first row «24»;
+  Shabalov Table 6.7 units (B12 «мг»); not carried: programme chapters 9, 11–19, 21 (disease diets), brand
+  tables 20.2/20.3, growth charts, Kapitan Tables 16.5–16.7 and the PITANIE sample-day table (ambiguous cell
+  grouping).
+- **Calculators** (pediatrics tool module 0.1.0-preview.7, 5 → 11 tools, 221 → 227 calculators in the
+  catalog; schema data only, sources carry book/edition/page and link to the module documents):
+  `newborn-feeding-volume` (Finkelstein–Tur, Filatov–Zaitseva, rule of ten, Shabalov, days 1–10),
+  `infant-feeding-volume-methods` (volumetric, Maslov range, Programme 2019 with the 850/900/1000 ml caps,
+  Kapitan, Shkarin, single feed), `child-energy-volume-over-one-year` (1000 + 100n, 1200 + 100n, meal shares of
+  both textbook editions, МР norm), `fruit-puree-juice-volume` (10 × n and table 5.1), `hypogalactia-degree`
+  (deficit %, degrees I–IV) and `undernutrition-energy-protein-target` (120–160 kcal/kg, 3–4.5…6 g/kg).
+  Worked examples of Kapitan (Tur 4 days 3000 g = 280 ml; Shabalov 5 days 3300 g = 50 ml; volumetric 5200 g;
+  Maslov 6400 g and 3800 g) and of Почивалов 2021 (2 months, 5 kg, 857 ml) are tests in
+  `apps/app/src/features/calculators/feeding-tool-module.test.ts`. The existing `pediatric-feeding-plan`
+  was not touched. No UI code changed; the frozen native golden exports were not regenerated.
+- **Not tested:** a phone, browser or device (no UI run), search ranking inside the app (aliases checked
+  against the built index only), the rest of the vitest suite beyond the tool/module/calculator folders is run
+  in the final check below, MR 2.3.1.2432-08 itself is not in the library (values come from the workbook), no
+  clinician reviewed the numbers.
+
 ## Misspelt words in search — 2026-10-13 (STATE TYPO1)
 
 Owner report: «Помоач» (for «Помрач») and «Оменция» (for «Аменция») found nothing, although most

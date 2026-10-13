@@ -27,7 +27,7 @@ from localmed_ingest.feeding_norms import (
 ROOT = Path(__file__).resolve().parents[3]
 WORKSPACE = ROOT / "content/feeding-norms"
 MARKER = re.compile(r"^<!-- localmed:source (\{.*\}) -->$")
-BOOK_IDS = {"prog2019", "poch2014", "poch2021", "wb2018", "shab7", "pit2022"}
+BOOK_IDS = {"prog2019", "poch2014", "poch2021", "wb2018", "shab7", "pit2022", "kap2019"}
 
 
 def _copy(tmp_path: Path) -> Path:
@@ -78,7 +78,7 @@ def _row(rows: list[list[str]], label: str) -> list[str]:
 def test_workspace_documents_follow_the_citation_contract(tmp_path: Path) -> None:
     workspace = _copy(tmp_path)
     reports = [check_document(path) for path in sorted(workspace.glob(f"{DOCUMENT_PREFIX}*.md"))]
-    assert len(reports) == 15
+    assert len(reports) == 16
     assert sum(report.tables for report in reports) >= 40
     assert sum(report.table_rows for report in reports) >= 400
     assert {book for report in reports for book in report.books} == BOOK_IDS
@@ -230,10 +230,27 @@ def test_volume_formulas_are_cited_from_each_book() -> None:
     assert {"prog2019", "poch2014", "poch2021", "wb2018", "shab7", "pit2022"} <= cited
 
 
+def test_the_kapitan_worked_examples_are_in_the_module() -> None:
+    text = (WORKSPACE / f"{DOCUMENT_PREFIX}kapitan-volume-and-regime.md").read_text(
+        encoding="utf-8"
+    )
+    for example in (
+        "V = 4 · 70 = 280 мл",
+        "3 · 5 · 3,3 = 50 мл",
+        "5200 · 1/6 = 866 мл = 870 мл",
+        "7950 · 1/8 = 993 мл = 1000 мл",
+        "115 · 6,4 · 1000 / 700 = 1051 мл",
+        "115 · 3,8 · 1000 / 700 = 625 мл",
+    ):
+        assert example in text
+    front, _body = split_front_matter(text, "kapitan")
+    assert front["metadata"]["sourceBooks"][0]["textLayer"] is False
+
+
 def test_prepare_writes_manifest_and_aliases_deterministically(tmp_path: Path) -> None:
     first = _copy(tmp_path)
     report = prepare_feeding_norms(first)
-    assert report.documents == 15
+    assert report.documents == 16
     assert report.aliases >= 100
     manifest = yaml.safe_load((first / "manifest.yaml").read_text(encoding="utf-8"))
     assert manifest["id"] == "minimed.feeding.norms"
@@ -331,6 +348,7 @@ def test_verify_checks_blocks_against_a_page_reader(tmp_path: Path) -> None:
     assert report.checked > 800
     assert len(report.failures) > 800  # nothing is on the empty pages
     assert report.failures[0].startswith("reference.feeding.")
+    assert report.scan_blocks >= 8  # the Kapitan scan has no text layer to compare with
 
 
 def test_verify_accepts_text_that_the_pdf_layer_hyphenates_and_interrupts(tmp_path: Path) -> None:
@@ -368,12 +386,12 @@ def test_workspace_lints_builds_and_packages(tmp_path: Path) -> None:
     report = package_feeding_module(
         database, tmp_path / "release", version="2026.10.13", min_app_version="0.6.59"
     )
-    assert report["documents"] == 15
+    assert report["documents"] == 16
     entry = json.loads(Path(str(report["catalogEntry"])).read_text(encoding="utf-8"))
     assert entry["id"] == "minimed.reference.feeding.ru"
     assert entry["collection"] == "feeding"
     assert entry["kind"] == "reference"
     assert entry["releaseState"] == "preview"
     assert entry["compatibility"]["minAppVersion"] == "0.6.59"
-    assert len(entry["documents"]) == 15
+    assert len(entry["documents"]) == 16
     assert set(report["books"]) == BOOK_IDS  # type: ignore[arg-type]

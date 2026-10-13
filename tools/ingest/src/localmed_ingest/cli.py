@@ -572,7 +572,8 @@ def verify_feeding_command(
     """Check every verbatim block against the PDF text layer in the private library."""
     report = verify_feeding_sources(directory, library)
     typer.echo(
-        f"checked {report.checked} blocks, {report.weak} weak, {len(report.failures)} failed"
+        f"checked {report.checked} blocks, {report.weak} weak, {len(report.failures)} failed; "
+        f"{report.scan_blocks} scan blocks transcribed from images (no text layer)"
     )
     for failure in report.failures:
         typer.echo(failure, err=True)

@@ -249,9 +249,9 @@ async function main(): Promise<void> {
     const errors = records.flatMap(lintRecord);
     const calculators = records.filter((record) => record.kind === 'calculator').length;
     const assessments = records.filter((record) => record.kind === 'assessment').length;
-    if (calculators !== 221 || assessments !== 24) {
+    if (calculators !== 227 || assessments !== 24) {
       errors.push(
-        `expected 221 calculators and 24 assessments, got ${calculators} and ${assessments}`,
+        `expected 227 calculators and 24 assessments, got ${calculators} and ${assessments}`,
       );
     }
     if (errors.length > 0) {

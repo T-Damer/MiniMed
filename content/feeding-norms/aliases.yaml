@@ -144,6 +144,36 @@ aliases:
   alias: сколько белка нужно подростку
   category: reference
   weight: 1.3
+- id: feeding-children-nutrient-norms-e811553768
+  canonicalTerm: Нормы потребности детей и подростков в энергии и пищевых веществах по возрастам
+  alias: норма белка у ребёнка
+  category: reference
+  weight: 1.3
+- id: feeding-children-nutrient-norms-c9505ca656
+  canonicalTerm: Нормы потребности детей и подростков в энергии и пищевых веществах по возрастам
+  alias: норма белка ребёнку по возрасту
+  category: reference
+  weight: 1.3
+- id: feeding-children-nutrient-norms-9d9b0df413
+  canonicalTerm: Нормы потребности детей и подростков в энергии и пищевых веществах по возрастам
+  alias: суточная норма калорий ребёнка
+  category: reference
+  weight: 1.3
+- id: feeding-children-nutrient-norms-8ba5e3d8a4
+  canonicalTerm: Нормы потребности детей и подростков в энергии и пищевых веществах по возрастам
+  alias: потребность ребёнка в кальции
+  category: reference
+  weight: 1.3
+- id: feeding-children-nutrient-norms-4828a5b615
+  canonicalTerm: Нормы потребности детей и подростков в энергии и пищевых веществах по возрастам
+  alias: потребность ребёнка в железе
+  category: reference
+  weight: 1.3
+- id: feeding-children-nutrient-norms-0a733d8638
+  canonicalTerm: Нормы потребности детей и подростков в энергии и пищевых веществах по возрастам
+  alias: норма витамина D для детей
+  category: reference
+  weight: 1.3
 - id: feeding-children-over-one-year-e508718480
   canonicalTerm: 'Питание детей старше года: калорийность, объём, режим'
   alias: питание детей старше года
@@ -369,6 +399,21 @@ aliases:
   alias: суточный объём питания 1000 мл
   category: reference
   weight: 1.3
+- id: feeding-daily-volume-methods-40a2f4d05d
+  canonicalTerm: Расчёт суточного и разового объёма питания ребёнка первого года
+  alias: сколько молока в сутки грудничку
+  category: reference
+  weight: 1.3
+- id: feeding-daily-volume-methods-78405372f8
+  canonicalTerm: Расчёт суточного и разового объёма питания ребёнка первого года
+  alias: сколько смеси ребёнку в сутки
+  category: reference
+  weight: 1.3
+- id: feeding-daily-volume-methods-e77dc5e766
+  canonicalTerm: Расчёт суточного и разового объёма питания ребёнка первого года
+  alias: сколько мл молока ребёнку по возрасту
+  category: reference
+  weight: 1.3
 - id: feeding-feeding-schedule-629430a9f8
   canonicalTerm: 'Режим кормления: частота, интервалы, ночной перерыв'
   alias: режим кормления
@@ -587,6 +632,66 @@ aliases:
 - id: feeding-infant-norms-a02dd0fef3
   canonicalTerm: Нормы потребности детей первого года жизни в энергии и нутриентах
   alias: физиологические потребности детей раннего возраста
+  category: reference
+  weight: 1.3
+- id: feeding-kapitan-volume-and-regime-7354b4ff01
+  canonicalTerm: Режим кормления и расчёт объёма питания с примерами (Капитан, 2019)
+  alias: пример расчёта объёма питания
+  category: reference
+  weight: 1.5
+- id: feeding-kapitan-volume-and-regime-5f01634e33
+  canonicalTerm: Режим кормления и расчёт объёма питания с примерами (Капитан, 2019)
+  alias: расчёт питания новорождённого пример
+  category: reference
+  weight: 1.3
+- id: feeding-kapitan-volume-and-regime-e4a138b0f7
+  canonicalTerm: Режим кормления и расчёт объёма питания с примерами (Капитан, 2019)
+  alias: формула Тура пример
+  category: reference
+  weight: 1.3
+- id: feeding-kapitan-volume-and-regime-06550755b7
+  canonicalTerm: Режим кормления и расчёт объёма питания с примерами (Капитан, 2019)
+  alias: метод Маслова пример расчёта
+  category: reference
+  weight: 1.3
+- id: feeding-kapitan-volume-and-regime-e86dc513a5
+  canonicalTerm: Режим кормления и расчёт объёма питания с примерами (Капитан, 2019)
+  alias: объёмный метод Гейбнера и Черни
+  category: reference
+  weight: 1.3
+- id: feeding-kapitan-volume-and-regime-a961fade39
+  canonicalTerm: Режим кормления и расчёт объёма питания с примерами (Капитан, 2019)
+  alias: свободный режим кормления
+  category: reference
+  weight: 1.3
+- id: feeding-kapitan-volume-and-regime-81d3a8c7c9
+  canonicalTerm: Режим кормления и расчёт объёма питания с примерами (Капитан, 2019)
+  alias: режим кормления 6 раз в сутки
+  category: reference
+  weight: 1.3
+- id: feeding-kapitan-volume-and-regime-3e1d5b7f97
+  canonicalTerm: Режим кормления и расчёт объёма питания с примерами (Капитан, 2019)
+  alias: режим кормления 5 раз в сутки
+  category: reference
+  weight: 1.3
+- id: feeding-kapitan-volume-and-regime-a8dd0db822
+  canonicalTerm: Режим кормления и расчёт объёма питания с примерами (Капитан, 2019)
+  alias: суточные потребности ребёнка в энергии 115 ккал
+  category: reference
+  weight: 1.3
+- id: feeding-kapitan-volume-and-regime-2eb075b60a
+  canonicalTerm: Режим кормления и расчёт объёма питания с примерами (Капитан, 2019)
+  alias: потребность ребёнка в минеральных веществах по возрасту
+  category: reference
+  weight: 1.3
+- id: feeding-kapitan-volume-and-regime-4a1c91212f
+  canonicalTerm: Режим кормления и расчёт объёма питания с примерами (Капитан, 2019)
+  alias: сколько раз кормить ребёнка в 3 месяца
+  category: reference
+  weight: 1.3
+- id: feeding-kapitan-volume-and-regime-7dff7c151f
+  canonicalTerm: Режим кормления и расчёт объёма питания с примерами (Капитан, 2019)
+  alias: норма кормлений в сутки
   category: reference
   weight: 1.3
 - id: feeding-preterm-after-discharge-79774b36b8

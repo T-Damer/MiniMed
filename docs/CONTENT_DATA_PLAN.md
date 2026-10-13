@@ -23,7 +23,7 @@ Detailed shortlist from the private library and OCR inventory: [CONTENT_BACKLOG.
 | Medications | one-drug pipeline proof (Miramistin), 9 pilot instructions syncing | Official GRLS + instruction PDFs | [DRUG_KNOWLEDGE_PIPELINE.md](DRUG_KNOWLEDGE_PIPELINE.md) |
 | Diets (лечебные столы) | №1/5/7/8/9/15 + standard-diet-system drafted, `local-dev`, pediatric scope not reviewed | `reference` category (`content/reference-rf-pilot/`); relaxed sourcing (web/clinic sites), see below | this doc |
 | Vaccination calendars | referenced by `order-1122n-vaccination-calendars.md` (regulatory pilot), not a standalone reference/calculator | Official immunization schedule order | [REGULATORY_PACK.md](REGULATORY_PACK.md) |
-| Nutrition/feeding norms | candidate sources found (`ПДБ/PITANIE.pdf`, `ПДБ/кормление_1год.pdf`, `Нутрициология`), not extracted | Cited textbook page | [LITERATURE_BANK.md](LITERATURE_BANK.md) |
+| Nutrition/feeding norms | extracted 2026-10-13 into `content/feeding-norms/` (16 documents, 484 table rows, every block cited to book, edition and page) and published as the experimental module `minimed.reference.feeding.ru`; six formula calculators in the pediatrics tool module; sources: feeding programme 2019, Почивалов 2014/2021, Капитан 2019, Шабалов, ВГМУ workbook, `PITANIE.pdf` summary | Cited textbook page (personal library, rights not cleared) | [LITERATURE_BANK.md](LITERATURE_BANK.md), [CURRENT_STATE.md](CURRENT_STATE.md) |
 
 ## Glossary and cross-document terms
 

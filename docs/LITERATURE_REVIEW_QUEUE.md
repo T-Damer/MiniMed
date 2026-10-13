@@ -12,6 +12,37 @@ resolved queue item has no further reason to stay in a review queue.
 
 ## Open items
 
+### Feeding norms module — disagreements between the books (2026-10-13)
+
+`minimed.reference.feeding.ru` publishes the values exactly as printed and lists every disagreement in its
+document «Источники, расхождения и проблемы». **Decision needed** (clinician): which book a calculator
+should follow where they differ — kcal/kg by quarter of the year (Почивалов 120–125, 120–115, 115–110,
+100–105) vs 115 and 110 (Программа 2019, Капитан); daily volume cap (Программа 850/900/1000 мл, Капитан 1 л
+and «may exceed 1 L», workbook 1000 мл); share of calories per meal for children over one year (Почивалов
+2014 vs 2021); vitamin D prophylaxis 1000 МЕ (Программа 2019, табл. 10.4) vs 400 МЕ (`PITANIE.pdf`); niacin of
+7–12-month-olds 4 mg (workbook) vs 7 mg (Программа 2019, прил. 1); zinc 7 vs 4 mg, magnesium 50 vs 55 mg and
+iodine of Капитан табл. 16.4 vs Программа 2019 прил. 1. The calculators keep each method as a separate
+output and do not merge them.
+
+### Feeding norms module — rights and provenance of the private books (2026-10-13)
+
+The texts are published for personal use while the repository is public (owner decision 2026-10-13); the
+books' rights are not cleared (`rightsStatus: personal-library-private-use`). **Decision needed** before the
+repository stops being personal: remove or replace the cited book text, or obtain permission. `PITANIE.pdf`
+is a student summary of unknown authorship (created 2022-06-04, cites 2021–2022 teaching manuals without
+titles); only its regime table, the newborn volume formulas and the hypogalactia degrees (also in Почивалов)
+were used — confirm the regime table against a textbook.
+
+### Feeding norms module — OCR and scan defects (2026-10-13)
+
+Почивалов 2014/2021 text layers contain OCR errors in formulas (marked in the module); the Kapitan OCR draft
+(`data/intermediate/replicate-ocr/pdb.kapitan.merged.ocr-draft.json`) has a wrong worked example («1/8 … 650
+мл» for the scan's «1/6 … 866 мл») — only pp. 458–461 were transcribed, by eye from the page images.
+Почивалов 2021 table 3 (monthly gain of preterm infants) and the sample-day table of `PITANIE.pdf` were not
+carried because the text layer lost the cell grouping. **Decision needed**: whether to transcribe them from
+the images; Kapitan tables 16.5–16.7 (complementary schedules by RF rules and WHO) are also not carried.
+
+
 ### `ПДБ/ПроцентильМЖ.pdf` — no bibliographic source captured
 
 The OCR draft (`data/intermediate/replicate-ocr/pdb.procentil-mzh.ocr-draft.json`) contains real centile
