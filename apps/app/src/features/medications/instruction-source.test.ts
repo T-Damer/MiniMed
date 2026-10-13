@@ -142,6 +142,10 @@ describe('instructionTextQuality / instructionSourceInfo', () => {
     expect(instructionTextQuality({ ocr: true, unknownWordRatio: 0.12 })).toBe('ocr-low');
     expect(instructionTextQuality({ ocr: true, ocrLowConfidenceRatio: 0.3 })).toBe('ocr-low');
     expect(instructionTextQuality({ ocr: true })).toBe('ocr');
+    // A text re-read against the scan is no longer judged by the OCR ratios.
+    expect(instructionTextQuality({ ocr: true, ocrReviewed: true, unknownWordRatio: 0.5 })).toBe(
+      'ocr-reviewed',
+    );
   });
 
   it('collects kind, edition, source, fetch date and quality of an instruction', () => {

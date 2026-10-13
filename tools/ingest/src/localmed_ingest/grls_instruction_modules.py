@@ -68,6 +68,8 @@ def heading_json_escape_reason(md_path: Path) -> str | None:
 
 
 RELEASE_ESKLP_DIR = REPO_ROOT / "data" / "build" / "release-esklp"
+#: Instructions whose OCR text was re-read against the scan (`content/grls-reviewed-ocr/<id>.md`).
+REVIEWED_OCR_DIR = REPO_ROOT / "content" / "grls-reviewed-ocr"
 MANIFEST_PATH = REPO_ROOT / "data" / "build" / "grls-instruction-text-manifest.jsonl"
 MODULE_PREFIX = "minimed.medications.instructions."
 MODULE_SUFFIX = ".ru"
@@ -232,6 +234,29 @@ def split_front_matter(text: str) -> tuple[dict[str, Any], str]:
     return cast(dict[str, Any], payload), text[end + len("\n---\n") :]
 
 
+def reviewed_override(
+    document_id: str, source_text: str, directory: Path = REVIEWED_OCR_DIR
+) -> str | None:
+    """The reviewed Markdown of ``document_id`` when it was made from the same PDF, else None.
+
+    The reviewed file replaces the whole prepared text (front matter and body); it is used only
+    while its ``source_checksum`` equals the prepared text's, so a newer edition of the PDF falls
+    back to the fresh OCR instead of silently keeping text of an older edition.
+    """
+    path = directory / f"{document_id}.md"
+    if not path.is_file():
+        return None
+    reviewed = path.read_text(encoding="utf-8")
+    prepared_front, _ = split_front_matter(source_text)
+    reviewed_front, _ = split_front_matter(reviewed)
+    if reviewed_front.get("id") != document_id:
+        raise ValueError(f"{path}: front matter id is not {document_id}")
+    checksum = prepared_front.get("source_checksum")
+    if checksum is None or reviewed_front.get("source_checksum") != checksum:
+        return None
+    return reviewed
+
+
 def augmented_markdown(text: str, entry: PlannedInstruction) -> str:
     front, body = split_front_matter(text)
     existing = front.get("metadata")
@@ -289,6 +314,7 @@ def stage_module(stage: Path, group: str, entries: Sequence[PlannedInstruction])
     (stage / "aliases.yaml").write_text("aliases: []\n", encoding="utf-8")
     for entry in entries:
         source = entry.path.read_text(encoding="utf-8")
+        source = reviewed_override(entry.document_id, source) or source
         (stage / f"{entry.document_id}.md").write_text(
             augmented_markdown(source, entry), encoding="utf-8"
         )

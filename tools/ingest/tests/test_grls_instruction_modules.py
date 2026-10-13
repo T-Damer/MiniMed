@@ -12,6 +12,7 @@ from localmed_ingest.grls_instruction_modules import (
     assign_group,
     augmented_markdown,
     module_id,
+    reviewed_override,
     split_front_matter,
 )
 
@@ -137,3 +138,31 @@ def test_split_front_matter_rejects_a_document_without_front_matter() -> None:
         split_front_matter("# Заголовок\n")
     with pytest.raises(ValueError, match="unterminated"):
         split_front_matter("---\nid: x\n")
+
+
+def _with_checksum(text: str, checksum: str) -> str:
+    return text.replace("source_type:", f"source_checksum: {checksum}\nsource_type:", 1)
+
+
+def test_a_reviewed_text_replaces_the_prepared_one_only_for_the_same_pdf(tmp_path: Path) -> None:
+    prepared = _with_checksum(instruction_markdown(), "sha256:aaa")
+    reviewed = _with_checksum(instruction_markdown(), "sha256:aaa").replace(
+        "Текст с хвостовыми", "Проверенный текст с хвостовыми"
+    )
+    (tmp_path / "drug.rf.0001093e970339aa31f2.instruction.md").write_text(
+        reviewed, encoding="utf-8"
+    )
+    document_id = "drug.rf.0001093e970339aa31f2.instruction"
+    assert reviewed_override(document_id, prepared, tmp_path) == reviewed
+    # A different PDF (new edition): the fresh OCR is used, the old review is ignored.
+    newer = _with_checksum(instruction_markdown(), "sha256:bbb")
+    assert reviewed_override(document_id, newer, tmp_path) is None
+    # No reviewed file: nothing to replace.
+    assert reviewed_override("drug.rf.other.instruction", prepared, tmp_path) is None
+
+
+def test_a_reviewed_file_with_another_id_is_rejected(tmp_path: Path) -> None:
+    prepared = _with_checksum(instruction_markdown(), "sha256:aaa")
+    (tmp_path / "drug.rf.x.instruction.md").write_text(prepared, encoding="utf-8")
+    with pytest.raises(ValueError, match="front matter id"):
+        reviewed_override("drug.rf.x.instruction", prepared, tmp_path)

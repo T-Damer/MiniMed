@@ -17,4 +17,11 @@ sources:
     metadata:
       registrationNumber: "ЛП-№(002417)-(РГ-RU)"
       officialSourceUrl: https://grls.rosminzdrav.ru/GRLS.aspx
-      ingestionState: blocked-no-text-layer
+      ingestionState: scan-only-reviewed-ocr
+      sourceChecksum: sha256:58c4cf8003a211b755dc96a45860002f96613aa7da89e9689f636852928c4dff
+      instructionUrl: https://grls.rosminzdrav.ru/InstrImg/2023/06/13/1494266/70ab5311-c72b-4524-98d8-43861137db3c.pdf
+      instructionLabel: "Изм. № 0, ЛП-№(002417)-(РГ-RU), 2023"
+      # The PDF is 29 raster pages with no text layer and no text-layer copy of this instruction
+      # exists (checked 2026-10-13). The OCR was re-read against the scan; the module builder uses
+      # this file instead of the raw OCR while the PDF checksum is unchanged.
+      reviewedText: content/grls-reviewed-ocr/drug.rf.b9f41580e1cecf8dc2e7.instruction.md

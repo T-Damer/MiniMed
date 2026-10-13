@@ -176,7 +176,7 @@ export function instructionSourceClassIndex(
   );
 }
 
-export type InstructionTextQuality = 'native' | 'ocr' | 'ocr-low';
+export type InstructionTextQuality = 'native' | 'ocr' | 'ocr-low' | 'ocr-reviewed';
 
 export interface InstructionSourceInfo {
   readonly sourceClass: InstructionSourceClass;
@@ -210,6 +210,8 @@ export function formatFetchDate(value: string | null): string | null {
 
 export function instructionTextQuality(metadata: Metadata): InstructionTextQuality {
   if (metadata?.['ocr'] !== true) return 'native';
+  // Re-read against the scan page by page (content/grls-reviewed-ocr); the OCR ratios no longer apply.
+  if (metadata['ocrReviewed'] === true) return 'ocr-reviewed';
   const unknownWords = number(metadata['unknownWordRatio']) ?? 0;
   const lowConfidence = number(metadata['ocrLowConfidenceRatio']) ?? 0;
   return unknownWords > LOW_QUALITY_UNKNOWN_WORD_RATIO || lowConfidence > LOW_QUALITY_OCR_RATIO
@@ -220,6 +222,8 @@ export function instructionTextQuality(metadata: Metadata): InstructionTextQuali
 const QUALITY_NOTES: Readonly<Record<InstructionTextQuality, string | null>> = {
   native: null,
   ocr: 'Текст получен распознаванием скана (OCR): возможны ошибки, сверяйтесь с оригиналом ГРЛС.',
+  'ocr-reviewed':
+    'Текст распознан со скана и сверен со страницами оригинала; дозировки при сомнении проверяйте по оригиналу ГРЛС.',
   'ocr-low':
     'Скан распознан с низким качеством (OCR): в тексте вероятны искажения слов и цифр, дозировки проверяйте по оригиналу ГРЛС.',
 };
