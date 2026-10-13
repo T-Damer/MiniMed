@@ -4,6 +4,26 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.59] - 2026-10-13
+
+- Search forgives typos at the start of a word: «Помоач» finds «помрачение», «Оменция» finds
+  «Аменция», «обакавир» finds абакавир. The search box shows the fix — the wrong letter struck out in
+  red, the right one added in green; a tap puts the corrected word in the field. A neighbouring key or
+  a letter that sounds alike (о/а, е/и) counts as a small slip. Test set of one-slip names: right
+  result in the top five 33 % → 98 %; correctly typed queries return the same results as before.
+- Calculators: 86 → 245. Seven new sections (intensive care, surgery and trauma, neurology and
+  rehabilitation, metabolic and lab, pulmonology, drug dosing, rheumatology/GI/oncology/urology) and
+  more cardiology (Wells, Geneva, PERC, TIMI, HEART, RCRI, CRUSADE, PESI, Padua…), obstetrics,
+  paediatrics, psychology and gastroenterology scores, each from its original publication or the
+  current КР. Formulas may use ln(), also in your own formulas. Calculator sections download again.
+- New reference sections: «Лечебное питание» (the official diet variants with food sets and norms,
+  orders №330, №395н, №1008н; «стол 5» finds its variant) and «Номенклатура медицинских услуг»
+  (№804н; a service code such as A16.20.005 finds its section).
+- МКБ-10 cards and guidelines show the usual sick-leave period («Больничный: N–M дней») in a folded
+  line under the title.
+- Settings → «Загрузки и разделы» → «Модули из файла»: install a section from a
+  `.minimed-module.zip` file.
+
 ## [0.6.58] - 2026-10-12
 
 - Search by meaning: a new pair of models. Guideline fragments and drug indications are turned into
