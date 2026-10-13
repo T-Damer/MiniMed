@@ -1,0 +1,27 @@
+/* A screen whose code did not load: one calm message where the screen would start. */
+.lazy-load-failed {
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: 0.5rem;
+  padding-top: clamp(2rem, 12dvh, 6rem);
+  text-align: center;
+}
+
+.lazy-load-failed__title {
+  margin: 0;
+  color: var(--theme-text);
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  text-wrap: balance;
+}
+
+.lazy-load-failed__detail {
+  margin: 0;
+  color: var(--ink-muted);
+  text-wrap: balance;
+}
+
+.lazy-load-failed__action {
+  margin-top: 0.5rem;
+}

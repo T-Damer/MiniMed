@@ -24,6 +24,7 @@ import {
   type ReleaseCacheTarget,
   resolveReleaseCacheTarget,
 } from './src/dev-server/release-cache';
+import { writeServiceWorkerBuild } from './src/dev-server/service-worker-precache';
 
 const require = createRequire(import.meta.url);
 
@@ -317,6 +318,28 @@ function excludeOptionalPublicAssets(): Plugin {
   };
 }
 
+/**
+ * Production build only: lists the shell of this build (scripts, styles, fonts, small wasm) in
+ * `sw.js`, so the service worker precaches exactly it, and writes `build-manifest.json` for the
+ * Pages deploy. The Capacitor builds ship the same files; their shells never register the worker.
+ */
+function serviceWorkerPrecache(): Plugin {
+  let outDir = 'dist';
+  return {
+    name: 'service-worker-precache',
+    apply: 'build',
+    configResolved(config) {
+      outDir = join(config.root, config.build.outDir);
+    },
+    closeBundle() {
+      const release = JSON.parse(
+        readFileSync(fileURLToPath(new URL('../../release.json', import.meta.url)), 'utf8'),
+      ) as { version: string };
+      writeServiceWorkerBuild(outDir, release.version);
+    },
+  };
+}
+
 export default defineConfig({
   base: './',
   plugins: [
@@ -326,6 +349,7 @@ export default defineConfig({
     ensurePdfJsAssets(),
     ensureCornerstoneCodecAssets(),
     excludeOptionalPublicAssets(),
+    serviceWorkerPrecache(),
     localReleaseCache(),
     contentArchiveServing(),
   ],

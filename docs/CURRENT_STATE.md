@@ -20,6 +20,97 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Web offline shell and stale-bundle recovery — 2026-10-14 (STATE SW1)
+
+QA of the published web app (0.6.59, Chromium, 375×812) found two faults: a document installed from
+a guideline module did not open after the network was cut (its lazy chunks `DocumentPageHost-*`,
+`safety-document-*`, `atc-names-*` could not load, the reader spun forever, an offline reload gave
+`ERR_INTERNET_DISCONNECTED`), and a browser holding an older `main-*.js` got a 404 for
+`CalculatorsView-<oldhash>.js` with no way back.
+
+- **Root cause 1.** A worker existed (`public/sw.js`, registered from `state/app-update.ts`) but its
+  `install` called `cache.addAll` on a fixed list that included `content/medications.db`, which
+  Pages does not ship (404): one rejected URL fails the whole install, so no worker was ever active.
+  The list also named `core.db` (440 MB), which would have doubled the core in Cache Storage.
+- **Root cause 2.** Pages replaces the whole site on every deploy and every chunk name carries a
+  content hash, so an old page asks for names that no longer exist. Nothing handled the failure, and
+  Solid's `lazy` without an `ErrorBoundary` leaves the Suspense spinner on screen forever.
+
+**Design.**
+
+- `public/sw.js` is hand-written (no Workbox, no new dependency). The build
+  (`dev-server/service-worker-precache.ts`, a Vite plugin in `vite.config.ts`) lists the build's
+  files into it and writes `build-manifest.json`. **Precached at install** (538 files, 64.7 MB raw,
+  about 20 MB gzip on the wire): `index.html`, manifest and icons, every `assets/*` script, style,
+  font and wasm up to 3 MB (the 10.7 MB module-catalog script is a script, so it is in), `fonts/`,
+  `onboarding/`, and the three small files the app fetches on every start to open its core:
+  `content/core-report.json` (names the OPFS file of the core), `content/regulatory.db` and
+  `content/reference.db` (2.6 MB together, read into memory at each start; without them an offline
+  reload shows «База не открылась»). **Kept after first use only** (runtime cache `minimed-runtime-v1`, ≤ 40 MB per
+  file): the ONNX runtime (24 MB wasm), the Tesseract core, and the `pdfjs/`, `cornerstone-codecs/`
+  and `excalidraw/` directories. **Never touched**: the rest of `content/` (the 440 MB `core.db`,
+  modules, releases: OPFS and IndexedDB hold them), `tessdata/`, the patient diary (`diary/` keeps its own worker and scope; the
+  app worker leaves `diary/` navigations alone), cross-origin requests, non-GET and Range requests.
+- **Cache per build**: `minimed-shell-<build id>`, the id is a hash of the version, every hashed
+  asset name and the digest of each non-hashed file. Install is all-or-nothing (a failed file fails
+  the install and the browser retries; files cached by an earlier attempt are kept). A new install
+  copies unchanged `assets/*` from the previous build's cache instead of downloading them again;
+  `index.html`, manifest and icons are fetched with `cache: 'reload'` (Pages sends `max-age=600`).
+  Activation deletes other `minimed-shell-*` caches, the former `localmed-shell-*` cache and runtime
+  entries the new build no longer ships. A script asked for with a query string (the SQLite OPFS
+  worker is started as `…proxy.js?vfs=opfs`) is answered from the entry stored without it, as a
+  response without an address of its own, so the worker still sees its `?vfs=` (a cached response
+  keeps the stored address and the worker failed to start offline until this was found by the e2e).
+- **Navigation** to the scope root or `index.html` is answered from the cache (cache-first), so an
+  offline reload works and the page, its chunks and its styles always belong to one build. The scope
+  is the folder `sw.js` lives in (`/MiniMed/app/` on Pages, `/` in `vite preview`): every URL is
+  resolved against `registration.scope`; the build keeps `base: './'`.
+- **Cross-origin isolation.** The app does not use `crossOriginIsolated` or `SharedArrayBuffer`
+  (OPFS works through the `sahpool` VFS in workers); Pages sends no COOP/COEP and the repository has
+  no `coi-serviceworker` shim, so nothing was there to integrate. The headers `vite dev` / `vite
+  preview` send are stored with the cached page, so an offline reload keeps them (the e2e compares
+  `crossOriginIsolated` before and after).
+- **Capacitor.** `registerAppServiceWorker` returns on every platform except `web`; the Android and
+  iOS builds contain the same `sw.js` and `build-manifest.json` (about 45 KB) but never register it.
+- **Update flow.** A new deploy is a byte-different `sw.js`. The browser installs it in the
+  background (precaching its build) and it waits. The page announces it with the existing
+  `minimed:app-update-ready` event: a quiet toast «Доступно обновление — Обновить» (once per worker,
+  12 s), the settings dot and the «Обновление» hint above «Настройки» stay as before, and the
+  Settings checker's «Обновить» does the same. Only a tap posts `SKIP_WAITING`; the new worker
+  activates, claims the page and `controllerchange` reloads it. Nothing reloads by itself. A tab left
+  open looks for a new build when it is shown again or the network returns (at most every 15 min,
+  `watchForAppUpdates`), and «Проверить обновления» now waits (≤ 30 s) for a build that is still
+  installing instead of answering «последняя версия».
+- **Stale chunk recovery** (`state/chunk-recovery.ts`). `vite:preloadError` and unhandled rejections
+  of a failed dynamic import (Chromium, Firefox and Safari wording) trigger **one** reload when
+  online. A `sessionStorage` timestamp guards against loops (no second reload within 60 s; an
+  in-memory flag when storage is blocked). Offline nothing reloads. The event is never cancelled, so
+  the failing screen still throws and `app/LazyBoundary.tsx` (an `ErrorBoundary` around the root
+  views and the document host) shows «Экран не загрузился» in place with «Повторить»; that button
+  unregisters the app worker, deletes the shell caches (online only) and reloads from the network.
+- **Previous build stays reachable.** `scripts/carry-previous-build-assets.ts` (a step of
+  `landing-pages.yml`) reads `build-manifest.json` from the live site and downloads the scripts,
+  styles and fonts it lists that the new build dropped into `assets/` (≤ 16 MB per file, ≤ 120 MB
+  in all, best effort: a missing manifest or failed file never fails the deploy). Exactly one build
+  is kept: the manifest lists a build's own files, never the ones it had carried, so the copies
+  expire at the next deploy. Reason: an old tab with its worker still serves from its own cache, so
+  the grace copy only covers browsers without a worker, a tab claimed by a new worker, and the
+  window before first install; a longer window would grow the 1 GB site for a rare case, and the
+  guarded reload covers the rest.
+- **Tests.** Unit: `dev-server/service-worker.test.ts` (runs the real `sw.js` in a `vm` with a fake
+  `CacheStorage`: install, resume, reuse, activation, offline answers, diary, content, size cap,
+  old/new build), `service-worker-precache.test.ts`, `carry-previous-assets.test.ts`,
+  `state/chunk-recovery.test.ts`, `state/app-update-web.test.ts`. e2e `offline-shell.spec.ts`
+  (`E2E_PORT=4197 bunx playwright test apps/app/e2e/offline-shell.spec.ts --workers=1`): install a
+  КР module, cut the network, reload, open the document; a simulated new build through a proxy that
+  swaps `sw.js` shows the prompt and switches only on tap; a removed chunk reloads once; a chunk
+  that stays missing and an offline lazy load show the in-place error. The Playwright config now
+  blocks service workers by default (`serviceWorkers: 'block'`; `offline-shell` and `diary-install`
+  opt in) and launches Chromium with `--mute-audio`.
+- **Not tested**: the real Pages deploy (the base path `/MiniMed/app/`, the carry step against the
+  live manifest, Pages' `max-age=600` on `sw.js`), Safari/WebKit (including iOS storage eviction of
+  Cache Storage), Firefox, a real flaky mobile network during the 19 MB install.
+
 ## Reader dictionary on selection — 2026-10-13 (STATE DICT1)
 
 Owner question: «select a word to see its definition, origin and links, plus links to terms from a
@@ -2543,7 +2634,7 @@ pure and tested):
   preload list. Where the dictionary lacks a code, the older sources apply (MiniMed's 14 headings,
   ЕСКЛП group text); level 5 is the node's substance name. The footer cites the dictionary, version,
   date and the WHO Collaborating Centre. Cyrillic look-alike letters are mapped to Latin. The chunk is
-  cached by the service worker after the first open (not pre-cached). The dictionary is fetched by
+  precached by the service worker with the rest of the build (see «Web offline shell»). The dictionary is fetched by
   `scripts/fetch-nsi-dictionary.sh` in a disposable container that trusts the Russian national root CA
   (fingerprint-checked) and receives only `NSI_USER_TOKEN`; raw data stays in `data/raw/nsi/` (ignored),
   see `docs/NSI_FETCH.md`. The passport carries no licence text; a public release still needs a WHOCC

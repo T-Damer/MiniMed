@@ -195,6 +195,56 @@ function announceUpdate(worker: ServiceWorker): void {
   );
 }
 
+/** A tab kept open for days looks for a new build when it is shown again, at most this often. */
+export const APP_UPDATE_RECHECK_MS = 15 * 60_000;
+
+interface UpdateCheckTarget {
+  readonly update: () => Promise<unknown>;
+}
+
+interface UpdateCheckPage {
+  readonly visible: () => boolean;
+  readonly now: () => number;
+  /** Subscribes to «the page was shown» and «the network came back»; returns the unsubscribe. */
+  readonly onWake: (wake: () => void) => () => void;
+}
+
+function browserUpdateCheckPage(): UpdateCheckPage {
+  return {
+    visible: () => document.visibilityState === 'visible',
+    now: () => Date.now(),
+    onWake: (wake) => {
+      document.addEventListener('visibilitychange', wake);
+      window.addEventListener('online', wake);
+      return () => {
+        document.removeEventListener('visibilitychange', wake);
+        window.removeEventListener('online', wake);
+      };
+    },
+  };
+}
+
+/**
+ * Asks the server for a new service worker when the page is shown or the network returns, at most
+ * every {@link APP_UPDATE_RECHECK_MS}. A found update installs in the background and is announced
+ * through the usual `statechange`; nothing here reloads the page.
+ */
+export function watchForAppUpdates(
+  registration: UpdateCheckTarget,
+  page: UpdateCheckPage = browserUpdateCheckPage(),
+  minIntervalMs: number = APP_UPDATE_RECHECK_MS,
+): () => void {
+  let lastCheck = page.now();
+  return page.onWake(() => {
+    if (!page.visible() || page.now() - lastCheck < minIntervalMs) return;
+    lastCheck = page.now();
+    registration.update().catch((cause: unknown) => {
+      // Offline or the host is unreachable: the next wake-up tries again.
+      console.debug('Проверка обновления приложения не удалась.', cause);
+    });
+  });
+}
+
 export async function registerAppServiceWorker(): Promise<void> {
   if (Capacitor.getPlatform() !== 'web') return;
   const registration = await navigator.serviceWorker.register(`./sw.js?v=${RELEASE_VERSION}`);
@@ -206,6 +256,7 @@ export async function registerAppServiceWorker(): Promise<void> {
       if (worker.state === 'installed') announceUpdate(worker);
     });
   });
+  watchForAppUpdates(registration);
 }
 
 export function activateAppUpdate(
@@ -217,14 +268,48 @@ export function activateAppUpdate(
   worker.postMessage({ type: 'SKIP_WAITING' });
 }
 
+/** Installing a build means downloading its whole shell; a check waits this long for it. */
+export const APP_UPDATE_INSTALL_WAIT_MS = 30_000;
+
+interface InstallingWorker {
+  readonly state: ServiceWorkerState;
+  addEventListener(type: 'statechange', listener: () => void): void;
+  removeEventListener(type: 'statechange', listener: () => void): void;
+}
+
+/** Resolves when the worker has installed (or failed), or after `timeoutMs`. */
+export function waitForWorkerInstalled(
+  worker: InstallingWorker,
+  timeoutMs: number = APP_UPDATE_INSTALL_WAIT_MS,
+): Promise<void> {
+  return new Promise((resolve) => {
+    const finish = (): void => {
+      clearTimeout(timer);
+      worker.removeEventListener('statechange', onChange);
+      resolve();
+    };
+    const onChange = (): void => {
+      if (worker.state !== 'installing') finish();
+    };
+    const timer = setTimeout(finish, timeoutMs);
+    worker.addEventListener('statechange', onChange);
+    onChange();
+  });
+}
+
 export async function checkWebAppUpdate(
   getRegistration: () => Promise<ServiceWorkerRegistration | undefined> = () =>
     navigator.serviceWorker.getRegistration(),
   dispatchReady: (worker: ServiceWorker) => void = announceUpdate,
+  waitInstalled: typeof waitForWorkerInstalled = waitForWorkerInstalled,
 ): Promise<boolean> {
   const registration = await getRegistration();
   if (!registration) return false;
   await registration.update();
+  // `update()` resolves once the new worker has started installing, not when it is ready.
+  if (!registration.waiting && registration.installing) {
+    await waitInstalled(registration.installing);
+  }
   if (!registration.waiting) return false;
   dispatchReady(registration.waiting);
   return true;

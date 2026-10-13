@@ -110,6 +110,11 @@ jobs:
           mkdir -p apps/landing/dist/app
           cp -R apps/app/dist/. apps/landing/dist/app/
           touch apps/landing/dist/.nojekyll
+      - name: Keep the previous build's scripts and styles reachable
+        # A browser still running the previous build asks for its lazy chunks by their old hashed
+        # names, and this deploy replaces the whole site. Copy the files the new build dropped
+        # (one build back, scripts/styles/fonts only, best effort) next to it.
+        run: bun scripts/carry-previous-build-assets.ts "$PUBLIC_SITE_URL$PUBLIC_BASE_PATH/app/" apps/landing/dist/app
       - uses: actions/upload-pages-artifact@v5
         with:
           path: apps/landing/dist

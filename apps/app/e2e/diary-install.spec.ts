@@ -15,7 +15,7 @@ import {
   testInvitationLink,
 } from './diary-fixtures';
 
-test.use({ viewport: { width: 390, height: 844 } });
+test.use({ viewport: { width: 390, height: 844 }, serviceWorkers: 'allow' });
 
 test.describe('patient diary: keeping it one tap away', () => {
   test('iPhone Safari gets share-sheet steps, and a warning once entries exist', async ({

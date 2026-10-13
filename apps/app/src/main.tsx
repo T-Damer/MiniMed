@@ -3,6 +3,7 @@ import { render } from 'solid-js/web';
 import { App } from '@/app/App';
 import { lockNativeSafeBottom } from '@/app/lock-native-safe-bottom';
 import { registerAppServiceWorker } from '@/state/app-update';
+import { installChunkRecovery } from '@/state/chunk-recovery';
 import { installMotionManager } from '@/state/motion';
 import { startReminderNotifications } from '@/state/reminder-notifications';
 import { installTheme } from '@/state/theme';
@@ -49,6 +50,7 @@ import '@/styles/primary-depth.css';
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element.');
 
+installChunkRecovery();
 const stopMotionManager = installMotionManager();
 const stopTheme = installTheme();
 render(() => <App />, root);

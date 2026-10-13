@@ -1,6 +1,7 @@
 import { Capacitor, type PluginListenerHandle } from '@capacitor/core';
 import type { MedicalCore } from '@localmed/contracts';
 import { createSignal, onCleanup, onMount } from 'solid-js';
+import { toast } from 'solid-sonner';
 import { afterBootReveal } from '@/app/boot-surface';
 import { countPublishedCatalogModules } from '@/app/root-view';
 import { createBrowserCore } from '@/composition/create-browser-core';
@@ -130,9 +131,21 @@ export function useAppSession() {
   let observedApkTaskId: string | undefined;
   let disposed = false;
 
+  // A new web build was installed in the background: say so once, quietly. Nothing reloads until
+  // the doctor taps «Обновить» here or in Settings.
+  let announcedUpdateWorker: ServiceWorker | undefined;
+  let activateAnnouncedUpdate: () => void = () => undefined;
   const handleAppUpdate = (event: Event): void => {
-    setAppUpdateWorker((event as CustomEvent<AppUpdateReadyDetail>).detail.worker);
+    const { worker } = (event as CustomEvent<AppUpdateReadyDetail>).detail;
+    setAppUpdateWorker(worker);
     setAppUpdateUpToDate(false);
+    if (announcedUpdateWorker === worker) return;
+    announcedUpdateWorker = worker;
+    toast('Доступно обновление', {
+      id: 'app-update-ready',
+      duration: 12_000,
+      action: { label: 'Обновить', onClick: () => activateAnnouncedUpdate() },
+    });
   };
 
   const describeUpdateError = (cause: unknown, fallback: string): string =>
@@ -346,6 +359,8 @@ export function useAppSession() {
     setAppUpdating(false);
     setAppUpdateProgress(undefined);
   };
+
+  activateAnnouncedUpdate = activateAvailableUpdate;
 
   const cancelAvailableUpdate = (): void => {
     const update = availableApk();

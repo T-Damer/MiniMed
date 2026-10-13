@@ -63,6 +63,23 @@ qualification are available through `workflow_dispatch`; they do not run on ever
 The Android release workflow runs manually or for a `release: MiniMed` commit on `main`,
 so ordinary pushes and PRs do not build a duplicate release APK.
 
+## GitHub Pages deploy of the browser app
+
+`landing-pages.yml` builds the landing and the app and publishes `apps/landing/dist` (the app is
+`/app/`). Two things in it exist for browsers that already hold an earlier build:
+
+- `bun run build:app` writes `apps/app/dist/build-manifest.json` and injects the same list into
+  `sw.js` (the service worker precaches that list; see CURRENT_STATE «Web offline shell»). Do not
+  rename either file and do not exclude them from the artifact: the next deploy reads the manifest
+  from the live site.
+- The step «Keep the previous build's scripts and styles reachable» runs
+  `scripts/carry-previous-build-assets.ts`: it copies the scripts, styles and fonts that the
+  previous build had and this one dropped into `app/assets/` (one build back, ≤ 120 MB, best
+  effort). It needs the live site to answer; a first deploy or an outage carries nothing.
+
+A release does not need extra steps. After a deploy the first visit installs the new worker in the
+background; users see «Доступно обновление — Обновить» and nothing reloads by itself.
+
 ## Artifacts
 
 ### Compressed module indexes

@@ -26,6 +26,10 @@ export default defineConfig({
   reporter: process.env.CI ? 'github' : 'list',
   use: {
     trace: 'on-first-retry',
+    // The app's worker precaches 60 MB of shell per context and answers asset requests itself,
+    // which page.route does not see. Specs that test a worker opt in with
+    // `test.use({ serviceWorkers: 'allow' })` (offline-shell, diary-install).
+    serviceWorkers: 'block',
   },
   // Serve large SQLite assets over HTTP, not a base64 CDP message (100 MiB channel limit).
   webServer: process.env.MINIMED_LIVE_URL
@@ -42,6 +46,7 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         launchOptions: {
+          // Browsers opened by tests stay silent.
           args: ['--mute-audio'],
           ...(chromiumExecutable ? { executablePath: chromiumExecutable } : {}),
         },

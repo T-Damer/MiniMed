@@ -16,6 +16,7 @@ import { Toaster } from 'solid-sonner';
 import { AppBottomNav } from '@/app/AppBottomNav';
 import { BootScreen } from '@/app/BootScreen';
 import { firstScreenPainted, revealFromBootSurface } from '@/app/boot-surface';
+import { LazyBoundary } from '@/app/LazyBoundary';
 import { COMPACT_ROOT_VIEWS, compactRootView, ROOT_VIEWS, type RootView } from '@/app/root-view';
 import { useAppSession } from '@/app/use-app-session';
 import { useBottomNav } from '@/app/use-bottom-nav';
@@ -357,20 +358,22 @@ export function App(): JSX.Element {
       {/* Keep-alive: construct on first visit, then stay mounted so tab switches
           preserve composer drafts, scroll position, and per-view state. */}
       <Show when={navigation.hasMountedView(id)}>
-        <Suspense
-          fallback={
-            <div
-              class="app-view__loading page-surface page-grain"
-              role="status"
-              aria-live="polite"
-              aria-label="Загрузка страницы"
-            >
-              <span class="app-view__spinner" aria-hidden="true" />
-            </div>
-          }
-        >
-          <Dynamic component={content} />
-        </Suspense>
+        <LazyBoundary>
+          <Suspense
+            fallback={
+              <div
+                class="app-view__loading page-surface page-grain"
+                role="status"
+                aria-live="polite"
+                aria-label="Загрузка страницы"
+              >
+                <span class="app-view__spinner" aria-hidden="true" />
+              </div>
+            }
+          >
+            <Dynamic component={content} />
+          </Suspense>
+        </LazyBoundary>
       </Show>
     </section>
   );
@@ -502,23 +505,25 @@ export function App(): JSX.Element {
           when={navigation.documentReadActive() && (session.ready() || personalDocumentActive())}
         >
           <section class="app-view app-view--document-read active" aria-hidden={false}>
-            <Suspense
-              fallback={
-                <div
-                  class="app-view__loading page-surface page-grain"
-                  role="status"
-                  aria-live="polite"
-                  aria-label="Загрузка страницы"
-                >
-                  <span class="app-view__spinner" aria-hidden="true" />
-                </div>
-              }
-            >
-              <DocumentPageHost
-                getCore={() => session.ready()?.core}
-                reconnectContent={session.connectInstalledModules}
-              />
-            </Suspense>
+            <LazyBoundary>
+              <Suspense
+                fallback={
+                  <div
+                    class="app-view__loading page-surface page-grain"
+                    role="status"
+                    aria-live="polite"
+                    aria-label="Загрузка страницы"
+                  >
+                    <span class="app-view__spinner" aria-hidden="true" />
+                  </div>
+                }
+              >
+                <DocumentPageHost
+                  getCore={() => session.ready()?.core}
+                  reconnectContent={session.connectInstalledModules}
+                />
+              </Suspense>
+            </LazyBoundary>
           </section>
         </Show>
         {/* A document link opened before the core is ready says why it waits, never a blank page. */}
