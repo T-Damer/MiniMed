@@ -91,6 +91,7 @@ import {
   presentSourceChunkText,
   sourceContextKicker,
 } from '@/features/search/search-result-presentation';
+import { SemanticModelOffer } from '@/features/semantic/SemanticModelOffer';
 import '@/features/search/search-refresh.css';
 import { createLingeringFlag } from '@/features/search/search-skeleton';
 import { sourceCatalogOf } from '@/features/search/source-names';
@@ -1520,6 +1521,15 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
 
                 <Show when={interactionQuery() ? undefined : comparisonQuery()}>
                   {(asked) => <ComparisonSuggestionCard core={props.core} names={asked().names} />}
+                </Show>
+
+                <Show
+                  when={
+                    props.scope === 'all' &&
+                    response()?.descriptionRecommendations?.status === 'model-missing'
+                  }
+                >
+                  <SemanticModelOffer onInstalled={() => void runSearch(query(), true)} />
                 </Show>
 
                 <Show when={interactionQuery() ? undefined : safetyQuery()}>

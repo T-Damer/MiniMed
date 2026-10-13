@@ -7,6 +7,9 @@
  *   bun tools/benchmarks/src/run-semantic-kr.ts --packs=data/build/clinical-kd1/decoded \
  *     --model-dir=<dir holding minimed/kd1-query-encoder/…> [--split=dev] [--grid] [--out=…]
  *
+ * `--configs='a|b'` runs only the named configurations; `--variants='{"name":{…}}'` adds clinical-hybrid
+ * runs of `KD1_FUSION` with the given fields changed (e.g. `documentEvidence`, `clauseMix`).
+ * `--dump=file.json` writes every query's top eight per configuration.
  * `--grid` adds clinical-hybrid runs over a grid of fusion constants (`--bands=0.1,0.2`,
  * `--lexical-weights=0.3,0.5`, `--corroboration-weights=0.3,0.6`, `--confidence='none;0.25,0.35'`);
  * choose them on dev only. `--set=owner` scores the owner's own
@@ -131,6 +134,13 @@ const GRID: Record<string, SemanticFusion> = process.argv.includes('--grid')
     )
   : {};
 Object.assign(FUSIONS, GRID);
+// `--variants='{"evidence 0.2":{"documentEvidence":0.2}}'`: named changes on top of `KD1_FUSION`.
+const VARIANTS: Record<string, SemanticFusion> = Object.fromEntries(
+  Object.entries(JSON.parse(argument('variants', '{}')) as Record<string, object>).map(
+    ([name, change]) => [name, { ...KD1_FUSION, ...change }],
+  ),
+);
+Object.assign(FUSIONS, VARIANTS);
 const cores = new Map<string, ReturnType<typeof createMedicalCore>>();
 for (const [name, fusion] of Object.entries(FUSIONS)) {
   const core = createMedicalCore({
@@ -199,12 +209,17 @@ const CONFIGS: Record<string, Config> = {
       ]),
   ),
   ...Object.fromEntries(
-    Object.keys(GRID).map((fusion) => [
+    [...Object.keys(GRID), ...Object.keys(VARIANTS)].map((fusion) => [
       `clinical hybrid ${fusion}`,
       { mode: 'hybrid', analysisMode: 'clinical', fusion },
     ]),
   ),
 };
+
+// `--configs='clinical hybrid kd1|clinical hybrid evidence 0.2'`: run only these configurations.
+const onlyConfigs = argument('configs', '').split('|').filter(Boolean);
+for (const name of Object.keys(CONFIGS))
+  if (onlyConfigs.length > 0 && !onlyConfigs.includes(name)) delete CONFIGS[name];
 
 interface Score {
   at1: number;
@@ -220,6 +235,7 @@ const record = (config: string, slice: string, score: Score) => {
   scores.set(config, bySlice);
 };
 
+const dump: unknown[] = [];
 for (const [index, query] of queries.entries()) {
   for (const [config, { fusion, ...options }] of Object.entries(CONFIGS)) {
     const started = performance.now();
@@ -241,6 +257,15 @@ for (const [index, query] of queries.entries()) {
       mrr10: first < 0 ? 0 : 1 / (first + 1),
       ms,
     };
+    dump.push({
+      config,
+      id: query.id,
+      query: query.query,
+      source: query.source,
+      expected: [...query.kr.keys()],
+      top: ranked.slice(0, 8),
+      first,
+    });
     record(config, 'all', score);
     record(config, `source:${query.source}`, score);
   }
@@ -284,6 +309,8 @@ for (const [config, bySlice] of Object.entries(report)) {
       .join(' | ')}`,
   );
 }
+const dumpPath = process.argv.find((item) => item.startsWith('--dump='))?.slice(7);
+if (dumpPath) writeFileSync(dumpPath, `${JSON.stringify(dump, null, 1)}\n`);
 const out = process.argv.find((item) => item.startsWith('--out='))?.slice(6);
 if (out) writeFileSync(out, `${JSON.stringify({ split, packs: packs.length, report }, null, 2)}\n`);
 await legacyCore.close();

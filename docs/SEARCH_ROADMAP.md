@@ -22,7 +22,7 @@ and the list is updated when the proposal is better. How search works today:
 | Exact names, codes (app path) | `benchmark:real:release` lookup; `benchmark:doctor-lookup` | R@1 0.803, R@5 0.934; doctor R@5 0.7 → 0.9 → 1.0 (S3) | — (lexical by design) | S2, S3 done |
 | Name on the wrong keyboard layout or in Latin letters | `name-variant-queries.json`, 720 generated | hit@1 0.063, hit@5 0.094 → 0.947 / 0.956 | — | S3 item 3 shipped |
 | Name with one slip in the first letters (neighbour key, sound-alike, other) | `typo-queries.json`, 698 generated | hit@1 0.239, hit@5 0.328 → 0.845 / 0.984 | — | item 19 shipped |
-| Owner queries («Все», lookup) | `owner-queries.json`, 54 | hit@1 0.167, hit@5 0.444 (rush 0.581, thoughtful 0.261) → 0.278, 0.574 (0.774, 0.304) | — | S3 items 3–4 |
+| Owner queries («Все», lookup) | `owner-queries.json`, 54 | hit@1 0.167, hit@5 0.444 (rush 0.581, thoughtful 0.261) → 0.278, 0.574 (0.774, 0.304) | with the query model, description recommendations (items 5/14): hit@5 0.463 → 0.833 (rush 0.677 → 0.903, thoughtful 0.174 → 0.739) | S3 items 3–4; items 5/14 shipped 2026-10-14 |
 | Diagnosis phrase → КР | Q1 RuCCoD, test | R@5 0.20 (KR packs) | 0.70 | shipped 0.6.48 |
 | Diagnosis phrase → КР through the МКБ card | Q1 RuCCoD, test, `run-icd-bridge.ts` | core only 0.417 → 0.536; core + mkb.db 0.298 → 0.476; 723 КР modules 0.274 → 0.476 | 0.643 → 0.643 (no change) | S3 item 4 shipped (lexical) |
 | Complaint → КР | Q1 RuMedPrime, test | R@5 0.04 (0.10 with the pointers) , unchanged by the bridge | 0.28 (0.19 in the S3 re-run) | weakest area |
@@ -53,8 +53,7 @@ and the list is updated when the proposal is better. How search works today:
    by words. e5 mode is unchanged (R@5 0.643 both ways: e5 already finds them). Complaints are not
    helped: a symptom list names no card, and the dev-set variant that bridged weaker cards too
    (+0.11 R@5 on complaints) broke the demo and lookup gates — see the rejected table.
-5. **Semantic candidates in «Все»** once items 1–2 show no name regression in the per-scope gates;
-   «Все» is the default search box.
+5. **Semantic candidates in «Все»** — done with item 14 (CMPL1, 2026-10-14), see there.
 6. **Related documents from existing links** («Похожие по теме»): disease card → its КР and drugs,
    drug → КР that name it (`clinical-medication-relations`), from source data only.
 7. **Owner query set.** 20–50 queries in the owner's own wording with the expected documents, as a
@@ -99,8 +98,19 @@ hit@5 0.444 (rush 0.581, thoughtful 0.261), and with S3 0.278 / 0.574 (0.774, 0.
     (2026-10-13): the core's medication spelling branch already found the drug; «Все» dropped it
     because its title stem was not in the query. `ScopedMedicalCore` now keeps drugs that branch
     matched.
-14. **Case vignettes** («Внезапная слабость в правой руке и нарушение речи два часа назад»): route
-    long case-like queries to the clinical analysis / e5 path automatically; same ground as item 5 and 8.
+14. **Descriptions and case vignettes in «Все»** (items 5 + 14, CMPL1, 2026-10-14; QA 10-13: «боль в
+    груди при вдохе» and «таблетки от головы» found only МКБ codes, the query model was never used in
+    «Все»). A lookup that names nothing (no title or alias begins with every typed word), has at least
+    two Cyrillic words and was not rewritten or corrected also runs the clinical hybrid search; up to
+    three recommendations found by meaning go right behind the first lexical group
+    (`SearchResponse.descriptionRecommendations`, core option `descriptionRecommendations`). Without
+    the model the response says `model-missing` and «Все» shows one row offering the download. Names,
+    codes and Latin terms are never touched; the lexical gates run without a model and are unchanged by
+    construction. Owner queries in «Все» with the model: hit@5 0.463 → 0.833, hit@1 0.296 → 0.315
+    (`bun tools/benchmarks/src/run-description-recommendations.ts`); one forbidden hit appears
+    («аг лечение»: the abbreviation, item 11). Costs one more search (clinical hybrid) for such queries
+    only. Left: abbreviations (item 11), a weak extra next to the right one («аг лечение» →
+    autoimmune haemolytic anaemia, cosine above the right one, so no cutoff helps), not measured on a phone.
 
 15. **Questions about a drug in pregnancy, lactation and a child's age** (SAFE1, 2026-10-06; owner
     request, gap audit item 5). Compared with the list first: it is not ranking work (items 1–5, 8 stay
@@ -167,7 +177,11 @@ hit@5 0.444 (rush 0.581, thoughtful 0.261), and with S3 0.278 / 0.574 (0.774, 0.
     0.94, КР 0.92 → 1.00, trade names 0.88 → 1.00; controls (codes, Latin terms, correct names, the
     owner's 54 queries) unchanged 220/220; no case lost a hit; corrected queries p95 0.64 → 1.3 s on a
     laptop (one more search, only after a miss). Left: body-text words are not corrected (no
-    vocabulary of them on the device); a corrected multi-word query that finds nothing as a whole
+    vocabulary of them on the device). 2026-10-14 (QA): a word only a close name answered («пневмания» →
+    the trade name «Внеплания», «амоксицилин» → «АМОКСИЦИЛЛИН») is corrected too when the corrected
+    search names it exactly, and a stem followed by a consonant in the vocabulary («амоксицил» +
+    «лин») is no word form: first-letter hit@1 0.845 → 0.990, hit@5 0.984 → 0.990, controls unchanged
+    but the owner's «цефтриаксн», now corrected. A corrected multi-word query that finds nothing as a whole
     («лечение оменции») stays uncorrected; not measured on a phone. Design:
     [`SEARCH_ARCHITECTURE.md`](SEARCH_ARCHITECTURE.md) «Misspelt words».
 
@@ -186,6 +200,7 @@ hit@5 0.444 (rush 0.581, thoughtful 0.261), and with S3 0.278 / 0.574 (0.774, 0.
 | МКБ bridge placed right behind its card / by score / appended, in name lookup | right behind the card: lookup recall@1 0.803 → 0.689, mrr 0.855 → 0.766; appended: Q1 dev R@5 0.174 (no gain) | 2026-10-06 |
 | МКБ bridge in name lookup without «first group is a card» | `benchmark:all` lookup recall@1 0.180 → 0.115: «парацетамол», «ибупрофен», «цефтриаксон» get recommendations in front of the drug through «Отравление парацетамолом» and neighbours | 2026-10-06 |
 | МКБ bridge on top of e5 hybrid | Q1 test, 723 КР modules: R@5 0.423 → 0.423, MRR 0.350 → 0.351 — nothing to add | 2026-10-06 |
+| KD1 hybrid: clause mixing (query vector + mean of its clause vectors), document evidence (a document's next vector hits add to its best), 200 vector candidates | Q1 dev complaints R@5 0.651 → 0.698 (clause 0.5) but test 0.633 → 0.646, R@1 −1 query; owner set R@5 0.822 → 0.822; document evidence and 200 candidates ±0; extra encodes per clause — not kept (CMPL1) | 2026-10-14 |
 | EmbeddingGemma 2 (text 270M) instead of e5-small on КР | Q1, 330 queries, 774 КР modules: R@5 0.452 → 0.497 (95 % CI −0.003…+0.094), R@1 0.288 → 0.270; complaints 0.255 → 0.303; query 4.3 → 284 ms on one CPU thread, model 118 → 314 MB; [note](research/embeddinggemma-2-2026-10-07.md) | 2026-10-07 |
 
 ## Open owner decisions

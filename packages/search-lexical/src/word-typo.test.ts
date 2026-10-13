@@ -74,6 +74,12 @@ describe('word forms', () => {
     expect(correctWord('аменцией', vocabulary)).toBeNull();
   });
 
+  it('corrects a dropped doubled letter before an ending-like tail («амоксицилин»)', () => {
+    const drugs = buildNameVocabulary(['амоксициллин', 'аменция']);
+    expect(correctWord('амоксицилин', drugs)?.corrected).toBe('амоксициллин');
+    expect(correctWord('аменцией', drugs)).toBeNull();
+  });
+
   it('prefers a whole name to the beginning of another at the same cost', () => {
     const drugs = buildNameVocabulary(['цефтриаксон', 'цефтриаксоновый']);
     expect(correctWord('цефтриаксн', drugs)?.corrected).toBe('цефтриаксон');

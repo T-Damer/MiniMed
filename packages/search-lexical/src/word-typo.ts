@@ -172,16 +172,24 @@ function better(candidate: Best, best: Best | null): boolean {
 /** Russian case and number endings begin with a vowel, «й» or «ь» («-ей», «-ом», «-ах», «-ь»). */
 const ENDING_START = /^[аеиоуыэюяйь]/u;
 
+/** Letters an inflection ending can start with. */
+const ENDING_LETTERS = [...'аеиоуыэюяйь'];
+
 /**
  * True when `word`, or its stem without an inflection ending of up to two letters, begins some
- * name of the vocabulary. A dropped consonant is no ending: «цефтриаксн» is a slip, not a form.
+ * name of the vocabulary where an ending follows the stem too («аменцией»: «аменци» + «я»). A
+ * dropped consonant is no ending: «цефтриаксн» is a slip, and so is «амоксицилин», whose stem
+ * «амоксицил» goes on with a consonant in «амоксициллин».
  */
 function isKnownWord(word: string, vocabulary: NameVocabulary): boolean {
   if (vocabularyHasPrefix(vocabulary, word)) return true;
   for (let ending = 1; ending <= MAX_ENDING; ending += 1) {
     const stem = word.slice(0, word.length - ending);
     if (stem.length < MIN_KNOWN_STEM) break;
-    if (ENDING_START.test(word.slice(stem.length)) && vocabularyHasPrefix(vocabulary, stem))
+    if (
+      ENDING_START.test(word.slice(stem.length)) &&
+      ENDING_LETTERS.some((letter) => vocabularyHasPrefix(vocabulary, stem + letter))
+    )
       return true;
   }
   return false;

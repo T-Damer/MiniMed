@@ -29,4 +29,20 @@ describe('neural query embeddings', () => {
     const embedder = new NeuralQueryEmbedder(KD1_PROFILE, async () => new Float32Array(8));
     await expect(embedder.embedQuery('x')).rejects.toThrow(RangeError);
   });
+
+  it('reuses the last query vector and forgets a failed one', async () => {
+    let calls = 0;
+    let fail = true;
+    const embedder = new NeuralQueryEmbedder(KD1_PROFILE, async () => {
+      calls += 1;
+      if (fail) throw new Error('semantic-model-not-installed');
+      return Float32Array.from({ length: 384 }, (_, index) => (index === 0 ? 1 : 0));
+    });
+    await expect(embedder.embedQuery('кашель')).rejects.toThrow('semantic-model-not-installed');
+    fail = false;
+    const first = await embedder.embedQuery('кашель');
+    const second = await embedder.embedQuery('кашель');
+    expect(second).toBe(first);
+    expect(calls).toBe(2);
+  });
 });

@@ -1,0 +1,38 @@
+/* Offer of the semantic model above «Все» results for a description query (roadmap items 5/14). */
+.semantic-model-offer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.875rem;
+  background: var(--theme-surface-raised, var(--theme-surface));
+  animation: semantic-model-offer-in var(--motion-base) var(--motion-ease-out);
+}
+
+.semantic-model-offer__icon {
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--theme-accent);
+}
+
+.semantic-model-offer__text {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+
+.semantic-model-offer__action {
+  flex: none;
+}
+
+@keyframes semantic-model-offer-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.25rem);
+  }
+}

@@ -41,7 +41,28 @@ export class NeuralQueryEmbedder implements QueryEmbedder {
     public readonly fusion: SemanticFusion = LEGACY_SEMANTIC_FUSION,
   ) {}
 
-  public async embedQuery(text: string): Promise<QuantizedEmbeddingVector> {
+  private last: {
+    readonly text: string;
+    readonly vector: Promise<QuantizedEmbeddingVector>;
+  } | null = null;
+
+  /** The last query's vector is reused: MedicalCore may ask twice for one search. */
+  public embedQuery(text: string): Promise<QuantizedEmbeddingVector> {
+    if (this.last?.text === text) return this.last.vector;
+    const vector = this.embed(text);
+    this.last = { text, vector };
+    vector.catch(() => {
+      if (this.last?.vector === vector) this.last = null;
+    });
+    return vector;
+  }
+
+  private async embed(text: string): Promise<QuantizedEmbeddingVector> {
+    const quantized = quantizeEmbedding(await this.encodeText(text));
+    return { profileId: this.profile.id, values: quantized, norm: vectorNorm(quantized) };
+  }
+
+  private async encodeText(text: string): Promise<ArrayLike<number>> {
     const prefix = this.profile.metadata['queryPrefix'];
     const encoded = await this.encode(`${typeof prefix === 'string' ? prefix : ''}${text}`);
     if (encoded.length !== this.profile.dimensions) {
@@ -49,7 +70,6 @@ export class NeuralQueryEmbedder implements QueryEmbedder {
         `Embedding dimension mismatch: ${encoded.length} !== ${this.profile.dimensions}`,
       );
     }
-    const values = quantizeEmbedding(encoded);
-    return { profileId: this.profile.id, values, norm: vectorNorm(values) };
+    return encoded;
   }
 }

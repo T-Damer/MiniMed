@@ -41,28 +41,33 @@ function typedWords(query: string): readonly string[] {
   return normalizeSurfaceText(searchSubjectText(query)).match(WORD) ?? [];
 }
 
-function namesCover(names: readonly string[], words: readonly string[]): boolean {
+function namesCover(names: readonly string[], words: readonly string[], exact: boolean): boolean {
   const nameWords = names.flatMap((name) => normalizeSurfaceText(name).split(/[^0-9a-zа-я]+/u));
   return words.every((word) =>
     nameWords.some(
-      (name) => name.startsWith(word) || (word.length >= 5 && isCloseToken(name, word)),
+      (name) => name.startsWith(word) || (!exact && word.length >= 5 && isCloseToken(name, word)),
     ),
   );
 }
 
 /**
  * True when the response already answers the typed name: an identity hit, a terminology match, or
- * a group among the first few whose title or alias begins with every typed word.
+ * a group among the first few whose title or alias begins with every typed word — or, unless
+ * `exact`, a word close to it («внеплания» for «пневмания»).
  */
 export function responseNamesQuery(
   response: SearchResponse,
   query: string,
   index: QueryDocumentIndex,
+  exact = false,
 ): boolean {
   if (response.identities?.length) return true;
   const words = typedWords(query);
   if (words.length === 0) return true;
+  // A title, short title or alias equal to the query is a name whatever the group's title says.
+  const exactIds = index.exactIdentityIds(query);
   return response.groups.slice(0, CHECKED_GROUPS).some((group) => {
+    if (exactIds.has(group.documentId)) return true;
     if (group.terminologyMatch) return true;
     const metadata = index.byId.get(group.documentId)?.metadata ?? {};
     const aliases = ['declaredAliases', 'navigationAliases'].flatMap((key) => {
@@ -71,7 +76,7 @@ export function responseNamesQuery(
         ? value.filter((item): item is string => typeof item === 'string')
         : [];
     });
-    return namesCover([group.title, ...aliases], words);
+    return namesCover([group.title, ...aliases], words, exact);
   });
 }
 

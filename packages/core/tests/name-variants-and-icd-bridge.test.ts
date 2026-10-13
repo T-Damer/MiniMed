@@ -86,6 +86,12 @@ const SEED = ContentPackSeedSchema.parse({
     fixtureDocument('ref.amentia', 'Аменция', 'Аменция — тяжёлое помрачение сознания.', {
       catalogFamily: 'reference',
     }),
+    fixtureDocument('ref.pneumonia', 'Пневмония', 'Пневмония — воспаление лёгких.', {
+      catalogFamily: 'reference',
+    }),
+    fixtureDocument('med.vneplania', 'Внеплания', 'Внеплания. Мифепристон, таблетки.', {
+      catalogFamily: 'medication',
+    }),
     fixtureDocument(
       'ref.twilight',
       'Сумеречное помрачение сознания',
@@ -189,6 +195,14 @@ describe('spelling correction (roadmap item 19)', () => {
       expect.objectContaining({ original: query.toLowerCase(), corrected }),
     ]);
     expect(response.value.groups.map((group) => group.documentId)).toContain(expected);
+  });
+
+  it('corrects a word that only a close name answered («Внеплания» for «пневмания»)', async () => {
+    const response = await lookup(createCore(), 'пневмания');
+    expect(response.ok).toBe(true);
+    if (!response.ok) return;
+    expect(response.value.queryCorrection?.correctedQuery).toBe('пневмония');
+    expect(response.value.groups[0]?.documentId).toBe('ref.pneumonia');
   });
 
   it('never corrects a query that already names something', async () => {

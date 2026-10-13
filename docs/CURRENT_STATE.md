@@ -353,6 +353,32 @@ and assessment pages; assessments gained the section «Депрессия и т�
 0.1.0-preview.6 needs app 0.6.60, the other 13 rebuilt modules stay at 0.6.59 since `scoreScales` is optional).
 Not tested: Android/device, Safari, a real printer; the verdict `attentionLevel`s of about 25 tools are still all `none`.
 
+## Complaints and descriptions in «Все» — 2026-10-14 (STATE CMPL1)
+
+Owner: complaint → recommendation search «is for you»; two QA passes (2026-10-13) found that «Все»
+answered «боль в груди при вдохе» and «таблетки от головы» with МКБ codes only: «Все» runs lexical
+lookup and never used the query model. Roadmap items 5 and 14 ([SEARCH_ROADMAP.md](SEARCH_ROADMAP.md)).
+
+- Core: a lookup that names nothing, has at least two Cyrillic words and was not rewritten or
+  corrected also runs the clinical hybrid search; up to three recommendations found by meaning go
+  right behind the first lexical group (`SearchResponse.descriptionRecommendations`, option
+  `descriptionRecommendations`, on by default). Without the model: `model-missing`, and «Все» shows
+  one row «Жалобы и описания своими словами находит поиск по смыслу — Скачать · 130 МБ»
+  (`SemanticModelOffer`), which re-runs the search once the model is installed.
+- Measured (`run-description-recommendations.ts`, released corpus + 774 КР modules with KD1 vectors,
+  the app's `ScopedMedicalCore('all')`): owner queries hit@5 0.463 → 0.833 (rush 0.677 → 0.903,
+  thoughtful 0.174 → 0.739), hit@1 0.296 → 0.315; one forbidden hit («аг лечение», abbreviation);
+  Latin-term controls untouched after the Cyrillic rule. Lexical gates run without a model and are
+  unchanged by construction.
+- Also measured and not kept: clause mixing, document evidence and more vector candidates in the
+  KD1 hybrid (Q1 test complaints R@5 0.633 → 0.646 at best; «Measured and rejected»).
+- Spelling (QA): «пневмания» (the trade name «Внеплания» counted as close) and «амоксицилин» (a
+  missing doubled letter read as a word form) are now corrected; first-letter typo hit@1 0.845 →
+  0.990.
+- Not tested: a phone (the extra clinical search costs ~0.2 s in Bun, ~0.7 s per КР query measured
+  on the emulator earlier), the installed-model path in the browser (unit tests and the benchmark
+  cover it).
+
 ## Misspelt words in search — 2026-10-13 (STATE TYPO1)
 
 Owner report: «Помоач» (for «Помрач») and «Оменция» (for «Аменция») found nothing, although most

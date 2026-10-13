@@ -200,6 +200,16 @@ numbers in [`SEMANTIC_RETRIEVAL.md`](SEMANTIC_RETRIEVAL.md).
      wider than e5's, which used band 0.10, 0.5 / 0.8 / 0.3). Legacy: no band, 0.78 / 0.62 / 0.22.
    Exact-alias documents and the exact subject title survive the cut as in lexical fusion.
 
+5. **Descriptions in «Все» (items 5/14).** «Все» searches in lexical lookup mode. After the name
+   variants and the spelling correction, `withDescriptionRecommendations` checks the response: a
+   query with at least two Cyrillic words that names nothing (`responseNamesQuery(…, exact)`), was
+   not rewritten, corrected or scoped to a source, first asks the embedder for its vector (cached:
+   `NeuralQueryEmbedder` reuses the last query's vector for the following search). Without the model
+   the response carries `descriptionRecommendations: {status: 'model-missing'}` and the app offers
+   the download (`SemanticModelOffer`); with it, a clinical hybrid search runs and up to three
+   recommendations with a semantic score that are not already listed go right behind the first
+   lexical group (`{status: 'added', documentIds}`).
+
 Any failure falls back to lexical and is reported in `diagnostics.semantic` (`status`,
 `profileId`, `candidateCount`, `elapsedMs`, `fallbackReason`: `query-embedder-unavailable`,
 `embedding-profile-mismatch`, `invalid-query-vector`, `no-vector-candidates`, `semantic-error:*`).

@@ -110,7 +110,16 @@ export interface CreateMedicalCoreOptions {
   readonly nameVariants?: boolean;
   /** Roadmap item 19: misspelt words corrected after the name variants; on by default. */
   readonly spellingCorrection?: boolean;
+  /**
+   * Roadmap items 5/14: a lookup that names nothing and reads like a description also gets the
+   * recommendations the semantic model finds for it; on by default.
+   */
+  readonly descriptionRecommendations?: boolean;
 }
+
+/** Recommendations a description lookup adds, and the first group they go behind. */
+const DESCRIPTION_RECOMMENDATIONS = 3;
+const DESCRIPTION_MIN_WORDS = 2;
 
 interface BranchContribution {
   readonly branchId: string;
@@ -1755,6 +1764,23 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
   ): Promise<Result<SearchResponse, LocalMedError>> => {
     if (responseNamesQuery(primary, request.query, index)) {
       if (options.spellingCorrection === false) return ok(primary);
+      // Named only by a close word («Внеплания» for «пневмания», «АМОКСИЦИЛЛИН» for
+      // «амоксицилин»): a correction whose own search names the corrected words exactly wins.
+      if (!responseNamesQuery(primary, request.query, index, true)) {
+        const correction = spellingCorrection(request.query, await spellingVocabulary(index));
+        if (correction) {
+          const corrected = await runSearch({ ...request, query: correction.correctedQuery });
+          if (
+            corrected.ok &&
+            responseNamesQuery(corrected.value, correction.correctedQuery, index, true)
+          )
+            return ok({
+              ...corrected.value,
+              elapsedMs: primary.elapsedMs + corrected.value.elapsedMs,
+              queryCorrection: correction,
+            });
+        }
+      }
       // A drug found for a misspelt name: the box shows the same correction as any other word.
       const spelled = drugSpellingCorrection(
         primary,
@@ -1791,6 +1817,67 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       elapsedMs: primary.elapsedMs + corrected.value.elapsedMs,
       queryCorrection: correction,
     });
+  };
+
+  /**
+   * A lookup that names nothing and is a description («боль в груди при вдохе», «таблетки от
+   * головы») also runs the clinical hybrid search; the recommendations found by meaning go behind
+   * the first lexical group. Names, codes, rewritten and corrected queries are never touched.
+   */
+  const withDescriptionRecommendations = async (
+    request: SearchRequest,
+    response: SearchResponse,
+    index: QueryDocumentIndex,
+  ): Promise<SearchResponse> => {
+    // The model reads Russian: Latin names («Candida albicans») are names, not descriptions.
+    const words = request.query.match(/[а-яё]{2,}/giu) ?? [];
+    if (
+      request.mode !== 'lexical' ||
+      request.filters.documentIds?.length ||
+      response.queryRewrite ||
+      response.queryCorrection ||
+      response.sourceScope ||
+      words.length < DESCRIPTION_MIN_WORDS ||
+      responseNamesQuery(response, request.query, index, true)
+    )
+      return response;
+    if (!options.embedder) return response;
+    // Ask the model first: without it the clinical search would only repeat lexical work.
+    try {
+      await options.embedder.embedQuery(request.query);
+    } catch {
+      return { ...response, descriptionRecommendations: { status: 'model-missing' } };
+    }
+    const semantic = await runSearch({
+      ...request,
+      mode: 'hybrid',
+      analysisMode: 'clinical',
+      limit: Math.max(request.limit, 10),
+    });
+    if (!semantic.ok || semantic.value.diagnostics.semantic.status !== 'used') return response;
+    const present = new Set(response.groups.map((group) => group.documentId));
+    const added = semantic.value.groups
+      .filter((group) => {
+        const document = index.byId.get(group.documentId);
+        return (
+          document !== undefined &&
+          isRecommendationDocument(document) &&
+          !present.has(group.documentId) &&
+          group.results.some((result) => (result.semanticScore ?? 0) > 0)
+        );
+      })
+      .slice(0, DESCRIPTION_RECOMMENDATIONS);
+    if (added.length === 0) return response;
+    const [first, ...rest] = response.groups;
+    return {
+      ...response,
+      elapsedMs: response.elapsedMs + semantic.value.elapsedMs,
+      groups: first ? [first, ...added, ...rest] : added,
+      descriptionRecommendations: {
+        status: 'added',
+        documentIds: added.map((group) => group.documentId),
+      },
+    };
   };
 
   return {
@@ -1908,7 +1995,9 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         !queryDocumentIndex
       )
         return primary;
-      return withNameVariantFallback(parsed.data, primary.value, queryDocumentIndex);
+      const named = await withNameVariantFallback(parsed.data, primary.value, queryDocumentIndex);
+      if (!named.ok || options.descriptionRecommendations === false) return named;
+      return ok(await withDescriptionRecommendations(parsed.data, named.value, queryDocumentIndex));
     },
 
     async reference(request) {

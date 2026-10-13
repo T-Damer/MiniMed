@@ -389,4 +389,15 @@ export interface SearchResponse {
   readonly queryRewrite?: QueryRewrite;
   /** Present only when the query named a source and the search ran inside it. */
   readonly sourceScope?: SourceScope;
+  /**
+   * Roadmap items 5 and 14: a lookup that names nothing and reads like a description or complaint
+   * («боль в груди при вдохе») also asks the semantic model for clinical recommendations.
+   * `added` lists the recommendations put into the groups; `model-missing` means the model that
+   * would answer such a query is not installed, so the UI can offer it.
+   */
+  readonly descriptionRecommendations?: DescriptionRecommendations;
 }
+
+export type DescriptionRecommendations =
+  | { readonly status: 'added'; readonly documentIds: readonly string[] }
+  | { readonly status: 'model-missing' };
