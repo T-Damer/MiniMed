@@ -1,0 +1,886 @@
+aliases:
+- id: feeding-breastfeeding-785787f6eb
+  canonicalTerm: 'Грудное вскармливание: режим, докорм, прибавки массы, сцеженное молоко'
+  alias: грудное вскармливание
+  category: reference
+  weight: 1.5
+- id: feeding-breastfeeding-a900aa75e4
+  canonicalTerm: 'Грудное вскармливание: режим, докорм, прибавки массы, сцеженное молоко'
+  alias: режим кормления грудью
+  category: reference
+  weight: 1.3
+- id: feeding-breastfeeding-32ccea0298
+  canonicalTerm: 'Грудное вскармливание: режим, докорм, прибавки массы, сцеженное молоко'
+  alias: как часто кормить новорожденного
+  category: reference
+  weight: 1.3
+- id: feeding-breastfeeding-ded8d246c5
+  canonicalTerm: 'Грудное вскармливание: режим, докорм, прибавки массы, сцеженное молоко'
+  alias: объём молозива
+  category: reference
+  weight: 1.3
+- id: feeding-breastfeeding-f20c2979ea
+  canonicalTerm: 'Грудное вскармливание: режим, докорм, прибавки массы, сцеженное молоко'
+  alias: сколько молока ребёнку 3 месяца
+  category: reference
+  weight: 1.3
+- id: feeding-breastfeeding-7ff83e263c
+  canonicalTerm: 'Грудное вскармливание: режим, докорм, прибавки массы, сцеженное молоко'
+  alias: докорм
+  category: reference
+  weight: 1.3
+- id: feeding-breastfeeding-1cabe0e184
+  canonicalTerm: 'Грудное вскармливание: режим, докорм, прибавки массы, сцеженное молоко'
+  alias: показания к докорму
+  category: reference
+  weight: 1.3
+- id: feeding-breastfeeding-c073260c19
+  canonicalTerm: 'Грудное вскармливание: режим, докорм, прибавки массы, сцеженное молоко'
+  alias: потеря массы тела новорождённого
+  category: reference
+  weight: 1.3
+- id: feeding-breastfeeding-2383ee15a9
+  canonicalTerm: 'Грудное вскармливание: режим, докорм, прибавки массы, сцеженное молоко'
+  alias: прибавка массы тела грудничка
+  category: reference
+  weight: 1.3
+- id: feeding-breastfeeding-e8c1069b69
+  canonicalTerm: 'Грудное вскармливание: режим, докорм, прибавки массы, сцеженное молоко'
+  alias: норма прибавки веса за неделю
+  category: reference
+  weight: 1.3
+- id: feeding-breastfeeding-0515825732
+  canonicalTerm: 'Грудное вскармливание: режим, докорм, прибавки массы, сцеженное молоко'
+  alias: гипогалактия
+  category: reference
+  weight: 1.3
+- id: feeding-breastfeeding-adb66776ea
+  canonicalTerm: 'Грудное вскармливание: режим, докорм, прибавки массы, сцеженное молоко'
+  alias: стимуляция лактации
+  category: reference
+  weight: 1.3
+- id: feeding-breastfeeding-c7fd34af54
+  canonicalTerm: 'Грудное вскармливание: режим, докорм, прибавки массы, сцеженное молоко'
+  alias: хранение грудного молока
+  category: reference
+  weight: 1.3
+- id: feeding-breastfeeding-5df6ad4238
+  canonicalTerm: 'Грудное вскармливание: режим, докорм, прибавки массы, сцеженное молоко'
+  alias: заморозка грудного молока
+  category: reference
+  weight: 1.3
+- id: feeding-breastfeeding-251a28c78f
+  canonicalTerm: 'Грудное вскармливание: режим, докорм, прибавки массы, сцеженное молоко'
+  alias: сцеженное грудное молоко
+  category: reference
+  weight: 1.3
+- id: feeding-breastfeeding-c4d0d19f63
+  canonicalTerm: 'Грудное вскармливание: режим, докорм, прибавки массы, сцеженное молоко'
+  alias: противопоказания к грудному вскармливанию
+  category: reference
+  weight: 1.3
+- id: feeding-breastfeeding-cfda14192a
+  canonicalTerm: 'Грудное вскармливание: режим, докорм, прибавки массы, сцеженное молоко'
+  alias: допаивание
+  category: reference
+  weight: 1.3
+- id: feeding-breastfeeding-abfbe7718a
+  canonicalTerm: 'Грудное вскармливание: режим, докорм, прибавки массы, сцеженное молоко'
+  alias: исключительно грудное вскармливание
+  category: reference
+  weight: 1.3
+- id: feeding-breastfeeding-736bd25454
+  canonicalTerm: 'Грудное вскармливание: режим, докорм, прибавки массы, сцеженное молоко'
+  alias: продолжительность грудного вскармливания
+  category: reference
+  weight: 1.3
+- id: feeding-children-nutrient-norms-fa20c821a8
+  canonicalTerm: Нормы потребности детей и подростков в энергии и пищевых веществах по возрастам
+  alias: нормы питания детей по возрасту
+  category: reference
+  weight: 1.5
+- id: feeding-children-nutrient-norms-29f61b5c8e
+  canonicalTerm: Нормы потребности детей и подростков в энергии и пищевых веществах по возрастам
+  alias: потребность ребёнка в энергии по возрасту
+  category: reference
+  weight: 1.3
+- id: feeding-children-nutrient-norms-6dbb396246
+  canonicalTerm: Нормы потребности детей и подростков в энергии и пищевых веществах по возрастам
+  alias: суточная калорийность детей
+  category: reference
+  weight: 1.3
+- id: feeding-children-nutrient-norms-24fdc7c928
+  canonicalTerm: Нормы потребности детей и подростков в энергии и пищевых веществах по возрастам
+  alias: потребность в белках жирах углеводах у детей
+  category: reference
+  weight: 1.3
+- id: feeding-children-nutrient-norms-052aa1d9a2
+  canonicalTerm: Нормы потребности детей и подростков в энергии и пищевых веществах по возрастам
+  alias: нормы витаминов для детей
+  category: reference
+  weight: 1.3
+- id: feeding-children-nutrient-norms-92c165f233
+  canonicalTerm: Нормы потребности детей и подростков в энергии и пищевых веществах по возрастам
+  alias: нормы кальция железа для детей
+  category: reference
+  weight: 1.3
+- id: feeding-children-nutrient-norms-51e1a19ad7
+  canonicalTerm: Нормы потребности детей и подростков в энергии и пищевых веществах по возрастам
+  alias: МР 2.3.1.2432-08 дети
+  category: reference
+  weight: 1.3
+- id: feeding-children-nutrient-norms-face8e7669
+  canonicalTerm: Нормы потребности детей и подростков в энергии и пищевых веществах по возрастам
+  alias: нормы физиологических потребностей детей и подростков
+  category: reference
+  weight: 1.3
+- id: feeding-children-nutrient-norms-53b328960d
+  canonicalTerm: Нормы потребности детей и подростков в энергии и пищевых веществах по возрастам
+  alias: сколько калорий нужно ребёнку 5 лет
+  category: reference
+  weight: 1.3
+- id: feeding-children-nutrient-norms-4ea507eef6
+  canonicalTerm: Нормы потребности детей и подростков в энергии и пищевых веществах по возрастам
+  alias: сколько белка нужно подростку
+  category: reference
+  weight: 1.3
+- id: feeding-children-over-one-year-e508718480
+  canonicalTerm: 'Питание детей старше года: калорийность, объём, режим'
+  alias: питание детей старше года
+  category: reference
+  weight: 1.5
+- id: feeding-children-over-one-year-bb15d7d271
+  canonicalTerm: 'Питание детей старше года: калорийность, объём, режим'
+  alias: питание ребёнка 2 года
+  category: reference
+  weight: 1.3
+- id: feeding-children-over-one-year-fb2d40cd94
+  canonicalTerm: 'Питание детей старше года: калорийность, объём, режим'
+  alias: питание ребёнка 3 года
+  category: reference
+  weight: 1.3
+- id: feeding-children-over-one-year-f384d03f20
+  canonicalTerm: 'Питание детей старше года: калорийность, объём, режим'
+  alias: суточная калорийность ребёнка старше года
+  category: reference
+  weight: 1.3
+- id: feeding-children-over-one-year-6197dda232
+  canonicalTerm: 'Питание детей старше года: калорийность, объём, режим'
+  alias: 1000 + 100n
+  category: reference
+  weight: 1.3
+- id: feeding-children-over-one-year-e0a07747df
+  canonicalTerm: 'Питание детей старше года: калорийность, объём, режим'
+  alias: суточный объём пищи ребёнок 2 года
+  category: reference
+  weight: 1.3
+- id: feeding-children-over-one-year-6993a18e3b
+  canonicalTerm: 'Питание детей старше года: калорийность, объём, режим'
+  alias: распределение калорийности по приёмам пищи
+  category: reference
+  weight: 1.3
+- id: feeding-children-over-one-year-8b62ceb76f
+  canonicalTerm: 'Питание детей старше года: калорийность, объём, режим'
+  alias: режим питания ребёнка старше года
+  category: reference
+  weight: 1.3
+- id: feeding-children-over-one-year-29a6e40229
+  canonicalTerm: 'Питание детей старше года: калорийность, объём, режим'
+  alias: нормы белков жиров углеводов 1-3 года
+  category: reference
+  weight: 1.3
+- id: feeding-children-over-one-year-241dc734c4
+  canonicalTerm: 'Питание детей старше года: калорийность, объём, режим'
+  alias: сколько молока ребёнку после года
+  category: reference
+  weight: 1.3
+- id: feeding-complementary-feeding-454dcc48fa
+  canonicalTerm: 'Прикорм: сроки, схема введения, правила'
+  alias: прикорм
+  category: reference
+  weight: 1.5
+- id: feeding-complementary-feeding-03110e75d5
+  canonicalTerm: 'Прикорм: сроки, схема введения, правила'
+  alias: схема прикорма
+  category: reference
+  weight: 1.3
+- id: feeding-complementary-feeding-49f2288a95
+  canonicalTerm: 'Прикорм: сроки, схема введения, правила'
+  alias: когда вводить прикорм
+  category: reference
+  weight: 1.3
+- id: feeding-complementary-feeding-2cb8637587
+  canonicalTerm: 'Прикорм: сроки, схема введения, правила'
+  alias: введение прикорма
+  category: reference
+  weight: 1.3
+- id: feeding-complementary-feeding-e95274699a
+  canonicalTerm: 'Прикорм: сроки, схема введения, правила'
+  alias: первый прикорм
+  category: reference
+  weight: 1.3
+- id: feeding-complementary-feeding-2d130a294e
+  canonicalTerm: 'Прикорм: сроки, схема введения, правила'
+  alias: схема введения прикорма по месяцам
+  category: reference
+  weight: 1.3
+- id: feeding-complementary-feeding-0e16f846f1
+  canonicalTerm: 'Прикорм: сроки, схема введения, правила'
+  alias: прикорм 4 месяца
+  category: reference
+  weight: 1.3
+- id: feeding-complementary-feeding-01ac555119
+  canonicalTerm: 'Прикорм: сроки, схема введения, правила'
+  alias: прикорм 5 месяцев
+  category: reference
+  weight: 1.3
+- id: feeding-complementary-feeding-e812d6bda4
+  canonicalTerm: 'Прикорм: сроки, схема введения, правила'
+  alias: прикорм 6 месяцев
+  category: reference
+  weight: 1.3
+- id: feeding-complementary-feeding-0d2ae94467
+  canonicalTerm: 'Прикорм: сроки, схема введения, правила'
+  alias: мясное пюре сроки
+  category: reference
+  weight: 1.3
+- id: feeding-complementary-feeding-74d51671a5
+  canonicalTerm: 'Прикорм: сроки, схема введения, правила'
+  alias: желток прикорм
+  category: reference
+  weight: 1.3
+- id: feeding-complementary-feeding-7325e690bd
+  canonicalTerm: 'Прикорм: сроки, схема введения, правила'
+  alias: каша или овощи первым прикормом
+  category: reference
+  weight: 1.3
+- id: feeding-complementary-feeding-cc1e4bd1a8
+  canonicalTerm: 'Прикорм: сроки, схема введения, правила'
+  alias: правила введения прикорма
+  category: reference
+  weight: 1.3
+- id: feeding-complementary-feeding-ac428a6589
+  canonicalTerm: 'Прикорм: сроки, схема введения, правила'
+  alias: детский творог с какого возраста
+  category: reference
+  weight: 1.3
+- id: feeding-complementary-feeding-93502a2102
+  canonicalTerm: 'Прикорм: сроки, схема введения, правила'
+  alias: кефир ребёнку с какого возраста
+  category: reference
+  weight: 1.3
+- id: feeding-complementary-feeding-33d6155b17
+  canonicalTerm: 'Прикорм: сроки, схема введения, правила'
+  alias: сок ребёнку с какого возраста
+  category: reference
+  weight: 1.3
+- id: feeding-complementary-feeding-5ec7977be0
+  canonicalTerm: 'Прикорм: сроки, схема введения, правила'
+  alias: вегетарианский прикорм
+  category: reference
+  weight: 1.3
+- id: feeding-daily-volume-methods-bb0234be13
+  canonicalTerm: Расчёт суточного и разового объёма питания ребёнка первого года
+  alias: расчёт объёма питания
+  category: reference
+  weight: 1.5
+- id: feeding-daily-volume-methods-af394b5a3d
+  canonicalTerm: Расчёт суточного и разового объёма питания ребёнка первого года
+  alias: суточный объём питания
+  category: reference
+  weight: 1.3
+- id: feeding-daily-volume-methods-d7af22f239
+  canonicalTerm: Расчёт суточного и разового объёма питания ребёнка первого года
+  alias: разовый объём питания
+  category: reference
+  weight: 1.3
+- id: feeding-daily-volume-methods-1a49f44ec6
+  canonicalTerm: Расчёт суточного и разового объёма питания ребёнка первого года
+  alias: объём кормления
+  category: reference
+  weight: 1.3
+- id: feeding-daily-volume-methods-dd2c4fd5f2
+  canonicalTerm: Расчёт суточного и разового объёма питания ребёнка первого года
+  alias: формула Финкельштейна
+  category: reference
+  weight: 1.3
+- id: feeding-daily-volume-methods-a3efb9c1f2
+  canonicalTerm: Расчёт суточного и разового объёма питания ребёнка первого года
+  alias: формула Филатова
+  category: reference
+  weight: 1.3
+- id: feeding-daily-volume-methods-bc41c0583c
+  canonicalTerm: Расчёт суточного и разового объёма питания ребёнка первого года
+  alias: формула Шкарина
+  category: reference
+  weight: 1.3
+- id: feeding-daily-volume-methods-db497019a4
+  canonicalTerm: Расчёт суточного и разового объёма питания ребёнка первого года
+  alias: объёмный метод
+  category: reference
+  weight: 1.3
+- id: feeding-daily-volume-methods-3ec8010fdc
+  canonicalTerm: Расчёт суточного и разового объёма питания ребёнка первого года
+  alias: калорийный метод
+  category: reference
+  weight: 1.3
+- id: feeding-daily-volume-methods-c72d778845
+  canonicalTerm: Расчёт суточного и разового объёма питания ребёнка первого года
+  alias: метод Маслова
+  category: reference
+  weight: 1.3
+- id: feeding-daily-volume-methods-e8762ba581
+  canonicalTerm: Расчёт суточного и разового объёма питания ребёнка первого года
+  alias: формула Тура
+  category: reference
+  weight: 1.3
+- id: feeding-daily-volume-methods-1eef65c596
+  canonicalTerm: Расчёт суточного и разового объёма питания ребёнка первого года
+  alias: формула Шабалова
+  category: reference
+  weight: 1.3
+- id: feeding-daily-volume-methods-f20c2979ea
+  canonicalTerm: Расчёт суточного и разового объёма питания ребёнка первого года
+  alias: сколько молока ребёнку 3 месяца
+  category: reference
+  weight: 1.3
+- id: feeding-daily-volume-methods-ea36c8ca8a
+  canonicalTerm: Расчёт суточного и разового объёма питания ребёнка первого года
+  alias: сколько молока в 2 месяца
+  category: reference
+  weight: 1.3
+- id: feeding-daily-volume-methods-5b062d9a56
+  canonicalTerm: Расчёт суточного и разового объёма питания ребёнка первого года
+  alias: сколько мл смеси новорождённому
+  category: reference
+  weight: 1.3
+- id: feeding-daily-volume-methods-3c77f69ae7
+  canonicalTerm: Расчёт суточного и разового объёма питания ребёнка первого года
+  alias: сколько кормить новорождённого по дням
+  category: reference
+  weight: 1.3
+- id: feeding-daily-volume-methods-4b6985c785
+  canonicalTerm: Расчёт суточного и разового объёма питания ребёнка первого года
+  alias: правило десятки
+  category: reference
+  weight: 1.3
+- id: feeding-daily-volume-methods-3028f6f160
+  canonicalTerm: Расчёт суточного и разового объёма питания ребёнка первого года
+  alias: суточный объём питания 1000 мл
+  category: reference
+  weight: 1.3
+- id: feeding-feeding-schedule-629430a9f8
+  canonicalTerm: 'Режим кормления: частота, интервалы, ночной перерыв'
+  alias: режим кормления
+  category: reference
+  weight: 1.5
+- id: feeding-feeding-schedule-d7f257aec0
+  canonicalTerm: 'Режим кормления: частота, интервалы, ночной перерыв'
+  alias: сколько раз кормить
+  category: reference
+  weight: 1.3
+- id: feeding-feeding-schedule-fbfeea8151
+  canonicalTerm: 'Режим кормления: частота, интервалы, ночной перерыв'
+  alias: частота кормлений
+  category: reference
+  weight: 1.3
+- id: feeding-feeding-schedule-093bbb63b9
+  canonicalTerm: 'Режим кормления: частота, интервалы, ночной перерыв'
+  alias: интервалы между кормлениями
+  category: reference
+  weight: 1.3
+- id: feeding-feeding-schedule-5754773e71
+  canonicalTerm: 'Режим кормления: частота, интервалы, ночной перерыв'
+  alias: кормление по требованию
+  category: reference
+  weight: 1.3
+- id: feeding-feeding-schedule-e811bb7d28
+  canonicalTerm: 'Режим кормления: частота, интервалы, ночной перерыв'
+  alias: регламентированное вскармливание
+  category: reference
+  weight: 1.3
+- id: feeding-feeding-schedule-82f073b5f3
+  canonicalTerm: 'Режим кормления: частота, интервалы, ночной перерыв'
+  alias: ночной перерыв в кормлении
+  category: reference
+  weight: 1.3
+- id: feeding-feeding-schedule-e5f216e44a
+  canonicalTerm: 'Режим кормления: частота, интервалы, ночной перерыв'
+  alias: кормление новорождённого по часам
+  category: reference
+  weight: 1.3
+- id: feeding-feeding-schedule-89625777ba
+  canonicalTerm: 'Режим кормления: частота, интервалы, ночной перерыв'
+  alias: сколько кормлений в сутки в 2 месяца
+  category: reference
+  weight: 1.3
+- id: feeding-formula-feeding-bafec2f590
+  canonicalTerm: 'Смешанное и искусственное вскармливание: смеси, введение, объём'
+  alias: искусственное вскармливание
+  category: reference
+  weight: 1.5
+- id: feeding-formula-feeding-a09d2082b8
+  canonicalTerm: 'Смешанное и искусственное вскармливание: смеси, введение, объём'
+  alias: смешанное вскармливание
+  category: reference
+  weight: 1.3
+- id: feeding-formula-feeding-86eb7b8f44
+  canonicalTerm: 'Смешанное и искусственное вскармливание: смеси, введение, объём'
+  alias: молочная смесь
+  category: reference
+  weight: 1.3
+- id: feeding-formula-feeding-a22f13925f
+  canonicalTerm: 'Смешанное и искусственное вскармливание: смеси, введение, объём'
+  alias: адаптированная молочная смесь
+  category: reference
+  weight: 1.3
+- id: feeding-formula-feeding-1f3304222d
+  canonicalTerm: 'Смешанное и искусственное вскармливание: смеси, введение, объём'
+  alias: сколько смеси давать
+  category: reference
+  weight: 1.3
+- id: feeding-formula-feeding-2a75994dc8
+  canonicalTerm: 'Смешанное и искусственное вскармливание: смеси, введение, объём'
+  alias: объём смеси ребёнку
+  category: reference
+  weight: 1.3
+- id: feeding-formula-feeding-a93812c9a3
+  canonicalTerm: 'Смешанное и искусственное вскармливание: смеси, введение, объём'
+  alias: калорийный метод расчёта питания
+  category: reference
+  weight: 1.3
+- id: feeding-formula-feeding-41a91398f0
+  canonicalTerm: 'Смешанное и искусственное вскармливание: смеси, введение, объём'
+  alias: 115 ккал/кг
+  category: reference
+  weight: 1.3
+- id: feeding-formula-feeding-1060133883
+  canonicalTerm: 'Смешанное и искусственное вскармливание: смеси, введение, объём'
+  alias: введение новой смеси
+  category: reference
+  weight: 1.3
+- id: feeding-formula-feeding-178e9b2821
+  canonicalTerm: 'Смешанное и искусственное вскармливание: смеси, введение, объём'
+  alias: начальные и последующие смеси
+  category: reference
+  weight: 1.3
+- id: feeding-formula-feeding-68863bf875
+  canonicalTerm: 'Смешанное и искусственное вскармливание: смеси, введение, объём'
+  alias: кисломолочные смеси
+  category: reference
+  weight: 1.3
+- id: feeding-formula-feeding-5f784285ac
+  canonicalTerm: 'Смешанное и искусственное вскармливание: смеси, введение, объём'
+  alias: допаивание водой при искусственном вскармливании
+  category: reference
+  weight: 1.3
+- id: feeding-formula-feeding-30579359fb
+  canonicalTerm: 'Смешанное и искусственное вскармливание: смеси, введение, объём'
+  alias: объём питания 3 месяца 850 мл
+  category: reference
+  weight: 1.3
+- id: feeding-growth-and-weight-gain-62ae25e928
+  canonicalTerm: Прибавки массы и роста на первом году, оценка нутритивного статуса
+  alias: прибавка массы тела по месяцам
+  category: reference
+  weight: 1.5
+- id: feeding-growth-and-weight-gain-081ad9256e
+  canonicalTerm: Прибавки массы и роста на первом году, оценка нутритивного статуса
+  alias: прибавка веса ребёнка до года
+  category: reference
+  weight: 1.3
+- id: feeding-growth-and-weight-gain-766dfa0edb
+  canonicalTerm: Прибавки массы и роста на первом году, оценка нутритивного статуса
+  alias: норма прибавки в весе грудничка
+  category: reference
+  weight: 1.3
+- id: feeding-growth-and-weight-gain-1edb53a99f
+  canonicalTerm: Прибавки массы и роста на первом году, оценка нутритивного статуса
+  alias: прибавка роста по месяцам
+  category: reference
+  weight: 1.3
+- id: feeding-growth-and-weight-gain-a3b07a44a0
+  canonicalTerm: Прибавки массы и роста на первом году, оценка нутритивного статуса
+  alias: физиологическая убыль массы тела
+  category: reference
+  weight: 1.3
+- id: feeding-growth-and-weight-gain-97944b9fef
+  canonicalTerm: Прибавки массы и роста на первом году, оценка нутритивного статуса
+  alias: z-скор перцентиль
+  category: reference
+  weight: 1.3
+- id: feeding-growth-and-weight-gain-559c692fe1
+  canonicalTerm: Прибавки массы и роста на первом году, оценка нутритивного статуса
+  alias: оценка нутритивного статуса
+  category: reference
+  weight: 1.3
+- id: feeding-growth-and-weight-gain-869dd82daa
+  canonicalTerm: Прибавки массы и роста на первом году, оценка нутритивного статуса
+  alias: критерии недостаточности питания у детей
+  category: reference
+  weight: 1.3
+- id: feeding-growth-and-weight-gain-e29523246f
+  canonicalTerm: Прибавки массы и роста на первом году, оценка нутритивного статуса
+  alias: ежемесячная прибавка массы тела ВОЗ
+  category: reference
+  weight: 1.3
+- id: feeding-growth-and-weight-gain-d63a034de3
+  canonicalTerm: Прибавки массы и роста на первом году, оценка нутритивного статуса
+  alias: 800 граммов в месяц
+  category: reference
+  weight: 1.3
+- id: feeding-infant-norms-0eedabad3a
+  canonicalTerm: Нормы потребности детей первого года жизни в энергии и нутриентах
+  alias: нормы питания грудничка
+  category: reference
+  weight: 1.5
+- id: feeding-infant-norms-d733afa14f
+  canonicalTerm: Нормы потребности детей первого года жизни в энергии и нутриентах
+  alias: потребность в энергии ребёнка первого года
+  category: reference
+  weight: 1.3
+- id: feeding-infant-norms-e5a99e1ca0
+  canonicalTerm: Нормы потребности детей первого года жизни в энергии и нутриентах
+  alias: ккал на кг ребёнку
+  category: reference
+  weight: 1.3
+- id: feeding-infant-norms-41a91398f0
+  canonicalTerm: Нормы потребности детей первого года жизни в энергии и нутриентах
+  alias: 115 ккал/кг
+  category: reference
+  weight: 1.3
+- id: feeding-infant-norms-1fee02aa9b
+  canonicalTerm: Нормы потребности детей первого года жизни в энергии и нутриентах
+  alias: потребность в белке грудничка
+  category: reference
+  weight: 1.3
+- id: feeding-infant-norms-603d415e9a
+  canonicalTerm: Нормы потребности детей первого года жизни в энергии и нутриентах
+  alias: нормы витаминов для грудничка
+  category: reference
+  weight: 1.3
+- id: feeding-infant-norms-74318dbd8a
+  canonicalTerm: Нормы потребности детей первого года жизни в энергии и нутриентах
+  alias: нормы минеральных веществ ребёнку до года
+  category: reference
+  weight: 1.3
+- id: feeding-infant-norms-61c61ff7a4
+  canonicalTerm: Нормы потребности детей первого года жизни в энергии и нутриентах
+  alias: состав грудного молока
+  category: reference
+  weight: 1.3
+- id: feeding-infant-norms-ff537b5a72
+  canonicalTerm: Нормы потребности детей первого года жизни в энергии и нутриентах
+  alias: состав молозива
+  category: reference
+  weight: 1.3
+- id: feeding-infant-norms-2a153b5578
+  canonicalTerm: Нормы потребности детей первого года жизни в энергии и нутриентах
+  alias: калорийность грудного молока
+  category: reference
+  weight: 1.3
+- id: feeding-infant-norms-3146aa9026
+  canonicalTerm: Нормы потребности детей первого года жизни в энергии и нутриентах
+  alias: потребность новорождённого в энергии
+  category: reference
+  weight: 1.3
+- id: feeding-infant-norms-a02dd0fef3
+  canonicalTerm: Нормы потребности детей первого года жизни в энергии и нутриентах
+  alias: физиологические потребности детей раннего возраста
+  category: reference
+  weight: 1.3
+- id: feeding-preterm-after-discharge-79774b36b8
+  canonicalTerm: Питание недоношенных детей после выписки из стационара
+  alias: питание недоношенных
+  category: reference
+  weight: 1.5
+- id: feeding-preterm-after-discharge-deb3dacd4a
+  canonicalTerm: Питание недоношенных детей после выписки из стационара
+  alias: питание недоношенного ребёнка после выписки
+  category: reference
+  weight: 1.3
+- id: feeding-preterm-after-discharge-a015cf34ad
+  canonicalTerm: Питание недоношенных детей после выписки из стационара
+  alias: обогатитель грудного молока
+  category: reference
+  weight: 1.3
+- id: feeding-preterm-after-discharge-f90abddb4d
+  canonicalTerm: Питание недоношенных детей после выписки из стационара
+  alias: ОГМ недоношенным
+  category: reference
+  weight: 1.3
+- id: feeding-preterm-after-discharge-bcdc9aa7d0
+  canonicalTerm: Питание недоношенных детей после выписки из стационара
+  alias: смесь для недоношенных
+  category: reference
+  weight: 1.3
+- id: feeding-preterm-after-discharge-31d6c605df
+  canonicalTerm: Питание недоношенных детей после выписки из стационара
+  alias: смесь после выписки
+  category: reference
+  weight: 1.3
+- id: feeding-preterm-after-discharge-4596d57512
+  canonicalTerm: Питание недоношенных детей после выписки из стационара
+  alias: прибавка массы тела недоношенных
+  category: reference
+  weight: 1.3
+- id: feeding-preterm-after-discharge-2e2348ec37
+  canonicalTerm: Питание недоношенных детей после выписки из стационара
+  alias: прикорм недоношенным
+  category: reference
+  weight: 1.3
+- id: feeding-preterm-after-discharge-d0b4fdfd3f
+  canonicalTerm: Питание недоношенных детей после выписки из стационара
+  alias: калорийность питания недоношенного
+  category: reference
+  weight: 1.3
+- id: feeding-preterm-after-discharge-9a0e68eb6f
+  canonicalTerm: Питание недоношенных детей после выписки из стационара
+  alias: железо недоношенным
+  category: reference
+  weight: 1.3
+- id: feeding-preterm-after-discharge-1a52d7d71f
+  canonicalTerm: Питание недоношенных детей после выписки из стационара
+  alias: бронхолегочная дисплазия питание
+  category: reference
+  weight: 1.3
+- id: feeding-preterm-after-discharge-39be634c2c
+  canonicalTerm: Питание недоношенных детей после выписки из стационара
+  alias: догоняющий рост
+  category: reference
+  weight: 1.3
+- id: feeding-programme-lactation-a37a7ef4e6
+  canonicalTerm: 'Питание кормящих матерей: нормы, набор продуктов, ограничения'
+  alias: питание кормящей матери
+  category: reference
+  weight: 1.5
+- id: feeding-programme-lactation-c892146834
+  canonicalTerm: 'Питание кормящих матерей: нормы, набор продуктов, ограничения'
+  alias: диета кормящей мамы
+  category: reference
+  weight: 1.3
+- id: feeding-programme-lactation-db6e300435
+  canonicalTerm: 'Питание кормящих матерей: нормы, набор продуктов, ограничения'
+  alias: нормы питания кормящих
+  category: reference
+  weight: 1.3
+- id: feeding-programme-lactation-1b9ad55684
+  canonicalTerm: 'Питание кормящих матерей: нормы, набор продуктов, ограничения'
+  alias: рацион при грудном вскармливании
+  category: reference
+  weight: 1.3
+- id: feeding-programme-lactation-bffe7c5d9d
+  canonicalTerm: 'Питание кормящих матерей: нормы, набор продуктов, ограничения'
+  alias: сколько калорий кормящей
+  category: reference
+  weight: 1.3
+- id: feeding-programme-lactation-12f15bc86b
+  canonicalTerm: 'Питание кормящих матерей: нормы, набор продуктов, ограничения'
+  alias: что нельзя кормящей маме
+  category: reference
+  weight: 1.3
+- id: feeding-programme-lactation-44f83e1650
+  canonicalTerm: 'Питание кормящих матерей: нормы, набор продуктов, ограничения'
+  alias: набор продуктов для кормящих
+  category: reference
+  weight: 1.3
+- id: feeding-programme-lactation-f4a35bd836
+  canonicalTerm: 'Питание кормящих матерей: нормы, набор продуктов, ограничения'
+  alias: кофеин при грудном вскармливании
+  category: reference
+  weight: 1.3
+- id: feeding-programme-lactation-0f024c9e43
+  canonicalTerm: 'Питание кормящих матерей: нормы, набор продуктов, ограничения'
+  alias: потребность кормящей в белке
+  category: reference
+  weight: 1.3
+- id: feeding-programme-lactation-e79e93d211
+  canonicalTerm: 'Питание кормящих матерей: нормы, набор продуктов, ограничения'
+  alias: питание кормящей женщины жидкость
+  category: reference
+  weight: 1.3
+- id: feeding-programme-pregnancy-74c046ad3f
+  canonicalTerm: 'Питание беременных женщин: нормы, набор продуктов, добавки'
+  alias: питание беременных
+  category: reference
+  weight: 1.5
+- id: feeding-programme-pregnancy-bd20d0346b
+  canonicalTerm: 'Питание беременных женщин: нормы, набор продуктов, добавки'
+  alias: нормы питания беременных
+  category: reference
+  weight: 1.3
+- id: feeding-programme-pregnancy-7232aeb892
+  canonicalTerm: 'Питание беременных женщин: нормы, набор продуктов, добавки'
+  alias: рацион беременной
+  category: reference
+  weight: 1.3
+- id: feeding-programme-pregnancy-6b88899355
+  canonicalTerm: 'Питание беременных женщин: нормы, набор продуктов, добавки'
+  alias: сколько калорий беременной
+  category: reference
+  weight: 1.3
+- id: feeding-programme-pregnancy-ceb19b4781
+  canonicalTerm: 'Питание беременных женщин: нормы, набор продуктов, добавки'
+  alias: энергия беременной
+  category: reference
+  weight: 1.3
+- id: feeding-programme-pregnancy-3ddf75c903
+  canonicalTerm: 'Питание беременных женщин: нормы, набор продуктов, добавки'
+  alias: набор продуктов для беременных
+  category: reference
+  weight: 1.3
+- id: feeding-programme-pregnancy-a4d1d37e5b
+  canonicalTerm: 'Питание беременных женщин: нормы, набор продуктов, добавки'
+  alias: фолиевая кислота при беременности
+  category: reference
+  weight: 1.3
+- id: feeding-programme-pregnancy-0ac6b97f9e
+  canonicalTerm: 'Питание беременных женщин: нормы, набор продуктов, добавки'
+  alias: витамин D при беременности
+  category: reference
+  weight: 1.3
+- id: feeding-programme-pregnancy-c4a381e6d6
+  canonicalTerm: 'Питание беременных женщин: нормы, набор продуктов, добавки'
+  alias: кальций при беременности
+  category: reference
+  weight: 1.3
+- id: feeding-programme-pregnancy-6762b3dc44
+  canonicalTerm: 'Питание беременных женщин: нормы, набор продуктов, добавки'
+  alias: железо при беременности
+  category: reference
+  weight: 1.3
+- id: feeding-programme-pregnancy-607d876934
+  canonicalTerm: 'Питание беременных женщин: нормы, набор продуктов, добавки'
+  alias: вегетарианство при беременности
+  category: reference
+  weight: 1.3
+- id: feeding-programme-pregnancy-b5e19d1c9c
+  canonicalTerm: 'Питание беременных женщин: нормы, набор продуктов, добавки'
+  alias: потребность беременной в белке
+  category: reference
+  weight: 1.3
+- id: feeding-sources-and-notes-dcdb74ca98
+  canonicalTerm: Источники норм питания, расхождения и проблемы текста
+  alias: источники норм питания
+  category: reference
+  weight: 1.5
+- id: feeding-sources-and-notes-e12464d4fa
+  canonicalTerm: Источники норм питания, расхождения и проблемы текста
+  alias: расхождения между источниками питания
+  category: reference
+  weight: 1.3
+- id: feeding-sources-and-notes-16e3ce900e
+  canonicalTerm: Источники норм питания, расхождения и проблемы текста
+  alias: какие книги использованы для норм питания
+  category: reference
+  weight: 1.3
+- id: feeding-sources-and-notes-5e8d165660
+  canonicalTerm: Источники норм питания, расхождения и проблемы текста
+  alias: ошибки распознавания текста питание
+  category: reference
+  weight: 1.3
+- id: feeding-sources-and-notes-16f6c95e42
+  canonicalTerm: Источники норм питания, расхождения и проблемы текста
+  alias: нормы питания книги и страницы
+  category: reference
+  weight: 1.3
+- id: feeding-special-feeding-conditions-aab12c1786
+  canonicalTerm: Питание при недостаточности питания, ЗВУР, сердечной недостаточности и избыточной массе
+  alias: недостаточность питания у ребёнка питание
+  category: reference
+  weight: 1.5
+- id: feeding-special-feeding-conditions-82c91c284b
+  canonicalTerm: Питание при недостаточности питания, ЗВУР, сердечной недостаточности и избыточной массе
+  alias: ЗВУР питание
+  category: reference
+  weight: 1.3
+- id: feeding-special-feeding-conditions-d32da6f8fe
+  canonicalTerm: Питание при недостаточности питания, ЗВУР, сердечной недостаточности и избыточной массе
+  alias: калорийность при недостаточности питания
+  category: reference
+  weight: 1.3
+- id: feeding-special-feeding-conditions-6ad3727d6c
+  canonicalTerm: Питание при недостаточности питания, ЗВУР, сердечной недостаточности и избыточной массе
+  alias: питание при хронической сердечной недостаточности у ребёнка
+  category: reference
+  weight: 1.3
+- id: feeding-special-feeding-conditions-178e22fc05
+  canonicalTerm: Питание при недостаточности питания, ЗВУР, сердечной недостаточности и избыточной массе
+  alias: ограничение жидкости у грудничка
+  category: reference
+  weight: 1.3
+- id: feeding-special-feeding-conditions-ca42a87d87
+  canonicalTerm: Питание при недостаточности питания, ЗВУР, сердечной недостаточности и избыточной массе
+  alias: концентрация сцеженного грудного молока
+  category: reference
+  weight: 1.3
+- id: feeding-special-feeding-conditions-7271bf6943
+  canonicalTerm: Питание при недостаточности питания, ЗВУР, сердечной недостаточности и избыточной массе
+  alias: избыточная масса тела у грудничка питание
+  category: reference
+  weight: 1.3
+- id: feeding-special-feeding-conditions-6b17039852
+  canonicalTerm: Питание при недостаточности питания, ЗВУР, сердечной недостаточности и избыточной массе
+  alias: профилактика ожирения у детей первого года
+  category: reference
+  weight: 1.3
+- id: feeding-special-feeding-conditions-093b591c5b
+  canonicalTerm: Питание при недостаточности питания, ЗВУР, сердечной недостаточности и избыточной массе
+  alias: пищевая ценность прикорма
+  category: reference
+  weight: 1.3
+- id: feeding-special-feeding-conditions-9f83a235c4
+  canonicalTerm: Питание при недостаточности питания, ЗВУР, сердечной недостаточности и избыточной массе
+  alias: содержание влаги в продуктах прикорма
+  category: reference
+  weight: 1.3
+- id: feeding-special-feeding-conditions-57264205c6
+  canonicalTerm: Питание при недостаточности питания, ЗВУР, сердечной недостаточности и избыточной массе
+  alias: разведение смеси 80-90 ккал/100 мл
+  category: reference
+  weight: 1.3
+- id: feeding-vitamin-d-infants-079336b867
+  canonicalTerm: 'Витамин D у детей первого года: профилактические дозы'
+  alias: витамин D грудничку
+  category: reference
+  weight: 1.5
+- id: feeding-vitamin-d-infants-0b2b12cc13
+  canonicalTerm: 'Витамин D у детей первого года: профилактические дозы'
+  alias: профилактическая доза витамина D
+  category: reference
+  weight: 1.3
+- id: feeding-vitamin-d-infants-d2ed25ac4d
+  canonicalTerm: 'Витамин D у детей первого года: профилактические дозы'
+  alias: холекальциферол ребёнку
+  category: reference
+  weight: 1.3
+- id: feeding-vitamin-d-infants-af4d5b8892
+  canonicalTerm: 'Витамин D у детей первого года: профилактические дозы'
+  alias: сколько витамина D давать ребёнку
+  category: reference
+  weight: 1.3
+- id: feeding-vitamin-d-infants-6f7f62ccad
+  canonicalTerm: 'Витамин D у детей первого года: профилактические дозы'
+  alias: профилактика рахита
+  category: reference
+  weight: 1.3
+- id: feeding-vitamin-d-infants-b5ce3a7686
+  canonicalTerm: 'Витамин D у детей первого года: профилактические дозы'
+  alias: аквадетрим доза
+  category: reference
+  weight: 1.3
+- id: feeding-vitamin-d-infants-c4de948074
+  canonicalTerm: 'Витамин D у детей первого года: профилактические дозы'
+  alias: витамин D недоношенным
+  category: reference
+  weight: 1.3
+- id: feeding-vitamin-d-infants-95779c7aab
+  canonicalTerm: 'Витамин D у детей первого года: профилактические дозы'
+  alias: 25(ОН)D норма у детей
+  category: reference
+  weight: 1.3
+- id: feeding-vitamin-d-infants-69260d4ef5
+  canonicalTerm: 'Витамин D у детей первого года: профилактические дозы'
+  alias: 1000 МЕ витамина D
+  category: reference
+  weight: 1.3

@@ -29,6 +29,9 @@ from .diets_distribution import package_diets_module
 from .diets_official import prepare_diets_official
 from .diets_official import report_json as diets_report_json
 from .drug_sources import collect_drug_sources
+from .feeding_distribution import package_feeding_module
+from .feeding_norms import FeedingSourceError, prepare_feeding_norms, verify_feeding_sources
+from .feeding_norms import report_json as feeding_report_json
 from .icd11_api_fetch import fetch_icd11_api
 from .icd11_distribution import package_icd11_module
 from .icd11_fetch import fetch_icd11_release
@@ -542,6 +545,48 @@ def package_regulatory_command(
 ) -> None:
     """Gzip the verified regulatory pack and write its catalog entry (refuses incomplete acts)."""
     report = package_regulatory_module(
+        database, output, version=version, min_app_version=min_app_version
+    )
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+
+
+@app.command("prepare-feeding")
+def prepare_feeding_command(
+    directory: Annotated[Path, typer.Option("--input", exists=True, file_okay=False)],
+) -> None:
+    """Validate the book-cited feeding-norms Markdown and write its manifest and aliases."""
+    try:
+        typer.echo(feeding_report_json(prepare_feeding_norms(directory)))
+    except FeedingSourceError as error:
+        typer.echo(str(error), err=True)
+        raise typer.Exit(1) from error
+
+
+@app.command("verify-feeding")
+def verify_feeding_command(
+    directory: Annotated[Path, typer.Option("--input", exists=True, file_okay=False)],
+    library: Annotated[Path, typer.Option("--library", exists=True, file_okay=False)],
+) -> None:
+    """Check every verbatim block against the PDF text layer in the private library."""
+    report = verify_feeding_sources(directory, library)
+    typer.echo(
+        f"checked {report.checked} blocks, {report.weak} weak, {len(report.failures)} failed"
+    )
+    for failure in report.failures:
+        typer.echo(failure, err=True)
+    if report.failures:
+        raise typer.Exit(1)
+
+
+@app.command("package-feeding")
+def package_feeding_command(
+    database: Annotated[Path, typer.Option("--database", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+    version: Annotated[str, typer.Option("--version")],
+    min_app_version: Annotated[str, typer.Option("--min-app-version")],
+) -> None:
+    """Gzip the built feeding-norms pack and write its catalog entry."""
+    report = package_feeding_module(
         database, output, version=version, min_app_version=min_app_version
     )
     typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
