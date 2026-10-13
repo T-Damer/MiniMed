@@ -149,6 +149,24 @@ describe('instructionTextQuality / instructionSourceInfo', () => {
     );
   });
 
+  it('trusts the builder grade of a cleaned OCR text and shows the note only for low', () => {
+    expect(instructionTextQuality({ ocr: true, ocrQuality: 'good', unknownWordRatio: 0.3 })).toBe(
+      'ocr',
+    );
+    expect(instructionTextQuality({ ocr: true, ocrQuality: 'fair' })).toBe('ocr');
+    expect(instructionTextQuality({ ocr: true, ocrQuality: 'low', unknownWordRatio: 0 })).toBe(
+      'ocr-low',
+    );
+    const note = (ocrQuality: string) =>
+      instructionSourceInfo({
+        sourceType: INSTRUCTION,
+        metadata: { documentKind: 'national-instruction', ocr: true, ocrQuality },
+      })?.qualityNote;
+    expect(note('good')).toBeNull();
+    expect(note('fair')).toBeNull();
+    expect(note('low')).toContain('низким качеством');
+  });
+
   it('collects kind, edition, source, fetch date and quality of an instruction', () => {
     const info = instructionSourceInfo({
       sourceType: INSTRUCTION,
@@ -183,6 +201,58 @@ describe('instructionTextQuality / instructionSourceInfo', () => {
         metadata: { officialSourceUrl: 'javascript:alert(1)' },
       })?.sourceUrl,
     ).toBeNull();
+  });
+});
+
+describe('sheets of amendments and stray scans (OCR1)', () => {
+  it('are labelled for what they are', () => {
+    const label = (documentKind: string) =>
+      instructionSourceInfo({ sourceType: INSTRUCTION, metadata: { documentKind } })?.kindLabel;
+    expect(label('amendment')).toBe('Лист изменений к инструкции');
+    expect(label('other')).toBe('Прочий документ ГРЛС');
+  });
+
+  it('never replace a real instruction, even one from a holder site', () => {
+    const documents = [
+      {
+        id: 'doc.amendment',
+        sourceType: INSTRUCTION,
+        metadata: { registrationNumber: 'ЛП-1', documentKind: 'amendment' },
+      },
+      {
+        id: 'doc.site',
+        sourceType: INSTRUCTION,
+        metadata: {
+          registrationNumber: 'ЛП-1',
+          documentKind: 'national-instruction',
+          sourceClass: 'manufacturer-site',
+        },
+      },
+      {
+        id: 'doc.leaflet',
+        sourceType: INSTRUCTION,
+        metadata: { registrationNumber: 'ЛП-2', documentKind: 'leaflet' },
+      },
+      {
+        id: 'doc.amendment2',
+        sourceType: INSTRUCTION,
+        metadata: { registrationNumber: 'ЛП-2', documentKind: 'amendment' },
+      },
+    ];
+    const index = instructionIndexFromDocuments(documents);
+    expect(index.get('ЛП-1')).toBe('doc.site');
+    expect(index.get('ЛП-2')).toBe('doc.leaflet');
+  });
+
+  it('are still shown when they are all a registration has', () => {
+    const index = instructionIndexFromDocuments([
+      {
+        id: 'doc.amendment',
+        sourceType: INSTRUCTION,
+        metadata: { registrationNumber: 'ЛП-3', documentKind: 'amendment' },
+      },
+    ]);
+    expect(index.get('ЛП-3')).toBe('doc.amendment');
   });
 });
 

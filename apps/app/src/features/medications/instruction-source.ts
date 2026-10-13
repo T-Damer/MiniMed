@@ -5,7 +5,15 @@
  * (native text layer or OCR). Nothing here is inferred from the text.
  */
 
-export type InstructionKind = 'ohlp' | 'national-instruction' | 'leaflet' | 'unknown';
+export type InstructionKind =
+  | 'ohlp'
+  | 'national-instruction'
+  | 'leaflet'
+  | 'unknown'
+  /** A sheet of amendments («Изменение № N», old/new edition), not the instruction itself. */
+  | 'amendment'
+  /** A scan that is none of the above (OCR1 content classification). */
+  | 'other';
 
 /** Where the document comes from: a file of the ГРЛС, or the holder's own site (M1, ADR-0023). */
 export type InstructionSourceClass = 'grls' | 'manufacturer-site';
@@ -18,6 +26,8 @@ const KIND_LABELS: Readonly<Record<InstructionKind, string>> = {
   'national-instruction': 'Инструкция по медицинскому применению',
   ohlp: 'ОХЛП (общая характеристика лекарственного препарата)',
   unknown: 'Инструкция ГРЛС',
+  amendment: 'Лист изменений к инструкции',
+  other: 'Прочий документ ГРЛС',
 };
 
 /** A professional text outranks the patient leaflet when one registration has several documents. */
@@ -31,7 +41,14 @@ const KIND_RANK: Readonly<Record<InstructionKind, number>> = {
   'national-instruction': 1,
   unknown: 2,
   leaflet: 3,
+  amendment: 4,
+  other: 5,
 };
+
+/** A document that is not an instruction loses to any instruction, whatever its source. */
+function isAuxiliary(kind: InstructionKind): boolean {
+  return kind === 'amendment' || kind === 'other';
+}
 
 type Metadata = Readonly<Record<string, unknown>> | undefined;
 
@@ -90,7 +107,11 @@ function number(value: unknown): number | null {
 
 export function instructionKindOf(metadata: Metadata): InstructionKind {
   const kind = metadata?.['documentKind'];
-  return kind === 'ohlp' || kind === 'national-instruction' || kind === 'leaflet'
+  return kind === 'ohlp' ||
+    kind === 'national-instruction' ||
+    kind === 'leaflet' ||
+    kind === 'amendment' ||
+    kind === 'other'
     ? kind
     : 'unknown';
 }
@@ -125,6 +146,11 @@ function isPreferred(
   candidate: { readonly id: string; readonly metadata: Metadata },
   current: { readonly id: string; readonly metadata: Metadata },
 ): boolean {
+  // A sheet of amendments or a stray scan never replaces a real instruction, even a holder's.
+  const auxiliary =
+    Number(isAuxiliary(instructionKindOf(candidate.metadata))) -
+    Number(isAuxiliary(instructionKindOf(current.metadata)));
+  if (auxiliary !== 0) return auxiliary < 0;
   // A ГРЛС file outranks a holder's own site for the same registration.
   const bySource =
     SOURCE_RANK[instructionSourceClassOf(candidate.metadata)] -
@@ -212,6 +238,10 @@ export function instructionTextQuality(metadata: Metadata): InstructionTextQuali
   if (metadata?.['ocr'] !== true) return 'native';
   // Re-read against the scan page by page (content/grls-reviewed-ocr); the OCR ratios no longer apply.
   if (metadata['ocrReviewed'] === true) return 'ocr-reviewed';
+  // The builder grades every OCR text after its cleanup (OCR1): only `low` is still doubtful.
+  const graded = metadata['ocrQuality'];
+  if (graded === 'low') return 'ocr-low';
+  if (graded === 'good' || graded === 'fair') return 'ocr';
   const unknownWords = number(metadata['unknownWordRatio']) ?? 0;
   const lowConfidence = number(metadata['ocrLowConfidenceRatio']) ?? 0;
   return unknownWords > LOW_QUALITY_UNKNOWN_WORD_RATIO || lowConfidence > LOW_QUALITY_OCR_RATIO
@@ -280,7 +310,11 @@ export function instructionSourceInfo(
     sourceUrl: url && /^https:\/\//u.test(url) ? url : null,
     fetchedOn: formatFetchDate(text(document.metadata?.['fetchedAt'])),
     quality,
-    qualityNote: QUALITY_NOTES[quality],
+    // A graded OCR text that is good or fair carries no note; ungraded (older) modules keep it.
+    qualityNote:
+      quality === 'ocr' && typeof document.metadata?.['ocrQuality'] === 'string'
+        ? null
+        : QUALITY_NOTES[quality],
   };
 }
 

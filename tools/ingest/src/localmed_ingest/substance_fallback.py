@@ -41,9 +41,16 @@ FLAG_STRENGTH_UNKNOWN = 2
 FLAG_FORM_DIFFERS = 4
 
 SourceClass = Literal["grls", "manufacturer-site"]
-DocumentKind = Literal["ohlp", "national-instruction", "leaflet", "unknown"]
+DocumentKind = Literal["ohlp", "national-instruction", "leaflet", "unknown", "amendment", "other"]
 
-_KIND_RANK: dict[str, int] = {"ohlp": 0, "national-instruction": 1, "unknown": 2, "leaflet": 3}
+_KIND_RANK: dict[str, int] = {
+    "ohlp": 0,
+    "national-instruction": 1,
+    "unknown": 2,
+    "leaflet": 3,
+    "amendment": 4,
+    "other": 5,
+}
 _SOURCE_RANK: dict[str, int] = {"grls": 0, "manufacturer-site": 1}
 #: Form classes too coarse to say that two forms are alike.
 _UNCLASSIFIED_FORMS: frozenset[str] = frozenset({"other", "substance"})

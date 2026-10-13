@@ -12,7 +12,15 @@
 export const INTERACTION_INDEX_SCHEMA_VERSION = 1;
 
 /** `documentKind` of an instruction, as the asset stores it (index = rank, best first). */
-export const INSTRUCTION_KINDS = ['ohlp', 'national-instruction', 'unknown', 'leaflet'] as const;
+export const INSTRUCTION_KINDS = [
+  'ohlp',
+  'national-instruction',
+  'unknown',
+  'leaflet',
+  // appended (OCR1): a sheet of amendments or a stray scan ranks after every instruction
+  'amendment',
+  'other',
+] as const;
 export type IndexedInstructionKind = (typeof INSTRUCTION_KINDS)[number];
 
 /** `[card id without «esklp.mnn.», ATC codes, substance target indexes]`. */

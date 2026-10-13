@@ -275,6 +275,9 @@ BlockKind = Literal[
     "image",
     "repeated_marginalia",
     "noise",
+    # An approval / expert-report stamp printed over a scanned page (OCR1). Kept in the prepared
+    # Markdown as a `localmed:page-mark` comment, outside the body text.
+    "page_mark",
 ]
 
 
@@ -322,6 +325,10 @@ class ExtractionDiagnostics(CamelModel):
     ocr_pages: list[int] = Field(default_factory=list)
     ocr_mean_confidence: float | None = Field(default=None, ge=0, le=1)
     ocr_low_confidence_ratio: float | None = Field(default=None, ge=0, le=1)
+    # OCR1 cleanup record: what the deterministic rules changed and how trustworthy the text is.
+    ocr_quality: Literal["good", "fair", "low"] | None = None
+    ocr_quality_reasons: list[str] = Field(default_factory=list)
+    ocr_cleanup: dict[str, object] = Field(default_factory=dict)
     quality_score: float = Field(ge=0, le=1)
     requires_review: bool
     review_reasons: list[str] = Field(default_factory=list)

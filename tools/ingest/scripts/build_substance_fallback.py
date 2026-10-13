@@ -33,6 +33,7 @@ from localmed_ingest.grls_instruction_modules import (
     plan_instructions,
     read_manifest_rows,
 )
+from localmed_ingest.grls_document_kind import NON_INSTRUCTION_KINDS
 from localmed_ingest.substance_fallback import (
     DonorFacts,
     Registration,
@@ -74,7 +75,8 @@ def grls_documents(modules_dir: Path) -> dict[str, list[str]]:
     plan, _skipped = plan_instructions(read_manifest_rows(), load_registration_groups())
     kinds: dict[str, list[str]] = defaultdict(list)
     for entry in plan:
-        if entry.document_id in included:
+        # A sheet of amendments or a non-instruction scan (OCR1) is no text to borrow from.
+        if entry.document_id in included and entry.kind not in NON_INSTRUCTION_KINDS:
             for number in entry.registration_numbers:
                 kinds[number].append(entry.kind)
     return kinds
@@ -89,7 +91,9 @@ def manufacturer_documents(report: Path | None) -> dict[str, list[str]]:
     summaries = cast(Mapping[str, Metadata], payload["documentSummaries"])
     for document in summaries.values():
         for number in cast(list[str], document["registrationNumbers"]):
-            kinds[number].append(str(document.get("documentKind") or "unknown"))
+            kind = str(document.get("documentKind") or "unknown")
+            if kind not in NON_INSTRUCTION_KINDS:
+                kinds[number].append(kind)
     return kinds
 
 

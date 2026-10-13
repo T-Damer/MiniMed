@@ -19,6 +19,7 @@ change.
 from __future__ import annotations
 
 import json
+import os
 import re
 import shutil
 import sqlite3
@@ -33,7 +34,9 @@ import yaml
 from .builder import build_content_pack
 from .sqlite_builder import repository_root
 
-REPO_ROOT = repository_root()
+# Private data (manifest, prepared workspaces, ЕСКЛП release) lives in the main checkout only:
+# a worktree build points MINIMED_DATA_ROOT at it.
+REPO_ROOT = Path(os.environ.get("MINIMED_DATA_ROOT", repository_root()))
 MODULE_TITLES = {
     "alimentary-metabolism": "Пищеварительный тракт и обмен веществ",
     "antiinfectives": "Противоинфекционные препараты системного действия",
@@ -80,7 +83,22 @@ UNCLASSIFIED = "unclassified"
 KIND_TITLE_SUFFIX = {
     "leaflet": "листок-вкладыш",
     "ohlp": "общая характеристика лекарственного препарата (ОХЛП)",
+    "amendment": "лист изменений к инструкции",
 }
+OVERLAY_PATH = REPO_ROOT / "data" / "build" / "grls-ocr-quality.jsonl"
+#: Overlay columns (OCR1) that replace the manifest value of the same PDF.
+OVERLAY_COLUMNS = (
+    "workspace",
+    "documentKind",
+    "ocr",
+    "ocrEngine",
+    "ocrMeanConfidence",
+    "ocrLowConfidenceRatio",
+    "unknownWordRatio",
+    "wordCount",
+    "textSha256",
+    "textSource",
+)
 GENERATED_TITLE_SUFFIX = ": инструкция по медицинскому применению"
 
 
@@ -156,12 +174,50 @@ def assign_group(
     return winners[0], "esklp-registration" if len(winners) == 1 else "esklp-registration-tie"
 
 
-def read_manifest_rows(path: Path = MANIFEST_PATH) -> list[dict[str, Any]]:
-    return [
+def read_manifest_rows(
+    path: Path = MANIFEST_PATH, overlay: Path | None = OVERLAY_PATH
+) -> list[dict[str, Any]]:
+    """Manifest rows with the OCR1 overlay (re-prepared text, content kind, quality) joined by PDF."""
+    rows = [
         cast(dict[str, Any], json.loads(line))
         for line in path.read_text(encoding="utf-8").splitlines()
         if line
     ]
+    if overlay is not None and overlay.is_file():
+        rows = apply_overlay(rows, read_overlay(overlay))
+    return rows
+
+
+def read_overlay(path: Path) -> dict[str, dict[str, Any]]:
+    return {
+        str(row["pdfSha256"]): row
+        for row in (
+            cast(dict[str, Any], json.loads(line))
+            for line in path.read_text(encoding="utf-8").splitlines()
+            if line
+        )
+    }
+
+
+def apply_overlay(
+    rows: Sequence[Mapping[str, Any]], overlay: Mapping[str, Mapping[str, Any]]
+) -> list[dict[str, Any]]:
+    """A row whose PDF has an overlay row takes its text workspace, kind and OCR quality from it.
+
+    Rows without an overlay row are returned unchanged. Every extra overlay column (quality grade and
+    reasons, uncertain numbers, tool) travels in `ocrOverlay` for `augmented_markdown`.
+    """
+    merged: list[dict[str, Any]] = []
+    for row in rows:
+        entry = dict(row)
+        extra = overlay.get(str(row.get("pdfSha256")))
+        if extra is not None and row.get("extraction") == "prepared":
+            for column in OVERLAY_COLUMNS:
+                if column in extra:
+                    entry[column] = extra[column]
+            entry["ocrOverlay"] = dict(extra)
+        merged.append(entry)
+    return merged
 
 
 def _row_registrations(row: Mapping[str, Any]) -> list[str]:
@@ -278,6 +334,20 @@ def augmented_markdown(text: str, entry: PlannedInstruction) -> str:
         "atcGroup": entry.group,
         "atcGroupBasis": entry.group_basis,
     }
+    overlay = newest.get("ocrOverlay")
+    if isinstance(overlay, Mapping):
+        added.update(
+            {
+                "ocrQuality": overlay.get("ocrQuality"),
+                "ocrQualityReasons": overlay.get("ocrQualityReasons") or None,
+                "ocrTool": overlay.get("ocrTool"),
+                "ocrUncertainNumbers": overlay.get("uncertainNumbers"),
+                "ocrWordEdits": overlay.get("wordEdits"),
+                "textSource": overlay.get("textSource"),
+                "textSourcePdfSha256": overlay.get("textSourcePdfSha256"),
+                "documentKindReason": overlay.get("documentKindReason"),
+            }
+        )
     for key, value in added.items():
         if value is not None:
             metadata[key] = value

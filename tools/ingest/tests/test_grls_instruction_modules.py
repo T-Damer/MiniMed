@@ -10,6 +10,7 @@ import yaml
 from localmed_ingest.grls_instruction_modules import (
     PlannedInstruction,
     assign_group,
+    apply_overlay,
     augmented_markdown,
     module_id,
     reviewed_override,
@@ -166,3 +167,71 @@ def test_a_reviewed_file_with_another_id_is_rejected(tmp_path: Path) -> None:
     (tmp_path / "drug.rf.x.instruction.md").write_text(prepared, encoding="utf-8")
     with pytest.raises(ValueError, match="front matter id"):
         reviewed_override("drug.rf.x.instruction", prepared, tmp_path)
+
+
+def manifest_row(checksum: str, **extra: object) -> dict[str, object]:
+    return {
+        "pdfSha256": checksum,
+        "extraction": "prepared",
+        "sourceId": "drug.rf.0001093e970339aa31f2.instruction",
+        "workspace": "../../data/intermediate/grls-full-final",
+        "documentKind": "national-instruction",
+        "ocr": True,
+        "ocrMeanConfidence": None,
+        "unknownWordRatio": 0.2,
+        "textSha256": "sha256:old",
+        **extra,
+    }
+
+
+OVERLAY_ROW = {
+    "pdfSha256": "sha256:aaa",
+    "workspace": "../../data/intermediate/grls-ocr-cleaned",
+    "documentKind": "amendment",
+    "documentKindReason": "«Изменение №» with a table of old/new edition",
+    "ocr": True,
+    "ocrEngine": "macos-vision",
+    "ocrTool": "macos-vision",
+    "ocrMeanConfidence": 0.91,
+    "ocrLowConfidenceRatio": 0.02,
+    "ocrQuality": "fair",
+    "ocrQualityReasons": ["some numbers are uncertain"],
+    "unknownWordRatio": 0.05,
+    "uncertainNumbers": 2,
+    "wordEdits": 4,
+    "textSha256": "sha256:new",
+}
+
+
+def test_overlay_replaces_workspace_kind_and_quality_for_the_same_pdf_only() -> None:
+    rows = [manifest_row("sha256:aaa"), manifest_row("sha256:bbb"), manifest_row("sha256:aaa", extraction="not-prepared")]
+    merged = apply_overlay(rows, {"sha256:aaa": OVERLAY_ROW})
+    assert merged[0]["workspace"].endswith("grls-ocr-cleaned")  # type: ignore[union-attr]
+    assert merged[0]["documentKind"] == "amendment"
+    assert merged[0]["ocrMeanConfidence"] == 0.91
+    assert merged[0]["textSha256"] == "sha256:new"
+    assert merged[1] == rows[1]  # another PDF: untouched
+    assert merged[2] == rows[2]  # not prepared: nothing to replace
+    assert "ocrOverlay" not in merged[1]
+    assert rows[0]["documentKind"] == "national-instruction"  # input rows are not mutated
+
+
+def test_overlay_quality_reaches_the_document_metadata_and_an_amendment_title() -> None:
+    newest = apply_overlay([manifest_row("sha256:aaa")], {"sha256:aaa": OVERLAY_ROW})[0]
+    planned = PlannedInstruction(
+        document_id="drug.rf.0001093e970339aa31f2.instruction",
+        path=Path("unused.md"),
+        group="cardiovascular",
+        group_basis="esklp-registration",
+        registration_numbers=("ЛП-008472",),
+        newest=newest,
+    )
+    front, body = split_front_matter(augmented_markdown(instruction_markdown(), planned))
+    assert body == BODY
+    metadata = front["metadata"]
+    assert metadata["documentKind"] == "amendment"
+    assert metadata["ocrQuality"] == "fair"
+    assert metadata["ocrMeanConfidence"] == 0.91
+    assert metadata["ocrTool"] == "macos-vision"
+    assert metadata["ocrUncertainNumbers"] == 2
+    assert front["title"] == "РАМИПРИЛ: лист изменений к инструкции"

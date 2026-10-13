@@ -191,6 +191,8 @@ const KIND_LABELS = {
   'national-instruction': 'инструкция',
   leaflet: 'листок-вкладыш',
   unknown: 'инструкция ГРЛС',
+  amendment: 'лист изменений',
+  other: 'документ ГРЛС',
 } as const;
 
 function choiceLabel(index: ComparisonIndex, id: string, document: AssetDocument): string {

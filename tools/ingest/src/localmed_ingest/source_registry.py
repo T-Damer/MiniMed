@@ -8,7 +8,7 @@ from collections import deque
 from collections.abc import Iterator
 from concurrent.futures import Future, ThreadPoolExecutor
 from pathlib import Path
-from typing import Literal
+from typing import Literal, cast
 
 import yaml
 
@@ -95,9 +95,20 @@ def _source_marker(block: ExtractedBlock) -> str:
     for key in ("lineStart", "lineEnd"):
         if key in block.metadata:
             payload[key] = block.metadata[key]
-    for key in ("sourceSectionId", "sourceSectionOrder", "renderBlock"):
+    for key in ("sourceSectionId", "sourceSectionOrder", "renderBlock", "blocks"):
         if key in block.metadata:
             payload[key] = block.metadata[key]
+    confidences = [
+        float(line["confidence"])
+        for line in cast(list[dict[str, object]], block.metadata.get("lines") or [])
+        if isinstance(line.get("confidence"), (int, float))
+    ]
+    if not confidences and isinstance(block.metadata.get("confidence"), (int, float)):
+        confidences = [float(cast(float, block.metadata["confidence"]))]
+    if confidences:
+        payload["ocrConfidence"] = round(sum(confidences) / len(confidences), 3)
+    if block.metadata.get("ocrEdits"):
+        payload["ocrEdits"] = len(cast(list[object], block.metadata["ocrEdits"]))
     encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
     return f"<!-- localmed:source {encoded} -->"
 
@@ -141,22 +152,21 @@ def _contents_entry_ids(blocks: list[ExtractedBlock]) -> set[str]:
     return result
 
 
-def render_prepared_markdown(source: RegistrySource, extracted: ExtractedSource) -> str:
-    included = [
-        block
-        for page in extracted.pages
-        for block in sorted(page.blocks, key=lambda item: item.order_index)
-        if not block.removed
-    ]
-    if not included:
-        raise NoSearchableTextError(f"Source {source.id} produced no searchable text blocks.")
+def _page_mark_comment(block: ExtractedBlock) -> str:
+    payload: dict[str, object] = {
+        "block": block.id,
+        "kind": block.metadata.get("markKind", "stamp"),
+        "page": block.page,
+        "text": block.text,
+    }
+    if block.bbox is not None:
+        payload["bbox"] = block.bbox
+    encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+    return f"<!-- localmed:page-mark {encoded} -->"
 
-    metadata = dict(source.metadata)
-    if source.provenance is not None:
-        provenance = source.provenance.model_dump(by_alias=True, mode="json")
-        provenance["rawChecksum"] = extracted.source_checksum
-        metadata["provenance"] = provenance
-    metadata["sourcePath"] = source.path
+
+def extraction_front_matter(extracted: ExtractedSource) -> dict[str, object]:
+    """The `metadata.extraction` block of a prepared document: how the text was obtained."""
     diagnostics = extracted.diagnostics
     extraction: dict[str, object] = {
         "format": extracted.source_format,
@@ -168,6 +178,10 @@ def render_prepared_markdown(source: RegistrySource, extracted: ExtractedSource)
     }
     if diagnostics.promoted_headings:
         extraction["promotedHeadings"] = diagnostics.promoted_headings
+    if diagnostics.ocr_quality is not None:
+        extraction["ocrQuality"] = diagnostics.ocr_quality
+        extraction["ocrQualityReasons"] = diagnostics.ocr_quality_reasons
+        extraction["ocrCleanup"] = diagnostics.ocr_cleanup
     if extracted.source_format == "pdf":
         # Keep how the text was obtained, so downstream databases can show it.
         extraction.update(
@@ -179,7 +193,65 @@ def render_prepared_markdown(source: RegistrySource, extracted: ExtractedSource)
                 "ocrLowConfidenceRatio": diagnostics.ocr_low_confidence_ratio,
             }
         )
-    metadata["extraction"] = extraction
+    return extraction
+
+
+def render_body(extracted: ExtractedSource, *, source_id: str = "source") -> str:
+    """The Markdown body: headings, source markers, page marks, review markers and text."""
+    every_included = [
+        block
+        for page in extracted.pages
+        for block in sorted(page.blocks, key=lambda item: item.order_index)
+        if not block.removed
+    ]
+    included = [block for block in every_included if block.kind != "page_mark"]
+    if not included:
+        raise NoSearchableTextError(f"Source {source_id} produced no searchable text blocks.")
+    heading_levels = _normalize_heading_levels(included)
+    contents_entry_ids = _contents_entry_ids(included)
+    body: list[str] = []
+    pending_marks: list[str] = []
+    emitted = False
+    if included[0].kind != "heading":
+        body.extend(["# Общая информация", ""])
+        emitted = True
+    for block in every_included:
+        text = block.text.strip()
+        if not text:
+            continue
+        if block.kind == "page_mark":
+            # Marks before the first body block wait for it: a comment must not open a section.
+            (pending_marks if not emitted else body).extend([_page_mark_comment(block), ""])
+            continue
+        if block.kind == "heading" and block.id not in contents_entry_ids:
+            level = heading_levels.get(block.id, 1)
+            body.extend([f"{'#' * level} {text}", ""])
+            if not emitted:
+                emitted = True
+                body.extend(pending_marks)
+            continue
+        body.append(_source_marker(block))
+        review = [str(block.metadata["review"])] if block.metadata.get("review") else []
+        if block.kind == "table_candidate":
+            review.insert(0, "table-candidate")
+        if review:
+            body.append(f"<!-- localmed:review {' '.join(review)} -->")
+        body.extend([text, ""])
+        if not emitted:
+            emitted = True
+            body.extend(pending_marks)
+    return "\n".join(body).rstrip() + "\n"
+
+
+def render_prepared_markdown(source: RegistrySource, extracted: ExtractedSource) -> str:
+    body = render_body(extracted, source_id=source.id)
+    metadata = dict(source.metadata)
+    if source.provenance is not None:
+        provenance = source.provenance.model_dump(by_alias=True, mode="json")
+        provenance["rawChecksum"] = extracted.source_checksum
+        metadata["provenance"] = provenance
+    metadata["sourcePath"] = source.path
+    metadata["extraction"] = extraction_front_matter(extracted)
     front_matter: dict[str, object] = {
         "id": source.id,
         "title": source.title,
@@ -203,25 +275,7 @@ def render_prepared_markdown(source: RegistrySource, extracted: ExtractedSource)
         sort_keys=False,
         default_flow_style=False,
     ).rstrip()
-
-    heading_levels = _normalize_heading_levels(included)
-    contents_entry_ids = _contents_entry_ids(included)
-    body: list[str] = []
-    if included[0].kind != "heading":
-        body.extend(["# Общая информация", ""])
-    for block in included:
-        text = block.text.strip()
-        if not text:
-            continue
-        if block.kind == "heading" and block.id not in contents_entry_ids:
-            level = heading_levels.get(block.id, 1)
-            body.extend([f"{'#' * level} {text}", ""])
-            continue
-        body.append(_source_marker(block))
-        if block.kind == "table_candidate":
-            body.append("<!-- localmed:review table-candidate -->")
-        body.extend([text, ""])
-    return f"---\n{dumped}\n---\n\n" + "\n".join(body).rstrip() + "\n"
+    return f"---\n{dumped}\n---\n\n" + body
 
 
 def _write_json(path: Path, payload: object) -> None:

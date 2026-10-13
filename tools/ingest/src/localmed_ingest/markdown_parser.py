@@ -18,6 +18,7 @@ _YAML_SAFE_LOADER = getattr(yaml, "CSafeLoader", yaml.SafeLoader)
 
 HEADING_PATTERN = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
 SOURCE_MARKER_PATTERN = re.compile(r"^<!--\s*localmed:source\s+(.+?)\s*-->$")
+PAGE_MARK_PATTERN = re.compile(r"^<!--\s*localmed:page-mark\s+.+?-->$")
 REVIEW_MARKER_PATTERN = re.compile(r"^<!--\s*localmed:review\s+(.+?)\s*-->$")
 
 
@@ -119,6 +120,9 @@ def split_paragraphs(lines: list[str]) -> list[DraftParagraph]:
             pending_spans = [source_marker]
             if isinstance(render_block, dict):
                 pending_metadata["renderBlock"] = render_block
+            continue
+        if PAGE_MARK_PATTERN.match(line.strip()):
+            # A scan stamp (OCR1): provenance in the prepared file, not text of the document.
             continue
         review_match = REVIEW_MARKER_PATTERN.match(line.strip())
         if review_match:
