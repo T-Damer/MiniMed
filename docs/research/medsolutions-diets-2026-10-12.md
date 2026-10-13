@@ -31,8 +31,8 @@ Version 2026.10.12, kind reference, collection `diets`, releaseState preview, mi
   1008н adult row, reference lines.
 - `children-pregnancy`: 1008н item 10 and Appendix 3 (ОВД, ЩД, ВБКД, НБД, НКД, pregnancy/lactation).
 - `norms-395n`: the full 395н table (six variants, 12 value columns, split in whole pieces).
-- `instruction-tables`: 330 Tables 2а, 3, 4, 5, 6, 7 with their notes; one status line that the
-  tables were extracted by machine and not compared row by row with the official publication.
+- `instruction-tables`: 330 Tables 2а, 3, 4, 5, 6, 7 with their notes. (The status line saying the tables
+  were machine-extracted was removed on 2026-10-13 after the check below.)
 - `system` (short title «Стандартные диеты»): variant to numbered-diet table, reverse table
   «стол → вариант», other diets of the Instruction, 1008н items 5-7 and 15 (when to prescribe).
   Diet 11 stays under ВБД and ВКД as in the source; the absence of №12 is noted once.
@@ -86,8 +86,10 @@ Two `memo` cells hold only a download link to an external image; not included.
 ## Open problems
 
 - 330 and 395н (current edition) come from a mirror; no official consolidated text was found.
-- Tables 2а-7 are machine-extracted and not checked cell by cell. Table 6 keeps source hyphenation
-  artifacts («ко- ровье», «0,8/ /0,73»); footnote marks `<*>`, `<2>` stay as printed.
+- Tables 2а-7: checked cell by cell on 2026-10-13 (DQ1; `docs/CURRENT_STATE.md`): identical to the
+  Kontur.Normativ copy of the 2024 edition and consistent with the rulaws 2016 edition, the 2013 text and the 70н
+  items; three mirror artefacts in Table 6 were repaired (hyphenated «коровье», the bracket of «(с уменьшением»,
+  the fraction «0,8/0,73»). The official 2003 scan was not available; footnote marks `<*>`, `<2>` stay as printed.
 - Typos kept as in the mirror, official scan of 330 not checked: «акоголизмом», «профвредностью»
   (ВКД, Table 1). In 1008н Appendix 2 (НКД) the mirror reads «при наличие избыточного веса»
   (Garant: «при наличии»); not checked against the scan.

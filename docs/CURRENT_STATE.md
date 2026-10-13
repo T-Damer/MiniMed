@@ -101,8 +101,9 @@ the first letters is not. Roadmap item 19 ([SEARCH_ROADMAP.md](SEARCH_ROADMAP.md
 - **Diets (public):** `minimed.reference.diets.ru` «Лечебное питание», 10 documents (153 KB): the six standard
   diet variants (ОВД, ЩД, ВБД, НБД, НКД, ВКД) with the exact №330 Table 1 rows (ред. 19.02.2024, as amended by
   №70н), the №395н food sets and the №1008н rows; children over 1 year / pregnancy / lactation (№1008н
-  Appendix 3); the full №395н norms; №330 Tables 2а–7 (machine-extracted, one status note); the variant ↔
-  numbered-diet map. Numbered tables («стол 5») are navigation aliases of their variant. Prepared Markdown in
+  Appendix 3); the full №395н norms; №330 Tables 2а–7 (verified against three more copies, DQ1); the variant ↔
+  numbered-diet map. Numbered tables («стол 5») are navigation aliases of their variant. Tables 2а–7 were
+  verified on 2026-10-13 (DQ1, below): no status note any more, module 2026.10.13. Prepared Markdown in
   `content/diets-official/` is regenerated from `data/raw/diets-official/` by `bun run content:module:diets`.
   Research: `docs/research/medsolutions-diets-2026-10-12.md`. The numbered (Певзнер) diets have no official
   text (USSR order №540 only names them), so their details are a personal-use module (below).
@@ -110,8 +111,8 @@ the first letters is not. Roadmap item 19 ([SEARCH_ROADMAP.md](SEARCH_ROADMAP.md
   pravo.ppt.ru mirror; 872 rows, 1 371 period pairs) → lazy chunk `features/sick-leave/sick-leave-periods.json`
   (`bun scripts/build-sick-leave-periods.ts`), a folded «Больничный: N–M дней» panel under the title of an
   ICD-10 card (its `mkbCode`) or a КР (its `icd10Codes`) — never on drug, TNM or other documents that only
-  mention codes. Diff against the MedSolutions copy: 746/776 agree, 8 conflicts listed in
-  `docs/research/medsolutions-code-layer-2026-10-12.md`.
+  mention codes. Diff against the MedSolutions copy: 746/776 agree; the 8 conflicts were resolved on 2026-10-13
+  against three more copies of the letter (DQ1, below; `docs/research/medsolutions-code-layer-2026-10-12.md`).
 - **Номенклатура медицинских услуг (№804н):** `minimed.reference.medical-services.ru`, НСИ OID
   1.2.643.5.1.13.13.11.1070 v2.10 (2021-04-06; `scripts/fetch-nsi-dictionary.sh … medical-services`), 725
   documents by class + section (10 450 active and 471 abolished services, 1.6 MB), new source type
@@ -139,7 +140,62 @@ the first letters is not. Roadmap item 19 ([SEARCH_ROADMAP.md](SEARCH_ROADMAP.md
 - **Checks:** vitest 16 313, pytest 1 446, Biome, typecheck, build, native source check, `benchmark:all`; browser
   (dev): module-file import of the real TNM bundle, search and reader, panel placement. Not tested: Android
   device, an МКБ-10 card with the panel inside the real app (unit + harness only), the Vidal bundle through the
-  import, clinical review of the diet tables 2а–7.
+  import, clinical review of the diet tables 2а–7 (their text now matches the order; nobody judged it clinically).
+
+## Data quality pass — 2026-10-13 (STATE DQ1)
+
+Owner: «data with quality problems — fix it». Three data sets, each checked against independent copies and covered by
+tests per data type.
+
+- **Diets (module `minimed.reference.diets.ru` 2026.10.13).** Tables 2а, 3, 4, 5, 6, 7 of the №330 Instruction were
+  compared cell by cell with the Kontur.Normativ copy of the 2024 edition (identical after layout normalisation),
+  the legalacts mirror (the source), the rulaws copy of the 2016 edition (every difference is a №70н / №901н change),
+  the 2013 consolidated text (sartfoms.ru PDF; all numbers of tables 2а–6 equal, table 7 differs only by the rows 70н
+  added) and the 70н items 4–10 (every changed row matches). No value was wrong. Three mirror artefacts were repaired
+  in Table 6 (`TABLE_CORRECTIONS` in `diets_official.py`, listed in the prepare report; each must match exactly one
+  cell): «Молоко ко- ровье цельное сухое» → «коровье», «Сливки сухие с уменьшением …» → «Сливки сухие (с уменьшением
+  …» (the 2013 text has the opening bracket; all three mirror copies lost it), «0,8/ /0,73 <5>» → «0,8/0,73 <5>».
+  The «Статус» section and `machineExtracted` are gone. New file `minimed.reference.diets.2026.10.13.db.gz`
+  (152 225 bytes), catalog entry and `publishedAt` 2026-10-13, `catalog:shell`; the 2026.10.12 file stays in
+  `public/content/modules/` (published files are never overwritten). Tests: `tests/test_diets_official.py` (corrections
+  applied, note absent), new `tests/test_diets_content.py` (numeric columns with units, gross ≥ net, table 7 macros and
+  «масло ± N г», table 6 masses and no mirror artefacts) over the committed Markdown. Not verified: the official scan
+  of the 2003 text (it was never published online); the 1008н/70н scans were not OCR'd.
+- **Sick-leave periods.** Second independent copies of the letter 2510/9362-34 found: consultant.ru (16 table pages),
+  docs.cntd.ru / library.mededtech.ru (Kodeks) and forens-med.ru (plain-text tables). Consultant and pravo.ppt.ru
+  are the same text (identical on every row the Consultant pages carried, same parser); Kodeks and forens-med form the second reading. The eight
+  MedSolutions conflicts: A01.0 and H44.0 **corrected** to 35–45 and 25–35 (Kodeks, forens-med and MedSolutions agree;
+  the Consultant/pravo.ppt.ru text has 34–45 and 23–35); H00.1 (5–10) and L60.0 (7–10) kept (Kodeks/MedSolutions print
+  the impossible 15–10 and 17–10, forens-med agrees with us); E24.0 kept as two lines 30–55 and 50–60 (all letter
+  copies; MedSolutions merged them); S52.2.0/S52.2.1 kept (closed = .0, as the letter and forens-med print;
+  MedSolutions swaps them); S82.2.1 kept as two rows (the letter repeats the code; MedSolutions codes the second
+  S81.2.1); T22.3 kept (third degree 40–80 / 60–100; MedSolutions has a first-degree row). Beyond those, the full
+  comparison with forens-med found three more places where it differs from the letter (I11.0 II ФК 10–20 vs 10–15,
+  S61.- 13–20 vs 15–20, S52.2.1 открытый 45–50 vs 45–55) and the Kodeks copy has typos (A48.1 «28-0», I21.4 «60-0»,
+  J04.1 «8-0», B75 18–25): each time the other two readings agree with us. Random sample of 50 rows (seed
+  20261013) against Consultant and forens-med: 0 disagreements; whole letter (1 371 period pairs): 2 corrected values
+  (0.15 %). Residual doubt: for A01.0 and H44.0 it is two readings against one lineage (no scan of the 2000 letter).
+  `scripts/build-sick-leave-periods.ts` has `VALUE_CORRECTIONS` (printed value must be found once) and writes
+  `valueCorrections` and `provenance` (`[table, form line]` per entry) into the asset; the form-line cell is empty in
+  the letter itself for D65, H43.1 and L40.1. New `sick-leave-asset.test.ts`: code shape, title, min ≤ max and a
+  plausible magnitude for every period, a source row for every entry, the settled values above.
+- **Oseltamivir instruction.** No text-layer official copy exists: the ГРЛС card (ЛП-№(002417)-(РГ-RU), ООО «Атолл»,
+  amendment 0 of 2023) carries only a 29-page raster PDF; the holder's own site and the ЕАЭС portal gave nothing;
+  reference sites (Vidal, tabletka, …) are not official and were not used. The scan was re-OCR'd (macOS Vision, 300 dpi
+  with the red ГРЛС stamp masked), compared with the first OCR run and two more variants and with a word list from
+  5 478 text-layer instructions, then **all 29 pages were read against the image**: the red stamp «СООТВЕТСТВУЕТ
+  ЭКСПЕРТНОМУ ОТЧЕТУ …» lies over the first line of most pages and had garbled it; short words («и», «в», «к», «с»)
+  were dropped; ≥, n, ³, III, H1N1 were misread; the seven tables (resistance, two dose tables, the suspension
+  tables, adverse reactions in adults and children) were retyped from the scan. Result: `content/grls-reviewed-ocr/
+  drug.rf.b9f41580e1cecf8dc2e7.instruction.md` (every section of the instruction, 9 tables, a source span per block with its page) and its
+  `.review.json` log; metadata `ocrReviewed: true` with the remaining doubts (first lines read through the stamp;
+  look-alike Latin/Cyrillic letters; sub/superscripts plain). The module builder (`reviewed_override`) uses the file
+  instead of the OCR while the PDF checksum is unchanged; the drug screen shows «Текст распознан со скана и сверен
+  со страницами оригинала…» (`ocr-reviewed`). **Not done:** the antiinfectives module (40.9 MB) was not rebuilt or
+  republished — the next GRLS module build picks the file up; no second reader, no clinical review. Tests:
+  `tests/test_grls_reviewed_ocr.py` (required sections once and in order, dose numbers, table columns, spans for all
+  29 pages, no stamp or mixed-script residue, contacts), `test_grls_instruction_modules.py` (override only for the same
+  PDF), `instruction-source.test.ts`.
 
 ## MedSolutions gap calculators — 2026-10-12 (STATE CALC-ALL)
 
@@ -3776,8 +3832,10 @@ layer), consolidated editions of the federal laws, a clinician review of the par
 
 - Clinical starter documents are concise source-linked cards; the separately installable snapshot
   contains the official structured recommendation text, headings, tables, and embedded figures.
-- The selected oseltamivir instruction still requires reviewed OCR; the clinical recommendation
-  snapshot no longer depends on PDF OCR.
+- The selected oseltamivir instruction (ЛП-№(002417)-(РГ-RU), ООО «Атолл») is a 29-page scan with no text-layer
+  copy anywhere; its OCR text was re-read against the scan on 2026-10-13 (`content/grls-reviewed-ocr/`, DQ1) but
+  only by an agent — remaining doubts are in its front matter — and the published module still carries the old OCR
+  until the next module rebuild. The clinical recommendation snapshot no longer depends on PDF OCR.
 - Text-layer drug PDFs can still lose visually distinct subheadings that use the same font size as
   body text. Preserved layout metadata prevents list continuations from absorbing adjacent text, but
   complex layouts still require reviewed structure extraction before publication.
@@ -3874,7 +3932,8 @@ described above.
 3. Build and qualify the missing dose/indication corpus from source-backed rules, including
    clarification/abstention behavior; resolve Allmed packaging-image rights before considering a
    distributable/cataloged module, while keeping image assets outside the core database.
-4. Add verified OCR for the blocked drug instruction.
+4. Rebuild the antiinfectives instruction module so the reviewed oseltamivir text replaces the OCR text (DQ1);
+   other OCR instructions stay flagged.
 5. Expand real Russian clinician-query, unsupported-answer, and source-scope benchmark coverage.
    The 70-query medication regression after pack installation is fixed. Use `benchmark:runtime` to investigate
    symptom/phrase misses, and missing published document membership before claiming retrieval quality.

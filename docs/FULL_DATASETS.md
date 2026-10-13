@@ -70,7 +70,8 @@ A failed download or validation never replaces an active dataset. The doctor can
 - The current per-module prototype is a build/distribution implementation, not the target runtime
   composition described in ADR 0012.
 - PDF archives are release backups, not in-app source attachments.
-- The local medication-instruction pack has seven text-layer PDFs; the selected oseltamivir PDF
-  requires OCR before ingestion.
+- The local medication-instruction pack has seven text-layer PDFs; the selected oseltamivir PDF is a
+  scan with no text-layer copy. Its OCR was re-read against the scan (2026-10-13,
+  `content/grls-reviewed-ocr/`); only the remaining doubts in that file's front matter are open.
 - The local prototype snapshot contains 723 searchable modules and records 21 scan-only
   recommendations for OCR; it has not been published yet.

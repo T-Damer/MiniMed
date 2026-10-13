@@ -20,7 +20,8 @@ cross-check.
 The letter is an unpublished departmental recommendation; no pravo.gov.ru, minzdrav.gov.ru or sfr.gov.ru
 copy was found. consultant.ru (`cons_doc_LAW_24444` is a different letter), docs.cntd.ru (redirect, no
 body) and guessed base.garant.ru / legalacts.ru addresses (404) gave no text. A second text copy was not
-obtained, so the digits could be cross-checked only against MedSolutions (see below).
+obtained on 2026-10-12; on 2026-10-13 three were (consultant.ru, docs.cntd.ru / library.mededtech.ru, forens-med.ru) —
+see «Resolution of the conflicts» below.
 
 ### Build
 
@@ -99,7 +100,30 @@ Period values that differ (letter | MedSolutions):
 | T22.3 | third degree, 40-80 / 60-100 | first degree, 3-5 / 10-15 | MedSolutions title and values differ |
 | A15.0, A16.0, A18.1, A19.8 | rows split by feature | rows merged | structure only; the periods agree (A18.1 also after the F18.1 fix) |
 
-The digits of A01.0, H44.0 and E24.0 cannot be resolved without a second copy of the letter.
+### Resolution of the conflicts (2026-10-13, task DQ1)
+
+Second copies: consultant.ru (16 table pages, same text as pravo.ppt.ru on every row it carried), docs.cntd.ru and
+library.mededtech.ru (Kodeks, with look-alike Latin/Cyrillic letters and typos such as A48.1 «28-0», I21.4 «60-0», J04.1
+«8-0», B75 «18-25», H00.1 «15-10», L60.0 «17-10») and forens-med.ru (plain-text tables). MedSolutions follows the
+Kodeks reading. Decision rule: a value changes only when two independent readings agree against the Consultant/pravo.ppt.ru
+text; the printed letter itself (no scan of the 2000 letter exists online) cannot be consulted.
+
+| Code | Decision | Basis |
+| --- | --- | --- |
+| A01.0 | **35-45** (was 34-45) | Kodeks, forens-med and MedSolutions print 35-45 |
+| H44.0 | **25-35** (was 23-35) | Kodeks, forens-med and MedSolutions print 25-35 |
+| H00.1, L60.0 | kept 5-10 / 7-10 | Kodeks «15-10», «17-10» are impossible (min > max); forens-med agrees with us |
+| E24.0 | kept two rows 30-55 and 50-60 | every letter copy prints two lines (the second with a footnote); MedSolutions merged them |
+| S52.2.0 / S52.2.1 | kept (closed = .0, open = .1) | letter, Consultant and forens-med; MedSolutions swaps |
+| S82.2.1 | kept two rows | the letter repeats the code; MedSolutions codes the second S81.2.1 |
+| T22.3 | kept third degree 40-80 / 60-100 | letter, Consultant, forens-med |
+| A15.0, A16.0, A18.1, A19.8 | kept split by feature | structure only; periods agree |
+
+The full comparison with forens-med also showed it differing from the letter at I11.0 (II ФК 10-20, letter 10-15), S61.-
+(13-20, letter 15-20) and S52.2.1 open (45-50, letter 45-55); in each the other two readings agree with the letter, so
+nothing changed. Random sample of 50 rows (seed 20261013) against Consultant and forens-med: 0 disagreements. Over the
+whole letter (1 371 period pairs) two values were wrong in the pravo.ppt.ru copy (0.15 %). The two changed values are in
+`VALUE_CORRECTIONS` of `scripts/build-sick-leave-periods.ts` and in `valueCorrections` of the asset.
 
 Titles: MedSolutions has typos the letter does not («очагоговый», «paдужной», «хроничеcкая», «однсторонний»,
 «Поритонзиллярный», «вопалением», «прецребральных»), Cyrillic А/В/С in hepatitis titles, and a shortened
@@ -178,7 +202,7 @@ contain («МРТ») do not find the right section; that needs aliases from a re
 - The panel inside the real document reader with an installed МКБ-10 module, on a phone, in the dark theme.
 - Installing the new module through the app (download, OPFS pool, search from the UI): only the database,
   the catalog schema (`upsert-catalog-module.ts` validates it) and the module vitest suites were run.
-- A second text copy of the letter; the digits where the letter and MedSolutions disagree.
+- A scan of the 2000 letter itself (A01.0 and H44.0 rest on two readings against one lineage).
 - Android and iOS builds, e2e.
 
 ## Files
