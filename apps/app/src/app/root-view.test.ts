@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   compactRootView,
   countPublishedCatalogModules,
+  filesTabHash,
   ROOT_VIEWS,
   rootViewRestoresRoute,
   viewFromLocation,
@@ -85,5 +86,20 @@ describe('rootViewRestoresRoute', () => {
     expect(
       ROOT_VIEWS.filter((item) => !rootViewRestoresRoute(item.id)).map((item) => item.id),
     ).toEqual(['calculators']);
+  });
+});
+
+describe('filesTabHash', () => {
+  it('opens the file list instead of the form, card or note the tab was left on', () => {
+    expect(filesTabHash('#/notes/forms/ru.minzdrav.1094n.107-1u')).toBe('#/modules/documents/user');
+    expect(filesTabHash('#/notes/patients/p1')).toBe('#/modules/documents/user');
+    expect(filesTabHash('#/notes')).toBe('#/modules/documents/user');
+  });
+
+  it('keeps an open personal document and a library folder', () => {
+    expect(filesTabHash('#/modules/documents/user/doc-1')).toBe('#/modules/documents/user/doc-1');
+    expect(filesTabHash('#/modules/documents/user?folder=books')).toBe(
+      '#/modules/documents/user?folder=books',
+    );
   });
 });

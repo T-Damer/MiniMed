@@ -833,6 +833,22 @@ export async function unlockPatientVault(): Promise<PatientVaultSnapshot> {
   }
 }
 
+/**
+ * Opens the vault without asking when no choice is needed (ADR-0016): an open session is read, an
+ * encrypted vault is unlocked, a missing one is created encrypted. Returns `undefined` when the
+ * person would have to decide (a plaintext vault); a failure is thrown for the caller to report.
+ */
+export async function openPatientVaultSilently(): Promise<PatientVaultSnapshot | undefined> {
+  if (isPatientVaultUnlocked()) return readPatientVault();
+  const mode = await patientVaultStorageMode();
+  if (isEncryptedPatientVaultMode(mode)) return unlockPatientVault();
+  if (!mode) {
+    await createPatientVault();
+    return readPatientVault();
+  }
+  return undefined;
+}
+
 export async function readPatientVault(): Promise<PatientVaultSnapshot> {
   if (!session) throw new PatientVaultLockedError();
   try {

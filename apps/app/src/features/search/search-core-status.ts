@@ -94,7 +94,7 @@ export function searchCoreStatusLabel(status: SearchCoreStatus): string {
     case 'opening':
       return 'Подготавливаем поиск…';
     case 'waiting':
-      return 'Поиск откроется после загрузки ядра';
+      return 'Поиск откроется после загрузки основной базы';
     case 'other-tab':
       return 'MiniMed открыт в другой вкладке';
     case 'downloading': {
@@ -108,7 +108,7 @@ export function searchCoreStatusLabel(status: SearchCoreStatus): string {
     case 'installing':
       return 'Устанавливаем базу…';
     case 'download-required':
-      return 'Поиск откроется после загрузки ядра';
+      return 'Поиск откроется после загрузки основной базы';
     case 'error':
       return 'База не открылась';
   }
@@ -122,19 +122,19 @@ export function searchCoreStatusDetail(status: SearchCoreStatus): string {
         ? 'Подготовка базы продолжается. Инструменты, свои файлы и настройки уже доступны.'
         : 'Инструменты, свои файлы и настройки уже доступны.';
     case 'waiting':
-      return 'Загрузка ядра начнётся, как только вы пройдёте приветствие.';
+      return 'Загрузка основной базы начнётся, как только вы пройдёте приветствие.';
     case 'other-tab':
       return 'Локальную базу одновременно открывает только одна вкладка. Закройте другую — поиск откроется здесь автоматически.';
     case 'downloading':
       return status.total > 0
         ? `Скачано ${formatModuleBytes(status.loaded)} из ${formatModuleBytes(status.total)}. Затем проверим и откроем базу.`
-        : 'Соединяемся с сервером…';
+        : 'Начинаем загрузку…';
     case 'verifying':
-      return 'Сверяем контрольную сумму ядра.';
+      return 'Сверяем контрольную сумму основной базы.';
     case 'installing':
-      return 'Устанавливаем проверенное ядро.';
+      return 'Устанавливаем проверенную основную базу.';
     case 'download-required':
-      return `Загрузка ядра — около ${CORE_DOWNLOAD_SIZE_LABEL}. Скачайте его, чтобы искать по источникам.`;
+      return `Основная база — около ${CORE_DOWNLOAD_SIZE_LABEL}. Скачайте её, чтобы искать по источникам.`;
     case 'error':
       return status.message;
   }

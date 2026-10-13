@@ -37,8 +37,8 @@ export function BootScreen(props: {
               ? 'MiniMed открыт в другой вкладке'
               : props.coreDownloadRequired
                 ? props.coreDownloading
-                  ? 'Скачиваем ядро MiniMed'
-                  : 'Скачайте ядро MiniMed'
+                  ? 'Скачиваем основную базу MiniMed'
+                  : 'Скачайте основную базу MiniMed'
                 : 'Подготавливаем поиск…'}
         </h1>
         <p class="boot-card__description">
@@ -47,29 +47,29 @@ export function BootScreen(props: {
               ? 'Локальную базу одновременно может открыть только одна вкладка. Закройте другую вкладку или окно MiniMed — поиск откроется здесь автоматически.'
               : props.coreDownloadRequired
                 ? props.coreDownloading
-                  ? `Ядро — это база для поиска, загрузка около ${CORE_DOWNLOAD_SIZE_LABEL}. После загрузки поиск работает без интернета. Свои файлы и настройки доступны уже сейчас.`
-                  : `Похоже, вы в мобильной сети, поэтому загрузка не началась сама. Загрузка ядра — около ${CORE_DOWNLOAD_SIZE_LABEL}: скачайте сейчас или позже через Wi‑Fi. Свои файлы и настройки доступны и без него.`
+                  ? `Основная база нужна для поиска, загрузка около ${CORE_DOWNLOAD_SIZE_LABEL}. После загрузки поиск работает без интернета. Свои файлы и настройки доступны уже сейчас.`
+                  : `Похоже, вы в мобильной сети, поэтому загрузка не началась сама. Основная база — около ${CORE_DOWNLOAD_SIZE_LABEL}: скачайте сейчас или позже через Wi‑Fi. Свои файлы и настройки доступны и без неё.`
                 : props.bootSlow
                   ? 'Подготовка базы продолжается. Свои файлы и настройки доступны через нижнее меню.'
-                  : 'Поиск откроется, когда ядро будет готово. Пока можно пользоваться своими файлами и настройками.')}
+                  : 'Поиск откроется, когда основная база будет готова. Пока можно пользоваться своими файлами и настройками.')}
         </p>
         <Show when={props.coreDownloadRequired && !props.error}>
           <Show
             when={props.coreDownloading}
             fallback={
               <button class="boot-card__action" type="button" onClick={props.onDownloadCore}>
-                Скачать ядро · ~{CORE_DOWNLOAD_SIZE_LABEL}
+                Скачать основную базу · ~{CORE_DOWNLOAD_SIZE_LABEL}
               </button>
             }
           >
             <p class="boot-card__progress" role="status" aria-live="polite">
               {progress()?.phase === 'verifying'
-                ? 'Проверяем контрольную сумму ядра…'
+                ? 'Проверяем контрольную сумму основной базы…'
                 : progress()?.phase === 'installing'
-                  ? 'Устанавливаем проверенное ядро…'
+                  ? 'Устанавливаем проверенную основную базу…'
                   : progress()
                     ? `Скачано ${formatModuleBytes(progress()?.loaded ?? 0)}${(progress()?.total ?? 0) > 0 ? ` из ${formatModuleBytes(progress()?.total ?? 0)}` : ''}. Затем проверим и откроем базу.`
-                    : 'Соединяемся с сервером…'}
+                    : 'Начинаем загрузку…'}
             </p>
             <p class="boot-card__description">
               Скачивание продолжается в фоне. Вернитесь в приложение, чтобы завершить проверку и

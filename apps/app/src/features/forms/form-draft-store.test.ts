@@ -6,6 +6,7 @@ const vault = vi.hoisted(() => ({
 }));
 
 vi.mock('@/state/patient-vault', () => ({
+  PATIENT_VAULT_LOCK_EVENT: 'minimed:patient-vault-locked',
   isPatientVaultUnlocked: () => vault.unlocked,
   addPatientBlob: async (input: {
     id: string;

@@ -82,18 +82,18 @@ export function OnboardingIntro(props: {
   onCleanup(() => labelWatcher.disconnect());
 
   const coreHeadline = (): string => {
-    if (props.coreReady) return 'Ядро знаний уже на месте';
+    if (props.coreReady) return 'Основная база уже на месте';
     if (props.coreError)
-      return 'Ядро скачать не получилось — проверь интернет и нажми «Повторить» внизу';
+      return 'Основную базу скачать не получилось — проверьте интернет и нажмите «Повторить» внизу';
     if (props.coreDeferred) {
-      return `Загрузка ядра знаний — около ${CORE_DOWNLOAD_SIZE_LABEL}, а ты в мобильной сети: скачай сейчас или позже по Wi‑Fi`;
+      return `Основная база — около ${CORE_DOWNLOAD_SIZE_LABEL}, а вы в мобильной сети: скачайте сейчас или позже по Wi‑Fi`;
     }
-    return 'Сейчас нам надо скачать ядро знаний — прогресс загрузки ты увидишь внизу';
+    return `Сейчас скачаем основную базу — около ${CORE_DOWNLOAD_SIZE_LABEL}. Прогресс загрузки будет внизу`;
   };
   const nextHint = (): string =>
     props.coreReady
-      ? 'Нажми «Далее» — покажу, что умеет приложение'
-      : 'Нажми «Далее», чтобы продолжить изучать приложение, пока идёт загрузка';
+      ? 'Нажмите «Далее» — покажем, что умеет приложение'
+      : 'Нажмите «Далее», чтобы продолжить знакомство, пока идёт загрузка';
   const footerShown = () => props.phase !== 'wait';
 
   return (
@@ -136,7 +136,7 @@ export function OnboardingIntro(props: {
             <p class="onboarding-intro__subtitle">Твой персональный помощник по медицине</p>
             <p class="onboarding-intro__about">
               Поиск по справочникам и рекомендациям, опросники, калькуляторы и личные файлы — всё
-              хранится и работает на твоём устройстве, без интернета.
+              хранится и работает на вашем устройстве, без интернета.
             </p>
           </section>
 

@@ -1,0 +1,139 @@
+.saved-items {
+  display: grid;
+  align-content: start;
+  gap: 0.9rem;
+  min-height: 100%;
+  padding-bottom: calc(var(--theme-bottom-nav-clearance, 5rem) + 1rem);
+  color: var(--theme-text);
+}
+
+.saved-items__search {
+  width: 100%;
+}
+
+.saved-items__section {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.saved-items__heading {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.saved-items__count {
+  color: var(--theme-text-muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.saved-items__list {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.saved-items__row {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: var(--theme-radius-control);
+}
+
+.saved-items__open {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 3rem;
+  padding: 0.4rem 0.6rem;
+  border: 0;
+  border-radius: var(--theme-radius-control);
+  color: inherit;
+  background: var(--theme-surface-raised);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+
+.saved-items__open:active {
+  transform: scale(0.98);
+}
+
+.saved-items__open:focus-visible,
+.saved-items__remove:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 2px;
+}
+
+.saved-items__icon {
+  width: 1.2rem;
+  height: 1.2rem;
+  flex: none;
+  color: var(--theme-accent);
+}
+
+.saved-items__copy {
+  display: grid;
+  min-width: 0;
+}
+
+.saved-items__title {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.saved-items__meta {
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
+}
+
+.saved-items__remove {
+  display: inline-grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: none;
+  place-items: center;
+  border: 0;
+  border-radius: var(--theme-radius-control);
+  color: var(--theme-text-muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.saved-items__remove-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.saved-items__empty,
+.saved-items__hint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  color: var(--theme-text-muted);
+}
+
+.saved-items__empty-icon {
+  width: 1.2rem;
+  height: 1.2rem;
+  flex: none;
+}
+
+@media (hover: hover) {
+  .saved-items__open:hover,
+  .saved-items__remove:hover {
+    background: var(--theme-accent-soft);
+  }
+}

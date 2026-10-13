@@ -106,7 +106,7 @@ export function SettingsGeneralPage(props: SettingsGeneralPageProps): JSX.Elemen
           when={props.status}
           fallback={
             <p class="settings-section__description">
-              Ядро поиска ещё не готово. Файлы и настройки доступны.
+              Основная база поиска ещё не готова. Файлы и настройки доступны.
             </p>
           }
         >

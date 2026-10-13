@@ -58,7 +58,11 @@ import {
   getClinicianProfile,
   subscribeClinicianProfile,
 } from '@/state/clinician-profile';
-import { isPatientVaultUnlocked, PATIENT_VAULT_LOCK_EVENT } from '@/state/patient-vault';
+import {
+  isPatientVaultUnlocked,
+  openPatientVaultSilently,
+  PATIENT_VAULT_LOCK_EVENT,
+} from '@/state/patient-vault';
 import '@/styles/forms.css';
 
 /** Typed values are written to the draft once typing has paused for this long. */
@@ -95,6 +99,8 @@ export function FormFillPage(props: FormFillPageProps): JSX.Element {
   // Missing fields are marked only after the person has tried to save: a fresh form is not red.
   const [attempted, setAttempted] = createSignal(false);
   const [ready, setReady] = createSignal(false);
+  // The vault is closed: typed values are kept only until the app closes.
+  const [memoryOnly, setMemoryOnly] = createSignal(false);
   const stopClinician = subscribeClinicianProfile(() => setClinician(getClinicianProfile()));
   onCleanup(stopClinician);
 
@@ -167,11 +173,30 @@ export function FormFillPage(props: FormFillPageProps): JSX.Element {
       setSaveError('');
       const remembered = readFormSession(key);
       applyDraft(remembered);
-      if (remembered || !isPatientVaultUnlocked()) {
+      if (remembered) {
         setReady(true);
         return;
       }
-      loadFormDraft(target())
+      // A blank form (no patient) keeps its draft in the vault too: what is typed in it names a
+      // patient. The vault opens silently; without it (a plaintext vault, a browser that cannot
+      // keep a key) the draft lives in memory until the app closes, and the state line says so.
+      const opened =
+        props.patientId || isPatientVaultUnlocked()
+          ? Promise.resolve()
+          : openPatientVaultSilently().then((snapshot) => {
+              if (snapshot && request === loadRequest) vault.adopt(snapshot);
+            });
+      opened
+        .catch((cause: unknown) => {
+          if (request === loadRequest) {
+            console.error('Хранилище черновиков не открылось.', cause);
+          }
+        })
+        .then(() => {
+          if (request !== loadRequest) return undefined;
+          setMemoryOnly(!isPatientVaultUnlocked());
+          return isPatientVaultUnlocked() ? loadFormDraft(target()) : undefined;
+        })
         .then((draft) => {
           if (request === loadRequest && !editedSinceLoad) applyDraft(draft);
         })
@@ -373,6 +398,8 @@ export function FormFillPage(props: FormFillPageProps): JSX.Element {
           status: status(),
           savedAt: savedAt(),
           error: saveError() || undefined,
+          touched: Object.keys(edits()).length > 0,
+          memoryOnly: memoryOnly(),
         })}
         stateError={saveError() !== ''}
         attention={attempted()}

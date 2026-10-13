@@ -8,7 +8,7 @@ test('the persistent core reopens after repeated page reloads', async ({ page })
     await page.reload({ waitUntil: 'domcontentloaded' });
     // The field is on screen at once; it becomes editable only when the core has reopened.
     await waitForSearchEditable(page);
-    await expect(page.getByText(/Не удалось открыть ядро MiniMed/)).toHaveCount(0);
+    await expect(page.getByText(/Не удалось открыть основную базу MiniMed/)).toHaveCount(0);
   }
   await page.getByTestId('search-input').fill('А09');
   await expect(page.getByTestId('search-result').first()).toBeVisible({ timeout: 60_000 });

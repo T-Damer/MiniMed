@@ -74,6 +74,7 @@ import {
   primaryModuleDocumentId,
 } from '@/features/modules/module-display';
 import {
+  estimateDownloadSize,
   estimateDownloadStorage,
   selectBulkDownloadModules,
 } from '@/features/modules/module-download-selection';
@@ -726,6 +727,16 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         (module) => isModuleReleased(module) && !installedModuleIds().has(module.id),
       ).length,
   );
+  // The total on the «Скачать всё» button: what would be transferred, so nobody starts blind.
+  const bulkDownloadSizeLabel = (): string => {
+    const size = estimateDownloadSize(
+      bulkDownloadModules().filter(
+        (module) => isModuleReleased(module) && !installedModuleIds().has(module.id),
+      ),
+    );
+    if (size.bytes <= 0) return '';
+    return ` · ${size.incomplete ? 'от ' : ''}${formatModuleBytes(size.bytes)}`;
+  };
   const bulkDownloadLabel = (): string =>
     recommendationBrowserOpen() ? 'Скачать все рекомендации' : 'Скачать все документы';
 
@@ -949,7 +960,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                 aria-label={
                   installingAll()
                     ? `${bulkDownloadLabel()}: ${bulkDownloadPercent()}%`
-                    : `${bulkDownloadLabel()}: ${pendingDownloadCount()}`
+                    : `${bulkDownloadLabel()}: ${pendingDownloadCount()}${bulkDownloadSizeLabel()}`
                 }
                 class="module-download-all"
                 disabled={installingAll()}
@@ -965,7 +976,9 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                   <AppGlyph name="download" class="module-download-all__icon" />
                 </Show>
                 <span>
-                  {installingAll() ? `Скачиваем ${bulkDownloadPercent()}%` : 'Скачать всё'}
+                  {installingAll()
+                    ? `Скачиваем ${bulkDownloadPercent()}%`
+                    : `Скачать всё${bulkDownloadSizeLabel()}`}
                 </span>
               </button>
             </Show>
@@ -1062,7 +1075,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                 aria-label={
                   installingAll()
                     ? `${bulkDownloadLabel()}: ${bulkDownloadPercent()}%`
-                    : `${bulkDownloadLabel()}: ${pendingDownloadCount()}`
+                    : `${bulkDownloadLabel()}: ${pendingDownloadCount()}${bulkDownloadSizeLabel()}`
                 }
                 class="module-download-all module-download-all--toolbar knowledge-subroute-heading__action"
                 disabled={installingAll()}
@@ -1078,7 +1091,9 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                   <AppGlyph name="download" class="module-download-all__icon" />
                 </Show>
                 <span>
-                  {installingAll() ? `Скачиваем ${bulkDownloadPercent()}%` : 'Скачать всё'}
+                  {installingAll()
+                    ? `Скачиваем ${bulkDownloadPercent()}%`
+                    : `Скачать всё${bulkDownloadSizeLabel()}`}
                 </span>
               </button>
             </Show>

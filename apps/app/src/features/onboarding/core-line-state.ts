@@ -50,33 +50,33 @@ function plain(kind: CoreLineKind, fraction: number | undefined, label: string):
 /** What the thin line along the bottom edge shows for the core's current state. */
 export function coreLineState(input: CoreLineInput): CoreLineState {
   if (input.ready) {
-    const label = 'Ядро знаний установлено';
+    const label = 'Основная база установлена';
     return { kind: 'ready', fraction: 1, label, compactLabel: label };
   }
   if (input.error) {
-    const label = 'Не удалось скачать ядро';
-    return { kind: 'error', fraction: undefined, label, compactLabel: 'Ядро не скачано' };
+    const label = 'Не удалось скачать основную базу';
+    return { kind: 'error', fraction: undefined, label, compactLabel: 'База не скачана' };
   }
   if (input.deferred && !input.downloading) {
     return {
       kind: 'deferred',
       fraction: 0,
-      label: `Мобильная сеть: загрузка ядра около ${CORE_DOWNLOAD_SIZE_LABEL}`,
+      label: `Мобильная сеть: основная база около ${CORE_DOWNLOAD_SIZE_LABEL}`,
       compactLabel: 'Мобильная сеть',
     };
   }
   const phase = input.progress?.phase;
   if (phase === 'verifying') {
-    return plain('verifying', undefined, 'Проверяем ядро…');
+    return plain('verifying', undefined, 'Проверяем основную базу…');
   }
   if (phase === 'installing') {
-    return plain('installing', undefined, 'Устанавливаем ядро…');
+    return plain('installing', undefined, 'Устанавливаем основную базу…');
   }
   const loaded = input.progress?.loaded ?? 0;
   if (!input.downloading && !input.progress) {
     return plain('preparing', undefined, 'Готовим поиск…');
   }
-  if (loaded <= 0) return plain('connecting', undefined, 'Соединяемся…');
+  if (loaded <= 0) return plain('connecting', undefined, 'Начинаем загрузку…');
   const percent = downloadPercent(loaded, input.progress?.total);
   const speed = input.speed === undefined ? '' : ` · ${formatSpeed(input.speed)}`;
   if (percent === undefined) {

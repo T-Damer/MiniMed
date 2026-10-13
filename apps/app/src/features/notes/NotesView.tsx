@@ -32,6 +32,7 @@ import { SearchField } from '@/components/SearchField';
 import { Heading } from '@/components/Text';
 import { TextField as UiTextField } from '@/components/TextField';
 import { ItemBookmarkMenu } from '@/features/collections/ItemBookmarkMenu';
+import { SavedItemsPage } from '@/features/collections/SavedItemsPage';
 import { ConversationInbox } from '@/features/conversations/ConversationInbox';
 import { type FormsRoute, FormsWorkspace } from '@/features/forms/FormsWorkspace';
 import { SafeMarkdown } from '@/features/library/SafeMarkdown';
@@ -1275,6 +1276,12 @@ export function NotesView(props: {
             backLabel={props.backToFiles ? 'К файлам' : 'Назад к заметкам'}
           />
         )}
+      </Show>
+      <Show when={props.active && route().kind === 'saved'}>
+        <SavedItemsPage
+          backLabel={props.backToFiles ? 'К файлам' : 'Назад к заметкам'}
+          onBack={() => navigate(notesPath())}
+        />
       </Show>
       <Show when={props.active && vaccinationRoute()}>
         {(current) => (

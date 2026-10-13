@@ -1,6 +1,5 @@
 import { type Accessor, createSignal, onCleanup, onMount } from 'solid-js';
 
-import { clearFormSessions } from '@/features/forms/form-session';
 import type { PatientVaultSnapshot } from '@/state/patient-domain';
 import {
   acknowledgePatientVaultUiCleared,
@@ -19,7 +18,7 @@ export interface PatientVaultSnapshotState {
 
 /**
  * Follows the patient vault without opening it: while it is locked there is no snapshot, and the
- * moment it locks again the snapshot and any typed form values are dropped.
+ * moment it locks again the snapshot is dropped (typed form values go with the lock event, see `form-session.ts`).
  */
 export function usePatientVaultSnapshot(): PatientVaultSnapshotState {
   const [snapshot, setSnapshot] = createSignal<PatientVaultSnapshot>();
@@ -28,7 +27,6 @@ export function usePatientVaultSnapshot(): PatientVaultSnapshotState {
     const current = ++request;
     if (!isPatientVaultUnlocked()) {
       setSnapshot(undefined);
-      clearFormSessions();
       acknowledgePatientVaultUiCleared();
       return;
     }

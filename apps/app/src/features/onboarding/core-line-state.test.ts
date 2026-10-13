@@ -56,9 +56,9 @@ describe('coreLineState', () => {
 
   it('keeps long messages short where they would cover the onboarding', () => {
     const deferred = coreLineState({ ...base, downloading: false, deferred: true });
-    expect(deferred.label).toContain('Мобильная сеть: загрузка ядра около');
+    expect(deferred.label).toContain('Мобильная сеть: основная база около');
     expect(deferred.compactLabel).toBe('Мобильная сеть');
-    expect(coreLineState({ ...base, error: 'x' }).compactLabel).toBe('Ядро не скачано');
+    expect(coreLineState({ ...base, error: 'x' }).compactLabel).toBe('База не скачана');
     expect(coreLineState({ ...base, progress: { loaded: 50, total: 100 } }).compactLabel).toBe(
       '50 %',
     );

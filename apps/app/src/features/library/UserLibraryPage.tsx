@@ -15,6 +15,8 @@ import { SearchField } from '@/components/SearchField';
 import { useStickySurface } from '@/components/sticky-surface';
 import { Heading } from '@/components/Text';
 import { userQuestionnairePath } from '@/features/assessments/assessment-routing';
+import { SavedItemRow } from '@/features/collections/SavedItemRow';
+import { savedItemCount, searchSavedItems } from '@/features/collections/saved-items';
 import { createLibraryDropHandlers, FOLDER_DRAG_TYPE } from '@/features/library/user-library-drag';
 import {
   type LibraryEntry,
@@ -35,12 +37,17 @@ import {
 import {
   notesFormsPath,
   notesPatientsPath,
+  notesSavedPath,
   notesTemplatesPath,
 } from '@/features/notes/notes-routing';
 import { OcrLanguagePackSheet } from '@/features/ocr/OcrLanguagePackSheet';
 import { ensureOcrLanguagePackFiles } from '@/features/ocr/ocr-language-pack';
+import { quickToolsFromCatalog } from '@/features/search/quick-tools';
+import { searchCatalogTools } from '@/features/search/searchCatalog';
 import { getPluralMessage } from '@/i18n/browser-i18n';
+import { pluralRu } from '@/i18n/labels';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
+import { itemCollections } from '@/state/item-collections';
 import { saveBlobAsFile, shareSystemFile } from '@/state/native-share';
 import { syncPatientNotesToUserLibrary } from '@/state/note-library-sync';
 import {
@@ -109,6 +116,7 @@ interface DeleteTarget {
 const PATIENTS_FOLDER_ID = 'patient-vault-entry';
 const KNOWLEDGE_BASE_FOLDER_ID = 'knowledge-base-entry';
 const FORMS_FOLDER_ID = 'official-forms-entry';
+const SAVED_FOLDER_ID = 'saved-items-entry';
 const KNOWLEDGE_BASE_HASH = '#/modules/documents';
 
 /** Root entries that open another section; constant records keep their cards' identity. */
@@ -128,6 +136,15 @@ const PATIENTS_FOLDER: UserLibraryFolder = {
   createdAt: '',
   updatedAt: '',
 };
+// The newest «update» keeps the folder of saved items first in the default (by time) order.
+const SAVED_FOLDER: UserLibraryFolder = {
+  id: SAVED_FOLDER_ID,
+  title: 'Избранное',
+  parentId: null,
+  isSystem: true,
+  createdAt: '',
+  updatedAt: '9999-12-31T00:00:00.000Z',
+};
 const FORMS_FOLDER: UserLibraryFolder = {
   id: FORMS_FOLDER_ID,
   title: 'Формы',
@@ -139,7 +156,10 @@ const FORMS_FOLDER: UserLibraryFolder = {
 
 /** Root entries that open another section instead of holding files. */
 const isEntryFolder = (id: string): boolean =>
-  id === PATIENTS_FOLDER_ID || id === KNOWLEDGE_BASE_FOLDER_ID || id === FORMS_FOLDER_ID;
+  id === PATIENTS_FOLDER_ID ||
+  id === KNOWLEDGE_BASE_FOLDER_ID ||
+  id === FORMS_FOLDER_ID ||
+  id === SAVED_FOLDER_ID;
 
 const SORT_MODE_LABEL: Record<LibrarySortMode, string> = {
   time: 'По времени',
@@ -226,6 +246,7 @@ const USER_LIBRARY_FOLDER_GLYPHS: Readonly<Record<string, AppGlyphName>> = {
   [PATIENTS_FOLDER_ID]: 'users',
   [KNOWLEDGE_BASE_FOLDER_ID]: 'modules',
   [FORMS_FOLDER_ID]: 'file-text',
+  [SAVED_FOLDER_ID]: 'bookmark',
 };
 
 function activeOcrDocumentId(documents: readonly UserLibraryDocument[]): string | null {
@@ -695,7 +716,7 @@ export function UserLibraryPage(props: {
     ...folders().filter((folder) => folder.parentId === currentFolderId()),
     // With separate tabs off, the knowledge base has no tab of its own: it opens from here.
     ...(currentFolderId() === null && props.knowledgeBaseEntry ? [KNOWLEDGE_BASE_FOLDER] : []),
-    ...(currentFolderId() === null ? [PATIENTS_FOLDER, FORMS_FOLDER] : []),
+    ...(currentFolderId() === null ? [SAVED_FOLDER, PATIENTS_FOLDER, FORMS_FOLDER] : []),
   ]);
   const visibleDocuments = createMemo(() => {
     const query = searchQuery().trim();
@@ -704,6 +725,22 @@ export function UserLibraryPage(props: {
       return !query || matchesFuzzyQuery(query, [document.title, document.fileName]);
     });
   });
+  // The tool catalog is read only when favourites are counted or searched.
+  const savedToolsById = createMemo(
+    () => new Map(quickToolsFromCatalog(searchCatalogTools()).map((tool) => [tool.id, tool])),
+  );
+  const savedFolderDetails = (): string => {
+    const count = savedItemCount(itemCollections(), savedToolsById());
+    return count === 0
+      ? 'Сохранённые документы и записи'
+      : `${count} ${pluralRu(count, 'элемент', 'элемента', 'элементов')}`;
+  };
+  // Saved items are found by the same field that finds the files: a title matches here too.
+  const savedMatches = createMemo(() =>
+    currentFolderId() === null
+      ? searchSavedItems(itemCollections(), savedToolsById(), searchQuery())
+      : [],
+  );
   const visibleExampleSlots = createMemo(() => {
     const query = searchQuery().trim();
     return USER_LIBRARY_EXAMPLE_SLOTS.filter(
@@ -1364,6 +1401,10 @@ export function UserLibraryPage(props: {
       navigate(notesFormsPath());
       return;
     }
+    if (folderId === SAVED_FOLDER_ID) {
+      navigate(notesSavedPath());
+      return;
+    }
     if (folderId === USER_LIBRARY_TEMPLATES_FOLDER_ID) {
       navigate(notesTemplatesPath());
       return;
@@ -1695,7 +1736,9 @@ export function UserLibraryPage(props: {
           ? 'Документы и справочники'
           : props.folder.id === FORMS_FOLDER_ID
             ? 'Официальные бланки Минздрава'
-            : getPluralMessage('attachment_count', attachmentCount());
+            : props.folder.id === SAVED_FOLDER_ID
+              ? savedFolderDetails()
+              : getPluralMessage('attachment_count', attachmentCount());
     // Folders that cannot be deleted carry a pin, so the missing «Удалить» is no surprise.
     const pinMark = (): JSX.Element => (
       <Show when={isUserLibrarySystemFolder(props.folder)}>
@@ -2075,7 +2118,9 @@ export function UserLibraryPage(props: {
                 </div>
               }
             >
-              <p class="user-library-page__empty">Ничего не найдено по вашему запросу.</p>
+              <Show when={savedMatches().length === 0}>
+                <p class="user-library-page__empty">Ничего не найдено по вашему запросу.</p>
+              </Show>
             </Show>
           }
         >
@@ -2110,6 +2155,15 @@ export function UserLibraryPage(props: {
               </LayoutVirtualizedGrid>
             </Show>
           </div>
+        </Show>
+
+        <Show when={savedMatches().length > 0}>
+          <section class="user-library-page__saved" aria-label="Избранное">
+            <h2 class="user-library-page__saved-heading">Избранное</h2>
+            <ul class="user-library-page__saved-list">
+              <For each={savedMatches()}>{(entry) => <SavedItemRow entry={entry} />}</For>
+            </ul>
+          </section>
         </Show>
 
         <Show when={selectionMode()}>

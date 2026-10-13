@@ -1,4 +1,5 @@
 import type { FormValue } from '@/features/forms/form-values';
+import { PATIENT_VAULT_LOCK_EVENT } from '@/state/patient-vault';
 
 /** `draft`: autosaved, still being filled. `saved`: the doctor pressed «Сохранить» and approved it. */
 export type FormDraftStatus = 'draft' | 'saved';
@@ -34,6 +35,7 @@ export function readFormSession(key: string): FormDraft | undefined {
 }
 
 export function writeFormSession(key: string, draft: FormDraft): void {
+  installLockGuard();
   // An untouched draft is the same as no draft at all.
   if (draft.status === 'draft' && Object.keys(draft.edits).length === 0) sessions.delete(key);
   else sessions.set(key, draft);
@@ -41,4 +43,13 @@ export function writeFormSession(key: string, draft: FormDraft): void {
 
 export function clearFormSessions(): void {
   sessions.clear();
+}
+
+let lockGuardInstalled = false;
+
+/** Locking the vault drops every typed value from memory, whichever screen is open. */
+function installLockGuard(): void {
+  if (lockGuardInstalled || typeof window === 'undefined') return;
+  lockGuardInstalled = true;
+  window.addEventListener(PATIENT_VAULT_LOCK_EVENT, clearFormSessions);
 }

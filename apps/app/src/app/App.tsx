@@ -17,7 +17,13 @@ import { AppBottomNav } from '@/app/AppBottomNav';
 import { BootScreen } from '@/app/BootScreen';
 import { firstScreenPainted, revealFromBootSurface } from '@/app/boot-surface';
 import { LazyBoundary } from '@/app/LazyBoundary';
-import { COMPACT_ROOT_VIEWS, compactRootView, ROOT_VIEWS, type RootView } from '@/app/root-view';
+import {
+  COMPACT_ROOT_VIEWS,
+  compactRootView,
+  filesTabHash,
+  ROOT_VIEWS,
+  type RootView,
+} from '@/app/root-view';
 import { useAppSession } from '@/app/use-app-session';
 import { useBottomNav } from '@/app/use-bottom-nav';
 import { useFindShortcut } from '@/app/use-find-shortcut';
@@ -138,7 +144,8 @@ export function App(): JSX.Element {
     expandedNavigation() ? navigation.view() : compactRootView(navigation.view(), currentHash());
   const navigateTab = (next: RootView): void => {
     if (!expandedNavigation() && next === 'notes') {
-      window.location.hash = navView() === 'notes' ? USER_LIBRARY_CATALOG_HASH : lastPersonalHash;
+      window.location.hash =
+        navView() === 'notes' ? USER_LIBRARY_CATALOG_HASH : filesTabHash(lastPersonalHash);
       return;
     }
     navigation.navigate(next);

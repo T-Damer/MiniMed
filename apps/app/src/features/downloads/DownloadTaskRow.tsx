@@ -12,7 +12,7 @@ import {
 import { formatCount } from '@/i18n/format-count';
 
 const KIND_LABELS: Readonly<Record<DownloadKind, string>> = {
-  core: 'Ядро знаний',
+  core: 'Основная база',
   module: 'Набор документов',
   images: 'Изображения',
   ecg: 'ЭКГ',

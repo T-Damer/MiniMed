@@ -11,6 +11,7 @@ export type NotesRoute =
       readonly patientId?: string;
       readonly episodeId?: string;
     }
+  | { readonly kind: 'saved' }
   | { readonly kind: 'vaccination'; readonly part?: string }
   | {
       readonly kind: 'drug-interactions';
@@ -87,6 +88,7 @@ export function readNotesRoute(
     }
     return { kind: 'form', formId, ...context };
   }
+  if (parts[1] === 'saved') return { kind: 'saved' };
   if (parts[1] === 'vaccination') {
     const part = new URLSearchParams(query).get(VACCINATION_PART_QUERY_KEY);
     return part ? { kind: 'vaccination', part } : { kind: 'vaccination' };
@@ -164,6 +166,11 @@ export function notesFormsPath(
   const query = params.toString();
   const base = formId ? `#/notes/forms/${encodeURIComponent(formId)}` : '#/notes/forms';
   return query ? `${base}?${query}` : base;
+}
+
+/** `#/notes/saved` opens «Избранное»: everything saved with the bookmark. */
+export function notesSavedPath(): string {
+  return '#/notes/saved';
 }
 
 /** `#/notes/vaccination` opens «Календарь прививок»; `part` picks national, plan, epidemic or procedure. */

@@ -1,7 +1,11 @@
 import type { ContentModuleCatalogEntry } from '@localmed/contracts';
 import { describe, expect, it } from 'vitest';
 
-import { estimateDownloadStorage, selectBulkDownloadModules } from './module-download-selection';
+import {
+  estimateDownloadSize,
+  estimateDownloadStorage,
+  selectBulkDownloadModules,
+} from './module-download-selection';
 
 function module(id: string): ContentModuleCatalogEntry {
   return {
@@ -139,5 +143,18 @@ describe('download confirmation storage estimate', () => {
         { ...entry, sizes: { ...entry.sizes, installedBytes: null, downloadBytes: null } },
       ]),
     ).toEqual({ bytes: 0, incomplete: true });
+  });
+});
+
+describe('estimateDownloadSize', () => {
+  it('sums the transfer, falling back to the installed size, and flags unknown sizes', () => {
+    const entry = module('known');
+    expect(
+      estimateDownloadSize([
+        { ...entry, sizes: { ...entry.sizes, installedBytes: 200, downloadBytes: 50 } },
+        { ...entry, id: 'b', sizes: { ...entry.sizes, installedBytes: 30, downloadBytes: null } },
+        { ...entry, id: 'c', sizes: { ...entry.sizes, installedBytes: null, downloadBytes: null } },
+      ]),
+    ).toEqual({ bytes: 80, incomplete: true });
   });
 });

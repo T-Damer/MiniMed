@@ -77,14 +77,14 @@ describe('search core status', () => {
     if (!connecting) throw new Error('Expected a download status.');
     expect(searchCoreStatusLabel(connecting)).toBe('Загружаем базу…');
     expect(searchCoreProgress(connecting)).toBeNull();
-    expect(searchCoreStatusDetail(connecting)).toBe('Соединяемся с сервером…');
+    expect(searchCoreStatusDetail(connecting)).toBe('Начинаем загрузку…');
   });
 
   it('says nothing is running while the first download waits for the onboarding', () => {
     const waiting = searchCoreStatus({ ...idle, downloadRequired: false, waitingToStart: true });
     expect(waiting).toEqual({ kind: 'waiting' });
     if (!waiting) throw new Error('Expected a waiting status.');
-    expect(searchCoreStatusLabel(waiting)).toBe('Поиск откроется после загрузки ядра');
+    expect(searchCoreStatusLabel(waiting)).toBe('Поиск откроется после загрузки основной базы');
     expect(searchCoreProgress(waiting)).toBeNull();
     // A real failure or another tab still wins over the wait.
     expect(searchCoreStatus({ ...idle, waitingToStart: true, error: 'x' })).toMatchObject({

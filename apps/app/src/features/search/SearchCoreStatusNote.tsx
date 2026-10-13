@@ -82,7 +82,7 @@ export function SearchCoreStatusNote(props: {
       <Show when={props.status.kind === 'download-required' && props.onDownload}>
         {(download) => (
           <Button class="search-core-status__action" variant="primary" onClick={() => download()()}>
-            Скачать ядро · ~{CORE_DOWNLOAD_SIZE_LABEL}
+            Скачать основную базу · ~{CORE_DOWNLOAD_SIZE_LABEL}
           </Button>
         )}
       </Show>

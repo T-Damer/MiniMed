@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   formatFullTextDownloadLabel,
+  formatModuleBytes,
   formatModuleCollectionSubtitle,
   formatOverviewCollectionSubtitle,
   moduleCollectionDocumentCount,
@@ -140,5 +141,12 @@ describe('formatFullTextDownloadLabel', () => {
 
   it('shows generic pending label without progress', () => {
     expect(formatFullTextDownloadLabel(true, null, false)).toBe('Загружаем полную версию…');
+  });
+});
+
+describe('formatModuleBytes', () => {
+  it('switches to gigabytes for a total above one', () => {
+    expect(formatModuleBytes(1.5 * 1024 * 1024 * 1024)).toBe('1,5 ГБ');
+    expect(formatModuleBytes(882 * 1024 * 1024)).toBe('882 МБ');
   });
 });

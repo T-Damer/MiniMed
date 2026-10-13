@@ -51,3 +51,21 @@ export function estimateDownloadStorage(modules: readonly ContentModuleCatalogEn
   }
   return { bytes, incomplete };
 }
+
+/**
+ * What the transfer itself weighs (the downloaded files, not what they take once installed): the
+ * number on a «Скачать всё» button. `incomplete` when some module has no published size.
+ */
+export function estimateDownloadSize(modules: readonly ContentModuleCatalogEntry[]): {
+  readonly bytes: number;
+  readonly incomplete: boolean;
+} {
+  let bytes = 0;
+  let incomplete = false;
+  for (const module of modules) {
+    const size = module.sizes.downloadBytes ?? module.sizes.installedBytes;
+    if (size === null) incomplete = true;
+    else bytes += size;
+  }
+  return { bytes, incomplete };
+}

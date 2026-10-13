@@ -13,7 +13,7 @@ export function StatusPanel(props: StatusPanelProps): JSX.Element {
       <header>
         <div>
           <p class="archive-kicker">Диагностика сборки</p>
-          <h2>Состояние ядра</h2>
+          <h2>Состояние основной базы</h2>
           <p>Документы, доступные локальному поиску на этом устройстве.</p>
         </div>
         <span class="core-status-version">Core {RELEASE_VERSION}</span>

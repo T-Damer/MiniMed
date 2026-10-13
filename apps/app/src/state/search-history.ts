@@ -119,14 +119,45 @@ export function loadSearchHistory(): readonly SearchHistoryEntry[] {
   return fallback;
 }
 
+/** A search recorded because the typing paused, which the next words typed replace. */
+const AUTO_REFINE_WINDOW_MS = 60_000;
+let lastAutoEntry:
+  | {
+      readonly id: string;
+      readonly query: string;
+      readonly scope: SearchScope;
+      readonly at: number;
+    }
+  | undefined;
+
+function isRefinement(previous: string, next: string): boolean {
+  const left = previous.toLocaleLowerCase('ru-RU');
+  const right = next.toLocaleLowerCase('ru-RU');
+  return left.startsWith(right) || right.startsWith(left);
+}
+
+/**
+ * Remembers a search. A search recorded because the typing paused (`auto`) is an unfinished
+ * thought: while the same words are being extended or shortened, the entry is replaced instead of
+ * adding «п», «пн», «пневм», «пневмония» one after another.
+ */
 export function appendSearchHistory(
   query: string,
   scope: SearchScope,
   response: SearchResponse | number,
   specialty?: string,
+  options: { readonly auto?: boolean } = {},
 ): readonly SearchHistoryEntry[] {
   const trimmed = query.trim();
-  const current = loadSearchHistory();
+  const now = Date.now();
+  const superseded =
+    lastAutoEntry &&
+    lastAutoEntry.scope === scope &&
+    now - lastAutoEntry.at <= AUTO_REFINE_WINDOW_MS &&
+    isRefinement(lastAutoEntry.query, trimmed)
+      ? lastAutoEntry.id
+      : undefined;
+  const current = loadSearchHistory().filter((entry) => entry.id !== superseded);
   const nextEntry: SearchHistoryEntry = {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     query: trimmed,
@@ -136,6 +167,7 @@ export function appendSearchHistory(
     resultCount: typeof response === 'number' ? response : response.groups.length,
     modeUsed: typeof response === 'number' ? 'lexical' : response.modeUsed,
   };
+  lastAutoEntry = options.auto ? { id: nextEntry.id, query: trimmed, scope, at: now } : undefined;
   const next = [
     nextEntry,
     ...current.filter(
@@ -148,6 +180,7 @@ export function appendSearchHistory(
 }
 
 export function clearSearchHistory(): void {
+  lastAutoEntry = undefined;
   localStorage.removeItem(SEARCH_HISTORY_KEY);
   localStorage.removeItem(PREVIOUS_HISTORY_KEY);
   localStorage.removeItem(LEGACY_HISTORY_KEY);

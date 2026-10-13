@@ -725,7 +725,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       return;
     }
     setSearchQueued(true);
-    searchTimer = setTimeout(() => void runSearch(trimmed, false), 500);
+    searchTimer = setTimeout(() => void runSearch(trimmed, false, { autoRecord: true }), 500);
   }
 
   function updateQuery(value: string, debounce = true): void {
@@ -786,6 +786,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       readonly reloadContextDocuments?: boolean;
       /** The doctor asked for this outcome: it replaces the list on screen at once. */
       readonly apply?: boolean;
+      /** Typing paused on these words: they are remembered, and replaced if the typing goes on. */
+      readonly autoRecord?: boolean;
     } = {},
   ): Promise<void> {
     const rawQuery = nextQuery.trim();
@@ -823,8 +825,10 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     if (!everywhere && (await showSavedSearch(trimmed, generation, specialty, dataVersion))) {
       lastSearchedQuery = trimmed;
       const shownResponse = response();
-      if (recordHistory && shownResponse)
-        appendSearchHistory(rawQuery, props.scope, shownResponse, specialty);
+      if (shownResponse && (recordHistory || options.autoRecord))
+        appendSearchHistory(rawQuery, props.scope, shownResponse, specialty, {
+          auto: !recordHistory,
+        });
       if (generation === searchGeneration && contextDocuments().length === 0) {
         await loadContextDocuments(core, generation, trimmed);
       }
@@ -876,7 +880,9 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     }
     setDraftAnalysis(result.value.analysis);
     if (!everywhere) void saveSearch(cacheIdentity(trimmed, specialty), dataVersion, result.value);
-    if (recordHistory) appendSearchHistory(rawQuery, props.scope, result.value, specialty);
+    if (recordHistory || options.autoRecord) {
+      appendSearchHistory(rawQuery, props.scope, result.value, specialty, { auto: !recordHistory });
+    }
     if (options.reloadContextDocuments || contextDocuments().length === 0) {
       await loadContextDocuments(core, generation, trimmed);
     }

@@ -65,11 +65,9 @@ for (const viewport of [
     await next.click();
 
     // The core download begins now; the icon opens and three documents float, the middle higher.
+    await expect(intro.getByText(/Сейчас скачаем основную базу — около \d+ МБ/u)).toBeVisible();
     await expect(
-      intro.getByText('Сейчас нам надо скачать ядро знаний — прогресс загрузки ты увидишь внизу'),
-    ).toBeVisible();
-    await expect(
-      intro.getByText('Нажми «Далее», чтобы продолжить изучать приложение, пока идёт загрузка'),
+      intro.getByText('Нажмите «Далее», чтобы продолжить знакомство, пока идёт загрузка'),
     ).toBeVisible();
     await expect.poll(core.downloads).toBe(1);
     await expect(page.locator('.core-progress-line__track')).toBeVisible();
@@ -293,7 +291,7 @@ for (const size of [
     await page.keyboard.press('ArrowRight');
     await page.keyboard.press('ArrowRight');
     await expect(caption).toContainText('Мобильная сеть', { timeout: 30_000 });
-    await expect(caption).not.toContainText('загрузка ядра около');
+    await expect(caption).not.toContainText('основная база около');
     expect(await covered('.onboarding-intro')).toBe(0);
     await expect(caption.getByRole('button', { name: 'Скачать' })).toBeVisible();
 

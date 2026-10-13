@@ -86,7 +86,7 @@ export function CoreProgressLine(props: CoreProgressLineProps): JSX.Element {
   const announcement = createMemo(() => {
     const current = state();
     if (current.kind === 'downloading' && current.fraction !== undefined) {
-      return `Загрузка ядра знаний: ${Math.floor(current.fraction * 4) * 25} %`;
+      return `Загрузка основной базы: ${Math.floor(current.fraction * 4) * 25} %`;
     }
     return current.label;
   });
@@ -106,7 +106,7 @@ export function CoreProgressLine(props: CoreProgressLineProps): JSX.Element {
           <div
             class="core-progress-line__track"
             role="progressbar"
-            aria-label="Загрузка ядра знаний"
+            aria-label="Загрузка основной базы"
             aria-valuemin={0}
             aria-valuemax={100}
             {...(state().fraction === undefined

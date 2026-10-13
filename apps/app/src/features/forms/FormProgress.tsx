@@ -33,8 +33,8 @@ export function FormProgress(props: FormProgressProps): JSX.Element {
           type="button"
           class="form-progress__jump"
           disabled={complete()}
-          aria-label={`Обязательные поля: ${props.done} из ${props.total}`}
-          title="К первому незаполненному"
+          aria-label={`Обязательные поля заполнены: ${props.done} из ${props.total}`}
+          title="Обязательные поля. Нажмите, чтобы перейти к первому незаполненному"
           onClick={props.onJump}
         >
           <span class="form-progress__track" aria-hidden="true">
@@ -52,7 +52,7 @@ export function FormProgress(props: FormProgressProps): JSX.Element {
               class="form-progress__count"
               classList={{ 'form-progress__count--attention': props.attention }}
             >
-              {props.done}/{props.total}
+              {props.done} из {props.total}
             </span>
           </Show>
         </button>

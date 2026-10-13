@@ -1,5 +1,9 @@
 import type { AppGlyphName } from '@/components/AppGlyph';
-import { migrateLegacyUserDocumentHash } from '@/features/library/user-library-routing';
+import {
+  isUserLibraryCatalogRoute,
+  migrateLegacyUserDocumentHash,
+  USER_LIBRARY_CATALOG_HASH,
+} from '@/features/library/user-library-routing';
 import {
   isDocumentReadRoute,
   migrateLegacyDocumentHash,
@@ -48,6 +52,20 @@ const ROOT_VIEWS_OPENING_AT_LIST: ReadonlySet<RootView> = new Set(['calculators'
 
 export function rootViewRestoresRoute(view: RootView): boolean {
   return !ROOT_VIEWS_OPENING_AT_LIST.has(view);
+}
+
+/**
+ * Where the «Файлы» tab opens when it is entered from another tab. The file list is the home of
+ * the tab; the one place that is restored is an open personal document (its reading position is
+ * kept per document, and the reader has a way back to the list). Forms, patient cards and notes
+ * autosave their drafts and are reached from the list again in one tap — returning straight into
+ * the half-filled form left a first-time user wondering where the files were.
+ */
+export function filesTabHash(lastHash: string): string {
+  return parseDocumentReadRoute(lastHash)?.kind === 'user' ||
+    isUserLibraryCatalogRoute(lastHash.replace(/^#\/?/u, ''))
+    ? lastHash
+    : USER_LIBRARY_CATALOG_HASH;
 }
 
 export const ROOT_VIEW_ORDER = new Map(ROOT_VIEWS.map((item, index) => [item.id, index]));

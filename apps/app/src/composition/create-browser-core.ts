@@ -173,7 +173,7 @@ export async function createNativeStore(
       };
       await downloadUi.requestDownload(await hasRetainedFileDownload(transfer));
       return getDownloadQueue().run(
-        { id: `core:${checksum}`, kind: 'core', title: 'Ядро знаний MiniMed' },
+        { id: `core:${checksum}`, kind: 'core', title: 'Основная база MiniMed' },
         async (context) => {
           const listener = await LocalMedDatabase.addListener('coreDownloadProgress', (event) => {
             context.progress(event.loaded, event.total > 0 ? event.total : null);
@@ -233,7 +233,7 @@ async function openNativeStore(checksum: string): Promise<CapacitorMedicalStore>
     const queue = getDownloadQueue();
     if (queue.get(`core:${checksum}`)?.state === 'interrupted') {
       queue.observe(
-        { id: `core:${checksum}`, kind: 'core', title: 'Ядро знаний MiniMed' },
+        { id: `core:${checksum}`, kind: 'core', title: 'Основная база MiniMed' },
         { state: 'completed', errorMessage: null },
         {},
       );
@@ -330,7 +330,7 @@ async function openRequiredCoreFromOpfs(
   const descriptor = {
     id: `core:web:${databaseName}`,
     kind: 'core' as const,
-    title: 'Ядро знаний MiniMed',
+    title: 'Основная база MiniMed',
   };
   let downloading = false;
   try {
@@ -376,7 +376,7 @@ async function openRequiredCoreFromOpfs(
     if (downloading)
       getDownloadQueue().observe(
         descriptor,
-        { state: 'failed', errorMessage: 'Не удалось установить ядро.' },
+        { state: 'failed', errorMessage: 'Не удалось установить основную базу.' },
         {},
       );
     throw cause;
@@ -666,7 +666,7 @@ export async function createBrowserCore(downloadUi?: CoreDownloadUi) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Не удалось открыть ядро MiniMed: ${message}`, { cause: error });
+    throw new Error(`Не удалось открыть основную базу MiniMed: ${message}`, { cause: error });
   }
 }
 
@@ -685,6 +685,6 @@ export async function createBrowserWorkerCore(contentBaseUrl: string) {
     return createMedicalCore({ store, platform: 'web', embedder: QUERY_EMBEDDER });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Не удалось открыть ядро MiniMed: ${message}`, { cause: error });
+    throw new Error(`Не удалось открыть основную базу MiniMed: ${message}`, { cause: error });
   }
 }

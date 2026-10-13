@@ -91,6 +91,24 @@ describe('search history', () => {
     expect((dispatched.at(-1) as CustomEvent).detail).toEqual({ entry });
   });
 
+  it('records a search whose typing paused, and replaces it while the words are extended', () => {
+    appendSearchHistory('пневм', 'all', 3, undefined, { auto: true });
+    appendSearchHistory('пневмония', 'all', 5, undefined, { auto: true });
+    expect(loadSearchHistory().map((entry) => entry.query)).toEqual(['пневмония']);
+    // The doctor presses Enter on the same words: still one entry.
+    appendSearchHistory('пневмония', 'all', 5);
+    expect(loadSearchHistory()).toHaveLength(1);
+    // A different thought is a new entry.
+    appendSearchHistory('амоксициллин', 'all', 4, undefined, { auto: true });
+    expect(loadSearchHistory().map((entry) => entry.query)).toEqual(['амоксициллин', 'пневмония']);
+  });
+
+  it('keeps an explicit search when a longer one follows', () => {
+    appendSearchHistory('астма', 'all', 3);
+    appendSearchHistory('астма у детей', 'all', 3, undefined, { auto: true });
+    expect(loadSearchHistory().map((entry) => entry.query)).toEqual(['астма у детей', 'астма']);
+  });
+
   it('migrates v3 entries to the safe all-documents scope', () => {
     storage.set(
       'localmed.search-history.v3',
