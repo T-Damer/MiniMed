@@ -153,7 +153,10 @@ export function PdfViewer(props: PdfViewerProps): JSX.Element {
       classList={{ 'pdf-viewer--rail-open': Boolean(props.thumbnailRail && props.thumbnailsOpen) }}
       style={{ '--pdf-zoom': String(model.zoom()) }}
     >
-      <ReaderSelectionLookup surface={root} />
+      {/* A viewer that can mark text carries the lookup in its own popup (`PdfHighlights`). */}
+      <Show when={!props.highlightDocumentId}>
+        <ReaderSelectionLookup surface={root} />
+      </Show>
       <Show when={props.thumbnailRail && props.thumbnailsOpen}>
         <aside class="pdf-viewer__rail" aria-label="Миниатюры страниц">
           <PdfThumbnails

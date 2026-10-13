@@ -19,6 +19,8 @@ import { buildPdfPageHighlight } from '@/features/pdf-viewer/pdf-find-dom';
 import { pdfPageIndexFromUnitId, pdfPageUnitId } from '@/features/pdf-viewer/pdf-find-state';
 import { type PdfSelectionTarget, pdfSelectionTargets } from '@/features/pdf-viewer/pdf-selection';
 import type { PdfViewerModel } from '@/features/pdf-viewer/pdf-viewer-model';
+import { openReaderDictionary } from '@/features/reader-dictionary/reader-dictionary-state';
+import { cleanSelection } from '@/features/reader-dictionary/selection-term';
 import {
   addUserHighlight,
   removeUserHighlight,
@@ -35,6 +37,8 @@ interface PdfPopup {
   readonly placement: ReturnType<typeof popupPoint>['placement'];
   readonly add: readonly PdfSelectionTarget[] | null;
   readonly remove: readonly UserDocumentHighlight[];
+  /** Selected text to look up in the dictionary; `null` when it is not a word or short phrase. */
+  readonly lookup: string | null;
 }
 
 /**
@@ -115,14 +119,20 @@ export function PdfHighlights(props: {
   });
 
   onMount(() => {
-    const snapshot = (): { targets: readonly PdfSelectionTarget[]; rect: DOMRect } | null => {
+    const snapshot = (): {
+      targets: readonly PdfSelectionTarget[];
+      rect: DOMRect;
+      text: string;
+    } | null => {
       const root = props.pages();
       const selection = document.getSelection();
       if (!root || !selection || selection.isCollapsed || selection.rangeCount === 0) return null;
       const range = selection.getRangeAt(0);
       if (!root.contains(range.commonAncestorContainer)) return null;
       const targets = pdfSelectionTargets(range, root, model);
-      return targets.length > 0 ? { targets, rect: range.getBoundingClientRect() } : null;
+      return targets.length > 0
+        ? { targets, rect: range.getBoundingClientRect(), text: selection.toString() }
+        : null;
     };
     const refresh = (): void => {
       const current = snapshot();
@@ -147,6 +157,7 @@ export function PdfHighlights(props: {
         ...popupPoint(current.rect),
         add: intersecting.length > 0 ? null : current.targets,
         remove: intersecting,
+        lookup: cleanSelection(current.text) ?? null,
       });
     };
     let frame: number | undefined;
@@ -177,6 +188,7 @@ export function PdfHighlights(props: {
           ...popupPoint({ left: event.clientX, width: 0, top: rect.top, bottom: rect.bottom }),
           add: null,
           remove: [item],
+          lookup: cleanSelection(item.quote) ?? null,
         });
         return;
       }
@@ -228,6 +240,16 @@ export function PdfHighlights(props: {
               : undefined
           }
           onClose={() => setPopup(null)}
+          onLookup={
+            value().lookup
+              ? () => {
+                  const text = value().lookup;
+                  if (text) openReaderDictionary(text);
+                  document.getSelection()?.removeAllRanges();
+                  setPopup(null);
+                }
+              : undefined
+          }
           onAdd={
             value().add
               ? async (color) => {
