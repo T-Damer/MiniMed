@@ -224,6 +224,34 @@ tests per data type.
   `benchmark:all` pass; `bun run check` fails only on the pre-existing `docs/data-ledger.json` formatting. No
   browser/device run; frozen native golden exports not regenerated.
 
+## Calculator source verification — 2026-10-13 (STATE CALCV)
+
+- **Owner 2026-10-13 «data with quality problems — fix it».** The ~60 calculators the CALC-ALL review queue listed as
+  built from abstracts or secondary pages were re-read against the primary full text (CRUSADE, Rockall, ARISCAT,
+  RECIST 1.1, SLEDAI-2K, SCORE2, MELD-Na, WHO 2023 wasting, Kirshblum 2011), official documents (Russian КР with full scale
+  appendices for NIHSS, Hunt–Hess, Rivermead; «Указания по военно-полевой хирургии» МО РФ 2013 for the ВПХ scales; the
+  Russian diabetes algorithms for the HOMA-IR / Matsuda thresholds; the Harris–Benedict 1919 monograph) or the best open
+  reproduction. The per-tool list (what was read, what changed, what is still unverified) is in
+  `docs/research/calculator-review-queue-2026-10-12.md` («Verified», sections A / B / C).
+- **Corrected in the schemas** (record version 1.0.1; modules cardiology 0.2.0-preview.2 and intensive-care, surgery-trauma,
+  neurology-rehab, metabolic-lab, pulmonology, rheum-gi-onco-uro 0.1.0-preview.2, DB files and catalog regenerated with
+  `bun run content:catalog:tools`; the preview.1 DB files stay for the 0.6.59 catalog): Wells DVT (wording, pooled
+  prevalence), NYHA and CCS (class wording), CEAP and CEAP extended (2020 update), ХАН (Rutherford wording), SCORE2 /
+  SCORE2-OP (text), APACHE II (A-aDO₂ convention stated), MPM II 24 / 48 h (sources, 72 h constant flagged), RASS (three
+  descriptors), MEWS (limitation), PSI (class IV mortality 8,2–9,3 %), Mannheim, Pusajó / Ranson / TRISS / Goldman /
+  Detsky (limitations and tooltips), ARISCAT (published PPC rates), Evans, Caprini, Hunt–Hess (grade II label),
+  Ruffier, SLEDAI-2K, Lille, Calvert (the 125 mL/min cap is a documented convention, not Calvert's), MELD-Na (the
+  schema implements the OPTN 2016 variant; Kim 2008 has a different equation), basal metabolic rate (1919 source).
+  No scoring arithmetic changed: the content changes are the PSI class IV mortality figure, the CEAP 2020 options and
+  wording, bands, limitations and sources.
+- **Tests:** one `*-primary-source*.test.ts` per group in `apps/app/src/features/calculators/` with worked examples and
+  every cut-point edge (about 260 cases). Existing assertions touched: cardiology tests accept any https source URL (PMC and
+  KR sources), cardiology module version, PSI class IV text, a TRISS describe title.
+- **Still unverified** (reasons in the queue file): Pusajó, Ranson gallstone set and mortality, TRISS primary papers,
+  SCORE2-OP supplement constants, MPM II 72 h constant, nitrogen-balance constant, Goldman / Detsky primaries, ВПХ-У(Л) CK-MB unit.
+- **CEAP / ХАН decision:** all three tools kept (verified lookups that Russian documents quote side by side); they would
+  fit a future «reference / classification» kind better than the calculator one.
+
 ## Cardiology and thromboembolism calculators — 2026-10-12 (STATE CALC-CARDIO)
 
 - **New tool module** `content/tool-modules/cardiology.json` → `minimed.tools.cardiology.ru` 0.1.0-preview.1

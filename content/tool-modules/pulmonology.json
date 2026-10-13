@@ -1,9 +1,9 @@
 {
   "id": "minimed.tools.pulmonology.ru",
-  "version": "0.1.0-preview.1",
+  "version": "0.1.0-preview.2",
   "title": "Пульмонология и инфекции: шкалы пневмонии и боли в горле",
   "schemaVersion": 2,
-  "builtAt": "2026-10-12T00:00:00Z",
+  "builtAt": "2026-10-13T00:00:00Z",
   "tools": [
     {
       "id": "minimed.calculator.curb-65",

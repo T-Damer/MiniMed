@@ -65,7 +65,7 @@ function fails(key: string, inputs: Inputs): void {
 describe('SCORE2 / SCORE2-OP (ESC 2021)', () => {
   const REGIONS = ['low', 'moderate', 'high', 'veryHigh'] as const;
   const risk = (inputs: Inputs, region: string) =>
-    run('score2-score2-op', { ...inputs, region }).numbers.riskPercent;
+    run('score2-score2-op', { ...inputs, region }).numbers['riskPercent'];
 
   // Worked example printed in the SCORE2 paper (Results): 50-year-old smoker, SBP 140 mmHg,
   // total cholesterol 5.5 mmol/L, HDL 1.3 mmol/L: men 5.9 % (low risk) ... 14.0 % (very high risk),
@@ -174,7 +174,7 @@ describe('Mehran contrast-induced nephropathy score (JACC 2004;44:1393)', () => 
     contrastMl: 0,
     egfr: 90,
   };
-  const score = (patch: Inputs) => run('mehran-cin-score', { ...none, ...patch }).numbers.score;
+  const score = (patch: Inputs) => run('mehran-cin-score', { ...none, ...patch }).numbers['score'];
 
   it('adds the published integer scores of the eight variables', () => {
     // Figure: hypotension 5, IABP 5, CHF 5, age >75 4, anemia 3, diabetes 3, 1 per 100 cc, eGFR 40-60 2 /
@@ -190,7 +190,7 @@ describe('Mehran contrast-induced nephropathy score (JACC 2004;44:1393)', () => 
       contrastMl: 350,
       egfr: 25,
     });
-    expect(everything.numbers.score).toBe(32);
+    expect(everything.numbers['score']).toBe(32);
     expect(everything.range).toBe('very-high');
     expect(score({})).toBe(0);
   });
@@ -225,7 +225,7 @@ describe('Mehran contrast-induced nephropathy score (JACC 2004;44:1393)', () => 
     ];
     for (const [patch, expected, range, rates] of rows) {
       const result = run('mehran-cin-score', { ...none, ...patch });
-      expect(result.numbers.score, JSON.stringify(patch)).toBe(expected);
+      expect(result.numbers['score'], JSON.stringify(patch)).toBe(expected);
       expect(result.range, JSON.stringify(patch)).toBe(range);
       expect(result.interpretation, JSON.stringify(patch)).toContain(rates);
     }
@@ -252,7 +252,7 @@ describe('CEAP (2004 consensus + 2020 update, Russian КР 2024)', () => {
       aText: 'As,p',
       pText: 'Pr',
     });
-    expect(result.numbers.cNumber).toBe(3);
+    expect(result.numbers['cNumber']).toBe(3);
     expect(result.range).toBe('c3');
   });
 
@@ -274,13 +274,13 @@ describe('CEAP (2004 consensus + 2020 update, Russian КР 2024)', () => {
       for (const key of ['ceap', 'ceap-extended']) {
         const inputs = key === 'ceap' ? { ...base, clinical } : extendedBase({ clinical });
         const result = run(key, inputs);
-        expect(result.numbers.cNumber, `${key} ${clinical}`).toBe(number);
+        expect(result.numbers['cNumber'], `${key} ${clinical}`).toBe(number);
         expect(result.range, `${key} ${clinical}`).toBe(range);
-        expect(result.texts.cText).toBe(clinical);
+        expect(result.texts['cText']).toBe(clinical);
       }
     }
     for (const etiology of ['Ec', 'Ep', 'Es', 'Esi', 'Ese', 'En']) {
-      expect(run('ceap', { ...base, etiology }).texts.eText).toBe(etiology);
+      expect(run('ceap', { ...base, etiology }).texts['eText']).toBe(etiology);
     }
     fails('ceap', { ...base, clinical: 'C7' });
   });
@@ -293,8 +293,8 @@ describe('CEAP (2004 consensus + 2020 update, Russian КР 2024)', () => {
     // КР 2024: "С2,3s, Ep, As,p, Pr (GSVa, TPV)": great saphenous vein above the knee (old no. 2) and
     // thigh perforator (old no. 17).
     const result = run('ceap-extended', extendedBase({ seg2: 1, seg17: 1 }));
-    expect(result.texts.aText).toBe('As,p');
-    expect(result.numbers.segmentCount).toBe(2);
+    expect(result.texts['aText']).toBe('As,p');
+    expect(result.numbers['segmentCount']).toBe(2);
   });
 
   it('groups the 2020 segments into As (Tel, Ret, GSVa, GSVb, SSV, AASV, NSV), Ad and Ap', () => {
@@ -323,7 +323,7 @@ describe('CEAP (2004 consensus + 2020 update, Russian КР 2024)', () => {
         'seg18',
       ])
         segments[id] = id === segment ? 1 : 0;
-      return run('ceap-extended', extendedBase(segments)).texts.aText;
+      return run('ceap-extended', extendedBase(segments)).texts['aText'];
     };
     expect(['seg1', 'segRet', 'seg2', 'seg3', 'seg4', 'segAASV', 'seg5'].map(only)).toEqual([
       'As',
@@ -350,7 +350,7 @@ describe('CEAP (2004 consensus + 2020 update, Russian КР 2024)', () => {
       ].map(only),
     ).toEqual(Array.from({ length: 11 }, () => 'Ad'));
     expect(['seg17', 'seg18'].map(only)).toEqual(['Ap', 'Ap']);
-    expect(run('ceap-extended', extendedBase({})).texts.aText).toBe('An');
+    expect(run('ceap-extended', extendedBase({})).texts['aText']).toBe('An');
   });
 });
 
@@ -368,7 +368,7 @@ describe('Chronic limb ischemia: Fontaine, Pokrovsky, Rutherford (КР 2025 tabl
     ];
     for (const [picture, fontaine, pokrovsky, grade, category] of table) {
       const result = run('chronic-limb-ischemia', { picture });
-      expect(result.numbers.rutherfordCategory).toBe(category);
+      expect(result.numbers['rutherfordCategory']).toBe(category);
       expect(result.texts).toMatchObject({
         fontaineStage: fontaine,
         pokrovskyStage: pokrovsky,

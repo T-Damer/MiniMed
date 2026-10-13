@@ -222,7 +222,7 @@ describe('Ruffier index ((P0 + P1 + P2 - 200) / 10 with beats per minute)', () =
     const record = loadToolModuleRecords([NEURO]).find(
       (candidate) => candidate.id === 'minimed.calculator.ruffier-index',
     );
-    const limitations = JSON.stringify(record?.definition.limitations);
+    const limitations = JSON.stringify(record?.definition['limitations']);
     expect(limitations).toContain('индекс Диксона');
     expect(limitations).toContain('P1 − 70');
     expect(record?.version).toBe('1.0.1');

@@ -101,7 +101,7 @@ describe('cardiology tool module, part 2', () => {
       version: string;
       tools: readonly { id: string }[];
     };
-    expect(source.version).toBe('0.2.0-preview.1');
+    expect(source.version).toBe('0.2.0-preview.2');
     expect(source.tools).toHaveLength(34);
     const added = source.tools.filter((tool) => PART_2_IDS.includes(tool.id));
     expect(added.map((tool) => tool.id).sort()).toEqual([...PART_2_IDS].sort());

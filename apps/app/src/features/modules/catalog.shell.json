@@ -7426,7 +7426,7 @@
       "tool": {
         "id": "minimed.calculator.wells-dvt",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "wells-dvt-probability",
         "title": "Wells — вероятность ТГВ",
         "shortTitle": "Wells (ТГВ)",
@@ -7461,6 +7461,8 @@
           "limitations": [
             "Шкала оценивает претестовую вероятность и применяется вместе с D-димером и ультразвуковым исследованием по принятому алгоритму.",
             "Пункт «другой диагноз не менее вероятен» отражает суждение врача и не вычисляется по данным.",
+            "Десять признаков — модифицированная шкала (Wells, 2003, с пунктом «ТГВ в анамнезе»); исходная модель 1997 г. его не содержала. В алгоритме с D-димером используют двухуровневое деление (2 балла и более — вероятен), как в Wells 2003 и NICE CG144.",
+            "Доли ТГВ по трёхуровневой схеме (5,0 % / 17 % / 53 %) взяты из объединённого анализа 14 исследований (Wells, 2006); границы баллов трёхуровневой схемы (≤0 / 1–2 / ≥3) по полному тексту работ 1997 г. не проверены.",
             "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
           ],
           "inputs": [
@@ -7553,7 +7555,7 @@
             },
             {
               "id": "calfSwelling",
-              "label": "Отёк голени больше чем на 3 см по сравнению со здоровой",
+              "label": "Отёк голени не менее чем на 3 см по сравнению со здоровой стороной",
               "labelTooltip": "Измерение на 10 см ниже бугристости большеберцовой кости.",
               "kind": "select",
               "options": [
@@ -7645,7 +7647,7 @@
               "version": "2003",
               "url": "https://pubmed.ncbi.nlm.nih.gov/14507948/",
               "page": "349(13):1227-1235",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             },
             {
               "title": "Wells PS, Anderson DR, Bormanis J, et al. Value of assessment of pretest probability of deep-vein thrombosis in clinical management",
@@ -7653,7 +7655,21 @@
               "version": "1997",
               "url": "https://pubmed.ncbi.nlm.nih.gov/9428249/",
               "page": "350(9094):1795-1798",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
+            },
+            {
+              "title": "Wells PS, Owen C, Doucette S, Fergusson D, Tran H. Does this patient have deep vein thrombosis?",
+              "publisher": "JAMA",
+              "version": "2006",
+              "url": "https://pubmed.ncbi.nlm.nih.gov/16403932/",
+              "page": "295(2):199-207",
+              "reviewedAt": "2026-10-13"
+            },
+            {
+              "title": "NICE CG144. Venous thromboembolic diseases: diagnosis, management and thrombophilia testing. Appendix C, Table 1: two-level DVT Wells score, adapted from Wells 2003",
+              "publisher": "National Institute for Health and Care Excellence",
+              "version": "2012",
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
@@ -8799,7 +8815,7 @@
       "tool": {
         "id": "minimed.calculator.nyha-class",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "nyha-functional-class",
         "title": "Функциональный класс по NYHA",
         "shortTitle": "NYHA",
@@ -8838,19 +8854,19 @@
               "options": [
                 {
                   "value": 1,
-                  "label": "I — обычная нагрузка не вызывает утомляемости, сердцебиения, одышки"
+                  "label": "I — болезнь сердца не ограничивает активность; обычная нагрузка не вызывает чрезмерной утомляемости, сердцебиения, одышки или стенокардитической боли"
                 },
                 {
                   "value": 2,
-                  "label": "II — небольшое ограничение; в покое жалоб нет, обычная нагрузка вызывает симптомы"
+                  "label": "II — небольшое ограничение; в покое комфортно, обычная нагрузка вызывает утомляемость, сердцебиение, одышку или стенокардитическую боль"
                 },
                 {
                   "value": 3,
-                  "label": "III — выраженное ограничение; в покое жалоб нет, меньшая нагрузка вызывает симптомы"
+                  "label": "III — выраженное ограничение; в покое комфортно, нагрузка меньше обычной вызывает утомляемость, сердцебиение, одышку или стенокардитическую боль"
                 },
                 {
                   "value": 4,
-                  "label": "IV — любая активность вызывает дискомфорт; симптомы могут быть в покое"
+                  "label": "IV — любая нагрузка вызывает дискомфорт; симптомы сердечной недостаточности или стенокардии могут быть в покое, при нагрузке дискомфорт усиливается"
                 }
               ],
               "required": true,
@@ -8863,7 +8879,7 @@
               "publisher": "Little, Brown & Co (Boston)",
               "version": "9th edition, 1994",
               "page": "253-256",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
@@ -8874,7 +8890,7 @@
       "tool": {
         "id": "minimed.calculator.ccs-angina-class",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "ccs-angina-class",
         "title": "Класс стенокардии по CCS",
         "shortTitle": "CCS (стенокардия)",
@@ -8917,7 +8933,7 @@
                 },
                 {
                   "value": 2,
-                  "label": "II — небольшое ограничение: приступы при быстрой ходьбе или подъёме, после еды, на холоде, ветру, при волнении"
+                  "label": "II — небольшое ограничение: приступы при быстрой ходьбе или подъёме, подъёме в гору, после еды, на холоде, на ветру, при волнении или в первые часы после пробуждения; при ходьбе более чем на 2 квартала по ровному месту и подъёме более чем на один пролёт в обычных условиях"
                 },
                 {
                   "value": 3,
@@ -8939,7 +8955,15 @@
               "version": "1976",
               "url": "https://pubmed.ncbi.nlm.nih.gov/947585/",
               "page": "54(3):522-523",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
+            },
+            {
+              "title": "Campeau L. The Canadian Cardiovascular Society grading of angina pectoris revisited 30 years later",
+              "publisher": "Canadian Journal of Cardiology",
+              "version": "2002",
+              "url": "https://pubmed.ncbi.nlm.nih.gov/11992130/",
+              "page": "18(4):371-379",
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
@@ -10462,7 +10486,7 @@
       "tool": {
         "id": "minimed.calculator.score2-score2-op",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "score2-score2-op-cardiovascular-risk",
         "title": "SCORE2 и SCORE2-OP — 10-летний риск сердечно-сосудистых событий",
         "shortTitle": "SCORE2 / SCORE2-OP",
@@ -10504,7 +10528,7 @@
           "limitations": [
             "Для людей с диабетом, установленными сердечно-сосудистыми болезнями, хронической болезнью почек и семейной гиперхолестеринемией шкалу не используют.",
             "Риск — фатальные и нефатальные события (инфаркт, инсульт, смерть от сердечно-сосудистых причин) за 10 лет; пороги категорий зависят от возраста.",
-            "В российской выборке SCORE2 точна у мужчин и завышает риск у женщин; в странах очень высокого риска категории у мужчин оказываются «очень высокими» почти у всех."
+            "В российской выборке (ESSE-RF, 40–69 лет) SCORE2 точна у мужчин и завышает риск у женщин; в регионе очень высокого риска у мужчин по исходным порогам «очень высокий риск» получают 63 %, «низкий–умеренный» — 2 %."
           ],
           "inputs": [
             {
@@ -10626,7 +10650,15 @@
               "version": "2021",
               "url": "https://pubmed.ncbi.nlm.nih.gov/34120177/",
               "page": "42(25):2439-2454",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
+            },
+            {
+              "title": "SCORE2 working group and ESC Cardiovascular risk collaboration. SCORE2 models allow consideration of sex-specific cardiovascular disease risks by region (таблица коэффициентов, базовой выживаемости и региональных масштабов SCORE2)",
+              "publisher": "European Heart Journal",
+              "version": "2022",
+              "url": "https://pubmed.ncbi.nlm.nih.gov/35080243/",
+              "page": "43(3):241",
+              "reviewedAt": "2026-10-13"
             },
             {
               "title": "SCORE2-OP working group and ESC Cardiovascular risk collaboration. SCORE2-OP risk prediction algorithms: estimating incident cardiovascular event risk in older persons in four geographical risk regions",
@@ -10634,7 +10666,7 @@
               "version": "2021",
               "url": "https://pubmed.ncbi.nlm.nih.gov/34120185/",
               "page": "42(25):2455-2467",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             },
             {
               "title": "Visseren FLJ, Mach F, Smulders YM, et al. 2021 ESC Guidelines on cardiovascular disease prevention in clinical practice",
@@ -10642,14 +10674,14 @@
               "version": "2021",
               "url": "https://pubmed.ncbi.nlm.nih.gov/34458905/",
               "page": "42(34):3227-3337",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             },
             {
               "title": "Svinin GE, et al. Validation of SCORE2 on a sample from the Russian population and adaptation for the very high cardiovascular disease risk region",
               "publisher": "PLoS One",
               "version": "2024",
               "url": "https://pubmed.ncbi.nlm.nih.gov/38630773/",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
@@ -12543,7 +12575,7 @@
       "tool": {
         "id": "minimed.calculator.mehran-cin-score",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "mehran-contrast-nephropathy-score",
         "title": "Mehran — риск контраст-индуцированной нефропатии после ЧКВ",
         "shortTitle": "Mehran (КИН)",
@@ -12581,7 +12613,8 @@
           "limitations": [
             "Шкала выведена для ЧКВ; при диагностической коронарографии без вмешательства она не проверялась.",
             "Нефропатия — рост креатинина на 25 % и более или на 0,5 мг/дл и более за 48 часов; в исходной работе есть и вариант с креатинином выше 1,5 мг/дл (4 балла) вместо СКФ.",
-            "Частоты диализа в категориях — по рисунку исходной работы, переданные вторичными источниками."
+            "Частоты нефропатии и диализа в категориях — из рисунка исходной работы (в выборке разработки); в самом рисунке границы «11–16» и «≥16» перекрываются, здесь, как и в резюме статьи, 16 баллов относят к высшей категории.",
+            "СКФ в исходной работе — по формуле MDRD; границы 40 и 20 в рисунке указаны в двух строках, здесь 40–59 даёт 2 балла, 20–39 — 4 балла, ниже 20 — 6 баллов."
           ],
           "inputs": [
             {
@@ -12718,7 +12751,15 @@
               "version": "2004",
               "url": "https://pubmed.ncbi.nlm.nih.gov/15464318/",
               "page": "44(7):1393-1399",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
+            },
+            {
+              "title": "Andersen ND, et al. Cardiac catheterization within one to three days of proximal aortic surgery is not associated with increased postoperative acute kidney injury (рисунок шкалы Mehran воспроизведён из исходной статьи с разрешения издателя)",
+              "publisher": "Journal of Thoracic and Cardiovascular Surgery",
+              "version": "2012",
+              "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3711663/",
+              "page": "143(6):1404-1410",
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
@@ -12729,7 +12770,7 @@
       "tool": {
         "id": "minimed.calculator.ceap",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "ceap-chronic-venous-disorders",
         "title": "Классификация CEAP — хронические заболевания вен",
         "shortTitle": "CEAP",
@@ -12767,7 +12808,7 @@
           "limitations": [
             "CEAP — описательная классификация; шкалы тяжести и качества жизни нужны отдельно для динамики.",
             "Дату исследования и уровень обследования (LI — физикальное и допплерография, LII — дуплексное сканирование, LIII — флебография, КТ, МРТ) указывают в записи рядом с классом.",
-            "Здесь используется консенсус 2004 г.; более поздние пересмотры добавили подклассы."
+            "Здесь используется пересмотр CEAP 2020 г. (Lurie и соавт.), совпадающий с российскими клиническими рекомендациями 2024 г. по варикозной болезни: добавлены C4c, признак рецидива r (C2r, C6r), подразделение Es на Esi и Ese."
           ],
           "inputs": [
             {
@@ -12788,6 +12829,10 @@
                   "label": "C2 — варикозное расширение вен"
                 },
                 {
+                  "value": "C2r",
+                  "label": "C2r — рецидив варикозных вен"
+                },
+                {
                   "value": "C3",
                   "label": "C3 — отёк"
                 },
@@ -12800,12 +12845,20 @@
                   "label": "C4b — липодерматосклероз или белая атрофия"
                 },
                 {
+                  "value": "C4c",
+                  "label": "C4c — флебэктатическая корона (corona phlebectatica)"
+                },
+                {
                   "value": "C5",
                   "label": "C5 — зажившая венозная язва"
                 },
                 {
                   "value": "C6",
                   "label": "C6 — открытая венозная язва"
+                },
+                {
+                  "value": "C6r",
+                  "label": "C6r — рецидивная открытая венозная язва"
                 }
               ],
               "required": true,
@@ -12843,7 +12896,15 @@
                 },
                 {
                   "value": "Es",
-                  "label": "Es — вторичная (после тромбоза, травмы)"
+                  "label": "Es — вторичная, подтип не уточнён"
+                },
+                {
+                  "value": "Esi",
+                  "label": "Esi — вторичная, внутривенная (тромбоз, повреждение стенки и клапанов, артериовенозная фистула)"
+                },
+                {
+                  "value": "Ese",
+                  "label": "Ese — вторичная, внешняя (сдавление, венозная гипертензия, нарушение работы мышечной помпы)"
                 },
                 {
                   "value": "En",
@@ -12937,7 +12998,22 @@
               "version": "2004",
               "url": "https://pubmed.ncbi.nlm.nih.gov/15622385/",
               "page": "40(6):1248-1252",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
+            },
+            {
+              "title": "Lurie F, Passman M, Meisner M, et al. The 2020 update of the CEAP classification system and reporting standards",
+              "publisher": "Journal of Vascular Surgery: Venous and Lymphatic Disorders",
+              "version": "2020",
+              "url": "https://pubmed.ncbi.nlm.nih.gov/32113854/",
+              "page": "8(3):342-352",
+              "reviewedAt": "2026-10-13"
+            },
+            {
+              "title": "Клинические рекомендации «Варикозное расширение вен нижних конечностей» (2024), таблица 1 «Классификация хронических заболеваний вен CEAP»",
+              "publisher": "Минздрав России",
+              "version": "2024",
+              "url": "https://cr.minzdrav.gov.ru/recomend/680_2",
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
@@ -12948,7 +13024,7 @@
       "tool": {
         "id": "minimed.calculator.ceap-extended",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "ceap-extended-chronic-venous-disorders",
         "title": "Расширенная классификация CEAP — хронические заболевания вен",
         "shortTitle": "CEAP расширенная",
@@ -12980,12 +13056,13 @@
           "category": "cardiology",
           "tags": [],
           "clinical": true,
-          "formulaDisplay": "C, S/A, E, A (As, Ap, Ad), P и номера поражённых сегментов 1–18: например C2,3,4b,6,S, Ep, As,p,d, Pr2,3,18,13,14",
+          "formulaDisplay": "C, S/A, E, A (As, Ap, Ad), P и буквенные обозначения поражённых сегментов: например C2,3s, Ep, As,p, Pr (GSVa, TPV)",
           "population": "Пациенты с хроническими заболеваниями вен нижних конечностей.",
           "limitations": [
             "CEAP — описательная классификация; шкалы тяжести и качества жизни нужны отдельно для динамики.",
-            "Номера поражённых сегментов выпишите после буквы P (Pr, Po или Pr,o), например Pr2,3,18,13,14; сегменты 1–5 — As, 6–16 — Ad, 17–18 — Ap.",
-            "Дату исследования и уровень обследования (LI, LII, LIII) указывают в записи рядом с классом."
+            "Поражённые сегменты выпишите буквенными обозначениями 2020 г. после P (Pr, Po или Pr,o), например Pr (GSVa, TPV); числовые номера 1–18 редакции 2004 г. остаются в подсказках для сопоставления: 1–5 — As, 6–16 — Ad, 17–18 — Ap. Российские клинические рекомендации 2024 г. советуют использовать буквенные обозначения.",
+            "Дату исследования и уровень обследования (LI, LII, LIII) указывают в записи рядом с классом.",
+            "Здесь используется пересмотр CEAP 2020 г. (Lurie и соавт.): добавлены C4c, признак рецидива r (C2r, C6r), подразделение Es на Esi и Ese, отдельные сегменты Tel, Ret и AASV."
           ],
           "inputs": [
             {
@@ -13006,6 +13083,10 @@
                   "label": "C2 — варикозное расширение вен"
                 },
                 {
+                  "value": "C2r",
+                  "label": "C2r — рецидив варикозных вен"
+                },
+                {
                   "value": "C3",
                   "label": "C3 — отёк"
                 },
@@ -13018,12 +13099,20 @@
                   "label": "C4b — липодерматосклероз или белая атрофия"
                 },
                 {
+                  "value": "C4c",
+                  "label": "C4c — флебэктатическая корона (corona phlebectatica)"
+                },
+                {
                   "value": "C5",
                   "label": "C5 — зажившая венозная язва"
                 },
                 {
                   "value": "C6",
                   "label": "C6 — открытая венозная язва"
+                },
+                {
+                  "value": "C6r",
+                  "label": "C6r — рецидивная открытая венозная язва"
                 }
               ],
               "required": true,
@@ -13061,7 +13150,15 @@
                 },
                 {
                   "value": "Es",
-                  "label": "Es — вторичная (после тромбоза, травмы)"
+                  "label": "Es — вторичная, подтип не уточнён"
+                },
+                {
+                  "value": "Esi",
+                  "label": "Esi — вторичная, внутривенная (тромбоз, повреждение стенки и клапанов, артериовенозная фистула)"
+                },
+                {
+                  "value": "Ese",
+                  "label": "Ese — вторичная, внешняя (сдавление, венозная гипертензия, нарушение работы мышечной помпы)"
                 },
                 {
                   "value": "En",
@@ -13098,8 +13195,17 @@
             },
             {
               "id": "seg1",
-              "label": "1. Телеангиэктазии и ретикулярные вены",
-              "labelTooltip": "Сегмент 1 (As).",
+              "label": "Tel — телеангиэктазии",
+              "labelTooltip": "Сегмент As; в редакции 2004 г. — № 1 вместе с ретикулярными венами.",
+              "kind": "checkbox",
+              "required": false,
+              "defaultExpression": "0",
+              "step": 0
+            },
+            {
+              "id": "segRet",
+              "label": "Ret — ретикулярные вены",
+              "labelTooltip": "Сегмент As; в редакции 2004 г. — № 1 вместе с телеангиэктазиями.",
               "kind": "checkbox",
               "required": false,
               "defaultExpression": "0",
@@ -13107,8 +13213,8 @@
             },
             {
               "id": "seg2",
-              "label": "2. Большая подкожная вена на бедре",
-              "labelTooltip": "Сегмент 2 (As).",
+              "label": "GSVa — большая подкожная вена выше колена",
+              "labelTooltip": "Сегмент As; в редакции 2004 г. — № 2.",
               "kind": "checkbox",
               "required": false,
               "defaultExpression": "0",
@@ -13116,8 +13222,8 @@
             },
             {
               "id": "seg3",
-              "label": "3. Большая подкожная вена на голени",
-              "labelTooltip": "Сегмент 3 (As).",
+              "label": "GSVb — большая подкожная вена ниже колена",
+              "labelTooltip": "Сегмент As; в редакции 2004 г. — № 3.",
               "kind": "checkbox",
               "required": false,
               "defaultExpression": "0",
@@ -13125,8 +13231,17 @@
             },
             {
               "id": "seg4",
-              "label": "4. Малая подкожная вена",
-              "labelTooltip": "Сегмент 4 (As).",
+              "label": "SSV — малая подкожная вена",
+              "labelTooltip": "Сегмент As; в редакции 2004 г. — № 4.",
+              "kind": "checkbox",
+              "required": false,
+              "defaultExpression": "0",
+              "step": 0
+            },
+            {
+              "id": "segAASV",
+              "label": "AASV — передняя добавочная подкожная вена",
+              "labelTooltip": "Сегмент As; выделена в редакции 2020 г., в редакции 2004 г. номера не имела.",
               "kind": "checkbox",
               "required": false,
               "defaultExpression": "0",
@@ -13134,8 +13249,8 @@
             },
             {
               "id": "seg5",
-              "label": "5. Вены вне бассейна большой и малой подкожных",
-              "labelTooltip": "Сегмент 5 (As).",
+              "label": "NSV — несафенные вены (вне бассейна большой и малой подкожных)",
+              "labelTooltip": "Сегмент As; в редакции 2004 г. — № 5.",
               "kind": "checkbox",
               "required": false,
               "defaultExpression": "0",
@@ -13143,8 +13258,8 @@
             },
             {
               "id": "seg6",
-              "label": "6. Нижняя полая вена",
-              "labelTooltip": "Сегмент 6 (Ad).",
+              "label": "IVC — нижняя полая вена",
+              "labelTooltip": "Сегмент Ad; в редакции 2004 г. — № 6.",
               "kind": "checkbox",
               "required": false,
               "defaultExpression": "0",
@@ -13152,8 +13267,8 @@
             },
             {
               "id": "seg7",
-              "label": "7. Общая подвздошная вена",
-              "labelTooltip": "Сегмент 7 (Ad).",
+              "label": "CIV — общая подвздошная вена",
+              "labelTooltip": "Сегмент Ad; в редакции 2004 г. — № 7.",
               "kind": "checkbox",
               "required": false,
               "defaultExpression": "0",
@@ -13161,8 +13276,8 @@
             },
             {
               "id": "seg8",
-              "label": "8. Внутренняя подвздошная вена",
-              "labelTooltip": "Сегмент 8 (Ad).",
+              "label": "IIV — внутренняя подвздошная вена",
+              "labelTooltip": "Сегмент Ad; в редакции 2004 г. — № 8.",
               "kind": "checkbox",
               "required": false,
               "defaultExpression": "0",
@@ -13170,8 +13285,8 @@
             },
             {
               "id": "seg9",
-              "label": "9. Наружная подвздошная вена",
-              "labelTooltip": "Сегмент 9 (Ad).",
+              "label": "EIV — наружная подвздошная вена",
+              "labelTooltip": "Сегмент Ad; в редакции 2004 г. — № 9.",
               "kind": "checkbox",
               "required": false,
               "defaultExpression": "0",
@@ -13179,8 +13294,8 @@
             },
             {
               "id": "seg10",
-              "label": "10. Вены таза",
-              "labelTooltip": "Сегмент 10 (Ad).",
+              "label": "PELV — вены таза",
+              "labelTooltip": "Сегмент Ad; в редакции 2004 г. — № 10.",
               "kind": "checkbox",
               "required": false,
               "defaultExpression": "0",
@@ -13188,8 +13303,8 @@
             },
             {
               "id": "seg11",
-              "label": "11. Общая бедренная вена",
-              "labelTooltip": "Сегмент 11 (Ad).",
+              "label": "CFV — общая бедренная вена",
+              "labelTooltip": "Сегмент Ad; в редакции 2004 г. — № 11.",
               "kind": "checkbox",
               "required": false,
               "defaultExpression": "0",
@@ -13197,8 +13312,8 @@
             },
             {
               "id": "seg12",
-              "label": "12. Глубокая вена бедра",
-              "labelTooltip": "Сегмент 12 (Ad).",
+              "label": "DFV — глубокая бедренная вена",
+              "labelTooltip": "Сегмент Ad; в редакции 2004 г. — № 12.",
               "kind": "checkbox",
               "required": false,
               "defaultExpression": "0",
@@ -13206,8 +13321,8 @@
             },
             {
               "id": "seg13",
-              "label": "13. Поверхностная бедренная вена",
-              "labelTooltip": "Сегмент 13 (Ad).",
+              "label": "FV — бедренная вена",
+              "labelTooltip": "Сегмент Ad; в редакции 2004 г. — № 13 (поверхностная бедренная).",
               "kind": "checkbox",
               "required": false,
               "defaultExpression": "0",
@@ -13215,8 +13330,8 @@
             },
             {
               "id": "seg14",
-              "label": "14. Подколенная вена",
-              "labelTooltip": "Сегмент 14 (Ad).",
+              "label": "POPV — подколенная вена",
+              "labelTooltip": "Сегмент Ad; в редакции 2004 г. — № 14.",
               "kind": "checkbox",
               "required": false,
               "defaultExpression": "0",
@@ -13224,8 +13339,8 @@
             },
             {
               "id": "seg15",
-              "label": "15. Вены голени",
-              "labelTooltip": "Сегмент 15 (Ad).",
+              "label": "TIBV — вены голени (берцовые)",
+              "labelTooltip": "Сегмент Ad; в редакции 2004 г. — № 15. Включает малоберцовые (PRV), передние (ATV) и задние (PTV) большеберцовые вены.",
               "kind": "checkbox",
               "required": false,
               "defaultExpression": "0",
@@ -13233,8 +13348,8 @@
             },
             {
               "id": "seg16",
-              "label": "16. Мышечные вены",
-              "labelTooltip": "Сегмент 16 (Ad).",
+              "label": "MUSV — мышечные вены",
+              "labelTooltip": "Сегмент Ad; в редакции 2004 г. — № 16. Включает вены икроножной (GAV) и камбаловидной (SOV) мышц.",
               "kind": "checkbox",
               "required": false,
               "defaultExpression": "0",
@@ -13242,8 +13357,8 @@
             },
             {
               "id": "seg17",
-              "label": "17. Перфорантные вены бедра",
-              "labelTooltip": "Сегмент 17 (Ap).",
+              "label": "TPV — перфорантные вены бедра",
+              "labelTooltip": "Сегмент Ap; в редакции 2004 г. — № 17.",
               "kind": "checkbox",
               "required": false,
               "defaultExpression": "0",
@@ -13251,8 +13366,8 @@
             },
             {
               "id": "seg18",
-              "label": "18. Перфорантные вены голени",
-              "labelTooltip": "Сегмент 18 (Ap).",
+              "label": "CPV — перфорантные вены голени",
+              "labelTooltip": "Сегмент Ap; в редакции 2004 г. — № 18.",
               "kind": "checkbox",
               "required": false,
               "defaultExpression": "0",
@@ -13266,7 +13381,22 @@
               "version": "2004",
               "url": "https://pubmed.ncbi.nlm.nih.gov/15622385/",
               "page": "40(6):1248-1252",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
+            },
+            {
+              "title": "Lurie F, Passman M, Meisner M, et al. The 2020 update of the CEAP classification system and reporting standards",
+              "publisher": "Journal of Vascular Surgery: Venous and Lymphatic Disorders",
+              "version": "2020",
+              "url": "https://pubmed.ncbi.nlm.nih.gov/32113854/",
+              "page": "8(3):342-352",
+              "reviewedAt": "2026-10-13"
+            },
+            {
+              "title": "Клинические рекомендации «Варикозное расширение вен нижних конечностей» (2024), таблицы 1–2 «Классификация хронических заболеваний вен CEAP», «Обозначения сегментов венозной системы»",
+              "publisher": "Минздрав России",
+              "version": "2024",
+              "url": "https://cr.minzdrav.gov.ru/recomend/680_2",
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
@@ -13277,7 +13407,7 @@
       "tool": {
         "id": "minimed.calculator.chronic-limb-ischemia",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "chronic-limb-ischemia-classifications",
         "title": "Хроническая артериальная недостаточность (ХАН) — Фонтейн, Покровский, Резерфорд",
         "shortTitle": "ХАН: Фонтейн, Покровский, Резерфорд",
@@ -13316,8 +13446,11 @@
           "population": "Взрослые с хронической артериальной недостаточностью нижних конечностей.",
           "limitations": [
             "Классификации описательные; решение о тактике опирается на гемодинамику (ЛПИ, давление на лодыжке) и визуализацию.",
-            "Сопоставление трёх систем взято из российского согласительного документа; границы стадий у разных авторов различаются.",
-            "Дистанцию безболевой ходьбы при выборе клинической картины оценивают отдельно."
+            "Сопоставление трёх систем взято из таблицы клинических рекомендаций «Хроническая ишемия нижних конечностей с клиникой перемежающейся хромоты» (2025); границы стадий у разных авторов различаются.",
+            "Покровский IIa — безболевая ходьба 200–1000 м, IIb — менее 200 м (по таблице клинических рекомендаций); дистанцию оценивают отдельно.",
+            "У больных сахарным диабетом классификации Фонтейна–Покровского и Резерфорда, по клиническим рекомендациям, применять нецелесообразно: трофические нарушения возможны на любой стадии.",
+            "Для категории 6 по Резерфорду степень в публикациях указана как III (таблица клинических рекомендаций) или IV (клинические рекомендации по критической ишемии); ориентируйтесь на категорию 0–6.",
+            "Категории 5 и 6 по Резерфорду различаются по объёму потери тканей: категория 5 — небольшой дефект (незаживающая язва, ограниченная гангрена), категория 6 — обширный, выше уровня плюсны, стопа не подлежит сохранению; в российской таблице обе строки названы «трофические нарушения» и «язва или гангрена»."
           ],
           "inputs": [
             {
@@ -13331,11 +13464,11 @@
                 },
                 {
                   "value": 1,
-                  "label": "Невыраженная лёгкая перемежающаяся хромота"
+                  "label": "Лёгкая перемежающаяся хромота (безболевая ходьба 200–1000 м)"
                 },
                 {
                   "value": 2,
-                  "label": "Умеренная перемежающаяся хромота"
+                  "label": "Умеренная перемежающаяся хромота (менее 200 м)"
                 },
                 {
                   "value": 3,
@@ -13347,11 +13480,11 @@
                 },
                 {
                   "value": 5,
-                  "label": "Начальные небольшие трофические нарушения"
+                  "label": "Небольшой дефект тканей: незаживающая язва, ограниченная гангрена"
                 },
                 {
                   "value": 6,
-                  "label": "Язва или гангрена"
+                  "label": "Обширный дефект тканей выше уровня плюсны, стопа не подлежит сохранению"
                 }
               ],
               "required": true,
@@ -13381,6 +13514,21 @@
               "url": "https://pubmed.ncbi.nlm.nih.gov/14366554/",
               "page": "21(5-6):499-533",
               "reviewedAt": "2026-10-12"
+            },
+            {
+              "title": "Клинические рекомендации «Хроническая ишемия нижних конечностей с клиникой перемежающейся хромоты» (2025), таблица 4 «Классификации тяжести хронической ишемии нижней конечности»",
+              "publisher": "Минздрав России",
+              "version": "2025",
+              "url": "https://cr.minzdrav.gov.ru/recomend/958_1",
+              "reviewedAt": "2026-10-13"
+            },
+            {
+              "title": "Hardman RL, Jazaeri O, Yi J, Smith M, Gupta R. Overview of classification systems in peripheral artery disease (таблицы Fontaine и Rutherford)",
+              "publisher": "Seminars in Interventional Radiology",
+              "version": "2014",
+              "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4232437/",
+              "page": "31(4):378-388",
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
@@ -13986,7 +14134,7 @@
       "tool": {
         "id": "minimed.calculator.mews",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "mews-early-warning-score",
         "title": "MEWS — модифицированная шкала раннего предупреждения (EWS)",
         "shortTitle": "MEWS",
@@ -14021,7 +14169,7 @@
           "population": "Взрослые пациенты терапевтических отделений; в исходной работе — 709 пациентов приёмного отделения.",
           "limitations": [
             "Показатели оценивают в покое; шкала не учитывает SpO₂ и кислородную поддержку (для них — NEWS2).",
-            "На границах интервалов (ЧСС 40 и 130, ЧДД 8–9 и 30) исходная таблица неоднозначна; принято: ЧСС ≤40 и ≥130, ЧДД ≤8 и ≥30.",
+            "На границах интервалов (САД 70, ЧСС 40 и 130, ЧДД 30) таблица Subbe (2001) в доступных воспроизведениях записана как «<70» и «71–80», «<40» и «41–50», «111–129» и «>130» (или «≥130»), «21–29» и «>30» (или «≥30»), поэтому значения 70, 40, 130 и 30 прямо не заданы; принято более высокое значение: САД ≤70, ЧСС ≤40 и ≥130, ЧДД ≥30.",
             "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
           ],
           "inputs": [
@@ -14102,7 +14250,7 @@
               "version": "2001",
               "url": "https://pubmed.ncbi.nlm.nih.gov/11588210/",
               "page": "94(10):521-526",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
@@ -14113,7 +14261,7 @@
       "tool": {
         "id": "minimed.calculator.apache-ii",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "apache-ii",
         "title": "APACHE II — тяжесть состояния в ОРИТ",
         "shortTitle": "APACHE II",
@@ -14149,6 +14297,8 @@
             "Индивидуальный прогноз по шкале требует категории основного диагноза; здесь показан только балл и ориентировочная летальность по диапазону баллов.",
             "Шкала создана в 1985 году на данных 13 стационаров; современная летальность в тех же диапазонах может быть ниже.",
             "Баллы по оксигенации: при FiO₂ ≥0,5 используют A-aDO₂ (расчёт при давлении 760 мм рт. ст., PaCO₂/0,8), при FiO₂ <0,5 — PaO₂.",
+            "В оригинальной таблице Knaus (1985) указано только «записать A-aDO₂»; формула расчёта в ней не приведена. Здесь 713·FiO₂ − PaCO₂/0,8 − PaO₂; в других источниках берут PaCO₂ без деления на 0,8 (R = 1), и разница порядка четверти PaCO₂ может сместить балл у границ 200, 350 и 500.",
+            "Процент летальности по диапазонам баллов приведён по воспроизведению таблицы Knaus (1985) в онлайн-калькуляторе EBMcalc/MSD; полный текст статьи, где эти проценты опубликованы, не сверен.",
             "ШКГ берут до седации. Креатинин при остром повреждении почек удваивают.",
             "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
           ],
@@ -14411,14 +14561,21 @@
               "version": "1985",
               "url": "https://pubmed.ncbi.nlm.nih.gov/3928249/",
               "page": "13(10):818-829",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             },
             {
               "title": "APACHE II Scoring System and Mortality Estimates (reproduction of the Knaus 1985 score-to-mortality table)",
               "publisher": "MSD Manuals",
               "version": "2022",
               "url": "https://www.msdmanuals.com/medical-calculators/ApacheScore-en.htm",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
+            },
+            {
+              "title": "ALLEGATO 3. APACHE 2 SCORE (reproduction of the Knaus 1985 scoring form: variable ranges, points, age and chronic health points)",
+              "publisher": "spinuti.unict.it (Allegato 3, reproduction of the original form)",
+              "version": "n.d.",
+              "url": "https://spinuti.unict.it/assets/files/allegato_3.pdf",
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
@@ -15166,7 +15323,7 @@
       "tool": {
         "id": "minimed.calculator.mpm-ii-24-48-72",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "mpm-ii-24-48-72",
         "title": "MPM II (24, 48, 72 часа) — вероятность госпитальной смерти",
         "shortTitle": "MPM II-24/48/72",
@@ -15202,6 +15359,7 @@
           "population": "Взрослые пациенты ОРИТ, остающиеся в отделении через 24, 48 или 72 часа; исключены ожоговые, коронарные и после кардиохирургии.",
           "limitations": [
             "Модели рассчитаны на конкретный момент (24, 48 или 72 часа) и не переносятся на другие сроки.",
+            "Константа модели 72 часов (−5,23840) не сверена с полным текстом Lemeshow (1994): в доступных воспроизведениях приведены только константы 24 и 48 часов; остальные коэффициенты у моделей общие.",
             "Модель 1993–1994 годов описывает группы пациентов, а не исход отдельного человека; современная калибровка может отличаться.",
             "Не применяют у ожоговых, коронарных пациентов и после кардиохирургических операций.",
             "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
@@ -15459,7 +15617,7 @@
               "version": "1993",
               "url": "https://pubmed.ncbi.nlm.nih.gov/8230626/",
               "page": "270(20):2478-2486",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             },
             {
               "title": "Lemeshow S, Klar J, Teres D, et al. Mortality probability models for patients in the intensive care unit for 48 or 72 hours: a prospective, multicenter study",
@@ -15467,7 +15625,7 @@
               "version": "1994",
               "url": "https://pubmed.ncbi.nlm.nih.gov/8062556/",
               "page": "22(9):1351-1358",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
@@ -15599,7 +15757,7 @@
       "tool": {
         "id": "minimed.calculator.rass",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "richmond-agitation-sedation-scale",
         "title": "RASS — шкала возбуждения и седации Ричмонда",
         "shortTitle": "RASS",
@@ -15645,15 +15803,15 @@
               "options": [
                 {
                   "value": 4,
-                  "label": "+4 — Агрессивный: враждебен, непосредственная опасность для персонала"
+                  "label": "+4 — Агрессивный: открыто агрессивен или применяет насилие, непосредственная опасность для персонала"
                 },
                 {
                   "value": 3,
-                  "label": "+3 — Очень сильно возбуждён: тянет или удаляет трубки и катетеры, агрессивен"
+                  "label": "+3 — Очень сильно возбуждён: тянет или удаляет трубки и катетеры либо агрессивен по отношению к персоналу"
                 },
                 {
                   "value": 2,
-                  "label": "+2 — Возбуждён: частые бесцельные движения, борьба с аппаратом ИВЛ"
+                  "label": "+2 — Возбуждён: частые бесцельные движения или несинхронность пациента с аппаратом ИВЛ"
                 },
                 {
                   "value": 1,
@@ -15695,7 +15853,7 @@
               "version": "2002",
               "url": "https://pubmed.ncbi.nlm.nih.gov/12421743/",
               "page": "166(10):1338-1344",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
@@ -15984,7 +16142,7 @@
       "tool": {
         "id": "minimed.calculator.nitrogen-balance",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "nitrogen-balance",
         "title": "Азотистый баланс",
         "shortTitle": "Азотистый баланс",
@@ -16018,7 +16176,7 @@
           "formulaDisplay": "Баланс = белок (г/сут) / 6,25 − (азот мочевины в моче за сутки + 4 г)",
           "population": "Взрослые пациенты со сбором суточной мочи; азот в белке — 16 % (1 г азота на 6,25 г белка).",
           "limitations": [
-            "4 г в формуле — условная поправка на потери азота кожей, стулом и другими путями; при диарее, ожогах, свищах потери больше.",
+            "4 г в формуле — условная поправка: около 2 г неазотмочевинного азота мочи и около 2 г потерь с кожей и стулом; при диарее, ожогах, свищах потери больше. В части источников для общих потерь берут 2 г.",
             "Метод не работает при почечной недостаточности с накоплением мочевины и неполном сборе суточной мочи.",
             "Пересчёт: 1 г мочевины содержит 0,466 г азота, 1 ммоль мочевины — 0,028 г азота.",
             "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
@@ -16074,7 +16232,7 @@
               "version": "1977",
               "url": "https://pubmed.ncbi.nlm.nih.gov/98649/",
               "page": "1(1):11-22",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
@@ -19492,7 +19650,7 @@
       "tool": {
         "id": "minimed.calculator.basal-metabolic-rate",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "basal-metabolic-rate",
         "title": "Основной обмен — Mifflin–St Jeor и Harris–Benedict",
         "shortTitle": "Основной обмен",
@@ -19529,7 +19687,7 @@
           "formulaDisplay": "Mifflin–St Jeor: 10 × масса + 6,25 × рост − 5 × возраст + 5 (муж.) или −161 (жен.)",
           "population": "Здоровые взрослые без острого заболевания.",
           "limitations": [
-            "Формула Mifflin–St Jeor чаще других попадает в пределы 10% от измеренного обмена, но у отдельных людей ошибки заметны; Harris–Benedict (1918) завышает обмен примерно на 5%.",
+            "Формула Mifflin–St Jeor чаще других попадает в пределы 10% от измеренного обмена, но у отдельных людей ошибки заметны; Harris–Benedict (1919) завышает обмен примерно на 5%.",
             "Уровень активности задаёт врач или диетолог по таблице ФАО/ВОЗ/УООН: готовых значений формулы не содержат.",
             "В стационаре и при критическом состоянии применяют непрямую калориметрию или клинические рекомендации."
           ],
@@ -19610,7 +19768,7 @@
                 },
                 {
                   "value": "harris",
-                  "label": "Harris–Benedict (1918)"
+                  "label": "Harris–Benedict (1919)"
                 }
               ],
               "required": true,
@@ -19644,6 +19802,14 @@
               "url": "https://pubmed.ncbi.nlm.nih.gov/16576330/",
               "page": "4(12):370-373",
               "reviewedAt": "2026-10-12"
+            },
+            {
+              "title": "Harris JA, Benedict FG. A biometric study of basal metabolism in man",
+              "publisher": "Carnegie Institution of Washington, Publication No. 279",
+              "version": "1919",
+              "url": "https://archive.org/details/biometricstudyof00harruoft",
+              "page": "regression equations for men and women",
+              "reviewedAt": "2026-10-13"
             },
             {
               "title": "Frankenfield D, Roth-Yousey L, Compher C. Comparison of predictive equations for resting metabolic rate in healthy nonobese and obese adults: a systematic review",
@@ -22192,7 +22358,7 @@
       "tool": {
         "id": "minimed.calculator.hunt-hess",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "hunt-hess-sah-grade",
         "title": "Hunt–Hess — тяжесть субарахноидального кровоизлияния",
         "shortTitle": "Hunt–Hess",
@@ -22240,7 +22406,7 @@
                 },
                 {
                   "value": 2,
-                  "label": "II — сильная головная боль, ригидность затылочных мышц, нет дефицита, кроме паралича черепных нервов"
+                  "label": "II — умеренная или сильная головная боль, ригидность затылочных мышц, нет дефицита, кроме паралича черепных нервов"
                 },
                 {
                   "value": 3,
@@ -22293,6 +22459,14 @@
               "url": "https://pubmed.ncbi.nlm.nih.gov/4608645/",
               "page": "21:79-89",
               "reviewedAt": "2026-10-12"
+            },
+            {
+              "title": "Клинические рекомендации «Геморрагический инсульт» (Минздрав России, ID 523), приложение Г1: классификация Hunt–Hess",
+              "publisher": "Минздрав России",
+              "version": "2025 (ID 523_3)",
+              "url": "https://cr.minzdrav.gov.ru/recomend/523_3",
+              "page": "Приложение Г1",
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
@@ -24156,7 +24330,7 @@
       "tool": {
         "id": "minimed.calculator.ruffier-index",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "ruffier-index",
         "title": "Индекс Руфье",
         "shortTitle": "Индекс Руфье",
@@ -24187,9 +24361,9 @@
           "population": "Здоровые взрослые и спортсмены; проба по Ruffier в описании HFJC (2014).",
           "limitations": [
             "Проба слабо связана с максимальным потреблением кислорода; значения зависят от положения тела, сроков замера и числа секунд подсчёта.",
-            "Протоколы различаются: исходный покой лёжа, замер P2 через 1 минуту после нагрузки; здесь пульс считают за 15 секунд и умножают на 4.",
+            "Протоколы различаются: в обзоре HFJC (2014) покой лёжа, P2 через 1 минуту после нагрузки; в русских методиках покой сидя, P2 — последние 15 секунд первой минуты восстановления. Здесь пульс считают за 15 секунд и умножают на 4.",
             "Не проводят при острых заболеваниях сердца, тяжёлой гипертензии и других противопоказаниях к нагрузке.",
-            "Оригинальные работы 1951 года недоступны; формула и градации приведены по обзору HFJC (2014)."
+            "Оригинальные работы 1951 года недоступны; формула и градации приведены по обзору HFJC (2014). Это индекс Руфье; индекс Диксона — другая формула ((P1 − 70 + 2 × (P2 − P0)) / 10) с другими градациями, в этом инструменте не рассчитывается."
           ],
           "inputs": [
             {
@@ -25028,7 +25202,7 @@
       "tool": {
         "id": "minimed.calculator.psi-port",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "psi-port-pneumonia-severity",
         "title": "PSI/PORT — индекс тяжести пневмонии",
         "shortTitle": "PSI/PORT",
@@ -25384,7 +25558,15 @@
               "version": "1997",
               "url": "https://pubmed.ncbi.nlm.nih.gov/8995086/",
               "page": "336(4):243-250",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
+            },
+            {
+              "title": "Bartlett JG, Dowell SF, Mandell LA, et al. Practice guidelines for the management of community-acquired pneumonia in adults",
+              "publisher": "Clinical Infectious Diseases (IDSA)",
+              "version": "2000",
+              "url": "https://pubmed.ncbi.nlm.nih.gov/10987697/",
+              "page": "31(2):347-382",
+              "reviewedAt": "2026-10-13"
             },
             {
               "title": "Клинические рекомендации: Внебольничная пневмония у взрослых (КР 654_2)",
@@ -26744,7 +26926,7 @@
       "tool": {
         "id": "minimed.calculator.sledai-2k",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "sledai-2k-lupus-activity",
         "title": "SLEDAI-2K / SELENA-SLEDAI — активность СКВ",
         "shortTitle": "SLEDAI-2K",
@@ -26780,7 +26962,8 @@
           "population": "Взрослые с системной красной волчанкой.",
           "limitations": [
             "Признак отмечают, если он был в последние 10 дней и вызван волчанкой, а не другими причинами.",
-            "Индекс отражает активность за короткое окно и не измеряет накопленное повреждение; группы 1–5, 6–10, 11–19 и 20 и более — страты риска смерти из когорты Cook 2000, а не названия степеней активности.",
+            "Индекс отражает активность за короткое окно и не измеряет накопленное повреждение; группы 1–5, 6–10, 11–19 и 20 и более — страты риска смерти из когорты Cook 2000 (оригинальный SLEDAI; в аннотации верхняя страта записана как «>20», здесь принято 20 и более), а не названия степеней активности.",
+            "В российских клинических рекомендациях по СКВ (ID 484) для SLEDAI-2K приняты группы: 0 — нет активности, 1–4 — низкая, 5–10 — средняя, более 10 — высокая; это отдельное соглашение, не страты Cook.",
             "Индекс не заменяет клиническую оценку; результат не является автоматическим изменением лечения."
           ],
           "inputs": [
@@ -26931,7 +27114,7 @@
             {
               "id": "arthritis",
               "label": "Артрит (4 б.)",
-              "labelTooltip": "Более 2 суставов с болью и признаками воспаления.",
+              "labelTooltip": "Два и более сустава с болью и признаками воспаления (болезненность, отёк или выпот).",
               "kind": "select",
               "options": [
                 {
@@ -27003,7 +27186,7 @@
             {
               "id": "proteinuria",
               "label": "Протеинурия (4 б.)",
-              "labelTooltip": "Более 0,5 г/сут (впервые возникшая или недавно возросшая более чем на 0,5 г/сут).",
+              "labelTooltip": "Более 0,5 г/сут: впервые возникшая, повторная или сохраняющаяся.",
               "kind": "select",
               "options": [
                 {
@@ -27039,7 +27222,7 @@
             {
               "id": "rash",
               "label": "Сыпь (2 б.)",
-              "labelTooltip": "Новая или возобновившаяся воспалительная сыпь.",
+              "labelTooltip": "Воспалительная сыпь: новая, возобновившаяся или сохраняющаяся.",
               "kind": "select",
               "options": [
                 {
@@ -27057,7 +27240,7 @@
             {
               "id": "alopecia",
               "label": "Алопеция (2 б.)",
-              "labelTooltip": "Новое или возобновившееся очаговое либо диффузное выпадение волос.",
+              "labelTooltip": "Очаговое либо диффузное выпадение волос: новое, возобновившееся или сохраняющееся.",
               "kind": "select",
               "options": [
                 {
@@ -27075,7 +27258,7 @@
             {
               "id": "mucosalUlcers",
               "label": "Язвы слизистых (2 б.)",
-              "labelTooltip": "Новые или возобновившиеся язвы во рту или носу.",
+              "labelTooltip": "Язвы во рту или носу: новые, возобновившиеся или сохраняющиеся.",
               "kind": "select",
               "options": [
                 {
@@ -27224,7 +27407,7 @@
               "version": "2002",
               "url": "https://pubmed.ncbi.nlm.nih.gov/11838846/",
               "page": "29(2):288-291",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             },
             {
               "title": "Petri M, Kim MY, Kalunian KC, et al. Combined oral contraceptives in women with systemic lupus erythematosus",
@@ -27241,6 +27424,12 @@
               "url": "https://pubmed.ncbi.nlm.nih.gov/10955329/",
               "page": "27(8):1892-1895",
               "reviewedAt": "2026-10-12"
+            },
+            {
+              "title": "Клинические рекомендации: Системная красная волчанка (КР 484_2), приложение Г1: SLEDAI-2K",
+              "publisher": "Минздрав России",
+              "version": "2025",
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
@@ -29536,7 +29725,7 @@
       "tool": {
         "id": "minimed.calculator.meld-na",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "meld-na-liver-mortality",
         "title": "MELD-Na — MELD с поправкой на натрий",
         "shortTitle": "MELD-Na",
@@ -29567,13 +29756,14 @@
           "category": "gastroenterology",
           "tags": [],
           "clinical": true,
-          "formulaDisplay": "MELD-Na = MELD + 1,32 × (137 − Na) − 0,033 × MELD × (137 − Na), если MELD > 11; Na ограничен 125–137 ммоль/л",
+          "formulaDisplay": "MELD-Na = MELD + 1,32 × (137 − Na) − 0,033 × MELD × (137 − Na), если MELD > 11 (MELD округлён до целого); Na ограничен 125–137 ммоль/л; итог округляют до целого, максимум 40 (политика OPTN 2016, по Kim 2021)",
           "population": "Взрослые с терминальной стадией заболевания печени, включая кандидатов на трансплантацию.",
           "limitations": [
             "Шкала оценивает 3-месячную летальность у пациентов с терминальной стадией заболевания печени и применяется для ранжирования в листе ожидания трансплантации.",
-            "Значения билирубина, МНО и креатинина ниже 1,0 принимаются за 1,0, креатинин выше 4,0 мг/дл или диализ — за 4,0; шкала ограничена диапазоном 6–40.",
+            "Значения билирубина, МНО и креатинина ниже 1,0 принимаются за 1,0, креатинин выше 4,0 мг/дл, диализ (2 сеанса и более за 7 дней) или 24 ч непрерывного вено-венозного гемодиализа (CVVHD) — за 4,0; шкала ограничена диапазоном 6–40.",
             "Результат — вспомогательная оценка и не является автоматическим решением о трансплантации.",
-            "Поправка на натрий применяется только при MELD выше 11."
+            "Поправка на натрий применяется только при MELD выше 11.",
+            "Формула — вариант политики OPTN 2016 (коэффициенты 1,32 и 0,033, натрий 125–137 ммоль/л), воспроизведённый в Kim 2021. Исходное уравнение Kim 2008 — MELD − Na − 0,025 × MELD × (140 − Na) + 140 при натрии 125–140 ммоль/л — даёт немного другие значения; граница итогового балла 40 задана и в Kim 2008, и в политике OPTN."
           ],
           "inputs": [
             {
@@ -29609,7 +29799,7 @@
             {
               "id": "dialysis",
               "label": "Диализ ≥2 раз за последнюю неделю",
-              "labelTooltip": "Если да, креатинин в расчёте принимают равным 4,0 мг/дл.",
+              "labelTooltip": "Если да, креатинин в расчёте принимают равным 4,0 мг/дл; так же поступают после 24 ч непрерывного вено-венозного гемодиализа (CVVHD) за последние 7 дней.",
               "kind": "select",
               "options": [
                 {
@@ -29650,7 +29840,7 @@
               "version": "2008",
               "url": "https://pubmed.ncbi.nlm.nih.gov/18768945/",
               "page": "359(10):1018-1026",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             },
             {
               "title": "Kim WR, Mannalithara A, Heimbach JK, et al. MELD 3.0: the Model for End-Stage Liver Disease updated for the modern era",
@@ -29658,7 +29848,7 @@
               "version": "2021",
               "url": "https://pubmed.ncbi.nlm.nih.gov/34481845/",
               "page": "161(6):1887-1895",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
@@ -29897,7 +30087,7 @@
       "tool": {
         "id": "minimed.calculator.lille-model",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "lille-model-alcoholic-hepatitis",
         "title": "Модель Lille — ответ на глюкокортикоиды при алкогольном гепатите",
         "shortTitle": "Lille",
@@ -29933,6 +30123,7 @@
           "limitations": [
             "Модель считают на 7-й день терапии; пороговое значение 0,45 отделяет ответивших от не ответивших на глюкокортикоиды.",
             "Билирубин и альбумин вводят в единицах первоисточника: билирубин в мкмоль/л, альбумин в г/л, протромбиновое время в секундах.",
+            "Почечная недостаточность в исходной работе — креатинин выше 115 мкмоль/л; в части обзоров порог записан как 115 и выше, на границе значение уточняют у врача.",
             "Результат — вспомогательная оценка и не является автоматической отменой лечения."
           ],
           "inputs": [
@@ -31032,7 +31223,7 @@
       "tool": {
         "id": "minimed.calculator.carboplatin-calvert-dose",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "carboplatin-calvert-dose",
         "title": "Доза карбоплатина по Calvert",
         "shortTitle": "Карбоплатин (Calvert)",
@@ -31067,7 +31258,8 @@
           "population": "Взрослые с нормальным или сниженным клиренсом креатинина, которым назначен карбоплатин.",
           "limitations": [
             "Формула Calvert выведена для измеренной СКФ; оценка по Cockcroft–Gault неточна при ожирении, кахексии и нестабильном креатинине.",
-            "Ограничение СКФ значением 125 мл/мин принято в протоколах для креатинина, стандартизованного по IDMS, и защищает от завышения дозы; в самой работе Calvert его нет.",
+            "Ограничение СКФ значением 125 мл/мин (предельная доза = AUC × 150 мг) — документированное соглашение, а не часть формулы Calvert: письмо NCI/CTEP (октябрь 2010) по согласованию с FDA после перехода на креатинин, стандартизованный по IDMS, и рекомендации GOG/NCCN 2011; оно защищает от завышения дозы. В работе Calvert 1989 ограничения нет.",
+            "Рекомендации GOG/NCCN 2011 дополнительно предлагают минимальный креатинин 0,7 мг/дл и скорректированную массу тела; здесь они не применяются — расчёт идёт по введённым значениям.",
             "Целевую AUC и схему выбирает онколог; результат не является автоматическим назначением дозы."
           ],
           "inputs": [
@@ -31157,7 +31349,7 @@
               "version": "1989",
               "url": "https://pubmed.ncbi.nlm.nih.gov/2681557/",
               "page": "7(11):1748-1756",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             },
             {
               "title": "Cockcroft DW, Gault MH. Prediction of creatinine clearance from serum creatinine",
@@ -31166,6 +31358,14 @@
               "url": "https://pubmed.ncbi.nlm.nih.gov/1244564/",
               "page": "16(1):31-41",
               "reviewedAt": "2026-10-12"
+            },
+            {
+              "title": "Praiss AM, Miller A, Smith J, et al. Carboplatin dosing in the treatment of ovarian cancer: an NRG Oncology Group study",
+              "publisher": "Gynecologic Oncology",
+              "version": "2023",
+              "url": "https://pubmed.ncbi.nlm.nih.gov/37229879/",
+              "page": "174:213-223",
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
@@ -31266,7 +31466,7 @@
       "tool": {
         "id": "minimed.calculator.triss",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "triss-survival-probability",
         "title": "TRISS — вероятность выживания при травме",
         "shortTitle": "TRISS",
@@ -31296,6 +31496,7 @@
           "population": "Пострадавшие с тупой или проникающей травмой; для возраста младше 15 лет применяют коэффициенты тупой травмы.",
           "limitations": [
             "Коэффициенты получены в исследовании MTOS (США); для современных популяций и для детей точность ниже.",
+            "Используется набор коэффициентов MTOS в редакции 1995 г. (Американская коллегия хирургов); первоначальный набор Boyd 1987 (тупая травма: −1,2470; 0,9544; −0,0768; −1,9052; проникающая: −0,6029; 1,1430; −0,1516; −2,6676) и пересмотр Schluter 2010 (NTDB) дают другие значения Ps.",
             "Модель предназначена для сравнения исходов групп пострадавших и аудита помощи, а не для решения об отказе от лечения.",
             "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
           ],
@@ -32060,7 +32261,7 @@
       "tool": {
         "id": "minimed.calculator.vph-sp",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "vph-sp-admission-severity",
         "title": "ВПХ-СП — тяжесть состояния раненого при поступлении",
         "shortTitle": "ВПХ-СП",
@@ -32096,6 +32297,7 @@
           "limitations": [
             "Шкала разработана для раненых военной хирургии (Гуманенко и соавторы); у гражданских пострадавших её точность отдельно не оценивалась.",
             "В печатной таблице границы некоторых интервалов не заданы однозначно; принятое прочтение указано в подсказке к полю.",
+            "Табл. 4.4 тех же Указаний задаёт иные границы компенсации (ВПХ-СП: 12–20, 21–30, более 30 баллов); здесь применены градации тяжести состояния из табл. 4.3.",
             "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
           ],
           "inputs": [
@@ -32384,7 +32586,7 @@
               "version": "2013",
               "url": "https://www.vmeda.org/wp-content/uploads/2016/pdf/ukazaniya_po_vph_2013.pdf",
               "page": "гл. 4, табл. 4.3–4.4; Приложение, табл. 1–4, 8–11",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             },
             {
               "title": "Методические рекомендации по лечению боевой хирургической травмы. ГВМУ МО РФ",
@@ -32392,7 +32594,7 @@
               "version": "2022",
               "url": "https://www.vmeda.org/wp-content/uploads/2023/04/metodugaz_travma.pdf",
               "page": "табл. 4.3–4.4; Приложение, табл. 1–4, 8–11",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
@@ -32403,7 +32605,7 @@
       "tool": {
         "id": "minimed.calculator.vph-sg",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "vph-sg-hospital-severity",
         "title": "ВПХ-СГ(II) — тяжесть состояния раненого в госпитале",
         "shortTitle": "ВПХ-СГ(II)",
@@ -32440,6 +32642,7 @@
             "Для каждого признака берут наихудшее значение за период наблюдения; оценку повторяют каждые 12 часов.",
             "Шкала разработана для раненых военной хирургии (Гуманенко и соавторы); у гражданских пострадавших её точность отдельно не оценивалась.",
             "В печатной таблице границы некоторых интервалов не заданы однозначно; принятое прочтение указано в подсказке к полю.",
+            "Табл. 4.4 тех же Указаний задаёт иные границы компенсации (ВПХ-СГ: 16–30, 31–40, более 40 баллов); здесь применены градации тяжести состояния из табл. 4.3.",
             "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
           ],
           "inputs": [
@@ -32669,7 +32872,7 @@
               "version": "2013",
               "url": "https://www.vmeda.org/wp-content/uploads/2016/pdf/ukazaniya_po_vph_2013.pdf",
               "page": "гл. 4, табл. 4.3–4.4; Приложение, табл. 1–4, 8–11",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             },
             {
               "title": "Методические рекомендации по лечению боевой хирургической травмы. ГВМУ МО РФ",
@@ -32677,7 +32880,7 @@
               "version": "2022",
               "url": "https://www.vmeda.org/wp-content/uploads/2023/04/metodugaz_travma.pdf",
               "page": "табл. 4.3–4.4; Приложение, табл. 1–4, 8–11",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
@@ -32688,7 +32891,7 @@
       "tool": {
         "id": "minimed.calculator.vph-ss",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "vph-ss-selective-severity",
         "title": "ВПХ-СС — селективная оценка жизнеобеспечивающих систем",
         "shortTitle": "ВПХ-СС",
@@ -32726,6 +32929,8 @@
             "В источнике класс «удовлетворительное» начинается с 27 баллов, но минимальная сумма равна 25; суммы 25–26 отнесены к удовлетворительному состоянию.",
             "Шкала разработана для раненых военной хирургии (Гуманенко и соавторы); у гражданских пострадавших её точность отдельно не оценивалась.",
             "В печатной таблице границы некоторых интервалов не заданы однозначно; принятое прочтение указано в подсказке к полю.",
+            "Табл. 4.4 тех же Указаний задаёт иные границы компенсации (ВПХ-СС: 27–49, 50–69, более 70 баллов); здесь применены градации тяжести состояния из табл. 4.3.",
+            "В табл. 4.3 верхний класс напечатан как «более 99» при предыдущем «70–98»; сумма ровно 99 отнесена к критическому состоянию.",
             "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
           ],
           "inputs": [
@@ -33106,7 +33311,7 @@
               "version": "2013",
               "url": "https://www.vmeda.org/wp-content/uploads/2016/pdf/ukazaniya_po_vph_2013.pdf",
               "page": "гл. 4, табл. 4.3–4.4; Приложение, табл. 1–4, 8–11",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             },
             {
               "title": "Методические рекомендации по лечению боевой хирургической травмы. ГВМУ МО РФ",
@@ -33114,14 +33319,14 @@
               "version": "2022",
               "url": "https://www.vmeda.org/wp-content/uploads/2023/04/metodugaz_travma.pdf",
               "page": "табл. 4.3–4.4; Приложение, табл. 1–4, 8–11",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             },
             {
               "title": "Суворов В.В. Клинико-патогенетическое обоснование методики оценки тяжести состояния у пострадавших с тяжёлой травмой в динамике (автореферат диссертации)",
               "publisher": "Военно-медицинская академия",
               "version": "2005",
               "page": "табл. 2, 3, 6",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
@@ -33880,7 +34085,7 @@
       "tool": {
         "id": "minimed.calculator.goldman-cardiac-risk",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "goldman-cardiac-risk-index",
         "title": "Goldman — индекс кардиального риска внесердечной операции",
         "shortTitle": "Goldman",
@@ -33976,7 +34181,7 @@
             {
               "id": "poorCondition",
               "label": "Тяжёлое общее состояние",
-              "labelTooltip": "pO₂ <60 или pCO₂ >50 мм рт. ст.; K <3,0 или HCO₃ <20 ммоль/л; мочевина (BUN) >50 мг/дл или креатинин >3,0 мг/дл; патологическая АСТ, признаки хронического заболевания печени или постельный режим по некардиальным причинам.",
+              "labelTooltip": "pO₂ <60 или pCO₂ >50 мм рт. ст.; K <3,0 или HCO₃ <20 ммоль/л; азот мочевины (BUN) >50 мг/дл (мочевина >17,9 ммоль/л) или креатинин >3,0 мг/дл (>265 мкмоль/л); патологическая АСТ, признаки хронического заболевания печени или постельный режим по некардиальным причинам.",
               "kind": "checkbox",
               "required": false,
               "defaultExpression": "0",
@@ -34006,7 +34211,7 @@
               "version": "1977",
               "url": "https://pubmed.ncbi.nlm.nih.gov/904659/",
               "page": "297(16):845-850",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
@@ -34017,7 +34222,7 @@
       "tool": {
         "id": "minimed.calculator.detsky-modified-cardiac-risk",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "detsky-modified-cardiac-risk-index",
         "title": "Detsky — модифицированный индекс кардиального риска",
         "shortTitle": "Detsky",
@@ -34053,6 +34258,7 @@
           "limitations": [
             "Индекс — модификация индекса Goldman; в клинических рекомендациях используют классы I–III для выбора дальнейшего обследования.",
             "Класс I — основа алгоритма ACP (Palda, Detsky, 1997); при классах II и III обычно рассматривают дополнительное кардиологическое обследование.",
+            "Нестабильная стенокардия учитывается в течение 3 месяцев (алгоритм ACP); в части пересказов индекса указан срок 6 месяцев.",
             "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
           ],
           "inputs": [
@@ -34154,7 +34360,7 @@
             {
               "id": "poorCondition",
               "label": "Тяжёлое общее состояние",
-              "labelTooltip": "pO₂ <60 или pCO₂ >50 мм рт. ст.; K <3,0 или HCO₃ <20 ммоль/л; мочевина >50 мг/дл или креатинин >3,0 мг/дл; патологическая АСТ, хроническое заболевание печени или постельный режим по некардиальным причинам.",
+              "labelTooltip": "pO₂ <60 или pCO₂ >50 мм рт. ст.; K <3,0 или HCO₃ <20 ммоль/л; азот мочевины (BUN) >50 мг/дл (мочевина >17,9 ммоль/л) или креатинин >3,0 мг/дл (>265 мкмоль/л); патологическая АСТ, хроническое заболевание печени или постельный режим по некардиальным причинам.",
               "kind": "checkbox",
               "required": false,
               "defaultExpression": "0",
@@ -34190,7 +34396,7 @@
               "version": "1986",
               "url": "https://pubmed.ncbi.nlm.nih.gov/3772593/",
               "page": "1(4):211-219",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             },
             {
               "title": "Detsky AS, Abrams HB, Forbath N, Scott JG, Hilliard JR. Cardiac assessment for patients undergoing noncardiac surgery. A multifactorial clinical risk index",
@@ -34198,7 +34404,7 @@
               "version": "1986",
               "url": "https://pubmed.ncbi.nlm.nih.gov/3778043/",
               "page": "146(11):2131-2134",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             },
             {
               "title": "Palda VA, Detsky AS. Perioperative assessment and management of risk from coronary artery disease",
@@ -34206,7 +34412,7 @@
               "version": "1997",
               "url": "https://pubmed.ncbi.nlm.nih.gov/9265434/",
               "page": "127(4):313-328",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
@@ -34217,7 +34423,7 @@
       "tool": {
         "id": "minimed.calculator.ariscat",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "ariscat-postoperative-pulmonary-risk",
         "title": "ARISCAT — риск послеоперационных лёгочных осложнений",
         "shortTitle": "ARISCAT",
@@ -34250,7 +34456,7 @@
           "formulaDisplay": "Возраст (51–80 лет 3; >80 лет 16) + SpO₂ (91–95 % 8; ≤90 % 24) + инфекция дыхательных путей 17 + анемия 11 + область операции (верхний этаж живота 15; грудная полость 24) + длительность (2–3 ч 16; >3 ч 23) + неотложная операция 8",
           "population": "Взрослые перед несердечной операцией; максимум 123 балла.",
           "limitations": [
-            "Шкала выведена в когорте из 59 больниц Каталонии; для кардиохирургии и резекций лёгкого её применимость ограничена.",
+            "Шкала выведена в когорте из 59 больниц Каталонии: взрослые, операции под общей, нейроаксиальной или регионарной анестезией, без акушерских вмешательств, трансплантаций и амбулаторных операций; в других популяциях (в частности, при кардиохирургии и резекции лёгкого) её точность может быть ниже.",
             "SpO₂ измеряют перед операцией при дыхании воздухом в положении лёжа.",
             "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
           ],
@@ -34356,7 +34562,7 @@
               "version": "2010",
               "url": "https://pubmed.ncbi.nlm.nih.gov/21045639/",
               "page": "113(6):1338-1350",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
@@ -34367,7 +34573,7 @@
       "tool": {
         "id": "minimed.calculator.caprini-vte-2005",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "caprini-vte-risk-2005",
         "title": "Caprini — риск венозных тромбоэмболий у хирургических пациентов",
         "shortTitle": "Caprini",
@@ -34403,6 +34609,7 @@
           "population": "Хирургические пациенты общего профиля, взрослые; модель 2005 г.",
           "limitations": [
             "Категории риска по сумме взяты из рекомендаций ACCP 2012 г. для общей и абдоминально-тазовой хирургии; для ортопедии, пластической хирургии и других областей пороги отличаются.",
+            "В самой модели Caprini выделяют четыре уровня: 0–1 балл — низкий, 2 — умеренный, 3–4 — высокий, 5 и более — наивысший; категории выше — адаптация ACCP.",
             "Шкала оценивает риск тромбоза, а выбор профилактики зависит ещё и от риска кровотечения.",
             "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
           ],
@@ -34725,7 +34932,7 @@
               "version": "2005",
               "url": "https://pubmed.ncbi.nlm.nih.gov/15900257/",
               "page": "51(2-3):70-78",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             },
             {
               "title": "Gould MK, Garcia DA, Wren SM, et al. Prevention of VTE in nonorthopedic surgical patients: Antithrombotic Therapy and Prevention of Thrombosis, 9th ed: ACCP Evidence-Based Clinical Practice Guidelines",
@@ -34733,7 +34940,7 @@
               "version": "2012",
               "url": "https://pubmed.ncbi.nlm.nih.gov/22315263/",
               "page": "141(2 Suppl):e227S-e277S",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
@@ -35089,7 +35296,7 @@
               "version": "1991",
               "url": "https://pubmed.ncbi.nlm.nih.gov/2021856/",
               "page": "78(3):355-360",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             },
             {
               "title": "Prytherch DR, Whiteley MS, Higgins B, et al. POSSUM and Portsmouth POSSUM for predicting mortality",
@@ -35097,7 +35304,7 @@
               "version": "1998",
               "url": "https://pubmed.ncbi.nlm.nih.gov/9752863/",
               "page": "85(9):1217-1220",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
@@ -35108,7 +35315,7 @@
       "tool": {
         "id": "minimed.calculator.mannheim-peritonitis-index",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "mannheim-peritonitis-index",
         "title": "Мангеймский индекс перитонита",
         "shortTitle": "МИП",
@@ -35181,7 +35388,7 @@
             {
               "id": "organFailure",
               "label": "Органная недостаточность",
-              "labelTooltip": "Любое из: креатинин более 177 мкмоль/л или олигурия менее 20 мл/ч; pO₂ менее 50 или pCO₂ более 50 мм рт. ст.; шок; кишечная непроходимость или парез более 24 часов.",
+              "labelTooltip": "Любое из: креатинин более 177 мкмоль/л, мочевина более 16,7 ммоль/л или олигурия менее 20 мл/ч; pO₂ менее 50 или pCO₂ более 50 мм рт. ст.; шок; полная механическая непроходимость или парез кишечника более 24 часов.",
               "kind": "checkbox",
               "required": false,
               "defaultExpression": "0",
@@ -35248,7 +35455,7 @@
               "version": "1987",
               "url": "https://pubmed.ncbi.nlm.nih.gov/3568820/",
               "page": "58(2):84-92",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             },
             {
               "title": "Billing A, Fröhlich D, Schildberg FW. Prediction of outcome using the Mannheim peritonitis index in 2003 patients",
@@ -35256,7 +35463,7 @@
               "version": "1994",
               "url": "https://pubmed.ncbi.nlm.nih.gov/8156338/",
               "page": "81(2):209-213",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
@@ -35267,7 +35474,7 @@
       "tool": {
         "id": "minimed.calculator.pusajo-relaparotomy-index",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "pusajo-relaparotomy-predictive-index",
         "title": "Прогностический индекс релапаротомии по Pusajó",
         "shortTitle": "ПИР (Pusajó)",
@@ -35303,7 +35510,7 @@
           "formulaDisplay": "Первая операция экстренная 3 + дыхательная недостаточность 2 + почечная недостаточность 2 + парез кишечника через 72 ч 4 + боль в животе через 48 ч 5 + инфекция области операции 8 + нарушение сознания 2 + патологические симптомы позже 96 ч 6",
           "population": "Пациенты после операций на брюшной полости с подозрением на внутрибрюшные осложнения (максимум 32 балла).",
           "limitations": [
-            "Процент релапаротомий приведён по российской инструкции; в исходной работе (Pusajó, 1993) индекс дополнен алгоритмом действий, и пороги в разных изданиях различаются.",
+            "Баллы и проценты релапаротомий приведены по московской инструкции 2017 г.; полный текст исходной работы (Pusajó, 1993) проверить не удалось. Вторичные описания исходного индекса дают другие пороги: до 10 баллов — низкая, 11–15 — средняя, 16–20 — высокая потребность в релапаротомии; при более чем 15 баллах достоверность диагноза выше 88 %; выше 20 баллов предлагалась релапаротомия без дополнительных исследований.",
             "Индекс помогает решить, нужны ли дополнительные исследования или релапаротомия, и не заменяет клиническую оценку хирурга."
           ],
           "inputs": [
@@ -35398,7 +35605,7 @@
       "tool": {
         "id": "minimed.calculator.ranson-pancreatitis",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "ranson-acute-pancreatitis",
         "title": "Ranson — прогноз при остром панкреатите",
         "shortTitle": "Ranson",
@@ -35433,7 +35640,7 @@
           "population": "Взрослые с острым панкреатитом; для желчнокаменного панкреатита используют другие пороги и 10 критериев.",
           "limitations": [
             "Полная оценка возможна только через 48 часов после поступления; шкала не используется для первичного решения о тяжести.",
-            "Пороги желчнокаменного панкреатита и проценты летальности приведены по обзорам и могут отличаться в разных изданиях.",
+            "Критерии для не желчнокаменного панкреатита сверены с таблицей Ranson (Ann Surg, 1979); пороги желчнокаменного панкреатита и проценты летальности по числу критериев первоисточником не проверены и приведены по обзорам. АСТ в исходной работе измерена в единицах Сигма–Франкеля (250 ед. на 100 мл); здесь принято 250 Ед/л, как в большинстве изданий.",
             "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
           ],
           "inputs": [
@@ -35588,7 +35795,7 @@
               "version": "1976",
               "url": "https://pubmed.ncbi.nlm.nih.gov/941075/",
               "page": "143(2):209-219",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             },
             {
               "title": "Ranson JH, Rifkind KM, Roses DF, et al. Prognostic signs and the role of operative management in acute pancreatitis",
@@ -35597,6 +35804,14 @@
               "url": "https://pubmed.ncbi.nlm.nih.gov/4834279/",
               "page": "139(1):69-81",
               "reviewedAt": "2026-10-12"
+            },
+            {
+              "title": "Ranson JH. The timing of biliary surgery in acute pancreatitis",
+              "publisher": "Annals of Surgery",
+              "version": "1979",
+              "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC1397201/",
+              "page": "189(5):654-663",
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
@@ -35607,7 +35822,7 @@
       "tool": {
         "id": "minimed.calculator.rockall-complete",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "rockall-upper-gi-bleeding",
         "title": "Rockall — риск при кровотечении из верхних отделов ЖКТ",
         "shortTitle": "Rockall",
@@ -35641,7 +35856,7 @@
           "formulaDisplay": "Возраст (60–79 лет 1; ≥80 лет 2) + шок (пульс ≥100 1; САД <100 2) + сопутствующие болезни (0; 2; 3) + диагноз (0; 1; 2) + стигматы кровотечения (0; 2)",
           "population": "Пациенты старше 16 лет с острым кровотечением из верхних отделов ЖКТ (максимум 11 баллов).",
           "limitations": [
-            "Полная шкала требует результатов эндоскопии; предэндоскопическая часть (возраст, шок, болезни) даёт от 0 до 7 баллов.",
+            "Полная шкала требует результатов эндоскопии; предэндоскопическая часть (возраст, шок, болезни) даёт от 0 до 7 баллов, и при 0–7 баллах летальность в исходной когорте составила 0,2; 2,4; 5,6; 11,0; 24,6; 39,6; 48,9 и 50,0 % (Rockall, 1996, табл. IV).",
             "Проценты — частота в исходной когорте 1993–1994 гг.; сегодняшняя частота ниже.",
             "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
           ],
@@ -35748,7 +35963,7 @@
               "version": "1996",
               "url": "https://pubmed.ncbi.nlm.nih.gov/8675081/",
               "page": "38(3):316-321",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
@@ -35759,7 +35974,7 @@
       "tool": {
         "id": "minimed.calculator.evans-burn-fluids",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "slug": "evans-burn-resuscitation",
         "title": "Evans — инфузионная терапия при ожогах",
         "shortTitle": "Evans (ожоги)",
@@ -35790,7 +36005,7 @@
           "category": "surgery",
           "tags": ["fluids", "emergency"],
           "clinical": true,
-          "formulaDisplay": "Первые сутки: коллоиды 1 мл × масса (кг) × % ожога + кристаллоиды 1 мл × масса × % ожога + 2000 мл 5 % глюкозы; вторые сутки — половина коллоидов и кристаллоидов + 2000 мл глюкозы",
+          "formulaDisplay": "Первые сутки: коллоиды 1 мл × масса (кг) × % ожога + кристаллоиды 1 мл × масса × % ожога + 2000 мл 5 % глюкозы (половину суточного объёма вводят за первые 8 ч, остальное за следующие 16 ч); вторые сутки — половина коллоидов и кристаллоидов + 2000 мл глюкозы",
           "population": "Взрослые с ожогами II–III степени большой площади.",
           "limitations": [
             "Это стартовый ориентир, а не готовое назначение: объём корректируют по диурезу, гемодинамике и ожоговому протоколу учреждения.",
@@ -35832,7 +36047,23 @@
               "version": "1952",
               "url": "https://pubmed.ncbi.nlm.nih.gov/14924536/",
               "page": "135(6):804-817",
-              "reviewedAt": "2026-10-12"
+              "reviewedAt": "2026-10-13"
+            },
+            {
+              "title": "Haberal M, Sakallioglu Abali AE, Karakayali H. Fluid management in major burn injuries",
+              "publisher": "Indian Journal of Plastic Surgery",
+              "version": "2010",
+              "url": "https://pubmed.ncbi.nlm.nih.gov/21321653/",
+              "page": "43(Suppl):S29-S36",
+              "reviewedAt": "2026-10-13"
+            },
+            {
+              "title": "Romanowski KS, Palmieri TL. Pediatric burn resuscitation: past, present, and future",
+              "publisher": "Burns & Trauma",
+              "version": "2017",
+              "url": "https://pubmed.ncbi.nlm.nih.gov/28879205/",
+              "page": "5:26",
+              "reviewedAt": "2026-10-13"
             }
           ]
         }
