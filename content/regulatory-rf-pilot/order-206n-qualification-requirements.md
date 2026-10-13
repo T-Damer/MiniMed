@@ -29,14 +29,16 @@ metadata:
   officialSourceUrl: https://publication.pravo.gov.ru/document/0001202306010041
   replacedFrom: "2026-09-01"
   replacedByDocumentId: regulatory.rf.minzdrav.436n-2026-qualification
-  sourceReviewedAt: "2026-09-02"
+  sourceReviewedAt: "2026-10-13"
   editionVerified: true
   audienceLabel: Для медицинских работников
   publicPilot: true
   contentMode: source_linked_paraphrase
   notLegalAdvice: true
+  edition: "последняя редакция — с изменениями приказов № 72н и № 515н; утратил силу с 01.09.2026"
+  sourcePdfSha256: 04c6588ca3531c8f52691d4a5868184a80b4e2d94d17d09465a10d2fa8a127dd
+  sourcePdfPages: 63
 ---
-
 # Текущий статус
 
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202306010041","publicationNumber":"0001202306010041","documentNumber":"206н","sourceSection":"приказ и квалификационные требования","contentMode":"paraphrase"} -->
@@ -51,3 +53,16 @@ metadata:
 
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202605290053","publicationNumber":"0001202605290053","documentNumber":"436н","sourceSection":"пункты о вступлении в силу и признании утратившими силу прежних актов","contentMode":"paraphrase"} -->
 С 1 сентября 2026 года приказ № 206н заменён приказом № 436н. Для более раннего периода следует проверять действовавшую на нужную дату редакцию № 206н.
+
+# Источник и редакция
+
+<!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202306010041","sourceSection":"реквизиты и редакция","contentMode":"paraphrase","publicationNumber":"0001202306010041","documentNumber":"206н"} -->
+Приказ Минздрава России от 2 мая 2023 г. № 206н, зарегистрирован Минюстом России 1 июня 2023 г. № 73677.
+
+Редакция: последняя редакция — с изменениями приказов № 72н и № 515н; утратил силу с 01.09.2026.
+
+Действует с 1 сентября 2023 г. по 1 сентября 2026 г. (утратил силу).
+
+Сверено с официальным текстом 13 октября 2026 г.
+
+Официальный текст: https://publication.pravo.gov.ru/document/0001202306010041

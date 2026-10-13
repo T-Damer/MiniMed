@@ -31,14 +31,16 @@ metadata:
   officialPublicationNumber: "0001202505190006"
   officialPublicationDate: "2025-05-19"
   officialSourceUrl: https://publication.pravo.gov.ru/document/0001202505190006
-  sourceReviewedAt: "2026-08-01"
+  sourceReviewedAt: "2026-10-13"
   editionVerified: true
   audienceLabel: Для детей и взрослых
   publicPilot: true
   contentMode: source_linked_paraphrase
   notLegalAdvice: true
+  edition: "первоначальная редакция; изменений на портале не найдено"
+  sourcePdfSha256: fd1d031f5f9f954cbb00c5b14f2779090ba36e8a38f4cb7a14e1600874553f97
+  sourcePdfPages: 9
 ---
-
 # Общая информация
 
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202505190006","publicationNumber":"0001202505190006","documentNumber":"190н","sourceSection":"приказ и пункты 1–3 порядка","contentMode":"paraphrase"} -->
@@ -79,6 +81,15 @@ metadata:
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202505190006","publicationNumber":"0001202505190006","documentNumber":"190н","sourceSection":"действия при выявлении патологических изменений","contentMode":"paraphrase"} -->
 Если выявлены изменения, указывающие на возможный туберкулез, медицинская организация должна организовать дальнейшее обследование гражданина в целях диагностики заболевания в течение двух календарных дней. Положительная или сомнительная скрининговая проба не равна окончательному диагнозу и требует предусмотренной маршрутизации.
 
-# Ограничения карточки
+# Источник и редакция
 
-Карточка передает общие методы и сроки приказа. Она не заменяет полный текст перечня групп риска, локальную эпидемиологическую информацию, оценку противопоказаний и решение врача-фтизиатра. При симптомах, подозрительных на активный туберкулез, обследование проводят по клиническим показаниям, не ожидая очередного профилактического срока.
+<!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202505190006","sourceSection":"реквизиты и редакция","contentMode":"paraphrase","publicationNumber":"0001202505190006","documentNumber":"190н"} -->
+Приказ Минздрава России от 11 апреля 2025 г. № 190н, зарегистрирован Минюстом России 16 мая 2025 г. № 82216.
+
+Редакция: первоначальная редакция; изменений на портале не найдено.
+
+Действует с 1 сентября 2025 г. по 1 сентября 2031 г.
+
+Сверено с официальным текстом 13 октября 2026 г.
+
+Официальный текст: https://publication.pravo.gov.ru/document/0001202505190006

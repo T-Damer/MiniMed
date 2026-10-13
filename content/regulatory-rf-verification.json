@@ -1,0 +1,693 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-13",
+  "summary": {
+    "not-checked": 5,
+    "ok": 25
+  },
+  "documents": [
+    {
+      "documentId": "regulatory.rf.federal-law.157-fz-1998",
+      "documentNumber": "157-ФЗ",
+      "signedAt": "1998-09-17",
+      "status": "active",
+      "edition": "Федеральный закон в действующей редакции; последнее изменение, найденное на портале, — № 316-ФЗ от 02.07.2021",
+      "verdict": "not-checked",
+      "reason": "no publication.pravo.gov.ru record",
+      "officialSourceUrl": "https://pravo.gov.ru/proxy/ips/?docbody=&nd=102055517"
+    },
+    {
+      "documentId": "regulatory.rf.federal-law.255-fz-2006-child-care",
+      "documentNumber": "255-ФЗ",
+      "signedAt": "2006-12-29",
+      "status": "active",
+      "edition": "Федеральный закон в действующей редакции; последнее изменение, найденное на портале, — № 455-ФЗ от 15.12.2025",
+      "verdict": "not-checked",
+      "reason": "no publication.pravo.gov.ru record",
+      "officialSourceUrl": "https://rg.ru/documents/2006/12/31/beremennost-dok.html"
+    },
+    {
+      "documentId": "regulatory.rf.federal-law.323-fz-2011",
+      "documentNumber": "323-ФЗ",
+      "signedAt": "2011-11-21",
+      "status": "active",
+      "edition": "Федеральный закон в действующей редакции; последнее изменение, найденное на портале, — № 114-ФЗ от 25.04.2026",
+      "eoNumber": "0001201111220007",
+      "record": {
+        "number": "323-ФЗ",
+        "documentDate": "2011-11-21",
+        "publishedAt": "2011-11-22",
+        "pagesCount": 213
+      },
+      "file": {
+        "sha256": "aa54cb7c53980e765efbe0d4196e82d9f758d5596a3394b9283f4e9e250eaabc",
+        "bytes": 7257635
+      },
+      "amendingOrders": [
+        {
+          "number": "148н",
+          "documentDate": "2026-03-02",
+          "eoNumber": "0001202604020008"
+        },
+        {
+          "number": "671н",
+          "documentDate": "2024-12-06",
+          "eoNumber": "0001202412280183"
+        },
+        {
+          "number": "76",
+          "documentDate": "2016-06-10",
+          "eoNumber": "0001201606230061"
+        },
+        {
+          "number": "310н",
+          "documentDate": "2015-06-05",
+          "eoNumber": "0001201506250006"
+        }
+      ],
+      "problems": [],
+      "verdict": "ok"
+    },
+    {
+      "documentId": "regulatory.rf.minzdrav.1089n-2021",
+      "documentNumber": "1089н",
+      "signedAt": "2021-11-23",
+      "status": "active",
+      "edition": "с изменениями приказов № 790н (с 01.01.2023), № 657н (с 20.12.2025) и № 222н от 31.03.2026; действует до 01.03.2029",
+      "eoNumber": "0001202111300010",
+      "record": {
+        "number": "1089н",
+        "documentDate": "2021-11-23",
+        "publishedAt": "2021-11-30",
+        "pagesCount": 48
+      },
+      "file": {
+        "sha256": "ba4178bb05d39887b7390ea5208b53753fe3969bac54495c36535c84e490aae3",
+        "bytes": 3758348
+      },
+      "amendingOrders": [
+        {
+          "number": "222н",
+          "documentDate": "2026-03-31",
+          "eoNumber": "0001202604150021"
+        },
+        {
+          "number": "657н",
+          "documentDate": "2025-11-10",
+          "eoNumber": "0001202512090027"
+        },
+        {
+          "number": "790н",
+          "documentDate": "2022-12-13",
+          "eoNumber": "0001202212210066"
+        }
+      ],
+      "problems": [],
+      "verdict": "ok"
+    },
+    {
+      "documentId": "regulatory.rf.minzdrav.1122n-2021",
+      "documentNumber": "1122н",
+      "signedAt": "2021-12-06",
+      "status": "active",
+      "edition": "с изменениями приказа № 677н (с 01.09.2024)",
+      "eoNumber": "0001202112200070",
+      "record": {
+        "number": "1122н",
+        "documentDate": "2021-12-06",
+        "publishedAt": "2021-12-20",
+        "pagesCount": 15
+      },
+      "file": {
+        "sha256": "5bc4f95c44d6caedef5eb1519bc6a53f4383509d80df63d025492708af4cfa9d",
+        "bytes": 911733
+      },
+      "amendingOrders": [
+        {
+          "number": "677н",
+          "documentDate": "2023-12-12",
+          "eoNumber": "0001202401300021"
+        }
+      ],
+      "problems": [],
+      "verdict": "ok"
+    },
+    {
+      "documentId": "regulatory.rf.minzdrav.120n-2026",
+      "documentNumber": "120н",
+      "signedAt": "2026-02-20",
+      "status": "active",
+      "edition": "первоначальная редакция; изменений на портале не найдено",
+      "eoNumber": "0001202603260014",
+      "record": {
+        "number": "120н",
+        "documentDate": "2026-02-20",
+        "publishedAt": "2026-03-26",
+        "pagesCount": 120
+      },
+      "file": {
+        "sha256": "fa4d983a69ba28ac29b437c7ee018d76464d9944dc21193099657f6ab353fe8e",
+        "bytes": 5407318
+      },
+      "amendingOrders": [],
+      "problems": [],
+      "verdict": "ok"
+    },
+    {
+      "documentId": "regulatory.rf.minzdrav.127n-2019-tuberculosis",
+      "documentNumber": "127н",
+      "signedAt": "2019-03-13",
+      "status": "active",
+      "edition": "первоначальная редакция; изменений на портале не найдено",
+      "eoNumber": "0001201906200019",
+      "record": {
+        "number": "127н",
+        "documentDate": "2019-03-13",
+        "publishedAt": "2019-06-20",
+        "pagesCount": 24
+      },
+      "file": {
+        "sha256": "bc2c58584e05cda3de335f02d9856dda630833ad3c76f44b82643c93c9331693",
+        "bytes": 1245874
+      },
+      "amendingOrders": [],
+      "problems": [],
+      "verdict": "ok"
+    },
+    {
+      "documentId": "regulatory.rf.minzdrav.1346n-2012",
+      "documentNumber": "1346н",
+      "signedAt": "2012-12-21",
+      "status": "superseded",
+      "edition": "последняя действовавшая редакция; утратил силу с 01.01.2018",
+      "verdict": "not-checked",
+      "reason": "no publication.pravo.gov.ru record",
+      "officialSourceUrl": "https://minzdrav.gov.ru/documents/5450-prikaz-minzd"
+    },
+    {
+      "documentId": "regulatory.rf.minzdrav.190n-2025",
+      "documentNumber": "190н",
+      "signedAt": "2025-04-11",
+      "status": "active",
+      "edition": "первоначальная редакция; изменений на портале не найдено",
+      "eoNumber": "0001202505190006",
+      "record": {
+        "number": "190н",
+        "documentDate": "2025-04-11",
+        "publishedAt": "2025-05-19",
+        "pagesCount": 9
+      },
+      "file": {
+        "sha256": "fd1d031f5f9f954cbb00c5b14f2779090ba36e8a38f4cb7a14e1600874553f97",
+        "bytes": 569241
+      },
+      "amendingOrders": [],
+      "problems": [],
+      "verdict": "ok"
+    },
+    {
+      "documentId": "regulatory.rf.minzdrav.192n-2025",
+      "documentNumber": "192н",
+      "signedAt": "2025-04-11",
+      "status": "active",
+      "edition": "первоначальная редакция; изменений на портале не найдено",
+      "eoNumber": "0001202505190026",
+      "record": {
+        "number": "192н",
+        "documentDate": "2025-04-11",
+        "publishedAt": "2025-05-19",
+        "pagesCount": 7
+      },
+      "file": {
+        "sha256": "ffc4b314eee9450e39d7ee2c906dd5bdb0734c69ec14209f678a00af0d8f2e13",
+        "bytes": 449547
+      },
+      "amendingOrders": [],
+      "problems": [],
+      "verdict": "ok"
+    },
+    {
+      "documentId": "regulatory.rf.minzdrav.195n-2025",
+      "documentNumber": "195н",
+      "signedAt": "2025-04-11",
+      "status": "active",
+      "edition": "первоначальная редакция; изменений на портале не найдено",
+      "eoNumber": "0001202505140009",
+      "record": {
+        "number": "195н",
+        "documentDate": "2025-04-11",
+        "publishedAt": "2025-05-14",
+        "pagesCount": 4
+      },
+      "file": {
+        "sha256": "d4352d00b2543861f9e0fbb07c9cb5ce7082eb118e74c9b3bf0c385e0124804f",
+        "bytes": 254447
+      },
+      "amendingOrders": [],
+      "problems": [],
+      "verdict": "ok"
+    },
+    {
+      "documentId": "regulatory.rf.minzdrav.202n-2025",
+      "documentNumber": "202н",
+      "signedAt": "2025-04-14",
+      "status": "active",
+      "edition": "первоначальная редакция; изменений на портале не найдено",
+      "eoNumber": "0001202506020016",
+      "record": {
+        "number": "202н",
+        "documentDate": "2025-04-14",
+        "publishedAt": "2025-06-02",
+        "pagesCount": 134
+      },
+      "file": {
+        "sha256": "148332ab1f8d7a9156a9fc844cd5c544b7e9def924df1848afb855d46fab98ca",
+        "bytes": 6380759
+      },
+      "amendingOrders": [],
+      "problems": [],
+      "verdict": "ok"
+    },
+    {
+      "documentId": "regulatory.rf.minzdrav.206n-2023-qualification",
+      "documentNumber": "206н",
+      "signedAt": "2023-05-02",
+      "status": "superseded",
+      "edition": "последняя редакция — с изменениями приказов № 72н и № 515н; утратил силу с 01.09.2026",
+      "eoNumber": "0001202306010041",
+      "record": {
+        "number": "206н",
+        "documentDate": "2023-05-02",
+        "publishedAt": "2023-06-01",
+        "pagesCount": 63
+      },
+      "file": {
+        "sha256": "04c6588ca3531c8f52691d4a5868184a80b4e2d94d17d09465a10d2fa8a127dd",
+        "bytes": 3704998
+      },
+      "amendingOrders": [
+        {
+          "number": "515н",
+          "documentDate": "2025-08-29",
+          "eoNumber": "0001202508290049"
+        },
+        {
+          "number": "72н",
+          "documentDate": "2024-02-19",
+          "eoNumber": "0001202403250018"
+        }
+      ],
+      "problems": [],
+      "verdict": "ok"
+    },
+    {
+      "documentId": "regulatory.rf.minzdrav.211n-2025",
+      "documentNumber": "211н",
+      "signedAt": "2025-04-14",
+      "status": "active",
+      "edition": "первоначальная редакция; изменений на портале не найдено",
+      "eoNumber": "0001202505230032",
+      "record": {
+        "number": "211н",
+        "documentDate": "2025-04-14",
+        "publishedAt": "2025-05-23",
+        "pagesCount": 39
+      },
+      "file": {
+        "sha256": "4cfd3143c89432e4b305ccccd9a0179b7006b9b1dd7eeb72904629d2f4a20fa4",
+        "bytes": 2325450
+      },
+      "amendingOrders": [],
+      "problems": [],
+      "verdict": "ok"
+    },
+    {
+      "documentId": "regulatory.rf.minzdrav.213n-2025",
+      "documentNumber": "213н",
+      "signedAt": "2025-04-14",
+      "status": "active",
+      "edition": "первоначальная редакция; изменений на портале не найдено",
+      "eoNumber": "0001202505260012",
+      "record": {
+        "number": "213н",
+        "documentDate": "2025-04-14",
+        "publishedAt": "2025-05-26",
+        "pagesCount": 18
+      },
+      "file": {
+        "sha256": "eebf7ecf34335465d1c863596949c622b36fc5bcb30d831e17ff4cd60dcb1b55",
+        "bytes": 976304
+      },
+      "amendingOrders": [],
+      "problems": [],
+      "verdict": "ok"
+    },
+    {
+      "documentId": "regulatory.rf.minzdrav.220n-2024",
+      "documentNumber": "220н",
+      "signedAt": "2024-05-03",
+      "status": "active",
+      "edition": "первоначальная редакция; изменений на портале не найдено",
+      "eoNumber": "0001202405310015",
+      "record": {
+        "number": "220н",
+        "documentDate": "2024-05-03",
+        "publishedAt": "2024-05-31",
+        "pagesCount": 6
+      },
+      "file": {
+        "sha256": "11012b0f0000e222dba0685633404c4aba91d33cd1bb5b081b955a0c91d1c731",
+        "bytes": 366032
+      },
+      "amendingOrders": [],
+      "problems": [],
+      "verdict": "ok"
+    },
+    {
+      "documentId": "regulatory.rf.minzdrav.222n-2025",
+      "documentNumber": "222н",
+      "signedAt": "2025-04-17",
+      "status": "active",
+      "edition": "с изменением приказа № 607н от 09.06.2026 (приложение № 9)",
+      "eoNumber": "0001202506030010",
+      "record": {
+        "number": "222н",
+        "documentDate": "2025-04-17",
+        "publishedAt": "2025-06-03",
+        "pagesCount": 88
+      },
+      "file": {
+        "sha256": "82aae4fce89e7ce9d71190e186ca9c756e536bfca3d01ecd1e445b877a14011c",
+        "bytes": 3970786
+      },
+      "amendingOrders": [
+        {
+          "number": "607н",
+          "documentDate": "2026-06-09",
+          "eoNumber": "0001202607100017"
+        }
+      ],
+      "problems": [],
+      "verdict": "ok"
+    },
+    {
+      "documentId": "regulatory.rf.minzdrav.274n-2025-sanatorium-forms",
+      "documentNumber": "274н",
+      "signedAt": "2025-05-13",
+      "status": "active",
+      "edition": "первоначальная редакция; изменений на портале не найдено",
+      "eoNumber": "0001202505300033",
+      "record": {
+        "number": "274н",
+        "documentDate": "2025-05-13",
+        "publishedAt": "2025-05-30",
+        "pagesCount": 59
+      },
+      "file": {
+        "sha256": "e385d12af60d1aa9a54f4e493addd10d21b764413c697d8eba43358f58a5dd3c",
+        "bytes": 3616092
+      },
+      "amendingOrders": [],
+      "problems": [],
+      "verdict": "ok"
+    },
+    {
+      "documentId": "regulatory.rf.minzdrav.302n-2019",
+      "documentNumber": "302н",
+      "signedAt": "2019-05-16",
+      "status": "superseded",
+      "edition": "последняя редакция — с изменениями до 19.11.2020; утратил силу с 01.09.2025",
+      "eoNumber": "0001201906100012",
+      "record": {
+        "number": "302н",
+        "documentDate": "2019-05-16",
+        "publishedAt": "2019-06-10",
+        "pagesCount": 7
+      },
+      "file": {
+        "sha256": "e62b08a4987f4c82543db550e2febfbc0ceb69664448bae1c9406c055d14cda5",
+        "bytes": 473842
+      },
+      "amendingOrders": [],
+      "problems": [],
+      "verdict": "ok"
+    },
+    {
+      "documentId": "regulatory.rf.mintrud.306n-2017-district-pediatrician",
+      "documentNumber": "306н",
+      "signedAt": "2017-03-27",
+      "status": "active",
+      "edition": "первоначальная редакция; изменений на портале не найдено",
+      "eoNumber": "0001201704180027",
+      "record": {
+        "number": "306н",
+        "documentDate": "2017-03-27",
+        "publishedAt": "2017-04-18",
+        "pagesCount": 18
+      },
+      "file": {
+        "sha256": "d17c53bec98a6149b4e5e18a4ad752394c08e4d31ed99197d15ef4f9472931ef",
+        "bytes": 1509052
+      },
+      "amendingOrders": [],
+      "problems": [],
+      "verdict": "ok"
+    },
+    {
+      "documentId": "regulatory.rf.minzdrav.313n-2025",
+      "documentNumber": "313н",
+      "signedAt": "2025-05-27",
+      "status": "active",
+      "edition": "первоначальная редакция; изменений на портале не найдено",
+      "eoNumber": "0001202506020071",
+      "record": {
+        "number": "313н",
+        "documentDate": "2025-05-27",
+        "publishedAt": "2025-06-02",
+        "pagesCount": 31
+      },
+      "file": {
+        "sha256": "7c36c8aecfee80abd394765e3387fefb95349a9c3d38d4f8288eda97a9b9c9f7",
+        "bytes": 1555987
+      },
+      "amendingOrders": [],
+      "problems": [],
+      "verdict": "ok"
+    },
+    {
+      "documentId": "regulatory.rf.minzdravsoc.366n-2012",
+      "documentNumber": "366н",
+      "signedAt": "2012-04-16",
+      "status": "superseded",
+      "edition": "последняя действовавшая редакция; утратил силу с 06.04.2026",
+      "verdict": "not-checked",
+      "reason": "no publication.pravo.gov.ru record",
+      "officialSourceUrl": "https://minzdrav.gov.ru/documents/9168-prikaz-ministerstva-zdravoohraneniya-i-sotsialnogo-razvitiya-rossiyskoy-federatsii-ot-16-aprelya-2012-g-366n-ob-utverzhdenii-poryadka-okazaniya-pediatricheskoy-pomoschi"
+    },
+    {
+      "documentId": "regulatory.rf.mintrud.374n-2024-disability",
+      "documentNumber": "374н",
+      "signedAt": "2024-07-26",
+      "status": "active",
+      "edition": "первоначальная редакция; изменений на портале не найдено",
+      "eoNumber": "0001202408260026",
+      "record": {
+        "number": "374н",
+        "documentDate": "2024-07-26",
+        "publishedAt": "2024-08-26",
+        "pagesCount": 469
+      },
+      "file": {
+        "sha256": "9ebbbf69b1356d058fbb1e575f148fa8bcc67ef22a11dd54a8701c3c4ef6c485",
+        "bytes": 19698787
+      },
+      "amendingOrders": [],
+      "problems": [],
+      "verdict": "ok"
+    },
+    {
+      "documentId": "regulatory.rf.minzdrav.404n-2021-adult-health-groups",
+      "documentNumber": "404н",
+      "signedAt": "2021-04-27",
+      "status": "active",
+      "edition": "с изменениями приказов № 352н, № 515н, № 378н и № 620н (с 25.07.2026); действует до 01.07.2027",
+      "eoNumber": "0001202106300043",
+      "record": {
+        "number": "404н",
+        "documentDate": "2021-04-27",
+        "publishedAt": "2021-06-30",
+        "pagesCount": 34
+      },
+      "file": {
+        "sha256": "8c030881e26255c9c33afb3fd15019b8b71b9cb7f080e20db596fa71e01d7995",
+        "bytes": 2456665
+      },
+      "amendingOrders": [
+        {
+          "number": "620н",
+          "documentDate": "2026-06-15",
+          "eoNumber": "0001202607140009"
+        },
+        {
+          "number": "378н",
+          "documentDate": "2024-07-19",
+          "eoNumber": "0001202408190010"
+        },
+        {
+          "number": "515н",
+          "documentDate": "2023-09-28",
+          "eoNumber": "0001202310180007"
+        },
+        {
+          "number": "352н",
+          "documentDate": "2023-07-07",
+          "eoNumber": "0001202308100017"
+        }
+      ],
+      "problems": [],
+      "verdict": "ok"
+    },
+    {
+      "documentId": "regulatory.rf.minzdrav.436n-2026-qualification",
+      "documentNumber": "436н",
+      "signedAt": "2026-05-14",
+      "status": "active",
+      "edition": "первоначальная редакция; изменений на портале не найдено",
+      "eoNumber": "0001202605290053",
+      "record": {
+        "number": "436н",
+        "documentDate": "2026-05-14",
+        "publishedAt": "2026-05-29",
+        "pagesCount": 177
+      },
+      "file": {
+        "sha256": "b3d1e1eca9db493bbbe128f06262edf3bf5689185a60bdb8989ede0d87632207",
+        "bytes": 9208141
+      },
+      "amendingOrders": [],
+      "problems": [],
+      "verdict": "ok"
+    },
+    {
+      "documentId": "regulatory.rf.minzdrav.514n-2017",
+      "documentNumber": "514н",
+      "signedAt": "2017-08-10",
+      "status": "superseded",
+      "edition": "последняя редакция — с изменениями приказов № 410н и № 396н; утратил силу с 01.09.2025",
+      "eoNumber": "0001201708210001",
+      "record": {
+        "number": "514н",
+        "documentDate": "2017-08-10",
+        "publishedAt": "2017-08-21",
+        "pagesCount": 32
+      },
+      "file": {
+        "sha256": "f4b5d2871c9c1f1a7f5db287fe0f982fdf7a08ca2d0044470d3855d4f300ee91",
+        "bytes": 1975202
+      },
+      "amendingOrders": [
+        {
+          "number": "396н",
+          "documentDate": "2019-06-13",
+          "eoNumber": "0001201910040014"
+        },
+        {
+          "number": "410н",
+          "documentDate": "2018-07-03",
+          "eoNumber": "0001201807250013"
+        }
+      ],
+      "problems": [],
+      "verdict": "ok"
+    },
+    {
+      "documentId": "regulatory.rf.minzdravsoc.521n-2012",
+      "documentNumber": "521н",
+      "signedAt": "2012-05-05",
+      "status": "active",
+      "edition": "в редакции от 21.02.2020",
+      "verdict": "not-checked",
+      "reason": "no publication.pravo.gov.ru record",
+      "officialSourceUrl": "https://minzdrav.gov.ru/documents/9117"
+    },
+    {
+      "documentId": "regulatory.rf.minzdrav.583n-2024",
+      "documentNumber": "583н",
+      "signedAt": "2024-10-29",
+      "status": "active",
+      "edition": "первоначальная редакция; изменений на портале не найдено",
+      "eoNumber": "0001202411200017",
+      "record": {
+        "number": "583н",
+        "documentDate": "2024-10-29",
+        "publishedAt": "2024-11-20",
+        "pagesCount": 51
+      },
+      "file": {
+        "sha256": "f4c17ec0eaecae23f516b0d3549db7cdb2785fbf8c9d2926ce38e4e685d061c6",
+        "bytes": 2503855
+      },
+      "amendingOrders": [],
+      "problems": [],
+      "verdict": "ok"
+    },
+    {
+      "documentId": "regulatory.rf.minzdrav.625n-2016",
+      "documentNumber": "625н",
+      "signedAt": "2016-08-23",
+      "status": "superseded",
+      "edition": "первоначальная редакция; утратил силу с 01.09.2025",
+      "eoNumber": "0001201702210016",
+      "record": {
+        "number": "625н",
+        "documentDate": "2016-08-23",
+        "publishedAt": "2017-02-21",
+        "pagesCount": 4
+      },
+      "file": {
+        "sha256": "746225a1f01307f0e8a0cd3f85b5789bf1750693e65c4c56e4174fdac9ac8daf",
+        "bytes": 270539
+      },
+      "amendingOrders": [],
+      "problems": [],
+      "verdict": "ok"
+    },
+    {
+      "documentId": "regulatory.rf.minzdrav.707n-2015",
+      "documentNumber": "707н",
+      "signedAt": "2015-10-08",
+      "status": "superseded",
+      "edition": "последняя редакция — с изменениями приказов № 328н, № 940н и № 118н; утратил силу с 01.09.2023",
+      "eoNumber": "0001201510270051",
+      "record": {
+        "number": "707н",
+        "documentDate": "2015-10-08",
+        "publishedAt": "2015-10-27",
+        "pagesCount": 68
+      },
+      "file": {
+        "sha256": "6c38a243b0d3944ea0a1e576e610fc1ad65da9aaa9a2ee9e366de81699512dc8",
+        "bytes": 3007388
+      },
+      "amendingOrders": [
+        {
+          "number": "118н",
+          "documentDate": "2023-03-22",
+          "eoNumber": "0001202305170023"
+        },
+        {
+          "number": "940н",
+          "documentDate": "2020-09-04",
+          "eoNumber": "0001202010020036"
+        },
+        {
+          "number": "328н",
+          "documentDate": "2017-06-15",
+          "eoNumber": "0001201707040003"
+        }
+      ],
+      "problems": [],
+      "verdict": "ok"
+    }
+  ]
+}

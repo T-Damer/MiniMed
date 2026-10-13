@@ -32,12 +32,15 @@ metadata:
   amendmentOfficialPublicationNumbers:
     - "0001202401300021"
   amendmentEffectiveFrom: "2024-09-01"
-  sourceReviewedAt: "2026-07-30"
+  sourceReviewedAt: "2026-10-13"
+  editionVerified: true
   publicPilot: true
   contentMode: source_linked_paraphrase
   notLegalAdvice: true
+  edition: "с изменениями приказа № 677н (с 01.09.2024)"
+  sourcePdfSha256: 5bc4f95c44d6caedef5eb1519bc6a53f4383509d80df63d025492708af4cfa9d
+  sourcePdfPages: 15
 ---
-
 # Общая информация
 
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/Document/View/0001202112200070","publicationNumber":"0001202112200070","documentNumber":"1122н","sourceSection":"приказ и приложения","contentMode":"paraphrase"} -->
@@ -63,6 +66,13 @@ metadata:
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202401300021","publicationNumber":"0001202401300021","documentNumber":"677н","sourceSection":"изменения в приказ № 1122н","contentMode":"paraphrase"} -->
 Приказ № 677н изменил отдельные положения календарей и порядка проведения прививок. При поиске возраста, интервала или группы риска следует использовать консолидированный действующий текст приказа № 1122н с учетом этих изменений, а не первоначальную редакцию 2021 года отдельно.
 
-# Ограничения
+# Источник и редакция
 
-Карточка предназначена для навигации к нормативному источнику. Она не заменяет таблицы календаря, действующую редакцию приказа, инструкцию к вакцине, оценку противопоказаний и индивидуальное решение медицинского работника.
+<!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/Document/View/0001202112200070","sourceSection":"реквизиты и редакция","contentMode":"paraphrase","publicationNumber":"0001202112200070","documentNumber":"1122н"} -->
+Приказ Минздрава России от 6 декабря 2021 г. № 1122н, зарегистрирован Минюстом России 20 декабря 2021 г. № 66435.
+
+Редакция: с изменениями приказа № 677н (с 01.09.2024).
+
+Сверено с официальным текстом 13 октября 2026 г.
+
+Официальный текст: https://publication.pravo.gov.ru/Document/View/0001202112200070

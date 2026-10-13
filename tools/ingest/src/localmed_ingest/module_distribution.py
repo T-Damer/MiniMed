@@ -271,6 +271,12 @@ class ModuleDescriptor:
     # per-document table exists to verify pointers and would add megabytes to every catalog fetch.
     # The exact membership still ends up in the package report and `sourceSetDigest`.
     list_documents: bool = True
+    # Catalog kind and audience; «regulatory» modules are listed with the laws of a specialty.
+    kind: str = "reference"
+    specialties: tuple[str, ...] = ()
+    populations: tuple[str, ...] = ()
+    release_state: str = "preview"
+    dependencies: tuple[dict[str, object], ...] = ()
 
 
 def package_module(
@@ -317,14 +323,14 @@ def package_module(
     entry: dict[str, object] = {
         "id": descriptor.module_id,
         "version": version,
-        "kind": "reference",
+        "kind": descriptor.kind,
         "collection": descriptor.collection,
         "title": descriptor.title,
         "description": description,
         "required": False,
-        "releaseState": "preview",
-        "specialties": [],
-        "populations": [],
+        "releaseState": descriptor.release_state,
+        "specialties": list(descriptor.specialties),
+        "populations": list(descriptor.populations),
         "tags": list(descriptor.tags),
         "compatibility": {
             "minAppVersion": min_app_version,
@@ -333,7 +339,7 @@ def package_module(
             "coreCatalogVersion": "1",
         },
         "sourceSetDigest": source_set,
-        "dependencies": [],
+        "dependencies": [dict(item) for item in descriptor.dependencies],
         "sizes": {
             "downloadBytes": archive_size,
             "installedBytes": decoded_size,

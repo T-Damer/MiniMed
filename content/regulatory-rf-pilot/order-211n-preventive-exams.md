@@ -29,14 +29,16 @@ metadata:
   officialPublicationDate: "2025-05-23"
   officialSourceUrl: https://publication.pravo.gov.ru/document/0001202505230032
   publicMirrorPdfUrl: https://cdnstatic.rg.ru/uploads/attachments/2025/05/26/82300_a98.pdf
-  sourceReviewedAt: "2026-07-31"
+  sourceReviewedAt: "2026-10-13"
   editionVerified: true
   audienceLabel: Для детей
   publicPilot: true
   contentMode: source_linked_paraphrase
   notLegalAdvice: true
+  edition: "первоначальная редакция; изменений на портале не найдено"
+  sourcePdfSha256: 4cfd3143c89432e4b305ccccd9a0179b7006b9b1dd7eeb72904629d2f4a20fa4
+  sourcePdfPages: 39
 ---
-
 # Общая информация
 
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202505230032","publicationNumber":"0001202505230032","documentNumber":"211н","sourceSection":"пункт 3 приказа","page":2,"contentMode":"paraphrase"} -->
@@ -117,6 +119,15 @@ metadata:
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202505230032","publicationNumber":"0001202505230032","documentNumber":"211н","sourceSection":"приложение № 1, пункт 20; приложения № 2–4","contentMode":"paraphrase"} -->
 Группу здоровья и медицинскую группу для занятий физической культурой определяет врач, ответственный за профилактический осмотр, на основании всех результатов. Группа здоровья I–V, физкультурная группа и группа инвалидности являются разными классификациями и не должны подменять друг друга.
 
-# Ограничения
+# Источник и редакция
 
-Карточка индексирует основные организационные положения, критерии групп здоровья и медицинских групп для физической культуры. Она не воспроизводит полный возрастной перечень исследований и все учетные формы. Индивидуальную группу определяют по совокупности результатов осмотра, а не по одному диагнозу. Редакция и официальный источник проверены проектом 31 июля 2026 года.
+<!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202505230032","sourceSection":"реквизиты и редакция","contentMode":"paraphrase","publicationNumber":"0001202505230032","documentNumber":"211н"} -->
+Приказ Минздрава России от 14 апреля 2025 г. № 211н, зарегистрирован Минюстом России 22 мая 2025 г. № 82300.
+
+Редакция: первоначальная редакция; изменений на портале не найдено.
+
+Действует с 1 сентября 2025 г. по 1 сентября 2031 г.
+
+Сверено с официальным текстом 13 октября 2026 г.
+
+Официальный текст: https://publication.pravo.gov.ru/document/0001202505230032

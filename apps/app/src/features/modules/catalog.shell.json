@@ -1,6 +1,6 @@
 {
   "catalogVersion": "kr5-template-labels.2026.10.09",
-  "publishedAt": "2026-10-13T20:55:00Z",
+  "publishedAt": "2026-10-13T21:10:00Z",
   "coreModule": {
     "id": "minimed.core.ru",
     "version": "1.0.0-preview.8",
@@ -44,7 +44,7 @@
     "conditions": 15904,
     "guidelines": 763,
     "medications": 3324,
-    "legal": 3
+    "legal": 31
   },
   "tools": [
     {

@@ -27,14 +27,14 @@ metadata:
   officialPublicationNumber: "Минздрав России, документ 9117"
   officialSourceUrl: https://minzdrav.gov.ru/documents/9117
   lastAmendedAt: "2020-02-21"
-  sourceReviewedAt: "2026-08-02"
+  sourceReviewedAt: "2026-10-13"
   editionVerified: true
   audienceLabel: Для детей и подростков
   publicPilot: true
   contentMode: source_linked_paraphrase
   notLegalAdvice: true
+  edition: "в редакции от 21.02.2020"
 ---
-
 # Область регулирования
 
 <!-- localmed:source {"officialUrl":"https://minzdrav.gov.ru/documents/9117","documentNumber":"521н","sourceSection":"Порядок оказания медицинской помощи детям с инфекционными заболеваниями","contentMode":"paraphrase"} -->
@@ -50,6 +50,13 @@ metadata:
 <!-- localmed:source {"officialUrl":"https://minzdrav.gov.ru/documents/9117","documentNumber":"521н","sourceSection":"организация инфекционного отделения и стационарной помощи","contentMode":"paraphrase"} -->
 При необходимости круглосуточного наблюдения, изоляции, интенсивного лечения или диагностических возможностей ребёнка направляют в инфекционное отделение или иную соответствующую медицинскую организацию. Конкретная срочность определяется состоянием пациента и противоэпидемическими требованиями.
 
-# Ограничения
+# Источник и редакция
 
-Порядок содержит правила организации, рекомендуемые штатные нормативы и стандарты оснащения. Он не заменяет санитарные правила, клинические рекомендации и региональную схему маршрутизации.
+<!-- localmed:source {"officialUrl":"https://minzdrav.gov.ru/documents/9117","sourceSection":"реквизиты и редакция","contentMode":"paraphrase","documentNumber":"521н"} -->
+Приказ Минздравсоцразвития России от 5 мая 2012 г. № 521н, зарегистрирован Минюстом России 10 июля 2012 г. № 24867.
+
+Редакция: в редакции от 21.02.2020.
+
+Сверено с официальным текстом 13 октября 2026 г.
+
+Официальный текст: https://minzdrav.gov.ru/documents/9117

@@ -14,7 +14,7 @@ Detailed shortlist from the private library and OCR inventory: [CONTENT_BACKLOG.
 | Category | Status | Source strategy | Detail doc |
 | --- | --- | --- | --- |
 | Clinical recommendations | 744 official recommendations synced, largest existing asset | Ministry API, official structured JSON | [CURRENT_STATE.md](CURRENT_STATE.md) |
-| Regulatory acts | 32 drafted, `publicationState: local-dev`, unpublished | Official RF orders/laws | [REGULATORY_PACK.md](REGULATORY_PACK.md) |
+| Regulatory acts | 30 acts + 1 crosswalk verified against publication.pravo.gov.ru and released as `minimed.regulatory.pediatrics.ru` 2026.10.13 (pack manifest stays `local-dev`) | Official RF orders/laws | [REGULATORY_PACK.md](REGULATORY_PACK.md) |
 | Pediatric norms / growth | WHO 0–5 and 5–19 z-score/percentile calculator built as an experimental downloadable module; reference cards bundled | WHO Child Growth Standards + cited textbook pages | [LITERATURE_BANK.md](LITERATURE_BANK.md), [CALCULATORS.md](CALCULATORS.md) |
 | Medical glossary | 19,972 compact catalog pointers and 44,211 aliases are bundled in `core.db`; titles and declared aliases become inline links with definition previews | Clinical-recommendation definitions plus compact MKB/RLS and linked disease-reference routing; full articles stay in companion packs | [DRUG_KNOWLEDGE_PIPELINE.md](DRUG_KNOWLEDGE_PIPELINE.md) |
 | Laboratory reference intervals | Sourced pilot bundled in `reference.db`: common age-specific CBC, biochemistry and CSF ranges plus adult urine orientation | Method-specific CALIPER data + official formularies; the performing laboratory's interval always takes precedence | this doc |
@@ -22,7 +22,7 @@ Detailed shortlist from the private library and OCR inventory: [CONTENT_BACKLOG.
 | Assessments/questionnaires | Schema-defined clinical scales and psychology/obstetric instruments in downloadable tool modules only | Independent authored questions or validated instrument | [ASSESSMENTS.md](ASSESSMENTS.md) |
 | Medications | one-drug pipeline proof (Miramistin), 9 pilot instructions syncing | Official GRLS + instruction PDFs | [DRUG_KNOWLEDGE_PIPELINE.md](DRUG_KNOWLEDGE_PIPELINE.md) |
 | Diets (лечебные столы) | №1/5/7/8/9/15 + standard-diet-system drafted, `local-dev`, pediatric scope not reviewed | `reference` category (`content/reference-rf-pilot/`); relaxed sourcing (web/clinic sites), see below | this doc |
-| Vaccination calendars | referenced by `order-1122n-vaccination-calendars.md` (regulatory pilot), not a standalone reference/calculator | Official immunization schedule order | [REGULATORY_PILOT.md](REGULATORY_PILOT.md) |
+| Vaccination calendars | referenced by `order-1122n-vaccination-calendars.md` (regulatory pilot), not a standalone reference/calculator | Official immunization schedule order | [REGULATORY_PACK.md](REGULATORY_PACK.md) |
 | Nutrition/feeding norms | candidate sources found (`ПДБ/PITANIE.pdf`, `ПДБ/кормление_1год.pdf`, `Нутрициология`), not extracted | Cited textbook page | [LITERATURE_BANK.md](LITERATURE_BANK.md) |
 
 ## Glossary and cross-document terms

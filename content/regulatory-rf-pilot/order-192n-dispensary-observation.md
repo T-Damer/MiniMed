@@ -30,12 +30,15 @@ metadata:
   publicMirrorPdfUrl: https://cdnstatic.rg.ru/uploads/attachments/2025/05/23/82218_831.pdf
   supersedesDocumentIds:
     - regulatory.rf.minzdrav.302n-2019
-  sourceReviewedAt: "2026-07-21"
+  sourceReviewedAt: "2026-10-13"
+  editionVerified: true
   publicPilot: true
   contentMode: source_linked_paraphrase
   notLegalAdvice: true
+  edition: "первоначальная редакция; изменений на портале не найдено"
+  sourcePdfSha256: ffc4b314eee9450e39d7ee2c906dd5bdb0734c69ec14209f678a00af0d8f2e13
+  sourcePdfPages: 7
 ---
-
 # Общая информация
 
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202505190026","publicationNumber":"0001202505190026","documentNumber":"192н","sourceSection":"пункт 3 приказа","contentMode":"paraphrase"} -->
@@ -66,6 +69,15 @@ metadata:
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202505190026","publicationNumber":"0001202505190026","documentNumber":"192н","sourceSection":"приложение, пункт 10","contentMode":"paraphrase"} -->
 Если нужного врача-специалиста нет в организации первичной медико-санитарной помощи, педиатр или врач общей практики направляет несовершеннолетнего к специалисту другой медицинской организации. Допускается применение телемедицинских технологий; дальнейшее наблюдение ведется с учетом рекомендаций привлеченного специалиста.
 
-# Ограничения
+# Источник и редакция
 
-Карточка предназначена для поиска и перехода к действующему нормативному источнику. Она не определяет индивидуальный объем наблюдения по конкретному заболеванию и не заменяет проверку полного текста приказа, иных применимых порядков и региональных условий.
+<!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202505190026","sourceSection":"реквизиты и редакция","contentMode":"paraphrase","publicationNumber":"0001202505190026","documentNumber":"192н"} -->
+Приказ Минздрава России от 11 апреля 2025 г. № 192н, зарегистрирован Минюстом России 16 мая 2025 г. № 82218.
+
+Редакция: первоначальная редакция; изменений на портале не найдено.
+
+Действует с 1 сентября 2025 г. по 1 сентября 2031 г.
+
+Сверено с официальным текстом 13 октября 2026 г.
+
+Официальный текст: https://publication.pravo.gov.ru/document/0001202505190026

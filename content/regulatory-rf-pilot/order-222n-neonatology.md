@@ -30,14 +30,16 @@ metadata:
   amendmentOfficialPublicationNumber: "0001202607100017"
   amendmentOfficialSourceUrl: https://publication.pravo.gov.ru/document/0001202607100017
   amendmentEffectiveFrom: "2026-07-21"
-  sourceReviewedAt: "2026-08-01"
+  sourceReviewedAt: "2026-10-13"
   editionVerified: true
   audienceLabel: Для новорождённых и детей
   publicPilot: true
   contentMode: source_linked_paraphrase
   notLegalAdvice: true
+  edition: "с изменением приказа № 607н от 09.06.2026 (приложение № 9)"
+  sourcePdfSha256: 82aae4fce89e7ce9d71190e186ca9c756e536bfca3d01ecd1e445b877a14011c
+  sourcePdfPages: 88
 ---
-
 # Общая информация
 
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202506030010","publicationNumber":"0001202506030010","documentNumber":"222н","sourceSection":"приказ и общие положения","contentMode":"paraphrase"} -->
@@ -68,6 +70,15 @@ metadata:
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202607100017","publicationNumber":"0001202607100017","documentNumber":"607н","sourceSection":"изменение приложения № 9","contentMode":"paraphrase"} -->
 Приказ № 607н дополнил приложение № 9 к приказу № 222н пунктами 51–55 и расширил стандарт оснащения отделения патологии новорожденных и недоношенных детей офтальмологическим оборудованием. В перечень добавлены, в частности, непрямой бинокулярный офтальмоскоп, инструменты для осмотра глаз и офтальмологическая фундус-камера. Изменение действует с 21 июля 2026 года.
 
-# Ограничения карточки
+# Источник и редакция
 
-Карточка описывает организационный порядок и актуальную редакцию стандарта оснащения. Она не определяет показания к госпитализации, переводу в реанимацию, офтальмологическому скринингу или выписке конкретного новорожденного: такие решения принимают по состоянию ребенка, клиническим рекомендациям и возможностям медицинской организации.
+<!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202506030010","sourceSection":"реквизиты и редакция","contentMode":"paraphrase","publicationNumber":"0001202506030010","documentNumber":"222н"} -->
+Приказ Минздрава России от 17 апреля 2025 г. № 222н, зарегистрирован Минюстом России 2 июня 2025 г. № 82516.
+
+Редакция: с изменением приказа № 607н от 09.06.2026 (приложение № 9).
+
+Действует с 14 июня 2025 г.
+
+Сверено с официальным текстом 13 октября 2026 г.
+
+Официальный текст: https://publication.pravo.gov.ru/document/0001202506030010

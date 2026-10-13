@@ -5,6 +5,8 @@ short_title: Первичная помощь детям — 313н
 version_label: 313n-2025-05-27-reviewed-2026-07-31
 source_type: regulatory_act_summary
 status: active
+effective_from: "2025-09-01"
+effective_to: "2027-09-01"
 specialties:
   - pediatrics
   - general-practice
@@ -25,14 +27,16 @@ metadata:
   officialPublicationNumber: "0001202506020071"
   officialPublicationDate: "2025-06-02"
   officialSourceUrl: https://publication.pravo.gov.ru/document/0001202506020071
-  sourceReviewedAt: "2026-07-31"
+  sourceReviewedAt: "2026-10-13"
   editionVerified: true
   audienceLabel: Для детей
   publicPilot: true
   contentMode: source_linked_paraphrase
   notLegalAdvice: true
+  edition: "первоначальная редакция; изменений на портале не найдено"
+  sourcePdfSha256: 7c36c8aecfee80abd394765e3387fefb95349a9c3d38d4f8288eda97a9b9c9f7
+  sourcePdfPages: 31
 ---
-
 # Общая информация
 
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202506020071","publicationNumber":"0001202506020071","documentNumber":"313н","sourceSection":"приказ и положение","contentMode":"paraphrase"} -->
@@ -53,6 +57,15 @@ metadata:
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202506020071","publicationNumber":"0001202506020071","documentNumber":"313н","sourceSection":"организация взаимодействия и направления","contentMode":"paraphrase"} -->
 Если ребенку требуется обследование или лечение вне возможностей первичного звена, его направляют в медицинскую организацию соответствующего профиля. При признаках неотложного или угрожающего состояния приоритет имеет своевременное оказание необходимой помощи и экстренная маршрутизация.
 
-# Ограничения
+# Источник и редакция
 
-Карточка предназначена для поиска крупного организационного документа. Она не воспроизводит все положения, штатные нормативы и таблицы оснащения. Редакция и официальный источник проверены проектом 31 июля 2026 года.
+<!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202506020071","sourceSection":"реквизиты и редакция","contentMode":"paraphrase","publicationNumber":"0001202506020071","documentNumber":"313н"} -->
+Приказ Минздрава России от 27 мая 2025 г. № 313н, зарегистрирован Минюстом России 2 июня 2025 г. № 82503.
+
+Редакция: первоначальная редакция; изменений на портале не найдено.
+
+Действует с 1 сентября 2025 г. по 1 сентября 2027 г.
+
+Сверено с официальным текстом 13 октября 2026 г.
+
+Официальный текст: https://publication.pravo.gov.ru/document/0001202506020071

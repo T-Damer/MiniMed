@@ -108,6 +108,7 @@
     "content:lint:regulatory": "uv run --project tools/ingest medbase lint --input content/regulatory-rf-pilot",
     "content:build:regulatory": "uv run --project tools/ingest medbase build --input content/regulatory-rf-pilot --output data/build/rf-regulatory-pilot.db --report data/build/rf-regulatory-pilot-report.json",
     "content:build:regulatory:synced": "uv run --project tools/ingest medbase build --input data/synced/rf-regulatory-pilot --output data/build/rf-regulatory-pilot.db --report data/build/rf-regulatory-pilot-report.json",
+    "regulatory:verify": "uv run --project tools/ingest python -m localmed_ingest.regulatory_verify && biome format --write content/regulatory-rf-verification.json",
     "content:rebuild:regulatory": "bun run content:sync:regulatory && uv run --project tools/ingest medbase lint --input data/synced/rf-regulatory-pilot && bun run content:build:regulatory:synced && bun run benchmark:regulatory",
     "content:prepare:private": "uv run --project tools/ingest medbase prepare --registry data/raw/sources.yaml --source-root data/raw --output data/intermediate/private-pilot --force",
     "content:lint:private": "uv run --project tools/ingest medbase lint --input data/intermediate/private-pilot",

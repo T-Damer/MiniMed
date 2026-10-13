@@ -28,14 +28,14 @@ metadata:
   officialPublicationDate: "2006-12-31"
   officialSourceUrl: https://rg.ru/documents/2006/12/31/beremennost-dok.html
   additionalOfficialSourceUrl: https://sfr.gov.ru/branches/perm/news~2026/03/11/279429
-  sourceReviewedAt: "2026-08-02"
+  sourceReviewedAt: "2026-10-13"
   editionVerified: true
   audienceLabel: Для детей и взрослых
   publicPilot: true
   contentMode: source_linked_paraphrase
   notLegalAdvice: true
+  edition: "Федеральный закон в действующей редакции; последнее изменение, найденное на портале, — № 455-ФЗ от 15.12.2025"
 ---
-
 # Зачем закон нужен педиатру
 
 <!-- localmed:source {"officialUrl":"https://rg.ru/documents/2006/12/31/beremennost-dok.html","documentNumber":"255-ФЗ","sourceSection":"статьи 5–7","contentMode":"paraphrase"} -->
@@ -54,3 +54,16 @@ metadata:
 # Связанные документы
 
 Для практической работы закон читают вместе с приказом № 195н об экспертизе временной нетрудоспособности и приказом № 1089н о формировании электронного или бумажного листка нетрудоспособности. Сам № 255-ФЗ не устанавливает клинические показания к освобождению от работы и не заменяет порядок оформления листка.
+
+# Источник и редакция
+
+<!-- localmed:source {"officialUrl":"https://rg.ru/documents/2006/12/31/beremennost-dok.html","sourceSection":"реквизиты и редакция","contentMode":"paraphrase","documentNumber":"255-ФЗ"} -->
+Федеральный закон от 29 декабря 2006 г. № 255-ФЗ.
+
+Редакция: Федеральный закон в действующей редакции; последнее изменение, найденное на портале, — № 455-ФЗ от 15.12.2025.
+
+Действует с 1 января 2007 г.
+
+Сверено с официальным текстом 13 октября 2026 г.
+
+Официальный текст: https://rg.ru/documents/2006/12/31/beremennost-dok.html

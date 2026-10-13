@@ -64,6 +64,7 @@ from .mkb_reference_upgrade import upgrade_mkb_reference_database, write_upgrade
 from .module_search_compaction import MIGRATION_ID, migrate_module_search
 from .pdf_import import import_pdf
 from .publication import PublicationDecision
+from .regulatory_distribution import package_regulatory_module
 from .rls_mkb import RLS_MKB_DETAIL_URL, RLS_MKB_INDEX_URL, scrape_rls_mkb
 from .rls_mkb_distribution import package_rls_mkb_modules
 from .rls_mkb_modules import split_rls_mkb_workspace
@@ -527,6 +528,20 @@ def package_diets_command(
 ) -> None:
     """Gzip the built therapeutic-nutrition pack and write its catalog entry."""
     report = package_diets_module(
+        database, output, version=version, min_app_version=min_app_version
+    )
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+
+
+@app.command("package-regulatory")
+def package_regulatory_command(
+    database: Annotated[Path, typer.Option("--database", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+    version: Annotated[str, typer.Option("--version")],
+    min_app_version: Annotated[str, typer.Option("--min-app-version")],
+) -> None:
+    """Gzip the verified regulatory pack and write its catalog entry (refuses incomplete acts)."""
+    report = package_regulatory_module(
         database, output, version=version, min_app_version=min_app_version
     )
     typer.echo(json.dumps(report, ensure_ascii=False, indent=2))

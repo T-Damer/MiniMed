@@ -27,14 +27,14 @@ metadata:
   supersededByDocumentId: regulatory.rf.minzdrav.514n-2017
   supersededFrom: "2018-01-01"
   currentSuccessorDocumentId: regulatory.rf.minzdrav.211n-2025
-  sourceReviewedAt: "2026-08-02"
+  sourceReviewedAt: "2026-10-13"
   editionVerified: true
   audienceLabel: Для детей и подростков
   publicPilot: true
   contentMode: source_linked_paraphrase
   notLegalAdvice: true
+  edition: "последняя действовавшая редакция; утратил силу с 01.01.2018"
 ---
-
 # Статус документа
 
 <!-- localmed:source {"officialUrl":"https://minzdrav.gov.ru/documents/5450-prikaz-minzd","documentNumber":"1346н","sourceSection":"приказ и утверждённые формы","contentMode":"paraphrase"} -->
@@ -43,3 +43,14 @@ metadata:
 # Формы приказа
 
 Приказ № 1346н утверждал форму № 030-ПО/у-12 и отчётную форму № 030-ПО/о-12. Эти обозначения исторические; действующий приказ № 211н использует формы № 030-ПО/у и № 030-ПО/о.
+
+# Источник и редакция
+
+<!-- localmed:source {"officialUrl":"https://minzdrav.gov.ru/documents/5450-prikaz-minzd","sourceSection":"реквизиты и редакция","contentMode":"paraphrase","documentNumber":"1346н"} -->
+Приказ Минздрава России от 21 декабря 2012 г. № 1346н, зарегистрирован Минюстом России № 27961.
+
+Редакция: последняя действовавшая редакция; утратил силу с 01.01.2018.
+
+Сверено с официальным текстом 13 октября 2026 г.
+
+Официальный текст: https://minzdrav.gov.ru/documents/5450-prikaz-minzd

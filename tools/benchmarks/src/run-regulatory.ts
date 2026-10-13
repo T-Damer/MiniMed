@@ -166,6 +166,7 @@ const queryPaths = [
   'tools/benchmarks/regulatory-rf-queries.json',
   'tools/benchmarks/regulatory-rf-major-queries.json',
   'tools/benchmarks/regulatory-rf-expanded-queries.json',
+  'tools/benchmarks/regulatory-rf-number-queries.json',
 ] as const;
 const queryById = new Map<string, RegulatoryQuery>();
 for (const path of queryPaths) {
@@ -246,10 +247,11 @@ for (const fixture of queries) {
       stableEditionIdentity(fixture.expectedVersionId) &&
     document.status === expectedStatus &&
     document.sourceType === 'regulatory_act_summary' &&
-    metadata.authorityTier === 'official-regulatory-act' &&
+    (metadata.authorityTier === 'official-regulatory-act' ||
+      metadata.authorityTier === 'official-federal-law') &&
     metadata.jurisdiction === 'RU' &&
     metadata.documentNumber === fixture.expectedDocumentNumber &&
-    metadata.officialPublicationNumber === fixture.expectedPublicationNumber &&
+    (metadata.officialPublicationNumber ?? '') === fixture.expectedPublicationNumber &&
     metadata.contentMode === 'source_linked_paraphrase' &&
     ageGroupsValid &&
     audienceLabelValid &&

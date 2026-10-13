@@ -3704,6 +3704,20 @@ official status (Минздрав suspended the transition 2024-02).
   `homeDocumentOrder`, `overview-document-counts`), `apps/app/e2e/icd11-module.spec.ts` (installs the
   module from the local release bytes, skipped when they are absent).
 
+## Regulatory acts released — 2026-10-13 (REG1)
+
+Owner request: «Legal acts are just copies of documents — let's release them.» They are source-linked
+paraphrase cards (not copies of the act text); all were checked against publication.pravo.gov.ru and
+released as `minimed.regulatory.pediatrics.ru` 2026.10.13 (31 documents: 30 acts and the study-list
+crosswalk; `minAppVersion` 0.6.59; gzip 261 218 bytes; catalog `publishedAt` 2026-10-13T21:00Z; same
+content as the bundled `regulatory.db`). Details, fixes and the dropped acts (455, 154, 5, the forms
+crosswalk): [REGULATORY_PACK.md](REGULATORY_PACK.md) «Verification of 2026-10-13». New: `medbase
+package-regulatory` (refuses incomplete acts), `bun run regulatory:verify`
+(`content/regulatory-rf-verification.json`), number-lookup benchmark queries, `test_regulatory_pack.py`.
+Every card ends with a plain-text «Источник и редакция» section; no new app code (the reader shows it as
+ordinary text, not yet as a small footer). Not done: full act texts and tables (scans without a text
+layer), consolidated editions of the federal laws, a clinician review of the paraphrases.
+
 ## Known limits
 
 

@@ -25,14 +25,14 @@ metadata:
   officialSourceUrl: https://minzdrav.gov.ru/documents/9168-prikaz-ministerstva-zdravoohraneniya-i-sotsialnogo-razvitiya-rossiyskoy-federatsii-ot-16-aprelya-2012-g-366n-ob-utverzhdenii-poryadka-okazaniya-pediatricheskoy-pomoschi
   supersededByDocumentId: regulatory.rf.minzdrav.120n-2026
   supersededFrom: "2026-04-06"
-  sourceReviewedAt: "2026-08-02"
+  sourceReviewedAt: "2026-10-13"
   editionVerified: true
   audienceLabel: Для детей и подростков
   publicPilot: true
   contentMode: source_linked_paraphrase
   notLegalAdvice: true
+  edition: "последняя действовавшая редакция; утратил силу с 06.04.2026"
 ---
-
 # Статус документа
 
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202603260014","publicationNumber":"0001202603260014","documentNumber":"120н","sourceSection":"пункт о признании приказа № 366н утратившим силу","contentMode":"paraphrase"} -->
@@ -41,3 +41,14 @@ metadata:
 # Историческое содержание
 
 Старый приказ описывал кабинет участкового педиатра, кабинет здорового ребёнка, структуру подразделений, штатные нормативы и оснащение. Эти сведения сохраняются только для чтения старых учебных материалов; текущие ответы должны опираться на приложения к № 120н.
+
+# Источник и редакция
+
+<!-- localmed:source {"officialUrl":"https://minzdrav.gov.ru/documents/9168-prikaz-ministerstva-zdravoohraneniya-i-sotsialnogo-razvitiya-rossiyskoy-federatsii-ot-16-aprelya-2012-g-366n-ob-utverzhdenii-poryadka-okazaniya-pediatricheskoy-pomoschi","sourceSection":"реквизиты и редакция","contentMode":"paraphrase","documentNumber":"366н"} -->
+Приказ Минздравсоцразвития России от 16 апреля 2012 г. № 366н, зарегистрирован Минюстом России № 24361.
+
+Редакция: последняя действовавшая редакция; утратил силу с 06.04.2026.
+
+Сверено с официальным текстом 13 октября 2026 г.
+
+Официальный текст: https://minzdrav.gov.ru/documents/9168-prikaz-ministerstva-zdravoohraneniya-i-sotsialnogo-razvitiya-rossiyskoy-federatsii-ot-16-aprelya-2012-g-366n-ob-utverzhdenii-poryadka-okazaniya-pediatricheskoy-pomoschi

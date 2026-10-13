@@ -28,14 +28,16 @@ metadata:
   officialPublicationNumber: "0001202408260026"
   officialPublicationDate: "2024-08-26"
   officialSourceUrl: https://publication.pravo.gov.ru/document/0001202408260026
-  sourceReviewedAt: "2026-07-31"
+  sourceReviewedAt: "2026-10-13"
   editionVerified: true
   audienceLabel: Отдельные критерии для детей и взрослых
   publicPilot: true
   contentMode: source_linked_paraphrase
   notLegalAdvice: true
+  edition: "первоначальная редакция; изменений на портале не найдено"
+  sourcePdfSha256: 9ebbbf69b1356d058fbb1e575f148fa8bcc67ef22a11dd54a8701c3c4ef6c485
+  sourcePdfPages: 469
 ---
-
 # Общая информация
 
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202408260026","publicationNumber":"0001202408260026","documentNumber":"374н","sourceSection":"классификации и критерии МСЭ","contentMode":"paraphrase"} -->
@@ -66,6 +68,15 @@ metadata:
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202408260026","publicationNumber":"0001202408260026","documentNumber":"374н","sourceSection":"раздел VI, целевые реабилитационные группы","contentMode":"paraphrase"} -->
 Приказ также выделяет целевые реабилитационные группы для инвалидов и детей-инвалидов по преимущественно нарушенным функциям. Целевая реабилитационная группа не равна группе инвалидности и должна отображаться как отдельное понятие.
 
-# Ограничения
+# Источник и редакция
 
-Результат поиска должен объяснять метод оценки и вести к нужной строке таблицы, но не имитировать решение бюро МСЭ. Для ребёнка и взрослого используются разные категории и возрастные ветки. Редакция и официальный источник проверены проектом 31 июля 2026 года.
+<!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202408260026","sourceSection":"реквизиты и редакция","contentMode":"paraphrase","publicationNumber":"0001202408260026","documentNumber":"374н"} -->
+Приказ Минтруда России от 26 июля 2024 г. № 374н, зарегистрирован Минюстом России 23 августа 2024 г. № 79273.
+
+Редакция: первоначальная редакция; изменений на портале не найдено.
+
+Действует с 1 марта 2025 г.
+
+Сверено с официальным текстом 13 октября 2026 г.
+
+Официальный текст: https://publication.pravo.gov.ru/document/0001202408260026

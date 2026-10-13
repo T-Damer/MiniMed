@@ -27,14 +27,16 @@ metadata:
   officialPublicationNumber: "0001202506020016"
   officialPublicationDate: "2025-06-02"
   officialSourceUrl: https://publication.pravo.gov.ru/document/0001202506020016
-  sourceReviewedAt: "2026-08-01"
+  sourceReviewedAt: "2026-10-13"
   editionVerified: true
   audienceLabel: Для взрослых
   publicPilot: true
   contentMode: source_linked_paraphrase
   notLegalAdvice: true
+  edition: "первоначальная редакция; изменений на портале не найдено"
+  sourcePdfSha256: 148332ab1f8d7a9156a9fc844cd5c544b7e9def924df1848afb855d46fab98ca
+  sourcePdfPages: 134
 ---
-
 # Общая информация
 
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202506020016","publicationNumber":"0001202506020016","documentNumber":"202н","sourceSection":"приказ и пункт 1 положения","contentMode":"paraphrase"} -->
@@ -65,6 +67,15 @@ metadata:
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202506020016","publicationNumber":"0001202506020016","documentNumber":"202н","sourceSection":"формы организации помощи","contentMode":"paraphrase"} -->
 Для повышения доступности первичной помощи допускается использование мобильных медицинских бригад. Телемедицинские технологии применяются в пределах требований законодательства и не отменяют очный осмотр, когда он необходим для безопасной диагностики или лечения.
 
-# Ограничения карточки
+# Источник и редакция
 
-Карточка отвечает на организационные вопросы: какой документ действует, где и в каких формах может быть организована помощь взрослому. Она не определяет индивидуальный объем обследования, диагноз, лечение или срочность обращения. При признаках неотложного состояния применяются правила экстренной и неотложной помощи, а не плановая маршрутизация по приказу № 202н.
+<!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202506020016","sourceSection":"реквизиты и редакция","contentMode":"paraphrase","publicationNumber":"0001202506020016","documentNumber":"202н"} -->
+Приказ Минздрава России от 14 апреля 2025 г. № 202н, зарегистрирован Минюстом России 30 мая 2025 г. № 82461.
+
+Редакция: первоначальная редакция; изменений на портале не найдено.
+
+Действует с 1 сентября 2025 г. по 1 сентября 2031 г.
+
+Сверено с официальным текстом 13 октября 2026 г.
+
+Официальный текст: https://publication.pravo.gov.ru/document/0001202506020016

@@ -27,12 +27,13 @@ metadata:
   officialPublicationDate: "1998-09-21"
   officialSourceUrl: https://pravo.gov.ru/proxy/ips/?docbody=&nd=102055517
   officialPortalDocumentId: "102055517"
-  sourceReviewedAt: "2026-07-30"
+  sourceReviewedAt: "2026-10-13"
+  editionVerified: true
   publicPilot: true
   contentMode: source_linked_paraphrase
   notLegalAdvice: true
+  edition: "Федеральный закон в действующей редакции; последнее изменение, найденное на портале, — № 316-ФЗ от 02.07.2021"
 ---
-
 # Общая информация
 
 <!-- localmed:source {"officialUrl":"https://pravo.gov.ru/proxy/ips/?docbody=&nd=102055517","publicationNumber":"СЗ РФ 1998 № 38 ст. 4736","documentNumber":"157-ФЗ","sourceSection":"Федеральный закон в целом","contentMode":"paraphrase"} -->
@@ -63,6 +64,13 @@ metadata:
 <!-- localmed:source {"officialUrl":"https://pravo.gov.ru/proxy/ips/?docbody=&nd=102055517","publicationNumber":"СЗ РФ 1998 № 38 ст. 4736","documentNumber":"157-ФЗ","sourceSection":"статья 17","contentMode":"paraphrase"} -->
 Сведения о профилактических прививках, поствакцинальных осложнениях и отказах подлежат государственному статистическому учету и отражаются в медицинских документах. Порядок и формы учета определяются применимыми нормативными актами.
 
-# Ограничения
+# Источник и редакция
 
-Карточка не устанавливает индивидуальные показания или противопоказания и не заменяет действующую редакцию закона, приказ о календарях прививок, инструкции к препаратам и клиническую оценку пациента.
+<!-- localmed:source {"officialUrl":"https://pravo.gov.ru/proxy/ips/?docbody=&nd=102055517","sourceSection":"реквизиты и редакция","contentMode":"paraphrase","documentNumber":"157-ФЗ"} -->
+Федеральный закон от 17 сентября 1998 г. № 157-ФЗ.
+
+Редакция: Федеральный закон в действующей редакции; последнее изменение, найденное на портале, — № 316-ФЗ от 02.07.2021.
+
+Сверено с официальным текстом 13 октября 2026 г.
+
+Официальный текст: https://pravo.gov.ru/proxy/ips/?docbody=&nd=102055517

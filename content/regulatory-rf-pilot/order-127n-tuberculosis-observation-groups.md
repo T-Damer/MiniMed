@@ -26,14 +26,16 @@ metadata:
   officialPublicationNumber: "0001201906200019"
   officialPublicationDate: "2019-06-20"
   officialSourceUrl: https://publication.pravo.gov.ru/document/0001201906200019
-  sourceReviewedAt: "2026-07-31"
+  sourceReviewedAt: "2026-10-13"
   editionVerified: true
   audienceLabel: Для детей и взрослых
   publicPilot: true
   contentMode: source_linked_paraphrase
   notLegalAdvice: true
+  edition: "первоначальная редакция; изменений на портале не найдено"
+  sourcePdfSha256: bc2c58584e05cda3de335f02d9856dda630833ad3c76f44b82643c93c9331693
+  sourcePdfPages: 24
 ---
-
 # Общая информация
 
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001201906200019","publicationNumber":"0001201906200019","documentNumber":"127н","sourceSection":"приказ и приложение № 3","contentMode":"paraphrase"} -->
@@ -74,6 +76,13 @@ IV А предназначена для лиц, контактировавших
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001201906200019","publicationNumber":"0001201906200019","documentNumber":"127н","sourceSection":"приложение № 3, группы VI А и VI Б","contentMode":"paraphrase"} -->
 VI А включает детей с подозрением на туберкулёз по результатам иммунодиагностики и измененной чувствительностью к туберкулёзным аллергенам. VI Б включает детей, перенесших туберкулёз, с впервые выявленными остаточными посттуберкулёзными изменениями. При выявлении активности и начале химиотерапии ребенка переводят в группу I.
 
-# Ограничения
+# Источник и редакция
 
-Группа определяется врачом-фтизиатром по полной таблице приложения № 3 с учетом активности процесса, лечения, контакта, возраста, остаточных изменений и сопутствующих факторов. Карточка не заменяет индивидуальный план наблюдения. Редакция и официальный источник проверены проектом 31 июля 2026 года.
+<!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001201906200019","sourceSection":"реквизиты и редакция","contentMode":"paraphrase","publicationNumber":"0001201906200019","documentNumber":"127н"} -->
+Приказ Минздрава России от 13 марта 2019 г. № 127н, зарегистрирован Минюстом России 19 июня 2019 г. № 54975.
+
+Редакция: первоначальная редакция; изменений на портале не найдено.
+
+Сверено с официальным текстом 13 октября 2026 г.
+
+Официальный текст: https://publication.pravo.gov.ru/document/0001201906200019

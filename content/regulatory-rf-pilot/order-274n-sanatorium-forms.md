@@ -29,14 +29,16 @@ metadata:
   officialPublicationNumber: "0001202505300033"
   officialPublicationDate: "2025-05-30"
   officialSourceUrl: https://publication.pravo.gov.ru/document/0001202505300033
-  sourceReviewedAt: "2026-07-31"
+  sourceReviewedAt: "2026-10-13"
   editionVerified: true
   audienceLabel: Для детей и взрослых
   publicPilot: true
   contentMode: source_linked_paraphrase
   notLegalAdvice: true
+  edition: "первоначальная редакция; изменений на портале не найдено"
+  sourcePdfSha256: e385d12af60d1aa9a54f4e493addd10d21b764413c697d8eba43358f58a5dd3c
+  sourcePdfPages: 59
 ---
-
 # Общая информация
 
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202505300033","publicationNumber":"0001202505300033","documentNumber":"274н","sourceSection":"приказ и приложения с формами","contentMode":"paraphrase"} -->
@@ -62,6 +64,15 @@ metadata:
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202505300033","publicationNumber":"0001202505300033","documentNumber":"274н","sourceSection":"формы № 070/у, № 072/у и № 076/у","contentMode":"paraphrase"} -->
 Для получения путёвки используют справку № 070/у. После решения вопроса о санаторно-курортном лечении оформляют карту: № 072/у для взрослого или № 076/у для ребёнка. Возрастная принадлежность должна быть явно показана пользователю в результатах поиска.
 
-# Ограничения
+# Источник и редакция
 
-Карточка помогает выбрать номер формы и открыть нормативный источник. Она не определяет индивидуальные показания, противопоказания, объем обследований и порядок финансирования путёвки. Редакция и официальный источник проверены проектом 31 июля 2026 года.
+<!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202505300033","sourceSection":"реквизиты и редакция","contentMode":"paraphrase","publicationNumber":"0001202505300033","documentNumber":"274н"} -->
+Приказ Минздрава России от 13 мая 2025 г. № 274н, зарегистрирован Минюстом России 30 мая 2025 г. № 82433.
+
+Редакция: первоначальная редакция; изменений на портале не найдено.
+
+Действует с 1 сентября 2025 г. по 1 сентября 2031 г.
+
+Сверено с официальным текстом 13 октября 2026 г.
+
+Официальный текст: https://publication.pravo.gov.ru/document/0001202505300033

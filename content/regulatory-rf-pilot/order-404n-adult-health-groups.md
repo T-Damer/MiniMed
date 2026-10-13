@@ -5,6 +5,8 @@ short_title: Группы здоровья взрослых — 404н
 version_label: 404n-amended-620n-reviewed-2026-08-01
 source_type: regulatory_act_summary
 status: active
+effective_from: "2021-07-01"
+effective_to: "2027-07-01"
 specialties:
   - general-practice
   - internal-medicine
@@ -30,14 +32,16 @@ metadata:
   amendmentOfficialPublicationNumber: "0001202607140009"
   amendmentOfficialSourceUrl: https://publication.pravo.gov.ru/document/0001202607140009
   amendmentEffectiveFrom: "2026-07-25"
-  sourceReviewedAt: "2026-08-01"
+  sourceReviewedAt: "2026-10-13"
   editionVerified: true
   audienceLabel: Для взрослых
   publicPilot: true
   contentMode: source_linked_paraphrase
   notLegalAdvice: true
+  edition: "с изменениями приказов № 352н, № 515н, № 378н и № 620н (с 25.07.2026); действует до 01.07.2027"
+  sourcePdfSha256: 8c030881e26255c9c33afb3fd15019b8b71b9cb7f080e20db596fa71e01d7995
+  sourcePdfPages: 34
 ---
-
 # Общая информация
 
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/Document/View/0001202106300043","publicationNumber":"0001202106300043","documentNumber":"404н","sourceSection":"пункт 23 порядка","contentMode":"paraphrase"} -->
@@ -73,6 +77,15 @@ IIIб группа включает взрослых без хроническо
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/Document/View/0001202106300043","publicationNumber":"0001202106300043","documentNumber":"404н","sourceSection":"пункт 23 порядка","contentMode":"paraphrase"} -->
 Группа здоровья по диспансеризации не является группой инвалидности. Инвалидность устанавливается федеральным учреждением медико-социальной экспертизы по отдельным критериям приказа Минтруда № 374н.
 
-# Ограничения
+# Источник и редакция
 
-Нельзя автоматически присваивать группу здоровья только по одному диагнозу без данных о диспансерном наблюдении, рисках и сопутствующих состояниях. Карточка относится только к взрослым. Редакция основного порядка и изменение № 620н проверены проектом 1 августа 2026 года.
+<!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/Document/View/0001202106300043","sourceSection":"реквизиты и редакция","contentMode":"paraphrase","publicationNumber":"0001202106300043","documentNumber":"404н"} -->
+Приказ Минздрава России от 27 апреля 2021 г. № 404н, зарегистрирован Минюстом России 30 июня 2021 г. № 64042.
+
+Редакция: с изменениями приказов № 352н, № 515н, № 378н и № 620н (с 25.07.2026); действует до 01.07.2027.
+
+Действует с 1 июля 2021 г. по 1 июля 2027 г.
+
+Сверено с официальным текстом 13 октября 2026 г.
+
+Официальный текст: https://publication.pravo.gov.ru/Document/View/0001202106300043

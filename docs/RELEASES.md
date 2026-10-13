@@ -32,7 +32,10 @@
    layout or of the print CSS run `bun run forms:overlay` (renders every form and compares it with the
    official scan; the figures of the last run are committed in
    `tools/ingest/medical-form-overlay-results.json`, a violation needs a written reason).
-10. Push a release commit only from a clean working tree; the release workflow creates the tag and
+10. Run `bun run regulatory:verify` (local, network; `docs/REGULATORY_PACK.md`). `ok` for every act is the
+   clean result; `review` means an amending order, a new official file or a changed number: update the
+   card's `edition` line and re-release the regulatory module before the app release.
+11. Push a release commit only from a clean working tree; the release workflow creates the tag and
    prerelease after all gates pass.
 
 Application and downloadable-corpus versions are independent. An app-only release may reuse the current

@@ -27,14 +27,16 @@ metadata:
   officialPublicationNumber: "0001202411200017"
   officialPublicationDate: "2024-11-20"
   officialSourceUrl: https://publication.pravo.gov.ru/document/0001202411200017
-  sourceReviewedAt: "2026-08-01"
+  sourceReviewedAt: "2026-10-13"
   editionVerified: true
   audienceLabel: Для детей и подростков
   publicPilot: true
   contentMode: source_linked_paraphrase
   notLegalAdvice: true
+  edition: "первоначальная редакция; изменений на портале не найдено"
+  sourcePdfSha256: f4c17ec0eaecae23f516b0d3549db7cdb2785fbf8c9d2926ce38e4e685d061c6
+  sourcePdfPages: 51
 ---
-
 # Общая информация
 
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202411200017","publicationNumber":"0001202411200017","documentNumber":"583н","sourceSection":"приказ и общие положения","contentMode":"paraphrase"} -->
@@ -65,6 +67,15 @@ metadata:
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202411200017","publicationNumber":"0001202411200017","documentNumber":"583н","sourceSection":"региональный детский эндокринологический центр","contentMode":"paraphrase"} -->
 Региональный центр выполняет организационно-методические и консультативные функции, координирует маршрутизацию сложных пациентов и взаимодействие профильных подразделений региона. Наличие конкретного центра и порядок направления уточняют по территориальной системе здравоохранения.
 
-# Ограничения карточки
+# Источник и редакция
 
-Приказ № 583н определяет организацию помощи, но не содержит полного алгоритма диагностики и лечения каждого эндокринного заболевания. Дозы инсулина, заместительной терапии, правила ведения кетоацидоза, гипогликемии, нарушений роста и полового развития следует брать из актуальных клинических рекомендаций и индивидуального плана пациента.
+<!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202411200017","sourceSection":"реквизиты и редакция","contentMode":"paraphrase","publicationNumber":"0001202411200017","documentNumber":"583н"} -->
+Приказ Минздрава России от 29 октября 2024 г. № 583н, зарегистрирован Минюстом России 20 ноября 2024 г. № 80242.
+
+Редакция: первоначальная редакция; изменений на портале не найдено.
+
+Действует с 1 декабря 2024 г.
+
+Сверено с официальным текстом 13 октября 2026 г.
+
+Официальный текст: https://publication.pravo.gov.ru/document/0001202411200017

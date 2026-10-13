@@ -96,17 +96,13 @@ sources:
     location: regulatory-rf-pilot/order-306n-district-pediatrician-professional-standard.md
     target: order-306n-district-pediatrician-professional-standard.md
     content_type: markdown
-  - id: order-455-medical-prevention
-    location: regulatory-rf-pilot/order-455-medical-prevention.md
-    target: order-455-medical-prevention.md
-    content_type: markdown
   - id: order-206n-qualification-requirements
     location: regulatory-rf-pilot/order-206n-qualification-requirements.md
     target: order-206n-qualification-requirements.md
     content_type: markdown
-  - id: order-436n-qualification-requirements-future
-    location: regulatory-rf-pilot/order-436n-qualification-requirements-future.md
-    target: order-436n-qualification-requirements-future.md
+  - id: order-436n-qualification-requirements
+    location: regulatory-rf-pilot/order-436n-qualification-requirements.md
+    target: order-436n-qualification-requirements.md
     content_type: markdown
   - id: order-625n-temporary-disability-superseded
     location: regulatory-rf-pilot/order-625n-temporary-disability-superseded.md
@@ -124,14 +120,6 @@ sources:
     location: regulatory-rf-pilot/order-707n-qualification-requirements-superseded.md
     target: order-707n-qualification-requirements-superseded.md
     content_type: markdown
-  - id: order-154-adolescent-care-superseded
-    location: regulatory-rf-pilot/order-154-adolescent-care-superseded.md
-    target: order-154-adolescent-care-superseded.md
-    content_type: markdown
-  - id: order-5-temporary-disability-superseded
-    location: regulatory-rf-pilot/order-5-temporary-disability-superseded.md
-    target: order-5-temporary-disability-superseded.md
-    content_type: markdown
   - id: order-1346n-medical-exams-superseded
     location: regulatory-rf-pilot/order-1346n-medical-exams-superseded.md
     target: order-1346n-medical-exams-superseded.md
@@ -139,10 +127,6 @@ sources:
   - id: pediatric-orders-study-list-status
     location: regulatory-rf-pilot/pediatric-orders-study-list-status.md
     target: pediatric-orders-study-list-status.md
-    content_type: markdown
-  - id: pediatric-medical-forms-status
-    location: regulatory-rf-pilot/pediatric-medical-forms-status.md
-    target: pediatric-medical-forms-status.md
     content_type: markdown
   - id: order-302n-superseded
     location: regulatory-rf-pilot/order-302n-dispensary-observation-superseded.md

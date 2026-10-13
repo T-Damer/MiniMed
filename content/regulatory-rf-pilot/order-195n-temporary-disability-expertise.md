@@ -31,14 +31,16 @@ metadata:
   officialPublicationDate: "2025-05-14"
   officialSourceUrl: https://publication.pravo.gov.ru/document/0001202505140009
   supersedesDocumentId: regulatory.rf.minzdrav.625n-2016
-  sourceReviewedAt: "2026-08-02"
+  sourceReviewedAt: "2026-10-13"
   editionVerified: true
   audienceLabel: Для детей и взрослых
   publicPilot: true
   contentMode: source_linked_paraphrase
   notLegalAdvice: true
+  edition: "первоначальная редакция; изменений на портале не найдено"
+  sourcePdfSha256: d4352d00b2543861f9e0fbb07c9cb5ce7082eb118e74c9b3bf0c385e0124804f
+  sourcePdfPages: 4
 ---
-
 # Общая информация
 
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202505140009","publicationNumber":"0001202505140009","documentNumber":"195н","sourceSection":"приказ и Порядок проведения экспертизы временной нетрудоспособности","contentMode":"paraphrase"} -->
@@ -57,3 +59,16 @@ metadata:
 # Связанные документы
 
 Приказ № 195н регулирует медицинскую экспертизу, но техническое формирование электронного и выдачу бумажного листка нетрудоспособности определяет приказ № 1089н. Условия и размер страхового пособия при уходе за ребёнком регулирует Федеральный закон № 255-ФЗ.
+
+# Источник и редакция
+
+<!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202505140009","sourceSection":"реквизиты и редакция","contentMode":"paraphrase","publicationNumber":"0001202505140009","documentNumber":"195н"} -->
+Приказ Минздрава России от 11 апреля 2025 г. № 195н, зарегистрирован Минюстом России 13 мая 2025 г. № 82144.
+
+Редакция: первоначальная редакция; изменений на портале не найдено.
+
+Действует с 1 сентября 2025 г. по 1 сентября 2031 г.
+
+Сверено с официальным текстом 13 октября 2026 г.
+
+Официальный текст: https://publication.pravo.gov.ru/document/0001202505140009

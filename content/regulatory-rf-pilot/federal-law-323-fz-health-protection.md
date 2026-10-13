@@ -25,12 +25,15 @@ metadata:
   officialPublicationNumber: "0001201111220007"
   officialPublicationDate: "2011-11-22"
   officialSourceUrl: https://publication.pravo.gov.ru/Document/View/0001201111220007
-  sourceReviewedAt: "2026-07-30"
+  sourceReviewedAt: "2026-10-13"
+  editionVerified: true
   publicPilot: true
   contentMode: source_linked_paraphrase
   notLegalAdvice: true
+  edition: "Федеральный закон в действующей редакции; последнее изменение, найденное на портале, — № 114-ФЗ от 25.04.2026"
+  sourcePdfSha256: aa54cb7c53980e765efbe0d4196e82d9f758d5596a3394b9283f4e9e250eaabc
+  sourcePdfPages: 213
 ---
-
 # Общая информация
 
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/Document/View/0001201111220007","publicationNumber":"0001201111220007","documentNumber":"323-ФЗ","sourceSection":"Федеральный закон в целом","contentMode":"paraphrase"} -->
@@ -56,6 +59,13 @@ metadata:
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/Document/View/0001201111220007","publicationNumber":"0001201111220007","documentNumber":"323-ФЗ","sourceSection":"статья 51","contentMode":"paraphrase"} -->
 Один из родителей, другой член семьи или иной законный представитель вправе находиться вместе с ребенком в медицинской организации при оказании помощи в стационарных условиях в течение всего периода лечения. Плата за создание условий пребывания, включая спальное место и питание, не взимается при совместном пребывании с ребенком до четырех лет, а с ребенком старше — при наличии медицинских показаний.
 
-# Ограничения
+# Источник и редакция
 
-Карточка предназначена для поиска и перехода к нормативному источнику. Она не заменяет проверку действующей редакции закона, специальных норм для конкретного возраста и вмешательства, локальных документов медицинской организации и юридическую консультацию.
+<!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/Document/View/0001201111220007","sourceSection":"реквизиты и редакция","contentMode":"paraphrase","publicationNumber":"0001201111220007","documentNumber":"323-ФЗ"} -->
+Федеральный закон от 21 ноября 2011 г. № 323-ФЗ.
+
+Редакция: Федеральный закон в действующей редакции; последнее изменение, найденное на портале, — № 114-ФЗ от 25.04.2026.
+
+Сверено с официальным текстом 13 октября 2026 г.
+
+Официальный текст: https://publication.pravo.gov.ru/Document/View/0001201111220007

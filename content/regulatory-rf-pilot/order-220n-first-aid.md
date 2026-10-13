@@ -27,14 +27,16 @@ metadata:
   officialPublicationNumber: "0001202405310015"
   officialPublicationDate: "2024-05-31"
   officialSourceUrl: https://publication.pravo.gov.ru/document/0001202405310015
-  sourceReviewedAt: "2026-07-31"
+  sourceReviewedAt: "2026-10-13"
   editionVerified: true
   audienceLabel: Для детей и взрослых
   publicPilot: true
   contentMode: source_linked_paraphrase
   notLegalAdvice: true
+  edition: "первоначальная редакция; изменений на портале не найдено"
+  sourcePdfSha256: 11012b0f0000e222dba0685633404c4aba91d33cd1bb5b081b955a0c91d1c731
+  sourcePdfPages: 6
 ---
-
 # Общая информация
 
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202405310015","publicationNumber":"0001202405310015","documentNumber":"220н","sourceSection":"приказ и приложение № 1","contentMode":"paraphrase"} -->
@@ -55,6 +57,15 @@ metadata:
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202405310015","publicationNumber":"0001202405310015","documentNumber":"220н","sourceSection":"приложение № 2","contentMode":"paraphrase"} -->
 Вызов скорой медицинской помощи или иных специальных служб входит в последовательность первой помощи. Мероприятия первой помощи не должны задерживать передачу пострадавшего медицинским работникам и выполняются в пределах подготовки и безопасности оказывающего помощь.
 
-# Ограничения
+# Источник и редакция
 
-Карточка предназначена для поиска нормативного порядка и его основных блоков. Она не заменяет практическое обучение первой помощи, не определяет дозировки лекарственных препаратов и не подменяет клинические алгоритмы медицинской помощи. Редакция и официальный источник проверены проектом 31 июля 2026 года.
+<!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202405310015","sourceSection":"реквизиты и редакция","contentMode":"paraphrase","publicationNumber":"0001202405310015","documentNumber":"220н"} -->
+Приказ Минздрава России от 3 мая 2024 г. № 220н, зарегистрирован Минюстом России 31 мая 2024 г. № 78363.
+
+Редакция: первоначальная редакция; изменений на портале не найдено.
+
+Действует с 1 сентября 2024 г.
+
+Сверено с официальным текстом 13 октября 2026 г.
+
+Официальный текст: https://publication.pravo.gov.ru/document/0001202405310015

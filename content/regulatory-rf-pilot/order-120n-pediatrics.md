@@ -25,14 +25,16 @@ metadata:
   officialPublicationNumber: "0001202603260014"
   officialPublicationDate: "2026-03-26"
   officialSourceUrl: https://publication.pravo.gov.ru/document/0001202603260014
-  sourceReviewedAt: "2026-07-31"
+  sourceReviewedAt: "2026-10-13"
   editionVerified: true
   audienceLabel: Для детей
   publicPilot: true
   contentMode: source_linked_paraphrase
   notLegalAdvice: true
+  edition: "первоначальная редакция; изменений на портале не найдено"
+  sourcePdfSha256: fa4d983a69ba28ac29b437c7ee018d76464d9944dc21193099657f6ab353fe8e
+  sourcePdfPages: 120
 ---
-
 # Общая информация
 
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202603260014","publicationNumber":"0001202603260014","documentNumber":"120н","sourceSection":"приказ и приложение","contentMode":"paraphrase"} -->
@@ -53,6 +55,13 @@ metadata:
 <!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202603260014","publicationNumber":"0001202603260014","documentNumber":"120н","sourceSection":"приложения к порядку","contentMode":"paraphrase"} -->
 Приложения к порядку содержат положения об организации деятельности отдельных подразделений, рекомендуемые штатные нормативы и стандарты оснащения. Для ответа о конкретной должности, кабинете или единице оборудования необходимо открывать соответствующее приложение полного текста приказа.
 
-# Ограничения
+# Источник и редакция
 
-Карточка индексирует назначение и структуру крупного педиатрического порядка. Она не заменяет полный текст приложений, клинические рекомендации и региональные схемы маршрутизации. Редакция и официальный источник проверены проектом 31 июля 2026 года.
+<!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202603260014","sourceSection":"реквизиты и редакция","contentMode":"paraphrase","publicationNumber":"0001202603260014","documentNumber":"120н"} -->
+Приказ Минздрава России от 20 февраля 2026 г. № 120н, зарегистрирован Минюстом России 25 марта 2026 г. № 85708.
+
+Редакция: первоначальная редакция; изменений на портале не найдено.
+
+Сверено с официальным текстом 13 октября 2026 г.
+
+Официальный текст: https://publication.pravo.gov.ru/document/0001202603260014
