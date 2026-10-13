@@ -10,9 +10,19 @@
  *     --decoded-dir data/build/drug-kd1/decoded --out-dir output/module-zstd-drug-kd1-2026-10-10
  *
  * clinical: `clinical-<id>-<old tag>.db.zst` becomes `clinical-<id>-<tag>.db.zst` under `--tag`.
- * medications (ГРЛС instructions, Allmed): the file name stays and the tag becomes
- * `<source tag>-<marker>` (an earlier embedding marker is replaced), so every source release keeps
- * its own mirror branch (`--family esklp` layout when publishing).
+ * medications (ГРЛС instructions, Allmed) and esklp (the 15 ЕСКЛП groups): the file name stays and
+ * the tag becomes `<source tag>-<marker>` (an earlier embedding marker is replaced), so every source
+ * release keeps its own mirror branch (`--family esklp` layout when publishing).
+ *
+ * The ATC fill (ATC2, `tools/ingest/scripts/build_atc_fill.py`) changes only `documents.metadata_json`
+ * of the ЕСКЛП cards, so it is framed the same way:
+ *
+ *   bun scripts/reframe-modules.ts --marker atc2 --family esklp [--module-id ID ...] \
+ *     --decoded-dir data/build/atc-fill/out/patched --out-dir output/module-zstd-esklp-atc2-2026-10-13 \
+ *     --published-at 2026-10-13T20:00:00Z
+ *
+ * `--published-at` moves the catalog's `publishedAt` forward (a remote catalog replaces the bundled
+ * one only when it is newer).
  *
  * Only `embedding_profiles`/`chunk_embeddings` differ from the published modules, so the source
  * set, document table and artifact ids stay; the module version's embedding suffix becomes
@@ -33,7 +43,10 @@ const CATALOG_PATH = 'apps/app/src/features/modules/catalog.preview.json';
 const FAMILY_IDS = {
   clinical: ['minimed.clinical.recommendation.'],
   medications: ['minimed.medications.instructions.', 'minimed.medications.ru'],
+  esklp: ['minimed.medications.'],
 } as const;
+/** The 15 ЕСКЛП group modules: `minimed.medications.<group>.ru`, not the instructions or Allmed. */
+const ESKLP_MODULE_ID = /^minimed\.medications\.(?!instructions\.)[a-z-]+\.ru$/u;
 const RELEASE_BASE = 'https://github.com/T-Damer/MiniMed/releases/download';
 /** Same exclusion as `embed_modules.py`: published after E3 and never embedded. */
 const EXCLUDED_IDS = new Set(['minimed.medications.instructions.manufacturer-site.ru']);
@@ -47,6 +60,8 @@ const { values } = parseArgs({
     marker: { type: 'string' },
     'write-catalog': { type: 'boolean', default: false },
     'catalog-out': { type: 'string' },
+    'published-at': { type: 'string' },
+    'module-id': { type: 'string', multiple: true },
   },
 });
 const family = values.family as keyof typeof FAMILY_IDS | undefined;
@@ -66,7 +81,7 @@ if (
   (family === 'clinical' && (!tag || !/^clinical-[a-z0-9.-]+$/u.test(tag)))
 ) {
   throw new Error(
-    'Usage: bun scripts/reframe-modules.ts --marker NAME --family clinical|medications --decoded-dir DIR --out-dir DIR [--tag clinical-…] [--write-catalog]',
+    'Usage: bun scripts/reframe-modules.ts --marker NAME --family clinical|medications|esklp --decoded-dir DIR --out-dir DIR [--tag clinical-…] [--write-catalog]',
   );
 }
 
@@ -109,6 +124,8 @@ for (const module of raw.modules) {
   const ids: readonly string[] = FAMILY_IDS[family];
   if (!ids.some((prefix) => module.id === prefix || module.id.startsWith(prefix))) continue;
   if (EXCLUDED_IDS.has(module.id)) continue;
+  if (family === 'esklp' && !ESKLP_MODULE_ID.test(module.id)) continue;
+  if (values['module-id']?.length && !values['module-id'].includes(module.id)) continue;
   const artifact = module.artifacts.find((entry) => entry['kind'] === 'index');
   const url = artifact?.['url'];
   if (!artifact || typeof url !== 'string' || artifact['compression'] !== 'zstd') continue;
@@ -174,6 +191,7 @@ for (const module of raw.modules) {
 }
 
 if (files.length === 0) throw new Error(`No ${family} module was reframed.`);
+if (values['published-at']) (raw as { publishedAt?: string }).publishedAt = values['published-at'];
 ContentModuleCatalogSchema.parse(raw);
 const candidate = serializeContentModuleCatalog(raw);
 if (values['catalog-out']) writeFileSync(values['catalog-out'], candidate);

@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import {
   ATC_ANATOMICAL_GROUPS,
   atcCatalogCitation,
+  atcFillSourceLabel,
   atcGroupChain,
   atcLadder,
   atcPrefixes,
@@ -190,5 +191,14 @@ describe('level-1 headings', () => {
       if (title && prefix) found.set(prefix, title);
     }
     expect(Object.fromEntries(found)).toEqual(ATC_ANATOMICAL_GROUPS);
+  });
+});
+
+describe('atcFillSourceLabel', () => {
+  it('names each build rule and passes an unknown one through', () => {
+    expect(atcFillSourceLabel('instruction-text')).toBe('код в тексте инструкции');
+    expect(atcFillSourceLabel('registry-nsi')).toBe('справочник НСИ «АТХ»');
+    expect(atcFillSourceLabel('same-inn')).toBe('тот же МНН и форма в ЕСКЛП');
+    expect(atcFillSourceLabel('new-rule')).toBe('new-rule');
   });
 });

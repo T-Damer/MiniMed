@@ -3,6 +3,7 @@ import { createResource, For, type JSX, Show } from 'solid-js';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import {
   atcCatalogCitation,
+  atcFillSourceLabel,
   atcLadder,
   atcNameSourceLabel,
   normalizeAtcCode,
@@ -112,8 +113,33 @@ export function AtcCodeSheet(props: {
                 </p>
               )}
             </Show>
+            <Show when={code().fillSources.length > 0}>
+              <p class="atc-sheet__note">
+                <span class="atc-sheet__note-label">Код дополнен:</span>{' '}
+                {code().fillSources.map(atcFillSourceLabel).join(', ')}. В ЕСКЛП:{' '}
+                {code().registryValue && code().registryValue !== '~'
+                  ? `«${code().registryValue ?? ''}»`
+                  : 'код не указан'}
+                .
+              </p>
+            </Show>
+            <Show when={code().alternatives.length > 0}>
+              <p class="atc-sheet__note">
+                <span class="atc-sheet__note-label">Источники расходятся:</span>{' '}
+                {code()
+                  .alternatives.map(
+                    (item) => `${item.code} (${item.sources.map(atcFillSourceLabel).join(', ')})`,
+                  )
+                  .join('; ')}
+                .
+              </p>
+            </Show>
             <p class="atc-sheet__footer">
-              {code().edition ? `Код АТХ по ЕСКЛП от ${code().edition}. ` : 'Код АТХ по ЕСКЛП. '}
+              {code().fillSources.length > 0
+                ? 'Код АТХ дополнен по данным MiniMed. '
+                : code().edition
+                  ? `Код АТХ по ЕСКЛП от ${code().edition}. `
+                  : 'Код АТХ по ЕСКЛП. '}
               <Show when={catalog()}>
                 {(names) => (
                   <>

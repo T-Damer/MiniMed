@@ -51,6 +51,10 @@ ignore = ["RUF001"]
 # Russian definition text quoted in docstrings and comments uses typographic dashes.
 "src/localmed_ingest/kr_*.py" = ["RUF002", "RUF003"]
 "src/localmed_ingest/kim_*.py" = ["RUF002", "RUF003"]
+# ATC code rules quote Russian instruction wording and Cyrillic look-alike letters.
+"src/localmed_ingest/atc_fill.py" = ["RUF002", "RUF003"]
+"scripts/build_atc_fill.py" = ["RUF001", "RUF002", "RUF003"]
+"tests/test_atc_fill.py" = ["RUF001", "RUF002", "RUF003"]
 "src/localmed_ingest/sense_*.py" = ["RUF002", "RUF003"]
 "src/localmed_ingest/definition_senses.py" = ["RUF002", "RUF003"]
 "src/localmed_ingest/definition_candidate.py" = ["RUF002", "RUF003"]

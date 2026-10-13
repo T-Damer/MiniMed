@@ -139,6 +139,41 @@ export interface DrugAtcCode {
   readonly substanceName: string | null;
   /** The ЕСКЛП edition the code comes from, e.g. `28.08.2026`. */
   readonly edition: string | null;
+  /**
+   * What MiniMed completed the code from (`instruction-text`, `same-inn`, `registry-nsi`, …); empty
+   * when the code is the registry's own. See `tools/ingest/src/localmed_ingest/atc_fill.py`.
+   */
+  readonly fillSources: readonly string[];
+  /** What ЕСКЛП published for the node (`~` or a group code) when the code was completed. */
+  readonly registryValue: string | null;
+  /** Other codes other sources give for the node: the sources disagree and nothing was changed. */
+  readonly alternatives: readonly DrugAtcAlternative[];
+}
+
+export interface DrugAtcAlternative {
+  readonly code: string;
+  readonly sources: readonly string[];
+}
+
+function textList(value: unknown): readonly string[] {
+  return Array.isArray(value)
+    ? (value as readonly unknown[]).flatMap((item) => {
+        const text = textValue(item);
+        return text ? [text] : [];
+      })
+    : [];
+}
+
+function atcAlternatives(
+  node: Readonly<Record<string, unknown>>,
+  code: string,
+): readonly DrugAtcAlternative[] {
+  return recordList(node['atcCandidates']).flatMap((candidate) => {
+    const normalized = normalizeAtcCode(textValue(candidate['code']) ?? '');
+    return normalized && normalized.code !== code
+      ? [{ code: normalized.code, sources: textList(candidate['sources']) }]
+      : [];
+  });
 }
 
 /** `2026-08-28` → `28.08.2026`; anything else is shown as the source gave it. */
@@ -166,9 +201,15 @@ export function drugAtcCodes(
       : [];
   const nodes = own.length > 0 ? own : allNodes;
   const codes = new Map<string, DrugAtcCode>();
-  const add = (rawCode: string, groupText: string | null, substance: string | null): void => {
+  const add = (
+    rawCode: string,
+    groupText: string | null,
+    substance: string | null,
+    node?: Readonly<Record<string, unknown>>,
+  ): void => {
     const normalized = normalizeAtcCode(rawCode);
     if (!normalized || codes.has(normalized.code)) return;
+    const fillSources = node ? textList(node['atcSources']) : [];
     codes.set(normalized.code, {
       code: normalized.code,
       level: normalized.level,
@@ -176,12 +217,20 @@ export function drugAtcCodes(
       groupText,
       substanceName: substance ? displayDrugName(substance) : null,
       edition,
+      fillSources,
+      registryValue: node && fillSources.length > 0 ? textValue(node['atcOriginal']) : null,
+      alternatives: node ? atcAlternatives(node, normalized.code) : [],
     });
   };
   for (const node of nodes) {
     const raw = textValue(node['atcCode']);
     if (raw)
-      add(raw, textValue(node['pharmacotherapeuticGroup']), textValue(node['standardizedInn']));
+      add(
+        raw,
+        textValue(node['pharmacotherapeuticGroup']),
+        textValue(node['standardizedInn']),
+        node,
+      );
   }
   if (codes.size === 0 && allNodes.length === 0) {
     const substance = textValue(sourceField(source, 'standardizedInn'));

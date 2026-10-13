@@ -207,3 +207,25 @@ export function atcNameSourceLabel(source: AtcNameSource): string {
       return 'вещество по ЕСКЛП';
   }
 }
+
+/** How a code that ЕСКЛП lacks was completed (`atcSources` of the node); the key is the build rule. */
+export function atcFillSourceLabel(source: string): string {
+  switch (source) {
+    case 'esklp':
+      return 'ЕСКЛП';
+    case 'instruction-text':
+      return 'код в тексте инструкции';
+    case 'instruction-text-ocr':
+      return 'код в тексте инструкции (распознан OCR)';
+    case 'same-inn':
+      return 'тот же МНН и форма в ЕСКЛП';
+    case 'same-inn-other-form':
+      return 'тот же МНН в ЕСКЛП';
+    case 'same-inn-instruction':
+      return 'инструкции на тот же МНН';
+    case 'registry-nsi':
+      return 'справочник НСИ «АТХ»';
+    default:
+      return source;
+  }
+}

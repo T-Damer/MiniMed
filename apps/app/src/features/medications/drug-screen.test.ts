@@ -126,6 +126,52 @@ describe('drugAtcCodes', () => {
         groupText: 'ноотропное средство',
         substanceName: 'Фонтурацетам',
         edition: '28.08.2026',
+        fillSources: [],
+        registryValue: null,
+        alternatives: [],
+      },
+    ]);
+  });
+
+  it('reports how a code was completed and which other codes the sources give', () => {
+    const card = substanceCard();
+    const completed: MedicalDocument = {
+      ...card,
+      metadata: {
+        ...card.metadata,
+        smnnNodes: [
+          {
+            smnnCode: 'filled',
+            atcCode: 'N06BX03',
+            atcOriginal: '~',
+            atcSource: 'instruction-text',
+            atcSources: ['instruction-text', 'registry-nsi'],
+          },
+          {
+            smnnCode: 'flagged',
+            atcCode: 'C02AB01',
+            atcFlag: 'conflict',
+            atcCandidates: [
+              { code: 'C02AB01', sources: ['esklp'] },
+              { code: 'С02АВ02', sources: ['instruction-text'] },
+              { code: 'bad', sources: [] },
+            ],
+          },
+        ],
+      },
+    };
+    expect(drugAtcCodes(completed, undefined)).toMatchObject([
+      {
+        code: 'C02AB01',
+        fillSources: [],
+        registryValue: null,
+        alternatives: [{ code: 'C02AB02', sources: ['instruction-text'] }],
+      },
+      {
+        code: 'N06BX03',
+        fillSources: ['instruction-text', 'registry-nsi'],
+        registryValue: '~',
+        alternatives: [],
       },
     ]);
   });
