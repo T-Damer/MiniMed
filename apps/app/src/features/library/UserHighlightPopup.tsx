@@ -12,6 +12,8 @@ export function UserHighlightPopup(props: {
   readonly placement?: HighlightPopupPlacement | undefined;
   readonly onAdd?: ((color: UserHighlightColor) => Promise<void>) | undefined;
   readonly onRemove?: (() => Promise<void>) | undefined;
+  /** «Найти в словаре» for the selected word or phrase; the caller opens the dictionary sheet. */
+  readonly onLookup?: (() => void) | undefined;
   readonly onClose: () => void;
 }): JSX.Element {
   let root!: HTMLFieldSetElement;
@@ -52,7 +54,8 @@ export function UserHighlightPopup(props: {
             ? undefined
             : {
                 left: `clamp(8rem, ${props.x}px, calc(100vw - 8rem))`,
-                top: `clamp(4rem, ${props.y}px, calc(100dvh - 0.5rem))`,
+                // Two rows (colours, then the lookup) need more room above the selection.
+                top: `clamp(${props.onLookup && (props.onAdd || props.onRemove) ? '7.25rem' : '4rem'}, ${props.y}px, calc(100dvh - 0.5rem))`,
               }
         }
         onPointerDown={(event) => event.preventDefault()}
@@ -74,6 +77,19 @@ export function UserHighlightPopup(props: {
                 </button>
               )}
             </For>
+          )}
+        </Show>
+        <Show when={props.onLookup}>
+          {(lookup) => (
+            <button
+              type="button"
+              class="user-highlight-popup__action user-highlight-popup__action--lookup"
+              data-testid="selection-lookup"
+              onClick={() => lookup()()}
+            >
+              <AppGlyph name="book-open" class="user-highlight-popup__icon" />
+              Найти в словаре
+            </button>
           )}
         </Show>
         <Show when={props.onRemove}>

@@ -164,6 +164,21 @@ export function removeSearchHistoryEntry(id: string): readonly SearchHistoryEntr
   return next;
 }
 
+/** A search of some text across every source, asked from outside the search page (a reader). */
+export const SEARCH_EVERYWHERE_EVENT = 'localmed:search-everywhere';
+
+export interface SearchEverywhereDetail {
+  readonly query: string;
+}
+
+/** Opens the search page on «Все источники» and searches `query` there. */
+export function requestSearchEverywhere(query: string): void {
+  window.location.hash = '#/search';
+  window.dispatchEvent(
+    new CustomEvent<SearchEverywhereDetail>(SEARCH_EVERYWHERE_EVENT, { detail: { query } }),
+  );
+}
+
 export function replaySearch(entry: SearchHistoryEntry): void {
   window.dispatchEvent(
     new CustomEvent<SearchReplayDetail>(SEARCH_REPLAY_EVENT, { detail: { entry } }),

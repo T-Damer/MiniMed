@@ -8,6 +8,8 @@ import {
   highlightQuoteMatches,
 } from '@/features/library/highlight-popup-placement';
 import { UserHighlightPopup } from '@/features/library/UserHighlightPopup';
+import { openReaderDictionary } from '@/features/reader-dictionary/reader-dictionary-state';
+import { cleanSelection } from '@/features/reader-dictionary/selection-term';
 import {
   addUserHighlight,
   loadUserHighlights,
@@ -97,6 +99,8 @@ interface SelectionSnapshot {
   /** One target per text container the selection touches, each clipped to the selection. */
   readonly targets: readonly SelectionTarget[];
   readonly rect: DOMRect;
+  /** The selected text as the browser reports it, for the dictionary lookup. */
+  readonly text: string;
 }
 
 /**
@@ -129,7 +133,7 @@ function selectionSnapshot(
     });
   }
   if (targets.length === 0) return null;
-  return { targets, rect: range.getBoundingClientRect() };
+  return { targets, rect: range.getBoundingClientRect(), text: selection.toString() };
 }
 
 function isTouchPrimary(): boolean {
@@ -159,6 +163,8 @@ interface PopupState {
   readonly placement: HighlightPopupPlacement;
   readonly add: readonly SelectionTarget[] | null;
   readonly remove: readonly UserDocumentHighlight[];
+  /** Selected text to look up in the dictionary; `null` when a stored mark was tapped. */
+  readonly lookup: string | null;
 }
 
 function popupPoint(
@@ -244,6 +250,7 @@ export function UserDocumentHighlights(props: {
         ...popupPoint(snapshot.rect),
         add: intersecting.length > 0 ? null : snapshot.targets,
         remove: intersecting,
+        lookup: cleanSelection(snapshot.text) ?? null,
       });
     };
     let popupFrame: number | undefined;
@@ -275,6 +282,7 @@ export function UserDocumentHighlights(props: {
           ...popupPoint({ left: event.clientX, width: 0, top: rect.top, bottom: rect.bottom }),
           add: null,
           remove: [item],
+          lookup: cleanSelection(item.quote) ?? null,
         });
         return;
       }
@@ -346,6 +354,16 @@ export function UserDocumentHighlights(props: {
           y={popupValue().y}
           placement={popupValue().placement}
           onClose={() => setPopup(null)}
+          onLookup={
+            popupValue().lookup
+              ? () => {
+                  const text = popupValue().lookup;
+                  if (text) openReaderDictionary(text);
+                  document.getSelection()?.removeAllRanges();
+                  setPopup(null);
+                }
+              : undefined
+          }
           onAdd={
             popupValue().add
               ? async (color) => {

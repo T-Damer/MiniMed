@@ -21,6 +21,8 @@ import {
   type UserDocumentOutlineItem,
   waitForStablePosition,
 } from '@/features/library/user-document-reader-helpers';
+import { openReaderDictionary } from '@/features/reader-dictionary/reader-dictionary-state';
+import { cleanSelection } from '@/features/reader-dictionary/selection-term';
 import { subscribeTheme } from '@/state/theme';
 import { getUserLibraryFile, userLibraryFileCapability } from '@/state/user-library';
 import {
@@ -48,6 +50,8 @@ interface EpubHighlightPopup {
   /** Where its text is now; the popup follows it when the book scrolls by itself. */
   readonly anchor: () => PopupPoint | null;
   readonly remove: boolean;
+  /** The selected word or phrase for «Найти в словаре»; absent on a stored mark. */
+  readonly lookup?: string;
   readonly action: (color?: UserHighlightColor) => Promise<void>;
 }
 
@@ -265,10 +269,12 @@ export function RichDocumentRenderer(props: {
               const quote = selection.toString().slice(0, 400);
               if (!quote.trim()) return;
               const point = popupPoint(contents, selection.getRangeAt(0).getBoundingClientRect());
+              const lookup = cleanSelection(quote);
               setEpubHighlightPopup({
                 ...point,
                 anchor: rangeAnchor(cfiRange),
                 remove: false,
+                ...(lookup ? { lookup } : {}),
                 action: async (color) => {
                   const highlight = await addUserHighlight({
                     documentId: props.documentId,
@@ -465,6 +471,15 @@ export function RichDocumentRenderer(props: {
             x={popup().x}
             y={popup().y}
             onAdd={popup().remove ? undefined : (color) => popup().action(color)}
+            onLookup={
+              popup().lookup
+                ? () => {
+                    const text = popup().lookup;
+                    if (text) openReaderDictionary(text);
+                    setEpubHighlightPopup(null);
+                  }
+                : undefined
+            }
             onRemove={popup().remove ? () => popup().action() : undefined}
             onClose={() => setEpubHighlightPopup(null)}
           />

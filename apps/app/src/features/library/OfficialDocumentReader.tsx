@@ -128,6 +128,7 @@ import type {
 } from '@/features/modules/clinical-editions';
 import { formatFullTextDownloadLabel } from '@/features/modules/module-display';
 import type { ModulePointerResolution } from '@/features/modules/module-pointer-install';
+import { ReaderSelectionLookup } from '@/features/reader-dictionary/ReaderSelectionLookup';
 import { noteRecommendationOpened } from '@/features/reference/doctor-profile-feeds';
 import { searchResultDocumentKind } from '@/features/search/ScopedMedicalCore';
 import { SickLeavePanel } from '@/features/sick-leave/SickLeavePanel';
@@ -1270,6 +1271,14 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
           <Show when={props.document}>
             {(documentValue) => (
               <>
+                <Show when={!isClinicalRecommendationSource(documentValue().sourceType)}>
+                  <ReaderSelectionLookup
+                    surface={() =>
+                      globalThis.document.querySelector<HTMLElement>('.document-overlay-paper') ??
+                      undefined
+                    }
+                  />
+                </Show>
                 <Show when={isClinicalRecommendationSource(documentValue().sourceType)}>
                   <UserDocumentHighlights
                     documentId={documentValue().id}

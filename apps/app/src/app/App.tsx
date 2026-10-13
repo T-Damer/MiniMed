@@ -36,6 +36,7 @@ import {
   handOffToOnboarding,
   onboardingRestartRequests,
 } from '@/features/onboarding/onboarding-state';
+import { ReaderDictionaryHost } from '@/features/reader-dictionary/ReaderDictionaryHost';
 import { searchCoreStatus } from '@/features/search/search-core-status';
 import { requestSettingsPage } from '@/features/settings/settings-routing';
 import { holdCoreStart, isSetupDismissed, releaseCoreStart } from '@/features/setup/setup-state';
@@ -538,6 +539,11 @@ export function App(): JSX.Element {
           </section>
         </Show>
       </main>
+
+      <ReaderDictionaryHost
+        core={session.searchCore() ?? session.ready()?.core}
+        onContentChanged={session.connectInstalledModules}
+      />
 
       <Show
         when={

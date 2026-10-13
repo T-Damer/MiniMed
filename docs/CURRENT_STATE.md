@@ -20,6 +20,59 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Reader dictionary on selection — 2026-10-13 (STATE DICT1)
+
+Owner question: «select a word to see its definition, origin and links, plus links to terms from a
+medical list — does that already work "Auto"?» Answer, measured in the code before this change:
+
+- **Automatic inline links exist only for documents, not for dictionary terms.** The reader's text
+  (`components/DocumentText.tsx`, matcher `features/library/document-medication-links.ts`) links a
+  phrase to a catalog document when the phrase is that document's short title, the part of its title
+  before «—» (КР prefix and trailing parentheses removed), or an editorial `navigationAliases` entry
+  (min. 3 letters, drug names ≥ 4; only linkable source types: drug registry, КР, regulatory,
+  reference, МКБ, pointers). Matching is case/ё-insensitive on whole words, longest phrase first, so
+  multi-word titles link; inflected forms («пневмонии») do **not** link. It is an allow-list of
+  catalog titles, not a stop-list; the reader does not link a document's own family. The preview
+  shows the document's `canonicalDefinition` (when its metadata has one) with a source link, or the
+  drug card summary (substance, trade names, group, ATC, one quoted effect line) with «Открыть»;
+  several documents behind one phrase offer a chooser. Nothing links to the definitions dictionary
+  (38 572 entries) and no preview shows etymology, a «Файлы на тему» list or any drill-down.
+- **Selecting text offered only highlighting** (five colours, «Убрать выделение») in КР and user
+  documents and EPUB; official non-КР documents and the PDF text layer had no selection menu.
+- **Etymology data**: the dictionary reader serves `annotations` of kind `etymology` (verbatim
+  source statements); how many entries of the 2026.10.08 edition carry one was not measured, and the
+  sourced origin dictionary is still R5 of `DEFINITION_REFERENCE_PLAN.md`. The orphaned `DefinitionReferenceAnnotations` component
+  is not mounted anywhere.
+
+Added: **«Найти в словаре»** in every reader's selection menu (КР/user text via the highlight popup,
+EPUB, official non-КР documents and the PDF text layer through `ReaderSelectionLookup`; one action,
+icon + label, hidden for a selection that is not a word or a phrase of ≤ 6 words / 80 characters).
+It opens a sheet (`features/reader-dictionary/`, mounted once in `App.tsx`, code lazy):
+
+- `selection-term.ts`: the selection is cleaned (whitespace, line-end hyphenation, edge punctuation)
+  and asked as ≤ 8 ordinary `core.search` lookups — as selected, then its nominative candidates
+  (`nominativeForms`: case-ending rules, ё folded; the whole phrase in nominative; shorter parts of a
+  phrase, so «лечение пневмонии» reaches «пневмония»). The first answer that names a dictionary entry
+  **with a definition** wins; a bare name or document title found earlier stands only if nothing
+  better turns up. Matching, name variants and the spelling correction (`correctWord`, TYPO1) stay
+  in the core, so «оменция» finds «Аменция» there; the sheet shows «Показано по: …» when the core
+  corrected the query.
+- With a definition: the same card search shows (`CoreIdentityMatches`: definition in the source's own
+  words, source link, other senses, «Подробнее») plus a «Происхождение» block only when the
+  installed edition holds an etymology annotation for the entry (none is invented).
+- Without one: «В словаре нет определения», the documents found for the selection (up to five, each
+  opens at its anchor) and **«Искать везде»**, which opens search on «Все источники» with the text
+  (`requestSearchEverywhere`, a `SearchHome` listener).
+- Tests: `selection-term.test.ts` (17: inflected forms, multi-word, phrase part, no match, bare name vs
+  headword, correction, failure), `e2e/reader-dictionary.spec.ts` (КР reader at 375 px: no entry +
+  «Искать везде»; inflected «бронхитом» → «Бронхит» card, light and dark; misspelt «оменция» →
+  «Аменция»; a long selection offers no lookup; the PDF text layer), run on `E2E_PORT=4193`.
+- **Not done / not tested**: the Android WebView selection menu (the system menu and the popup were
+  checked only in Chromium with touch emulation of the existing popup placement); the lookup of text
+  selected in spreadsheets and in the notes editor; automatic term links from the dictionary and
+  «Файлы на тему» (B1 idea queue) remain open; nominative candidates are heuristic endings, not a
+  morphological dictionary, so irregular forms fall back to the core's own matching.
+
 ## Misspelt words in search — 2026-10-13 (STATE TYPO1)
 
 Owner report: «Помоач» (for «Помрач») and «Оменция» (for «Аменция») found nothing, although most

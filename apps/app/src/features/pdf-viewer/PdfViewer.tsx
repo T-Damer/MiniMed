@@ -5,6 +5,7 @@ import { PdfPage } from '@/features/pdf-viewer/PdfPage';
 import { PdfThumbnails } from '@/features/pdf-viewer/PdfThumbnails';
 import type { PdfViewerModel } from '@/features/pdf-viewer/pdf-viewer-model';
 import { formatPdfZoom } from '@/features/pdf-viewer/pdf-zoom';
+import { ReaderSelectionLookup } from '@/features/reader-dictionary/ReaderSelectionLookup';
 import '@/styles/pdf-viewer.css';
 
 export interface PdfViewerProps {
@@ -138,15 +139,18 @@ export function PdfViewer(props: PdfViewerProps): JSX.Element {
     Array.from({ length: model.pageCount() }, (_, index) => index);
   let pagesRoot: HTMLDivElement | undefined;
   let columns: HTMLDivElement | undefined;
+  const [root, setRoot] = createSignal<HTMLDivElement>();
   onMount(() => model.setRoot(pagesRoot, columns));
   onCleanup(() => model.setRoot(undefined, undefined));
 
   return (
     <div
+      ref={setRoot}
       class={`pdf-viewer${props.contained ? ' pdf-viewer--contained' : ''}${props.class ? ` ${props.class}` : ''}`}
       classList={{ 'pdf-viewer--rail-open': Boolean(props.thumbnailRail && props.thumbnailsOpen) }}
       style={{ '--pdf-zoom': String(model.zoom()) }}
     >
+      <ReaderSelectionLookup surface={root} />
       <Show when={props.thumbnailRail && props.thumbnailsOpen}>
         <aside class="pdf-viewer__rail" aria-label="Миниатюры страниц">
           <PdfThumbnails

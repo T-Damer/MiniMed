@@ -97,7 +97,13 @@ import {
 } from '@/state/app-preferences';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import { experimentalModulesEnabled } from '@/state/experimental-modules';
-import { appendSearchHistory, replaySearch, type SearchHistoryEntry } from '@/state/search-history';
+import {
+  appendSearchHistory,
+  replaySearch,
+  SEARCH_EVERYWHERE_EVENT,
+  type SearchEverywhereDetail,
+  type SearchHistoryEntry,
+} from '@/state/search-history';
 import { USER_LIBRARY_EXAMPLE_MRI_FILE_NAME } from '@/state/user-library';
 
 import '@/features/search/search-help-sheet.css';
@@ -783,6 +789,23 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     setScope(next);
     replaySearch({ ...entry, scope: next });
   };
+  // A reader's «Искать везде» (selection dictionary) searches its text across every source.
+  onMount(() => {
+    const searchEverywhere = (event: Event): void => {
+      const query = (event as CustomEvent<SearchEverywhereDetail>).detail?.query.trim();
+      if (!query) return;
+      replayHistory({
+        id: `reader-${Date.now()}`,
+        query,
+        scope: 'all',
+        createdAt: new Date().toISOString(),
+        resultCount: 0,
+        modeUsed: 'lexical',
+      });
+    };
+    window.addEventListener(SEARCH_EVERYWHERE_EVENT, searchEverywhere);
+    onCleanup(() => window.removeEventListener(SEARCH_EVERYWHERE_EVENT, searchEverywhere));
+  });
 
   return (
     <section class="search-home page-grain" aria-label="Поиск MiniMed">

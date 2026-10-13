@@ -1015,6 +1015,7 @@
   z-index: calc(var(--z-overlay) + 10);
   transform: translate(-50%, calc(-100% - 0.5rem));
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   width: 15rem;
   max-width: calc(100vw - 1rem);
@@ -1080,6 +1081,14 @@
 
 .user-highlight-popup__action--remove {
   color: #b3402f;
+}
+
+/* The dictionary lookup sits on its own row under the colours (or alone, where text cannot be marked). */
+.user-highlight-popup__action--lookup {
+  justify-content: center;
+  min-height: 2.5rem;
+  flex: 1 1 100%;
+  font-size: 0.8125rem;
 }
 
 .user-highlight-popup__icon.app-glyph {
