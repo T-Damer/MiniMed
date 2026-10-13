@@ -170,7 +170,7 @@ def test_edits_are_listed_with_their_rule() -> None:
 
 @pytest.mark.parametrize(
     "text",
-    ["доза 1О мг", "по 5l0 мг", "500 мr", "0,5 мr/мл"],
+    ["доза 1О мг", "по 5l0 мг", "500 мr", "0,5 мr/мл", "эквивалентна 25 Mr зуклопентиксола"],
 )
 def test_uncertain_numbers_are_found(text: str) -> None:
     assert uncertain_numbers(text, LEXICON)
@@ -178,7 +178,17 @@ def test_uncertain_numbers_are_found(text: str) -> None:
 
 @pytest.mark.parametrize(
     "text",
-    ["по 10 мг два раза", "5 мг/кг", "2,5 ч", "в 3а раза", "1000 мг"],
+    [
+        "по 10 мг два раза",
+        "5 мг/кг",
+        "2,5 ч",
+        "в 3а раза",
+        "1000 мг",
+        "с 50S субъединицей",
+        "изофермент CYP2B6, 2B6",
+        "76532 Баден-Баден",
+        "стр. 105Б, к. 16",
+    ],
 )
 def test_clean_numbers_are_not_flagged(text: str) -> None:
     assert uncertain_numbers(text, LEXICON) == []

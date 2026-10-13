@@ -86,11 +86,11 @@ def test_observations_on_one_baseline_are_one_line() -> None:
 def test_a_wide_gap_is_a_table_column() -> None:
     lines = assemble_lines(
         page(
-            observation("Старая редакция", 90, 100, 120),
-            observation("Новая редакция", 330, 100, 110),
+            observation("Дозировка", 90, 100, 120),
+            observation("Срок годности", 330, 100, 110),
         )
     )
-    assert lines[0].text == "Старая редакция | Новая редакция"
+    assert lines[0].text == "Дозировка | Срок годности"
     assert lines[0].columnar
 
 
@@ -99,6 +99,35 @@ def test_a_stamp_on_the_title_baseline_is_its_own_line() -> None:
         page(observation("ИНСТРУКЦИЯ", 80, 100, 100), observation("СОГЛАСОВАНО", 420, 101, 90))
     )
     assert sorted(line.text for line in lines) == ["ИНСТРУКЦИЯ", "СОГЛАСОВАНО"]
+
+
+def test_an_amendment_table_is_read_column_by_column() -> None:
+    lines = assemble_lines(
+        page(
+            observation("Изменение № 4", 250, 60, 100),
+            observation("Старая редакция", 110, 100, 120),
+            observation("Новая редакция", 380, 100, 110),
+            observation("Претензии потребителей", 100, 125, 170),
+            observation("1) Организация, принимающая", 330, 125, 190),
+            observation("направлять по адресу", 100, 138, 150),
+            observation("претензии потребителей", 330, 138, 160),
+            observation("ООО «Милосердие Фарм»", 100, 151, 160),
+            observation("ООО «ФармПартнер»", 330, 151, 130),
+            observation("Генеральный директор", 100, 260, 140),
+        )
+    )
+    assert [line.text for line in lines] == [
+        "Изменение № 4",
+        "Старая редакция",
+        "Претензии потребителей",
+        "направлять по адресу",
+        "ООО «Милосердие Фарм»",
+        "Новая редакция",
+        "1) Организация, принимающая",
+        "претензии потребителей",
+        "ООО «ФармПартнер»",
+        "Генеральный директор",
+    ]
 
 
 def test_line_confidence_is_character_weighted() -> None:

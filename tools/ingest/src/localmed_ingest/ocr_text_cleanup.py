@@ -460,8 +460,12 @@ _CYRILLIC_OR_LATIN = re.compile(r"[A-Za-zА-Яа-яЁё]+")
 # Numbers: find, never fix
 # ---------------------------------------------------------------------------------------------
 
-_LETTER_IN_DIGITS = re.compile(r"(?<=\d)[OoОоIlІ|SsZzЗзБбB](?=[\d.,]|\b)|(?<![\wа-яё])[OoОо](?=\d)")
-_NUMBER_UNIT = re.compile(r"(?<![\w.,])(\d+(?:[.,]\d+)?)\s*([A-Za-zА-Яа-яµμ%°/]+)")
+# A token made only of digits, separators and look-alikes of 0 / 1 («1О», «5l0»): a number the engine
+# misread. Alphanumeric names («50S», «CYP2B6», «2B6») and postal codes are not flagged.
+_DIGIT_LOOKALIKES = re.compile(r"^(?=.*\d)(?=.*[OoОоlIІ])[\dOoОоlIІ.,/%-]{2,}$")
+_NUMBER_UNIT = re.compile(
+    r"(?<![\w.,])(\d+(?:[.,]\d+)?)\s*([A-Za-zА-Яа-яµμ]{1,3})(?![A-Za-zА-Яа-яµμ])"
+)
 KNOWN_UNITS = frozenset(
     {
         "мг", "мкг", "г", "кг", "мл", "л", "мкл", "дл", "ме", "ед", "ммоль", "мкмоль", "моль",
@@ -479,24 +483,19 @@ _UNIT_HEAD = re.compile(r"^[A-Za-zА-Яа-яµμ]+")
 def uncertain_numbers(text: str, lexicon: Lexicon | None = None) -> list[str]:
     """Number-like tokens whose reading the OCR engine may have garbled (never corrected).
 
-    A letter look-alike inside a digit run («1О», «5l0») or a unit that is not a unit nor a word
-    («500 мr»).
+    A digit run with a look-alike letter in it («1О», «5l0») or a number followed by a one-to-three
+    letter unit that is neither a unit nor a word («500 мr», «25 Mr»).
     """
-    found: list[str] = [
-        match.group(0)
-        for match in re.finditer(r"\S*\d\S*", text)
-        if _LETTER_IN_DIGITS.search(match.group(0))
-    ]
+    found: list[str] = []
+    for raw in text.split():
+        token = raw.strip("()[];:«»\"'")
+        if _DIGIT_LOOKALIKES.match(token) and not token.isalpha():
+            found.append(token)
     for match in _NUMBER_UNIT.finditer(text):
-        unit = _UNIT_HEAD.match(match.group(2))
-        if unit is None:
-            continue
-        token = unit.group(0).casefold()
-        if token in KNOWN_UNITS or len(token) > 6:
-            continue
-        if lexicon is not None and lexicon.knows(token, minimum=3):
-            continue
-        if lexicon is None and len(token) > 3:
+        unit = match.group(2).casefold()
+        if match.group(2).isupper() or unit in KNOWN_UNITS:
+            continue  # «50S», «2B», «105Б» are names and house numbers, not misread units
+        if lexicon is not None and lexicon.knows(unit, minimum=3):
             continue
         found.append(match.group(0))
     return list(dict.fromkeys(found))

@@ -35,6 +35,7 @@ from typing import Any, cast
 import pymupdf
 
 from . import pdf_import
+from .grls_document_kind import classify_scan_document
 from .models import (
     ExtractedBlock,
     ExtractedPage,
@@ -130,12 +131,24 @@ def _line_of(cells: Sequence[Cell]) -> Line:
     )
 
 
-def assemble_lines(page: Mapping[str, Any]) -> list[Line]:
+_OLD_EDITION = re.compile(r"старая\s+редакци")
+_NEW_EDITION = re.compile(r"новая\s+редакци")
+_SIGNATURE_ROLE = re.compile(
+    r"^(?:генеральный\s+директор|директор|руководител|начальник|заместитель|уполномоченн|"
+    r"представител|менеджер|ведущий)",
+)
+SIGNATURE_GAP_LINES = 2.5
+
+
+def _fold(text: str) -> str:
+    return text.casefold().replace("ё", "е")
+
+
+def _group_lines(cells: Sequence[Cell], width: float, *, columns: bool = True) -> list[Line]:
     """Join the observations on one baseline into visual lines, top to bottom."""
-    width = float(page["width"])
-    cells = sorted(_cells(page), key=lambda cell: ((cell.y0 + cell.y1) / 2, cell.x0))
+    ordered = sorted(cells, key=lambda cell: ((cell.y0 + cell.y1) / 2, cell.x0))
     groups: list[list[Cell]] = []
-    for cell in cells:
+    for cell in ordered:
         centre = (cell.y0 + cell.y1) / 2
         placed = False
         for group in reversed(groups[-3:]):
@@ -159,7 +172,7 @@ def assemble_lines(page: Mapping[str, Any]) -> list[Line]:
         columnar = False
         for previous, current in pairwise(group):
             gap = current.x0 - previous.x1
-            if gap > COLUMN_GAP_RATIO * width:
+            if columns and gap > COLUMN_GAP_RATIO * width:
                 parts.append(" | ")
                 columnar = True
             else:
@@ -184,6 +197,59 @@ def assemble_lines(page: Mapping[str, Any]) -> list[Line]:
         )
     lines.sort(key=lambda line: (round((line.y0 + line.y1) / 2, 1), line.x0))
     return lines
+
+
+def _amendment_table(cells: Sequence[Cell]) -> tuple[Cell, Cell, float] | None:
+    """The «Старая редакция | Новая редакция» header cells and the bottom of the table, if any."""
+    old = [c for c in cells if _OLD_EDITION.search(_fold(c.text))]
+    new = [c for c in cells if _NEW_EDITION.search(_fold(c.text))]
+    for left in old:
+        for right in new:
+            if abs((left.y0 + left.y1) / 2 - (right.y0 + right.y1) / 2) <= left.y1 - left.y0:
+                below = sorted(
+                    (c for c in cells if c.y0 >= max(left.y1, right.y1) - 1), key=lambda c: c.y0
+                )
+                pitch = max(left.y1 - left.y0, 8.0)
+                end = float("inf")
+                previous_bottom = max(left.y1, right.y1)
+                for cell in below:
+                    gap = cell.y0 - previous_bottom
+                    if _SIGNATURE_ROLE.match(_fold(cell.text)) or gap > SIGNATURE_GAP_LINES * pitch:
+                        end = cell.y0 - 1
+                        break
+                    previous_bottom = max(previous_bottom, cell.y1)
+                return left, right, end
+    return None
+
+
+def assemble_lines(page: Mapping[str, Any]) -> list[Line]:
+    """Visual lines of a page, top to bottom.
+
+    An amendment sheet's two-column table («Старая редакция | Новая редакция») is read column by
+    column, so a cell that wraps over several lines stays one text instead of interleaving with its
+    neighbour column.
+    """
+    width = float(page["width"])
+    cells = _cells(page)
+    table = _amendment_table(cells)
+    if table is None:
+        return _group_lines(cells, width)
+    left, right, end = table
+    top = max(left.y1, right.y1) - 1
+    split = ((left.x0 + left.x1) / 2 + (right.x0 + right.x1) / 2) / 2
+    before = [c for c in cells if c.y1 <= top and c not in (left, right)]
+    inside = [c for c in cells if c.y0 > top - 1 and c.y0 <= end and c not in (left, right)]
+    after = [c for c in cells if c.y0 > end and c not in inside]
+    first = [c for c in inside if (c.x0 + c.x1) / 2 < split]
+    second = [c for c in inside if (c.x0 + c.x1) / 2 >= split]
+    return [
+        *_group_lines(before, width),
+        _line_of([left]),
+        *_group_lines(first, width, columns=False),
+        _line_of([right]),
+        *_group_lines(second, width, columns=False),
+        *_group_lines(after, width),
+    ]
 
 
 def raw_blocks_from_vision(payload: Mapping[str, Any], pages: set[int]) -> list[RawBlock]:
@@ -457,6 +523,9 @@ class QualityThresholds:
     fair_unknown_word_ratio: float = 0.06
     low_confidence_line_ratio: float = 0.15
     uncertain_numbers_per_1000_words: float = 6.0
+    # A sheet of amendments is mostly names and addresses the lexicon cannot know.
+    name_heavy_low_unknown_word_ratio: float = 0.30
+    name_heavy_fair_unknown_word_ratio: float = 0.15
 
 
 def unknown_word_ratio(text: str, lexicon: Lexicon) -> float | None:
@@ -473,6 +542,7 @@ def grade_quality(
     unknown_ratio: float | None,
     uncertain_per_1000: float,
     word_count: int,
+    name_heavy: bool = False,
     thresholds: QualityThresholds | None = None,
 ) -> tuple[str, list[str]]:
     """`good` / `fair` / `low` with the measured reasons; the app shows its note only for `low`."""
@@ -492,9 +562,19 @@ def grade_quality(
     ):
         low.append(f"{low_confidence_ratio:.0%} of characters recognised with low confidence")
     if unknown_ratio is not None:
-        if unknown_ratio > thresholds.low_unknown_word_ratio:
+        low_at = (
+            thresholds.name_heavy_low_unknown_word_ratio
+            if name_heavy
+            else thresholds.low_unknown_word_ratio
+        )
+        fair_at = (
+            thresholds.name_heavy_fair_unknown_word_ratio
+            if name_heavy
+            else thresholds.fair_unknown_word_ratio
+        )
+        if unknown_ratio > low_at:
             low.append(f"{unknown_ratio:.0%} unknown words")
-        elif unknown_ratio > thresholds.fair_unknown_word_ratio:
+        elif unknown_ratio > fair_at:
             fair.append(f"{unknown_ratio:.0%} unknown words")
     if uncertain_per_1000 > thresholds.uncertain_numbers_per_1000_words:
         low.append(f"{uncertain_per_1000:.1f} uncertain numbers per 1000 words")
@@ -619,6 +699,7 @@ def extract_with_vision(
             unknown_ratio=ratio,
             uncertain_per_1000=per_1000,
             word_count=words,
+            name_heavy=classify_scan_document(included_text).kind in {"amendment", "other"},
             thresholds=thresholds,
         )
         assert counters.word_edits is not None
