@@ -14,6 +14,8 @@ export function UserHighlightPopup(props: {
   readonly onRemove?: (() => Promise<void>) | undefined;
   /** «Найти в словаре» for the selected word or phrase; the caller opens the dictionary sheet. */
   readonly onLookup?: (() => void) | undefined;
+  /** How the highlight got here when not by selecting it (carried over, reworded, …). */
+  readonly note?: string | undefined;
   readonly onClose: () => void;
 }): JSX.Element {
   let root!: HTMLFieldSetElement;
@@ -104,6 +106,9 @@ export function UserHighlightPopup(props: {
               Убрать выделение
             </button>
           )}
+        </Show>
+        <Show when={props.note}>
+          {(note) => <p class="user-highlight-popup__note">{note()}</p>}
         </Show>
       </fieldset>
     </Portal>

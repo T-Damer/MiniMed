@@ -1,26 +1,31 @@
 import { createEffect, createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
-import { toast } from 'solid-sonner';
 
+import { highlightSegments } from '@/features/anchoring/highlight-sync';
+import { type AnchorUnit, createQuoteSelector } from '@/features/anchoring/text-anchor';
 import {
   HIGHLIGHT_QUOTE_LIMIT,
   type HighlightPopupPlacement,
   highlightPopupPlacement,
   highlightQuoteMatches,
 } from '@/features/library/highlight-popup-placement';
+import { highlightStatusNote } from '@/features/library/highlight-status';
 import { UserHighlightPopup } from '@/features/library/UserHighlightPopup';
 import { openReaderDictionary } from '@/features/reader-dictionary/reader-dictionary-state';
 import { cleanSelection } from '@/features/reader-dictionary/selection-term';
+import { createDocumentHighlightStore } from '@/features/library/use-document-highlights';
 import {
   addUserHighlight,
-  loadUserHighlights,
   removeUserHighlight,
   USER_HIGHLIGHT_COLORS,
-  USER_HIGHLIGHTS_EVENT,
   type UserDocumentHighlight,
   userHighlightColor,
 } from '@/state/user-library-highlights';
 
 const highlightName = (color: string): string => `user-doc-highlights-${color}`;
+/** Highlights carried over by similarity rather than by identical words: drawn with a dotted line. */
+export const APPROXIMATE_HIGHLIGHT_NAME = 'user-doc-highlights-approximate';
+/** Quiet time after the last text change before highlights are settled against the text. */
+const SYNC_DELAY_MS = 450;
 
 /** Containers of a user document's text: a page/section element whose `id` is the stored anchor. */
 export const USER_DOCUMENT_HIGHLIGHT_CONTAINERS =
@@ -93,6 +98,7 @@ interface SelectionTarget {
   readonly start: number;
   readonly end: number;
   readonly quote: string;
+  readonly selector: ReturnType<typeof createQuoteSelector>;
 }
 
 interface SelectionSnapshot {
@@ -115,7 +121,8 @@ function selectionSnapshot(
   if (!selection || selection.isCollapsed || selection.rangeCount === 0) return null;
   const range = selection.getRangeAt(0);
   const targets: SelectionTarget[] = [];
-  for (const container of Array.from(surface.querySelectorAll<HTMLElement>(containerSelector))) {
+  const containers = Array.from(surface.querySelectorAll<HTMLElement>(containerSelector));
+  for (const [index, container] of containers.entries()) {
     if (!range.intersectsNode(container)) continue;
     const text = containerText(container);
     const start = container.contains(range.startContainer)
@@ -125,11 +132,17 @@ function selectionSnapshot(
       ? offsetWithin(container, range.endContainer, range.endOffset)
       : text.length;
     if (end <= start) continue;
+    const previous = containers[index - 1];
+    const following = containers[index + 1];
     targets.push({
       pageAnchor: container.id,
       start,
       end,
       quote: text.slice(start, end).slice(0, HIGHLIGHT_QUOTE_LIMIT),
+      selector: createQuoteSelector(text, start, end, {
+        before: previous ? containerText(previous).slice(-60) : '',
+        after: following ? containerText(following).slice(0, 60) : '',
+      }),
     });
   }
   if (targets.length === 0) return null;
@@ -182,50 +195,68 @@ function popupPoint(
   };
 }
 
+/** The text units the highlights are settled against: one per text container on the page. */
+function collectUnits(surface: HTMLElement, selector: string): readonly AnchorUnit[] {
+  return Array.from(surface.querySelectorAll<HTMLElement>(selector)).map((container) => ({
+    id: container.id,
+    text: containerText(container),
+  }));
+}
+
 /**
  * Persistent text highlighting: selections inside text containers are saved to IndexedDB and
  * painted with CSS Custom Highlights, leaving the reader DOM untouched. User documents highlight
- * inside their page/section elements; official documents inside their text chunks (`containers`),
- * with each stored highlight checked against its quote before it is painted.
+ * inside their page/section elements; official documents inside their text chunks (`containers`).
+ *
+ * Every highlight carries a text-quote selector. Once the whole text is on the page (`ready`), the
+ * highlights are settled against it: one still at its saved place stays, one whose text moved or
+ * was reworded in a newer version is re-anchored (and marked), one that is gone is kept and listed
+ * as not found, and the highlights of earlier editions (`predecessorDocumentIds`) are carried over.
  */
 export function UserDocumentHighlights(props: {
   readonly documentId: string;
   readonly surface: () => HTMLElement | undefined;
   /** Selector of the elements whose text can carry a highlight. */
   readonly containers?: string;
-  /** Hide a stored highlight whose text no longer matches its quote (official documents). */
-  readonly verifyQuote?: boolean;
+  /** False while the document is still being put on the page; re-anchoring waits for the rest. */
+  readonly ready?: boolean;
+  /** Earlier editions of this document, nearest first: their highlights are carried over. */
+  readonly predecessorDocumentIds?: readonly string[];
 }): JSX.Element {
   const containerSelector = (): string => props.containers ?? USER_DOCUMENT_HIGHLIGHT_CONTAINERS;
-  const [highlights, setHighlights] = createSignal<readonly UserDocumentHighlight[]>([]);
+  const store = createDocumentHighlightStore({
+    documentId: () => props.documentId,
+    predecessorDocumentIds: () => props.predecessorDocumentIds ?? [],
+  });
+  const highlights = store.highlights;
   const [popup, setPopup] = createSignal<PopupState | null>(null);
-
-  const reload = (): void => {
-    void loadUserHighlights(props.documentId)
-      .then(setHighlights)
-      .catch(() => toast.error('Не удалось загрузить выделения.'));
-  };
 
   const containerFor = (surface: HTMLElement, anchor: string): HTMLElement | null =>
     surface.querySelector<HTMLElement>(`#${CSS.escape(anchor)}`);
 
-  /** The range of a stored highlight, or `null` when its text is not on screen (or has changed). */
-  const rangeFor = (surface: HTMLElement, item: UserDocumentHighlight): Range | null => {
-    const container = containerFor(surface, item.pageAnchor);
-    if (!container) return null;
-    if (
-      props.verifyQuote &&
-      !highlightQuoteMatches(containerText(container), item.start, item.end, item.quote)
-    ) {
-      return null;
+  /**
+   * The ranges of a stored highlight; empty when its text is not on the page or is not there any
+   * more (the primary piece is checked against its quote before it is painted).
+   */
+  const rangesFor = (surface: HTMLElement, item: UserDocumentHighlight): readonly Range[] => {
+    if (item.anchorStatus === 'missing' || item.cfiRange) return [];
+    const ranges: Range[] = [];
+    for (const [index, segment] of highlightSegments(item).entries()) {
+      const container = containerFor(surface, segment.pageAnchor);
+      if (!container) return [];
+      if (
+        index === 0 &&
+        !highlightQuoteMatches(containerText(container), segment.start, segment.end, item.quote)
+      ) {
+        return [];
+      }
+      const range = rangeForCharRange(container, segment.start, segment.end);
+      if (range) ranges.push(range);
     }
-    return rangeForCharRange(container, item.start, item.end);
+    return ranges;
   };
 
   onMount(() => {
-    reload();
-    window.addEventListener(USER_HIGHLIGHTS_EVENT, reload);
-
     const refreshPopup = (): void => {
       const surface = props.surface();
       if (!surface) {
@@ -239,11 +270,13 @@ export function UserDocumentHighlights(props: {
         return;
       }
       const intersecting = highlights().filter((item) =>
-        snapshot.targets.some(
-          (target) =>
-            item.pageAnchor === target.pageAnchor &&
-            target.start < item.end &&
-            target.end > item.start,
+        highlightSegments(item).some((segment) =>
+          snapshot.targets.some(
+            (target) =>
+              segment.pageAnchor === target.pageAnchor &&
+              target.start < segment.end &&
+              target.end > segment.start,
+          ),
         ),
       );
       setPopup({
@@ -265,15 +298,14 @@ export function UserDocumentHighlights(props: {
       const surface = props.surface();
       if (!surface?.contains(event.target as Node) || !document.getSelection()?.isCollapsed) return;
       for (const item of highlights().toReversed()) {
-        const range = rangeFor(surface, item);
-        const rect =
-          range &&
-          Array.from(range.getClientRects()).find(
-            (rect) =>
-              event.clientX >= rect.left &&
-              event.clientX <= rect.right &&
-              event.clientY >= rect.top &&
-              event.clientY <= rect.bottom,
+        const rect = rangesFor(surface, item)
+          .flatMap((range) => Array.from(range.getClientRects()))
+          .find(
+            (candidate) =>
+              event.clientX >= candidate.left &&
+              event.clientX <= candidate.right &&
+              event.clientY >= candidate.top &&
+              event.clientY <= candidate.bottom,
           );
         if (!rect) continue;
         if (popupFrame !== undefined) cancelAnimationFrame(popupFrame);
@@ -303,7 +335,7 @@ export function UserDocumentHighlights(props: {
       if (!surface) return;
       const rect = current.add
         ? selectionSnapshot(surface, containerSelector())?.rect
-        : unionRect(current.remove.map((item) => rangeFor(surface, item)));
+        : unionRect(current.remove.flatMap((item) => rangesFor(surface, item)));
       if (!rect || rect.bottom < 0 || rect.top > window.innerHeight) {
         setPopup(null);
         return;
@@ -315,35 +347,58 @@ export function UserDocumentHighlights(props: {
       passive: true,
     });
     onCleanup(() => {
-      window.removeEventListener(USER_HIGHLIGHTS_EVENT, reload);
       document.removeEventListener('selectionchange', schedulePopupRefresh);
       if (popupFrame !== undefined) cancelAnimationFrame(popupFrame);
       window.removeEventListener('scroll', repositionPopupOnScroll, { capture: true });
       document.removeEventListener('click', selectHighlight);
       for (const color of USER_HIGHLIGHT_COLORS) registry()?.delete(highlightName(color.id));
+      registry()?.delete(APPROXIMATE_HIGHLIGHT_NAME);
     });
   });
 
+  // Paint, and settle the highlights against the text once all of it is on the page.
   createEffect(() => {
     const surface = props.surface();
     const items = highlights();
+    const loaded = store.loaded();
+    const ready = props.ready !== false;
     const highlightsRegistry = registry();
-    if (!surface || !highlightsRegistry) return;
+    if (!surface) return;
     const paint = (): void => {
+      if (!highlightsRegistry) return;
+      const approximate: Range[] = [];
       for (const color of USER_HIGHLIGHT_COLORS) {
         const ranges: Range[] = [];
         for (const item of items) {
-          if (item.cfiRange || userHighlightColor(item.color).id !== color.id) continue;
-          const range = rangeFor(surface, item);
-          if (range) ranges.push(range);
+          if (userHighlightColor(item.color).id !== color.id) continue;
+          const found = rangesFor(surface, item);
+          ranges.push(...found);
+          if (item.anchorStatus === 'approximate') approximate.push(...found);
         }
         highlightsRegistry.set(highlightName(color.id), new Highlight(...ranges));
       }
+      highlightsRegistry.set(APPROXIMATE_HIGHLIGHT_NAME, new Highlight(...approximate));
     };
     paint();
-    const observer = new MutationObserver(paint);
+    let syncTimer: ReturnType<typeof setTimeout> | undefined;
+    const scheduleSync = (): void => {
+      if (!ready || !loaded) return;
+      if (syncTimer) clearTimeout(syncTimer);
+      syncTimer = setTimeout(() => {
+        syncTimer = undefined;
+        void store.sync(collectUnits(surface, containerSelector()));
+      }, SYNC_DELAY_MS);
+    };
+    scheduleSync();
+    const observer = new MutationObserver(() => {
+      paint();
+      scheduleSync();
+    });
     observer.observe(surface, { childList: true, subtree: true, characterData: true });
-    onCleanup(() => observer.disconnect());
+    onCleanup(() => {
+      observer.disconnect();
+      if (syncTimer) clearTimeout(syncTimer);
+    });
   });
 
   return (
@@ -353,6 +408,11 @@ export function UserDocumentHighlights(props: {
           x={popupValue().x}
           y={popupValue().y}
           placement={popupValue().placement}
+          note={
+            popupValue().remove.length === 1
+              ? highlightStatusNote(popupValue().remove[0] as UserDocumentHighlight)
+              : undefined
+          }
           onClose={() => setPopup(null)}
           onLookup={
             popupValue().lookup
@@ -376,6 +436,7 @@ export function UserDocumentHighlights(props: {
                       start: target.start,
                       end: target.end,
                       quote: target.quote,
+                      selector: target.selector,
                       color,
                     });
                   }

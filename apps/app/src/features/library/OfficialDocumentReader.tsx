@@ -34,6 +34,7 @@ import { Icd11CardPanel } from '@/features/icd11/Icd11CardPanel';
 import { isIcd11Document } from '@/features/icd11/icd11-document';
 import { ClinicalEditionNoticeLine } from '@/features/library/ClinicalEditionNotice';
 import { DocumentFindBar, type DocumentFindResultState } from '@/features/library/DocumentFindBar';
+import { DocumentHighlightsSheet } from '@/features/library/DocumentHighlightsSheet';
 import { DocumentModulePointer } from '@/features/library/DocumentModulePointer';
 import {
   type DocumentSectionTree,
@@ -67,6 +68,7 @@ import {
   resolveDocumentChunkItems,
 } from '@/features/library/document-rich-block-data';
 import { documentTextSearchText } from '@/features/library/document-text-search';
+import { earlierEditionDocumentIds } from '@/features/library/edition-predecessors';
 import { isClinicalRecommendationSource } from '@/features/library/numbered-heading-sections';
 import { ReaderHero } from '@/features/library/ReaderHero';
 import { ReaderSectionPath } from '@/features/library/ReaderSectionPath';
@@ -643,6 +645,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
   };
   const [findState, setFindState] = createSignal<DocumentFindResultState>(emptyFindState);
   const [findOpen, setFindOpen] = createSignal(false);
+  const [highlightsOpen, setHighlightsOpen] = createSignal(false);
   const [fullTextPending, setFullTextPending] = createSignal(false);
   const [fullTextProgress, setFullTextProgress] = createSignal<number | null>(null);
   const [fullTextError, setFullTextError] = createSignal<string | null>(null);
@@ -1162,7 +1165,20 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                       }
                     },
                   },
+                  {
+                    id: 'highlights',
+                    label: 'Выделения',
+                    icon: 'highlighter',
+                    onSelect: () => setHighlightsOpen(true),
+                  },
                 ]}
+              />
+              <DocumentHighlightsSheet
+                documentId={documentValue().id}
+                open={highlightsOpen()}
+                onClose={() => setHighlightsOpen(false)}
+                onJump={(item) => chrome.scrollTo(item.pageAnchor)}
+                onOpenEarlier={(documentId) => openDocumentOverlay(documentId, null)}
               />
             </div>
           )}
@@ -1291,7 +1307,8 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                       undefined
                     }
                     containers={OFFICIAL_DOCUMENT_HIGHLIGHT_CONTAINERS}
-                    verifyQuote
+                    ready={mountedSectionCount() > 0 && !sectionsPending()}
+                    predecessorDocumentIds={earlierEditionDocumentIds(documentValue())}
                   />
                 </Show>
                 <Show

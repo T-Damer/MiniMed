@@ -27,6 +27,7 @@ import {
   ReaderTitleRow,
 } from '@/features/collections/ReaderItemActions';
 import { DocumentFindBar, type DocumentFindResultState } from '@/features/library/DocumentFindBar';
+import { DocumentHighlightsSheet } from '@/features/library/DocumentHighlightsSheet';
 import { type DocumentFindUnit, rangesForFindUnit } from '@/features/library/document-find';
 import { navigateDocumentReaderBack } from '@/features/library/document-reader-back';
 import {
@@ -101,6 +102,7 @@ import {
 } from '@/state/user-library';
 import type { UserLibraryReaderAction } from '@/state/user-library-capabilities';
 import { isEditableUserLibraryFile } from '@/state/user-library-formats';
+import type { UserDocumentHighlight } from '@/state/user-library-highlights';
 import { joinUserLibraryTextPages } from '@/state/user-library-text-pages';
 
 const DicomViewer = lazy(() => import('@/features/library/DicomViewer'));
@@ -214,6 +216,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
   const [loadError, setLoadError] = createSignal<string | null>(null);
   const [findState, setFindState] = createSignal<DocumentFindResultState>(emptyFindState);
   const [findOpen, setFindOpen] = createSignal(false);
+  const [highlightsOpen, setHighlightsOpen] = createSignal(false);
   const [fullscreen, setFullscreen] = createSignal(false);
   const [draftOpen, setDraftOpen] = createSignal(false);
   const [draftText, setDraftText] = createSignal('');
@@ -966,6 +969,18 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
         },
       );
     }
+    if (
+      isPdf()
+        ? pdfReady()
+        : (isTextLike() || readerCapability().reader.renderer === 'docx') && !draftOpen()
+    ) {
+      actions.push({
+        id: 'highlights',
+        label: 'Выделения',
+        icon: 'highlighter',
+        onSelect: () => setHighlightsOpen(true),
+      });
+    }
     if (hasReaderAction('two-page')) {
       actions.push({
         id: 'two-page',
@@ -977,6 +992,17 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
       });
     }
     return actions;
+  };
+
+  /** Goes to a highlight from the list: a PDF page, or the text page / section it sits in. */
+  const jumpToHighlight = (item: UserDocumentHighlight): void => {
+    const pdfIndex = pdfPageIndexFromUnitId(item.pageAnchor);
+    if (pdfIndex !== undefined) {
+      const length = pdfModel.pageText(pdfIndex)?.text.length ?? 0;
+      pdfModel.goToPage(pdfIndex + 1, length > 0 ? item.start / length : 0);
+      return;
+    }
+    chrome.scrollTo(item.pageAnchor);
   };
 
   const pageByIndex = (pageIndex: number): UserLibraryPage | undefined =>
@@ -1060,6 +1086,12 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
             <ReaderActionsMenu
               actions={readerMenuActions()}
               {...(isMedicalImage() ? {} : { bookmark })}
+            />
+            <DocumentHighlightsSheet
+              documentId={props.documentId}
+              open={highlightsOpen()}
+              onClose={() => setHighlightsOpen(false)}
+              onJump={jumpToHighlight}
             />
           </Show>
         }
@@ -1440,6 +1472,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                         {(current) => (
                           <UserDocumentHighlights
                             documentId={current().id}
+                            ready={isMarkdown() ? parsedMarkdown() !== null : pages().length > 0}
                             surface={() =>
                               document.querySelector<HTMLElement>('.user-document-reader__paper') ??
                               undefined

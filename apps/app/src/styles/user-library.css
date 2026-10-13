@@ -1010,6 +1010,13 @@
   background-color: rgb(239 83 80 / 55%);
 }
 
+/* A highlight carried over by similarity (reworded text) wears a dotted underline. */
+::highlight(user-doc-highlights-approximate) {
+  text-decoration: underline dotted;
+  text-decoration-thickness: 0.14em;
+  text-underline-offset: 0.18em;
+}
+
 .user-highlight-popup {
   position: fixed;
   z-index: calc(var(--z-overlay) + 10);
@@ -1089,6 +1096,16 @@
   min-height: 2.5rem;
   flex: 1 1 100%;
   font-size: 0.8125rem;
+}
+
+.user-highlight-popup__note {
+  flex: 1 0 100%;
+  margin: 0;
+  padding: 0.1rem 0.5rem 0.3rem;
+  color: var(--theme-text-muted);
+  font-size: 0.72rem;
+  line-height: 1.3;
+  text-align: center;
 }
 
 .user-highlight-popup__icon.app-glyph {
