@@ -1,12 +1,14 @@
 """Content-based kind of a scanned or OCR-read GRLS instruction document (STATE OCR1).
 
-`grls_groups.classify_document_kind` reads the title page of a clean text layer. A scan breaks that: stamps
-land between the title words («ИНСТРУКЦИЯ ПОСЛЕДОВАТЕЛЬНОСТЬ 0001) ПО МЕДИЦИНСКОМУ ПРИМЕНЕНИЮ»), letters
-come out as Latin look-alikes, a one-page amendment sheet carries the title of the instruction it amends.
+`grls_groups.classify_document_kind` reads the title page of a clean text layer. A scan breaks
+that: stamps land between the title words («ИНСТРУКЦИЯ ПОСЛЕДОВАТЕЛЬНОСТЬ 0001) ПО МЕДИЦИНСКОМУ
+ПРИМЕНЕНИЮ»), letters come out as Latin look-alikes, a one-page amendment sheet carries the title
+of the instruction it amends.
 This classifier folds those artefacts and also looks at what the document contains (how many of the
 standard instruction sections, how long it is), so a short amendment sheet is not mistaken for the
 instruction itself. Kinds: ``ohlp``, ``leaflet``, ``national-instruction``, ``amendment`` (a page of
-changes with «Старая / Новая редакция»), ``other`` (has text, none of the above) and ``unknown`` (no text).
+changes with «Старая / Новая редакция»), ``other`` (has text, none of the above) and ``unknown``
+(no text).
 """
 
 from __future__ import annotations
@@ -27,7 +29,9 @@ _MARKUP = re.compile(r"<!--.*?-->|[#*_|]+", re.DOTALL)
 _FOLD = str.maketrans({latin: cyr for latin, cyr in LATIN_TO_CYRILLIC.items()})
 
 _OHLP = re.compile(r"общая\s+характеристика\s+лекарственного\s+препарата|\bохлп\b")
-_LEAFLET = re.compile(r"листок\W{0,3}\s*вклад\w{1,4}|информаци\w*\s+для\s+(?:пациента|потребител\w*)")
+_LEAFLET = re.compile(
+    r"листок\W{0,3}\s*вклад\w{1,4}|информаци\w*\s+для\s+(?:пациента|потребител\w*)"
+)
 _INSTRUCTION = re.compile(
     r"инструкци\w{0,3}.{0,120}?по\s+(?:медицинскому\s+)?применени\w+"
     r"|инструкци\w{0,3}\s*\(информаци\w*\s+для\s+(?:специалист\w*|потребител\w*)\)"
@@ -60,12 +64,16 @@ def classify_scan_document(text: str, *, page_count: int | None = None) -> KindE
     words = len(re.findall(r"\w+", body))
     if words < 8:
         return KindEvidence("unknown", "no recognisable text", words, 0)
-    sections = {boundary.section_type for boundary in find_grls_section_boundaries(_MARKUP.sub(" ", text))}
+    sections = {
+        boundary.section_type for boundary in find_grls_section_boundaries(_MARKUP.sub(" ", text))
+    }
     head = body[:6000]
     amendment = bool(_AMENDMENT_TITLE.search(head) and _AMENDMENT_TABLE.search(body))
     full = words >= MIN_FULL_DOCUMENT_WORDS and len(sections) >= MIN_FULL_DOCUMENT_SECTIONS
     if amendment and not full:
-        return KindEvidence("amendment", "«Изменение №» with a table of old/new edition", words, len(sections))
+        return KindEvidence(
+            "amendment", "«Изменение №» with a table of old/new edition", words, len(sections)
+        )
     candidates: list[tuple[int, ContentKind, str]] = []
     for pattern, kind, reason in (
         (_OHLP, "ohlp", "title names the summary of product characteristics"),
@@ -88,5 +96,9 @@ def classify_scan_document(text: str, *, page_count: int | None = None) -> KindE
             len(sections),
         )
     if amendment:
-        return KindEvidence("amendment", "amendment table inside a longer text", words, len(sections))
-    return KindEvidence("other", "text without an instruction title or the standard sections", words, len(sections))
+        return KindEvidence(
+            "amendment", "amendment table inside a longer text", words, len(sections)
+        )
+    return KindEvidence(
+        "other", "text without an instruction title or the standard sections", words, len(sections)
+    )

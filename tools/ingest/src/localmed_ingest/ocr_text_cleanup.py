@@ -23,7 +23,9 @@ from collections import Counter
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 
-from .grls_instruction_sections import _RULES as SECTION_RULES  # pyright: ignore[reportPrivateUsage]
+from .grls_instruction_sections import (
+    _RULES as SECTION_RULES,  # pyright: ignore[reportPrivateUsage]
+)
 
 CYRILLIC_LETTERS = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
 _CYRILLIC_WORD = re.compile(r"[а-яёА-ЯЁ]+(?:-[а-яёА-ЯЁ]+)*")
@@ -114,7 +116,9 @@ class Lexicon:
 
 
 def _is_cyrillic(word: str) -> bool:
-    return bool(word) and all(character in CYRILLIC_LETTERS or character == "-" for character in word)
+    return bool(word) and all(
+        character in CYRILLIC_LETTERS or character == "-" for character in word
+    )
 
 
 def _is_latin(word: str) -> bool:
@@ -173,7 +177,9 @@ _STAMP_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("sequence", re.compile(r"^\(?\s*последовательность\s*\d{3,4}\s*\)?\W*$")),
     (
         "registration",
-        re.compile(r"^\S{0,4}[-–—\s]*№?\s*\(\d{5,6}\)\s*-\s*\([рp][гr]-?\s*(?:ru|ги)\)(?:\s+от\s+[\d.]+)?\s*$"),
+        re.compile(
+            r"^\S{0,4}[-–—\s]*№?\s*\(\d{5,6}\)\s*-\s*\([рp][гr]-?\s*(?:ru|ги)\)(?:\s+от\s+[\d.]+)?\s*$"
+        ),
     ),
     ("registration", re.compile(r"^\S{1,4}\s*[-–—]\s*\d{5,6}\s*-\s*\d{6}\s*$")),
     ("expert-report", re.compile(r"^от\s*[\d.]{8,10}\s*(?:№|n\S?)?\s*\d{3,6}\s*$")),
@@ -270,7 +276,7 @@ def join_hyphenated(previous: str, following: str, lexicon: Lexicon | None) -> s
         glued_known = lexicon.knows(glued, minimum=2)
         compound_known = lexicon.knows(compound, minimum=2)
         if glued_known and not compound_known:
-            return previous.rstrip()[: -1] + following.lstrip()
+            return previous.rstrip()[:-1] + following.lstrip()
         if compound_known and not glued_known:
             return previous.rstrip() + following.lstrip()
         return None
@@ -295,9 +301,7 @@ PHARMACOKINETIC_SYMBOLS: Mapping[str, str] = {
 # `тах` alone is too short to be safe; `аис` is a real abbreviation spelling (СПИД variants) in
 # Russian text. Both are dropped from the active table below.
 _ACTIVE_SYMBOLS = {
-    key: value
-    for key, value in PHARMACOKINETIC_SYMBOLS.items()
-    if key not in {"тах", "аис", "auc"}
+    key: value for key, value in PHARMACOKINETIC_SYMBOLS.items() if key not in {"тах", "аис", "auc"}
 }
 _ATC = re.compile(r"\bATX\b")
 
@@ -340,10 +344,12 @@ def _candidates(word: str) -> set[str]:
         for index in range(1, len(word) - ENDING_GUARD + 1):
             for letter in CYRILLIC_LETTERS:
                 found.add(word[:index] + letter + word[index:])
-    return list(dict.fromkeys(found))
+    return found
 
 
-def correct_word(word: str, lexicon: Lexicon, *, protected: frozenset[str] = frozenset()) -> str | None:
+def correct_word(
+    word: str, lexicon: Lexicon, *, protected: frozenset[str] = frozenset()
+) -> str | None:
     """The unique lexicon spelling of an unknown Cyrillic word, or None.
 
     None when the word is known, short, protected (the document's own names), or has no / more than
@@ -355,7 +361,7 @@ def correct_word(word: str, lexicon: Lexicon, *, protected: frozenset[str] = fro
         or not _is_cyrillic(folded)
         or lexicon.knows(folded)
         or folded in protected
-        or any(character.isupper() for character in word[1:]) and not word.isupper()
+        or (any(character.isupper() for character in word[1:]) and not word.isupper())
     ):
         return None
     hits = {
@@ -384,7 +390,10 @@ def unify_script(word: str, lexicon: Lexicon) -> str | None:
         return None
     if has_latin and not has_cyrillic:
         return None  # an all-Latin token is Latin unless it is the ATC abbreviation (clean_words)
-    if all(character in LATIN_TO_CYRILLIC or character.casefold() in CYRILLIC_LETTERS for character in word):
+    if all(
+        character in LATIN_TO_CYRILLIC or character.casefold() in CYRILLIC_LETTERS
+        for character in word
+    ):
         as_cyrillic = "".join(
             _lookalike(character, index, word) for index, character in enumerate(word)
         )
@@ -458,9 +467,9 @@ KNOWN_UNITS = frozenset(
         "мг", "мкг", "г", "кг", "мл", "л", "мкл", "дл", "ме", "ед", "ммоль", "мкмоль", "моль",
         "ч", "час", "часа", "часов", "мин", "сут", "сек", "с", "мм", "см", "м", "дн", "дней",
         "дня", "день", "нед", "мес", "год", "лет", "года", "раз", "раза", "таб", "капс", "доз",
-        "доза", "дозы", "шт", "мкм", "нм", "нг", "пг", "ккал", "дж", "вт", "па", "град", "лет",
-        "kg", "mg", "ml", "g", "mcg", "iu", "mm", "cm", "u", "ie", "мэкв", "моли", "мосм",
-        "мпа", "кпа", "ммрт", "мккат", "и", "в", "до", "от", "на", "по", "к", "у", "с", "а",
+        "доза", "дозы", "шт", "мкм", "нм", "нг", "пг", "ккал", "дж", "вт", "па", "град", "kg", "mg",
+        "ml", "g", "mcg", "iu", "mm", "cm", "u", "ie", "мэкв", "моли", "мосм",
+        "мпа", "кпа", "ммрт", "мккат", "и", "в", "до", "от", "на", "по", "к", "у", "а",
         "см2", "м2", "кг/м2", "мг/кг", "мг/мл", "мкг/мл", "мг/л", "г/л", "мл/мин", "ед/мл",
     }
 )  # fmt: skip
@@ -473,7 +482,11 @@ def uncertain_numbers(text: str, lexicon: Lexicon | None = None) -> list[str]:
     A letter look-alike inside a digit run («1О», «5l0») or a unit that is not a unit nor a word
     («500 мr»).
     """
-    found: list[str] = [match.group(0) for match in re.finditer(r"\S*\d\S*", text) if _LETTER_IN_DIGITS.search(match.group(0))]
+    found: list[str] = [
+        match.group(0)
+        for match in re.finditer(r"\S*\d\S*", text)
+        if _LETTER_IN_DIGITS.search(match.group(0))
+    ]
     for match in _NUMBER_UNIT.finditer(text):
         unit = _UNIT_HEAD.match(match.group(2))
         if unit is None:

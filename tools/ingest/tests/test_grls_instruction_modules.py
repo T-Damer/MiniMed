@@ -9,8 +9,8 @@ import yaml
 
 from localmed_ingest.grls_instruction_modules import (
     PlannedInstruction,
-    assign_group,
     apply_overlay,
+    assign_group,
     augmented_markdown,
     module_id,
     reviewed_override,
@@ -204,7 +204,11 @@ OVERLAY_ROW = {
 
 
 def test_overlay_replaces_workspace_kind_and_quality_for_the_same_pdf_only() -> None:
-    rows = [manifest_row("sha256:aaa"), manifest_row("sha256:bbb"), manifest_row("sha256:aaa", extraction="not-prepared")]
+    rows = [
+        manifest_row("sha256:aaa"),
+        manifest_row("sha256:bbb"),
+        manifest_row("sha256:aaa", extraction="not-prepared"),
+    ]
     merged = apply_overlay(rows, {"sha256:aaa": OVERLAY_ROW})
     assert merged[0]["workspace"].endswith("grls-ocr-cleaned")  # type: ignore[union-attr]
     assert merged[0]["documentKind"] == "amendment"

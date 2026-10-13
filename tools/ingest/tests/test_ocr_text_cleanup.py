@@ -127,7 +127,10 @@ def test_hyphen_join_prefers_the_glued_word() -> None:
 def test_pharmacokinetic_symbol_and_atc_abbreviation() -> None:
     cleaned = clean_words("Максимальная концентрация (Стах) и Код ATX", None)
     assert cleaned.text == "Максимальная концентрация (Cmax) и Код АТХ"
-    assert {(edit.before, edit.after) for edit in cleaned.edits} == {("Стах", "Cmax"), ("ATX", "АТХ")}
+    assert {(edit.before, edit.after) for edit in cleaned.edits} == {
+        ("Стах", "Cmax"),
+        ("ATX", "АТХ"),
+    }
 
 
 def test_hard_sign_confusion_is_corrected_only_with_a_unique_lexicon_word() -> None:
@@ -153,7 +156,9 @@ def test_protected_and_proper_names_are_left_alone() -> None:
 def test_mixed_script_word_made_cyrillic_only_when_the_reading_is_a_word() -> None:
     assert unify_script("таблеTки", LEXICON) == "таблетки"
     assert unify_script("mг", LEXICON) == "мг"
-    assert unify_script("Cmax", LEXICON) is None  # not mixed Cyrillic/Latin by accident of look-alikes
+    assert (
+        unify_script("Cmax", LEXICON) is None
+    )  # not mixed Cyrillic/Latin by accident of look-alikes
 
 
 def test_edits_are_listed_with_their_rule() -> None:

@@ -26,6 +26,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any, cast
 
+from localmed_ingest.grls_document_kind import NON_INSTRUCTION_KINDS
 from localmed_ingest.grls_instruction_modules import (
     RELEASE_ESKLP_DIR,
     REPO_ROOT,
@@ -33,7 +34,6 @@ from localmed_ingest.grls_instruction_modules import (
     plan_instructions,
     read_manifest_rows,
 )
-from localmed_ingest.grls_document_kind import NON_INSTRUCTION_KINDS
 from localmed_ingest.substance_fallback import (
     DonorFacts,
     Registration,

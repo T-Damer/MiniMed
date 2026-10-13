@@ -177,7 +177,7 @@ def assign_group(
 def read_manifest_rows(
     path: Path = MANIFEST_PATH, overlay: Path | None = OVERLAY_PATH
 ) -> list[dict[str, Any]]:
-    """Manifest rows with the OCR1 overlay (re-prepared text, content kind, quality) joined by PDF."""
+    """Manifest rows with the OCR1 overlay (re-prepared text, kind, quality) joined by PDF."""
     rows = [
         cast(dict[str, Any], json.loads(line))
         for line in path.read_text(encoding="utf-8").splitlines()
@@ -204,7 +204,7 @@ def apply_overlay(
 ) -> list[dict[str, Any]]:
     """A row whose PDF has an overlay row takes its text workspace, kind and OCR quality from it.
 
-    Rows without an overlay row are returned unchanged. Every extra overlay column (quality grade and
+    Rows without an overlay row are returned unchanged. Every extra overlay column (quality grade
     reasons, uncertain numbers, tool) travels in `ocrOverlay` for `augmented_markdown`.
     """
     merged: list[dict[str, Any]] = []
@@ -334,7 +334,7 @@ def augmented_markdown(text: str, entry: PlannedInstruction) -> str:
         "atcGroup": entry.group,
         "atcGroupBasis": entry.group_basis,
     }
-    overlay = newest.get("ocrOverlay")
+    overlay = cast("Mapping[str, Any] | None", newest.get("ocrOverlay"))
     if isinstance(overlay, Mapping):
         added.update(
             {

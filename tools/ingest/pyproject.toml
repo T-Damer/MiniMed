@@ -73,6 +73,14 @@ ignore = ["RUF001"]
 "src/localmed_ingest/ddinter_severity.py" = ["RUF002", "RUF003"]
 "tests/test_ddinter_severity.py" = ["RUF002", "RUF003"]
 
+# OCR1: stamp wording, look-alike letters and registry fields are Cyrillic (and Latin look-alike) text.
+"src/localmed_ingest/ocr_*.py" = ["RUF002", "RUF003"]
+"src/localmed_ingest/grls_ocr_*.py" = ["RUF002", "RUF003"]
+"src/localmed_ingest/grls_document_kind.py" = ["RUF002", "RUF003"]
+"tests/test_ocr_*.py" = ["RUF002", "RUF003"]
+"tests/test_grls_ocr_*.py" = ["RUF002", "RUF003"]
+"tests/test_grls_document_kind.py" = ["RUF002", "RUF003"]
+
 [tool.pyright]
 pythonVersion = "3.12"
 typeCheckingMode = "strict"

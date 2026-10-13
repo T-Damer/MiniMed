@@ -26,25 +26,36 @@ def test_a_different_strength_is_never_adopted() -> None:
 
 def test_a_one_character_digit_misreading_is_tolerated_but_not_two_or_a_new_dose() -> None:
     misread = BASE.replace("14 дней", "1l дней")
-    assert compare_with_native(misread, BASE).same_document is False or True  # tokens differ: see below
+    assert (
+        compare_with_native(misread, BASE).same_document is False or True
+    )  # tokens differ: see below
     digit_swap = BASE.replace("14 дней", "11 дней")
     comparison = compare_with_native(digit_swap, BASE)
     assert comparison.ocr_only_numbers == ("11",) and comparison.native_only_numbers == ("14",)
     assert comparison.same_document
     two_swaps = BASE.replace("14 дней", "11 дней").replace("2000 мг", "2900 мг")
-    assert compare_with_native(two_swaps, BASE).same_document  # both are one edit from a native number
+    assert compare_with_native(
+        two_swaps, BASE
+    ).same_document  # both are one edit from a native number
     far = BASE.replace("14 дней", "41 дней")
     assert not compare_with_native(far, BASE).same_document  # a transposition is two edits
 
 
 def test_texts_of_different_length_or_content_are_different_documents() -> None:
     assert not compare_with_native(BASE, BASE[: len(BASE) // 3]).same_document
-    assert not compare_with_native(BASE, "Совсем другой текст о другом препарате " * 30).same_document
+    assert not compare_with_native(
+        BASE, "Совсем другой текст о другом препарате " * 30
+    ).same_document
     assert compare_with_native("", BASE).containment == 0.0
 
 
 def test_product_key_needs_every_registry_field() -> None:
-    complete = {"tradeName": "Мельдоний®", "inn": "Мельдоний", "holder": 'АО "Фирма"', "dosageForm": "капсулы"}
+    complete = {
+        "tradeName": "Мельдоний®",
+        "inn": "Мельдоний",
+        "holder": 'АО "Фирма"',
+        "dosageForm": "капсулы",
+    }
     assert product_key(complete) == ("мельдоний", "мельдоний", "ао фирма", "капсулы")
     assert product_key({**complete, "holder": None}) is None
 

@@ -1,9 +1,10 @@
 """A native text layer of the same product beats OCR (STATE OCR1).
 
-When a registration's instruction exists only as a scan but the same product (trade name, INN, holder and
-dosage form) has another registration whose PDF carries a text layer, the two usually hold the same text
-(re-registration, EAEU number next to the national one). The native text then replaces the OCR text, but only
-when the documents are demonstrably the same, doses included: a different strength or dose is never adopted
+When a registration's instruction exists only as a scan but the same product (trade name, INN,
+holder and dosage form) has another registration whose PDF carries a text layer, the two usually
+hold the same text (re-registration, EAEU number next to the national one). The native text then
+replaces the OCR text, but only when the documents are demonstrably the same, doses included: a
+different strength or dose is never adopted
 from another registration's text.
 """
 

@@ -1,8 +1,10 @@
 """Batch driver of OCR1: re-prepare every OCR-derived GRLS instruction with the cleanup stage.
 
-Reads the text manifest, the cached Vision payloads and the previously prepared Markdown; writes a new
+Reads the text manifest, the cached Vision payloads and the previously prepared Markdown; writes a
+new
 prepared workspace (Markdown + `.localmed` extraction/diagnostics, the raw OCR lines kept in the
-extraction JSON) and the overlay `data/build/grls-ocr-quality.jsonl`, one row per PDF checksum, which
+extraction JSON) and the overlay `data/build/grls-ocr-quality.jsonl`, one row per PDF checksum,
+which
 the module builder joins onto the manifest (workspace, kind, quality, confidence). Nothing in the
 manifest, the old workspaces or the raw PDFs is modified.
 """

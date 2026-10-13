@@ -46,15 +46,20 @@ def build_helper(out: Path) -> Path:
     return binary
 
 
-def read_jobs(manifest: Path, raw_root: Path, only_ocr: bool) -> list[tuple[str, Path]]:
+def read_jobs(
+    manifest: Path, raw_root: Path, only_ocr: bool, checksums: frozenset[str] = frozenset()
+) -> list[tuple[str, Path]]:
     jobs: dict[str, Path] = {}
     for line in manifest.read_text(encoding="utf-8").splitlines():
         if not line:
             continue
         row: dict[str, Any] = json.loads(line)
-        if only_ocr and not row.get("ocr"):
-            continue
         checksum = row.get("pdfSha256")
+        if checksums:
+            if str(checksum) not in checksums:
+                continue
+        elif only_ocr and not row.get("ocr"):
+            continue
         target = row.get("target")
         if isinstance(checksum, str) and isinstance(target, str):
             jobs.setdefault(checksum.removeprefix("sha256:"), raw_root / target)
@@ -99,10 +104,20 @@ def main() -> None:
     parser.add_argument("--jobs", type=int, default=6)
     parser.add_argument("--all-pdfs", action="store_true", help="not only rows flagged OCR")
     parser.add_argument("--limit", type=int, default=0)
+    parser.add_argument(
+        "--checksums",
+        type=Path,
+        help="only these PDFs (one `sha256:…` per line): native text layers a lexicon check rejected",
+    )
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
     binary = build_helper(args.out)
-    jobs = read_jobs(args.manifest, args.raw_root, only_ocr=not args.all_pdfs)
+    wanted = (
+        frozenset(line.strip() for line in args.checksums.read_text().splitlines() if line.strip())
+        if args.checksums
+        else frozenset()
+    )
+    jobs = read_jobs(args.manifest, args.raw_root, only_ocr=not args.all_pdfs, checksums=wanted)
     if args.limit:
         jobs = jobs[: args.limit]
     done = failed = cached = pages = 0

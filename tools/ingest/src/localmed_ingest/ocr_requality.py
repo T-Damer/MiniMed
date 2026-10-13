@@ -1,7 +1,8 @@
-"""Re-extract OCR-derived instruction PDFs with line assembly, page-mark handling and cleanup (OCR1).
+"""Re-extract OCR-derived instruction PDFs: line assembly, page marks and cleanup (OCR1).
 
-Input is the raw macOS Vision payload cached by `scripts/grls_ocr_vision_cache.py` (the same engine and
-settings that produced the released OCR texts, plus the per-line confidence they lacked) and the PDF.
+Input is the raw macOS Vision payload cached by `scripts/grls_ocr_vision_cache.py` (the same
+engine and settings that produced the released OCR texts, plus the per-line confidence they
+lacked) and the PDF.
 Output is an `ExtractedSource` in the format the normal preparer writes, so
 `source_registry.render_prepared_markdown` and the pack builder consume it unchanged.
 
@@ -13,7 +14,7 @@ PyMuPDF blocks verbatim):
 2. The normal block classifier (headings, repeated header/footer removal).
 3. `refine_ocr_pages`: scan stamps become `page_mark` blocks; standard instruction headings are
    recognised from the fixed section list; lines are reflowed into paragraphs (line-break hyphens
-   joined against the lexicon); word rules from `ocr_text_cleanup` run; every changed paragraph keeps
+joined against the lexicon); word rules from `ocr_text_cleanup` run; every changed paragraph keeps
    its raw lines in `metadata["lines"]`; paragraphs holding a number the engine may have garbled are
    marked for review. Numbers and units are never edited.
 4. Document quality: recognition confidence, unknown-word ratio against the native-text lexicon and
@@ -26,6 +27,7 @@ import re
 from collections import Counter
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from itertools import pairwise
 from pathlib import Path
 from statistics import median
 from typing import Any, cast
@@ -40,6 +42,7 @@ from .models import (
     ExtractionOptions,
 )
 from .ocr_text_cleanup import (
+    CYRILLIC_LETTERS,
     Lexicon,
     clean_words,
     join_hyphenated,
@@ -98,7 +101,7 @@ def _cells(page: Mapping[str, Any]) -> list[Cell]:
         bbox = raw.get("bbox")
         if not isinstance(text, str) or not text.strip() or not isinstance(bbox, list):
             continue
-        x, y, box_width, box_height = (float(value) for value in bbox)
+        x, y, box_width, box_height = (float(value) for value in cast(list[float], bbox))
         confidence = raw.get("confidence")
         cells.append(
             Cell(
@@ -154,7 +157,7 @@ def assemble_lines(page: Mapping[str, Any]) -> list[Line]:
             lines.extend(_line_of([cell]) for cell in stamps)
         parts: list[str] = [group[0].text]
         columnar = False
-        for previous, current in zip(group, group[1:], strict=False):
+        for previous, current in pairwise(group):
             gap = current.x0 - previous.x1
             if gap > COLUMN_GAP_RATIO * width:
                 parts.append(" | ")
@@ -163,11 +166,11 @@ def assemble_lines(page: Mapping[str, Any]) -> list[Line]:
                 parts.append(" ")
             parts.append(current.text)
         text = "".join(parts).replace(" |  ", " | ")
-        weights = [(cell.confidence, len(cell.text)) for cell in group if cell.confidence is not None]
+        weights = [
+            (cell.confidence, len(cell.text)) for cell in group if cell.confidence is not None
+        ]
         total = sum(weight for _, weight in weights)
-        confidence = (
-            sum(value * weight for value, weight in weights) / total if total else None
-        )
+        confidence = sum(value * weight for value, weight in weights) / total if total else None
         lines.append(
             Line(
                 text=text,
@@ -261,11 +264,11 @@ def _should_break(
     if _LIST_START.match(text) or _FIELD_START.match(text):
         return True
     previous_text = previous.text.rstrip()
-    if _TERMINAL.search(previous_text) and (_UPPER_START.match(text) or x0 - left_margin > 1.5 * pitch):
+    if _TERMINAL.search(previous_text) and (
+        _UPPER_START.match(text) or x0 - left_margin > 1.5 * pitch
+    ):
         return True
-    if previous_text.endswith(":") and _UPPER_START.match(text):
-        return True
-    return False
+    return previous_text.endswith(":") and bool(_UPPER_START.match(text))
 
 
 def _merge(
@@ -336,9 +339,7 @@ def refine_page(
         if fused is not None:
             counters.page_marks += 1
             prepared.append(
-                _page_mark(
-                    current.model_copy(update={"id": f"{current.id}-m"}), "sequence", fused
-                )
+                _page_mark(current.model_copy(update={"id": f"{current.id}-m"}), "sequence", fused)
             )
             current = current.model_copy(update={"text": text})
             if not text.strip():
@@ -348,7 +349,9 @@ def refine_page(
             counters.page_marks += 1
             prepared.append(_page_mark(current, kind, current.text))
             continue
-        canonical = standard_heading(current.text) if current.kind in {"paragraph", "heading"} else None
+        canonical = (
+            standard_heading(current.text) if current.kind in {"paragraph", "heading"} else None
+        )
         if canonical is not None and current.kind != "heading":
             counters.headings_recovered += 1
             current = current.model_copy(
@@ -470,9 +473,10 @@ def grade_quality(
     unknown_ratio: float | None,
     uncertain_per_1000: float,
     word_count: int,
-    thresholds: QualityThresholds = QualityThresholds(),
+    thresholds: QualityThresholds | None = None,
 ) -> tuple[str, list[str]]:
     """`good` / `fair` / `low` with the measured reasons; the app shows its note only for `low`."""
+    thresholds = thresholds or QualityThresholds()
     low: list[str] = []
     fair: list[str] = []
     if word_count < 15:
@@ -482,7 +486,10 @@ def grade_quality(
             low.append(f"mean recognition confidence {mean_confidence:.2f}")
         elif mean_confidence < thresholds.fair_mean_confidence:
             fair.append(f"mean recognition confidence {mean_confidence:.2f}")
-    if low_confidence_ratio is not None and low_confidence_ratio > thresholds.low_confidence_line_ratio:
+    if (
+        low_confidence_ratio is not None
+        and low_confidence_ratio > thresholds.low_confidence_line_ratio
+    ):
         low.append(f"{low_confidence_ratio:.0%} of characters recognised with low confidence")
     if unknown_ratio is not None:
         if unknown_ratio > thresholds.low_unknown_word_ratio:
@@ -500,9 +507,7 @@ def grade_quality(
     return "good", []
 
 
-def ocr_signal_from_confidences(
-    blocks: Sequence[RawBlock], pages: set[int]
-) -> OcrSignal:
+def ocr_signal_from_confidences(blocks: Sequence[RawBlock], pages: set[int]) -> OcrSignal:
     return pdf_import.ocr_signal_from_blocks(list(blocks), "macos-vision", pages)
 
 
@@ -514,6 +519,10 @@ def ocr_signal_from_confidences(
 def _native_page_usable(text: str, lexicon: Lexicon | None) -> bool:
     if len(text.strip()) < MIN_NATIVE_PAGE_CHARACTERS:
         return False
+    letters = [character for character in text if character.isalpha()]
+    cyrillic = sum(1 for character in letters if character.casefold() in CYRILLIC_LETTERS)
+    if len(letters) >= 30 and cyrillic / len(letters) < 0.3:
+        return False  # a text layer with a broken font encoding reads as Latin look-alike noise
     if lexicon is None:
         return True
     words = [w.casefold() for w in re.findall(r"[а-яёА-ЯЁ]{4,}", text)]
@@ -530,11 +539,11 @@ def extract_with_vision(
     *,
     protected: Sequence[str] = (),
     options: ExtractionOptions | None = None,
-    thresholds: QualityThresholds = QualityThresholds(),
+    thresholds: QualityThresholds | None = None,
 ) -> ExtractedSource:
     """The prepared extraction of a scanned (or partly scanned) instruction PDF."""
     configured = options or ExtractionOptions()
-    document = pymupdf.open(source)
+    document: Any = pymupdf.open(source)
     counters = CleanupCounters()
     try:
         raw_blocks: list[RawBlock] = []
@@ -571,7 +580,12 @@ def extract_with_vision(
             if number not in existing:
                 refined.append(
                     ExtractedPage(
-                        page=number, width=width, height=height, blocks=[], character_count=0, low_text=True
+                        page=number,
+                        width=width,
+                        height=height,
+                        blocks=[],
+                        character_count=0,
+                        low_text=True,
                     )
                 )
         refined.sort(key=lambda page: page.page)

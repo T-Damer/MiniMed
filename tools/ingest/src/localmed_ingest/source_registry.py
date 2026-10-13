@@ -99,7 +99,7 @@ def _source_marker(block: ExtractedBlock) -> str:
         if key in block.metadata:
             payload[key] = block.metadata[key]
     confidences = [
-        float(line["confidence"])
+        float(cast(float, line["confidence"]))
         for line in cast(list[dict[str, object]], block.metadata.get("lines") or [])
         if isinstance(line.get("confidence"), (int, float))
     ]
