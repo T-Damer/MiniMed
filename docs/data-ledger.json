@@ -680,6 +680,19 @@
       "modified": "2026-10-11"
     },
     {
+      "path": "output/module-zstd-esklp-atc2-2026-10-13",
+      "class": "RELEASED",
+      "producer": "STATE ATC2: tools/ingest/scripts/build_atc_fill.py derive|apply over the decoded published ЕСКЛП modules, then scripts/reframe-modules.ts --marker atc2 --family esklp",
+      "consumers": [
+        "catalog.preview.json 14 ЕСКЛП group modules (tag esklp-2026-08-28-atc2, version 2026-08-28.atc2)"
+      ],
+      "release": "branch datasets/esklp-2026-08-28-atc2",
+      "rebuild": "decode output/module-zstd-2026-10-01/esklp-compacted into data/build/atc-fill/base; uv run --project tools/ingest python tools/ingest/scripts/build_atc_fill.py derive|apply --out data/build/atc-fill/out; bun scripts/reframe-modules.ts --marker atc2 --family esklp --module-id … --decoded-dir data/build/atc-fill/out/patched --out-dir output/module-zstd-esklp-atc2-2026-10-13",
+      "note": "14 ЕСКЛП modules with completed ATC codes (269 nodes) and flags (676 conflicts); only documents.metadata_json differs from output/module-zstd-2026-10-01/esklp-compacted, which stays as the previous release copy. Decoded copies, patched databases and the Allmed decode were deleted after verification.",
+      "bytes": 68577477,
+      "modified": "2026-10-13"
+    },
+    {
       "path": "data/build/kd1",
       "class": "RELEASED",
       "producer": "STATE KD1: tools/benchmarks/embedding_distill.py texts/targets/project/train/export (student v3), ONNX split in two parts",

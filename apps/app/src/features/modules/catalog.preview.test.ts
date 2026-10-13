@@ -107,11 +107,17 @@ describe('catalog.preview.json', () => {
       }
       expect(module.previewDocumentCount).toBeGreaterThan(0);
       expect(module.artifacts).toHaveLength(1);
-      // ESKLP indexes ship as framed zstd since 0.6.46 (C1); the app decodes them into OPFS.
+      // ESKLP indexes ship as framed zstd since 0.6.46 (C1); the app decodes them into OPFS. The 14
+      // modules whose ATC codes were completed (ATC2) come from the `-atc2` mirror tag; the
+      // antiparasitic group had no code to add and stays on the original one.
+      const tag =
+        module.id === 'minimed.medications.antiparasitic.ru'
+          ? 'esklp-2026-08-28'
+          : 'esklp-2026-08-28-atc2';
       expect(module.artifacts[0]).toMatchObject({
         kind: 'index',
         compression: 'zstd',
-        url: `https://github.com/T-Damer/MiniMed/releases/download/esklp-2026-08-28/${module.id}.db.zst`,
+        url: `https://github.com/T-Damer/MiniMed/releases/download/${tag}/${module.id}.db.zst`,
       });
       expect(module.compatibility.minAppVersion).toBe('0.6.46');
     }

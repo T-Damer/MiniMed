@@ -3934,7 +3934,9 @@ layer), consolidated editions of the federal laws, a clinician review of the par
   implemented and activate when an authorized catalog entry is supplied. Dose/indication coverage and clinical-grade
   diagnostic/dose validation are also not complete. The larger generated clinician-query benchmark
   for Recall@5, MRR@5, and section recall remains pending.
-- The full GRLS export has no confirmed ATC field, so most catalog records remain visibly unclassified.
+- The full GRLS export has no confirmed ATC field; the codes come from ЕСКЛП (83 % of its МНН cards carry one, 59 % a
+  substance-level code before ATC2, see «ATC completion» below). The 668 homeopathic and herbal nodes have no WHO code
+  at all and stay «без АТХ».
 - The installed corpus must abstain from dose output when no supplied source contains the exact regimen.
 - Small local models can satisfy a JSON shape while citing semantically irrelevant exact text; the
   20-case tester-box result is a screening benchmark, not clinical qualification.
@@ -4062,6 +4064,71 @@ Branch-specific next steps (PR #180):
 - Not covered: the unclassified and Allmed packages have no group of their own (only the synthetic
   `none` group when installed substances lack a code); no search inside the tree. E2E:
   `apps/app/e2e/medication-atc-tree.spec.ts` (antiparasitic module, needs the local zstd copy).
+
+### ATC completion for the ЕСКЛП cards — 2026-10-13 (STATE ATC2)
+
+Owner 2026-10-13: «ATC codes could be taken from generics or from other sources». The premise needed a
+measurement first: ЕСКЛП already gives every СМНН node an `atcCode`, but `~` for 899 of 7 672 nodes (homeopathic, herbal,
+biologic) and only a group stub (`L03AX`, `N06BX`: five characters, no substance) for another 1 404. The drug screen, the
+«По группам АТХ» tree and the interaction/comparison indexes read that field of the МНН card
+(`drugAtcCodes`, `atcSubstanceFromDocument`); instruction documents and Allmed entries have no code of their own
+(Allmed: none in the text; ГРЛС instructions: printed in 3 640 of 8 947 texts, not stored in the module).
+
+Coverage, share of records with a code of any level / a group code (level 4-5) / a substance code (level 5):
+
+| Record type | n | before | after |
+|---|---:|---|---|
+| ЕСКЛП СМНН nodes | 7 672 | 88.3 / 85.3 / 70.0 % | 89.8 / 87.2 / 73.1 % |
+| ЕСКЛП МНН cards | 3 324 | 82.9 / 78.6 / 59.2 % | 83.8 / 79.8 / 61.0 % |
+| ЕСКЛП registrations (trade names and КЛП positions) | 29 300 | 89.4 / 87.3 / 73.7 % | 93.0 / 91.2 / 78.5 % |
+| ГРЛС instruction documents, through the ЕСКЛП card of their registrations | 8 947 | 90.0 / 88.1 / 75.7 % | 93.0 / 91.5 / 79.9 % |
+| Allmed entries (3 538 of 4 708 linked to an МНН card) | 4 708 | 73.6 / 72.7 / 65.2 % | 73.8 / 73.1 / 66.4 % |
+
+The code a ГРЛС instruction prints itself covers 40.7 % of the 8 947 texts (33.9 % a substance code); 78 documents have no
+ЕСКЛП card at all (22 print a code). The remaining gap is mostly not fillable: of the 770 nodes no source can code, 668
+are homeopathic or herbal (WHO assigns no code), the others are biologics, vaccines, probiotics and solvents.
+
+Rules (`tools/ingest/src/localmed_ingest/atc_fill.py`, `tools/ingest/scripts/build_atc_fill.py derive|apply`, 29 pytest
+cases; details and provenance fields in DRUG_KNOWLEDGE_PIPELINE.md «ATC code completion»): a code is applied only when
+every source agrees (a longer code that starts with the registry's group stub agrees); sources are `instruction-text`
+(«Код АТХ: …» parsed from the 8 947 prepared instructions; `-ocr` needs a second source), `same-inn` (same normalised
+МНН and dosage-form class, a full ЕСКЛП code elsewhere), `same-inn-other-form` (only for an МНН with one code everywhere),
+`same-inn-instruction`, and `registry-nsi` (the НСИ «АТХ» level-5 name equals the МНН; a name with several route-dependent
+codes only supports a code another source chose). Applied to 269 nodes: 115 filled from `~`, 154 group stubs refined to a
+substance code; first source 130 instruction text, 45 same МНН, 43 НСИ, 41 same МНН other form, 10 same-МНН
+instruction. Agreement of each source with the codes ЕСКЛП already has (the measured precision): instruction text
+95.6 %, OCR text 94.3 %, НСИ 95.8 %, same МНН and form 98.1 %, instruction of the same МНН 96.0 %.
+
+Conflicts are kept, not resolved: **676 nodes** where sources disagree (491 against a full ЕСКЛП code, 176 against a group
+stub, 9 against `~`) keep the registry value and carry `atcFlag: conflict` plus `atcCandidates` (every code with its
+sources), 7 nodes whose only support is an OCR text are flagged `unconfirmed`. 26 of the stub conflicts have two or more
+independent sources agreeing on one substance code (umifenovir `J05AX13` against the registry's `L03AX`): the open
+owner decision is whether such a consensus may replace a stub. Examples of genuine disagreements: methyldopa
+(`C02AB01` registry, `C02AB02` instruction), ribavirin (`J05AB04` against the current WHO `J05AP01`), diclofenac skin forms.
+
+Shipped: the 14 ЕСКЛП group modules with a changed code (antiparasitic has only a flag and is unchanged) as `.db.zst`
+under the new mirror tag `esklp-2026-08-28-atc2` (branch `datasets/esklp-2026-08-28-atc2`, module version
+`2026-08-28.atc2`, `scripts/reframe-modules.ts --family esklp`); only `documents.metadata_json` of 399 cards changed
+(chunks, sections, vectors, FTS byte-identical, checked table by table), and catalog `publishedAt` moved forward. Node
+fields added: `atcCode` (completed), `atcOriginal` (what ЕСКЛП published), `atcSource`/`atcSources`, `atcFlag`,
+`atcCandidates`; card field `atcFill`. The code sheet of the drug screen says «Код дополнен: …» with the registry value
+and «Источники расходятся: …» with the other codes (`AtcCodeSheet`, `drugAtcCodes`); it needs the next app release,
+older apps ignore the new fields.
+
+Not done / known:
+- The interaction (INT1), medication-safety (SAFE1) and drug-comparison (CMP1) indexes are built from
+  `data/build/release-esklp` and were **not** rebuilt: their ATC prefixes drive class-level interaction rules, so new codes
+  must be reviewed there before they ship. Core pointers and the module partition stay as published (a card whose code
+  was filled keeps its module, e.g. a former «без АТХ» card is not moved to its anatomical group; the tree lists
+  installed cards only).
+- Instruction documents without an ЕСКЛП card (78) and the 1 170 Allmed entries without an МНН link get no code: the app
+  shows ATC only from the МНН card. Their text codes are in the ledger (`data/build/atc-fill/out/ledger.jsonl`, rebuilt by `derive`).
+- `registry-nsi` rests on НСИ «АТХ» (WHOCC data; copying for commercial purposes is not allowed, request pending, see
+  NSI_FETCH.md): the source is recorded per code so those codes can be stripped if the answer is no.
+- Vidal and the other local-only sources were not used. The ЕАЭС register (no offline dump, the portal is not scraped here)
+  and combination names in НСИ («цефтазидим и ингибитор бета-лактамаз») are not matched.
+- Not tested: the app release that shows the new sheet text in a browser (unit tests only), installation of the
+  `atc2` modules from the mirror in a clean profile, a physical device.
 
 ### «Лента»: opt-in news feed and site viewer — 2026-10-05 (STATE NEWS1, ADR-0024)
 

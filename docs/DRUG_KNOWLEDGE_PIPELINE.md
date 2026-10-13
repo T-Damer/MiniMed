@@ -240,6 +240,48 @@ Current intents are:
 
 The intent engine is profile-driven: another project can reuse `classifyIntent` with engineering entities, signals, and refinements while keeping the same offline storage/search architecture.
 
+## ATC code completion (ATC2)
+
+ЕСКЛП gives every СМНН node an `atcCode`; `~` means none and a five-character code is a group stub. A deterministic
+post-processing step completes the published ЕСКЛП modules from other sources and records where each code came from.
+It never touches text, vectors or the search index.
+
+```bash
+cd tools/ingest
+uv run python scripts/build_atc_fill.py derive --out DIR   # ledger.jsonl, coverage.json (before/after)
+uv run python scripts/build_atc_fill.py apply  --out DIR   # DIR/patched/*.db: documents.metadata_json only, VACUUMed
+cd ../.. && bun scripts/reframe-modules.ts --marker atc2 --family esklp --decoded-dir DIR/patched \
+  --out-dir output/module-zstd-esklp-atc2-<date> --published-at <UTC now> [--module-id …] [--write-catalog]
+scripts/publish-module-zstd-mirror.sh --family esklp --tag esklp-2026-08-28-atc2 --source-dir output/…/<tag> --create
+```
+
+Input is the decoded published module set (catalog `decodedSha256`), the НСИ «АТХ» rows
+(`data/raw/nsi/atc/v*/rows.json`, `scripts/fetch-nsi-dictionary.sh`) and the prepared instruction Markdown named by
+`grls-instruction-text-manifest.jsonl`. Rules (`localmed_ingest/atc_fill.py`):
+
+1. Normalise every code (Cyrillic look-alikes, the letter O for a zero) and take its level (1-5 by length 1/3/4/5/7).
+2. Candidates per node: `instruction-text` (the code after «АТХ»/«ATC» in the instruction of any registration of the node;
+   `instruction-text-ocr` when the text is OCR), `same-inn` (normalised МНН components + dosage-form class: injection, eye,
+   ear, nasal, inhalation, rectal, vaginal, topical, oral-liquid, oral-solid, else the form text; a full ЕСКЛП code on
+   another node), `same-inn-other-form` (only a node without its own full code, and only when every donor of the МНН agrees on
+   one code, so route-dependent МНН such as hydrocortisone are never filled across routes), `same-inn-instruction`
+   (instruction text of another registration with the same МНН and class) and `registry-nsi` (the level-5 НСИ name equals the
+   МНН, combinations in any order; a name with several codes is an option set that can only support another source's code).
+3. Agreement: codes agree when equal or when one is the group prefix of the other. All candidates agree → the longest code is
+   applied (`filled` from none, `refined` from a stub) if a self-sufficient source supports it (OCR text alone does not:
+   `unconfirmed`). Any disagreement, including with a full ЕСКЛП code, → `conflict`: nothing changes; the node gets
+   `atcFlag` and `atcCandidates` (every code with its sources). An НСИ name with several codes and no other support is
+   `ambiguous`.
+4. Provenance in the card: node `atcCode` (completed), `atcOriginal`, `atcSource` (first of `atcSources`), `atcFlag`,
+   `atcCandidates`; card `atcCodes` recomputed from the nodes, `atcFill` (version `atc-fill-1`, counts, source per code).
+   No field means the code is ЕСКЛП's own.
+
+Measured precision (agreement with the 5 369 full ЕСКЛП codes): instruction text 95.6 %, OCR text 94.3 %, НСИ 95.8 %,
+same МНН and class 98.1 %, instruction of the same МНН 96.0 %. Result of the 2026-10-13 run and the coverage table are in
+CURRENT_STATE.md «ATC completion». Open decision: whether two or more independent sources that agree on one substance code
+may replace a conflicting registry stub (26 nodes). To rerun after a ЕСКЛП refresh, decode the new modules into
+`data/build/atc-fill/base/` and run `derive` and `apply` again; delete `DIR/patched` and the decoded copies afterwards.
+
 ## Update policy
 
 Each update should produce a new immutable source snapshot and content-pack checksum. Do not overwrite historical source text or review metadata. On change:
