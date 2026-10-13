@@ -540,6 +540,37 @@ describe('ScopedMedicalCore', () => {
     expect(searchResultDocumentType(document('diet', 'medical_reference'))).toBe('reference');
   });
 
+  it('keeps in «Все» a drug the core found for a misspelt name, and only that drug', async () => {
+    const spelled = pointerDocument('abacavir-pointer', 'medication', 'medication');
+    const other = pointerDocument('lamivudine-pointer', 'medication', 'medication');
+    const base = coreWithDocuments([spelled, other]);
+    const value = response();
+    base.search.mockResolvedValueOnce({
+      ok: true,
+      value: {
+        ...value,
+        analysis: { ...value.analysis, originalQuery: 'обакавир' },
+        groups: [
+          searchGroup(
+            spelled.id,
+            [
+              {
+                ...searchResult(spelled.id, 'Стандартизированное МНН: АБАКАВИР.'),
+                matchedBranches: ['Поиск по источникам', 'Возможная опечатка: АБАКАВИР'],
+              },
+            ],
+            'АБАКАВИР',
+          ),
+          searchGroup(other.id, [searchResult(other.id, 'ЛАМИВУДИН.')], 'ЛАМИВУДИН'),
+        ],
+      },
+    });
+
+    const result = await new ScopedMedicalCore(base.core, 'all').search(queryRequest('обакавир'));
+
+    expect(result.ok && result.value.groups.map((group) => group.documentId)).toEqual([spelled.id]);
+  });
+
   it('filters core catalog pointers by family in scoped search', async () => {
     const pointers = [
       pointerDocument('medication-pointer', 'medication', 'medication'),

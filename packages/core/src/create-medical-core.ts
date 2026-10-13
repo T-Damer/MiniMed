@@ -36,7 +36,9 @@ import {
   type LexicalQueryBranchPlan,
   type LookupTermGroup,
   lightStemRussian,
+  MEDICATION_SPELLING_LABEL,
   MIN_FUZZY_TOKEN_LENGTH,
+  type NameVocabulary,
   normalizeSurfaceText,
   searchSubjectText,
   tokenize,
@@ -77,7 +79,12 @@ import {
   readOverviewHit,
   withOverviewFirst,
 } from './medication-overview';
-import { nameVariantCandidates, responseNamesQuery } from './name-variant-fallback';
+import {
+  drugSpellingCorrection,
+  nameVariantCandidates,
+  responseNamesQuery,
+  spellingCorrection,
+} from './name-variant-fallback';
 import { QueryDocumentIndex } from './query-document-index';
 import {
   collapseGroupsByTargetDocument,
@@ -101,6 +108,8 @@ export interface CreateMedicalCoreOptions {
   /** S3 switches, on by default; benchmarks turn one off to measure before/after. */
   readonly icdBridge?: boolean | Partial<IcdBridgeTuning>;
   readonly nameVariants?: boolean;
+  /** Roadmap item 19: misspelt words corrected after the name variants; on by default. */
+  readonly spellingCorrection?: boolean;
 }
 
 interface BranchContribution {
@@ -701,7 +710,7 @@ function exactIdentityResult(hit: LexicalHit, terms: readonly string[], spelling
     hit,
     branchIds: new Set([spelling ? 'medication-spelling-identity' : 'exact-identity']),
     branchLabels: new Set([
-      spelling ? 'Возможная опечатка в названии препарата' : 'Точное название',
+      spelling ? `${MEDICATION_SPELLING_LABEL} в названии препарата` : 'Точное название',
     ]),
     terms: new Set(terms),
     branchContributions: [
@@ -1726,12 +1735,34 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
   };
 
   /** Item 3 (S3): see `name-variant-fallback.ts`; the typed query's response stays unless replaced. */
+  // One vocabulary per document index: its names plus the core's exact names of modules not installed.
+  const spellingVocabularies = new WeakMap<QueryDocumentIndex, Promise<NameVocabulary>>();
+  const spellingVocabulary = (index: QueryDocumentIndex): Promise<NameVocabulary> => {
+    let vocabulary = spellingVocabularies.get(index);
+    if (!vocabulary) {
+      vocabulary = (options.store.listCoreIdentityNames?.() ?? Promise.resolve([])).then((names) =>
+        index.nameVocabulary(names),
+      );
+      spellingVocabularies.set(index, vocabulary);
+    }
+    return vocabulary;
+  };
+
   const withNameVariantFallback = async (
     request: SearchRequest,
     primary: SearchResponse,
     index: QueryDocumentIndex,
   ): Promise<Result<SearchResponse, LocalMedError>> => {
-    if (responseNamesQuery(primary, request.query, index)) return ok(primary);
+    if (responseNamesQuery(primary, request.query, index)) {
+      if (options.spellingCorrection === false) return ok(primary);
+      // A drug found for a misspelt name: the box shows the same correction as any other word.
+      const spelled = drugSpellingCorrection(
+        primary,
+        request.query,
+        await spellingVocabulary(index),
+      );
+      return ok(spelled ? { ...primary, queryCorrection: spelled } : primary);
+    }
     for (const candidate of nameVariantCandidates(request.query, index)) {
       const alternative = await runSearch({ ...request, query: candidate.query });
       if (!alternative.ok || !responseNamesQuery(alternative.value, candidate.query, index))
@@ -1742,7 +1773,24 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         queryRewrite: { kind: candidate.kind, query: candidate.query },
       });
     }
-    return ok(primary);
+    // A misspelt word (roadmap item 19): the corrected query replaces the result only when it
+    // names what was corrected to, or found something where the typed query found nothing.
+    if (options.spellingCorrection === false) return ok(primary);
+    const correction = spellingCorrection(request.query, await spellingVocabulary(index));
+    if (!correction) return ok(primary);
+    const corrected = await runSearch({ ...request, query: correction.correctedQuery });
+    if (
+      !corrected.ok ||
+      corrected.value.groups.length === 0 ||
+      (primary.groups.length > 0 &&
+        !responseNamesQuery(corrected.value, correction.correctedQuery, index))
+    )
+      return ok(primary);
+    return ok({
+      ...corrected.value,
+      elapsedMs: primary.elapsedMs + corrected.value.elapsedMs,
+      queryCorrection: correction,
+    });
   };
 
   return {

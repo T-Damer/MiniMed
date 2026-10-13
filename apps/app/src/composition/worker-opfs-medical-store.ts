@@ -241,6 +241,10 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
     return this.call('lookupCoreIdentities', [query]);
   }
 
+  public listCoreIdentityNames(): Promise<readonly string[]> {
+    return this.call('listCoreIdentityNames', []);
+  }
+
   public listSearchDocuments(): Promise<readonly SearchDocumentDescriptor[]> {
     return this.call('listSearchDocuments', []);
   }

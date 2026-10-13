@@ -1,4 +1,6 @@
 import {
+  buildNameVocabulary,
+  type NameVocabulary,
   normalizeIcd10Lookalikes,
   normalizeSurfaceText,
   searchSubjectText,
@@ -15,6 +17,7 @@ export class QueryDocumentIndex {
   private readonly shortTitles = new Map<string, Set<string>>();
   private readonly documents: readonly SearchDocumentDescriptor[];
   private namePrefixes: ReadonlySet<string> | undefined;
+  private names: NameVocabulary | undefined;
   private latinNames: ReadonlyMap<string, readonly string[]> | undefined;
   private icdCards: ReadonlyMap<string, readonly string[]> | undefined;
   private linkedProducts: ReadonlyMap<string, readonly string[]> | undefined;
@@ -88,6 +91,22 @@ export class QueryDocumentIndex {
     return this.namePrefixes.has(word.slice(0, NAME_PREFIX_LENGTH));
   }
 
+  /**
+   * Every word of the document titles, short titles, aliases and terminology names, plus
+   * `extraNames` (the core's exact source names of modules not installed), weighted by the names
+   * containing it: what a misspelt word is corrected to (`correctWord`). Built on the first use;
+   * later `extraNames` are ignored.
+   */
+  nameVocabulary(extraNames: readonly string[] = []): NameVocabulary {
+    this.names ??= buildNameVocabulary([
+      ...this.documents.map((document) =>
+        normalizeSurfaceText([...documentNames(document), ...terminologyNames(document)].join(' ')),
+      ),
+      ...extraNames.map(normalizeSurfaceText),
+    ]);
+    return this.names;
+  }
+
   /** Titles of the documents whose declared Latin name (`nameLat`) is `query`, e.g. «Nurofen». */
   titlesForLatinName(query: string): readonly string[] {
     this.latinNames ??= buildLatinNames(this.documents);
@@ -124,20 +143,32 @@ function nameWords(value: string): readonly string[] {
     .filter((word) => word.length >= 3);
 }
 
+/** The title, short title and declared and navigation aliases of a document. */
+function documentNames(document: SearchDocumentDescriptor): readonly string[] {
+  const names = [document.title, document.shortTitle ?? ''];
+  for (const key of ['declaredAliases', 'navigationAliases'] as const) {
+    const aliases = document.metadata[key];
+    if (Array.isArray(aliases))
+      for (const alias of aliases) if (typeof alias === 'string') names.push(alias);
+  }
+  return names;
+}
+
+/** Names a terminology projection gives the document (`metadata.terminology.names`). */
+function terminologyNames(document: SearchDocumentDescriptor): readonly string[] {
+  const terminology = document.metadata['terminology'];
+  if (typeof terminology !== 'object' || terminology === null) return [];
+  const names: unknown = Reflect.get(terminology, 'names');
+  return Array.isArray(names) ? names.filter((name) => typeof name === 'string') : [];
+}
+
 function buildNameWordPrefixes(
   documents: readonly SearchDocumentDescriptor[],
 ): ReadonlySet<string> {
   const prefixes = new Set<string>();
-  for (const document of documents) {
-    const names = [document.title, document.shortTitle ?? ''];
-    for (const key of ['declaredAliases', 'navigationAliases'] as const) {
-      const aliases = document.metadata[key];
-      if (Array.isArray(aliases))
-        for (const alias of aliases) if (typeof alias === 'string') names.push(alias);
-    }
-    for (const name of names)
+  for (const document of documents)
+    for (const name of documentNames(document))
       for (const word of nameWords(name)) prefixes.add(word.slice(0, NAME_PREFIX_LENGTH));
-  }
   return prefixes;
 }
 

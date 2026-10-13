@@ -79,11 +79,13 @@ import {
   SOURCE_COLLECTIONS,
   searchModeForScope,
 } from '@/features/search/ScopedMedicalCore';
+import { SearchCorrectionOverlay } from '@/features/search/SearchCorrectionOverlay';
 import { SearchExamples } from '@/features/search/SearchExamples';
 import { type SearchMeaning, SearchMeaningChoices } from '@/features/search/SearchMeaningChoices';
 import { SearchResultGroupCard } from '@/features/search/SearchResultGroupCard';
 import { SearchResultsSkeleton } from '@/features/search/SearchResultsSkeleton';
 import { SearchSourceNote } from '@/features/search/SearchSourceNote';
+import { correctionPieces } from '@/features/search/search-correction';
 import { sameSearchOutcome } from '@/features/search/search-refresh';
 import {
   presentSourceChunkText,
@@ -394,6 +396,21 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       )
       .slice(0, 8);
   });
+
+  // A misspelt word the search corrected, drawn over the field while the box still holds it.
+  const correction = createMemo(() => {
+    const corrected = props.scope !== 'personal' ? response()?.queryCorrection : undefined;
+    return corrected ? correctionPieces(query(), corrected.corrections) : null;
+  });
+
+  function applyCorrection(text: string): void {
+    updateQuery(text, false);
+    void runSearch(text, true);
+    if (!textarea) return;
+    textarea.focus();
+    textarea.setSelectionRange(text.length, text.length);
+    resizeTextarea(textarea);
+  }
 
   const activeAnalysis = createMemo(() => {
     const searched = response();
@@ -1082,6 +1099,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             }}
             id="clinical-query"
             class="query-sheet__input"
+            classList={{ 'query-sheet__input--corrected': correction() !== null }}
             rows={1}
             data-testid="search-input"
             data-search-ready={props.searchAllowed === false ? 'false' : 'true'}
@@ -1111,6 +1129,17 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             autocapitalize="sentences"
             spellcheck={false}
           />
+          <Show when={correction()}>
+            {(pieces) =>
+              textarea && (
+                <SearchCorrectionOverlay
+                  field={textarea}
+                  pieces={pieces()}
+                  onApply={applyCorrection}
+                />
+              )
+            }
+          </Show>
           <Show when={query().length > 0}>
             <button
               class="query-sheet__clear"

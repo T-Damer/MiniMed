@@ -1,6 +1,6 @@
 # Current state
 
-> Updated: 12 October 2026
+> Updated: 13 October 2026
 > Released version: `0.6.47` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
@@ -19,6 +19,29 @@ Detailed history, moved verbatim on 2026-09-24:
   baseline and runtime benchmark up to the 0.6.39 release.
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
+
+## Misspelt words in search — 2026-10-13 (STATE TYPO1)
+
+Owner report: «Помоач» (for «Помрач») and «Оменция» (for «Аменция») found nothing, although most
+typos work. Cause: lookup matches words from their start, so a late slip is forgiven and a slip in
+the first letters is not. Roadmap item 19 ([SEARCH_ROADMAP.md](SEARCH_ROADMAP.md)), design in
+[SEARCH_ARCHITECTURE.md](SEARCH_ARCHITECTURE.md) «Misspelt words».
+
+- Core: after the name-variant fallback, a word that begins no name is corrected to the closest
+  beginning of a title / alias / terminology / exact source name (weighted edit distance; a
+  neighbouring ЙЦУКЕН or QWERTY key, a sound-alike letter, a sign or a doubled letter is half an
+  edit); the corrected query replaces the response only when it names what it was corrected to, or
+  the typed query found nothing. New storage method `listCoreIdentityNames` (SQLite, Capacitor, OPFS
+  worker, multi-pack).
+- «Все» kept a drug only when its title stem was in the query, so a drug the medication spelling
+  branch found («обакавир», «цефтриаксн») was dropped; it is kept now (roadmap item 13 closed).
+- Search box: the typed text is drawn over the field with the wrong letters struck out in red and
+  the right ones added in green; a tap puts the corrected text in the field
+  (`SearchCorrectionOverlay`).
+- Measured (`run-typo-queries.ts`, 929 generated cases + 220 controls): first-letter slips hit@5
+  0.328 → 0.984; controls unchanged 220/220; no case lost a hit.
+- Not tested: a phone (vocabulary build ~0.4 s on a laptop on the first miss, then cached), the
+  Android WebView rendering of the overlay; body-text words are not corrected.
 
 ## MedSolutions follow-up: diets, code layer, modules from a file — 2026-10-12 (STATE MS2)
 

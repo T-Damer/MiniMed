@@ -26,6 +26,7 @@ import type {
 import {
   hasWordPrefix,
   lightStemRussian,
+  MEDICATION_SPELLING_LABEL,
   normalizeSurfaceText,
   searchSubjectText,
   tokenize,
@@ -321,6 +322,13 @@ function dropIcd11Groups(response: SearchResponse): SearchResponse {
     : response;
 }
 
+/** The core matched the group's document as a likely misspelling of the typed drug name. */
+function namedBySpelling(group: SearchResultGroup): boolean {
+  return group.results.some((result) =>
+    result.matchedBranches.some((branch) => branch.startsWith(MEDICATION_SPELLING_LABEL)),
+  );
+}
+
 function filterMedicationDocuments(
   response: SearchResponse,
   documents: readonly SearchDocumentDescriptor[],
@@ -356,7 +364,9 @@ function filterMedicationDocuments(
       const document = documentsById.get(group.documentId);
       const metadata = document?.metadata as SearchDocumentKindMetadata | undefined;
       if (!document || !isMedicationSearchDocument(document)) return [group];
-      if (excludeByIntent) return titleNamedInQuery(group.title) ? [group] : [];
+      // A drug the core found for a misspelt name («обакавир») is named too, if not by its letters.
+      if (excludeByIntent)
+        return titleNamedInQuery(group.title) || namedBySpelling(group) ? [group] : [];
       if (!requireSameResult) return [group];
       const isMedicationPointer =
         document.sourceType === 'core_catalog_pointer' && metadata?.catalogFamily === 'medication';

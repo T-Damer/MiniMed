@@ -455,6 +455,15 @@ export class CapacitorMedicalStore implements MedicalStore {
     );
   }
 
+  public async listCoreIdentityNames(): Promise<readonly string[]> {
+    this.assertInitialized();
+    if (!(await this.query("SELECT 1 FROM sqlite_master WHERE name = 'core_identities'")).length)
+      return [];
+    return (await this.query('SELECT DISTINCT name FROM core_identities ORDER BY name')).map(
+      (row) => readString(row, 'name'),
+    );
+  }
+
   public async listDocumentIdentities(): Promise<readonly DocumentIdentity[]> {
     this.assertInitialized();
     this.identities ??= this.query(

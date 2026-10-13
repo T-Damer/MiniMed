@@ -72,6 +72,8 @@ export interface DocumentIdentity {
 
 export interface MedicalStore {
   lookupCoreIdentities?(query: string): Promise<readonly CoreIdentityHit[]>;
+  /** Every distinct exact source name of `core_identities`: words a misspelt query is corrected to. */
+  listCoreIdentityNames?(): Promise<readonly string[]>;
   reference?(request: DefinitionReferenceRequest): Promise<DefinitionReferenceReply>;
   initialize(seed?: ContentPackSeed): Promise<StorageHealth>;
   getHealth(): Promise<StorageHealth>;

@@ -40,11 +40,14 @@ it('reads exact source identities without FTS, preserves meanings and rejects ma
       ),
     ).toHaveLength(2);
     expect(await store.lookupCoreIdentities('Н')).toEqual([]);
+    // One name for both targets: the spelling vocabulary needs each name once.
+    expect(await store.listCoreIdentityNames()).toEqual(['НА']);
     expect(db.selectValue('SELECT count(*) FROM chunks')).toBe(initialChunks);
     db.exec("UPDATE core_identity_targets SET target_json='{}' WHERE target_id='one'");
     await expect(store.lookupCoreIdentities('на')).rejects.toThrow();
     db.exec('DROP TABLE core_identities');
     expect(await store.lookupCoreIdentities('НА')).toEqual([]);
+    expect(await store.listCoreIdentityNames()).toEqual([]);
   } finally {
     await store.close();
   }

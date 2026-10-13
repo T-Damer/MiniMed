@@ -313,22 +313,19 @@ export interface SearchDiagnostics {
 }
 
 /**
- * One corpus-vocabulary spelling correction applied to a single unknown query word, and the
- * resulting query actually searched. Populated only by the offline corpus-typo fallback (see
- * `@localmed/search-lexical`'s `correctQueryAgainstVocabulary`): the *original* query returned
- * nothing useful, every corrected word is unknown to the corpus vocabulary on its own, and the
- * *corrected* query is what actually produced `SearchResponse.groups`. Never applied when the
- * original query already found something — this is strictly a last-resort fallback, not a
- * silent rewrite of a working query.
+ * One misspelt query word and what it was corrected to (roadmap item 19): the closest beginning of
+ * a title, alias, terminology or exact source name of the mounted corpus
+ * (`@localmed/search-lexical` `correctWord`). Present only when the typed query named nothing and
+ * the corrected query did, or when drugs were found for a misspelt drug name; a query that already
+ * matches is never corrected.
  *
- * UI copy convention (not enforced here — no UI files are part of this contract): render as
- * «Показаны результаты по: {correctedQuery}», the same phrasing already used for the existing
- * medication-spelling fallback's alternative-name branches.
+ * UI: the search box shows the typed text with the wrong letters struck out and the right letters
+ * added (`search-correction.ts`); tapping it puts the corrected text in the box.
  */
 export interface QueryWordCorrection {
   readonly original: string;
   readonly corrected: string;
-  /** RapidFuzz OSA `normalized_similarity` in `[0, 1]` between `original` and `corrected`. */
+  /** Similarity in `[0, 1]` between `original` and `corrected` (1 − weighted edits / length). */
   readonly score: number;
 }
 
@@ -386,7 +383,7 @@ export interface SearchResponse {
   readonly suggestions: readonly SearchSuggestion[];
   readonly groups: readonly SearchResultGroup[];
   readonly diagnostics: SearchDiagnostics;
-  /** Present only when the corpus-typo fallback corrected and re-ran the query; see above. */
+  /** Present only when misspelt words were corrected; see `QueryCorrection`. */
   readonly queryCorrection?: QueryCorrection;
   /** Present only when the layout / transliteration fallback replaced the typed query. */
   readonly queryRewrite?: QueryRewrite;

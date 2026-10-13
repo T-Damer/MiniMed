@@ -95,7 +95,8 @@ export async function resolveSafetyCandidate(
   });
   if (!result.ok) return null;
   const typed = wordsOf(text);
-  const rewritten = result.value.queryRewrite !== undefined;
+  const rewritten =
+    result.value.queryRewrite !== undefined || result.value.queryCorrection !== undefined;
   for (const group of result.value.groups.slice(0, CHECKED_GROUPS)) {
     const found = candidateOfGroup(index, group);
     if (!found) continue;

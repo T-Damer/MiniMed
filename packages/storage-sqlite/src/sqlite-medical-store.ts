@@ -1061,6 +1061,15 @@ export class SqliteMedicalStore implements MedicalStore {
     );
   }
 
+  public async listCoreIdentityNames(): Promise<readonly string[]> {
+    this.assertInitialized();
+    if (!this.database.selectValue("SELECT 1 FROM sqlite_master WHERE name = 'core_identities'"))
+      return [];
+    return queryRows(this.database, 'SELECT DISTINCT name FROM core_identities ORDER BY name').map(
+      (row) => readString(row, 'name'),
+    );
+  }
+
   public async listDocumentIdentities(): Promise<readonly DocumentIdentity[]> {
     this.assertInitialized();
     // `current_version_id` is the last column of `documents`, behind the metadata blob: reading it

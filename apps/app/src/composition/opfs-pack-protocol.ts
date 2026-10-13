@@ -14,6 +14,7 @@ export type OpfsPackWorkerMethod =
   | 'getHealth'
   | 'inspectIntegrity'
   | 'listDocumentIdentities'
+  | 'listCoreIdentityNames'
   | 'lookupCoreIdentities'
   | 'listSearchDocuments'
   | 'listNavigationDocuments'
@@ -90,6 +91,7 @@ export type OpfsPackWorkerCallArgs = {
   readonly getHealth: readonly [];
   readonly inspectIntegrity: readonly [scan?: IntegrityScan];
   readonly listDocumentIdentities: readonly [];
+  readonly listCoreIdentityNames: readonly [];
   readonly lookupCoreIdentities: readonly [query: string];
   readonly listSearchDocuments: readonly [];
   readonly listNavigationDocuments: readonly [];

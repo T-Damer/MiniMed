@@ -49,7 +49,11 @@ async function searchGroups(
     includeSuggestions: false,
   });
   if (!result.ok) return null;
-  return { groups: result.value.groups, rewritten: result.value.queryRewrite !== undefined };
+  return {
+    groups: result.value.groups,
+    rewritten:
+      result.value.queryRewrite !== undefined || result.value.queryCorrection !== undefined,
+  };
 }
 
 /** «Нурофен · ИБУПРОФЕН» → the product and the substance as the search titles them. */

@@ -1,0 +1,88 @@
+/* Spelling correction drawn over the search field (roadmap item 19). */
+:root {
+  --search-correction-removed-text: #9a3b2f;
+  --search-correction-removed-mark: rgb(196 72 56 / 18%);
+  --search-correction-added-text: #2f6b3f;
+  --search-correction-added-mark: rgb(86 168 104 / 28%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --search-correction-removed-text: #f0a597;
+    --search-correction-removed-mark: rgb(217 133 120 / 22%);
+    --search-correction-added-text: #a8dcb3;
+    --search-correction-added-mark: rgb(130 200 145 / 24%);
+  }
+}
+
+:root[data-theme="dark"] {
+  --search-correction-removed-text: #f0a597;
+  --search-correction-removed-mark: rgb(217 133 120 / 22%);
+  --search-correction-added-text: #a8dcb3;
+  --search-correction-added-mark: rgb(130 200 145 / 24%);
+}
+
+/* An intentional overlay: it lies exactly over the field, whose own text is hidden meanwhile. */
+.search-correction {
+  position: absolute;
+  z-index: 1;
+  /* A button centres its content vertically; the text must start where the field's does. */
+  display: flex;
+  align-items: flex-start;
+  overflow: hidden;
+  box-sizing: border-box;
+  margin: 0;
+  border: 0;
+  color: var(--theme-text, var(--ink));
+  background: transparent;
+  text-align: left;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  cursor: text;
+  animation: search-correction-in var(--motion-base) var(--motion-ease-out);
+}
+
+.search-correction:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: -2px;
+}
+
+.search-correction__text {
+  display: block;
+  min-width: 0;
+  flex: 1;
+  font: inherit;
+}
+
+.search-correction__piece--removed {
+  border-radius: 0.1875rem;
+  color: var(--search-correction-removed-text);
+  background: var(--search-correction-removed-mark);
+  text-decoration: line-through;
+  text-decoration-thickness: 0.09em;
+}
+
+.search-correction__piece--added {
+  border-radius: 0.1875rem;
+  color: var(--search-correction-added-text);
+  background: var(--search-correction-added-mark);
+  animation: search-correction-added-in var(--motion-slow) var(--motion-ease-out);
+}
+
+.query-sheet__input.query-sheet__input--corrected {
+  color: transparent;
+  caret-color: transparent;
+}
+
+@keyframes search-correction-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes search-correction-added-in {
+  from {
+    opacity: 0;
+    background: transparent;
+  }
+}

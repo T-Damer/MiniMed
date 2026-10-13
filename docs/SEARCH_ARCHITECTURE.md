@@ -110,6 +110,42 @@ anything:
 `icd10Codes` and `mkbCode` into `listSearchDocuments`/`listNavigationDocuments` for this and for
 the bridge below.
 
+### Misspelt words (TYPO1, item 19)
+
+Matching from the start of a word already forgives a slip late in it («пиелонифрит» finds
+«пиелонефрит» by its first letters); a slip in the first letters («оменция», «Помоач») found nothing.
+`withNameVariantFallback` tries the spelling correction after the name variants, under the same
+rule — only when the typed query names nothing:
+
+1. `spellingCorrection` (`name-variant-fallback.ts`) corrects every letter word of four letters or
+   more that begins no name of the vocabulary (nor does its stem without a vowel-led ending of up to
+   two letters, so «аменцией» is a word form). `correctWord` (`packages/search-lexical/src/word-typo.ts`)
+   walks an implicit trie over the sorted vocabulary with a weighted edit distance and reads the
+   cost at every depth, so the typed word is matched to the *beginning* of a name: «помоач» →
+   «помрач», not to a whole word. A neighbouring key (ЙЦУКЕН, QWERTY), a sound-alike letter
+   (о/а, е/и, и/ы, з/с, д/т, б/п…), a soft or hard sign or a doubled letter costs 0.5; any other
+   edit 1; two swapped letters 0.6; a typed ending of up to two letters kept after a corrected stem
+   0.25 per letter («оменции» → «аменции»). Budget: 0.5 up to five letters, 1 up to eight, 1.5 up
+   to eleven, 2 beyond. Ties go to a whole name, then the length nearest the typed one, then the
+   name more documents carry.
+2. The vocabulary (`QueryDocumentIndex.nameVocabulary`, built on first use, ~47k words over the
+   released packs, 0.4 s on a laptop): words of titles, short titles, declared and navigation aliases,
+   terminology names, and the core's exact source names of modules not installed
+   (`listCoreIdentityNames`, e.g. the dictionary entry «Сумеречное помрачение сознания»). Body text
+   is not in it: OCR damage and rare forms would become corrections.
+3. The corrected query is searched; it replaces the response when it names what it was corrected
+   to (`responseNamesQuery`), or when the typed query found nothing at all. The response carries
+   `queryCorrection` (contract `QueryCorrection`).
+4. A drug the medication spelling branch already found («обакавир» → АБАКАВИР) gets the same
+   `queryCorrection` when the word correction agrees with the drug name the branch matched
+   (`drugSpellingCorrection`), so every correction looks the same on screen. `ScopedMedicalCore`
+   keeps such drug groups in «Все» (`namedBySpelling`); before, a drug was kept there only when
+   its title stem was in the query, which a misspelt name never is.
+5. The search box draws the typed text over the field with the wrong letters struck out in red and
+   the right letters added in green (`SearchCorrectionOverlay`, letter alignment in
+   `search-correction.ts`); a tap puts the corrected text in the field. `createMedicalCore({
+   spellingCorrection: false })` switches it off for measurements.
+
 ## 3. Lexical retrieval
 
 `runBranchSearches` calls `store.search({ftsQuery, terms, filters, limit, diversifyDocuments})`
@@ -254,6 +290,7 @@ that cover it through source codes only:
 | `tools/benchmarks/retrieval-icd-queries.json` | Q1 real-language queries with ICD-based КР relevance |
 | `tools/benchmarks/src/run-icd-bridge.ts` | S3 item 4: Q1 through `ScopedMedicalCore('diagnosis' \| 'guidelines')`, bridge off/on, optional `--packs=<КР modules>`, `--e5-model-dir=`, `--tunings='[…]'` |
 | `tools/benchmarks/src/build-name-variant-queries.ts` → `name-variant-queries.json`, `run-name-variants.ts` | S3 item 3: layout / Latin-spelling variants of real names plus negative controls, fallback off/on, hit@1/hit@5 and latency |
+| `tools/benchmarks/src/build-typo-queries.ts` → `typo-queries.json`, `run-typo-queries.ts` | item 19: one slip (neighbour key, sound-alike vowel, unrelated letter in the first three letters; a late neighbour key) in real names, plus controls that must not change, correction off/on |
 | `S3_OFF=1` (any `openRealCorpus` benchmark), `S3_BRIDGE_JSON='{…}'` | state before S3 / tuning override for `run-real-corpus`, `run-doctor-lookup`, `run-owner-queries` |
 | `bun run benchmark:source-names` (`source-name-queries.json`) | source-name intent (read as expected, results inside the source, negatives stay plain) and the drug overview line; `--check` fails on any miss |
 | `tools/benchmarks/src/run-semantic-kr.ts` | Q1 over the embedded КР packs through MedicalCore: lexical / semantic / hybrid, `--grid` over fusion constants |

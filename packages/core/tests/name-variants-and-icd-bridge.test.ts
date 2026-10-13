@@ -83,6 +83,15 @@ const SEED = ContentPackSeedSchema.parse({
     fixtureDocument('ref.covid', 'COVID-19 новая коронавирусная инфекция', 'COVID-19. Описание.', {
       catalogFamily: 'reference',
     }),
+    fixtureDocument('ref.amentia', 'Аменция', 'Аменция — тяжёлое помрачение сознания.', {
+      catalogFamily: 'reference',
+    }),
+    fixtureDocument(
+      'ref.twilight',
+      'Сумеречное помрачение сознания',
+      'Сумеречное помрачение сознания: внезапное сужение сознания.',
+      { catalogFamily: 'reference' },
+    ),
     fixtureDocument(
       'card.j20.9',
       'J20.9 Острый бронхит неуточненный, МКБ-10',
@@ -109,7 +118,9 @@ const SEED = ContentPackSeedSchema.parse({
 });
 
 const cores: ReturnType<typeof createMedicalCore>[] = [];
-function createCore(options: { nameVariants?: boolean; icdBridge?: boolean } = {}) {
+function createCore(
+  options: { nameVariants?: boolean; icdBridge?: boolean; spellingCorrection?: boolean } = {},
+) {
   const core = createMedicalCore({
     store: new InMemoryMedicalStore(),
     seed: SEED,
@@ -162,6 +173,36 @@ describe('name-variant fallback', () => {
     const response = await lookup(createCore(), 'qwertyuiop');
     expect(response.ok).toBe(true);
     if (response.ok) expect(response.value.queryRewrite).toBeUndefined();
+  });
+});
+
+describe('spelling correction (roadmap item 19)', () => {
+  it.each([
+    ['оменция', 'аменция', 'ref.amentia'],
+    ['Помоач', 'помрач', 'ref.twilight'],
+  ])('corrects %s to %s and finds the name', async (query, corrected, expected) => {
+    const response = await lookup(createCore(), query);
+    expect(response.ok).toBe(true);
+    if (!response.ok) return;
+    expect(response.value.queryCorrection?.correctedQuery).toBe(corrected);
+    expect(response.value.queryCorrection?.corrections).toEqual([
+      expect.objectContaining({ original: query.toLowerCase(), corrected }),
+    ]);
+    expect(response.value.groups.map((group) => group.documentId)).toContain(expected);
+  });
+
+  it('never corrects a query that already names something', async () => {
+    for (const query of ['аменция', 'помрачение', 'метформин']) {
+      const response = await lookup(createCore(), query);
+      expect(response.ok).toBe(true);
+      if (response.ok) expect(response.value.queryCorrection).toBeUndefined();
+    }
+  });
+
+  it('leaves the response alone when switched off', async () => {
+    const response = await lookup(createCore({ spellingCorrection: false }), 'оменция');
+    expect(response.ok).toBe(true);
+    if (response.ok) expect(response.value.queryCorrection).toBeUndefined();
   });
 });
 

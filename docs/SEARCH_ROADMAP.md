@@ -21,6 +21,7 @@ and the list is updated when the proposal is better. How search works today:
 |---|---|---:|---:|---|
 | Exact names, codes (app path) | `benchmark:real:release` lookup; `benchmark:doctor-lookup` | R@1 0.803, R@5 0.934; doctor R@5 0.7 → 0.9 → 1.0 (S3) | — (lexical by design) | S2, S3 done |
 | Name on the wrong keyboard layout or in Latin letters | `name-variant-queries.json`, 720 generated | hit@1 0.063, hit@5 0.094 → 0.947 / 0.956 | — | S3 item 3 shipped |
+| Name with one slip in the first letters (neighbour key, sound-alike, other) | `typo-queries.json`, 698 generated | hit@1 0.239, hit@5 0.328 → 0.845 / 0.984 | — | item 19 shipped |
 | Owner queries («Все», lookup) | `owner-queries.json`, 54 | hit@1 0.167, hit@5 0.444 (rush 0.581, thoughtful 0.261) → 0.278, 0.574 (0.774, 0.304) | — | S3 items 3–4 |
 | Diagnosis phrase → КР | Q1 RuCCoD, test | R@5 0.20 (KR packs) | 0.70 | shipped 0.6.48 |
 | Diagnosis phrase → КР through the МКБ card | Q1 RuCCoD, test, `run-icd-bridge.ts` | core only 0.417 → 0.536; core + mkb.db 0.298 → 0.476; 723 КР modules 0.274 → 0.476 | 0.643 → 0.643 (no change) | S3 item 4 shipped (lexical) |
@@ -94,8 +95,10 @@ hit@5 0.444 (rush 0.581, thoughtful 0.261), and with S3 0.278 / 0.574 (0.774, 0.
     the identical title, and МКБ nodes crowd the top five («жаропонижающее ребенку» → poisoning codes
     T39/X40). Candidate: prefer the recommendation for equal title matches (owner decision pending;
     measure on `owner-queries.json` and the lookup gate first).
-13. **Missing-letter drug typo** («цефтриаксн» finds nothing relevant): spelling candidates for
-    names one letter shorter than a registered name (`medication-spelling.ts` starts at five letters).
+13. **Missing-letter drug typo** («цефтриаксн» finds nothing relevant) — done with item 19
+    (2026-10-13): the core's medication spelling branch already found the drug; «Все» dropped it
+    because its title stem was not in the query. `ScopedMedicalCore` now keeps drugs that branch
+    matched.
 14. **Case vignettes** («Внезапная слабость в правой руке и нарушение речи два часа назад»): route
     long case-like queries to the clinical analysis / e5 path automatically; same ground as item 5 and 8.
 
@@ -149,6 +152,24 @@ hit@5 0.444 (rush 0.581, thoughtful 0.261), and with S3 0.278 / 0.574 (0.774, 0.
     benchmark:source-names`): first five results from the named source 0.53 → 1.00, expected document 8/9 → 9/9, negatives
     13/13 plain. Left: «Видаль» (not in the corpus), publishers of a clinical recommendation (not in the catalogue metadata),
     web addresses as aliases (not in the search projection). Details: [`SEARCH.md`](SEARCH.md), «Search by source name».
+
+19. **Misspelt words in any name** (TYPO1, 2026-10-13; owner: «Помоач» for «Помрач», «Оменция» for
+    «Аменция» found nothing). Compared with the list first: extends item 3 (another way a typed name
+    misses, same «only when the typed query names nothing» rule and the same fallback) and absorbs
+    item 13; no ranking item changes. Matching from the start of a word already forgave a late slip;
+    a slip in the first letters found nothing. A weighted edit distance to the beginning of every
+    title, alias, terminology and exact source name (neighbouring key or sound-alike letter = half an
+    edit) corrects the word, the corrected query replaces the response only when it names the result,
+    and the search box shows the wrong letters struck out and the right ones added. Measured on
+    `typo-queries.json` (`bun tools/benchmarks/src/run-typo-queries.ts`: 698 real names with one slip
+    in the first three letters, 231 with a late slip, 220 controls): first-letter slips hit@5 0.328 →
+    0.984 (0.794 from the «Все» drug fix alone), hit@1 0.239 → 0.845; disease articles hit@5 0.36 →
+    0.94, КР 0.92 → 1.00, trade names 0.88 → 1.00; controls (codes, Latin terms, correct names, the
+    owner's 54 queries) unchanged 220/220; no case lost a hit; corrected queries p95 0.64 → 1.3 s on a
+    laptop (one more search, only after a miss). Left: body-text words are not corrected (no
+    vocabulary of them on the device); a corrected multi-word query that finds nothing as a whole
+    («лечение оменции») stays uncorrected; not measured on a phone. Design:
+    [`SEARCH_ARCHITECTURE.md`](SEARCH_ARCHITECTURE.md) «Misspelt words».
 
 ## Measured and rejected
 

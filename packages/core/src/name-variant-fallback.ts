@@ -1,6 +1,14 @@
-import type { QueryRewriteKind, SearchResponse } from '@localmed/contracts';
+import type {
+  QueryCorrection,
+  QueryRewriteKind,
+  QueryWordCorrection,
+  SearchResponse,
+} from '@localmed/contracts';
 import {
+  correctWord,
   isCloseToken,
+  MEDICATION_SPELLING_LABEL,
+  type NameVocabulary,
   nameQueryVariants,
   normalizeSurfaceText,
   searchSubjectText,
@@ -91,4 +99,67 @@ export function nameVariantCandidates(
       .filter((variant) => plausible(variant.query))
       .map((variant): NameVariantCandidate => ({ kind: variant.kind, query: variant.query })),
   ].slice(0, MAX_SEARCHED_VARIANTS);
+}
+
+const LETTER_WORD = /[a-zа-я]+/gu;
+
+/**
+ * The typed query with every misspelt word corrected to the closest beginning of a title or alias
+ * word of the mounted corpus (roadmap item 19, `correctWord`), or null when no word needs or allows
+ * a correction. A word that begins some name is left as typed; digits and short words are never
+ * touched. The caller searches the corrected query only after the typed one named nothing.
+ */
+export function spellingCorrection(
+  query: string,
+  vocabulary: NameVocabulary,
+): QueryCorrection | null {
+  const normalized = normalizeSurfaceText(query);
+  const corrections: QueryWordCorrection[] = [];
+  let corrected = '';
+  let cursor = 0;
+  for (const match of normalized.matchAll(LETTER_WORD)) {
+    const word = match[0];
+    const before = normalized[match.index - 1];
+    const after = normalized[match.index + word.length];
+    // «b12», «4-5» and similar tokens are codes and numbers, not names.
+    if (/[0-9]/u.test(`${before ?? ''}${after ?? ''}`)) continue;
+    const found = correctWord(word, vocabulary);
+    if (!found) continue;
+    corrected += normalized.slice(cursor, match.index) + found.corrected;
+    cursor = match.index + word.length;
+    corrections.push({
+      original: word,
+      corrected: found.corrected,
+      score: Math.max(0, 1 - found.cost / word.length),
+    });
+  }
+  if (corrections.length === 0) return null;
+  return { correctedQuery: corrected + normalized.slice(cursor), corrections };
+}
+
+/**
+ * The correction to show when the typed query found drugs only through the medication spelling
+ * branch («обакавир» → «Абакавир»): the spelling correction of the query, when each corrected word
+ * begins a word of a drug name that branch matched. Null when no such branch answered or the two
+ * disagree, so the box never shows a correction the results do not follow.
+ */
+export function drugSpellingCorrection(
+  response: SearchResponse,
+  query: string,
+  vocabulary: NameVocabulary,
+): QueryCorrection | null {
+  const prefix = `${MEDICATION_SPELLING_LABEL}: `;
+  const spelledNames = response.groups
+    .slice(0, CHECKED_GROUPS)
+    .flatMap((group) => group.results.flatMap((result) => result.matchedBranches))
+    .filter((branch) => branch.startsWith(prefix))
+    .flatMap((branch) => normalizeSurfaceText(branch.slice(prefix.length)).split(/[^0-9a-zа-я]+/u));
+  if (spelledNames.length === 0) return null;
+  const correction = spellingCorrection(query, vocabulary);
+  if (!correction) return null;
+  return correction.corrections.every((item) =>
+    spelledNames.some((name) => name.startsWith(item.corrected)),
+  )
+    ? correction
+    : null;
 }

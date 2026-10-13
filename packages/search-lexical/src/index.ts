@@ -18,7 +18,7 @@ export * from './definition-question';
 export * from './html-markup';
 export * from './intent';
 export * from './lookup-subject';
-export { buildLookupQueryPlan } from './medication-lookup';
+export { buildLookupQueryPlan, MEDICATION_SPELLING_LABEL } from './medication-lookup';
 export * from './medication-spelling';
 export * from './name-variants';
 export * from './normalize';
@@ -36,3 +36,4 @@ export {
   correctQueryAgainstVocabulary,
   MIN_TYPO_WORD_LENGTH,
 } from './typo-correction';
+export * from './word-typo';

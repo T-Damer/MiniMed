@@ -244,6 +244,14 @@ export class MultiMedicalStore implements MedicalStore {
     return [...new Map(hits.map((hit) => [JSON.stringify(hit.target), hit])).values()];
   }
 
+  public async listCoreIdentityNames(): Promise<readonly string[]> {
+    this.assertInitialized();
+    const names = await Promise.all(
+      this.activeMounts().map(({ store }) => store.listCoreIdentityNames?.() ?? []),
+    );
+    return [...new Set(names.flat())];
+  }
+
   public async listSearchDocuments(): Promise<readonly SearchDocumentDescriptor[]> {
     this.assertInitialized();
     return (
