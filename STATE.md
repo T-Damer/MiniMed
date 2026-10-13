@@ -115,6 +115,7 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 | 2026-10-13 | sonnet (FEED1) | owner 10-13 «feeding norms from books»: extract cited feeding/nutrition norms from the private library → `content/feeding-norms/`, module `minimed.reference.feeding.ru`, pediatrics calculators | `content/feeding-norms/**`, `tools/**feeding*`, `content/tool-modules/pediatrics.json`, its tests, `apps/app/public/content/modules/*feeding*`, catalog entry, docs rows |
 | 2026-10-13 22:50 | claude-sonnet (REG1) | owner 10-13 «release the legal acts»: verify the 32 regulatory-pilot acts against the official texts, fix extraction, publish a regulatory module (catalog + mirror), search/reader checks, tests | `content/regulatory-rf-pilot/**`, `content/regulatory-rf-editions.yaml`, `content/regulatory-rf-pilot-sources.yaml`, regulatory module catalog entry, `docs/REGULATORY_PACK.md` |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
+| 2026-10-13 | sonnet (TEST1) | owner 10-13 «every type of data covered with tests»: data inventory + gap tests | `docs/DATA_TESTS.md`, new `*.data.test.ts` / `tools/ingest/tests/test_data_*` only |
 
 ## Next (claimed, not started)
 
