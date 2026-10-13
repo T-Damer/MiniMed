@@ -4,7 +4,10 @@ import {
   orderResultsForDisplay,
   presentResultSnippet,
   presentSourceChunkText,
+  repeatedResultTitles,
   sourceContextKicker,
+  tidyResultTitle,
+  tidySnippetStart,
 } from '@/features/search/search-result-presentation';
 
 const POINTER =
@@ -145,5 +148,35 @@ describe('a drug pointer’s «Указатель препарата»', () => {
     };
     expect(orderResultsForDisplay([index, code])).toEqual([index, code]);
     expect(presentResultSnippet(index).text).toBe('Стандартизированное МНН: ПАРАЦЕТАМОЛ.');
+  });
+});
+
+describe('where a snippet starts', () => {
+  it('marks an unmarked cut and drops the stub after a marked one', () => {
+    expect(tidySnippetStart('кишки или желудка (всегда', [])).toEqual({
+      text: '…кишки или желудка (всегда',
+      ranges: [],
+    });
+    expect(tidySnippetStart('…орных отделов легких', [{ start: 7, end: 14 }])).toEqual({
+      text: '…отделов легких',
+      ranges: [{ start: 1, end: 8 }],
+    });
+    expect(tidySnippetStart('Эрадикация Helicobacter', [])).toEqual({
+      text: 'Эрадикация Helicobacter',
+      ranges: [],
+    });
+  });
+
+  it('keeps a highlighted first word after the mark', () => {
+    expect(tidySnippetStart('…пневмония у детей', [{ start: 1, end: 10 }]).text).toBe(
+      '…пневмония у детей',
+    );
+  });
+});
+
+describe('titles of result cards', () => {
+  it('loses the space inside brackets and names the repeated ones', () => {
+    expect(tidyResultTitle('( Очаговая пневмония у детей )')).toBe('(Очаговая пневмония у детей)');
+    expect([...repeatedResultTitles(['A', 'B', 'A', 'C', 'A'])]).toEqual(['A']);
   });
 });

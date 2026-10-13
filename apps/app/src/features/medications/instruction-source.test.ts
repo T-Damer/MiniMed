@@ -12,6 +12,7 @@ import {
   instructionSourceClassOf,
   instructionSourceInfo,
   instructionTextQuality,
+  presentInstructionEdition,
 } from './instruction-source';
 
 const INSTRUCTION = 'official_drug_instruction';
@@ -163,7 +164,7 @@ describe('instructionTextQuality / instructionSourceInfo', () => {
     expect(info).toMatchObject({
       kind: 'leaflet',
       kindLabel: 'Листок-вкладыш (для пациента)',
-      edition: 'Изм. № 0, ЛП-008472, 2022',
+      edition: 'ЛП-008472, 2022',
       sourceUrl: 'https://grls.rosminzdrav.ru/InstrImg/2023/05/16/1/a.pdf',
       fetchedOn: '30.07.2026',
       quality: 'ocr',
@@ -309,5 +310,14 @@ describe('instructionModuleIdForSubstanceModule', () => {
       instructionModuleIdForSubstanceModule('minimed.medications.instructions.blood.ru'),
     ).toBeNull();
     expect(instructionModuleIdForSubstanceModule('minimed.clinical.x')).toBeNull();
+  });
+});
+
+describe('the edition mark of an instruction', () => {
+  it('drops «Изм. № 0», writes the registration number plainly and keeps real amendments', () => {
+    expect(presentInstructionEdition('Изм. № 0, ЛП-№(009219)-(РГ-RU), 2025')).toBe('ЛП-009219, 2025');
+    expect(presentInstructionEdition('Изм. № 2, ЛП-008472, 2022')).toBe('Изм. № 2, ЛП-008472, 2022');
+    expect(presentInstructionEdition('Изм. № 0')).toBeNull();
+    expect(presentInstructionEdition(null)).toBeNull();
   });
 });

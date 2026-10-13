@@ -89,6 +89,8 @@ import { correctionPieces } from '@/features/search/search-correction';
 import { sameSearchOutcome } from '@/features/search/search-refresh';
 import {
   presentSourceChunkText,
+  repeatedResultTitles,
+  resultQualifier,
   sourceContextKicker,
 } from '@/features/search/search-result-presentation';
 import { SemanticModelOffer } from '@/features/semantic/SemanticModelOffer';
@@ -463,6 +465,13 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       );
     });
   });
+  const repeatedTitles = createMemo(() =>
+    repeatedResultTitles(visibleGroups().map((group) => group.title)),
+  );
+  const qualifierOf = (group: SearchResultGroup): string | undefined =>
+    repeatedTitles().has(group.title)
+      ? resultQualifier(contextDocumentsById().get(group.documentId))
+      : undefined;
   const resultCount = createMemo(() =>
     visibleGroups().reduce((total, group) => total + group.results.length, 0),
   );
@@ -1591,6 +1600,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                             index={groupIndex}
                             selectedChunkId={context()?.focusChunkId}
                             action={props.groupAction?.(group)}
+                            qualifier={qualifierOf(group)}
                             onOpenDocument={openDocumentInArchive}
                             onOpenResult={(result) => void openResult(result)}
                           />

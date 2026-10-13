@@ -5,7 +5,10 @@ import { Disclosure } from '@/components/Disclosure';
 import { IcdText } from '@/components/IcdText';
 import { isIcd11DocumentId } from '@/features/icd11/icd11-document';
 import { SearchResultFragment } from '@/features/search/SearchResultFragment';
-import { orderResultsForDisplay } from '@/features/search/search-result-presentation';
+import {
+  orderResultsForDisplay,
+  tidyResultTitle,
+} from '@/features/search/search-result-presentation';
 import { RESULT_TYPE_VISUALS, resultTypeVisual } from '@/features/search/searchResultKindVisuals';
 import { pluralRu } from '@/i18n/labels';
 import '@/features/search/search-result-group.css';
@@ -15,6 +18,8 @@ export function SearchResultGroupCard(props: {
   readonly index: number;
   readonly selectedChunkId: string | undefined;
   readonly action: JSX.Element;
+  /** Tells this card from another of the same title (publisher, edition); unset on a unique card. */
+  readonly qualifier?: string | undefined;
   readonly onOpenDocument: (documentId: string) => void;
   readonly onOpenResult: (result: SearchResult) => void;
 }): JSX.Element {
@@ -74,8 +79,11 @@ export function SearchResultGroupCard(props: {
               {(label) => <span class="result-group-header__content-kind">{label()}</span>}
             </Show>
             <strong class="result-group-header__title">
-              <IcdText text={props.group.title} />
+              <IcdText text={tidyResultTitle(props.group.title)} />
             </strong>
+            <Show when={props.qualifier}>
+              {(qualifier) => <span class="result-group-header__qualifier">{qualifier()}</span>}
+            </Show>
           </span>
         </button>
         {action()}

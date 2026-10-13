@@ -58,6 +58,7 @@ import {
   shareCalculationRecord,
 } from '@/features/calculators/calculator-print';
 import {
+  calculatorQueryRank,
   clearDownloadedCalculators,
   findCalculator,
   getCalculatorRegistry,
@@ -266,6 +267,8 @@ function CalculatorSectionCard(props: {
   readonly definitions: readonly CalculatorDefinition[];
   readonly downloadableModules: readonly ContentModuleCatalogEntry[];
   readonly downloadLabel: string;
+  /** While a search is on: the titles of the tools in this section that match it. */
+  readonly matchedTitles?: readonly string[] | undefined;
   readonly onOpenSection: (sectionId: CalculatorSectionId) => void;
   readonly onInstall: (sectionId: CalculatorSectionId) => void;
   readonly onRemove: (sectionId: CalculatorSectionId) => void;
@@ -301,7 +304,19 @@ function CalculatorSectionCard(props: {
         <div>
           <p class="archive-kicker">Инструменты раздела</p>
           <h2>{props.section.title}</h2>
-          <p>{props.section.description}</p>
+          <Show
+            when={
+              props.matchedTitles && props.matchedTitles.length > 0 ? props.matchedTitles : null
+            }
+            fallback={<p>{props.section.description}</p>}
+          >
+            {(titles) => (
+              <p class="calculator-section__matches">
+                {titles().slice(0, 3).join(' · ')}
+                {titles().length > 3 ? ` · ещё ${titles().length - 3}` : ''}
+              </p>
+            )}
+          </Show>
           <small>
             {hasDownloads()
               ? `${bundled() || installedCount() > 0 ? 'Часть уже работает офлайн · ' : ''}${props.downloadLabel} · ${downloadSize(props.downloadableModules)}`
@@ -432,6 +447,7 @@ function CalculatorSectionPage(props: {
       </Show>
       <Show when={availableCount() > 0}>
         <ToolAgeFilterBar
+          what={['калькулятор', 'калькулятора', 'калькуляторов']}
           class="calculator-section-page__age-filter"
           value={props.ageFilter}
           onChange={props.onAgeFilter}
@@ -1551,6 +1567,22 @@ export function CalculatorsView(): JSX.Element {
     return searchCalculators(query());
   });
   const filtered = createMemo(() => filterByAge(searched(), ageFilter()));
+  /** The tools of a section that the search matches, closest first. */
+  const sectionMatches = (sectionId: CalculatorSectionId): readonly CalculatorDefinition[] =>
+    calculatorsInSection(sectionId, filtered()).toSorted(
+      (left, right) => calculatorQueryRank(left, query()) - calculatorQueryRank(right, query()),
+    );
+  // With a search on, the section holding the closest hit comes first; otherwise the usual order.
+  const visibleSections = createMemo(() => {
+    const sections = CALCULATOR_SECTIONS.filter(
+      (section) =>
+        section.id !== 'custom' && calculatorsInSection(section.id, filtered()).length > 0,
+    );
+    if (query().trim() === '') return sections;
+    const best = (sectionId: CalculatorSectionId): number =>
+      Math.min(...sectionMatches(sectionId).map((tool) => calculatorQueryRank(tool, query())));
+    return sections.toSorted((left, right) => best(left.id) - best(right.id));
+  });
   const installedModules = createMemo(() => {
     calculatorRegistry();
     return new Map(
@@ -1772,6 +1804,7 @@ export function CalculatorsView(): JSX.Element {
                         />
 
                         <ToolAgeFilterBar
+                          what={['калькулятор', 'калькулятора', 'калькуляторов']}
                           class="calculators-heading__age-filter"
                           value={ageFilter()}
                           onChange={setAgeFilter}
@@ -1799,16 +1832,15 @@ export function CalculatorsView(): JSX.Element {
                           }
                         >
                           <div class="calculator-section-list">
-                            <For
-                              each={CALCULATOR_SECTIONS.filter(
-                                (section) =>
-                                  section.id !== 'custom' &&
-                                  calculatorsInSection(section.id, filtered()).length > 0,
-                              )}
-                            >
+                            <For each={visibleSections()}>
                               {(section) => (
                                 <CalculatorSectionCard
                                   section={section}
+                                  matchedTitles={
+                                    query().trim() === ''
+                                      ? undefined
+                                      : sectionMatches(section.id).map((tool) => tool.title)
+                                  }
                                   installation={installation()}
                                   definitions={calculatorRegistry()}
                                   downloadableModules={downloadableModulesForSection(section.id)}

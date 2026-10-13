@@ -300,9 +300,7 @@ describe('small committed packs (public/content and public/content/modules)', ()
     }
   });
 
-  // DEFECT (docs/DATA_TESTS.md): reference-report.json says 10 documents / 40 sections, the checksum-matching
-  // reference.db holds 18 documents / 94 sections — the sidecar was not regenerated with the pack.
-  it.fails('reference.db counts equal reference-report.json', () => {
+  it('reference.db counts equal reference-report.json', () => {
     const db = openPack(join(CONTENT, 'reference.db'));
     try {
       expectReportMatches(

@@ -161,6 +161,7 @@ export function AssessmentSpecialtyIndexPage(props: {
       />
 
       <ToolAgeFilterBar
+        what={['опросник', 'опросника', 'опросников']}
         class="assessment-index__age-filter"
         value={props.ageFilter}
         onChange={props.onAgeFilter}

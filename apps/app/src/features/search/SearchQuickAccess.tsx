@@ -273,9 +273,6 @@ export function SearchQuickAccess(props: {
             </button>
           </li>
           <For each={chips()}>{(tool) => <QuickToolChip tool={tool} />}</For>
-          <Show when={chips().length === 0}>
-            <li class="search-quick-access__hint">★ — добавить сюда</li>
-          </Show>
         </ul>
       </HorizontalScroller>
       <OverlayDialog

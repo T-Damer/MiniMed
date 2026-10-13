@@ -4,6 +4,7 @@ import {
   CLEANED_SECTION_TITLES,
   TECHNICAL_SECTION_TITLES,
 } from '@/features/library/document-display';
+import { instructionSourceInfo } from '@/features/medications/instruction-source';
 import { searchResultDocumentKind } from '@/features/search/ScopedMedicalCore';
 import { specialtyLabel } from '@/i18n/labels';
 
@@ -111,6 +112,50 @@ function snippetEdits(text: string): readonly SnippetEdit[] {
 export function presentResultSnippet(
   result: Pick<SearchResult, 'snippet' | 'highlightedRanges' | 'sectionPath'>,
 ): { readonly text: string; readonly ranges: readonly TextRange[] } {
+  const presented = presentCleanedSnippet(result);
+  return tidySnippetStart(presented.text, presented.ranges);
+}
+
+/** A snippet cut out of a longer text starts with «…» and a word: the first word is the cut one. */
+const LEADING_CUT = /^…\s*[\p{L}\p{N}]*\s?/u;
+
+/**
+ * The start of a snippet cut out of the middle of a text. The core marks some cuts with «…» in the
+ * middle of a word («…орных отделов»); an unmarked cut simply begins with a lower-case word. The
+ * first word after the mark is dropped (it may be a stub), and an unmarked lower-case start gets
+ * the mark, so a card never opens in the middle of a sentence as if it began there. Highlights
+ * move with the text; a highlighted first word stays.
+ */
+export function tidySnippetStart(
+  text: string,
+  ranges: readonly TextRange[],
+): { readonly text: string; readonly ranges: readonly TextRange[] } {
+  if (text.startsWith('…')) {
+    const cut = LEADING_CUT.exec(text)?.[0] ?? '…';
+    if (cut.length > 1 && !ranges.some((range) => range.start < cut.length)) {
+      const rest = text.slice(cut.length);
+      if (rest.trim() !== '') {
+        const shift = cut.length - 1;
+        return {
+          text: `…${rest}`,
+          ranges: ranges.map((range) => ({ start: range.start - shift, end: range.end - shift })),
+        };
+      }
+    }
+    return { text, ranges };
+  }
+  if (/^\p{Ll}/u.test(text)) {
+    return {
+      text: `…${text}`,
+      ranges: ranges.map((range) => ({ start: range.start + 1, end: range.end + 1 })),
+    };
+  }
+  return { text, ranges };
+}
+
+function presentCleanedSnippet(
+  result: Pick<SearchResult, 'snippet' | 'highlightedRanges' | 'sectionPath'>,
+): { readonly text: string; readonly ranges: readonly TextRange[] } {
   const last = result.sectionPath.at(-1);
   if (last === undefined || !CLEANED_SECTION_TITLES.has(last)) {
     return { text: result.snippet, ranges: result.highlightedRanges };
@@ -192,4 +237,48 @@ export function presentSourceChunkText(text: string, sectionPath: readonly strin
     .replace(/\n{3,}/gu, '\n\n')
     .trim();
   return tidy.length > 0 ? tidy : text;
+}
+
+/**
+ * What tells one card from another of the same title: the publisher and registration of an
+ * instruction, the edition of a recommendation. Shown only on cards whose title repeats.
+ */
+export function resultQualifier(
+  document:
+    | Pick<MedicalDocumentSummary, 'sourceType' | 'metadata' | 'versionLabel'>
+    | undefined,
+): string | undefined {
+  if (!document) return undefined;
+  const instruction = instructionSourceInfo({
+    sourceType: document.sourceType,
+    metadata: document.metadata,
+  });
+  if (instruction) {
+    const parts = [instruction.publisher, instruction.edition].filter(
+      (part): part is string => Boolean(part),
+    );
+    return parts.length > 0 ? parts.join(' · ') : instruction.kindLabel;
+  }
+  const version = document.versionLabel?.trim();
+  return version ? version : undefined;
+}
+
+/** Titles that more than one card carries; those cards get a qualifier. */
+export function repeatedResultTitles(titles: readonly string[]): ReadonlySet<string> {
+  const seen = new Set<string>();
+  const repeated = new Set<string>();
+  for (const title of titles) {
+    if (seen.has(title)) repeated.add(title);
+    seen.add(title);
+  }
+  return repeated;
+}
+
+/** A title as written by a person: «( Очаговая пневмония )» loses the space inside its brackets. */
+export function tidyResultTitle(title: string): string {
+  return title
+    .replace(/([([«])\s+/gu, '$1')
+    .replace(/\s+([)\]»])/gu, '$1')
+    .replace(/\s{2,}/gu, ' ')
+    .trim();
 }

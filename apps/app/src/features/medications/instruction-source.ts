@@ -229,6 +229,27 @@ const QUALITY_NOTES: Readonly<Record<InstructionTextQuality, string | null>> = {
 };
 
 /**
+ * The edition mark of an instruction as a doctor reads it. The register writes
+ * «Изм. № 0, ЛП-№(009219)-(РГ-RU), 2025»: «Изм. № 0» means no amendment and says nothing, the
+ * registration number is «ЛП-009219», and «(РГ-RU)» is the register's own country code.
+ */
+export function presentInstructionEdition(label: string | null): string | null {
+  if (!label) return null;
+  const parts = label
+    .split(/,\s*/u)
+    .map((part) => part.trim())
+    .filter((part) => part !== '')
+    .flatMap((part): string[] => {
+      const amendment = /^Изм\.?\s*№?\s*(\d+)$/iu.exec(part);
+      if (amendment) return Number(amendment[1]) > 0 ? [`Изм. № ${Number(amendment[1])}`] : [];
+      const registration = /^(ЛП|ЛС|П|Р)-?\s*№?\s*\(?(\d+)\)?(?:-\([^)]*\))?$/u.exec(part);
+      if (registration) return [`${registration[1]}-${registration[2]}`];
+      return [part];
+    });
+  return parts.length > 0 ? parts.join(', ') : null;
+}
+
+/**
  * The source block of an instruction document; null for any other document.
  * `registrationNumber` is the product the text is shown for: it selects that registration's match.
  */
@@ -255,7 +276,7 @@ export function instructionSourceInfo(
       sourceClass === 'manufacturer-site' && kind === 'unknown'
         ? 'Инструкция производителя'
         : instructionKindLabel(kind),
-    edition: text(document.metadata?.['instructionLabel']),
+    edition: presentInstructionEdition(text(document.metadata?.['instructionLabel'])),
     sourceUrl: url && /^https:\/\//u.test(url) ? url : null,
     fetchedOn: formatFetchDate(text(document.metadata?.['fetchedAt'])),
     quality,

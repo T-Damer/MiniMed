@@ -1126,4 +1126,8 @@ html.calculator-route-open body {
   display: flex;
   align-items: center;
   gap: var(--theme-space-2);
+
+.calculator-section__matches {
+  color: var(--theme-text);
+  font-weight: 600;
 }

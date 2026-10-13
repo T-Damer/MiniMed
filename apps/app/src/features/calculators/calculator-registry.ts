@@ -319,3 +319,16 @@ export function searchCalculators(query: string): readonly CalculatorDefinition[
     return searchable.includes(normalized);
   });
 }
+
+/**
+ * How closely a calculator answers a query: 0 when a word of its title starts with the query
+ * («score» in «SCORE2 и SCORE2-OP»), 1 when the title holds it, 2 when only its description, tags
+ * or aliases do. A list of sections is ordered by its best tool, so the closest hit comes first.
+ */
+export function calculatorQueryRank(calculator: CalculatorDefinition, query: string): 0 | 1 | 2 {
+  const needle = query.trim().toLocaleLowerCase('ru-RU').replaceAll('ё', 'е');
+  if (!needle) return 2;
+  const title = calculator.title.toLocaleLowerCase('ru-RU').replaceAll('ё', 'е');
+  if (title.split(/[^\p{L}\p{N}]+/u).some((word) => word.startsWith(needle))) return 0;
+  return title.includes(needle) ? 1 : 2;
+}

@@ -75,19 +75,18 @@ has its own store tests (`*-store.test.ts`); it is not shipped data.
 
 ## Defects found
 
-1. **`reference-report.json` is stale.** It reports 10 documents / 40 sections / 40 chunks / 14 aliases / 40
-   embeddings; the checksum-matching `reference.db` holds 18 / 94 / 94 / 29 / 94. Test:
-   `reference.db counts equal reference-report.json` (`.fails`). Fix: regenerate the sidecar report.
+1. ~~**`reference-report.json` is stale.**~~ Fixed 2026-10-14 (QA1): the sidecar is regenerated from the
+   checksum-matching `reference.db` (18 documents / 94 sections / 94 chunks / 29 aliases / 94 embeddings);
+   the test no longer carries `.fails`.
 2. **Drug indexes were built on the `…e5` instruction modules, the catalog ships `…kd1`.**
    `interaction-index.json`, `safety-index.json` and `comparison-index.json` record
    `grls-2026.10.05.e5` versions and checksums; `catalog.preview.json` has `grls-2026.10.05.kd1`
    (only the manufacturer-site module still matches). Section checksums in the indexes stay valid only if
    the instruction text is unchanged. Test: `record the exact module versions and checksums the catalog
    ships` (`.fails`). Fix: rebuild the three indexes from the shipped modules, then remove `.fails`.
-3. **Landing snapshots are older than their sources.** `apps/landing/src/data/calculator.json` and
-   `questionnaire.json` lack `ageScope` and still carry `audience`, unlike the authored definitions in
-   `content/tool-modules`; the README promises unchanged copies. Test: `keep the shown calculator and
-   questionnaire equal to their authored definitions` (`.fails`). Fix: refresh the snapshots.
+3. ~~**Landing snapshots are older than their sources.**~~ Fixed 2026-10-14 (QA1): `calculator.json` and
+   `questionnaire.json` are copies of the authored definitions again (`ageScope`, no `audience`); the test no
+   longer carries `.fails`.
 4. Note, not a defect: `minimed.clinical.pediatrics.infectious` and `…nephro-urology` are preview
    placeholders without an artifact; `catalog.data.test.ts` names them so a new artifact-free module fails.
 

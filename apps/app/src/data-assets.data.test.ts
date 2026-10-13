@@ -198,9 +198,7 @@ describe('landing page snapshots', () => {
   const authored = (file: string): Tool[] =>
     readJson<{ tools: Tool[] }>(`content/tool-modules/${file}.json`).tools;
 
-  // DEFECT (docs/DATA_TESTS.md): apps/landing/src/data/{calculator,questionnaire}.json are older than the authored
-  // definitions (no `ageScope`, `audience` still present). Refresh them from content/tool-modules and drop `.fails`.
-  it.fails('keep the shown calculator and questionnaire equal to their authored definitions', () => {
+  it('keep the shown calculator and questionnaire equal to their authored definitions', () => {
     const calculator = readJson<{ id: string }>('apps/landing/src/data/calculator.json');
     const questionnaire = readJson<{ id: string }>('apps/landing/src/data/questionnaire.json');
     const sources = [...authored('core-clinical'), ...authored('obstetrics-gynecology')];

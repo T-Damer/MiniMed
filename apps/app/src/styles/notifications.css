@@ -1,5 +1,6 @@
+/* Below the route header row (back button, title, tools): a notice never covers the way back. */
 [data-sonner-toaster].app-notification-host[data-y-position="top"] {
-  top: calc(var(--safe-top, 0px) + 1rem) !important;
+  top: calc(var(--safe-top, 0px) + 4.5rem) !important;
 }
 
 [data-sonner-toaster].app-notification-host {

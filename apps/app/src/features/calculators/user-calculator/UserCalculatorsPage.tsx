@@ -204,6 +204,7 @@ export function UserCalculatorsPage(props: {
           onClear={() => setQuery('')}
         />
         <ToolAgeFilterBar
+          what={['калькулятор', 'калькулятора', 'калькуляторов']}
           class="user-calculators__age-filter"
           value={ageFilter()}
           onChange={setAgeFilter}

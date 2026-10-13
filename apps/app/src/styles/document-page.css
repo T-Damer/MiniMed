@@ -654,6 +654,28 @@
   display: none;
 }
 
+/* The floating tab bar stands over the text: a fade in the paper colour keeps the lines under it
+   from showing through, so the bar and the page counter read as one clean strip. It leaves with
+   the bar when the reader hides its chrome. */
+@media (max-width: 760px) {
+  .app-view--document-read::after {
+    content: '';
+    position: fixed;
+    z-index: calc(var(--z-float) - 1);
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: calc(var(--bottom-nav-clearance, 4.75rem) + 1rem);
+    background: linear-gradient(to top, var(--paper-light) 55%, transparent);
+    pointer-events: none;
+    transition: opacity var(--motion-base) var(--motion-ease-out);
+  }
+
+  html.app-chrome-hidden .app-view--document-read::after {
+    opacity: 0;
+  }
+}
+
 @media (max-width: 760px) {
   .document-page.page-grain:has(.document-overlay-outline--open) {
     z-index: var(--z-reader-outline-host);

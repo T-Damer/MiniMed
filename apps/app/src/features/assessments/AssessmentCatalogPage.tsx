@@ -171,6 +171,7 @@ export function AssessmentCatalogPage(props: {
       </div>
 
       <ToolAgeFilterBar
+        what={['опросник', 'опросника', 'опросников']}
         class="assessment-catalog-page__age-filter"
         value={props.ageFilter}
         onChange={props.onAgeFilter}

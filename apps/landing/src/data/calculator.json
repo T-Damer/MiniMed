@@ -6,7 +6,10 @@
   "shortTitle": "ППТ Mosteller",
   "aliases": ["площадь поверхности тела", "ППТ", "BSA", "Mosteller"],
   "summary": "ППТ по росту и массе с отображением исходной формулы и промежуточных шагов.",
-  "audience": "all",
+  "ageScope": {
+    "groups": ["neonates", "children", "adults"],
+    "basis": "Определение: «возраст отдельно не используется» — ограничений по возрасту нет."
+  },
   "category": "anthropometry",
   "clinical": true,
   "formulaDisplay": "Mosteller, 1987: BSA = √((рост, см × масса, кг) / 3600)",
