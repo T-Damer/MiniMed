@@ -2,7 +2,7 @@ import { type Accessor, batch, createMemo, createSignal, onCleanup } from 'solid
 
 import type { DocumentFindResultState } from '@/features/library/DocumentFindBar';
 import type { DocumentFindUnit } from '@/features/library/document-find';
-import { PdfHighlightRegistry } from '@/features/pdf-viewer/pdf-find-dom';
+import { PdfHighlightRegistry, type PdfTextLayerParts } from '@/features/pdf-viewer/pdf-find-dom';
 import {
   NO_PDF_FIND_HIGHLIGHTS,
   type PdfFindHighlights,
@@ -78,6 +78,18 @@ export interface PdfViewerModel {
   readonly findBusy: Accessor<boolean>;
   /** 0-based pages known to have no text layer (scans); empty until their text was read. */
   readonly textlessPages: Accessor<ReadonlySet<number>>;
+  /** True once the text of every page has been read (highlights are settled against all of it). */
+  readonly textComplete: Accessor<boolean>;
+  /** Changes whenever more page text has been read. */
+  readonly textVersion: Accessor<number>;
+  /** Starts reading the text of every page without opening find (idempotent). */
+  ensureText(): void;
+  /** The rendered text layer of a 0-based page, while it is on screen. */
+  textLayerParts(pageIndex: number): PdfTextLayerParts | undefined;
+  /** Changes whenever a page's text layer was built or released. */
+  readonly layerVersion: Accessor<number>;
+  /** Called by a page when its text layer exists (parts) or is gone (undefined). */
+  registerTextLayer(pageIndex: number, parts: PdfTextLayerParts | undefined): void;
   load(blob: Blob): Promise<void>;
   /** The element holding the pages (and its horizontally scrolling wrapper). */
   setRoot(root: HTMLElement | undefined, columns: HTMLElement | undefined): void;
@@ -129,6 +141,7 @@ export function createPdfViewerModel(options: PdfViewerModelOptions = {}): PdfVi
   const [findRequested, setFindRequested] = createSignal(false);
   const [textVersion, setTextVersion] = createSignal(0);
   const [textRead, setTextRead] = createSignal(0);
+  const [layerVersion, setLayerVersion] = createSignal(0);
   const [findHighlightState, setFindHighlightState] =
     createSignal<PdfFindHighlights>(NO_PDF_FIND_HIGHLIGHTS);
 
@@ -137,6 +150,7 @@ export function createPdfViewerModel(options: PdfViewerModelOptions = {}): PdfVi
   const pageBudget = new ThumbnailBudget(PAGE_BUDGET_BYTES);
   const highlights = new PdfHighlightRegistry();
   const pageTexts = new Map<number, PdfPageText>();
+  const textLayers = new Map<number, PdfTextLayerParts>();
 
   let activePdf: PdfDocumentProxy | null = null;
   let loadGeneration = 0;
@@ -395,6 +409,7 @@ export function createPdfViewerModel(options: PdfViewerModelOptions = {}): PdfVi
   });
 
   const findBusy = createMemo(() => findRequested() && textRead() < pageCount());
+  const textComplete = createMemo(() => pageCount() > 0 && textRead() >= pageCount());
 
   const textlessPages = createMemo((): ReadonlySet<number> => {
     textVersion();
@@ -443,6 +458,12 @@ export function createPdfViewerModel(options: PdfViewerModelOptions = {}): PdfVi
       }
     })();
     return textPromise;
+  };
+
+  const registerTextLayer = (pageIndex: number, parts: PdfTextLayerParts | undefined): void => {
+    if (parts) textLayers.set(pageIndex, parts);
+    else if (!textLayers.delete(pageIndex)) return;
+    setLayerVersion((version) => version + 1);
   };
 
   const beginFind = (): void => {
@@ -656,6 +677,7 @@ export function createPdfViewerModel(options: PdfViewerModelOptions = {}): PdfVi
     textGeneration += 1;
     textPromise = undefined;
     pageTexts.clear();
+    textLayers.clear();
     highlights.clear();
     thumbnailBudget.clear();
     pageBudget.clear();
@@ -762,6 +784,12 @@ export function createPdfViewerModel(options: PdfViewerModelOptions = {}): PdfVi
     findUnits,
     findBusy,
     textlessPages,
+    textComplete,
+    textVersion,
+    ensureText: () => void extractTexts(),
+    textLayerParts: (pageIndex) => textLayers.get(pageIndex),
+    layerVersion,
+    registerTextLayer,
     load,
     setRoot,
     goToPage,

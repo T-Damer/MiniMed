@@ -82,10 +82,6 @@
   line-height: 1.3;
 }
 
-.document-highlights__note--missing {
-  color: var(--theme-danger);
-}
-
 .document-highlights__action {
   display: grid;
   flex: none;

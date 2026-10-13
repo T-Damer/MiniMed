@@ -215,6 +215,24 @@ describe('locateQuote — edition changes', () => {
     expect(match?.score).toBeLessThan(0.95);
   });
 
+  it('widens a reworded match to whole words', () => {
+    const edition = EDITION_A.map((unit) =>
+      unit.id === 'c3'
+        ? {
+            id: 'c3',
+            text: unit.text.replace(
+              'ограничение потребления поваренной соли до 5 г/сут',
+              'ограничить потребление поваренной соли до 5 г в сутки',
+            ),
+          }
+        : unit,
+    );
+    const { match, found } = resolve(edition, select(EDITION_A, 'c3', SALT));
+    expect(match?.status).toBe('approximate');
+    expect(found?.startsWith('ограничить')).toBe(true);
+    expect(found?.endsWith('в сутки')).toBe(true);
+  });
+
   it('finds a reworded quote that moved to another place at the same time', () => {
     const reworded: AnchorUnit = {
       id: 'x9',

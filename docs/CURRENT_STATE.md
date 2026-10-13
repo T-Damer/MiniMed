@@ -72,6 +72,96 @@ It opens a sheet (`features/reader-dictionary/`, mounted once in `App.tsx`, code
   selected in spreadsheets and in the notes editor; automatic term links from the dictionary and
   «Файлы на тему» (B1 idea queue) remain open; nominative candidates are heuristic endings, not a
   morphological dictionary, so irregular forms fall back to the core's own matching.
+## Highlights across editions — 2026-10-13 (STATE R1, sub-item «highlights survive edition updates»)
+
+Owner request 2026-10-13: a selection made in one edition of a document follows its text into a newer
+edition, even at another position and with different punctuation. Pure engine in
+`apps/app/src/features/anchoring/`, persistence in `state/user-library-highlights.ts`.
+
+**What existed (mapped before the change).**
+- Highlights were the only text-anchored user data. Stored in IndexedDB `minimed-user-highlights-v1`
+  (store `highlights`, index `documentId`): `{id, documentId, pageAnchor, start, end, quote (≤ 400
+  chars), color, createdAt, cfiRange?}`. `pageAnchor` is the text container: a user text page / section
+  (`user-doc-anchor-<doc>-<n>`), a КР text chunk (the chunk anchor, offsets over the rendered text
+  nodes), or an EPUB CFI. A selection over several containers is one record per container.
+- PDFs had no highlights at all (the text layer was selectable, nothing was saved).
+- A newer edition: a КР successor is another document id (`kr.rf.507_4`, chain in
+  `catalog.clinical-editions.json`, `supersedesDocumentIds` in metadata), so the old highlights stayed on
+  the old document and never reached the new one; a replaced user file (`replaceUserLibraryFile`), a
+  module update or a changed reading rule kept the document id and the highlight was hidden when its
+  quote no longer matched (КР) or painted on the wrong words (user documents, unverified).
+- Bookmarks (`item-collections`) are per document, reading positions per document anchor, section links
+  per anchor; none are text-quote based and none are changed here.
+
+**Design.**
+- `TextQuoteSelector` (W3C Web Annotation style): `{exact, prefix, suffix, tail?}`; 80 characters of
+  context taken across neighbouring units, `exact` up to 2 000 characters plus the last 300 for longer
+  selections. New highlights store it next to the position; the position stays the fast path.
+- Matching (`text-anchor.ts`, `text-fold.ts`, `approximate-search.ts`, all local, no library): the
+  document's units are folded (case, ё/е, quotes « » „ “ " ', dashes, nbsp and soft hyphens, every
+  punctuation mark; letters, digits and `< > = ≥ ≤ ± +` kept) with a map back to the original offsets.
+  1. exact / normalised: all occurrences of the folded quote, anywhere in the document; the candidate
+     whose surroundings (prefix/suffix, paragraph-local part first so reordered neighbours do not
+     hurt) agree and which is nearest the old place wins; identical candidates that context cannot
+     separate are flagged `approximate`, not guessed.
+  2. fuzzy: the quote's rarer word stems vote for windows (diagonal clustering), each window is aligned
+     by edit distance (Sellers, free ends, traceback); accepted up to 30 % of the quote (15 % under 40
+     characters), up to 40 % (22 %) when the surrounding text agrees (≥ 0.7). The match is widened to
+     whole words. A quote longer than one alignment pass, or one that gained a sentence inside, is
+     located by its two ends (head and tail at two sizes; the span must stay within 0.6–1.8× the quote,
+     so a different passage that merely shares boilerplate ends is rejected).
+  3. A match may span two units (a reflowed paragraph): the record keeps the first piece as its
+     position and the rest in `more`.
+- Status per highlight (`anchorStatus`): `exact` (same unit and offset, verbatim), `moved` (same words
+  elsewhere or after typography changes), `approximate` (reworded, or ambiguous duplicate) — drawn with
+  a dotted underline (`::highlight(user-doc-highlights-approximate)`) and named in the popup —
+  `missing` (kept, not painted, listed as «Не найдено в новой редакции»). `anchorMethod`, `anchorScore`,
+  `origin` (the first anchor, never rewritten) and `anchoredRevision` are saved with it.
+- `syncHighlights` (`highlight-sync.ts`, pure) runs once the whole text is on the page (КР: all sections
+  mounted; text pages loaded; PDF: text of every page read): a highlight still at its saved place is left
+  alone (a record without selector context gains it from the text); a moved one is re-anchored and
+  saved; a missing one keeps its position and is searched again only when the text changes (or revived
+  when it fits again); highlights of earlier editions (`earlierEditionDocumentIds`: КР chain from the
+  sidecar + `metadata.supersedesDocumentIds`, nearest first) are **carried over as separate records**
+  (`carriedFrom`) once each — the old edition keeps its own, untouched. A copy the reader removes stays
+  as a tombstone (`dismissed`) so it is not carried again. Not found in the successor → a `missing` copy
+  in the new edition, so it is listed there; nothing is ever dropped.
+- Migration: IndexedDB version 2 upgrades every stored record in place (`upgradeHighlight`: selector from
+  the saved quote, `exact`, origin); the same function runs on load, idempotently. Context
+  (prefix/suffix) is filled from the text the first time the document is opened.
+- UI: reader menu «Выделения» (user text/Markdown/DOCX documents, PDFs, every official document) opens a
+  sheet listing the highlights, the not-found ones first with their words, jump, remove, and «open the
+  earlier edition» for carried ones (`DocumentHighlightsSheet`). The popup of an existing mark names its
+  origin/uncertainty.
+- PDF viewer: `PdfHighlights` (opt-in via `PdfViewer highlightDocumentId`, used for «Ваши документы»)
+  saves a selection on the text layer as `pdf-page-<n>` + offsets into the pdf.js page text (the units
+  find searches; `pdf-selection.ts` maps the touched text-layer spans), paints it with the same CSS
+  highlights, and re-anchors across a replaced file through the same engine over all pages' text. Scanned
+  pages without a text layer carry none; note attachments (`PdfFileViewer`) do not offer highlights;
+  no drawing.
+- Not done: EPUB (CFI-anchored, unchanged), highlight copies for documents whose predecessor ids are
+  unknown to the app, a diff/compare view between editions (rest of R1).
+
+**Measured.**
+- Unit tests (`anchoring/*.test.ts`, 50 cases): moved paragraph, punctuation/quotes/dashes/ё/case,
+  inserted sentences before/after/inside the quote, reworded, reflowed across two units, duplicates told
+  apart by context, deleted, changed number, long selections; 11 edition scenarios: every present
+  quote found, both absent quotes refused. 1 400-page (3.0 M characters) document: fold + index ≈ 0.4 s,
+  locate a reworded quote ≈ 60 ms, prove a quote absent ≈ 40 ms.
+- Real data: the 11 КР edition pairs of the registry (`data/raw/official-clinical-documents`, older
+  edition → successor; every third sentence of 40–400 characters, 3 268 highlights): verbatim in the new
+  edition 1 828 → 793 exact, 988 moved, 47 flagged approximate (repeated boilerplate such as «Уровень
+  убедительности рекомендаций C …»), 0 lost; same words with other typography 247 → 228 moved, 19
+  approximate, 0 lost; changed text 1 193 → 655 carried as approximate (mean text similarity to the old
+  wording 0.88, 15 below 0.6), 538 kept as not found; ≈ 2 ms per exact, ≈ 20 ms per fuzzy search.
+- e2e (`E2E_PORT=4191 bunx playwright test apps/app/e2e/highlight-editions.spec.ts`): text highlight in
+  edition A → B (moved, « » and ; changed, sentence inserted) → C (reworded) → D (deleted, listed as not
+  found, kept) → B again (found); a version-1 database with a legacy record opens, is upgraded and
+  painted; a PDF line highlighted, repainted after reload, then a replaced PDF with reordered pages and a
+  reworded sentence re-anchored to page 3. 375 × 812 checked by screenshot (dotted mark, popup note, sheet).
+- **Not tested:** a КР successor edition in the browser (needs two installed edition modules; the carry
+  logic is covered by `highlight-sync.test.ts` and the real-data run above), Android WebView, a scanned
+  PDF, a PDF of several hundred pages in the browser, the carried-over flow for regulatory acts.
 
 ## Allmed packaging photos published, «?» source on every photo — 2026-10-13 (STATE IMG1)
 
@@ -1460,8 +1550,9 @@ Owner feedback 2026-10-07, three items. Branch `worktree-agent-a6b8b452dd6b115fe
   painting (`verifyQuote`), and `OfficialDocumentReader` mounts it for clinical recommendations.
   Same IndexedDB store, colours and removal-by-tap as user documents. Marks are anchored to the
   rendered chunk (anchor + character offsets + quote); a mark whose text moved (reading rule or a new
-  edition) is hidden, not repainted over other words — re-anchoring across editions is R1.
-  Only КР for now; other official documents are one prop away.
+  edition) was hidden, not repainted over other words; since 2026-10-13 it is re-anchored by its
+  text-quote selector (see «Highlights across editions», R1a). Every official document the reader
+  shows can be highlighted now, not only КР.
 - Popup placement (`highlight-popup-placement.ts`): mouse — above the selection as before; touch
   (`pointer: coarse`) — below the selection past the drag handles (the system menu opens above it),
   docked above the bottom navigation when there is no room below.

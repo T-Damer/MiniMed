@@ -41,7 +41,10 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        launchOptions: chromiumExecutable ? { executablePath: chromiumExecutable } : undefined,
+        launchOptions: {
+          args: ['--mute-audio'],
+          ...(chromiumExecutable ? { executablePath: chromiumExecutable } : {}),
+        },
       },
     },
     // Opt-in (`PLAYWRIGHT_WEBKIT=1 bunx playwright test --project=webkit-ios`, after

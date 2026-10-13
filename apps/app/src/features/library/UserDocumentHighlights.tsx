@@ -33,12 +33,12 @@ export const USER_DOCUMENT_HIGHLIGHT_CONTAINERS =
 /** Containers of an official document's text: one text chunk, whose `id` is the chunk anchor. */
 export const OFFICIAL_DOCUMENT_HIGHLIGHT_CONTAINERS = '.document-text-chunk[id]';
 
-interface HighlightRegistryLike {
+export interface HighlightRegistryLike {
   set(name: string, highlight: Highlight): void;
   delete(name: string): void;
 }
 
-function registry(): HighlightRegistryLike | undefined {
+export function registry(): HighlightRegistryLike | undefined {
   return window.CSS?.highlights as unknown as HighlightRegistryLike | undefined;
 }
 
@@ -154,7 +154,7 @@ function isTouchPrimary(): boolean {
 }
 
 /** Bounding box of the ranges that are on screen; `undefined` when none is. */
-function unionRect(ranges: readonly (Range | null)[]): DOMRect | undefined {
+export function unionRect(ranges: readonly (Range | null)[]): DOMRect | undefined {
   let left = Number.POSITIVE_INFINITY;
   let top = Number.POSITIVE_INFINITY;
   let right = Number.NEGATIVE_INFINITY;
@@ -170,7 +170,7 @@ function unionRect(ranges: readonly (Range | null)[]): DOMRect | undefined {
   return Number.isFinite(left) ? new DOMRect(left, top, right - left, bottom - top) : undefined;
 }
 
-interface PopupState {
+export interface PopupState {
   readonly x: number;
   readonly y: number;
   readonly placement: HighlightPopupPlacement;
@@ -180,7 +180,7 @@ interface PopupState {
   readonly lookup: string | null;
 }
 
-function popupPoint(
+export function popupPoint(
   rect: Pick<DOMRect, 'left' | 'width' | 'top' | 'bottom'>,
 ): Pick<PopupState, 'x' | 'y' | 'placement'> {
   const placement = highlightPopupPlacement(

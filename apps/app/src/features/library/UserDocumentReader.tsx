@@ -1087,12 +1087,6 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
               actions={readerMenuActions()}
               {...(isMedicalImage() ? {} : { bookmark })}
             />
-            <DocumentHighlightsSheet
-              documentId={props.documentId}
-              open={highlightsOpen()}
-              onClose={() => setHighlightsOpen(false)}
-              onJump={jumpToHighlight}
-            />
           </Show>
         }
         onBackIntercept={() => {
@@ -1304,6 +1298,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                   <Show when={isPdf()}>
                     <PdfViewer
                       model={pdfModel}
+                      highlightDocumentId={props.documentId}
                       twoPage={readingMode.twoPageMode()}
                       pageId={(pageIndex) => pageAnchorId(props.documentId, pageIndex)}
                       canvasId={(pageIndex) => pageCanvasId(props.documentId, pageIndex)}
@@ -1696,6 +1691,14 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
           </Button>
         </div>
       </OverlayDialog>
+      <Show when={meta()}>
+        <DocumentHighlightsSheet
+          documentId={props.documentId}
+          open={highlightsOpen()}
+          onClose={() => setHighlightsOpen(false)}
+          onJump={jumpToHighlight}
+        />
+      </Show>
     </>
   );
 }

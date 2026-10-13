@@ -1165,20 +1165,17 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                       }
                     },
                   },
-                  {
-                    id: 'highlights',
-                    label: 'Выделения',
-                    icon: 'highlighter',
-                    onSelect: () => setHighlightsOpen(true),
-                  },
+                  ...(isClinicalRecommendationSource(documentValue().sourceType)
+                    ? [
+                        {
+                          id: 'highlights',
+                          label: 'Выделения',
+                          icon: 'highlighter' as const,
+                          onSelect: () => setHighlightsOpen(true),
+                        },
+                      ]
+                    : []),
                 ]}
-              />
-              <DocumentHighlightsSheet
-                documentId={documentValue().id}
-                open={highlightsOpen()}
-                onClose={() => setHighlightsOpen(false)}
-                onJump={(item) => chrome.scrollTo(item.pageAnchor)}
-                onOpenEarlier={(documentId) => openDocumentOverlay(documentId, null)}
               />
             </div>
           )}
@@ -1309,6 +1306,13 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                     containers={OFFICIAL_DOCUMENT_HIGHLIGHT_CONTAINERS}
                     ready={mountedSectionCount() > 0 && !sectionsPending()}
                     predecessorDocumentIds={earlierEditionDocumentIds(documentValue())}
+                  />
+                  <DocumentHighlightsSheet
+                    documentId={documentValue().id}
+                    open={highlightsOpen()}
+                    onClose={() => setHighlightsOpen(false)}
+                    onJump={(item) => chrome.scrollTo(item.pageAnchor)}
+                    onOpenEarlier={(documentId) => openDocumentOverlay(documentId, null)}
                   />
                 </Show>
                 <Show

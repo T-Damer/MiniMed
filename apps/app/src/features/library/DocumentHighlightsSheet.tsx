@@ -41,7 +41,8 @@ export function DocumentHighlightsSheet(props: {
     items().filter((item) => item.anchorStatus !== 'missing');
 
   const row = (item: UserDocumentHighlight): JSX.Element => {
-    const note = highlightStatusNote(item);
+    // The heading above the not-found rows already says it.
+    const note = item.anchorStatus === 'missing' ? undefined : highlightStatusNote(item);
     const earlier = item.carriedFrom?.documentId;
     return (
       <li class="document-highlights__item">
@@ -62,16 +63,7 @@ export function DocumentHighlightsSheet(props: {
           <span class="document-highlights__text">
             <span class="document-highlights__quote">{previewQuote(item.quote)}</span>
             <Show when={note}>
-              {(value) => (
-                <span
-                  class="document-highlights__note"
-                  classList={{
-                    'document-highlights__note--missing': item.anchorStatus === 'missing',
-                  }}
-                >
-                  {value()}
-                </span>
-              )}
+              {(value) => <span class="document-highlights__note">{value()}</span>}
             </Show>
           </span>
         </button>

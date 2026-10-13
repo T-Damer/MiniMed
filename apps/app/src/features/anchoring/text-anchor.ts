@@ -65,6 +65,12 @@ const MIN_FUZZY_LENGTH = 14;
 const LOCAL_CONTEXT_MIN = 10;
 const MAX_EXACT_HITS = 300;
 const MAX_ENDS_CANDIDATES = 5;
+/**
+ * A quote matched by its two ends may have gained text inside (up to 1.8× its length) or lost some
+ * (down to 0.6×); a span far outside that is a different passage that merely shares its ends.
+ */
+const ENDS_MAX_STRETCH = 1.8;
+const ENDS_MIN_SHARE = 0.6;
 
 /** The selector of `text[start, end)`; `before` / `after` extend its context into the neighbours. */
 export function createQuoteSelector(
@@ -387,7 +393,7 @@ function locateEndsWith(prepared: Prepared, ends: QuoteEnds): Candidate | undefi
   for (const head of headCandidates) {
     const reach = Math.min(
       document.folded.length,
-      head.from + (expected === undefined ? 40000 : Math.max(expected * 3, 600)),
+      head.from + (expected === undefined ? 40000 : Math.ceil(expected * ENDS_MAX_STRETCH) + 30),
     );
     const exactTail = document.folded.indexOf(ends.tail, head.to);
     let tailEnd = -1;
@@ -409,7 +415,7 @@ function locateEndsWith(prepared: Prepared, ends: QuoteEnds): Candidate | undefi
     }
     if (tailEnd < 0) continue;
     const length = tailEnd - head.from;
-    if (expected !== undefined && length < expected * 0.4) continue;
+    if (expected !== undefined && length < expected * ENDS_MIN_SHARE) continue;
     // Only the ends are compared, so the share of errors is theirs; the middle is not checked.
     return rankCandidate(
       prepared,
@@ -432,6 +438,35 @@ function locateEnds(prepared: Prepared): Candidate | undefined {
 
 function bestN(candidates: readonly Candidate[], count: number): readonly Candidate[] {
   return candidates.toSorted((left, right) => right.rank - left.rank).slice(0, count);
+}
+
+const WORD_CHARACTER = /[\p{L}\p{N}]/u;
+const WORD_EXTENSION_LIMIT = 24;
+
+function wordStart(text: string, start: number): number {
+  let result = start;
+  while (
+    result > 0 &&
+    start - result < WORD_EXTENSION_LIMIT &&
+    WORD_CHARACTER.test(text.charAt(result - 1)) &&
+    WORD_CHARACTER.test(text.charAt(result))
+  ) {
+    result -= 1;
+  }
+  return result;
+}
+
+function wordEnd(text: string, end: number): number {
+  let result = end;
+  while (
+    result < text.length &&
+    result - end < WORD_EXTENSION_LIMIT &&
+    WORD_CHARACTER.test(text.charAt(result)) &&
+    WORD_CHARACTER.test(text.charAt(result - 1))
+  ) {
+    result += 1;
+  }
+  return result;
 }
 
 function extendByPunctuation(
@@ -516,10 +551,18 @@ export function locateQuote(
 
   const raw = document.segmentsFor(chosen.from, chosen.to);
   if (raw.length === 0) return null;
-  // Take the quote's own leading and trailing marks along when the page still has them.
+  // Take the quote's own leading and trailing marks along when the page still has them; a reworded
+  // match is widened to whole words so it never stops in the middle of one.
   const segments = raw.map((segment, index) => {
     const unitText = document.unitText(segment.unitId) ?? '';
-    if (raw.length > 1 || method === 'fuzzy') return segment;
+    if (method === 'fuzzy') {
+      return {
+        ...segment,
+        start: index === 0 ? wordStart(unitText, segment.start) : segment.start,
+        end: index === raw.length - 1 ? wordEnd(unitText, segment.end) : segment.end,
+      };
+    }
+    if (raw.length > 1) return segment;
     const extended = extendByPunctuation(unitText, segment.start, segment.end, selector.exact);
     return index === 0 ? { ...segment, ...extended } : segment;
   });

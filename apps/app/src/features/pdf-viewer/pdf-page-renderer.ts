@@ -258,7 +258,10 @@ export class PdfPageRenderer {
         width,
         () => generation !== this.textGeneration || !this.visible || this.disposed,
       );
-      if (done) this.refreshHighlights();
+      if (done) {
+        this.model.registerTextLayer(this.parts.pageIndex, this.textLayer);
+        this.refreshHighlights();
+      }
     } catch (cause) {
       if (generation === this.textGeneration) this.parts.onError?.(cause);
     }
@@ -305,6 +308,7 @@ export class PdfPageRenderer {
     if (this.textTimer) clearTimeout(this.textTimer);
     this.textTimer = undefined;
     this.textLayer.clear();
+    this.model.registerTextLayer(pageIndex, undefined);
     this.textPageWidth = 0;
     if (this.canvas) {
       // Zero the backing store: removing the element alone may keep it until garbage collection.

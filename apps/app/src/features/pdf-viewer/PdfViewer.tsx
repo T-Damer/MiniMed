@@ -1,6 +1,7 @@
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { PdfHighlights } from '@/features/pdf-viewer/PdfHighlights';
 import { PdfPage } from '@/features/pdf-viewer/PdfPage';
 import { PdfThumbnails } from '@/features/pdf-viewer/PdfThumbnails';
 import type { PdfViewerModel } from '@/features/pdf-viewer/pdf-viewer-model';
@@ -28,6 +29,8 @@ export interface PdfViewerProps {
   readonly dock?: boolean;
   /** The viewer fills a box of its own and scrolls inside it (a dialog) instead of the window. */
   readonly contained?: boolean;
+  /** Saves text highlights under this document id (user documents); without it there are none. */
+  readonly highlightDocumentId?: string;
   readonly class?: string;
 }
 
@@ -191,6 +194,11 @@ export function PdfViewer(props: PdfViewerProps): JSX.Element {
           <PdfDock model={model} aboveNav={props.contained !== true} />
         </Show>
       </div>
+      <Show when={props.highlightDocumentId}>
+        {(documentId) => (
+          <PdfHighlights model={model} documentId={documentId()} pages={() => pagesRoot} />
+        )}
+      </Show>
     </div>
   );
 }
