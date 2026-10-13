@@ -1134,7 +1134,7 @@
     {
       "id": "minimed.calculator.mews",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "mews-early-warning-score",
       "title": "MEWS — модифицированная шкала раннего предупреждения (EWS)",
       "shortTitle": "MEWS",
@@ -1181,7 +1181,7 @@
         "population": "Взрослые пациенты терапевтических отделений; в исходной работе — 709 пациентов приёмного отделения.",
         "limitations": [
           "Показатели оценивают в покое; шкала не учитывает SpO₂ и кислородную поддержку (для них — NEWS2).",
-          "На границах интервалов (ЧСС 40 и 130, ЧДД 8–9 и 30) исходная таблица неоднозначна; принято: ЧСС ≤40 и ≥130, ЧДД ≤8 и ≥30.",
+          "На границах интервалов (САД 70, ЧСС 40 и 130, ЧДД 30) таблица Subbe (2001) в доступных воспроизведениях записана как «<70» и «71–80», «<40» и «41–50», «111–129» и «>130» (или «≥130»), «21–29» и «>30» (или «≥30»), поэтому значения 70, 40, 130 и 30 прямо не заданы; принято более высокое значение: САД ≤70, ЧСС ≤40 и ≥130, ЧДД ≥30.",
           "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
         ],
         "inputs": [
@@ -1318,7 +1318,7 @@
             "version": "2001",
             "url": "https://pubmed.ncbi.nlm.nih.gov/11588210/",
             "page": "94(10):521-526",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           }
         ],
         "evaluation": {
@@ -1365,14 +1365,14 @@
           "relation": "methodology",
           "title": "Subbe CP, Kruger M, Rutherford P, Gemmel L. Validation of a modified Early Warning Score in medical admissions",
           "url": "https://pubmed.ncbi.nlm.nih.gov/11588210/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         }
       ]
     },
     {
       "id": "minimed.calculator.apache-ii",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "apache-ii",
       "title": "APACHE II — тяжесть состояния в ОРИТ",
       "shortTitle": "APACHE II",
@@ -1419,6 +1419,8 @@
           "Индивидуальный прогноз по шкале требует категории основного диагноза; здесь показан только балл и ориентировочная летальность по диапазону баллов.",
           "Шкала создана в 1985 году на данных 13 стационаров; современная летальность в тех же диапазонах может быть ниже.",
           "Баллы по оксигенации: при FiO₂ ≥0,5 используют A-aDO₂ (расчёт при давлении 760 мм рт. ст., PaCO₂/0,8), при FiO₂ <0,5 — PaO₂.",
+          "В оригинальной таблице Knaus (1985) указано только «записать A-aDO₂»; формула расчёта в ней не приведена. Здесь 713·FiO₂ − PaCO₂/0,8 − PaO₂; в других источниках берут PaCO₂ без деления на 0,8 (R = 1), и разница порядка четверти PaCO₂ может сместить балл у границ 200, 350 и 500.",
+          "Процент летальности по диапазонам баллов приведён по воспроизведению таблицы Knaus (1985) в онлайн-калькуляторе EBMcalc/MSD; полный текст статьи, где эти проценты опубликованы, не сверен.",
           "ШКГ берут до седации. Креатинин при остром повреждении почек удваивают.",
           "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
         ],
@@ -1799,7 +1801,7 @@
         "interpretations": [
           {
             "when": "score <= 4",
-            "message": "0–4 балла: ориентировочная госпитальная летальность 4 % без операции и 1 % после операции (Knaus, 1985)."
+            "message": "0–4 балла: ориентировочная госпитальная летальность 4 % без операции и 1 % после операции (по воспроизведению таблицы Knaus, 1985)."
           },
           {
             "when": "score <= 9",
@@ -1837,14 +1839,21 @@
             "version": "1985",
             "url": "https://pubmed.ncbi.nlm.nih.gov/3928249/",
             "page": "13(10):818-829",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           },
           {
             "title": "APACHE II Scoring System and Mortality Estimates (reproduction of the Knaus 1985 score-to-mortality table)",
             "publisher": "MSD Manuals",
             "version": "2022",
             "url": "https://www.msdmanuals.com/medical-calculators/ApacheScore-en.htm",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
+          },
+          {
+            "title": "ALLEGATO 3. APACHE 2 SCORE (reproduction of the Knaus 1985 scoring form: variable ranges, points, age and chronic health points)",
+            "publisher": "spinuti.unict.it (Allegato 3, reproduction of the original form)",
+            "version": "n.d.",
+            "url": "https://spinuti.unict.it/assets/files/allegato_3.pdf",
+            "reviewedAt": "2026-10-13"
           }
         ],
         "evaluation": {
@@ -1855,7 +1864,7 @@
               "verdict": {
                 "rangeId": "score-0-4",
                 "title": "0–4 балла",
-                "explanation": "0–4 балла: ориентировочная госпитальная летальность 4 % без операции и 1 % после операции (Knaus, 1985).",
+                "explanation": "0–4 балла: ориентировочная госпитальная летальность 4 % без операции и 1 % после операции (по воспроизведению таблицы Knaus, 1985).",
                 "attentionLevel": "none",
                 "sourceIds": ["apache-ii-knaus1985", "apache-ii-msd-apache"]
               }
@@ -1951,7 +1960,7 @@
           "relation": "methodology",
           "title": "Knaus WA, Draper EA, Wagner DP, Zimmerman JE. APACHE II: a severity of disease classification system",
           "url": "https://pubmed.ncbi.nlm.nih.gov/3928249/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         },
         {
           "id": "apache-ii-msd-apache",
@@ -1959,7 +1968,15 @@
           "relation": "interpretation",
           "title": "APACHE II Scoring System and Mortality Estimates (reproduction of the Knaus 1985 score-to-mortality table)",
           "url": "https://www.msdmanuals.com/medical-calculators/ApacheScore-en.htm",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
+        },
+        {
+          "id": "apache-ii-knaus1985-form",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "ALLEGATO 3. APACHE 2 SCORE (reproduction of the Knaus 1985 scoring form: variable ranges, points, age and chronic health points)",
+          "url": "https://spinuti.unict.it/assets/files/allegato_3.pdf",
+          "reviewedAt": "2026-10-13"
         }
       ]
     },
@@ -3125,7 +3142,7 @@
     {
       "id": "minimed.calculator.mpm-ii-24-48-72",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "mpm-ii-24-48-72",
       "title": "MPM II (24, 48, 72 часа) — вероятность госпитальной смерти",
       "shortTitle": "MPM II-24/48/72",
@@ -3174,6 +3191,7 @@
         "population": "Взрослые пациенты ОРИТ, остающиеся в отделении через 24, 48 или 72 часа; исключены ожоговые, коронарные и после кардиохирургии.",
         "limitations": [
           "Модели рассчитаны на конкретный момент (24, 48 или 72 часа) и не переносятся на другие сроки.",
+          "Константа модели 72 часов (−5,23840) не сверена с полным текстом Lemeshow (1994): в доступных воспроизведениях приведены только константы 24 и 48 часов; остальные коэффициенты у моделей общие.",
           "Модель 1993–1994 годов описывает группы пациентов, а не исход отдельного человека; современная калибровка может отличаться.",
           "Не применяют у ожоговых, коронарных пациентов и после кардиохирургических операций.",
           "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
@@ -3446,7 +3464,7 @@
             "version": "1993",
             "url": "https://pubmed.ncbi.nlm.nih.gov/8230626/",
             "page": "270(20):2478-2486",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           },
           {
             "title": "Lemeshow S, Klar J, Teres D, et al. Mortality probability models for patients in the intensive care unit for 48 or 72 hours: a prospective, multicenter study",
@@ -3454,7 +3472,7 @@
             "version": "1994",
             "url": "https://pubmed.ncbi.nlm.nih.gov/8062556/",
             "page": "22(9):1351-1358",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           }
         ],
         "evaluation": {
@@ -3481,7 +3499,7 @@
           "relation": "methodology",
           "title": "Lemeshow S, Teres D, Klar J, et al. Mortality Probability Models (MPM II) based on an international cohort of intensive care unit patients",
           "url": "https://pubmed.ncbi.nlm.nih.gov/8230626/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         },
         {
           "id": "mpm-ii-24-48-72-lemeshow1994",
@@ -3489,7 +3507,7 @@
           "relation": "methodology",
           "title": "Lemeshow S, Klar J, Teres D, et al. Mortality probability models for patients in the intensive care unit for 48 or 72 hours: a prospective, multicenter study",
           "url": "https://pubmed.ncbi.nlm.nih.gov/8062556/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         }
       ]
     },
@@ -3745,7 +3763,7 @@
     {
       "id": "minimed.calculator.rass",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "richmond-agitation-sedation-scale",
       "title": "RASS — шкала возбуждения и седации Ричмонда",
       "shortTitle": "RASS",
@@ -3804,15 +3822,15 @@
             "options": [
               {
                 "value": 4,
-                "label": "+4 — Агрессивный: враждебен, непосредственная опасность для персонала"
+                "label": "+4 — Агрессивный: открыто агрессивен или применяет насилие, непосредственная опасность для персонала"
               },
               {
                 "value": 3,
-                "label": "+3 — Очень сильно возбуждён: тянет или удаляет трубки и катетеры, агрессивен"
+                "label": "+3 — Очень сильно возбуждён: тянет или удаляет трубки и катетеры либо агрессивен по отношению к персоналу"
               },
               {
                 "value": 2,
-                "label": "+2 — Возбуждён: частые бесцельные движения, борьба с аппаратом ИВЛ"
+                "label": "+2 — Возбуждён: частые бесцельные движения или несинхронность пациента с аппаратом ИВЛ"
               },
               {
                 "value": 1,
@@ -3864,15 +3882,15 @@
         "interpretations": [
           {
             "when": "score == 4",
-            "message": "+4: агрессивный — враждебен, непосредственная опасность для персонала."
+            "message": "+4: агрессивный — открыто агрессивен или применяет насилие, непосредственная опасность для персонала."
           },
           {
             "when": "score == 3",
-            "message": "+3: очень сильно возбуждён — тянет или удаляет трубки и катетеры, агрессивен."
+            "message": "+3: очень сильно возбуждён — тянет или удаляет трубки и катетеры либо агрессивен по отношению к персоналу."
           },
           {
             "when": "score == 2",
-            "message": "+2: возбуждён — частые бесцельные движения, борьба с аппаратом ИВЛ."
+            "message": "+2: возбуждён — частые бесцельные движения или несинхронность пациента с аппаратом ИВЛ."
           },
           {
             "when": "score == 1",
@@ -3910,7 +3928,7 @@
             "version": "2002",
             "url": "https://pubmed.ncbi.nlm.nih.gov/12421743/",
             "page": "166(10):1338-1344",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           }
         ],
         "evaluation": {
@@ -3921,7 +3939,7 @@
               "verdict": {
                 "rangeId": "level-4",
                 "title": "+4 — Агрессивный",
-                "explanation": "+4: агрессивный — враждебен, непосредственная опасность для персонала.",
+                "explanation": "+4: агрессивный — открыто агрессивен или применяет насилие, непосредственная опасность для персонала.",
                 "attentionLevel": "high",
                 "sourceIds": ["richmond-agitation-sedation-scale-sessler2002"]
               }
@@ -3931,7 +3949,7 @@
               "verdict": {
                 "rangeId": "level-3",
                 "title": "+3 — Очень сильно возбуждён",
-                "explanation": "+3: очень сильно возбуждён — тянет или удаляет трубки и катетеры, агрессивен.",
+                "explanation": "+3: очень сильно возбуждён — тянет или удаляет трубки и катетеры либо агрессивен по отношению к персоналу.",
                 "attentionLevel": "high",
                 "sourceIds": ["richmond-agitation-sedation-scale-sessler2002"]
               }
@@ -3941,7 +3959,7 @@
               "verdict": {
                 "rangeId": "level-2",
                 "title": "+2 — Возбуждён",
-                "explanation": "+2: возбуждён — частые бесцельные движения, борьба с аппаратом ИВЛ.",
+                "explanation": "+2: возбуждён — частые бесцельные движения или несинхронность пациента с аппаратом ИВЛ.",
                 "attentionLevel": "moderate",
                 "sourceIds": ["richmond-agitation-sedation-scale-sessler2002"]
               }
@@ -4037,7 +4055,7 @@
           "relation": "methodology",
           "title": "Sessler CN, Gosnell MS, Grap MJ, et al. The Richmond Agitation-Sedation Scale: validity and reliability in adult intensive care unit patients",
           "url": "https://pubmed.ncbi.nlm.nih.gov/12421743/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         }
       ]
     },
@@ -4665,7 +4683,7 @@
     {
       "id": "minimed.calculator.nitrogen-balance",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "nitrogen-balance",
       "title": "Азотистый баланс",
       "shortTitle": "Азотистый баланс",
@@ -4711,7 +4729,7 @@
         "formulaDisplay": "Баланс = белок (г/сут) / 6,25 − (азот мочевины в моче за сутки + 4 г)",
         "population": "Взрослые пациенты со сбором суточной мочи; азот в белке — 16 % (1 г азота на 6,25 г белка).",
         "limitations": [
-          "4 г в формуле — условная поправка на потери азота кожей, стулом и другими путями; при диарее, ожогах, свищах потери больше.",
+          "4 г в формуле — условная поправка: около 2 г неазотмочевинного азота мочи и около 2 г потерь с кожей и стулом; при диарее, ожогах, свищах потери больше. В части источников для общих потерь берут 2 г.",
           "Метод не работает при почечной недостаточности с накоплением мочевины и неполном сборе суточной мочи.",
           "Пересчёт: 1 г мочевины содержит 0,466 г азота, 1 ммоль мочевины — 0,028 г азота.",
           "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
@@ -4811,7 +4829,7 @@
             "version": "1977",
             "url": "https://pubmed.ncbi.nlm.nih.gov/98649/",
             "page": "1(1):11-22",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           }
         ],
         "evaluation": {
@@ -4858,7 +4876,7 @@
           "relation": "methodology",
           "title": "Blackburn GL, Bistrian BR, Maini BS, Schlamm HT, Smith MF. Nutritional and metabolic assessment of the hospitalized patient",
           "url": "https://pubmed.ncbi.nlm.nih.gov/98649/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         }
       ]
     },

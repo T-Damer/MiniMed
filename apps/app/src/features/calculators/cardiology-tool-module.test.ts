@@ -68,7 +68,7 @@ describe('cardiology tool module', () => {
       expect(record.sources.length).toBeGreaterThan(0);
       for (const link of record.sources) {
         expect(link.title).not.toMatch(/MiniMed/iu);
-        if (link.url) expect(link.url).toMatch(/^https:\/\/pubmed\.ncbi\.nlm\.nih\.gov\/\d+\/$/u);
+        if (link.url) expect(link.url).toMatch(/^https:\/\//u);
       }
       registerDownloadedCalculator(record);
     }

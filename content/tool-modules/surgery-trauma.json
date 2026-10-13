@@ -213,7 +213,7 @@
     {
       "id": "minimed.calculator.triss",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "triss-survival-probability",
       "title": "TRISS — вероятность выживания при травме",
       "shortTitle": "TRISS",
@@ -255,6 +255,7 @@
         "population": "Пострадавшие с тупой или проникающей травмой; для возраста младше 15 лет применяют коэффициенты тупой травмы.",
         "limitations": [
           "Коэффициенты получены в исследовании MTOS (США); для современных популяций и для детей точность ниже.",
+          "Используется набор коэффициентов MTOS в редакции 1995 г. (Американская коллегия хирургов); первоначальный набор Boyd 1987 (тупая травма: −1,2470; 0,9544; −0,0768; −1,9052; проникающая: −0,6029; 1,1430; −0,1516; −2,6676) и пересмотр Schluter 2010 (NTDB) дают другие значения Ps.",
           "Модель предназначена для сравнения исходов групп пострадавших и аудита помощи, а не для решения об отказе от лечения.",
           "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
         ],
@@ -1563,7 +1564,7 @@
     {
       "id": "minimed.calculator.vph-sp",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "vph-sp-admission-severity",
       "title": "ВПХ-СП — тяжесть состояния раненого при поступлении",
       "shortTitle": "ВПХ-СП",
@@ -1612,6 +1613,7 @@
         "limitations": [
           "Шкала разработана для раненых военной хирургии (Гуманенко и соавторы); у гражданских пострадавших её точность отдельно не оценивалась.",
           "В печатной таблице границы некоторых интервалов не заданы однозначно; принятое прочтение указано в подсказке к полю.",
+          "Табл. 4.4 тех же Указаний задаёт иные границы компенсации (ВПХ-СП: 12–20, 21–30, более 30 баллов); здесь применены градации тяжести состояния из табл. 4.3.",
           "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
         ],
         "inputs": [
@@ -2010,7 +2012,7 @@
             "version": "2013",
             "url": "https://www.vmeda.org/wp-content/uploads/2016/pdf/ukazaniya_po_vph_2013.pdf",
             "page": "гл. 4, табл. 4.3–4.4; Приложение, табл. 1–4, 8–11",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           },
           {
             "title": "Методические рекомендации по лечению боевой хирургической травмы. ГВМУ МО РФ",
@@ -2018,7 +2020,7 @@
             "version": "2022",
             "url": "https://www.vmeda.org/wp-content/uploads/2023/04/metodugaz_travma.pdf",
             "page": "табл. 4.3–4.4; Приложение, табл. 1–4, 8–11",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           }
         ],
         "evaluation": {
@@ -2095,7 +2097,7 @@
           "relation": "methodology",
           "title": "Указания по военно-полевой хирургии. МО РФ, 8-е издание. Приложение: шкалы ВПХ-СП, ВПХ-СГ-(II), ВПХ-СС, ВПХ-СУ, ВПХ-УЛ, ВПХ-ЭХ",
           "url": "https://www.vmeda.org/wp-content/uploads/2016/pdf/ukazaniya_po_vph_2013.pdf",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         },
         {
           "id": "vph-sp-admission-severity-vph-2022",
@@ -2103,14 +2105,14 @@
           "relation": "interpretation",
           "title": "Методические рекомендации по лечению боевой хирургической травмы. ГВМУ МО РФ",
           "url": "https://www.vmeda.org/wp-content/uploads/2023/04/metodugaz_travma.pdf",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         }
       ]
     },
     {
       "id": "minimed.calculator.vph-sg",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "vph-sg-hospital-severity",
       "title": "ВПХ-СГ(II) — тяжесть состояния раненого в госпитале",
       "shortTitle": "ВПХ-СГ(II)",
@@ -2160,6 +2162,7 @@
           "Для каждого признака берут наихудшее значение за период наблюдения; оценку повторяют каждые 12 часов.",
           "Шкала разработана для раненых военной хирургии (Гуманенко и соавторы); у гражданских пострадавших её точность отдельно не оценивалась.",
           "В печатной таблице границы некоторых интервалов не заданы однозначно; принятое прочтение указано в подсказке к полю.",
+          "Табл. 4.4 тех же Указаний задаёт иные границы компенсации (ВПХ-СГ: 16–30, 31–40, более 40 баллов); здесь применены градации тяжести состояния из табл. 4.3.",
           "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
         ],
         "inputs": [
@@ -2523,7 +2526,7 @@
             "version": "2013",
             "url": "https://www.vmeda.org/wp-content/uploads/2016/pdf/ukazaniya_po_vph_2013.pdf",
             "page": "гл. 4, табл. 4.3–4.4; Приложение, табл. 1–4, 8–11",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           },
           {
             "title": "Методические рекомендации по лечению боевой хирургической травмы. ГВМУ МО РФ",
@@ -2531,7 +2534,7 @@
             "version": "2022",
             "url": "https://www.vmeda.org/wp-content/uploads/2023/04/metodugaz_travma.pdf",
             "page": "табл. 4.3–4.4; Приложение, табл. 1–4, 8–11",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           }
         ],
         "evaluation": {
@@ -2608,7 +2611,7 @@
           "relation": "methodology",
           "title": "Указания по военно-полевой хирургии. МО РФ, 8-е издание. Приложение: шкалы ВПХ-СП, ВПХ-СГ-(II), ВПХ-СС, ВПХ-СУ, ВПХ-УЛ, ВПХ-ЭХ",
           "url": "https://www.vmeda.org/wp-content/uploads/2016/pdf/ukazaniya_po_vph_2013.pdf",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         },
         {
           "id": "vph-sg-hospital-severity-vph-2022",
@@ -2616,14 +2619,14 @@
           "relation": "interpretation",
           "title": "Методические рекомендации по лечению боевой хирургической травмы. ГВМУ МО РФ",
           "url": "https://www.vmeda.org/wp-content/uploads/2023/04/metodugaz_travma.pdf",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         }
       ]
     },
     {
       "id": "minimed.calculator.vph-ss",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "vph-ss-selective-severity",
       "title": "ВПХ-СС — селективная оценка жизнеобеспечивающих систем",
       "shortTitle": "ВПХ-СС",
@@ -2674,6 +2677,8 @@
           "В источнике класс «удовлетворительное» начинается с 27 баллов, но минимальная сумма равна 25; суммы 25–26 отнесены к удовлетворительному состоянию.",
           "Шкала разработана для раненых военной хирургии (Гуманенко и соавторы); у гражданских пострадавших её точность отдельно не оценивалась.",
           "В печатной таблице границы некоторых интервалов не заданы однозначно; принятое прочтение указано в подсказке к полю.",
+          "Табл. 4.4 тех же Указаний задаёт иные границы компенсации (ВПХ-СС: 27–49, 50–69, более 70 баллов); здесь применены градации тяжести состояния из табл. 4.3.",
+          "В табл. 4.3 верхний класс напечатан как «более 99» при предыдущем «70–98»; сумма ровно 99 отнесена к критическому состоянию.",
           "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
         ],
         "inputs": [
@@ -3291,7 +3296,7 @@
             "version": "2013",
             "url": "https://www.vmeda.org/wp-content/uploads/2016/pdf/ukazaniya_po_vph_2013.pdf",
             "page": "гл. 4, табл. 4.3–4.4; Приложение, табл. 1–4, 8–11",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           },
           {
             "title": "Методические рекомендации по лечению боевой хирургической травмы. ГВМУ МО РФ",
@@ -3299,14 +3304,14 @@
             "version": "2022",
             "url": "https://www.vmeda.org/wp-content/uploads/2023/04/metodugaz_travma.pdf",
             "page": "табл. 4.3–4.4; Приложение, табл. 1–4, 8–11",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           },
           {
             "title": "Суворов В.В. Клинико-патогенетическое обоснование методики оценки тяжести состояния у пострадавших с тяжёлой травмой в динамике (автореферат диссертации)",
             "publisher": "Военно-медицинская академия",
             "version": "2005",
             "page": "табл. 2, 3, 6",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           }
         ],
         "evaluation": {
@@ -3387,7 +3392,7 @@
           "relation": "methodology",
           "title": "Указания по военно-полевой хирургии. МО РФ, 8-е издание. Приложение: шкалы ВПХ-СП, ВПХ-СГ-(II), ВПХ-СС, ВПХ-СУ, ВПХ-УЛ, ВПХ-ЭХ",
           "url": "https://www.vmeda.org/wp-content/uploads/2016/pdf/ukazaniya_po_vph_2013.pdf",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         },
         {
           "id": "vph-ss-selective-severity-vph-2022",
@@ -3395,14 +3400,14 @@
           "relation": "interpretation",
           "title": "Методические рекомендации по лечению боевой хирургической травмы. ГВМУ МО РФ",
           "url": "https://www.vmeda.org/wp-content/uploads/2023/04/metodugaz_travma.pdf",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         },
         {
           "id": "vph-ss-selective-severity-suvorov-2005",
           "kind": "literature",
           "relation": "methodology",
           "title": "Суворов В.В. Клинико-патогенетическое обоснование методики оценки тяжести состояния у пострадавших с тяжёлой травмой в динамике (автореферат диссертации)",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         }
       ]
     },
@@ -4904,7 +4909,7 @@
     {
       "id": "minimed.calculator.goldman-cardiac-risk",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "goldman-cardiac-risk-index",
       "title": "Goldman — индекс кардиального риска внесердечной операции",
       "shortTitle": "Goldman",
@@ -5010,7 +5015,7 @@
             "kind": "checkbox",
             "required": false,
             "defaultExpression": "0",
-            "labelTooltip": "pO₂ <60 или pCO₂ >50 мм рт. ст.; K <3,0 или HCO₃ <20 ммоль/л; мочевина (BUN) >50 мг/дл или креатинин >3,0 мг/дл; патологическая АСТ, признаки хронического заболевания печени или постельный режим по некардиальным причинам."
+            "labelTooltip": "pO₂ <60 или pCO₂ >50 мм рт. ст.; K <3,0 или HCO₃ <20 ммоль/л; азот мочевины (BUN) >50 мг/дл (мочевина >17,9 ммоль/л) или креатинин >3,0 мг/дл (>265 мкмоль/л); патологическая АСТ, признаки хронического заболевания печени или постельный режим по некардиальным причинам."
           },
           {
             "id": "highRiskSurgery",
@@ -5068,7 +5073,7 @@
             "version": "1977",
             "url": "https://pubmed.ncbi.nlm.nih.gov/904659/",
             "page": "297(16):845-850",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           }
         ],
         "evaluation": {
@@ -5135,14 +5140,14 @@
           "relation": "methodology",
           "title": "Goldman L, Caldera DL, Nussbaum SR, et al. Multifactorial index of cardiac risk in noncardiac surgical procedures",
           "url": "https://pubmed.ncbi.nlm.nih.gov/904659/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         }
       ]
     },
     {
       "id": "minimed.calculator.detsky-modified-cardiac-risk",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "detsky-modified-cardiac-risk-index",
       "title": "Detsky — модифицированный индекс кардиального риска",
       "shortTitle": "Detsky",
@@ -5191,6 +5196,7 @@
         "limitations": [
           "Индекс — модификация индекса Goldman; в клинических рекомендациях используют классы I–III для выбора дальнейшего обследования.",
           "Класс I — основа алгоритма ACP (Palda, Detsky, 1997); при классах II и III обычно рассматривают дополнительное кардиологическое обследование.",
+          "Нестабильная стенокардия учитывается в течение 3 месяцев (алгоритм ACP); в части пересказов индекса указан срок 6 месяцев.",
           "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
         ],
         "inputs": [
@@ -5288,7 +5294,7 @@
             "kind": "checkbox",
             "required": false,
             "defaultExpression": "0",
-            "labelTooltip": "pO₂ <60 или pCO₂ >50 мм рт. ст.; K <3,0 или HCO₃ <20 ммоль/л; мочевина >50 мг/дл или креатинин >3,0 мг/дл; патологическая АСТ, хроническое заболевание печени или постельный режим по некардиальным причинам."
+            "labelTooltip": "pO₂ <60 или pCO₂ >50 мм рт. ст.; K <3,0 или HCO₃ <20 ммоль/л; азот мочевины (BUN) >50 мг/дл (мочевина >17,9 ммоль/л) или креатинин >3,0 мг/дл (>265 мкмоль/л); патологическая АСТ, хроническое заболевание печени или постельный режим по некардиальным причинам."
           },
           {
             "id": "emergencySurgery",
@@ -5348,7 +5354,7 @@
             "version": "1986",
             "url": "https://pubmed.ncbi.nlm.nih.gov/3772593/",
             "page": "1(4):211-219",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           },
           {
             "title": "Detsky AS, Abrams HB, Forbath N, Scott JG, Hilliard JR. Cardiac assessment for patients undergoing noncardiac surgery. A multifactorial clinical risk index",
@@ -5356,7 +5362,7 @@
             "version": "1986",
             "url": "https://pubmed.ncbi.nlm.nih.gov/3778043/",
             "page": "146(11):2131-2134",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           },
           {
             "title": "Palda VA, Detsky AS. Perioperative assessment and management of risk from coronary artery disease",
@@ -5364,7 +5370,7 @@
             "version": "1997",
             "url": "https://pubmed.ncbi.nlm.nih.gov/9265434/",
             "page": "127(4):313-328",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           }
         ],
         "evaluation": {
@@ -5425,7 +5431,7 @@
           "relation": "methodology",
           "title": "Detsky AS, Abrams HB, McLaughlin JR, et al. Predicting cardiac complications in patients undergoing non-cardiac surgery",
           "url": "https://pubmed.ncbi.nlm.nih.gov/3772593/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         },
         {
           "id": "detsky-modified-cardiac-risk-index-detsky-1986-aim",
@@ -5433,7 +5439,7 @@
           "relation": "methodology",
           "title": "Detsky AS, Abrams HB, Forbath N, Scott JG, Hilliard JR. Cardiac assessment for patients undergoing noncardiac surgery. A multifactorial clinical risk index",
           "url": "https://pubmed.ncbi.nlm.nih.gov/3778043/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         },
         {
           "id": "detsky-modified-cardiac-risk-index-palda-1997",
@@ -5441,14 +5447,14 @@
           "relation": "interpretation",
           "title": "Palda VA, Detsky AS. Perioperative assessment and management of risk from coronary artery disease",
           "url": "https://pubmed.ncbi.nlm.nih.gov/9265434/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         }
       ]
     },
     {
       "id": "minimed.calculator.ariscat",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "ariscat-postoperative-pulmonary-risk",
       "title": "ARISCAT — риск послеоперационных лёгочных осложнений",
       "shortTitle": "ARISCAT",
@@ -5493,7 +5499,7 @@
         "formulaDisplay": "Возраст (51–80 лет 3; >80 лет 16) + SpO₂ (91–95 % 8; ≤90 % 24) + инфекция дыхательных путей 17 + анемия 11 + область операции (верхний этаж живота 15; грудная полость 24) + длительность (2–3 ч 16; >3 ч 23) + неотложная операция 8",
         "population": "Взрослые перед несердечной операцией; максимум 123 балла.",
         "limitations": [
-          "Шкала выведена в когорте из 59 больниц Каталонии; для кардиохирургии и резекций лёгкого её применимость ограничена.",
+          "Шкала выведена в когорте из 59 больниц Каталонии: взрослые, операции под общей, нейроаксиальной или регионарной анестезией, без акушерских вмешательств, трансплантаций и амбулаторных операций; в других популяциях (в частности, при кардиохирургии и резекции лёгкого) её точность может быть ниже.",
           "SpO₂ измеряют перед операцией при дыхании воздухом в положении лёжа.",
           "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
         ],
@@ -5604,15 +5610,15 @@
         "interpretations": [
           {
             "when": "score < 26",
-            "message": "Менее 26 баллов: низкий риск послеоперационных лёгочных осложнений."
+            "message": "Менее 26 баллов: низкий риск послеоперационных лёгочных осложнений (в исходной работе 0,7 % в выборке разработки и 1,6 % в проверочной)."
           },
           {
             "when": "score < 45",
-            "message": "26–44 балла: умеренный риск послеоперационных лёгочных осложнений."
+            "message": "26–44 балла: умеренный риск послеоперационных лёгочных осложнений (в исходной работе 6,3 % и 13,3 %)."
           },
           {
             "when": "1",
-            "message": "45 баллов и более: высокий риск послеоперационных лёгочных осложнений."
+            "message": "45 баллов и более: высокий риск послеоперационных лёгочных осложнений (в исходной работе 44,9 % и 42,1 %)."
           }
         ],
         "sources": [
@@ -5622,7 +5628,7 @@
             "version": "2010",
             "url": "https://pubmed.ncbi.nlm.nih.gov/21045639/",
             "page": "113(6):1338-1350",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           }
         ],
         "evaluation": {
@@ -5633,7 +5639,7 @@
               "verdict": {
                 "rangeId": "low",
                 "title": "Низкий риск",
-                "explanation": "Менее 26 баллов: низкий риск послеоперационных лёгочных осложнений.",
+                "explanation": "Менее 26 баллов: низкий риск послеоперационных лёгочных осложнений (в исходной работе 0,7 % в выборке разработки и 1,6 % в проверочной).",
                 "attentionLevel": "none",
                 "sourceIds": ["ariscat-postoperative-pulmonary-risk-canet-2010"]
               }
@@ -5643,7 +5649,7 @@
               "verdict": {
                 "rangeId": "intermediate",
                 "title": "Умеренный риск",
-                "explanation": "26–44 балла: умеренный риск послеоперационных лёгочных осложнений.",
+                "explanation": "26–44 балла: умеренный риск послеоперационных лёгочных осложнений (в исходной работе 6,3 % и 13,3 %).",
                 "attentionLevel": "moderate",
                 "sourceIds": ["ariscat-postoperative-pulmonary-risk-canet-2010"]
               }
@@ -5653,7 +5659,7 @@
               "verdict": {
                 "rangeId": "high",
                 "title": "Высокий риск",
-                "explanation": "45 баллов и более: высокий риск послеоперационных лёгочных осложнений.",
+                "explanation": "45 баллов и более: высокий риск послеоперационных лёгочных осложнений (в исходной работе 44,9 % и 42,1 %).",
                 "attentionLevel": "high",
                 "sourceIds": ["ariscat-postoperative-pulmonary-risk-canet-2010"]
               }
@@ -5679,14 +5685,14 @@
           "relation": "methodology",
           "title": "Canet J, Gallart L, Gomar C, et al. Prediction of postoperative pulmonary complications in a population-based surgical cohort",
           "url": "https://pubmed.ncbi.nlm.nih.gov/21045639/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         }
       ]
     },
     {
       "id": "minimed.calculator.caprini-vte-2005",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "caprini-vte-risk-2005",
       "title": "Caprini — риск венозных тромбоэмболий у хирургических пациентов",
       "shortTitle": "Caprini",
@@ -5736,6 +5742,7 @@
         "population": "Хирургические пациенты общего профиля, взрослые; модель 2005 г.",
         "limitations": [
           "Категории риска по сумме взяты из рекомендаций ACCP 2012 г. для общей и абдоминально-тазовой хирургии; для ортопедии, пластической хирургии и других областей пороги отличаются.",
+          "В самой модели Caprini выделяют четыре уровня: 0–1 балл — низкий, 2 — умеренный, 3–4 — высокий, 5 и более — наивысший; категории выше — адаптация ACCP.",
           "Шкала оценивает риск тромбоза, а выбор профилактики зависит ещё и от риска кровотечения.",
           "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
         ],
@@ -6054,7 +6061,7 @@
             "version": "2005",
             "url": "https://pubmed.ncbi.nlm.nih.gov/15900257/",
             "page": "51(2-3):70-78",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           },
           {
             "title": "Gould MK, Garcia DA, Wren SM, et al. Prevention of VTE in nonorthopedic surgical patients: Antithrombotic Therapy and Prevention of Thrombosis, 9th ed: ACCP Evidence-Based Clinical Practice Guidelines",
@@ -6062,7 +6069,7 @@
             "version": "2012",
             "url": "https://pubmed.ncbi.nlm.nih.gov/22315263/",
             "page": "141(2 Suppl):e227S-e277S",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           }
         ],
         "evaluation": {
@@ -6129,7 +6136,7 @@
           "relation": "methodology",
           "title": "Caprini JA. Thrombosis risk assessment as a guide to quality patient care",
           "url": "https://pubmed.ncbi.nlm.nih.gov/15900257/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         },
         {
           "id": "caprini-vte-risk-2005-gould-2012",
@@ -6137,7 +6144,7 @@
           "relation": "interpretation",
           "title": "Gould MK, Garcia DA, Wren SM, et al. Prevention of VTE in nonorthopedic surgical patients: Antithrombotic Therapy and Prevention of Thrombosis, 9th ed: ACCP Evidence-Based Clinical Practice Guidelines",
           "url": "https://pubmed.ncbi.nlm.nih.gov/22315263/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         }
       ]
     },
@@ -6659,7 +6666,7 @@
             "version": "1991",
             "url": "https://pubmed.ncbi.nlm.nih.gov/2021856/",
             "page": "78(3):355-360",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           },
           {
             "title": "Prytherch DR, Whiteley MS, Higgins B, et al. POSSUM and Portsmouth POSSUM for predicting mortality",
@@ -6667,7 +6674,7 @@
             "version": "1998",
             "url": "https://pubmed.ncbi.nlm.nih.gov/9752863/",
             "page": "85(9):1217-1220",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           }
         ],
         "evaluation": {
@@ -6725,7 +6732,7 @@
           "relation": "methodology",
           "title": "Copeland GP, Jones D, Walters M. POSSUM: a scoring system for surgical audit",
           "url": "https://pubmed.ncbi.nlm.nih.gov/2021856/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         },
         {
           "id": "possum-portsmouth-possum-prytherch-1998",
@@ -6733,14 +6740,14 @@
           "relation": "methodology",
           "title": "Prytherch DR, Whiteley MS, Higgins B, et al. POSSUM and Portsmouth POSSUM for predicting mortality",
           "url": "https://pubmed.ncbi.nlm.nih.gov/9752863/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         }
       ]
     },
     {
       "id": "minimed.calculator.mannheim-peritonitis-index",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "mannheim-peritonitis-index",
       "title": "Мангеймский индекс перитонита",
       "shortTitle": "МИП",
@@ -6827,7 +6834,7 @@
             "kind": "checkbox",
             "required": false,
             "defaultExpression": "0",
-            "labelTooltip": "Любое из: креатинин более 177 мкмоль/л или олигурия менее 20 мл/ч; pO₂ менее 50 или pCO₂ более 50 мм рт. ст.; шок; кишечная непроходимость или парез более 24 часов."
+            "labelTooltip": "Любое из: креатинин более 177 мкмоль/л, мочевина более 16,7 ммоль/л или олигурия менее 20 мл/ч; pO₂ менее 50 или pCO₂ более 50 мм рт. ст.; шок; полная механическая непроходимость или парез кишечника более 24 часов."
           },
           {
             "id": "malignancy",
@@ -6915,7 +6922,7 @@
             "version": "1987",
             "url": "https://pubmed.ncbi.nlm.nih.gov/3568820/",
             "page": "58(2):84-92",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           },
           {
             "title": "Billing A, Fröhlich D, Schildberg FW. Prediction of outcome using the Mannheim peritonitis index in 2003 patients",
@@ -6923,7 +6930,7 @@
             "version": "1994",
             "url": "https://pubmed.ncbi.nlm.nih.gov/8156338/",
             "page": "81(2):209-213",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           }
         ],
         "evaluation": {
@@ -6983,7 +6990,7 @@
           "relation": "methodology",
           "title": "Linder MM, Wacha H, Feldmann U, et al. Der Mannheimer Peritonitis-Index. Ein Instrument zur intraoperativen Prognose der Peritonitis",
           "url": "https://pubmed.ncbi.nlm.nih.gov/3568820/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         },
         {
           "id": "mannheim-peritonitis-index-billing-1994",
@@ -6991,14 +6998,14 @@
           "relation": "interpretation",
           "title": "Billing A, Fröhlich D, Schildberg FW. Prediction of outcome using the Mannheim peritonitis index in 2003 patients",
           "url": "https://pubmed.ncbi.nlm.nih.gov/8156338/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         }
       ]
     },
     {
       "id": "minimed.calculator.pusajo-relaparotomy-index",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "pusajo-relaparotomy-predictive-index",
       "title": "Прогностический индекс релапаротомии по Pusajó",
       "shortTitle": "ПИР (Pusajó)",
@@ -7049,7 +7056,7 @@
         "formulaDisplay": "Первая операция экстренная 3 + дыхательная недостаточность 2 + почечная недостаточность 2 + парез кишечника через 72 ч 4 + боль в животе через 48 ч 5 + инфекция области операции 8 + нарушение сознания 2 + патологические симптомы позже 96 ч 6",
         "population": "Пациенты после операций на брюшной полости с подозрением на внутрибрюшные осложнения (максимум 32 балла).",
         "limitations": [
-          "Процент релапаротомий приведён по российской инструкции; в исходной работе (Pusajó, 1993) индекс дополнен алгоритмом действий, и пороги в разных изданиях различаются.",
+          "Баллы и проценты релапаротомий приведены по московской инструкции 2017 г.; полный текст исходной работы (Pusajó, 1993) проверить не удалось. Вторичные описания исходного индекса дают другие пороги: до 10 баллов — низкая, 11–15 — средняя, 16–20 — высокая потребность в релапаротомии; при более чем 15 баллах достоверность диагноза выше 88 %; выше 20 баллов предлагалась релапаротомия без дополнительных исследований.",
           "Индекс помогает решить, нужны ли дополнительные исследования или релапаротомия, и не заменяет клиническую оценку хирурга."
         ],
         "inputs": [
@@ -7244,7 +7251,7 @@
     {
       "id": "minimed.calculator.ranson-pancreatitis",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "ranson-acute-pancreatitis",
       "title": "Ranson — прогноз при остром панкреатите",
       "shortTitle": "Ranson",
@@ -7292,7 +7299,7 @@
         "population": "Взрослые с острым панкреатитом; для желчнокаменного панкреатита используют другие пороги и 10 критериев.",
         "limitations": [
           "Полная оценка возможна только через 48 часов после поступления; шкала не используется для первичного решения о тяжести.",
-          "Пороги желчнокаменного панкреатита и проценты летальности приведены по обзорам и могут отличаться в разных изданиях.",
+          "Критерии для не желчнокаменного панкреатита сверены с таблицей Ranson (Ann Surg, 1979); пороги желчнокаменного панкреатита и проценты летальности по числу критериев первоисточником не проверены и приведены по обзорам. АСТ в исходной работе измерена в единицах Сигма–Франкеля (250 ед. на 100 мл); здесь принято 250 Ед/л, как в большинстве изданий.",
           "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
         ],
         "inputs": [
@@ -7483,7 +7490,7 @@
             "version": "1976",
             "url": "https://pubmed.ncbi.nlm.nih.gov/941075/",
             "page": "143(2):209-219",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           },
           {
             "title": "Ranson JH, Rifkind KM, Roses DF, et al. Prognostic signs and the role of operative management in acute pancreatitis",
@@ -7492,6 +7499,14 @@
             "url": "https://pubmed.ncbi.nlm.nih.gov/4834279/",
             "page": "139(1):69-81",
             "reviewedAt": "2026-10-12"
+          },
+          {
+            "title": "Ranson JH. The timing of biliary surgery in acute pancreatitis",
+            "publisher": "Annals of Surgery",
+            "version": "1979",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC1397201/",
+            "page": "189(5):654-663",
+            "reviewedAt": "2026-10-13"
           }
         ],
         "evaluation": {
@@ -7541,7 +7556,8 @@
           "missingContext": [],
           "sourceIds": [
             "ranson-acute-pancreatitis-ranson-1976",
-            "ranson-acute-pancreatitis-ranson-1974"
+            "ranson-acute-pancreatitis-ranson-1974",
+            "ranson-acute-pancreatitis-ranson-1979"
           ]
         },
         "observationMappings": [
@@ -7561,7 +7577,7 @@
           "relation": "methodology",
           "title": "Ranson JH, Rifkind KM, Turner JW. Prognostic signs and nonoperative peritoneal lavage in acute pancreatitis",
           "url": "https://pubmed.ncbi.nlm.nih.gov/941075/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         },
         {
           "id": "ranson-acute-pancreatitis-ranson-1974",
@@ -7570,13 +7586,21 @@
           "title": "Ranson JH, Rifkind KM, Roses DF, et al. Prognostic signs and the role of operative management in acute pancreatitis",
           "url": "https://pubmed.ncbi.nlm.nih.gov/4834279/",
           "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "ranson-acute-pancreatitis-ranson-1979",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Ranson JH. The timing of biliary surgery in acute pancreatitis",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC1397201/",
+          "reviewedAt": "2026-10-13"
         }
       ]
     },
     {
       "id": "minimed.calculator.rockall-complete",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "rockall-upper-gi-bleeding",
       "title": "Rockall — риск при кровотечении из верхних отделов ЖКТ",
       "shortTitle": "Rockall",
@@ -7623,7 +7647,7 @@
         "formulaDisplay": "Возраст (60–79 лет 1; ≥80 лет 2) + шок (пульс ≥100 1; САД <100 2) + сопутствующие болезни (0; 2; 3) + диагноз (0; 1; 2) + стигматы кровотечения (0; 2)",
         "population": "Пациенты старше 16 лет с острым кровотечением из верхних отделов ЖКТ (максимум 11 баллов).",
         "limitations": [
-          "Полная шкала требует результатов эндоскопии; предэндоскопическая часть (возраст, шок, болезни) даёт от 0 до 7 баллов.",
+          "Полная шкала требует результатов эндоскопии; предэндоскопическая часть (возраст, шок, болезни) даёт от 0 до 7 баллов, и при 0–7 баллах летальность в исходной когорте составила 0,2; 2,4; 5,6; 11,0; 24,6; 39,6; 48,9 и 50,0 % (Rockall, 1996, табл. IV).",
           "Проценты — частота в исходной когорте 1993–1994 гг.; сегодняшняя частота ниже.",
           "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
         ],
@@ -7786,7 +7810,7 @@
             "version": "1996",
             "url": "https://pubmed.ncbi.nlm.nih.gov/8675081/",
             "page": "38(3):316-321",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           }
         ],
         "evaluation": {
@@ -7903,14 +7927,14 @@
           "relation": "methodology",
           "title": "Rockall TA, Logan RF, Devlin HB, Northfield TC. Risk assessment after acute upper gastrointestinal haemorrhage",
           "url": "https://pubmed.ncbi.nlm.nih.gov/8675081/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         }
       ]
     },
     {
       "id": "minimed.calculator.evans-burn-fluids",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "evans-burn-resuscitation",
       "title": "Evans — инфузионная терапия при ожогах",
       "shortTitle": "Evans (ожоги)",
@@ -7954,7 +7978,7 @@
         "category": "surgery",
         "tags": ["fluids", "emergency"],
         "clinical": true,
-        "formulaDisplay": "Первые сутки: коллоиды 1 мл × масса (кг) × % ожога + кристаллоиды 1 мл × масса × % ожога + 2000 мл 5 % глюкозы; вторые сутки — половина коллоидов и кристаллоидов + 2000 мл глюкозы",
+        "formulaDisplay": "Первые сутки: коллоиды 1 мл × масса (кг) × % ожога + кристаллоиды 1 мл × масса × % ожога + 2000 мл 5 % глюкозы (половину суточного объёма вводят за первые 8 ч, остальное за следующие 16 ч); вторые сутки — половина коллоидов и кристаллоидов + 2000 мл глюкозы",
         "population": "Взрослые с ожогами II–III степени большой площади.",
         "limitations": [
           "Это стартовый ориентир, а не готовое назначение: объём корректируют по диурезу, гемодинамике и ожоговому протоколу учреждения.",
@@ -8051,7 +8075,23 @@
             "version": "1952",
             "url": "https://pubmed.ncbi.nlm.nih.gov/14924536/",
             "page": "135(6):804-817",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
+          },
+          {
+            "title": "Haberal M, Sakallioglu Abali AE, Karakayali H. Fluid management in major burn injuries",
+            "publisher": "Indian Journal of Plastic Surgery",
+            "version": "2010",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/21321653/",
+            "page": "43(Suppl):S29-S36",
+            "reviewedAt": "2026-10-13"
+          },
+          {
+            "title": "Romanowski KS, Palmieri TL. Pediatric burn resuscitation: past, present, and future",
+            "publisher": "Burns & Trauma",
+            "version": "2017",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/28879205/",
+            "page": "5:26",
+            "reviewedAt": "2026-10-13"
           }
         ],
         "evaluation": {
@@ -8059,7 +8099,11 @@
           "rules": [],
           "missingContext": [],
           "reason": "Формула возвращает объёмы инфузии; категорий риска у неё нет.",
-          "sourceIds": ["evans-burn-resuscitation-evans-1952"]
+          "sourceIds": [
+            "evans-burn-resuscitation-evans-1952",
+            "evans-burn-resuscitation-haberal-2010",
+            "evans-burn-resuscitation-romanowski-2017"
+          ]
         },
         "observationMappings": [
           {
@@ -8113,7 +8157,23 @@
           "relation": "methodology",
           "title": "Evans EI, Purnell OJ, Robinett PW, Batchelor A, Martin M. Fluid and electrolyte requirements in severe burns",
           "url": "https://pubmed.ncbi.nlm.nih.gov/14924536/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
+        },
+        {
+          "id": "evans-burn-resuscitation-haberal-2010",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Haberal M, Sakallioglu Abali AE, Karakayali H. Fluid management in major burn injuries",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/21321653/",
+          "reviewedAt": "2026-10-13"
+        },
+        {
+          "id": "evans-burn-resuscitation-romanowski-2017",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Romanowski KS, Palmieri TL. Pediatric burn resuscitation: past, present, and future",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/28879205/",
+          "reviewedAt": "2026-10-13"
         }
       ]
     },

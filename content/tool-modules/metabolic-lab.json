@@ -4369,7 +4369,7 @@
     {
       "id": "minimed.calculator.basal-metabolic-rate",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "basal-metabolic-rate",
       "title": "Основной обмен — Mifflin–St Jeor и Harris–Benedict",
       "shortTitle": "Основной обмен",
@@ -4421,7 +4421,7 @@
         "formulaDisplay": "Mifflin–St Jeor: 10 × масса + 6,25 × рост − 5 × возраст + 5 (муж.) или −161 (жен.)",
         "population": "Здоровые взрослые без острого заболевания.",
         "limitations": [
-          "Формула Mifflin–St Jeor чаще других попадает в пределы 10% от измеренного обмена, но у отдельных людей ошибки заметны; Harris–Benedict (1918) завышает обмен примерно на 5%.",
+          "Формула Mifflin–St Jeor чаще других попадает в пределы 10% от измеренного обмена, но у отдельных людей ошибки заметны; Harris–Benedict (1919) завышает обмен примерно на 5%.",
           "Уровень активности задаёт врач или диетолог по таблице ФАО/ВОЗ/УООН: готовых значений формулы не содержат.",
           "В стационаре и при критическом состоянии применяют непрямую калориметрию или клинические рекомендации."
         ],
@@ -4498,7 +4498,7 @@
               },
               {
                 "value": "harris",
-                "label": "Harris–Benedict (1918)"
+                "label": "Harris–Benedict (1919)"
               }
             ],
             "required": true
@@ -4525,7 +4525,7 @@
           },
           {
             "id": "harris",
-            "label": "Harris–Benedict (1918)",
+            "label": "Harris–Benedict (1919)",
             "unit": "ккал/сут",
             "expression": "cond(sex == \"male\", 66.473 + 13.7516 * weight + 5.0033 * height - 6.755 * ageYears, 655.0955 + 9.5634 * weight + 1.8496 * height - 4.6756 * ageYears)",
             "displayPrecision": 0,
@@ -4572,6 +4572,14 @@
             "reviewedAt": "2026-10-12"
           },
           {
+            "title": "Harris JA, Benedict FG. A biometric study of basal metabolism in man",
+            "publisher": "Carnegie Institution of Washington, Publication No. 279",
+            "version": "1919",
+            "url": "https://archive.org/details/biometricstudyof00harruoft",
+            "page": "regression equations for men and women",
+            "reviewedAt": "2026-10-13"
+          },
+          {
             "title": "Frankenfield D, Roth-Yousey L, Compher C. Comparison of predictive equations for resting metabolic rate in healthy nonobese and obese adults: a systematic review",
             "publisher": "Journal of the American Dietetic Association",
             "version": "2005",
@@ -4596,6 +4604,7 @@
           "sourceIds": [
             "basal-metabolic-rate-mifflin-1990",
             "basal-metabolic-rate-harris-1918",
+            "basal-metabolic-rate-harris-1919",
             "basal-metabolic-rate-frankenfield-2005",
             "basal-metabolic-rate-fao-2001"
           ]
@@ -4633,6 +4642,14 @@
           "title": "Harris JA, Benedict FG. A biometric study of human basal metabolism",
           "url": "https://pubmed.ncbi.nlm.nih.gov/16576330/",
           "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "basal-metabolic-rate-harris-1919",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Harris JA, Benedict FG. A biometric study of basal metabolism in man (Carnegie Institution of Washington, Publication 279)",
+          "url": "https://archive.org/details/biometricstudyof00harruoft",
+          "reviewedAt": "2026-10-13"
         },
         {
           "id": "basal-metabolic-rate-frankenfield-2005",

@@ -1413,7 +1413,7 @@
     {
       "id": "minimed.calculator.sledai-2k",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "sledai-2k-lupus-activity",
       "title": "SLEDAI-2K / SELENA-SLEDAI — активность СКВ",
       "shortTitle": "SLEDAI-2K",
@@ -1462,7 +1462,8 @@
         "population": "Взрослые с системной красной волчанкой.",
         "limitations": [
           "Признак отмечают, если он был в последние 10 дней и вызван волчанкой, а не другими причинами.",
-          "Индекс отражает активность за короткое окно и не измеряет накопленное повреждение; группы 1–5, 6–10, 11–19 и 20 и более — страты риска смерти из когорты Cook 2000, а не названия степеней активности.",
+          "Индекс отражает активность за короткое окно и не измеряет накопленное повреждение; группы 1–5, 6–10, 11–19 и 20 и более — страты риска смерти из когорты Cook 2000 (оригинальный SLEDAI; в аннотации верхняя страта записана как «>20», здесь принято 20 и более), а не названия степеней активности.",
+          "В российских клинических рекомендациях по СКВ (ID 484) для SLEDAI-2K приняты группы: 0 — нет активности, 1–4 — низкая, 5–10 — средняя, более 10 — высокая; это отдельное соглашение, не страты Cook.",
           "Индекс не заменяет клиническую оценку; результат не является автоматическим изменением лечения."
         ],
         "inputs": [
@@ -1617,7 +1618,7 @@
                 "label": "Да"
               }
             ],
-            "labelTooltip": "Более 2 суставов с болью и признаками воспаления."
+            "labelTooltip": "Два и более сустава с болью и признаками воспаления (болезненность, отёк или выпот)."
           },
           {
             "id": "myositis",
@@ -1685,7 +1686,7 @@
                 "label": "Да"
               }
             ],
-            "labelTooltip": "Более 0,5 г/сут (впервые возникшая или недавно возросшая более чем на 0,5 г/сут)."
+            "labelTooltip": "Более 0,5 г/сут: впервые возникшая, повторная или сохраняющаяся."
           },
           {
             "id": "pyuria",
@@ -1719,7 +1720,7 @@
                 "label": "Да"
               }
             ],
-            "labelTooltip": "Новая или возобновившаяся воспалительная сыпь."
+            "labelTooltip": "Воспалительная сыпь: новая, возобновившаяся или сохраняющаяся."
           },
           {
             "id": "alopecia",
@@ -1736,7 +1737,7 @@
                 "label": "Да"
               }
             ],
-            "labelTooltip": "Новое или возобновившееся очаговое либо диффузное выпадение волос."
+            "labelTooltip": "Очаговое либо диффузное выпадение волос: новое, возобновившееся или сохраняющееся."
           },
           {
             "id": "mucosalUlcers",
@@ -1753,7 +1754,7 @@
                 "label": "Да"
               }
             ],
-            "labelTooltip": "Новые или возобновившиеся язвы во рту или носу."
+            "labelTooltip": "Язвы во рту или носу: новые, возобновившиеся или сохраняющиеся."
           },
           {
             "id": "pleurisy",
@@ -1918,7 +1919,7 @@
             "title": "Gladman DD, Ibañez D, Urowitz MB. Systemic lupus erythematosus disease activity index 2000",
             "publisher": "Journal of Rheumatology",
             "version": "2002",
-            "reviewedAt": "2026-10-12",
+            "reviewedAt": "2026-10-13",
             "url": "https://pubmed.ncbi.nlm.nih.gov/11838846/",
             "page": "29(2):288-291"
           },
@@ -1937,6 +1938,12 @@
             "reviewedAt": "2026-10-12",
             "url": "https://pubmed.ncbi.nlm.nih.gov/10955329/",
             "page": "27(8):1892-1895"
+          },
+          {
+            "title": "Клинические рекомендации: Системная красная волчанка (КР 484_2), приложение Г1: SLEDAI-2K",
+            "publisher": "Минздрав России",
+            "version": "2025",
+            "reviewedAt": "2026-10-13"
           }
         ],
         "evaluation": {
@@ -1994,7 +2001,12 @@
             }
           ],
           "missingContext": [],
-          "sourceIds": ["sledai-2k-gladman-2002", "sledai-2k-petri-2005", "sledai-2k-cook-2000"]
+          "sourceIds": [
+            "sledai-2k-gladman-2002",
+            "sledai-2k-petri-2005",
+            "sledai-2k-cook-2000",
+            "sledai-2k-ru-kr-484"
+          ]
         },
         "observationMappings": [
           {
@@ -2013,7 +2025,7 @@
           "relation": "methodology",
           "title": "Gladman DD, Ibañez D, Urowitz MB. Systemic lupus erythematosus disease activity index 2000",
           "url": "https://pubmed.ncbi.nlm.nih.gov/11838846/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         },
         {
           "id": "sledai-2k-petri-2005",
@@ -2030,6 +2042,16 @@
           "title": "Cook RJ, Gladman DD, Pericak D, Urowitz MB. Prediction of short term mortality in systemic lupus erythematosus with time dependent measures of disease activity",
           "url": "https://pubmed.ncbi.nlm.nih.gov/10955329/",
           "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "sledai-2k-ru-kr-484",
+          "kind": "clinical-recommendation",
+          "relation": "clinical-context",
+          "title": "Клинические рекомендации: Системная красная волчанка (КР 484_2), приложение Г1: SLEDAI-2K",
+          "url": null,
+          "reviewedAt": "2026-10-13",
+          "moduleId": "minimed.clinical.recommendation.484_2",
+          "documentId": "kr.rf.484_2"
         }
       ]
     },
@@ -5308,7 +5330,7 @@
     {
       "id": "minimed.calculator.meld-na",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "meld-na-liver-mortality",
       "title": "MELD-Na — MELD с поправкой на натрий",
       "shortTitle": "MELD-Na",
@@ -5351,13 +5373,14 @@
         },
         "category": "gastroenterology",
         "clinical": true,
-        "formulaDisplay": "MELD-Na = MELD + 1,32 × (137 − Na) − 0,033 × MELD × (137 − Na), если MELD > 11; Na ограничен 125–137 ммоль/л",
+        "formulaDisplay": "MELD-Na = MELD + 1,32 × (137 − Na) − 0,033 × MELD × (137 − Na), если MELD > 11 (MELD округлён до целого); Na ограничен 125–137 ммоль/л; итог округляют до целого, максимум 40 (политика OPTN 2016, по Kim 2021)",
         "population": "Взрослые с терминальной стадией заболевания печени, включая кандидатов на трансплантацию.",
         "limitations": [
           "Шкала оценивает 3-месячную летальность у пациентов с терминальной стадией заболевания печени и применяется для ранжирования в листе ожидания трансплантации.",
-          "Значения билирубина, МНО и креатинина ниже 1,0 принимаются за 1,0, креатинин выше 4,0 мг/дл или диализ — за 4,0; шкала ограничена диапазоном 6–40.",
+          "Значения билирубина, МНО и креатинина ниже 1,0 принимаются за 1,0, креатинин выше 4,0 мг/дл, диализ (2 сеанса и более за 7 дней) или 24 ч непрерывного вено-венозного гемодиализа (CVVHD) — за 4,0; шкала ограничена диапазоном 6–40.",
           "Результат — вспомогательная оценка и не является автоматическим решением о трансплантации.",
-          "Поправка на натрий применяется только при MELD выше 11."
+          "Поправка на натрий применяется только при MELD выше 11.",
+          "Формула — вариант политики OPTN 2016 (коэффициенты 1,32 и 0,033, натрий 125–137 ммоль/л), воспроизведённый в Kim 2021. Исходное уравнение Kim 2008 — MELD − Na − 0,025 × MELD × (140 − Na) + 140 при натрии 125–140 ммоль/л — даёт немного другие значения; граница итогового балла 40 задана и в Kim 2008, и в политике OPTN."
         ],
         "inputs": [
           {
@@ -5402,7 +5425,7 @@
                 "label": "Да"
               }
             ],
-            "labelTooltip": "Если да, креатинин в расчёте принимают равным 4,0 мг/дл."
+            "labelTooltip": "Если да, креатинин в расчёте принимают равным 4,0 мг/дл; так же поступают после 24 ч непрерывного вено-венозного гемодиализа (CVVHD) за последние 7 дней."
           },
           {
             "id": "sodium",
@@ -5479,7 +5502,7 @@
             "title": "Kim WR, Biggins SW, Kremers WK, et al. Hyponatremia and mortality among patients on the liver-transplant waiting list",
             "publisher": "New England Journal of Medicine",
             "version": "2008",
-            "reviewedAt": "2026-10-12",
+            "reviewedAt": "2026-10-13",
             "url": "https://pubmed.ncbi.nlm.nih.gov/18768945/",
             "page": "359(10):1018-1026"
           },
@@ -5487,7 +5510,7 @@
             "title": "Kim WR, Mannalithara A, Heimbach JK, et al. MELD 3.0: the Model for End-Stage Liver Disease updated for the modern era",
             "publisher": "Gastroenterology",
             "version": "2021",
-            "reviewedAt": "2026-10-12",
+            "reviewedAt": "2026-10-13",
             "url": "https://pubmed.ncbi.nlm.nih.gov/34481845/",
             "page": "161(6):1887-1895"
           }
@@ -5521,18 +5544,18 @@
         {
           "id": "meld-na-kim-2008",
           "kind": "literature",
-          "relation": "methodology",
+          "relation": "clinical-context",
           "title": "Kim WR, Biggins SW, Kremers WK, et al. Hyponatremia and mortality among patients on the liver-transplant waiting list",
           "url": "https://pubmed.ncbi.nlm.nih.gov/18768945/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         },
         {
           "id": "meld-na-kim-2021",
           "kind": "literature",
-          "relation": "clinical-context",
+          "relation": "methodology",
           "title": "Kim WR, Mannalithara A, Heimbach JK, et al. MELD 3.0: the Model for End-Stage Liver Disease updated for the modern era",
           "url": "https://pubmed.ncbi.nlm.nih.gov/34481845/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         }
       ]
     },
@@ -5955,7 +5978,7 @@
     {
       "id": "minimed.calculator.lille-model",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "lille-model-alcoholic-hepatitis",
       "title": "Модель Lille — ответ на глюкокортикоиды при алкогольном гепатите",
       "shortTitle": "Lille",
@@ -6003,6 +6026,7 @@
         "limitations": [
           "Модель считают на 7-й день терапии; пороговое значение 0,45 отделяет ответивших от не ответивших на глюкокортикоиды.",
           "Билирубин и альбумин вводят в единицах первоисточника: билирубин в мкмоль/л, альбумин в г/л, протромбиновое время в секундах.",
+          "Почечная недостаточность в исходной работе — креатинин выше 115 мкмоль/л; в части обзоров порог записан как 115 и выше, на границе значение уточняют у врача.",
           "Результат — вспомогательная оценка и не является автоматической отменой лечения."
         ],
         "inputs": [
@@ -6096,11 +6120,11 @@
         "interpretations": [
           {
             "when": "lille < 0.45",
-            "message": "Менее 0,45: ответ на глюкокортикоиды; в исходной когорте 6-месячная выживаемость 85%."
+            "message": "Менее 0,45: ответ на глюкокортикоиды; 6-месячная выживаемость 85% (Louvet 2007)."
           },
           {
             "when": "1",
-            "message": "0,45 и более: нет ответа на глюкокортикоиды; в исходной когорте 6-месячная выживаемость 25%."
+            "message": "0,45 и более: нет ответа на глюкокортикоиды; 6-месячная выживаемость 25% (Louvet 2007)."
           }
         ],
         "sources": [
@@ -6121,7 +6145,7 @@
               "verdict": {
                 "rangeId": "responder",
                 "title": "Ответ на лечение",
-                "explanation": "Менее 0,45: ответ на глюкокортикоиды; в исходной когорте 6-месячная выживаемость 85%.",
+                "explanation": "Менее 0,45: ответ на глюкокортикоиды; 6-месячная выживаемость 85% (Louvet 2007).",
                 "attentionLevel": "low",
                 "sourceIds": ["lille-model-louvet-2007"]
               }
@@ -6131,7 +6155,7 @@
               "verdict": {
                 "rangeId": "nonresponder",
                 "title": "Нет ответа",
-                "explanation": "0,45 и более: нет ответа на глюкокортикоиды; в исходной когорте 6-месячная выживаемость 25%.",
+                "explanation": "0,45 и более: нет ответа на глюкокортикоиды; 6-месячная выживаемость 25% (Louvet 2007).",
                 "attentionLevel": "high",
                 "sourceIds": ["lille-model-louvet-2007"]
               }
@@ -7794,7 +7818,7 @@
     {
       "id": "minimed.calculator.carboplatin-calvert-dose",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "carboplatin-calvert-dose",
       "title": "Доза карбоплатина по Calvert",
       "shortTitle": "Карбоплатин (Calvert)",
@@ -7841,7 +7865,8 @@
         "population": "Взрослые с нормальным или сниженным клиренсом креатинина, которым назначен карбоплатин.",
         "limitations": [
           "Формула Calvert выведена для измеренной СКФ; оценка по Cockcroft–Gault неточна при ожирении, кахексии и нестабильном креатинине.",
-          "Ограничение СКФ значением 125 мл/мин принято в протоколах для креатинина, стандартизованного по IDMS, и защищает от завышения дозы; в самой работе Calvert его нет.",
+          "Ограничение СКФ значением 125 мл/мин (предельная доза = AUC × 150 мг) — документированное соглашение, а не часть формулы Calvert: письмо NCI/CTEP (октябрь 2010) по согласованию с FDA после перехода на креатинин, стандартизованный по IDMS, и рекомендации GOG/NCCN 2011; оно защищает от завышения дозы. В работе Calvert 1989 ограничения нет.",
+          "Рекомендации GOG/NCCN 2011 дополнительно предлагают минимальный креатинин 0,7 мг/дл и скорректированную массу тела; здесь они не применяются — расчёт идёт по введённым значениям.",
           "Целевую AUC и схему выбирает онколог; результат не является автоматическим назначением дозы."
         ],
         "inputs": [
@@ -7955,7 +7980,7 @@
             "title": "Calvert AH, Newell DR, Gumbrell LA, et al. Carboplatin dosage: prospective evaluation of a simple formula based on renal function",
             "publisher": "Journal of Clinical Oncology",
             "version": "1989",
-            "reviewedAt": "2026-10-12",
+            "reviewedAt": "2026-10-13",
             "url": "https://pubmed.ncbi.nlm.nih.gov/2681557/",
             "page": "7(11):1748-1756"
           },
@@ -7966,6 +7991,14 @@
             "reviewedAt": "2026-10-12",
             "url": "https://pubmed.ncbi.nlm.nih.gov/1244564/",
             "page": "16(1):31-41"
+          },
+          {
+            "title": "Praiss AM, Miller A, Smith J, et al. Carboplatin dosing in the treatment of ovarian cancer: an NRG Oncology Group study",
+            "publisher": "Gynecologic Oncology",
+            "version": "2023",
+            "reviewedAt": "2026-10-13",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/37229879/",
+            "page": "174:213-223"
           }
         ],
         "evaluation": {
@@ -7975,7 +8008,8 @@
           "reason": "У дозы нет порогового заключения: целевую AUC и допустимую дозу определяет схема лечения.",
           "sourceIds": [
             "carboplatin-calvert-dose-calvert-1989",
-            "carboplatin-calvert-dose-cockcroft-1976"
+            "carboplatin-calvert-dose-cockcroft-1976",
+            "carboplatin-calvert-dose-praiss-2023"
           ]
         },
         "observationMappings": [
@@ -8002,7 +8036,7 @@
           "relation": "methodology",
           "title": "Calvert AH, Newell DR, Gumbrell LA, et al. Carboplatin dosage: prospective evaluation of a simple formula based on renal function",
           "url": "https://pubmed.ncbi.nlm.nih.gov/2681557/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         },
         {
           "id": "carboplatin-calvert-dose-cockcroft-1976",
@@ -8011,6 +8045,14 @@
           "title": "Cockcroft DW, Gault MH. Prediction of creatinine clearance from serum creatinine",
           "url": "https://pubmed.ncbi.nlm.nih.gov/1244564/",
           "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "carboplatin-calvert-dose-praiss-2023",
+          "kind": "literature",
+          "relation": "clinical-context",
+          "title": "Praiss AM, Miller A, Smith J, et al. Carboplatin dosing in the treatment of ovarian cancer: an NRG Oncology Group study",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/37229879/",
+          "reviewedAt": "2026-10-13"
         }
       ]
     }

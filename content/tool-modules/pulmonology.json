@@ -576,7 +576,7 @@
     {
       "id": "minimed.calculator.psi-port",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "psi-port-pneumonia-severity",
       "title": "PSI/PORT — индекс тяжести пневмонии",
       "shortTitle": "PSI/PORT",
@@ -997,7 +997,7 @@
           },
           {
             "when": "riskClass <= 4",
-            "message": "Класс IV (91–130 баллов): летальность 8,5–9,3 %; госпитализация."
+            "message": "Класс IV (91–130 баллов): летальность 8,2–9,3 %; госпитализация."
           },
           {
             "when": "1",
@@ -1017,7 +1017,15 @@
             "version": "1997",
             "url": "https://pubmed.ncbi.nlm.nih.gov/8995086/",
             "page": "336(4):243-250",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
+          },
+          {
+            "title": "Bartlett JG, Dowell SF, Mandell LA, et al. Practice guidelines for the management of community-acquired pneumonia in adults",
+            "publisher": "Clinical Infectious Diseases (IDSA)",
+            "version": "2000",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/10987697/",
+            "page": "31(2):347-382",
+            "reviewedAt": "2026-10-13"
           },
           {
             "title": "Клинические рекомендации: Внебольничная пневмония у взрослых (КР 654_2)",
@@ -1065,9 +1073,13 @@
               "verdict": {
                 "rangeId": "class-4",
                 "title": "Класс IV",
-                "explanation": "Класс IV (91–130 баллов): летальность 8,5–9,3 %; госпитализация.",
+                "explanation": "Класс IV (91–130 баллов): летальность 8,2–9,3 %; госпитализация.",
                 "attentionLevel": "high",
-                "sourceIds": ["psi-fine-1997", "psi-port-pneumonia-severity-kr-654-2"]
+                "sourceIds": [
+                  "psi-fine-1997",
+                  "psi-idsa-2000",
+                  "psi-port-pneumonia-severity-kr-654-2"
+                ]
               }
             },
             {
@@ -1077,12 +1089,16 @@
                 "title": "Класс V",
                 "explanation": "Класс V (более 130 баллов): летальность 27,0–31,1 %; госпитализация, возможно в ОРИТ.",
                 "attentionLevel": "urgent",
-                "sourceIds": ["psi-fine-1997", "psi-port-pneumonia-severity-kr-654-2"]
+                "sourceIds": [
+                  "psi-fine-1997",
+                  "psi-idsa-2000",
+                  "psi-port-pneumonia-severity-kr-654-2"
+                ]
               }
             }
           ],
           "missingContext": [],
-          "sourceIds": ["psi-fine-1997", "psi-port-pneumonia-severity-kr-654-2"]
+          "sourceIds": ["psi-fine-1997", "psi-idsa-2000", "psi-port-pneumonia-severity-kr-654-2"]
         },
         "observationMappings": [
           {
@@ -1101,7 +1117,15 @@
           "relation": "methodology",
           "title": "Fine MJ, Auble TE, Yealy DM, et al. A prediction rule to identify low-risk patients with community-acquired pneumonia",
           "url": "https://pubmed.ncbi.nlm.nih.gov/8995086/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
+        },
+        {
+          "id": "psi-idsa-2000",
+          "kind": "literature",
+          "relation": "interpretation",
+          "title": "Bartlett JG, Dowell SF, Mandell LA, et al. Practice guidelines for the management of community-acquired pneumonia in adults (IDSA; risk-class 30-day mortality ranges from the Pneumonia PORT cohorts)",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/10987697/",
+          "reviewedAt": "2026-10-13"
         },
         {
           "id": "psi-port-pneumonia-severity-kr-654-2",

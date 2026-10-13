@@ -251,7 +251,7 @@ describe('surgery, trauma and perioperative tool module', () => {
     });
   });
 
-  describe('TRISS (Boyd 1987 / MTOS coefficients; age index at 55; under 15 uses the blunt model)', () => {
+  describe('TRISS (MTOS 1995 coefficients; age index at 55; under 15 uses the blunt model)', () => {
     const id = 'minimed.calculator.triss';
     const normal: Inputs = { gcs: 15, sbp: 120, rr: 16, iss: 9, ageYears: 30, mechanism: 0 };
     it('reproduces the blunt and penetrating logistic models', () => {

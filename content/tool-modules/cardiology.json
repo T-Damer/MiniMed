@@ -284,7 +284,7 @@
     {
       "id": "minimed.calculator.wells-dvt",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "wells-dvt-probability",
       "title": "Wells — вероятность ТГВ",
       "shortTitle": "Wells (ТГВ)",
@@ -324,6 +324,8 @@
         "limitations": [
           "Шкала оценивает претестовую вероятность и применяется вместе с D-димером и ультразвуковым исследованием по принятому алгоритму.",
           "Пункт «другой диагноз не менее вероятен» отражает суждение врача и не вычисляется по данным.",
+          "Десять признаков — модифицированная шкала (Wells, 2003, с пунктом «ТГВ в анамнезе»); исходная модель 1997 г. его не содержала. В алгоритме с D-димером используют двухуровневое деление (2 балла и более — вероятен), как в Wells 2003 и NICE CG144.",
+          "Доли ТГВ по трёхуровневой схеме (5,0 % / 17 % / 53 %) взяты из объединённого анализа 14 исследований (Wells, 2006); границы баллов трёхуровневой схемы (≤0 / 1–2 / ≥3) по полному тексту работ 1997 г. не проверены.",
           "Шкала не заменяет клиническую оценку; результат не является автоматическим назначением или отменой обследования и лечения."
         ],
         "inputs": [
@@ -411,7 +413,7 @@
           },
           {
             "id": "calfSwelling",
-            "label": "Отёк голени больше чем на 3 см по сравнению со здоровой",
+            "label": "Отёк голени не менее чем на 3 см по сравнению со здоровой стороной",
             "kind": "select",
             "required": true,
             "options": [
@@ -510,19 +512,19 @@
         "interpretations": [
           {
             "when": "score >= 3",
-            "message": "3 балла и более: ТГВ вероятен; высокая вероятность по трёхуровневой схеме (Wells, 1997)."
+            "message": "3 балла и более: ТГВ вероятен; высокая вероятность по трёхуровневой схеме (Wells, 1997); в объединённом анализе исследований ТГВ найден у 53 % таких пациентов (Wells, 2006)."
           },
           {
             "when": "score >= 2",
-            "message": "2 балла: ТГВ вероятен (двухуровневая схема, Wells, 2003); по трёхуровневой — средняя вероятность."
+            "message": "2 балла: ТГВ вероятен (двухуровневая схема, Wells, 2003); по трёхуровневой — средняя вероятность (ТГВ у 17 % в объединённом анализе, Wells, 2006)."
           },
           {
             "when": "score >= 1",
-            "message": "1 балл: ТГВ маловероятен (двухуровневая схема); по трёхуровневой — средняя вероятность. При отрицательном D-димере в исследовании 2003 г. УЗИ не выполняли."
+            "message": "1 балл: ТГВ маловероятен (двухуровневая схема); по трёхуровневой — средняя вероятность (ТГВ у 17 % в объединённом анализе, Wells, 2006). При отрицательном D-димере в исследовании 2003 г. УЗИ не выполняли."
           },
           {
             "when": "1",
-            "message": "0 баллов и менее: ТГВ маловероятен; низкая вероятность по трёхуровневой схеме. При отрицательном D-димере в исследовании 2003 г. УЗИ не выполняли."
+            "message": "0 баллов и менее: ТГВ маловероятен; низкая вероятность по трёхуровневой схеме (ТГВ у 5,0 % в объединённом анализе, Wells, 2006). При отрицательном D-димере в исследовании 2003 г. УЗИ не выполняли."
           }
         ],
         "sources": [
@@ -532,7 +534,7 @@
             "version": "2003",
             "url": "https://pubmed.ncbi.nlm.nih.gov/14507948/",
             "page": "349(13):1227-1235",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           },
           {
             "title": "Wells PS, Anderson DR, Bormanis J, et al. Value of assessment of pretest probability of deep-vein thrombosis in clinical management",
@@ -540,7 +542,21 @@
             "version": "1997",
             "url": "https://pubmed.ncbi.nlm.nih.gov/9428249/",
             "page": "350(9094):1795-1798",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
+          },
+          {
+            "title": "Wells PS, Owen C, Doucette S, Fergusson D, Tran H. Does this patient have deep vein thrombosis?",
+            "publisher": "JAMA",
+            "version": "2006",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/16403932/",
+            "page": "295(2):199-207",
+            "reviewedAt": "2026-10-13"
+          },
+          {
+            "title": "NICE CG144. Venous thromboembolic diseases: diagnosis, management and thrombophilia testing. Appendix C, Table 1: two-level DVT Wells score, adapted from Wells 2003",
+            "publisher": "National Institute for Health and Care Excellence",
+            "version": "2012",
+            "reviewedAt": "2026-10-13"
           }
         ],
         "evaluation": {
@@ -551,11 +567,13 @@
               "verdict": {
                 "rangeId": "high",
                 "title": "Высокая вероятность",
-                "explanation": "3 балла и более: ТГВ вероятен; высокая вероятность по трёхуровневой схеме (Wells, 1997).",
+                "explanation": "3 балла и более: ТГВ вероятен; высокая вероятность по трёхуровневой схеме (Wells, 1997); в объединённом анализе исследований ТГВ найден у 53 % таких пациентов (Wells, 2006).",
                 "attentionLevel": "high",
                 "sourceIds": [
                   "wells-dvt-probability-wells-2003",
-                  "wells-dvt-probability-wells-1997"
+                  "wells-dvt-probability-wells-1997",
+                  "wells-dvt-probability-wells-2006",
+                  "wells-dvt-probability-nice-cg144"
                 ]
               }
             },
@@ -564,11 +582,13 @@
               "verdict": {
                 "rangeId": "likely",
                 "title": "ТГВ вероятен",
-                "explanation": "2 балла: ТГВ вероятен (двухуровневая схема, Wells, 2003); по трёхуровневой — средняя вероятность.",
+                "explanation": "2 балла: ТГВ вероятен (двухуровневая схема, Wells, 2003); по трёхуровневой — средняя вероятность (ТГВ у 17 % в объединённом анализе, Wells, 2006).",
                 "attentionLevel": "moderate",
                 "sourceIds": [
                   "wells-dvt-probability-wells-2003",
-                  "wells-dvt-probability-wells-1997"
+                  "wells-dvt-probability-wells-1997",
+                  "wells-dvt-probability-wells-2006",
+                  "wells-dvt-probability-nice-cg144"
                 ]
               }
             },
@@ -577,11 +597,13 @@
               "verdict": {
                 "rangeId": "unlikely-moderate",
                 "title": "ТГВ маловероятен",
-                "explanation": "1 балл: ТГВ маловероятен (двухуровневая схема); по трёхуровневой — средняя вероятность. При отрицательном D-димере в исследовании 2003 г. УЗИ не выполняли.",
+                "explanation": "1 балл: ТГВ маловероятен (двухуровневая схема); по трёхуровневой — средняя вероятность (ТГВ у 17 % в объединённом анализе, Wells, 2006). При отрицательном D-димере в исследовании 2003 г. УЗИ не выполняли.",
                 "attentionLevel": "none",
                 "sourceIds": [
                   "wells-dvt-probability-wells-2003",
-                  "wells-dvt-probability-wells-1997"
+                  "wells-dvt-probability-wells-1997",
+                  "wells-dvt-probability-wells-2006",
+                  "wells-dvt-probability-nice-cg144"
                 ]
               }
             },
@@ -590,17 +612,24 @@
               "verdict": {
                 "rangeId": "unlikely-low",
                 "title": "ТГВ маловероятен",
-                "explanation": "0 баллов и менее: ТГВ маловероятен; низкая вероятность по трёхуровневой схеме. При отрицательном D-димере в исследовании 2003 г. УЗИ не выполняли.",
+                "explanation": "0 баллов и менее: ТГВ маловероятен; низкая вероятность по трёхуровневой схеме (ТГВ у 5,0 % в объединённом анализе, Wells, 2006). При отрицательном D-димере в исследовании 2003 г. УЗИ не выполняли.",
                 "attentionLevel": "none",
                 "sourceIds": [
                   "wells-dvt-probability-wells-2003",
-                  "wells-dvt-probability-wells-1997"
+                  "wells-dvt-probability-wells-1997",
+                  "wells-dvt-probability-wells-2006",
+                  "wells-dvt-probability-nice-cg144"
                 ]
               }
             }
           ],
           "missingContext": [],
-          "sourceIds": ["wells-dvt-probability-wells-2003", "wells-dvt-probability-wells-1997"]
+          "sourceIds": [
+            "wells-dvt-probability-wells-2003",
+            "wells-dvt-probability-wells-1997",
+            "wells-dvt-probability-wells-2006",
+            "wells-dvt-probability-nice-cg144"
+          ]
         },
         "observationMappings": [
           {
@@ -619,7 +648,7 @@
           "relation": "methodology",
           "title": "Wells PS, Anderson DR, Rodger M, et al. Evaluation of D-dimer in the diagnosis of suspected deep-vein thrombosis",
           "url": "https://pubmed.ncbi.nlm.nih.gov/14507948/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         },
         {
           "id": "wells-dvt-probability-wells-1997",
@@ -627,7 +656,22 @@
           "relation": "interpretation",
           "title": "Wells PS, Anderson DR, Bormanis J, et al. Value of assessment of pretest probability of deep-vein thrombosis in clinical management",
           "url": "https://pubmed.ncbi.nlm.nih.gov/9428249/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
+        },
+        {
+          "id": "wells-dvt-probability-wells-2006",
+          "kind": "literature",
+          "relation": "interpretation",
+          "title": "Wells PS, Owen C, Doucette S, Fergusson D, Tran H. Does this patient have deep vein thrombosis?",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/16403932/",
+          "reviewedAt": "2026-10-13"
+        },
+        {
+          "id": "wells-dvt-probability-nice-cg144",
+          "kind": "guideline",
+          "relation": "methodology",
+          "title": "NICE CG144. Venous thromboembolic diseases: diagnosis, management and thrombophilia testing. Appendix C, Table 1: two-level DVT Wells score, adapted from Wells 2003",
+          "reviewedAt": "2026-10-13"
         }
       ]
     },
@@ -2577,7 +2621,7 @@
     {
       "id": "minimed.calculator.nyha-class",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "nyha-functional-class",
       "title": "Функциональный класс по NYHA",
       "shortTitle": "NYHA",
@@ -2627,19 +2671,19 @@
             "options": [
               {
                 "value": 1,
-                "label": "I — обычная нагрузка не вызывает утомляемости, сердцебиения, одышки"
+                "label": "I — болезнь сердца не ограничивает активность; обычная нагрузка не вызывает чрезмерной утомляемости, сердцебиения, одышки или стенокардитической боли"
               },
               {
                 "value": 2,
-                "label": "II — небольшое ограничение; в покое жалоб нет, обычная нагрузка вызывает симптомы"
+                "label": "II — небольшое ограничение; в покое комфортно, обычная нагрузка вызывает утомляемость, сердцебиение, одышку или стенокардитическую боль"
               },
               {
                 "value": 3,
-                "label": "III — выраженное ограничение; в покое жалоб нет, меньшая нагрузка вызывает симптомы"
+                "label": "III — выраженное ограничение; в покое комфортно, нагрузка меньше обычной вызывает утомляемость, сердцебиение, одышку или стенокардитическую боль"
               },
               {
                 "value": 4,
-                "label": "IV — любая активность вызывает дискомфорт; симптомы могут быть в покое"
+                "label": "IV — любая нагрузка вызывает дискомфорт; симптомы сердечной недостаточности или стенокардии могут быть в покое, при нагрузке дискомфорт усиливается"
               }
             ]
           }
@@ -2675,7 +2719,7 @@
           },
           {
             "when": "1",
-            "message": "Класс IV: симптомы возможны в покое, любая активность их усиливает."
+            "message": "Класс IV: любая нагрузка вызывает дискомфорт; симптомы сердечной недостаточности или стенокардии возможны в покое, при нагрузке дискомфорт усиливается."
           }
         ],
         "sources": [
@@ -2684,7 +2728,7 @@
             "publisher": "Little, Brown & Co (Boston)",
             "version": "9th edition, 1994",
             "page": "253-256",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           }
         ],
         "evaluation": {
@@ -2725,7 +2769,7 @@
               "verdict": {
                 "rangeId": "class-4",
                 "title": "Класс IV",
-                "explanation": "Класс IV: симптомы возможны в покое, любая активность их усиливает.",
+                "explanation": "Класс IV: любая нагрузка вызывает дискомфорт; симптомы сердечной недостаточности или стенокардии возможны в покое, при нагрузке дискомфорт усиливается.",
                 "attentionLevel": "high",
                 "sourceIds": ["nyha-functional-class-nyha-1994"]
               }
@@ -2750,14 +2794,14 @@
           "kind": "literature",
           "relation": "methodology",
           "title": "The Criteria Committee of the New York Heart Association. Nomenclature and Criteria for Diagnosis of Diseases of the Heart and Great Vessels",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         }
       ]
     },
     {
       "id": "minimed.calculator.ccs-angina-class",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "ccs-angina-class",
       "title": "Класс стенокардии по CCS",
       "shortTitle": "CCS (стенокардия)",
@@ -2811,7 +2855,7 @@
               },
               {
                 "value": 2,
-                "label": "II — небольшое ограничение: приступы при быстрой ходьбе или подъёме, после еды, на холоде, ветру, при волнении"
+                "label": "II — небольшое ограничение: приступы при быстрой ходьбе или подъёме, подъёме в гору, после еды, на холоде, на ветру, при волнении или в первые часы после пробуждения; при ходьбе более чем на 2 квартала по ровному месту и подъёме более чем на один пролёт в обычных условиях"
               },
               {
                 "value": 3,
@@ -2865,7 +2909,15 @@
             "version": "1976",
             "url": "https://pubmed.ncbi.nlm.nih.gov/947585/",
             "page": "54(3):522-523",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
+          },
+          {
+            "title": "Campeau L. The Canadian Cardiovascular Society grading of angina pectoris revisited 30 years later",
+            "publisher": "Canadian Journal of Cardiology",
+            "version": "2002",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/11992130/",
+            "page": "18(4):371-379",
+            "reviewedAt": "2026-10-13"
           }
         ],
         "evaluation": {
@@ -2932,7 +2984,15 @@
           "relation": "methodology",
           "title": "Campeau L. Grading of angina pectoris (letter)",
           "url": "https://pubmed.ncbi.nlm.nih.gov/947585/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
+        },
+        {
+          "id": "ccs-angina-class-campeau-2002",
+          "kind": "literature",
+          "relation": "clinical-context",
+          "title": "Campeau L. The Canadian Cardiovascular Society grading of angina pectoris revisited 30 years later",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/11992130/",
+          "reviewedAt": "2026-10-13"
         }
       ]
     },
@@ -5410,7 +5470,7 @@
     {
       "id": "minimed.calculator.score2-score2-op",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "score2-score2-op-cardiovascular-risk",
       "title": "SCORE2 и SCORE2-OP — 10-летний риск сердечно-сосудистых событий",
       "shortTitle": "SCORE2 / SCORE2-OP",
@@ -5466,7 +5526,7 @@
         "limitations": [
           "Для людей с диабетом, установленными сердечно-сосудистыми болезнями, хронической болезнью почек и семейной гиперхолестеринемией шкалу не используют.",
           "Риск — фатальные и нефатальные события (инфаркт, инсульт, смерть от сердечно-сосудистых причин) за 10 лет; пороги категорий зависят от возраста.",
-          "В российской выборке SCORE2 точна у мужчин и завышает риск у женщин; в странах очень высокого риска категории у мужчин оказываются «очень высокими» почти у всех."
+          "В российской выборке (ESSE-RF, 40–69 лет) SCORE2 точна у мужчин и завышает риск у женщин; в регионе очень высокого риска у мужчин по исходным порогам «очень высокий риск» получают 63 %, «низкий–умеренный» — 2 %."
         ],
         "inputs": [
           {
@@ -5765,7 +5825,15 @@
             "version": "2021",
             "url": "https://pubmed.ncbi.nlm.nih.gov/34120177/",
             "page": "42(25):2439-2454",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
+          },
+          {
+            "title": "SCORE2 working group and ESC Cardiovascular risk collaboration. SCORE2 models allow consideration of sex-specific cardiovascular disease risks by region (таблица коэффициентов, базовой выживаемости и региональных масштабов SCORE2)",
+            "publisher": "European Heart Journal",
+            "version": "2022",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/35080243/",
+            "page": "43(3):241",
+            "reviewedAt": "2026-10-13"
           },
           {
             "title": "SCORE2-OP working group and ESC Cardiovascular risk collaboration. SCORE2-OP risk prediction algorithms: estimating incident cardiovascular event risk in older persons in four geographical risk regions",
@@ -5773,7 +5841,7 @@
             "version": "2021",
             "url": "https://pubmed.ncbi.nlm.nih.gov/34120185/",
             "page": "42(25):2455-2467",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           },
           {
             "title": "Visseren FLJ, Mach F, Smulders YM, et al. 2021 ESC Guidelines on cardiovascular disease prevention in clinical practice",
@@ -5781,14 +5849,14 @@
             "version": "2021",
             "url": "https://pubmed.ncbi.nlm.nih.gov/34458905/",
             "page": "42(34):3227-3337",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           },
           {
             "title": "Svinin GE, et al. Validation of SCORE2 on a sample from the Russian population and adaptation for the very high cardiovascular disease risk region",
             "publisher": "PLoS One",
             "version": "2024",
             "url": "https://pubmed.ncbi.nlm.nih.gov/38630773/",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
           }
         ],
         "evaluation": {
@@ -5829,6 +5897,7 @@
           "sourceIds": [
             "score2-score2-op-cardiovascular-risk-score2-2021",
             "score2-score2-op-cardiovascular-risk-score2-op-2021",
+            "score2-score2-op-cardiovascular-risk-score2-coefficients-2022",
             "score2-score2-op-cardiovascular-risk-esc-2021",
             "score2-score2-op-cardiovascular-risk-svinin-2024"
           ]
@@ -5850,7 +5919,15 @@
           "relation": "methodology",
           "title": "SCORE2 working group and ESC Cardiovascular risk collaboration. SCORE2 risk prediction algorithms: new models to estimate 10-year risk of cardiovascular disease in Europe",
           "url": "https://pubmed.ncbi.nlm.nih.gov/34120177/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
+        },
+        {
+          "id": "score2-score2-op-cardiovascular-risk-score2-coefficients-2022",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "SCORE2 working group and ESC Cardiovascular risk collaboration. SCORE2 models allow consideration of sex-specific cardiovascular disease risks by region (таблица коэффициентов, базовой выживаемости и региональных масштабов SCORE2). Eur Heart J 2022;43(3):241",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/35080243/",
+          "reviewedAt": "2026-10-13"
         },
         {
           "id": "score2-score2-op-cardiovascular-risk-score2-op-2021",
@@ -5858,7 +5935,7 @@
           "relation": "methodology",
           "title": "SCORE2-OP working group and ESC Cardiovascular risk collaboration. SCORE2-OP risk prediction algorithms: estimating incident cardiovascular event risk in older persons in four geographical risk regions",
           "url": "https://pubmed.ncbi.nlm.nih.gov/34120185/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         },
         {
           "id": "score2-score2-op-cardiovascular-risk-esc-2021",
@@ -5866,7 +5943,7 @@
           "relation": "interpretation",
           "title": "Visseren FLJ, Mach F, Smulders YM, et al. 2021 ESC Guidelines on cardiovascular disease prevention in clinical practice",
           "url": "https://pubmed.ncbi.nlm.nih.gov/34458905/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         },
         {
           "id": "score2-score2-op-cardiovascular-risk-svinin-2024",
@@ -5874,7 +5951,7 @@
           "relation": "clinical-context",
           "title": "Svinin GE, et al. Validation of SCORE2 on a sample from the Russian population and adaptation for the very high cardiovascular disease risk region",
           "url": "https://pubmed.ncbi.nlm.nih.gov/38630773/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
         }
       ]
     },
@@ -9046,7 +9123,7 @@
     {
       "id": "minimed.calculator.mehran-cin-score",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "mehran-contrast-nephropathy-score",
       "title": "Mehran — риск контраст-индуцированной нефропатии после ЧКВ",
       "shortTitle": "Mehran (КИН)",
@@ -9098,7 +9175,8 @@
         "limitations": [
           "Шкала выведена для ЧКВ; при диагностической коронарографии без вмешательства она не проверялась.",
           "Нефропатия — рост креатинина на 25 % и более или на 0,5 мг/дл и более за 48 часов; в исходной работе есть и вариант с креатинином выше 1,5 мг/дл (4 балла) вместо СКФ.",
-          "Частоты диализа в категориях — по рисунку исходной работы, переданные вторичными источниками."
+          "Частоты нефропатии и диализа в категориях — из рисунка исходной работы (в выборке разработки); в самом рисунке границы «11–16» и «≥16» перекрываются, здесь, как и в резюме статьи, 16 баллов относят к высшей категории.",
+          "СКФ в исходной работе — по формуле MDRD; границы 40 и 20 в рисунке указаны в двух строках, здесь 40–59 даёт 2 балла, 20–39 — 4 балла, ниже 20 — 6 баллов."
         ],
         "inputs": [
           {
@@ -9262,7 +9340,15 @@
             "version": "2004",
             "url": "https://pubmed.ncbi.nlm.nih.gov/15464318/",
             "page": "44(7):1393-1399",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
+          },
+          {
+            "title": "Andersen ND, et al. Cardiac catheterization within one to three days of proximal aortic surgery is not associated with increased postoperative acute kidney injury (рисунок шкалы Mehran воспроизведён из исходной статьи с разрешения издателя)",
+            "publisher": "Journal of Thoracic and Cardiovascular Surgery",
+            "version": "2012",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3711663/",
+            "page": "143(6):1404-1410",
+            "reviewedAt": "2026-10-13"
           }
         ],
         "evaluation": {
@@ -9310,7 +9396,10 @@
             }
           ],
           "missingContext": [],
-          "sourceIds": ["mehran-contrast-nephropathy-score-mehran-2004"]
+          "sourceIds": [
+            "mehran-contrast-nephropathy-score-mehran-2004",
+            "mehran-contrast-nephropathy-score-andersen-2012-figure"
+          ]
         },
         "observationMappings": [
           {
@@ -9329,14 +9418,22 @@
           "relation": "methodology",
           "title": "Mehran R, Aymong ED, Nikolsky E, et al. A simple risk score for prediction of contrast-induced nephropathy after percutaneous coronary intervention: development and initial validation",
           "url": "https://pubmed.ncbi.nlm.nih.gov/15464318/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
+        },
+        {
+          "id": "mehran-contrast-nephropathy-score-andersen-2012-figure",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Andersen ND, et al. Cardiac catheterization within one to three days of proximal aortic surgery is not associated with increased postoperative acute kidney injury. J Thorac Cardiovasc Surg 2012;143(6):1404-1410 (рисунок шкалы Mehran воспроизведён из исходной статьи с разрешения издателя)",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3711663/",
+          "reviewedAt": "2026-10-13"
         }
       ]
     },
     {
       "id": "minimed.calculator.ceap",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "ceap-chronic-venous-disorders",
       "title": "Классификация CEAP — хронические заболевания вен",
       "shortTitle": "CEAP",
@@ -9388,7 +9485,7 @@
         "limitations": [
           "CEAP — описательная классификация; шкалы тяжести и качества жизни нужны отдельно для динамики.",
           "Дату исследования и уровень обследования (LI — физикальное и допплерография, LII — дуплексное сканирование, LIII — флебография, КТ, МРТ) указывают в записи рядом с классом.",
-          "Здесь используется консенсус 2004 г.; более поздние пересмотры добавили подклассы."
+          "Здесь используется пересмотр CEAP 2020 г. (Lurie и соавт.), совпадающий с российскими клиническими рекомендациями 2024 г. по варикозной болезни: добавлены C4c, признак рецидива r (C2r, C6r), подразделение Es на Esi и Ese."
         ],
         "inputs": [
           {
@@ -9410,6 +9507,10 @@
                 "label": "C2 — варикозное расширение вен"
               },
               {
+                "value": "C2r",
+                "label": "C2r — рецидив варикозных вен"
+              },
+              {
                 "value": "C3",
                 "label": "C3 — отёк"
               },
@@ -9422,12 +9523,20 @@
                 "label": "C4b — липодерматосклероз или белая атрофия"
               },
               {
+                "value": "C4c",
+                "label": "C4c — флебэктатическая корона (corona phlebectatica)"
+              },
+              {
                 "value": "C5",
                 "label": "C5 — зажившая венозная язва"
               },
               {
                 "value": "C6",
                 "label": "C6 — открытая венозная язва"
+              },
+              {
+                "value": "C6r",
+                "label": "C6r — рецидивная открытая венозная язва"
               }
             ]
           },
@@ -9463,7 +9572,15 @@
               },
               {
                 "value": "Es",
-                "label": "Es — вторичная (после тромбоза, травмы)"
+                "label": "Es — вторичная, подтип не уточнён"
+              },
+              {
+                "value": "Esi",
+                "label": "Esi — вторичная, внутривенная (тромбоз, повреждение стенки и клапанов, артериовенозная фистула)"
+              },
+              {
+                "value": "Ese",
+                "label": "Ese — вторичная, внешняя (сдавление, венозная гипертензия, нарушение работы мышечной помпы)"
               },
               {
                 "value": "En",
@@ -9549,7 +9666,7 @@
             "id": "cNumber",
             "label": "Клинический класс C (номер)",
             "unit": "класс",
-            "expression": "cond(clinical == \"C0\", 0, cond(clinical == \"C1\", 1, cond(clinical == \"C2\", 2, cond(clinical == \"C3\", 3, cond(clinical == \"C4a\", 4, cond(clinical == \"C4b\", 4, cond(clinical == \"C5\", 5, 6)))))))",
+            "expression": "cond(clinical == \"C0\", 0, cond(clinical == \"C1\", 1, cond(clinical == \"C2\", 2, cond(clinical == \"C2r\", 2, cond(clinical == \"C3\", 3, cond(clinical == \"C4a\", 4, cond(clinical == \"C4b\", 4, cond(clinical == \"C4c\", 4, cond(clinical == \"C5\", 5, 6)))))))))",
             "displayPrecision": 0,
             "isOutput": true,
             "valueKind": "number"
@@ -9635,7 +9752,22 @@
             "version": "2004",
             "url": "https://pubmed.ncbi.nlm.nih.gov/15622385/",
             "page": "40(6):1248-1252",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
+          },
+          {
+            "title": "Lurie F, Passman M, Meisner M, et al. The 2020 update of the CEAP classification system and reporting standards",
+            "publisher": "Journal of Vascular Surgery: Venous and Lymphatic Disorders",
+            "version": "2020",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/32113854/",
+            "page": "8(3):342-352",
+            "reviewedAt": "2026-10-13"
+          },
+          {
+            "title": "Клинические рекомендации «Варикозное расширение вен нижних конечностей» (2024), таблица 1 «Классификация хронических заболеваний вен CEAP»",
+            "publisher": "Минздрав России",
+            "version": "2024",
+            "url": "https://cr.minzdrav.gov.ru/recomend/680_2",
+            "reviewedAt": "2026-10-13"
           }
         ],
         "evaluation": {
@@ -9693,7 +9825,11 @@
             }
           ],
           "missingContext": [],
-          "sourceIds": ["ceap-chronic-venous-disorders-eklof-2004"]
+          "sourceIds": [
+            "ceap-chronic-venous-disorders-eklof-2004",
+            "ceap-chronic-venous-disorders-lurie-2020",
+            "ceap-chronic-venous-disorders-ru-kr-680-2"
+          ]
         },
         "observationMappings": [
           {
@@ -9712,14 +9848,30 @@
           "relation": "methodology",
           "title": "Eklöf B, Rutherford RB, Bergan JJ, et al. Revision of the CEAP classification for chronic venous disorders: consensus statement",
           "url": "https://pubmed.ncbi.nlm.nih.gov/15622385/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
+        },
+        {
+          "id": "ceap-chronic-venous-disorders-lurie-2020",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Lurie F, Passman M, Meisner M, et al. The 2020 update of the CEAP classification system and reporting standards. J Vasc Surg Venous Lymphat Disord 2020;8(3):342-352",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32113854/",
+          "reviewedAt": "2026-10-13"
+        },
+        {
+          "id": "ceap-chronic-venous-disorders-ru-kr-680-2",
+          "kind": "clinical-recommendation",
+          "relation": "interpretation",
+          "title": "Клинические рекомендации «Варикозное расширение вен нижних конечностей» (2024), таблица 1 «Классификация хронических заболеваний вен CEAP»",
+          "url": "https://cr.minzdrav.gov.ru/recomend/680_2",
+          "reviewedAt": "2026-10-13"
         }
       ]
     },
     {
       "id": "minimed.calculator.ceap-extended",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "ceap-extended-chronic-venous-disorders",
       "title": "Расширенная классификация CEAP — хронические заболевания вен",
       "shortTitle": "CEAP расширенная",
@@ -9764,12 +9916,13 @@
         },
         "category": "cardiology",
         "clinical": true,
-        "formulaDisplay": "C, S/A, E, A (As, Ap, Ad), P и номера поражённых сегментов 1–18: например C2,3,4b,6,S, Ep, As,p,d, Pr2,3,18,13,14",
+        "formulaDisplay": "C, S/A, E, A (As, Ap, Ad), P и буквенные обозначения поражённых сегментов: например C2,3s, Ep, As,p, Pr (GSVa, TPV)",
         "population": "Пациенты с хроническими заболеваниями вен нижних конечностей.",
         "limitations": [
           "CEAP — описательная классификация; шкалы тяжести и качества жизни нужны отдельно для динамики.",
-          "Номера поражённых сегментов выпишите после буквы P (Pr, Po или Pr,o), например Pr2,3,18,13,14; сегменты 1–5 — As, 6–16 — Ad, 17–18 — Ap.",
-          "Дату исследования и уровень обследования (LI, LII, LIII) указывают в записи рядом с классом."
+          "Поражённые сегменты выпишите буквенными обозначениями 2020 г. после P (Pr, Po или Pr,o), например Pr (GSVa, TPV); числовые номера 1–18 редакции 2004 г. остаются в подсказках для сопоставления: 1–5 — As, 6–16 — Ad, 17–18 — Ap. Российские клинические рекомендации 2024 г. советуют использовать буквенные обозначения.",
+          "Дату исследования и уровень обследования (LI, LII, LIII) указывают в записи рядом с классом.",
+          "Здесь используется пересмотр CEAP 2020 г. (Lurie и соавт.): добавлены C4c, признак рецидива r (C2r, C6r), подразделение Es на Esi и Ese, отдельные сегменты Tel, Ret и AASV."
         ],
         "inputs": [
           {
@@ -9791,6 +9944,10 @@
                 "label": "C2 — варикозное расширение вен"
               },
               {
+                "value": "C2r",
+                "label": "C2r — рецидив варикозных вен"
+              },
+              {
                 "value": "C3",
                 "label": "C3 — отёк"
               },
@@ -9803,12 +9960,20 @@
                 "label": "C4b — липодерматосклероз или белая атрофия"
               },
               {
+                "value": "C4c",
+                "label": "C4c — флебэктатическая корона (corona phlebectatica)"
+              },
+              {
                 "value": "C5",
                 "label": "C5 — зажившая венозная язва"
               },
               {
                 "value": "C6",
                 "label": "C6 — открытая венозная язва"
+              },
+              {
+                "value": "C6r",
+                "label": "C6r — рецидивная открытая венозная язва"
               }
             ]
           },
@@ -9844,7 +10009,15 @@
               },
               {
                 "value": "Es",
-                "label": "Es — вторичная (после тромбоза, травмы)"
+                "label": "Es — вторичная, подтип не уточнён"
+              },
+              {
+                "value": "Esi",
+                "label": "Esi — вторичная, внутривенная (тромбоз, повреждение стенки и клапанов, артериовенозная фистула)"
+              },
+              {
+                "value": "Ese",
+                "label": "Ese — вторичная, внешняя (сдавление, венозная гипертензия, нарушение работы мышечной помпы)"
               },
               {
                 "value": "En",
@@ -9878,144 +10051,160 @@
           },
           {
             "id": "seg1",
-            "label": "1. Телеангиэктазии и ретикулярные вены",
-            "labelTooltip": "Сегмент 1 (As).",
+            "label": "Tel — телеангиэктазии",
+            "labelTooltip": "Сегмент As; в редакции 2004 г. — № 1 вместе с ретикулярными венами.",
+            "kind": "checkbox",
+            "required": false,
+            "defaultExpression": "0"
+          },
+          {
+            "id": "segRet",
+            "label": "Ret — ретикулярные вены",
+            "labelTooltip": "Сегмент As; в редакции 2004 г. — № 1 вместе с телеангиэктазиями.",
             "kind": "checkbox",
             "required": false,
             "defaultExpression": "0"
           },
           {
             "id": "seg2",
-            "label": "2. Большая подкожная вена на бедре",
-            "labelTooltip": "Сегмент 2 (As).",
+            "label": "GSVa — большая подкожная вена выше колена",
+            "labelTooltip": "Сегмент As; в редакции 2004 г. — № 2.",
             "kind": "checkbox",
             "required": false,
             "defaultExpression": "0"
           },
           {
             "id": "seg3",
-            "label": "3. Большая подкожная вена на голени",
-            "labelTooltip": "Сегмент 3 (As).",
+            "label": "GSVb — большая подкожная вена ниже колена",
+            "labelTooltip": "Сегмент As; в редакции 2004 г. — № 3.",
             "kind": "checkbox",
             "required": false,
             "defaultExpression": "0"
           },
           {
             "id": "seg4",
-            "label": "4. Малая подкожная вена",
-            "labelTooltip": "Сегмент 4 (As).",
+            "label": "SSV — малая подкожная вена",
+            "labelTooltip": "Сегмент As; в редакции 2004 г. — № 4.",
+            "kind": "checkbox",
+            "required": false,
+            "defaultExpression": "0"
+          },
+          {
+            "id": "segAASV",
+            "label": "AASV — передняя добавочная подкожная вена",
+            "labelTooltip": "Сегмент As; выделена в редакции 2020 г., в редакции 2004 г. номера не имела.",
             "kind": "checkbox",
             "required": false,
             "defaultExpression": "0"
           },
           {
             "id": "seg5",
-            "label": "5. Вены вне бассейна большой и малой подкожных",
-            "labelTooltip": "Сегмент 5 (As).",
+            "label": "NSV — несафенные вены (вне бассейна большой и малой подкожных)",
+            "labelTooltip": "Сегмент As; в редакции 2004 г. — № 5.",
             "kind": "checkbox",
             "required": false,
             "defaultExpression": "0"
           },
           {
             "id": "seg6",
-            "label": "6. Нижняя полая вена",
-            "labelTooltip": "Сегмент 6 (Ad).",
+            "label": "IVC — нижняя полая вена",
+            "labelTooltip": "Сегмент Ad; в редакции 2004 г. — № 6.",
             "kind": "checkbox",
             "required": false,
             "defaultExpression": "0"
           },
           {
             "id": "seg7",
-            "label": "7. Общая подвздошная вена",
-            "labelTooltip": "Сегмент 7 (Ad).",
+            "label": "CIV — общая подвздошная вена",
+            "labelTooltip": "Сегмент Ad; в редакции 2004 г. — № 7.",
             "kind": "checkbox",
             "required": false,
             "defaultExpression": "0"
           },
           {
             "id": "seg8",
-            "label": "8. Внутренняя подвздошная вена",
-            "labelTooltip": "Сегмент 8 (Ad).",
+            "label": "IIV — внутренняя подвздошная вена",
+            "labelTooltip": "Сегмент Ad; в редакции 2004 г. — № 8.",
             "kind": "checkbox",
             "required": false,
             "defaultExpression": "0"
           },
           {
             "id": "seg9",
-            "label": "9. Наружная подвздошная вена",
-            "labelTooltip": "Сегмент 9 (Ad).",
+            "label": "EIV — наружная подвздошная вена",
+            "labelTooltip": "Сегмент Ad; в редакции 2004 г. — № 9.",
             "kind": "checkbox",
             "required": false,
             "defaultExpression": "0"
           },
           {
             "id": "seg10",
-            "label": "10. Вены таза",
-            "labelTooltip": "Сегмент 10 (Ad).",
+            "label": "PELV — вены таза",
+            "labelTooltip": "Сегмент Ad; в редакции 2004 г. — № 10.",
             "kind": "checkbox",
             "required": false,
             "defaultExpression": "0"
           },
           {
             "id": "seg11",
-            "label": "11. Общая бедренная вена",
-            "labelTooltip": "Сегмент 11 (Ad).",
+            "label": "CFV — общая бедренная вена",
+            "labelTooltip": "Сегмент Ad; в редакции 2004 г. — № 11.",
             "kind": "checkbox",
             "required": false,
             "defaultExpression": "0"
           },
           {
             "id": "seg12",
-            "label": "12. Глубокая вена бедра",
-            "labelTooltip": "Сегмент 12 (Ad).",
+            "label": "DFV — глубокая бедренная вена",
+            "labelTooltip": "Сегмент Ad; в редакции 2004 г. — № 12.",
             "kind": "checkbox",
             "required": false,
             "defaultExpression": "0"
           },
           {
             "id": "seg13",
-            "label": "13. Поверхностная бедренная вена",
-            "labelTooltip": "Сегмент 13 (Ad).",
+            "label": "FV — бедренная вена",
+            "labelTooltip": "Сегмент Ad; в редакции 2004 г. — № 13 (поверхностная бедренная).",
             "kind": "checkbox",
             "required": false,
             "defaultExpression": "0"
           },
           {
             "id": "seg14",
-            "label": "14. Подколенная вена",
-            "labelTooltip": "Сегмент 14 (Ad).",
+            "label": "POPV — подколенная вена",
+            "labelTooltip": "Сегмент Ad; в редакции 2004 г. — № 14.",
             "kind": "checkbox",
             "required": false,
             "defaultExpression": "0"
           },
           {
             "id": "seg15",
-            "label": "15. Вены голени",
-            "labelTooltip": "Сегмент 15 (Ad).",
+            "label": "TIBV — вены голени (берцовые)",
+            "labelTooltip": "Сегмент Ad; в редакции 2004 г. — № 15. Включает малоберцовые (PRV), передние (ATV) и задние (PTV) большеберцовые вены.",
             "kind": "checkbox",
             "required": false,
             "defaultExpression": "0"
           },
           {
             "id": "seg16",
-            "label": "16. Мышечные вены",
-            "labelTooltip": "Сегмент 16 (Ad).",
+            "label": "MUSV — мышечные вены",
+            "labelTooltip": "Сегмент Ad; в редакции 2004 г. — № 16. Включает вены икроножной (GAV) и камбаловидной (SOV) мышц.",
             "kind": "checkbox",
             "required": false,
             "defaultExpression": "0"
           },
           {
             "id": "seg17",
-            "label": "17. Перфорантные вены бедра",
-            "labelTooltip": "Сегмент 17 (Ap).",
+            "label": "TPV — перфорантные вены бедра",
+            "labelTooltip": "Сегмент Ap; в редакции 2004 г. — № 17.",
             "kind": "checkbox",
             "required": false,
             "defaultExpression": "0"
           },
           {
             "id": "seg18",
-            "label": "18. Перфорантные вены голени",
-            "labelTooltip": "Сегмент 18 (Ap).",
+            "label": "CPV — перфорантные вены голени",
+            "labelTooltip": "Сегмент Ap; в редакции 2004 г. — № 18.",
             "kind": "checkbox",
             "required": false,
             "defaultExpression": "0"
@@ -10024,16 +10213,16 @@
         "steps": [
           {
             "id": "superficial",
-            "label": "Поражены поверхностные вены (1–5)",
+            "label": "Поражены поверхностные вены (Tel, Ret, GSVa, GSVb, SSV, AASV, NSV)",
             "unit": "флаг",
-            "expression": "cond(seg1 + seg2 + seg3 + seg4 + seg5 > 0, 1, 0)",
+            "expression": "cond(seg1 + segRet + seg2 + seg3 + seg4 + segAASV + seg5 > 0, 1, 0)",
             "displayPrecision": 0,
             "isOutput": false,
             "valueKind": "number"
           },
           {
             "id": "deep",
-            "label": "Поражены глубокие вены (6–16)",
+            "label": "Поражены глубокие вены (IVC … MUSV)",
             "unit": "флаг",
             "expression": "cond(seg6 + seg7 + seg8 + seg9 + seg10 + seg11 + seg12 + seg13 + seg14 + seg15 + seg16 > 0, 1, 0)",
             "displayPrecision": 0,
@@ -10042,7 +10231,7 @@
           },
           {
             "id": "perforator",
-            "label": "Поражены перфорантные вены (17–18)",
+            "label": "Поражены перфорантные вены (TPV, CPV)",
             "unit": "флаг",
             "expression": "cond(seg17 + seg18 > 0, 1, 0)",
             "displayPrecision": 0,
@@ -10053,7 +10242,7 @@
             "id": "cNumber",
             "label": "Клинический класс C (номер)",
             "unit": "класс",
-            "expression": "cond(clinical == \"C0\", 0, cond(clinical == \"C1\", 1, cond(clinical == \"C2\", 2, cond(clinical == \"C3\", 3, cond(clinical == \"C4a\", 4, cond(clinical == \"C4b\", 4, cond(clinical == \"C5\", 5, 6)))))))",
+            "expression": "cond(clinical == \"C0\", 0, cond(clinical == \"C1\", 1, cond(clinical == \"C2\", 2, cond(clinical == \"C2r\", 2, cond(clinical == \"C3\", 3, cond(clinical == \"C4a\", 4, cond(clinical == \"C4b\", 4, cond(clinical == \"C4c\", 4, cond(clinical == \"C5\", 5, 6)))))))))",
             "displayPrecision": 0,
             "isOutput": true,
             "valueKind": "number"
@@ -10062,7 +10251,7 @@
             "id": "segmentCount",
             "label": "Число поражённых сегментов",
             "unit": "сегментов",
-            "expression": "seg1 + seg2 + seg3 + seg4 + seg5 + seg6 + seg7 + seg8 + seg9 + seg10 + seg11 + seg12 + seg13 + seg14 + seg15 + seg16 + seg17 + seg18",
+            "expression": "seg1 + segRet + segAASV + seg2 + seg3 + seg4 + seg5 + seg6 + seg7 + seg8 + seg9 + seg10 + seg11 + seg12 + seg13 + seg14 + seg15 + seg16 + seg17 + seg18",
             "displayPrecision": 0,
             "isOutput": true,
             "valueKind": "number"
@@ -10148,7 +10337,22 @@
             "version": "2004",
             "url": "https://pubmed.ncbi.nlm.nih.gov/15622385/",
             "page": "40(6):1248-1252",
-            "reviewedAt": "2026-10-12"
+            "reviewedAt": "2026-10-13"
+          },
+          {
+            "title": "Lurie F, Passman M, Meisner M, et al. The 2020 update of the CEAP classification system and reporting standards",
+            "publisher": "Journal of Vascular Surgery: Venous and Lymphatic Disorders",
+            "version": "2020",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/32113854/",
+            "page": "8(3):342-352",
+            "reviewedAt": "2026-10-13"
+          },
+          {
+            "title": "Клинические рекомендации «Варикозное расширение вен нижних конечностей» (2024), таблицы 1–2 «Классификация хронических заболеваний вен CEAP», «Обозначения сегментов венозной системы»",
+            "publisher": "Минздрав России",
+            "version": "2024",
+            "url": "https://cr.minzdrav.gov.ru/recomend/680_2",
+            "reviewedAt": "2026-10-13"
           }
         ],
         "evaluation": {
@@ -10206,7 +10410,11 @@
             }
           ],
           "missingContext": [],
-          "sourceIds": ["ceap-extended-chronic-venous-disorders-eklof-2004"]
+          "sourceIds": [
+            "ceap-extended-chronic-venous-disorders-eklof-2004",
+            "ceap-extended-chronic-venous-disorders-lurie-2020",
+            "ceap-extended-chronic-venous-disorders-ru-kr-680-2"
+          ]
         },
         "observationMappings": [
           {
@@ -10232,14 +10440,30 @@
           "relation": "methodology",
           "title": "Eklöf B, Rutherford RB, Bergan JJ, et al. Revision of the CEAP classification for chronic venous disorders: consensus statement",
           "url": "https://pubmed.ncbi.nlm.nih.gov/15622385/",
-          "reviewedAt": "2026-10-12"
+          "reviewedAt": "2026-10-13"
+        },
+        {
+          "id": "ceap-extended-chronic-venous-disorders-lurie-2020",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Lurie F, Passman M, Meisner M, et al. The 2020 update of the CEAP classification system and reporting standards. J Vasc Surg Venous Lymphat Disord 2020;8(3):342-352",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32113854/",
+          "reviewedAt": "2026-10-13"
+        },
+        {
+          "id": "ceap-extended-chronic-venous-disorders-ru-kr-680-2",
+          "kind": "clinical-recommendation",
+          "relation": "interpretation",
+          "title": "Клинические рекомендации «Варикозное расширение вен нижних конечностей» (2024), таблицы 1–2 «Классификация хронических заболеваний вен CEAP», «Обозначения сегментов венозной системы»",
+          "url": "https://cr.minzdrav.gov.ru/recomend/680_2",
+          "reviewedAt": "2026-10-13"
         }
       ]
     },
     {
       "id": "minimed.calculator.chronic-limb-ischemia",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "slug": "chronic-limb-ischemia-classifications",
       "title": "Хроническая артериальная недостаточность (ХАН) — Фонтейн, Покровский, Резерфорд",
       "shortTitle": "ХАН: Фонтейн, Покровский, Резерфорд",
@@ -10294,8 +10518,11 @@
         "population": "Взрослые с хронической артериальной недостаточностью нижних конечностей.",
         "limitations": [
           "Классификации описательные; решение о тактике опирается на гемодинамику (ЛПИ, давление на лодыжке) и визуализацию.",
-          "Сопоставление трёх систем взято из российского согласительного документа; границы стадий у разных авторов различаются.",
-          "Дистанцию безболевой ходьбы при выборе клинической картины оценивают отдельно."
+          "Сопоставление трёх систем взято из таблицы клинических рекомендаций «Хроническая ишемия нижних конечностей с клиникой перемежающейся хромоты» (2025); границы стадий у разных авторов различаются.",
+          "Покровский IIa — безболевая ходьба 200–1000 м, IIb — менее 200 м (по таблице клинических рекомендаций); дистанцию оценивают отдельно.",
+          "У больных сахарным диабетом классификации Фонтейна–Покровского и Резерфорда, по клиническим рекомендациям, применять нецелесообразно: трофические нарушения возможны на любой стадии.",
+          "Для категории 6 по Резерфорду степень в публикациях указана как III (таблица клинических рекомендаций) или IV (клинические рекомендации по критической ишемии); ориентируйтесь на категорию 0–6.",
+          "Категории 5 и 6 по Резерфорду различаются по объёму потери тканей: категория 5 — небольшой дефект (незаживающая язва, ограниченная гангрена), категория 6 — обширный, выше уровня плюсны, стопа не подлежит сохранению; в российской таблице обе строки названы «трофические нарушения» и «язва или гангрена»."
         ],
         "inputs": [
           {
@@ -10310,11 +10537,11 @@
               },
               {
                 "value": 1,
-                "label": "Невыраженная лёгкая перемежающаяся хромота"
+                "label": "Лёгкая перемежающаяся хромота (безболевая ходьба 200–1000 м)"
               },
               {
                 "value": 2,
-                "label": "Умеренная перемежающаяся хромота"
+                "label": "Умеренная перемежающаяся хромота (менее 200 м)"
               },
               {
                 "value": 3,
@@ -10326,11 +10553,11 @@
               },
               {
                 "value": 5,
-                "label": "Начальные небольшие трофические нарушения"
+                "label": "Небольшой дефект тканей: незаживающая язва, ограниченная гангрена"
               },
               {
                 "value": 6,
-                "label": "Язва или гангрена"
+                "label": "Обширный дефект тканей выше уровня плюсны, стопа не подлежит сохранению"
               }
             ]
           }
@@ -10386,7 +10613,7 @@
           },
           {
             "when": "rutherfordCategory == 1",
-            "message": "Невыраженная лёгкая перемежающаяся хромота: Фонтейн IIa, Покровский IIa, Резерфорд степень I, категория 1."
+            "message": "Лёгкая перемежающаяся хромота: Фонтейн IIa, Покровский IIa, Резерфорд степень I, категория 1."
           },
           {
             "when": "rutherfordCategory == 2",
@@ -10402,11 +10629,11 @@
           },
           {
             "when": "rutherfordCategory == 5",
-            "message": "Начальные небольшие трофические нарушения: Фонтейн IV, Покровский IV, Резерфорд степень III, категория 5."
+            "message": "Небольшой дефект тканей (Резерфорд: minor tissue loss): Фонтейн IV, Покровский IV, Резерфорд степень III, категория 5."
           },
           {
             "when": "1",
-            "message": "Язва или гангрена: Фонтейн IV, Покровский IV, Резерфорд степень III, категория 6."
+            "message": "Обширный дефект тканей (Резерфорд: major tissue loss): Фонтейн IV, Покровский IV, Резерфорд степень III, категория 6."
           }
         ],
         "sources": [
@@ -10432,6 +10659,21 @@
             "url": "https://pubmed.ncbi.nlm.nih.gov/14366554/",
             "page": "21(5-6):499-533",
             "reviewedAt": "2026-10-12"
+          },
+          {
+            "title": "Клинические рекомендации «Хроническая ишемия нижних конечностей с клиникой перемежающейся хромоты» (2025), таблица 4 «Классификации тяжести хронической ишемии нижней конечности»",
+            "publisher": "Минздрав России",
+            "version": "2025",
+            "url": "https://cr.minzdrav.gov.ru/recomend/958_1",
+            "reviewedAt": "2026-10-13"
+          },
+          {
+            "title": "Hardman RL, Jazaeri O, Yi J, Smith M, Gupta R. Overview of classification systems in peripheral artery disease (таблицы Fontaine и Rutherford)",
+            "publisher": "Seminars in Interventional Radiology",
+            "version": "2014",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4232437/",
+            "page": "31(4):378-388",
+            "reviewedAt": "2026-10-13"
           }
         ],
         "evaluation": {
@@ -10454,8 +10696,8 @@
               "when": "rutherfordCategory == 1",
               "verdict": {
                 "rangeId": "cat-1",
-                "title": "Невыраженная лёгкая перемежающаяся хромота",
-                "explanation": "Невыраженная лёгкая перемежающаяся хромота: Фонтейн IIa, Покровский IIa, Резерфорд степень I, категория 1.",
+                "title": "Лёгкая перемежающаяся хромота",
+                "explanation": "Лёгкая перемежающаяся хромота: Фонтейн IIa, Покровский IIa, Резерфорд степень I, категория 1.",
                 "attentionLevel": "low",
                 "sourceIds": [
                   "chronic-limb-ischemia-classifications-ru-consensus-2010",
@@ -10506,8 +10748,8 @@
               "when": "rutherfordCategory == 5",
               "verdict": {
                 "rangeId": "cat-5",
-                "title": "Начальные небольшие трофические нарушения",
-                "explanation": "Начальные небольшие трофические нарушения: Фонтейн IV, Покровский IV, Резерфорд степень III, категория 5.",
+                "title": "Небольшой дефект тканей",
+                "explanation": "Небольшой дефект тканей (Резерфорд: minor tissue loss): Фонтейн IV, Покровский IV, Резерфорд степень III, категория 5.",
                 "attentionLevel": "high",
                 "sourceIds": [
                   "chronic-limb-ischemia-classifications-ru-consensus-2010",
@@ -10519,8 +10761,8 @@
               "when": "1",
               "verdict": {
                 "rangeId": "cat-6",
-                "title": "Язва или гангрена",
-                "explanation": "Язва или гангрена: Фонтейн IV, Покровский IV, Резерфорд степень III, категория 6.",
+                "title": "Обширный дефект тканей",
+                "explanation": "Обширный дефект тканей (Резерфорд: major tissue loss): Фонтейн IV, Покровский IV, Резерфорд степень III, категория 6.",
                 "attentionLevel": "high",
                 "sourceIds": [
                   "chronic-limb-ischemia-classifications-ru-consensus-2010",
@@ -10533,7 +10775,9 @@
           "sourceIds": [
             "chronic-limb-ischemia-classifications-ru-consensus-2010",
             "chronic-limb-ischemia-classifications-rutherford-1997",
-            "chronic-limb-ischemia-classifications-fontaine-1954"
+            "chronic-limb-ischemia-classifications-fontaine-1954",
+            "chronic-limb-ischemia-classifications-ru-kr-958-2025",
+            "chronic-limb-ischemia-classifications-hardman-2014"
           ]
         },
         "observationMappings": [
@@ -10569,6 +10813,22 @@
           "title": "Fontaine R, Kim M, Kieny R. Surgical treatment of peripheral circulation disorders",
           "url": "https://pubmed.ncbi.nlm.nih.gov/14366554/",
           "reviewedAt": "2026-10-12"
+        },
+        {
+          "id": "chronic-limb-ischemia-classifications-ru-kr-958-2025",
+          "kind": "clinical-recommendation",
+          "relation": "interpretation",
+          "title": "Клинические рекомендации «Хроническая ишемия нижних конечностей с клиникой перемежающейся хромоты» (2025), таблица 4 «Классификации тяжести хронической ишемии нижней конечности»",
+          "url": "https://cr.minzdrav.gov.ru/recomend/958_1",
+          "reviewedAt": "2026-10-13"
+        },
+        {
+          "id": "chronic-limb-ischemia-classifications-hardman-2014",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Hardman RL, Jazaeri O, Yi J, Smith M, Gupta R. Overview of classification systems in peripheral artery disease. Semin Intervent Radiol 2014;31(4):378-388 (таблицы Fontaine и Rutherford)",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4232437/",
+          "reviewedAt": "2026-10-13"
         }
       ]
     }

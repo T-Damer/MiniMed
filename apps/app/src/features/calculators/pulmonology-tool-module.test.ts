@@ -323,7 +323,7 @@ describe('pulmonology tool module', () => {
           inputs: { ...normal, ageYears: 91 },
           score: 4,
           range: 'class-4',
-          includes: '8,5–9,3 %',
+          includes: '8,2–9,3 %',
         },
         {
           name: 'man 100 + cancer = 130 points',
