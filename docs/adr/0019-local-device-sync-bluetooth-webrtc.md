@@ -46,11 +46,17 @@ reach a phone's plain-HTTP LAN address.
    tablet, desktop; at least these three), last sync time, status, pause/remove, and «Добавить
    устройство» (Bluetooth first, QR fallback).
 
+8. **Where the native code lives (owner, 2026-10-13).** The BLE peripheral, local-network discovery
+   and background execution are a Capacitor plugin inside the WebView app (`apps/app/android`, like
+   `LocalMedDatabasePlugin`), not the frozen Kotlin/Compose port. The plugin also advertises the device
+   on the local Wi-Fi (Android NSD / mDNS), so two devices on the same network can exchange the WebRTC
+   offer without Bluetooth; BLE stays for pairing when there is no shared network.
+
 ## Consequences
 
 - No server, account or cloud storage; data never leaves the user's devices.
-- Requires native Android code (BLE peripheral, background execution) and physical-device
-  qualification, MIUI included. Web Bluetooth works only in Chromium browsers; iOS peripheral mode is
+- Requires a Capacitor plugin with native Android code (BLE peripheral, NSD, background execution)
+  and physical-device qualification, MIUI included. Web Bluetooth works only in Chromium browsers; iOS peripheral mode is
   limited, so iPhone starts with the QR fallback.
 - BLE throughput (tens of KB/s) suits notes and settings; photos and audio need the WebRTC channel.
 - Conflict handling and history add storage and a migration of synced record formats (DEV format

@@ -3828,7 +3828,7 @@ described above.
    the deterministic/hash hybrid and lexical fallback.
 9. Local device sync (ADR-0019, proposed): Settings → «Синхронизация» with paired phone/tablet/desktop
    devices, Bluetooth LE pairing and signalling, WebRTC bulk transfer, background sync and dated
-   conflict blocks. First slice: one-way copy to a new device; needs native Android BLE and a
+   conflict blocks. First slice: one-way copy to a new device; needs a Capacitor plugin (BLE, Wi-Fi NSD; not the frozen native port) and a
    physical device.
 10. Medical news and research feed: user subscriptions to RSS/Atom/JSON Feed and websites shipped as
     the «Лента» tab (ADR-0024, NEWS1, section below). The research-API layer (PubMed, Europe PMC,
