@@ -198,6 +198,8 @@ export function orderDocumentSections(
 }
 
 const REDUNDANT_MEDICATION_SECTION_TITLE = 'Карточка препарата';
+/** A statement about what the app's index lacks; it tells a doctor nothing about the code or drug. */
+const COVERAGE_NOTE_SECTION_TITLE = 'Ограничение покрытия';
 const MEDICATION_READER_SOURCE_TYPES: ReadonlySet<string> = new Set([
   'allmed_reference',
   'official_drug_instruction',
@@ -210,6 +212,7 @@ export function visibleReaderSections(
 ): readonly MedicalSection[] {
   const ordered = orderDocumentSections(sections, sourceType).filter(
     (section) =>
+      section.title.trim() !== COVERAGE_NOTE_SECTION_TITLE &&
       !(
         MEDICATION_READER_SOURCE_TYPES.has(sourceType) &&
         section.title === REDUNDANT_MEDICATION_SECTION_TITLE

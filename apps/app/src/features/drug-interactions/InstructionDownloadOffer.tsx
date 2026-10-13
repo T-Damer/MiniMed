@@ -8,6 +8,7 @@ import {
   instructionOfferLabel,
 } from '@/features/medications/instruction-offer';
 import { isModuleReleased } from '@/features/modules/local-packaged-modules';
+import { contentModuleTaskProgress } from '@/features/modules/module-display';
 import { useModuleInstaller } from '@/features/sections/use-module-installer';
 
 const MODULE_TITLE_PREFIX = 'Инструкции ГРЛС — ';
@@ -46,6 +47,20 @@ export function InstructionDownloadOffer(props: {
         (task) => task.moduleId === props.moduleId && !FINISHED_TASK_STATES.has(task.state),
       ) ??
       false);
+  // The running task of this module: its bytes give a percentage, so the wait is not a bare label.
+  const progress = (): number | null => {
+    const task = installer
+      .snapshot()
+      ?.tasks.find(
+        (candidate) =>
+          candidate.moduleId === props.moduleId && !FINISHED_TASK_STATES.has(candidate.state),
+      );
+    return task ? contentModuleTaskProgress(task) : null;
+  };
+  const percent = (): number | null => {
+    const value = progress();
+    return value === null ? null : Math.min(99, Math.round(value * 100));
+  };
   return (
     <Show when={!installed()}>
       <div class="drug-interactions__offer">
@@ -75,7 +90,7 @@ export function InstructionDownloadOffer(props: {
                 disabled={active()}
                 icon={
                   <Show when={active()} fallback={<AppGlyph name="download" />}>
-                    <DownloadProgressMark state="running" progress={null} />
+                    <DownloadProgressMark state="running" progress={progress()} />
                   </Show>
                 }
                 onClick={() => {
@@ -83,7 +98,11 @@ export function InstructionDownloadOffer(props: {
                   if (module) void installer.start([module]);
                 }}
               >
-                {active() ? 'Скачиваем…' : instructionOfferLabel(current())}
+                {active()
+                  ? percent() === null
+                    ? 'Скачиваем…'
+                    : `Скачиваем… ${percent()}%`
+                  : instructionOfferLabel(current())}
               </Button>
             </Show>
           )}

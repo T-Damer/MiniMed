@@ -290,11 +290,15 @@ export function App(): JSX.Element {
   // still opened on a spinner. Warm the bottom-nav views one at a time once search is usable.
   let navViewsPrefetched = false;
   createEffect(() => {
-    if (navViewsPrefetched || !session.ready() || embeddedFloatingWindow) return;
+    // While the tour is on, its steps open «Мои файлы» and the other tabs before the core has
+    // arrived: their code is fetched then, so a step never shows a bare spinner.
+    if (navViewsPrefetched || !(session.ready() || onboardingVisible()) || embeddedFloatingWindow)
+      return;
     navViewsPrefetched = true;
-    const pending = navItems()
-      .map((item) => item.id)
-      .filter((view) => view !== navigation.view());
+    // The compact «Мои файлы» tab is the file list of the knowledge-base view.
+    const pending = [
+      ...new Set<RootView>([...navItems().map((item) => item.id), 'modules']),
+    ].filter((view) => view !== navigation.view());
     const idle = (run: () => void): void => {
       if (typeof window.requestIdleCallback === 'function') {
         window.requestIdleCallback(run, { timeout: 4000 });

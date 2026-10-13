@@ -1109,7 +1109,8 @@ html.app-chrome-hidden .document-overlay-paper::before {
 .document-inline-link__label {
   /* Long addresses wrap inside the column instead of running off the page. */
   overflow-wrap: anywhere;
-  text-decoration: underline wavy;
+  /* A plain line, not a squiggle: a wavy underline reads as a spelling mistake. */
+  text-decoration: underline solid;
   text-decoration-thickness: 0.0625rem;
   text-underline-offset: var(--theme-text-underline-offset);
 }

@@ -1,7 +1,8 @@
-import { type Accessor, createResource } from 'solid-js';
+import type { Accessor } from 'solid-js';
 
 import type { SubstanceFallbackAsset } from '@/features/medications/instruction-fallback';
 import { loadSubstanceFallback } from '@/features/medications/substance-fallback';
+import { createQuietResource } from '@/state/quiet-resource';
 
 /**
  * The fallback asset for a medication screen, or undefined until it has loaded. Requested only once
@@ -10,7 +11,7 @@ import { loadSubstanceFallback } from '@/features/medications/substance-fallback
 export function useSubstanceFallback(
   enabled: Accessor<boolean>,
 ): Accessor<SubstanceFallbackAsset | undefined> {
-  const [asset] = createResource(
+  const asset = createQuietResource(
     () => (enabled() ? true : undefined),
     () =>
       loadSubstanceFallback().catch((cause: unknown) => {
@@ -18,5 +19,5 @@ export function useSubstanceFallback(
         return undefined;
       }),
   );
-  return () => asset();
+  return () => asset.value();
 }

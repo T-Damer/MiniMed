@@ -37,6 +37,10 @@ import { DocumentFindBar, type DocumentFindResultState } from '@/features/librar
 import { DocumentHighlightsSheet } from '@/features/library/DocumentHighlightsSheet';
 import { DocumentModulePointer } from '@/features/library/DocumentModulePointer';
 import {
+  presentReaderChunkText,
+  presentReaderSectionTitle,
+} from '@/features/library/reader-text-presentation';
+import {
   type DocumentSectionTree,
   displayDocumentSubtitle,
   displayDocumentTitle,
@@ -1234,7 +1238,9 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                 aria-current={chrome.activeAnchor() === section.anchor ? 'location' : undefined}
                 onClick={() => chrome.scrollTo(section.anchor)}
               >
-                <span class="document-overlay-outline-section-button__label">{section.title}</span>
+                <span class="document-overlay-outline-section-button__label">
+                  {presentReaderSectionTitle(section.title)}
+                </span>
                 <Show when={pageModel()}>
                   {(model) => (
                     <span
@@ -1390,7 +1396,12 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                             Это краткая выжимка. Полная рекомендация загрузится и откроется здесь.
                           </p>
                         </Show>
-                        <DocumentModulePointer {...props} />
+                        <DocumentModulePointer
+                          {...props}
+                          {...(documentValue().sourceType === 'rls_mkb_reference'
+                            ? { offerLead: 'Препараты РЛС для этого кода' }
+                            : {})}
+                        />
                         <div class="document-overlay-paper__actions">
                           <Show when={interactiveTool()}>
                             {(tool) => (
@@ -1651,7 +1662,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                             }}
                           >
                             <QueryHighlightedText
-                              text={section.title}
+                              text={presentReaderSectionTitle(section.title)}
                               query={state().query}
                               exact={state().mode === 'exact'}
                               fuzzy={state().mode === 'similar'}
@@ -1675,6 +1686,16 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                                 currentMatch()?.unitId === item.chunk.anchor
                                   ? currentMatch()?.start
                                   : undefined;
+                              // Catalogue cards and registry dumps are shown in reader words; the
+                              // find offsets belong to the stored text, so a reworded chunk
+                              // highlights by the query instead.
+                              const shownText = () =>
+                                presentReaderChunkText(
+                                  item.chunk.originalText,
+                                  section.title,
+                                  documentValue().sourceType,
+                                );
+                              const reworded = () => shownText() !== item.chunk.originalText;
                               return (
                                 <Show
                                   when={item.kind === 'rich' ? item.block : undefined}
@@ -1688,17 +1709,21 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                                       }}
                                     >
                                       <DocumentText
-                                        text={item.chunk.originalText}
+                                        text={shownText()}
                                         query={state().query}
                                         exactQuery={state().mode === 'exact'}
                                         fuzzyQuery={state().mode === 'similar'}
-                                        ranges={rangesForFindUnit(
-                                          rangesByUnit(),
-                                          item.chunk.anchor,
-                                          state().query,
-                                        )}
+                                        ranges={
+                                          reworded()
+                                            ? undefined
+                                            : rangesForFindUnit(
+                                                rangesByUnit(),
+                                                item.chunk.anchor,
+                                                state().query,
+                                              )
+                                        }
                                         unitId={item.chunk.anchor}
-                                        activeStart={activeStart()}
+                                        activeStart={reworded() ? undefined : activeStart()}
                                         highlightClass="document-overlay-match"
                                         paragraphClass="document-overlay-section__paragraph"
                                         // biome-ignore lint/complexity/useLiteralKeys: source spans are optional runtime metadata.

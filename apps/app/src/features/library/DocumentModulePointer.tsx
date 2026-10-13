@@ -10,6 +10,8 @@ interface DocumentModulePointerProps {
   readonly modulePointerProgress?: number | null;
   readonly modulePointerInstallError?: string | null;
   readonly onInstallModulePointer?: () => Promise<void>;
+  /** What the set adds to this card, when «Полная версия» would mislead (an ICD code's drug links). */
+  readonly offerLead?: string;
 }
 
 /** A set's title in «»; a title that already carries its own quotes is left as it is. */
@@ -22,10 +24,16 @@ function quotedTitle(title: string): string {
  * left, and on the right a button that carries the size, then the download's own progress.
  */
 export function DocumentModulePointer(props: DocumentModulePointerProps): JSX.Element {
+  // The whole file is here and the set is being checked and installed: say so, not «100 %».
+  const installing = (): boolean =>
+    props.modulePointerPending === true &&
+    props.modulePointerProgress !== null &&
+    props.modulePointerProgress !== undefined &&
+    props.modulePointerProgress >= 1;
   const progressPercent = (): number | null => {
     const progress = props.modulePointerProgress;
     return props.modulePointerPending && progress !== null && progress !== undefined
-      ? Math.min(100, Math.round(progress * 100))
+      ? Math.min(99, Math.round(progress * 100))
       : null;
   };
   return (
@@ -58,7 +66,7 @@ export function DocumentModulePointer(props: DocumentModulePointerProps): JSX.El
                 >
                   {(entry) => (
                     <>
-                      Полная версия — в наборе{' '}
+                      {props.offerLead ?? 'Полная версия'} — в наборе{' '}
                       <span class="document-module-pointer__set">{quotedTitle(entry().title)}</span>
                     </>
                   )}
@@ -78,7 +86,9 @@ export function DocumentModulePointer(props: DocumentModulePointerProps): JSX.El
                   }
                   aria-label={
                     props.modulePointerPending
-                      ? `Загружаем набор${progressPercent() === null ? '' : `: ${progressPercent()}%`}`
+                      ? installing()
+                        ? 'Устанавливаем набор'
+                        : `Загружаем набор${progressPercent() === null ? '' : `: ${progressPercent()}%`}`
                       : `Скачать набор ${quotedTitle(module()?.title ?? '')}${
                           module()
                             ? ` · ${formatModuleBytes(module()?.sizes.downloadBytes ?? 0)}`
@@ -91,19 +101,22 @@ export function DocumentModulePointer(props: DocumentModulePointerProps): JSX.El
                   <AppGlyph
                     name={props.modulePointerPending ? 'refresh' : 'download'}
                     class={`document-module-pointer__action-icon${
-                      props.modulePointerPending === true && progressPercent() === null
+                      props.modulePointerPending === true &&
+                      (progressPercent() === null || installing())
                         ? ' document-module-pointer__action-icon--spinning'
                         : ''
                     }`}
                   />
                   <span class="document-module-pointer__action-label">
-                    {progressPercent() !== null
-                      ? `${progressPercent()} %`
-                      : props.modulePointerPending
-                        ? '…'
-                        : module()
-                          ? formatModuleBytes(module()?.sizes.downloadBytes ?? 0)
-                          : 'Скачать'}
+                    {installing()
+                      ? 'Устанавливаем…'
+                      : progressPercent() !== null
+                        ? `${progressPercent()} %`
+                        : props.modulePointerPending
+                          ? '…'
+                          : module()
+                            ? formatModuleBytes(module()?.sizes.downloadBytes ?? 0)
+                            : 'Скачать'}
                   </span>
                 </button>
               </Show>

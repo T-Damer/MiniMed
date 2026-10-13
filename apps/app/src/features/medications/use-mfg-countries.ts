@@ -1,7 +1,8 @@
-import { type Accessor, createResource } from 'solid-js';
+import type { Accessor } from 'solid-js';
 
 import { loadMfgCountries } from '@/features/medications/mfg-countries';
 import type { MfgCountryCatalog } from '@/features/medications/mfg-country';
+import { createQuietResource } from '@/state/quiet-resource';
 
 /**
  * The manufacturing-country catalog for a medication screen, or undefined until it has loaded.
@@ -11,7 +12,7 @@ import type { MfgCountryCatalog } from '@/features/medications/mfg-country';
 export function useMfgCountries(
   enabled: Accessor<boolean>,
 ): Accessor<MfgCountryCatalog | undefined> {
-  const [catalog] = createResource(
+  const catalog = createQuietResource(
     () => (enabled() ? true : undefined),
     () =>
       loadMfgCountries().catch((cause: unknown) => {
@@ -19,5 +20,5 @@ export function useMfgCountries(
         return undefined;
       }),
   );
-  return () => catalog();
+  return () => catalog.value();
 }

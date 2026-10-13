@@ -1,5 +1,5 @@
 import type { MedicalDocument } from '@localmed/contracts';
-import { createEffect, createMemo, createResource, For, type JSX, Show } from 'solid-js';
+import { createEffect, createMemo, For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -30,6 +30,7 @@ import { formatModuleBytes } from '@/features/modules/module-display';
 import { useModuleInstaller } from '@/features/sections/use-module-installer';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import { buildOfficialDocumentHash } from '@/state/document-route';
+import { createQuietResource } from '@/state/quiet-resource';
 import '@/features/icd11/icd10-to-icd11-panel.css';
 
 const FINISHED_TASK_STATES = new Set(['completed', 'failed', 'cancelled']);
@@ -281,19 +282,19 @@ export function Icd10ToIcd11Panel(props: {
   readonly onContentChanged?: (() => Promise<void>) | undefined;
 }): JSX.Element {
   const codes = createMemo(() => documentIcd10Codes(props.document));
-  const [results] = createResource(
+  const results = createQuietResource(
     () => (codes().length > 0 ? codes() : false),
     (list) => icd11ForIcd10Codes(list),
   );
   createEffect(() => {
-    const failure: unknown = results.error;
+    const failure: unknown = results.error();
     if (failure)
       console.warn(
         'Таблица соответствия МКБ-10 → МКБ-11 не загрузилась.',
         failure instanceof Error ? failure.name : 'unknown',
       );
   });
-  const shown = createMemo(() => (results() ?? []).slice(0, MAX_CODE_ENTRIES));
+  const shown = createMemo(() => (results.value() ?? []).slice(0, MAX_CODE_ENTRIES));
   return (
     <Show when={shown().length > 0}>
       <section class="icd10-to-icd11" data-testid="icd10-to-icd11-panel">
@@ -301,7 +302,7 @@ export function Icd10ToIcd11Panel(props: {
           title={
             <Show
               when={shown().length === 1 ? shown()[0] : null}
-              fallback={manyCodesHeading((results() ?? []).length)}
+              fallback={manyCodesHeading((results.value() ?? []).length)}
             >
               {(result) => (
                 <span class="icd10-to-icd11__title">

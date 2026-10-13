@@ -1,8 +1,9 @@
 .document-inline-link__icon {
-  width: 0.95em;
-  height: 0.95em;
+  width: 0.85em;
+  height: 0.85em;
   flex: 0 0 auto;
-  transform: translateY(0.08em);
+  opacity: 0.8;
+  transform: translateY(0.1em);
 }
 
 .tool-page-title,

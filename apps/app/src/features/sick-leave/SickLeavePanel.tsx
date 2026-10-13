@@ -2,7 +2,6 @@ import type { MedicalDocument } from '@localmed/contracts';
 import {
   createEffect,
   createMemo,
-  createResource,
   createSignal,
   For,
   type JSX,
@@ -13,6 +12,7 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { Disclosure } from '@/components/Disclosure';
 import { SheetPopover } from '@/components/SheetPopover';
 import { type SickLeaveEntry, sickLeaveForCard } from '@/features/sick-leave/sick-leave-data';
+import { createQuietResource } from '@/state/quiet-resource';
 import {
   entryFootnotes,
   formatPeriod,
@@ -86,22 +86,22 @@ function EntryRows(props: {
  */
 export function SickLeavePanel(props: { readonly document: MedicalDocument }): JSX.Element {
   const codes = createMemo(() => sickLeaveDocumentCodes(props.document));
-  const [card] = createResource(
+  const card = createQuietResource(
     () => (codes().length > 0 ? codes() : false),
     (list) => sickLeaveForCard(list),
   );
   const [helpOpen, setHelpOpen] = createSignal(false);
   createEffect(() => {
-    const failure: unknown = card.error;
+    const failure: unknown = card.error();
     if (failure)
       console.warn(
         'Сроки нетрудоспособности не загрузились.',
         failure instanceof Error ? failure.name : 'unknown',
       );
   });
-  const shown = createMemo(() => shownEntries(card()?.results ?? []));
+  const shown = createMemo(() => shownEntries(card.value()?.results ?? []));
   return (
-    <Show when={shown().entries.length > 0 ? card()?.letter : undefined}>
+    <Show when={shown().entries.length > 0 ? card.value()?.letter : undefined}>
       {(letter) => (
         <section class="sick-leave" data-testid="sick-leave-panel">
           <Disclosure
