@@ -198,6 +198,9 @@ def _extracted_330() -> str:
 |---|---|---|---|---|
 | 1 | 2 | 3 | 4 | 5 |
 | Яйца без скорлупы | 1,00 | Яичный меланж | 1,00 | В блюдах |
+| Молоко цельное | 1,00 | Молоко ко- ровье цельное сухое | 0,12 | В супах |
+| То же | 1,00 | Сливки сухие с уменьшением закладки масла на 0,042 кг) | 0,16 | В кашах |
+| Яблоки свежие | 1,00 | Яблоки быстрозамороженные | 0,8/ /0,73 <5> | В сладких блюдах |
 Примечания. 1. Масла одинаково.
 Таблица 7
 к Инструкции по организации
@@ -385,7 +388,12 @@ def test_prepare_writes_documents_aliases_and_applies_the_scan_correction(tmp_pa
     output = tmp_path / "workspace"
     report = prepare_diets_official(raw, output)
     assert report.documents == 10
-    assert [item["official"] for item in report.corrections] == ["(ЩД)"]
+    assert [item["official"] for item in report.corrections] == [
+        "(ЩД)",
+        "Молоко коровье цельное сухое",
+        "Сливки сухие (с уменьшением закладки",
+        "0,8/0,73 <5>",
+    ]
     names = sorted(path.name for path in output.glob("*.md"))
     assert names == sorted(
         f"reference.diets.{key}.md"
@@ -425,7 +433,12 @@ def test_prepare_writes_documents_aliases_and_applies_the_scan_correction(tmp_pa
     assert "Количество в сутки на одного ребенка в возрасте\n\n| Продукты | 1 - 3 года |" in tables
     assert "Химический состав: Белки, г" in tables
     assert "| Говядина II к. | 90 | 18,0 | 8,82 | - | масло +7 г |" in tables
-    assert tables.count("не сверены построчно") == 1
+    assert "не сверены построчно" not in tables
+    assert "Статус" not in tables
+    assert "| Молоко коровье цельное сухое | 0,12 |" in tables
+    assert "Сливки сухие (с уменьшением закладки масла на 0,042 кг) | 0,16 |" in tables
+    assert "| 0,8/0,73 <5> |" in tables
+    assert "machineExtracted" not in tables
 
     metadata = yaml.safe_load(ovd.split("\n---\n", 1)[0].removeprefix("---\n"))
     assert metadata["id"] == "reference.diets.ovd"

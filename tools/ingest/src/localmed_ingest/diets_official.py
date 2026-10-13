@@ -111,6 +111,34 @@ CORRECTIONS: tuple[dict[str, str], ...] = (
     },
 )
 
+# Cell-level repairs of the Instruction tables 2a-7 (mirror artefacts that the 2013 text of order
+# 330, www.sartfoms.ru/delete/normativold/330.pdf, and the Kontur.Normativ copy of the 2024 edition
+# do not have). Every entry must match exactly once; the check compared all six tables with three
+# independent copies and the 70n amendment items.
+TABLE_CORRECTIONS: tuple[dict[str, str], ...] = (
+    {
+        "where": "order 330, Table 6, Whole dry cow milk (hyphenation)",
+        "table": "Таблица 6",
+        "mirror": "Молоко ко- ровье цельное сухое",
+        "official": "Молоко коровье цельное сухое",
+        "basis": "mirror line-break hyphen; Kontur.Normativ copy and the 2013 text read it whole",
+    },
+    {
+        "where": "order 330, Table 6, Dry cream (opening parenthesis)",
+        "table": "Таблица 6",
+        "mirror": "Сливки сухие с уменьшением закладки",
+        "official": "Сливки сухие (с уменьшением закладки",
+        "basis": "2013 text of order 330 (sartfoms.ru) opens the bracket closed after 0,042 кг",
+    },
+    {
+        "where": "order 330, Table 6, Frozen apples (fraction)",
+        "table": "Таблица 6",
+        "mirror": "0,8/ /0,73 <5>",
+        "official": "0,8/0,73 <5>",
+        "basis": "2013 text of order 330 prints the numerator/denominator pair as 0,8/0,73",
+    },
+)
+
 
 @dataclass(frozen=True)
 class Variant:
@@ -862,22 +890,34 @@ _TABLE_SECTIONS = ("Таблица 2а", "Таблица 3", "Таблица 4",
 _CAPTION_GROUP_TABLES = {"Таблица 4", "Таблица 5"}
 
 
-def _tables_document(sources: Sources) -> Document:
+def _correct_cells(
+    key: str, rows: list[list[str]], applied: list[dict[str, str]]
+) -> list[list[str]]:
+    """Apply ``TABLE_CORRECTIONS`` of table ``key``; each one must change exactly one cell."""
+    for correction in TABLE_CORRECTIONS:
+        if correction["table"] != key:
+            continue
+        hits = 0
+        for row in rows:
+            for index, cell in enumerate(row):
+                if correction["mirror"] in cell:
+                    row[index] = cell.replace(correction["mirror"], correction["official"])
+                    hits += 1
+        if hits != 1:
+            raise DietsSourceError(
+                f"{correction['where']}: expected one cell with {correction['mirror']!r}, "
+                f"found {hits}"
+            )
+        applied.append(dict(correction))
+    return rows
+
+
+def _tables_document(sources: Sources, applied: list[dict[str, str]]) -> Document:
     document = Document(
         key="instruction-tables",
         title="Наборы продуктов и замены (таблицы к инструкции №330)",
         short_title="Таблицы к инструкции №330",
         source_orders=(ORDER_330, ORDER_70),
-    )
-    document.add(
-        1,
-        "Статус",
-        [
-            "Таблицы извлечены автоматически из текста приказа и не сверены построчно "
-            "с официальной публикацией."
-        ],
-        ORDER_330,
-        "Приложение №4",
     )
     for key in _TABLE_SECTIONS:
         table = sources.table(ORDER_330, key)
@@ -887,6 +927,7 @@ def _tables_document(sources: Sources) -> Document:
             _substitution_sections(table, document, locator)
         else:
             caption, header, rows = _flat_table(table, captions=key in _CAPTION_GROUP_TABLES)
+            rows = _correct_cells(key, rows, applied)
             if caption:
                 section.blocks.append(caption)
             section.blocks.extend(gfm_tables(header, rows))
@@ -895,7 +936,7 @@ def _tables_document(sources: Sources) -> Document:
         (ORDER_330, ORDER_70),
         {ORDER_330: "Приложение №4, таблицы 2а, 3, 4, 5, 6 и 7"},
     )
-    document.metadata = {"dietVariant": "instruction-tables", "machineExtracted": True}
+    document.metadata = {"dietVariant": "instruction-tables"}
     return document
 
 
@@ -1072,7 +1113,7 @@ def build_documents(sources: Sources) -> tuple[list[Document], _Context]:
     documents += [_variant_document(variant, context) for variant in VARIANTS]
     documents.append(_children_document(context))
     documents.append(_norms_document(context))
-    documents.append(_tables_document(sources))
+    documents.append(_tables_document(sources, applied))
     names = alias_names(context.numbered)
     for document in documents:
         document.navigation_aliases = [alias for alias, _weight in names.get(document.key, [])]
