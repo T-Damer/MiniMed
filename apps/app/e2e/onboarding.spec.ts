@@ -137,13 +137,13 @@ for (const viewport of [
     await expect(accordion).toBeVisible();
     await expect(accordion).not.toHaveAttribute('open', '');
     await expect(card.locator('.onboarding-hint__more-summary')).toContainText('МРТ и КТ');
-    await expect(card.getByText('храни свои книги и ищи по ним;')).toBeHidden();
+    await expect(card.getByText('храните свои книги и ищите по ним;')).toBeHidden();
     await expect(card.locator('.onboarding-mri__source')).toBeHidden();
     await page.screenshot({ path: testInfo.outputPath('step-6.png') });
     await card.locator('.onboarding-hint__more-summary').click();
-    await expect(card.getByText('храни свои книги и ищи по ним;')).toBeVisible();
+    await expect(card.getByText('храните свои книги и ищите по ним;')).toBeVisible();
     await card.locator('.onboarding-hint__more-summary').click();
-    await expect(card.getByText('храни свои книги и ищи по ним;')).toBeHidden();
+    await expect(card.getByText('храните свои книги и ищите по ним;')).toBeHidden();
     const help = card.getByRole('button', { name: 'Об изображении и источнике' });
     await expect(help).toHaveAttribute('aria-expanded', 'false');
     await help.click();
@@ -172,10 +172,10 @@ for (const viewport of [
     await expect(page.locator('.search-home')).toBeVisible();
     await expect(page.locator('.app-nav-button--active')).toHaveAttribute('aria-label', 'Поиск');
     await expect(page.locator('.core-progress-line')).toBeVisible();
-    // Without the core the tour hides for this session only and returns on the next launch.
+    // Finishing hides the tour for good, even while the core is still downloading.
     expect(
       await page.evaluate(() => localStorage.getItem('minimed:package-setup-dismissed:v1')),
-    ).toBeNull();
+    ).toBe('1');
     expect(await page.evaluate(() => document.getElementById('root')?.hasAttribute('inert'))).toBe(
       false,
     );

@@ -33,7 +33,7 @@ export function FormProgress(props: FormProgressProps): JSX.Element {
           type="button"
           class="form-progress__jump"
           disabled={complete()}
-          aria-label={`Обязательные поля заполнены: ${props.done} из ${props.total}`}
+          aria-label={`Обязательные поля: ${props.done} из ${props.total}`}
           title="Обязательные поля. Нажмите, чтобы перейти к первому незаполненному"
           onClick={props.onJump}
         >
@@ -66,13 +66,15 @@ export function FormProgress(props: FormProgressProps): JSX.Element {
       <Show when={props.canReset}>
         <Button
           type="button"
-          variant="icon"
+          variant="quiet"
           class="form-progress__reset"
           aria-label="Вернуть подставленные значения"
           title="Вернуть подставленные значения"
           icon={<AppGlyph name="arrow-counter-clockwise" />}
           onClick={props.onReset}
-        />
+        >
+          Сбросить
+        </Button>
       </Show>
     </div>
   );

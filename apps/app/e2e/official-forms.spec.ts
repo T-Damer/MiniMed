@@ -152,7 +152,7 @@ test('fills form 070/у from a patient card, shows the rule behind a field and p
   // A fresh form is not red: one progress line counts the required fields and says «Черновик».
   const preferredPlace = page.locator('#form-field-preferredPlace');
   await expect(preferredPlace).not.toHaveClass(/form-field--missing/u);
-  await expect(page.locator('.form-progress__count')).toHaveText(/^\d+\/\d+$/u);
+  await expect(page.locator('.form-progress__count')).toHaveText(/^\d+ из \d+$/u);
   await expect(page.locator('.form-progress__state')).toHaveText('Черновик');
   // A tap on the progress marks what is still empty.
   await page.getByRole('button', { name: /^Обязательные поля: \d+ из \d+$/u }).click();
@@ -223,7 +223,7 @@ test('fills form 070/у from a patient card, shows the rule behind a field and p
   await popup.close();
 
   // Typed values survive leaving the screen and coming back.
-  await page.getByRole('button', { name: 'Закрыть' }).click();
+  await page.getByRole('button', { name: 'Закрыть', exact: true }).click();
   await page.getByRole('button', { name: 'К карточке пациента' }).click();
   await expect(page.getByRole('heading', { name: 'Пациент для справки' })).toBeVisible();
   await page.getByRole('button', { name: 'Заполнить форму', exact: true }).click();
@@ -335,7 +335,7 @@ test('fills 072/у, 076/у, 079/у and 025-1/у from one patient and previews ev
     // Two-sided blanks print as two sheets: the reverse side starts on a new page.
     expect(await pdfSheetCount(page)).toBe(form.sheets);
     await popup.close();
-    await page.getByRole('button', { name: 'Закрыть' }).click();
+    await page.getByRole('button', { name: 'Закрыть', exact: true }).click();
   }
 });
 
@@ -480,14 +480,14 @@ test('autosaves a draft in the patient vault and approves the form with «Сох
 
   // A change makes it a draft again.
   await signa.getByRole('textbox').fill('По 1 таблетке 2 раза в день');
-  await expect(state).toHaveText('Черновик');
+  await expect(state).toHaveText('Черновик сохранён');
   await expect(save).toBeEnabled();
   await save.click();
   await expect(state).toHaveText(/^Сохранено · /u);
 
   // The draft is in the encrypted vault: it is back after a reload and after opening the vault.
   await signa.getByRole('textbox').fill('По 1 таблетке 1 раз в день');
-  await expect(state).toHaveText('Черновик');
+  await expect(state).toHaveText('Черновик сохранён');
   await page.waitForTimeout(1500);
   await page.reload();
   await expect(page.locator('#form-field-signa').getByRole('textbox')).toHaveValue(
@@ -496,7 +496,7 @@ test('autosaves a draft in the patient vault and approves the form with «Сох
   await expect(page.locator('#form-field-prescription').getByRole('textbox')).toHaveValue(
     'Амоксициллин 500 мг',
   );
-  await expect(page.locator('.form-progress__state')).toHaveText('Черновик');
+  await expect(page.locator('.form-progress__state')).toHaveText('Черновик сохранён');
 });
 
 /** The forms of F3 beyond 057/у: how many sheets the official blank has and what the print shows. */
@@ -538,7 +538,7 @@ test('opens 088/у, the prescription blanks, the certificates and 058/у, prefil
     await popup.waitForLoadState('domcontentloaded');
     expect(await pdfSheetCount(page), form.number).toBe(form.sheets);
     await popup.close();
-    await page.getByRole('button', { name: 'Закрыть' }).click();
+    await page.getByRole('button', { name: 'Закрыть', exact: true }).click();
   }
 });
 

@@ -91,6 +91,34 @@ export function initialCalculatorSchemaValues(schema: CalculatorSchema): Record<
 }
 
 /**
+ * What was entered, for the line under a result and for the history: numbers and choices as
+ * «label value unit». A yes/no flag left at its first option (value 0) is not an answer worth
+ * repeating, so only the marked ones are listed, by name — a score of eight questions shows the
+ * two that were ticked, not all eight. Decided from the schema's options alone.
+ */
+export function calculatorInputSummary(
+  schema: CalculatorSchema,
+  values: Readonly<Record<string, string | number>>,
+): string {
+  return schema.inputs
+    .map((input) => {
+      const raw = values[input.id];
+      if (raw === undefined || raw === '') return null;
+      const options = calculatorInputOptions(input, values);
+      const optionLabel = options.find((option) => String(option.value) === String(raw))?.label;
+      const isFlag =
+        input.kind === 'select' &&
+        options.length === 2 &&
+        String(options[0]?.value) === '0' &&
+        String(options[1]?.value) === '1';
+      if (isFlag) return String(raw) === '0' ? null : input.label;
+      return `${input.label} ${optionLabel ?? raw}${input.unit ? ` ${input.unit}` : ''}`;
+    })
+    .filter((part): part is string => part !== null)
+    .join(', ');
+}
+
+/**
  * One input changed: the value is stored and every select grouped by it falls back to the first
  * option of its new group, so a stale choice (milligrams under «Длина») never survives; options of
  * different groups may share a value, so a kept value could not tell which unit it was.

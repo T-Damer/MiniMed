@@ -73,6 +73,30 @@
     "sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC1497134/"
   },
   "schemaVersion": 2,
+  "scoreScales": [
+    {
+      "id": "scale_whooley_total",
+      "valueId": "whooley-total",
+      "minimum": 0,
+      "maximum": 2,
+      "step": 1,
+      "layout": "proportional",
+      "bands": [
+        {
+          "from": 0,
+          "label": "Отрицательный",
+          "attentionLevel": "none",
+          "interpretation": 1
+        },
+        {
+          "from": 1,
+          "label": "Положительный",
+          "attentionLevel": "moderate",
+          "interpretation": 0
+        }
+      ]
+    }
+  ],
   "evaluation": {
     "status": "unavailable",
     "rules": [],

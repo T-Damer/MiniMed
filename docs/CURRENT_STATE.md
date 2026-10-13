@@ -1,6 +1,6 @@
 # Current state
 
-> Updated: 13 October 2026
+> Updated: 14 October 2026
 > Released version: `0.6.47` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
@@ -110,6 +110,71 @@ a guideline module did not open after the network was cut (its lazy chunks `Docu
 - **Not tested**: the real Pages deploy (the base path `/MiniMed/app/`, the carry step against the
   live manifest, Pages' `max-age=600` on `sw.js`), Safari/WebKit (including iOS storage eviction of
   Cache Storage), Firefox, a real flaky mobile network during the 19 MB install.
+## Fixes from the first-time-user and power-user QA passes on 0.6.59 — 2026-10-14 (STATE QA1)
+
+Two QA reports on the published web app at 375×812 (screenshots in `/private/tmp/claude-501/minimed-qa-naive/`
+and `…/minimed-qa-power/`). What changed, at the cause:
+
+- **Form drafts.** The vault hook cleared the in-memory drafts every time a form screen mounted while the
+  vault was still closed; a blank form (no patient) never wrote anywhere. Now the drafts are dropped only by
+  the vault lock event (`form-session.ts`), and a blank form opens the vault silently
+  (`openPatientVaultSilently`: open session, encrypted vault unlocked, missing vault created encrypted) and
+  keeps its draft there like a patient form's. A plaintext vault or a browser without a key falls back to
+  memory, and the state line says «Черновик · до закрытия приложения». The state line reads
+  «Черновик сохранён» once something is typed; progress reads «4 из 5»; «Сбросить» has a label.
+- **Saved items.** New Files folder and page «Избранное» (`features/collections/SavedItemsPage.tsx`, route
+  `#/notes/saved`): favourites and collections of documents, notes and catalog tools; the Files search finds the
+  folder and the saved items by title. The Files tab always opens the file list unless an open personal
+  document or a library folder was left (`filesTabHash`): drafts autosave and reading positions resume, so a
+  half-filled form no longer stands in for «Файлы». Searches are recorded when typing pauses and the entry is
+  replaced while the same words are extended (`appendSearchHistory(…, { auto })`).
+- **Downloads.** «Ядро знаний» is «основная база» everywhere the user reads it; the onboarding step names its
+  size; «Скачать всё» shows the total transfer (`estimateDownloadSize`, `formatModuleBytes` knows ГБ). The tour
+  and its views are addressed with «Вы»; «Соединяемся с сервером…» became «Начинаем загрузку…». The module
+  catalog still has a set called «Ядро» (many e2e specs address it): not renamed.
+- **Raw text.** The reader shows catalogue text in reader words (`reader-text-presentation.ts`): technical cards
+  lose catalogue labels, identifiers, empty fields and English specialty slugs; ЕСКЛП lines read
+  «Амоксициллин — Таблетки, 500 мг»; headings made of a registry code say form and strength; one strength format;
+  raw source URLs and «Ограничение покрытия» are gone from the page; ICD cards offer «Препараты РЛС для этого
+  кода» instead of «Полная версия»; instruction editions read «ЛП-009219, 2025» (`presentInstructionEdition`).
+  Only the display changes: stored text, anchors and checksums are as before; find offsets of a reworded chunk
+  fall back to highlighting by the query.
+- **Overlaps and waiting.** A paper fade behind the floating tab bar in readers; the toast sits under the route
+  header; the tour prefetches its views. Drug, ICD-11 and sick-leave panels read through quiet resources, so an
+  install no longer swaps the whole page for a spinner (≈ 5 s blank before); the module offer says
+  «Устанавливаем…», instruction and severity offers show a percentage. Document links are underlined
+  with a solid line, not a squiggle.
+- **Result cards.** Same-titled cards carry a qualifier (publisher · registration, or edition); snippets start at
+  a boundary («…» for a cut); «( Очаговая … )» loses the inner spaces; the «★ — добавить сюда» hint is gone.
+- **Calculators.** A section card under a search lists the matching tools (closest first); the age filter counts
+  say what is hidden («Скрыто по возрасту: 3 калькулятора»); the result's input line names only marked yes/no
+  answers; the general «decision-support» warning moved into «Источники и ограничения»; the two detail buttons
+  are icon buttons; the header kicker no longer repeats the toast. 245 in the release notes counts 221
+  calculators and 24 questionnaires; the app's 223 + downloaded ones are calculators only (not an age filter).
+- **Second report.** Interaction pairs with sentences say «Степень не указана» and one inline offer (size,
+  percentage) replaces the licence card (the licence stays in the source note); one short line instead of the
+  long safety disclaimer; «Привет» does not return after «Пропустить обучение»; the bar keeps «Поиск» lit for
+  interaction, comparison and vaccination tools; the vaccination orders left the subtitle; the reader opens a
+  recommendation on its text, the abbreviation list moves behind the chapters; «Препараты» opens on names that
+  begin with a letter; «Препараты по группам АТХ» is a tool in «Все инструменты»; after «Создать осмотр» the
+  box empties and the episode actions are icon buttons.
+- **Data.** `reference-report.json` regenerated from the checksum-matching `reference.db`; landing
+  `calculator.json`/`questionnaire.json` are copies of the authored definitions; both `.fails` markers removed
+  (`docs/DATA_TESTS.md`).
+- **Not done.** ОКУД/ОКПО prefill (the 107-1/у header fields are not defined by the order, the schema is
+  generated from the official PDF and the prescription work is owned elsewhere); the calculator form's
+  native «Пациент*» select (a label in the tool-module JSON, owned by the calculator-data agent); «Номенклатура
+  услуг» and «Лечебное питание» entry points (preview modules, product decision); note on a highlight (no note
+  field in the highlight data model); form 057/у statutory labels; «Масса тела | Масса тела» and «Исправить
+  значение» in the patient card; the 96 MB download repeated on result cards; «Проверяем…» in Settings →
+  Изображения. The «Не заполнено N обязательных полей» plural was already correct in the catalog. The five
+  colour swatches already carry aria-labels («Выделить: …»).
+- **Tests.** Unit: form session/state, root-view, saved items, search history, reader text presentation,
+  presentation of snippets and titles, instruction edition, download size, calculator input summary,
+  glossary order, document order. e2e `first-time-qa.spec.ts` (draft survives leaving and a reload; Files tab opens
+  the list; favourites found in Files) on `E2E_PORT=4195`. `patient-vault.spec.ts` fails at its last step
+  (the calculators tab is expected to restore the open tool, which the 2026-10-09 «opens at the list» rule
+  contradicts), not by this change; `check-browser-integration.mjs` has many stale-pattern FAILs unrelated to it.
 
 ## Reader dictionary on selection — 2026-10-13 (STATE DICT1)
 

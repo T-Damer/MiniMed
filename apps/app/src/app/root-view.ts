@@ -77,9 +77,19 @@ export const COMPACT_ROOT_VIEWS: readonly RootViewItem[] = [
   { id: 'settings', label: 'Настройки', icon: 'system' },
 ];
 
+/** Tools opened from search that live under the notes routes: the bar keeps «Поиск» lit for them. */
+const SEARCH_TOOL_NOTES_ROUTES = [
+  '#/notes/drug-interactions',
+  '#/notes/drug-comparison',
+  '#/notes/vaccination',
+] as const;
+
 export function compactRootView(view: RootView, hash: string): RootView {
   if (view === 'settings') return 'settings';
   if (view === 'news') return 'news';
+  if (SEARCH_TOOL_NOTES_ROUTES.some((route) => hash === route || hash.startsWith(`${route}?`))) {
+    return 'search';
+  }
   if (
     view === 'notes' ||
     parseDocumentReadRoute(hash)?.kind === 'user' ||

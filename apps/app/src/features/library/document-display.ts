@@ -70,6 +70,22 @@ export function displayDocumentTitle(
   return title;
 }
 
+/**
+ * A list with no query opens on names a doctor knows: titles that begin with a letter come first,
+ * those that begin with a digit, bracket or sign (chemical names like «1-(4-БРОМФЕНИЛ)…») follow,
+ * each group in the order the catalog gave.
+ */
+export function wordTitlesFirst(
+  documents: readonly MedicalDocumentSummary[],
+): readonly MedicalDocumentSummary[] {
+  const startsWithLetter = (document: MedicalDocumentSummary): boolean =>
+    /^\p{L}/u.test(displayDocumentTitle(document).trim());
+  const words = documents.filter(startsWithLetter);
+  return words.length === 0 || words.length === documents.length
+    ? documents
+    : [...words, ...documents.filter((document) => !startsWithLetter(document))];
+}
+
 export function displayDocumentSubtitle(
   document: Pick<MedicalDocumentSummary, 'title' | 'sourceType'>,
 ): string | null {
@@ -206,11 +222,45 @@ const MEDICATION_READER_SOURCE_TYPES: ReadonlySet<string> = new Set([
   'official_registry_summary',
 ]);
 
+/** A glossary the recommendation template puts first; it is reference, not the start of the text. */
+const GLOSSARY_SECTION_TITLE = /^список сокращений\.?$/iu;
+
+/**
+ * The reader opens on the text itself: the abbreviation list that clinical recommendations carry
+ * before their first chapter moves, with its subsections, behind the chapters.
+ */
+export function glossaryLast(sections: readonly MedicalSection[]): readonly MedicalSection[] {
+  if (sections.length === 0) return sections;
+  const rootDepth = Math.min(...sections.map((section) => section.depth));
+  const blocks: MedicalSection[][] = [];
+  for (const section of sections) {
+    if (section.depth <= rootDepth || blocks.length === 0) blocks.push([section]);
+    else blocks.at(-1)?.push(section);
+  }
+  const isGlossary = (block: readonly MedicalSection[]): boolean =>
+    GLOSSARY_SECTION_TITLE.test(block[0]?.title.trim() ?? '');
+  return blocks.some(isGlossary) ? reordered(blocks, isGlossary) : sections;
+}
+
+function reordered(
+  blocks: readonly (readonly MedicalSection[])[],
+  isGlossary: (block: readonly MedicalSection[]) => boolean,
+): readonly MedicalSection[] {
+  return [
+    ...blocks.filter((block) => !isGlossary(block)).flat(),
+    ...blocks.filter(isGlossary).flat(),
+  ];
+}
+
 export function visibleReaderSections(
   sections: readonly MedicalSection[],
   sourceType: string,
 ): readonly MedicalSection[] {
-  const ordered = orderDocumentSections(sections, sourceType).filter(
+  const ordered = (
+    isClinicalRecommendationSource(sourceType)
+      ? glossaryLast(orderDocumentSections(sections, sourceType))
+      : orderDocumentSections(sections, sourceType)
+  ).filter(
     (section) =>
       section.title.trim() !== COVERAGE_NOTE_SECTION_TITLE &&
       !(

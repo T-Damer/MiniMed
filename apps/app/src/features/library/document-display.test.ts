@@ -5,6 +5,7 @@ import {
   displayDocumentSubtitle,
   displayDocumentTitle,
   documentSectionHeadingTag,
+  glossaryLast,
   hasFullTextSibling,
   isAdministrativeMedicationSection,
   isFullTextDocumentId,
@@ -14,6 +15,7 @@ import {
   resolveReadableDocumentId,
   summaryDocumentId,
   visibleReaderSections,
+  wordTitlesFirst,
 } from '@/features/library/document-display';
 
 const section = (title: string): MedicalSection => ({
@@ -263,5 +265,51 @@ describe('document-display', () => {
     expect(hasFullTextSibling('kr.rf.714_2.pneumonia', available)).toBe(true);
     expect(isFullTextDocumentId('kr.rf.714_2.pneumonia.full')).toBe(true);
     expect(summaryDocumentId('kr.rf.714_2.pneumonia.full')).toBe('kr.rf.714_2.pneumonia');
+  });
+});
+
+describe('the reader opens on the text', () => {
+  it('moves the abbreviation list with its subsections behind the chapters', () => {
+    const at = (title: string, depth: number): MedicalSection => ({ ...section(title), depth });
+    const ordered = glossaryLast([
+      at('Список сокращений', 0),
+      at('Сокращения клинические', 1),
+      at('1. Краткая информация', 0),
+      at('1.1 Определение', 1),
+      at('2. Диагностика', 0),
+    ]);
+    expect(ordered.map((entry) => entry.title)).toEqual([
+      '1. Краткая информация',
+      '1.1 Определение',
+      '2. Диагностика',
+      'Список сокращений',
+      'Сокращения клинические',
+    ]);
+  });
+
+  it('leaves a document without a glossary as it is', () => {
+    const sections = [section('A'), section('B')];
+    expect(glossaryLast(sections)).toBe(sections);
+  });
+});
+
+describe('a list with no query', () => {
+  it('opens on names that begin with a letter', () => {
+    const doc = (title: string) =>
+      ({ title, shortTitle: title, sourceType: 'x', metadata: {} }) as unknown as Parameters<
+        typeof wordTitlesFirst
+      >[0][number];
+    const titles = wordTitlesFirst([
+      doc('1-(4-БРОМФЕНИЛ)ВИОЛУРОВАЯ КИСЛОТА'),
+      doc('Амоксициллин'),
+      doc('[2-(тест)]'),
+      doc('Ибупрофен'),
+    ]).map((item) => item.title);
+    expect(titles).toEqual([
+      'Амоксициллин',
+      'Ибупрофен',
+      '1-(4-БРОМФЕНИЛ)ВИОЛУРОВАЯ КИСЛОТА',
+      '[2-(тест)]',
+    ]);
   });
 });

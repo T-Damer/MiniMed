@@ -42,7 +42,9 @@ function isEmptyValue(value: string | undefined): boolean {
 
 /** Section headings of a drug card made of a registry code: «Таблетки, 500 мг». */
 export function presentReaderSectionTitle(title: string): string {
-  const match = new RegExp(`^${SMNN_CODE_PATTERN.source}\\s*[—–-]\\s*(.+)$`, 'u').exec(title.trim());
+  const match = new RegExp(`^${SMNN_CODE_PATTERN.source}\\s*[—–-]\\s*(.+)$`, 'u').exec(
+    title.trim(),
+  );
   if (!match) return title;
   const parts = (match[1] ?? '').split(/\s+[—–]\s+/u).map((part) => part.trim());
   const [form = '', ...strengths] = parts;
@@ -125,7 +127,9 @@ export function presentRegistryLine(line: string, sameAsHeading = ''): string | 
     const forms = values.get('Формы');
     const strengths = values.get('Дозировки/концентрации');
     const parts = [
-      forms && !isEmptyValue(forms) ? `Формы: ${forms.split(/;\s*/u).map(sentenceCaseUpper).join('; ')}` : '',
+      forms && !isEmptyValue(forms)
+        ? `Формы: ${forms.split(/;\s*/u).map(sentenceCaseUpper).join('; ')}`
+        : '',
       strengths && !isEmptyValue(strengths)
         ? `Дозировки: ${strengths.split(/;\s*/u).map(normalizeStrength).join('; ')}`
         : '',
@@ -135,10 +139,7 @@ export function presentRegistryLine(line: string, sameAsHeading = ''): string | 
   const compact = values.get('форма/дозировка');
   const name = values.get('ТН');
   const details = compact
-    ? compact
-        .split(/;\s*/u)
-        .map(normalizePresentation)
-        .join('; ')
+    ? compact.split(/;\s*/u).map(normalizePresentation).join('; ')
     : presentation(values.get('Лекарственная форма'), values.get('Дозировка/концентрация'));
   const lead = isEmptyValue(name) ? '' : sentenceCaseUpper(name ?? '');
   const holder = values.get('Держатель регистрации');
@@ -165,7 +166,13 @@ export function presentRegistryLine(line: string, sameAsHeading = ''): string | 
   // Under a heading that already says «Таблетки, 500 мг» the trade name is enough.
   const shownDetails = lead !== '' && details === sameAsHeading ? '' : details;
   const head = [lead, shownDetails].filter((part) => part !== '').join(' — ');
-  const text = [head, ...(registration && !isEmptyValue(registration) && !values.has('КЛП') ? [`рег. ${registration}`] : []), ...tail]
+  const text = [
+    head,
+    ...(registration && !isEmptyValue(registration) && !values.has('КЛП')
+      ? [`рег. ${registration}`]
+      : []),
+    ...tail,
+  ]
     .filter((part) => part !== '')
     .join(' · ');
   return text === '' ? null : `${bullet}${text}`;

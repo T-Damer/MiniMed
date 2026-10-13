@@ -76,9 +76,8 @@ describe('onboarding controller', () => {
     expect(run([{ type: 'next' }, { type: 'back' }, { type: 'skip' }], done)).toBe(done);
   });
 
-  it('dismisses for good only when the core is installed', () => {
-    expect(dismissesPermanently(true)).toBe(true);
-    expect(dismissesPermanently(false)).toBe(false);
+  it('dismisses for good, with or without the core', () => {
+    expect(dismissesPermanently()).toBe(true);
   });
 
   it('wraps the reducer in a signal', () => {

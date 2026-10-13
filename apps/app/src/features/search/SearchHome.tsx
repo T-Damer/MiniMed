@@ -40,6 +40,7 @@ import {
 } from '@/features/library/imaging-entry';
 import { KnowledgeGraph } from '@/features/library/KnowledgeGraph';
 import { selectGraphNeighborhood } from '@/features/library/knowledge-graph-model';
+import { MEDICATION_ATC_HASH } from '@/features/medications/medication-routing';
 import { medicationDocumentGroups } from '@/features/medications/medicationGroups';
 import { SECTION_DOCUMENT_COUNTS } from '@/features/modules/module-catalog-shell';
 import { DefinitionReferencePanel } from '@/features/reference/DefinitionReferencePanel';
@@ -345,6 +346,15 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       ageScope: DRUG_INTERACTION_TOOL.ageScope,
       group: 'reference',
       href: DRUG_INTERACTION_TOOL.href,
+    },
+    {
+      id: 'minimed.app.atc-tree',
+      title: 'Препараты по группам АТХ',
+      kindLabel: 'Дерево АТХ: группа → вещество → препарат',
+      icon: 'list-bullets',
+      ageScope: APP_FEATURE_AGE_SCOPE,
+      group: 'reference',
+      href: MEDICATION_ATC_HASH,
     },
     {
       id: DRUG_COMPARISON_TOOL.id,

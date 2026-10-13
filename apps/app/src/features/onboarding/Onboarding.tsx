@@ -347,7 +347,7 @@ export function Onboarding(props: OnboardingProps): JSX.Element {
       },
       (reason) => {
         if (!reason) return;
-        if (dismissesPermanently(props.coreReady)) dismissSetup();
+        if (dismissesPermanently()) dismissSetup();
         props.onNavigate('search');
         setLeaving(true);
         const fade = setTimeout(
@@ -366,10 +366,6 @@ export function Onboarding(props: OnboardingProps): JSX.Element {
       { defer: true },
     ),
   );
-  // The core arrived after the tour ended early: from now on the tour never returns.
-  createEffect(() => {
-    if (state().kind === 'done' && props.coreReady && dismissesPermanently(true)) dismissSetup();
-  });
   createEffect(on(lineGone, closeIfFinished, { defer: true }));
 
   // ---- keyboard: Enter/→ next, ← back, Esc skip, Tab stays inside the tour ----

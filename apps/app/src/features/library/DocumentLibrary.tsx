@@ -19,7 +19,7 @@ import { OverlayDialog } from '@/components/OverlayDialog';
 import { Page } from '@/components/Page';
 import { SearchField } from '@/components/SearchField';
 import { Heading } from '@/components/Text';
-import { preferReadableDocuments } from '@/features/library/document-display';
+import { preferReadableDocuments, wordTitlesFirst } from '@/features/library/document-display';
 import { KnowledgeGraph } from '@/features/library/KnowledgeGraph';
 import { selectGraphNeighborhood } from '@/features/library/knowledge-graph-model';
 import { searchResultDocumentKind } from '@/features/search/ScopedMedicalCore';
@@ -73,7 +73,7 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
 
   const filteredDocuments = createMemo(() => {
     const query = activeQuery().trim();
-    if (!query) return documents();
+    if (!query) return wordTitlesFirst(documents());
     const searchValues = searchValuesById();
     return documents()
       .map((document, index) => ({

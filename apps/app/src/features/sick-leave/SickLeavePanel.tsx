@@ -1,18 +1,10 @@
 import type { MedicalDocument } from '@localmed/contracts';
-import {
-  createEffect,
-  createMemo,
-  createSignal,
-  For,
-  type JSX,
-  Show,
-} from 'solid-js';
+import { createEffect, createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Disclosure } from '@/components/Disclosure';
 import { SheetPopover } from '@/components/SheetPopover';
 import { type SickLeaveEntry, sickLeaveForCard } from '@/features/sick-leave/sick-leave-data';
-import { createQuietResource } from '@/state/quiet-resource';
 import {
   entryFootnotes,
   formatPeriod,
@@ -22,6 +14,7 @@ import {
   shownEntries,
   sickLeaveDocumentCodes,
 } from '@/features/sick-leave/sick-leave-view';
+import { createQuietResource } from '@/state/quiet-resource';
 import '@/features/sick-leave/sick-leave-panel.css';
 
 function EntryRows(props: {

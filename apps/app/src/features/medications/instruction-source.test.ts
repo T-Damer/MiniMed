@@ -315,8 +315,12 @@ describe('instructionModuleIdForSubstanceModule', () => {
 
 describe('the edition mark of an instruction', () => {
   it('drops «Изм. № 0», writes the registration number plainly and keeps real amendments', () => {
-    expect(presentInstructionEdition('Изм. № 0, ЛП-№(009219)-(РГ-RU), 2025')).toBe('ЛП-009219, 2025');
-    expect(presentInstructionEdition('Изм. № 2, ЛП-008472, 2022')).toBe('Изм. № 2, ЛП-008472, 2022');
+    expect(presentInstructionEdition('Изм. № 0, ЛП-№(009219)-(РГ-RU), 2025')).toBe(
+      'ЛП-009219, 2025',
+    );
+    expect(presentInstructionEdition('Изм. № 2, ЛП-008472, 2022')).toBe(
+      'Изм. № 2, ЛП-008472, 2022',
+    );
     expect(presentInstructionEdition('Изм. № 0')).toBeNull();
     expect(presentInstructionEdition(null)).toBeNull();
   });

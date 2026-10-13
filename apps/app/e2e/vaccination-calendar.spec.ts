@@ -65,7 +65,8 @@ test('phone: the page opens on the calendar table; the header, the numbers and t
   for (const box of [title, help, print]) {
     expect(Math.abs((back?.y ?? 0) - (box?.y ?? 999))).toBeLessThan(30);
   }
-  await expect(page.getByText('Приказы № 1122н, № 677н', { exact: true })).toBeVisible();
+  // The orders are reference data: small print at the bottom, not the header's subtitle.
+  await expect(page.getByText('Приказы № 1122н, № 677н', { exact: true })).toHaveCount(0);
   await expect(page.locator('body')).not.toContainText('клиническ');
   await expect(page.locator('body')).not.toContainText('Показано');
 

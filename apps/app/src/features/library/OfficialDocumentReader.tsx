@@ -37,10 +37,6 @@ import { DocumentFindBar, type DocumentFindResultState } from '@/features/librar
 import { DocumentHighlightsSheet } from '@/features/library/DocumentHighlightsSheet';
 import { DocumentModulePointer } from '@/features/library/DocumentModulePointer';
 import {
-  presentReaderChunkText,
-  presentReaderSectionTitle,
-} from '@/features/library/reader-text-presentation';
-import {
   type DocumentSectionTree,
   displayDocumentSubtitle,
   displayDocumentTitle,
@@ -77,6 +73,10 @@ import { isClinicalRecommendationSource } from '@/features/library/numbered-head
 import { ReaderHero } from '@/features/library/ReaderHero';
 import { ReaderSectionPath } from '@/features/library/ReaderSectionPath';
 import { RlsMedicationPackagingPanel } from '@/features/library/RlsMedicationPackagingPanel';
+import {
+  presentReaderChunkText,
+  presentReaderSectionTitle,
+} from '@/features/library/reader-text-presentation';
 import {
   getReferenceImageResolver,
   isReferenceImageDocumentId,

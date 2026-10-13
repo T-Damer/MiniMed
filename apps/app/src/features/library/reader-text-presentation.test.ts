@@ -35,7 +35,10 @@ describe('registry lines', () => {
 
   it('leaves the details to the heading above and writes a shouted name in sentence case', () => {
     expect(
-      presentRegistryLine('- ТН: АМОКСИЦИЛЛИН; форма/дозировка: ТАБЛЕТКИ (500 мг)', 'Таблетки, 500 мг'),
+      presentRegistryLine(
+        '- ТН: АМОКСИЦИЛЛИН; форма/дозировка: ТАБЛЕТКИ (500 мг)',
+        'Таблетки, 500 мг',
+      ),
     ).toBe('- Амоксициллин');
   });
 

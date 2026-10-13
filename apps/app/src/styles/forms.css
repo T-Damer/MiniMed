@@ -188,8 +188,11 @@
 }
 
 .form-progress__reset {
-  --ui-icon-button-size: 2rem;
   flex: none;
+  min-height: 2rem;
+  padding-block: 0;
+  padding-inline: 0.5rem;
+  font-size: 0.8rem;
 }
 
 .form-section {

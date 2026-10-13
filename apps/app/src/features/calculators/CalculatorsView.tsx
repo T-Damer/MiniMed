@@ -75,6 +75,7 @@ import {
   applyCalculatorInputChange,
   type CalculatorSchemaEvaluation,
   calculatorInputOptions,
+  calculatorInputSummary,
   calculatorSchemaInputsReady,
   evaluateCalculatorSchema,
   initialCalculatorSchemaValues,
@@ -724,17 +725,7 @@ function CalculatorForm(props: {
       return;
     }
     setSchemaPreview(undefined);
-    const inputSummary = schema.inputs
-      .map((input) => {
-        const raw = schemaValues()[input.id];
-        if (raw === undefined || raw === '') return null;
-        const optionLabel = calculatorInputOptions(input, schemaValues()).find(
-          (option) => String(option.value) === raw,
-        )?.label;
-        return `${input.label} ${optionLabel ?? raw}${input.unit ? ` ${input.unit}` : ''}`;
-      })
-      .filter((part): part is string => part !== null)
-      .join(', ');
+    const inputSummary = calculatorInputSummary(schema, schemaValues());
     await saveRecord(toStoredCalculationResult(evaluation), inputSummary, schemaValues());
   };
 
@@ -1003,8 +994,15 @@ function CalculationResultPanel(props: {
     const scaled = scaledValueIds(props.record.result.scales);
     return outputs().filter((item) => item.id === undefined || !scaled.has(item.id));
   };
+  // A warning every calculator repeats («используйте как часть клинического решения») is not
+  // drawn under the result: it waits in «Источники и ограничения».
+  const GENERAL_WARNING_CODES: ReadonlySet<string> = new Set(['decision-support']);
   const besideWarnings = () =>
-    warningsBesideScales(props.record.result.warnings, props.record.result.scales);
+    warningsBesideScales(props.record.result.warnings, props.record.result.scales).filter(
+      (warning) => !GENERAL_WARNING_CODES.has(warning.code),
+    );
+  const generalWarnings = () =>
+    props.record.result.warnings.filter((warning) => GENERAL_WARNING_CODES.has(warning.code));
   const feedingPlan = () =>
     calculatorResultLayout(props.record.calculatorId) === 'feeding-plan' &&
     'textValues' in props.record.result
@@ -1073,9 +1071,7 @@ function CalculationResultPanel(props: {
           <>
             <header>
               <p class="archive-kicker">
-                {props.record.patientId
-                  ? 'Результат в защищённой карточке'
-                  : 'Результат сохранён локально'}
+                {props.record.patientId ? 'Результат в защищённой карточке' : 'Результат'}
               </p>
               <h2>{props.definition.shortTitle}</h2>
               <small>{props.record.inputSummary}</small>
@@ -1106,19 +1102,21 @@ function CalculationResultPanel(props: {
             </For>
             <div class="calculator-result-details">
               <Button
-                variant="secondary"
+                variant="icon"
+                class="calculator-result-details__button"
+                aria-label="Формула и шаги"
+                title="Формула и шаги"
                 icon={<AppGlyph name="list" />}
                 onClick={() => setDetailsOpen('formula')}
-              >
-                Формула и шаги
-              </Button>
+              />
               <Button
-                variant="quiet"
+                variant="icon"
+                class="calculator-result-details__button"
+                aria-label="Источники и ограничения"
+                title="Источники и ограничения"
                 icon={<AppGlyph name="book-open" />}
                 onClick={() => setDetailsOpen('sources')}
-              >
-                Источники и ограничения
-              </Button>
+              />
             </div>
             <Show when={besideWarnings().length > 0}>
               <div class="calculator-warnings">
@@ -1278,6 +1276,7 @@ function CalculationResultPanel(props: {
         </Show>
         <Show when={detailsOpen() === 'sources'}>
           <CalculatorSourcesBody definition={props.definition} />
+          <For each={generalWarnings()}>{(warning) => <p>{warning.message}</p>}</For>
         </Show>
       </OverlayDialog>
 

@@ -42,7 +42,7 @@ test('a pregnancy question shows the instruction sentences, never an answer of i
   await expect(card).toBeVisible({ timeout: 60_000 });
   await expect(card.locator('.safety-card__title')).toContainText('Албендазол');
   await expect(page.getByTestId('search-results')).toBeVisible();
-  await expect(page.getByTestId('safety-notice')).toContainText('не отвечает «можно» или «нельзя»');
+  await expect(page.getByTestId('safety-notice')).toContainText('Решение за врачом');
 
   // The index knows where the instruction speaks of it; the instruction is not installed yet.
   await expect(page.getByTestId('safety-not-installed')).toBeVisible({ timeout: 60_000 });

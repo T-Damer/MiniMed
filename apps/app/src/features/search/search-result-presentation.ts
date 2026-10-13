@@ -244,9 +244,7 @@ export function presentSourceChunkText(text: string, sectionPath: readonly strin
  * instruction, the edition of a recommendation. Shown only on cards whose title repeats.
  */
 export function resultQualifier(
-  document:
-    | Pick<MedicalDocumentSummary, 'sourceType' | 'metadata' | 'versionLabel'>
-    | undefined,
+  document: Pick<MedicalDocumentSummary, 'sourceType' | 'metadata' | 'versionLabel'> | undefined,
 ): string | undefined {
   if (!document) return undefined;
   const instruction = instructionSourceInfo({
@@ -254,8 +252,8 @@ export function resultQualifier(
     metadata: document.metadata,
   });
   if (instruction) {
-    const parts = [instruction.publisher, instruction.edition].filter(
-      (part): part is string => Boolean(part),
+    const parts = [instruction.publisher, instruction.edition].filter((part): part is string =>
+      Boolean(part),
     );
     return parts.length > 0 ? parts.join(' · ') : instruction.kindLabel;
   }

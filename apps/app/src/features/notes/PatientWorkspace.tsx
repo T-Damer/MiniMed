@@ -908,6 +908,8 @@ function PatientDetail(props: {
       const created = createClinicalEpisode({ patientId: props.profile.id, text: episodeText() });
       const next = await updatePatientVault((snapshot) => appendEpisode(snapshot, created));
       setEpisode(created);
+      // Saved: the note leaves the box and shows as the episode above.
+      setEpisodeText('');
       props.onSnapshot(next);
     } catch (cause) {
       toast(cause instanceof Error ? cause.message : 'Не удалось создать осмотр.');
@@ -1084,20 +1086,22 @@ function PatientDetail(props: {
                   <Show when={candidate.status === 'open'}>
                     <Button
                       type="button"
-                      variant="quiet"
+                      variant="icon"
+                      aria-label="Выбрать для записи"
+                      title="Выбрать для записи"
                       disabled={busy()}
+                      icon={<AppGlyph name="check" />}
                       onClick={() => setEpisode(candidate)}
-                    >
-                      Выбрать для записи
-                    </Button>
+                    />
                     <Button
                       type="button"
-                      variant="quiet"
+                      variant="icon"
+                      aria-label="Закрыть"
+                      title="Закрыть осмотр"
                       disabled={busy()}
+                      icon={<AppGlyph name="close" />}
                       onClick={() => void closeEpisode(candidate.id)}
-                    >
-                      Закрыть
-                    </Button>
+                    />
                   </Show>
                 </div>
               )}

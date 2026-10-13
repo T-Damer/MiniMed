@@ -240,7 +240,6 @@ export function VaccinationWorkspace(props: {
           />
         }
         title={<Heading depth={1}>Календарь прививок</Heading>}
-        description={`Приказы ${orderNumbers.join(', ')}`}
         help={<VaccinationHelp calendar={calendar} />}
         actions={<VaccinationPrintThumb html={handoutHtml()} onOpen={openPreview} />}
       />

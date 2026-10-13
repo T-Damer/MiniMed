@@ -1,7 +1,7 @@
 import type { JSX } from 'solid-js';
-import { pluralRu } from '@/i18n/labels';
 import { SegmentedControl } from '@/components/SegmentedControl';
 import { TOOL_AGE_FILTERS, type ToolAgeFilter } from '@/features/tools/tool-age-filter';
+import { pluralRu } from '@/i18n/labels';
 
 import '@/features/tools/tool-age.css';
 

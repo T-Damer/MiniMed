@@ -74,11 +74,12 @@ export function reduceOnboarding(
 }
 
 /**
- * Finishing or skipping hides the tour for good only once the core is installed; before that it
- * hides for this session and returns on the next launch, as the old setup screen did.
+ * Finishing or skipping the tour hides it for good, whether or not the core has arrived: a person
+ * who pressed «Пропустить обучение» is not shown the greeting again after a reload. The core
+ * download does not depend on the tour; a missing core is offered on the boot screen and in search.
  */
-export function dismissesPermanently(coreReady: boolean): boolean {
-  return coreReady;
+export function dismissesPermanently(): boolean {
+  return true;
 }
 
 export interface OnboardingController {

@@ -58,6 +58,10 @@ describe('viewFromLocation', () => {
     expect(compactRootView('notes', '#/notes')).toBe('notes');
     expect(compactRootView('settings', '#/settings/downloads')).toBe('settings');
     expect(compactRootView('news', '#/news/add')).toBe('news');
+    // Tools opened from search keep «Поиск» lit even though their routes live under notes.
+    expect(compactRootView('notes', '#/notes/drug-interactions?d=a')).toBe('search');
+    expect(compactRootView('notes', '#/notes/vaccination')).toBe('search');
+    expect(compactRootView('notes', '#/notes/forms')).toBe('notes');
   });
 
   it('keeps official document reads on search when no trail is stored', () => {

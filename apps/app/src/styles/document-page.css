@@ -659,7 +659,7 @@
    the bar when the reader hides its chrome. */
 @media (max-width: 760px) {
   .app-view--document-read::after {
-    content: '';
+    content: "";
     position: fixed;
     z-index: calc(var(--z-float) - 1);
     right: 0;
