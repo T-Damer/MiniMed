@@ -49,14 +49,16 @@ export async function routeMedicationModule(page: Page): Promise<void> {
  * Serves the antiparasitic ГРЛС instruction module's published bytes (the local release copy), the
  * module the drug screen offers when a product has no text; call before mounting. Skips when absent.
  */
-export async function routeInstructionModule(page: Page): Promise<void> {
+export async function routeInstructionModule(
+  page: Page,
+  moduleId: string = INSTRUCTION_MODULE_ID,
+): Promise<void> {
   const catalog = ContentModuleCatalogSchema.parse(
     JSON.parse(
       await readFile(resolve(ROOT, 'apps/app/src/features/modules/catalog.preview.json'), 'utf8'),
     ),
   );
-  const artifact = catalog.modules.find((module) => module.id === INSTRUCTION_MODULE_ID)
-    ?.artifacts[0];
+  const artifact = catalog.modules.find((module) => module.id === moduleId)?.artifacts[0];
   if (!artifact?.url) throw new Error('Missing instruction module artifact');
   const fileName = new URL(artifact.url).pathname.split('/').at(-1) ?? '';
   const localPath = resolve(DATA_ROOT, INSTRUCTION_DIRECTORY, fileName);

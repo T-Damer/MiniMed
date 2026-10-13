@@ -424,6 +424,11 @@ const DrugComparisonWorkspace = lazy(() =>
     default: module.DrugComparisonWorkspace,
   })),
 );
+const PrescriptionWorkspace = lazy(() =>
+  import('@/features/prescription/PrescriptionWorkspace').then((module) => ({
+    default: module.PrescriptionWorkspace,
+  })),
+);
 const DrugInteractionWorkspace = lazy(() =>
   import('@/features/drug-interactions/DrugInteractionWorkspace').then((module) => ({
     default: module.DrugInteractionWorkspace,
@@ -958,6 +963,10 @@ export function NotesView(props: {
     const current = route();
     return current.kind === 'drug-comparison' ? current : null;
   });
+  const prescriptionRoute = createMemo(() => {
+    const current = route();
+    return current.kind === 'prescription' ? current : null;
+  });
   const drugInteractionsRoute = createMemo(() => {
     const current = route();
     return current.kind === 'drug-interactions' ? current : null;
@@ -1316,6 +1325,41 @@ export function NotesView(props: {
               {...(props.onContentChanged ? { onContentChanged: props.onContentChanged } : {})}
               initialNames={current().names}
               initialDrugs={current().drugs}
+              onBack={() => {
+                if (window.history.length > 1) window.history.back();
+                else navigate(notesPath());
+              }}
+            />
+          </Suspense>
+        )}
+      </Show>
+      <Show when={props.active && prescriptionRoute()}>
+        {(current) => (
+          <Suspense
+            fallback={
+              <p class="vax-loading" role="status">
+                Открываем «Назначение»…
+              </p>
+            }
+          >
+            <PrescriptionWorkspace
+              core={props.core}
+              {...(props.onContentChanged ? { onContentChanged: props.onContentChanged } : {})}
+              initialPatientId={current().patientId}
+              seed={{
+                cards: current().cards,
+                ...(current().ageDays === undefined
+                  ? {}
+                  : { ageDays: current().ageDays as number }),
+                ...(current().weightKg === undefined
+                  ? {}
+                  : { weightKg: current().weightKg as number }),
+                ...(current().days === undefined ? {} : { days: current().days as number }),
+                ...(current().group === undefined
+                  ? {}
+                  : { group: current().group as 'adult' | 'child' }),
+              }}
+              onNavigate={navigate}
               onBack={() => {
                 if (window.history.length > 1) window.history.back();
                 else navigate(notesPath());

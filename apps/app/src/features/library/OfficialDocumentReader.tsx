@@ -135,6 +135,7 @@ import type {
 } from '@/features/modules/clinical-editions';
 import { formatFullTextDownloadLabel } from '@/features/modules/module-display';
 import type { ModulePointerResolution } from '@/features/modules/module-pointer-install';
+import { DrugRecipeButton } from '@/features/prescription/DrugRecipeButton';
 import { ReaderSelectionLookup } from '@/features/reader-dictionary/ReaderSelectionLookup';
 import { noteRecommendationOpened } from '@/features/reference/doctor-profile-feeds';
 import { searchResultDocumentKind } from '@/features/search/ScopedMedicalCore';
@@ -1480,6 +1481,9 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                         bookmarkItem={bookmarkItem(documentValue())}
                         bookmark={bookmark}
                         onShare={() => shareDrug(screen().header)}
+                        toolsBefore={
+                          <DrugRecipeButton core={props.core} documentId={documentValue().id} />
+                        }
                         title={
                           <QueryHighlightedText
                             text={screen().header.title}

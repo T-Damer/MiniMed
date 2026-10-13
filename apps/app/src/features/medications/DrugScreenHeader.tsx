@@ -25,6 +25,8 @@ export function DrugScreenHeader(props: {
   readonly bookmarkItem: ItemRefInput;
   readonly bookmark: ReaderBookmark;
   readonly onShare: () => void;
+  /** Extra round tools before the share button (the recipe icon). */
+  readonly toolsBefore?: JSX.Element;
 }): JSX.Element {
   const [image, setImage] = createSignal<ResolvedMedicationPackagingImage | null>(null);
 
@@ -73,6 +75,7 @@ export function DrugScreenHeader(props: {
               open={props.bookmark.open()}
               onOpenChange={props.bookmark.setOpen}
             />
+            {props.toolsBefore}
             <button
               type="button"
               class="drug-header__share"

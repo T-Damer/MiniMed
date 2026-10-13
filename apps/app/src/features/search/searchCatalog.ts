@@ -20,6 +20,7 @@ import {
 } from '@/features/medications/medicationGroups';
 import { isModuleReleased } from '@/features/modules/local-packaged-modules';
 import { loadedModuleCatalog } from '@/features/modules/module-catalog-state';
+import { PRESCRIPTION_TOOL } from '@/features/prescription/prescription-tool';
 import {
   documentMatchesConditionGroup,
   documentMatchesSearchScope,
@@ -174,6 +175,18 @@ export function searchCatalogTools(): readonly SearchCatalogTool[] {
       group: 'medication',
       href: DRUG_COMPARISON_TOOL.href,
       ageScope: DRUG_COMPARISON_TOOL.ageScope,
+    },
+    // A prescription computed from the official instruction, printed on the official blank.
+    {
+      id: PRESCRIPTION_TOOL.id,
+      scope: 'calculators',
+      icon: PRESCRIPTION_TOOL.icon,
+      title: PRESCRIPTION_TOOL.title,
+      description: PRESCRIPTION_TOOL.description,
+      aliases: PRESCRIPTION_TOOL.aliases,
+      group: 'medication',
+      href: PRESCRIPTION_TOOL.href,
+      ageScope: PRESCRIPTION_TOOL.ageScope,
     },
   ];
 }

@@ -30,6 +30,7 @@ and the list is updated when the proposal is better. How search works today:
 | Drug names | 100 ГРЛС trade names | top-1 0.99 | 1.00 | E3 gate |
 | Drug safety questions («X при беременности / при ГВ / ребёнку 3 лет») | `safe1-queries.json`, 44 (card, not ranking) | card correct 44/44, see item 15 | — | SAFE1, answer card above the results |
 | Drug comparison queries («X или Y», «X vs Y», «сравнить X и Y», «чем отличается X от Y») | `cmp1-queries.json`, 35 (card, not ranking) | card correct 35/35, see item 16 | — | CMP1, comparison card above the results |
+| Dose questions («амоксициллин ребенок 20 кг», «парацетамол 15 кг») | `dose-queries.json`, 134 (card, not ranking) | exact 134/134, wrong 0, see item 20 | — | RX1, dose card above the results |
 | Description → term («воспаление слизистой желудка» → гастрит) | `reverse-term-queries.json`, 35 | hit@5 0.80 | 0.49 | lexical kept (E5 rejected) |
 | Diagnosis / complaint → МКБ card | Q1, «Болезни» scope | R@5 0.28 / 0.03 | 0.39 / 0.02 | cards are the bridge's input (item 4); e5 on cards rejected |
 
@@ -184,6 +185,18 @@ hit@5 0.444 (rush 0.581, thoughtful 0.261), and with S3 0.278 / 0.574 (0.774, 0.
     but the owner's «цефтриаксн», now corrected. A corrected multi-word query that finds nothing as a whole
     («лечение оменции») stays uncorrected; not measured on a phone. Design:
     [`SEARCH_ARCHITECTURE.md`](SEARCH_ARCHITECTURE.md) «Misspelt words».
+
+20. **Dose questions with patient data** (RX1, 2026-10-14; owner QA «Амоксициллин, доза ребёнку 20 кг»). Compared with the list
+    first: not ranking work (items 1–5, 8 stay as they are, every exact-name gate untouched) and not a drug-by-indication search (E3);
+    closest are the cards above the results (15 SAFE1, 16 CMP1): same shape, same rule that a card never changes the order. A
+    deterministic parser (`prescription/dose-query.ts`: age, weight, duration, state words, form / strength words, the rest is the
+    name) → the app's own medication search (S3 variants, spelling correction) → the dose-rule index (offsets and checksums, no text;
+    [ADR-0025](adr/0025-dose-rule-index-and-prescription-draft.md)) → the dose sentences of the installed instruction that fit the
+    patient, quoted, with the computed intake, «Открыть в инструкции», «Оформить рецепт» and the recipe icon. Nothing fits: the
+    instruction states no dose, its section is linked; not installed: the download is offered in place with its size. Measured on
+    `dose-queries.json` (`bun run benchmark:dose`): 134 cases, exact 134, wrong answers 0, missing 0; `benchmark:all` within
+    tolerance, search code unchanged. Left: a table row read without its clearance band, unstated-population adult rules for «пожилой»,
+    instructions of other manufacturers are one switch away; details: [`research/dose-rules-2026-10-14.md`](research/dose-rules-2026-10-14.md).
 
 ## Measured and rejected
 

@@ -1,0 +1,509 @@
+.prescription {
+  display: grid;
+  gap: 0.85rem;
+  min-height: 100%;
+  padding-bottom: calc(var(--theme-bottom-nav-clearance, 5rem) + 1rem);
+  color: var(--theme-text);
+}
+
+.prescription__patient {
+  min-width: 0;
+}
+
+.prescription__facts {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.prescription__facts-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  gap: 0.6rem;
+}
+
+.prescription__fact {
+  min-width: 0;
+}
+
+.prescription__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.prescription__slot {
+  display: grid;
+  gap: 0.5rem;
+  animation: prescription-enter var(--motion-base, 180ms) var(--motion-ease-out, ease-out) both;
+}
+
+@keyframes prescription-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-0.45rem);
+  }
+}
+
+.prescription__search {
+  min-width: 0;
+}
+
+.prescription__candidates {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0;
+  padding: 0.3rem;
+  list-style: none;
+  border: var(--theme-border-hairline, 1px) solid var(--theme-border);
+  border-radius: var(--theme-radius-panel);
+  background: var(--theme-surface);
+  animation: prescription-enter var(--motion-fast, 120ms) var(--motion-ease-out, ease-out) both;
+}
+
+.prescription__candidate-row {
+  display: block;
+}
+
+.prescription__candidate {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  min-height: 2.4rem;
+  padding: 0.4rem 0.6rem;
+  border: 0;
+  border-radius: var(--theme-radius-control);
+  background: transparent;
+  color: var(--theme-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform var(--motion-fast, 120ms) var(--motion-ease, ease);
+}
+
+.prescription__candidate:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.prescription__candidate:hover:not(:disabled) {
+  background: var(--theme-accent-soft);
+}
+
+.prescription__candidate:disabled {
+  color: var(--theme-text-faint);
+  cursor: default;
+}
+
+.prescription__candidate-name {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.prescription__nothing {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.prescription__hint,
+.prescription__note {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.82rem;
+}
+
+.prescription__status {
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.prescription__item {
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.85rem;
+  animation: prescription-enter var(--motion-base, 180ms) var(--motion-ease-out, ease-out) both;
+}
+
+.prescription__item-header {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.prescription__item-icon {
+  flex: none;
+  color: var(--theme-accent);
+}
+
+.prescription__item-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+
+.prescription__item-remove {
+  flex: none;
+}
+
+.prescription__source {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.8rem;
+}
+
+.prescription__rules {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.prescription__legend {
+  padding: 0;
+  margin-bottom: 0.3rem;
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.prescription__rule {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.45rem 0.55rem;
+  border: var(--theme-border-hairline, 1px) solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  transition:
+    border-color var(--motion-fast, 120ms) var(--motion-ease, ease),
+    background-color var(--motion-fast, 120ms) var(--motion-ease, ease);
+}
+
+.prescription__rule--selected {
+  border-color: var(--theme-accent);
+  background: var(--theme-accent-soft);
+}
+
+.prescription__rule-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 2.2rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--theme-text);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.prescription__rule-summary {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.prescription__rule-who {
+  display: block;
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
+  font-weight: 400;
+}
+
+.prescription__quote {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0.5rem 0.65rem;
+  border-left: 3px solid var(--theme-border-strong, var(--theme-border));
+  border-radius: 0 var(--theme-radius-control) var(--theme-radius-control) 0;
+  background: var(--theme-surface-muted, transparent);
+}
+
+.prescription__quote-context,
+.prescription__quote-text,
+.prescription__quote-source {
+  margin: 0;
+}
+
+.prescription__quote-context {
+  color: var(--theme-text-muted);
+  font-size: 0.8rem;
+}
+
+.prescription__quote-text {
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.prescription__quote-source {
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
+}
+
+.prescription__link {
+  color: var(--theme-accent);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.prescription__custom-days {
+  display: inline-flex;
+}
+
+.prescription__days-input {
+  width: 4.6rem;
+  min-height: 2rem;
+  padding: 0.2rem 0.5rem;
+  border: var(--theme-border-hairline, 1px) solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  background: var(--theme-surface);
+  color: var(--theme-text);
+  font: inherit;
+  font-size: 0.85rem;
+}
+
+.prescription__result {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--theme-radius-panel);
+  background: var(--theme-accent-soft);
+  animation: prescription-enter var(--motion-base, 180ms) var(--motion-ease-out, ease-out) both;
+}
+
+.prescription__result-row {
+  display: grid;
+  grid-template-columns: minmax(5.5rem, 7rem) 1fr;
+  gap: 0.6rem;
+  align-items: baseline;
+}
+
+.prescription__result-label {
+  color: var(--theme-text-muted);
+  font-size: 0.82rem;
+}
+
+.prescription__result-value {
+  display: grid;
+  gap: 0.1rem;
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.prescription__result-note {
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
+  font-weight: 400;
+}
+
+.prescription__cap {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.prescription__cap-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.prescription__cap--over {
+  padding: 0.45rem 0.55rem;
+  border: var(--theme-border-hairline, 1px) solid var(--theme-warning, var(--theme-border-strong, var(--theme-border)));
+  border-radius: var(--theme-radius-control);
+}
+
+.prescription__none {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.prescription__section-text {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 0.88rem;
+  overflow-wrap: anywhere;
+}
+
+.prescription__edit {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.prescription__safety {
+  display: grid;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: var(--theme-border-hairline, 1px) solid var(--theme-border);
+}
+
+.prescription__safety-title,
+.prescription__safety-intent {
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.prescription__safety-view {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.prescription__interactions {
+  animation: prescription-enter var(--motion-base, 180ms) var(--motion-ease-out, ease-out) both;
+}
+
+.prescription__blank {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.prescription__pages {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.prescription__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.prescription__state {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.82rem;
+}
+
+.prescription__reference {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
+}
+
+.recipe-dialog__body {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.recipe-dialog__tools {
+  display: inline-flex;
+  gap: 0.15rem;
+}
+
+.recipe-dialog__text {
+  margin: 0;
+  padding: 0.8rem 0.9rem;
+  border-radius: var(--theme-radius-panel);
+  background: var(--theme-surface-muted, var(--theme-accent-soft));
+  font: inherit;
+  font-size: 0.95rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+
+.recipe-dialog__empty {
+  color: var(--theme-text-muted);
+}
+
+.prescription-card {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.85rem;
+}
+
+.prescription-card__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.6rem;
+}
+
+.prescription-card__title {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.prescription-card__tools {
+  flex: none;
+}
+
+.prescription-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  flex: 1 0 100%;
+  order: 3;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.prescription-card__chip {
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background: var(--theme-accent-soft);
+  font-size: 0.8rem;
+}
+
+.prescription-card__open {
+  justify-self: start;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prescription__slot,
+  .prescription__candidates,
+  .prescription__item,
+  .prescription__result,
+  .prescription__interactions {
+    animation: none;
+  }
+}
+
+.drug-recipe__button {
+  display: inline-grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: none;
+  place-items: center;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  background: color-mix(in srgb, var(--theme-surface-raised) 88%, transparent);
+  color: var(--theme-text-muted);
+  cursor: pointer;
+  transition: transform var(--motion-fast, 120ms) var(--motion-ease, ease);
+}
+
+.drug-recipe__button:active {
+  transform: scale(0.96);
+}
+
+.drug-recipe__button:focus-visible {
+  outline: var(--theme-outline-width) solid var(--theme-accent);
+  outline-offset: var(--theme-outline-offset);
+}
+
+.drug-recipe__icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}

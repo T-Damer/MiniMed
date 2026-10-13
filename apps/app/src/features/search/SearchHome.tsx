@@ -43,6 +43,7 @@ import { selectGraphNeighborhood } from '@/features/library/knowledge-graph-mode
 import { MEDICATION_ATC_HASH } from '@/features/medications/medication-routing';
 import { medicationDocumentGroups } from '@/features/medications/medicationGroups';
 import { SECTION_DOCUMENT_COUNTS } from '@/features/modules/module-catalog-shell';
+import { PRESCRIPTION_TOOL } from '@/features/prescription/prescription-tool';
 import { DefinitionReferencePanel } from '@/features/reference/DefinitionReferencePanel';
 import { sameDocumentList } from '@/features/search/document-list';
 import { HomeFeatureCard } from '@/features/search/HomeFeatureCard';
@@ -364,6 +365,15 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       ageScope: DRUG_COMPARISON_TOOL.ageScope,
       group: 'reference',
       href: DRUG_COMPARISON_TOOL.href,
+    },
+    {
+      id: PRESCRIPTION_TOOL.id,
+      title: PRESCRIPTION_TOOL.title,
+      kindLabel: PRESCRIPTION_TOOL.kindLabel,
+      icon: PRESCRIPTION_TOOL.icon,
+      ageScope: PRESCRIPTION_TOOL.ageScope,
+      group: 'reference',
+      href: PRESCRIPTION_TOOL.href,
     },
     {
       id: APP_TOOL_IDS.notes,

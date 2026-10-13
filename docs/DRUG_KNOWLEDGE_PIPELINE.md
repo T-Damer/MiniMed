@@ -320,3 +320,10 @@ Each update should produce a new immutable source snapshot and content-pack chec
 7. retain the preceding pack for rollback and historical audit.
 
 A source becoming unavailable does not make its prior medical claims current. Validity dates, registration status, source version, and review state must control ranking and presentation.
+
+## Dose rules from official instructions (RX1, 2026-10-14)
+
+`scripts/build-dose-rules.ts` reads the «Способ применения и дозы» sections of the released instruction modules with deterministic
+patterns and writes a lazy index of structured rules, offsets and section checksums (no text). The instruction text stays the only
+source; the prescription tool and the search dose card cut the quoted sentence from the installed instruction. See
+[ADR-0025](adr/0025-dose-rule-index-and-prescription-draft.md) and [research/dose-rules-2026-10-14.md](research/dose-rules-2026-10-14.md).

@@ -27,6 +27,17 @@ export type NotesRoute =
       /** Exact drugs (`c`): `slug` or `slug|Trade name`. */
       readonly drugs: readonly string[];
     }
+  | {
+      readonly kind: 'prescription';
+      /** Cards (`esklp.mnn.` slugs, `c`) to start the prescription with. */
+      readonly cards: readonly string[];
+      readonly patientId?: string;
+      /** Age in days (`age`), body mass in kilograms (`w`), length of the course (`days`). */
+      readonly ageDays?: number;
+      readonly weightKg?: number;
+      readonly days?: number;
+      readonly group?: 'adult' | 'child';
+    }
   | { readonly kind: 'templates'; readonly create?: boolean }
   | { readonly kind: 'template'; documentId: string }
   | { readonly kind: 'card'; readonly cardId: string }
@@ -100,6 +111,27 @@ export function readNotesRoute(
   if (parts[1] === 'drug-comparison') {
     const params = new URLSearchParams(query);
     return { kind: 'drug-comparison', names: params.getAll('d'), drugs: params.getAll('c') };
+  }
+  if (parts[1] === 'prescription') {
+    const params = new URLSearchParams(query);
+    const number = (key: string): number | undefined => {
+      const value = Number(params.get(key));
+      return params.get(key) !== null && Number.isFinite(value) && value > 0 ? value : undefined;
+    };
+    const patient = params.get('patient');
+    const ageDays = number('age');
+    const weightKg = number('w');
+    const days = number('days');
+    const group = params.get('group');
+    return {
+      kind: 'prescription',
+      cards: params.getAll('c'),
+      ...(patient ? { patientId: patient } : {}),
+      ...(ageDays === undefined ? {} : { ageDays }),
+      ...(weightKg === undefined ? {} : { weightKg }),
+      ...(days === undefined ? {} : { days }),
+      ...(group === 'adult' || group === 'child' ? { group } : {}),
+    };
   }
   if (parts[1] === 'templates') {
     if (parts.length === 2) {
@@ -202,6 +234,31 @@ export function notesDrugComparisonPath(
   for (const drug of drugs) params.append('c', drug);
   const query = params.toString();
   return query ? `#/notes/drug-comparison?${query}` : '#/notes/drug-comparison';
+}
+
+/**
+ * `#/notes/prescription` opens «Назначение»; `c` are drug cards to start with, `age` the patient's
+ * age in days, `w` the body mass in kilograms, `days` the length of the course.
+ */
+export function notesPrescriptionPath(
+  options: {
+    readonly cards?: readonly string[];
+    readonly patientId?: string;
+    readonly ageDays?: number;
+    readonly weightKg?: number;
+    readonly days?: number;
+    readonly group?: 'adult' | 'child';
+  } = {},
+): string {
+  const params = new URLSearchParams();
+  for (const card of options.cards ?? []) params.append('c', card);
+  if (options.patientId) params.set('patient', options.patientId);
+  if (options.ageDays !== undefined) params.set('age', String(Math.round(options.ageDays)));
+  if (options.weightKg !== undefined) params.set('w', String(options.weightKg));
+  if (options.days !== undefined) params.set('days', String(options.days));
+  if (options.group) params.set('group', options.group);
+  const query = params.toString();
+  return query ? `#/notes/prescription?${query}` : '#/notes/prescription';
 }
 
 export function notesTemplatesPath(create = false): string {

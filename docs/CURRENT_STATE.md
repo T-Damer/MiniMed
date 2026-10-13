@@ -20,6 +20,35 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Dose semantics, prescription tool and the dose card in search — 2026-10-14 (STATE RX1)
+
+Owner 2026-10-13: «semantics on drugs … select a drug, patient age/weight/state, a duration, a form → a printable prescription,
+more drugs, a recipe in a modal». Decision: [ADR-0025](adr/0025-dose-rule-index-and-prescription-draft.md); numbers, audit and
+limits: [research/dose-rules-2026-10-14.md](research/dose-rules-2026-10-14.md).
+
+- **Dose-rule index** (`scripts/build-dose-rules.ts`, `bun run content:dose-rules`; asset `features/prescription/data/dose-rules-index.json`,
+  3.1 MB / 725 kB gzip, lazy; offsets + section checksums, no instruction text): deterministic pattern parser over «Способ применения и
+  дозы» of 9 216 official instructions. **ЖНВЛП: 666 of 905 cards have ≥ 1 dose rule** (770 have an instruction in the modules), 653 an
+  adult and 296 a child rule, 249 a cap, 391 a course length; 22 306 dose, 3 999 cap, 6 110 course rules. Population (age bounds with the
+  upper bound exclusive, weight, group words), per-kg / per-m² doses, frequency, route, form words; renal / hepatic / dialysis rules and
+  sentences without a population are quoted only. Unparsed sentences are not rules (the section is shown).
+- **«Назначение»** (route `#/notes/prescription`, tool `minimed.app.prescription`, also in the search tools): compact patient row (age,
+  weight, pregnancy, lactation; from the patient card), the app's drug search, form and strength from the registry, the dose sentences that
+  fit the patient each quoted with «Открыть в инструкции», computed single dose / frequency / daily dose / units per intake (a half tablet
+  only when the instruction allows division), course chips 3/5/7/10/14 + custom, quantity and packages, neutral cap comparison,
+  SAFE1 quotes for the patient state, several drugs with the INT1 check, editable Rp / signa (Latin when Allmed has the name), a blank
+  107-1/у (148-1/у-88 by choice) as a live thumbnail, the «Рецепт» modal (copy / share / print), autosaved drafts, «Сохранить» writes
+  start events to the patient. No rule for the patient: the instruction «не указывает» and the section is quoted. An uninstalled
+  instruction is offered in place with its size.
+- **Search card** («амоксициллин ребенок 20 кг», «парацетамол 15 кг», …) above the results of «Все источники» and «Препараты»;
+  deterministic `parseDoseQuery`; additive: no search or ranking code changed. **Benchmark** `bun run benchmark:dose` (needs
+  `DOSE_DECODED_DIR`): 134 cases, exact 134, wrong 0, missing 0 (partly tuned on; see the research note). `benchmark:all` within tolerance.
+  `benchmark:real:release` cannot run in a worktree (no baseline for the mounted packs); search code is unchanged.
+- **Precision** of a random parsed rule is about 90 % before the last fixes (two fresh batches of 50: 40 and 41 correct), now of the
+  order of 5–10 % defects concentrated in table-like sentences. Not a clinical review.
+- **Not tested:** Android / native, physical devices, a real printer, a clinician's review, any other instruction group than the
+  anti-infectives (e2e) and antiparasitics; instruction modules downloaded by the end user (the e2e serves the local release copies).
+
 ## Web offline shell and stale-bundle recovery — 2026-10-14 (STATE SW1)
 
 QA of the published web app (0.6.59, Chromium, 375×812) found two faults: a document installed from

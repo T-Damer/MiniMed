@@ -37,6 +37,7 @@ import circleHalfBold from '@phosphor-icons/core/assets/bold/circle-half-bold.sv
 import clockBold from '@phosphor-icons/core/assets/bold/clock-bold.svg?raw';
 import clockCounterClockwiseBold from '@phosphor-icons/core/assets/bold/clock-counter-clockwise-bold.svg?raw';
 import codeBold from '@phosphor-icons/core/assets/bold/code-bold.svg?raw';
+import copyBold from '@phosphor-icons/core/assets/bold/copy-bold.svg?raw';
 import cubeBold from '@phosphor-icons/core/assets/bold/cube-bold.svg?raw';
 import diamondsFourBold from '@phosphor-icons/core/assets/bold/diamonds-four-bold.svg?raw';
 import diceFiveBold from '@phosphor-icons/core/assets/bold/dice-five-bold.svg?raw';
@@ -182,6 +183,7 @@ export type AppGlyphName =
   | 'vibrate'
   | 'printer'
   | 'prescription'
+  | 'copy'
   | 'question'
   | 'scales'
   | 'share'
@@ -323,6 +325,7 @@ const glyphBodies: Record<AppGlyphName, string> = {
   vibrate: svgBody(vibrateBold),
   printer: svgBody(printerBold),
   prescription: svgBody(prescriptionBold),
+  copy: svgBody(copyBold),
   question: svgBody(questionMarkBold),
   scales: svgBody(scalesBold),
   share: svgBody(shareNetworkBold),

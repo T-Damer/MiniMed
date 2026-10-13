@@ -61,6 +61,8 @@ import { parseSafetyQuery } from '@/features/medication-safety/safety-query';
 import { loadModuleCatalog } from '@/features/modules/module-catalog-state';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
 import { PersonalNoteMatches } from '@/features/notes/PersonalNoteMatches';
+import { DoseCard } from '@/features/prescription/DoseCard';
+import { parseDoseQuery } from '@/features/prescription/dose-query';
 import { CalculatorSuggestionCard } from '@/features/search/CalculatorSuggestionCard';
 import { ClinicalAnalysisNote } from '@/features/search/ClinicalAnalysisNote';
 import { CoreIdentityMatches } from '@/features/search/CoreIdentityMatches';
@@ -510,6 +512,12 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     const searched = response();
     if (!searched || (props.scope !== 'all' && props.scope !== 'medications')) return null;
     return parseSafetyQuery(searched.analysis.originalQuery);
+  });
+  // «амоксициллин ребёнок 20 кг», «ибупрофен 3 года»: the dose sentences of the instruction that fit.
+  const doseQuery = createMemo(() => {
+    const searched = response();
+    if (!searched || (props.scope !== 'all' && props.scope !== 'medications')) return null;
+    return parseDoseQuery(searched.analysis.originalQuery);
   });
   const calculatorSuggestion = createMemo(() => {
     const searched = response();
@@ -1552,6 +1560,16 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                   }
                 >
                   <SemanticModelOffer onInstalled={() => void runSearch(query(), true)} />
+                </Show>
+
+                <Show when={interactionQuery() ? undefined : doseQuery()}>
+                  {(asked) => (
+                    <DoseCard
+                      core={props.core}
+                      query={asked()}
+                      onContentChanged={props.onContentChanged}
+                    />
+                  )}
                 </Show>
 
                 <Show when={interactionQuery() ? undefined : safetyQuery()}>
