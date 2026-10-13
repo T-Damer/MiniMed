@@ -81,7 +81,8 @@ Owner 2026-10-13: «just show a "?" on the image; clicking it shows the image so
   index on `datasets/allmed-images-2026.10.13-c8e85a688094` (plain blobs, raw.githubusercontent.com,
   CORS and checksums verified against the local copy), catalog entry `minimed.medications.packaging-images.ru`
   (`kind: reference`, opt-in in Settings → Изображения, not in «Скачать препараты»), `minAppVersion` 0.6.60,
-  `publishedAt` 2026-10-13T21:10Z. Details, rebuild and publishing commands: `docs/DRUG_KNOWLEDGE_PIPELINE.md`.
+  `publishedAt` 2026-10-13T21:30Z. The catalog test «never requires a newer app» lists the module in
+  `PENDING_RELEASE_MODULES` until release 0.6.60 (remove that allowance in the release commit). Details, rebuild and publishing commands: `docs/DRUG_KNOWLEDGE_PIPELINE.md`.
 - **Why shards:** GitHub blobs are limited to 100 MB and the old single 281 MB ZIP would have been read into
   memory whole (IndexedDB clone + copy + JSZip) for every photo. The shard of a photo is the first hex digit
   of the SHA-256 of its reference; each ZIP is its own row in a new IndexedDB store (`source-assets`,

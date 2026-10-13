@@ -32,6 +32,12 @@ function atMost(left: string, right: string): boolean {
   return true;
 }
 
+/** Modules the catalog lists for the next app release (their reader code is in the same unreleased range). */
+const PENDING_RELEASE_MODULES: ReadonlyMap<string, string> = new Map([
+  // The sharded photo pack needs the per-artifact IndexedDB rows of 0.6.60.
+  ['minimed.medications.packaging-images.ru', '0.6.60'],
+]);
+
 describe('module catalog structure', () => {
   const modules = catalog.modules;
   const downloadable = modules.filter((module) => module.artifacts.length > 0);
@@ -103,9 +109,8 @@ describe('module catalog structure', () => {
 
   it('declares a download size equal to its artifacts and an installed size not below the decoded index', () => {
     for (const module of downloadable) {
-      const total = module.artifacts
-        .filter((artifact) => artifact.kind === 'index')
-        .reduce((sum, artifact) => sum + (artifact.sizeBytes ?? 0), 0);
+      // Every artifact is downloaded: the index and, for the photo pack, its source-assets ZIPs.
+      const total = module.artifacts.reduce((sum, artifact) => sum + (artifact.sizeBytes ?? 0), 0);
       expect(module.sizes.downloadBytes ?? 0, module.id).toBe(total);
       const decoded = module.artifacts
         .filter((artifact) => artifact.kind === 'index')
@@ -135,6 +140,9 @@ describe('module catalog structure', () => {
     const appVersion = release.version ?? release.appVersion;
     expect(appVersion, 'release.json carries the app version').toMatch(/^\d+\.\d+\.\d+/);
     for (const module of modules) {
+      // Listed ahead of the release whose app code reads it; drop the entry here once release.json
+      // reaches the version (the release commit bumps both).
+      if (module.compatibility.minAppVersion === PENDING_RELEASE_MODULES.get(module.id)) continue;
       expect(
         atMost(module.compatibility.minAppVersion, appVersion as string),
         `${module.id} needs ${module.compatibility.minAppVersion}`,
