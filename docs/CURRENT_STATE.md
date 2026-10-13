@@ -255,7 +255,7 @@ Owner request: results of tools with score bands were text only. Every numeric r
 track with a marker at the value (colour by severity, band labels and cut-points, the band's interpretation under
 it); equal-width segments for classes (NYHA, KDIGO, ASA), a plain gauge for risk percentages. Declared as data
 (`scoreScales`, optional, so older apps ignore it), rendered on screen and in print, covered by a catalog-wide test.
-178 of 245 tools have one — see [CALCULATORS.md](CALCULATORS.md) «Score scales and tool information». The calculator
+179 of 251 tools have one — see [CALCULATORS.md](CALCULATORS.md) «Score scales and tool information». The calculator
 result is scrolled into view after «Рассчитать» (smooth unless animations are off). Licence, attribution and source
 notes moved out of the page body into an «Информация» menu item plus one small source line at the bottom of calculator
 and assessment pages; assessments gained the section «Депрессия и тревога» (Zung SDS/SAS, HAM-D 17; psychology module

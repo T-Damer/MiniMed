@@ -151,7 +151,7 @@ the band it falls in. It is pure presentation data (`ScoreScaleSchema` in `packa
 - `score-scale-catalog.test.ts` reads every tool module: each single-score interpretation cascade must have a scale
   (exceptions are named there with the reason), and each band is replayed against the interpretations.
 
-Coverage at introduction: 178 of 245 tools carry 182 scales — 160 with bands (142 calculators and 18 assessments,
+Coverage at introduction: 179 of 251 tools carry 183 scales — 161 with bands (143 calculators and 18 assessments,
 incl. hand-written scales for multi-variable cascades such as NEWS2, Berlin P/F, ABI, ASA, Hoehn–Yahr modified) and 18
 plain gauges (risk and mortality percentages, scores without published bands). Left without a scale: cascades that
 depend on several variables or are codes rather than scores (HOMA-IR, Matsuda, LDL, adrenal washout, EULAR/ACR SLE,
