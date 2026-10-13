@@ -44,7 +44,7 @@ BUILD = REPO / "data" / "build"
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["lexicon", "run", "siblings"])
+    parser.add_argument("command", choices=["lexicon", "run", "siblings", "manufacturer"])
     parser.add_argument(
         "--manifest", type=Path, default=BUILD / "grls-instruction-text-manifest.jsonl"
     )
@@ -70,6 +70,9 @@ def main() -> None:
         print(
             f"lexicon: {len(lexicon.cyrillic)} cyrillic, {len(lexicon.latin)} latin words -> {args.lexicon}"
         )
+        return
+    if args.command == "manufacturer":
+        run_manufacturer(args)
         return
     if args.command == "siblings":
         run_siblings(args, rows)
@@ -131,6 +134,63 @@ def main() -> None:
     print(
         json.dumps({"produced": produced, "skippedNoVision": skipped, "overlayRows": len(existing)})
     )
+
+
+def run_manufacturer(args: argparse.Namespace) -> None:
+    """Re-prepare the holder-site scans into `prepared-pdf-ocr1` next to the module's workspace."""
+    from localmed_ingest.manufacturer_instruction_modules import (
+        plan_documents,
+        read_manifest_rows,
+    )
+
+    lexicon = Lexicon.from_json(json.loads(args.lexicon.read_text(encoding="utf-8")))
+    workspace = REPO / "data" / "intermediate" / "manufacturer-instructions-m1"
+    output = workspace / "prepared-pdf-ocr1"
+    summary: list[dict[str, Any]] = []
+    for document in plan_documents(read_manifest_rows()).documents:
+        newest = document.newest
+        if document.file_format != "pdf" or newest.get("textExtractionMode") != "ocr":
+            continue
+        old = workspace / "prepared-pdf" / f"{document.document_id}.md"
+        vision = args.vision_dir / f"{document.sha256_hex}.json"
+        if not old.is_file() or not vision.is_file():
+            continue
+        row = {
+            "sourceId": document.document_id,
+            "pdfSha256": document.sha256,
+            "documentKind": None,
+            "unknownWordRatio": None,
+        }
+        result = reprepare_document(
+            row=row,
+            pdf_path=REPO / document.raw_path,
+            old_markdown=old,
+            payload=json.loads(vision.read_text(encoding="utf-8")),
+            lexicon=lexicon,
+            workspace_label=str(output),
+        )
+        write_document(output, document.document_id, result)
+        summary.append(
+            {
+                k: result.overlay[k]
+                for k in (
+                    "sourceId",
+                    "documentKind",
+                    "ocrQuality",
+                    "ocrMeanConfidence",
+                    "unknownWordRatio",
+                    "wordCount",
+                    "uncertainNumbers",
+                    "wordEdits",
+                    "pageMarks",
+                )
+            }
+            | {"before": result.overlay["before"]}
+        )
+    report = BUILD / "manufacturer-instruction-module" / "ocr1-report.json"
+    report.parent.mkdir(parents=True, exist_ok=True)
+    report.write_text(json.dumps(summary, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    print(json.dumps({"documents": len(summary), "report": str(report)}))
 
 
 def run_siblings(args: argparse.Namespace, rows: list[dict[str, Any]]) -> None:

@@ -12,6 +12,7 @@ from localmed_ingest.ocr_requality import (
     assemble_lines,
     extract_with_vision,
     grade_quality,
+    native_page_usable,
     refine_page,
 )
 from localmed_ingest.ocr_text_cleanup import Lexicon
@@ -317,3 +318,20 @@ def test_a_text_layer_that_reads_as_latin_noise_is_replaced_by_the_recognised_pa
     assert extracted.diagnostics.ocr_pages == [1]
     texts = [b.text for p in extracted.pages for b in p.blocks]
     assert texts == ["Препарат принимают внутрь после еды."]
+
+
+def test_native_text_layer_usability() -> None:
+    russian = "Препарат принимают внутрь после еды, лекарственного средства достаточно. " * 15
+    assert native_page_usable(russian, LEXICON)
+    assert not native_page_usable("   ", LEXICON)
+    # a broken font encoding: Latin look-alike noise
+    assert not native_page_usable("YTBEPXAAIO 3aprecrureJrb AnpeKTopa ufi " * 10, LEXICON)
+    # Cyrillic letters but almost no words on a full page: mis-mapped glyphs
+    noise = "иI]с,грукI (ия I lO м с/lи Ilи I Ic кому IIри McI IcI " * 25
+    assert not native_page_usable(noise, LEXICON)
+    # a page of Latin species names with their Russian transliteration is a real text layer
+    plants = (
+        "Arnica montana (Арника монтана) Calendula officinalis (Календула) применения препарата "
+        "лекарственного средства после еды принимают внутрь. "
+    ) * 8
+    assert native_page_usable(plants, LEXICON)

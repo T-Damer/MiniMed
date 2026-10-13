@@ -66,6 +66,19 @@ def read_jobs(
     return sorted(jobs.items())
 
 
+def read_manufacturer_jobs(manifest: Path, raw_root: Path) -> list[tuple[str, Path]]:
+    """The holder-site PDFs whose text came from OCR (`manufacturer-instructions/manifest.jsonl`)."""
+    jobs: dict[str, Path] = {}
+    for line in manifest.read_text(encoding="utf-8").splitlines():
+        if not line:
+            continue
+        row: dict[str, Any] = json.loads(line)
+        raw_path = str(row.get("rawPath") or "")
+        if row.get("textExtractionMode") == "ocr" and raw_path.endswith(".pdf"):
+            jobs.setdefault(str(row["sha256"]).removeprefix("sha256:"), raw_root / raw_path)
+    return sorted(jobs.items())
+
+
 def run_one(binary: Path, checksum: str, pdf: Path, out: Path) -> dict[str, Any]:
     target = out / f"{checksum}.json"
     if target.is_file():
@@ -105,6 +118,11 @@ def main() -> None:
     parser.add_argument("--all-pdfs", action="store_true", help="not only rows flagged OCR")
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument(
+        "--manufacturer",
+        action="store_true",
+        help="read --manifest as the manufacturer-site manifest (OCR rows) and --raw-root as its root",
+    )
+    parser.add_argument(
         "--checksums",
         type=Path,
         help="only these PDFs (one `sha256:…` per line): native text layers a lexicon check rejected",
@@ -117,7 +135,11 @@ def main() -> None:
         if args.checksums
         else frozenset()
     )
-    jobs = read_jobs(args.manifest, args.raw_root, only_ocr=not args.all_pdfs, checksums=wanted)
+    jobs = (
+        read_manufacturer_jobs(args.manifest, args.raw_root)
+        if args.manufacturer
+        else read_jobs(args.manifest, args.raw_root, only_ocr=not args.all_pdfs, checksums=wanted)
+    )
     if args.limit:
         jobs = jobs[: args.limit]
     done = failed = cached = pages = 0

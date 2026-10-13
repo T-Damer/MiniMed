@@ -34,7 +34,8 @@ from localmed_ingest.manufacturer_instruction_modules import (
     write_registries,
 )
 
-PREPARED_DIRS = ("prepared-pdf", "prepared-text")
+# `prepared-pdf-ocr1` (scans re-prepared by `scripts/grls_ocr_requality.py manufacturer`) wins.
+PREPARED_DIRS = ("prepared-pdf-ocr1", "prepared-pdf", "prepared-text")
 
 
 def main() -> None:

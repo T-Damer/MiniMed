@@ -27,6 +27,7 @@ neither summarised nor repaired. Staging changes only the front matter of the pr
 from __future__ import annotations
 
 import json
+import os
 import shutil
 from collections import Counter, defaultdict
 from collections.abc import Mapping, Sequence
@@ -37,18 +38,20 @@ from typing import Any, cast
 import yaml
 
 from .builder import build_content_pack
+from .grls_document_kind import classify_scan_document
 from .grls_groups import classify_document_kind
 from .grls_instruction_modules import heading_json_escape_reason, split_front_matter
 from .sqlite_builder import repository_root
 
-REPO_ROOT = repository_root()
+# Private data lives in the main checkout only: a worktree build points MINIMED_DATA_ROOT at it.
+REPO_ROOT = Path(os.environ.get("MINIMED_DATA_ROOT", repository_root()))
 RAW_ROOT = REPO_ROOT / "data" / "raw" / "manufacturer-instructions"
 MANIFEST_PATH = RAW_ROOT / "manifest.jsonl"
 
 MODULE_ID = "minimed.medications.instructions.manufacturer-site.ru"
 MODULE_TITLE = "Инструкции с сайтов производителей"
-PACK_VERSION = "manufacturer-2026.10.05"
-BUILT_AT = "2026-10-05T00:00:00Z"
+PACK_VERSION = "manufacturer-2026.10.14"
+BUILT_AT = "2026-10-14T00:00:00Z"
 SOURCE_CLASS = "manufacturer-site"
 DOCUMENT_ID_PREFIX = "drug.rf.m1."
 DOCUMENT_ID_SUFFIX = ".instruction"
@@ -66,6 +69,7 @@ MATCH_METHODS: Mapping[str, str] = {
 KIND_TITLE_SUFFIX = {
     "leaflet": "листок-вкладыш",
     "ohlp": "общая характеристика лекарственного препарата (ОХЛП)",
+    "amendment": "лист изменений к инструкции",
 }
 GENERATED_TITLE_SUFFIX = ": инструкция по медицинскому применению"
 FILE_NAME_DATE_PREFIX = "file name date "
@@ -425,17 +429,33 @@ def write_registries(
     return {"pdf": len(pdfs), "text": len(texts), "workspace": str(workspace)}
 
 
+def document_kind_of(front: Mapping[str, Any], body: str) -> str:
+    """Kind of a prepared document: a re-prepared scan (OCR1) is classified by its content."""
+    metadata = _mapping(front.get("metadata"))
+    extraction = _mapping(metadata.get("extraction"))
+    if extraction.get("ocrQuality") is not None:
+        return classify_scan_document(body, page_count=extraction.get("pageCount")).kind
+    return classify_document_kind(body)
+
+
 def augmented_markdown(text: str, document: PlannedDocument) -> str:
     """Front matter of a prepared document, completed; the body is carried over byte for byte."""
     front, body = split_front_matter(text)
     existing = front.get("metadata")
     metadata: dict[str, Any] = cast(dict[str, Any], existing) if isinstance(existing, dict) else {}
     quality = _mapping(metadata.get("extraction"))
-    kind = classify_document_kind(body)
+    kind = document_kind_of(front, body)
     added: dict[str, Any] = {
         "documentKind": kind,
         "qualityScore": quality.get("qualityScore"),
         "ocrLowConfidenceRatio": quality.get("ocrLowConfidenceRatio"),
+        "ocrQuality": quality.get("ocrQuality"),
+        "ocrMeanConfidence": quality.get("ocrMeanConfidence")
+        if quality.get("ocrQuality")
+        else None,
+        "ocrQualityReasons": quality.get("ocrQualityReasons") or None,
+        "ocrTool": _mapping(quality.get("ocrCleanup")).get("tool"),
+        "ocrUncertainNumbers": _mapping(quality.get("ocrCleanup")).get("uncertainNumbers"),
         "pdfPageCount": quality.get("pageCount") if document.file_format == "pdf" else None,
     }
     for key, value in added.items():
@@ -555,8 +575,8 @@ def build_module(
     if build_report is None:
         raise RuntimeError("every attempt failed lint")
     kinds = {
-        document.document_id: classify_document_kind(
-            split_front_matter(paths[document.document_id].read_text(encoding="utf-8"))[1]
+        document.document_id: document_kind_of(
+            *split_front_matter(paths[document.document_id].read_text(encoding="utf-8"))
         )
         for document in kept
     }

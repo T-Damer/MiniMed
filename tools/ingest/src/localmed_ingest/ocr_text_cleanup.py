@@ -460,8 +460,8 @@ _CYRILLIC_OR_LATIN = re.compile(r"[A-Za-zА-Яа-яЁё]+")
 # Numbers: find, never fix
 # ---------------------------------------------------------------------------------------------
 
-# A token made only of digits, separators and look-alikes of 0 / 1 («1О», «5l0»): a number the engine
-# misread. Alphanumeric names («50S», «CYP2B6», «2B6») and postal codes are not flagged.
+# A token made only of digits, separators and look-alikes of 0 / 1 («1О», «5l0»): a number the
+# engine misread. Alphanumeric names («50S», «CYP2B6», «2B6») and postal codes are not flagged.
 _DIGIT_LOOKALIKES = re.compile(r"^(?=.*\d)(?=.*[OoОоlIІ])[\dOoОоlIІ.,/%-]{2,}$")
 _NUMBER_UNIT = re.compile(
     r"(?<![\w.,])(\d+(?:[.,]\d+)?)\s*([A-Za-zА-Яа-яµμ]{1,3})(?![A-Za-zА-Яа-яµμ])"

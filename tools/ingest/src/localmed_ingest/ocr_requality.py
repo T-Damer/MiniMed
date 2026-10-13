@@ -59,7 +59,9 @@ from .pdf_import import OcrSignal, RawBlock
 COLUMN_GAP_RATIO = 0.045
 LINE_JOIN_Y_RATIO = 0.6
 MIN_NATIVE_PAGE_CHARACTERS = 40
-NATIVE_PAGE_MIN_KNOWN_WORDS = 0.5
+NATIVE_PAGE_MIN_KNOWN_WORDS = 0.25
+# Russian text holds about one word of four or more letters per seven characters.
+NATIVE_PAGE_MIN_WORD_DENSITY = 0.30
 _TERMINAL = re.compile(r"[.!?»…]\s*$")
 _FIELD_START = re.compile(r"^[A-ZА-ЯЁ][^.:;!?]{2,60}:(?:\s|$)")
 _LIST_START = re.compile(r"^(?:[-–—•●○▪·*]\s*|\d{1,2}[.)]\s+|[a-zа-я]\)\s+)")
@@ -596,17 +598,17 @@ def ocr_signal_from_confidences(blocks: Sequence[RawBlock], pages: set[int]) -> 
 # ---------------------------------------------------------------------------------------------
 
 
-def _native_page_usable(text: str, lexicon: Lexicon | None) -> bool:
+def native_page_usable(text: str, lexicon: Lexicon | None) -> bool:
     if len(text.strip()) < MIN_NATIVE_PAGE_CHARACTERS:
         return False
     letters = [character for character in text if character.isalpha()]
     cyrillic = sum(1 for character in letters if character.casefold() in CYRILLIC_LETTERS)
-    if len(letters) >= 30 and cyrillic / len(letters) < 0.3:
+    if len(letters) >= 30 and cyrillic / len(letters) < 0.15:
         return False  # a text layer with a broken font encoding reads as Latin look-alike noise
-    if lexicon is None:
-        return True
     words = [w.casefold() for w in re.findall(r"[а-яёА-ЯЁ]{4,}", text)]
-    if len(words) < 8:
+    if len(text) >= 800 and len(words) / (len(text) / 7) < NATIVE_PAGE_MIN_WORD_DENSITY:
+        return False  # a broken encoding leaves few real words on a page full of characters
+    if lexicon is None or len(words) < 20:
         return True
     known = sum(1 for w in words if lexicon.cyrillic.get(w, 0) >= 3)
     return known / len(words) >= NATIVE_PAGE_MIN_KNOWN_WORDS
@@ -635,7 +637,7 @@ def extract_with_vision(
             dimensions[number] = (float(page.rect.width), float(page.rect.height))
             native = pdf_import._extract_raw_blocks(page, index, configured)  # pyright: ignore[reportPrivateUsage]
             native_text = "\n".join(block.text for block in native)
-            if native and _native_page_usable(native_text, lexicon):
+            if native and native_page_usable(native_text, lexicon):
                 raw_blocks.extend(native)
             else:
                 ocr_pages.add(number)
