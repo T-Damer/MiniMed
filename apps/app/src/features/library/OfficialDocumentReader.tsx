@@ -67,7 +67,6 @@ import {
   documentRenderBlockSearchText,
   resolveDocumentChunkItems,
 } from '@/features/library/document-rich-block-data';
-import { documentTextSearchText } from '@/features/library/document-text-search';
 import { earlierEditionDocumentIds } from '@/features/library/edition-predecessors';
 import { isClinicalRecommendationSource } from '@/features/library/numbered-heading-sections';
 import { ReaderHero } from '@/features/library/ReaderHero';
@@ -76,6 +75,7 @@ import { RlsMedicationPackagingPanel } from '@/features/library/RlsMedicationPac
 import {
   presentReaderChunkText,
   presentReaderSectionTitle,
+  readerChunkFindText,
 } from '@/features/library/reader-text-presentation';
 import {
   getReferenceImageResolver,
@@ -801,8 +801,10 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
           text:
             item.kind === 'rich'
               ? documentRenderBlockSearchText(item.block)
-              : documentTextSearchText(
+              : readerChunkFindText(
                   item.chunk.originalText,
+                  section.title,
+                  document.sourceType,
                   // biome-ignore lint/complexity/useLiteralKeys: source spans are optional runtime metadata.
                   item.chunk.metadata?.['sourceSpans'],
                 ),
@@ -1691,15 +1693,13 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                                   ? currentMatch()?.start
                                   : undefined;
                               // Catalogue cards and registry dumps are shown in reader words; the
-                              // find offsets belong to the stored text, so a reworded chunk
-                              // highlights by the query instead.
+                              // find units are built from the same shown text, so its offsets fit.
                               const shownText = () =>
                                 presentReaderChunkText(
                                   item.chunk.originalText,
                                   section.title,
                                   documentValue().sourceType,
                                 );
-                              const reworded = () => shownText() !== item.chunk.originalText;
                               return (
                                 <Show
                                   when={item.kind === 'rich' ? item.block : undefined}
@@ -1717,17 +1717,13 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                                         query={state().query}
                                         exactQuery={state().mode === 'exact'}
                                         fuzzyQuery={state().mode === 'similar'}
-                                        ranges={
-                                          reworded()
-                                            ? undefined
-                                            : rangesForFindUnit(
-                                                rangesByUnit(),
-                                                item.chunk.anchor,
-                                                state().query,
-                                              )
-                                        }
+                                        ranges={rangesForFindUnit(
+                                          rangesByUnit(),
+                                          item.chunk.anchor,
+                                          state().query,
+                                        )}
                                         unitId={item.chunk.anchor}
-                                        activeStart={reworded() ? undefined : activeStart()}
+                                        activeStart={activeStart()}
                                         highlightClass="document-overlay-match"
                                         paragraphClass="document-overlay-section__paragraph"
                                         // biome-ignore lint/complexity/useLiteralKeys: source spans are optional runtime metadata.

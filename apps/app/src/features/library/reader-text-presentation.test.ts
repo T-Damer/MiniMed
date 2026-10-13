@@ -6,6 +6,7 @@ import {
   presentReaderChunkText,
   presentReaderSectionTitle,
   presentRegistryLine,
+  readerChunkFindText,
 } from '@/features/library/reader-text-presentation';
 
 describe('one way to write a strength', () => {
@@ -83,5 +84,23 @@ describe('a chunk as the reader shows it', () => {
   it('keeps ordinary text as it is', () => {
     const text = 'Назначают амоксициллин по 500 мг. ТН: не при чём.';
     expect(presentReaderChunkText(text, 'Дозы', 'official_drug_instruction')).toBe(text);
+  });
+});
+
+describe('what in-document find searches', () => {
+  const raw =
+    'Название: Внебольничная пневмония у взрослых. Официальный идентификатор: 654_2. МКБ-10: J13, J14. Специальности: pulmonology.';
+
+  it('has no word the reader hides', () => {
+    const text = readerChunkFindText(raw, 'Сведения о документе', 'core_catalog_pointer');
+    expect(text.toLocaleLowerCase('ru-RU')).not.toContain('официальный идентификатор');
+    expect(text).not.toContain('654_2');
+    expect(text).not.toContain('pulmonology');
+    expect(text).toContain('J13, J14');
+  });
+
+  it('is the stored text when the reader changes nothing', () => {
+    const plain = 'Назначают амоксициллин по 500 мг.';
+    expect(readerChunkFindText(plain, 'Дозы', 'official_drug_instruction')).toBe(plain);
   });
 });

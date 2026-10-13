@@ -109,7 +109,15 @@ test.describe('desktop pointer', () => {
     // Anchored to the button.
     const menuBox = await page.getByRole('menu').first().boundingBox();
     if (!menuBox) throw new Error('missing menu');
-    expect(Math.abs(menuBox.x - (buttonBox.x + buttonBox.width / 2))).toBeLessThan(40);
+    // Opens to the right of the button's centre, or flips to end at it when the button sits so
+    // close to the right edge that the menu would not fit.
+    const buttonCentre = buttonBox.x + buttonBox.width / 2;
+    expect(
+      Math.min(
+        Math.abs(menuBox.x - buttonCentre),
+        Math.abs(menuBox.x + menuBox.width - buttonCentre),
+      ),
+    ).toBeLessThan(40);
     expect(menuBox.y).toBeGreaterThanOrEqual(buttonBox.y + buttonBox.height - 2);
     expect(menuBox.y).toBeLessThan(buttonBox.y + buttonBox.height + 40);
   });

@@ -86,7 +86,11 @@ test('opens a single ICD source directly and Back returns to the catalog', async
   await expect(page.locator('.document-overlay-paper__title')).toContainText(
     'Токсическое действие алкоголя',
   );
-  await expect(page.locator('.document-page')).toContainText(
+  // The index card shows its code, its classification context and the offer of the full set; the
+  // builder's boilerplate («В указателе сохранены … отсутствуют») is stored but not shown.
+  await expect(page.locator('.document-page')).toContainText('Классификационный контекст');
+  await expect(page.locator('.document-page')).toContainText('T51-T65');
+  await expect(page.locator('.document-page')).not.toContainText(
     'Клиническое описание и рекомендации в этом материале отсутствуют.',
   );
   await page.locator('.document-page').getByRole('button', { name: 'Назад', exact: true }).click();

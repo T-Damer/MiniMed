@@ -264,10 +264,14 @@ test('creates a protected patient profile and opens longitudinal dynamics', asyn
   // still drops everything the open screens held.
   await expect(page.getByRole('heading', { name: 'Пациент динамики' })).toBeVisible();
   await expect(page.locator('html')).not.toHaveClass(/patient-vault--privacy-curtain/u);
+  // The tab opens at the list by design, so the calculator is opened again from there.
   await page
     .locator('.app-bottom-nav')
     .getByRole('button', { name: 'Калькуляторы', exact: true })
     .click();
+  const sectionCard = page.getByRole('button', { name: 'Открыть раздел «Антропометрия»' });
+  if (await sectionCard.isVisible()) await sectionCard.click();
+  await openMosteller.click();
   await expect(
     page.locator('.calculator-form').getByRole('button', { name: 'Выбрать пациента', exact: true }),
   ).toBeVisible();

@@ -1,6 +1,11 @@
 .unified-catalog {
   margin-block: 1rem;
 }
+/* A catalog with nothing to list (a search is typing) must not leave its margin between the field
+   and the results: the skeleton and the results sit where the field ends. */
+.unified-catalog:empty {
+  display: none;
+}
 .unified-catalog__status {
   margin-block: 0.75rem;
   font-size: 0.875rem;

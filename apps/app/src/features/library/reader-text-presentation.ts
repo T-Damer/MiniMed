@@ -1,4 +1,5 @@
 import { CLEANED_SECTION_TITLES } from '@/features/library/document-display';
+import { documentTextSearchText } from '@/features/library/document-text-search';
 import { presentSourceChunkText } from '@/features/search/search-result-presentation';
 
 /**
@@ -212,4 +213,20 @@ export function presentReaderChunkText(
     result = result.replace(pattern, replacement);
   }
   return result;
+}
+
+/**
+ * The text in-document find searches for one plain-text chunk: exactly what the reader shows
+ * (reader words, parsed blocks), never the stored text with its hidden labels and identifiers.
+ */
+export function readerChunkFindText(
+  text: string,
+  sectionTitle: string,
+  sourceType: string,
+  sourceSpans?: unknown,
+): string {
+  return documentTextSearchText(
+    presentReaderChunkText(text, sectionTitle, sourceType),
+    sourceSpans,
+  );
 }

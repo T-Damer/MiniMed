@@ -3,7 +3,15 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { expect, type Locator, type Page, test } from '@playwright/test';
 
+import { missingLocalData } from './local-data';
 import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
+
+// The catalog and the regulatory pack are local builds under data/.
+const MISSING_DATA = missingLocalData(
+  'data/build/e2e-regulatory-catalog.json',
+  'data/build/rf-regulatory-pilot.db',
+);
+test.skip(MISSING_DATA !== undefined, MISSING_DATA);
 
 const ROOT = resolve(import.meta.dirname, '../../..');
 const CATALOG_URL =

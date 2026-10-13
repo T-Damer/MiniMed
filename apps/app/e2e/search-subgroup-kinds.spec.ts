@@ -32,7 +32,12 @@ for (const width of [375, 1280]) {
     const gynecology = menu.getByRole('button', { name: /^Акушерство и гинекология \(/u });
     await expect(gynecology.locator('[title="Опросник"]')).toHaveCount(1);
     await expect(gynecology.locator('[title="Калькулятор"]')).toHaveCount(1);
-    expect(await gynecology.locator('.search-section-menu__kind').count()).toBeGreaterThan(2);
+    // The document kinds join the tool kinds when the core's document list has been read, which
+    // follows the section list on a core of this size: wait for it instead of sampling once.
+    await expect
+      .poll(() => gynecology.locator('.search-section-menu__kind').count(), { timeout: 60_000 })
+      .toBeGreaterThan(2);
+    await expect(gynecology.locator('[title="Клиническая рекомендация"]')).toHaveCount(1);
     const gastroLabel = menu
       .getByRole('button', { name: /^Гастроэнтерология \(/u })
       .locator('.search-section-menu__label');

@@ -139,6 +139,37 @@ a guideline module did not open after the network was cut (its lazy chunks `Docu
 - **Not tested**: the real Pages deploy (the base path `/MiniMed/app/`, the carry step against the
   live manifest, Pages' `max-age=600` on `sw.js`), Safari/WebKit (including iOS storage eviction of
   Cache Storage), Firefox, a real flaky mobile network during the 19 MB install.
+## Green suites before 0.6.60 — 2026-10-14 (STATE TEST1)
+
+- **Reader find counts only what is shown.** `OfficialDocumentReader` builds its find units from
+  `presentReaderChunkText(...)` (the reader-word text), not from the stored `originalText`; hidden catalogue
+  labels («Официальный идентификатор»), identifiers and boilerplate no longer produce matches, and a reworded
+  chunk keeps exact highlights and jumps (the old fallback highlighted by the query only). Covered by
+  `search.spec.ts` (outline test: a visible word marks, the hidden label gives `0/0`).
+- **Search skeleton shift.** An empty `.unified-catalog` left its `margin-block` between the field and the
+  results while a query was typing, moving the skeleton 16 px; `.unified-catalog:empty` is now `display: none`.
+- **Unit tests have no wall-clock budgets.** `KnowledgeGraph.test.ts` asserted 250 000 pairs with one `expect`
+  each (1.4 s of assertion bookkeeping, the layout itself takes ~20 ms): one assertion over the collected
+  violations. `document-medication-links.test.ts` checks every paragraph links the right document instead of
+  timing the matcher. `personal-notes-backup.test.ts` warms the dynamic import once in `beforeAll` and settles
+  fire-and-forget cleanup by macrotask turns. `vitest.config.ts` sets `testTimeout: 30 s`, `hookTimeout: 60 s` as
+  hang guards only; speed is measured by `benchmark:all`. (`text-anchor.performance.test.ts` is the one
+  deliberate timing test left, with 4 s budgets.)
+- **e2e specs follow the app.** Calculator sources live in «Информация» (menu) and the footnote; the
+  Calculators tab opens the list, so `patient-vault.spec` reopens the tool after locking; the age filter's radios
+  are the only radios under a replayed search; a menu next to the right edge flips to end at its button; the
+  section menu waits for the document kinds; the ICD index card no longer shows the builder's boilerplate; the
+  cardiology section is checked as «N из N» offline, not a fixed 43.
+- **Specs that need `data/` skip with a reason.** `e2e/local-data.ts` (`missingLocalData`) is used by
+  `core-identities`, `module-lifecycle` and `terminology`; `module-install-timing` points at the release copy of
+  the published ЕСКЛП edition (`output/module-zstd-esklp-atc2-2026-10-13`). In a worktree, link the main
+  checkout's `data/` (`ln -s <main>/data data`, remove it afterwards) to run them.
+- **Source gate.** `scripts/check-browser-integration.mjs` compares whitespace-insensitively (formatter
+  re-wraps no longer fail it) and its patterns follow the current code (speech-model removal dialog, worker
+  request guard, patient backup copy, diary list/entry form/theme, diary service worker); 58/58.
+- **Lint.** The recorded EAEU sister-register responses (`tools/ingest/tests/fixtures/eaeu_sister`, third-party
+  HTML/JSON kept as received) are excluded from Biome like the ICD-11 API fixtures.
+
 ## Fixes from the first-time-user and power-user QA passes on 0.6.59 — 2026-10-14 (STATE QA1)
 
 Two QA reports on the published web app at 375×812 (screenshots in `/private/tmp/claude-501/minimed-qa-naive/`
@@ -166,8 +197,8 @@ and `…/minimed-qa-power/`). What changed, at the cause:
   «Амоксициллин — Таблетки, 500 мг»; headings made of a registry code say form and strength; one strength format;
   raw source URLs and «Ограничение покрытия» are gone from the page; ICD cards offer «Препараты РЛС для этого
   кода» instead of «Полная версия»; instruction editions read «ЛП-009219, 2025» (`presentInstructionEdition`).
-  Only the display changes: stored text, anchors and checksums are as before; find offsets of a reworded chunk
-  fall back to highlighting by the query.
+  Only the display changes: stored text, anchors and checksums are as before; in-document find is built from
+  the shown text (TEST1 below), so its count and highlights match what is on the page.
 - **Overlaps and waiting.** A paper fade behind the floating tab bar in readers; the toast sits under the route
   header; the tour prefetches its views. Drug, ICD-11 and sick-leave panels read through quiet resources, so an
   install no longer swaps the whole page for a spinner (≈ 5 s blank before); the module offer says

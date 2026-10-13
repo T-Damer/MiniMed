@@ -12,7 +12,8 @@ async function openCardiologyCalculator(
     .getByRole('button', { name: 'Калькуляторы', exact: true })
     .click();
   await page.getByRole('button', { name: 'Скачать раздел — Кардиология' }).click();
-  await expect(page.getByText('Доступно офлайн: 43 из 43')).toBeVisible();
+  // Every tool of the section is offline: «N из N», whatever N the section has grown to.
+  await expect(page.getByText(/^Доступно офлайн: (\d+) из \1$/u)).toBeVisible();
   await page.evaluate((hash) => {
     window.location.hash = hash;
   }, `#/calculators/${slug}`);
@@ -39,6 +40,8 @@ test('draws a banded score scale for a class result and keeps the licence out of
 
   // Sources are small text at the bottom and an «Информация» item in the menu.
   await expect(page.locator('.calculator-footnote')).toContainText('Источники:');
+  // The «Расчёт сохранён» toast sits under the route header over the menu; let it go first.
+  await expect(page.locator('[data-sonner-toast]')).toHaveCount(0);
   await page.getByTestId('calculator-menu').click();
   await page.getByRole('menuitem', { name: 'Информация' }).click();
   await expect(page.getByRole('dialog', { name: 'Информация' })).toBeVisible();

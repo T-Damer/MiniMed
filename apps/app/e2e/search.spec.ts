@@ -801,13 +801,18 @@ test('toggles the document outline on desktop and highlights exact reader matche
   await outline.getByRole('button', { name: 'Закрыть оглавление' }).click();
 
   await overlay.getByRole('button', { name: 'Поиск в документе' }).click();
-  await overlay
-    .getByRole('searchbox', { name: 'Поиск в документе' })
-    .fill('официальный идентификатор');
+  const findBox = overlay.getByRole('searchbox', { name: 'Поиск в документе' });
+  await findBox.fill('пневмония');
   await expect(overlay.locator('mark').first()).toBeVisible({ timeout: 15_000 });
-  await expect(overlay.locator('mark').first()).toHaveText(/официальный/iu);
+  await expect(overlay.locator('mark').first()).toHaveText(/пневмония/iu);
   // The find counter, not the reader's «12 / 48» section counter.
   await expect(overlay.locator('.document-find__count')).toHaveText(/^\d+\s*\/\s*\d+$/u);
+
+  // The catalogue label «Официальный идентификатор» is stored in the card but the reader does not
+  // show it; find counts only what is on screen.
+  await findBox.fill('официальный идентификатор');
+  await expect(overlay.locator('.document-find__count')).toHaveText('0/0');
+  await expect(overlay.locator('mark')).toHaveCount(0);
 });
 
 test('renders the complete virtualized document list', async ({ page }, testInfo) => {
@@ -1079,7 +1084,10 @@ test('replays a saved query from the history drawer', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Раздел поиска', exact: true })).toContainText(
     'Все источники',
   );
-  await expect(page.getByRole('radio')).toHaveCount(0);
+  // No scope radios any more; the only radios on the page are the age filter of the tool catalog.
+  await expect(
+    page.locator('input[type="radio"]:not(.tool-age-filter__control input)'),
+  ).toHaveCount(0);
   await expect(pneumoniaResult(page)).toBeVisible({ timeout: 60_000 });
 });
 

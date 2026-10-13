@@ -3,6 +3,7 @@ import {
   prepareCoreIdentityFixture,
   routeCoreIdentityFixture,
 } from '@localmed/app/e2e/core-identities-fixture';
+import { missingLocalData } from '@localmed/app/e2e/local-data';
 import { mountBuiltApp, waitForSearchEditable } from '@localmed/app/e2e/mount-built-app';
 import { selectSearchSection, setClinicalAnalysis } from '@localmed/app/e2e/select-search-section';
 import { expect, test } from '@playwright/test';
@@ -10,6 +11,12 @@ import { expect, test } from '@playwright/test';
 // The fixture is built into one shared directory: the file's tests run in one worker so two
 // workers never build or remove it at the same time.
 test.describe.configure({ mode: 'serial' });
+
+// The fixture is cut from the definition edition kept under data/.
+const MISSING_DATA = missingLocalData(
+  'data/build/definition-reference/2026.10.08/minimed.definition.reference.2026.10.08.db.gz',
+);
+test.skip(MISSING_DATA !== undefined, MISSING_DATA);
 
 let fixture: Awaited<ReturnType<typeof prepareCoreIdentityFixture>>;
 test.beforeAll(async () => {
