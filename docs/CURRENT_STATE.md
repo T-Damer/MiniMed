@@ -151,10 +151,13 @@ and seven books were used; the text is published for personal use while the repo
   Maslov 6400 g and 3800 g) and of Почивалов 2021 (2 months, 5 kg, 857 ml) are tests in
   `apps/app/src/features/calculators/feeding-tool-module.test.ts`. The existing `pediatric-feeding-plan`
   was not touched. No UI code changed; the frozen native golden exports were not regenerated.
-- **Not tested:** a phone, browser or device (no UI run), search ranking inside the app (aliases checked
-  against the built index only), the rest of the vitest suite beyond the tool/module/calculator folders is run
-  in the final check below, MR 2.3.1.2432-08 itself is not in the library (values come from the workbook), no
-  clinician reviewed the numbers.
+- **Checks:** `python:check` (ruff, pyright strict, 1 478 pytest) and `typecheck` pass; `vitest run` 16 549
+  passed with one failure outside this work (`KnowledgeGraph.test.ts` layout test exceeds its 5 s timeout
+  here); `lint-calculator-schema.ts` 227 calculators / 24 assessments; `bun run check` has no errors (warnings
+  pre-existing). **Not run / not tested:** `benchmark:all` and `native:source:check` (need `core.db`, not
+  restored in the worktree), a phone, browser or device (no UI run), search ranking inside the app (aliases and
+  FTS checked against the built index only), a clinician's review of the numbers; МР 2.3.1.2432-08 itself is not in
+  the library (child values come from the workbook).
 
 ## Misspelt words in search — 2026-10-13 (STATE TYPO1)
 
