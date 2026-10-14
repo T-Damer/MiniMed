@@ -1,20 +1,22 @@
 import { createResource, For, type JSX, Show } from 'solid-js';
-
+import { AppGlyph } from '@/components/AppGlyph';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import {
+  type AtcLadderStep,
   atcCatalogCitation,
   atcFillSourceLabel,
-  atcLadder,
   atcNameSourceLabel,
-  normalizeAtcCode,
 } from '@/features/medications/atc-code';
 import { loadAtcNames } from '@/features/medications/atc-names';
+import { atcSheetSections } from '@/features/medications/atc-sheet-model';
+import { atcSubstanceName } from '@/features/medications/atc-substance-name';
 import { type DrugAtcCode, drugAtcCodeLabel } from '@/features/medications/drug-screen';
+import { openAtcGroup } from '@/features/medications/medication-navigation';
 
 import '@/features/medications/drug-screen.css';
 
 /**
- * A code explained level by level. Levels 1-4 are named by the NSI «АТХ» dictionary, a lazy chunk
+ * A code explained level by level, each level a link to the drugs of its group (ATC5). Levels 1-4 are named by the NSI «АТХ» dictionary, a lazy chunk
  * fetched when the sheet first opens; if it cannot load, the names the drug's own data carries are
  * shown and the sheet says so. A level without a name says so; nothing is invented.
  */
@@ -22,20 +24,29 @@ export function AtcCodeSheet(props: {
   readonly code: DrugAtcCode | undefined;
   readonly open: boolean;
   readonly onClose: () => void;
+  /**
+   * `drug`: the code of a drug card, with the history of how it was filled. `text`: a code met in a
+   * document, which has only its levels (and the substances that carry the full code).
+   */
+  readonly origin?: 'drug' | 'text';
 }): JSX.Element {
   const [catalog] = createResource(() => (props.open ? true : undefined), loadAtcNames);
-  const steps = () => {
-    const code = props.code;
-    const normalized = code ? normalizeAtcCode(code.code) : null;
-    return code && normalized
-      ? atcLadder({
-          code: normalized,
-          catalog: catalog(),
-          // The group text of the node describes the registry's stub, not a consensus code's levels.
-          groupText: code.consensusSources.length > 0 ? null : code.groupText,
-          substanceName: code.substanceName,
-        })
+  // A code without a drug behind it names its level 5 by the substances that have it.
+  const [substance] = createResource(
+    () =>
+      props.open && props.code && props.code.substanceName === null ? props.code.code : undefined,
+    atcSubstanceName,
+  );
+  const sections = () =>
+    props.code
+      ? atcSheetSections({ code: props.code, catalog: catalog(), substanceName: substance() })
       : [];
+  const openLevel = (step: AtcLadderStep): void => {
+    if (step.code === null) return;
+    const code = step.code;
+    props.onClose();
+    // After the sheet has let go of its history entry, so the group opens on a clean route.
+    window.setTimeout(() => openAtcGroup(code), 0);
   };
   return (
     <OverlayDialog
@@ -52,48 +63,74 @@ export function AtcCodeSheet(props: {
               Каждая следующая часть кода уточняет предыдущую: от группы органов и систем до
               конкретного вещества.
             </p>
-            <ol class="atc-sheet__steps" aria-label="Уровни кода">
-              <For each={steps()}>
-                {(step) => (
-                  <li
-                    class={`atc-sheet__step atc-sheet__step--level-${String(step.level)}`}
-                    classList={{ 'atc-sheet__step--absent': step.code === null }}
-                  >
-                    <span class="atc-sheet__code">{step.code ?? '—'}</span>
-                    <span class="atc-sheet__text">
-                      <span class="atc-sheet__role">
-                        {step.level}. {step.role}
-                      </span>
-                      <Show
-                        when={step.name}
-                        fallback={
-                          <span class="atc-sheet__missing">
-                            {step.code === null
-                              ? 'Источник не уточняет код до этого уровня.'
-                              : catalog.loading
-                                ? 'Названия загружаются…'
-                                : 'Название в загруженных данных отсутствует.'}
-                          </span>
-                        }
-                      >
-                        {(name) => (
-                          <>
-                            <span class="atc-sheet__name">{name()}</span>
-                            <Show when={step.nameSource}>
-                              {(source) => (
-                                <span class="atc-sheet__source">
-                                  {atcNameSourceLabel(source())}
+            <For each={sections()}>
+              {(section) => (
+                <section class="atc-sheet__ladder" data-testid={`atc-ladder-${section.key}`}>
+                  <Show when={section.heading}>
+                    {(heading) => <h3 class="atc-sheet__ladder-heading">{heading()}</h3>}
+                  </Show>
+                  <ol class="atc-sheet__steps" aria-label="Уровни кода">
+                    <For each={section.steps}>
+                      {(step) => (
+                        <li
+                          class={`atc-sheet__step-item atc-sheet__step-item--level-${String(step.level)}`}
+                        >
+                          <Show
+                            when={step.code}
+                            fallback={
+                              <div class="atc-sheet__step atc-sheet__step--absent">
+                                <span class="atc-sheet__code">—</span>
+                                <span class="atc-sheet__text">
+                                  <span class="atc-sheet__role">
+                                    {step.level}. {step.role}
+                                  </span>
+                                  <span class="atc-sheet__missing">
+                                    Источник не уточняет код до этого уровня.
+                                  </span>
                                 </span>
-                              )}
-                            </Show>
-                          </>
-                        )}
-                      </Show>
-                    </span>
-                  </li>
-                )}
-              </For>
-            </ol>
+                              </div>
+                            }
+                          >
+                            {(stepCode) => (
+                              <button
+                                type="button"
+                                class="atc-sheet__step atc-sheet__step--link"
+                                data-testid="atc-level"
+                                data-code={stepCode()}
+                                aria-label={`${stepCode()}: показать препараты группы`}
+                                onClick={() => openLevel(step)}
+                              >
+                                <span class="atc-sheet__code">{stepCode()}</span>
+                                <span class="atc-sheet__text">
+                                  <span class="atc-sheet__role">
+                                    {step.level}. {step.role}
+                                  </span>
+                                  <Show when={step.name}>
+                                    {(name) => (
+                                      <>
+                                        <span class="atc-sheet__name">{name()}</span>
+                                        <Show when={step.nameSource}>
+                                          {(source) => (
+                                            <span class="atc-sheet__source">
+                                              {atcNameSourceLabel(source())}
+                                            </span>
+                                          )}
+                                        </Show>
+                                      </>
+                                    )}
+                                  </Show>
+                                </span>
+                                <AppGlyph name="caret-right" class="atc-sheet__step-chevron" />
+                              </button>
+                            )}
+                          </Show>
+                        </li>
+                      )}
+                    </For>
+                  </ol>
+                </section>
+              )}
+            </For>
             <Show when={code().groupText}>
               {(group) => (
                 <p class="atc-sheet__note">
@@ -144,13 +181,15 @@ export function AtcCodeSheet(props: {
               </p>
             </Show>
             <p class="atc-sheet__footer">
-              {code().consensusSources.length > 0
-                ? 'Основной код АТХ уточнён по данным MiniMed; значение ЕСКЛП не менялось. '
-                : code().fillSources.length > 0
-                  ? 'Код АТХ дополнен по данным MiniMed. '
-                  : code().edition
-                    ? `Код АТХ по ЕСКЛП от ${code().edition}. `
-                    : 'Код АТХ по ЕСКЛП. '}
+              {props.origin === 'text'
+                ? ''
+                : code().consensusSources.length > 0
+                  ? 'Основной код АТХ уточнён по данным MiniMed; значение ЕСКЛП не менялось. '
+                  : code().fillSources.length > 0
+                    ? 'Код АТХ дополнен по данным MiniMed. '
+                    : code().edition
+                      ? `Код АТХ по ЕСКЛП от ${code().edition}. `
+                      : 'Код АТХ по ЕСКЛП. '}
               <Show when={catalog()}>
                 {(names) => (
                   <>
@@ -160,7 +199,7 @@ export function AtcCodeSheet(props: {
                   </>
                 )}
               </Show>
-              Названия, которых нет в справочнике и в данных препарата, не подставляются.
+              Названия, которых нет в справочнике, не подставляются.
             </p>
           </div>
         )}

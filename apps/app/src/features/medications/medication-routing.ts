@@ -59,6 +59,24 @@ export function medicationAtcHash(code: string | null): string {
   return code ? `${MEDICATION_ATC_HASH}/${encodeURIComponent(code)}` : MEDICATION_ATC_HASH;
 }
 
+/**
+ * Where a code of the ATC ladder leads (ATC5): a group (levels 1-4) opens the «По группам АТХ» tree at
+ * that node, where its subgroups, its substances and the download of its package are; a full substance
+ * code (level 5) opens the medication list filtered by the code, which finds a drug under its
+ * registry, completed and agreed codes alike.
+ */
+export type AtcGroupTarget =
+  | { readonly kind: 'tree'; readonly hash: string }
+  | { readonly kind: 'list'; readonly query: string };
+
+export function atcGroupTarget(code: string): AtcGroupTarget | null {
+  const normalized = normalizeAtcCode(code);
+  if (!normalized) return null;
+  return normalized.level <= 4
+    ? { kind: 'tree', hash: medicationAtcHash(normalized.code) }
+    : { kind: 'list', query: normalized.code };
+}
+
 export function legacyMedicationRegistrationFromHash(hash: string): string | null {
   const route = hash.replace(/^#\/?/u, '');
   const prefix = `${MEDICATION_CATALOG_ROUTE}/`;

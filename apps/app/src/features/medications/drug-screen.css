@@ -404,8 +404,37 @@
   list-style: none;
 }
 
+.atc-sheet__ladder {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.atc-sheet__ladder-heading {
+  margin: 0.25rem 0 0;
+  color: var(--theme-text);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.atc-sheet__step-item--level-2 {
+  margin-inline-start: 0.5rem;
+}
+
+.atc-sheet__step-item--level-3 {
+  margin-inline-start: 1rem;
+}
+
+.atc-sheet__step-item--level-4 {
+  margin-inline-start: 1.5rem;
+}
+
+.atc-sheet__step-item--level-5 {
+  margin-inline-start: 2rem;
+}
+
 .atc-sheet__step {
   display: grid;
+  width: 100%;
   min-width: 0;
   grid-template-columns: 4rem minmax(0, 1fr);
   align-items: start;
@@ -414,22 +443,31 @@
   border: 1px solid var(--theme-border);
   border-radius: var(--theme-radius-control);
   background: var(--theme-surface-raised);
+  color: inherit;
+  font: inherit;
+  text-align: start;
 }
 
-.atc-sheet__step--level-2 {
-  margin-inline-start: 0.5rem;
+/* A level that leads to the drugs of its group. */
+.atc-sheet__step--link {
+  grid-template-columns: 4rem minmax(0, 1fr) auto;
+  align-items: center;
+  cursor: pointer;
+  transition:
+    transform var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease);
 }
 
-.atc-sheet__step--level-3 {
-  margin-inline-start: 1rem;
+.atc-sheet__step--link:active {
+  transform: scale(0.96);
 }
 
-.atc-sheet__step--level-4 {
-  margin-inline-start: 1.5rem;
+.atc-sheet__step--link:hover {
+  background: var(--theme-accent-soft);
 }
 
-.atc-sheet__step--level-5 {
-  margin-inline-start: 2rem;
+.atc-sheet__step-chevron {
+  color: var(--theme-text-faint);
 }
 
 .atc-sheet__step--absent {

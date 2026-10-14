@@ -4,6 +4,7 @@ import {
   consumeMedicationCatalogQuery,
   consumeMedicationProductContext,
   medicationProductFromHistory,
+  openAtcGroup,
   openMedicationCatalogSearch,
   queueMedicationProductContext,
   rememberMedicationProduct,
@@ -130,5 +131,32 @@ describe('medication catalog search from a link', () => {
     expect(location.hash).toBe('#/modules/documents/medications');
     expect(consumeMedicationCatalogQuery()).toBe('ноотропное средство');
     expect(consumeMedicationCatalogQuery()).toBe('');
+  });
+});
+
+describe('opening the drugs of an ATC code', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('opens the group in the ATC tree', () => {
+    const location = { hash: '' };
+    vi.stubGlobal('window', { location });
+    openAtcGroup('J05');
+    expect(location.hash).toBe('#/modules/documents/medications/atc/J05');
+    expect(consumeMedicationCatalogQuery()).toBe('');
+  });
+
+  it('opens the medication list filtered by a full code', () => {
+    const location = { hash: '' };
+    vi.stubGlobal('window', { location });
+    openAtcGroup('J05AX13');
+    expect(location.hash).toBe('#/modules/documents/medications');
+    expect(consumeMedicationCatalogQuery()).toBe('J05AX13');
+  });
+
+  it('does nothing for a text that is no code', () => {
+    const location = { hash: '#/x' };
+    vi.stubGlobal('window', { location });
+    openAtcGroup('ВИЧ');
+    expect(location.hash).toBe('#/x');
   });
 });

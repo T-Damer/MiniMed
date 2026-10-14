@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  atcGroupTarget,
   isMedicationCatalogRoute,
   legacyMedicationRegistrationFromHash,
   MEDICATION_ATC_HASH,
@@ -77,5 +78,23 @@ describe('medication-routing', () => {
       view: 'atc',
       code: null,
     });
+  });
+});
+
+describe('where a level of the ATC ladder leads', () => {
+  it('opens the tree for a group of levels 1-4', () => {
+    for (const code of ['J', 'J05', 'J05A', 'J05AX']) {
+      expect(atcGroupTarget(code)).toEqual({ kind: 'tree', hash: medicationAtcHash(code) });
+    }
+    expect(atcGroupTarget('С01')).toEqual({ kind: 'tree', hash: medicationAtcHash('C01') });
+  });
+
+  it('opens the medication list for a substance code', () => {
+    expect(atcGroupTarget('j05ax13')).toEqual({ kind: 'list', query: 'J05AX13' });
+  });
+
+  it('leads nowhere for text that is no code', () => {
+    expect(atcGroupTarget('ВИЧ')).toBeNull();
+    expect(atcGroupTarget('')).toBeNull();
   });
 });

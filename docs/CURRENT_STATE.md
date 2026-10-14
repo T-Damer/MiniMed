@@ -4874,6 +4874,20 @@ item 21.
   the prescription drug picker and the search dose card, the safety card. Suggestions show the code beside the name. One-drug
   resolvers (comparison names, interaction names, dose and safety questions) take a full code, or a prefix only when it holds
   exactly one drug.
+- **Codes in text are links** (owner addition 2026-10-14; `atc-text-links.ts`, 9 cases): `DocumentText` renders an ATC code
+  in any document text as an inline link (`LinkedPlainText`, segment kind `atc`, button `document-inline-atc-link`). Rules: a
+  full seven-character code (`J05AX13`) is a link anywhere (no ICD-10 code has that shape); a shorter code (`J05`, `J05AX`)
+  has the shape of an ICD-10 category, so it is a link only right after «АТХ»/«ATC» (with «код», a colon or a dash) or in the
+  list that continues such a code; a code followed by `.digit` or `-` (`J05.1`, `J05-J06`) never is; look-alike Cyrillic
+  letters are read as Latin ones, the Russian-layout reading is for typed queries only. Words, numbers, «ВИЧ», «С3», «В12»
+  stay plain text. Tapping opens the code sheet (`AtcCodeSheet`, lazy chunk `AtcTextCodeSheet`, rises from below):
+  one row per level with its code and the Russian name (levels 1–4 from the НСИ dictionary, level 5 from the substances that
+  carry the full code in the comparison index; a level without a name shows just the code). The drug screen's ATC chip uses
+  the same sheet; an agreed code gets a second ladder «В реестре: L03AX» (`atc-sheet-model.ts`, 7 cases). Each level row
+  is a button: levels 1–4 open the «По группам АТХ» tree at that node (subgroups, substances, group package download), a full
+  code opens the medication list filtered by it (`atcGroupTarget`, `openAtcGroup`; the list takes the query even when its view
+  is already mounted). E2E (`atc-links.spec.ts`, real built app with the antiparasitic module): chip → sheet (5 levels) → level
+  2 → tree at `P02`; chip → full code → list with the search filled; inline code in the card text → sheet → level 1 → tree.
 - **Data**: the comparison index carries the agreed pairs (`q`: `[agreed code, registry stub]`, 13 cards) beside the codes in
   `a`; `scripts/build-drug-comparison.ts` writes them. Rebuilt on 2026-10-14 from the published `atc3`/`atc2` modules
   (decoded in a scratch directory, deleted after): the new asset is identical to the committed one except for the 13 `q` fields.

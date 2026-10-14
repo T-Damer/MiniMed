@@ -304,6 +304,10 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
   const syncLegacyRegistration = (): void => {
     setLegacyRegistration(legacyMedicationRegistrationFromHash(window.location.hash));
     setViewState(medicationCatalogViewFromHash(window.location.hash));
+    // A link (a pharmacological group, an ATC code) opened the list while the view was already
+    // mounted: the query it handed over is taken now, not at a mount that will not come.
+    const requested = consumeMedicationCatalogQuery();
+    if (requested) setSearchQuery(requested);
   };
 
   onMount(() => {

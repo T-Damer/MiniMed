@@ -1,6 +1,6 @@
 import type { MedicationProduct } from '@/features/medications/medication-record';
 import { readableMedicationDocumentId } from '@/features/medications/medication-record';
-import { MEDICATION_CATALOG_HASH } from '@/features/medications/medication-routing';
+import { atcGroupTarget, MEDICATION_CATALOG_HASH } from '@/features/medications/medication-routing';
 import { openDocumentOverlay } from '@/state/document-navigation';
 
 interface PendingMedicationProduct {
@@ -125,6 +125,14 @@ let pendingCatalogQuery: string | null = null;
 export function openMedicationCatalogSearch(query: string): void {
   pendingCatalogQuery = query;
   window.location.hash = MEDICATION_CATALOG_HASH;
+}
+
+/** Opens the drugs of an ATC code: a group in the ATC tree, a substance code in the medication list. */
+export function openAtcGroup(code: string): void {
+  const target = atcGroupTarget(code);
+  if (!target) return;
+  if (target.kind === 'tree') window.location.hash = target.hash;
+  else openMedicationCatalogSearch(target.query);
 }
 
 /** The query a link asked the catalog to start with; read once when the catalog mounts. */

@@ -1,6 +1,16 @@
 import { Popover } from '@kobalte/core/popover';
 import type { MedicalCore, TextRange } from '@localmed/contracts';
-import { createEffect, createMemo, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  type JSX,
+  lazy,
+  onCleanup,
+  Show,
+  Suspense,
+} from 'solid-js';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { QueryHighlightedText } from '@/components/HighlightedText';
@@ -24,8 +34,12 @@ import {
   type MedicationLinkSummary,
 } from '@/features/library/medication-link-preview';
 import type { ResolvedReferenceImage } from '@/features/library/reference-image-assets';
+import { segmentTextWithAtcCodes } from '@/features/medications/atc-text-links';
 import { segmentTextWithToolLinks } from '@/features/tool-links/document-tool-links';
 import { openDocumentOverlay } from '@/state/document-navigation';
+
+/** The code sheet of a code met in a text; its chunk loads on the first tap. */
+const AtcTextCodeSheet = lazy(() => import('@/features/medications/AtcTextCodeSheet'));
 
 const EXTERNAL_URL_PATTERN = /https?:\/\/[^\s<>"')\]]+/gu;
 
@@ -447,6 +461,64 @@ function MedicationLinkSummaryBody(props: {
   );
 }
 
+/**
+ * An ATC code met in a document (ATC5): a link that opens the code explained level by level, each
+ * level leading to the drugs of its group. The sheet is a lazy chunk, loaded when a code is first tapped.
+ */
+function AtcInlineLink(props: {
+  readonly code: string;
+  readonly written: string;
+  readonly query?: string | undefined;
+  readonly exactQuery?: boolean | undefined;
+  readonly fuzzyQuery?: boolean | undefined;
+  readonly highlightClass?: string | undefined;
+  readonly ranges?: readonly TextRange[] | undefined;
+  readonly unitId?: string | undefined;
+  readonly activeStart?: number | undefined;
+  readonly rangeOffset?: number | undefined;
+}): JSX.Element {
+  const [opened, setOpened] = createSignal(false);
+  const [open, setOpen] = createSignal(false);
+  return (
+    <>
+      <button
+        type="button"
+        class="document-inline-link document-inline-atc-link"
+        data-testid="atc-inline-link"
+        aria-haspopup="dialog"
+        aria-label={`Код АТХ ${props.code}: пояснить по уровням`}
+        onClick={() => {
+          setOpened(true);
+          setOpen(true);
+        }}
+      >
+        <AppGlyph name="pill" class="document-inline-link__icon" />
+        <HighlightedLabel
+          text={props.written}
+          query={props.query}
+          exactQuery={props.exactQuery}
+          fuzzyQuery={props.fuzzyQuery}
+          highlightClass={props.highlightClass}
+          ranges={props.ranges}
+          unitId={props.unitId}
+          activeStart={props.activeStart}
+          rangeOffset={props.rangeOffset}
+        />
+      </button>
+      <Show when={opened()}>
+        <Suspense>
+          <AtcTextCodeSheet
+            code={props.code}
+            written={props.written}
+            open={open()}
+            onClose={() => setOpen(false)}
+          />
+        </Suspense>
+      </Show>
+    </>
+  );
+}
+
 function LinkedPlainText(props: {
   readonly text: string;
   readonly query?: string | undefined;
@@ -463,45 +535,73 @@ function LinkedPlainText(props: {
       {(segment) => {
         if (segment.kind === 'text') {
           return (
-            <For each={withTextOffsets(segmentTextWithExternalUrls(segment.value))}>
-              {(urlSegment) =>
-                urlSegment.kind === 'url' ? (
-                  <a
-                    class="document-inline-link"
-                    href={urlSegment.value}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <AppGlyph name="arrow-square-up-right" class="document-inline-link__icon" />
-                    <HighlightedLabel
-                      text={urlSegment.value}
-                      query={props.query}
-                      exactQuery={props.exactQuery}
-                      fuzzyQuery={props.fuzzyQuery}
-                      highlightClass={props.highlightClass}
-                      ranges={props.ranges}
-                      unitId={props.unitId}
-                      activeStart={props.activeStart}
-                      rangeOffset={(props.rangeOffset ?? 0) + segment.offset + urlSegment.offset}
-                    />
-                  </a>
-                ) : (
-                  <QueryHighlightedText
-                    text={urlSegment.value.replace(/^#/u, '')}
-                    query={props.query ?? ''}
-                    exact={props.exactQuery}
-                    fuzzy={props.fuzzyQuery}
-                    matchClass={props.highlightClass}
+            <For each={withTextOffsets(segmentTextWithAtcCodes(segment.value))}>
+              {(atcSegment) =>
+                atcSegment.kind === 'atc' ? (
+                  <AtcInlineLink
+                    code={atcSegment.code}
+                    written={atcSegment.value}
+                    query={props.query}
+                    exactQuery={props.exactQuery}
+                    fuzzyQuery={props.fuzzyQuery}
+                    highlightClass={props.highlightClass}
                     ranges={props.ranges}
                     unitId={props.unitId}
                     activeStart={props.activeStart}
-                    rangeOffset={
-                      (props.rangeOffset ?? 0) +
-                      segment.offset +
-                      urlSegment.offset +
-                      (urlSegment.value.startsWith('#') ? 1 : 0)
-                    }
+                    rangeOffset={(props.rangeOffset ?? 0) + segment.offset + atcSegment.offset}
                   />
+                ) : (
+                  <For each={withTextOffsets(segmentTextWithExternalUrls(atcSegment.value))}>
+                    {(urlSegment) =>
+                      urlSegment.kind === 'url' ? (
+                        <a
+                          class="document-inline-link"
+                          href={urlSegment.value}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <AppGlyph
+                            name="arrow-square-up-right"
+                            class="document-inline-link__icon"
+                          />
+                          <HighlightedLabel
+                            text={urlSegment.value}
+                            query={props.query}
+                            exactQuery={props.exactQuery}
+                            fuzzyQuery={props.fuzzyQuery}
+                            highlightClass={props.highlightClass}
+                            ranges={props.ranges}
+                            unitId={props.unitId}
+                            activeStart={props.activeStart}
+                            rangeOffset={
+                              (props.rangeOffset ?? 0) +
+                              segment.offset +
+                              atcSegment.offset +
+                              urlSegment.offset
+                            }
+                          />
+                        </a>
+                      ) : (
+                        <QueryHighlightedText
+                          text={urlSegment.value.replace(/^#/u, '')}
+                          query={props.query ?? ''}
+                          exact={props.exactQuery}
+                          fuzzy={props.fuzzyQuery}
+                          matchClass={props.highlightClass}
+                          ranges={props.ranges}
+                          unitId={props.unitId}
+                          activeStart={props.activeStart}
+                          rangeOffset={
+                            (props.rangeOffset ?? 0) +
+                            segment.offset +
+                            atcSegment.offset +
+                            urlSegment.offset +
+                            (urlSegment.value.startsWith('#') ? 1 : 0)
+                          }
+                        />
+                      )
+                    }
+                  </For>
                 )
               }
             </For>
