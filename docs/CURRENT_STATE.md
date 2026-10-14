@@ -35,10 +35,10 @@ numbers: [REGULATORY_PACK.md](REGULATORY_PACK.md) «Full texts»; tests: [DATA_T
   by absolute path); Marker 2.0.0 one page at a time, detached and resumable (about 13 h in all); macOS Vision as the
   second reading; the reconciliation (`legal_reconcile.py`) requires numbers, dates, codes and order numbers to agree and
   flags silent Marker failures (dropped rows and spans, loops, a dropped last line); ruled tables are read cell by cell
-  (`legal_cells.py`). 624 of 1 581 scanned pages were flagged; each was read against its page image (598 verdicts, 618
+  (`legal_cells.py`). 624 of 1 581 scanned pages were flagged; each was read against its page image (599 verdicts, 656
   recorded corrections in `content/regulatory-rf-texts/*.review.json`, provenance per page in `*.provenance.json`).
   `assemble --strict` refuses an unreviewed flagged page.
-- **374н** (469 pages, two 9-column appendices of criteria, ICD-10/ICF codes, TNM stages, CRG): 187 flagged pages, 325
+- **374н** (469 pages, two 9-column appendices of criteria, ICD-10/ICF codes, TNM stages, CRG): 187 flagged pages, 363
   corrections; a table above 24 000 characters (the two appendices, 436н) is cut into pieces of about 6 000 characters,
   each with the header row repeated and the pages of its own rows, so that search and the reader get chunks, not one
   366 kB cell. Printed typos of the originals stay as printed.

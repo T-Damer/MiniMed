@@ -107,6 +107,23 @@ def test_table_continues_across_a_footnote_and_a_repeated_header_block_is_droppe
     assert merged[-1].kind == "footnote"  # the footnote stays after the table it was printed under
 
 
+def test_a_quoted_line_that_opens_the_page_continues_the_open_cell_above() -> None:
+    first = parse_blocks(
+        "| № | Критерий | Значение |\n|---|---|---|\n| 13.2.2 | нарушение сегментации по типу | 10-30 |",
+        1,
+    )
+    second = parse_blocks(
+        "| «блокирование через сегмент», угол более 30° | | |\n|---|---|---|\n| 13.2.3 | Следующий | 40-60 |",
+        2,
+    )
+    merged = merge_pages([first, second])
+    rows = next(b for b in merged if b.kind == "table").rows
+    assert (
+        rows[1][1] == "нарушение сегментации по типу «блокирование через сегмент», угол более 30°"
+    )
+    assert rows[2][0] == "13.2.3"
+
+
 def test_a_numbered_row_cut_by_the_page_break_is_joined_cell_by_cell() -> None:
     first = parse_blocks(
         "| № | Период | Врачи |\n|---|---|---|\n| 26. | 12 лет | Врач-педиатр |", 1
