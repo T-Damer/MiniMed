@@ -251,6 +251,11 @@ test.describe('a lazy screen that cannot load', () => {
     page.on('load', () => {
       loads += 1;
     });
+    // Once search is usable the app warms every tab's code in the background; the screen under test
+    // must not slip in before the connection goes, so its code never arrives while online either.
+    await page.route('**/assets/CalculatorsView-*.js', (route) =>
+      route.abort('internetdisconnected'),
+    );
     // The core finishes its download first: going offline mid-download would show the core error.
     await mountBuiltApp(page, { waitForCore: true });
     await context.setOffline(true);

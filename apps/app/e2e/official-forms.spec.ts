@@ -45,6 +45,23 @@ async function pdfSheetCount(page: Page): Promise<number> {
   }
 }
 
+/**
+ * The print window may close itself right after it asks the system to print (headless Chromium
+ * prints at once), so waiting for its load can race its closing: either end settles the wait.
+ */
+async function settlePopup(popup: Page): Promise<void> {
+  if (popup.isClosed()) return;
+  try {
+    await Promise.race([popup.waitForLoadState('domcontentloaded'), popup.waitForEvent('close')]);
+  } catch (error) {
+    if (!popup.isClosed()) throw error;
+  }
+}
+
+async function closePopup(popup: Page): Promise<void> {
+  if (!popup.isClosed()) await popup.close();
+}
+
 /** The «Заполнить форму» button of one card of the forms list. */
 function fillButton(page: Page, formNumber: string): Locator {
   return page
@@ -331,10 +348,10 @@ test('fills 072/у, 076/у, 079/у and 025-1/у from one patient and previews ev
     const popupPromise = page.waitForEvent('popup');
     await page.getByRole('dialog').getByRole('button', { name: 'Печать', exact: true }).click();
     const popup = await popupPromise;
-    await popup.waitForLoadState('domcontentloaded');
+    await settlePopup(popup);
     // Two-sided blanks print as two sheets: the reverse side starts on a new page.
     expect(await pdfSheetCount(page)).toBe(form.sheets);
-    await popup.close();
+    await closePopup(popup);
     await page.getByRole('button', { name: 'Закрыть', exact: true }).click();
   }
 });
@@ -436,10 +453,10 @@ test('fills the referral 057/у (order 519н) from one patient: prefill, underli
   const popupPromise = page.waitForEvent('popup');
   await page.getByRole('dialog').getByRole('button', { name: 'Печать', exact: true }).click();
   const popup = await popupPromise;
-  await popup.waitForLoadState('domcontentloaded');
+  await settlePopup(popup);
   // One official sheet, printed at the declared font (the page is not shrunk to fit).
   expect(await pdfSheetCount(page)).toBe(1);
-  await popup.close();
+  await closePopup(popup);
 });
 
 test('autosaves a draft in the patient vault and approves the form with «Сохранить»', async ({
@@ -535,9 +552,9 @@ test('opens 088/у, the prescription blanks, the certificates and 058/у, prefil
     const popupPromise = page.waitForEvent('popup');
     await page.getByRole('dialog').getByRole('button', { name: 'Печать', exact: true }).click();
     const popup = await popupPromise;
-    await popup.waitForLoadState('domcontentloaded');
+    await settlePopup(popup);
     expect(await pdfSheetCount(page), form.number).toBe(form.sheets);
-    await popup.close();
+    await closePopup(popup);
     await page.getByRole('button', { name: 'Закрыть', exact: true }).click();
   }
 });

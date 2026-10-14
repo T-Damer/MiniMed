@@ -53,7 +53,8 @@ test('an EPUB chapter jump shows the chapter only once it stops moving', async (
   );
   expect(samples.length).toBeGreaterThan(10);
   const settled = samples.at(-1) ?? Number.NaN;
-  expect(settled).toBeGreaterThanOrEqual(0);
+  // The heading is at the top of the view; a sub-pixel scroll remainder may put it just above.
+  expect(settled).toBeGreaterThanOrEqual(-1);
   expect(settled).toBeLessThan(250);
   // Before the fix the visible heading passed through ≈4284 → 6521 → 4389 px.
   for (const top of samples) expect(Math.abs(top - settled)).toBeLessThan(2);

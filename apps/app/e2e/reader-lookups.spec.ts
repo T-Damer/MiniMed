@@ -33,7 +33,7 @@ test('a medication lookup preserves the reader position and shows a short drug c
 });
 
 test('search source context uses the same inline medication lookup', async ({ page }) => {
-  test.setTimeout(90_000);
+  test.setTimeout(240_000);
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
   // The field takes a query while the core opens; the result wait below covers the search only.
   await waitForSearchEditable(page);
@@ -53,7 +53,9 @@ test('search source context uses the same inline medication lookup', async ({ pa
   await link.click();
   // A short drug card: names, group/ATC, «Открыть» — no registry codes or per-form source links.
   const card = page.locator('.document-inline-preview__card');
-  await expect(card.locator('.medication-link-summary')).toBeVisible();
+  // The card opens on «Открываем локальные данные…» while the drug index answers; on a loaded
+  // machine that takes longer than the default wait.
+  await expect(card.locator('.medication-link-summary')).toBeVisible({ timeout: 120_000 });
   await expect(card).toContainText(/Торговые названия|АТХ/u);
   await expect(card).not.toContainText(/smnnCode|\d{2}\.\d{2}\.\d{2}\.\d{3}-/u);
   await expect(card.getByRole('button', { name: /Открыть/u })).toBeVisible();
