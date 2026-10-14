@@ -48,6 +48,9 @@ ignore = ["RUF001"]
 [tool.ruff.lint.per-file-ignores]
 # Official Russian form names and typographic dashes appear in docstrings and comments.
 "src/localmed_ingest/medical_form*.py" = ["RUF002", "RUF003"]
+# Leaflet titles quote Cyrillic letters that look like Latin ones.
+"src/localmed_ingest/leaflet_contents.py" = ["RUF002", "RUF003"]
+"tests/test_leaflet_contents.py" = ["RUF002", "RUF003"]
 "src/localmed_ingest/vaccination_calendar*.py" = ["RUF002", "RUF003"]
 # Russian definition text quoted in docstrings and comments uses typographic dashes.
 "src/localmed_ingest/kr_*.py" = ["RUF002", "RUF003"]

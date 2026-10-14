@@ -32,6 +32,8 @@ from typing import Any, cast
 import yaml
 
 from .builder import build_content_pack
+from .grls_contents_lists import apply_overlay as apply_contents_overlay
+from .grls_contents_lists import read_overlay as read_contents_overlay
 from .grls_document_kind import classify_scan_document
 from .sqlite_builder import repository_root
 
@@ -87,6 +89,8 @@ KIND_TITLE_SUFFIX = {
     "amendment": "лист изменений к инструкции",
 }
 OVERLAY_PATH = REPO_ROOT / "data" / "build" / "grls-ocr-quality.jsonl"
+#: Documents whose leaflet table of contents was re-rendered as one list (LEAF1).
+CONTENTS_OVERLAY_PATH = REPO_ROOT / "data" / "build" / "grls-contents-lists.jsonl"
 #: Overlay columns (OCR1) that replace the manifest value of the same PDF.
 OVERLAY_COLUMNS = (
     "workspace",
@@ -181,9 +185,15 @@ def plain_body(markdown: str) -> str:
 
 
 def read_manifest_rows(
-    path: Path = MANIFEST_PATH, overlay: Path | None = OVERLAY_PATH
+    path: Path = MANIFEST_PATH,
+    overlay: Path | None = OVERLAY_PATH,
+    contents_overlay: Path | None = CONTENTS_OVERLAY_PATH,
 ) -> list[dict[str, Any]]:
-    """Manifest rows with the OCR1 overlay (re-prepared text, kind, quality) joined by PDF."""
+    """Manifest rows with the OCR1 overlay (re-prepared text, kind, quality) joined by PDF.
+
+    The LEAF1 overlay comes last and only replaces the text workspace and digest of a document
+    whose leaflet contents list was re-rendered (`grls_contents_lists.py`).
+    """
     rows = [
         cast(dict[str, Any], json.loads(line))
         for line in path.read_text(encoding="utf-8").splitlines()
@@ -191,6 +201,8 @@ def read_manifest_rows(
     ]
     if overlay is not None and overlay.is_file():
         rows = apply_overlay(rows, read_overlay(overlay))
+    if contents_overlay is not None:
+        rows = apply_contents_overlay(rows, read_contents_overlay(contents_overlay))
     return rows
 
 
@@ -363,6 +375,9 @@ def augmented_markdown(text: str, entry: PlannedInstruction) -> str:
                 "documentKindReason": overlay.get("documentKindReason"),
             }
         )
+    contents = cast("Mapping[str, Any] | None", newest.get("contentsOverlay"))
+    if isinstance(contents, Mapping):
+        added["contentsLists"] = contents.get("contentsLists")
     for key, value in added.items():
         if value is not None:
             metadata[key] = value

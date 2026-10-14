@@ -4,11 +4,16 @@ import hashlib
 import json
 import re
 from dataclasses import dataclass, field
+from itertools import pairwise
 from pathlib import Path
 
 import yaml
 
-from .grls_instruction_sections import classify_grls_heading_title, resegment_paragraph_text
+from .grls_instruction_sections import (
+    ResegmentedPiece,
+    classify_grls_heading_title,
+    resegment_paragraph_text,
+)
 from .models import PackChunk, PackDocument, PackSection, PackVersion, SourceMetadata
 from .normalization import normalize_for_index, normalize_surface_text
 
@@ -20,6 +25,10 @@ HEADING_PATTERN = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
 SOURCE_MARKER_PATTERN = re.compile(r"^<!--\s*localmed:source\s+(.+?)\s*-->$")
 PAGE_MARK_PATTERN = re.compile(r"^<!--\s*localmed:page-mark\s+.+?-->$")
 REVIEW_MARKER_PATTERN = re.compile(r"^<!--\s*localmed:review\s+(.+?)\s*-->$")
+#: `role` of a source marker that covers the table of contents of a patient leaflet
+#: (`leaflet_contents.py`): one list, never re-segmented at the heading phrases its entries contain.
+CONTENTS_ROLE = "contents"
+CONTENTS_FLAG = "contentsList"
 
 
 @dataclass(frozen=True)
@@ -98,6 +107,8 @@ def split_paragraphs(lines: list[str]) -> list[DraftParagraph]:
         if not buffer:
             return
         is_list = all(line.lstrip().startswith(("- ", "* ", "+ ", "1. ")) for line in buffer)
+        # A leaflet's contents list keeps one entry per line.
+        is_list = is_list or bool(pending_metadata.get(CONTENTS_FLAG))
         separator = "\n" if is_list or all("|" in line for line in buffer) else " "
         paragraph = separator.join(line.strip() for line in buffer).strip()
         if paragraph:
@@ -120,6 +131,8 @@ def split_paragraphs(lines: list[str]) -> list[DraftParagraph]:
             pending_spans = [source_marker]
             if isinstance(render_block, dict):
                 pending_metadata["renderBlock"] = render_block
+            if source_marker.get("role") == CONTENTS_ROLE:
+                pending_metadata[CONTENTS_FLAG] = True
             continue
         if PAGE_MARK_PATTERN.match(line.strip()):
             # A scan stamp (OCR1): provenance in the prepared file, not text of the document.
@@ -185,7 +198,11 @@ def expand_grls_instruction_sections(draft_sections: list[DraftSection]) -> list
         pieces_with_spans = [
             (piece, paragraph.source_spans, paragraph.metadata)
             for paragraph in original.paragraphs
-            for piece in resegment_paragraph_text(paragraph.text)
+            for piece in (
+                [ResegmentedPiece(text=paragraph.text, section_type="other", heading_title=None)]
+                if paragraph.metadata.get(CONTENTS_FLAG)
+                else resegment_paragraph_text(paragraph.text)
+            )
         ]
         if not any(piece.heading_title is not None for piece, _, _ in pieces_with_spans):
             # No inline heading found in the body text: the PDF's own font
@@ -263,7 +280,12 @@ def chunk_paragraphs(
         nonlocal current_size
         if not current:
             return
-        text = "\n\n".join(paragraph.text for paragraph in current)
+        text = current[0].text
+        for previous, paragraph in pairwise(current):
+            both_contents = previous.metadata.get(CONTENTS_FLAG) and paragraph.metadata.get(
+                CONTENTS_FLAG
+            )
+            text += ("\n" if both_contents else "\n\n") + paragraph.text
         source_spans = [span for paragraph in current for span in paragraph.source_spans]
         metadata: dict[str, object] = {}
         review_values = [
@@ -271,6 +293,8 @@ def chunk_paragraphs(
         ]
         if review_values:
             metadata["review"] = review_values
+        if any(paragraph.metadata.get(CONTENTS_FLAG) for paragraph in current):
+            metadata[CONTENTS_FLAG] = True
         chunks.append(DraftChunk(text=text, source_spans=source_spans, metadata=metadata))
         current.clear()
         current_size = 0

@@ -247,6 +247,13 @@ class HeadingBoundary:
     section_type: str
     canonical_title: str
     matched_text: str
+    piece_start: int = -1
+    """Offset where the piece of text this heading opens begins: the paragraph-numbering prefix
+    («5. », «5.1 ») stands before ``start`` and belongs to the piece, not to the text before it."""
+
+    def __post_init__(self) -> None:
+        if self.piece_start < 0:
+            object.__setattr__(self, "piece_start", self.start)
 
 
 def find_grls_section_boundaries(text: str) -> list[HeadingBoundary]:
@@ -276,6 +283,9 @@ def find_grls_section_boundaries(text: str) -> list[HeadingBoundary]:
                 section_type=rule.section_type,
                 canonical_title=rule.canonical_title,
                 matched_text=phrase,
+                piece_start=match.start("prefix")
+                if match.group("prefix")
+                else match.start("phrase"),
             )
         )
         last_end = match.end("phrase")
@@ -299,19 +309,21 @@ def resegment_paragraph_text(text: str) -> list[ResegmentedPiece]:
     Returns pieces in original order covering the full original text with no
     characters dropped or reordered (concatenating ``piece.text`` for every
     piece reconstructs the input exactly, aside from the single leading
-    space each split point starts a new piece at).
+    space each split point starts a new piece at). A paragraph-numbering
+    prefix in front of a heading phrase («5. Хранение препарата») stays with
+    the piece that phrase opens, never alone at the end of the piece before.
     """
     boundaries = find_grls_section_boundaries(text)
     if not boundaries:
         return [ResegmentedPiece(text=text, section_type="other", heading_title=None)]
     pieces: list[ResegmentedPiece] = []
-    if boundaries[0].start > 0:
-        leading = text[: boundaries[0].start]
+    if boundaries[0].piece_start > 0:
+        leading = text[: boundaries[0].piece_start]
         if leading.strip():
             pieces.append(ResegmentedPiece(text=leading, section_type="other", heading_title=None))
     for index, boundary in enumerate(boundaries):
-        piece_end = boundaries[index + 1].start if index + 1 < len(boundaries) else len(text)
-        piece_text = text[boundary.start : piece_end]
+        piece_end = boundaries[index + 1].piece_start if index + 1 < len(boundaries) else len(text)
+        piece_text = text[boundary.piece_start : piece_end]
         pieces.append(
             ResegmentedPiece(
                 text=piece_text,

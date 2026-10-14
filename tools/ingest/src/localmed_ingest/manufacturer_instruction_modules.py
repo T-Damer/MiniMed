@@ -77,6 +77,12 @@ FILE_NAME_DATE_PREFIX = "file name date "
 #: a revision statement (not, say, the date of a law the text refers to).
 _REVISION_MARKERS = ("РГ-RU", "ЛП-", "ЛП№", "пересмотр", "редакц", "верси", "Изм")
 TEXT_DIR = "docx-text"
+#: Prepared workspaces inside the build workspace, the first that holds a document wins:
+#: `prepared-contents` (LEAF1: leaflets whose table of contents was re-rendered as one list,
+#: `manufacturer_contents.py`), `prepared-pdf-ocr1` (scans re-prepared by
+#: `scripts/grls_ocr_requality.py manufacturer`), then the normal preparer's PDF and text output.
+CONTENTS_DIR = "prepared-contents"
+PREPARED_DIRS = (CONTENTS_DIR, "prepared-pdf-ocr1", "prepared-pdf", "prepared-text")
 
 
 def level_rank(level: str) -> int:

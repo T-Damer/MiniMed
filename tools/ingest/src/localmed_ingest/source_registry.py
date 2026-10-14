@@ -15,6 +15,7 @@ import yaml
 from .clinical_json_import import EXTRACTOR_REVISION as CLINICAL_JSON_EXTRACTOR_REVISION
 from .clinical_json_import import extract_clinical_json
 from .html_import import extract_html
+from .leaflet_contents import ContentsRun, find_contents_runs
 from .models import (
     ExtractedBlock,
     ExtractedSource,
@@ -83,7 +84,20 @@ def _safe_file_stem(source_id: str) -> str:
     return re.sub(r"[^0-9A-Za-zА-Яа-я._-]+", "-", source_id).strip("-.") or "source"
 
 
-def _source_marker(block: ExtractedBlock) -> str:
+def _source_marker(block: ExtractedBlock, *, offset: int | None = None) -> str:
+    payload = _source_payload(block)
+    if offset:
+        # The text that follows a table of contents in the same extracted block.
+        payload["offset"] = offset
+    return _encode_marker(payload)
+
+
+def _encode_marker(payload: dict[str, object]) -> str:
+    encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+    return f"<!-- localmed:source {encoded} -->"
+
+
+def _source_payload(block: ExtractedBlock) -> dict[str, object]:
     payload: dict[str, object] = {
         "block": block.id,
         "kind": block.kind,
@@ -109,8 +123,36 @@ def _source_marker(block: ExtractedBlock) -> str:
         payload["ocrConfidence"] = round(sum(confidences) / len(confidences), 3)
     if block.metadata.get("ocrEdits"):
         payload["ocrEdits"] = len(cast(list[object], block.metadata["ocrEdits"]))
-    encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
-    return f"<!-- localmed:source {encoded} -->"
+    return payload
+
+
+def _contents_marker(blocks: list[ExtractedBlock]) -> str:
+    """One source marker for a leaflet's table of contents: every block it covers is listed."""
+    first = blocks[0]
+    payload = _source_payload(first)
+    payload["kind"] = "list"
+    payload["role"] = "contents"
+    if len(blocks) > 1:
+        payload["blocks"] = [block.id for block in blocks]
+    pages = sorted({block.page for block in blocks if block.page is not None})
+    if len(pages) > 1:
+        payload["pages"] = pages
+    boxes = [block.bbox for block in blocks if block.bbox and block.page == first.page]
+    if boxes:
+        payload["bbox"] = [
+            round(min(box[0] for box in boxes), 3),
+            round(min(box[1] for box in boxes), 3),
+            round(max(box[2] for box in boxes), 3),
+            round(max(box[3] for box in boxes), 3),
+        ]
+    confidences = [
+        float(cast(float, value))
+        for block in blocks
+        if isinstance(value := _source_payload(block).get("ocrConfidence"), (int, float))
+    ]
+    if confidences:
+        payload["ocrConfidence"] = round(sum(confidences) / len(confidences), 3)
+    return _encode_marker(payload)
 
 
 def _normalize_heading_levels(blocks: list[ExtractedBlock]) -> dict[str, int]:
@@ -196,8 +238,73 @@ def extraction_front_matter(extracted: ExtractedSource) -> dict[str, object]:
     return extraction
 
 
-def render_body(extracted: ExtractedSource, *, source_id: str = "source") -> str:
-    """The Markdown body: headings, source markers, page marks, review markers and text."""
+def _review_reasons(block: ExtractedBlock) -> list[str]:
+    reasons = [str(block.metadata["review"])] if block.metadata.get("review") else []
+    if block.kind == "table_candidate":
+        reasons.insert(0, "table-candidate")
+    return reasons
+
+
+class _ContentsLayout:
+    """Where the contents lists of a leaflet are written (`leaflet_contents.py`).
+
+    The blocks of a run become one list block of the prepared Markdown, written where its first
+    block stands; a block the extraction joined with the text after the list keeps that text as an
+    ordinary block of its own, so no character is lost.
+    """
+
+    def __init__(self, runs: list[ContentsRun], blocks: list[ExtractedBlock]) -> None:
+        by_id = {block.id: block for block in blocks}
+        self.runs_by_first = {run.block_ids[0]: run for run in runs}
+        self.member_ids = {block_id for run in runs for block_id in run.block_ids}
+        self.cuts = {run.split[0]: run.split[1] for run in runs if run.split is not None}
+        self.blocks_by_run = {
+            run.block_ids[0]: [by_id[block_id] for block_id in run.block_ids] for run in runs
+        }
+
+    def group(self, block: ExtractedBlock) -> list[str] | None:
+        """The Markdown lines of the list this block opens, ``None`` when it opens none."""
+        run = self.runs_by_first.get(block.id)
+        if run is None:
+            return None
+        members = self.blocks_by_run[block.id]
+        review: list[str] = []
+        for member in members:
+            review.extend(reason for reason in _review_reasons(member) if reason not in review)
+        lines = [_contents_marker(members)]
+        if review:
+            lines.append(f"<!-- localmed:review {' '.join(review)} -->")
+        if run.lead:
+            lines.append(run.lead)
+        lines.extend(entry.text for entry in run.entries)
+        lines.append("")
+        return lines
+
+    def text_before(self, block: ExtractedBlock) -> str:
+        """The text the extraction put before the list in the block that opens it."""
+        run = self.runs_by_first.get(block.id)
+        if run is None or run.head is None:
+            return ""
+        return block.text[: run.head[1]].strip()
+
+
+def _plain_part(block: ExtractedBlock, text: str, *, offset: int | None = None) -> list[str]:
+    """Markdown lines of part of a block: its source marker, review marker and the text."""
+    lines = [_source_marker(block, offset=offset)]
+    review = _review_reasons(block)
+    if review:
+        lines.append(f"<!-- localmed:review {' '.join(review)} -->")
+    return [*lines, text, ""]
+
+
+def render_body(
+    extracted: ExtractedSource, *, source_id: str = "source", contents_lists: bool = False
+) -> str:
+    """The Markdown body: headings, source markers, page marks, review markers and text.
+
+    ``contents_lists`` keeps the table of contents of a patient leaflet as one list block
+    instead of the headings and one-line paragraphs the generic classification made of it.
+    """
     every_included = [
         block
         for page in extracted.pages
@@ -207,7 +314,10 @@ def render_body(extracted: ExtractedSource, *, source_id: str = "source") -> str
     included = [block for block in every_included if block.kind != "page_mark"]
     if not included:
         raise NoSearchableTextError(f"Source {source_id} produced no searchable text blocks.")
-    heading_levels = _normalize_heading_levels(included)
+    contents = _ContentsLayout(find_contents_runs(included), included) if contents_lists else None
+    heading_levels = _normalize_heading_levels(
+        [block for block in included if contents is None or block.id not in contents.member_ids]
+    )
     contents_entry_ids = _contents_entry_ids(included)
     body: list[str] = []
     pending_marks: list[str] = []
@@ -222,6 +332,23 @@ def render_body(extracted: ExtractedSource, *, source_id: str = "source") -> str
         if block.kind == "page_mark":
             # Marks before the first body block wait for it: a comment must not open a section.
             (pending_marks if not emitted else body).extend([_page_mark_comment(block), ""])
+            continue
+        if contents is not None and block.id in contents.member_ids:
+            # A table of contents is one list block; the text the extraction joined with it in the
+            # same block (before the header, after the last entry) stays an ordinary block.
+            before = contents.text_before(block)
+            if before:
+                body.extend(_plain_part(block, before))
+            list_lines = contents.group(block)
+            if list_lines is not None:
+                body.extend(list_lines)
+            cut = contents.cuts.get(block.id)
+            after = block.text[cut:].strip() if cut is not None else ""
+            if after:
+                body.extend(_plain_part(block, after, offset=cut))
+            if not emitted:
+                emitted = True
+                body.extend(pending_marks)
             continue
         if block.kind == "heading" and block.id not in contents_entry_ids:
             level = heading_levels.get(block.id, 1)
@@ -244,7 +371,11 @@ def render_body(extracted: ExtractedSource, *, source_id: str = "source") -> str
 
 
 def render_prepared_markdown(source: RegistrySource, extracted: ExtractedSource) -> str:
-    body = render_body(extracted, source_id=source.id)
+    body = render_body(
+        extracted,
+        source_id=source.id,
+        contents_lists=source.source_type == "official_drug_instruction",
+    )
     metadata = dict(source.metadata)
     if source.provenance is not None:
         provenance = source.provenance.model_dump(by_alias=True, mode="json")

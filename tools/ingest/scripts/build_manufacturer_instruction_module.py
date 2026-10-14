@@ -26,6 +26,7 @@ from pathlib import Path
 
 from localmed_ingest.manufacturer_instruction_modules import (
     MODULE_ID,
+    PREPARED_DIRS,
     RAW_ROOT,
     build_module,
     plan_documents,
@@ -33,9 +34,6 @@ from localmed_ingest.manufacturer_instruction_modules import (
     summarize,
     write_registries,
 )
-
-# `prepared-pdf-ocr1` (scans re-prepared by `scripts/grls_ocr_requality.py manufacturer`) wins.
-PREPARED_DIRS = ("prepared-pdf-ocr1", "prepared-pdf", "prepared-text")
 
 
 def main() -> None:
