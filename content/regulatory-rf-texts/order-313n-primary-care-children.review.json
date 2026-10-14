@@ -1,0 +1,80 @@
+{
+  "documentId": "regulatory.rf.minzdrav.313n-2025",
+  "reviewer": "Claude (agent), against the page images; not a lawyer",
+  "reviewedAt": "2026-10-14",
+  "verdicts": {
+    "8": "image read: the annex header (handwritten date and number) is corrected; items 1-3 and footnotes 1-2 (№ 24361, № 114н, № 59083, № 5242-1) match",
+    "13": "image read: annex 2 start; every code (187150…259880, 233010, 303440, 184200) and the group «1, 2, 3» match; the flags are Vision joining «1, 2, 3»",
+    "14": "image read: the miscellaneous equipment table and the obstetrician-gynaecologist standard rows 1-2 match (codes 126390…216630); Vision garbles the table",
+    "15": "image read: the standard continues, rows 2-8 and all codes match; group cells are printed «2, 3» and «2,3» as in Marker",
+    "16": "image read: rows 9-20 and all codes match, including the 15th row's long instrument list; the group of row 15 is printed «2; 3» (fixed)",
+    "17": "image read: rows 21-22 (code 248560 printed twice), the miscellaneous equipment table and the nephrologist standard start match; the empty column Marker added is dropped by the tool",
+    "18": "image read: the table is rebuilt six columns wide with rows 3 and 4 in their columns (fixed); rows 5 and 6 and all codes match",
+    "19": "image read: the miscellaneous table end, the rehabilitation standard (printed «безртутный») rows 1-2; the shifted code 122830 row is fixed",
+    "20": "image read: rows 3-9 and all codes match; row 4 had lost its group, code 124550 and name (fixed)",
+    "21": "image read: the miscellaneous table of the rehabilitation standard, the speech therapist standard and its miscellaneous table match, including «0,75 x 0,5 м» and «9 x 12 см»",
+    "22": "image read: the psychologist standard matches",
+    "25": "image read: annex 4 (day hospital) items 1-5 and footnotes 1-2 (№ 608, № 46397) match; Vision misreads the handwritten header and «306н»",
+    "27": "image read: items 9-11 and footnotes 3-4 (№ 24361, № 114н, № 59083, 5.2.12, № 608) match; Vision does not read the superscripts",
+    "28": "image read: annex 5 header (handwritten date and number) corrected; items 1-5 and footnotes 1-2 (№ 608, № 768н, № 49047) match",
+    "31": "image read: annex 7 header and the two-row equipment table match; the header (handwritten) was normalised by the tool"
+  },
+  "corrections": [
+    {
+      "page": 8,
+      "kind": "handwriting",
+      "find": "от *[Signature]* 2025 г. № *3134*",
+      "replace": "от 27 мая 2025 г. № 313н",
+      "why": "The annex approval line has the date and number filled in by hand (printed «от «27» мая 2025 г. № 313н»); Marker read the handwriting as «[Signature]» and «3134». Date and number are the portal's."
+    },
+    {
+      "page": 13,
+      "kind": "heading-level",
+      "find": "**1. Стандарт оснащения отделения медико-социальной помощи**",
+      "replace": "### 1. Стандарт оснащения отделения медико-социальной помощи",
+      "why": "The image shows the standard's title («1. Стандарт оснащения отделения медико-социальной помощи») as a section heading of the annex, like «2. Стандарт …» on the next page; Marker set it as a bold paragraph, which the structure step glued to the annex title."
+    },
+    {
+      "page": 22,
+      "kind": "heading-level",
+      "find": "**6. Стандарт оснащения кабинета медицинского психолога**",
+      "replace": "### 6. Стандарт оснащения кабинета медицинского психолога",
+      "why": "The title of standard 6 is a section heading like standards 2-5 (set as ### by Marker on their pages); here Marker set it as a bold paragraph."
+    },
+    {
+      "page": 16,
+      "kind": "punctuation",
+      "find": "| 2, 3 | 158030 |",
+      "replace": "| 2; 3 | 158030 |",
+      "why": "The group cell of row 15 is printed «2; 3» (a semicolon, checked on a 3x crop); Marker normalised it to «2, 3»."
+    },
+    {
+      "page": 18,
+      "kind": "column",
+      "find": "| | | | 116990 | Стол/кушетка массажный, без электропитания, непортативный | | | | | |\n|----|-----------------------------------------------------------------------------------------------------------------------------------------------------|------|--------|--------------------------------------------------------------------------------------------------------------------|---|------|--------|---------------------------------|---|\n| | | | 259880 | Кресло для осмотра/терапевтических процедур общего назначения, с электропитанием | | | | | |\n| 2. | Тонометр для измерения артериального давления с набором манжет (не менее трех размеров манжет для детей грудного, раннего и подросткового возраста) | 2, 3 | 239410 | Аппарат для измерения артериального давления анероидный механический | 1 | | | | |\n| | | | 216560 | Аппарат электронный для измерения артериального давления автоматический, портативный, с манжетой на палец | | | | | |\n| | | | 216630 | Аппарат электронный для измерения артериального давления автоматический, портативный, с манжетой на плечо/запястье | | | | | |\n| | | | 122850 | Аппарат для измерения артериального давления электрический с ручным нагнетением, портативный | | | | | |\n| | | | 122830 | Аппарат для измерения артериального давления электрический с ручным нагнетением, стационарный | | | | | |\n| | | | 366210 | Аппарат для измерения артериального давления с определением аритмии | | | | | |\n| | | | 216350 | Аппарат электронный для измерения артериального давления с автоматическим накачиванием воздуха, стационарный | | | | | |\n| | | | 3. | Ширма | | 2, 3 | 184200 | Ширма прикроватная | 1 |\n| | | | 4. | Электронные весы для детей до года | | 2, 3 | 233210 | Весы для младенцев, электронные | 1 |\n| 5. | Ростомер и напольные весы | 2, 3 | 157600 | Ростомер медицинский и напольные весы медицинские | 1 | | | | |\n| | | | 258800 | Весы напольные, электронные | | | | | |\n| 6. | Стетофонендоскоп | 2, 3 | 124550 | Стетоскоп неавтоматизированный | 1 | | | | |\n| | | | 292270 | Стетоскоп электронный | | | | | |",
+      "replace": "|  | |  | 116990 | Стол/кушетка массажный, без электропитания, непортативный |  |\n|----|------|------|--------|------|---|\n|  | |  | 259880 | Кресло для осмотра/терапевтических процедур общего назначения, с электропитанием |  |\n| 2. | Тонометр для измерения артериального давления с набором манжет (не менее трех размеров манжет для детей грудного, раннего и подросткового возраста) | 2, 3 | 239410 | Аппарат для измерения артериального давления анероидный механический | 1 |\n|  | |  | 216560 | Аппарат электронный для измерения артериального давления автоматический, портативный, с манжетой на палец |  |\n|  | |  | 216630 | Аппарат электронный для измерения артериального давления автоматический, портативный, с манжетой на плечо/запястье |  |\n|  | |  | 122850 | Аппарат для измерения артериального давления электрический с ручным нагнетением, портативный |  |\n|  | |  | 122830 | Аппарат для измерения артериального давления электрический с ручным нагнетением, стационарный |  |\n|  | |  | 366210 | Аппарат для измерения артериального давления с определением аритмии |  |\n|  | |  | 216350 | Аппарат электронный для измерения артериального давления с автоматическим накачиванием воздуха, стационарный |  |\n| 3. | Ширма | 2, 3 | 184200 | Ширма прикроватная | 1 |\n| 4. | Электронные весы для детей до года | 2, 3 | 233210 | Весы для младенцев, электронные | 1 |\n| 5. | Ростомер и напольные весы | 2, 3 | 157600 | Ростомер медицинский и напольные весы медицинские | 1 |\n|  | |  | 258800 | Весы напольные, электронные |  |\n| 6. | Стетофонендоскоп | 2, 3 | 124550 | Стетоскоп неавтоматизированный | 1 |\n|  | |  | 292270 | Стетоскоп электронный |  |",
+      "why": "Marker read this table ten columns wide and put rows 3 («Ширма») and 4 («Электронные весы для детей до года») into the right-hand columns; in the image it is six columns, rows 3 and 4 in the same columns as the rows above."
+    },
+    {
+      "page": 19,
+      "kind": "column",
+      "find": "| | | 122830 | Аппарат для измерения артериального давления электрический с ручным нагнетением, стационарный | | |",
+      "replace": "|  | |  | 122830 | Аппарат для измерения артериального давления электрический с ручным нагнетением, стационарный |  |",
+      "why": "The row of code 122830 stood one column to the left (code in the group column); in the image the code is in the fourth column and its name in the fifth."
+    },
+    {
+      "page": 20,
+      "kind": "dropped-cells",
+      "find": "| | | | 4. | Стетофонендоскоп | |\n| 292270 | Стетоскоп электронный | | | | |",
+      "replace": "| 4. | Стетофонендоскоп | 2, 3 | 124550 | Стетоскоп неавтоматизированный | 1 |\n|  | |  | 292270 | Стетоскоп электронный |  |",
+      "why": "Marker dropped the group («2, 3»), the code 124550, its name («Стетоскоп неавтоматизированный») and the quantity of row 4, and moved the second row (292270) to the first column; Vision read 124550."
+    },
+    {
+      "page": 28,
+      "kind": "handwriting",
+      "find": "от «27» МАФ 2025 г. № 3311",
+      "replace": "от 27 мая 2025 г. № 313н",
+      "why": "The annex approval line has the date and number filled in by hand; Marker read the handwriting as «МАФ» and «3311». Date and number are the portal's."
+    }
+  ]
+}

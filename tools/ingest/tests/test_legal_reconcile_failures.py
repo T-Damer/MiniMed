@@ -113,3 +113,21 @@ def test_a_disputed_number_takes_visions_figure_and_is_flagged() -> None:
     assert "| 17 |" in result.text
     assert any(f.kind == "token-substitution" for f in result.flags)
     assert result.status == "review"
+
+
+def test_phantom_table_column_is_dropped_but_a_continuation_fragment_is_kept() -> None:
+    phantom = (
+        "| № п/п | Наименование | | Группа | Количество |\n"
+        "|---|---|--|---|---|\n"
+        "| 1. | Рабочее место врача | | 2, 3 | 1 |\n"
+        "| 2. | Рабочее место сестры | | 2, 3 | 1 |"
+    )
+    cleaned = clean_marker_markdown(phantom)
+    assert "| № п/п | Наименование | Группа | Количество |" in cleaned
+    assert "| 1. | Рабочее место врача | 2, 3 | 1 |" in cleaned
+    fragment = (
+        "| | | | 366210 | Аппарат для измерения | |\n"
+        "|--|--|--|--|--|--|\n"
+        "| 3. | Кушетка | 2, 3 | 187150 | Стол | 1 |"
+    )
+    assert clean_marker_markdown(fragment).count("|") == fragment.count("|")

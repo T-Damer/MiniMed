@@ -168,7 +168,59 @@ def clean_marker_markdown(text: str) -> str:
     value = re.sub(r"^\s*(?:-{3,}|\*{3,}|_{3,})\s*$", "", value, flags=re.MULTILINE)
     value = re.sub(r"[ \t]+\n", "\n", value)
     value = re.sub(r"\n{3,}", "\n\n", value)
-    return value.strip()
+    return drop_phantom_columns(value).strip()
+
+
+_TABLE_SEPARATOR: Final = re.compile(r"^\s*\|[-:| ]+\|\s*$")
+
+
+def _table_cells(line: str) -> list[str]:
+    inner = line.strip()
+    inner = inner[1:] if inner.startswith("|") else inner
+    inner = inner[:-1] if inner.endswith("|") and not inner.endswith("\\|") else inner
+    return re.split(r"(?<!\\)\|", inner)
+
+
+def _without_phantom(table: list[str]) -> list[str]:
+    """One table with its phantom column (empty header cell, empty in every row) removed, or as it was."""
+    rows = [_table_cells(line) for line in table]
+    body = [row for line, row in zip(table, rows, strict=True) if not _TABLE_SEPARATOR.match(line)]
+    if len(body) < 2 or len({len(row) for row in body}) != 1:
+        return table
+    empty = [index for index, cell in enumerate(body[0]) if not cell.strip()]
+    if len(empty) != 1 or len(body[0]) < 3:
+        return table
+    column = empty[0]
+    if column in (0, len(body[0]) - 1):
+        return table  # an edge column that is blank in a fragment is a continuation, not a phantom
+    if any(row[column].strip() for row in body[1:]):
+        return table
+    return [
+        "|" + "|".join(cell for index, cell in enumerate(row) if index != column) + "|"
+        for row in rows
+    ]
+
+
+def drop_phantom_columns(text: str) -> str:
+    """Remove the empty column Marker adds to a table whose header has exactly one empty cell.
+
+    A real continuation fragment (the page starts inside a table) has an empty header row with many
+    empty cells and is left alone; so is a table where the column carries any text.
+    """
+    lines = text.split("\n")
+    output: list[str] = []
+    index = 0
+    while index < len(lines):
+        if not lines[index].lstrip().startswith("|"):
+            output.append(lines[index])
+            index += 1
+            continue
+        end = index
+        while end < len(lines) and lines[end].lstrip().startswith("|"):
+            end += 1
+        output.extend(_without_phantom(lines[index:end]))
+        index = end
+    return "\n".join(output)
 
 
 def strip_furniture(lines: list[str]) -> tuple[list[str], list[str]]:

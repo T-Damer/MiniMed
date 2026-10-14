@@ -416,7 +416,13 @@ def _merge_adjacent_headings(blocks: list[Block]) -> list[Block]:
             # a chapter opens with its first article: the article's title stays a line of the chapter section
             merged.append(Block("paragraph", block.text, block.page, confidence=block.confidence))
             continue
-        if block.kind == "heading" and previous is not None and previous.kind == "heading":
+        if (
+            block.kind == "heading"
+            and previous is not None
+            and previous.kind == "heading"
+            and block.level
+            <= previous.level  # a deeper heading is a subsection of the title before it
+        ):
             title = previous.text.rstrip()
             if not title:
                 previous.text = block.text
