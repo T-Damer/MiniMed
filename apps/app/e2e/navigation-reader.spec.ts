@@ -60,6 +60,8 @@ test.describe('document reader navigation', () => {
     await expect(items.nth(3)).toBeVisible();
     await items.nth(3).click();
     await expect.poll(async () => (await snapshot(page)).scrollY).toBeGreaterThan(300);
+    // The jump settles before back: its landing place goes onto its history entry.
+    await page.waitForTimeout(900);
     const jumped = await snapshot(page);
     expect(jumped.hash).toBe(DOCUMENT_HASH);
     expect(jumped.entries).toBe(atTop.entries + 1);

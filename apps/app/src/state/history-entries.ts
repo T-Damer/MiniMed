@@ -125,6 +125,14 @@ function newEntryId(): string {
 
 let lastEntry: HistoryEntryInfo | null = null;
 let lastLength = 0;
+/**
+ * Arrivals: every change of the entry the page is on counts one, remembering the entry it came
+ * from. The listeners are told once per arrival, however many events (an entry change, popstate,
+ * hashchange) report it.
+ */
+let arrivalSeq = 0;
+let notifiedSeq = 0;
+let entryBeforeArrival: HistoryEntryInfo | null = null;
 /** What the Navigation API said happened since the last observation (empty without the API). */
 let seenNavigations: Set<NavigationKind> = new Set();
 
@@ -132,13 +140,31 @@ interface NavigateEventLike extends Event {
   readonly navigationType?: string;
 }
 interface NavigationLike {
-  addEventListener(type: 'navigate', listener: (event: NavigateEventLike) => void): void;
-  removeEventListener(type: 'navigate', listener: (event: NavigateEventLike) => void): void;
+  addEventListener(type: 'navigate' | 'currententrychange', listener: (event: Event) => void): void;
+  removeEventListener(
+    type: 'navigate' | 'currententrychange',
+    listener: (event: Event) => void,
+  ): void;
 }
 
 function navigationApi(): NavigationLike | null {
   const candidate = (window as unknown as { navigation?: NavigationLike }).navigation;
   return candidate && typeof candidate.addEventListener === 'function' ? candidate : null;
+}
+
+/**
+ * While the tracker writes to the history itself (stamping, saving a reading place, pushing a
+ * layer) the Navigation API's note of that write is not a navigation of the app's.
+ */
+let ownWrites = 0;
+
+function ownReplaceState(state: unknown): void {
+  ownWrites += 1;
+  try {
+    window.history.replaceState(state, '');
+  } finally {
+    ownWrites -= 1;
+  }
 }
 
 /**
@@ -177,10 +203,14 @@ export function observeHistoryEntry(): HistoryEntryInfo {
   });
   seenNavigations = new Set();
   const entry = stamp ?? (readHistoryEntry(state) as HistoryEntryInfo);
-  if (stamp) window.history.replaceState(withHistoryEntry(state, stamp), '');
+  if (stamp) ownReplaceState(withHistoryEntry(state, stamp));
   // A stamped arrival is a traversal and only refreshes its own place; a push drops the entries
   // above it from the branch; an unknown arrival starts the branch over.
   recordPlace(entry, stamp ? (stamp.depth === 0 ? 'all' : 'branch') : 'none');
+  if (lastEntry !== null && lastEntry.id !== entry.id) {
+    entryBeforeArrival = lastEntry;
+    arrivalSeq += 1;
+  }
   lastEntry = entry;
   lastLength = window.history.length;
   return entry;
@@ -201,9 +231,16 @@ export function pushStampedEntry(state: unknown, layer: boolean): HistoryEntryIn
     // page's own code must not mistake the layer for its entry.
     ...(layer && below.position ? { position: below.position } : {}),
   };
-  window.history.pushState(withHistoryEntry(layer ? null : state, entry), '', window.location.href);
-  // This push is stamped here: the Navigation API's note of it must not colour a later arrival.
-  seenNavigations = new Set();
+  ownWrites += 1;
+  try {
+    window.history.pushState(
+      withHistoryEntry(layer ? null : state, entry),
+      '',
+      window.location.href,
+    );
+  } finally {
+    ownWrites -= 1;
+  }
   recordPlace(entry, 'branch');
   lastEntry = entry;
   lastLength = window.history.length;
@@ -262,7 +299,7 @@ export function saveReaderPosition(entryId: string, position: ReaderPosition): b
   ) {
     return true;
   }
-  window.history.replaceState(withHistoryEntry(window.history.state, { ...entry, position }), '');
+  ownReplaceState(withHistoryEntry(window.history.state, { ...entry, position }));
   return true;
 }
 
@@ -292,24 +329,33 @@ export function installHistoryEntryTracking(): () => void {
   // A reload on an entry that was a layer: the layer is gone, the entry is a page now.
   if (first.layer) {
     const { layer: _layer, ...page } = first;
-    window.history.replaceState(withHistoryEntry(window.history.state, page), '');
+    ownReplaceState(withHistoryEntry(window.history.state, page));
     lastEntry = page;
   }
+  notifiedSeq = arrivalSeq;
   const observe = (): void => {
-    const previous = lastEntry;
     const entry = observeHistoryEntry();
-    for (const listener of arrivalListeners) listener(entry, previous);
+    if (arrivalSeq === notifiedSeq) return;
+    notifiedSeq = arrivalSeq;
+    for (const listener of arrivalListeners) listener(entry, entryBeforeArrival);
+  };
+  // Where the Navigation API exists, every commit is looked at at once: a `pushState` raises no
+  // popstate or hashchange, and an entry nobody looked at would miss its stamp and its place.
+  const onEntryChange = (): void => {
+    if (ownWrites === 0) observeHistoryEntry();
   };
   const flushOnHide = (): void => {
     if (document.visibilityState === 'hidden') flushReaderPositions();
   };
-  const noteNavigation = (event: NavigateEventLike): void => {
-    const kind = event.navigationType;
+  const noteNavigation = (event: Event): void => {
+    if (ownWrites > 0) return;
+    const kind = (event as NavigateEventLike).navigationType;
     if (kind === 'push' || kind === 'replace' || kind === 'traverse' || kind === 'reload') {
       seenNavigations.add(kind);
     }
   };
   navigationApi()?.addEventListener('navigate', noteNavigation);
+  navigationApi()?.addEventListener('currententrychange', onEntryChange);
   window.addEventListener('hashchange', observe);
   window.addEventListener('popstate', observe);
   window.addEventListener('click', flushReaderPositions, true);
@@ -318,6 +364,7 @@ export function installHistoryEntryTracking(): () => void {
   document.addEventListener('visibilitychange', flushOnHide);
   return () => {
     navigationApi()?.removeEventListener('navigate', noteNavigation);
+    navigationApi()?.removeEventListener('currententrychange', onEntryChange);
     window.removeEventListener('hashchange', observe);
     window.removeEventListener('popstate', observe);
     window.removeEventListener('click', flushReaderPositions, true);
@@ -330,6 +377,10 @@ export function installHistoryEntryTracking(): () => void {
 /** For tests: forgets what the tracker remembered. */
 export function resetHistoryEntryTrackingForTests(): void {
   lastEntry = null;
+  arrivalSeq = 0;
+  notifiedSeq = 0;
+  entryBeforeArrival = null;
+  ownWrites = 0;
   lastLength = 0;
   seenNavigations = new Set();
   places.length = 0;

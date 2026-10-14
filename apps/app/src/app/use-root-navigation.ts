@@ -32,6 +32,15 @@ const CHROME_DIRECTION_THRESHOLD = 1;
 export function useRootNavigation() {
   // First listener on the history: every entry is stamped before any route code reads it.
   onCleanup(installHistoryEntryTracking());
+  // A tab opened on the bare address is on the search page: say so in the address, so that a tab
+  // tap that steps back to this first entry lands on `#/search` like every other way there.
+  if (window.location.hash === '') {
+    window.history.replaceState(
+      window.history.state,
+      '',
+      `${window.location.pathname}${window.location.search}#/search`,
+    );
+  }
   onCleanup(installScrollRestoration());
   bootstrapDocumentReadLocation();
   const [view, setView] = createSignal<RootView>(viewFromLocation());

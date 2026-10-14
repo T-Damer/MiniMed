@@ -957,6 +957,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
     ...(historyEntry.layer ? {} : { entryId: historyEntry.id }),
     restore: (position) => {
       cancelRestoreJump?.();
+      chrome.cancelJump();
       // The scroll of the restore itself must not be written back as the reader's place: tracking
       // resumes once the place stands still, or at once when the user takes over.
       trackingPosition = false;

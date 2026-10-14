@@ -74,6 +74,8 @@ export interface DocumentReaderChromeController {
   readonly setPaper: (element: HTMLElement) => void;
   /** `fraction` lands that share of the section's own text below its heading (a page's first line). */
   readonly scrollTo: (anchor: string, options?: { readonly fraction?: number }) => void;
+  /** Stops a contents / page jump still correcting itself (the history moved the reader meanwhile). */
+  readonly cancelJump: () => void;
   readonly closeOutline: () => void;
   readonly toggleOutline: () => void;
   readonly bindOutlineScrollbars: (instance: OverlayScrollbarsInstance) => void;
@@ -368,6 +370,7 @@ export function useDocumentReaderChrome(
     });
   });
 
+  let cancelJump: (() => void) | undefined;
   const scrollTo = (anchor: string, jump?: { readonly fraction?: number }): void => {
     const fraction = clamp01(jump?.fraction ?? 0);
     // Before the reader's place moves: the jump may need to remember where it left from.
@@ -380,7 +383,8 @@ export function useDocumentReaderChrome(
     // Everything up to the target mounts first (the host renders sections in idle batches); the
     // jump then corrects itself until the target stands still below the sticky headings.
     options.onBeforeScrollTo?.(anchor);
-    jumpReaderTo(() => document.getElementById(anchor), {
+    cancelJump?.();
+    cancelJump = jumpReaderTo(() => document.getElementById(anchor), {
       align: 'start',
       // A page that begins inside a section lands that share of the section's own text below its
       // heading; the size is read every frame, as it settles while the sections around it render.
@@ -440,6 +444,10 @@ export function useDocumentReaderChrome(
       paper = element;
     },
     scrollTo,
+    cancelJump: () => {
+      cancelJump?.();
+      cancelJump = undefined;
+    },
     closeOutline: () => mutateOutline(() => setOutlineOpen(false)),
     toggleOutline: () =>
       mutateOutline(() => {

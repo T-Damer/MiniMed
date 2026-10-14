@@ -34,11 +34,17 @@ export function installFakeBrowser(
   options: FakeBrowserOptions = {},
 ): FakeBrowser {
   const navigationApi = options.navigationApi ?? true;
-  const navigateListeners = new Set<(event: Event) => void>();
+  const navigationListeners = new Map<string, Set<(event: Event) => void>>();
+  const fireNavigation = (event: Event): void => {
+    for (const listener of [...(navigationListeners.get(event.type) ?? [])]) listener(event);
+  };
   const announce = (navigationType: string): void => {
     if (!navigationApi) return;
-    const event = Object.assign(new Event('navigate'), { navigationType });
-    for (const listener of [...navigateListeners]) listener(event);
+    fireNavigation(Object.assign(new Event('navigate'), { navigationType }));
+  };
+  /** The commit of a navigation, as the Navigation API reports it. */
+  const committed = (): void => {
+    if (navigationApi) fireNavigation(new Event('currententrychange'));
   };
   const entries: FakeEntry[] = [{ state: null, ...initial }];
   let index = 0;
@@ -60,6 +66,7 @@ export function installFakeBrowser(
     const hashBefore = current().hash;
     announce('traverse');
     index = target;
+    committed();
     emit('popstate');
     if (current().hash !== hashBefore) emit('hashchange');
   };
@@ -76,6 +83,7 @@ export function installFakeBrowser(
       entries.splice(index + 1);
       entries.push({ state: null, search: current().search, hash: value });
       index += 1;
+      committed();
       queue.push(() => {
         emit('popstate');
         emit('hashchange');
@@ -108,12 +116,14 @@ export function installFakeBrowser(
       entries.splice(index + 1);
       entries.push({ state, ...next });
       index += 1;
+      committed();
     },
     replaceState(state: unknown, _title: string, url?: string | URL): void {
       announce('replace');
       const entry = current();
       entry.state = state;
       if (url !== undefined) Object.assign(entry, parse(String(url)));
+      committed();
     },
     back(): void {
       const target = index - 1;
@@ -134,10 +144,14 @@ export function installFakeBrowser(
     ...(navigationApi
       ? {
           navigation: {
-            addEventListener: (_type: string, listener: (event: Event) => void) =>
-              navigateListeners.add(listener),
-            removeEventListener: (_type: string, listener: (event: Event) => void) =>
-              navigateListeners.delete(listener),
+            addEventListener: (type: string, listener: (event: Event) => void) => {
+              const set = navigationListeners.get(type) ?? new Set();
+              set.add(listener);
+              navigationListeners.set(type, set);
+            },
+            removeEventListener: (type: string, listener: (event: Event) => void) => {
+              navigationListeners.get(type)?.delete(listener);
+            },
           },
         }
       : {}),

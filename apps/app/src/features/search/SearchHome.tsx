@@ -698,6 +698,10 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   // section list back where the user left it.
   createEffect(
     on(openSectionId, (id, previous) => {
+      // The effect also runs when a signal the section reads changes without the section changing
+      // (the groups being rewritten on the way to a section): that must not touch the address, or a
+      // forward step onto a section entry bounces straight back off it.
+      if (id === previous) return;
       if (!props.active) return;
       const current = searchSectionFromHash(window.location.hash, isSearchSection);
       if (id === undefined || id === 'all') {

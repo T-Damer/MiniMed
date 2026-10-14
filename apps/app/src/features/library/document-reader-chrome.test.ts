@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   documentReaderBackTarget,
@@ -6,6 +6,7 @@ import {
 } from '@/features/library/document-reader-back';
 import type { DocumentTrail } from '@/state/document-trail';
 import { resetHistoryEntryTrackingForTests, withHistoryEntry } from '@/state/history-entries';
+import { resetHistoryLayersForTests } from '@/state/history-layer';
 
 const trailOfTwo: DocumentTrail = {
   origin: {
@@ -32,14 +33,24 @@ function stubPage(depth: number, length = depth + 1) {
       replaceState: vi.fn(),
     },
     location: { hash: '#/modules/documents/d/b', replace },
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
   });
   return { back, replace };
 }
 
 describe('navigateDocumentReaderBack', () => {
+  beforeEach(() => {
+    // The step back waits for its arrival (and gives up after a timer) so a double tap is ignored.
+    vi.useFakeTimers();
+  });
+
   afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
     vi.unstubAllGlobals();
     resetHistoryEntryTrackingForTests();
+    resetHistoryLayersForTests();
   });
 
   it('steps the history back when an entry of the app lies below, and navigates nowhere', () => {

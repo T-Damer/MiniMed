@@ -15,20 +15,21 @@ test.describe('scroll restoration', () => {
     await page.getByTestId('search-input').fill('пневмония');
     await page.getByTestId('search-submit').click();
     await expect(page.getByTestId('search-results')).toBeVisible({ timeout: 60_000 });
-    await expect(page.getByTestId('search-result').nth(6)).toBeAttached({ timeout: 60_000 });
+    await expect(page.locator('.result-group-header').nth(6)).toBeAttached({ timeout: 60_000 });
   });
 
   async function openLowerResult(
     page: Page,
   ): Promise<{ readonly left: number; readonly url: string }> {
-    const result = page.getByTestId('search-result').nth(6);
+    const result = page.locator('.result-group-header').nth(6);
     await result.scrollIntoViewIfNeeded();
     await page.evaluate(() => window.scrollBy(0, 40));
     await page.waitForTimeout(400);
     const left = await scrollY(page);
     expect(left).toBeGreaterThan(300);
     const url = page.url();
-    await result.click();
+    // A pointer click would first scroll the header out from under the sticky chrome.
+    await result.dispatchEvent('click');
     await expect.poll(() => page.url()).not.toBe(url);
     return { left, url };
   }
