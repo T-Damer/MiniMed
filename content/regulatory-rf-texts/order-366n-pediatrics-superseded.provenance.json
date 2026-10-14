@@ -1,0 +1,709 @@
+{
+ "documentId": "regulatory.rf.minzdravsoc.366n-2012",
+ "source": {
+  "file": "minzdrav-366n.pdf",
+  "sha256": "b5f805d07a8618048f1e94c08f74e8b67a95f77862af8f1c41743c35aca9f768",
+  "bytes": 474936,
+  "pages": 35,
+  "officialUrl": "https://minzdrav.gov.ru/documents/9168-prikaz-ministerstva-zdravoohraneniya-i-sotsialnogo-razvitiya-rossiyskoy-federatsii-ot-16-aprelya-2012-g-366n-ob-utverzhdenii-poryadka-okazaniya-pediatricheskoy-pomoschi"
+ },
+ "identityFromPortal": {
+  "number": "366н",
+  "date": "2012-04-16",
+  "name": "Об утверждении Порядка оказания педиатрической помощи",
+  "registrationNumber": "24361",
+  "registrationDate": null
+ },
+ "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
+ "review": {
+  "reviewer": "Claude (agent), against the page images; not a lawyer",
+  "reviewedAt": "2026-10-14",
+  "corrections": 0
+ },
+ "pages": [
+  {
+   "page": 1,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": "**Приказ Министерства здравоохранения и социального развития Российской**\n\n**Федерации от 16 апреля 2012 г. № 366н \"Об утверждении Порядка оказания педиатрической помощи\"**",
+   "stats": {
+    "markerTokens": 52,
+    "visionTokens": 52,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 2,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [
+    "от 16 апреля 2012 г. № 366н"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 272,
+    "visionTokens": 272,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 3,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 386,
+    "visionTokens": 386,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 4,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 93,
+    "visionTokens": 93,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 5,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [
+    "от 16 апреля 2012 г. № 366н"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 267,
+    "visionTokens": 267,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 6,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 300,
+    "visionTokens": 300,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 7,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [
+    "от 16 апреля 2012 г. № 366н"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 177,
+    "visionTokens": 177,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9937,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 8,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [
+    "от 16 апреля 2012 г. № 366н"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 166,
+    "visionTokens": 161,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9846,
+    "respaced": 0,
+    "tableRows": 21
+   }
+  },
+  {
+   "page": 9,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [
+    "от 16 апреля 2012 г. № 366н"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 303,
+    "visionTokens": 303,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9961,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 10,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 268,
+    "visionTokens": 268,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 11,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 321,
+    "visionTokens": 321,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 12,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 88,
+    "visionTokens": 88,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 13,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [
+    "от 16 апреля 2012 г. № 366н"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 190,
+    "visionTokens": 178,
+    "coverageVision": 0.993,
+    "coverageMarker": 0.9281,
+    "respaced": 0,
+    "tableRows": 26
+   }
+  },
+  {
+   "page": 14,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "25.",
+    "1"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 210,
+    "visionTokens": 206,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9827,
+    "respaced": 0,
+    "tableRows": 37
+   }
+  },
+  {
+   "page": 15,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "62."
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 186,
+    "visionTokens": 185,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 10
+   }
+  },
+  {
+   "page": 16,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 164,
+    "visionTokens": 164,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 17,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [
+    "от 16 апреля 2012 г. № 366н"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 181,
+    "visionTokens": 175,
+    "coverageVision": 0.9927,
+    "coverageMarker": 0.9714,
+    "respaced": 0,
+    "tableRows": 24
+   }
+  },
+  {
+   "page": 18,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "1",
+    "1",
+    "1"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 208,
+    "visionTokens": 197,
+    "coverageVision": 0.9876,
+    "coverageMarker": 0.9521,
+    "respaced": 0,
+    "tableRows": 29
+   }
+  },
+  {
+   "page": 19,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 219,
+    "visionTokens": 196,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9459,
+    "respaced": 0,
+    "tableRows": 25
+   }
+  },
+  {
+   "page": 20,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "11."
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 230,
+    "visionTokens": 220,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9381,
+    "respaced": 0,
+    "tableRows": 31
+   }
+  },
+  {
+   "page": 21,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 221,
+    "visionTokens": 201,
+    "coverageVision": 0.9941,
+    "coverageMarker": 0.9441,
+    "respaced": 0,
+    "tableRows": 29
+   }
+  },
+  {
+   "page": 22,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "2"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 216,
+    "visionTokens": 197,
+    "coverageVision": 0.9819,
+    "coverageMarker": 0.9477,
+    "respaced": 0,
+    "tableRows": 36
+   }
+  },
+  {
+   "page": 23,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 117,
+    "visionTokens": 117,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 24,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [
+    "от 16 апреля 2012 г. № 366н"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 293,
+    "visionTokens": 293,
+    "coverageVision": 0.992,
+    "coverageMarker": 0.992,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 25,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 249,
+    "visionTokens": 248,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9955,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 26,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "1"
+   ],
+   "portalRewrites": [
+    "от 16 апреля 2012 г. № 366н"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 191,
+    "visionTokens": 189,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9865,
+    "respaced": 0,
+    "tableRows": 30
+   }
+  },
+  {
+   "page": 27,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "29."
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 141,
+    "visionTokens": 140,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 28,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 4"
+    }
+   ],
+   "furniture": [
+    "2"
+   ],
+   "portalRewrites": [
+    "от 16 апреля 2012 г. № 366н"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 215,
+    "visionTokens": 206,
+    "coverageVision": 0.9884,
+    "coverageMarker": 0.9771,
+    "respaced": 0,
+    "tableRows": 17
+   }
+  },
+  {
+   "page": 29,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "16."
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 208,
+    "visionTokens": 203,
+    "coverageVision": 0.9882,
+    "coverageMarker": 0.9655,
+    "respaced": 0,
+    "tableRows": 27
+   }
+  },
+  {
+   "page": 30,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [
+    "от 16 апреля 2012 г. № 366н"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 300,
+    "visionTokens": 300,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 31,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 250,
+    "visionTokens": 250,
+    "coverageVision": 0.9955,
+    "coverageMarker": 0.9955,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 32,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 21,
+    "visionTokens": 21,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 33,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [
+    "от 16 апреля 2012 г. № 366н"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 151,
+    "visionTokens": 151,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 14
+   }
+  },
+  {
+   "page": 34,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [
+    "от 16 апреля 2012 г. № 366н"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 207,
+    "visionTokens": 200,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9878,
+    "respaced": 0,
+    "tableRows": 28
+   }
+  },
+  {
+   "page": 35,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "27."
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 36,
+    "visionTokens": 34,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 4
+   }
+  }
+ ]
+}

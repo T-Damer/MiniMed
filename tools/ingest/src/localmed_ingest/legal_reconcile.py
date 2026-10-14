@@ -23,10 +23,11 @@ from collections import Counter
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from difflib import SequenceMatcher
+from itertools import pairwise
 from typing import Final, Literal
 
 Status = Literal["pass", "review", "reviewed"]
-Reading = Literal["marker", "marker+vision-tokens", "vision-fallback"]
+Reading = Literal["marker", "marker+vision-tokens", "vision-fallback", "image-transcription"]
 Confidence = Literal["high", "medium", "low"]
 
 _SUPERSCRIPTS: Final = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉", "01234567890123456789")
@@ -147,6 +148,9 @@ def clean_marker_markdown(text: str) -> str:
     value = text.replace("\xa0", " ").replace("\r\n", "\n")
     value = _IMAGE.sub("", value)
     value = re.sub(r"\s*\.{5,}\s*", " ", value)
+    value = re.sub(
+        r"(?<=[а-яё]о)-[ \t]+(?=[а-яё])", "-", value
+    )  # «молекулярно- генетических» (cell wrap)
     value = _SUP.sub(lambda m: m.group(1).translate(_TO_SUPERSCRIPT), value)
     value = _SUB.sub("", value)
     value = "\n".join(_flatten_breaks(line) for line in value.split("\n"))
@@ -240,7 +244,7 @@ def tokenize(
             line_start = text.rfind("\n", 0, start) + 1
             at_line_start = bool(_LINE_LEAD.match(text[line_start:start]))
             after = text[end : end + 2]
-            if text[start] in _SUP_GLYPHS or (at_line_start and re.match(r"[.)]($|\s)|$", after)):
+            if text[start] in _SUP_GLYPHS or (at_line_start and re.match(r"[.)](?:$|\s)", after)):
                 ignore = True
         if any(a <= match.start() < b for a, b in skipped):
             ignore = True
@@ -281,7 +285,7 @@ def compound_hyphens(lines: list[str]) -> list[tuple[str, str]]:
     a pair («медикосоциального»); `restore_compound_hyphens` puts the hyphen back.
     """
     pairs: list[tuple[str, str]] = []
-    for line, following in zip(lines, lines[1:], strict=False):
+    for line, following in pairwise(lines):
         first = re.search(r"([А-Яа-яЁё]+)-$", line)
         second = re.match(r"([а-яё]{4,})", following)
         if first and second and first.group(1).lower().endswith("о") and len(first.group(1)) >= 5:
@@ -301,6 +305,30 @@ def restore_compound_hyphens(text: str, pairs: list[tuple[str, str]]) -> tuple[s
                 repairs.append(f"{first}{second} → {first}-{second}")
                 break
     return text, repairs
+
+
+_ANNEX_LINE: Final = re.compile(
+    r"^Приложение\s*[№N]?\s*\d*\s*$|^к\s+(?:Порядку|Положению|приказу|Правилам|Стандарту)\b",
+    re.IGNORECASE,
+)
+
+
+def _annex_header_lines(vision_lines: list[str], marker: str) -> str:
+    """The right-aligned «Приложение № N / к Порядку …» header of an annex page when Marker lacks it."""
+    head = vision_lines[:8]
+    if not head or not re.match(r"^Приложение", head[0], re.IGNORECASE):
+        return ""
+    if re.search(r"Приложение", marker[:400], re.IGNORECASE):
+        return ""
+    taken = [head[0].strip()]
+    for line in head[1:4]:
+        if re.match(r"^(?:к|утвержден\w*)\s", line.strip(), re.IGNORECASE) or (
+            len(taken) > 1 and line.strip()[:1].islower()
+        ):
+            taken.append(line.strip())
+        else:
+            break
+    return "  \n".join(taken)
 
 
 def _countable(token: Token) -> bool:
@@ -652,6 +680,7 @@ def align(marker: str, vision_lines: list[str], skip: tuple[str, ...] = ()) -> A
             if (
                 numeric
                 and all(t.is_number for t in v_span)
+                and all(t.is_number for t in m_span)
                 and len(m_span) <= 2
                 and len(v_span) <= 2
                 and "\n" not in marker[m_span[0].start : m_span[-1].end]
@@ -690,6 +719,7 @@ def reconcile_page(
     *,
     identity: ActIdentity | None = None,
     substitute: bool = True,
+    exact_primary: bool = False,
 ) -> PageResult:
     """Compare Marker's Markdown of one page with Vision's lines and decide what the page carries.
 
@@ -757,8 +787,17 @@ def reconcile_page(
 
     alignment = align(marker, vision_kept, skip)
     text = marker
+    restored = _annex_header_lines(vision_kept, marker)
+    if restored and page > 1:
+        text = restored + "\n\n" + text
+        marker = text
+        flags.append(
+            Flag(
+                "annex-header-restored", f"Marker dropped the annex header; Vision's: «{restored}»"
+            )
+        )
     edits: list[tuple[int, int, str]] = []
-    for sub in alignment.substitutions if substitute else []:
+    for sub in alignment.substitutions if substitute and not exact_primary else []:
         edits.append((sub.marker_start, sub.marker_end, sub.new))
         flags.append(Flag("token-substitution", f"«{sub.old}» (Marker) → «{sub.new}» (Vision)"))
     # A word Marker broke into pieces («пр и казываю») is taken from Vision; not a review item.
@@ -793,6 +832,9 @@ def reconcile_page(
         }
     )
     only_marker = Counter({k: n for k, n in (m_numbers - v_numbers).items() if k not in known})
+    if exact_primary:
+        # The first reading is the file's own text: what Vision misses is Vision's failure, not a defect.
+        only_marker = Counter()
     if only_vision or only_marker:
         parts: list[str] = []
         if only_vision:
@@ -832,7 +874,7 @@ def reconcile_page(
                 f"Marker lacks {1 - cov_vision:.0%} of Vision's tokens (e.g. {sample})",
             )
         )
-    if cov_marker < COVERAGE_MARKER_MIN:
+    if cov_marker < COVERAGE_MARKER_MIN and not exact_primary:
         sample = ", ".join(k for k, _ in (m_bag - v_bag).most_common(12))
         flags.append(
             Flag(
@@ -841,7 +883,7 @@ def reconcile_page(
             )
         )
 
-    for problem in numbered_gaps(marker, vision_kept):
+    for problem in [] if exact_primary else numbered_gaps(marker, vision_kept):
         flags.append(Flag("numbered-rows", problem))
 
     status: Status = "review" if flags else "pass"
@@ -865,6 +907,7 @@ def reconcile_page(
 LOW_CONFIDENCE_KINDS: Final = frozenset(
     {
         "dropped-span",
+        "annex-header-restored",
         "coverage-vision",
         "repeated-content-missing",
         "coverage-marker",

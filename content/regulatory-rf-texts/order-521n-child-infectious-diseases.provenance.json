@@ -1,0 +1,424 @@
+{
+ "documentId": "regulatory.rf.minzdravsoc.521n-2012",
+ "source": {
+  "file": "minzdrav-521n.pdf",
+  "sha256": "fa102c3a638df0ddb2df0439bfc5bd3ef857c31bf2345ad3326289af9cb47760",
+  "bytes": 435909,
+  "pages": 21,
+  "officialUrl": "https://minzdrav.gov.ru/documents/9117"
+ },
+ "identityFromPortal": {
+  "number": "521н",
+  "date": "2012-05-05",
+  "name": "Об утверждении Порядка оказания медицинской помощи детям с инфекционными заболеваниями",
+  "registrationNumber": "24867",
+  "registrationDate": "2012-07-10"
+ },
+ "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
+ "review": {
+  "reviewer": "Claude (agent), against the page images; not a lawyer",
+  "reviewedAt": "2026-10-14",
+  "corrections": 0
+ },
+ "pages": [
+  {
+   "page": 1,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": "**Приказ Министерства здравоохранения и социального развития Российской**\n\n**Федерации от 5 мая 2012 г. № 521н \"Об утверждении Порядка оказания медицинской помощи детям с**\n\n**инфекционными заболеваниями\"**",
+   "stats": {
+    "markerTokens": 56,
+    "visionTokens": 57,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 2,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 288,
+    "visionTokens": 288,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 3,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 386,
+    "visionTokens": 386,
+    "coverageVision": 0.9969,
+    "coverageMarker": 0.9938,
+    "respaced": 1,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 4,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 279,
+    "visionTokens": 278,
+    "coverageVision": 0.9916,
+    "coverageMarker": 0.9874,
+    "respaced": 1,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 5,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 305,
+    "visionTokens": 306,
+    "coverageVision": 0.9961,
+    "coverageMarker": 0.9961,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 6,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 7,
+    "visionTokens": 7,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 7,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 347,
+    "visionTokens": 346,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9967,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 8,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 33,
+    "visionTokens": 33,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 9,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 185,
+    "visionTokens": 185,
+    "coverageVision": 0.9943,
+    "coverageMarker": 0.9943,
+    "respaced": 0,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 10,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "1"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 197,
+    "visionTokens": 189,
+    "coverageVision": 0.9935,
+    "coverageMarker": 0.9686,
+    "respaced": 0,
+    "tableRows": 35
+   }
+  },
+  {
+   "page": 11,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "32."
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 246,
+    "visionTokens": 245,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9949,
+    "respaced": 0,
+    "tableRows": 35
+   }
+  },
+  {
+   "page": 12,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "66.",
+    "2"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 34,
+    "visionTokens": 32,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9667,
+    "respaced": 0,
+    "tableRows": 4
+   }
+  },
+  {
+   "page": 13,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 289,
+    "visionTokens": 289,
+    "coverageVision": 0.992,
+    "coverageMarker": 0.992,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 14,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 317,
+    "visionTokens": 316,
+    "coverageVision": 0.9964,
+    "coverageMarker": 0.9964,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 15,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 98,
+    "visionTokens": 99,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 16,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 1×4"
+    }
+   ],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 239,
+    "visionTokens": 243,
+    "coverageVision": 0.979,
+    "coverageMarker": 0.9957,
+    "respaced": 0,
+    "tableRows": 26
+   }
+  },
+  {
+   "page": 17,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 12"
+    }
+   ],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 139,
+    "visionTokens": 138,
+    "coverageVision": 0.9851,
+    "coverageMarker": 0.9778,
+    "respaced": 0,
+    "tableRows": 18
+   }
+  },
+  {
+   "page": 18,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 246,
+    "visionTokens": 241,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9851,
+    "respaced": 0,
+    "tableRows": 37
+   }
+  },
+  {
+   "page": 19,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "2"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 221,
+    "visionTokens": 215,
+    "coverageVision": 0.9942,
+    "coverageMarker": 0.95,
+    "respaced": 0,
+    "tableRows": 35
+   }
+  },
+  {
+   "page": 20,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "67."
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 250,
+    "visionTokens": 248,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9952,
+    "respaced": 0,
+    "tableRows": 34
+   }
+  },
+  {
+   "page": 21,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 242,
+    "visionTokens": 242,
+    "coverageVision": 0.9949,
+    "coverageMarker": 0.9949,
+    "respaced": 0,
+    "tableRows": 31
+   }
+  }
+ ]
+}

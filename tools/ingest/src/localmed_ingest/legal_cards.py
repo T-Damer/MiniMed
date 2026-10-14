@@ -85,7 +85,9 @@ _SCAN_LINE: Final = re.compile(r"^Текст набран с официальн�
 def rewrite_footer(footer: Section, *, pages: int | None, amended: bool) -> str:
     """The footer with the edition line made honest about the text above it (idempotent)."""
     lines: list[str] = []
-    text = footer.text.rstrip("\n").replace('"contentMode":"paraphrase"', '"contentMode":"source_text"')
+    text = footer.text.rstrip("\n").replace(
+        '"contentMode":"paraphrase"', '"contentMode":"source_text"'
+    )
     for raw in text.split("\n"):
         raw = raw.replace(_ORIGINAL_ONLY, "")
         if _SCAN_LINE.match(raw):

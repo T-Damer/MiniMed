@@ -1,0 +1,16 @@
+{
+  "documentId": "regulatory.rf.minzdravsoc.521n-2012",
+  "reviewer": "Claude (agent), against the page images; not a lawyer",
+  "reviewedAt": "2026-10-14",
+  "verdicts": {
+    "10": "image read row by row: the equipment table (rows 1-31, quantities and «по требованию») is exactly the PDF text layer; Marker's reading of this page (extra column, dropped quantities) was not used",
+    "11": "image read row by row: rows 32-65 and their quantities match the text layer",
+    "12": "image read: rows 66-69 match the text layer",
+    "16": "image read: the staffing table of the 30-bed infectious department matches, every quantity",
+    "17": "image read: the tail of the last row of the previous page («и интенсивной терапии») is joined to it; the boxed department table and the footnote match",
+    "18": "image read row by row: rows 1-34 of the department equipment table match",
+    "19": "image read row by row: rows 34 (tail), 35-66 match, including «по требованию» cells",
+    "20": "image read row by row: rows 67-99 match, including the printed quantity 16 of row 76"
+  },
+  "corrections": []
+}

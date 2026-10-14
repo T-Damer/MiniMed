@@ -41,6 +41,7 @@ TEXTS: Final = REPO / "content/regulatory-rf-texts"
 SOURCES: Final = TEXTS / "sources.json"
 SCAN_READERS: Final = frozenset({"scan", "tiff-zip"})
 READERS: Final = {
+    "layer": "PDF text layer and ruled tables (PyMuPDF), reconciled page by page with macOS Vision OCR (1800 px)",
     "docx": "Word file of minzdrav.gov.ru (text, no OCR)",
     "rg": "HTML of rg.ru (text, no OCR)",
     "ips": "HTML of the IPS of pravo.gov.ru, consolidated edition (text, no OCR)",
@@ -53,6 +54,7 @@ MANUAL_ACTS: Final[dict[str, dict[str, str]]] = {
         "stem": "minzdrav-521n",
         "file": "minzdrav-521n.pdf",
         "reader": "scan",
+        "layer": "yes",
         "fileUrl": f"{_STATIC}/000/028/224/original/",
         "name": "Об утверждении Порядка оказания медицинской помощи детям с инфекционными заболеваниями",
     },
@@ -60,6 +62,7 @@ MANUAL_ACTS: Final[dict[str, dict[str, str]]] = {
         "stem": "minzdrav-366n",
         "file": "minzdrav-366n.pdf",
         "reader": "scan",
+        "layer": "yes",
         "fileUrl": f"{_STATIC}/000/028/303/original/",
         "name": "Об утверждении Порядка оказания педиатрической помощи",
     },
@@ -194,6 +197,7 @@ def sources(data_root: DataRoot, pause: float = 1.0) -> None:
                     "stem": spec["stem"],
                     "kind": "minzdrav",
                     "reader": spec["reader"],
+                    **({"markerSource": "pdf-layer"} if spec.get("layer") else {}),
                     "file": spec["file"],
                     "sha256": _sha256(file),
                     "bytes": file.stat().st_size,
@@ -215,11 +219,77 @@ def sources(data_root: DataRoot, pause: float = 1.0) -> None:
             )
         elif card["id"] in manual:
             rows.append(manual[card["id"]])
+    kept = {row["documentId"]: row for row in previous}
+    for (
+        row
+    ) in rows:  # what other commands recorded about an act survives a refresh of the checksums
+        if "rotatedPages" in kept.get(row["documentId"], {}):
+            row["rotatedPages"] = kept[row["documentId"]]["rotatedPages"]
     SOURCES.parent.mkdir(parents=True, exist_ok=True)
     SOURCES.write_text(
         json.dumps({"schemaVersion": 1, "acts": rows}, ensure_ascii=False, indent=1) + "\n"
     )
     typer.echo(f"{len(rows)} acts with a recorded official file -> {SOURCES}")
+
+
+def rotated_pages(vision: dict[int, list[dict[str, Any]]]) -> list[int]:
+    """Pages whose text lines are mostly taller than wide: a landscape table scanned sideways."""
+    found: list[int] = []
+    for page, lines in vision.items():
+        long_lines = [x for x in lines if len(str(x["text"])) > 6]
+        tall = [x for x in long_lines if x["bbox"][3] > x["bbox"][2] * 1.2]
+        if len(long_lines) >= 6 and len(tall) >= 0.5 * len(long_lines):
+            found.append(page)
+    return sorted(found)
+
+
+@app.command()
+def upright(
+    data_root: DataRoot, names: Annotated[list[str] | None, typer.Argument()] = None
+) -> None:
+    """Find sideways pages, write an upright copy of the PDF (derived/<stem>-upright.pdf) and read it with Vision.
+
+    Marker and Vision both read a table scanned sideways badly; the upright copy is what they read instead.
+    The page numbers are those of the original; `rotatedPages` is recorded in sources.json.
+    """
+    import json as _json
+    import subprocess
+
+    import pymupdf
+
+    paths = Paths(data_root)
+    sources_doc = _load_sources()
+    wanted = set(names or [])
+    for row in sources_doc["acts"]:
+        if row["reader"] not in SCAN_READERS or (
+            wanted and not {row["stem"], row["slug"]} & wanted
+        ):
+            continue
+        raw = _json.loads((paths.work / f"vision/{row['stem']}.json").read_text())
+        vision = {int(p["page"]): p["lines"] for p in raw["pages"]}
+        sideways = rotated_pages(vision)
+        row["rotatedPages"] = sideways
+        if not sideways:
+            continue
+        derived = paths.work / "derived"
+        derived.mkdir(parents=True, exist_ok=True)
+        source = (
+            paths.work / f"derived/{row['stem']}.pdf"
+            if row["reader"] == "tiff-zip"
+            else paths.raw / row["file"]
+        )
+        document = pymupdf.open(source)
+        for number in sideways:
+            page = document[number - 1]
+            page.set_rotation((page.rotation + 90) % 360)
+        target = derived / f"{row['stem']}-upright.pdf"
+        document.save(target)
+        result = subprocess.run(
+            [str(paths.work / "bin/vision_ocr"), str(target)], capture_output=True, check=True
+        )
+        (paths.work / f"vision/{row['stem']}-upright.json").write_bytes(result.stdout)
+        typer.echo(f"{row['slug']}: {len(sideways)} sideways pages {sideways}")
+    SOURCES.write_text(_json.dumps(sources_doc, ensure_ascii=False, indent=1) + "\n")
 
 
 @app.command("fetch-text")
@@ -251,7 +321,20 @@ def _inputs(
 ) -> tuple[dict[int, str | None], dict[int, list[str]]]:
     stem = row["stem"]
     vision = read_vision_pages(paths.work / f"vision/{stem}.json")
-    marker = read_marker_pages(paths.work / f"marker/{stem}", len(vision))
+    if row.get("markerSource") == "pdf-layer":
+        from .legal_layer import document_pages
+
+        layer = document_pages(str(paths.raw / row["file"]))
+        marker: dict[int, str | None] = {page: layer.get(page) for page in vision}
+    else:
+        marker = read_marker_pages(paths.work / f"marker/{stem}", len(vision))
+    sideways = row.get("rotatedPages", [])
+    if sideways:  # a table scanned sideways is read from its upright copy
+        upright = read_vision_pages(paths.work / f"vision/{stem}-upright.json")
+        for page in sideways:
+            vision[page] = upright[page]
+            copy = paths.work / f"marker/{stem}-rot/p{page:04d}.md"
+            marker[page] = copy.read_text(encoding="utf-8") if copy.exists() else None
     return marker, vision
 
 
@@ -275,6 +358,10 @@ def _text_act(paths: Paths, row: dict[str, Any]) -> ActText:
     raise typer.BadParameter(f"unknown reader {row['reader']}")
 
 
+def _exact(row: dict[str, Any]) -> bool:
+    return row.get("markerSource") == "pdf-layer"
+
+
 def _selected(names: list[str]) -> list[dict[str, Any]]:
     rows = _load_sources()["acts"]
     return [_act(n) for n in names] if names else list(rows)
@@ -293,7 +380,9 @@ def reconcile(
             continue
         marker, vision = _inputs(paths, row)
         identity = act_identity(row["record"])
-        results, pending = reconcile_act(marker, vision, identity, _review(row["slug"]))
+        results, pending = reconcile_act(
+            marker, vision, identity, _review(row["slug"]), exact_primary=_exact(row)
+        )
         flagged = [r for r in results if r.flags]
         report = {
             "stem": row["stem"],
@@ -338,6 +427,7 @@ def show(
         {p: t for p, t in vision.items() if p in wanted},
         identity,
         Review(verdicts={p: "" for p in wanted}) if lines else Review(),
+        exact_primary=_exact(row),
     )
     for result in results:
         typer.echo(f"=== page {result.page}: {result.status} {result.confidence} {result.reading}")
@@ -351,6 +441,53 @@ def show(
             typer.echo(result.text)
     if not no_images:
         images(data_root, name, pages)
+
+
+@app.command()
+def ctx(
+    data_root: DataRoot,
+    name: str,
+    pages: Annotated[str, typer.Option(help="comma separated pages")],
+    width: int = 90,
+) -> None:
+    """Short review view: the flags of pages with the lines of both readings around each disputed token."""
+    paths = Paths(data_root)
+    row = _act(name)
+    marker, vision = _inputs(paths, row)
+    identity = act_identity(row["record"])
+    wanted = {int(p) for p in pages.split(",")}
+    results, _pending = reconcile_act(
+        {p: t for p, t in marker.items() if p in wanted},
+        {p: t for p, t in vision.items() if p in wanted},
+        identity,
+        Review(),
+        exact_primary=_exact(row),
+    )
+    for result in results:
+        typer.echo(f"=== page {result.page}: {result.confidence} {result.reading}")
+        vlines = vision[result.page]
+        for flag in result.flags:
+            typer.echo(f"  ! {flag.kind}: {flag.detail[:300]}")
+            tokens = (
+                re.findall(r"(?:only in (?:Vision|Marker): )?([^;]+)", flag.detail)
+                if flag.kind == "number-mismatch"
+                else []
+            )
+            for chunk in tokens:
+                for token in [t.strip().split("×")[0] for t in chunk.split(",")][:6]:
+                    if not token or not re.fullmatch(r"[\d.,]+", token):
+                        continue
+                    for label, source in (("M", result.text.split("\n")), ("V", vlines)):
+                        hits = [
+                            line
+                            for line in source
+                            if re.search(rf"(?<![\d.,]){re.escape(token)}(?![\d])", line)
+                        ]
+                        for line in hits[:2]:
+                            at = re.search(rf"(?<![\d.,]){re.escape(token)}(?![\d])", line)
+                            start = max(0, (at.start() if at else 0) - width // 2)
+                            typer.echo(f"      {token:>7} {label}: …{line[start : start + width]}")
+    typer.echo(f"images: {paths.work}/images/{row['stem']}/ (run `images` for the pages)")
 
 
 @app.command()
@@ -371,8 +508,12 @@ def images(
     if row["reader"] == "tiff-zip":
         source = paths.work / f"derived/{row['stem']}.pdf"
     document = pymupdf.open(source)
+    upright_path = paths.work / f"derived/{row['stem']}-upright.pdf"
+    upright = pymupdf.open(upright_path) if upright_path.exists() else None
     for number in sorted({int(p) for p in pages.split(",")}):
-        page = document[number - 1]
+        page = (
+            upright if upright is not None and number in row.get("rotatedPages", []) else document
+        )[number - 1]
         zoom = width / page.rect.width
         page.get_pixmap(matrix=pymupdf.Matrix(zoom, zoom)).save(out / f"p{number:04d}.png")
         typer.echo(out / f"p{number:04d}.png")
@@ -392,7 +533,9 @@ def assemble(
         review = _review(row["slug"])
         if row["reader"] in SCAN_READERS:
             marker, vision = _inputs(paths, row)
-            results, pending = reconcile_act(marker, vision, identity, review)
+            results, pending = reconcile_act(
+                marker, vision, identity, review, exact_primary=_exact(row)
+            )
             if pending and strict:
                 _fail(f"{row['slug']}: flagged pages without a review verdict: {pending}")
             act = build_act_text(results, identity)
@@ -410,7 +553,11 @@ def assemble(
             and "первоначальная" not in meta_text.split("edition:")[-1][:80]
         )
         extra: dict[str, object] = {
-            "textReading": READER if row["reader"] in SCAN_READERS else READERS[row["reader"]]
+            "textReading": READERS["layer"]
+            if row.get("markerSource") == "pdf-layer"
+            else READER
+            if row["reader"] in SCAN_READERS
+            else READERS[row["reader"]]
         }
         if page_count is not None:
             extra.update(

@@ -8,6 +8,7 @@
     "3": "image read (page printed sideways): the functional map matches, five functions A/01.7-A/05.7 of level 7; the two-level header is restored",
     "4": "image read: the table of the generalized labour function matches, including footnote marks 4-8",
     "5": "image read: items, ОКЗ/ЕКС/ОКПДТР/ОКСО codes (221, 20458, 060103) and the first labour function match",
+    "6": "image read: the table matches (the only digit Vision adds is the printed page number 5)",
     "8": "image read: Marker's table matches (including the printed «с явными признаков угрозы жизни»)",
     "10": "image read: the eight knowledge items match",
     "11": "image read: Marker moved the last labour action into the wrong column and added a word («стандартов и медицинской помощи») to the second row of the skills that the image does not have; both fixed",

@@ -18,6 +18,7 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass, field
+from itertools import pairwise
 from pathlib import Path
 from typing import Any, Final, Literal
 
@@ -45,6 +46,13 @@ _ANNEX: Final = re.compile(r"^(?:Приложение(?:\s*[№N]\s*(\d+))?\b)",
 _APPROVED: Final = re.compile(r"^(?:УТВЕРЖДЕН[ОЫАЫ]?|Утвержден[оыаы]?)\b")
 _LAW_PART: Final = re.compile(r"^(?:Глава|Раздел|Часть)\s+[IVXLC\d]+", re.IGNORECASE)
 _LAW_ARTICLE: Final = re.compile(r"^Статья\s+\d", re.IGNORECASE)
+_ANNEX_RUNON: Final = re.compile(
+    r"^(?:к\s|от\s+(?:«|\d)|утвержден\w*\s|приказ\w*\s|Министерства\s|и социального|Российской Федерации\b)",
+    re.IGNORECASE,
+)
+_STRUCTURAL: Final = re.compile(
+    r"^(?:Глава|Раздел|Часть|Статья|Приложение|\d{1,3}[.)]\s|[IVXLC]{1,6}\.\s)", re.IGNORECASE
+)
 _ROMAN: Final = re.compile(r"^[IVXLC]{1,6}\.\s+\S")
 _TERMINAL: Final = re.compile(r"[.;:!?»)\]]$")
 
@@ -151,7 +159,9 @@ def parse_blocks(
                 index += 1
             if len(rows) == 1 and len(rows[0]) == 1:  # a boxed field of a form, not a table
                 text = rows[0][0].replace("\n", " ")
-                blocks.append(Block("paragraph", text, page, confidence=confidence, reviewed=reviewed))
+                blocks.append(
+                    Block("paragraph", text, page, confidence=confidence, reviewed=reviewed)
+                )
             elif rows:
                 blocks.append(
                     Block("table", "", page, rows=rows, confidence=confidence, reviewed=reviewed)
@@ -197,6 +207,11 @@ def merge_pages(pages: list[list[Block]]) -> list[Block]:
                 rows = head.rows
                 if rows and body_tail.rows and rows[0] == body_tail.rows[0]:
                     rows = rows[1:]
+                moved = _continues_row(body_tail.rows[-1], rows[0]) if rows else None
+                if rows and moved is not None:
+                    last = body_tail.rows[-1]
+                    last[moved[1]] = f"{last[moved[1]]} {rows[0][moved[0]]}".strip()
+                    rows = rows[1:]
                 body_tail.rows.extend(rows)
                 body_tail.end_page = head.page
                 merged.extend(footnotes_before)
@@ -216,6 +231,25 @@ def merge_pages(pages: list[list[Block]]) -> list[Block]:
             merged.extend(tail)
     merged.extend(carried_footnotes)
     return merged
+
+
+def _continues_row(previous: list[str], row: list[str]) -> tuple[int, int] | None:
+    """(column of the row's text, column of the previous row to append it to) for a row cut by a page break.
+
+    The cut leaves one filled cell on the new page (lower-case start; the grid may place it in the first column
+    when the cell spans) and the text belongs to the previous row's longest open cell (no closing punctuation).
+    """
+    filled = [i for i, cell in enumerate(row) if cell]
+    if len(filled) != 1 or len(previous) != len(row):
+        return None
+    text = row[filled[0]]
+    open_cells = [i for i, cell in enumerate(previous) if len(cell) > 3 and not cell[:1].isdigit()]
+    if not text[:1].islower() or not open_cells:
+        return None
+    target = max(open_cells, key=lambda i: len(previous[i]))
+    if re.search(r"[.;:!?»)]$", previous[target].rstrip()):
+        return None
+    return filled[0], target
 
 
 def _same_width(left: Block, right: Block) -> bool:
@@ -275,6 +309,18 @@ def structure(blocks: list[Block], identity: ActIdentity, first_page: int = 1) -
                 )
             out.append(block)
             index += 1
+            # The right-aligned header of an annex runs on in the next lines («к Порядку …», «от <date> № …»).
+            while index < len(blocks):
+                nxt = blocks[index]
+                if (
+                    nxt.kind in ("heading", "paragraph")
+                    and len(nxt.text) < 220
+                    and _ANNEX_RUNON.match(nxt.text)
+                ):
+                    block.text = f"{block.text} {nxt.text}"
+                    index += 1
+                    continue
+                break
             continue
         if block.kind == "heading" and _ANNEX.match(text):
             block = Block(
@@ -328,8 +374,14 @@ def _merge_adjacent_headings(blocks: list[Block]) -> list[Block]:
     for block in blocks:
         previous = merged[-1] if merged else None
         if block.kind == "heading" and previous is not None and previous.kind == "heading":
-            title = previous.text.rstrip(" .")
-            previous.text = f"{title}. {block.text}" if title else block.text
+            title = previous.text.rstrip()
+            if not title:
+                previous.text = block.text
+            elif re.search(r"[а-яё,\-]$", title) and not _STRUCTURAL.match(block.text):
+                # one title wrapped over two bold lines
+                previous.text = f"{title} {block.text}"
+            else:
+                previous.text = f"{title.rstrip('.')} — {block.text}"
             previous.level = min(previous.level, block.level)
             continue
         merged.append(block)
@@ -428,6 +480,8 @@ class Review:
     reviewed_at: str = ""
     corrections: list[Correction] = field(default_factory=list)
     verdicts: dict[int, str] = field(default_factory=dict)
+    transcriptions: dict[int, str] = field(default_factory=dict)
+    """Pages whose Markdown was re-typed from the image because Marker's text was beyond a few fixes."""
 
     @classmethod
     def from_json(cls, payload: dict[str, Any]) -> Review:
@@ -445,6 +499,10 @@ class Review:
                 for item in payload.get("corrections", [])
             ],
             verdicts={int(page): str(text) for page, text in payload.get("verdicts", {}).items()},
+            transcriptions={
+                int(page): str(item["text"])
+                for page, item in payload.get("transcriptions", {}).items()
+            },
         )
 
 
@@ -479,6 +537,8 @@ def reconcile_act(
     vision_pages: dict[int, list[str]],
     identity: ActIdentity,
     review: Review | None = None,
+    *,
+    exact_primary: bool = False,
 ) -> tuple[list[PageResult], list[int]]:
     """Reconcile every page; returns the results and the flagged pages without a review verdict."""
     review = review or Review()
@@ -487,18 +547,22 @@ def reconcile_act(
     for page in sorted(vision_pages):
         fixes = [c for c in review.corrections if c.page == page]
         # A page read against its image keeps Marker's text: Vision's tokens are not swapped in again.
-        reviewed = page in review.verdicts or bool(fixes)
+        reviewed = page in review.verdicts or bool(fixes) or page in review.transcriptions
         result = reconcile_page(
             page,
             marker_pages.get(page),
             vision_pages[page],
             identity=identity,
             substitute=not reviewed,
+            exact_primary=exact_primary,
         )
+        if page in review.transcriptions:
+            result.text = review.transcriptions[page]
+            result.reading = "image-transcription"
         if fixes:
             apply_corrections(result, fixes)
         if result.status == "review":
-            if page in review.verdicts or fixes:
+            if page in review.verdicts or fixes or page in review.transcriptions:
                 result.status = "reviewed"
                 result.confidence = "high"
             else:
@@ -573,12 +637,28 @@ def read_marker_pages(directory: Path, count: int) -> dict[int, str | None]:
     return pages
 
 
+def _row_index_lines(lines: list[dict[str, Any]]) -> list[str]:
+    """Vision's lines as text; the integers in the left margin of a table are row numbers («12» → «12.»).
+
+    A table's first column is a row index; Vision often drops its full stop, which would make it look like a
+    quantity. Three or more lone integers in the left fifth of the page, in increasing order, are indexes.
+    """
+    texts = [str(line["text"]) for line in lines]
+    margin = [
+        i
+        for i, line in enumerate(lines)
+        if re.fullmatch(r"\d{1,3}\.?", str(line["text"]).strip()) and line["bbox"][0] < 0.2
+    ]
+    values = [int(re.sub(r"\D", "", texts[i])) for i in margin]
+    if len(margin) >= 3 and sum(1 for a, b in pairwise(values) if b > a) >= len(values) - 2:
+        for i in margin:
+            texts[i] = texts[i].strip().rstrip(".") + "."
+    return texts
+
+
 def read_vision_pages(path: Path) -> dict[int, list[str]]:
     payload = json.loads(path.read_text(encoding="utf-8"))
-    return {
-        int(page["page"]): [str(line["text"]) for line in page.get("lines", [])]
-        for page in payload["pages"]
-    }
+    return {int(page["page"]): _row_index_lines(page.get("lines", [])) for page in payload["pages"]}
 
 
 def identity_from_file(path: Path) -> ActIdentity:

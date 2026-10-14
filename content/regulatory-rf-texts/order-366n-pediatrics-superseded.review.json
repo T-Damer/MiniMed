@@ -1,0 +1,9 @@
+{
+  "documentId": "regulatory.rf.minzdravsoc.366n-2012",
+  "reviewer": "Claude (agent), against the page images; not a lawyer",
+  "reviewedAt": "2026-10-14",
+  "verdicts": {
+    "28": "image read row by row: annex 9 header, the table rows 1-15 and every quantity (including «2 и 8 регистраторов» and «по требованию») match the PDF text layer; the only digit Vision adds is a misread"
+  },
+  "corrections": []
+}
