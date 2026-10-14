@@ -540,6 +540,15 @@ def build_module(
         if reason is not None:
             excluded.append({"documentId": document.document_id, "reason": reason})
             continue
+        if document_kind_of(*split_front_matter(path.read_text(encoding="utf-8"))) == "other":
+            # Nothing in the text says instruction (a journal article linked from a product page).
+            excluded.append(
+                {
+                    "documentId": document.document_id,
+                    "reason": "the content is not an instruction (no title, no standard sections)",
+                }
+            )
+            continue
         paths[document.document_id] = path
         kept.append(document)
     build_report = None

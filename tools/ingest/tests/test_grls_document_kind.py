@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from localmed_ingest.grls_document_kind import classify_scan_document, fold_scan_text
+from localmed_ingest.manufacturer_instruction_modules import document_kind_of
 
 SECTIONS = (
     "Показания к применению Препарат применяют при инфекциях. "
@@ -76,3 +77,29 @@ def test_text_without_title_or_sections_is_other_and_no_text_is_unknown() -> Non
     assert other.kind == "other"
     assert classify_scan_document("").kind == "unknown"
     assert classify_scan_document("<!-- localmed:source {} --> ## 1").kind == "unknown"
+
+
+def test_the_leaflet_title_in_any_case_form_is_found() -> None:
+    text = (
+        "В настоящем листке-вкладыше приводится следующая информация: 1. Что такое препарат "
+        + SECTIONS
+    )
+    assert kind(text) == "leaflet"
+
+
+def test_a_re_prepared_holder_scan_is_classified_by_content_and_a_journal_article_is_other() -> (
+    None
+):
+    scan = {"metadata": {"extraction": {"ocrQuality": "good", "pageCount": 4}}}
+    article = (
+        "Вестник оториноларингологии. Сравнительное исследование эффективности препаратов. " * 30
+    )
+    assert document_kind_of(scan, article) == "other"
+    assert document_kind_of(scan, "ИНСТРУКЦИЯ по применению препарата " + SECTIONS) == (
+        "national-instruction"
+    )
+    # a text layer keeps the title-page classifier
+    assert (
+        document_kind_of({"metadata": {}}, "Листок-вкладыш – информация для пациента. " + SECTIONS)
+        == "leaflet"
+    )

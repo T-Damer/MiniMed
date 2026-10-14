@@ -15,6 +15,7 @@ import sqlite3
 from collections import Counter, defaultdict
 from pathlib import Path
 
+from localmed_ingest.grls_document_kind import NON_INSTRUCTION_KINDS
 from localmed_ingest.grls_groups import build_groups, dosage_form_class, is_active_record
 from localmed_ingest.grls_instruction_modules import (
     RELEASE_ESKLP_DIR,
@@ -41,16 +42,21 @@ def main() -> None:
     included = {doc_id for report in reports.values() for doc_id in report["documentIds"]}
     plan, skipped = plan_instructions(read_manifest_rows(), load_registration_groups())
     covered_numbers: set[str] = set()
+    # a sheet of amendments (OCR1) is not an instruction: registrations it serves alone are counted apart
+    sheet_numbers: set[str] = set()
     registrations_by_group: dict[str, set[str]] = defaultdict(set)
     kinds: Counter[str] = Counter()
     ocr = 0
     for entry in plan:
         if entry.document_id not in included:
             continue
-        covered_numbers.update(entry.registration_numbers)
-        registrations_by_group[entry.group].update(entry.registration_numbers)
         kinds[entry.kind] += 1
         ocr += 1 if entry.newest.get("ocr") else 0
+        if entry.kind in NON_INSTRUCTION_KINDS:
+            sheet_numbers.update(entry.registration_numbers)
+            continue
+        covered_numbers.update(entry.registration_numbers)
+        registrations_by_group[entry.group].update(entry.registration_numbers)
 
     registry = json.loads(REGISTRY.read_text(encoding="utf-8"))["records"]
     active = [
@@ -103,6 +109,7 @@ def main() -> None:
         "kinds": dict(kinds),
         "ocrDocuments": ocr,
         "registrationsServed": len(covered_numbers),
+        "registrationsServedOnlyByAmendmentSheet": len(sheet_numbers - covered_numbers),
         "activeRegistrations": len(active_numbers),
         "activeRegistrationsWithText": len(active_numbers & covered_numbers),
         "esklpRegistrations": len(esklp_registrations),

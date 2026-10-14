@@ -30,7 +30,7 @@ _FOLD = str.maketrans({latin: cyr for latin, cyr in LATIN_TO_CYRILLIC.items()})
 
 _OHLP = re.compile(r"общая\s+характеристика\s+лекарственного\s+препарата|\bохлп\b")
 _LEAFLET = re.compile(
-    r"листок\W{0,3}\s*вклад\w{1,4}|информаци\w*\s+для\s+(?:пациента|потребител\w*)"
+    r"листк\w{1,2}\W{0,3}\s*вклад\w{1,6}|информаци\w*\s+для\s+(?:пациента|потребител\w*)"
 )
 _INSTRUCTION = re.compile(
     r"инструкци\w{0,3}.{0,120}?по\s+(?:медицинскому\s+)?применени\w+"
