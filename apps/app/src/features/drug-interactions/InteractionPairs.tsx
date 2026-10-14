@@ -47,6 +47,7 @@ import {
   pairTitle,
   pairView,
   printPairs,
+  quoteViaText,
   type SideView,
   sideHeading,
   sideNote,
@@ -71,8 +72,17 @@ function QuoteBlock(props: {
   const long = () => props.quote.text.length > 360;
   return (
     <blockquote class="drug-interactions__quote">
-      <span class="drug-interactions__quote-section">
-        {sentenceSectionLabel(props.quote.flags)}
+      <span class="drug-interactions__quote-head">
+        <span class="drug-interactions__quote-section">
+          {sentenceSectionLabel(props.quote.flags)}
+        </span>
+        <Show when={quoteViaText(props.quote)}>
+          {(via) => (
+            <span class="drug-interactions__quote-via" data-testid="interaction-quote-via">
+              {via()}
+            </span>
+          )}
+        </Show>
       </span>
       <p
         class="drug-interactions__quote-text"

@@ -234,6 +234,14 @@ export function sideNote(side: SideView): string | null {
   return side.state === 'ready' ? SUBSTANCE_INSTRUCTION_NOTE : null;
 }
 
+/**
+ * «через фенобарбитал (снотворное)»: the sentence reaches the drug only through an additional
+ * class one of its components brings (CLS1), not through the drug's own substance or class.
+ */
+export function quoteViaText(quote: Pick<Quote, 'secondary'>): string | null {
+  return quote.secondary ? `через ${quote.secondary.via} (${quote.secondary.label})` : null;
+}
+
 /** The pairs as print and share text. */
 export function printPairs(views: readonly PairView[]): readonly PrintPair[] {
   return views.map(
@@ -246,10 +254,15 @@ export function printPairs(views: readonly PairView[]): readonly PrintPair[] {
           heading: sideHeading(side),
           source: sideSourceLine(side),
           note: sideNote(side),
-          quotes: side.quotes.map((quote) => ({
-            text: quote.text,
-            section: sentenceSectionLabel(quote.flags),
-          })),
+          quotes: side.quotes.map((quote) => {
+            const via = quoteViaText(quote);
+            return {
+              text: quote.text,
+              section: via
+                ? `${sentenceSectionLabel(quote.flags)} · ${via}`
+                : sentenceSectionLabel(quote.flags),
+            };
+          }),
         }),
       ),
     }),

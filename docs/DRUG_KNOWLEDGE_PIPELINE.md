@@ -354,6 +354,14 @@ alias is in its entry and in docs/research/atc-index-review-2026-10-14.md. The b
 code, and own-class suppression works per code. When a product's registry code puts it outside a class its own instruction says it belongs to (a cold remedy coded `R05X` that contains dextromethorphan), declare
 `addClasses` for that card in `atc-code-exceptions.json` with the instruction document, section and a verbatim quote: the build checks the quote and refuses it when it is not in the instruction.
 
+`addClasses` entries have a `role` (CLS1, owner 2026-10-14: «one drug can have many classes»). `primary` replaces a wrong registry code (the class joins the card's codes). `secondary` is an additional class
+that one **component** brings (phenobarbital drops for the heart are also a hypnotic; a cold remedy with dextromethorphan is also a cough suppressant): it is kept apart from the codes, names the component (`via`)
+and the class as the view says it (`label`, singular), and is written as the 4th element of the card in the index (`[slug, codes, substances, [[class, via, label], …]]`). Rule of thumb: a class that substitutes a
+wrong code is primary, a class that adds an effect of a component is secondary. A secondary class matches class sentences exactly like a code (`drugTargets` in `interaction-index.ts` keeps the two apart), a sentence
+that reaches the drug only through it is marked in the view («через фенобарбитал (барбитурат, снотворное)»), and the build refuses a secondary class the card's own codes already cover. Several entries per card are
+allowed, each with its own quote. Phenobarbital cards are declared with `N05CB` («Барбитураты в комбинации с другими средствами», the class the registry gives Валокордин) only where the product's own instruction calls
+the phenobarbital sedative or hypnotic or names a barbiturate; the other component classes found (codeine, caffeine, phenylephrine, paracetamol, chlorphenamine) are listed in the review note, not declared.
+
 Judge every changed class membership against the product's own instruction (docs/research/atc-index-review-*.md has the method), declare
 the wrong ones as exceptions, rebuild, and update the review JSON that `atc-index.data.test.ts` reads. The index is an app asset
 (committed, ships with the app release); there is no mirror tag for it.

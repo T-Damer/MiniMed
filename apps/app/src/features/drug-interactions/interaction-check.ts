@@ -3,7 +3,8 @@
  * references to sentences; the text of a sentence is read from the installed instruction.
  */
 import {
-  drugTargetSet,
+  type DrugTargets,
+  drugTargets,
   type IndexedSentence,
   type InteractionIndex,
   sentencesNaming,
@@ -29,13 +30,24 @@ function alcoholTarget(index: InteractionIndex): number | null {
   return position < 0 ? null : position;
 }
 
-/** The targets of the index that name this item: its substances and the classes it belongs to. */
-export function itemTargets(index: InteractionIndex, item: DrugItem): ReadonlySet<number> {
+/** The targets of the index that name this item, split by how it belongs to them (CLS1). */
+export function itemTargetSplit(index: InteractionIndex, item: DrugItem): DrugTargets {
   if (item.kind === 'alcohol') {
     const target = alcoholTarget(index);
-    return new Set(target === null ? [] : [target]);
+    return { primary: new Set(target === null ? [] : [target]), secondary: new Map() };
   }
-  return item.card === null ? new Set() : drugTargetSet(index, item.card);
+  return item.card === null
+    ? { primary: new Set(), secondary: new Map() }
+    : drugTargets(index, item.card);
+}
+
+/**
+ * The targets of the index that name this item: its substances, the classes it belongs to and the
+ * additional classes a component brings.
+ */
+export function itemTargets(index: InteractionIndex, item: DrugItem): ReadonlySet<number> {
+  const { primary, secondary } = itemTargetSplit(index, item);
+  return new Set([...primary, ...secondary.keys()]);
 }
 
 /** The instruction the tool reads for an item: the best indexed one of its card; alcohol has none. */
@@ -65,7 +77,10 @@ export interface PairCheck {
 
 function side(index: InteractionIndex, from: DrugItem, to: DrugItem): SideCheck {
   const documentId = itemDocumentId(index, from);
-  const sentences = documentId ? sentencesNaming(index, documentId, itemTargets(index, to)) : [];
+  const { primary, secondary } = itemTargetSplit(index, to);
+  const sentences = documentId
+    ? sentencesNaming(index, documentId, new Set([...primary, ...secondary.keys()]), secondary)
+    : [];
   return { from, to, documentId, sentences };
 }
 

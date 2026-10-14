@@ -1,5 +1,5 @@
 {
-  "$comment": "Declared corrections to the ATC codes the interaction index carries for a card, decided by the medical review in docs/research/atc-index-review-2026-10-14.json. «exceptions»: a code the card must NOT carry (card + code + reason + review). «addClasses»: a class the card belongs to for the class rules although its registry code puts it elsewhere (card + classes + reason + evidence quoted from the product's own instruction + review); the build refuses an addition whose quote is not in the instruction. Both are applied at build time by selectAtcCodes; the index holds the result, nothing in the app branches on a drug id. The льна посевного семена / A06AC05 exception was removed by the owner on 2026-10-14 (see «ownerDecisions» in the review).",
+  "$comment": "Declared corrections to the ATC codes the interaction index carries for a card, decided by the medical review in docs/research/atc-index-review-2026-10-14.json. «exceptions»: a code the card must NOT carry (card + code + reason + review). «addClasses»: a class the card belongs to for the class rules although its registry code puts it elsewhere (card + role + classes + reason + evidence quoted from the product's own instruction + review); the build refuses an addition whose quote is not in the instruction. «role»: `primary` replaces a wrong code (the class joins the card's codes); `secondary` is an additional class that one component brings (owner 2026-10-14: «one drug can have many classes»; Корвалол is a heart remedy first, the hypnotic class is secondary) — it stays apart from the codes, names the component (`via`) and the class (`label`, singular) the interaction view shows («через фенобарбитал (снотворное)»), and still matches class sentences. Both are applied at build time by selectAtcCodes; the index holds the result, nothing in the app branches on a drug id. The льна посевного семена / A06AC05 exception was removed by the owner on 2026-10-14 (see «ownerDecisions» in the review).",
   "exceptions": [
     {
       "card": "esklp.mnn.интерферон-альфа-2b-лоратадин",
@@ -11,8 +11,13 @@
   "addClasses": [
     {
       "card": "esklp.mnn.декстрометорфан-парацетамол-псевдоэфедрин-аскорбиновая-кислота",
-      "classes": ["R05D"],
-      "reason": "A cold remedy coded R05X (other cold remedies) whose instruction says dextromethorphan is in it to suppress cough, so the sentences that name cough suppressants («не применять с противокашлевыми средствами») apply to it. R05D = «Противокашлевые препараты, кроме комбинаций с отхаркивающими средствами»; the product has no expectorant.",
+      "role": "secondary",
+      "classes": [
+        "R05D"
+      ],
+      "via": "декстрометорфан",
+      "label": "противокашлевое",
+      "reason": "A cold remedy coded R05X (other cold remedies) whose instruction says dextromethorphan is in it to suppress cough, so the sentences that name cough suppressants («не применять с противокашлевыми средствами») apply to it. Secondary: the registry code R05X is not wrong, the cough-suppressant class is brought by one component. R05D = «Противокашлевые препараты, кроме комбинаций с отхаркивающими средствами»; the product has no expectorant.",
       "evidence": {
         "document": "drug.rf.9374e574b43f16da2090.instruction",
         "section": "Показания к применению",
@@ -22,12 +27,97 @@
     },
     {
       "card": "esklp.mnn.дексаметазон-неомицин-полимиксин-b-фенилэфрин",
-      "classes": ["R01AA"],
-      "reason": "A nasal spray coded R01AD53 (corticosteroid combinations) that contains phenylephrine and whose instruction places itself in the group «деконгестанты и другие препараты для местного применения». The class word «деконгестанты» now means the sympathomimetic decongestants (R01AA, R01AB, R01BA, S01GA), not all of R01A, so the product is declared a member of R01AA («Симпатомиметики») to keep the sentences about decongestants with MAO inhibitors and antihypertensives.",
+      "role": "secondary",
+      "classes": [
+        "R01AA"
+      ],
+      "via": "фенилэфрин",
+      "label": "деконгестант",
+      "reason": "A nasal spray coded R01AD53 (corticosteroid combinations) that contains phenylephrine and whose instruction places itself in the group «деконгестанты и другие препараты для местного применения». The class word «деконгестанты» now means the sympathomimetic decongestants (R01AA, R01AB, R01BA, S01GA), not all of R01A, so the product is declared a secondary member of R01AA («Симпатомиметики») to keep the sentences about decongestants with MAO inhibitors and antihypertensives; the registry code is not wrong, the class is brought by phenylephrine.",
       "evidence": {
         "document": "drug.rf.9e446b30e83d78540737.instruction",
         "section": "Фармакотерапевтическая группа",
         "quote": "деконгестанты и другие препараты для местного применения; кортикостероиды. Код АТХ: R01AD53."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.мяты-перечной-листьев-масло-фенобарбитал-этилбромизовалерианат",
+      "role": "secondary",
+      "classes": [
+        "N05CB"
+      ],
+      "via": "фенобарбитал",
+      "label": "барбитурат, снотворное",
+      "reason": "Корвалол-type drops (also Корвалол Реневал, Корвалол-МФФ, Валосердин Таб) are coded N05CM (herbal and bromide sedatives), which the 2026-10-14 narrowing of «снотворные» (N05CA–CF, CH, CJ, CX) left out of the hypnotic sentences. The drops are a heart remedy first (owner 2026-10-14), but the instruction names phenobarbital as hypnotic; N05CB = «Барбитураты в комбинации с другими средствами», the class the registry itself gives Валокордин (phenobarbital + ethyl bromisovalerianate, N05CB02).",
+      "evidence": {
+        "document": "drug.rf.11224dfbc34dac4272ec.instruction",
+        "section": "Фармакодинамика",
+        "quote": "Фенобарбитал обладает седативным (в малых дозах), снотворным, миорелаксирующим и спазмолитическим действием, способствует снижению возбуждения центральной нервной системы (ЦНС) и облегчает наступление сна, усиливает седативное влияние других компонентов."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.левоментола-раствор-в-ментилизовалерате-фенобарбитал-этилбромизовалерианат",
+      "role": "secondary",
+      "classes": [
+        "N05CB"
+      ],
+      "via": "фенобарбитал",
+      "label": "барбитурат, снотворное",
+      "reason": "Корвалол-Экстра is coded C01EX (other cardiac preparations) and never carried a hypnotic class; its instruction says phenobarbital eases falling asleep, and its interaction section says that the barbiturate it contains strengthens hypnotics. Additional class of the phenobarbital component (N05CB, barbiturates in combination).",
+      "evidence": {
+        "document": "drug.rf.a839305bcbeff04c58c0.instruction",
+        "section": "Фармакодинамика",
+        "quote": "Фенобарбитал Усиливает седативное влияние других компонентов препарата, способствует снижению возбуждения центральной нервной системы и облегчает наступление сна."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.кодеин-кофеин-метамизол-натрия-фенобарбитал",
+      "role": "secondary",
+      "classes": [
+        "N05CB"
+      ],
+      "via": "фенобарбитал",
+      "label": "барбитурат, снотворное",
+      "reason": "An analgesic combination (N02BB72; Тетралганол, Кватрокс, Тетралгин) whose instruction names its phenobarbital (10 mg) as hypnotic; the analgesic is the primary class, the barbiturate an additional one (N05CB).",
+      "evidence": {
+        "document": "drug.rf.3461eebd8595b2bfb158.instruction",
+        "section": "Фармакодинамика",
+        "quote": "Фенобарбитал Обладает седативным (в малых дозах), снотворным, миорелаксирующим и спазмолитическим действием, способствует снижению возбуждения ЦНС и облегчает наступление сна."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.бендазол-метамизол-натрия-папаверин-фенобарбитал",
+      "role": "secondary",
+      "classes": [
+        "N05CB"
+      ],
+      "via": "фенобарбитал",
+      "label": "барбитурат, снотворное",
+      "reason": "An analgesic-antispasmodic combination (N02BB52; Андипал, Андипал Реневал) whose instruction states that its phenobarbital (20 mg) is a barbituric acid derivative with a sedative effect in small doses («В малых дозах фенобарбитал оказывает седативный эффект и усиливает действие других компонентов»); additional class N05CB.",
+      "evidence": {
+        "document": "drug.rf.2bd2fa8fc40b73b9ecf5.instruction",
+        "section": "Фармакодинамика",
+        "quote": "Фенобарбитал – производное барбитуровой кислоты."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.кодеин-кофеин-метамизол-натрия-парацетамол-фенобарбитал",
+      "role": "secondary",
+      "classes": [
+        "N05CB"
+      ],
+      "via": "фенобарбитал",
+      "label": "барбитурат, снотворное",
+      "reason": "An analgesic combination (N02BB72; Седал-М, Пенталгин-ICN, Пентанов-ICN, Сантопералгин, Седальгин-Нео) whose instruction lists a barbiturate among its pharmacotherapeutic classes and states a sedative action of its phenobarbital; the analgesic is the primary class, the barbiturate an additional one (N05CB).",
+      "evidence": {
+        "document": "drug.rf.4803db68c77181561f14.instruction",
+        "section": "Фармакотерапевтическая группа",
+        "quote": "Анальгезирующее средство (анальгезирующее опиоидное средство + НПВП + анальгезирующее ненаркотическое средство + психостимулирующее средство + барбитурат)."
       },
       "review": "docs/research/atc-index-review-2026-10-14.json"
     }

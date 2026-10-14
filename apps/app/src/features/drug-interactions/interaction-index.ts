@@ -23,11 +23,21 @@ export const INSTRUCTION_KINDS = [
 ] as const;
 export type IndexedInstructionKind = (typeof INSTRUCTION_KINDS)[number];
 
-/** `[card id without «esklp.mnn.», ATC codes, substance target indexes]`. */
+/**
+ * An additional class one component brings to a card (CLS1): `[ATC group code, component, label]`,
+ * e.g. `['N05CB', 'фенобарбитал', 'снотворное']`.
+ */
+export type AssetSecondaryClass = readonly [code: string, via: string, label: string];
+
+/**
+ * `[card id without «esklp.mnn.», ATC codes, substance target indexes, secondary classes]`; the
+ * last element is written only for a card that has secondary classes.
+ */
 export type AssetCard = readonly [
   slug: string,
   atcCodes: readonly string[],
   substances: readonly number[],
+  secondary?: readonly AssetSecondaryClass[],
 ];
 
 /** Section ids are `section.<hex>`; the asset keeps the part after the dot. */
@@ -119,15 +129,34 @@ function indexArray(value: unknown, what: string, limit: number): readonly numbe
   return value as readonly number[];
 }
 
+function parseSecondary(value: unknown, slug: string): readonly AssetSecondaryClass[] {
+  if (!Array.isArray(value) || value.length === 0) {
+    fail(`card ${slug} has an empty list of secondary classes`);
+  }
+  return (value as readonly unknown[]).map((entry) => {
+    if (
+      !Array.isArray(entry) ||
+      entry.length !== 3 ||
+      entry.some((item) => typeof item !== 'string' || item === '')
+    ) {
+      fail(`card ${slug} has a malformed secondary class`);
+    }
+    return entry as unknown as AssetSecondaryClass;
+  });
+}
+
 function parseCard(value: unknown, targetCount: number): AssetCard {
-  if (!Array.isArray(value) || value.length !== 3) fail('a card is not [slug, atc, substances]');
-  const [slug, atc, substances] = value as readonly unknown[];
+  if (!Array.isArray(value) || (value.length !== 3 && value.length !== 4)) {
+    fail('a card is not [slug, atc, substances] or [slug, atc, substances, secondary]');
+  }
+  const [slug, atc, substances, secondary] = value as readonly unknown[];
   if (typeof slug !== 'string' || slug === '') fail('a card has no id');
-  return [
+  const base = [
     slug,
     stringArray(atc, 'card ATC codes'),
     indexArray(substances, 'card substances', targetCount),
-  ];
+  ] as const;
+  return value.length === 4 ? [...base, parseSecondary(secondary, slug)] : base;
 }
 
 function parseDocument(
@@ -279,6 +308,15 @@ export function createInteractionIndex(asset: InteractionIndexAsset): Interactio
   return { asset, cardBySlug, documentsOfCard, cardsOfSubstance };
 }
 
+/** How a drug is reached by a class sentence it does not belong to by its own codes (CLS1). */
+export interface SecondaryHit {
+  readonly code: string;
+  /** The component that brings the class. */
+  readonly via: string;
+  /** The class, singular. */
+  readonly label: string;
+}
+
 export interface IndexedSentence {
   readonly documentId: string;
   /** Full section id and the checksum of its canonical text. */
@@ -287,26 +325,59 @@ export interface IndexedSentence {
   readonly end: number;
   readonly flags: number;
   readonly targets: readonly number[];
+  /**
+   * Set when the drug is reached only through a secondary class (the sentence names no substance
+   * or primary class of the drug): the component and class the view names.
+   */
+  readonly secondary?: SecondaryHit | undefined;
 }
 
-/** Which targets of the index a drug is hit by: its substances and the classes its ATC codes fall in. */
-export function drugTargetSet(index: InteractionIndex, cardIndex: number): ReadonlySet<number> {
+/** The targets a drug is hit by, split by how it belongs to them (CLS1). */
+export interface DrugTargets {
+  /** Its substances and the classes its own ATC codes fall in. */
+  readonly primary: ReadonlySet<number>;
+  /** Class targets reached only through a secondary class, with the class that reaches them. */
+  readonly secondary: ReadonlyMap<number, SecondaryHit>;
+}
+
+export function drugTargets(index: InteractionIndex, cardIndex: number): DrugTargets {
   const card = index.asset.cards[cardIndex];
-  const hit = new Set<number>(card?.[2] ?? []);
-  if (!card) return hit;
+  const primary = new Set<number>(card?.[2] ?? []);
+  const secondary = new Map<number, SecondaryHit>();
+  if (!card) return { primary, secondary };
+  const additional = card[3] ?? [];
   index.asset.targets.forEach((target, targetIndex) => {
     if (!target.startsWith('c:')) return;
     const code = target.slice(2);
-    if (card[1].some((atc) => atc.startsWith(code))) hit.add(targetIndex);
+    if (card[1].some((atc) => atc.startsWith(code))) {
+      primary.add(targetIndex);
+      return;
+    }
+    const via = additional.find(([extra]) => extra.startsWith(code));
+    if (via) secondary.set(targetIndex, { code: via[0], via: via[1], label: via[2] });
   });
-  return hit;
+  return { primary, secondary };
 }
 
-/** The sentences of `documentId` that name something in `targets`, in reading order. */
+/**
+ * Which targets of the index a drug is hit by: its substances, the classes its ATC codes fall in
+ * and the classes it belongs to as an additional one.
+ */
+export function drugTargetSet(index: InteractionIndex, cardIndex: number): ReadonlySet<number> {
+  const { primary, secondary } = drugTargets(index, cardIndex);
+  return new Set([...primary, ...secondary.keys()]);
+}
+
+/**
+ * The sentences of `documentId` that name something in `targets`, in reading order. With
+ * `secondary` (the drug's secondary class targets), a sentence that names nothing but those is
+ * marked with the class that reaches the drug.
+ */
 export function sentencesNaming(
   index: InteractionIndex,
   documentId: string,
   targets: ReadonlySet<number>,
+  secondary: ReadonlyMap<number, SecondaryHit> = new Map(),
 ): readonly IndexedSentence[] {
   const document = index.asset.documents[documentId];
   if (!document) return [];
@@ -318,6 +389,10 @@ export function sentencesNaming(
     if (!named.some((target) => targets.has(target))) continue;
     const sectionEntry = document.sec[section];
     if (!sectionEntry) continue;
+    const reached = named.filter((target) => targets.has(target));
+    const through = reached.every((target) => secondary.has(target))
+      ? secondary.get(reached[0] ?? -1)
+      : undefined;
     sentences.push({
       documentId,
       section: [`${SECTION_ID_PREFIX}${sectionEntry[0]}`, sectionEntry[1]],
@@ -325,6 +400,7 @@ export function sentencesNaming(
       end,
       flags,
       targets: named,
+      ...(through ? { secondary: through } : {}),
     });
   }
   return sentences;

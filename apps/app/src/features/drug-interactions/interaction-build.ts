@@ -194,7 +194,15 @@ export function createInteractionBuilder(input: {
         const extracted = extractDocumentSpans(loaded, combined, {
           isLeaflet: document.kind === 'leaflet',
           ownKeys,
-          ownAtcCodes: cardIndexes.flatMap((index) => input.cards[index]?.atcCodes ?? []),
+          // A card is also a member of its secondary classes: a class word in its own warning
+          // sections describes itself there too.
+          ownAtcCodes: cardIndexes.flatMap((index) => {
+            const card = input.cards[index];
+            return [
+              ...(card?.atcCodes ?? []),
+              ...(card?.secondaryClasses ?? []).map((extra) => extra.code),
+            ];
+          }),
           ...(input.onSentence
             ? {
                 onSentence: (sentence) =>
@@ -259,11 +267,17 @@ export function createInteractionBuilder(input: {
       const targetIndex = new Map(targets.map((target, index) => [target, index]));
       const usedTargets = new Map<string, number>();
 
-      const cards: AssetCard[] = input.cards.map((card) => [
-        card.id.replace(/^esklp\.mnn\./u, ''),
-        [...card.atcCodes],
-        cardSubstanceKeys(card).map((key) => targetIndex.get(`s:${key}`) ?? -1),
-      ]);
+      const cards: AssetCard[] = input.cards.map((card) => {
+        const base = [
+          card.id.replace(/^esklp\.mnn\./u, ''),
+          [...card.atcCodes],
+          cardSubstanceKeys(card).map((key) => targetIndex.get(`s:${key}`) ?? -1),
+        ] as const;
+        const extra = (card.secondaryClasses ?? []).map(
+          (item) => [item.code, item.via, item.label] as const,
+        );
+        return extra.length > 0 ? [...base, extra] : base;
+      });
 
       const documents: Record<string, AssetDocument> = {};
       let spanCount = 0;

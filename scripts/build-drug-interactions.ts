@@ -11,7 +11,8 @@
  * - the published ЕСКЛП group modules (`scripts/lib/published-esklp.ts`, the same SHA-256 check;
  *   `--esklp-dir` takes a directory of decoded databases instead): names, components, ATC codes,
  *   registration numbers. The ATC codes are chosen by `selectAtcCodes` (ATC4, `atc-codes.ts`),
- *   the declared exceptions and the declared class additions (`addClasses`, ATC4c; each quotes the
+ *   the declared exceptions and the declared class additions (`addClasses`, ATC4c / CLS1: `primary`
+ *   replaces a wrong code, `secondary` is an additional class one component brings; each quotes the
  *   product's own instruction, and the build refuses a quote that is not in it) in
  *   `data/atc-code-exceptions.json`;
  * - `MINIMED_DATA_ROOT`: the checkout that holds the ignored `data/` and `output/` (the main one,
@@ -32,6 +33,7 @@ import {
   additionEvidenceHolds,
   parseAtcClassAdditions,
   parseAtcCodeExceptions,
+  redundantSecondary,
   selectAtcCodesOfMetadata,
 } from '../apps/app/src/features/drug-interactions/atc-codes';
 import {
@@ -125,13 +127,21 @@ function loadEsklpCards(
         }
       }
     }
+    const selection = selectAtcCodesOfMetadata(id, metadata, exceptions, additions);
+    const redundant = redundantSecondary(selection);
+    if (redundant.length > 0) {
+      throw new Error(
+        `addClasses: ${redundant.map((entry) => entry.code).join(', ')} (${id}) is already among the card's own codes; remove the secondary declaration`,
+      );
+    }
     rows.push({
       card: {
         id,
         name: textOf(metadata['standardizedInn']) ?? title,
         synonyms: stringList(metadata['inn']),
         components: stringList(metadata['componentInns']),
-        atcCodes: selectAtcCodesOfMetadata(id, metadata, exceptions, additions).codes,
+        atcCodes: selection.codes,
+        ...(selection.secondary.length > 0 ? { secondaryClasses: selection.secondary } : {}),
       },
       registrationKeys: [...registrations].toSorted(),
     });
@@ -340,7 +350,7 @@ function main(): void {
     (directory) => loadEsklpCards(directory, exceptions, additions),
   );
   console.log(
-    `ЕСКЛП cards: ${cards.length}, ATC code exceptions: ${exceptions.length}, class additions: ${additions.length}`,
+    `ЕСКЛП cards: ${cards.length}, ATC code exceptions: ${exceptions.length}, class additions: ${additions.length} (secondary: ${additions.filter((addition) => addition.role === 'secondary').length})`,
   );
 
   const debugDirectory = argument('--debug-dir');

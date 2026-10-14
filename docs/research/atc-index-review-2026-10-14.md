@@ -11,6 +11,9 @@ brief: the data is 90–99 % right, so the review covers only what the completed
 >
 > **Status 2026-10-14 (ATC4c):** the owner then asked for the other over-broad class words to be narrowed the same way, a data-declared way to add a class to one card, and an
 > assessment from the doctor's side. Decisions, counts and the «User-perspective assessment» are at the end («Owner decisions 2026-10-14, second part»).
+>
+> **Status 2026-10-14 (CLS1):** the owner then decided that one drug can have several classes: a primary one (its ATC codes) and secondary, additional ones that a component brings. The five phenobarbital
+> cards regain the hypnotic and barbiturate sentences as a secondary class, and the two ATC4c additions became secondary too (OD6 at the end, «Owner decisions 2026-10-14, third part»).
 
 ## Where ATC codes are used
 
@@ -231,7 +234,7 @@ What each decision rests on (full lists of the cards that lose or gain a word, w
 - **«Психостимуляторы» → `N06BA`, `N06BC`, `N06CB`.** The sentences speak of methylphenidate, amphetamine, caffeine. `N06BX` is nootropics (28 of the 32 cards before); `N06BC` (caffeine)
   is added to the owner's `N06BA` because the instructions name caffeine as a psychostimulant.
 - **«Снотворные» → `N05CA`–`N05CF`, `N05CH`, `N05CJ`, `N05CX`, not `N05CM`.** `N05CM` is the herbal and bromide sedatives (30 cards: valerian, motherwort, peony, bromcamphor) and dexmedetomidine. «Седативные»
-  stays on all of `N05C`, so «седативные и снотворные средства» still reaches them. Residual: two phenobarbital drops coded only `N05CM` (Корвалол) and dexmedetomidine lose the hypnotic sentences.
+  stays on all of `N05C`, so «седативные и снотворные средства» still reaches them. Residual (repaired by CLS1, OD6): the phenobarbital drops coded only `N05CM` (Корвалол) lost the hypnotic sentences; dexmedetomidine still does.
 - **«Противодиарейные» → `A07B`, `A07D`, `A07X`.** The sentences are about adsorbent and motility-reducing antidiarrhoeals (lincomycin, aminophylline absorption; «не принимайте
   препараты, останавливающие диарею»). Probiotics `A07F` (16 live-organism cards) have their own phrase «противодиарейные микроорганизмы», intestinal anti-infectives and anti-inflammatories
   `A07A`/`A07E` and rehydration salts `A07C` are not antidiarrhoeals in that sense.
@@ -260,7 +263,7 @@ exist. No UI code branches on a drug id; the index holds the result.
 - **Полидекса с фенилэфрином** (dexamethasone + neomycin + polymyxin B + phenylephrine nasal spray, `R01AD53`) → `R01AA`: not asked for; the narrowing of «деконгестанты» would have taken the decongestant
   sentences (MAO inhibitors, antihypertensives) away from a product that calls itself «деконгестанты и другие препараты для местного применения»; it also gains the «симпатомиметики» sentences it never had.
 - The same gap exists, undeclared, for cold remedies coded `R05X`/`N02BE` that contain pseudoephedrine, phenylephrine or paracetamol (not in the decongestant or analgesic classes by code, as before), phenobarbital
-  drops coded only `N05CM`, and камилофин-кофеин-меклоксамин-пропифеназон-эрготамин (`N02CA52`, no instruction in the product).
+  drops coded only `N05CM` (declared as a secondary class by CLS1, OD6), and камилофин-кофеин-меклоксамин-пропифеназон-эрготамин (`N02CA52`, no instruction in the product).
 
 ### C. User-perspective assessment
 
@@ -312,3 +315,59 @@ made it worse would not be applied. **Result: 20 better, 20 neutral (mostly cont
 Limits (also in the JSON): the tool reads only the best instruction of each card; own-class suppression works per code, so with a word that stands for several codes a sentence in which an instruction describes its own
 class reaches the sibling subgroups (cytostatics +115 document pairs, analgesics +536, hypnotics +50; in the analgesic case most of it is real, the morphine and tramadol sentences about other analgesics, the rest is the
 self-description of paracetamol cold remedies shown to 13 opioid cards); no clinician has judged the verdicts; not tested in the full app in a browser against the rebuilt asset (see CURRENT_STATE).
+
+## Owner decisions 2026-10-14, third part (CLS1, OD6)
+
+Owner: «Корвалол is about treating the heart, so the hypnotic class is secondary (extra, additional). One drug can have many classes.» The ATC4c narrowing of «снотворные» (N05CA–CF, CH, CJ, CX) had taken the
+hypnotic sentences from the phenobarbital drops coded only `N05CM`.
+
+### The model
+
+A drug has a **primary class** (its ATC codes, as before) and may have **secondary classes**. `addClasses` in `atc-code-exceptions.json` gets `role`:
+
+- `primary` (default): replaces a wrong code; the class joins the card's codes.
+- `secondary`: an additional class that **one component brings**. It stays apart from the codes and names the component (`via`, «фенобарбитал») and the class in the view (`label`, singular). Several entries per card are
+  allowed; each still has a reason and a verbatim quote of the product's own instruction, and the build refuses a missing quote, an unknown card or class, and a secondary class the card's own codes already cover.
+
+Rule used to decide the role: a class that substitutes a wrong code is primary; a class that adds the effect of a component is secondary. By that rule the two ATC4c entries (Каффетин Колд → `R05D` via
+dextromethorphan, Полидекса с фенилэфрином → `R01AA` via phenylephrine) are secondary: the registry codes `R05X` and `R01AD53` are not wrong. Their pairs do not change (0 documents, 0 sentences).
+
+In the index a card is `[slug, ATC codes, substances, [[class, component, label], …]]` (the last element only for a card that has one). Secondary classes match class sentences exactly like codes (warnings about
+hypnotics reach Корвалол); a sentence that reaches a drug **only** through a secondary class is marked, and the interaction view says so (below). A secondary class also counts as the card's own class for the suppression
+of class mentions in the warning sections of its own instruction (0 documents changed).
+
+### Applied: phenobarbital, secondary class `N05CB`
+
+`N05CB` «Барбитураты в комбинации с другими средствами», not `N05CA` (monocomponent barbiturates): the registry itself gives the same combination (Валокордин, phenobarbital + ethyl bromisovalerianate) `N05CB02`. The class is
+in the word «снотворные» and is what «барбитураты» names, so these drugs now receive both the hypnotic and the barbiturate sentences; the label is «барбитурат, снотворное».
+
+| Card (products) | Primary code | Quote (the product's own instruction) | Document pairs | Sentence pairs |
+| --- | --- | --- | --- | --- |
+| Корвалол, Корвалол Реневал, Корвалол-МФФ, Валосердин Таб | `N05CM` | «Фенобарбитал обладает седативным (в малых дозах), снотворным, миорелаксирующим и спазмолитическим действием, способствует снижению возбуждения центральной нервной системы (ЦНС) и облегчает наступление сна …» (Фармакодинамика) | +287 | +478 |
+| Корвалол-Экстра | `C01EX` | «Фенобарбитал Усиливает седативное влияние других компонентов препарата, способствует снижению возбуждения центральной нервной системы и облегчает наступление сна.» (Фармакодинамика) | +453 | +702 |
+| Тетралганол, Кватрокс, Тетралгин | `N02BB72` | «Фенобарбитал Обладает седативным (в малых дозах), снотворным, миорелаксирующим и спазмолитическим действием …» (Фармакодинамика) | +366 | +650 |
+| Андипал, Андипал Реневал | `N02BB52` | «Фенобарбитал – производное барбитуровой кислоты.» (Фармакодинамика; the next sentence: sedative effect in small doses) | +400 | +660 |
+| Седал-М, Пенталгин-ICN, Пентанов-ICN, Сантопералгин, Седальгин-Нео | `N02BB72` | «… психостимулирующее средство + барбитурат).» (Фармакотерапевтическая группа) | +351 | +649 |
+
+Rule for including a card: its own instruction calls the phenobarbital in it sedative or hypnotic, or names it or the product a barbiturate. Already hypnotic by code, so nothing to add: Беллатаминал, Валокордин,
+Валосемид, Валосердин, Валорелас (`N05CB02`).
+
+**Not applied, no instruction in the modules (no evidence):** Пентабуфен, Пенталгин Плюс / Пентанов Плюс, Тетралгин Н / Триалгин, Корвалол плюс Форте (`N05CM`) — each gets the class once an instruction of the product is in
+a module. **For the owner, instruction exists but does not call the phenobarbital sedative, hypnotic or barbiturate:** ПАГЛЮВЕРИН-2/-3 (antiepileptic; «барбитуратный» receptor site only), Теофедрин-Н («устраняет
+возбуждение центральной нервной системы»), Пенталгин-Н / Пиралгин (only an amendment sheet is in the modules), single-substance Фенобарбитал (`N03AA02`, an antiepileptic barbiturate by its own code).
+
+### What a doctor sees
+
+Corvalol-type drops against common drugs (`checkPair` before → after, sentences read from the installed modules): зопиклон 4 → 7, амитриптилин 0 → 3, морфин 2 → 4, магния сульфат 0 → 1, лизиноприл 0 → 1, бисопролол 0 → 1,
+доксициклин 0 → 1, дилтиазем 1 → 2, парацетамол 1 → 2; unchanged where the phenobarbital substance or «седативные» already found the sentence (варфарин, диазепам, фенитоин, вориконазол, этанол, нифедипин). Every added
+sentence is a true statement about barbiturates or hypnotics for a drug that contains phenobarbital; nothing got worse.
+
+In the interaction checker, the prescription tool and the comparison (one shared `InteractionPairs`) a quote reached only through a secondary class carries a small italic line beside the section label,
+«через фенобарбитал (барбитурат, снотворное)»; print and share text carry the same words. No raw codes. The drug screen and the ATC sheet belong to DRUG-UI1 and read ATC codes from the comparison index; the
+secondary class is card element 4 of the interaction index, so a «также: снотворное» line there needs that agent to choose its source (reported in `STATE.md`).
+
+### Other component-driven classes (listed, not applied)
+
+Cards that contain the component, are not in the class by code and have an instruction in the modules: codeine → opioid or antitussive (`N02A`, `R05DA`): 4 of 11; phenylephrine or pseudoephedrine → decongestant: 15 of 23;
+caffeine → psychostimulant (`N06BC`): 19 of 33; paracetamol → analgesic (`N02BE`): 14 of 15; chlorphenamine → antihistamine (`R06A`): 6 of 13. Codeine and caffeine are the two where the class sentences matter most.
+Each would need its own quote per product; the owner decides which to declare.

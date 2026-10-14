@@ -6241,6 +6241,263 @@
         "Cold remedies coded R05X or N02BE that contain pseudoephedrine/phenylephrine (decongestants) or paracetamol (analgesic) are not in those classes by code, as before; the substance rules find the substances.",
         "Drops with phenobarbital coded only N05CM (Корвалол) are not in the barbiturate classes; камилофин-кофеин-меклоксамин-пропифеназон-эрготамин (N02CA52) holds an analgesic and has no instruction in the product."
       ]
+    },
+    {
+      "id": "OD6",
+      "decision": "CLS1: a drug has a primary class (its ATC codes) and may have secondary, additional classes that one component brings. The phenobarbital drops and analgesic combinations regain the hypnotic and barbiturate sentences, labelled as secondary.",
+      "owner": "owner decision 2026-10-14: «Корвалол is about treating the heart, so the hypnotic class is secondary (extra, additional). One drug can have many classes.»",
+      "change": {
+        "model": "addClasses gets `role` («primary»: replaces a wrong code and joins the card codes; «secondary»: an additional class one component brings, stays apart from the codes, with `via` = the component and `label` = the class in the view). Several entries per card are allowed (a class is declared once per card). Each entry still carries a reason and a verbatim quote of the product’s own instruction; the build refuses a missing quote, a card or class that does not exist, and a secondary class the card’s own codes already cover.",
+        "files": "atc-codes.ts (parse, selectAtcCodes → secondary, redundantSecondary), scripts/build-drug-interactions.ts, interaction-build.ts (card element 4: [[code, via, label]], own-class suppression counts the secondary code too), interaction-index.ts (drugTargets: primary targets and secondary targets; sentencesNaming marks a sentence that reaches the drug only through a secondary class), interaction-check.ts, interaction-quotes.ts (Quote.secondary), interaction-view.ts (quoteViaText, print and share), InteractionPairs.tsx + drug-interactions.css (a small italic line in the quote head)",
+        "existingEntries": "the two ATC4c entries become secondary: Каффетин Колд (R05D, via декстрометорфан, «противокашлевое») and Полидекса с фенилэфрином (R01AA, via фенилэфрин, «деконгестант») — the registry codes R05X and R01AD53 are not wrong, the class is brought by one component. Their pairs do not change (0 documents, 0 sentences); only the card now keeps the real registry code alone in the codes list and the class in the secondary list.",
+        "classCode": "N05CB «Барбитураты в комбинации с другими средствами», not N05CA «Барбитураты» (monocomponent): the registry gives the same combination (Валокордин, phenobarbital + ethyl bromisovalerianate) N05CB02. Both are in the «снотворные» word; N05CB is also what the word «барбитураты» names, so these drugs now receive the barbiturate sentences (enzyme induction, additive CNS and respiratory depression) as well as the hypnotic ones. The label in the view is «барбитурат, снотворное» for that reason.",
+        "ownClassSuppression": "a secondary class counts as the card’s own class for the suppression of class mentions in the warning sections of its own instruction (the drug is a member of that class): 0 documents changed."
+      },
+      "additions": [
+        {
+          "card": "esklp.mnn.мяты-перечной-листьев-масло-фенобарбитал-этилбромизовалерианат",
+          "role": "secondary",
+          "classes": [
+            "N05CB"
+          ],
+          "via": "фенобарбитал",
+          "label": "барбитурат, снотворное",
+          "products": "Корвалол, Корвалол Реневал, Корвалол-МФФ, ВАЛОСЕРДИН ТАБ",
+          "primaryCode": "N05CM",
+          "evidence": {
+            "document": "drug.rf.11224dfbc34dac4272ec.instruction",
+            "section": "Фармакодинамика",
+            "quote": "Фенобарбитал обладает седативным (в малых дозах), снотворным, миорелаксирующим и спазмолитическим действием, способствует снижению возбуждения центральной нервной системы (ЦНС) и облегчает наступление сна, усиливает седативное влияние других компонентов."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 544,
+            "documentsNamingTheClassAfter": 831,
+            "documentPairsGained": 287,
+            "sentencesBefore": 671,
+            "sentencesAfter": 1149,
+            "sentencePairsGained": 478
+          }
+        },
+        {
+          "card": "esklp.mnn.левоментола-раствор-в-ментилизовалерате-фенобарбитал-этилбромизовалерианат",
+          "role": "secondary",
+          "classes": [
+            "N05CB"
+          ],
+          "via": "фенобарбитал",
+          "label": "барбитурат, снотворное",
+          "products": "КОРВАЛОЛ-ЭКСТРА",
+          "primaryCode": "C01EX",
+          "evidence": {
+            "document": "drug.rf.a839305bcbeff04c58c0.instruction",
+            "section": "Фармакодинамика",
+            "quote": "Фенобарбитал Усиливает седативное влияние других компонентов препарата, способствует снижению возбуждения центральной нервной системы и облегчает наступление сна."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 381,
+            "documentsNamingTheClassAfter": 834,
+            "documentPairsGained": 453,
+            "sentencesBefore": 450,
+            "sentencesAfter": 1152,
+            "sentencePairsGained": 702
+          }
+        },
+        {
+          "card": "esklp.mnn.кодеин-кофеин-метамизол-натрия-фенобарбитал",
+          "role": "secondary",
+          "classes": [
+            "N05CB"
+          ],
+          "via": "фенобарбитал",
+          "label": "барбитурат, снотворное",
+          "products": "Тетралганол, Кватрокс, Тетралгин",
+          "primaryCode": "N02BB72",
+          "evidence": {
+            "document": "drug.rf.3461eebd8595b2bfb158.instruction",
+            "section": "Фармакодинамика",
+            "quote": "Фенобарбитал Обладает седативным (в малых дозах), снотворным, миорелаксирующим и спазмолитическим действием, способствует снижению возбуждения ЦНС и облегчает наступление сна."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 585,
+            "documentsNamingTheClassAfter": 951,
+            "documentPairsGained": 366,
+            "sentencesBefore": 726,
+            "sentencesAfter": 1376,
+            "sentencePairsGained": 650
+          }
+        },
+        {
+          "card": "esklp.mnn.бендазол-метамизол-натрия-папаверин-фенобарбитал",
+          "role": "secondary",
+          "classes": [
+            "N05CB"
+          ],
+          "via": "фенобарбитал",
+          "label": "барбитурат, снотворное",
+          "products": "Андипал, Андипал Авексима, Андипал Реневал",
+          "primaryCode": "N02BB52",
+          "evidence": {
+            "document": "drug.rf.2bd2fa8fc40b73b9ecf5.instruction",
+            "section": "Фармакодинамика",
+            "quote": "Фенобарбитал – производное барбитуровой кислоты."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 475,
+            "documentsNamingTheClassAfter": 875,
+            "documentPairsGained": 400,
+            "sentencesBefore": 572,
+            "sentencesAfter": 1232,
+            "sentencePairsGained": 660
+          }
+        },
+        {
+          "card": "esklp.mnn.кодеин-кофеин-метамизол-натрия-парацетамол-фенобарбитал",
+          "role": "secondary",
+          "classes": [
+            "N05CB"
+          ],
+          "via": "фенобарбитал",
+          "label": "барбитурат, снотворное",
+          "products": "Седал-М, Пенталгин-ICN, Пентанов-ICN, Сантопералгин, Седальгин-Нео",
+          "primaryCode": "N02BB72",
+          "evidence": {
+            "document": "drug.rf.4803db68c77181561f14.instruction",
+            "section": "Фармакотерапевтическая группа",
+            "quote": "Анальгезирующее средство (анальгезирующее опиоидное средство + НПВП + анальгезирующее ненаркотическое средство + психостимулирующее средство + барбитурат)."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 643,
+            "documentsNamingTheClassAfter": 994,
+            "documentPairsGained": 351,
+            "sentencesBefore": 834,
+            "sentencesAfter": 1483,
+            "sentencePairsGained": 649
+          }
+        }
+      ],
+      "notApplied": [
+        {
+          "card": "esklp.mnn.ибупрофен-кодеин-кофеин-метамизол-натрия-фенобарбитал",
+          "reason": "phenobarbital combination (Пентабуфен, N02BB72) with no instruction in the instruction modules: no evidence from the product’s own text"
+        },
+        {
+          "card": "esklp.mnn.кодеин-кофеин-парацетамол-пропифеназон-фенобарбитал",
+          "reason": "same (Пенталгин Плюс, Пентанов Плюс, N02BE71)"
+        },
+        {
+          "card": "esklp.mnn.кофеин-метамизол-натрия-фенобарбитал",
+          "reason": "same (Тетралгин Н, Триалгин, N02BB72)"
+        },
+        {
+          "card": "esklp.mnn.мяты-перечной-листьев-масло-пустырника-травы-настойка-фенобарбитал",
+          "reason": "same (Корвалол плюс Форте, N05CM); it gets the class as soon as an instruction of the product is in a module"
+        }
+      ],
+      "forTheOwner": {
+        "withInstructionNotApplied": [
+          {
+            "card": "esklp.mnn.кодеин-кофеин-метамизол-натрия-напроксен-фенобарбитал",
+            "products": "Пенталгин-Н, Пентанов-Н, Пиралгин (N02BB72)",
+            "reason": "the only instruction in the modules (drug.rf.c7b3cfc9d56b105d18a0, an amendment sheet) holds no text about phenobarbital"
+          },
+          {
+            "card": "esklp.mnn.бромизовал-кальция-глюконат-кофеин-папаверин-фенобарбитал",
+            "products": "ПАГЛЮВЕРИН-2/-3, Паглюферал (N03AX)",
+            "reason": "the instruction (antiepileptic, indication epilepsy) says phenobarbital acts on the «барбитуратный» site and suppresses cerebral functions but does not call it sedative or hypnotic; one line makes it a candidate — the owner decides"
+          },
+          {
+            "card": "esklp.mnn.белладонны-листьев-экстракт-кофеин-парацетамол-теофиллин-фенобарбитал-цитизин-эфедрин",
+            "products": "Теофедрин-Н (R03DA54)",
+            "reason": "the instruction says only «Фенобарбитал устраняет возбуждение центральной нервной системы»; no sedative, hypnotic or barbiturate wording"
+          },
+          {
+            "card": "esklp.mnn.фенобарбитал",
+            "products": "Фенобарбитал (N03AA02)",
+            "reason": "single substance: a barbiturate by its own code (N03AA) and an antiepileptic first; whether the hypnotic class is primary for it is a separate decision"
+          }
+        ],
+        "alreadyHypnotic": "Беллатаминал (N05CB02) and Валокордин / Валосемид / Валосердин / Валорелас (N05CB02) carry a hypnotic code already.",
+        "otherComponentClasses": [
+          "Not applied (only phenobarbital was asked for); each would need its own quote per product. Cards that contain the component, are not in the class by code and have an instruction in the modules: codeine → opioid/antitussive (N02A, R05DA): 4 of 11; phenylephrine/pseudoephedrine → decongestant (R01A…): 15 of 23; caffeine → psychostimulant (N06BC): 19 of 33; paracetamol → analgesic (N02BE): 14 of 15; chlorphenamine → antihistamine (R06A): 6 of 13; ephedrine, theophylline, dextromethorphan: 1, 0, 0. Codeine and caffeine are the two where class sentences (opioid and CNS-depressant warnings, stimulant warnings) matter most."
+        ]
+      },
+      "userScenarios": {
+        "method": "checkPair over the committed index before and after, Корвалол (мяты-перечной-листьев-масло-фенобарбитал-этилбромизовалерианат) against common drugs; the quoted sentences were read from the installed ГРЛС modules in the session.",
+        "rows": [
+          {
+            "with": "зопиклон",
+            "before": 4,
+            "after": 7,
+            "secondaryMarked": 3,
+            "note": "the hypnotic sentences of the zopiclone instruction reach the drops"
+          },
+          {
+            "with": "амитриптилин",
+            "before": 0,
+            "after": 3,
+            "secondaryMarked": 3,
+            "note": "barbiturates lower tricyclic levels (enzyme induction)"
+          },
+          {
+            "with": "морфин",
+            "before": 2,
+            "after": 4,
+            "secondaryMarked": 2,
+            "note": "additive CNS and respiratory depression"
+          },
+          {
+            "with": "магния сульфат",
+            "before": 0,
+            "after": 1,
+            "secondaryMarked": 1,
+            "note": "barbiturates raise the risk of respiratory-centre depression"
+          },
+          {
+            "with": "лизиноприл",
+            "before": 0,
+            "after": 1,
+            "secondaryMarked": 1,
+            "note": "barbiturates and antihypertensives: stronger blood-pressure fall"
+          },
+          {
+            "with": "бисопролол",
+            "before": 0,
+            "after": 1,
+            "secondaryMarked": 1,
+            "note": "same"
+          },
+          {
+            "with": "доксициклин",
+            "before": 0,
+            "after": 1,
+            "secondaryMarked": 1,
+            "note": "barbiturates shorten the half-life of doxycycline"
+          },
+          {
+            "with": "дилтиазем",
+            "before": 1,
+            "after": 2,
+            "secondaryMarked": 1,
+            "note": "barbiturates lower diltiazem levels"
+          },
+          {
+            "with": "парацетамол",
+            "before": 1,
+            "after": 2,
+            "secondaryMarked": 1,
+            "note": "barbiturates raise paracetamol hepatotoxicity"
+          },
+          {
+            "with": "варфарин, диазепам, фенитоин, вориконазол, этанол, нифедипин",
+            "before": "unchanged",
+            "after": "unchanged",
+            "secondaryMarked": 0,
+            "note": "already found by the phenobarbital substance or by «седативные»"
+          }
+        ],
+        "verdict": "better in every changed row: each added sentence is a statement about barbiturates or hypnotics that holds for a drug containing phenobarbital. Nothing got worse; the added quotes are marked «через фенобарбитал (барбитурат, снотворное)» so a doctor sees they come through the component."
+      },
+      "ui": "Interaction checker, prescription tool and drug comparison (they share InteractionPairs): a quote reached only through a secondary class shows a small italic «через фенобарбитал (барбитурат, снотворное)» beside the section label; print and share text carry the same words. The drug screen and the ATC sheet are DRUG-UI1’s; the secondary class is available as card element 4 of the interaction index (the screen reads ATC codes from the comparison index), so a «также: снотворное» line there needs that agent to decide where it reads it from."
     }
   ],
   "userPerspective": {

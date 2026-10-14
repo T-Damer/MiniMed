@@ -12,7 +12,11 @@ import {
   SPAN_FLAG_LEAFLET_BODY,
   SPAN_FLAG_SPECIAL,
 } from './interaction-extract';
-import { type IndexedSentence, SECTION_CHECKSUM_LENGTH } from './interaction-index';
+import {
+  type IndexedSentence,
+  SECTION_CHECKSUM_LENGTH,
+  type SecondaryHit,
+} from './interaction-index';
 import {
   canonicalSectionText,
   chunkIndexAt,
@@ -29,6 +33,8 @@ export interface Quote {
   readonly anchor: string | null;
   readonly flags: number;
   readonly sectionTitle: string;
+  /** The sentence reaches the drug through an additional class only (CLS1). */
+  readonly secondary: SecondaryHit | null;
 }
 
 export interface ResolvedSentences {
@@ -110,6 +116,7 @@ export function resolveQuotes(
       anchor: chunk?.anchor ?? null,
       flags: sentence.flags,
       sectionTitle: sections.get(sectionId)?.title ?? '',
+      secondary: sentence.secondary ?? null,
     });
   }
   // A stable sort: inside one rank the sentences stay in reading order.

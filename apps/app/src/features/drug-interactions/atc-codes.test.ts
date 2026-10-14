@@ -7,6 +7,7 @@ import {
   normalizeQuote,
   parseAtcClassAdditions,
   parseAtcCodeExceptions,
+  redundantSecondary,
   selectAtcCodes,
   selectAtcCodesOfMetadata,
 } from './atc-codes';
@@ -154,6 +155,7 @@ describe('the ATC codes an interaction card carries (ATC4)', () => {
     const additions: readonly AtcClassAddition[] = [
       {
         card: 'esklp.mnn.cold',
+        role: 'primary',
         classes: ['R05D'],
         reason: 'the instruction says the dextromethorphan in it suppresses cough',
         evidence: {
@@ -203,6 +205,43 @@ describe('the ATC codes an interaction card carries (ATC4)', () => {
         additions,
       );
       expect(selection.codes).toEqual(['R05D']);
+    });
+
+    it('keep a secondary class apart from the codes, with the component that brings it', () => {
+      const secondary: readonly AtcClassAddition[] = [
+        {
+          ...(additions[0] as AtcClassAddition),
+          role: 'secondary',
+          classes: ['N05CB'],
+          via: 'фенобарбитал',
+          label: 'снотворное',
+        },
+      ];
+      const selection = selectAtcCodes('esklp.mnn.cold', [{ atcCode: 'N05CM' }], [], secondary);
+      expect(selection.codes).toEqual(['N05CM']);
+      expect(selection.added).toEqual([]);
+      expect(selection.secondary).toEqual([
+        { code: 'N05CB', via: 'фенобарбитал', label: 'снотворное' },
+      ]);
+      expect(redundantSecondary(selection)).toEqual([]);
+      // the same class under another card changes nothing there
+      expect(
+        selectAtcCodes('esklp.mnn.other', [{ atcCode: 'N05CM' }], [], secondary).secondary,
+      ).toEqual([]);
+    });
+
+    it('find a secondary class the card’s own codes already cover', () => {
+      const secondary: readonly AtcClassAddition[] = [
+        {
+          ...(additions[0] as AtcClassAddition),
+          role: 'secondary',
+          classes: ['N05CB'],
+          via: 'фенобарбитал',
+          label: 'снотворное',
+        },
+      ];
+      const selection = selectAtcCodes('esklp.mnn.cold', [{ atcCode: 'N05CB02' }], [], secondary);
+      expect(redundantSecondary(selection).map((item) => item.code)).toEqual(['N05CB']);
     });
 
     it('are read from the metadata call as well', () => {
@@ -257,6 +296,7 @@ describe('the exception file', () => {
 describe('the class additions file', () => {
   const valid = {
     card: 'esklp.mnn.a',
+    role: 'primary',
     classes: ['R05D'],
     reason: 'the instruction says it suppresses cough',
     evidence: {
@@ -289,8 +329,25 @@ describe('the class additions file', () => {
     expect(() => parse({ ...valid, review: '' })).toThrow(/review/u);
   });
 
-  it('refuses the same card twice', () => {
+  it('refuses the same class of one card twice, and allows two classes of one card', () => {
     expect(() => parseAtcClassAdditions({ addClasses: [valid, valid] })).toThrow(/twice/u);
+    expect(
+      parseAtcClassAdditions({ addClasses: [valid, { ...valid, classes: ['R05F'] }] }),
+    ).toHaveLength(2);
+  });
+
+  it('reads no role as primary and refuses an unknown one', () => {
+    const { role: _role, ...withoutRole } = valid;
+    expect(parse(withoutRole)[0]?.role).toBe('primary');
+    expect(() => parse({ ...valid, role: 'tertiary' })).toThrow(/role/u);
+  });
+
+  it('asks a secondary class for the component and the label, and a primary class for neither', () => {
+    const secondary = { ...valid, role: 'secondary', via: 'фенобарбитал', label: 'снотворное' };
+    expect(parse(secondary)[0]).toMatchObject({ role: 'secondary', via: 'фенобарбитал' });
+    expect(() => parse({ ...secondary, via: undefined })).toThrow(/via/u);
+    expect(() => parse({ ...secondary, label: ' ' })).toThrow(/label/u);
+    expect(() => parse({ ...valid, via: 'фенобарбитал' })).toThrow(/secondary/u);
   });
 
   it('compares a quote without regard to spacing and case', () => {

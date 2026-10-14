@@ -12,6 +12,7 @@ import { CLASS_ALIASES, classPatterns, deriveClassPhrases } from './class-phrase
 import {
   createInteractionIndex,
   drugTargetSet,
+  drugTargets,
   type InteractionIndexAsset,
   parseInteractionIndex,
 } from './interaction-index';
@@ -73,6 +74,16 @@ const review = read('docs/research/atc-index-review-2026-10-14.json') as {
   };
 };
 const decisionWords = review.ownerDecisions.find((item) => item.id === 'OD4')?.words ?? [];
+
+/**
+ * A card's codes as the ATC4c record counts them: its own codes and the secondary classes the
+ * ATC4c declarations bring (the two cards of OD5). The phenobarbital classes (N05CB, OD6, CLS1)
+ * came later and are measured in their own record.
+ */
+const codesOf = (card: InteractionIndexAsset['cards'][number]): readonly string[] => [
+  ...card[1],
+  ...(card[3] ?? []).map((extra) => extra[0]).filter((code) => code !== 'N05CB'),
+];
 
 const cardIndex = (slug: string): number => {
   const found = index.cardBySlug.get(slug);
@@ -387,11 +398,13 @@ describe('ATC4c: the review record agrees with the table and the index', () => {
     for (const record of decisionWords) {
       const oldCodes = record.oldCodesForMeasure.split(',');
       const newCodes = record.after.codes;
-      const members = asset.cards.filter((card) => matches(card[1], newCodes)).map((c) => c[0]);
+      const members = asset.cards
+        .filter((card) => matches(codesOf(card), newCodes))
+        .map((c) => c[0]);
       expect(members.length, `${record.word} after`).toBe(record.effect.cardsAfter);
       // the cards that lost the word by their code are the cards on the record's list
       const lostByCode = asset.cards
-        .filter((card) => matches(card[1], oldCodes) && !matches(card[1], newCodes))
+        .filter((card) => matches(codesOf(card), oldCodes) && !matches(codesOf(card), newCodes))
         .map((card) => card[0])
         .toSorted();
       // a declared class addition may bring a card back (the phenylephrine spray), so the record
@@ -401,7 +414,7 @@ describe('ATC4c: the review record agrees with the table and the index', () => {
       );
       expect(record.effect.cardsLosingTheClass, record.word).toBe(lostByCode.length);
       const gainedByCode = asset.cards
-        .filter((card) => matches(card[1], newCodes) && !matches(card[1], oldCodes))
+        .filter((card) => matches(codesOf(card), newCodes) && !matches(codesOf(card), oldCodes))
         .map((card) => card[0])
         .toSorted();
       expect(gainedByDrug(record), record.word).toEqual(gainedByCode);
@@ -463,8 +476,17 @@ describe('ATC4c: class additions (addClasses)', () => {
       expect(addition.review).toBe('docs/research/atc-index-review-2026-10-14.json');
       for (const code of addition.classes) {
         expect(atcNames[code], code).toBeDefined();
-        // the index carries the declared class on the card, and the class rule hits it
-        expect(asset.cards[card]?.[1], slug).toContain(code);
+        // the index carries the declared class on the card (a primary one among its codes, a
+        // secondary one apart from them), and the class rule hits it
+        if (addition.role === 'secondary') {
+          expect(asset.cards[card]?.[1], slug).not.toContain(code);
+          expect(
+            asset.cards[card]?.[3]?.some((extra) => extra[0] === code),
+            `${slug} ${code}`,
+          ).toBe(true);
+        } else {
+          expect(asset.cards[card]?.[1], slug).toContain(code);
+        }
         const target = asset.targets.indexOf(`c:${code}`);
         if (target >= 0) expect(drugTargetSet(index, card).has(target), slug).toBe(true);
       }
@@ -477,7 +499,12 @@ describe('ATC4c: class additions (addClasses)', () => {
 
   it('bring the dextromethorphan cold remedy back into the cough suppressants', () => {
     const slug = 'декстрометорфан-парацетамол-псевдоэфедрин-аскорбиновая-кислота';
-    expect(asset.cards[cardIndex(slug)]?.[1]).toEqual(['R05D', 'R05X']);
+    // owner 2026-10-14 (CLS1): the registry code R05X stays the card's code, the cough-suppressant
+    // class is an additional one that dextromethorphan brings
+    expect(asset.cards[cardIndex(slug)]?.[1]).toEqual(['R05X']);
+    expect(asset.cards[cardIndex(slug)]?.[3]).toEqual([
+      ['R05D', 'декстрометорфан', 'противокашлевое'],
+    ]);
     expect(targetsOf(slug).has('c:R05D')).toBe(true);
     // the expectorant instructions that say «не назначают одновременно с противокашлевыми»
     expect(phraseOf('противокашлевые')?.codes).toEqual(['R05D', 'R05F']);
@@ -487,15 +514,20 @@ describe('ATC4c: class additions (addClasses)', () => {
 
   it('keep the phenylephrine nasal spray among the decongestants after the narrowing', () => {
     const slug = 'дексаметазон-неомицин-полимиксин-b-фенилэфрин';
-    expect(asset.cards[cardIndex(slug)]?.[1]).toEqual(['R01AA', 'R01AD53']);
+    expect(asset.cards[cardIndex(slug)]?.[1]).toEqual(['R01AD53']);
+    expect(asset.cards[cardIndex(slug)]?.[3]).toEqual([['R01AA', 'фенилэфрин', 'деконгестант']]);
     expect(targetsOf(slug).has('c:R01AA')).toBe(true);
     expect(covers('деконгестанты', 'R01AA')).toBe(true);
   });
 
   it('are on the record, with the products that could not be declared and why', () => {
     const decision = review.ownerDecisions.find((item) => item.id === 'OD5');
+    // OD5 declared two cards; the phenobarbital cards were added later (OD6)
     expect((decision?.additions ?? []).map((item) => item.card).toSorted()).toEqual(
-      additions.map((item) => item.card).toSorted(),
+      additions
+        .filter((item) => !item.classes.includes('N05CB'))
+        .map((item) => item.card)
+        .toSorted(),
     );
     const declared = new Set(additions.map((item) => item.card));
     expect(decision?.notApplied?.length).toBeGreaterThanOrEqual(3);
@@ -510,5 +542,128 @@ describe('ATC4c: class additions (addClasses)', () => {
 
   it('keep the exception file valid as a whole', () => {
     expect(parseAtcCodeExceptions(declarations).length).toBeGreaterThanOrEqual(1);
+  });
+});
+
+interface Od6Addition {
+  readonly card: string;
+  readonly role: string;
+  readonly classes: readonly string[];
+  readonly via: string;
+  readonly label: string;
+  readonly effect: {
+    readonly documentsNamingTheClassBefore: number;
+    readonly documentsNamingTheClassAfter: number;
+    readonly sentencesBefore: number;
+    readonly sentencesAfter: number;
+  };
+}
+const od6 = review.ownerDecisions.find((item) => item.id === 'OD6') as unknown as
+  | {
+      readonly additions: readonly Od6Addition[];
+      readonly notApplied: readonly { readonly card: string }[];
+    }
+  | undefined;
+
+/** Documents (of other cards) and sentences that name one of the targets. */
+function reach(
+  card: number,
+  targets: ReadonlySet<number>,
+): { readonly documents: number; readonly sentences: number } {
+  let documents = 0;
+  let sentences = 0;
+  for (const document of Object.values(asset.documents)) {
+    if (document.c.includes(card)) continue;
+    const named = document.sp.filter((span) => span.slice(4).some((target) => targets.has(target)));
+    if (named.length > 0) documents += 1;
+    sentences += named.length;
+  }
+  return { documents, sentences };
+}
+
+describe('CLS1: secondary classes (OD6)', () => {
+  const secondary = additions.filter((addition) => addition.role === 'secondary');
+  const phenobarbital = secondary.filter((addition) => addition.classes.includes('N05CB'));
+
+  it('are declared with the component, the label, a reason and a quote of the instruction', () => {
+    expect(secondary.length).toBe(additions.length);
+    expect(phenobarbital).toHaveLength(5);
+    for (const addition of secondary) {
+      expect(addition.via?.length, addition.card).toBeGreaterThan(3);
+      expect(addition.label?.length, addition.card).toBeGreaterThan(3);
+      expect(addition.reason.length, addition.card).toBeGreaterThan(40);
+      expect(addition.evidence.quote.length, addition.card).toBeGreaterThanOrEqual(20);
+      expect(addition.evidence.document.endsWith('.instruction'), addition.card).toBe(true);
+    }
+  });
+
+  it('never repeat a class the card already has by its own codes', () => {
+    for (const addition of secondary) {
+      const card = cardIndex(addition.card.replace(/^esklp\.mnn\./u, ''));
+      const own = asset.cards[card]?.[1] ?? [];
+      for (const code of addition.classes) {
+        expect(
+          own.some((item) => item.startsWith(code) || code.startsWith(item)),
+          `${addition.card} ${code}`,
+        ).toBe(false);
+      }
+    }
+  });
+
+  it('put Корвалол among the recipients of the hypnotic and barbiturate sentences, marked secondary', () => {
+    const slug = 'мяты-перечной-листьев-масло-фенобарбитал-этилбромизовалерианат';
+    const card = cardIndex(slug);
+    expect(asset.cards[card]?.[1]).toEqual(['N05CM']);
+    const { primary, secondary: extra } = drugTargets(index, card);
+    const hypnotics = asset.targets.indexOf('c:N05CB');
+    expect(primary.has(hypnotics)).toBe(false);
+    expect(extra.get(hypnotics)?.via).toBe('фенобарбитал');
+    // the words «снотворные» and «барбитураты» name N05CB
+    expect(covers('снотворные', 'N05CB')).toBe(true);
+    expect(covers('барбитураты', 'N05CB')).toBe(true);
+    const sentences = reach(card, new Set([hypnotics]));
+    expect(sentences.documents).toBeGreaterThan(400);
+    // a drug with a hypnotic code of its own is not marked: the zopiclone card
+    expect(drugTargets(index, cardIndex('зопиклон')).secondary.size).toBe(0);
+  });
+
+  it('agree with the record: the documents and sentences each card gained', () => {
+    expect(od6?.additions).toHaveLength(phenobarbital.length);
+    for (const record of od6?.additions ?? []) {
+      expect(record.role).toBe('secondary');
+      const declared = phenobarbital.find((item) => item.card === record.card);
+      expect(declared, record.card).toBeDefined();
+      expect(record.via).toBe(declared?.via);
+      expect(record.label).toBe(declared?.label);
+      const card = cardIndex(record.card.replace(/^esklp\.mnn\./u, ''));
+      const before = reach(card, drugTargets(index, card).primary);
+      const after = reach(card, drugTargetSet(index, card));
+      expect(before.documents, record.card).toBe(record.effect.documentsNamingTheClassBefore);
+      expect(after.documents, record.card).toBe(record.effect.documentsNamingTheClassAfter);
+      expect(before.sentences, record.card).toBe(record.effect.sentencesBefore);
+      expect(after.sentences, record.card).toBe(record.effect.sentencesAfter);
+    }
+  });
+
+  it('list the phenobarbital cards that were left out, none with a declaration', () => {
+    const declared = new Set(additions.map((item) => item.card));
+    expect(od6?.notApplied.length).toBeGreaterThanOrEqual(3);
+    for (const item of od6?.notApplied ?? []) {
+      expect(declared.has(item.card), item.card).toBe(false);
+      const card = cardIndex(item.card.replace(/^esklp\.mnn\./u, ''));
+      // no instruction of the product, so no evidence of its own
+      expect(index.documentsOfCard.get(card) ?? [], item.card).toEqual([]);
+    }
+  });
+
+  it('keep the two ATC4c entries as secondary classes without changing who they reach', () => {
+    const cold = cardIndex('декстрометорфан-парацетамол-псевдоэфедрин-аскорбиновая-кислота');
+    expect(drugTargets(index, cold).secondary.get(asset.targets.indexOf('c:R05D'))?.label).toBe(
+      'противокашлевое',
+    );
+    const spray = cardIndex('дексаметазон-неомицин-полимиксин-b-фенилэфрин');
+    expect(drugTargets(index, spray).secondary.get(asset.targets.indexOf('c:R01AA'))?.via).toBe(
+      'фенилэфрин',
+    );
   });
 });

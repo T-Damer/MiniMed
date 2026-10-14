@@ -16,11 +16,15 @@
  *   one, and a drug is a member of every class either names (the owner's «show both»);
  * - minus the declared exceptions (`data/atc-code-exceptions.json`): a code the review found
  *   wrong for the product, with the reason and the review entry that decided it;
- * - plus the declared class additions (`addClasses` in the same file, ATC4c): a class the card
- *   belongs to for the interaction rules although its registry code puts it elsewhere (a cold
- *   remedy coded `R05X` that contains dextromethorphan is a cough suppressant for the sentence
- *   «не применять с противокашлевыми средствами»). Each addition quotes the product's own
- *   instruction as evidence; the build checks the quote against the instruction text.
+ * - plus the declared class additions (`addClasses` in the same file, ATC4c, CLS1): a class the
+ *   card belongs to for the interaction rules although its registry code puts it elsewhere. Two
+ *   roles (owner 2026-10-14: «one drug can have many classes»): `primary` replaces a wrong code
+ *   (the class joins the card's codes); `secondary` is an additional class that one COMPONENT
+ *   brings (phenobarbital drops for the heart are also a hypnotic; a cold remedy with
+ *   dextromethorphan is also a cough suppressant) and stays apart from the codes, with the
+ *   component that brings it and a short label, so the interaction view can say «через
+ *   фенобарбитал (снотворное)». Both match class sentences. Each addition quotes the product's
+ *   own instruction as evidence; the build checks the quote against the instruction text.
  */
 
 export interface AtcNodeFields {
@@ -38,11 +42,29 @@ export interface AtcCodeException {
   readonly review: string;
 }
 
+/** An additional class of a card that one component brings (CLS1). */
+export interface SecondaryClass {
+  /** ATC group code (level 2–4), a prefix like a card's own codes. */
+  readonly code: string;
+  /** The component that brings the class, as the instruction names it («фенобарбитал»). */
+  readonly via: string;
+  /** What the class is called in the view, singular («снотворное»). */
+  readonly label: string;
+}
+
+export type AtcClassRole = 'primary' | 'secondary';
+
 /** A class a card is declared to belong to, on the evidence of the product's own instruction. */
 export interface AtcClassAddition {
   readonly card: string;
+  /** `primary`: replaces a wrong code; `secondary`: an additional class of one component. */
+  readonly role: AtcClassRole;
   /** ATC group codes (level 2–4) the card is added to; they are prefixes, like a card's own codes. */
   readonly classes: readonly string[];
+  /** Secondary only: the component that brings the classes. */
+  readonly via?: string;
+  /** Secondary only: the classes' name in the view, singular. */
+  readonly label?: string;
   readonly reason: string;
   readonly evidence: {
     /** The instruction document that says it. */
@@ -58,8 +80,10 @@ export interface AtcClassAddition {
 export interface AtcCodeSelection {
   /** The codes the index carries, sorted. */
   readonly codes: readonly string[];
-  /** Classes added by a declaration (`addClasses`), included in `codes`. */
+  /** Primary classes added by a declaration (`addClasses`), included in `codes`. */
   readonly added: readonly string[];
+  /** Secondary classes (CLS1): not in `codes`, sorted by code. */
+  readonly secondary: readonly SecondaryClass[];
   /** Codes of the card that were left out and why (a declared exception). */
   readonly excluded: readonly { readonly code: string; readonly reason: string }[];
   /** Per code: where it comes from, for the review (`registry`, `completed`, `consensus`, `declared`). */
@@ -123,9 +147,14 @@ export function selectAtcCodes(
   }
   // Additions come last, so an exception for the same card and code never removes a declared class.
   const added: string[] = [];
+  const secondary = new Map<string, SecondaryClass>();
   for (const addition of additions) {
     if (addition.card !== cardId) continue;
     for (const code of addition.classes) {
+      if (addition.role === 'secondary') {
+        secondary.set(code, { code, via: addition.via ?? '', label: addition.label ?? '' });
+        continue;
+      }
       if (!origins.has(code)) added.push(code);
       add(code, 'declared');
     }
@@ -134,9 +163,21 @@ export function selectAtcCodes(
   return {
     codes,
     added: added.toSorted(),
+    secondary: [...secondary.values()].toSorted((a, b) => a.code.localeCompare(b.code)),
     excluded,
     origins: Object.fromEntries(codes.map((code) => [code, [...(origins.get(code) ?? [])]])),
   };
+}
+
+/**
+ * Secondary classes the primary codes already cover (a code that starts with the class code, or a
+ * class code that starts with a code): a declaration that has become redundant, which the build
+ * refuses so the data stays honest.
+ */
+export function redundantSecondary(selection: AtcCodeSelection): readonly SecondaryClass[] {
+  return selection.secondary.filter((entry) =>
+    selection.codes.some((code) => code.startsWith(entry.code) || entry.code.startsWith(code)),
+  );
 }
 
 /**
@@ -193,18 +234,36 @@ export function parseAtcClassAdditions(value: unknown): readonly AtcClassAdditio
   return (list as readonly unknown[]).map((item, position) => {
     const where = `atc-code-exceptions.addClasses[${position}]`;
     if (!isRecord(item)) throw new Error(`${where} is not an object`);
-    const { card, classes, reason, evidence, review } = item;
+    const { card, classes, reason, evidence, review, via, label } = item;
+    const role = item['role'] ?? 'primary';
     if (typeof card !== 'string' || !card.startsWith('esklp.mnn.')) {
       throw new Error(`${where}: card must be an esklp.mnn.* id`);
     }
-    if (seen.has(card)) throw new Error(`${where}: ${card} is declared twice`);
-    seen.add(card);
+    if (role !== 'primary' && role !== 'secondary') {
+      throw new Error(`${where}: role must be «primary» or «secondary»`);
+    }
     if (
       !Array.isArray(classes) ||
       classes.length === 0 ||
       classes.some((code) => typeof code !== 'string' || !ATC_GROUP.test(code))
     ) {
       throw new Error(`${where}: classes must be ATC group codes of level 2–4`);
+    }
+    for (const code of classes as readonly string[]) {
+      if (seen.has(`${card}|${code}`)) {
+        throw new Error(`${where}: ${code} is declared twice for ${card}`);
+      }
+      seen.add(`${card}|${code}`);
+    }
+    if (role === 'secondary') {
+      if (typeof via !== 'string' || via.trim() === '') {
+        throw new Error(`${where}: a secondary class names the component that brings it («via»)`);
+      }
+      if (typeof label !== 'string' || label.trim() === '') {
+        throw new Error(`${where}: a secondary class has a label for the view («label»)`);
+      }
+    } else if (via !== undefined || label !== undefined) {
+      throw new Error(`${where}: «via» and «label» belong to secondary classes`);
     }
     if (typeof reason !== 'string' || reason.trim().length < 10) {
       throw new Error(`${where}: a reason is required`);
@@ -225,7 +284,11 @@ export function parseAtcClassAdditions(value: unknown): readonly AtcClassAdditio
     }
     return {
       card,
+      role,
       classes: [...classes] as string[],
+      ...(role === 'secondary'
+        ? { via: (via as string).trim(), label: (label as string).trim() }
+        : {}),
       reason,
       evidence: { document, section, quote },
       review,

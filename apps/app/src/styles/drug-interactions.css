@@ -304,6 +304,19 @@
   border-radius: 0 var(--theme-radius-control) var(--theme-radius-control) 0;
 }
 
+.drug-interactions__quote-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15rem 0.5rem;
+}
+
+.drug-interactions__quote-via {
+  color: var(--theme-text-muted);
+  font-size: 0.74rem;
+  font-style: italic;
+}
+
 .drug-interactions__quote-section {
   color: var(--theme-kicker, var(--theme-text-muted));
   font-size: 0.72rem;

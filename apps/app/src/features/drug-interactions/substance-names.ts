@@ -6,6 +6,7 @@
  * substance key is the match stems of its name joined by a space, so a key written at build time
  * and one derived in the app from the same name are the same string.
  */
+import type { SecondaryClass } from './atc-codes';
 import { type NamePattern, nameStems } from './mention-matcher';
 
 export interface InteractionCard {
@@ -16,6 +17,8 @@ export interface InteractionCard {
   readonly synonyms: readonly string[];
   readonly components: readonly string[];
   readonly atcCodes: readonly string[];
+  /** Additional classes one component brings (CLS1); they match class sentences like the codes. */
+  readonly secondaryClasses?: readonly SecondaryClass[];
 }
 
 /**

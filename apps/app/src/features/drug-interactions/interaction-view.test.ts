@@ -269,6 +269,7 @@ describe('splitQuotes (INT2)', () => {
     anchor: null,
     flags,
     sectionTitle: '',
+    secondary: null,
   });
 
   it('keeps the interaction section and leaflet text in view and folds the other sections', () => {

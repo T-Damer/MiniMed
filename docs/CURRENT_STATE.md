@@ -4895,6 +4895,22 @@ Review: [research/atc-index-review-2026-10-14.md](research/atc-index-review-2026
   alias table** (class words return instructions that mention them, not class members; proposed for ATC5's search by ATC code, not done). Limits: own-class suppression works per code, so self-description sentences
   reach sibling subgroups of a multi-code word; «антибиотики из группы макролидов» still reaches every antibiotic. Tests: `class-words.data.test.ts` (42 data tests: alias codes and reach, absent broad targets, cards
   of the index, the review record against the index, class additions), `atc-codes.test.ts` (additions), `class-phrases.test.ts` (split and widened aliases).
+- **Secondary classes (STATE CLS1, owner 2026-10-14: «Корвалол is about treating the heart, so the hypnotic class is secondary; one drug can have many classes»)**, in the review note («third part») and its
+  JSON (`ownerDecisions` OD6); index rebuilt (2 127 209 → 2 127 753 bytes; the build before the change reproduced the committed file byte for byte). A drug has a **primary class** (its ATC codes) and
+  may have **secondary classes**: `addClasses` entries get `role` (`primary`: replaces a wrong code and joins the card's codes; `secondary`: an additional class one component brings, kept apart from the codes, with `via` = the
+  component and `label` = the class in the view). Several entries per card are allowed; each keeps its reason and a verbatim quote of the product's own instruction (the build still refuses a missing quote and a
+  secondary class the card's own codes already cover). In the index a card is `[slug, codes, substances, [[class, component, label], …]]` (4th element only where present); secondary classes match class sentences
+  like codes (`drugTargets` splits primary and secondary targets; `drugTargetSet` is their union) and count as the card's own class for own-class suppression (0 documents changed). **Applied: phenobarbital,
+  `N05CB`** (the registry's own class for Валокордин) on five cards whose instruction calls the phenobarbital sedative or hypnotic or names a barbiturate: Корвалол family (`N05CM`, +287 document / +478 sentence
+  pairs), Корвалол-Экстра (`C01EX`, +453 / +702), Тетралганол family (`N02BB72`, +366 / +650), Андипал (`N02BB52`, +400 / +660), Седал-М family (`N02BB72`, +351 / +649); the hypnotic and barbiturate
+  sentences of other instructions now reach them (Корвалол + зопиклон 4 → 7, + амитриптилин 0 → 3, + морфин 2 → 4, + лизиноприл 0 → 1). The two ATC4c entries (Каффетин Колд `R05D`, Полидекса с фенилэфрином `R01AA`) became
+  secondary by the same rule (a wrong code is primary, a component's effect is secondary): their pairs are unchanged. **UI:** a quote reached only through a secondary class shows a small italic
+  «через фенобарбитал (барбитурат, снотворное)» beside the section label in the interaction checker, the prescription tool and the comparison (shared `InteractionPairs`), and in print/share text; no raw codes.
+  The drug screen / ATC sheet (DRUG-UI1) read ATC codes from the comparison index, so a «также: снотворное» line there is not done (Request in STATE). Not applied, for the owner: phenobarbital cards without an
+  instruction (Пентабуфен, Пенталгин Плюс, Тетралгин Н, Корвалол плюс Форте), with an instruction that does not call it sedative or hypnotic (Паглюверин, Теофедрин-Н, Пенталгин-Н/Пиралгин amendment only,
+  single-substance Фенобарбитал); other component classes (codeine → opioid 4 of 11 cards with an instruction, caffeine → psychostimulant 19 of 33, phenylephrine/pseudoephedrine → decongestant 15 of 23, paracetamol →
+  analgesic 14 of 15, chlorphenamine → antihistamine 6 of 13). Tests: `interaction-secondary.test.ts` (asset shape, split targets, marked sentences, view/print words), `atc-codes.test.ts` (roles, `via`/`label`,
+  redundancy), `class-words.data.test.ts` («CLS1»: quotes and roles of the entries, Корвалол among the hypnotic recipients, the per-card counts of the record).
 - **Not done / not tested.** No clinician has signed the review (AI reviewer, product instruction texts as evidence); hits that did not change were
   not re-audited; the ATC4/ATC4b assets were tested by unit and data tests only (ATC4c ran four pairs in Chromium against the built app with the real instruction modules, before and after: counts match the code
   path; not on a physical device, not in the dark theme, the Python suite not run); no release was made.
