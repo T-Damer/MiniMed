@@ -152,6 +152,7 @@ def clean_marker_markdown(text: str) -> str:
     value = text.replace("\xa0", " ").replace("\r\n", "\n")
     value = _IMAGE.sub("", value)
     value = value.replace("\\_", "_")  # form blanks
+    value = re.sub(r"<(https?://[^>\s]+)>", r"\1", value)  # Markdown autolink brackets around a printed address
     value = re.sub(r'<input type="checkbox"\s+checked[^>]*/?>', "☒ ", value)
     value = re.sub(r'<input type="checkbox"[^>]*/?>', "☐ ", value)
     value = re.sub(r"\s*\.{5,}\s*", " ", value)

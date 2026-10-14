@@ -1,0 +1,51 @@
+{
+  "documentId": "regulatory.rf.minzdrav.514n-2017",
+  "reviewer": "Claude (agent), against the page images; not a lawyer",
+  "reviewedAt": "2026-10-14",
+  "verdicts": {
+    "2": "image read: items 1-3 and the signature block (name restored) match",
+    "3": "image read: annex 1 header and items 1-6 and footnotes 1-3 (№ 35345, № 46909, ст. 6724, ст. 6165) match; the header's date and number are the portal's",
+    "8": "image read: items 19-23; Roman «I» of «I или II этапов» stays Roman (Vision reads it as 1)",
+    "17": "image read: annex 3 (rules of medical groups); «I группа» and «II группа» are Roman numerals (Vision reads «1»)",
+    "21": "image read: items 12-15 of the form; the sexual formula uses Latin letters (fixed «Fa»); health and medical groups I-V match",
+    "23": "image read: items 16.4.5-16.9 match; groups I-V and I-IV are Roman, Marker is right",
+    "25": "image read: annex 3 header restored in full (fixed); items 1-5 match (20 working days, https://orph.rosminzdrav.ru, items 15.7, 16.8, 15.8, 16.9)",
+    "26": "image read (landscape): annex 4 header and the title of the form, the reporting table (20 января, 15 февраля) and footnote 1 match; Vision misreads the handwriting",
+    "27": "image read (landscape): items 1.1-2.1.6 and the head of table 3 with every ICD range (A00 - B99 … E00 - E90) match, including 2.1.5",
+    "28": "image read (landscape): table 3 continued, rows 4.1-16.3 and every ICD range match",
+    "29": "image read (landscape): table 3 end (16.4-19, Q53 - Q55, Q65 - Q79, S00 - T98, A00-T98), tables 4.1 and 4.2 start and footnote 3 match",
+    "30": "image read (landscape): table 4.2 header rebuilt six columns wide (fixed), tables 5 and 6 head match; the Roman group numbers I-IV are right",
+    "31": "image read (landscape): table 6 end, table 7 (groups I-V) and the signature block match",
+    "32": "image read: annex 5 header and items 1-6 match; the signature block of the order is on page 2"
+  },
+  "corrections": [
+    {
+      "page": 2,
+      "kind": "dropped-line",
+      "find": "Врио Министра",
+      "replace": "Врио Министра\n\nИ.Н. Каграманян",
+      "why": "The signature block reads «Врио Министра … И.Н. Каграманян» (name printed to the right of the handwritten signature); Marker kept the title and dropped the name."
+    },
+    {
+      "page": 21,
+      "kind": "letters",
+      "find": "Ға",
+      "replace": "Fa",
+      "why": "Item 14.1 «Половая формула мальчика: P … Ax … Fa …» is printed with Latin letters; Marker wrote «Ға» (Cyrillic Ғ)."
+    },
+    {
+      "page": 25,
+      "kind": "dropped-lines",
+      "find": "Приложение Nº 3  \nк приказу Министерства здравоохранения",
+      "replace": "Приложение № 3\nк приказу Министерства здравоохранения\nРоссийской Федерации\nот 10 августа 2017 г. № 514н",
+      "why": "Marker dropped the whole approval header of the annex; the tool restored only its first two lines from Vision («Nº»). The page reads «Приложение № 3 к приказу Министерства здравоохранения Российской Федерации от «10» августа 2017 г. № 514н» (date and number handwritten); date and number are the portal's."
+    },
+    {
+      "page": 30,
+      "kind": "column",
+      "find": "| Возраст детей | Рекомендовано лечение в амбулаторных условиях и в условиях дневного стационара (человек) | Рекомендовано лечение в стационарных условиях (человек) | Рекомендована медицинская реабилитация в амбулаторных условиях и в условиях дневного стационара (человек) | Рекомендована медицинская реабилитация в стационарных условиях (человек) | | Рекомендовано санаторно-курортное лечение (человек) |\n|------------------------------|------------------------------------------------------------------------------------------|---------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|---|-----------------------------------------------------|\n| | | | | 1 | 2 | |\n| | | | | | | |\n| от 0 до 14 лет включительно | | | | | | |\n| от 5 до 9 лет включительно | | | | | | |\n| от 10 до 14 лет включительно | | | | | | |\n| от 15 до 17 лет включительно | | | | | | |",
+      "replace": "| Возраст детей | Рекомендовано лечение в амбулаторных условиях и в условиях дневного стационара (человек) | Рекомендовано лечение в стационарных условиях (человек) | Рекомендована медицинская реабилитация в амбулаторных условиях и в условиях дневного стационара (человек) | Рекомендована медицинская реабилитация в стационарных условиях (человек) | Рекомендовано санаторно-курортное лечение (человек) |\n|---|---|---|---|---|---|\n| 1 | 2 | 3 | 4 | 5 | 6 |\n| от 0 до 14 лет включительно | |  | |  |  |\n| от 5 до 9 лет включительно | |  | |  |  |\n| от 10 до 14 лет включительно | |  | |  |  |\n| от 15 до 17 лет включительно | |  | |  |  |",
+      "why": "The repeated header of table 4.2 was read seven columns wide with an empty column, the column numbers «1 … 6» shifted into the last cells and an empty row; in the image it is six columns (age and five recommendations) with the number row «1 2 3 4 5 6»."
+    }
+  ]
+}

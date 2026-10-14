@@ -56,6 +56,7 @@ _STRUCTURAL: Final = re.compile(
 _ADOPTED: Final = re.compile(r"^(?:Принят|Одобрен|Подписан|Москва, Кремль)", re.IGNORECASE)
 _ROMAN: Final = re.compile(r"^[IVXLC]{1,6}\.\s+\S")
 _TERMINAL: Final = re.compile(r"[.;:!?»)\]]$")
+_SUPERSCRIPT_DIGITS: Final = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹", "0123456789")
 
 
 @dataclass
@@ -176,6 +177,34 @@ def parse_blocks(
     return blocks
 
 
+def _open_table(merged: list[Block]) -> Block | None:
+    """The table a new page may continue: the last block, ignoring the footnotes printed under it."""
+    index = len(merged) - 1
+    while index >= 0 and merged[index].kind == "footnote":
+        index -= 1
+    if index >= 0 and merged[index].kind == "table":
+        return merged[index]
+    return None
+
+
+def _table_head(head: Block, table: Block) -> bool:
+    return head.kind == "table" and _same_width(table, head)
+
+
+def _cell_key(cell: str) -> str:
+    return re.sub(r"[\s\-–]+", "", cell.lower().translate(_SUPERSCRIPT_DIGITS))
+
+
+def _repeated_header_rows(previous: list[list[str]], rows: list[list[str]]) -> int:
+    """How many leading rows of a continued table repeat the table's printed header (same cells, spacing aside)."""
+    count = 0
+    for old, new in zip(previous, rows, strict=False):
+        if [_cell_key(cell) for cell in old] != [_cell_key(cell) for cell in new]:
+            break
+        count += 1
+    return count
+
+
 def _ends_open(text: str) -> bool:
     return not _TERMINAL.search(text.rstrip())
 
@@ -202,19 +231,15 @@ def merge_pages(pages: list[list[Block]]) -> list[Block]:
                 merged.extend(footnotes_before)
                 carried_footnotes = []
                 page_blocks = page_blocks[1:]
-            elif (
-                head.kind == "table" and body_tail.kind == "table" and _same_width(body_tail, head)
-            ):
-                rows = head.rows
-                if rows and body_tail.rows and rows[0] == body_tail.rows[0]:
-                    rows = rows[1:]
-                moved = _continues_row(body_tail.rows[-1], rows[0]) if rows else None
+            elif (table_tail := _open_table(merged)) is not None and _table_head(head, table_tail):
+                rows = head.rows[_repeated_header_rows(table_tail.rows, head.rows) :]
+                moved = _continues_row(table_tail.rows[-1], rows[0]) if rows else None
                 if rows and moved is not None:
-                    last = body_tail.rows[-1]
+                    last = table_tail.rows[-1]
                     last[moved[1]] = f"{last[moved[1]]} {rows[0][moved[0]]}".strip()
                     rows = rows[1:]
-                body_tail.rows.extend(rows)
-                body_tail.end_page = head.page
+                table_tail.rows.extend(rows)
+                table_tail.end_page = head.page
                 merged.extend(footnotes_before)
                 carried_footnotes = []
                 page_blocks = page_blocks[1:]
