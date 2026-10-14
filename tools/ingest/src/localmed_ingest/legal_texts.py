@@ -306,9 +306,9 @@ def merge_pages(pages: list[list[Block]], *, labelled_rows: bool = False) -> lis
     for block in merged:
         if block.kind == "table":
             keep = _kept_row_indices(block.rows)
-            pages = block.pages_of_rows()
+            of_rows = block.pages_of_rows()
             block.rows = [block.rows[index] for index in keep]
-            block.row_pages = [pages[index] for index in keep]
+            block.row_pages = [of_rows[index] for index in keep]
     return merged
 
 

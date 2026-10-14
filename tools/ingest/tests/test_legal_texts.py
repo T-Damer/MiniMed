@@ -400,6 +400,8 @@ def test_an_empty_row_between_filled_rows_is_dropped_but_a_blank_form_stays() ->
 
 
 def test_a_huge_table_is_cut_into_pieces_that_keep_the_header_and_their_own_pages() -> None:
+    from itertools import pairwise
+
     from localmed_ingest.legal_texts import (
         SPLIT_TABLE_CHARS,
         TABLE_PIECE_CHARS,
@@ -423,7 +425,7 @@ def test_a_huge_table_is_cut_into_pieces_that_keep_the_header_and_their_own_page
         for piece in pieces
     )
     assert pieces[0].page == 10 and pieces[-1].end_page == 16
-    for before, after in zip(pieces, pieces[1:], strict=False):  # the pages run on without a gap
+    for before, after in pairwise(pieces):  # the pages run on without a gap
         assert (before.end_page or before.page) <= after.page
     assert render_blocks([table]).count("localmed:source") == len(pieces)
 
