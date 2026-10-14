@@ -30,7 +30,7 @@ export function EcgPhotoPicker(props: {
         }}
       >
         <AppGlyph class="ecg-picker__icon" name="camera" />
-        {props.replacing ? 'Переснять' : 'Сфотографировать'}
+        {props.replacing ? 'Переснять' : 'Фото'}
         <input
           class="ecg-picker__input"
           type="file"
