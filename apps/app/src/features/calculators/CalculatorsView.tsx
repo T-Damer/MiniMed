@@ -1297,7 +1297,7 @@ function CalculationResultPanel(props: {
           }}
         />
         <Button
-          variant="primary"
+          variant="icon"
           class="calculator-result-actions__record"
           aria-label="Записать"
           title="Записать в карточку пациента"
@@ -1963,7 +1963,7 @@ export function CalculatorsView(): JSX.Element {
                         (candidate) => candidate.id === definition().category,
                       );
                       return (
-                        <section class="calculator-pack-required" role="status">
+                        <section class="calculator-pack-required">
                           <Page
                             class="calculator-pack-required__header"
                             navigation={
@@ -1980,7 +1980,7 @@ export function CalculatorsView(): JSX.Element {
                             }
                             description={section?.title ?? 'Раздел калькуляторов'}
                           />
-                          <div class="calculator-pack-required__body paper-card">
+                          <div class="calculator-pack-required__body paper-card" role="status">
                             <Show
                               when={toolsReady() && !toolsError()}
                               fallback={

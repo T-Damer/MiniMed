@@ -303,7 +303,7 @@
   gap: 0.55rem;
 }
 
-.assessment-result-actions__delete {
+.ui-button.assessment-result-actions__delete {
   /* A destructive action stays out of the way: quiet, danger-tinted, apart from the others. */
   margin-inline-start: auto;
   border-color: transparent;

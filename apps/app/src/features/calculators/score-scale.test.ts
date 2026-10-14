@@ -248,7 +248,8 @@ describe('how a scale names its result and where it writes the cut-points', () =
   it('writes an ordinal class as its class name, never as «3 класс» beside «Класс III»', () => {
     expect(scoreScaleClassName(classes)).toBe('Класс III');
     expect(scoreScaleClassName(spec())).toBeUndefined();
-    expect(scoreScaleClassName({ ...classes, activeBand: undefined })).toBeUndefined();
+    const { activeBand: _active, ...unmatched } = classes;
+    expect(scoreScaleClassName(unmatched)).toBeUndefined();
   });
 
   it('writes the cut-points once: in the legend, or on the track when no legend is drawn', () => {
@@ -264,7 +265,8 @@ describe('how a scale names its result and where it writes the cut-points', () =
     expect(legend.labelsFitInside).toBe(false);
     expect(scoreScaleTicksVisible(wide, legend)).toBe(false);
     expect(scoreScaleTicksVisible(wide, { labelsFitInside: true })).toBe(true);
-    expect(scoreScaleTicksVisible(spec({ bands: [], activeBand: undefined }), legend)).toBe(true);
+    const { activeBand: _unused, ...gauge } = spec({ bands: [] });
+    expect(scoreScaleTicksVisible(gauge, legend)).toBe(true);
     // Classes have no cut-points in numbers.
     expect(scoreScaleTicksVisible(classes, { labelsFitInside: true })).toBe(false);
   });

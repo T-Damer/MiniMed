@@ -1,3 +1,4 @@
+import type { ToolEvaluation } from '@localmed/contracts';
 import { describe, expect, it } from 'vitest';
 
 import { evaluationNotice } from '@/features/assessments/assessment-evaluation-notice';
@@ -19,6 +20,8 @@ describe('the evaluation note of a result page', () => {
             title: 'Умеренная активность',
             explanation: '35–64 балла.',
             attentionLevel: 'moderate',
+            lowerInclusive: true,
+            upperInclusive: true,
             sourceIds: [],
           },
         }),
@@ -48,15 +51,15 @@ describe('the evaluation note of a result page', () => {
   });
 
   it('never surfaces a pipeline note of any shipped tool', () => {
-    const records = loadToolModuleRecords();
-    const undeclared = records.filter(
-      (record) =>
-        record.kind === 'assessment' && record.definition.evaluation?.status === 'unavailable',
+    const declaredOf = (record: { readonly definition: unknown }): ToolEvaluation | undefined =>
+      (record.definition as { readonly evaluation?: ToolEvaluation }).evaluation;
+    const undeclared = loadToolModuleRecords().filter(
+      (record) => record.kind === 'assessment' && declaredOf(record)?.status === 'unavailable',
     );
     // The audit behind the fix: assessments whose schema declares no evaluation rules.
     expect(undeclared.length).toBeGreaterThan(0);
     for (const record of undeclared) {
-      const declared = record.definition.evaluation;
+      const declared = declaredOf(record);
       expect(
         evaluationNotice({
           status: declared?.status ?? 'unavailable',

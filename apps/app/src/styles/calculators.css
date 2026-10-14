@@ -1011,7 +1011,15 @@ html.calculator-route-open body {
   align-items: center;
 }
 
-.calculator-result-actions__delete {
+/* The main action of the row keeps the primary look at the size of its icon neighbours. */
+.ui-button.calculator-result-actions__record {
+  border-color: transparent;
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
+  box-shadow: var(--theme-primary-rest-shadow);
+}
+
+.ui-button.calculator-result-actions__delete {
   /* A destructive action stays out of the way: quiet, danger-tinted, apart from the others. */
   margin-inline-start: auto;
   border-color: transparent;
