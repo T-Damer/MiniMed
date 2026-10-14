@@ -28,7 +28,9 @@ LENGTH_RATIO = (0.6, 1.7)
 MIN_HORIZONTAL_COVER = 0.7
 MIN_VERTICAL_OVERLAP = 0.5
 _WORD = re.compile(r"[а-яёА-ЯЁ]{4,}")
-_NUMBER = re.compile(r"\d+(?:[.,]\d+)?")
+# A standalone number: not part of a code («L01EA01», «B12», «мг/м2»), where the engines only differ in
+# look-alike letters.
+_NUMBER = re.compile(r"(?<!\w)\d+(?:[.,]\d+)?(?!\w)")
 
 
 @dataclass(frozen=True)
@@ -39,6 +41,8 @@ class AltLine:
     x1: float
     y1: float
     confidence: float | None
+    #: How many lines of the second engine were joined into this one.
+    parts: int = 1
 
 
 @dataclass(frozen=True)
@@ -100,6 +104,16 @@ def digit_tokens(text: str) -> list[str]:
     return sorted(n.replace(",", ".") for n in _NUMBER.findall(text))
 
 
+def numbers_conflict(first: str, second: str) -> bool:
+    """Each reading has a standalone number the other lacks: a real disagreement about a number.
+
+    A number one engine merely lost (a dropped digit in a unit, a code read with look-alike letters) is not a
+    conflict; the other reading keeps the number.
+    """
+    a, b = set(digit_tokens(first)), set(digit_tokens(second))
+    return bool(a - b) and bool(b - a)
+
+
 def _overlap(a0: float, a1: float, b0: float, b1: float) -> float:
     return max(0.0, min(a1, b1) - max(a0, b0))
 
@@ -107,29 +121,46 @@ def _overlap(a0: float, a1: float, b0: float, b1: float) -> float:
 def matching_alternative(
     box: tuple[float, float, float, float], alternatives: Sequence[AltLine]
 ) -> AltLine | None:
-    """The second engine's line at the same place: same baseline, covering the line's width."""
+    """The second engine's text at the same place, as one line.
+
+    Every line of the second engine that lies inside the box (a Vision observation can span two text
+    lines) is joined top to bottom; the result must cover the box's width without running far past it.
+    """
     x0, y0, x1, y1 = box
-    height = max(y1 - y0, 1.0)
     width = max(x1 - x0, 1.0)
-    best: tuple[float, AltLine] | None = None
+    inside: list[AltLine] = []
     for alt in alternatives:
-        vertical = _overlap(y0, y1, alt.y0, alt.y1) / min(height, max(alt.y1 - alt.y0, 1.0))
-        if vertical < MIN_VERTICAL_OVERLAP:
+        own_height = max(alt.y1 - alt.y0, 1.0)
+        if _overlap(y0, y1, alt.y0, alt.y1) / own_height < MIN_VERTICAL_OVERLAP:
             continue
-        horizontal = _overlap(x0, x1, alt.x0, alt.x1) / width
-        if horizontal < MIN_HORIZONTAL_COVER or (alt.x1 - alt.x0) > 1.4 * width:
+        if _overlap(x0, x1, alt.x0, alt.x1) / max(alt.x1 - alt.x0, 1.0) < MIN_VERTICAL_OVERLAP:
             continue
-        if best is None or vertical > best[0]:
-            best = (vertical, alt)
-    return best[1] if best else None
+        inside.append(alt)
+    if not inside:
+        return None
+    inside.sort(key=lambda alt: (round(alt.y0), alt.x0))
+    left, right = min(alt.x0 for alt in inside), max(alt.x1 for alt in inside)
+    if _overlap(x0, x1, left, right) / width < MIN_HORIZONTAL_COVER or right - left > 1.4 * width:
+        return None
+    confidences = [alt.confidence for alt in inside if alt.confidence is not None]
+    return AltLine(
+        text=" ".join(alt.text for alt in inside),
+        x0=left,
+        y0=min(alt.y0 for alt in inside),
+        x1=right,
+        y1=max(alt.y1 for alt in inside),
+        confidence=sum(confidences) / len(confidences) if confidences else None,
+        parts=len(inside),
+    )
 
 
-def choose_reading(vision: str, tesseract: str, lexicon: Lexicon) -> AltInfo | None:
+def choose_reading(vision: str, tesseract: str, lexicon: Lexicon, parts: int = 1) -> AltInfo | None:
     """Which reading has the better words, and whether the engines disagree about digits."""
     ratio = len(tesseract) / max(len(vision), 1)
-    if not LENGTH_RATIO[0] <= ratio <= LENGTH_RATIO[1]:
+    # a Vision observation that spans several text lines is read as several lines by the other engine
+    if not LENGTH_RATIO[0] <= ratio <= LENGTH_RATIO[1] * max(parts, 1):
         return None
-    digits_differ = digit_tokens(vision) != digit_tokens(tesseract)
+    digits_differ = numbers_conflict(vision, tesseract)
     known_v, unknown_v, junk_v = reading_profile(vision, lexicon)
     known_t, unknown_t, junk_t = reading_profile(tesseract, lexicon)
     # fewer unknown words and less junk, no known word given up, and at least one known word to

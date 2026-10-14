@@ -13,6 +13,7 @@ from localmed_ingest.ocr_second_opinion import (
     digit_tokens,
     load_alt_lines,
     matching_alternative,
+    numbers_conflict,
     reading_profile,
 )
 from localmed_ingest.ocr_text_cleanup import Lexicon
@@ -80,8 +81,31 @@ def test_matching_alternative_needs_the_same_baseline_and_width() -> None:
     far = AltLine("b", 80, 140, 300, 152, None)
     narrow = AltLine("c", 80, 100, 120, 112, None)
     wide = AltLine("d", 10, 100, 590, 112, None)
-    assert matching_alternative((82, 101, 298, 111), [far, narrow, wide, row]) is row
+    match = matching_alternative((82, 101, 298, 111), [far, wide, row])
+    assert match is not None and match.text == "a"
     assert matching_alternative((82, 101, 298, 111), [far, narrow, wide]) is None
+
+
+def test_the_lines_inside_a_tall_box_are_joined_top_to_bottom() -> None:
+    # one Vision observation that spans two text lines of the page
+    first = AltLine("По 5 г в пенале или по 2 пенала в упаковке", 80, 100, 400, 112, 0.9)
+    second = AltLine("или по 10 г, 20 г, 25 г в банке полимерной", 80, 114, 330, 126, 0.8)
+    other = AltLine("Условия хранения", 80, 160, 200, 172, 0.9)
+    match = matching_alternative((80, 100, 400, 126), [other, second, first])
+    assert match is not None
+    assert (
+        match.text
+        == "По 5 г в пенале или по 2 пенала в упаковке или по 10 г, 20 г, 25 г в банке полимерной"
+    )
+    assert (match.x0, match.y0, match.x1, match.y1) == (80, 100, 400, 126)
+    assert abs((match.confidence or 0) - 0.85) < 1e-9
+
+
+def test_fragments_of_one_baseline_are_joined_left_to_right() -> None:
+    left = AltLine("Старая", 80, 100, 150, 112, None)
+    right = AltLine("редакция", 160, 100, 240, 112, None)
+    match = matching_alternative((80, 100, 240, 112), [right, left])
+    assert match is not None and match.text == "Старая редакция"
 
 
 def test_digit_tokens_ignore_the_decimal_separator() -> None:
@@ -167,3 +191,25 @@ def test_the_pipeline_takes_the_better_line_and_marks_the_numbers_in_doubt(tmp_p
     assert alternative["chosen"] == "tesseract"
     assert alternative["other"] == "по пекла контурной пейовой раковке 20 1,23"
     assert paragraph.metadata["enginesDisagreeOnNumbers"] is True
+
+
+def test_only_a_number_each_reading_lacks_is_a_conflict() -> None:
+    # a digit lost in a unit or a code read with look-alike letters is not a disagreement
+    assert not numbers_conflict("доз 260 и 340 мг/м2", "доз 260 и 340 мг/м?")
+    assert not numbers_conflict("Код ATX: L01EA01", "Код ATX: LO1EAO1")
+    assert not numbers_conflict("DDR1 и DDR2", "DDR; и ЭПК»")
+    assert not numbers_conflict("витамин B12", "витамин В,э")
+    assert numbers_conflict("по 25 г", "по 26 г")
+    assert numbers_conflict("20 1,23", "20 г, 25 г")
+    assert digit_tokens("мг/м2 и B12 и 7,4 %") == ["7.4"]
+
+
+def test_a_line_that_spans_two_text_lines_may_be_read_as_two() -> None:
+    vision = "мли по 10 г, 20 1,23 банковало ной по пекла контурной пейовой раковке"
+    tesseract = (
+        "По 5 г в пенале с крышкой-дозатором или по 2 пенала в контурной ячейковой упаковке "
+        "или по 10 г, 20 г, 25 г в банке полимерной с крышкой"
+    )
+    assert choose_reading(vision, tesseract, LEXICON) is None  # twice as long: not one line
+    info = choose_reading(vision, tesseract, LEXICON, parts=2)
+    assert info is not None and info.chosen == "tesseract"

@@ -51,6 +51,7 @@ def test_normalize_unicode_spacing_and_numero() -> None:
         ("cootbetctbyet экспертному отчету", "expert-report"),
         ("ЭКСПЕРТНЫЙ ОТЧЕТ", "expert-report"),
         ("ВЕРСИИ ДОКУМЕНТА", "expert-report"),
+        ("(Входящий МВ № 4236569", "expert-report"),
         ("10 СООТВЕТСТВУЕТ ЭКСПЕРТНОМУ ОТЧЕТУ", "expert-report"),
         ("§ COOTBETCTE ЭКСПЕРТНОМУ ОТЧЕТУ", "expert-report"),
         ("З СООТВЕТСТВУЕТ ЭКСПЕРТНОМУ ОТЧЕТУ", "expert-report"),
@@ -75,6 +76,7 @@ def test_stamp_kinds(text: str, kind: str) -> None:
         "Согласно рекомендациям врача препарат принимают внутрь",
         "Минздрав России утвердил порядок",
         "0,5 мг",
+        "Входящий в состав препарата бромгексин способствует проникновению антибиотиков",
     ],
 )
 def test_body_text_is_not_a_stamp(text: str) -> None:

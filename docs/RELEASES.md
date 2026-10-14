@@ -136,6 +136,16 @@ own family and collection (`manufacturer-instructions`). A blob must stay below 
 `--family ddinter` packages the optional DDInter severity-label module (INT2, tag `ddinter-severity-…`, built by
 `tools/ingest/scripts/build_ddinter_severity_module.py build`; CC BY-NC-SA 4.0, see `docs/research/drug-interactions-2026-10-06.md` §6).
 After a ЕСКЛП or instruction-module refresh rebuild it as well as the interaction index (`bun run content:drug-interactions`).
+The ГРЛС instruction modules are built from the manifest **joined with the OCR1 overlay**
+(`data/build/grls-ocr-quality.jsonl`, `tools/ingest/scripts/grls_ocr_requality.py`, [GRLS_INGESTION_HANDOFF.md](GRLS_INGESTION_HANDOFF.md)
+«OCR quality pass»): scans are re-prepared with line assembly, page marks, cleanup and a Tesseract second opinion before
+`build_grls_instruction_modules.py`, so a refresh that brings new OCR documents runs `grls_ocr_vision_cache.py`,
+`grls_ocr_second_opinion.py` and `grls_ocr_requality.py run` first. Modules that carry KD1 vectors are republished in
+two steps: `package-instruction-modules.ts` under the new source tag, then `embed_modules.py --family medications
+--from-dir <compacted>` and `reframe-modules.ts --marker kd1`; only the `…-kd1` mirror branch is published and the catalog
+points at it. After a republish rebuild every index derived from the instruction modules, in this order:
+`bun run content:drug-interactions`, `bun run content:medication-safety`, `bun run content:drug-comparison`, then
+`bun run content:substance-fallback` (their `MODULE_DIRECTORIES` name the local copy of the published modules).
 After such a module refresh, rebuild the same-substance fallback asset (`bun run content:substance-fallback`, ADR-0023) so
 registrations that gained or lost a document get current donors.
 

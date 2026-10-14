@@ -169,7 +169,7 @@ _STAMP_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("expert-report", re.compile(r"^(?:действителен\s+)?для\s+данной\s*$")),
     ("expert-report", re.compile(r"^версии\s+документа\s*$")),
     ("expert-report", re.compile(r"^действителен\s+для\s+данной\b")),
-    ("expert-report", re.compile(r"^\(?входящий\b")),
+    ("expert-report", re.compile(r"^\(?входящий\s+(?:\w{1,3}\s+)?(?:№|n\S?)\s*\d")),
     ("approval", re.compile(r"^минздрав\s*росси\w*\s*$")),
     ("approval", re.compile(r"^согласовано?\W*$")),
     ("approval", re.compile(r"^согласов[аa]\W{0,2}\s*[оo]\W*$")),

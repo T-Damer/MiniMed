@@ -279,7 +279,7 @@ def raw_blocks_from_vision(
             text = line.text
             if second and lexicon is not None and not line.columnar:
                 alt = matching_alternative((line.x0, line.y0, line.x1, line.y1), second)
-                info = choose_reading(line.text, alt.text, lexicon) if alt else None
+                info = choose_reading(line.text, alt.text, lexicon, alt.parts) if alt else None
                 if info is not None:
                     infos[(number, order)] = info
                     if info.chosen == "tesseract" and alt is not None:
