@@ -28,6 +28,11 @@ describe('registryCell', () => {
     expect(registryCell('atc', ibuprofen as AssetCard, asset, null).lines).toEqual(['M01AE01']);
   });
 
+  it('lists a consensus code beside the registry stub, each with its group names', () => {
+    const both = { ...(ibuprofen as AssetCard), a: ['J05AX13', 'L03AX'] };
+    expect(registryCell('atc', both, asset, null).lines).toEqual(['J05AX13', 'L03AX']);
+  });
+
   it('lists forms with their strengths', () => {
     expect(cell('forms').lines).toEqual([
       'Таблетки: 200 мг, 400 мг',

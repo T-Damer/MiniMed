@@ -137,6 +137,20 @@ describe('createComparisonBuilder', () => {
     expect(report.top200.allSixRowsInBestInstruction).toBe(1);
   });
 
+  it('keeps the registry stub and the consensus code of a card side by side (ATC3)', () => {
+    const builder = createComparisonBuilder({
+      // `build-drug-comparison.ts` passes `atcCodes` followed by `atcConsensusCodes`
+      cards: [{ ...card('умифеновир', 'УМИФЕНОВИР', ['лп-1']), atcCodes: ['L03AX', 'J05AX13'] }],
+      register: new Map([['лп-1', 'rx' as const]]),
+      editions: { esklp: '2026-08-28', grls: '02.10.2026' },
+    });
+    builder.addModule({ id: 'm', version: '1', sha256: 'sha256:x' }, [
+      document('d1', ['лп-1'], ['indications']),
+    ]);
+    const { asset } = builder.finish();
+    expect(asset.cards[0]?.a).toEqual(['J05AX13', 'L03AX']);
+  });
+
   it('marks the pharmacotherapeutic group and dispensing lines only on the matching titles', () => {
     expect(
       sectionMask([

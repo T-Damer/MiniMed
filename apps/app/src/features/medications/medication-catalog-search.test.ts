@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { rankMedicationCatalog } from '@/features/medications/medication-catalog-search';
+import {
+  medicationCatalogMatchScore,
+  rankMedicationCatalog,
+} from '@/features/medications/medication-catalog-search';
 import type { MedicationProduct } from '@/features/medications/medication-record';
 
 function product(
@@ -129,5 +132,31 @@ describe('rankMedicationCatalog', () => {
 
     expect(rankMedicationCatalog([suspension], 'Нурофен сироп')).toEqual([suspension]);
     expect(rankMedicationCatalog([suspension], 'Нурофен спироп')).toEqual([suspension]);
+  });
+
+  describe('by ATC code', () => {
+    // ЕСКЛП gives umifenovir only the group stub L03AX; the sources agree on J05AX13 (ATC3).
+    const arbidol = product('Арбидол', 'умифеновир', { atcCodes: ['L03AX', 'J05AX13'] });
+    const other = product('Нурофен', 'ибупрофен', { atcCodes: ['M01AE01'] });
+    const noCodes = product('Аква', 'вода');
+    const products = [other, arbidol, noCodes];
+
+    it('finds the drug under the registry code and under the consensus code', () => {
+      expect(rankMedicationCatalog(products, 'L03AX')).toEqual([arbidol]);
+      expect(rankMedicationCatalog(products, 'J05AX13')).toEqual([arbidol]);
+      expect(rankMedicationCatalog(products, 'j05ax13')).toEqual([arbidol]);
+    });
+
+    it('matches a group prefix and a code typed with Cyrillic look-alikes', () => {
+      expect(rankMedicationCatalog(products, 'J05')).toEqual([arbidol]);
+      expect(rankMedicationCatalog(products, 'М01АЕ')).toEqual([other]);
+    });
+
+    it('does not read a short word as a code, and ignores products without codes', () => {
+      expect(rankMedicationCatalog(products, 'J')).toEqual([]);
+      expect(rankMedicationCatalog(products, 'N02')).toEqual([]);
+      expect(medicationCatalogMatchScore(noCodes, 'J05AX13')).toBe(0);
+      expect(medicationCatalogMatchScore(arbidol, 'J05AX13')).toBeGreaterThan(0);
+    });
   });
 });

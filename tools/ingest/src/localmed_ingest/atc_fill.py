@@ -693,6 +693,56 @@ def patch_metadata(
     return patched, changed
 
 
+def consensus_problems(metadata: Mapping[str, Any], document_id: str = "") -> list[str]:
+    """What is wrong with the ``atcConsensus`` fields of one card (empty when nothing is).
+
+    A consensus node keeps its registry group stub as ``atcCode`` and the conflict flag, names a
+    valid 7-character substance code outside that stub, and lists at least two distinct source
+    rules of at least two independent kinds; the card lists the code in ``atcConsensusCodes``.
+    """
+    problems: list[str] = []
+    listed = {
+        code
+        for code in cast(list[Any], metadata.get("atcConsensusCodes") or [])
+        if isinstance(code, str)
+    }
+    seen: set[str] = set()
+    for node in _records(metadata.get("smnnNodes")):
+        consensus = node.get("atcConsensus")
+        where = f"{document_id} {node.get('smnnCode')}".strip()
+        if consensus is None:
+            continue
+        if not isinstance(consensus, dict):
+            problems.append(f"{where}: atcConsensus is not an object")
+            continue
+        fields = cast(dict[str, Any], consensus)
+        code = fields.get("code")
+        sources = fields.get("sources")
+        if not isinstance(code, str) or len(code) != 7 or normalize_atc(code) != code:
+            problems.append(f"{where}: {code!r} is not a level-5 ATC code")
+            continue
+        seen.add(code)
+        stub = normalize_atc(node.get("atcCode") if isinstance(node.get("atcCode"), str) else None)
+        if stub is None or atc_level(stub) != 4 or codes_agree(stub, code):
+            problems.append(f"{where}: the registry code {stub!r} is not a stub outside {code}")
+        if node.get("atcFlag") != "conflict":
+            problems.append(f"{where}: a consensus node must keep atcFlag conflict")
+        names = (
+            [item for item in cast(list[Any], sources) if isinstance(item, str)]
+            if isinstance(sources, list)
+            else []
+        )
+        if len(set(names)) < 2 or any(name not in _SOURCE_KIND for name in names):
+            problems.append(f"{where}: sources {sources!r} are not two or more known rules")
+        elif len({_SOURCE_KIND[name] for name in names}) < CONSENSUS_MIN_KINDS:
+            problems.append(f"{where}: sources {names} are of one kind")
+    if seen != listed:
+        problems.append(
+            f"{document_id}: atcConsensusCodes {sorted(listed)} != nodes {sorted(seen)}"
+        )
+    return problems
+
+
 def _candidate_summary(decision: Decision) -> list[dict[str, Any]]:
     by_code: dict[str, set[str]] = defaultdict(set)
     for candidate in decision.candidates:

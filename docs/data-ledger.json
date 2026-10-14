@@ -723,6 +723,19 @@
       "modified": "2026-10-14"
     },
     {
+      "path": "output/module-zstd-esklp-atc3-2026-10-14",
+      "class": "RELEASED",
+      "producer": "STATE ATC3: tools/ingest/scripts/build_atc_fill.py derive|apply (stub consensus, owner 2026-10-14) over the decoded original ЕСКЛП modules, then scripts/reframe-modules.ts --marker atc3 --family esklp for the nine groups with a consensus node",
+      "consumers": [
+        "catalog.preview.json 9 ЕСКЛП group modules (tag esklp-2026-08-28-atc3, version 2026-08-28.atc3)"
+      ],
+      "release": "branch datasets/esklp-2026-08-28-atc3",
+      "rebuild": "decode output/module-zstd-2026-10-01/esklp-compacted into data/build/atc-fill/base; uv run --project tools/ingest python tools/ingest/scripts/build_atc_fill.py derive|apply --out data/build/atc-fill/out3 --data-root <main checkout>; bun scripts/reframe-modules.ts --marker atc3 --family esklp --module-id … --decoded-dir data/build/atc-fill/out3/patched --out-dir output/module-zstd-esklp-atc3-2026-10-14",
+      "note": "9 ЕСКЛП modules with atcConsensus on 26 nodes of 13 cards; only documents.metadata_json differs from output/module-zstd-esklp-atc2-2026-10-13, which stays as the previous release copy (the other five completed groups and antiparasitic are still served from their atc2/original tags). Decoded copies and patched databases were deleted after verification.",
+      "bytes": 53834542,
+      "modified": "2026-10-14"
+    },
+    {
       "path": "data/build/kd1",
       "class": "RELEASED",
       "producer": "STATE KD1: tools/benchmarks/embedding_distill.py texts/targets/project/train/export (student v3), ONNX split in two parts",

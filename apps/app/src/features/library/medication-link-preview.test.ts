@@ -123,6 +123,24 @@ describe('drug link summary', () => {
     expect(summary.atc).toEqual({ code: 'M01AE01', name: null });
   });
 
+  it('shows the consensus code first, ahead of the registry code (ATC3)', () => {
+    const document = pointer();
+    const summary = buildMedicationLinkSummary({
+      document: {
+        ...document,
+        metadata: {
+          ...document.metadata,
+          atcCodes: ['L03AX'],
+          atcConsensusCodes: ['J05AX13'],
+        },
+      },
+      index: null,
+      atcNames: null,
+      instruction: null,
+    });
+    expect(summary.atc).toEqual({ code: 'J05AX13', name: null });
+  });
+
   it('reads trade names from pointer lines', () => {
     expect(pointerTradeNames(pointer())).toEqual(['Нурофен', 'МИГ 400']);
   });

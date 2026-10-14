@@ -245,7 +245,15 @@ export function buildMedicationLinkSummary(
       drugNameKey,
     ),
   ).slice(0, GROUPS_SHOWN);
-  const atc = atcOf([...metadataStrings(document, 'atcCodes'), ...(card?.a ?? [])], input.atcNames);
+  const atc = atcOf(
+    [
+      // the consensus code first: it is the primary one, the registry's own stays behind it
+      ...metadataStrings(document, 'atcConsensusCodes'),
+      ...metadataStrings(document, 'atcCodes'),
+      ...(card?.a ?? []),
+    ],
+    input.atcNames,
+  );
   const effect = input.instruction ? instructionEffect(input.instruction) : null;
 
   const registry =

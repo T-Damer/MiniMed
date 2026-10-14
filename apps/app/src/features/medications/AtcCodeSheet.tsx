@@ -9,7 +9,7 @@ import {
   normalizeAtcCode,
 } from '@/features/medications/atc-code';
 import { loadAtcNames } from '@/features/medications/atc-names';
-import type { DrugAtcCode } from '@/features/medications/drug-screen';
+import { type DrugAtcCode, drugAtcCodeLabel } from '@/features/medications/drug-screen';
 
 import '@/features/medications/drug-screen.css';
 
@@ -31,7 +31,8 @@ export function AtcCodeSheet(props: {
       ? atcLadder({
           code: normalized,
           catalog: catalog(),
-          groupText: code.groupText,
+          // The group text of the node describes the registry's stub, not a consensus code's levels.
+          groupText: code.consensusSources.length > 0 ? null : code.groupText,
           substanceName: code.substanceName,
         })
       : [];
@@ -113,6 +114,14 @@ export function AtcCodeSheet(props: {
                 </p>
               )}
             </Show>
+            <Show when={code().consensusSources.length > 0}>
+              <p class="atc-sheet__note" data-testid="atc-consensus-note">
+                <span class="atc-sheet__note-label">Основной код:</span> источники совпали —{' '}
+                {code().consensusSources.map(atcFillSourceLabel).join(', ')}.{' '}
+                <span class="atc-sheet__note-label">В реестре:</span>{' '}
+                {drugAtcCodeLabel(code()).registryCode ?? 'код не указан'} (только группа).
+              </p>
+            </Show>
             <Show when={code().fillSources.length > 0}>
               <p class="atc-sheet__note">
                 <span class="atc-sheet__note-label">Код дополнен:</span>{' '}
@@ -135,11 +144,13 @@ export function AtcCodeSheet(props: {
               </p>
             </Show>
             <p class="atc-sheet__footer">
-              {code().fillSources.length > 0
-                ? 'Код АТХ дополнен по данным MiniMed. '
-                : code().edition
-                  ? `Код АТХ по ЕСКЛП от ${code().edition}. `
-                  : 'Код АТХ по ЕСКЛП. '}
+              {code().consensusSources.length > 0
+                ? 'Основной код АТХ уточнён по данным MiniMed; значение ЕСКЛП не менялось. '
+                : code().fillSources.length > 0
+                  ? 'Код АТХ дополнен по данным MiniMed. '
+                  : code().edition
+                    ? `Код АТХ по ЕСКЛП от ${code().edition}. `
+                    : 'Код АТХ по ЕСКЛП. '}
               <Show when={catalog()}>
                 {(names) => (
                   <>

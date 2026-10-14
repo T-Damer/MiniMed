@@ -1,5 +1,6 @@
 import { lightStemRussian, normalizeSurfaceText, tokenize } from '@localmed/search-lexical';
 
+import { normalizeAtcCode } from '@/features/medications/atc-code';
 import type { MedicationProduct } from '@/features/medications/medication-record';
 
 export function medicationSearchText(product: MedicationProduct): string {
@@ -99,7 +100,27 @@ function medicationSearchEntry(product: MedicationProduct): MedicationSearchEntr
   return entry;
 }
 
+/** Score of a product whose ATC code (registry or consensus) starts with the code searched for. */
+const ATC_CODE_SCORE = 60;
+
+/** The query as an ATC code of level 2-5 (`J05`, `J05AX13`); a letter and one digit are words. */
+function atcCodeQuery(normalizedQuery: string): string | null {
+  const code = normalizeAtcCode(normalizedQuery);
+  return code && code.level >= 2 ? code.code : null;
+}
+
 function medicationCatalogEntryScore(
+  product: MedicationProduct,
+  normalizedQuery: string,
+  queryStems: readonly string[],
+  atcQuery: string | null,
+): number {
+  const byAtc =
+    atcQuery && product.atcCodes?.some((code) => code.startsWith(atcQuery)) ? ATC_CODE_SCORE : 0;
+  return Math.max(byAtc, medicationNameScore(product, normalizedQuery, queryStems));
+}
+
+function medicationNameScore(
   product: MedicationProduct,
   normalizedQuery: string,
   queryStems: readonly string[],
@@ -155,7 +176,12 @@ export function medicationCatalogMatchScore(product: MedicationProduct, query: s
   if (!normalizedQuery) return 1;
   const queryStems = stems(normalizedQuery);
   if (queryStems.length === 0) return 0;
-  return medicationCatalogEntryScore(product, normalizedQuery, queryStems);
+  return medicationCatalogEntryScore(
+    product,
+    normalizedQuery,
+    queryStems,
+    atcCodeQuery(normalizedQuery),
+  );
 }
 
 export function rankMedicationCatalog(
@@ -166,12 +192,13 @@ export function rankMedicationCatalog(
   if (!normalizedQuery) return products;
   const queryStems = stems(normalizedQuery);
   if (queryStems.length === 0) return [];
+  const atcQuery = atcCodeQuery(normalizedQuery);
 
   return products
     .map((product, index) => ({
       product,
       index,
-      score: medicationCatalogEntryScore(product, normalizedQuery, queryStems),
+      score: medicationCatalogEntryScore(product, normalizedQuery, queryStems, atcQuery),
     }))
     .filter((entry) => entry.score > 0)
     .toSorted(

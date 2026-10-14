@@ -37,6 +37,7 @@ from localmed_ingest.atc_fill import (
     Decision,
     InstructionCodes,
     atc_level,
+    consensus_problems,
     coverage_row,
     decide_all,
     final_code,
@@ -343,6 +344,7 @@ def apply(args: argparse.Namespace) -> None:
     out = args.out / "patched"
     out.mkdir(parents=True, exist_ok=True)
     summary: dict[str, Any] = {}
+    problems: list[str] = []
     for path in sorted(base.glob("minimed.medications.*.ru.db")):
         target = out / path.name
         shutil.copy2(path, target)
@@ -354,6 +356,7 @@ def apply(args: argparse.Namespace) -> None:
             for document_id, raw in rows:
                 metadata = json.loads(raw)
                 patched, nodes_changed = patch_metadata(metadata, decisions, str(document_id))
+                problems.extend(consensus_problems(patched, str(document_id)))
                 if patched == metadata:
                     continue
                 connection.execute(
@@ -373,6 +376,8 @@ def apply(args: argparse.Namespace) -> None:
             "integrity": integrity,
         }
         print(path.name, summary[module_name(path)])
+    if problems:
+        raise SystemExit("Invalid consensus fields:\n" + "\n".join(problems))
     (args.out / "apply-report.json").write_text(
         json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )

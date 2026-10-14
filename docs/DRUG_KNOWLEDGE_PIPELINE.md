@@ -300,12 +300,43 @@ Input is the decoded published module set (catalog `decodedSha256`), the НСИ 
 4. Provenance in the card: node `atcCode` (completed), `atcOriginal`, `atcSource` (first of `atcSources`), `atcFlag`,
    `atcCandidates`; card `atcCodes` recomputed from the nodes, `atcFill` (version `atc-fill-1`, counts, source per code).
    No field means the code is ЕСКЛП's own.
+5. Consensus against a stub (ATC3, owner decision 2026-10-14 «show both»). A `conflict` whose registry value is a level-4
+   group stub (`L03AX`) and where **one** full code outside the stub (`J05AX13`) is proposed by sources of **two
+   independent kinds** gets the node field `atcConsensus: {code, sources}` (`stub_consensus`); the card gets
+   `atcConsensusCodes` (the list of such codes) and `atcFill.consensusNodes`. `atcCode`, `atcOriginal`, `atcFlag` and
+   `atcCandidates` do not change: the registry code stays the official value, the app shows the agreed code first and
+   the registry code beside it («J05AX13 · в реестре: L03AX»), and search, the group tree and the comparison index use
+   both. Independent kinds: *registry* (`same-inn`, `same-inn-other-form`) and *instruction* (`instruction-text`,
+   `same-inn-instruction`, and `instruction-text-ocr`, which counts as the instruction kind but never makes a
+   consensus without the registry kind). Two instructions are one kind. The НСИ dictionary does not vote: a name with
+   several codes is only an option set, and a code the dictionary lacks for a form is not a contradiction. A claim that
+   repeats the stub or stops at the full code's group is neutral; a second full code, or another group, is a
+   disagreement and there is no consensus. `apply` checks every written consensus (`consensus_problems`) and refuses
+   an invalid one. On the 2026-10-13 inputs this gives 26 nodes in 13 cards (9 groups).
 
 Measured precision (agreement with the 5 369 full ЕСКЛП codes): instruction text 95.6 %, OCR text 94.3 %, НСИ 95.8 %,
 same МНН and class 98.1 %, instruction of the same МНН 96.0 %. Result of the 2026-10-13 run and the coverage table are in
-CURRENT_STATE.md «ATC completion». Open decision: whether two or more independent sources that agree on one substance code
-may replace a conflicting registry stub (26 nodes). To rerun after a ЕСКЛП refresh, decode the new modules into
+CURRENT_STATE.md «ATC completion» and «ATC consensus against a registry stub». To rerun after a ЕСКЛП refresh, decode the new
+modules as ЕСКЛП published them (never an already filled set: `atcCode` is read as the registry value) into
 `data/build/atc-fill/base/` and run `derive` and `apply` again; delete `DIR/patched` and the decoded copies afterwards.
+
+The consensus (ATC3) is metadata only as well, so it ships the same way, only for the groups that hold a consensus node.
+Compare the patched databases with the published modules table by table first (only `documents.metadata_json` may
+differ, and there only the ATC fields), then:
+
+```bash
+bun scripts/reframe-modules.ts --marker atc3 --family esklp --module-id minimed.medications.<group>.ru … \
+  --decoded-dir DIR/patched --out-dir output/module-zstd-esklp-atc3-<date> --published-at <UTC now> --write-catalog
+bun run catalog:shell
+scripts/publish-module-zstd-mirror.sh --family esklp --tag esklp-2026-08-28-atc3 --source-dir output/…/esklp-2026-08-28-atc3 --create
+# the comparison index carries both codes of a card (from a worktree: MINIMED_DATA_ROOT = the main checkout)
+MINIMED_DATA_ROOT=<main> CMP1_ESKLP_DIR=DIR/patched bun scripts/build-drug-comparison.ts
+```
+
+`reframe-modules.ts` replaces an `atcN` marker of the earlier tag and version (`…-atc2` becomes `…-atc3`), so a later fill
+is `atc4`. The interaction and medication-safety indexes (`build-drug-interactions.ts`, `build-medication-safety.ts`) still
+read the original ЕСКЛП release and take neither the ATC2 nor the ATC3 codes: their class rules (an ATC prefix decides
+which interaction phrases apply) need a review of the new codes before they are rebuilt.
 
 ## Update policy
 

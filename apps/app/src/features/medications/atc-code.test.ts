@@ -8,8 +8,10 @@ import {
   atcFillSourceLabel,
   atcGroupChain,
   atcLadder,
+  atcNodeCodes,
   atcPrefixes,
   normalizeAtcCode,
+  parseAtcConsensus,
 } from './atc-code';
 
 function code(raw: string) {
@@ -200,5 +202,35 @@ describe('atcFillSourceLabel', () => {
     expect(atcFillSourceLabel('registry-nsi')).toBe('справочник НСИ «АТХ»');
     expect(atcFillSourceLabel('same-inn')).toBe('тот же МНН и форма в ЕСКЛП');
     expect(atcFillSourceLabel('new-rule')).toBe('new-rule');
+  });
+});
+
+describe('parseAtcConsensus', () => {
+  it('reads a level-5 code with its sources, normalised', () => {
+    expect(
+      parseAtcConsensus({ code: 'J05AX13', sources: ['instruction-text', 'same-inn'] }),
+    ).toEqual({ code: 'J05AX13', sources: ['instruction-text', 'same-inn'] });
+    expect(parseAtcConsensus({ code: 'J05АХ13', sources: ['a', ''] })?.code).toBe('J05AX13');
+  });
+
+  it('rejects anything that is not a full code with named sources', () => {
+    expect(parseAtcConsensus(undefined)).toBeNull();
+    expect(parseAtcConsensus('J05AX13')).toBeNull();
+    expect(parseAtcConsensus([])).toBeNull();
+    expect(parseAtcConsensus({ code: 'J05AX', sources: ['a', 'b'] })).toBeNull();
+    expect(parseAtcConsensus({ code: 'J05AX13', sources: [] })).toBeNull();
+    expect(parseAtcConsensus({ code: 'J05AX13' })).toBeNull();
+    expect(parseAtcConsensus({ code: 7, sources: ['a'] })).toBeNull();
+  });
+});
+
+describe('atcNodeCodes', () => {
+  it('lists the registry code and, beside it, the consensus code', () => {
+    const consensus = { code: 'J05AX13', sources: ['instruction-text', 'same-inn'] };
+    expect(atcNodeCodes('L03AX', consensus)).toEqual(['L03AX', 'J05AX13']);
+    expect(atcNodeCodes('~', consensus)).toEqual(['J05AX13']);
+    expect(atcNodeCodes('L03AX', undefined)).toEqual(['L03AX']);
+    expect(atcNodeCodes(undefined, { code: 'bad', sources: ['x'] })).toEqual([]);
+    expect(atcNodeCodes('J05AX13', consensus)).toEqual(['J05AX13']);
   });
 });

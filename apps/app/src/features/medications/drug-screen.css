@@ -279,6 +279,15 @@
   letter-spacing: 0.03em;
 }
 
+/* «· в реестре: L03AX» beside a consensus code: the registry's own value, secondary to the code. */
+.drug-chip__registry {
+  margin-inline-start: 0.375rem;
+  color: var(--theme-text-faint);
+  font-family: var(--font-serif);
+  font-size: 0.75rem;
+  letter-spacing: normal;
+}
+
 /* Fold button of a chip row: a tinted, borderless pill with a chevron, unlike the outlined chips. */
 .drug-links__toggle {
   display: inline-flex;

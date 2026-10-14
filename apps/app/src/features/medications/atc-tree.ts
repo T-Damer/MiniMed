@@ -7,7 +7,7 @@ import {
 } from '@/features/medications/atc-code';
 import {
   displayDrugName,
-  drugAtcCodes,
+  drugAtcSearchCodes,
   isEsklpSubstanceDocument,
 } from '@/features/medications/drug-screen';
 import { ATC_NONE_CODE } from '@/features/medications/medication-routing';
@@ -88,7 +88,7 @@ export function atcSubstanceFromDocument(
   return {
     documentId: document.id,
     name: displayDrugName(name),
-    codes: drugAtcCodes(document, undefined).map((entry) => entry.code),
+    codes: drugAtcSearchCodes(document, undefined),
   };
 }
 

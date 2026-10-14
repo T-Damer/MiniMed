@@ -286,6 +286,62 @@ describe('parseMedicationProduct', () => {
     );
   });
 
+  it('carries the registry ATC code and the consensus code of the node (ATC3)', () => {
+    const products = parseEsklpMedicationProducts({
+      id: 'esklp.mnn.умифеновир',
+      title: 'Умифеновир',
+      shortTitle: null,
+      sourceType: 'official_registry_summary',
+      status: 'active',
+      specialties: [],
+      versionId: 'esklp.mnn.умифеновир@1',
+      versionLabel: '1',
+      effectiveFrom: null,
+      sections: [],
+      metadata: {
+        contentMode: 'esklp-mnn',
+        standardizedInn: 'Умифеновир',
+        smnnNodes: [
+          {
+            smnnCode: 'stub',
+            dosageForm: 'Таблетки',
+            strength: '100 мг',
+            atcCode: 'L03AX',
+            atcConsensus: { code: 'J05AX13', sources: ['instruction-text', 'same-inn'] },
+            tradeNames: [
+              {
+                tradeName: 'Арбидол',
+                registrationNumber: 'ЛП-1',
+                dosageForm: 'Таблетки',
+                strength: '100 мг',
+              },
+            ],
+          },
+          {
+            smnnCode: 'none',
+            dosageForm: 'Капсулы',
+            strength: '50 мг',
+            atcCode: '~',
+            tradeNames: [
+              {
+                tradeName: 'Иммустат',
+                registrationNumber: 'ЛП-2',
+                dosageForm: 'Капсулы',
+                strength: '50 мг',
+              },
+            ],
+          },
+        ],
+      },
+    });
+    expect(products.find((item) => item.tradeName === 'Арбидол')?.atcCodes).toEqual([
+      'L03AX',
+      'J05AX13',
+    ]);
+    // a node without a code leaves the field out
+    expect(products.find((item) => item.tradeName === 'Иммустат')).not.toHaveProperty('atcCodes');
+  });
+
   it('attaches sibling KLP positions to the node trade variant without duplicating it', () => {
     const products = parseEsklpMedicationProducts({
       id: 'esklp.mnn.single',

@@ -1,6 +1,7 @@
 import type { MedicalDocument } from '@localmed/contracts';
 
 import { allmedMatchesProduct } from '@/features/medications/allmed-matching';
+import { atcNodeCodes } from '@/features/medications/atc-code';
 import type { InstructionSourceClass } from '@/features/medications/instruction-source';
 
 export interface MedicationPackage {
@@ -62,6 +63,11 @@ export interface MedicationProduct {
   readonly registrationDate: string | null;
   readonly pharmacotherapeuticGroups: readonly string[];
   readonly presentations: readonly MedicationPresentation[];
+  /**
+   * The ATC codes the registration's substance node is found under (ЕСКЛП only): the registry's
+   * own code and, beside it, the consensus code where the registry has only a group stub.
+   */
+  readonly atcCodes?: readonly string[];
   /** A reference-text product (`sourceKind: 'allmed'`): the source's name, e.g. «Allmed», «Видаль». */
   readonly referenceSourceName?: string;
   /** Where the reference text comes from, when it has a public page (https only). */
@@ -260,6 +266,7 @@ interface EsklpVariant {
   readonly dosageForm: string;
   readonly strength: string | null;
   readonly pharmacotherapeuticGroup: string | null;
+  readonly atcCodes: readonly string[];
   readonly registrationStatus: string;
   readonly prescriptionStatus: string | null;
   holder: string | null;
@@ -359,6 +366,7 @@ export function parseEsklpMedicationProducts(
     const nodeDosageForm = recordString(node, 'dosageForm');
     const nodeStrength = recordString(node, 'strength');
     const pharmacotherapeuticGroup = recordString(node, 'pharmacotherapeuticGroup');
+    const atcCodes = atcNodeCodes(node['atcCode'], node['atcConsensus']);
     const tradeNames = recordList(recordField(node, 'tradeNames'));
     const klpPositions = recordList(recordField(node, 'klpPositions'));
     const nodeVariants = new Map<string, EsklpVariant[]>();
@@ -379,6 +387,7 @@ export function parseEsklpMedicationProducts(
           dosageForm,
           strength,
           pharmacotherapeuticGroup,
+          atcCodes,
           registrationStatus,
           prescriptionStatus: recordString(trade, 'prescriptionStatus'),
           holder: null,
@@ -440,6 +449,7 @@ export function parseEsklpMedicationProducts(
     pharmacotherapeuticGroups: variant.pharmacotherapeuticGroup
       ? [variant.pharmacotherapeuticGroup]
       : [],
+    ...(variant.atcCodes.length > 0 ? { atcCodes: variant.atcCodes } : {}),
     presentations: [
       {
         dosageForm: variant.dosageForm,

@@ -9,6 +9,7 @@ import {
   type DrugQuickLinksModel,
   type DrugRelatedProduct,
   type DrugSubstanceLink,
+  drugAtcCodeLabel,
 } from '@/features/medications/drug-screen';
 import type { MedicationProduct } from '@/features/medications/medication-record';
 import { notesDrugComparisonPath } from '@/features/notes/notes-routing';
@@ -204,17 +205,23 @@ export function DrugQuickLinks(props: {
         </Show>
         <Show when={props.links.atc.length > 0}>
           <ChipRow id="drug-links-atc" label="Код АТХ" items={props.links.atc} limit={6}>
-            {(code: DrugAtcCode) => (
-              <button
-                type="button"
-                class="drug-chip drug-chip--code"
-                aria-haspopup="dialog"
-                aria-label={`Код АТХ ${code.code}: пояснить по уровням`}
-                onClick={() => openAtc(code)}
-              >
-                {code.code}
-              </button>
-            )}
+            {(code: DrugAtcCode) => {
+              const label = drugAtcCodeLabel(code);
+              return (
+                <button
+                  type="button"
+                  class="drug-chip drug-chip--code"
+                  aria-haspopup="dialog"
+                  aria-label={label.ariaLabel}
+                  onClick={() => openAtc(code)}
+                >
+                  {label.code}
+                  <Show when={label.registryNote}>
+                    {(note) => <span class="drug-chip__registry">· {note()}</span>}
+                  </Show>
+                </button>
+              );
+            }}
           </ChipRow>
         </Show>
         <Show when={props.links.compare}>

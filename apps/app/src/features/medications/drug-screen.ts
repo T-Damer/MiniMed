@@ -5,7 +5,14 @@
  */
 import type { MedicalDocument, MedicalDocumentSummary, MedicalSection } from '@localmed/contracts';
 
-import { type AtcLevel, atcGroupChain, normalizeAtcCode } from '@/features/medications/atc-code';
+import {
+  type AtcConsensus,
+  type AtcLevel,
+  atcGroupChain,
+  atcNodeCodes,
+  normalizeAtcCode,
+  parseAtcConsensus,
+} from '@/features/medications/atc-code';
 import {
   instructionIndexFromDocuments,
   instructionSourceClassIndex,
@@ -148,6 +155,12 @@ export interface DrugAtcCode {
   readonly registryValue: string | null;
   /** Other codes other sources give for the node: the sources disagree and nothing was changed. */
   readonly alternatives: readonly DrugAtcAlternative[];
+  /**
+   * Set when this is the code several independent sources agree on while ЕСКЛП gives only a group
+   * stub (`atcConsensus`, owner decision 2026-10-14): the agreeing build rules, shown first; the
+   * stub stays in `registryValue` as the official value. Empty otherwise.
+   */
+  readonly consensusSources: readonly string[];
 }
 
 export interface DrugAtcAlternative {
@@ -206,10 +219,11 @@ export function drugAtcCodes(
     groupText: string | null,
     substance: string | null,
     node?: Readonly<Record<string, unknown>>,
+    consensus?: AtcConsensus,
   ): void => {
     const normalized = normalizeAtcCode(rawCode);
     if (!normalized || codes.has(normalized.code)) return;
-    const fillSources = node ? textList(node['atcSources']) : [];
+    const fillSources = node && !consensus ? textList(node['atcSources']) : [];
     codes.set(normalized.code, {
       code: normalized.code,
       level: normalized.level,
@@ -218,19 +232,25 @@ export function drugAtcCodes(
       substanceName: substance ? displayDrugName(substance) : null,
       edition,
       fillSources,
-      registryValue: node && fillSources.length > 0 ? textValue(node['atcOriginal']) : null,
-      alternatives: node ? atcAlternatives(node, normalized.code) : [],
+      // A consensus code leaves the registry value as published: the group stub, never completed.
+      registryValue:
+        node && (consensus || fillSources.length > 0)
+          ? textValue(consensus ? node['atcCode'] : node['atcOriginal'])
+          : null,
+      alternatives: node && !consensus ? atcAlternatives(node, normalized.code) : [],
+      consensusSources: consensus?.sources ?? [],
     });
   };
   for (const node of nodes) {
     const raw = textValue(node['atcCode']);
-    if (raw)
-      add(
-        raw,
-        textValue(node['pharmacotherapeuticGroup']),
-        textValue(node['standardizedInn']),
-        node,
-      );
+    const group = textValue(node['pharmacotherapeuticGroup']);
+    const substance = textValue(node['standardizedInn']);
+    const consensus = parseAtcConsensus(node['atcConsensus']);
+    if (consensus && raw && normalizeAtcCode(raw)?.code !== consensus.code) {
+      add(consensus.code, group, substance, node, consensus);
+    } else if (raw) {
+      add(raw, group, substance, node);
+    }
   }
   if (codes.size === 0 && allNodes.length === 0) {
     const substance = textValue(sourceField(source, 'standardizedInn'));
@@ -243,8 +263,67 @@ export function drugAtcCodes(
   return [...codes.values()].toSorted((left, right) => left.code.localeCompare(right.code, 'en'));
 }
 
+export interface DrugAtcCodeLabel {
+  /** The code the chip is about. */
+  readonly code: string;
+  /** The registry's own value beside a consensus code (`L03AX`); null for any other code. */
+  readonly registryCode: string | null;
+  /** «в реестре: L03AX», the small text beside a consensus code; null for any other code. */
+  readonly registryNote: string | null;
+  /** What a screen reader says for the chip. */
+  readonly ariaLabel: string;
+}
+
+/**
+ * What a code's chip says. A consensus code (several independent sources agree on a full code
+ * where ЕСКЛП has only a group stub) is the primary one; the registry's own value follows as small
+ * text. Any other code is shown alone.
+ */
+export function drugAtcCodeLabel(entry: DrugAtcCode): DrugAtcCodeLabel {
+  const registry =
+    entry.consensusSources.length > 0 && entry.registryValue
+      ? (normalizeAtcCode(entry.registryValue)?.code ?? entry.registryValue)
+      : null;
+  return {
+    code: entry.code,
+    registryCode: registry,
+    registryNote: registry ? `в реестре: ${registry}` : null,
+    ariaLabel: `Код АТХ ${entry.code}${registry ? `, в реестре ${registry}` : ''}: пояснить по уровням`,
+  };
+}
+
+/**
+ * Every ATC code the drug is found under, for search and for the group tree: per node the
+ * registry's own code and, beside it, the consensus code (`atcConsensus`), so a drug whose ЕСКЛП
+ * code is a group stub is found under the stub and under the full code the sources agree on.
+ * Scope as in `drugAtcCodes`; normalised, once each, in code order.
+ */
+export function drugAtcSearchCodes(
+  source: Pick<MedicalDocument, 'metadata'> | undefined,
+  product: Pick<MedicationProduct, 'smnnCodes'> | undefined,
+): readonly string[] {
+  if (!source) return [];
+  const allNodes = recordList(sourceField(source, 'smnnNodes'));
+  const own =
+    product && product.smnnCodes.length > 0
+      ? allNodes.filter((node) => product.smnnCodes.includes(textValue(node['smnnCode']) ?? ''))
+      : [];
+  const nodes = own.length > 0 ? own : allNodes;
+  const codes = new Set<string>();
+  for (const node of nodes) {
+    for (const code of atcNodeCodes(node['atcCode'], node['atcConsensus'])) codes.add(code);
+  }
+  if (codes.size === 0 && allNodes.length === 0) {
+    const listed: unknown = sourceField(source, 'atcCodes');
+    for (const raw of Array.isArray(listed) ? (listed as readonly unknown[]) : []) {
+      for (const code of atcNodeCodes(raw, undefined)) codes.add(code);
+    }
+  }
+  return [...codes].toSorted((left, right) => left.localeCompare(right, 'en'));
+}
+
 /* ------------------------------------------------------------------------------------------ */
-/* Quick links                                                                                 */
+/* Quick links                                                                                */
 /* ------------------------------------------------------------------------------------------ */
 
 export interface DrugGroupLink {

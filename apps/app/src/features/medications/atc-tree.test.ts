@@ -129,6 +129,33 @@ describe('atcSubstanceFromDocument', () => {
     });
   });
 
+  it('lists the registry stub and the consensus code of a node, so the tree has both (ATC3)', () => {
+    const document = {
+      ...base,
+      id: 'esklp.mnn.умифеновир',
+      metadata: {
+        contentMode: 'esklp-mnn',
+        standardizedInn: 'УМИФЕНОВИР',
+        smnnNodes: [
+          {
+            atcCode: 'L03AX',
+            atcFlag: 'conflict',
+            atcConsensus: { code: 'J05AX13', sources: ['instruction-text', 'same-inn'] },
+          },
+        ],
+      },
+    } as unknown as MedicalDocument;
+    const substance = atcSubstanceFromDocument(document);
+    expect(substance?.codes).toEqual(['J05AX13', 'L03AX']);
+    if (!substance) throw new Error('substance missing');
+    const tree = buildAtcTree([substance], {});
+    // found in the registry's group and in the group of the full code
+    expect(tree.nodes.get('L03AX')?.entries.map((entry) => entry.codes)).toEqual([['L03AX']]);
+    expect(tree.nodes.get('J05AX')?.entries.map((entry) => entry.codes)).toEqual([['J05AX13']]);
+    expect(tree.nodes.get('J')?.substanceCount).toBe(1);
+    expect(tree.nodes.get('L')?.substanceCount).toBe(1);
+  });
+
   it('ignores documents that are not МНН cards', () => {
     const document = { ...base, metadata: { contentMode: 'registry-normalized' } };
     expect(atcSubstanceFromDocument(document as unknown as MedicalDocument)).toBeNull();

@@ -28,15 +28,23 @@ import {
 import { normalizeRegistrationKey } from '../apps/app/src/features/medications/mfg-country';
 
 const ROOT = resolve(import.meta.dirname, '..');
+/** The checkout that holds the ignored local `data/` and `output/` (the main one, from a worktree). */
+const DATA_ROOT = process.env['MINIMED_DATA_ROOT'] ?? ROOT;
 const CATALOG = join(ROOT, 'apps/app/src/features/modules/catalog.preview.json');
-const ESKLP_DIRECTORY = join(ROOT, 'data/build/release-esklp');
-const GRLS_DIRECTORY = join(ROOT, 'data/raw/official-grls-registry');
+/**
+ * The decoded ЕСКЛП МНН cards: the published modules' databases. `CMP1_ESKLP_DIR` points at the
+ * decoded set whose `atcCodes` and `atcConsensusCodes` (the ATC fill, `atc_fill.py`) the index
+ * should carry; by default the original release.
+ */
+const ESKLP_DIRECTORY =
+  process.env['CMP1_ESKLP_DIR'] ?? join(DATA_ROOT, 'data/build/release-esklp');
+const GRLS_DIRECTORY = join(DATA_ROOT, 'data/raw/official-grls-registry');
 const OUTPUT = join(ROOT, 'apps/app/src/features/drug-comparison/data/comparison-index.json');
-const REPORT = join(ROOT, 'data/build/drug-comparison/report.json');
+const REPORT = join(DATA_ROOT, 'data/build/drug-comparison/report.json');
 const MODULE_DIRECTORIES = [
   'output/module-zstd-grls-ocr1-kd1-2026-10-14/grls-instructions-2026.10.14-15ce0cf79f45-kd1',
   'output/module-zstd-manufacturer-ocr1-2026-10-14/manufacturer-instructions-2026.10.14-769c87d55bcc',
-].map((directory) => join(ROOT, directory));
+].map((directory) => join(DATA_ROOT, directory));
 /** Already decompressed modules (a directory of `<module id>.db`), to skip the zstd step. */
 const DECODED_DIRECTORY = process.env['CMP1_DECODED_DIR'] ?? process.env['SAFE1_DECODED_DIR'];
 
@@ -87,7 +95,11 @@ function loadEsklpCards(): { cards: readonly ComparisonBuildCard[]; edition: str
         name: textOf(metadata['standardizedInn']) ?? row.title,
         synonyms: stringList(metadata['inn']),
         components: stringList(metadata['componentInns']),
-        atcCodes: stringList(metadata['atcCodes']),
+        // The registry's codes and, beside them, the codes sources agree on where it has a stub.
+        atcCodes: [
+          ...stringList(metadata['atcCodes']),
+          ...stringList(metadata['atcConsensusCodes']),
+        ],
         registrationKeys: [...facts.registrations].toSorted(),
         facts,
       });

@@ -222,9 +222,11 @@ a guideline module did not open after the network was cut (its lazy chunks `Docu
   cardiology section is checked as «N из N» offline, not a fixed 43.
 - **Specs that need `data/` skip with a reason.** `e2e/local-data.ts` (`missingLocalData`) is used by
   `core-identities`, `module-lifecycle` and `terminology`; `module-install-timing` points at the release copy of
-  the published ЕСКЛП edition (`output/module-zstd-esklp-atc2-2026-10-13`). Specs that read release copies
-  from `output/` (clinical-module fixture, Allmed, severity) skip in a worktree: link the main checkout's
-  `data/` and `output/` (`ln -s <main>/data data`, remove the links afterwards) to run all of them. Reader
+  the published ЕСКЛП edition (`output/module-zstd-esklp-atc3-2026-10-14`). Specs that read release copies
+  from `output/` (clinical-module fixture, Allmed, severity) skip in a worktree, which has no local data:
+  never link `data/` or `output/` into a worktree (AGENTS.md; a committed link once made a pull delete every
+  release copy). Run them from the main checkout, or give the spec the main checkout's absolute paths
+  (`module-install-timing` and `reader-hero` already look in `<worktree>/../../..` as well). Reader
   specs that need the КР fixture: the glossary-first «Термины и определения» now sits at the top (the abbreviation
   list moved behind the chapters), so `reader-back-position` clicks a term deeper in the text.
 - **Source gate.** `scripts/check-browser-integration.mjs` compares whitespace-insensitively (formatter
@@ -4724,8 +4726,9 @@ instruction. Agreement of each source with the codes ЕСКЛП already has (the
 Conflicts are kept, not resolved: **676 nodes** where sources disagree (491 against a full ЕСКЛП code, 176 against a group
 stub, 9 against `~`) keep the registry value and carry `atcFlag: conflict` plus `atcCandidates` (every code with its
 sources), 7 nodes whose only support is an OCR text are flagged `unconfirmed`. 26 of the stub conflicts have two or more
-independent sources agreeing on one substance code (umifenovir `J05AX13` against the registry's `L03AX`): the open
-owner decision is whether such a consensus may replace a stub. Examples of genuine disagreements: methyldopa
+independent sources agreeing on one substance code (umifenovir `J05AX13` against the registry's `L03AX`); the owner
+decided on 2026-10-14 to show both (ATC3, below): the registry code stays the official value and the agreed code is
+shown beside it as the primary one. Examples of genuine disagreements: methyldopa
 (`C02AB01` registry, `C02AB02` instruction), ribavirin (`J05AB04` against the current WHO `J05AP01`), diclofenac skin forms.
 
 Shipped: the 14 ЕСКЛП group modules with a changed code (antiparasitic has only a flag and is unchanged) as `.db.zst`
@@ -4751,6 +4754,56 @@ Not done / known:
   and combination names in НСИ («цефтазидим и ингибитор бета-лактамаз») are not matched.
 - Not tested: the app release that shows the new sheet text in a browser (unit tests only), installation of the
   `atc2` modules from the mirror in a clean profile, a physical device.
+
+### ATC consensus against a registry stub — 2026-10-14 (STATE ATC3, owner «show both»)
+
+Owner 2026-10-14 on the 26 stub conflicts: **keep the registry code as the official value, show the consensus code
+beside it as the primary one; search and class comparison use both.**
+
+- Ingest (`atc_fill.stub_consensus`, `derive`/`apply` report `consensus`): for a conflict whose registry value is a
+  level-4 group stub, one full code outside the stub proposed by sources of **two independent kinds** is recorded as the
+  node field `atcConsensus: {code, sources}`. Kinds: *registry* (`same-inn`, `same-inn-other-form`: the same МНН
+  elsewhere in ЕСКЛП) and *instruction* (`instruction-text`, `same-inn-instruction`, and the OCR text `instruction-text-ocr`);
+  two instructions are one kind, an OCR text alone is never a consensus (it needs the registry kind, as it needs a second
+  source to apply a code). A source that repeats the stub or stops at the full code's group does not veto; a second full
+  code or another group does. The НСИ dictionary does not vote (a name with several codes is an option set; its silence
+  about a form is not a contradiction), which is also why the count is 26 and not 52. `atcCode`, `atcOriginal`, the
+  conflict flag and the candidate list are untouched; the card gets `atcConsensusCodes` and `atcFill.consensusNodes`.
+  `apply` refuses to write a malformed consensus (`consensus_problems`: 7-character level-5 code, stub outside it, ≥ 2
+  rules of ≥ 2 kinds). 37 pytest cases in `test_atc_fill.py` (8 new) (agreeing, one source, one kind, OCR alone, OCR with the
+  registry kind, disagreement, repeated stub, full registry code, `~`), a data test over the patched databases.
+- Result: **26 nodes in 13 cards** (the count the owner was given), 13 substances in nine ЕСКЛП group modules: aminophenylbutyric acid 5,
+  thioctic acid 6, ascorbic acid 2, umifenovir 2, larotrectinib 2, terazosin 2, retinol, sildenafil, zoledronic acid,
+  iodine + potassium iodide + glycerol, silver protein, neomycin + nystatin + polymyxin B, diphenhydramine + naphazoline
+  (one node each). The other two umifenovir nodes agree only with the НСИ dictionary and stay flagged conflicts.
+  Caveat: a registry stub can be indication- or route-specific (sildenafil `C02KX` is the pulmonary hypertension code,
+  the agreed `G04BE03` the erectile one; retinol ointment `D11AH` against the systemic `A11CA01`), which is why the stub stays
+  visible and official.
+- Modules: only `documents.metadata_json` of 13 cards changed, in the nine groups alimentary-metabolism, antiinfectives,
+  antineoplastic-immunomodulating, cardiovascular, dermatological, genitourinary-hormones, musculoskeletal,
+  nervous-system and sensory-organs (every table of the databases compared with the `atc2` modules, identical except
+  that column; 15 databases pass `PRAGMA integrity_check`). Published as `.db.zst` under the mirror tag
+  `esklp-2026-08-28-atc3` (branch `datasets/esklp-2026-08-28-atc3`, module version `2026-08-28.atc3`, 53.8 MB;
+  `scripts/reframe-modules.ts --marker atc3 --family esklp --module-id …`, which now replaces an `atcN` marker like an
+  embedding one); the other five completed groups stay on `-atc2` and antiparasitic on the original tag. The catalog
+  `publishedAt` moved forward. Local release copy: `output/module-zstd-esklp-atc3-2026-10-14` (the `atc2` copy stays as the
+  rollback one, 65 MB; `data/build/atc-fill/` decodes and patched databases were deleted after the checks).
+- App: the drug-screen ATC chip reads «J05AX13 · в реестре: L03AX» (`drugAtcCodeLabel`), the code sheet leads with
+  the agreed code, names its levels from `atc-names.json` and says which sources agree and what the registry holds
+  (`AtcCodeSheet`, `DrugAtcCode.consensusSources`); the link preview of a drug card leads with the consensus code. The
+  «По группам АТХ» tree (`drugAtcSearchCodes`) lists the substance under the registry stub's group and under the full
+  code's group; the medication list search accepts an ATC code or its prefix (`J05AX13`, `J05`, Cyrillic look-alikes) and
+  matches the registry and the consensus code (`MedicationProduct.atcCodes`); the comparison index
+  (`build-drug-comparison.ts`, `CMP1_ESKLP_DIR`, `MINIMED_DATA_ROOT`) carries both codes of a card in its `a` list and
+  was rebuilt from the patched set, so it also carries the ATC2 completed codes (155 cards changed, `a` only). Older
+  apps ignore `atcConsensus`; the field needs app ≥ the release that contains this change to show.
+- Not done / known: the interaction (INT1) and medication-safety (SAFE1) indexes are still built from the original
+  ЕСКЛП release and carry neither the ATC2 nor the ATC3 codes (their class rules need a review first); the global
+  full-text search runs over the card text («АТХ: …» of the registry), which the metadata-only rebuild does not touch, so
+  an ATC code typed into the main search finds only the registry code there (the medication list search finds both).
+  Checked in a browser only as the chip and the code sheet in a throwaway Vite page (chip text, NSI level names of the
+  consensus code, the sources and registry lines); not tested: the full app with the `atc3` modules installed from the
+  mirror in a clean profile, the e2e specs (they need the local core and the network), a physical device.
 
 ### «Лента»: opt-in news feed and site viewer — 2026-10-05 (STATE NEWS1, ADR-0024)
 

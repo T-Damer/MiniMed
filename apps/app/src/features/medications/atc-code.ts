@@ -94,6 +94,47 @@ export function normalizeAtcCode(raw: string): NormalizedAtcCode | null {
   return { code, level: (levelIndex + 1) as AtcLevel, corrected: code !== raw };
 }
 
+/**
+ * A full substance code that independent sources agree on where ЕСКЛП gives only a group stub
+ * (`atcConsensus` of a node, written by `tools/ingest/src/localmed_ingest/atc_fill.py`, owner
+ * decision 2026-10-14 «show both»). The registry code stays the official value; this one is shown
+ * first and searched beside it. Older module builds have no such field.
+ */
+export interface AtcConsensus {
+  /** Normalised level-5 code, e.g. `J05AX13`. */
+  readonly code: string;
+  /** The build rules that agree on it (`instruction-text`, `same-inn`, …), see `atcFillSourceLabel`. */
+  readonly sources: readonly string[];
+}
+
+/** The node's `atcConsensus`; null when absent or not a valid level-5 code with named sources. */
+export function parseAtcConsensus(value: unknown): AtcConsensus | null {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null;
+  const record = value as Readonly<Record<string, unknown>>;
+  const code = typeof record['code'] === 'string' ? normalizeAtcCode(record['code']) : null;
+  if (code?.level !== 5) return null;
+  const listed = record['sources'];
+  const sources = Array.isArray(listed)
+    ? (listed as readonly unknown[]).filter(
+        (item): item is string => typeof item === 'string' && item.trim() !== '',
+      )
+    : [];
+  return sources.length > 0 ? { code: code.code, sources } : null;
+}
+
+/**
+ * Every code a node is found under: the registry's own code (when it is a code at all, not «~»)
+ * and, beside it, the consensus code. Normalised, once each, registry code first.
+ */
+export function atcNodeCodes(registryCode: unknown, consensus: unknown): readonly string[] {
+  const codes: string[] = [];
+  const registry = typeof registryCode === 'string' ? normalizeAtcCode(registryCode) : null;
+  if (registry) codes.push(registry.code);
+  const agreed = parseAtcConsensus(consensus);
+  if (agreed && !codes.includes(agreed.code)) codes.push(agreed.code);
+  return codes;
+}
+
 /** `N06BX03` → `N`, `N06`, `N06B`, `N06BX`, `N06BX03`; shorter codes stop at their level. */
 export function atcPrefixes(
   code: string,

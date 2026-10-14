@@ -5,7 +5,9 @@ import {
   buildDrugScreen,
   displayDrugName,
   displayStrength,
+  drugAtcCodeLabel,
   drugAtcCodes,
+  drugAtcSearchCodes,
   drugGroupLinks,
   drugRelatedProducts,
   drugSectionIndex,
@@ -129,6 +131,7 @@ describe('drugAtcCodes', () => {
         fillSources: [],
         registryValue: null,
         alternatives: [],
+        consensusSources: [],
       },
     ]);
   });
@@ -207,6 +210,100 @@ describe('drugAtcCodes', () => {
     expect(drugAtcCodes(mixed, { smnnCodes: ['one'] }).map((item) => item.code)).toEqual(['N06BX']);
     // A node without a code is shown without one; codes of other nodes are not borrowed.
     expect(drugAtcCodes(mixed, { smnnCodes: ['two'] })).toEqual([]);
+  });
+
+  describe('consensus code against a registry stub (ATC3)', () => {
+    function umifenovir(): MedicalDocument {
+      const card = substanceCard();
+      return {
+        ...card,
+        metadata: {
+          ...card.metadata,
+          smnnNodes: [
+            {
+              smnnCode: 'stub',
+              standardizedInn: 'УМИФЕНОВИР',
+              pharmacotherapeuticGroup: 'иммуностимулирующее средство',
+              atcCode: 'L03AX',
+              atcFlag: 'conflict',
+              atcCandidates: [
+                { code: 'L03AX', sources: ['esklp'] },
+                { code: 'J05AX13', sources: ['instruction-text', 'same-inn'] },
+                { code: 'S01XA15', sources: ['registry-nsi'] },
+              ],
+              atcConsensus: { code: 'J05AX13', sources: ['instruction-text', 'same-inn'] },
+            },
+            { smnnCode: 'plain', atcCode: 'N06BX', standardizedInn: 'ФОНТУРАЦЕТАМ' },
+          ],
+        },
+      };
+    }
+
+    it('shows the consensus code as the primary one with the registry stub as its registry value', () => {
+      const [primary, plain] = drugAtcCodes(umifenovir(), undefined);
+      expect(primary).toMatchObject({
+        code: 'J05AX13',
+        level: 5,
+        consensusSources: ['instruction-text', 'same-inn'],
+        registryValue: 'L03AX',
+        fillSources: [],
+        // the sources agree: no «sources disagree» list, and the stub is not a second code
+        alternatives: [],
+        groupText: 'иммуностимулирующее средство',
+      });
+      expect(plain).toMatchObject({ code: 'N06BX', consensusSources: [], registryValue: null });
+      expect(drugAtcCodes(umifenovir(), { smnnCodes: ['stub'] }).map((item) => item.code)).toEqual([
+        'J05AX13',
+      ]);
+    });
+
+    it('words the chip: the code, and the registry value as small text beside it', () => {
+      const [primary, plain] = drugAtcCodes(umifenovir(), undefined);
+      if (!primary || !plain) throw new Error('codes missing');
+      expect(drugAtcCodeLabel(primary)).toEqual({
+        code: 'J05AX13',
+        registryCode: 'L03AX',
+        registryNote: 'в реестре: L03AX',
+        ariaLabel: 'Код АТХ J05AX13, в реестре L03AX: пояснить по уровням',
+      });
+      expect(drugAtcCodeLabel(plain)).toEqual({
+        code: 'N06BX',
+        registryCode: null,
+        registryNote: null,
+        ariaLabel: 'Код АТХ N06BX: пояснить по уровням',
+      });
+    });
+
+    it('finds the drug under both the stub and the consensus code', () => {
+      expect(drugAtcSearchCodes(umifenovir(), undefined)).toEqual(['J05AX13', 'L03AX', 'N06BX']);
+      expect(drugAtcSearchCodes(umifenovir(), { smnnCodes: ['stub'] })).toEqual([
+        'J05AX13',
+        'L03AX',
+      ]);
+      expect(drugAtcSearchCodes(undefined, undefined)).toEqual([]);
+    });
+
+    it('ignores an invalid consensus and reads older data without the field', () => {
+      const card = umifenovir();
+      const withBadConsensus: MedicalDocument = {
+        ...card,
+        metadata: {
+          ...card.metadata,
+          smnnNodes: [
+            { smnnCode: 'stub', atcCode: 'L03AX', atcConsensus: { code: 'J05AX', sources: ['a'] } },
+            { smnnCode: 'two', atcCode: 'N06BX', atcConsensus: 'J05AX13' },
+          ],
+        },
+      };
+      expect(drugAtcCodes(withBadConsensus, undefined).map((item) => item.code)).toEqual([
+        'L03AX',
+        'N06BX',
+      ]);
+      expect(drugAtcSearchCodes(withBadConsensus, undefined)).toEqual(['L03AX', 'N06BX']);
+      expect(
+        drugAtcCodes(substanceCard(), undefined).every((c) => !c.consensusSources.length),
+      ).toBe(true);
+    });
   });
 
   it('falls back to the document-level list when no node has a code', () => {

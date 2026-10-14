@@ -11,6 +11,7 @@ from localmed_ingest.atc_fill import (
     Candidate,
     InstructionCodes,
     atc_level,
+    consensus_problems,
     coverage_row,
     decide_all,
     final_code,
@@ -484,3 +485,32 @@ def test_consensus_is_recorded_beside_the_registry_code() -> None:
     assert patched["atcConsensusCodes"] == ["J05AX13"]
     assert patched["atcFill"]["consensusNodes"] == 1
     assert patched["atcFill"]["version"] == "atc-fill-1"
+
+
+def consensus_card(**overrides: Any) -> dict[str, Any]:
+    node: dict[str, Any] = {
+        "smnnCode": "u/1",
+        "atcCode": "L03AX",
+        "atcFlag": "conflict",
+        "atcConsensus": {"code": "J05AX13", "sources": ["instruction-text", "same-inn"]},
+    }
+    node.update(overrides)
+    return {"atcConsensusCodes": ["J05AX13"], "smnnNodes": [node]}
+
+
+def test_consensus_problems_accepts_a_well_formed_node_and_names_each_defect() -> None:
+    assert consensus_problems(consensus_card(), "esklp.mnn.u") == []
+    assert consensus_problems({"smnnNodes": [{"atcCode": "L03AX"}]}) == []
+    bad_code = consensus_card(atcConsensus={"code": "J05AX", "sources": ["same-inn", "x"]})
+    assert "not a level-5" in consensus_problems(bad_code)[0]
+    one_source = consensus_card(atcConsensus={"code": "J05AX13", "sources": ["same-inn"]})
+    assert "two or more" in consensus_problems(one_source)[0]
+    one_kind = consensus_card(
+        atcConsensus={"code": "J05AX13", "sources": ["instruction-text", "same-inn-instruction"]}
+    )
+    assert "one kind" in consensus_problems(one_kind)[0]
+    assert "not a stub" in consensus_problems(consensus_card(atcCode="L03AX13"))[0]
+    assert "atcFlag" in consensus_problems(consensus_card(atcFlag="ambiguous"))[0]
+    unlisted = consensus_card()
+    unlisted["atcConsensusCodes"] = []
+    assert "atcConsensusCodes" in consensus_problems(unlisted)[0]

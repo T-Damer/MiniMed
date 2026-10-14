@@ -43,8 +43,8 @@ const CASES: readonly Case[] = [
   {
     name: 'drug group (8.9 MB)',
     moduleId: 'minimed.medications.antiinfectives.ru',
-    // The release copy of the published ЕСКЛП edition (catalog artifact esklp-2026-08-28-atc2).
-    directories: ['output/module-zstd-esklp-atc2-2026-10-13/esklp-2026-08-28-atc2'],
+    // The release copy of the published ЕСКЛП edition (catalog artifact esklp-2026-08-28-atc3).
+    directories: ['output/module-zstd-esklp-atc3-2026-10-14/esklp-2026-08-28-atc3'],
     pointer: 'core.catalog.pointer.medication.esklp.mnn.амоксициллин-39ac47a244d081af',
     target: 'esklp.mnn.амоксициллин',
     installBudgetMs: 12_000,
