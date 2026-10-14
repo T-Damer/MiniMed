@@ -397,3 +397,37 @@ def test_an_empty_row_between_filled_rows_is_dropped_but_a_blank_form_stays() ->
     assert _without_stray_empty_rows(stray) == [["№", "Name"], ["1.", "Стол"], ["2.", "Лампа"]]
     form = [["№", "Name"], ["", ""], ["", ""]]
     assert _without_stray_empty_rows(form) == form
+
+
+def test_look_alike_cyrillic_letters_in_icd_and_icf_codes_become_latin_but_words_stay() -> None:
+    from localmed_ingest.legal_texts import fold_latin_codes
+
+    assert (
+        fold_latin_codes("| С15 | В20-В24 | МКФ: В 110-139, В 140-189 |")
+        == "| C15 | B20-B24 | МКФ: B 110-139, B 140-189 |"
+    )
+    # words and years are not codes
+    assert fold_latin_codes("В 2019 году Сентябрь Х-ray") == "В 2019 году Сентябрь Х-ray"
+    assert fold_latin_codes("Т1N0M0 Е66.0") == "Т1N0M0 E66.0"
+
+
+def test_word_fixes_replace_whole_words_and_keep_a_capital() -> None:
+    from localmed_ingest.legal_texts import apply_word_fixes
+
+    fixes = {"нейромышленных": "нейромышечных", "IIIизофрения": "Шизофрения"}
+    assert (
+        apply_word_fixes("Нейромышленных и нейромышленных, IIIизофрения", fixes)
+        == "Нейромышечных и нейромышечных, Шизофрения"
+    )
+    assert apply_word_fixes("ненейромышленных", fixes) == "ненейромышленных"
+
+
+def test_tnm_stages_read_with_letters_for_digits_are_put_right() -> None:
+    from localmed_ingest.legal_texts import fold_latin_codes
+
+    assert fold_latin_codes(
+        "(T1NOMO) (TINOMO, SO, SX) (Tla-b,2,3,4Nl,2M0) (Т1,2аNOMO) (T1,2N0, IMO) (Tis1,2,3N0,1,2,3МО)"
+    ) == (
+        "(T1N0M0) (T1N0M0, S0, SX) (T1a-b,2,3,4N1,2M0) (T1,2aN0M0) (T1,2N0, 1M0) (Tis1,2,3N0,1,2,3M0)"
+    )
+    assert fold_latin_codes("(Тест, N и M)") == "(Тест, N и M)"

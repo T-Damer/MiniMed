@@ -582,6 +582,8 @@ def grid_markdown(
     layout: dict[str, Any],
     cells: list[list[str]],
     inked: list[bool],
+    *,
+    drop_specks: bool = False,
 ) -> tuple[str, list[tuple[str, str]]] | None:
     """Marker's page with its table rebuilt on the ruled grid of the scan, and what stays uncertain.
 
@@ -618,6 +620,8 @@ def grid_markdown(
         raw = _joined(cells[index])
         if index in assigned:
             value = assigned[index]
+        elif drop_specks and len(re.sub(r"\s", "", raw)) <= 2 and not inked_text(raw):
+            value = ""  # a speck of the scan (a dash, «l», «7») in a cell Marker reads as empty
         elif raw:
             value = raw
             flags.append(
@@ -643,6 +647,11 @@ def grid_markdown(
     table = [body[0], "|" + "---|" * cols, *body[1:]]
     first, last = runs[0]
     return "\n".join([*lines[:first], *table, *lines[last:]]), flags
+
+
+def inked_text(raw: str) -> bool:
+    """Whether a short reading is a number worth keeping (two digits or more: a row number, a percentage)."""
+    return len(re.sub(r"\D", "", raw)) >= 2
 
 
 AGREE: Final = 0.55

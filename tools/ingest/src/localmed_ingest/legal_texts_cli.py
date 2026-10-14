@@ -236,7 +236,7 @@ def sources(data_root: DataRoot, pause: float = 1.0) -> None:
     for (
         row
     ) in rows:  # what other commands recorded about an act survives a refresh of the checksums
-        for key in ("rotatedPages", "rotatedPagesManual", "labelRows"):
+        for key in ("rotatedPages", "rotatedPagesManual", "labelRows", "dropSpecks", "latinCodes"):
             if key in kept.get(row["documentId"], {}):
                 row[key] = kept[row["documentId"]][key]
     SOURCES.parent.mkdir(parents=True, exist_ok=True)
@@ -497,7 +497,13 @@ def _apply_cells(
         if lines is not None:
             reading = marker.get(page)
             inked = [cell["ink"] >= MIN_INK for cell in layout["cells"]]
-            rebuilt = grid_markdown(reading, layout, texts, inked) if reading else None
+            rebuilt = (
+                grid_markdown(
+                    reading, layout, texts, inked, drop_specks=bool(row.get("dropSpecks"))
+                )
+                if reading
+                else None
+            )
             if rebuilt is not None and (
                 sum(1 for kind, _ in rebuilt[1] if kind == "cell-marker-only")
                 > 0.4 * max(len(marker_cells(reading or "")), 1)

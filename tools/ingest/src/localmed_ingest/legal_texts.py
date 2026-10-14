@@ -640,6 +640,12 @@ class Review:
     """Pages whose Marker text is longer than Vision's because Vision reads a sideways table badly (not a loop)."""
     transcriptions: dict[int, str] = field(default_factory=dict)
     """Pages whose Markdown was re-typed from the image because Marker's text was beyond a few fixes."""
+    word_fixes: dict[str, str] = field(default_factory=dict)
+    """Words that Marker misreads the same way everywhere in the act and that Vision never reads (checked against
+    the page images): «нейромышленных» for «нейромышечных». Applied to every page before the corrections."""
+    latin_codes: bool = False
+    """The act prints ICD-10 and ICF codes in Latin letters; both readings give look-alike Cyrillic ones
+    («С15», «В 110-139»): `fold_latin_codes` is applied to every page before the corrections."""
 
     @classmethod
     def from_json(cls, payload: dict[str, Any]) -> Review:
@@ -662,7 +668,98 @@ class Review:
                 int(page): str(item["text"])
                 for page, item in payload.get("transcriptions", {}).items()
             },
+            latin_codes=bool(payload.get("latinCodes", False)),
+            word_fixes={str(k): str(v) for k, v in payload.get("wordFixes", {}).items()},
         )
+
+
+_LOOKALIKE_TO_LATIN: Final = str.maketrans("АВСЕНКМОРТХ", "ABCEHKMOPTX")
+_ICD_CODE: Final = re.compile(r"(?<![\wа-яёА-ЯЁ])[АВСЕНКМОРТХ](?=\d{2}(?!\d))")
+_ICF_CODE: Final = re.compile(r"(?<![\wа-яёА-ЯЁ])В(?= \d{3}(?!\d))")
+
+
+def apply_word_fixes(text: str, fixes: dict[str, str]) -> str:
+    """Replace each misread word (whole words; a capitalised one keeps its capital)."""
+    for wrong, right in fixes.items():
+        pattern = re.compile(
+            rf"(?<![\w-]){re.escape(wrong)}(?![\w-])", re.IGNORECASE if wrong.islower() else 0
+        )
+
+        def swap(match: re.Match[str], right: str = right) -> str:
+            found = match.group(0)
+            return (
+                right[:1].upper() + right[1:]
+                if found[:1].isupper() and right[:1].islower()
+                else right
+            )
+
+        text = pattern.sub(swap, text)
+    return text
+
+
+_TNM: Final = re.compile(
+    r"\(([TТ](?:is|[0-4IlІ])[^()\n]{0,45}?N[^()\n]{0,25}?[MМ][^()\n]{0,14}?)\)"
+)
+
+
+def _tnm(token: str) -> str:
+    """A TNM stage («T1N0M0G1», «T1,2NIMO», «Tla-b,2,3,4Nl,2M0») with the letters read for digits put right."""
+    value = token.replace("Т", "T").replace("М", "M").replace("О", "0").replace("І", "1")
+    value = value.replace("а", "a").replace("с", "c").replace("Tis", "\0")
+    value = value.replace("O", "0").replace("l", "1").replace("I", "1")
+    return value.replace("\0", "Tis")
+
+
+_CODE_TOKEN: Final = re.compile(
+    r"[A-Za-zА-Яа-я][0-9OoОоIlІSs]{2}(?:\.[0-9OoОоIlІSsxXхХ]+)?(?:\s?[-–]\s?[A-Za-zА-Яа-я]?[0-9OoОоIlІSs]{2}(?:\.[0-9OoОоIlІSsxXхХ]+)?)?\.?"
+)
+_CODE_SEPARATORS: Final = re.compile(r"([\s⏎,;]+)")
+_LOOKALIKE_LETTERS: Final = str.maketrans("АВСЕНКМОРТХавсекмнорстх", "ABCEHKMOPTXabcekmnopctx")
+
+
+def _fold_code_cell(value: str) -> str:
+    """A cell that holds nothing but ICD-10 codes («C0O-D48», «cOO», «F2O.1»): their letters read for digits put right."""
+    parts = _CODE_SEPARATORS.split(value)
+    tokens = [part for part in parts[::2] if part]
+    if not tokens or not all(_CODE_TOKEN.fullmatch(token) for token in tokens):
+        return value
+    out = []
+    for part in parts:
+        if not part or _CODE_SEPARATORS.fullmatch(part):
+            out.append(part)
+            continue
+        folded = part[0].translate(_LOOKALIKE_LETTERS).upper() + re.sub(
+            r"(?<=[-–])\s?[A-Za-zА-Яа-я]",
+            lambda m: m.group(0).translate(_LOOKALIKE_LETTERS).upper(),
+            part[1:],
+        )
+        out.append(
+            re.sub(
+                r"(?<=[0-9A-Z.\-–])[OoОоSs]|(?<=[A-Z\-–])[IlІ](?=[0-9OoОо.])|(?<=[0-9])[IlІ]",
+                lambda m: "0" if m.group(0) in "OoОо" else "5" if m.group(0) in "Ss" else "1",
+                folded,
+            )
+        )
+    return "".join(out)
+
+
+def fold_latin_codes(text: str) -> str:
+    """Look-alike letters in the codes of the act put right: Cyrillic ones in ICD-10 («С15», «В20-В24») and ICF
+    codes («В 110-139») become Latin, letters read for digits in TNM stages («T1NOMO» → «T1N0M0») become digits."""
+    text = text.replace("І", "I").replace("і", "i")  # the Ukrainian letter for the Roman numeral
+    text = _TNM.sub(lambda m: f"({_tnm(m.group(1))})", text)
+    lines = []
+    for line in text.split("\n"):
+        parts = line.split("|") if line.lstrip().startswith("|") else [line]
+        folded = []
+        for part in parts:
+            core = part.strip()
+            folded.append(part.replace(core, _fold_code_cell(core), 1) if core else part)
+        lines.append("|".join(folded))
+    text = "\n".join(lines)
+    return _ICF_CODE.sub(
+        "B", _ICD_CODE.sub(lambda m: m.group(0).translate(_LOOKALIKE_TO_LATIN), text)
+    )
 
 
 class CorrectionError(ValueError):
@@ -723,6 +820,11 @@ def reconcile_act(
         if page in review.transcriptions:
             result.text = review.transcriptions[page]
             result.reading = "image-transcription"
+        else:
+            if review.latin_codes:
+                result.text = fold_latin_codes(result.text)
+            if review.word_fixes:
+                result.text = apply_word_fixes(result.text, review.word_fixes)
         if fixes:
             apply_corrections(result, fixes)
         if result.status == "review":
@@ -1043,8 +1145,10 @@ __all__ = [
     "CorrectionError",
     "Review",
     "apply_corrections",
+    "apply_word_fixes",
     "build_act_text",
     "build_text_source_act",
+    "fold_latin_codes",
     "identity_from_file",
     "label_rows_markdown",
     "merge_pages",

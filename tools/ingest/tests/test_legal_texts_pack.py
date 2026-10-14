@@ -21,9 +21,7 @@ PACK = ROOT / "content" / "regulatory-rf-pilot"
 TEXTS = ROOT / "content" / "regulatory-rf-texts"
 SOURCES = json.loads((TEXTS / "sources.json").read_text(encoding="utf-8"))["acts"]
 CHECKSUM = "sha256:" + "0" * 64
-AWAITING_FULL_TEXT = {
-    "order-374n-disability-criteria.md",
-}
+AWAITING_FULL_TEXT: set[str] = set()
 """Acts whose full text is still being converted and reviewed (LEGAL1). The set only shrinks; it must be empty
 when the full-text module is released (`test_no_act_awaits_its_full_text`)."""
 
