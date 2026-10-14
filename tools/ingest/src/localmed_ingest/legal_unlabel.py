@@ -82,13 +82,12 @@ def paint_labels(
             foreign[number] = odd
         width, height = page.rect.width, page.rect.height
         for bottom, top in boxes:
-            page.draw_rect(
-                pymupdf.Rect(
-                    0.07 * width, (1 - top) * height, right * width, (1 - bottom) * height
-                ),
-                color=None,
-                fill=(1, 1, 1),
+            # Vision's boxes are in the page as it is shown (an upright copy of a sideways scan carries
+            # a rotation); the drawing is done in the unrotated page.
+            shown = pymupdf.Rect(
+                0.07 * width, (1 - top) * height, right * width, (1 - bottom) * height
             )
+            page.draw_rect(shown * page.derotation_matrix, color=None, fill=(1, 1, 1))
     document.save(pdf_out)
     return foreign
 
