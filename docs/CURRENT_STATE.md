@@ -20,7 +20,7 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
-## Dose semantics, prescription tool and the dose card in search — 2026-10-14 (STATE RX1, RX2, RX3, RX4)
+## Dose semantics, prescription tool and the dose card in search — 2026-10-14 (STATE RX1, RX2, RX3, RX4, RX5)
 
 Owner 2026-10-13: «semantics on drugs … select a drug, patient age/weight/state, a duration, a form → a printable prescription,
 more drugs, a recipe in a modal». Decision: [ADR-0025](adr/0025-dose-rule-index-and-prescription-draft.md); numbers, audit and
@@ -82,12 +82,25 @@ limits: [research/dose-rules-2026-10-14.md](research/dose-rules-2026-10-14.md).
   sentence. On the 184 screens of the audit's computing rules 19 show no count (another strength than the instruction's) and 18 show the dose without a count
   (rounding beyond 10 %). **Release switch:** `features/prescription/data/prescription-settings.json` `{"computedDoses": true}` (default ON) turns every
   computed number off at once — sentences stay quoted, the registry choices, the blank, the Rp / signa text and the «Рецепт» modal stay; a release ships
-  with `false` if the next audit fails. A fresh audit (≥ 150 rules from untouched documents) is the next step; it has not been run.
+  with `false` if the next audit fails. The fresh audit was run afterwards (RX5, next bullet) and failed.
+- **Independent audit 2 (RX5, 2026-10-14, after RX4).** 170 gate-passing rules from the 634 instruction documents no earlier set or benchmark card touched
+  (797 excluded; all 16 modules; `tools/benchmarks/dose-rule-audit-2-2026-10-14.json`, `src/draw-dose-audit-2.ts`, seed `rx5-audit2-2026-10-14`), judged field by
+  field and through the screen's own analysis for a realistic patient on up to 3 registry forms × 3 strengths: **rule wrong in a dose-relevant field 7/170 = 4.1 %
+  (95 % CI 1.7–8.3 %); screen output wrong 13/170 = 7.6 % (4.1–12.7 %; 7 numbers or cap checks, 6 route / product words); rule or screen wrong 15/170 = 8.8 %
+  (5.0–14.1 %)**; 12 more incomplete. Ten new causes, none a repeat of RX3: a piece strength before the count read as the dose («Капсулы по 250 мг: по 2 капсулы»),
+  a course size read as the dose («курс лечения 10 суппозиториев», a child), a cap sentence's rate dropped («1 каплю … 2 раза в сутки», flagged EXCEEDED on the
+  instruction's own regimen), «каждые 6 часов» = 4 a day above the next sentence's 3-sachet maximum, a concentration qualifier («0,05 % раствор») not carried so
+  a 0,1 % product gets the count, weight / renal limits in dash lines after the sentence, «школьного возраста» read as < 18 y, `routeOfForm` taking the first route
+  of a multi-route form name and `formClassOf` tying an injectable instruction to an inhalation product and an oral one to vaginal tablets, a multi-strength
+  piece count, a float-rounding false «exceeded». 42 % of the 48 indication-bound sentences carry no mark. Details and file / function per cause: research note
+  §2 «Independent audit 2». **Recommendation: (b) ship the release with `computedDoses: false`**; the defects are not in separable shapes (seven mechanisms,
+  every stratum but course lengths). The setting is **not** changed by RX5 (audit only).
 - **Result page (RX2).** At 375 px one drug is about 1 000–1 200 px tall (was ~4 100): the chosen sentence with its quote, the intake
   and course, the cap line, one «Ещё N фрагментов» disclosure (other rules to pick, quoted-only sentences, conditions, ceilings, by
   section), one «Цитаты из инструкции» disclosure for the patient-state quotes with a few calculated lines in view.
-- **Next (dose):** a fresh out-of-sample audit of ≥ 150 gate-passing rules from untouched documents (a release ships the numbers only if it
-  finds none wrong, else with `computedDoses: false`); then judge more rules per gate family and keep growing coverage family by family
+- **Next (dose):** fix the ten RX5 causes at their cause (set `computedDoses: false` for the release until then), then a third audit of ≥ 150 gate-passing
+  rules from documents no set has touched (464 documents of the audit-2 frame are left; a later module publication refills it) — numbers ship only if it
+  finds none wrong; then judge more rules per gate family and keep growing coverage family by family
   (age-or-weight children's sentences such as amoxicillin's, headings with an age range such as «от 6 до 12 лет», a heading line that is
   a plain noun phrase as the indication); a fresh out-of-sample sample after each parser change.
 - **Not tested:** Android / native, physical devices, a real printer, a clinician's review, any other instruction group than the

@@ -42,6 +42,12 @@ interface Item {
   readonly verdict: Verdict;
   readonly doseRelevantWrong: boolean;
   readonly reason: string;
+  /** RX5 audits only: what the screen prints for the rule (see build-dose-audit-2-set.ts). */
+  readonly screenWrong?: boolean;
+  readonly screenNumericWrong?: boolean;
+  readonly outputDefects?: readonly string[];
+  readonly indicationBound?: boolean;
+  readonly indicationMarked?: boolean;
   readonly rejudged?: {
     readonly rule: DoseRule;
     readonly verdict: Verdict;
@@ -246,6 +252,80 @@ for (const row of computedWrong)
   console.log(`  WRONG COMPUTED: ${row.item.card} ${row.item.id} — ${row.item.reason}`);
 
 // ---------------------------------------------------------------------------------------------
+// Screen outputs (sets whose items carry the judgement of what the screen prints, RX5).
+// ---------------------------------------------------------------------------------------------
+const screened = set.items.filter((item) => item.screenWrong !== undefined);
+const screenFailures: string[] = [];
+if (screened.length > 0) {
+  const screenWrong = screened.filter((item) => item.screenWrong);
+  const screenNumeric = screened.filter((item) => item.screenNumericWrong);
+  const either = screened.filter((item) => item.verdict === 'wrong' || item.screenWrong);
+  const eitherNumeric = screened.filter(
+    (item) => item.doseRelevantWrong || item.screenNumericWrong,
+  );
+  console.log(
+    '\n## Screen outputs (what analyzeItem prints for a realistic patient, every registry strength)',
+  );
+  console.log(
+    `screen output wrong:            ${rate(screenWrong.length, screened.length)}  ${interval(screenWrong.length, screened.length)}`,
+  );
+  console.log(
+    `  numeric (dose, strength, cap, daily): ${rate(screenNumeric.length, screened.length)}  ${interval(screenNumeric.length, screened.length)}`,
+  );
+  const kinds = new Map<string, number>();
+  for (const item of screened) {
+    for (const kind of item.outputDefects ?? []) kinds.set(kind, (kinds.get(kind) ?? 0) + 1);
+  }
+  const kindList = [...kinds]
+    .toSorted()
+    .map(([kind, n]) => `${kind} ${n}`)
+    .join(', ');
+  console.log(`  by kind: ${kindList || '-'}`);
+  console.log(
+    `rule or screen wrong:           ${rate(either.length, screened.length)}  ${interval(either.length, screened.length)}`,
+  );
+  console.log(
+    `dose-relevant rule field or numeric screen output wrong: ${rate(eitherNumeric.length, screened.length)}  ${interval(eitherNumeric.length, screened.length)}`,
+  );
+  const bound = screened.filter((item) => item.indicationBound);
+  console.log(
+    `indication-bound sentences:     ${rate(bound.length, screened.length)}, unmarked by the rule: ${bound.filter((item) => !item.indicationMarked).length}`,
+  );
+  const strata = new Map<string, { n: number; bad: number }>();
+  for (const item of screened) {
+    const entry = strata.get(item.stratum) ?? { n: 0, bad: 0 };
+    entry.n += 1;
+    if (item.verdict === 'wrong' || item.screenWrong) entry.bad += 1;
+    strata.set(item.stratum, entry);
+  }
+  console.log('  rule or screen wrong by stratum:');
+  for (const [stratum, entry] of [...strata].toSorted()) {
+    console.log(`    ${stratum.padEnd(24)} ${rate(entry.bad, entry.n)}`);
+  }
+  const frameSizes = set.draws[0]?.drawnFrom.frameSizes ?? {};
+  if (set.draws.length === 1) {
+    let total = 0;
+    let weighted = 0;
+    for (const [stratum, entry] of strata) {
+      const size = frameSizes[stratum] ?? 0;
+      total += size;
+      weighted += size * (entry.bad / entry.n);
+    }
+    console.log(`  weighted by the frame (${total} rules): ${percent(weighted / total)}`);
+  }
+  for (const item of either) {
+    const where = [
+      item.verdict === 'wrong' ? 'rule' : '',
+      item.screenWrong ? `screen(${(item.outputDefects ?? []).join(',')})` : '',
+    ]
+      .filter((part) => part !== '')
+      .join(' + ');
+    console.log(`  WRONG ${item.card} ${item.id}: ${where} — ${item.reason}`);
+  }
+  if (screenWrong.length > 0) screenFailures.push(`${screenWrong.length} screen outputs wrong`);
+}
+
+// ---------------------------------------------------------------------------------------------
 // Coverage of the ЖНВЛП cards (index only).
 // ---------------------------------------------------------------------------------------------
 const essential = new Set<string>();
@@ -319,6 +399,7 @@ if (dev) {
   );
 }
 if (!dev && computedWrong.length > 0) failed = true;
+if (screenFailures.length > 0) failed = true;
 if (needsRejudge.length > 0) {
   console.log(`\n## Changed since judged, still computing: re-judge (${needsRejudge.length})`);
   for (const id of needsRejudge) console.log(`  ${id}`);

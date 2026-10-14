@@ -158,8 +158,80 @@ computing dose rules (32 %) are bound to an indication (292 name it, 168 more ar
 all) keep a **general** dose sentence, the other 62 ЖНВЛП cards show their dose with its indication. On the screens of the audit's computing rules (184 screens:
 every registry strength of the instruction's form, up to five per rule): 19 show no count because the strength is not the instruction's, 18 show the dose
 without a count because the rounding would exceed 10 %, none prints «шт.» for a spoon or «Внутрь» for a suppository or a lozenge.
-Not measured: a new independent sample. **Recommendation: draw a fresh audit of at least 150 gate-passing rules from untouched documents before a release
-ships the numbers; if it finds a wrong rule, ship with `computedDoses: false`** (a release setting, ADR-0025 decision 9).
+The new independent sample was drawn afterwards: **Independent audit 2** below. (Rule set before it: draw a fresh audit of at least 150 gate-passing rules
+from untouched documents before a release ships the numbers; if it finds a wrong rule, ship with `computedDoses: false`, ADR-0025 decision 9.)
+
+**Independent audit 2 (RX5, 2026-10-14, after the RX4 fixes).** An auditor in a fresh session (earlier judgement files not opened, only the document ids of
+the blind, development, fresh and audit sets read to exclude them) drew **170 gate-passing rules** (seed `rx5-audit2-2026-10-14`,
+`tools/benchmarks/src/draw-dose-audit-2.ts`) from the **634 indexed instruction documents no earlier set touched** (797 documents excluded: the 743 of the four
+judged sets and the 54 more of the 50 cards of `dose-queries.json`), all 16 current modules (`grls-2026.10.14.kd1` ×15 and the manufacturer module; decoded copies
+by absolute path from `output/`, deleted afterwards), one rule per document and per card. Strata: kind × population × indication marking — 36 adult
+general doses, 20 adult indication-bound, 37 + 4 child (general / bound), 28 unstated-population doses, 20 + 3 caps (adult / child), 24 course lengths; the
+untouched frame holds only 70 child dose rules and 3 child caps, so those were taken nearly whole. Each rule was judged field by field (population, dose,
+unit, per kg, frequency, caps, duration, route, form and strength, indication marking) against its sentence and paragraph, then `analyzeItem` was run for a
+realistic patient of the rule's population on up to three registry forms of the instruction's form class × three strengths each (shown numbers, units per
+intake, the ≤ 10 % rounding, signa route and spoon words, cap checks). A wrong screen counts as wrong. Set `tools/benchmarks/dose-rule-audit-2-2026-10-14.json`
+(`build-dose-audit-2-set.ts`; no instruction text), `bun run benchmark:dose-precision --file=…` (exits 1 on purpose). The set is *not* added to the gate's pooled
+evidence (it would fail `--dev` for the families with wrong rules).
+
+| | Count | 95 % CI (Clopper–Pearson) |
+|---|---:|---|
+| **Rule wrong in a dose-relevant field** | **7/170 = 4.1 %** | 1.7–8.3 % |
+| **Screen output wrong** | **13/170 = 7.6 %** | 4.1–12.7 % |
+| of which numbers or cap checks (dose, strength, cap, daily total) | 7 = 4.1 % | 1.7–8.3 % |
+| of which words of the sign (route, product) | 6 = 3.5 % | |
+| **Rule or screen wrong** | **15/170 = 8.8 %** (weighted to the frame 7.6 %) | 5.0–14.1 % |
+| Dose-relevant rule field or numeric screen output wrong | 9/170 = 5.3 % | 2.4–9.8 % |
+| Incomplete only (nothing false: schedule in the next sentence 6, prepared form 4, other 2) | 12 | |
+| Without the four borderline calls (#7, #84, #87, #119) | 11/170 = 6.5 % | |
+
+By stratum (rule or screen wrong): doses 13/123 (adult 5/54, child 5/41, unstated 3/28), caps 2/23, course lengths 0/24; 11 of the 16 modules hold at least one
+(antiinfectives 4/14, sensory-organs 2/13). RX3 had 4/120 (3.3 %) in the rule alone; this sample finds 7/170 (4.1 %) there and 8 more only in the screen. **The RX3
+causes stayed fixed; none of the 15 repeats one** (the route defects are in `routeOfForm` again, but for multi-route form names, a case the RX4 fix did not cover).
+48/170 (28 %) of the sentences are one indication
+or regimen of several; the rule marks 28 of them, 20 (42 %) carry no `i` / `sv` mark, so the number shows without its indication label (the quote shows it).
+
+The defects, with their cause (`apps/app/src/features/prescription/`, numbers are the audit's):
+1. **Rule, dose (#26, chondroitin, manufacturer module)** `doseOf` (`dose-parse.ts`): «Капсулы по 250 мг: по 2 капсулы 2 раза в день» — the first amount
+   outside parentheses leads and `perPiece` only reads a mass *after* the count («2 таблетки по 500 мг»), so the strength of the piece is the dose (250 mg
+   instead of 500 mg an intake; screen «В сутки: 500 мг» for 1 000 mg).
+2. **Rule, dose (#157, child, laryngeal papillomatosis)** `doseOf` / `readClause`: «1 раз в сутки, ежедневно, курс лечения 10 суппозиториев» — the size of the
+   course is the dose per intake; screen «Ректально по 10 суппозиториев 1 раз в день» for a child. The same document holds ten more rules of that shape; the other
+   child one («курс лечения 10-20 суппозиториев», children with malignancies) also passes the gate.
+3. **Rule, cap (#127)** `capsOf`: «Суточная доза не должна превышать 1 каплю … 2 раза в сутки» — the rate of the cap sentence is dropped, the cap is 1 drop a day;
+   `checkCaps` marks the instruction's own regimen (1 drop twice a day) as exceeded.
+4. **Rule, frequency (#141, child)** `findFrequencies`: «один пакетик каждые 6 часов» is 4 intakes, the next sentence limits the day to 3 sachets and was
+   read as a *dose* (`d0` 3, rejected shape), not as a cap, so nothing cross-checks the 4.
+5. **Rule, strength (#143, child)** «Детям 0,05 % раствор препарата: от 1 года до 6 лет — по 1-2 капли»: the concentration is no part of the rule and `productTie`
+   ties the count to every strength of the instruction's registrations, 0,1 % nasal drops included.
+6. **Rule, population (#60, edoxaban)** the weight bound of 30 mg («− У пациентов с массой тела 60 кг или менее …», also renal impairment and P-gp
+   inhibitors) stands in dash lines after the sentence; `attachQualifierLines` (`dose-parse.ts`) joins brackets and lower-case continuations only, so a
+   55 kg patient is offered 60 mg.
+7. **Rule, population (#119, child)** `groupBitsOf` / `populationOf`: «Детям школьного возраста» is child < 18 y with no lower bound; the next sentence
+   (preschool, > 1 y, 15 drops) is the default option for a 9- or 15-year-old (probe: `specificity` favours the rule with a lower age) and the 25 drops are
+   offered to a 3-year-old beside it.
+8. **Screen, route and product (#2, #10, #47, #84, #134, #151)** `routeOfForm` (`prescription-text.ts`): the first pattern of a multi-route form name wins
+   («капли глазные назальные и ушные» → «В конъюнктивальный мешок» for an ear-canal sentence; «суппозитории вагинальные и ректальные» → «Вагинально» for «применяют
+   ректально»; «…для внутривенного и внутримышечного введения» → «Внутримышечно» for «внутривенная инфузия»; «…для инъекций, инфузий и ингаляций» → «Ингаляционно» for an
+   IV maintenance dose), and the form class is the first word of the dosage form (`formClassOf`, `dose-index.ts`; `formTieKey`, `prescription-model.ts`):
+   an injectable's instruction is applied to the «лиофилизат … для ингаляций» of colistimethate and an oral instruction to «таблетки вагинальные» of ornidazole.
+9. **Screen, strength (#7, ivabradine, borderline)** the count «по 1 таблетке» belongs to the «1 таблетка 5 мг» of the paragraph; the 7.5 mg row prints
+   «1 таблетка 2 раза в день» (15 mg a day) as the recommended regimen (`productTie` accepts every strength of the instruction's registrations).
+10. **Screen, cap (#87, borderline)** `checkCaps`: 3 × 566,667 mg = 1 700,001 mg > 1 700 mg → «EXCEEDED» for a dose exactly at the limit (no tolerance).
+
+**Separable shapes?** No. Seven different mechanisms in 170 rules, in every stratum except course lengths; dropping all child numbers and all caps would still
+leave #26, #60 and #7 in the adult and unstated doses (3/82). A scan of the 2 045 gate-passing rules of the whole index finds each seen text shape rare
+(course-size counts 3, piece strength before the count 3, cap with a rate 3, concentration qualifier 6, «школьного возраста» 2; but «каждые N часов» 52 and dash lines
+after the sentence 58), so removing these shapes costs little and would not touch the long tail: two audits, 14 causes (RX3 4 rule + 4 screen, RX5 7 rule + 3
+screen), no cause twice.
+**Recommendation: (b) ship the release with `computedDoses: false`** (`features/prescription/data/prescription-settings.json`, ADR-0025 decision 9): 7 of 170
+rules (95 % CI 1.7–8.3 %) carry a wrong dose-relevant field and 15 (5.0–14.1 %) a wrong rule or screen output, among them numbers a doctor would
+read as a prescription (10 suppositories, a 4th sachet above the stated maximum, a 0,1 % drop for a 3-year-old). With the setting off the tool keeps its
+registry choices, the quoted sentences with «Открыть в инструкции», the blank and the Rp / signa text without numbers. Re-enable after the ten causes above are fixed
+at their cause and a third audit of ≥ 150 untouched rules finds none wrong; the 797 + 170 documents are no longer untouched then, so that audit needs the
+modules of a later publication or the exclusion of the used ones (frame 464 documents left). Limits of this audit: one auditor, judged against the sentence and
+its paragraph (not the whole instruction: contraindications, interactions), one realistic patient per rule, the 4 borderline calls above, the unmarked-indication
+share not counted as wrong; the real doctor's selection of form and strength was approximated by every registry row of the instruction's form class.
 
 Known limits (unchanged): sentences about other drugs in combination regimens are filtered heuristically; ЕСКЛП has no suspension form
 for amoxicillin so the suspension strengths come from the instruction text; when Allmed has no Latin name the Rp line is Russian in the
