@@ -165,6 +165,8 @@ def parse_blocks(
                     Block("paragraph", text, page, confidence=confidence, reviewed=reviewed)
                 )
             elif rows:
+                # a row without any text is a layout artefact of a merged cell, not a row of the act
+                rows = [rows[0], *[row for row in rows[1:] if any(cell for cell in row)]]
                 blocks.append(
                     Block("table", "", page, rows=rows, confidence=confidence, reviewed=reviewed)
                 )

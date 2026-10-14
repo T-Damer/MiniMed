@@ -166,6 +166,12 @@ def clean_marker_markdown(text: str) -> str:
     value = "\n".join(_flatten_breaks(line) for line in value.split("\n"))
     value = _INLINE_TAG.sub("", value)
     value = "\n".join(_tidy_cell_breaks(line) for line in value.split("\n"))
+    value = "\n".join(
+        re.sub(r"(?<=[а-яё])-[ \t]+(?=[а-яё])", "-", line)
+        if line.lstrip().startswith("|")
+        else line
+        for line in value.split("\n")
+    )  # «врача- специалиста»: a hyphenated word wrapped inside a table cell
     value = re.sub(r"(?<=\|)[ \t]{2,}|[ \t]{2,}(?=\|)", " ", value)
     value = _DOUBLE_NUMBERED.sub(r"\1\2", value)
     value = re.sub(r"^\s*(?:-{3,}|\*{3,}|_{3,})\s*$", "", value, flags=re.MULTILINE)
