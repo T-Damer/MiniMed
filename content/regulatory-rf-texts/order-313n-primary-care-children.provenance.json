@@ -723,6 +723,10 @@
     {
      "kind": "coverage-vision",
      "detail": "Marker lacks 7% of Vision's tokens (e.g. 2, 3, поду, зат, ов, стиции, нюля)"
+    },
+    {
+     "kind": "page-end-missing",
+     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «* Поду (зат 5-2 2 пункта Положения Ов стиции Российской Федерации 28 нюля 2020 г., регистрационный Nº 59083).»"
     }
    ],
    "furniture": [

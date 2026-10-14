@@ -1010,6 +1010,13 @@ def reconcile_page(
 
     for problem in [] if exact_primary else numbered_gaps(marker, vision_kept):
         flags.append(Flag("numbered-rows", problem))
+    if not exact_primary and (lost := page_end_missing(marker, vision_kept)):
+        flags.append(
+            Flag(
+                "page-end-missing",
+                f"Vision's last line is not at the end of Marker's page (a dropped last line?): «{lost}»",
+            )
+        )
 
     status: Status = "review" if flags else "pass"
     confidence: Confidence = "high" if not flags else "medium"
@@ -1029,8 +1036,33 @@ def reconcile_page(
     )  # fmt: skip
 
 
+def page_end_missing(marker: str, vision_lines: list[str]) -> str:
+    """Vision's last line when Marker's page does not end with its last two words, else ''.
+
+    Marker silently drops the last lines of a page (a paragraph, a row of a requirements table); the words of
+    the last line are not elsewhere on the page, so the token coverage may not notice it.
+    """
+    lines = [line for line in vision_lines if line.strip()]
+    body = [
+        line for line in marker.splitlines() if line.strip() and not _TABLE_SEPARATOR.match(line)
+    ]
+    if not lines or not body or body[-1].lstrip().startswith("|"):
+        return ""  # a table ends the page: its lines come in cell order, not in reading order
+    last = lines[-1].strip()
+
+    def words(text: str) -> list[str]:
+        return re.findall(r"[а-я]{3,}", text.lower().replace("ё", "е"))
+
+    wanted = words(last)[-2:]
+    if len(wanted) < 2:
+        return ""
+    tail = set(words(marker[-400:]))
+    return last if any(word not in tail for word in wanted) else ""
+
+
 LOW_CONFIDENCE_KINDS: Final = frozenset(
     {
+        "page-end-missing",
         "dropped-span",
         "annex-header-restored",
         "coverage-vision",

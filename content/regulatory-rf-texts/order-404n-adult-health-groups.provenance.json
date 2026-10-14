@@ -18,7 +18,7 @@
  "review": {
   "reviewer": "Claude (agent), against the page images; not a lawyer",
   "reviewedAt": "2026-10-14",
-  "corrections": 10
+  "corrections": 11
  },
  "pages": [
   {
@@ -197,6 +197,10 @@
     {
      "kind": "number-mismatch",
      "detail": "only in Marker: III"
+    },
+    {
+     "kind": "page-end-missing",
+     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «7) формирование комплекта документов, заполнение карты учета»"
     }
    ],
    "furniture": [
@@ -601,6 +605,10 @@
     {
      "kind": "coverage-marker",
      "detail": "31% of Marker's tokens are not in Vision (e.g. перечень, приемов, осмотров, консультаций, медицинскими, работниками, исследований, медицинских, вмешательств, проводимых, рамках, определенные)"
+    },
+    {
+     "kind": "page-end-missing",
+     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «Общий анализ крови»"
     }
    ],
    "furniture": [],
@@ -744,6 +752,10 @@
     {
      "kind": "number-mismatch",
      "detail": "only in Marker: 27.04.2021, 4044"
+    },
+    {
+     "kind": "page-end-missing",
+     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «Д) осмотр на выявление визуальных и иных локализаций онкологических»"
     }
    ],
    "furniture": [],

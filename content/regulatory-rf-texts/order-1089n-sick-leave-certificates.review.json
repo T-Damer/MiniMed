@@ -18,7 +18,8 @@
     "44": "image read: item 82 and the codes 31-35; the last three items restored (fixed)",
     "45": "image read: codes 36-37 and items 83-86 match, with four boxes in the date cells",
     "47": "image read: codes 51-52, the form lines of chapter X (four boxes in every date cell) and footnotes 37-38 match",
-    "48": "image read: item 86 end and item 87 and footnote 39 match; Vision's digits are footnote marks"
+    "48": "image read: item 86 end and item 87 and footnote 39 match; Vision's digits are footnote marks",
+    "39": "image read: the text matches; the last line of the page was restored"
   },
   "corrections": [
     {
@@ -83,6 +84,13 @@
       "find": "32 – при установлении инвалидности (степени утраты профессиональной трудоспособности в результате несчастных случаев на производстве и профессиональных заболеваний);",
       "replace": "32 – при установлении инвалидности (степени утраты профессиональной трудоспособности в результате несчастных случаев на производстве и профессиональных заболеваний);\n\n33 – при изменении группы инвалидности;\n\n34 —- в случае смерти;\n\n35 – в случае отказа от проведения медико-социальной экспертизы;",
       "why": "The last three items of the code list (33, 34, 35; «34 —-» is printed with a dash and a hyphen) are at the foot of the page in the image; Marker dropped them."
+    },
+    {
+      "page": 39,
+      "kind": "dropped-line",
+      "find": "указанные строки листка нетрудоспособности не заполняются.",
+      "replace": "указанные строки листка нетрудоспособности не заполняются.\n\nВ строке листка нетрудоспособности «Находился в стационаре»",
+      "why": "The last lines of the page («В строке листка нетрудоспособности «Находился в стационаре»» starts the next paragraph, which page 40 continues) are in the image; Marker dropped them."
     }
   ]
 }

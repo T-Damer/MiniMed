@@ -2,7 +2,9 @@
   "documentId": "regulatory.rf.minzdrav.127n-2019-tuberculosis",
   "reviewer": "Claude (agent), against the page images; not a lawyer",
   "reviewedAt": "2026-10-14",
-  "keepMarker": [16],
+  "keepMarker": [
+    16
+  ],
   "verdicts": {
     "5": "image read: items 7-10, footnotes 8 and 9 (№ 30714) match; Vision lacks the last footnote lines",
     "7": "image read: items 11-14 and footnotes 11-13 match",
@@ -27,6 +29,13 @@
       "find": "ГДН устанавливается при переводе пациента из ГДН.",
       "replace": "ГДН устанавливается при переводе пациента из I ГДН.",
       "why": "The printed text reads «из I ГДН» (group I); Marker dropped the Roman numeral, which changes the rule. Vision read it."
+    },
+    {
+      "page": 11,
+      "kind": "dropped-line",
+      "find": "20 г.\n Председатель врачебной комиссии",
+      "replace": "20 г.\n Председатель врачебной комиссии\n\n(фамилия, имя, отчество (при наличии)",
+      "why": "The last lines of the page («(фамилия, имя, отчество (при наличии)» under the line of the chairman) are in the image; Marker dropped them."
     }
   ]
 }

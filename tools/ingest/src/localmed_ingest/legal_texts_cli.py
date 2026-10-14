@@ -15,6 +15,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated, Any, Final, NoReturn
@@ -371,6 +372,131 @@ def fetch_text(data_root: DataRoot) -> None:
         typer.echo(f"{spec['file']}: {len(data)} bytes")
 
 
+@app.command()
+def cells(data_root: DataRoot, names: Annotated[list[str] | None, typer.Argument()] = None) -> None:
+    """Read the cells of every ruled table of a scanned act one by one with Vision (see `legal_cells`).
+
+    Writes `derived/<stem>-cells.pdf` (one page per cell), `vision/<stem>-cells.json` (Vision's reading of it)
+    and `vision/<stem>-cells-layout.json` (the cells of each page). `reconcile` and `assemble` then take the
+    cell reading as the second reading of those pages.
+    """
+    import subprocess
+
+    import pymupdf
+
+    from .legal_cells import MIN_INK, cells_pdf, retry_pdf
+
+    paths = Paths(data_root)
+    for row in _load_sources()["acts"]:
+        if row["reader"] not in SCAN_READERS or (
+            names and not {row["stem"], row["slug"]} & set(names)
+        ):
+            continue
+        stem = row["stem"]
+        derived = paths.work / "derived"
+        derived.mkdir(parents=True, exist_ok=True)
+        plain = paths.raw / row["file"]
+        if row["reader"] == "tiff-zip":
+            plain = derived / f"{stem}.pdf"
+        upright_path = derived / f"{stem}-upright.pdf"
+        sideways = set(row.get("rotatedPages", [])) if upright_path.exists() else set()
+        documents = {"plain": pymupdf.open(plain)}
+        if sideways:
+            documents["upright"] = pymupdf.open(upright_path)
+        pages = list(range(1, len(documents["plain"]) + 1))
+        target = derived / f"{stem}-cells.pdf"
+        layout, order = cells_pdf(
+            _page_source(documents, sideways),
+            pages,
+            target,
+        )
+        result = subprocess.run(
+            [str(paths.work / "bin/vision_ocr"), str(target)], capture_output=True, check=True
+        )
+        (paths.work / f"vision/{stem}-cells.json").write_bytes(result.stdout)
+        first = json.loads(result.stdout)["pages"]
+        # a cell with ink that Vision read as empty (a lone digit) is cropped again in several ways
+        empty = [
+            (number, index)
+            for entry, (number, index) in zip(first, order, strict=True)
+            if not entry.get("lines") and layout[number]["cells"][index]["ink"] >= MIN_INK
+        ]
+        retry_order: list[tuple[int, int]] = []
+        if empty:
+            retry_target = derived / f"{stem}-cells-retry.pdf"
+            retry_order = retry_pdf(_page_source(documents, sideways), layout, empty, retry_target)
+            again = subprocess.run(
+                [str(paths.work / "bin/vision_ocr"), str(retry_target)],
+                capture_output=True,
+                check=True,
+            )
+            (paths.work / f"vision/{stem}-cells-retry.json").write_bytes(again.stdout)
+            retry_target.unlink()
+        (paths.work / f"vision/{stem}-cells-layout.json").write_text(
+            json.dumps(
+                {
+                    "order": [list(item) for item in order],
+                    "retryOrder": [list(item) for item in retry_order],
+                    "layout": layout,
+                },
+                ensure_ascii=False,
+            )
+        )
+        target.unlink()
+        typer.echo(
+            f"{row['slug']}: {len(layout)} pages with a table, {len(order)} cells read,"
+            f" {len(empty)} empty cells with ink cropped again"
+        )
+
+
+def _page_source(documents: dict[str, Any], sideways: set[int]) -> Callable[[int], Any]:
+    """The document that holds a page upright: the upright copy for the sideways pages."""
+
+    def source(number: int) -> Any:
+        return documents["upright" if number in sideways else "plain"]
+
+    return source
+
+
+def _apply_cells(
+    paths: Paths,
+    row: dict[str, Any],
+    vision: dict[int, list[str]],
+    marker: dict[int, str | None],
+) -> None:
+    """Replace the second reading of each page that has a cell reading by «lines outside the table, cells, lines below»."""
+    from .legal_cells import MIN_INK, harmonize, merge_lines, read_cells
+
+    stem = row["stem"]
+    layout_path = paths.work / f"vision/{stem}-cells-layout.json"
+    cells_path = paths.work / f"vision/{stem}-cells.json"
+    if not (layout_path.exists() and cells_path.exists()):
+        return
+
+    def raw(name: str) -> dict[int, list[dict[str, Any]]]:
+        file = paths.work / f"vision/{name}.json"
+        if not file.exists():
+            return {}
+        pages = json.loads(file.read_text(encoding="utf-8"))["pages"]
+        return {int(page["page"]): page.get("lines", []) for page in pages}
+
+    plain = raw(stem)
+    upright = raw(f"{stem}-upright")
+    sideways = set(row.get("rotatedPages", []))
+    retry_path = paths.work / f"vision/{stem}-cells-retry.json"
+    for page, (layout, texts) in read_cells(layout_path, cells_path, retry_path).items():
+        lines = (upright if page in sideways else plain).get(page)
+        if lines is not None:
+            reading = marker.get(page)
+            vision[page] = merge_lines(
+                lines,
+                layout,
+                harmonize(reading, texts, [cell["ink"] >= MIN_INK for cell in layout["cells"]])
+                if reading
+                else texts,
+            )
+
+
 def _act(stem_or_slug: str) -> dict[str, Any]:
     for row in _load_sources()["acts"]:
         if stem_or_slug in (row["stem"], row["slug"]):
@@ -408,6 +534,8 @@ def _inputs(
             vision[page] = upright[page]
             copy = paths.work / f"marker/{stem}-rot/p{page:04d}.md"
             marker[page] = copy.read_text(encoding="utf-8") if copy.exists() else None
+    if not painted:
+        _apply_cells(paths, row, vision, marker)
     return marker, vision
 
 

@@ -56,6 +56,10 @@
     {
      "kind": "coverage-vision",
      "detail": "Marker lacks 12% of Vision's tokens (e.g. юстиции, culqueste, кулешовае, департамент, управлемия, делами, кадров)"
+    },
+    {
+     "kind": "page-end-missing",
+     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «ДЕЛАМИ И КАДРОВ»"
     }
    ],
    "furniture": [
@@ -694,6 +698,10 @@
     {
      "kind": "coverage-marker",
      "detail": "14% of Marker's tokens are not in Vision (e.g. врач, начальник, медицинской, организации, заведующий, структурного, подразделения, отдела, отделения, лаборатории, кабинета, отряда)"
+    },
+    {
+     "kind": "page-end-missing",
+     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «Подготовка в ординатуре по специальности «Остеопатия»»"
     }
    ],
    "furniture": [
@@ -1401,6 +1409,10 @@
     {
      "kind": "repeated-content-missing",
      "detail": "Vision has these words more often than Marker (dropped rows or lines?): ординатуре, подготовка, специальности, эндокринология"
+    },
+    {
+     "kind": "page-end-missing",
+     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «Подготовка в интернатуре/ординатуре по специальности «Эндокринология»»"
     }
    ],
    "furniture": [

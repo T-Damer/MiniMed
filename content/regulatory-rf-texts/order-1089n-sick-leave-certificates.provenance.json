@@ -18,7 +18,7 @@
  "review": {
   "reviewer": "Claude (agent), against the page images; not a lawyer",
   "reviewedAt": "2026-10-14",
-  "corrections": 9
+  "corrections": 10
  },
  "pages": [
   {
@@ -337,6 +337,10 @@
     {
      "kind": "repeated-content-missing",
      "detail": "Vision has these words more often than Marker (dropped rows or lines?): дневного, нетрудоспособности, стационара, стационарных, условиях×2"
+    },
+    {
+     "kind": "page-end-missing",
+     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «При этом в листке нетрудоспособности указываются родственная (семейная)»"
     }
    ],
    "furniture": [
@@ -672,6 +676,10 @@
     {
      "kind": "dropped-span",
      "detail": "Vision reads text that Marker lacks (at a paragraph start): «При направлении лиц, пострадавших в связи с тяжелым несчастным случаем»"
+    },
+    {
+     "kind": "page-end-missing",
+     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «При направлении лиц, пострадавших в связи с тяжелым несчастным случаем»"
     }
    ],
    "furniture": [
@@ -846,9 +854,14 @@
   {
    "page": 39,
    "reading": "marker",
-   "status": "pass",
+   "status": "reviewed",
    "confidence": "high",
-   "flags": [],
+   "flags": [
+    {
+     "kind": "page-end-missing",
+     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «В строке листка нетрудоспособности «Находился в стационаре»»"
+    }
+   ],
    "furniture": [
     "37"
    ],
@@ -964,6 +977,10 @@
     {
      "kind": "numbered-rows",
      "detail": "Vision has numbered lines 33, 34, 35 that Marker lacks"
+    },
+    {
+     "kind": "page-end-missing",
+     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «35 - в случае отказа от проведения медико-социальной экспертизы;»"
     }
    ],
    "furniture": [

@@ -1496,6 +1496,18 @@ _ фамилия, имя, отчество (при наличии) _ подпи�
 <!-- localmed:source {"page":38,"reviewed":true} -->
 Лечащий врач, должность врача-специалиста _
 
+<!-- localmed:source {"page":38,"reviewed":true} -->
+(фамилия, имя, отчество (при наличии) подпись
+
+<!-- localmed:source {"page":38,"reviewed":true} -->
+Главный врач санаторно-курортной организации _
+
+<!-- localmed:source {"page":38,"reviewed":true} -->
+(фамилия, имя, отчество (при наличии) подпись
+
+<!-- localmed:source {"page":38,"reviewed":true} -->
+М.П. (при наличии)
+
 # Приложение № 8
 
 <!-- localmed:source {"page":39} -->
@@ -1814,6 +1826,24 @@ _ код по МКБ _
 
 <!-- localmed:source {"page":46,"reviewed":true} -->
 Рекомендации по дальнейшему лечению: _
+
+<!-- localmed:source {"page":46,"reviewed":true} -->
+Контакт с пациентами, больными инфекционными заболеваниями _
+
+<!-- localmed:source {"page":46,"reviewed":true} -->
+Лечащий врач, должность врача-специалиста _
+
+<!-- localmed:source {"page":46,"reviewed":true} -->
+(фамилия, имя, отчество (при наличии) подпись
+
+<!-- localmed:source {"page":46,"reviewed":true} -->
+Главный врач санаторно-курортной организации _
+
+<!-- localmed:source {"page":46,"reviewed":true} -->
+(фамилия, имя, отчество (при наличии) подпись
+
+<!-- localmed:source {"page":46,"reviewed":true} -->
+М.П. (при наличии)
 
 # Приложение № 10
 

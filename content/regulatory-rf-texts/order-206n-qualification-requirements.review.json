@@ -16,6 +16,7 @@
     "49": "image read: the text matches; the «5» only Marker has is the printed «не реже одного раза в 5 лет», which Vision did not read",
     "51": "image read: the text matches; the last line of the page was restored",
     "54": "image read: the text matches; the «5» only Marker has is the printed «не реже одного раза в 5 лет», which Vision did not read",
+    "57": "image read: the last row matches; Vision joins «врач-эпидемиолог» at the line end",
     "58": "image read (section II, the first page): headings, the rows of «Биолог», «Зоолог» and the start of «Инструктор – методист» match; the last line was restored",
     "63": "image read: the text matches; the «5» only Marker has is the printed «не реже одного раза в 5 лет», which Vision did not read"
   },

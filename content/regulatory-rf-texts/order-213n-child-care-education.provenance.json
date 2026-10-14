@@ -208,6 +208,10 @@
     {
      "kind": "dropped-span",
      "detail": "Vision reads text that Marker lacks (at a paragraph start): «участие в работе психолого-медико-педагогической комиссии»"
+    },
+    {
+     "kind": "page-end-missing",
+     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «участие в работе психолого-медико-педагогической комиссии;»"
     }
    ],
    "furniture": [

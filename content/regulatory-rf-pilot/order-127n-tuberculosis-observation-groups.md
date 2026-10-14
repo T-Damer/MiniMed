@@ -396,6 +396,9 @@ metadata:
 <!-- localmed:source {"page":11,"reviewed":true} -->
 Дата выдачи извещения « _ » 20 г. Председатель врачебной комиссии
 
+<!-- localmed:source {"page":11,"reviewed":true} -->
+(фамилия, имя, отчество (при наличии)
+
 <!-- localmed:source {"page":12,"reviewed":true} -->
 ----- отрывной корешок -----
 

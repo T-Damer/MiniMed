@@ -543,6 +543,10 @@
     {
      "kind": "coverage-vision",
      "detail": "Marker lacks 12% of Vision's tokens (e.g. 0, нет, да, диагноз, лечение, назначено, амбулаторных, условиях, код, по, мкб, установлен)"
+    },
+    {
+     "kind": "page-end-missing",
+     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «16.5.1. Диагноз установлен впервые: • да/О нет.»"
     }
    ],
    "furniture": [
@@ -929,6 +933,10 @@
     {
      "kind": "numbered-rows",
      "detail": "Vision has numbered lines 2, 3, 4, 5, 6 that Marker lacks"
+    },
+    {
+     "kind": "page-end-missing",
+     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «(дата составления)»"
     }
    ],
    "furniture": [

@@ -106,6 +106,10 @@
     {
      "kind": "number-mismatch",
      "detail": "only in Marker: 30714"
+    },
+    {
+     "kind": "page-end-missing",
+     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «* Заретистрирова Министерством ослиции Российской Федерации 10 люня 2011 г., регистрационный Nº 21026.»"
     }
    ],
    "furniture": [

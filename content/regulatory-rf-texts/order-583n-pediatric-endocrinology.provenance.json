@@ -18,7 +18,7 @@
  "review": {
   "reviewer": "Claude (agent), against the page images; not a lawyer",
   "reviewedAt": "2026-10-14",
-  "corrections": 6
+  "corrections": 7
  },
  "pages": [
   {
@@ -858,6 +858,10 @@
     {
      "kind": "number-mismatch",
      "detail": "only in Vision: 1, 11, 79"
+    },
+    {
+     "kind": "page-end-missing",
+     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «представление отчетности в соответствии с пунктом 11 части 1 статьи 79»"
     }
    ],
    "furniture": [
@@ -977,9 +981,14 @@
   {
    "page": 44,
    "reading": "marker",
-   "status": "pass",
+   "status": "reviewed",
    "confidence": "high",
-   "flags": [],
+   "flags": [
+    {
+     "kind": "page-end-missing",
+     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «санитарную комнату.»"
+    }
+   ],
    "furniture": [
     "2"
    ],

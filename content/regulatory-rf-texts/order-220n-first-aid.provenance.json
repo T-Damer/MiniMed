@@ -108,6 +108,10 @@
     {
      "kind": "repeated-content-missing",
      "detail": "Vision has these words more often than Marker (dropped rows or lines?): осмотра×2, проведение×2"
+    },
+    {
+     "kind": "page-end-missing",
+     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «проведение осмотра груди;»"
     }
    ],
    "furniture": [

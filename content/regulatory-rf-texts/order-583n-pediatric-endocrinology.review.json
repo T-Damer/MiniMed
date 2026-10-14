@@ -17,7 +17,8 @@
     "47": "image read: annex 15 header and rows 1-9 of the day-hospital standard match",
     "48": "image read: rows 9-17 of the day-hospital standard match, including «1 на пациента» and «По числу коек»",
     "49": "image read: rows 17-27 of the day-hospital standard match",
-    "50": "image read: rows 27-29 and the additional equipment match; the hyphenated line wraps of the quantity cells are joined by the tool"
+    "50": "image read: rows 27-29 and the additional equipment match; the hyphenated line wraps of the quantity cells are joined by the tool",
+    "44": "image read: the text matches; the last line of the page was restored"
   },
   "corrections": [
     {
@@ -61,6 +62,13 @@
       "find": "обучение правилам поведения в образовательной организации, во время путешествий, отдыха и оздоровления, позволяющим предотвратить развитие острых осложнений сахарного диабета (тяжелая гипогликемия, диабетический кетоацидоз);",
       "replace": "обучение правилам поведения в образовательной организации, во время путешествий, отдыха и оздоровления, позволяющим предотвратить развитие острых осложнений сахарного диабета (тяжелая гипогликемия, диабетический кетоацидоз);\n\nпредставление отчетности в соответствии с пунктом 11 части 1 статьи 79",
       "why": "The last line of the page («представление отчетности в соответствии с пунктом 11 части 1 статьи 79», continued on the next page) is in the image; Marker dropped it."
+    },
+    {
+      "page": 44,
+      "kind": "dropped-line",
+      "find": "туалет для медицинских работников;",
+      "replace": "туалет для медицинских работников;\n\nсанитарную комнату.",
+      "why": "The last lines of the page («санитарную комнату.») are in the image; Marker dropped them."
     }
   ]
 }

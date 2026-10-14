@@ -18,7 +18,7 @@
  "review": {
   "reviewer": "Claude (agent), against the page images; not a lawyer",
   "reviewedAt": "2026-10-14",
-  "corrections": 11
+  "corrections": 13
  },
  "pages": [
   {
@@ -547,6 +547,10 @@
     {
      "kind": "numbered-rows",
      "detail": "Vision has numbered lines 27, 28, 29, 30, 31, 32, 33, 34, 35, 36 that Marker lacks"
+    },
+    {
+     "kind": "page-end-missing",
+     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «фамилия, имя, отчество (при наличии), подпись»"
     }
    ],
    "furniture": [],
@@ -979,6 +983,10 @@
     {
      "kind": "coverage-vision",
      "detail": "Marker lacks 15% of Vision's tokens (e.g. наличии, фамилия, имя, отчество, при, подпись, оборотная, сторона, 072, жалобы, санаторно, дандо)"
+    },
+    {
+     "kind": "page-end-missing",
+     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «М.П. (при наличии)»"
     }
    ],
    "furniture": [
@@ -1174,6 +1182,10 @@
     {
      "kind": "coverage-vision",
      "detail": "Marker lacks 15% of Vision's tokens (e.g. при, наличии, фамилия, имя, отчество, подпись, врач, оборотная, сторона, 076, жалобы, санаторно)"
+    },
+    {
+     "kind": "page-end-missing",
+     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «М.П. (при наличии)»"
     }
    ],
    "furniture": [

@@ -1102,9 +1102,14 @@
   {
    "page": 52,
    "reading": "marker",
-   "status": "pass",
+   "status": "reviewed",
    "confidence": "high",
-   "flags": [],
+   "flags": [
+    {
+     "kind": "page-end-missing",
+     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «Подготовка в ординатуре по специальности «Физическая»"
+    }
+   ],
    "furniture": [
     "51"
    ],
@@ -1207,9 +1212,14 @@
   {
    "page": 57,
    "reading": "marker",
-   "status": "pass",
+   "status": "reviewed",
    "confidence": "high",
-   "flags": [],
+   "flags": [
+    {
+     "kind": "page-end-missing",
+     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «и другое) медицинской организации - врачэпидемиолог»"
+    }
+   ],
    "furniture": [
     "56"
    ],
