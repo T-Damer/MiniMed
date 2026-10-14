@@ -40,15 +40,17 @@ LABEL_RIGHT: Final = 0.305
 PADDING: Final = 0.004
 
 
-def label_boxes(lines: list[dict[str, Any]]) -> tuple[list[tuple[float, float]], list[str]]:
+def label_boxes(
+    lines: list[dict[str, Any]], left: float = LABEL_LEFT
+) -> tuple[list[tuple[float, float]], list[str]]:
     """(y bottom, y top) of every label line of a page (bottom-up fractions) and the left-edge lines that are not labels."""
     boxes: list[tuple[float, float]] = []
     foreign: list[str] = []
     for line in lines:
         x, y, _w, h = line["bbox"]
-        if x >= LABEL_LEFT:
+        if x >= left:
             continue
-        words = re.findall(r"[^\s]+", str(line["text"]).lower())
+        words = re.findall(r"[^\s]+", re.sub(r"^[^\w•]+", "", str(line["text"]).lower()))
         if words and words[0] in LABEL_WORDS:
             boxes.append((y - PADDING, y + h + PADDING))
         else:
@@ -56,7 +58,14 @@ def label_boxes(lines: list[dict[str, Any]]) -> tuple[list[tuple[float, float]],
     return boxes, foreign
 
 
-def paint_labels(pdf_in: Path, vision_json: Path, pdf_out: Path) -> dict[int, list[str]]:
+def paint_labels(
+    pdf_in: Path,
+    vision_json: Path,
+    pdf_out: Path,
+    *,
+    left: float = LABEL_LEFT,
+    right: float = LABEL_RIGHT,
+) -> dict[int, list[str]]:
     """Write `pdf_out`: the pages of `pdf_in` with the label column painted white. Returns the foreign left-edge lines per page."""
     import pymupdf
 
@@ -68,14 +77,14 @@ def paint_labels(pdf_in: Path, vision_json: Path, pdf_out: Path) -> dict[int, li
     foreign: dict[int, list[str]] = {}
     for number in range(1, len(document) + 1):
         page = document[number - 1]
-        boxes, odd = label_boxes(vision.get(number, []))
+        boxes, odd = label_boxes(vision.get(number, []), left)
         if odd:
             foreign[number] = odd
         width, height = page.rect.width, page.rect.height
         for bottom, top in boxes:
             page.draw_rect(
                 pymupdf.Rect(
-                    0.07 * width, (1 - top) * height, LABEL_RIGHT * width, (1 - bottom) * height
+                    0.07 * width, (1 - top) * height, right * width, (1 - bottom) * height
                 ),
                 color=None,
                 fill=(1, 1, 1),

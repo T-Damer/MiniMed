@@ -335,7 +335,14 @@ def unlabel(
             if base == upright
             else paths.work / f"vision/{row['stem']}.json"
         )
-        foreign = paint_labels(base, vision_in, target)
+        column = row.get("labelColumn", {})
+        foreign = paint_labels(
+            base,
+            vision_in,
+            target,
+            left=column.get("left", 0.15),
+            right=column.get("right", 0.305),
+        )
         result = subprocess.run(
             [str(paths.work / "bin/vision_ocr"), str(target)], capture_output=True, check=True
         )
@@ -385,10 +392,16 @@ def _inputs(
         layer = document_pages(str(paths.raw / row["file"]))
         marker: dict[int, str | None] = {page: layer.get(page) for page in vision}
     else:
-        marker = read_marker_pages(
-            paths.work / (f"marker/{stem}-nolabel" if painted else f"marker/{stem}"), len(vision)
-        )
-    sideways = row.get("rotatedPages", [])
+        marker = read_marker_pages(paths.work / f"marker/{stem}", len(vision))
+        if (
+            painted
+        ):  # the painted copy replaces the plain reading page by page (it is upright already)
+            copy = read_marker_pages(paths.work / f"marker/{stem}-nolabel", len(vision))
+            marker = {
+                page: copy[page] if copy[page] is not None else text
+                for page, text in marker.items()
+            }
+    sideways = [] if painted else row.get("rotatedPages", [])
     if sideways:  # a table scanned sideways is read from its upright copy
         upright = read_vision_pages(paths.work / f"vision/{stem}-upright.json")
         for page in sideways:
