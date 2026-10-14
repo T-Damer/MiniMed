@@ -114,6 +114,9 @@ substitution, clinical promotion or rights assumptions. Historical source files 
 
 ## Worktrees and disk
 
+- Never symlink `output/`, `data/` or any gitignored local data into a worktree: read it from the main
+  checkout by absolute path. A committed `output` link once made a pull delete every local release
+  copy (2026-10-14); `bun run check` now fails on any tracked symlink or local-data path.
 - Worktrees live under `.claude/worktrees/` or an agent scratchpad. Remove a worktree as soon as its
   branch is merged into `main` (`git worktree remove`, `git worktree prune`), and remove measurement
   or release worktrees when the measurement or release is done.
