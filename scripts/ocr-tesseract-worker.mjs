@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
+import { createInterface } from 'node:readline';
 // A persistent Tesseract worker for the OCR1 second opinion (tools/ingest/scripts/grls_ocr_second_opinion.py).
 //
 //   node scripts/ocr-tesseract-worker.mjs <tessdata dir>
@@ -8,9 +11,6 @@
 // `done\t<page image>` (or `error\t<page image>\t<message>`) on stdout. The language data is the pack the
 // app downloads for the user's own files (`apps/app/public/tessdata/{rus,eng}.traineddata.gz`).
 import { createWorker } from 'tesseract.js';
-import { mkdirSync, writeFileSync } from 'node:fs';
-import { dirname } from 'node:path';
-import { createInterface } from 'node:readline';
 
 const langPath = process.argv[2];
 if (!langPath) {
@@ -39,7 +39,9 @@ for await (const request of lines) {
     writeFileSync(output, JSON.stringify({ confidence: data.confidence, lines: recognised }));
     process.stdout.write(`done\t${image}\n`);
   } catch (error) {
-    process.stdout.write(`error\t${image}\t${String(error?.message ?? error).replace(/\s+/g, ' ')}\n`);
+    process.stdout.write(
+      `error\t${image}\t${String(error?.message ?? error).replace(/\s+/g, ' ')}\n`,
+    );
   }
 }
 await worker.terminate();

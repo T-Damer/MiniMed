@@ -59,10 +59,8 @@ describe('drug instruction indexes (interactions, safety, comparison)', () => {
     }
   });
 
-  // DEFECT (docs/DATA_TESTS.md): the three indexes record the `…e5` builds of the GRLS instruction modules,
-  // the catalog ships the `…kd1` builds since 2026-10-11. Section checksums inside the indexes keep working only
-  // if the instruction text did not change. Remove `.fails` when the indexes are rebuilt from the shipped modules.
-  it.fails('record the exact module versions and checksums the catalog ships', () => {
+  // Fixed 2026-10-14 (OCR1, docs/DATA_TESTS.md): the indexes are rebuilt from the shipped `grls-2026.10.14.kd1` modules.
+  it('record the exact module versions and checksums the catalog ships', () => {
     for (const index of Object.values(indexes)) {
       for (const basis of index.basis.modules) {
         const module = catalog.modules.find((candidate) => candidate.id === basis.id);
