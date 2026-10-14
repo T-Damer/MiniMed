@@ -1,4 +1,4 @@
-"""Complete the ATC codes of the ЕСКЛП medication modules (ATC2), with provenance per code.
+"""Complete the ATC codes of the ЕСКЛП medication modules (ATC2, ATC3), with provenance per code.
 
 Local-only and deterministic; the rules live in `localmed_ingest.atc_fill`.
 
@@ -8,7 +8,8 @@ Local-only and deterministic; the rules live in `localmed_ingest.atc_fill`.
 
 Inputs (all under the main checkout's git-ignored `data/`, pass `--data-root` from a worktree):
 
-* `data/build/atc-fill/base/*.db`: the decoded, published ЕСКЛП modules (catalog `decodedSha256`);
+* `data/build/atc-fill/base/*.db`: the decoded ЕСКЛП modules as ЕСКЛП published them, before any
+  fill (`data/build/release-esklp` of the main checkout, or the decoded `esklp-2026-08-28` set);
 * `data/raw/nsi/atc/v*/rows.json`: the НСИ «АТХ» dictionary (`scripts/fetch-nsi-dictionary.sh`);
 * `data/build/grls-instruction-text-manifest.jsonl` and the prepared instruction Markdown it names;
 * optionally the decoded published Allmed module (`--allmed-db`) for its coverage figures.
@@ -153,6 +154,19 @@ def validation(decisions: Sequence[Decision]) -> dict[str, Any]:
     }
 
 
+def consensus_report(decisions: Sequence[Decision]) -> dict[str, Any]:
+    """Stub conflicts where independent source kinds agree on one full code (ATC3, "show both")."""
+    nodes = [d for d in decisions if d.consensus is not None]
+    return {
+        "nodes": len(nodes),
+        "cards": len({d.node.document_id for d in nodes}),
+        "byCode": dict(
+            sorted(Counter(d.consensus.code for d in nodes if d.consensus is not None).items())
+        ),
+        "byModule": dict(sorted(Counter(d.node.module for d in nodes).items())),
+    }
+
+
 def derive(args: argparse.Namespace) -> None:
     data_root: Path = args.data_root
     base = args.base or data_root / "data" / "build" / "atc-fill" / "base"
@@ -229,6 +243,7 @@ def derive(args: argparse.Namespace) -> None:
         "firstSourceOfApplied": dict(sources),
         "anySourceOfApplied": dict(all_sources),
         "conflictKinds": dict(conflict_kinds),
+        "consensus": consensus_report(decisions),
         "validation": validation(decisions),
         "coverage": {
             "esklpNodes": {
@@ -279,6 +294,16 @@ def derive(args: argparse.Namespace) -> None:
                             {"code": c.code, "source": c.source, **c.detail} for c in d.candidates
                         ],
                         "nsiOptions": d.nsi_options,
+                        **(
+                            {
+                                "consensus": {
+                                    "code": d.consensus.code,
+                                    "sources": list(d.consensus.sources),
+                                }
+                            }
+                            if d.consensus is not None
+                            else {}
+                        ),
                     },
                     ensure_ascii=False,
                 )
@@ -286,7 +311,7 @@ def derive(args: argparse.Namespace) -> None:
             )
     print(
         json.dumps(
-            {k: report[k] for k in ("statuses", "firstSourceOfApplied", "validation")},
+            {k: report[k] for k in ("statuses", "firstSourceOfApplied", "validation", "consensus")},
             ensure_ascii=False,
             indent=1,
         )

@@ -23,6 +23,11 @@ agrees: ``L03AX`` + ``L03AX13``). When sources disagree, with each other or with
 full code, nothing is changed: every candidate is kept on the node and the node is flagged. The
 original registry value stays on the node (``atcOriginal``) whenever it is replaced.
 
+One conflict is also recorded as a consensus (owner decision 2026-10-14, "show both"): the registry
+has only a group stub (``L03AX``) and independent source kinds agree on one full substance code
+outside that stub (``J05AX13``). The registry code stays the official value (``atcCode``); the
+node gets ``atcConsensus`` = ``{code, sources}`` and the app shows both. See ``stub_consensus``.
+
 Pure functions only; the I/O of the command line lives in ``scripts/build_atc_fill.py``.
 """
 
@@ -354,6 +359,70 @@ class Candidate:
     detail: dict[str, Any] = field(default_factory=dict[str, Any])
 
 
+#: Independent kinds of evidence for a consensus. A source kind is a separate body of material:
+#: the registry itself (other ЕСКЛП nodes of the same МНН), or the printed instructions (ГРЛС
+#: documents, recovered by OCR or not). The НСИ dictionary is not a kind: a name with several
+#: codes (route-dependent) is an option set that cannot choose a code, and its silence about a
+#: form (the dictionary lacks a code the registry or the instructions give) is not a contradiction.
+KIND_REGISTRY = "registry"
+KIND_INSTRUCTION = "instruction"
+_SOURCE_KIND: dict[str, str] = {
+    SOURCE_SAME_INN: KIND_REGISTRY,
+    SOURCE_SAME_INN_OTHER_FORM: KIND_REGISTRY,
+    SOURCE_INSTRUCTION: KIND_INSTRUCTION,
+    SOURCE_INSTRUCTION_OCR: KIND_INSTRUCTION,
+    SOURCE_SAME_INN_INSTRUCTION: KIND_INSTRUCTION,
+}
+#: Independent kinds needed for a consensus.
+CONSENSUS_MIN_KINDS = 2
+
+
+@dataclass(frozen=True)
+class Consensus:
+    """A full substance code that independent source kinds agree on, against a registry stub."""
+
+    code: str
+    sources: tuple[str, ...]
+
+
+def stub_consensus(original: str | None, candidates: Sequence[Candidate]) -> Consensus | None:
+    """The full code independent sources agree on where the registry has only a group stub.
+
+    Applies to a node whose registry value is a level-4 group stub (``L03AX``). The sources are
+    the candidates other than the registry itself. There is a consensus when
+
+    * exactly one full (level-5, 7-character) code outside the stub is proposed;
+    * no source proposes anything else that is neither that code (or its prefix) nor compatible
+      with the stub (a source that repeats the stub, or stops at a group the full code belongs to,
+      agrees with it; a different group is a disagreement);
+    * the proposals of that code come from at least two distinct source kinds (``KIND_REGISTRY``:
+      same МНН elsewhere in ЕСКЛП; ``KIND_INSTRUCTION``: the printed instructions). Two sources of
+      one kind (two instructions) are one kind, and an OCR-recovered instruction alone, which
+      would not even apply a code by itself, never makes a consensus alone.
+
+    The НСИ dictionary does not vote (see ``KIND_REGISTRY``). The registry value is not changed
+    by a consensus; it is only recorded beside it.
+    """
+    if original is None or atc_level(original) != 4:
+        return None
+    claims: dict[str, set[str]] = defaultdict(set)
+    for candidate in candidates:
+        if candidate.source != SOURCE_ESKLP and atc_level(candidate.code) >= 4:
+            claims[candidate.code].add(candidate.source)
+    full = [code for code in claims if atc_level(code) == 5 and not codes_agree(code, original)]
+    if len(full) != 1:
+        return None
+    (code,) = full
+    for other in claims:
+        if other != code and not codes_agree(other, code) and not codes_agree(other, original):
+            return None
+    sources = claims[code]
+    kinds = {_SOURCE_KIND[source] for source in sources if source in _SOURCE_KIND}
+    if len(kinds) < CONSENSUS_MIN_KINDS:
+        return None
+    return Consensus(code, tuple(sorted(sources, key=_SOURCE_ORDER.index)))
+
+
 @dataclass
 class Decision:
     node: AtcNode
@@ -363,6 +432,8 @@ class Decision:
     sources: list[str]
     candidates: list[Candidate]
     nsi_options: list[str]
+    #: Set only for a ``conflict`` on a group stub where independent kinds agree on a full code.
+    consensus: Consensus | None = None
 
     @property
     def changed(self) -> bool:
@@ -491,7 +562,15 @@ def decide(
         status = "ambiguous" if options else "unresolved"
         return Decision(node, status, None, [], [], options)
     if len(maximal) > 1:
-        return Decision(node, "conflict", None, [], singles, options)
+        return Decision(
+            node,
+            "conflict",
+            None,
+            [],
+            singles,
+            options,
+            consensus=stub_consensus(node.original, singles),
+        )
     code = maximal[0]
     supporting = [c for c in singles if codes_agree(c.code, code)]
     if options:
@@ -564,6 +643,8 @@ def patch_metadata(
     patched = cast(dict[str, Any], _deep_copy(metadata))
     changed = 0
     flagged = 0
+    consensus_codes: list[str] = []
+    consensus_nodes = 0
     code_sources: dict[str, list[str]] = {}
     for node in _records(patched.get("smnnNodes")):
         decision = decisions.get((document_id, str(node.get("smnnCode") or "")))
@@ -581,6 +662,14 @@ def patch_metadata(
             mutable["atcFlag"] = decision.status
             mutable["atcCandidates"] = _candidate_summary(decision)
             flagged += 1
+            if decision.consensus is not None:
+                mutable["atcConsensus"] = {
+                    "code": decision.consensus.code,
+                    "sources": list(decision.consensus.sources),
+                }
+                consensus_nodes += 1
+                if decision.consensus.code not in consensus_codes:
+                    consensus_codes.append(decision.consensus.code)
     if changed:
         codes: list[str] = []
         for node in _records(patched.get("smnnNodes")):
@@ -588,13 +677,19 @@ def patch_metadata(
             if isinstance(raw, str) and raw not in codes:
                 codes.append(raw)
         patched["atcCodes"] = codes
+    if consensus_nodes:
+        # Beside the registry codes of `atcCodes`, which stay the official list.
+        patched["atcConsensusCodes"] = consensus_codes
     if changed or flagged:
-        patched["atcFill"] = {
+        fill: dict[str, Any] = {
             "version": FILL_VERSION,
             "filledNodes": changed,
             "flaggedNodes": flagged,
             "codeSources": {code: sorted(set(sources)) for code, sources in code_sources.items()},
         }
+        if consensus_nodes:
+            fill["consensusNodes"] = consensus_nodes
+        patched["atcFill"] = fill
     return patched, changed
 
 

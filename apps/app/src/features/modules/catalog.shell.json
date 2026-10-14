@@ -1,6 +1,6 @@
 {
   "catalogVersion": "packaging-images.2026.10.13",
-  "publishedAt": "2026-10-14T12:00:00Z",
+  "publishedAt": "2026-10-14T14:10:00Z",
   "coreModule": {
     "id": "minimed.core.ru",
     "version": "1.0.0-preview.8",

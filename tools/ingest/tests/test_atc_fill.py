@@ -8,6 +8,7 @@ import pytest
 
 from localmed_ingest.atc_fill import (
     AtcNode,
+    Candidate,
     InstructionCodes,
     atc_level,
     coverage_row,
@@ -22,6 +23,7 @@ from localmed_ingest.atc_fill import (
     nsi_substance_index,
     parse_instruction_atc,
     patch_metadata,
+    stub_consensus,
 )
 
 CYR = "АВСЕНКМОРТХ"
@@ -328,3 +330,157 @@ def test_coverage_row_shares() -> None:
     assert (row["anyCode"], row["levelAtLeast4"], row["level5"]) == (3, 3, 2)
     assert row["level5Pct"] == 40.0
     assert coverage_row([])["anyCodePct"] == 0.0
+
+
+# --------------------------------------------------------------------------------------------
+# Consensus against a group stub (ATC3: the registry value stays, the agreed code is recorded)
+# --------------------------------------------------------------------------------------------
+
+
+def stub_with(
+    donor_code: str | None, instruction_codes: tuple[str, ...] = (), ocr: bool = False
+) -> Any:
+    """A stub node, an optional same-МНН donor with a full code, optional instruction codes."""
+    target = node("u/1", "УМИФЕНОВИР", "ТАБЛЕТКИ", "L03AX", ("ЛП-1",))
+    nodes = [target]
+    if donor_code is not None:
+        nodes.append(node("u/2", "УМИФЕНОВИР", "ТАБЛЕТКИ", donor_code))
+    docs = (
+        [InstructionCodes("doc1", ("ЛП-1",), instruction_codes, ocr=ocr)]
+        if instruction_codes
+        else []
+    )
+    return single(nodes, "u/1", docs)
+
+
+def test_registry_and_instruction_agreeing_on_a_full_code_make_a_consensus() -> None:
+    decision = stub_with("J05AX13", ("J05AX13",))
+    assert decision.status == "conflict"
+    # the registry value stays official: nothing is applied
+    assert decision.code is None
+    assert final_code(decision) == "L03AX"
+    assert decision.consensus is not None
+    assert decision.consensus.code == "J05AX13"
+    assert decision.consensus.sources == ("instruction-text", "same-inn")
+
+
+def test_a_consensus_is_not_made_from_one_source_kind() -> None:
+    donor_only = stub_with("J05AX13")
+    assert donor_only.status == "conflict"
+    assert donor_only.consensus is None
+    instruction_only = stub_with(None, ("J05AX13",))
+    assert instruction_only.status == "conflict"
+    assert instruction_only.consensus is None
+    # two instructions are still one kind of evidence
+    target = node("u/1", "УМИФЕНОВИР", "ТАБЛЕТКИ", "L03AX", ("ЛП-1", "ЛП-2"))
+    docs = [
+        InstructionCodes("doc1", ("ЛП-1",), ("J05AX13",), ocr=False),
+        InstructionCodes("doc2", ("ЛП-2",), ("J05AX13",), ocr=False),
+    ]
+    assert single([target], "u/1", docs).consensus is None
+
+
+def test_ocr_text_alone_is_no_consensus_but_corroborates_another_kind() -> None:
+    assert stub_with(None, ("J05AX13",), ocr=True).consensus is None
+    # the OCR instruction and the same МНН elsewhere in ЕСКЛП: two kinds, one self-sufficient
+    corroborated = stub_with("J05AX13", ("J05AX13",), ocr=True)
+    assert corroborated.consensus is not None
+    assert corroborated.consensus.sources == ("same-inn", "instruction-text-ocr")
+
+
+def test_disagreeing_sources_make_no_consensus() -> None:
+    # two different full codes outside the stub
+    assert stub_with("J05AX13", ("J05AX12",)).consensus is None
+    # an instruction that names another group
+    assert stub_with("J05AX13", ("D06AX",)).consensus is None
+    # a source that only repeats the stub votes for nothing, so it makes no consensus alone ...
+    assert stub_with("J05AX13", ("L03AX",)).consensus is None
+    # ... and, like one that stops at the group the full code belongs to, does not veto one
+    target = node("u/1", "УМИФЕНОВИР", "ТАБЛЕТКИ", "L03AX", ("ЛП-1", "ЛП-2", "ЛП-3"))
+    donor = node("u/2", "УМИФЕНОВИР", "ТАБЛЕТКИ", "J05AX13")
+    docs = [
+        InstructionCodes("doc1", ("ЛП-1",), ("J05AX13",), ocr=False),
+        InstructionCodes("doc2", ("ЛП-2",), ("L03AX",), ocr=False),
+        InstructionCodes("doc3", ("ЛП-3",), ("J05AX",), ocr=False),
+    ]
+    neutral = single([target, donor], "u/1", docs)
+    assert neutral.consensus is not None
+    assert neutral.consensus.code == "J05AX13"
+
+
+def test_consensus_needs_a_registry_group_stub() -> None:
+    # a full registry code that other sources contradict is a plain conflict
+    full = single(
+        [
+            node("f/1", "УМИФЕНОВИР", "ТАБЛЕТКИ", "L03AX13", ("ЛП-1",)),
+            node("f/2", "УМИФЕНОВИР", "ТАБЛЕТКИ", "J05AX13"),
+        ],
+        "f/1",
+        [InstructionCodes("doc1", ("ЛП-1",), ("J05AX13",), ocr=False)],
+    )
+    assert full.status == "conflict"
+    assert full.consensus is None
+    # no registry code at all: the agreed code is simply applied
+    none = single(
+        [
+            node("n/1", "УМИФЕНОВИР", "ТАБЛЕТКИ", "~", ("ЛП-1",)),
+            node("n/2", "УМИФЕНОВИР", "ТАБЛЕТКИ", "J05AX13"),
+        ],
+        "n/1",
+        [InstructionCodes("doc1", ("ЛП-1",), ("J05AX13",), ocr=False)],
+    )
+    assert none.status == "filled"
+    assert none.consensus is None
+
+
+def test_stub_consensus_ignores_the_registry_candidate_and_the_nsi_options() -> None:
+    candidates = [
+        Candidate("L03AX", "esklp"),
+        Candidate("J05AX13", "same-inn"),
+        Candidate("J05AX13", "same-inn-instruction"),
+    ]
+    found = stub_consensus("L03AX", candidates)
+    assert found is not None
+    assert (found.code, found.sources) == ("J05AX13", ("same-inn", "same-inn-instruction"))
+    assert stub_consensus("L03AX13", candidates) is None
+    assert stub_consensus(None, candidates) is None
+    assert stub_consensus("L03AX", candidates[:2]) is None
+
+
+def test_consensus_is_recorded_beside_the_registry_code() -> None:
+    metadata: dict[str, Any] = {
+        "atcCodes": ["L03AX"],
+        "smnnNodes": [
+            {
+                "smnnCode": "u/1",
+                "standardizedInn": "УМИФЕНОВИР",
+                "dosageForm": "ТАБЛЕТКИ",
+                "atcCode": "L03AX",
+                "tradeNames": [{"registrationNumber": "ЛП-1"}],
+            },
+            {
+                "smnnCode": "u/2",
+                "standardizedInn": "УМИФЕНОВИР",
+                "dosageForm": "ТАБЛЕТКИ",
+                "atcCode": "J05AX13",
+            },
+        ],
+    }
+    nodes = nodes_of_document("esklp.mnn.u", "antiinfectives", metadata)
+    docs = [InstructionCodes("doc1", ("ЛП-1",), ("J05AX13",), ocr=False)]
+    decisions = {d.node.key: d for d in decide_all(nodes, docs, NSI)}
+    patched, changed = patch_metadata(metadata, decisions, "esklp.mnn.u")
+    assert changed == 0
+    stub_node, donor_node = patched["smnnNodes"]
+    assert stub_node["atcCode"] == "L03AX"
+    assert "atcOriginal" not in stub_node
+    assert stub_node["atcFlag"] == "conflict"
+    assert stub_node["atcConsensus"] == {
+        "code": "J05AX13",
+        "sources": ["instruction-text", "same-inn"],
+    }
+    assert "atcConsensus" not in donor_node
+    assert patched["atcCodes"] == ["L03AX"]
+    assert patched["atcConsensusCodes"] == ["J05AX13"]
+    assert patched["atcFill"]["consensusNodes"] == 1
+    assert patched["atcFill"]["version"] == "atc-fill-1"

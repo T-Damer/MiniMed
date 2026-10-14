@@ -22,7 +22,9 @@
  *     --published-at 2026-10-13T20:00:00Z
  *
  * `--published-at` moves the catalog's `publishedAt` forward (a remote catalog replaces the bundled
- * one only when it is newer).
+ * one only when it is newer). ATC3 (the stub consensus of `atc_fill.py`) was reframed the same way
+ * from the `atc2` modules, only the nine groups that hold a consensus node (`--module-id`):
+ * the tag `esklp-2026-08-28-atc2` becomes `esklp-2026-08-28-atc3`, the version `…atc2` `…atc3`.
  *
  * Only `embedding_profiles`/`chunk_embeddings` differ from the published modules, so the source
  * set, document table and artifact ids stay; the module version's embedding suffix becomes
@@ -69,8 +71,11 @@ const decodedDir = values['decoded-dir'];
 const outDir = values['out-dir'];
 const tag = values.tag;
 const marker = values.marker;
-/** Embedding markers of earlier and current vector profiles, replaced rather than stacked. */
-const EMBEDDING_MARKER = /[-.](?:e5|kd1)$/u;
+/**
+ * Markers of earlier and current vector profiles and of earlier ATC fills (`atc2`, `atc3`),
+ * replaced rather than stacked: `esklp-2026-08-28-atc2` + marker `atc3` is `esklp-2026-08-28-atc3`.
+ */
+const EMBEDDING_MARKER = /[-.](?:e5|kd1|atc\d+)$/u;
 if (
   !marker ||
   !/^[a-z0-9]+$/u.test(marker) ||
