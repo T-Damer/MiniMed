@@ -1,6 +1,11 @@
 import { expect, type Page, test } from '@playwright/test';
 
 import { installClinicalModule, routeClinicalModule } from './clinical-module-fixture';
+import {
+  installMedicationModule,
+  routeInstructionModule,
+  routeMedicationModule,
+} from './medication-module-fixture';
 import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
 
 // Owner 2026-10-14: «You open a doc — you see some info about the topic as well as the text; you
@@ -194,4 +199,82 @@ test('an address no source knows shows «Документ не найден» in
   });
   await expect(page.locator('.document-page__error')).not.toContainText('Подождите завершения');
   await expect(page.getByRole('button', { name: 'Назад' })).toBeVisible();
+});
+
+test('a freshly opened drug page stays at the top while it settles, with its menu open', async ({
+  page,
+}) => {
+  test.setTimeout(300_000);
+  await routeMedicationModule(page);
+  await routeInstructionModule(page);
+  await mountBuiltApp(page, {
+    skipLargeCompanionPacks: true,
+    localStorage: {
+      'minimed.app-preferences.v1': JSON.stringify({ experimentalModulesEnabled: true }),
+    },
+  });
+  await installMedicationModule(page);
+  await page.goto(`${E2E_ASSET_ORIGIN}/#/modules/documents/medications`);
+  await page.getByRole('searchbox', { name: 'Поиск по препаратам' }).fill('Вермокс');
+  await page.locator('.medication-product-card').first().click({ timeout: 60_000 });
+  await expect(page.locator('.drug-header__title')).toBeVisible({ timeout: 30_000 });
+  // Late layout (names, registry data, instruction lookups) must not move a reader who has not
+  // scrolled: open the menu and watch the page for the time those lookups take.
+  await page.getByRole('button', { name: 'Меню действий' }).click();
+  await expect(page.getByRole('menu')).toBeVisible();
+  const scrolls = await page.evaluate(
+    () =>
+      new Promise<number[]>((done) => {
+        const seen: number[] = [];
+        window.addEventListener('scroll', () => seen.push(window.scrollY), true);
+        for (const name of ['hashchange', 'popstate', 'wheel', 'touchmove']) {
+          window.addEventListener(name, () => seen.push(-1), true);
+        }
+        window.setTimeout(() => done(seen), 3_500);
+      }),
+  );
+  expect(scrolls).toEqual([]);
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  // Nothing moved the page, so nothing closed the menu (a scroll anywhere closes it).
+  await expect(page.getByRole('menu')).toBeVisible({ timeout: 1_000 });
+});
+
+test('switching a drug page to its instruction text does not scroll it by itself', async ({
+  page,
+}) => {
+  test.setTimeout(400_000);
+  await routeMedicationModule(page);
+  await routeInstructionModule(page);
+  await mountBuiltApp(page, {
+    skipLargeCompanionPacks: true,
+    localStorage: {
+      'minimed.app-preferences.v1': JSON.stringify({ experimentalModulesEnabled: true }),
+    },
+  });
+  await installMedicationModule(page);
+  await page.goto(`${E2E_ASSET_ORIGIN}/#/modules/documents/medications`);
+  await page.getByRole('searchbox', { name: 'Поиск по препаратам' }).fill('Вермокс');
+  await page.locator('.medication-product-card').first().click({ timeout: 60_000 });
+  await expect(page.locator('.drug-header__title')).toBeVisible({ timeout: 30_000 });
+  await page.evaluate(() => {
+    const target = window as unknown as { __scrolls: number[] };
+    target.__scrolls = [];
+    window.addEventListener(
+      'scroll',
+      () => target.__scrolls.push(Math.round(window.scrollY)),
+      true,
+    );
+  });
+  const offer = page.locator('.document-medication-product__offer-button');
+  if (await offer.isVisible({ timeout: 60_000 }).catch(() => false)) {
+    await offer.click({ force: true });
+  }
+  await expect(page.getByRole('radio', { name: 'Инструкция' })).toBeEnabled({ timeout: 180_000 });
+  await page.getByRole('radio', { name: 'Инструкция' }).check({ force: true });
+  await expect(page.locator('.document-instruction-source')).toBeVisible({ timeout: 60_000 });
+  await page.waitForTimeout(3_000);
+  expect(
+    await page.evaluate(() => (window as unknown as { __scrolls: number[] }).__scrolls),
+  ).toEqual([]);
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
 });
