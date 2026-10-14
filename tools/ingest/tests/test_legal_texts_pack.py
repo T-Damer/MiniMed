@@ -28,7 +28,6 @@ AWAITING_FULL_TEXT = {
     "order-222n-neonatology.md",
     "order-374n-disability-criteria.md",
     "order-436n-qualification-requirements.md",
-    "order-707n-qualification-requirements-superseded.md",
 }
 """Acts whose full text is still being converted and reviewed (LEGAL1). The set only shrinks; it must be empty
 when the full-text module is released (`test_no_act_awaits_its_full_text`)."""

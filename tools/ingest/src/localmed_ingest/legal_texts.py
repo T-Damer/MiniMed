@@ -802,6 +802,12 @@ def label_rows_markdown(text: str, labels: tuple[str, ...]) -> str:
     return re.sub(r"\n{3,}", "\n\n", "\n".join(output))
 
 
+_REQUIREMENT_TEXT: Final = re.compile(
+    r"^(?:Высшее|Подготовка|Профессиональн|Повышение|Программы|Врач|Заведующ|Дополнительн)",
+    re.IGNORECASE,
+)
+
+
 def label_specialty_rows(blocks: list[Block]) -> list[str]:
     """Put the row labels back on a requirements act read without its label column (`legal_unlabel`).
 
@@ -819,7 +825,18 @@ def label_specialty_rows(blocks: list[Block]) -> list[str]:
             index += 1
             continue
         end = index + 1
-        while end < len(blocks) and blocks[end].kind != "heading":
+        while end < len(blocks) and (
+            blocks[end].kind != "heading"
+            or (
+                not blocks[end].text.startswith("Специальность «")
+                and blocks[end].level >= 3
+                and _REQUIREMENT_TEXT.match(blocks[end].text)
+            )
+        ):
+            if (
+                blocks[end].kind == "heading"
+            ):  # a requirement Marker set as a heading is a paragraph
+                blocks[end].kind = "paragraph"
             end += 1
         members = [
             blocks[i]

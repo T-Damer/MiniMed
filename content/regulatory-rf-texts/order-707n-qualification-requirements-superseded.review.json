@@ -1,0 +1,136 @@
+{
+  "documentId": "regulatory.rf.minzdrav.707n-2015",
+  "reviewer": "Claude (agent), against the page images; not a lawyer",
+  "reviewedAt": "2026-10-14",
+  "verdicts": {
+    "2": "image read (portrait page): the end of the list of amended orders (№ 1644н, № 415н, № 23879) and the signature of the minister match; the stamp is removed",
+    "3": "image read (landscape, upright copy): annex header (handwritten date and number are the portal's) and the first specialty match",
+    "6": "image read: specialties of the page match; the extra «4» is the page number",
+    "10": "image read: the text matches; the digit Vision adds is the page number printed at the top of the sideways page",
+    "11": "image read: the text matches; the digit Vision adds is the page number printed at the top of the sideways page",
+    "17": "image read: the text matches; the digit Vision adds is the page number printed at the top of the sideways page",
+    "20": "image read: the text matches; the digit Vision adds is the page number printed at the top of the sideways page",
+    "22": "image read: the text matches; the digit Vision adds is the page number printed at the top of the sideways page",
+    "23": "image read: the text matches; the digit Vision adds is the page number printed at the top of the sideways page",
+    "24": "image read: the text matches; the digit Vision adds is the page number printed at the top of the sideways page",
+    "28": "image read: the text matches; the digit Vision adds is the page number printed at the top of the sideways page",
+    "32": "image read (the last row restored): rows of «Организация здравоохранения и общественное здоровье» (positions), «Ортодонтия» and the start of «Остеопатия» match, including the printed «специалитет одной из специальностей»; Vision's coverage flags are its misreading of the page",
+    "35": "image read: the specialties «Паразитология» and «Патологическая анатомия» match; Vision's «I» is a speck",
+    "37": "image read: «Пластическая хирургия» and «Профпатология» match; a speck before «Высшее образование» is removed",
+    "38": "image read: the text matches; the digit Vision adds is the page number printed at the top of the sideways page",
+    "40": "image read: «Психотерапия» (end) and «Пульмонология» match; remnants of the painted label column removed",
+    "41": "image read: the text matches; the digit Vision adds is the page number printed at the top of the sideways page",
+    "54": "image read: the text matches; the digit Vision adds is the page number printed at the top of the sideways page",
+    "58": "image read: the text matches; the digit Vision adds is the page number printed at the top of the sideways page",
+    "66": "image read: «Челюстно-лицевая хирургия» and the start of «Эндокринология»; the last row restored",
+    "67": "image read: the text matches; the digit Vision adds is the page number printed at the top of the sideways page",
+    "68": "image read: the end of «Эндоскопия» and «Эпидемиология» match; remnants of the painted label column removed and «Медико-профилактическое» fixed"
+  },
+  "corrections": [
+    {
+      "page": 2,
+      "kind": "stamp",
+      "find": "КОПИЯ ВЕРНА\n\nНачальник Общего отдела\n\n8 октября 2011 г.\n\nЮ.В. Кулешова",
+      "replace": "",
+      "why": "The copy-certification stamp («КОПИЯ ВЕРНА … Начальник Общего отдела … 8 октября 2015 г. Ю.В. Кулешова») and its seal are not text of the order; Marker read the stamp date as 2011."
+    },
+    {
+      "page": 37,
+      "kind": "noise",
+      "find": "- • Высшее",
+      "replace": "Высшее",
+      "why": "A speck of the scan before «Высшее образование» was read as a bullet."
+    },
+    {
+      "page": 40,
+      "kind": "noise",
+      "find": "]\nIПрофессиональная",
+      "replace": "Профессиональная",
+      "why": "Remnants of the painted label column («]», «I») stand before the first row; the row is «Профессиональная переподготовка по специальности «Психотерапия»…»."
+    },
+    {
+      "page": 40,
+      "kind": "noise",
+      "find": "]Повышение квалификации не реже одного раза в 5 лет в течение всей трудовой деятельности\n\n]Врач-психотерапевт",
+      "replace": "Повышение квалификации не реже одного раза в 5 лет в течение всей трудовой деятельности\n\nВрач-психотерапевт",
+      "why": "Remnants of the painted label column («]») stand before the text; the image has none."
+    },
+    {
+      "page": 40,
+      "kind": "noise",
+      "find": "]Высшее образование – специалитет по одной",
+      "replace": "Высшее образование – специалитет по одной",
+      "why": "A remnant of the painted label column («]») stands before the text."
+    },
+    {
+      "page": 40,
+      "kind": "noise",
+      "find": "]Подготовка в ординатуре по специальности «Пульмонология»",
+      "replace": "Подготовка в ординатуре по специальности «Пульмонология»",
+      "why": "A remnant of the painted label column («]») stands before the text."
+    },
+    {
+      "page": 40,
+      "kind": "noise",
+      "find": "]Профессиональная переподготовка по специальности «Пульмонология»",
+      "replace": "Профессиональная переподготовка по специальности «Пульмонология»",
+      "why": "A remnant of the painted label column («]») stands before the text."
+    },
+    {
+      "page": 40,
+      "kind": "noise",
+      "find": "]Повышение квалификации не реже одного раза в 5 лет в течение всей трудовой деятельности\n\nВрач-пульмонолог",
+      "replace": "Повышение квалификации не реже одного раза в 5 лет в течение всей трудовой деятельности\n\nВрач-пульмонолог",
+      "why": "A remnant of the painted label column («]») stands before the text."
+    },
+    {
+      "page": 66,
+      "kind": "dropped-line",
+      "find": "#### Специальность «Эндокринология»\n\nВысшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия»",
+      "replace": "#### Специальность «Эндокринология»\n\nВысшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия»\n\nПодготовка в интернатуре/ординатуре по специальности «Эндокринология»",
+      "why": "The last row of the page («Подготовка в интернатуре/ординатуре по специальности «Эндокринология»») is in the image; Marker dropped it."
+    },
+    {
+      "page": 32,
+      "kind": "dropped-line",
+      "find": "#### Специальность «Остеопатия»\n\nВысшее образование – специалитет одной из специальностей: «Лечебное дело», «Педиатрия»",
+      "replace": "#### Специальность «Остеопатия»\n\nВысшее образование – специалитет одной из специальностей: «Лечебное дело», «Педиатрия»\n\nПодготовка в ординатуре по специальности «Остеопатия»",
+      "why": "The last row of the page («Подготовка в ординатуре по специальности «Остеопатия»») is in the image; Marker dropped it."
+    },
+    {
+      "page": 68,
+      "kind": "noise",
+      "find": "ДЗрач-эндоскопист",
+      "replace": "Врач-эндоскопист",
+      "why": "Remnant of the painted label column read with the first word."
+    },
+    {
+      "page": 68,
+      "kind": "noise",
+      "find": "Уо(Зысшее",
+      "replace": "Высшее",
+      "why": "Remnant of the painted label column read with the first word."
+    },
+    {
+      "page": 68,
+      "kind": "word",
+      "find": "Медико-трофилактическое",
+      "replace": "Медико-профилактическое",
+      "why": "The printed word is «Медико-профилактическое»."
+    },
+    {
+      "page": 68,
+      "kind": "noise",
+      "find": "ДпјТовышение",
+      "replace": "Повышение",
+      "why": "Remnant of the painted label column read with the first word."
+    },
+    {
+      "page": 68,
+      "kind": "noise",
+      "find": "ДВрач-эпидемиолог",
+      "replace": "Врач-эпидемиолог",
+      "why": "Remnant of the painted label column read with the first word."
+    }
+  ]
+}
