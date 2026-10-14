@@ -77,7 +77,7 @@ commands and limits: [REGULATORY_PACK.md](REGULATORY_PACK.md) «Bundled light pa
   reader) and installed in the browser in e2e. Local release copy: `output/module-zstd-regulatory-2026-10-14-r2/`
   (`docs/data-ledger.json`, added by hand: the ledger script cannot see `output/` from a worktree).
 - **Measured (same machine, before → after).** Bundled file 27 799 552 → 3 309 568 B. Web precache (`build-manifest`
-  `precacheBytes`, the file is the only difference) 97 049 055 → 72 559 071 B. Opening the pack at start the way
+  `precacheBytes`, the file is the only difference) 97 206 304 → 72 716 320 B. Opening the pack at start the way
   `create-browser-core` does (Node, same `SqliteMedicalStore`, 3 runs each): RSS +138 → +44 MiB (about 40 MiB of it is the
   sqlite-wasm runtime), ArrayBuffers +29.4 → +4.4 MiB. In Chromium (4 cold starts each, core ready + 4 s): JS heap
   170 → 141 MiB, whole browser process tree RSS median 1.67 → 1.57 GiB (noisy: one light run read 0.97 GiB, the others

@@ -189,6 +189,13 @@ validate the expected document, current or historical status, age audience, sect
 resolution, and official metadata; `regulatory-rf-number-queries.json` requires «приказ <номер>» /
 «закон <номер>» to return each act first.
 
+`benchmark:regulatory` reads the pack's tier from its documents. On the full pack (module) every query is held to the
+full-text gates above. On the bundled light pack (`--database=apps/app/public/content/regulatory.db`, also run by the Android
+release workflow) a query for an act that is only a card is judged on finding the card: number lookups keep the top-1 /
+top-2 gates and the metadata check (`contentMode: module-pointer`, `fullTextContentMode: source_text`, target = itself),
+topical queries need recall@5 of at least 0.9 (`indexTopicalRecallAt5`, measured 0.965); 323-ФЗ queries keep the
+section, section-type and context gates.
+
 ## Next
 
 Add clause-level cards for the most-used sections of 255-FZ, 195n, 1089n, and 521n after a clinician
