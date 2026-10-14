@@ -115,16 +115,16 @@ async function seedClinicianAndPatient(page: Page): Promise<void> {
   await page.getByLabel('Улица').first().fill('Ленина');
   await page.getByLabel('Дом', { exact: true }).first().fill('5');
   await capture(page, 'patient-form-data');
-  await page.getByRole('button', { name: 'Сохранить данные', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Сохранить данные', exact: true })).toBeDisabled();
+  // The panel is an autosaved draft: it shows «Сохранено» once the vault holds the typed values.
+  await expect(page.locator('.patient-form-data .draft-status')).toHaveText('Сохранено');
 
   await page.getByPlaceholder('Краткая запись осмотра').fill('Осмотр перед направлением');
   await page.getByRole('button', { name: 'Создать осмотр', exact: true }).click();
   await expect(page.getByText(/Текущий осмотр открыт:/u)).toBeVisible();
   await page.getByLabel('Диагноз осмотра').fill('Бронхиальная астма');
   await page.getByLabel('Код МКБ-10').fill('j45.0');
-  await page.getByRole('button', { name: 'Сохранить диагноз', exact: true }).click();
   await expect(page.getByLabel('Код МКБ-10')).toHaveValue('J45.0');
+  await expect(page.locator('.episode-diagnosis__status')).toHaveText('Сохранено');
 }
 
 test('fills form 070/у from a patient card, shows the rule behind a field and previews the print', async ({

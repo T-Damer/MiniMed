@@ -131,6 +131,21 @@ for (const delayMs of RELOAD_DELAYS_MS) {
   });
 }
 
+test('a diagnosis save that lands does not reset the field or the status', async ({ page }) => {
+  test.setTimeout(120_000);
+  await mountBuiltApp(page, { persistentOrigin: true });
+  await createPatient(page, 'Пациент статус');
+  await createVisit(page);
+  const status = page.locator('.episode-diagnosis__status');
+  await diagnosisText(page).fill('Астма');
+  await expect(status).toHaveText('Сохранено');
+  // Typing on after the first save keeps the text and starts the next save.
+  await diagnosisText(page).pressSequentially(' тяжёлая');
+  await expect(diagnosisText(page)).toHaveValue('Астма тяжёлая');
+  await expect(status).toHaveText('Сохранено');
+  await expect(diagnosisText(page)).toHaveValue('Астма тяжёлая');
+});
+
 test('the fullscreen note toolbar scrolls with arrows, not a scrollbar', async ({ page }) => {
   test.setTimeout(120_000);
   await mountBuiltApp(page, { persistentOrigin: true });

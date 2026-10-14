@@ -1,4 +1,14 @@
-import { createEffect, createSignal, For, type JSX, on, onCleanup, onMount, Show } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  type JSX,
+  on,
+  onCleanup,
+  onMount,
+  Show,
+} from 'solid-js';
 import { toast } from 'solid-sonner';
 
 import { Disclosure } from '@/components/Disclosure';
@@ -300,10 +310,12 @@ export function EpisodeDiagnosisEditor(props: {
       );
   };
   onMount(() => seedFromDraft(props.episode.id));
+  // A memo, so the effect runs when the id changes and not on every new copy of the same visit.
+  const episodeId = createMemo(() => props.episode.id);
   createEffect(
     on(
-      () => props.episode.id,
-      (episodeId) => {
+      episodeId,
+      (nextId) => {
         // What was typed belongs to the visit it was typed in; its save is already bound to it.
         void saver.flush();
         edits += 1;
@@ -312,7 +324,7 @@ export function EpisodeDiagnosisEditor(props: {
         setIcd10(stored.icd10);
         status.reset();
         setErrors({});
-        seedFromDraft(episodeId);
+        seedFromDraft(nextId);
       },
       { defer: true },
     ),

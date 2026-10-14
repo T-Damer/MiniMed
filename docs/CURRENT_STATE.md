@@ -388,7 +388,11 @@ save, so typed text was lost on reload. They are now autosaved drafts on the sam
   diagnosis drafts» (real vault: sealed copy, invalid SNILS/code kept and fixed, recovery after a simulated reload,
   idempotent second open). E2E `note-drafts.spec.ts`: diagnosis + code, malformed code kept with its error, form data
   with invalid SNILS kept, new-patient form — each reloaded 0.5/2/5 s after typing; cancel discards; diagnoses of two
-  visits; toolbar arrows at 375 px.
+  visits; toolbar arrows at 375 px; a save that lands must not reset the field (an effect `on(() => props.episode.id)`
+  re-ran for every new copy of the same visit and reset the text to the stored value; the id is now a `createMemo`).
+  `official-forms.spec.ts` seeds through the autosaved panels (waits for «Сохранено» instead of the removed buttons).
+  Known unrelated failures on the merged build: the notes FAB under the bottom nav at 375–390 px (`openPatientVault`,
+  STATE request by VIS2) and, in the 070/у test, «К карточке пациента» from the forms list not leaving it (line 245).
 
 ## Regulatory acts as full texts — 2026-10-14 (STATE LEGAL1)
 
