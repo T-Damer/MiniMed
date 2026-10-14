@@ -32,6 +32,8 @@ export interface ServiceWorkerBuild {
 // Small files the app fetches on every start to open its core (core-report.json names the OPFS
 // file of the core; the two companion packs are read into memory each time). Without them an
 // offline reload cannot open the search core. The 440 MB core.db itself is never listed.
+// regulatory.db is the light pack (323-ФЗ + a card per other act, 3.3 MB); the full texts are the
+// downloadable regulatory module (docs/REGULATORY_PACK.md), kept in OPFS/IndexedDB, not here.
 export const BOOT_CONTENT_FILES: readonly string[] = [
   'content/core-report.json',
   'content/reference.db',

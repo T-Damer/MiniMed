@@ -866,6 +866,20 @@
       "note": "Per-page Marker Markdown, Vision readings and reports of the regulatory acts (the inputs of assemble). Everything the cards need is committed (cards, provenance, review logs); page images and derived PDFs were deleted when the last act was verified (2026-10-14).",
       "bytes": 52400000,
       "modified": "2026-10-14"
+    },
+    {
+      "path": "output/module-zstd-regulatory-2026-10-14-r2",
+      "class": "RELEASED",
+      "producer": "STATE REG2: medbase package-regulatory (zstd transport) over data/build/rf-regulatory-pilot.db, which is bun run content:build:regulatory over content/regulatory-rf-pilot",
+      "consumers": [
+        "catalog.preview.json minimed.regulatory.pediatrics.ru 2026.10.14-r2 (tag regulatory-2026.10.14-r2)",
+        "apps/app/e2e/regulatory-module.spec.ts (local release copy, by absolute path from a worktree)"
+      ],
+      "release": "branch datasets/regulatory-2026.10.14-r2",
+      "rebuild": "bun run content:build:regulatory; uv run --project tools/ingest medbase package-regulatory --database data/build/rf-regulatory-pilot.db --output output/module-zstd-regulatory-2026-10-14-r2 --version 2026.10.14-r2 --min-app-version 0.6.60 (the zstd archive is reproducible only by its checksum: re-download it from the branch)",
+      "note": "Recorded by hand although 3.3 MB is below the 50 MiB threshold: the one local copy of the published regulatory full-text module (file, catalog entry, package report). The decoded SQLite equals the 2026.10.14 gzip release (sha256 03939d84…).",
+      "bytes": 3262281,
+      "modified": "2026-10-14"
     }
   ]
 }

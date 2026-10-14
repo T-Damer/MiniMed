@@ -81,31 +81,73 @@ approving act and edition for most forms, so only the verified 030-PO/u replacem
 as current or superseded. Other identifiers remain searchable and require source verification before
 practical use.
 
-## Released module (2026-10-14, LEGAL1; 2026-10-13, REG1)
+## Bundled light pack and downloadable module (2026-10-14, REG2)
 
-`minimed.regulatory.pediatrics.ru` **2026.10.14** (`minAppVersion` 0.6.59, kind `regulatory`, gzip, 4 831 841
-bytes, 27 799 552 bytes decoded, 31 documents: 30 acts and the study-list crosswalk, 861 sections, 1 818 chunks) is
-the full-text release and is the same content as the bundled `regulatory.db` (grew from 1.5 MB to 27.8 MB, below
-the 32 MiB WASM limit by 5.7 MiB: a bigger pack has to leave the bundle). The file is committed as
-`apps/app/public/content/modules/minimed.regulatory.pediatrics.2026.10.14.db.gz`; the catalog URL names the
-GitHub release `regulatory-2026.10.14`, which the app resolves to the raw `main` copy (release asset hosts have no
-CORS). 2026.10.13 (261 218 bytes, the paraphrase cards, replacing the 3-document 0.3.4 preview) stays committed
-and is never overwritten. Build and publish:
+Owner 2026-10-14: the full texts are a downloadable section like the others; only the main law stays in the app.
+
+- **Bundled `regulatory.db`** (pack `minimed.rf-regulatory-index`, 3.3 MB, was 27.8 MB): **323-ФЗ** in full text, the
+  status crosswalk whole, and for each of the other 29 acts a **module-pointer card with the same document id**. A card
+  is the act's official title (first paragraph of the act, with its PDF page), the short description the card always had,
+  the headings of the act as one list («Содержание», levels 1–2), and the verbatim «Источник и редакция» section. Its
+  metadata is `contentMode: module-pointer`, `targetDocumentId` = its own id, `primaryModuleId` = the module,
+  `textTier: index`, `fullTextContentMode: source_text`; number, date, issuer, edition and source link are unchanged.
+  Nothing is summarised or reworded (`regulatory_light.py`; test `test_regulatory_light.py`).
+- **Why the same ids.** The reader already treats a pointer whose target is itself as «the file is here, the set is
+  being installed»: the card shows the shared download offer (title of the set, size, progress), the search result
+  offers the same download in place, and when the module is installed the bundled pack is not mounted next to it
+  (`builtInCompanionMounts` skips it), so the module's document replaces the card under the same id, bookmarks, notes and
+  links keep working. Installing never needs a handover to another document id.
+- **Search offline.** The cards carry the 50 declared aliases of the pack, the title, the description and the heading list,
+  so every act is found by number («приказ 192н», «закон 157-ФЗ»: top-2 for all 29 in
+  `regulatory-bundled-search.test.ts`) and by topic (`benchmark:regulatory` against the bundled pack: 55 of 57 topical
+  queries for an act that is only a card find it in the top 5, 0.965; the two misses are the 211н health-group
+  queries). 323-ФЗ queries keep the full-text gates (section, context, metadata).
+- **Module.** `minimed.regulatory.pediatrics.ru` **2026.10.14-r2** is the 2026.10.14 full-text pack unchanged (same
+  decoded SHA-256 `03939d84…`, 31 documents including 323-ФЗ, 861 sections, 1 818 chunks, 27 799 552 bytes decoded) in
+  framed **zstd**: **3 241 359 bytes** (was 4 831 841 as gzip), catalog `minAppVersion` **0.6.60** (the app that bundles
+  the light pack; listed in `PENDING_RELEASE_MODULES` of `catalog.data.test.ts` until `release.json` reaches it, because
+  0.6.59 bundles all 31 documents and does not know the mirror URL). Catalog URL
+  `https://github.com/T-Damer/MiniMed/releases/download/regulatory-2026.10.14-r2/minimed.regulatory.pediatrics.2026.10.14-r2.db.zst`,
+  which `artifact-url.ts` resolves to the git blob
+  `https://raw.githubusercontent.com/T-Damer/MiniMed/datasets/regulatory-2026.10.14-r2/modules/minimed.regulatory.pediatrics.2026.10.14-r2.db.zst`
+  (branch `datasets/regulatory-2026.10.14-r2`, published with `scripts/publish-module-zstd-mirror.sh --family regulatory`;
+  raw serves CORS and no LFS quota). The earlier gzip releases (2026.10.14, 2026.10.13) stay committed under
+  `apps/app/public/content/modules/` and are never overwritten. The local release copy is
+  `output/module-zstd-regulatory-2026-10-14-r2/` in the main checkout (file, catalog entry, package report).
+- **Joins «Скачать всё» by itself**: it is an ordinary published catalog module (kind `regulatory`).
+
+Build and publish (every input outside the repository by absolute path; outputs go to the main checkout's `output/`):
 
 ```bash
-bun run content:rebuild:regulatory          # sync + lint + build + benchmark
+bun run content:rebuild:regulatory          # sync + lint + full build + benchmark, then the bundled light pack + its benchmark
 uv run --project tools/ingest medbase package-regulatory --database data/build/rf-regulatory-pilot.db \
-  --output data/build/regulatory-module --version <YYYY.M.D> --min-app-version 0.6.59
-cp data/build/regulatory-module/*.db.gz apps/app/public/content/modules/
+  --output <main checkout>/output/module-zstd-regulatory-<version> --version <YYYY.M.D[-rN]> --min-app-version <next app>
+scripts/publish-module-zstd-mirror.sh --family regulatory --tag regulatory-<version> \
+  --source-dir <that output dir> --create
+bun scripts/verify-module-artifact.ts --module-id minimed.regulatory.pediatrics.ru \
+  --url <raw mirror URL> --catalog <that output dir>/<file>.catalog-entry.json   # transport + decoded checksum
 bun scripts/upsert-catalog-module.ts apps/app/src/features/modules/catalog.preview.json \
-  data/build/regulatory-module/*.catalog-entry.json   # then move catalog publishedAt forward
+  <that output dir>/<file>.catalog-entry.json   # then move catalog publishedAt forward
 bun run catalog:shell
 ```
+
+`bun run content:build:regulatory:light` alone rewrites `apps/app/public/content/regulatory.db` and
+`regulatory-report.json` from the committed full-text Markdown (`medbase prepare-regulatory-light` writes the cards to
+`data/synced/rf-regulatory-light`).
 
 `package-regulatory` refuses a pack in which an act lacks number, signing date, issuer, edition,
 review date, an official https source, a SHA-256 source checksum or (for publication.pravo.gov.ru) the
 SHA-256 and page count of the official PDF, or in which a section is empty
 (`regulatory_distribution.check_act_metadata`). A new version never overwrites a published asset.
+
+### History: the single bundled pack (2026-10-14, LEGAL1; 2026-10-13, REG1)
+
+Until REG2 the module was the same content as the bundled `regulatory.db`: `minimed.regulatory.pediatrics.ru`
+**2026.10.14** (`minAppVersion` 0.6.59, gzip, 4 831 841 bytes, 27 799 552 decoded; the bundled pack had grown from 1.5 MB
+to 27.8 MB, 5.7 MiB below the 32 MiB WASM limit and read into memory at every start). It is committed as
+`apps/app/public/content/modules/minimed.regulatory.pediatrics.2026.10.14.db.gz`; its catalog URL named the GitHub
+release `regulatory-2026.10.14`, resolved to the raw `main` copy (release asset hosts have no CORS). 2026.10.13 (261 218
+bytes, the paraphrase cards, replacing the 3-document 0.3.4 preview) stays committed too.
 
 ## Verification of 2026-10-13
 

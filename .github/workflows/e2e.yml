@@ -44,8 +44,8 @@ jobs:
           bun run content:lint:regulatory
           bun run content:build:regulatory
           mkdir -p apps/app/public/content
-          cp data/build/rf-regulatory-pilot.db apps/app/public/content/regulatory.db
-          cp data/build/rf-regulatory-pilot-report.json apps/app/public/content/regulatory-report.json
+          # The bundled pack is the light one (323-FZ + cards); the full pack above is the module.
+          bun run content:build:regulatory:light
           uv run --project tools/ingest medbase lint --input content/reference-rf-pilot
           uv run --project tools/ingest medbase build \
             --input content/reference-rf-pilot \

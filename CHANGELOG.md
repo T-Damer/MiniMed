@@ -4,6 +4,12 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+- Laws and orders: the app keeps the main law 323-ФЗ («Об основах охраны здоровья граждан») in full text
+  and a card for every other act (number, title, edition, headings), so each act is still found offline.
+  The full texts of the other 29 acts are the downloadable section «Нормативные документы РФ: педиатрия»
+  (3.1 MB, was part of the app); an act's card offers the download in place and opens in full once it is
+  installed. The app starts with 24.5 MB less to read into memory and 24.5 MB less to keep for offline use.
+
 ## [0.6.59] - 2026-10-13
 
 - Search forgives typos at the start of a word: «Помоач» finds «помрачение», «Оменция» finds

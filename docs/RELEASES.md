@@ -154,6 +154,12 @@ The script verifies every output with the app's own decoder, writes a candidate 
 separate, explicit step: upload the files to the mirror locations in the report, then commit the
 candidate catalog. Modules that use zstd need `minAppVersion` 0.6.45 or newer.
 
+The regulatory full-text module (`minimed.regulatory.pediatrics.ru`) is packaged by `medbase package-regulatory`
+(framed zstd by default), published with `scripts/publish-module-zstd-mirror.sh --family regulatory --tag
+regulatory-<version> --create` (branch `datasets/regulatory-<version>`, file under `modules/`) and checked against the
+catalog with `bun scripts/verify-module-artifact.ts --url <raw mirror URL>`; the app bundles only 323-ФЗ and a card per
+act ([REGULATORY_PACK.md](REGULATORY_PACK.md)).
+
 An incremental clinical snapshot (new КР editions after a registry refresh) is published with
 `scripts/publish-module-zstd-mirror.sh --family clinical --tag <new snapshot id> --source-dir DIR --create`,
 which starts the branch `datasets/<tag>` without touching any existing branch, then

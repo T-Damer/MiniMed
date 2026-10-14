@@ -45,6 +45,11 @@ jobs:
       - name: Run source-grounded regulatory benchmark
         run: bun run benchmark:regulatory
 
+      - name: Build and benchmark the bundled light pack (323-FZ + cards for the module)
+        run: |
+          bun run content:build:regulatory:light
+          bun run benchmark:regulatory --database=apps/app/public/content/regulatory.db --report=data/build/rf-regulatory-light-benchmark.json
+
       - name: Upload regulatory evidence
         if: always()
         uses: actions/upload-artifact@v7
@@ -55,4 +60,5 @@ jobs:
           path: |
             data/build/rf-regulatory-pilot-report.json
             data/build/rf-regulatory-pilot-benchmark.json
+            data/build/rf-regulatory-light-benchmark.json
             data/build/regulatory-source-sync-report.json

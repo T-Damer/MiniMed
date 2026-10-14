@@ -58,6 +58,42 @@ above it small and calm. Measured on «Вермокс» with the ГРЛС instru
 - Not changed: the stored module text (the identifier lines are hidden at display, not rewritten —
   a module rebuild would drop them), the other document readers (DOC-UI1).
 
+## Regulatory full texts are a downloadable module — 2026-10-14 (STATE REG2)
+
+Owner 2026-10-14: make the regulatory full texts downloadable like the other sections, keep **323-ФЗ** in the app. Details,
+commands and limits: [REGULATORY_PACK.md](REGULATORY_PACK.md) «Bundled light pack and downloadable module».
+
+- **Bundled `regulatory.db` is a light pack** (3.3 MB, was 27.8 MB): 323-ФЗ in full text, the status crosswalk whole, and
+  a module-pointer card for each of the other 29 acts under the **same document id** (official title, card description,
+  list of headings, verbatim «Источник и редакция»; `medbase prepare-regulatory-light`, `regulatory_light.py`). The card
+  shows the shared download offer; the search result offers the same download in place; installing the module replaces
+  the card (the bundled mount is skipped), so ids, links and notes survive. DL1 owns the offer's wording.
+- **Module** `minimed.regulatory.pediatrics.ru` **2026.10.14-r2**: the unchanged 2026.10.14 full-text pack (decoded SHA-256
+  `03939d84…`, 31 documents) as framed zstd, 3 241 359 bytes (was 4 831 841 as gzip), `minAppVersion` 0.6.60 (listed in
+  `PENDING_RELEASE_MODULES`: 0.6.59 still bundles all 31 documents and does not know the mirror URL). Published on the git
+  branch `datasets/regulatory-2026.10.14-r2` (`modules/…db.zst`, raw serves CORS); `artifact-url.ts` resolves the
+  `regulatory-<version>` release URL to it. The mirror download was verified byte for byte
+  (`scripts/verify-module-artifact.ts --url …`: transport SHA-256 and size, decoded SHA-256 through the app's own zstd
+  reader) and installed in the browser in e2e. Local release copy: `output/module-zstd-regulatory-2026-10-14-r2/`
+  (`docs/data-ledger.json`, added by hand: the ledger script cannot see `output/` from a worktree).
+- **Measured (same machine, before → after).** Bundled file 27 799 552 → 3 309 568 B. Web precache (`build-manifest`
+  `precacheBytes`, the file is the only difference) 97 049 055 → 72 559 071 B. Opening the pack at start the way
+  `create-browser-core` does (Node, same `SqliteMedicalStore`, 3 runs each): RSS +138 → +44 MiB (about 40 MiB of it is the
+  sqlite-wasm runtime), ArrayBuffers +29.4 → +4.4 MiB. In Chromium (4 cold starts each, core ready + 4 s): JS heap
+  170 → 141 MiB, whole browser process tree RSS median 1.67 → 1.57 GiB (noisy: one light run read 0.97 GiB, the others
+  1.52–1.65 GiB; the memory of the 445 MB core dominates).
+- **Search.** Every act is still found offline by number (top 2 for all 29 cards, test) and by topic from the card
+  (`benchmark:regulatory` on the bundled pack: 55 of 57 topical queries for card-only acts in the top 5, gate 0.9); the
+  323-ФЗ queries keep the full-text gates. `benchmark:regulatory` on the full pack still passes (Recall@1 0.978,
+  Recall@2/5 1.0, section recall 1.0).
+- **Tests.** `regulatory-module-catalog.test.ts` (entry, mirror URL, every card resolves to the module by exact
+  membership, bundled pack < 5 MiB), `regulatory-bundled-search.test.ts` (323-ФЗ whole and searchable, all acts found by
+  number, no module), `artifact-url.test.ts`, `test_regulatory_light.py`, `catalog.data.test.ts` (honest pending-release
+  allowance), e2e `regulatory-module.spec.ts` (card offer, install from the local release copy or the real mirror with
+  `REGULATORY_E2E_MIRROR=1`, the act opens whole). Not run: Android/iOS, a physical device, the Pages deploy. Known gap
+  (not changed here): `contentModuleCatalogFingerprint` ignores `compatibility`, so a remote catalog that only changes a
+  module's `minAppVersion` is not applied by the running app until `catalogVersion`/artifacts change.
+
 ## Regulatory acts as full texts — 2026-10-14 (STATE LEGAL1)
 
 Owner 2026-10-14: «legal acts are just copies of documents — release them». The 30 cards of
@@ -81,8 +117,7 @@ numbers: [REGULATORY_PACK.md](REGULATORY_PACK.md) «Full texts»; tests: [DATA_T
   each with the header row repeated and the pages of its own rows, so that search and the reader get chunks, not one
   366 kB cell. Printed typos of the originals stay as printed.
 - **Module.** 31 documents, 861 sections, 1 818 chunks, 4.8 MB gzip / 27.8 MB decoded; the bundled `regulatory.db` grew
-  from 1.5 MB to 27.8 MB, 5.7 MiB below the 32 MiB WASM limit and read into memory at every start (a larger pack must
-  leave the bundle). `regulatory:verify`: 25 acts confirmed on the portal, 5 not checkable there (as before).
+  from 1.5 MB to 27.8 MB (superseded by REG2 above: the bundle is now 323-ФЗ plus cards, the texts are the module). `regulatory:verify`: 25 acts confirmed on the portal, 5 not checkable there (as before).
 - **Search.** «приказ <номер>» still finds each act first; the four 374н section queries were retargeted to the real
   sections (`regulatory-rf-major-queries.json`), `benchmark:regulatory` passes.
 - **Feeding (Капитан, chapter on feeding).** Cross-checked against the book pages: three omitted paragraphs added,
