@@ -20,6 +20,44 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Drug screen: the text on the first screen — 2026-10-14 (STATE DRUG-UI1)
+
+Owner 2026-10-14: opening a drug, the instruction text must start on the first screen, everything
+above it small and calm. Measured on «Вермокс» with the ГРЛС instruction (Chromium, e2e
+`drug-screen-first-screen.spec.ts`): the first body paragraph sat at y = 1 169 px (375×812) and
+1 540 px (768×1024); now 497 px and 479 px, above the bottom navigation.
+
+- **Header** is flat: the name, the round tools on the same row (bookmark, recipe, compare — an icon
+  with `data-testid="drug-compare-link"` — and share) and one line of Latin name, country, form and
+  manufacturer. The kicker is kept only on the substance card; a packaging photo still tints the
+  band, but no longer forces a tall header.
+- **Quick links** are two small chip rows: substance · pharmacological group · ATC code, and
+  «Аналоги» / «Торговые названия» with their country; past four chips (two on the substance card) «ещё N»
+  ends the row and the rest opens under it. No headings, no full-width «Сравнить с…» button.
+- **The ATC chip is one control** (`.drug-code`): the code and, beside an agreed code the registry holds only as a
+  group stub, «в реестре L03AX» in the same pill. A registry stub another node of the card holds is no
+  chip of its own. Each part opens the code sheet on its own ladder: the sheet is titled by the tapped
+  code and highlights that ladder (`data-focus`, both ladders carry a heading). Codes use lining
+  figures / the mono font (the serif drew «L03AX» as «Lo3AX»).
+- **Without the module** the code still shows: on a drug card whose set is not installed
+  (`DrugIndexAtc`) it is read from the comparison index that ships with the app.
+- **Switch row**: «Кратко | Инструкция» with a «Разделы N» button on the same row (opens the reader's
+  contents drawer; hidden where the outline stays beside the text, ≥ 761 px). The scrolling strip of
+  truncated section chips is gone. The kind of text («Листок-вкладыш») is one small line; edition,
+  publisher, fetch date and the registers behind the card are small plain text at the end
+  (`DrugReferenceFooter`). The «Беременность, ГВ, дети» block is one slim row.
+- **Page bubble** («1 / 138») is parked on a drug screen until the reader has scrolled
+  (`pageBubbleAfterScroll` of the reader chrome shell, opt-in; a hidden bubble is `inert`).
+- **QA fixes**: strengths that differ only in notation («100.0мг» / «100 мг») are one presentation
+  (`uniquePresentations`); the registry's dosage-form code («smnnCode: 21.20.10.194-…»), the machine
+  status («Статус записи ЕСКЛП: active») and a guideline's source number are dropped from reader text
+  and result snippets (`dropRegistryIdentifiers`); a source's own id («site-4df3e404f895», «459_2»)
+  is never a card qualifier (`isMachineVersionLabel`); the legal citation of the read instruction
+  («ЛП-008472, 2022 · ГРЛС · получена …») stands at the end of the compare view
+  (`ComparisonSources`) and of the recipe card, in small text.
+- Not changed: the stored module text (the identifier lines are hidden at display, not rewritten —
+  a module rebuild would drop them), the other document readers (DOC-UI1).
+
 ## Regulatory acts as full texts — 2026-10-14 (STATE LEGAL1)
 
 Owner 2026-10-14: «legal acts are just copies of documents — release them». The 30 cards of

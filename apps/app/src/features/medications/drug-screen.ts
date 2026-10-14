@@ -93,6 +93,26 @@ export function displayStrength(strength: string): string {
     .replace(/\s+/gu, ' ');
 }
 
+/** «100.0мг» and «100 мг» are one strength: the registry prints the same dose in several ways. */
+function strengthKey(strength: string | null): string {
+  return drugNameKey(displayStrength(strength ?? ''))
+    .replace(/(\d)\s+(?=\p{L})/gu, '$1')
+    .replace(/,/gu, '.');
+}
+
+/** The presentations of a product, one per form and strength however the registry wrote them. */
+export function uniquePresentations(
+  presentations: MedicationProduct['presentations'],
+): MedicationProduct['presentations'] {
+  const seen = new Set<string>();
+  return presentations.filter((presentation) => {
+    const key = `${drugNameKey(presentation.dosageForm)}\u001f${strengthKey(presentation.strength)}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 const LONG_FORM_LENGTH = 70;
 
 function presentationLabel(
@@ -260,8 +280,66 @@ export function drugAtcCodes(
       if (text) add(text, null, substance);
     }
   }
-  return [...codes.values()].toSorted((left, right) => left.code.localeCompare(right.code, 'en'));
+  return withoutRegistryDuplicates([...codes.values()]).toSorted((left, right) =>
+    left.code.localeCompare(right.code, 'en'),
+  );
 }
+
+/**
+ * An agreed code shows the registry's stub beside it («J05AX13 · в реестре: L03AX»); the same stub
+ * as a chip of its own (another node of the card holds it) would be the same control twice.
+ */
+function withoutRegistryDuplicates(codes: readonly DrugAtcCode[]): readonly DrugAtcCode[] {
+  const shownAsRegistry = new Set(
+    codes.flatMap((entry) => {
+      const registry = drugAtcCodeLabel(entry).registryCode;
+      return registry && registry !== entry.code ? [registry] : [];
+    }),
+  );
+  return codes.filter((entry) => !shownAsRegistry.has(entry.code));
+}
+
+/**
+ * The ATC codes of a card read from the drug-comparison index that ships with the app, for a drug
+ * whose module is not installed yet. The index holds the codes (registry, completed, agreed) but
+ * not how each was reached, so only the agreed pairs show their registry stub.
+ */
+export function drugAtcCodesFromIndexCard(card: {
+  readonly n: string;
+  readonly a: readonly string[];
+  readonly q?: readonly (readonly [agreed: string, registry: string])[] | undefined;
+}): readonly DrugAtcCode[] {
+  const registryOf = new Map<string, string>();
+  for (const [agreed, registry] of card.q ?? []) {
+    const code = normalizeAtcCode(agreed)?.code;
+    const stub = normalizeAtcCode(registry)?.code;
+    if (code && stub) registryOf.set(code, stub);
+  }
+  const codes = new Map<string, DrugAtcCode>();
+  for (const raw of card.a) {
+    const normalized = normalizeAtcCode(raw);
+    if (!normalized || codes.has(normalized.code)) continue;
+    const registry = registryOf.get(normalized.code) ?? null;
+    codes.set(normalized.code, {
+      code: normalized.code,
+      level: normalized.level,
+      sourceCode: null,
+      groupText: null,
+      substanceName: displayDrugName(card.n),
+      edition: null,
+      fillSources: [],
+      registryValue: registry,
+      alternatives: [],
+      consensusSources: registry ? [INDEX_SOURCE] : [],
+    });
+  }
+  return withoutRegistryDuplicates([...codes.values()]).toSorted((left, right) =>
+    left.code.localeCompare(right.code, 'en'),
+  );
+}
+
+/** The build source name of a code that comes from the shipped comparison index. */
+export const INDEX_SOURCE = 'comparison-index';
 
 export interface DrugAtcCodeLabel {
   /** The code the chip is about. */
@@ -495,8 +573,10 @@ export const DRUG_ACCORDION_VISIBLE = 2;
 export interface DrugQuickLinksModel {
   readonly substance: DrugSubstanceLink | null;
   readonly groups: readonly DrugGroupLink[];
-  /** «Аналоги» next to a trade name, «Торговые наименования» on the substance card. */
+  /** «Аналоги (дженерики, синонимы)» next to a trade name, «Торговые наименования» on the substance card. */
   readonly relatedTitle: string;
+  /** The short words that lead the row: «Аналоги», «Торговые названия». */
+  readonly relatedLabel: string;
   /**
    * The substance card lists every trade name and country, which can be hundreds: it shows
    * `DRUG_ACCORDION_VISIBLE` of them and folds the rest. A trade name's own analogue row does not.
@@ -660,12 +740,13 @@ export function buildDrugScreen(input: DrugScreenInput): DrugScreenModel | null 
         : undefined,
       meta,
       imageReference: imageReferenceOf(product, input.supplements),
-      formInMeta: form !== null && (product?.presentations.length ?? 0) === 1,
+      formInMeta: form !== null && uniquePresentations(product?.presentations ?? []).length === 1,
     },
     links: {
       substance: substanceLinkOf(input, product),
       groups: drugGroupLinks(groupTexts),
       relatedTitle: product ? 'Аналоги (дженерики, синонимы)' : 'Торговые наименования',
+      relatedLabel: product ? 'Аналоги' : 'Торговые названия',
       relatedAccordion: !product,
       related: drugRelatedProducts(input.sourceProducts, product, input.mfgCountries),
       atc: drugAtcCodes(atcSource, product),

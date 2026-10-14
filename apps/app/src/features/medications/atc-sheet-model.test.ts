@@ -68,7 +68,7 @@ describe('the ladders of the ATC code sheet', () => {
   it('gives an agreed code and the registry stub beside it a ladder each', () => {
     const sections = atcSheetSections({ code: consensus, catalog });
     expect(sections.map((section) => [section.key, section.heading])).toEqual([
-      ['main', null],
+      ['main', 'Основной код: J05AX13'],
       ['registry', 'В реестре: L03AX'],
     ]);
     expect(sections[0]?.steps.map((step) => step.code)).toEqual([

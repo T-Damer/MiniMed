@@ -40,7 +40,11 @@ export function DrugSafetyBlock(props: { readonly document: MedicalDocument }): 
   return (
     <Show when={hasAnything()}>
       <section class="safety-block paper-card" data-testid="drug-safety-block">
-        <Disclosure variant="inline" title="Беременность, ГВ, дети">
+        <Disclosure
+          variant="inline"
+          class="safety-block__disclosure"
+          title="Беременность, ГВ, дети"
+        >
           <div class="safety-block__body">
             <p class="safety-card__notice">{CARD_NOTICE}</p>
             <For each={views()}>

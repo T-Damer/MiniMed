@@ -87,7 +87,9 @@ import {
 } from '@/features/library/UserDocumentHighlights';
 import { DrugSafetyBlock } from '@/features/medication-safety/DrugSafetyBlock';
 import type { ClinicalMedicationLink } from '@/features/medications/clinical-medication-links';
+import { DrugIndexAtc, esklpCardSlug } from '@/features/medications/DrugIndexAtc';
 import { DrugQuickLinks } from '@/features/medications/DrugQuickLinks';
+import { DrugReferenceFooter } from '@/features/medications/DrugReferenceFooter';
 import { DrugScreenHeader } from '@/features/medications/DrugScreenHeader';
 import { DrugSectionIndex } from '@/features/medications/DrugSectionIndex';
 import {
@@ -111,6 +113,7 @@ import {
 import {
   type InstructionSourceInfo,
   instructionSourceInfo,
+  instructionSourceName,
 } from '@/features/medications/instruction-source';
 import { openMedicationCatalogSearch } from '@/features/medications/medication-navigation';
 import {
@@ -134,7 +137,10 @@ import type {
   ClinicalEditionNotice,
 } from '@/features/modules/clinical-editions';
 import { formatFullTextDownloadLabel } from '@/features/modules/module-display';
-import type { ModulePointerResolution } from '@/features/modules/module-pointer-install';
+import {
+  type ModulePointerResolution,
+  parseModulePointerMetadata,
+} from '@/features/modules/module-pointer-install';
 import { DrugRecipeButton } from '@/features/prescription/DrugRecipeButton';
 import { ReaderSelectionLookup } from '@/features/reader-dictionary/ReaderSelectionLookup';
 import { noteRecommendationOpened } from '@/features/reference/doctor-profile-feeds';
@@ -341,55 +347,64 @@ function supplementNotice(supplements: readonly TradeNameSupplement[]): string {
     : `Справочный материал ${supplementSourceLabel(supplements)}; не является официальной инструкцией ГРЛС.`;
 }
 
-function InstructionSourcePanel(props: { readonly info: InstructionSourceInfo }): JSX.Element {
-  const sourceName = () =>
-    props.info.sourceClass === 'manufacturer-site'
-      ? `Сайт производителя${props.info.publisher ? `: ${props.info.publisher}` : ''}`
-      : 'ГРЛС (Минздрав России)';
+function InstructionSourcePanel(props: {
+  readonly info: InstructionSourceInfo;
+  /** On a drug screen: the kind and the notes only; edition, source and date go to the footer. */
+  readonly compact?: boolean;
+}): JSX.Element {
+  const sourceName = () => instructionSourceName(props.info);
   return (
     <section
       class="document-instruction-source"
       classList={{
         'document-instruction-source--manufacturer': props.info.sourceClass === 'manufacturer-site',
+        'document-instruction-source--compact': props.compact ?? false,
       }}
       aria-label="Источник официального текста"
     >
-      <p class="document-instruction-source__kind">{props.info.kindLabel}</p>
-      <dl class="document-instruction-source__facts">
-        <Show when={props.info.edition}>
-          {(edition) => (
-            <div class="document-instruction-source__fact">
-              <dt class="document-instruction-source__term">Редакция</dt>
-              <dd class="document-instruction-source__value">{edition()}</dd>
-            </div>
-          )}
-        </Show>
-        <div class="document-instruction-source__fact">
-          <dt class="document-instruction-source__term">Источник</dt>
-          <dd class="document-instruction-source__value">
-            <Show when={props.info.sourceUrl} fallback={sourceName()}>
-              {(url) => (
-                <a
-                  class="document-instruction-source__link"
-                  href={url()}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  {sourceName()}
-                </a>
-              )}
-            </Show>
-          </dd>
-        </div>
-        <Show when={props.info.fetchedOn}>
-          {(date) => (
-            <div class="document-instruction-source__fact">
-              <dt class="document-instruction-source__term">Получено</dt>
-              <dd class="document-instruction-source__value">{date()}</dd>
-            </div>
-          )}
-        </Show>
-      </dl>
+      <p
+        class="document-instruction-source__kind"
+        classList={{ 'document-instruction-source__kind--compact': props.compact ?? false }}
+      >
+        {props.info.kindLabel}
+      </p>
+      <Show when={!props.compact}>
+        <dl class="document-instruction-source__facts">
+          <Show when={props.info.edition}>
+            {(edition) => (
+              <div class="document-instruction-source__fact">
+                <dt class="document-instruction-source__term">Редакция</dt>
+                <dd class="document-instruction-source__value">{edition()}</dd>
+              </div>
+            )}
+          </Show>
+          <div class="document-instruction-source__fact">
+            <dt class="document-instruction-source__term">Источник</dt>
+            <dd class="document-instruction-source__value">
+              <Show when={props.info.sourceUrl} fallback={sourceName()}>
+                {(url) => (
+                  <a
+                    class="document-instruction-source__link"
+                    href={url()}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    {sourceName()}
+                  </a>
+                )}
+              </Show>
+            </dd>
+          </div>
+          <Show when={props.info.fetchedOn}>
+            {(date) => (
+              <div class="document-instruction-source__fact">
+                <dt class="document-instruction-source__term">Получено</dt>
+                <dd class="document-instruction-source__value">{date()}</dd>
+              </div>
+            )}
+          </Show>
+        </dl>
+      </Show>
       <Show when={props.info.matchNote}>
         {(note) => (
           <p class="document-instruction-source__match" role="note">
@@ -447,6 +462,25 @@ function InstructionFallbackPanel(props: { readonly notice: FallbackNotice }): J
   );
 }
 
+/** Where a product card's facts come from, for the small «Источник» line at the end of the screen. */
+function productSourceNames(product: MedicationProduct): readonly string[] {
+  return [
+    ...(product.sourceKind === 'esklp' ? ['ЕСКЛП'] : []),
+    ...(product.grlsRegistrationDocumentId ||
+    (product.instructionDocumentId &&
+      !product.instructionFallback &&
+      product.instructionSourceClass !== 'manufacturer-site')
+      ? ['ГРЛС']
+      : []),
+    ...(product.instructionSourceClass === 'manufacturer-site' && !product.instructionFallback
+      ? ['Сайт производителя']
+      : []),
+    ...(product.supplementalDescription || product.imageReference
+      ? (product.supplementalSourceNames ?? [DEFAULT_REFERENCE_SOURCE_NAME])
+      : []),
+  ];
+}
+
 function MedicationProductPanel(props: {
   readonly product: MedicationProduct;
   readonly currentDocumentId: string;
@@ -462,6 +496,8 @@ function MedicationProductPanel(props: {
   readonly instructionOfferProgress?: number | null | undefined;
   readonly instructionOfferError?: string | null | undefined;
   readonly onInstallInstructionModule?: (() => void) | undefined;
+  /** The «Разделы» button, at the end of the switch row. */
+  readonly trailing?: JSX.Element;
 }): JSX.Element {
   const choices = () => medicationReadingChoices(props.product, props.openedDocumentId);
   const presentationList = () => (
@@ -474,22 +510,6 @@ function MedicationProductPanel(props: {
       )}
     </For>
   );
-  const sources = () => [
-    ...(props.product.sourceKind === 'esklp' ? ['ЕСКЛП'] : []),
-    ...(props.product.grlsRegistrationDocumentId ||
-    (props.product.instructionDocumentId &&
-      !props.product.instructionFallback &&
-      props.product.instructionSourceClass !== 'manufacturer-site')
-      ? ['ГРЛС']
-      : []),
-    ...(props.product.instructionSourceClass === 'manufacturer-site' &&
-    !props.product.instructionFallback
-      ? ['Сайт производителя']
-      : []),
-    ...(props.product.supplementalDescription || props.product.imageReference
-      ? (props.product.supplementalSourceNames ?? [DEFAULT_REFERENCE_SOURCE_NAME])
-      : []),
-  ];
   const links = () =>
     [
       props.product.mnnDocumentId && !props.substanceLinked
@@ -507,13 +527,16 @@ function MedicationProductPanel(props: {
   return (
     <section class="document-medication-product" aria-label="Карточка препарата">
       <div class="document-medication-product__reading">
-        <SegmentedControl
-          label="Версия текста"
-          class="document-medication-product__reading-switch"
-          options={choices().options}
-          value={props.mode}
-          onChange={props.onModeChange}
-        />
+        <div class="document-medication-product__switch-row">
+          <SegmentedControl
+            label="Версия текста"
+            class="document-medication-product__reading-switch"
+            options={choices().options}
+            value={props.mode}
+            onChange={props.onModeChange}
+          />
+          {props.trailing}
+        </div>
         <Show when={props.instructionOffer ? OFFER_NOTE : choices().note}>
           {(note) => <p class="document-medication-product__reading-note">{note()}</p>}
         </Show>
@@ -578,9 +601,6 @@ function MedicationProductPanel(props: {
             )}
           </For>
         </div>
-      </Show>
-      <Show when={sources().length > 0}>
-        <p class="document-medication-product__source">Источник: {sources().join(' · ')}</p>
       </Show>
     </section>
   );
@@ -782,6 +802,12 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
       supplements: props.drugSupplements ?? props.supplementalPanels ?? [],
       documentTitle: (documentId) => listedDocumentTitles().get(documentId),
     });
+  });
+  // A drug card whose set is not installed: the pointer names the ЕСКЛП card, and the comparison
+  // index that ships with the app holds that card's ATC codes.
+  const medicationPointerSlug = createMemo(() => {
+    const target = parseModulePointerMetadata(props.document?.metadata)?.targetDocumentId;
+    return target ? esklpCardSlug(target) : null;
   });
   const drugSections = createMemo(() => (drugScreen() ? drugSectionIndex(orderedSections()) : []));
 
@@ -1117,6 +1143,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
       ariaLabel={pageTitle()}
       class="document-page document-overlay page-surface page-grain"
       chrome={chrome}
+      pageBubbleAfterScroll={!!drugScreen()}
       searchOpen={findOpen}
       trail={props.trail}
       onNavigate={props.onNavigate}
@@ -1365,6 +1392,9 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                           </h1>
                         </ReaderTitleRow>
                       </ReaderHero>
+                      <Show when={medicationPointerSlug()}>
+                        {(slug) => <DrugIndexAtc slug={slug()} />}
+                      </Show>
                       <header class="document-overlay-paper__header">
                         <Show when={displayDocumentSubtitle(documentValue())}>
                           {(subtitle) => <p class="document-overlay-lead">{subtitle()}</p>}
@@ -1483,6 +1513,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                         bookmarkItem={bookmarkItem(documentValue())}
                         bookmark={bookmark}
                         onShare={() => shareDrug(screen().header)}
+                        compare={screen().links.compare}
                         toolsBefore={
                           <DrugRecipeButton core={props.core} documentId={documentValue().id} />
                         }
@@ -1550,6 +1581,16 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                       instructionOfferProgress={props.instructionOfferProgress}
                       instructionOfferError={props.instructionOfferError}
                       onInstallInstructionModule={props.onInstallInstructionModule}
+                      trailing={
+                        <Show when={drugSections().length > 0}>
+                          <DrugSectionIndex
+                            count={drugSections().length}
+                            onOpen={() => {
+                              if (!chrome.outlineOpen()) chrome.toggleOutline();
+                            }}
+                          />
+                        </Show>
+                      }
                     />
                   )}
                 </Show>
@@ -1614,14 +1655,15 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                       props.medicationProduct?.registrationNumber,
                   )}
                 >
-                  {(info) => <InstructionSourcePanel info={info()} />}
+                  {(info) => <InstructionSourcePanel info={info()} compact={!!drugScreen()} />}
                 </Show>
 
-                <Show when={drugSections().length > 0}>
+                <Show when={drugSections().length > 0 && !props.medicationProduct}>
                   <DrugSectionIndex
-                    items={drugSections()}
-                    activeAnchor={chrome.activeAnchor()}
-                    onSelect={(anchor) => chrome.scrollTo(anchor)}
+                    count={drugSections().length}
+                    onOpen={() => {
+                      if (!chrome.outlineOpen()) chrome.toggleOutline();
+                    }}
                   />
                 </Show>
 
@@ -1791,6 +1833,18 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                   >
                     <span class="document-overlay-spinner" aria-hidden="true" />
                   </div>
+                </Show>
+                <Show when={drugScreen()}>
+                  <DrugReferenceFooter
+                    sources={
+                      props.medicationProduct ? productSourceNames(props.medicationProduct) : []
+                    }
+                    instruction={instructionSourceInfo(
+                      documentValue(),
+                      props.medicationProduct?.instructionFallback?.registrationNumber ??
+                        props.medicationProduct?.registrationNumber,
+                    )}
+                  />
                 </Show>
               </>
             )}

@@ -11,10 +11,10 @@
 
 .segmented-control__option {
   display: inline-flex;
-  min-height: 2.25rem;
+  min-height: var(--segmented-control-option-height, 2.25rem);
   align-items: center;
   gap: 0.4rem;
-  padding: 0.35rem 0.85rem;
+  padding: var(--segmented-control-option-padding, 0.35rem 0.85rem);
   border: 0;
   border-radius: var(--theme-radius-control);
   color: var(--theme-text-muted);

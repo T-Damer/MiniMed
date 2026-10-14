@@ -153,8 +153,9 @@
 
 .prescription__source {
   margin: 0;
-  color: var(--theme-text-muted);
-  font-size: 0.8rem;
+  color: var(--theme-text-faint);
+  font-size: 0.75rem;
+  line-height: 1.4;
 }
 
 .prescription__rule {
@@ -461,8 +462,8 @@
 
 .drug-recipe__button {
   display: inline-grid;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: var(--drug-tool-size, 2.5rem);
+  height: var(--drug-tool-size, 2.5rem);
   flex: none;
   place-items: center;
   border: 1px solid var(--theme-border);
@@ -483,8 +484,8 @@
 }
 
 .drug-recipe__icon {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 1.125rem;
+  height: 1.125rem;
 }
 
 .prescription__fragment-list {

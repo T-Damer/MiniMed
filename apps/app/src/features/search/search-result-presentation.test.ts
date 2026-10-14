@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
   displaySectionPath,
+  isMachineVersionLabel,
   orderResultsForDisplay,
   presentResultSnippet,
   presentSourceChunkText,
   repeatedResultTitles,
+  resultQualifier,
   sourceContextKicker,
   tidyResultTitle,
   tidySnippetStart,
@@ -178,5 +180,45 @@ describe('titles of result cards', () => {
   it('loses the space inside brackets and names the repeated ones', () => {
     expect(tidyResultTitle('( Очаговая пневмония у детей )')).toBe('(Очаговая пневмония у детей)');
     expect([...repeatedResultTitles(['A', 'B', 'A', 'C', 'A'])]).toEqual(['A']);
+  });
+});
+
+describe('registry identifiers in a result card', () => {
+  it('drops the dosage-form code and the machine status from any snippet, highlights kept', () => {
+    const snippet =
+      'Стандартизированное МНН: Умифеновир. Статус записи ЕСКЛП: active. СМНН: Умифеновир; mnnCode: 21.20.10.194-000001-1-00001-0000000000000. Формы: таблетки.';
+    const presented = presentResultSnippet({
+      snippet,
+      highlightedRanges: [rangeOf(snippet, 'таблетки')],
+      sectionPath: ['Сведения о стандартизированном МНН'],
+    });
+    expect(presented.text).not.toMatch(/mnnCode|Статус записи|21\.20\.10/u);
+    expect(presented.text).toContain('Формы: таблетки.');
+    expect(presented.text.slice(presented.ranges[0]?.start, presented.ranges[0]?.end)).toBe(
+      'таблетки',
+    );
+  });
+});
+
+describe('the qualifier of a repeated title', () => {
+  it('never shows a source identifier as an edition', () => {
+    for (const label of ['site-4df3e404f895', '459_2', 'a1b2c3d4e5f6a7b8']) {
+      expect(isMachineVersionLabel(label)).toBe(true);
+      expect(
+        resultQualifier({
+          sourceType: 'official_clinical_recommendation',
+          metadata: {},
+          versionLabel: label,
+        }),
+      ).toBeUndefined();
+    }
+    expect(isMachineVersionLabel('2026-08-28')).toBe(false);
+    expect(
+      resultQualifier({
+        sourceType: 'official_clinical_recommendation',
+        metadata: {},
+        versionLabel: 'Редакция 2024',
+      }),
+    ).toBe('Редакция 2024');
   });
 });

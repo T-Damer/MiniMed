@@ -28,7 +28,6 @@ function ColumnHead(props: {
   readonly onChoose: (id: string, documentId: string) => void;
 }): JSX.Element {
   const column = () => props.column;
-  const source = () => (column().state === 'ready' ? columnSourceLine(column()) : '');
   return (
     <div
       class="drug-comparison__colhead"
@@ -78,9 +77,6 @@ function ColumnHead(props: {
         </p>
       </Show>
       <Show when={column().state === 'ready'}>
-        <p class="drug-comparison__colhead-source" data-testid="comparison-source">
-          {source()}
-        </p>
         <Show when={column().source?.qualityNote}>
           {(note) => <p class="drug-comparison__colhead-note">{note()}</p>}
         </Show>
@@ -94,6 +90,28 @@ function ColumnHead(props: {
         </Show>
       </Show>
     </div>
+  );
+}
+
+/**
+ * Which instruction each column was read from — kind, edition, register, date — as small text at
+ * the end of the comparison: reference data, never between the drugs and their lines.
+ */
+export function ComparisonSources(props: { readonly columns: readonly ColumnView[] }): JSX.Element {
+  const ready = () => props.columns.filter((column) => column.state === 'ready');
+  return (
+    <Show when={ready().length > 0}>
+      <section class="drug-comparison__sources" aria-label="Источники текстов">
+        <For each={ready()}>
+          {(column) => (
+            <p class="drug-comparison__source-line" data-testid="comparison-source">
+              <span class="drug-comparison__source-drug">{column.item.label}: </span>
+              {columnSourceLine(column)}
+            </p>
+          )}
+        </For>
+      </section>
+    </Show>
   );
 }
 

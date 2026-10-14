@@ -1,4 +1,4 @@
-import { createResource, For, type JSX, Show } from 'solid-js';
+import { createEffect, createResource, For, type JSX, Show } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import {
@@ -15,6 +15,9 @@ import { openAtcGroup } from '@/features/medications/medication-navigation';
 
 import '@/features/medications/drug-screen.css';
 
+/** Which ladder of a two-code drug the user tapped: the agreed code, or the registry's own stub. */
+export type AtcSheetFocus = 'main' | 'registry';
+
 /**
  * A code explained level by level, each level a link to the drugs of its group (ATC5). Levels 1-4 are named by the NSI «АТХ» dictionary, a lazy chunk
  * fetched when the sheet first opens; if it cannot load, the names the drug's own data carries are
@@ -29,6 +32,8 @@ export function AtcCodeSheet(props: {
    * document, which has only its levels (and the substances that carry the full code).
    */
   readonly origin?: 'drug' | 'text';
+  /** The ladder to highlight when the drug has two (an agreed code and the registry's stub). */
+  readonly focus?: AtcSheetFocus;
 }): JSX.Element {
   const [catalog] = createResource(() => (props.open ? true : undefined), loadAtcNames);
   // A code without a drug behind it names its level 5 by the substances that have it.
@@ -41,6 +46,21 @@ export function AtcCodeSheet(props: {
     props.code
       ? atcSheetSections({ code: props.code, catalog: catalog(), substanceName: substance() })
       : [];
+  const focusKey = (): AtcSheetFocus => props.focus ?? 'main';
+  /** The code the user tapped: the sheet is titled by it and its ladder is the highlighted one. */
+  const focusCode = (): string => {
+    const code = props.code;
+    if (!code) return '';
+    return focusKey() === 'registry'
+      ? (drugAtcCodeLabel(code).registryCode ?? code.code)
+      : code.code;
+  };
+  const ladders = new Map<string, HTMLElement>();
+  createEffect(() => {
+    if (!props.open || focusKey() !== 'registry' || sections().length < 2) return;
+    // After the sheet has mounted its content: the tapped ladder comes into view.
+    window.setTimeout(() => ladders.get('registry')?.scrollIntoView({ block: 'nearest' }), 0);
+  });
   const openLevel = (step: AtcLadderStep): void => {
     if (step.code === null) return;
     const code = step.code;
@@ -51,7 +71,7 @@ export function AtcCodeSheet(props: {
   return (
     <OverlayDialog
       open={props.open}
-      title={`Код АТХ ${props.code?.code ?? ''}`.trim()}
+      title={`Код АТХ ${focusCode()}`.trim()}
       subtitle="Анатомо-терапевтическо-химическая классификация"
       class="atc-sheet"
       onClose={props.onClose}
@@ -65,7 +85,17 @@ export function AtcCodeSheet(props: {
             </p>
             <For each={sections()}>
               {(section) => (
-                <section class="atc-sheet__ladder" data-testid={`atc-ladder-${section.key}`}>
+                <section
+                  ref={(element) => {
+                    ladders.set(section.key, element);
+                  }}
+                  class="atc-sheet__ladder"
+                  classList={{
+                    'atc-sheet__ladder--focus': sections().length > 1 && section.key === focusKey(),
+                  }}
+                  data-testid={`atc-ladder-${section.key}`}
+                  data-focus={section.key === focusKey() ? 'true' : undefined}
+                >
                   <Show when={section.heading}>
                     {(heading) => <h3 class="atc-sheet__ladder-heading">{heading()}</h3>}
                   </Show>

@@ -31,7 +31,7 @@ import { loadAtcNames } from '@/features/medications/atc-names';
 import { displayDrugName } from '@/features/medications/drug-screen';
 import { PrintManager } from '@/features/printing/print-manager';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
-import { ComparisonMatrix } from './ComparisonMatrix';
+import { ComparisonMatrix, ComparisonSources } from './ComparisonMatrix';
 import { ComparisonSections } from './ComparisonSections';
 import { decodeDrug, type FoundDrug, findDrugs, resolveDrugName } from './comparison-candidates';
 import { loadComparisonIndex } from './comparison-load';
@@ -582,6 +582,7 @@ export function DrugComparisonWorkspace(props: {
             />
           </section>
         </Show>
+        <ComparisonSources columns={columns()} />
         <p class="drug-comparison__footnote">{COMPARISON_NOTICE}</p>
       </Show>
     </section>

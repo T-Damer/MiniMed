@@ -229,18 +229,6 @@ export function PrescriptionItemCard(props: {
       <Show when={analysis().state === 'ready' ? analysis().instruction : null}>
         {(instruction) => (
           <>
-            <p class="prescription__source" data-testid="prescription-source">
-              {sourceLine({
-                documentId: instruction().documentId,
-                moduleId: null,
-                tradeName: instruction().tradeName,
-                dosageForm: instruction().dosageForm,
-                info: instruction().info,
-                own: false,
-                substanceNote: null,
-                checkedInstructions: analysis().documentChoices.length,
-              })}
-            </p>
             <Show when={props.facts.group === undefined ? assumedGroup(props.facts) : null}>
               {(group) => (
                 <p class="prescription__note" data-testid="prescription-assumed-group">
@@ -597,6 +585,19 @@ export function PrescriptionItemCard(props: {
                 ageDays={props.facts.ageDays}
               />
             </Show>
+            {/* Reference data last: the edition and the register of the text that was read. */}
+            <p class="prescription__source" data-testid="prescription-source">
+              {sourceLine({
+                documentId: instruction().documentId,
+                moduleId: null,
+                tradeName: instruction().tradeName,
+                dosageForm: instruction().dosageForm,
+                info: instruction().info,
+                own: false,
+                substanceNote: null,
+                checkedInstructions: analysis().documentChoices.length,
+              })}
+            </p>
           </>
         )}
       </Show>

@@ -1,6 +1,9 @@
 import { CLEANED_SECTION_TITLES } from '@/features/library/document-display';
 import { documentTextSearchText } from '@/features/library/document-text-search';
-import { presentSourceChunkText } from '@/features/search/search-result-presentation';
+import {
+  dropRegistryIdentifiers,
+  presentSourceChunkText,
+} from '@/features/search/search-result-presentation';
 
 /**
  * Reader words for catalogue text. The registry (ЕСКЛП) and the card builders write their lines as
@@ -212,7 +215,7 @@ export function presentReaderChunkText(
   for (const [pattern, replacement] of SOURCE_LINK_LINES) {
     result = result.replace(pattern, replacement);
   }
-  return result;
+  return dropRegistryIdentifiers(result);
 }
 
 /**

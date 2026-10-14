@@ -81,6 +81,19 @@ describe('a chunk as the reader shows it', () => {
     );
   });
 
+  it('shows no dosage-form code and no machine status of a registry card', () => {
+    const identity =
+      'Стандартизированное МНН: Умифеновир. МНН записи: умифеновир. Статус записи ЕСКЛП: active.';
+    expect(presentReaderChunkText(identity, 'Сведения', 'official_registry_summary')).toBe(
+      'Стандартизированное МНН: Умифеновир. МНН записи: умифеновир.',
+    );
+    const smnn =
+      'СМНН: Умифеновир; smnnCode: 21.20.10.194-000001-1-00001-0000000000000. Формы: Таблетки.';
+    const shown = presentReaderChunkText(smnn, 'Формы', 'esklp_registry');
+    expect(shown).not.toMatch(/mnnCode|21\.20\.10/u);
+    expect(shown).toContain('Формы: Таблетки');
+  });
+
   it('keeps ordinary text as it is', () => {
     const text = 'Назначают амоксициллин по 500 мг. ТН: не при чём.';
     expect(presentReaderChunkText(text, 'Дозы', 'official_drug_instruction')).toBe(text);

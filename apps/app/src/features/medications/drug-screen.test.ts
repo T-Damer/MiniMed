@@ -3,10 +3,12 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildDrugScreen,
+  type DrugAtcCode,
   displayDrugName,
   displayStrength,
   drugAtcCodeLabel,
   drugAtcCodes,
+  drugAtcCodesFromIndexCard,
   drugAtcSearchCodes,
   drugGroupLinks,
   drugRelatedProducts,
@@ -14,6 +16,7 @@ import {
   drugShareText,
   formatSourceEdition,
   instructionIndexFromSummaries,
+  uniquePresentations,
 } from './drug-screen';
 import {
   type MedicationProduct,
@@ -257,6 +260,21 @@ describe('drugAtcCodes', () => {
       ]);
     });
 
+    it('shows the registry stub once: another node holding the same stub adds no chip of its own', () => {
+      const card = umifenovir();
+      const withStubNode: MedicalDocument = {
+        ...card,
+        metadata: {
+          ...card.metadata,
+          smnnNodes: [
+            ...(card.metadata['smnnNodes'] as readonly Record<string, unknown>[]).slice(0, 1),
+            { smnnCode: 'other-strength', atcCode: 'L03AX', standardizedInn: 'УМИФЕНОВИР' },
+          ],
+        },
+      };
+      expect(drugAtcCodes(withStubNode, undefined).map((item) => item.code)).toEqual(['J05AX13']);
+    });
+
     it('words the chip: the code, and the registry value as small text beside it', () => {
       const [primary, plain] = drugAtcCodes(umifenovir(), undefined);
       if (!primary || !plain) throw new Error('codes missing');
@@ -314,6 +332,49 @@ describe('drugAtcCodes', () => {
     };
     expect(drugAtcCodes(bare, undefined).map((item) => item.code)).toEqual(['N06BX']);
     expect(drugAtcCodes(undefined, undefined)).toEqual([]);
+  });
+});
+
+describe('drugAtcCodesFromIndexCard', () => {
+  it('reads the codes of a card from the shipped comparison index, with the agreed pair', () => {
+    const codes = drugAtcCodesFromIndexCard({
+      n: 'УМИФЕНОВИР',
+      a: ['L03AX', 'J05AX13'],
+      q: [['J05AX13', 'L03AX']],
+    });
+    expect(codes.map((entry) => entry.code)).toEqual(['J05AX13']);
+    expect(drugAtcCodeLabel(codes[0] as DrugAtcCode)).toMatchObject({
+      code: 'J05AX13',
+      registryCode: 'L03AX',
+    });
+    expect(codes[0]?.substanceName).toBe('Умифеновир');
+  });
+
+  it('lists plain codes as they are and skips an invalid one', () => {
+    expect(
+      drugAtcCodesFromIndexCard({ n: 'МЕБЕНДАЗОЛ', a: ['P02CA01', '~', 'P02CA01'] }).map(
+        (entry) => entry.code,
+      ),
+    ).toEqual(['P02CA01']);
+  });
+});
+
+describe('uniquePresentations', () => {
+  const presentation = (strength: string | null) => ({
+    dosageForm: 'Таблетки',
+    strength,
+    route: null,
+    packages: [],
+  });
+
+  it('counts «100.0мг» and «100 мг» as one strength', () => {
+    expect(
+      uniquePresentations([
+        presentation('100.0мг'),
+        presentation('100 мг'),
+        presentation('200 мг'),
+      ]).map((item) => item.strength),
+    ).toEqual(['100.0мг', '200 мг']);
   });
 });
 

@@ -1,7 +1,7 @@
 import { createSignal, createUniqueId, For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
-import { AtcCodeSheet } from '@/features/medications/AtcCodeSheet';
+import { AtcCodeSheet, type AtcSheetFocus } from '@/features/medications/AtcCodeSheet';
 import {
   DRUG_ACCORDION_VISIBLE,
   type DrugAtcCode,
@@ -12,45 +12,99 @@ import {
   drugAtcCodeLabel,
 } from '@/features/medications/drug-screen';
 import type { MedicationProduct } from '@/features/medications/medication-record';
-import { notesDrugComparisonPath } from '@/features/notes/notes-routing';
 import { pluralRu } from '@/i18n/labels';
 
 import '@/features/medications/drug-screen.css';
 
-/** Chips shown before «ещё N»; a longer list is folded. */
-export const DRUG_CHIP_LIMIT = 6;
+/** Meta chips (substance, group, ATC code) shown before «ещё N»; a longer row is folded. */
+export const DRUG_CHIP_LIMIT = 4;
 
 /**
- * A row of chips. Past `limit` the rest is folded into a panel that opens like the app's other
- * disclosures (a 0fr → 1fr grid track); `foldAll` folds even a single chip, where otherwise «ещё 1»
- * would take the place of the chip it hides.
+ * The code of a drug as one control: the code, and — beside an agreed code the registry holds only
+ * as a group stub — the registry's own value in the same pill. Each part opens the code sheet on its
+ * own ladder, so the tapped code is the one the sheet highlights.
  */
-function ChipRow<T>(props: {
-  readonly id: string;
-  readonly label: string;
+export function DrugAtcChip(props: {
+  readonly code: DrugAtcCode;
+  readonly onOpen: (code: DrugAtcCode, focus: AtcSheetFocus) => void;
+}): JSX.Element {
+  const label = () => drugAtcCodeLabel(props.code);
+  return (
+    <span class="drug-code" classList={{ 'drug-code--split': label().registryCode !== null }}>
+      <button
+        type="button"
+        class="drug-chip drug-chip--code drug-code__main"
+        aria-haspopup="dialog"
+        aria-label={label().ariaLabel}
+        onClick={() => props.onOpen(props.code, 'main')}
+      >
+        {label().code}
+      </button>
+      <Show when={label().registryCode}>
+        {(registry) => (
+          <button
+            type="button"
+            class="drug-code__registry"
+            aria-haspopup="dialog"
+            aria-label={`Код АТХ ${registry()} в реестре: пояснить по уровням`}
+            onClick={() => props.onOpen(props.code, 'registry')}
+          >
+            <span class="drug-code__registry-text">в реестре</span>
+            <span class="drug-code__registry-code">{registry()}</span>
+          </button>
+        )}
+      </Show>
+    </span>
+  );
+}
+
+/**
+ * A wrapped row of small chips. Past `limit` the rest is folded: «ещё N» ends the row and the
+ * remainder opens under it like the app's other disclosures (a 0fr → 1fr grid track).
+ */
+function FoldedChips<T>(props: {
   readonly items: readonly T[];
-  readonly limit?: number | undefined;
-  readonly foldAll?: boolean | undefined;
-  readonly moreLabel?: ((hidden: number) => string) | undefined;
+  readonly limit: number;
+  /** A short word that leads the first line of chips («Аналоги»). */
+  readonly lead?: string;
   readonly children: (item: T) => JSX.Element;
 }): JSX.Element {
   const [expanded, setExpanded] = createSignal(false);
   const panelId = createUniqueId();
-  const limit = (): number => props.limit ?? DRUG_CHIP_LIMIT;
-  const folded = (): boolean => props.items.length > limit() + (props.foldAll ? 0 : 1);
-  const head = (): readonly T[] => (folded() ? props.items.slice(0, limit()) : props.items);
-  const rest = (): readonly T[] => (folded() ? props.items.slice(limit()) : []);
-  const moreLabel = (hidden: number): string =>
-    props.moreLabel?.(hidden) ?? `ещё ${String(hidden)}`;
+  const folded = (): boolean => props.items.length > props.limit + 1;
+  const head = (): readonly T[] => (folded() ? props.items.slice(0, props.limit) : props.items);
+  const rest = (): readonly T[] => (folded() ? props.items.slice(props.limit) : []);
   return (
-    <section class="drug-links__group" aria-labelledby={props.id}>
-      <p class="drug-links__label" id={props.id}>
-        {props.label}
-      </p>
+    <>
       <ul class="drug-links__list">
+        <Show when={props.lead}>{(lead) => <li class="drug-links__lead">{lead()}</li>}</Show>
         <For each={head()}>
           {(item) => <li class="drug-links__item">{props.children(item)}</li>}
         </For>
+        <Show when={folded()}>
+          <li class="drug-links__item">
+            <button
+              type="button"
+              class="drug-links__toggle"
+              aria-expanded={expanded()}
+              aria-controls={panelId}
+              aria-label={
+                expanded()
+                  ? 'Свернуть список'
+                  : `Показать ещё ${String(rest().length)} ${pluralRu(rest().length, 'вариант', 'варианта', 'вариантов')}`
+              }
+              onClick={() => setExpanded((value) => !value)}
+            >
+              <span class="drug-links__toggle-label">
+                {expanded() ? 'свернуть' : `ещё ${String(rest().length)}`}
+              </span>
+              <AppGlyph
+                name="caret-down"
+                class={`drug-links__toggle-icon${expanded() ? ' drug-links__toggle-icon--open' : ''}`}
+              />
+            </button>
+          </li>
+        </Show>
       </ul>
       <Show when={folded()}>
         <div
@@ -67,42 +121,29 @@ function ChipRow<T>(props: {
             </ul>
           </div>
         </div>
-        <button
-          type="button"
-          class="drug-links__toggle"
-          aria-expanded={expanded()}
-          aria-controls={panelId}
-          aria-label={
-            expanded()
-              ? 'Свернуть список'
-              : props.moreLabel
-                ? undefined
-                : `Показать ещё ${String(rest().length)} ${pluralRu(rest().length, 'вариант', 'варианта', 'вариантов')}`
-          }
-          onClick={() => setExpanded((value) => !value)}
-        >
-          <span class="drug-links__toggle-label">
-            {expanded() ? 'Свернуть' : moreLabel(rest().length)}
-          </span>
-          <AppGlyph
-            name="caret-down"
-            class={`drug-links__toggle-icon${expanded() ? ' drug-links__toggle-icon--open' : ''}`}
-          />
-        </button>
       </Show>
-    </section>
+    </>
   );
 }
 
-/** «Показать ещё 5 названий»: the fold button of the substance card's trade-name list. */
-function moreTradeNamesLabel(hidden: number): string {
-  return `Показать ещё ${String(hidden)} ${pluralRu(hidden, 'название', 'названия', 'названий')}`;
+type MetaChip =
+  | { readonly kind: 'substance'; readonly link: DrugSubstanceLink }
+  | { readonly kind: 'group'; readonly link: DrugGroupLink }
+  | { readonly kind: 'atc'; readonly code: DrugAtcCode };
+
+/** The substance, the groups and the ATC codes as one list of chips, in that order. */
+function metaChips(links: DrugQuickLinksModel): readonly MetaChip[] {
+  return [
+    ...(links.substance ? [{ kind: 'substance' as const, link: links.substance }] : []),
+    ...links.groups.map((link) => ({ kind: 'group' as const, link })),
+    ...links.atc.map((code) => ({ kind: 'atc' as const, code })),
+  ];
 }
 
 /**
- * Right under the header: the links a physician reaches for first. Only rows the data supports are
- * drawn: other trade names (with their manufacturing country), the active substance, the
- * pharmacological group, the ATC code.
+ * Right under the header, in two small rows: what the drug is (active substance, pharmacological
+ * group, ATC code) and its other trade names with their manufacturing country. Only what the data
+ * supports is drawn; the comparison starts from the header's own icon.
  */
 export function DrugQuickLinks(props: {
   readonly links: DrugQuickLinksModel;
@@ -111,148 +152,99 @@ export function DrugQuickLinks(props: {
   readonly onOpenGroup: (group: DrugGroupLink) => void;
 }): JSX.Element {
   const [atc, setAtc] = createSignal<DrugAtcCode | undefined>();
+  const [atcFocus, setAtcFocus] = createSignal<AtcSheetFocus>('main');
   const [atcOpen, setAtcOpen] = createSignal(false);
-  const openAtc = (code: DrugAtcCode): void => {
+  const openAtc = (code: DrugAtcCode, focus: AtcSheetFocus): void => {
     setAtc(code);
+    setAtcFocus(focus);
     setAtcOpen(true);
   };
-  const empty = (): boolean =>
-    props.links.related.length === 0 &&
-    props.links.groups.length === 0 &&
-    props.links.atc.length === 0 &&
-    props.links.substance === null &&
-    props.links.compare === null;
+  const chips = (): readonly MetaChip[] => metaChips(props.links);
+  const empty = (): boolean => chips().length === 0 && props.links.related.length === 0;
+  const relatedLimit = (): number =>
+    props.links.relatedAccordion ? DRUG_ACCORDION_VISIBLE : DRUG_CHIP_LIMIT;
 
   return (
     <Show when={!empty()}>
       <nav class="drug-links" aria-label="Связанные сведения о препарате">
-        <Show when={props.links.related.length > 0}>
-          <ChipRow
-            id="drug-links-related"
-            label={props.links.relatedTitle}
-            items={props.links.related}
-            limit={props.links.relatedAccordion ? DRUG_ACCORDION_VISIBLE : undefined}
-            foldAll={props.links.relatedAccordion}
-            moreLabel={props.links.relatedAccordion ? moreTradeNamesLabel : undefined}
-          >
-            {(item: DrugRelatedProduct) => (
-              <button
-                type="button"
-                class="drug-chip"
-                aria-label={`Открыть: ${item.label}`}
-                onClick={() => props.onSelectProduct(item.product)}
-              >
-                <span class="drug-chip__text">
-                  {item.name}
-                  <Show when={item.country}>
-                    {(country) => (
-                      <>
-                        {' '}
-                        <span class="drug-chip__country" title={item.countryTitle}>
-                          ({country()})
-                        </span>
-                      </>
+        <Show when={chips().length > 0}>
+          <section class="drug-links__group" aria-label="Вещество, группа и код АТХ">
+            <FoldedChips items={chips()} limit={DRUG_CHIP_LIMIT}>
+              {(chip: MetaChip) => (
+                <>
+                  <Show when={chip.kind === 'substance' ? chip : undefined}>
+                    {(entry) => (
+                      <button
+                        type="button"
+                        class="drug-chip drug-chip--accent"
+                        title="Действующее вещество"
+                        aria-label={`Действующее вещество: ${entry().link.label}`}
+                        onClick={() => props.onOpenSubstance(entry().link)}
+                      >
+                        {entry().link.label}
+                      </button>
                     )}
                   </Show>
-                </span>
-              </button>
-            )}
-          </ChipRow>
+                  <Show when={chip.kind === 'group' ? chip : undefined}>
+                    {(entry) => (
+                      <button
+                        type="button"
+                        class="drug-chip"
+                        title={entry().link.title}
+                        aria-label={`Препараты группы: ${entry().link.label}`}
+                        onClick={() => props.onOpenGroup(entry().link)}
+                      >
+                        {entry().link.label}
+                      </button>
+                    )}
+                  </Show>
+                  <Show when={chip.kind === 'atc' ? chip : undefined}>
+                    {(entry) => <DrugAtcChip code={entry().code} onOpen={openAtc} />}
+                  </Show>
+                </>
+              )}
+            </FoldedChips>
+          </section>
         </Show>
-        <Show when={props.links.substance}>
-          {(substance) => (
-            <section class="drug-links__group" aria-labelledby="drug-links-substance">
-              <p class="drug-links__label" id="drug-links-substance">
-                Действующее вещество
-              </p>
-              <ul class="drug-links__list">
-                <li class="drug-links__item">
-                  <button
-                    type="button"
-                    class="drug-chip drug-chip--accent"
-                    aria-label={`Действующее вещество: ${substance().label}`}
-                    onClick={() => props.onOpenSubstance(substance())}
-                  >
-                    {substance().label}
-                  </button>
-                </li>
-              </ul>
-            </section>
-          )}
-        </Show>
-        <Show when={props.links.groups.length > 0}>
-          <ChipRow
-            id="drug-links-groups"
-            label={
-              props.links.groups.length > 1
-                ? 'Фармакологические группы'
-                : 'Фармакологическая группа'
-            }
-            items={props.links.groups}
-          >
-            {(group: DrugGroupLink) => (
-              <button
-                type="button"
-                class="drug-chip"
-                title={group.title}
-                aria-label={`Препараты группы: ${group.label}`}
-                onClick={() => props.onOpenGroup(group)}
-              >
-                {group.label}
-              </button>
-            )}
-          </ChipRow>
-        </Show>
-        <Show when={props.links.atc.length > 0}>
-          <ChipRow id="drug-links-atc" label="Код АТХ" items={props.links.atc} limit={6}>
-            {(code: DrugAtcCode) => {
-              const label = drugAtcCodeLabel(code);
-              return (
+        <Show when={props.links.related.length > 0}>
+          <section class="drug-links__group" aria-label={props.links.relatedTitle}>
+            <FoldedChips
+              items={props.links.related}
+              limit={relatedLimit()}
+              lead={props.links.relatedLabel}
+            >
+              {(item: DrugRelatedProduct) => (
                 <button
                   type="button"
-                  class="drug-chip drug-chip--code"
-                  aria-haspopup="dialog"
-                  aria-label={label.ariaLabel}
-                  onClick={() => openAtc(code)}
+                  class="drug-chip"
+                  aria-label={`Открыть: ${item.label}`}
+                  onClick={() => props.onSelectProduct(item.product)}
                 >
-                  {label.code}
-                  <Show when={label.registryNote}>
-                    {(note) => <span class="drug-chip__registry">· {note()}</span>}
-                  </Show>
+                  <span class="drug-chip__text">
+                    {item.name}
+                    <Show when={item.country}>
+                      {(country) => (
+                        <>
+                          {' '}
+                          <span class="drug-chip__country" title={item.countryTitle}>
+                            ({country()})
+                          </span>
+                        </>
+                      )}
+                    </Show>
+                  </span>
                 </button>
-              );
-            }}
-          </ChipRow>
-        </Show>
-        <Show when={props.links.compare}>
-          {(compare) => (
-            <section class="drug-links__group" aria-labelledby="drug-links-compare">
-              <p class="drug-links__label" id="drug-links-compare">
-                Сравнение
-              </p>
-              <ul class="drug-links__list">
-                <li class="drug-links__item">
-                  <a
-                    class="drug-chip drug-chip--accent drug-chip--link"
-                    href={notesDrugComparisonPath(
-                      [],
-                      [
-                        compare().product
-                          ? `${compare().slug}|${compare().product}`
-                          : compare().slug,
-                      ],
-                    )}
-                    data-testid="drug-compare-link"
-                  >
-                    Сравнить с…
-                  </a>
-                </li>
-              </ul>
-            </section>
-          )}
+              )}
+            </FoldedChips>
+          </section>
         </Show>
       </nav>
-      <AtcCodeSheet code={atc()} open={atcOpen()} onClose={() => setAtcOpen(false)} />
+      <AtcCodeSheet
+        code={atc()}
+        focus={atcFocus()}
+        open={atcOpen()}
+        onClose={() => setAtcOpen(false)}
+      />
     </Show>
   );
 }

@@ -282,7 +282,6 @@
   overflow-wrap: anywhere;
 }
 
-.drug-comparison__colhead-source,
 .drug-comparison__colhead-note {
   margin: 0;
   color: var(--theme-text-muted);
@@ -564,4 +563,23 @@
   .drug-comparison__toolbar {
     display: none;
   }
+}
+
+/* Which instruction each column was read from: small text at the end, after the drugs' lines. */
+.drug-comparison__sources {
+  display: grid;
+  margin: 1rem 0 0;
+  gap: 0.25rem;
+  color: var(--theme-text-faint);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.drug-comparison__source-line {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.drug-comparison__source-drug {
+  font-weight: 600;
 }

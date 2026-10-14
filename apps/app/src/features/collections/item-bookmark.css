@@ -1,8 +1,8 @@
 /* Save button on documents, medication cards and notes. */
 .item-bookmark {
   display: inline-grid;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: var(--item-bookmark-size, 2.5rem);
+  height: var(--item-bookmark-size, 2.5rem);
   flex: none;
   place-items: center;
   border: 1px solid var(--theme-border);

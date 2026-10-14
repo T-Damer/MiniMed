@@ -60,6 +60,28 @@ const DROPPED_CLAUSES: readonly RegExp[] = [
   /^…[^:\n]*?\.\s+(?=[А-ЯЁ][а-яё -]*:)/gu,
 ];
 
+const SMNN_CODE = String.raw`\d{2}\.\d{2}\.\d{2}\.\d{3}-\d{6}-\d-\d{5}-\d{13}`;
+
+/**
+ * Registry identifiers a drug card's builder wrote into its text: the code of the dosage form
+ * («smnnCode: 21.20.10.194-…») and the machine status of the record («Статус записи ЕСКЛП: active»).
+ * Nobody reads them, in a result card or in the reader, so they go wherever the text is shown.
+ */
+const IDENTIFIER_CLAUSES: readonly RegExp[] = [
+  new RegExp(`;\\s*s?mnnCode:\\s*${SMNN_CODE}`, 'gu'),
+  new RegExp(`\\s*s?mnnCode:\\s*${SMNN_CODE}\\.?`, 'gu'),
+  /\s*Статус записи ЕСКЛП: [^\n]*?(?:\.(?=\s|$)|$)/gu,
+  // The source's own number of a guideline («654_2»): an identifier, not an edition.
+  /\s*Официальный идентификатор: [^\n]*?(?:\.(?=\s|$)|$)/gu,
+];
+
+/** A text without the registry identifiers (see {@link IDENTIFIER_CLAUSES}); unchanged when it has none. */
+export function dropRegistryIdentifiers(text: string): string {
+  let result = text;
+  for (const pattern of IDENTIFIER_CLAUSES) result = result.replace(pattern, '');
+  return result;
+}
+
 /** Catalogue field names in reader words. */
 const RENAMED_LABELS: readonly (readonly [string, string])[] = [
   ['Объявленные алиасы:', 'Другие названия:'],
@@ -70,28 +92,35 @@ const RENAMED_LABELS: readonly (readonly [string, string])[] = [
 const SPECIALTY_SLUGS =
   /(?<=Специальности: )[a-z0-9]+(?:-[a-z0-9]+)*(?:, [a-z0-9]+(?:-[a-z0-9]+)*)*(?=\.|$)/gmu;
 
-function snippetEdits(text: string): readonly SnippetEdit[] {
+function snippetEdits(text: string, cleaned: boolean): readonly SnippetEdit[] {
   const edits: SnippetEdit[] = [];
-  for (const match of text.matchAll(SPECIALTY_SLUGS)) {
-    edits.push({
-      start: match.index,
-      end: match.index + match[0].length,
-      replacement: match[0]
-        .split(', ')
-        .map((slug) => specialtyLabel(slug))
-        .join(', '),
-    });
-  }
-  for (const pattern of DROPPED_CLAUSES) {
+  for (const pattern of IDENTIFIER_CLAUSES) {
     for (const match of text.matchAll(pattern)) {
       edits.push({ start: match.index, end: match.index + match[0].length, replacement: '' });
     }
   }
-  for (const [label, replacement] of RENAMED_LABELS) {
-    let from = text.indexOf(label);
-    while (from >= 0) {
-      edits.push({ start: from, end: from + label.length, replacement });
-      from = text.indexOf(label, from + label.length);
+  if (cleaned) {
+    for (const match of text.matchAll(SPECIALTY_SLUGS)) {
+      edits.push({
+        start: match.index,
+        end: match.index + match[0].length,
+        replacement: match[0]
+          .split(', ')
+          .map((slug) => specialtyLabel(slug))
+          .join(', '),
+      });
+    }
+    for (const pattern of DROPPED_CLAUSES) {
+      for (const match of text.matchAll(pattern)) {
+        edits.push({ start: match.index, end: match.index + match[0].length, replacement: '' });
+      }
+    }
+    for (const [label, replacement] of RENAMED_LABELS) {
+      let from = text.indexOf(label);
+      while (from >= 0) {
+        edits.push({ start: from, end: from + label.length, replacement });
+        from = text.indexOf(label, from + label.length);
+      }
     }
   }
   // Overlapping edits keep the earlier, longer one.
@@ -157,11 +186,9 @@ function presentCleanedSnippet(
   result: Pick<SearchResult, 'snippet' | 'highlightedRanges' | 'sectionPath'>,
 ): { readonly text: string; readonly ranges: readonly TextRange[] } {
   const last = result.sectionPath.at(-1);
-  if (last === undefined || !CLEANED_SECTION_TITLES.has(last)) {
-    return { text: result.snippet, ranges: result.highlightedRanges };
-  }
+  const cleaned = last !== undefined && CLEANED_SECTION_TITLES.has(last);
   const source = result.snippet;
-  const edits = snippetEdits(source);
+  const edits = snippetEdits(source, cleaned);
   if (edits.length === 0) return { text: source, ranges: result.highlightedRanges };
   let text = '';
   let cursor = 0;
@@ -240,6 +267,14 @@ export function presentSourceChunkText(text: string, sectionPath: readonly strin
 }
 
 /**
+ * A version label that is a source's own identifier («site-4df3e404f895», «459_2», a hash), not
+ * an edition a doctor can read.
+ */
+export function isMachineVersionLabel(label: string): boolean {
+  return /^(?:site-[0-9a-f]{6,}|\d+_\d+|[0-9a-f]{12,})$/iu.test(label.trim());
+}
+
+/**
  * What tells one card from another of the same title: the publisher and registration of an
  * instruction, the edition of a recommendation. Shown only on cards whose title repeats.
  */
@@ -258,7 +293,7 @@ export function resultQualifier(
     return parts.length > 0 ? parts.join(' · ') : instruction.kindLabel;
   }
   const version = document.versionLabel?.trim();
-  return version ? version : undefined;
+  return version && !isMachineVersionLabel(version) ? version : undefined;
 }
 
 /** Titles that more than one card carries; those cards get a qualifier. */

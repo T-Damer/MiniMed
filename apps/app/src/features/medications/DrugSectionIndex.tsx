@@ -1,37 +1,33 @@
-import { For, type JSX } from 'solid-js';
+import type { JSX } from 'solid-js';
 
-import type { DrugSectionIndexItem } from '@/features/medications/drug-screen';
+import { AppGlyph } from '@/components/AppGlyph';
 
 import '@/features/medications/drug-screen.css';
 
-/** Jump links to the document's top-level sections, above the full text. */
+/**
+ * «Разделы 7»: the way into the document's sections from a drug screen, one small button that
+ * opens the contents drawer (the reader's own outline). It replaces a scrolling strip of section
+ * chips that took a row of the first screen and cut every label short; on wide layouts the outline
+ * is always beside the text and the button is hidden.
+ */
 export function DrugSectionIndex(props: {
-  readonly items: readonly DrugSectionIndexItem[];
-  readonly activeAnchor?: string | null;
-  readonly onSelect: (anchor: string) => void;
+  readonly count: number;
+  readonly onOpen: () => void;
 }): JSX.Element {
   return (
-    <nav class="drug-section-index" aria-label="Разделы документа">
-      <ul class="drug-section-index__list">
-        <For each={props.items}>
-          {(item) => (
-            <li class="drug-section-index__item">
-              <button
-                type="button"
-                class="drug-section-index__link"
-                classList={{
-                  'drug-section-index__link--active': props.activeAnchor === item.anchor,
-                }}
-                aria-current={props.activeAnchor === item.anchor ? 'location' : undefined}
-                onClick={() => props.onSelect(item.anchor)}
-              >
-                <span class="drug-section-index__number">{item.number}</span>
-                <span class="drug-section-index__label">{item.label}</span>
-              </button>
-            </li>
-          )}
-        </For>
-      </ul>
-    </nav>
+    <div class="drug-section-index">
+      <button
+        type="button"
+        class="drug-section-index__button"
+        aria-label={`Разделы документа: ${String(props.count)}`}
+        title="Оглавление"
+        data-testid="drug-sections-button"
+        onClick={props.onOpen}
+      >
+        <AppGlyph name="list-bullets" class="drug-section-index__icon" />
+        <span>Разделы</span>
+        <span class="drug-section-index__count">{props.count}</span>
+      </button>
+    </div>
   );
 }

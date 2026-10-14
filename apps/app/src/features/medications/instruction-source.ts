@@ -223,6 +223,13 @@ export interface InstructionSourceInfo {
   readonly qualityNote: string | null;
 }
 
+/** Who published the text, as the source line says it. */
+export function instructionSourceName(info: InstructionSourceInfo): string {
+  return info.sourceClass === 'manufacturer-site'
+    ? `Сайт производителя${info.publisher ? `: ${info.publisher}` : ''}`
+    : 'ГРЛС (Минздрав России)';
+}
+
 /** OCR text with more unknown words than this is flagged as low quality. */
 export const LOW_QUALITY_UNKNOWN_WORD_RATIO = 0.1;
 /** Share of low-confidence OCR characters that flags the same. */

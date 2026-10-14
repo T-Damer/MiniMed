@@ -9,7 +9,7 @@ import { type DrugAtcCode, drugAtcCodeLabel } from '@/features/medications/drug-
 /** One code broken into its levels: the drug's code, or the registry's stub beside an agreed code. */
 export interface AtcSheetSection {
   readonly key: 'main' | 'registry';
-  /** «В реестре: L03AX» over the second ladder; null over the first. */
+  /** «Основной код: J05AX13» and «В реестре: L03AX» over the two ladders; null over a single one. */
   readonly heading: string | null;
   readonly steps: readonly AtcLadderStep[];
 }
@@ -44,6 +44,11 @@ export function atcSheetSections(input: {
   const registry = drugAtcCodeLabel(code).registryCode;
   const registryCode = registry ? normalizeAtcCode(registry) : null;
   if (registryCode && registryCode.code !== normalized.code) {
+    // Two ladders need a title each, so the tapped one can be told from the other.
+    sections[0] = {
+      ...(sections[0] as AtcSheetSection),
+      heading: `Основной код: ${normalized.code}`,
+    };
     sections.push({
       key: 'registry',
       heading: `В реестре: ${registryCode.code}`,

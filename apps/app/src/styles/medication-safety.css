@@ -222,7 +222,13 @@
 
 .safety-block {
   display: grid;
-  padding: 0.6rem 1rem;
+  margin: 0 0 0.5rem;
+  padding: 0 0.75rem;
+}
+
+.safety-block__disclosure {
+  --ui-disclosure-header-height: 2.25rem;
+  --ui-disclosure-header-padding: 0.25rem 0.5rem;
 }
 
 .safety-block__body {

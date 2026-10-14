@@ -458,6 +458,11 @@ export interface DocumentReaderChromeShellProps {
    * shows no bubble.
    */
   readonly pages?: () => ReaderPageModel | null;
+  /**
+   * Parks the page bubble until the reader has scrolled, so that it never covers the first screen
+   * (a drug screen starts its text within it). Without it the bubble is always there.
+   */
+  readonly pageBubbleAfterScroll?: boolean;
   readonly outlineSearchSlot?: JSX.Element;
   /** Heading of the side panel; «Оглавление» unless the panel lists something else (PDF pages). */
   readonly outlineTitle?: string;
@@ -475,6 +480,20 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
     closeOutline: chrome.closeOutline,
   });
 
+  let shell: HTMLElement | undefined;
+  const [scrolled, setScrolled] = createSignal(false);
+  onMount(() => {
+    // Scroll events do not bubble; the capture listener hears the page and any scrolling ancestor.
+    const onScroll = (event: Event): void => {
+      const target = event.target;
+      if (target === document) setScrolled(window.scrollY > 24);
+      else if (target instanceof HTMLElement && shell && target.contains(shell)) {
+        setScrolled(target.scrollTop > 24);
+      }
+    };
+    document.addEventListener('scroll', onScroll, { capture: true, passive: true });
+    onCleanup(() => document.removeEventListener('scroll', onScroll, { capture: true }));
+  });
   const pageModel = (): ReaderPageModel | null => props.pages?.() ?? null;
   const currentPage = createMemo(() => {
     const model = pageModel();
@@ -502,6 +521,9 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
 
   return (
     <section
+      ref={(element) => {
+        shell = element;
+      }}
       class={props.class ?? 'document-page page-surface page-grain'}
       classList={props.classList}
       aria-label={props.ariaLabel}
@@ -666,7 +688,9 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
               <ReaderPageBubble
                 page={currentPage()}
                 total={model().total}
-                hidden={chrome.drawerOpen()}
+                hidden={
+                  chrome.drawerOpen() || (props.pageBubbleAfterScroll === true && !scrolled())
+                }
                 onGo={goToPage}
               />
             )}

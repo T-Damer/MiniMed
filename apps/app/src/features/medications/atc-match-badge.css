@@ -21,4 +21,6 @@
 .atc-match-badge__note {
   color: var(--theme-text-muted);
   font-size: 0.75rem;
+  /* «L03AX»: lining figures, so a zero is not read as the letter «o». */
+  font-variant-numeric: lining-nums tabular-nums;
 }

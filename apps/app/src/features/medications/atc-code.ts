@@ -266,6 +266,8 @@ export function atcFillSourceLabel(source: string): string {
       return 'инструкции на тот же МНН';
     case 'registry-nsi':
       return 'справочник НСИ «АТХ»';
+    case 'comparison-index':
+      return 'сводка кодов MiniMed';
     default:
       return source;
   }
