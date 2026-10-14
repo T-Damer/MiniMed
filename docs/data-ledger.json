@@ -862,9 +862,9 @@
       "consumers": [
         "medbase-legal-texts assemble (content/regulatory-rf-pilot, content/regulatory-rf-texts)"
       ],
-      "rebuild": "scripts/marker_pages_run.py over jobs.json (about 13 h on the Mac, resumable), then medbase-legal-texts reconcile and cells; page images are rendered on demand by medbase-legal-texts images",
-      "note": "Per-page Marker Markdown, Vision readings and derived PDFs of the regulatory acts. Everything the cards need is committed (cards, provenance, review logs); intermediates are deleted once an act is finished and verified.",
-      "bytes": 240000000,
+      "rebuild": "scripts/marker_pages_run.py over jobs.json (about 13 h on the Mac, resumable), then medbase-legal-texts reconcile and cells; page images and the upright/unlabelled PDFs are rendered on demand by medbase-legal-texts images, upright and unlabel",
+      "note": "Per-page Marker Markdown, Vision readings and reports of the regulatory acts (the inputs of assemble). Everything the cards need is committed (cards, provenance, review logs); page images and derived PDFs were deleted when the last act was verified (2026-10-14).",
+      "bytes": 52400000,
       "modified": "2026-10-14"
     }
   ]
