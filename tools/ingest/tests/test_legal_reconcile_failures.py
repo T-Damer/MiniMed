@@ -152,3 +152,12 @@ def test_a_row_of_column_numbers_and_a_table_of_quantities_are_not_loops() -> No
     assert not detect_loops(tokenize(quantities), quantities)
     counting = "Показатели 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 и далее"
     assert detect_loops(tokenize(counting), counting)
+
+
+def test_a_number_is_not_swapped_for_one_that_lost_digits() -> None:
+    result = reconcile_page(
+        4,
+        "зарегистрирован, регистрационный № 81000).",
+        vision("зарегистрирован, регистрационный № 2)."),
+    )
+    assert "81000" in result.text and "№ 2)" not in result.text

@@ -107,6 +107,24 @@ def test_table_continues_across_a_footnote_and_a_repeated_header_block_is_droppe
     assert merged[-1].kind == "footnote"  # the footnote stays after the table it was printed under
 
 
+def test_a_numbered_row_cut_by_the_page_break_is_joined_cell_by_cell() -> None:
+    first = parse_blocks(
+        "| № | Период | Врачи |\n|---|---|---|\n| 26. | 12 лет | Врач-педиатр |", 1
+    )
+    second = parse_blocks(
+        "| | | Врач-стоматолог детский |\n|---|---|---|\n| 27. | 13 лет | Врач-педиатр |", 2
+    )
+    merged = merge_pages([first, second])
+    rows = next(b for b in merged if b.kind == "table").rows
+    assert rows[1] == ["26.", "12 лет", "Врач-педиатр\nВрач-стоматолог детский"]
+    assert rows[2][0] == "27."
+    # a label that spans several item rows is not a numbered row: the next item stays a row of its own
+    labelled = parse_blocks("| | |\n|---|---|\n| Знания | Первое умение |", 1)
+    after = parse_blocks("| | Второе умение |\n|---|---|\n| | Третье умение |", 2)
+    kept = next(b for b in merge_pages([labelled, after]) if b.kind == "table").rows
+    assert [row[1] for row in kept[1:]] == ["Первое умение", "Второе умение", "Третье умение"]
+
+
 def test_act_text_has_portal_title_annex_sections_and_no_empty_section(tmp_path: Path) -> None:
     results, _pending = reconcile_act(
         {1: PAGE1, 2: PAGE2, 3: PAGE3, 4: PAGE4}, vision_for(1, 2, 3, 4), IDENTITY

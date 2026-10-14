@@ -238,6 +238,12 @@ def merge_pages(pages: list[list[Block]]) -> list[Block]:
                     last = table_tail.rows[-1]
                     last[moved[1]] = f"{last[moved[1]]} {rows[0][moved[0]]}".strip()
                     rows = rows[1:]
+                elif rows and _continues_cells(table_tail.rows[-1], rows[0]):
+                    last = table_tail.rows[-1]
+                    for index, cell in enumerate(rows[0]):
+                        if cell:
+                            last[index] = f"{last[index]}\n{cell}"
+                    rows = rows[1:]
                 table_tail.rows.extend(rows)
                 table_tail.end_page = head.page
                 merged.extend(footnotes_before)
@@ -276,6 +282,24 @@ def _continues_row(previous: list[str], row: list[str]) -> tuple[int, int] | Non
     if re.search(r"[.;:!?»)]$", previous[target].rstrip()):
         return None
     return filled[0], target
+
+
+def _continues_cells(previous: list[str], row: list[str]) -> bool:
+    """A row at the head of a page that carries the rest of the previous row's cells (a row cut by the break).
+
+    The first cell is empty; every filled cell lines up with an open cell (text that does not end a sentence)
+    of the previous row; and the previous row is a numbered one (a label such as «Необходимые знания» spans
+    several item rows and does not count), or the new text starts in lower case.
+    """
+    if len(previous) != len(row) or row[0] or not any(row):
+        return False
+    filled = [index for index, cell in enumerate(row) if cell]
+    for index in filled:
+        before = previous[index]
+        if not before or len(before) < 4 or _TERMINAL.search(before.rstrip()):
+            return False
+    lower = all(row[index][:1].islower() for index in filled)
+    return bool(re.fullmatch(r"\d{1,3}[.)]?", previous[0].strip())) or lower
 
 
 def _same_width(left: Block, right: Block) -> bool:

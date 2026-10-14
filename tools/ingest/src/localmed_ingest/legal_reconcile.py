@@ -771,6 +771,8 @@ def align(marker: str, vision_lines: list[str], skip: tuple[str, ...] = ()) -> A
                             ROMAN_PREFIX
                         ):
                             continue  # a Roman numeral against an Arabic one («I группа» / «1 группа»): flagged, never swapped
+                        if abs(len(m_tok.norm) - len(v_tok.norm)) >= 2:
+                            continue  # «81000» against «2»: one reading lost digits, which one is for the image to say
                         new = _vision_text(prepared_lines, v_tokens, j1 + offset, j1 + offset)
                         old = marker[m_tok.start : m_tok.end]
                         result.substitutions.append(Substitution(m_tok.start, m_tok.end, old, new))
