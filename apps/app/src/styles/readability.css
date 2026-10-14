@@ -1,0 +1,249 @@
+/*
+ * VIS1 — readability layer, loaded after every other style sheet.
+ *
+ * 1. Contrast on the tan route desk. The paper text tokens are tuned for paper surfaces; text that
+ *    sits straight on the desk (page description, breadcrumbs, footnotes, field labels) needs a
+ *    darker ink, so the desk containers remap the text tokens to the `--theme-desk-*` ones. Paper
+ *    surfaces nested in a desk container take the paper values back, so cards keep their hierarchy.
+ * 2. Global typography: no orphans, no raw 11 px labels, line length capped for text blocks.
+ * 3. Tap targets of small controls are enlarged through their hit area, not their look.
+ */
+
+.page-surface,
+.search-home,
+.assessments-page,
+.calculators-page,
+.model-status-view,
+.patient-notes-view,
+.case-folder,
+.document-page__loading {
+  --theme-text-muted: var(--theme-desk-text-muted);
+  --theme-text-faint: var(--theme-desk-text-faint);
+  --ink-soft: var(--theme-desk-text-muted);
+  --ink-faint: var(--theme-desk-text-faint);
+  --theme-link: var(--theme-desk-link);
+  --theme-kicker: var(--theme-desk-kicker);
+  --stamp: var(--theme-desk-kicker);
+  --theme-accent-text: var(--theme-desk-accent-text);
+}
+
+.paper-card,
+.ui-card,
+.result-group,
+.result-card,
+.catalog-card,
+.home-feature,
+.ecg-home,
+.ui-feature-card {
+  --theme-text-muted: var(--theme-paper-text-muted);
+  --theme-text-faint: var(--theme-paper-text-faint);
+  --ink-soft: var(--theme-paper-text-muted);
+  --ink-faint: var(--theme-paper-text-faint);
+  --theme-link: var(--theme-paper-link);
+  --theme-kicker: var(--theme-paper-kicker);
+  --stamp: var(--theme-paper-kicker);
+}
+
+/* ---- Fixed chrome never covers content ------------------------------------------------------ */
+
+/* The floating bottom bar is an overlay: every route's last block clears it plus the safe area. */
+.page-surface {
+  padding-bottom: max(calc(2.25rem + var(--safe-bottom)), calc(var(--bottom-nav-clearance) + 1rem));
+}
+
+.search-home,
+.model-status-view,
+.patient-notes-view {
+  padding-bottom: max(calc(1.5rem + var(--safe-bottom)), calc(var(--bottom-nav-clearance) + 1rem));
+}
+
+/* The scroll-to-top button (and the other floating tools above it) stands in the navigation's own
+   row, beside the bar, instead of floating over the content above it. */
+.floating-window-controls {
+  --floating-control-bottom: calc(0.625rem + var(--nav-safe-bottom, 0px) + 0.40625rem);
+  bottom: var(--floating-control-bottom);
+}
+
+/* The loading ring is a badge on the corner of the settings tab; its hit area reaches outwards
+   (up and right, away from the tab) to finger size. */
+.content-download-nav__pie {
+  position: relative;
+}
+
+.content-download-nav__pie::after {
+  position: absolute;
+  top: -1.75rem;
+  right: -1.75rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  content: "";
+}
+
+/* ---- Tap targets: a finger-sized hit area behind a small control, its look unchanged -------- */
+
+.help-icon-link,
+.carousel__arrow,
+.definition-preview__more,
+.tool-pin__star {
+  position: relative;
+}
+
+.help-icon-link::after,
+.carousel__arrow::after,
+.definition-preview__more::after,
+.tool-pin__star::after,
+.query-sheet__clear::after,
+[data-sonner-toast][data-styled="true"].app-notification [data-close-button]::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 2.75rem);
+  height: max(100%, 2.75rem);
+  content: "";
+  transform: translate(-50%, -50%);
+}
+
+.search-history-fab,
+.search-clinical-toggle,
+.search-button,
+.ui-button--icon,
+.app-nav-button,
+.page__help-button,
+.news-icon-button,
+.recommendation-section-actions__download,
+.patient-card-icon-action,
+.patient-notes-fab,
+.search-source-picker,
+.search-quick-access__all,
+.module-download-all {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+}
+
+.form-field__rule-button {
+  position: relative;
+}
+
+.form-field__rule-button::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2.75rem;
+  height: 2.75rem;
+  content: "";
+  transform: translate(-50%, -50%);
+}
+
+/* ---- Typography ------------------------------------------------------------------------------ */
+
+/* No orphan last words: running text balances its last lines, titles balance their whole block.
+   Without support the browser wraps as before. */
+body {
+  text-wrap: pretty;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+[class*="__title"] {
+  text-wrap: balance;
+}
+
+/* Reading blocks stop at about 66 characters on wide screens; on a phone the column is narrower. */
+@media (min-width: 760px) {
+  .page__description,
+  .calculator-footnote,
+  .assessment-footnote,
+  .atc-tree__intro,
+  .home-feature__text,
+  .ecg-home__text,
+  .drug-comparison__footnote,
+  .drug-comparison__empty,
+  .drug-comparison__group-source,
+  .search-no-results__text,
+  .search-no-results__hint,
+  .catalog-card__description,
+  .prescription__reference,
+  .result-fragment__text {
+    max-width: 66ch;
+  }
+}
+
+/* ---- Scrollbars ------------------------------------------------------------------------------ */
+
+/* Page and inner scroll containers, with a mouse or trackpad: thin and in the theme's ink colour.
+   Touch screens keep their overlay scrollbars. */
+@media (hover: hover) and (pointer: fine) {
+  * {
+    scrollbar-color: var(--theme-scrollbar-thumb) transparent;
+    scrollbar-width: thin;
+  }
+
+  .os-scrollbar {
+    --os-size: 0.5rem;
+    --os-handle-bg: var(--theme-scrollbar-thumb);
+    --os-handle-bg-hover: var(--theme-scrollbar-thumb-hover);
+    --os-handle-bg-active: var(--theme-scrollbar-thumb-hover);
+    --os-track-bg: transparent;
+    --os-track-bg-hover: transparent;
+    --os-track-bg-active: transparent;
+  }
+}
+
+/* WebKit engines without the standard properties: the same look through a dedicated class. */
+.scrollbar-themed::-webkit-scrollbar {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+
+.scrollbar-themed::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-themed::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: var(--theme-scrollbar-thumb);
+}
+
+.scrollbar-themed::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-scrollbar-thumb-hover);
+}
+
+/* A horizontal strip (tabs, chips, cards) shows no scrollbar at all: its arrows (`HorizontalScroller`
+   or `ScrollStripArrows` in a `scroll-strip`) say that it scrolls. */
+.scroll-strip {
+  position: relative;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.category-tabs,
+.drug-section-index__list,
+.rich-sheet__tabs,
+.suggestion-strip,
+.recent-calculators__list,
+.news-rail,
+.feature-tour__track,
+.carousel__track,
+.note-markdown-editor__toolbar,
+.search-mode-picker {
+  scrollbar-width: none;
+}
+
+.category-tabs::-webkit-scrollbar,
+.drug-section-index__list::-webkit-scrollbar,
+.rich-sheet__tabs::-webkit-scrollbar,
+.suggestion-strip::-webkit-scrollbar,
+.recent-calculators__list::-webkit-scrollbar,
+.news-rail::-webkit-scrollbar,
+.note-markdown-editor__toolbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Counters in the navigation badges are digits in a 16 px pill: the one place below 13 px. */
+.app-nav-badge {
+  font-size: 0.6875rem;
+}

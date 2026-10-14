@@ -118,7 +118,9 @@ test('an open section is a page of its own: history entry, back arrow, mounted l
   await expect(page.getByRole('button', { name: 'Назад к разделам' })).toBeVisible();
 });
 
-test('clinical analysis explains itself above the results and in the field', async ({ page }) => {
+test('clinical analysis shows one line above the results, explains itself behind «?» and in the field', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
   const field = page.getByTestId('search-input');
@@ -126,7 +128,11 @@ test('clinical analysis explains itself above the results and in the field', asy
   await page.getByRole('button', { name: 'Клинический разбор' }).click();
   const note = page.getByRole('complementary', { name: 'О клиническом разборе' });
   await expect(note).toBeVisible();
-  await expect(note).toContainText('источники, а не диагноз');
+  // The explanation is not body copy: it opens from the «?» button.
+  await expect(note).not.toContainText('источники, а не диагноз');
+  await note.getByRole('button', { name: 'О клиническом разборе' }).click();
+  await expect(page.getByText('источники, а не диагноз')).toBeVisible();
+  await page.keyboard.press('Escape');
   await expect(field).toHaveAttribute('placeholder', /Опишите случай: жалобы/u);
   await page.getByRole('button', { name: 'Клинический разбор' }).click();
   await expect(note).toHaveCount(0);

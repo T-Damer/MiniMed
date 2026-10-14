@@ -52,9 +52,10 @@ for (const width of [375, 1280]) {
     const download = section.getByRole('button', { name: /^Загрузка: Неонатология\./u });
     await expect(download).toHaveAccessibleName(/Пакеты: 0\/1/u);
     expect((await download.boundingBox())?.height).toBeLessThanOrEqual(44);
+    // A finger-sized row (44 px), not a taller one.
     expect(
       (await menu.getByRole('link', { name: 'Загрузки', exact: true }).boundingBox())?.height,
-    ).toBeLessThanOrEqual(32);
+    ).toBeLessThanOrEqual(44);
     await expect(menu.locator('.os-scrollbar-vertical')).not.toHaveClass(
       /os-scrollbar-auto-hide-hidden/u,
     );

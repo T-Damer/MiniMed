@@ -10,6 +10,7 @@ import {
 import { formatModuleBytes } from '@/features/modules/module-display';
 import { moduleGroupDownloadProgress } from '@/features/modules/recommendation-categories';
 import type { SearchSectionDownloads } from '@/features/search/useSearchSectionDownloads';
+import { bindNumberUnits } from '@/i18n/no-break';
 import { motionMs } from '@/state/motion';
 import '@/features/search/search-download-chip.css';
 
@@ -78,7 +79,9 @@ export function SearchDownloadChip(props: {
   const size = () => {
     const bytes = pending().map((module) => module.sizes.downloadBytes);
     return bytes.every((value) => value !== null)
-      ? formatModuleBytes(bytes.reduce<number>((sum, value) => sum + (value ?? 0), 0))
+      ? bindNumberUnits(
+          formatModuleBytes(bytes.reduce<number>((sum, value) => sum + (value ?? 0), 0)),
+        )
       : undefined;
   };
   /** What the chip shows now; a change of it swaps the text with a short fade. */

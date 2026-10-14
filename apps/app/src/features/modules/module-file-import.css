@@ -80,7 +80,7 @@
 
 .module-file-import__meta {
   color: var(--theme-text-muted);
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
 }
 
 @keyframes module-file-import-in {

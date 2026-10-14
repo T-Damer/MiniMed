@@ -285,7 +285,7 @@
   padding: var(--theme-space-1) var(--theme-space-2);
   border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
   border-radius: var(--assessment-radius-pill);
-  font-size: 0.72rem;
+  font-size: 0.8125rem;
 }
 
 .assessment-card-actions,
@@ -374,7 +374,7 @@
   padding: 0.15rem 0.4rem;
   border: 1px solid color-mix(in srgb, var(--theme-accent) 36%, transparent);
   border-radius: var(--assessment-radius-pill);
-  font-size: 0.72rem;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
@@ -528,7 +528,7 @@
 
 .assessment-back-chooser__card-detail {
   overflow: hidden;
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   color: var(--theme-text-muted);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1383,7 +1383,7 @@ html:has(.assessment-next-button) .patient-notes-fab {
   background: var(--theme-surface-muted);
   color: var(--theme-text);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.8125rem;
   line-height: 1.45;
 }
 

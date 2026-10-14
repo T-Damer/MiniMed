@@ -12,6 +12,7 @@ import { toast } from 'solid-sonner';
 import type { CellObject, WorkBook, WorkSheet } from 'xlsx';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { ScrollStripArrows } from '@/components/ScrollStripArrows';
 import { preserveXlsmVba } from '@/features/library/spreadsheet-xlsm';
 import { getUserLibraryFile, replaceUserLibraryFile } from '@/state/user-library';
 import { userLibraryFileExtension } from '@/state/user-library-capabilities';
@@ -605,31 +606,36 @@ export function SpreadsheetRenderer(props: SpreadsheetRendererProps): JSX.Elemen
     }
   };
 
+  const [tabStrip, setTabStrip] = createSignal<HTMLElement>();
   const SheetTabs = (): JSX.Element => (
-    <div
-      class="rich-sheet__tabs"
-      classList={{ 'rich-sheet__tabs--editor': props.fullscreen }}
-      role="tablist"
-      aria-label="Листы"
-    >
-      <For each={sheetNames()}>
-        {(name) => (
-          <button
-            type="button"
-            role="tab"
-            class="rich-sheet__tab"
-            classList={{
-              'rich-sheet__tab--active': sheet()?.name === name,
-              'rich-sheet__tab--editor': props.fullscreen,
-              'rich-sheet__tab--editor-active': props.fullscreen && sheet()?.name === name,
-            }}
-            aria-selected={sheet()?.name === name}
-            onClick={() => selectSheet(name)}
-          >
-            {name}
-          </button>
-        )}
-      </For>
+    <div class="scroll-strip">
+      <div
+        ref={setTabStrip}
+        class="rich-sheet__tabs"
+        classList={{ 'rich-sheet__tabs--editor': props.fullscreen }}
+        role="tablist"
+        aria-label="Листы"
+      >
+        <For each={sheetNames()}>
+          {(name) => (
+            <button
+              type="button"
+              role="tab"
+              class="rich-sheet__tab"
+              classList={{
+                'rich-sheet__tab--active': sheet()?.name === name,
+                'rich-sheet__tab--editor': props.fullscreen,
+                'rich-sheet__tab--editor-active': props.fullscreen && sheet()?.name === name,
+              }}
+              aria-selected={sheet()?.name === name}
+              onClick={() => selectSheet(name)}
+            >
+              {name}
+            </button>
+          )}
+        </For>
+      </div>
+      <ScrollStripArrows target={tabStrip} label="листы" />
     </div>
   );
 

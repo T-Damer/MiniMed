@@ -75,7 +75,7 @@
   border-radius: 999px;
   background: var(--theme-surface-muted);
   color: var(--theme-text-muted);
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.4;
 }

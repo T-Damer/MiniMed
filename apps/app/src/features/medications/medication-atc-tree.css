@@ -48,7 +48,7 @@
   justify-self: start;
   padding: 0.125rem 0.5rem;
   border-radius: var(--theme-radius-control);
-  color: var(--theme-accent);
+  color: var(--theme-accent-text);
   background: var(--theme-accent-soft);
   font-family: var(--font-mono);
   font-size: 0.875rem;
@@ -143,7 +143,7 @@
   flex: none;
   min-width: 3.25rem;
   padding-top: 0.2rem;
-  color: var(--theme-accent);
+  color: var(--theme-accent-text);
   font-family: var(--font-mono);
   font-size: 0.9375rem;
   font-weight: 700;

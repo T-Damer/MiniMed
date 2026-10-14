@@ -85,7 +85,7 @@ html.calculator-route-open body {
 .calculator-form label span,
 .calculator-form__label,
 .calculator-note-panel label span {
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -107,7 +107,7 @@ html.calculator-route-open body {
   grid-column: 1 / -1;
   margin: 0;
   color: var(--theme-text-muted);
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
 }
 
 .calculator-form__tooltip {
@@ -126,7 +126,7 @@ html.calculator-route-open body {
   color: var(--theme-text-muted);
   background: var(--theme-surface-raised);
   font: inherit;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 800;
   line-height: 1;
   cursor: pointer;
@@ -334,7 +334,7 @@ html.calculator-route-open body {
 
 .calculator-section-related span {
   color: var(--theme-text-muted);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
 }
 
 .calculator-section-related button {
@@ -512,7 +512,7 @@ html.calculator-route-open body {
   padding: 0.2rem 0.45rem;
   border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
   border-radius: 999px;
-  font-size: 0.72rem;
+  font-size: 0.8125rem;
 }
 
 .calculator-workspace {
@@ -616,7 +616,7 @@ html.calculator-route-open body {
   padding: 0.2rem 0.45rem;
   border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
   border-radius: 999px;
-  font-size: 0.72rem;
+  font-size: 0.8125rem;
 }
 
 .calculator-workspace {
@@ -792,7 +792,7 @@ html.calculator-route-open body {
 
 .feeding-ration__kicker {
   color: var(--theme-accent);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -839,7 +839,7 @@ html.calculator-route-open body {
 
 .feeding-ration__summary-label {
   color: var(--theme-text-muted);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
 }
 
 .feeding-ration__summary-value {

@@ -43,7 +43,7 @@
 .condition-catalog-tabs__label {
   overflow: hidden;
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -200,7 +200,7 @@
   color: var(--theme-accent-contrast);
   background: var(--theme-accent);
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   cursor: pointer;
 }
 

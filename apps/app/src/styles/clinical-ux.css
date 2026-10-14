@@ -184,7 +184,7 @@
 .update-policy-note {
   margin-top: 0.4375rem;
   color: var(--ink-faint);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
 }
 
 @media (max-width: 760px) {

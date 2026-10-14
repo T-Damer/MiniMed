@@ -19,11 +19,21 @@
 }
 
 .semantic-model-offer__text {
+  display: grid;
   flex: 1;
   min-width: 0;
   margin: 0;
   font-size: 0.875rem;
-  line-height: 1.35;
+  line-height: 1.3;
+}
+
+.semantic-model-offer__title {
+  font-weight: 700;
+}
+
+.semantic-model-offer__detail {
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
 }
 
 .semantic-model-offer__action {

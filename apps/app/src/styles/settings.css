@@ -61,7 +61,7 @@
 
 .ecg-model-settings__license-link {
   color: var(--theme-link);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
 }
 
 .settings-section__heading {
@@ -102,7 +102,7 @@
 .settings-section__description {
   margin: 0.2rem 0 0;
   color: var(--ink-soft);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   line-height: 1.45;
 }
 
@@ -145,7 +145,7 @@
 .settings-page__link:visited {
   color: var(--theme-link);
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.15rem;
@@ -208,13 +208,13 @@
 .packaging-images-settings__notice,
 .packaging-images-settings__progress-label {
   color: var(--theme-text-muted);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   line-height: 1.4;
 }
 
 .packaging-images-settings__error {
   color: var(--theme-danger);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   line-height: 1.4;
 }
 

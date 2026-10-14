@@ -104,7 +104,7 @@
 .imaging-entry__study-meta {
   overflow: hidden;
   color: var(--theme-text-muted);
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

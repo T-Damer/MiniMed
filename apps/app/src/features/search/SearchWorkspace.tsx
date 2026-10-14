@@ -32,6 +32,7 @@ import { Button } from '@/components/Button';
 import { DocumentText } from '@/components/DocumentText';
 import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
 import { QueryEmptyState } from '@/components/QueryEmptyState';
+import { ScrollStripArrows } from '@/components/ScrollStripArrows';
 import { saveCalculatorLaunchDraft } from '@/features/calculators/calculator-launch-draft';
 import {
   CALCULATOR_PACKS_EVENT,
@@ -295,6 +296,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   let urlQuery: string | undefined = searchQueryFromHash(window.location.hash);
   let urlRestorePending = urlQuery !== undefined;
   const [query, setQuery] = createSignal(urlQuery ?? '');
+  const [suggestionStrip, setSuggestionStrip] = createSignal<HTMLElement>();
   const [draftAnalysis, setDraftAnalysis] = createSignal<QueryAnalysis>();
   const [response, setResponse] = createSignal<SearchResponse>();
   const [context, setContext] = createSignal<ChunkContext>();
@@ -1352,19 +1354,22 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                     <span class="index-label__title">Полезно уточнить</span>
                     <small class="index-label__hint">не блокирует диагнозы</small>
                   </div>
-                  <div class="suggestion-strip">
-                    <For each={analysis().suggestions}>
-                      {(suggestion) => (
-                        <button
-                          class="suggestion-strip__button"
-                          type="button"
-                          title={suggestion.detail}
-                          onClick={() => insertSuggestion(suggestion)}
-                        >
-                          <span class="suggestion-strip__marker">+</span> {suggestion.label}
-                        </button>
-                      )}
-                    </For>
+                  <div class="scroll-strip">
+                    <div ref={setSuggestionStrip} class="suggestion-strip">
+                      <For each={analysis().suggestions}>
+                        {(suggestion) => (
+                          <button
+                            class="suggestion-strip__button"
+                            type="button"
+                            title={suggestion.detail}
+                            onClick={() => insertSuggestion(suggestion)}
+                          >
+                            <span class="suggestion-strip__marker">+</span> {suggestion.label}
+                          </button>
+                        )}
+                      </For>
+                    </div>
+                    <ScrollStripArrows target={suggestionStrip} label="подсказки" />
                   </div>
                 </div>
               </Show>
@@ -1641,7 +1646,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                     )}
                   </Show>
                   <div class="results-list" data-testid="search-results">
-                    <LayoutVirtualizedGrid data={visibleGroups()} bufferSize={400}>
+                    <LayoutVirtualizedGrid data={visibleGroups()} bufferSize={400} align="start">
                       {(group, groupIndex) => {
                         return (
                           <SearchResultGroupCard

@@ -20,6 +20,62 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Readability: contrast, chrome, typography, strips — 2026-10-14 (STATE VIS1)
+
+From the Haiku QA pass ([qa-haiku-2026-10-14](research/qa-haiku-2026-10-14.md) «Visual readability», items tagged
+VIS1) and the coordinator's scrollbar decision. Screens: search home and results, global chrome, shared typography.
+
+- **Contrast.** Light paper tokens darkened a step (`--theme-text-muted` #524d43, `--theme-text-faint` #58534a) and a
+  new `--theme-accent-text` for accent-coloured text (`--theme-accent` stays the fill). Text that sits straight on the
+  tan route desk (`.page-surface`, `.search-home`, `.assessments-page`, `.calculators-page`, …) takes the
+  `--theme-desk-*` tokens: `styles/readability.css` (loaded last) remaps the text tokens inside those containers, and
+  paper surfaces nested in them (`.paper-card`, `.result-group`, `.home-feature`, …) take the paper values back. Dark:
+  `--theme-danger`/`--theme-kicker` #e8a094, `--theme-accent` #8fb59a, `--theme-warning-soft` 30 % mix. After:
+  desk description/footnote/label/crumb 5.2 (4.6 on the darker chip), desk kicker 5.1, desk accent code 4.9, ATC row
+  meta 7.4, ATC row code 5.0, home title icon 4.9, home description 5.8; dark «Удалить» 5.2, ATC head 5.1, tag 5.0,
+  kicker 6.5. Tests: `src/styles/theme-contrast.test.ts` (token pairs, light, dark, desk) and
+  `e2e/readability.spec.ts` (in-page WCAG audit of ten offline screens × light/dark × phone/desktop,
+  `e2e/readability-audit.ts`; hidden, `aria-hidden`, disabled and half-visible carousel neighbours are skipped).
+- **Fixed chrome.** `.page-surface`, `.search-home`, `.model-status-view`, `.patient-notes-view` pad their bottom by the
+  navigation clearance (`--bottom-nav-clearance`); the scroll-to-top button (and the floating tools above it) now stands
+  in the navigation's own row beside the bar (`--floating-control-bottom`), never over page content; the download ring
+  is a 16 px badge pushed to the corner with a 44 px hit area that reaches away from the tab. The test scrolls ten
+  screens to their end at 375×812, 812×375 and 1280×800 and fails when the bar covers a visible in-flow control or
+  text (`coveredByNavigation`). Not covered: the six-tab navigation (`splitNavigation: true`) is wider than a phone, so
+  the scroll-top button cannot stand beside it at 375 px there.
+- **Result cards.** Titles wrap (`overflow-wrap: anywhere`, a soft break after «+»); the «[НАБОР]» marker moves into a
+  meta line (`splitResultTitle`); a snippet cut by the core in the middle of a word loses the stub
+  (`tidySnippetEnd`); the type badge and title lead, then the text, then **one footer line**: «Ещё N фрагментов» (a
+  `Disclosure` with the new `action` slot) and the download offer or «В том же наборе» on the right
+  (`result-group__foot` for a card with one fragment). The search grid uses `LayoutVirtualizedGrid align="start"`, so
+  cards keep their own height at 768/1280. The meaning-model offer is one slim row (title + «Жалобы своими словами ·
+  129 МБ» + «Скачать»); «Клинический разбор» above the results is one line with a «?» popover.
+- **Source picker.** Names wrap to two lines at a word (no marquee: `MarqueeText` removed), rows, expand and download
+  buttons are 44 px, counts 13 px.
+- **Typography.** `text-wrap: pretty` on the body, `balance` on headings and `*__title`; `bindNumberUnits` /
+  `joinNumberUnit` (`i18n/no-break.ts`) keep a number with its unit, «%», «°» and «№» (used for download sizes on
+  search chips; other number formatters can adopt it); text floor 13 px (`--type-micro`, `--theme-type-*` and every CSS
+  font size below it raised by `bun scripts/css-font-floor.mjs`, re-run it after a rebase; the print sheets, image
+  viewers, ECG/drawing editors, PDF viewer, diary and nav badges keep their sizes); reading blocks stop at 66ch from
+  760 px; the desk behind the pages is a darker tan (`--theme-background`), not grey.
+- **Tap targets.** `.ui-button` 44 px, icon buttons, nav, search chips and the named small controls (help «?»,
+  carousel arrows and dots, form rule «?», toast close, pin stars, clear) 44 px by size or by an `::after` hit area;
+  `e2e/readability.spec.ts` checks the home screen controls. Still under 44 px: the vaccination chart cells and
+  age buttons (dense grid, VIS2), calculator-section download buttons (44×40, VIS2), onboarding and tour buttons that
+  set their own smaller `--ui-button-height`.
+- **Home.** Capability cards are compact (icon + name + «?», one line of text, actions); the kicker row is gone.
+  Лента stays in the web build (PubMed and the four browser-readable sources work there): the dead-end line now carries
+  a «Скачать APK» link.
+- **Scrollbars.** Fine pointers get thin, ink-coloured scrollbars for the page and inner containers
+  (`scrollbar-width: thin`, `--theme-scrollbar-thumb`, OverlayScrollbars handles; `.scrollbar-themed` carries the
+  WebKit fallback on `<html>`); touch keeps its overlay bars. **Horizontal strips show no scrollbar and show arrows**:
+  `HorizontalScroller` always did, the native strips (news sources, recent calculators, drug section index, search
+  suggestions, spreadsheet sheet tabs) now use `<ScrollStripArrows>` inside a `scroll-strip`. Wide content (tables,
+  code, charts, PDF columns) keeps a thin scrollbar: it is content, not a strip.
+- **Not done / not tested.** Real devices and WebKit (Safari/iOS) were not run; the e2e ran against the Vite dev
+  server, not a release build. The inline `//` hints of calculator and assessment screens (VIS2) and the drug/document
+  screens (DRUG-UI1, DOC-UI1) were left to their owners except where a shared token or rule fixes them.
+
 ## Drug screen: the text on the first screen — 2026-10-14 (STATE DRUG-UI1)
 
 Owner 2026-10-14: opening a drug, the instruction text must start on the first screen, everything

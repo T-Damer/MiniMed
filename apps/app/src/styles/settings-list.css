@@ -296,7 +296,7 @@
 
 .reference-image-examples__caption {
   color: var(--theme-text-muted);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   line-height: 1.3;
   overflow-wrap: anywhere;
 }

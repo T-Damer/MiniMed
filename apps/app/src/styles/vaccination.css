@@ -22,7 +22,7 @@
 
 .vax__count {
   color: var(--theme-text-muted);
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
   white-space: nowrap;
 }
 
@@ -40,7 +40,7 @@
   gap: 0.2rem 0.9rem;
   padding-top: 0.4rem;
   color: var(--theme-text-muted);
-  font-size: 0.74rem;
+  font-size: 0.8125rem;
   line-height: 1.4;
 }
 
@@ -162,7 +162,7 @@
 
 .vax-status__label {
   color: var(--theme-text-muted);
-  font-size: 0.64rem;
+  font-size: 0.8125rem;
   line-height: 1.2;
 }
 
@@ -280,7 +280,7 @@
   border-left: 1px solid var(--theme-border);
   color: var(--theme-text-muted);
   background: var(--theme-surface-muted);
-  font-size: 0.62rem;
+  font-size: 0.8125rem;
   font-weight: 650;
   letter-spacing: 0.02em;
   text-align: center;
@@ -308,7 +308,7 @@
   border: 0;
   color: var(--theme-text);
   background: transparent;
-  font-size: 0.72rem;
+  font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
   font-weight: 650;
   cursor: pointer;
@@ -327,7 +327,7 @@
   border-right: 1px solid var(--theme-border);
   border-bottom: 1px solid var(--theme-border);
   background: var(--theme-surface-raised);
-  font-size: 0.7rem;
+  font-size: 0.8125rem;
   font-weight: 650;
   hyphens: auto;
   line-height: 1.15;
@@ -385,7 +385,7 @@
   margin: 0;
   padding: 0;
   border-radius: 0.55rem;
-  font-size: 0.72rem;
+  font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   line-height: 1;
@@ -429,7 +429,7 @@
   border-radius: 50%;
   color: var(--theme-accent-contrast);
   font-family: var(--font-sans, inherit);
-  font-size: 0.65rem;
+  font-size: 0.8125rem;
   font-weight: 800;
   line-height: 1;
   pointer-events: none;
@@ -492,7 +492,7 @@
   border-radius: 999px;
   color: var(--theme-accent-contrast);
   background: var(--theme-accent);
-  font-size: 0.62rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   line-height: 1.2;
   transform: translateX(-50%);
@@ -505,7 +505,7 @@
   margin: 0;
   padding: 0;
   color: var(--theme-text-muted);
-  font-size: 0.74rem;
+  font-size: 0.8125rem;
   list-style: none;
 }
 
@@ -576,7 +576,7 @@
   display: -webkit-box;
   overflow: hidden;
   color: var(--theme-text-muted);
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
   line-height: 1.35;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -634,14 +634,14 @@
 .vax-dose__label {
   padding: 0.05rem 0.45rem;
   border-radius: 0.35rem;
-  font-size: 0.76rem;
+  font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
   font-weight: 700;
 }
 
 .vax-dose__status {
   color: var(--theme-text-muted);
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
 }
 
 .vax-dose__text {
@@ -653,7 +653,7 @@
 .vax-dose__note {
   margin: 0;
   color: var(--theme-text-muted);
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
   line-height: 1.35;
 }
 
@@ -736,7 +736,7 @@
 .vax-source {
   display: grid;
   gap: 0.1rem;
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 
 .vax-source__link {
@@ -747,7 +747,7 @@
 
 .vax-source__page {
   color: var(--theme-text-muted);
-  font-size: 0.74rem;
+  font-size: 0.8125rem;
 }
 
 .vax-table-wrap {
@@ -811,7 +811,7 @@
 }
 
 .vax-table__cell--source {
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 
 .vax-blocks {
@@ -843,7 +843,7 @@
 
 .vax-amendment__note {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 
 .vax-cards {
@@ -885,7 +885,7 @@
 .vax-cards__label {
   margin: 0;
   color: var(--theme-text-muted);
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
   font-weight: 650;
 }
 
@@ -916,7 +916,7 @@
 .vax-procedure__footnote,
 .vax-procedure__amended {
   color: var(--theme-text-muted);
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
 }
 
 /* Print preview. */

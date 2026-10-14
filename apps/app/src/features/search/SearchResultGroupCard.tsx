@@ -8,7 +8,8 @@ import { AtcMatchBadge } from '@/features/medications/AtcMatchBadge';
 import { SearchResultFragment } from '@/features/search/SearchResultFragment';
 import {
   orderResultsForDisplay,
-  tidyResultTitle,
+  softBreakPluses,
+  splitResultTitle,
 } from '@/features/search/search-result-presentation';
 import { RESULT_TYPE_VISUALS, resultTypeVisual } from '@/features/search/searchResultKindVisuals';
 import { pluralRu } from '@/i18n/labels';
@@ -38,6 +39,12 @@ export function SearchResultGroupCard(props: {
       : props.group.terminologyMatch === 'related-term'
         ? 'Смежное понятие MeSH — не клинический вывод'
         : undefined;
+  const title = () => splitResultTitle(props.group.title);
+  const hasMeta = () =>
+    title().meta !== undefined ||
+    contentLabel() !== undefined ||
+    props.group.atcMatch !== undefined ||
+    props.qualifier !== undefined;
   const results = () => {
     const ordered = orderResultsForDisplay(props.group.results);
     return props.group.documentKind === 'medication' ? ordered.slice(0, 3) : ordered;
@@ -49,61 +56,64 @@ export function SearchResultGroupCard(props: {
       onOpen={() => props.onOpenResult(result)}
     />
   );
+  const moreCount = () => results().length - 1;
   return (
     <section class="result-group" data-document-id={props.group.documentId}>
-      <div
-        class="result-group__head"
-        classList={{ 'result-group__head--with-action': action() !== undefined }}
+      <button
+        type="button"
+        class="result-group-header"
+        onClick={() => props.onOpenDocument(props.group.documentId)}
       >
-        <button
-          type="button"
-          class="result-group-header"
-          onClick={() => props.onOpenDocument(props.group.documentId)}
-        >
-          <span
-            class="result-group-header__index"
-            classList={{ 'result-group-header__index--under-action': action() !== undefined }}
-            aria-hidden="true"
-          >
-            {String(props.index + 1).padStart(2, '0')}
-          </span>
+        <span class="result-group-header__index" aria-hidden="true">
+          {String(props.index + 1).padStart(2, '0')}
+        </span>
 
-          <span class="result-group-header__body">
-            <span
-              class="result-group-header__kind"
-              classList={{ 'result-group-header__kind--with-action': action() !== undefined }}
-            >
-              <AppGlyph name={kind().icon} class="result-group-header__kind-icon" />
-              <span class="result-group-header__kind-label">{kind().label}</span>
-            </span>
-            <Show when={contentLabel()}>
-              {(label) => <span class="result-group-header__content-kind">{label()}</span>}
-            </Show>
-            <strong class="result-group-header__title">
-              <IcdText text={tidyResultTitle(props.group.title)} />
-            </strong>
-            <Show when={props.group.atcMatch}>
-              {(match) => <AtcMatchBadge class="result-group-header__atc" match={match()} />}
-            </Show>
-            <Show when={props.qualifier}>
-              {(qualifier) => <span class="result-group-header__qualifier">{qualifier()}</span>}
-            </Show>
+        <span class="result-group-header__body">
+          <span class="result-group-header__kind">
+            <AppGlyph name={kind().icon} class="result-group-header__kind-icon" />
+            <span class="result-group-header__kind-label">{kind().label}</span>
           </span>
-        </button>
-        {action()}
-      </div>
+          <strong class="result-group-header__title">
+            <IcdText text={softBreakPluses(title().title)} />
+          </strong>
+          <Show when={hasMeta()}>
+            <span class="result-group-header__meta">
+              <Show when={title().meta}>
+                {(meta) => <span class="result-group-header__meta-item">{meta()}</span>}
+              </Show>
+              <Show when={contentLabel()}>
+                {(label) => <span class="result-group-header__meta-item">{label()}</span>}
+              </Show>
+              <Show when={props.qualifier}>
+                {(qualifier) => <span class="result-group-header__meta-item">{qualifier()}</span>}
+              </Show>
+              <Show when={props.group.atcMatch}>
+                {(match) => <AtcMatchBadge class="result-group-header__atc" match={match()} />}
+              </Show>
+            </span>
+          </Show>
+        </span>
+      </button>
       <div class="result-group__snippets">
         <For each={results().slice(0, 1)}>{renderExcerpt}</For>
-        <Show when={results().length > 1}>
-          <Disclosure
-            variant="inline"
-            class="result-group__more"
-            title={`Найдено ещё в ${results().length - 1} ${pluralRu(results().length - 1, 'фрагменте', 'фрагментах', 'фрагментах')}`}
-          >
-            <For each={results().slice(1)}>{renderExcerpt}</For>
-          </Disclosure>
-        </Show>
       </div>
+      <Show
+        when={moreCount() > 0}
+        fallback={
+          <Show when={action() !== undefined}>
+            <div class="result-group__foot">{action()}</div>
+          </Show>
+        }
+      >
+        <Disclosure
+          variant="inline"
+          class="result-group__more"
+          action={action()}
+          title={`Ещё ${moreCount()} ${pluralRu(moreCount(), 'фрагмент', 'фрагмента', 'фрагментов')}`}
+        >
+          <For each={results().slice(1)}>{renderExcerpt}</For>
+        </Disclosure>
+      </Show>
     </section>
   );
 }

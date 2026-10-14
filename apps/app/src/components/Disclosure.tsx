@@ -15,6 +15,11 @@ export interface DisclosureProps {
   /** Short trailing meta such as a count; rendered before the chevron. */
   readonly meta?: JSX.Element;
   readonly description?: string;
+  /**
+   * A control that shares the header's row (a download chip, say). It stays outside the toggle
+   * button, so interactive content never nests inside it.
+   */
+  readonly action?: JSX.Element;
   readonly class?: string;
   readonly children: JSX.Element;
 }
@@ -35,6 +40,33 @@ export function Disclosure(props: DisclosureProps): JSX.Element {
     setOwnOpen(next);
     props.onToggle?.(next);
   };
+  // Rendered once per branch of the `Show` below; only one of them is ever on screen.
+  const header = (): JSX.Element => (
+    <button
+      class="ui-disclosure__header"
+      classList={{ 'ui-disclosure__header--with-action': props.action !== undefined }}
+      type="button"
+      aria-expanded={open()}
+      aria-controls={panelId}
+      onClick={toggle}
+    >
+      <span
+        class="ui-disclosure__heading"
+        classList={{ 'ui-disclosure__heading--compact': props.action !== undefined }}
+      >
+        <span class="ui-disclosure__title">{props.title}</span>
+        <Show when={props.description}>
+          {(description) => <span class="ui-disclosure__description">{description()}</span>}
+        </Show>
+      </span>
+      <Show when={props.meta !== undefined}>
+        <span class="ui-disclosure__meta">{props.meta}</span>
+      </Show>
+      <span class="ui-disclosure__chevron" classList={{ 'ui-disclosure__chevron--open': open() }}>
+        <AppGlyph name="caret-down" class="ui-disclosure__chevron-icon" />
+      </span>
+    </button>
+  );
   return (
     <section
       class={`ui-disclosure ${props.class ?? ''}`.trim()}
@@ -43,26 +75,12 @@ export function Disclosure(props: DisclosureProps): JSX.Element {
         'ui-disclosure--inline': props.variant === 'inline',
       }}
     >
-      <button
-        class="ui-disclosure__header"
-        type="button"
-        aria-expanded={open()}
-        aria-controls={panelId}
-        onClick={toggle}
-      >
-        <span class="ui-disclosure__heading">
-          <span class="ui-disclosure__title">{props.title}</span>
-          <Show when={props.description}>
-            {(description) => <span class="ui-disclosure__description">{description()}</span>}
-          </Show>
-        </span>
-        <Show when={props.meta !== undefined}>
-          <span class="ui-disclosure__meta">{props.meta}</span>
-        </Show>
-        <span class="ui-disclosure__chevron" classList={{ 'ui-disclosure__chevron--open': open() }}>
-          <AppGlyph name="caret-down" class="ui-disclosure__chevron-icon" />
-        </span>
-      </button>
+      <Show when={props.action !== undefined} fallback={header()}>
+        <div class="ui-disclosure__bar">
+          {header()}
+          <div class="ui-disclosure__action">{props.action}</div>
+        </div>
+      </Show>
       <div
         class="ui-disclosure__panel"
         classList={{ 'ui-disclosure__panel--open': open() }}

@@ -349,7 +349,7 @@ html:has(.user-document-reader--sheet-fullscreen) .app-bottom-nav {
   padding-inline: 0.6rem;
   border-right: 1px solid #dadce0;
   color: #3c4043;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 
@@ -370,7 +370,7 @@ html:has(.user-document-reader--sheet-fullscreen) .app-bottom-nav {
   color: #202124;
   background: #fff;
   font: inherit;
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
 }
 
 .rich-sheet__formula-input:focus {
@@ -395,7 +395,7 @@ html:has(.user-document-reader--sheet-fullscreen) .app-bottom-nav {
   border-radius: 999px;
   color: var(--theme-text-muted);
   background: transparent;
-  font-size: 0.7rem;
+  font-size: 0.8125rem;
 }
 
 .rich-sheet__tab--active {
@@ -437,7 +437,7 @@ html:has(.user-document-reader--sheet-fullscreen) .app-bottom-nav {
   color: var(--theme-text);
   background: var(--theme-surface);
   font: inherit;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   cursor: pointer;
 }
 
@@ -481,7 +481,7 @@ html:has(.user-document-reader--sheet-fullscreen) .app-bottom-nav {
 
 .rich-sheet__edit-status {
   color: var(--theme-text-muted);
-  font-size: 0.7rem;
+  font-size: 0.8125rem;
 }
 
 .rich-sheet__edit-status--editor {
@@ -492,7 +492,7 @@ html:has(.user-document-reader--sheet-fullscreen) .app-bottom-nav {
   margin: 0;
   padding: 0.65rem;
   color: var(--theme-danger);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 
 .rich-sheet__sheet {
@@ -527,7 +527,7 @@ html:has(.user-document-reader--sheet-fullscreen) .app-bottom-nav {
   color: #111;
   background: #fff;
   font-family: Calibri, Arial, sans-serif;
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
 }
 
 .rich-sheet__row-number-column {
@@ -644,7 +644,7 @@ html:has(.user-document-reader--sheet-fullscreen) .app-bottom-nav {
   border-radius: 0;
   color: #5f6368;
   background: #fff;
-  font-size: 0.72rem;
+  font-size: 0.8125rem;
   white-space: nowrap;
 }
 

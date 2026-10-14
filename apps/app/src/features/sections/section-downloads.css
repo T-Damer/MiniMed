@@ -32,7 +32,7 @@
 .section-downloads__hint {
   margin: 0;
   color: var(--theme-text-muted);
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
   line-height: 1.4;
 }
 
@@ -147,7 +147,7 @@
 
 .section-downloads__summary {
   color: var(--theme-text-muted);
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
   line-height: 1.35;
 }
 
@@ -157,7 +157,7 @@
   align-items: center;
   gap: 0.375rem;
   color: var(--theme-text-muted);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
 }
 
 .section-downloads__mark {
@@ -208,7 +208,7 @@
 
 .section-downloads__part-title {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   text-transform: uppercase;

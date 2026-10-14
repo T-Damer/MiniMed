@@ -16,7 +16,7 @@
   color: var(--ink);
   background: var(--theme-search-surface-muted);
   font: inherit;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
 }
 
 .search-source-picker:focus-visible {
@@ -127,7 +127,7 @@ fieldset.search-mode-picker::-webkit-scrollbar {
 .search-mode-option-copy strong {
   overflow: hidden;
   font-family: var(--font-sans);
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;

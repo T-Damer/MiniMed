@@ -15,7 +15,7 @@
 .ui-choice-group__legend {
   margin: 0 0 0.1rem;
   color: var(--theme-text-muted);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 
@@ -87,7 +87,7 @@
 .ui-choice-group__option-hint,
 .ui-choice-group__hint,
 .ui-choice-group__error {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   line-height: 1.35;
 }
 

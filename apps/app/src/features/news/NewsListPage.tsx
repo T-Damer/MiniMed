@@ -32,6 +32,7 @@ import { BROWSER_FEEDS_MESSAGE, feedsNeedNativeApp } from '@/features/news/news-
 import { hasItems, type Subscription } from '@/features/news/news-types';
 import { openThroughAvatarTransition } from '@/features/news/news-view-transition';
 import { hostLabel } from '@/features/news/source-url';
+import { ANDROID_APK_URL } from '../../../../../release';
 
 /** Entries drawn at first, and added each time the end of the list comes near. */
 const PAGE_SIZE = 60;
@@ -249,7 +250,10 @@ export function NewsListPage(props: { readonly snapshot: Accessor<NewsSnapshot> 
           <Show when={feedsNeedNativeApp()}>
             <p class="news-page__banner" role="status" data-testid="news-web-hint">
               <AppGlyph name="info" class="news-page__banner-icon" />
-              {BROWSER_FEEDS_MESSAGE}
+              <span class="news-page__banner-copy">{BROWSER_FEEDS_MESSAGE}</span>
+              <a class="news-page__banner-link" href={ANDROID_APK_URL}>
+                Скачать APK
+              </a>
             </p>
           </Show>
         </Match>

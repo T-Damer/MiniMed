@@ -33,7 +33,7 @@
 .package-row__notice {
   margin: 0.4rem 0 0;
   color: var(--theme-warning);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   line-height: 1.45;
 }
 .package-row__error {
@@ -52,7 +52,7 @@
   min-width: 0;
 }
 .package-row__state {
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   line-height: 1.35;
   text-align: end;
   color: var(--theme-text-muted);

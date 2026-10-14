@@ -12,21 +12,15 @@ export function EcgHomeEntry(): JSX.Element {
   return (
     <section class="ecg-home" aria-labelledby="ecg-home-title" data-tour="ecg-entry">
       <div class="ecg-home__head">
-        <span class="ecg-home__kicker">
-          <AppGlyph class="ecg-home__kicker-icon" name="heartbeat" />
-          Фото ЭКГ
-        </span>
-        <HelpIconLink href={`#/calculators/${ECG_PHOTO_CALIPER_ID}`} />
-      </div>
-      <div class="ecg-home__copy">
         <h2 class="ecg-home__title" id="ecg-home-title">
+          <AppGlyph class="ecg-home__title-icon" name="heartbeat" />
           ЭКГ по фото
         </h2>
-        <p class="ecg-home__text">
-          RR, ЧСС, PR, QRS, QT и QTc по снимку ленты. Разметку вы проверяете по шагам, фото не
-          покидает устройство.
-        </p>
+        <HelpIconLink href={`#/calculators/${ECG_PHOTO_CALIPER_ID}`} />
       </div>
+      <p class="ecg-home__text">
+        RR, ЧСС, PR, QRS, QT и QTc по снимку, фото остаётся на устройстве
+      </p>
       <div class="ecg-home__actions">
         <EcgPhotoPicker
           stretch

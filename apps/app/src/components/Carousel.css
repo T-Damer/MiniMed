@@ -134,11 +134,15 @@
   justify-content: center;
 }
 
-/* A small visible dot inside a finger-sized hit area; the current one stretches into a pill. */
+/* A small visible dot in a 28 × 44 px box; its `::after` reaches 44 × 44 px, so neighbouring hit areas
+   share only their outer 8 px. The row keeps its 20 px height (negative block margin), and four dots plus
+   the arrows still fit beside «Скрыть» at 375 px. The current dot is a pill. */
 .carousel__dot {
-  width: 1.25rem;
-  height: 1.25rem;
-  padding: 0.375rem;
+  position: relative;
+  width: 1.75rem;
+  height: 2.75rem;
+  padding: 1.125rem 0.625rem;
+  margin-block: -0.75rem;
   border: 0;
   border-radius: 999px;
   background: var(--theme-border);
@@ -149,8 +153,18 @@
     background-color 200ms ease-out;
 }
 
+.carousel__dot::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2.75rem;
+  height: 2.75rem;
+  content: "";
+  transform: translate(-50%, -50%);
+}
+
 .carousel__dot--active {
-  width: 1.875rem;
+  width: 2.375rem;
   background-color: var(--theme-accent);
 }
 

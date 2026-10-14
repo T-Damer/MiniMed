@@ -31,7 +31,7 @@
   flex: none;
   align-items: center;
   gap: 0.4rem;
-  min-height: 2.25rem;
+  min-height: 2.75rem;
   padding: 0.3rem 0.8rem;
   border: 1px solid var(--theme-primary-edge);
   border-radius: 999px;
@@ -70,7 +70,7 @@
 .search-quick-access__hint {
   align-self: center;
   color: var(--theme-text-muted);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   white-space: nowrap;
 }
 
@@ -285,7 +285,7 @@
   gap: 0.15rem 0.4rem;
   min-width: 0;
   color: var(--theme-text-muted);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
 }
 
 .quick-tool-row__kind {

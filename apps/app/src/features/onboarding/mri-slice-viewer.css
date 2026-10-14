@@ -43,7 +43,7 @@
   display: grid;
   gap: 0.125rem;
   color: var(--theme-text-muted);
-  font-size: 0.7rem;
+  font-size: 0.8125rem;
   line-height: 1.35;
 }
 
@@ -126,7 +126,7 @@
   color: var(--theme-text);
   background: var(--theme-surface-raised);
   box-shadow: 0 0.25rem 0.75rem rgb(0 0 0 / 30%);
-  font-size: 0.72rem;
+  font-size: 0.8125rem;
   line-height: 1.35;
   visibility: hidden;
   opacity: 0;

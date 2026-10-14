@@ -25,6 +25,8 @@ interface LayoutVirtualizedGridProps<T> {
   readonly columns?: number;
   readonly maxColumns?: LayoutColumnCount;
   readonly minColumns?: LayoutColumnCount;
+  /** `start` lets each card keep its own height instead of growing to the tallest of its row. */
+  readonly align?: 'stretch' | 'start';
   /**
    * Keep each item's DOM node for as long as the item (by reference) stays in `data`, also when an
    * insertion or a new order moves it into another row, and give keyboard focus back to it after
@@ -79,6 +81,7 @@ export function LayoutVirtualizedGrid<T>(props: LayoutVirtualizedGridProps<T>): 
     <div class="layout-card-row">
       <div
         class="layout-card-grid"
+        classList={{ 'layout-card-grid--start': props.align === 'start' }}
         style={{ '--layout-cols': String(Math.min(columns(), count())) }}
       >
         {cells()}

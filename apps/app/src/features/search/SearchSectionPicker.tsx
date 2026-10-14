@@ -11,7 +11,6 @@ import {
   Show,
 } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
-import { MarqueeText } from '@/components/MarqueeText';
 import { SearchField } from '@/components/SearchField';
 import { SheetPopover } from '@/components/SheetPopover';
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
@@ -26,16 +25,6 @@ import type { SearchSectionDownloads } from '@/features/search/useSearchSectionD
 import { SETTINGS_DOWNLOADS_HASH } from '@/features/settings/settings-routing';
 import { formatCount } from '@/i18n/format-count';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
-
-/** Hover or keyboard focus anywhere in a row lets its long name scroll into view. */
-function engagement(setEngaged: (engaged: boolean) => void) {
-  return {
-    onPointerEnter: () => setEngaged(true),
-    onPointerLeave: () => setEngaged(false),
-    onFocusIn: () => setEngaged(true),
-    onFocusOut: () => setEngaged(false),
-  };
-}
 
 export function SearchSectionPicker(props: {
   readonly loading: boolean;
@@ -164,7 +153,6 @@ export function SearchSectionPicker(props: {
                 props.scope === section().id &&
                 !props.group &&
                 !(groups().length > 0 && (Boolean(query().trim()) || expanded() === section().id));
-              const [sectionEngaged, setSectionEngaged] = createSignal(false);
               return (
                 <div
                   class="search-section-menu__section"
@@ -180,7 +168,6 @@ export function SearchSectionPicker(props: {
                       // The whole row carries the selection, not only the label button.
                       'search-section-menu__row--selected': sectionSelected(),
                     }}
-                    {...engagement(setSectionEngaged)}
                   >
                     <button
                       class="search-section-menu__option search-section-menu__option--top"
@@ -189,12 +176,7 @@ export function SearchSectionPicker(props: {
                       onClick={() => select(section().id)}
                     >
                       <AppGlyph name={section().icon} class="search-section-menu__icon" />
-                      <MarqueeText
-                        class="search-section-menu__label"
-                        active={sectionSelected() || sectionEngaged()}
-                      >
-                        {section().label}
-                      </MarqueeText>
+                      <span class="search-section-menu__label">{section().label}</span>
                     </button>
                     <SearchSectionDownload
                       label={section().label}
@@ -232,14 +214,12 @@ export function SearchSectionPicker(props: {
                       {(group) => {
                         const groupSelected = () =>
                           props.scope === section().id && props.group === group().id;
-                        const [groupEngaged, setGroupEngaged] = createSignal(false);
                         return (
                           <div
                             class="search-section-menu__row search-section-menu__row--child"
                             classList={{
                               'search-section-menu__row--selected': groupSelected(),
                             }}
-                            {...engagement(setGroupEngaged)}
                           >
                             <button
                               class="search-section-menu__option search-section-menu__option--child"
@@ -262,12 +242,7 @@ export function SearchSectionPicker(props: {
                                   )}
                                 </For>
                               </span>
-                              <MarqueeText
-                                class="search-section-menu__label"
-                                active={groupSelected() || groupEngaged()}
-                              >
-                                {group().label}
-                              </MarqueeText>
+                              <span class="search-section-menu__label">{group().label}</span>
                             </button>
                             <SearchSectionDownload
                               label={group().label}

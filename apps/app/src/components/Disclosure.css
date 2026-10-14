@@ -57,6 +57,32 @@
   transition: background-color 160ms ease-out;
 }
 
+/* A control sharing the header's row: the toggle takes the free width, the control keeps its own. */
+.ui-disclosure__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-inline-end: 0.75rem;
+}
+
+.ui-disclosure__header--with-action {
+  justify-content: flex-start;
+  width: auto;
+  min-width: 0;
+  flex: 1 1 auto;
+  margin-inline: 0;
+}
+
+.ui-disclosure__heading--compact {
+  flex: 0 1 auto;
+}
+
+.ui-disclosure__action {
+  display: flex;
+  flex: none;
+  align-items: center;
+}
+
 .ui-disclosure__header:hover {
   background: var(--theme-accent-soft);
 }
@@ -93,7 +119,7 @@
   border-radius: 999px;
   background: var(--theme-surface-muted);
   color: var(--theme-text-muted);
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   text-align: center;

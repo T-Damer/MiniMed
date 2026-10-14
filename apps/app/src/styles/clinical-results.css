@@ -27,7 +27,7 @@
   border-radius: 0 0.4rem 0.4rem 0;
   color: var(--theme-text);
   background: var(--theme-warning-soft);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   line-height: 1.45;
 }
 
@@ -51,7 +51,7 @@
   color: var(--theme-text-muted);
   background: var(--theme-surface);
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.25;
 }
@@ -69,8 +69,7 @@
 }
 
 .result-group-header__title {
-  overflow: hidden;
-  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .results-more {
@@ -104,7 +103,7 @@
   flex: 0 0 auto;
   min-height: 2.4rem;
   padding: 0.5rem 0.85rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
 }
 
 .reader-header__close {

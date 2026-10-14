@@ -41,6 +41,6 @@
 
 .ui-checkbox__hint {
   color: var(--theme-text-muted);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   line-height: 1.35;
 }

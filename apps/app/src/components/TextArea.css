@@ -6,7 +6,7 @@
 
 .ui-text-area__label {
   color: var(--theme-text-muted);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 
@@ -59,7 +59,7 @@
 
 .ui-text-area__hint,
 .ui-text-area__error {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   line-height: 1.35;
 }
 

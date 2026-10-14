@@ -151,7 +151,7 @@ test('the tool row stays under the field while results show; «Все инстр
   expect(strip.y - (field.y + field.height)).toBeLessThan(40);
 });
 
-test('a found part shows three lines, unrolls in place, and the rest are «Найдено ещё в N»', async ({
+test('a found part shows three lines, unrolls in place, and the rest are «Ещё N фрагментов»', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 375, height: 812 });
@@ -178,9 +178,9 @@ test('a found part shows three lines, unrolls in place, and the rest are «На�
   await open.click();
   await expect.poll(async () => (await text.boundingBox())?.height ?? 0).toBeCloseTo(collapsed, 0);
 
-  const more = page.getByRole('button', { name: /^Найдено ещё в \d+ фрагмент(е|ах)$/u }).first();
+  const more = page.getByRole('button', { name: /^Ещё \d+ фрагмент(а|ов)?$/u }).first();
   await expect(more).toBeVisible();
-  await expect(page.getByText(/^Ещё \d+ фрагмент/u)).toHaveCount(0);
+  await expect(page.getByText(/Найдено ещё в/u)).toHaveCount(0);
 });
 
 /** The active position dot names the slide in view: «Функция 2 из 4» → 2. */
@@ -644,13 +644,6 @@ test('the source overlay names a medication card and drops its storage note', as
     .filter({ has: page.locator('.result-group-header__kind-label', { hasText: 'Препарат' }) })
     .first();
   await expect(group).toBeVisible({ timeout: 60_000 });
-  // The ghost index numeral would sit half behind the download chip, so a card with one has none.
-  for (const withAction of await page
-    .locator('.result-group')
-    .filter({ has: page.locator('.result-group__action') })
-    .all()) {
-    await expect(withAction.locator('.result-group-header__index')).toBeHidden();
-  }
   await group.getByTestId('search-result').first().click();
   const overlay = page.getByTestId('reader-context');
   await expect(overlay.locator('.archive-kicker')).toHaveText(/^В (инструкции|справочнике)/u);
@@ -828,7 +821,7 @@ test('renders the complete virtualized document list', async ({ page }, testInfo
   await expect(expandable).toBeVisible();
   const excerpts = expandable.getByTestId('search-result').filter({ visible: true });
   await expect(excerpts).toHaveCount(1);
-  const toggle = expandable.getByRole('button', { name: /^Найдено ещё в \d+ фрагмент/u });
+  const toggle = expandable.getByRole('button', { name: /^Ещё \d+ фрагмент/u });
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
   await toggle.click();
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');

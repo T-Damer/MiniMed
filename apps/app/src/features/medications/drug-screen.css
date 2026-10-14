@@ -544,7 +544,7 @@
 
 .atc-sheet__source {
   color: var(--theme-text-faint);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
 }
 
 /* The ladder the user tapped (a drug with an agreed code and the registry's stub has two). */

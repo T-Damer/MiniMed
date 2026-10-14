@@ -219,8 +219,12 @@ test.describe('news feed tab', () => {
     await expect(page).toHaveURL(/#\/news$/u);
     await expect(page.getByTestId('news-empty')).toBeVisible();
     // The web build says once that feeds load in the Android app; nothing is preselected.
-    await expect(page.getByTestId('news-web-hint')).toHaveText(
+    await expect(page.getByTestId('news-web-hint')).toContainText(
       'Ленты загружаются в приложении для Android.',
+    );
+    await expect(page.getByTestId('news-web-hint').getByRole('link')).toHaveAttribute(
+      'href',
+      /\.apk$/u,
     );
     await expect(page.getByTestId('news-unread-badge')).toHaveCount(0);
 

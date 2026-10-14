@@ -227,7 +227,7 @@
 
 .module-document-row span {
   color: var(--theme-text-muted);
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
 }
 
 .module-document-row-openable:hover {
@@ -468,7 +468,7 @@
   width: 100%;
   align-self: end;
   color: var(--theme-text-muted);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   line-height: 1.35;
 }
 

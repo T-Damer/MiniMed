@@ -456,9 +456,8 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       render: () => (
         <HomeFeatureCard
           icon="image"
-          kicker="КТ и МРТ"
           title="Просмотр исследований"
-          text="DICOM и NIfTI открываются на устройстве: срезы в трёх плоскостях, 3D и контраст. Откройте свой снимок или перетащите файл."
+          text="DICOM и NIfTI: срезы, 3D и контраст на устройстве"
           action={
             mriExample()
               ? {
@@ -480,9 +479,8 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       render: () => (
         <HomeFeatureCard
           icon="microphone"
-          kicker="Приём"
           title="Запись беседы"
-          text="Запишите разговор на приёме и прикрепите запись к карточке пациента. Запись хранится только на устройстве."
+          text="Запись приёма в карточку пациента, только на устройстве"
           action={{
             label: 'Начать запись',
             icon: 'microphone',
@@ -498,9 +496,8 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       render: () => (
         <HomeFeatureCard
           icon={DRUG_COMPARISON_TOOL.icon}
-          kicker="Препараты"
           title={DRUG_COMPARISON_TOOL.title}
-          text="Два–четыре препарата рядом: МНН, группа АТХ, формы и дозировки, условия отпуска и разделы официальных инструкций дословно, с пометками совпадений и различий."
+          text="Два–четыре препарата рядом, разделы инструкций дословно"
           action={{
             label: 'Сравнить',
             icon: DRUG_COMPARISON_TOOL.icon,

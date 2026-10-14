@@ -3,7 +3,7 @@
   align-items: center;
   justify-content: center;
   gap: var(--ui-button-gap, 0.45rem);
-  min-height: var(--ui-button-height, 2.6rem);
+  min-height: var(--ui-button-height, 2.75rem);
   padding: var(--ui-button-padding-block, 0.6rem) var(--ui-button-padding-inline, 0.85rem);
   border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
   border-radius: 0.65rem;
@@ -79,10 +79,10 @@
 }
 
 .ui-button--icon {
-  width: var(--ui-icon-button-size, 2.6rem);
-  height: var(--ui-icon-button-size, 2.6rem);
-  min-width: var(--ui-icon-button-size, 2.6rem);
-  min-height: var(--ui-icon-button-size, 2.6rem);
+  width: var(--ui-icon-button-size, 2.75rem);
+  height: var(--ui-icon-button-size, 2.75rem);
+  min-width: var(--ui-icon-button-size, 2.75rem);
+  min-height: var(--ui-icon-button-size, 2.75rem);
   aspect-ratio: 1;
   padding: 0;
 }

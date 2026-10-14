@@ -114,7 +114,7 @@ test('the first run shows no status line while the download waits for the greeti
 });
 
 for (const width of [360, 390, 1280]) {
-  test(`the source card puts a compact download button in its header at ${width}px`, async ({
+  test(`the source card puts a compact download button on its footer line at ${width}px`, async ({
     page,
   }, testInfo) => {
     await page.setViewportSize({ width, height: 900 });
@@ -131,21 +131,25 @@ for (const width of [360, 390, 1280]) {
     // The sentence stays in the accessible name; only the size is printed.
     await expect(chip).toHaveAccessibleName(/^Скачать полный текст · .+ · [\d.,\s]+(КБ|МБ|ГБ)$/u);
     await expect(chip).toHaveText(/^[\d.,\s]+(КБ|МБ|ГБ)$/u);
-    const [header, box] = await Promise.all([
+    const [header, box, card] = await Promise.all([
       group.locator('.result-group-header').boundingBox(),
       chip.boundingBox(),
+      group.boundingBox(),
     ]);
-    if (!header || !box) throw new Error('The card header or the button has no box.');
+    if (!header || !box || !card) throw new Error('The card, its header or the button has no box.');
     expect(box.height).toBeLessThanOrEqual(40);
     expect(box.width).toBeLessThanOrEqual(140);
-    // Inside the header block, not a row of its own below it.
-    expect(box.y).toBeGreaterThanOrEqual(header.y);
-    expect(box.y + box.height).toBeLessThanOrEqual(header.y + header.height);
-    expect(box.x + box.width).toBeLessThanOrEqual(header.x + header.width);
-    // The kind badge on the same line gives it room.
-    const kind = await group.locator('.result-group-header__kind').boundingBox();
-    if (!kind) throw new Error('The kind badge has no box.');
-    expect(kind.x + kind.width).toBeLessThanOrEqual(box.x);
+    // One footer line under the text, inside the card: neither over the title nor a block of its own.
+    expect(box.y).toBeGreaterThanOrEqual(header.y + header.height);
+    expect(box.x + box.width).toBeLessThanOrEqual(card.x + card.width);
+    expect(box.y + box.height).toBeLessThanOrEqual(card.y + card.height);
+    // «Ещё N фрагментов» shares that line when the card has more fragments.
+    const more = group.locator('.ui-disclosure__header');
+    if ((await more.count()) > 0) {
+      const toggle = await more.boundingBox();
+      if (!toggle) throw new Error('The fragments toggle has no box.');
+      expect(Math.abs(toggle.y + toggle.height / 2 - (box.y + box.height / 2))).toBeLessThan(12);
+    }
     await group.screenshot({ path: testInfo.outputPath(`source-card-${width}.png`) });
   });
 }

@@ -232,7 +232,7 @@
   color: var(--theme-text);
   background: var(--theme-warning-soft);
   font: inherit;
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
   text-align: start;
   cursor: pointer;
   transition:
@@ -618,7 +618,7 @@
 
 .conversation-inbox__meta {
   color: var(--theme-text-muted);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 
 .conversation-inbox__meta--warning {

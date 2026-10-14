@@ -27,7 +27,7 @@
 
 .saved-items__count {
   color: var(--theme-text-muted);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   font-weight: 500;
 }
 
@@ -95,7 +95,7 @@
 
 .saved-items__meta {
   color: var(--theme-text-muted);
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
 }
 
 .saved-items__remove {

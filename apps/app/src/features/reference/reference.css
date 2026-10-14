@@ -93,7 +93,7 @@
   border-radius: 999px;
   background: var(--theme-surface-muted);
   color: var(--theme-text-muted);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
 }
 
 /* One dictionary entry: the term, the source's words, and where they stand. */
@@ -123,7 +123,7 @@
   border-radius: 999px;
   color: var(--theme-text-muted);
   background: var(--theme-surface-muted);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   line-height: 1.4;
 }
 

@@ -83,7 +83,7 @@ body:has(.note-markdown-editor--fullscreen) {
   background: transparent;
   box-shadow: none;
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
@@ -289,7 +289,7 @@ body:has(.note-markdown-editor--fullscreen) {
   border-radius: var(--theme-radius-control);
   background: var(--theme-surface-muted);
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   line-height: 1.5;
 }
 
@@ -498,7 +498,7 @@ body:has(.note-markdown-editor--fullscreen) {
   background: transparent;
   box-shadow: none;
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
@@ -633,7 +633,7 @@ body:has(.note-markdown-editor--fullscreen) {
 }
 
 .note-markdown-editor__slash-title {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
@@ -645,7 +645,7 @@ body:has(.note-markdown-editor--fullscreen) {
   color: var(--theme-text);
   background: var(--theme-surface-raised);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.8125rem;
   text-align: center;
 }
 
@@ -702,7 +702,7 @@ body:has(.note-markdown-editor--fullscreen) {
 
 .note-markdown-editor__slash-hint {
   color: var(--theme-text-muted);
-  font-size: 0.72rem;
+  font-size: 0.8125rem;
 }
 
 .note-markdown-editor__slash-command--active {
@@ -713,7 +713,7 @@ body:has(.note-markdown-editor--fullscreen) {
   margin: 0;
   padding: 0.75rem;
   color: var(--theme-text-muted);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -742,7 +742,7 @@ body:has(.note-markdown-editor--fullscreen) {
   margin: 0;
   padding: 0.625rem 0.75rem;
   color: var(--theme-text-muted);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 
 .note-markdown-wysiwyg__surface a[href^="#/"] {

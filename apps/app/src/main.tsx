@@ -46,6 +46,7 @@ import '@/styles/notes-polish.css';
 import '@/styles/reader-polish.css';
 import '@/styles/floating-windows.css';
 import '@/styles/primary-depth.css';
+import '@/styles/readability.css';
 
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element.');
@@ -53,6 +54,8 @@ if (!root) throw new Error('Missing #root element.');
 installChunkRecovery();
 const stopMotionManager = installMotionManager();
 const stopTheme = installTheme();
+// Thin theme-coloured page scrollbar in WebKit engines without `scrollbar-width` (readability.css).
+document.documentElement.classList.add('scrollbar-themed');
 render(() => <App />, root);
 const stopNativeSafeBottomLock = lockNativeSafeBottom();
 const stopReminderNotifications = startReminderNotifications();

@@ -142,7 +142,8 @@ export function presentResultSnippet(
   result: Pick<SearchResult, 'snippet' | 'highlightedRanges' | 'sectionPath'>,
 ): { readonly text: string; readonly ranges: readonly TextRange[] } {
   const presented = presentCleanedSnippet(result);
-  return tidySnippetStart(presented.text, presented.ranges);
+  const started = tidySnippetStart(presented.text, presented.ranges);
+  return tidySnippetEnd(started.text, started.ranges);
 }
 
 /** A snippet cut out of a longer text starts with «…» and a word: the first word is the cut one. */
@@ -180,6 +181,29 @@ export function tidySnippetStart(
     };
   }
   return { text, ranges };
+}
+
+/**
+ * The end of a snippet cut by the core: «…на пе…» ends in the middle of a word. The stub is dropped
+ * and the mark stays after the last whole word; a highlight that reached into the stub is shortened
+ * to the kept text, one that lay wholly in it is dropped.
+ */
+export function tidySnippetEnd(
+  text: string,
+  ranges: readonly TextRange[],
+): { readonly text: string; readonly ranges: readonly TextRange[] } {
+  if (!/[\p{L}\p{N}]…$/u.test(text)) return { text, ranges };
+  const body = text.slice(0, -1);
+  const boundary = body.search(/\s\S*$/u);
+  if (boundary <= 0) return { text, ranges };
+  const kept = body.slice(0, boundary).trimEnd();
+  if (kept === '') return { text, ranges };
+  return {
+    text: `${kept}…`,
+    ranges: ranges
+      .filter((range) => range.start < kept.length)
+      .map((range) => ({ start: range.start, end: Math.min(range.end, kept.length) })),
+  };
 }
 
 function presentCleanedSnippet(
@@ -305,6 +329,27 @@ export function repeatedResultTitles(titles: readonly string[]): ReadonlySet<str
     seen.add(title);
   }
   return repeated;
+}
+
+/**
+ * A title for a card header: a trailing «[НАБОР]» marker moves out of the title into `meta` (the
+ * header shows it as a small note), and a «+» between active substances may break the line.
+ */
+export function splitResultTitle(title: string): {
+  readonly title: string;
+  readonly meta: string | undefined;
+} {
+  const tidy = tidyResultTitle(title);
+  const match = /\s*\[([^\]]{1,24})\]$/u.exec(tidy);
+  if (!match || match.index === 0) return { title: tidy, meta: undefined };
+  const marker = match[1] ?? '';
+  const meta = marker.charAt(0).toLocaleUpperCase('ru') + marker.slice(1).toLocaleLowerCase('ru');
+  return { title: tidy.slice(0, match.index).trimEnd(), meta };
+}
+
+/** A «+» between active substances is where a long title prefers to break its line. */
+export function softBreakPluses(title: string): string {
+  return title.replace(/\+(?=\S)/gu, '+\u200B');
 }
 
 /** A title as written by a person: «( Очаговая пневмония )» loses the space inside its brackets. */

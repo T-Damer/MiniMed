@@ -62,7 +62,8 @@ export function SemanticModelOffer(props: SemanticModelOfferProps): JSX.Element 
       <AppGlyph name="brain" class="semantic-model-offer__icon" />
       <p class="semantic-model-offer__text">
         <Show when={!failed()} fallback="Не удалось скачать модель поиска по смыслу.">
-          Жалобы и описания своими словами находит поиск по смыслу
+          <strong class="semantic-model-offer__title">Поиск по смыслу</strong>
+          <span class="semantic-model-offer__detail">Жалобы своими словами · {SIZE_LABEL}</span>
         </Show>
       </p>
       <Button
@@ -72,7 +73,7 @@ export function SemanticModelOffer(props: SemanticModelOfferProps): JSX.Element 
         disabled={downloading()}
         onClick={install}
       >
-        {downloading() ? `${progress()}%` : `Скачать · ${SIZE_LABEL}`}
+        {downloading() ? `${progress()}%` : failed() ? 'Повторить' : 'Скачать'}
       </Button>
     </section>
   );

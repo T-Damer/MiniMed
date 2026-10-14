@@ -49,12 +49,12 @@ function HomeFeatureActionControl(props: {
 }
 
 /**
- * One capability on the home screen: what it does, one way to try it right now and, when there is
- * one, a second way in the same row. «Как это работает» is a round «?» in the card's header.
+ * One capability on the home screen: its name, one line on what it does, one way to try it right
+ * now and, when there is one, a second way in the same row. «Как это работает» is a round «?»
+ * beside the name.
  */
 export function HomeFeatureCard(props: {
   readonly icon: AppGlyphName;
-  readonly kicker: string;
   readonly title: string;
   readonly text: string;
   readonly action: HomeFeatureAction;
@@ -65,18 +65,13 @@ export function HomeFeatureCard(props: {
   return (
     <section class="home-feature" aria-labelledby={titleId}>
       <div class="home-feature__head">
-        <span class="home-feature__kicker">
-          <AppGlyph class="home-feature__kicker-icon" name={props.icon} />
-          {props.kicker}
-        </span>
-        <Show when={props.helpHref}>{(href) => <HelpIconLink href={href()} />}</Show>
-      </div>
-      <div class="home-feature__copy">
         <h2 class="home-feature__title" id={titleId}>
+          <AppGlyph class="home-feature__title-icon" name={props.icon} />
           {props.title}
         </h2>
-        <p class="home-feature__text">{props.text}</p>
+        <Show when={props.helpHref}>{(href) => <HelpIconLink href={href()} />}</Show>
       </div>
+      <p class="home-feature__text">{props.text}</p>
       <div class="home-feature__actions">
         <HomeFeatureActionControl action={props.action} />
         <Show when={props.secondary}>

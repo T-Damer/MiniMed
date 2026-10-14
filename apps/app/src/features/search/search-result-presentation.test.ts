@@ -8,7 +8,9 @@ import {
   repeatedResultTitles,
   resultQualifier,
   sourceContextKicker,
+  splitResultTitle,
   tidyResultTitle,
+  tidySnippetEnd,
   tidySnippetStart,
 } from '@/features/search/search-result-presentation';
 
@@ -220,5 +222,34 @@ describe('the qualifier of a repeated title', () => {
         versionLabel: 'Редакция 2024',
       }),
     ).toBe('Редакция 2024');
+  });
+});
+
+describe('the end of a cut snippet', () => {
+  it('drops a word stub before the closing mark and shortens its highlights', () => {
+    const text = 'Аллергия на пенициллин – это реакция на пе…';
+    const result = tidySnippetEnd(text, [
+      { start: 12, end: 22 },
+      { start: 40, end: 42 },
+    ]);
+    expect(result.text).toBe('Аллергия на пенициллин – это реакция на…');
+    expect(result.ranges).toEqual([{ start: 12, end: 22 }]);
+  });
+
+  it('leaves a snippet that ends at a word boundary or has no mark', () => {
+    expect(tidySnippetEnd('Полный текст.', []).text).toBe('Полный текст.');
+    expect(tidySnippetEnd('Конец предложения, …', []).text).toBe('Конец предложения, …');
+    expect(tidySnippetEnd('слово…', []).text).toBe('слово…');
+  });
+});
+
+describe('the title of a result card', () => {
+  it('moves a trailing «[НАБОР]» marker into the meta line', () => {
+    expect(splitResultTitle('АМОКСИЦИЛЛИН+КЛАРИТРОМИЦИН+ОМЕПРАЗОЛ [НАБОР]')).toEqual({
+      title: 'АМОКСИЦИЛЛИН+КЛАРИТРОМИЦИН+ОМЕПРАЗОЛ',
+      meta: 'Набор',
+    });
+    expect(splitResultTitle('Пневмония [ J18 ] у детей').meta).toBeUndefined();
+    expect(splitResultTitle('[НАБОР]').meta).toBeUndefined();
   });
 });

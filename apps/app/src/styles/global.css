@@ -177,7 +177,8 @@ button:disabled {
   --os-handle-bg-active: var(--theme-accent);
 }
 
-.horizontal-scroll-frame.hide-scrollbar .os-scrollbar {
+/* A horizontal strip never shows a scrollbar: its arrows say that it scrolls. */
+.horizontal-scroll-frame .os-scrollbar {
   display: none !important;
 }
 
@@ -200,7 +201,7 @@ button:disabled {
 
 .horizontal-scroll-control::after {
   position: absolute;
-  inset: -0.9375rem;
+  inset: -1rem;
   content: "";
 }
 
@@ -477,7 +478,7 @@ code {
 
 .archive-status strong {
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   letter-spacing: 0.1em;
 }
 
@@ -1004,7 +1005,7 @@ main {
   border-radius: var(--theme-radius-control);
   color: var(--theme-text);
   background: var(--theme-surface-raised);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
 }
 
 .fact-tag__label {
@@ -1036,7 +1037,7 @@ main {
   color: var(--theme-text);
   background: var(--theme-surface-raised);
   cursor: pointer;
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -1085,7 +1086,7 @@ main {
   border-top: 1px solid var(--theme-border);
   color: var(--theme-text-muted);
   font-family: var(--font-serif);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-style: italic;
 }
 
@@ -1123,7 +1124,7 @@ main {
   background: color-mix(in srgb, var(--theme-surface-raised) 52%, transparent);
   cursor: pointer;
   font-family: var(--font-serif);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   line-height: 1.38;
   text-align: left;
 }
@@ -1306,14 +1307,14 @@ main {
 }
 
 .result-group-header__title {
-  display: -webkit-box;
-  overflow: hidden;
+  display: block;
   font-family: var(--font-serif);
   font-size: 0.875rem;
   font-weight: 600;
   line-height: 1.35;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+  /* A title wraps (an active-substance combination has no spaces: it breaks anywhere). */
+  overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -1864,7 +1865,7 @@ main {
   background: transparent;
   cursor: pointer;
   font-family: var(--font-serif);
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   line-height: 1.25;
   text-align: left;
 }
@@ -2184,7 +2185,7 @@ main {
   .archive-tabs button {
     min-width: 0;
     padding: 0 0.5rem;
-    font-size: 0.6875rem;
+    font-size: 0.8125rem;
   }
 
   .archive-tabs button span {

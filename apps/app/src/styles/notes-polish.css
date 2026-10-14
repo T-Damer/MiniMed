@@ -2,7 +2,7 @@
   display: grid;
   gap: 0.55rem;
   padding: 0.65rem 0.7rem;
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
 }
 
 .note-result-card__header {
@@ -54,7 +54,7 @@
 
 .note-result-card__heading span {
   color: var(--theme-text-muted);
-  font-size: 0.7rem;
+  font-size: 0.8125rem;
   line-height: 1.35;
 }
 
@@ -79,7 +79,7 @@
 }
 
 .note-result-card__value-row strong {
-  font-size: 0.76rem;
+  font-size: 0.8125rem;
   font-weight: 750;
 }
 
@@ -89,7 +89,7 @@
 .note-result-card__warnings p {
   margin: 0;
   color: var(--theme-text-muted);
-  font-size: 0.7rem;
+  font-size: 0.8125rem;
   line-height: 1.45;
   white-space: pre-wrap;
 }
@@ -284,7 +284,7 @@
 
 .patient-notes-templates__description {
   color: var(--theme-text-muted);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   line-height: 1.35;
 }
 
@@ -378,7 +378,7 @@
   border-radius: 999px;
   color: var(--theme-text);
   background: var(--theme-accent-soft);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   line-height: 1.2;
 }
 
@@ -537,7 +537,7 @@
   border-radius: 0.5rem;
   color: var(--theme-text);
   background: var(--theme-surface-raised);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
 }
 
 .patient-note-record-file img {
@@ -636,7 +636,7 @@
 
 .patient-note-record-inline-file__hint {
   color: var(--theme-text-muted);
-  font-size: 0.7rem;
+  font-size: 0.8125rem;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -748,13 +748,13 @@
 .note-transcript__status,
 .note-transcript__hint {
   color: var(--theme-text-muted);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
 }
 
 .note-transcript__error {
   margin: 0;
   color: var(--theme-danger);
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
 }
 
 .note-transcript__hint {
@@ -783,7 +783,7 @@
 .note-transcript__speaker-role.ui-button {
   min-height: 1.9rem;
   padding: 0.2rem 0.45rem;
-  font-size: 0.68rem;
+  font-size: 0.8125rem;
 }
 
 .note-transcript__segments {
@@ -806,19 +806,19 @@
 .note-transcript__time {
   color: var(--theme-text-faint);
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
 }
 
 .note-transcript__speaker {
   color: var(--theme-accent);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
 }
 
 .note-transcript__segment-text {
   min-width: 0;
   color: var(--theme-text);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   line-height: 1.45;
 }
 
@@ -862,7 +862,7 @@
   overflow: auto;
   color: var(--theme-text);
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
@@ -883,7 +883,7 @@
   min-height: 2rem;
   padding: 0.3rem 0.55rem;
   color: var(--theme-text-muted);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
 }
 
 .note-attachment-viewer__markdown.safe-markdown {
@@ -1138,7 +1138,7 @@
   justify-content: center;
   color: var(--theme-text-muted);
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
   white-space: nowrap;
@@ -1222,7 +1222,7 @@
 }
 
 .asr-settings__model-state {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
 }
 
 /* ==highlight== mark */
@@ -1256,7 +1256,7 @@
   color: var(--theme-text);
   background: var(--paper-light);
   font: inherit;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
 }
 
 .native-datetime-field--empty .native-datetime-field__value {
@@ -1356,7 +1356,7 @@
 
 .note-file-block__name {
   overflow: hidden;
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1561,7 +1561,7 @@
   max-width: 100%;
   overflow: hidden;
   color: color-mix(in srgb, var(--theme-text) 78%, var(--theme-text-muted));
-  font-size: 0.7rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;

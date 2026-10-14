@@ -20,17 +20,35 @@
   background: var(--theme-background);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  /* Smallest readable label size; uppercase mono stamps below this were unreadable on phones. */
-  --type-micro: 0.6875rem;
-  --theme-background: #777266;
+  /* Smallest readable label size (13 px): smaller uppercase mono stamps were unreadable on phones. */
+  --type-micro: 0.8125rem;
+  --theme-background: #8f7d57;
   --theme-surface: #f3ecd9;
   --theme-surface-raised: #fbf7ea;
   --theme-surface-muted: #e6dcc4;
   --theme-border: #cbc0a7;
   --theme-text: #292720;
-  --theme-text-muted: #585349;
-  --theme-text-faint: #615b50;
+  /* Secondary text: at least 4.5:1 on every paper surface (the darkest, the ATC row, included). */
+  --theme-text-muted: #524d43;
+  --theme-text-faint: #58534a;
   --theme-accent: #405b4e;
+  /* Accent-coloured text (codes, links on tinted chips); `--theme-accent` itself stays the fill. */
+  --theme-accent-text: #34503f;
+  /* Text that sits straight on the tan route desk (darker than the paper values): readability.css
+     remaps the text tokens to these inside the desk containers. */
+  --theme-desk-text-muted: #33302a;
+  --theme-desk-text-faint: #33302a;
+  --theme-desk-link: #1b3128;
+  --theme-desk-accent-text: #1b3128;
+  --theme-desk-kicker: #4d2620;
+  /* The paper values again, for surfaces nested in a desk container. */
+  --theme-paper-text-muted: var(--theme-text-muted);
+  --theme-paper-text-faint: var(--theme-text-faint);
+  --theme-paper-link: var(--theme-link);
+  --theme-paper-kicker: var(--theme-kicker);
+  /* Scrollbars (fine pointers): thin, in the ink colour of the theme. */
+  --theme-scrollbar-thumb: color-mix(in srgb, var(--theme-text) 38%, transparent);
+  --theme-scrollbar-thumb-hover: color-mix(in srgb, var(--theme-text) 58%, transparent);
   --theme-accent-contrast: #f8f0dd;
   --theme-accent-soft: rgb(64 91 78 / 12%);
   --theme-link: #355b49;
@@ -95,9 +113,9 @@
   --theme-outline-width: 0.125rem;
   --theme-outline-offset: 0.1875rem;
   --theme-outline-tight-offset: 1px;
-  --theme-type-label: 0.6875rem;
-  --theme-type-field-label: 0.78rem;
-  --theme-type-caption: 0.75rem;
+  --theme-type-label: 0.8125rem;
+  --theme-type-field-label: 0.8125rem;
+  --theme-type-caption: 0.8125rem;
   --theme-type-response: clamp(0.68rem, 1.3vw, 0.8rem);
   --theme-weight-label: 700;
   --theme-weight-emphasis: 750;
