@@ -75,7 +75,9 @@ test('an opened clinical recommendation starts its text on the first screen unde
     await page.mouse.wheel(0, 500);
     await page.waitForTimeout(120);
   }
-  const bubble = page.locator('.reader-section-path__line--shown [data-reader-page-bubble="summary"]');
+  const bubble = page.locator(
+    '.reader-section-path__line--shown [data-reader-page-bubble="summary"]',
+  );
   await expect(bubble).toBeVisible();
   await expect(page.locator('[data-reader-page-dock]')).toHaveCount(0);
   const box = await bubble.boundingBox();
@@ -94,7 +96,11 @@ test('a legal act opens on its text, names its kind on one line and shows no raw
 
   await expectTextOnFirstScreen(page, '.document-text-chunk', 300);
   await expect(page.locator('.document-overlay-paper__meta')).toContainText('Приказ');
-  expect(await page.locator('.document-overlay-paper__meta').evaluate((node) => node.getBoundingClientRect().height)).toBeLessThan(30);
+  expect(
+    await page
+      .locator('.document-overlay-paper__meta')
+      .evaluate((node) => node.getBoundingClientRect().height),
+  ).toBeLessThan(30);
 
   // The official address in the source section is a link named by its site, not the long URL.
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
@@ -112,7 +118,9 @@ test('a short ICD-10 card keeps its text and offer on the first screen with one-
 }) => {
   test.setTimeout(240_000);
   await mountBuiltApp(page);
-  await page.goto(documentRoute('core.catalog.pointer.reference.rls.mkb.node.c74-345c5cb6f8b1122e'));
+  await page.goto(
+    documentRoute('core.catalog.pointer.reference.rls.mkb.node.c74-345c5cb6f8b1122e'),
+  );
   await page.locator('.document-overlay-paper__title').waitFor({ timeout: 90_000 });
   await expect(page.locator('.document-module-pointer__action')).toBeVisible();
   await expectTextOnFirstScreen(page, '.document-text-chunk', FIRST_SCREEN_TEXT_LIMIT);
@@ -176,7 +184,9 @@ test('a damaged document link says «Документ не найден» and ha
   await expect(notFound).toHaveCount(0);
 });
 
-test('an address no source knows shows «Документ не найден» inside the reader', async ({ page }) => {
+test('an address no source knows shows «Документ не найден» inside the reader', async ({
+  page,
+}) => {
   await mountBuiltApp(page);
   await page.goto(documentRoute('no.such.document'));
   await expect(page.locator('.document-page__error')).toContainText('Документ не найден', {

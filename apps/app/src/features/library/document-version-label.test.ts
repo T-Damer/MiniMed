@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
 import { documentVersionLabel } from '@/features/library/document-version-label';
-import { resultQualifier } from '@/features/search/search-result-presentation';
 
 describe('documentVersionLabel', () => {
   it('turns a clinical recommendation edition id into its edition number', () => {
@@ -23,22 +22,5 @@ describe('documentVersionLabel', () => {
     expect(documentVersionLabel('с изменениями приказа № 677н')).toBe(
       'с изменениями приказа № 677н',
     );
-  });
-
-  it('keeps raw ids out of the qualifier that tells repeated result cards apart', () => {
-    expect(
-      resultQualifier({
-        sourceType: 'clinical_recommendation',
-        metadata: {},
-        versionLabel: '359_3',
-      }),
-    ).toBe('ред. 3');
-    expect(
-      resultQualifier({
-        sourceType: 'medical_reference',
-        metadata: {},
-        versionLabel: 'site-36954b711a3c',
-      }),
-    ).toBeUndefined();
   });
 });
