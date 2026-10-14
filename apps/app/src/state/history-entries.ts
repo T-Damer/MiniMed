@@ -34,6 +34,12 @@ export interface HistoryEntryInfo {
   /** Number of app entries below this one; 0 when none is known. */
   readonly depth: number;
   readonly position?: ReaderPosition;
+  /**
+   * The entry was pushed for a layer (sheet, dialog, preview) that sits over the page at the same
+   * address (`history-layer.ts`). Once the layer is gone the entry is a dead one and is stepped
+   * over when the history reaches it.
+   */
+  readonly layer?: boolean;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -57,7 +63,12 @@ export function readHistoryEntry(state: unknown): HistoryEntryInfo | null {
   if (typeof id !== 'string' || id === '') return null;
   if (typeof depth !== 'number' || !Number.isInteger(depth) || depth < 0) return null;
   const position = parsePosition(raw['position']);
-  return { id, depth, ...(position ? { position } : {}) };
+  return {
+    id,
+    depth,
+    ...(position ? { position } : {}),
+    ...(raw['layer'] === true ? { layer: true } : {}),
+  };
 }
 
 /** The `history.state` value with the stamp replaced; other keys of the state are kept. */
@@ -98,6 +109,24 @@ let lastEntry: HistoryEntryInfo | null = null;
 let lastLength = 0;
 
 /**
+ * Where the entries of the current branch point: `places[depth]` is the address (search and hash)
+ * of the entry at that depth. It lets the app step back to a place it has already been in, rather
+ * than stack the same address again. Entries above the current one are forward entries and may be
+ * stale; only the ones below it are read.
+ */
+const places: string[] = [];
+
+function currentPlace(): string {
+  return `${window.location.search}${window.location.hash}`;
+}
+
+function recordPlace(entry: HistoryEntryInfo, restart: 'none' | 'branch' | 'all'): void {
+  if (restart === 'all') places.length = 0;
+  else if (restart === 'branch') places.length = entry.depth;
+  places[entry.depth] = currentPlace();
+}
+
+/**
  * Looks at the entry the page is on now and stamps it if the app has not. Safe to call any number of
  * times (every navigation event, and before every read): a stamped entry is only remembered.
  */
@@ -111,9 +140,58 @@ export function observeHistoryEntry(): HistoryEntryInfo {
   });
   const entry = stamp ?? (readHistoryEntry(state) as HistoryEntryInfo);
   if (stamp) window.history.replaceState(withHistoryEntry(state, stamp), '');
+  // A stamped arrival is a traversal and only refreshes its own place; a push drops the entries
+  // above it from the branch; an unknown arrival starts the branch over.
+  recordPlace(entry, stamp ? (stamp.depth === 0 ? 'all' : 'branch') : 'none');
   lastEntry = entry;
   lastLength = window.history.length;
   return entry;
+}
+
+/**
+ * Pushes an entry at the current address that the app itself stamps (a layer over the page): one
+ * level deeper than the entry it covers. Returns its stamp.
+ */
+export function pushStampedEntry(state: unknown, layer: boolean): HistoryEntryInfo {
+  const below = observeHistoryEntry();
+  const entry: HistoryEntryInfo = {
+    id: newEntryId(),
+    depth: below.depth + 1,
+    ...(layer ? { layer: true } : {}),
+  };
+  window.history.pushState(withHistoryEntry(state, entry), '', window.location.href);
+  recordPlace(entry, 'branch');
+  lastEntry = entry;
+  lastLength = window.history.length;
+  return entry;
+}
+
+/**
+ * How many entries back an earlier visit to this address lies on the current branch (`-1` is the
+ * entry below), or `null` when it was not visited in this page load.
+ */
+export function stepsBackToPlace(place: string): number | null {
+  const entry = currentHistoryEntry();
+  for (let depth = entry.depth - 1; depth >= 0; depth -= 1) {
+    if (places[depth] === place) return depth - entry.depth;
+  }
+  return null;
+}
+
+/** The address of the entry the page is on, in the form {@link stepsBackToPlace} compares. */
+export function placeOf(hash: string, search = ''): string {
+  return `${search}${hash}`;
+}
+
+type ArrivalListener = (entry: HistoryEntryInfo, previous: HistoryEntryInfo | null) => void;
+const arrivalListeners = new Set<ArrivalListener>();
+
+/** Called for every arrival the tracker sees (back, forward, hash change, after the stamp). */
+export function onHistoryArrival(listener: ArrivalListener): () => void {
+  arrivalListeners.add(listener);
+  return () => {
+    arrivalListeners.delete(listener);
+  };
 }
 
 /** The stamp of the entry the page is on. */
@@ -166,9 +244,17 @@ export function flushReaderPositions(): void {
  * page hides. Returns the function that stops it.
  */
 export function installHistoryEntryTracking(): () => void {
-  observeHistoryEntry();
+  const first = observeHistoryEntry();
+  // A reload on an entry that was a layer: the layer is gone, the entry is a page now.
+  if (first.layer) {
+    const { layer: _layer, ...page } = first;
+    window.history.replaceState(withHistoryEntry(window.history.state, page), '');
+    lastEntry = page;
+  }
   const observe = (): void => {
-    observeHistoryEntry();
+    const previous = lastEntry;
+    const entry = observeHistoryEntry();
+    for (const listener of arrivalListeners) listener(entry, previous);
   };
   const flushOnHide = (): void => {
     if (document.visibilityState === 'hidden') flushReaderPositions();
@@ -193,5 +279,7 @@ export function installHistoryEntryTracking(): () => void {
 export function resetHistoryEntryTrackingForTests(): void {
   lastEntry = null;
   lastLength = 0;
+  places.length = 0;
   flushers.clear();
+  arrivalListeners.clear();
 }

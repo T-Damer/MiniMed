@@ -1,6 +1,8 @@
 import { Breadcrumbs } from '@kobalte/core/breadcrumbs';
 import { For, type JSX, Show } from 'solid-js';
 
+import { visitRoute } from '@/state/app-back';
+
 export interface AppBreadcrumbItem {
   readonly label: string;
   readonly href?: string;
@@ -29,7 +31,15 @@ export function AppBreadcrumbs(props: AppBreadcrumbsProps): JSX.Element {
   const lastIndex = (): number => props.items.length - 1;
 
   const openHref = (event: MouseEvent, href: string): void => {
-    if (!props.onNavigate) return;
+    // A crumb is a way up: when the history holds that place below, it steps back to it.
+    if (!props.onNavigate) {
+      if (!href.startsWith('#/') || event.defaultPrevented) return;
+      if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey)
+        return;
+      event.preventDefault();
+      visitRoute(href);
+      return;
+    }
     event.preventDefault();
     props.onNavigate(href);
   };
@@ -59,7 +69,7 @@ export function AppBreadcrumbs(props: AppBreadcrumbsProps): JSX.Element {
                           classList={{ 'document-crumbs__current': isCurrent() }}
                           current={isCurrent()}
                           {...(!isCurrent() && item.href ? { href: item.href } : {})}
-                          {...(!isCurrent() && item.href && props.onNavigate
+                          {...(!isCurrent() && item.href
                             ? {
                                 onClick: (event: MouseEvent) =>
                                   openHref(event, item.href as string),

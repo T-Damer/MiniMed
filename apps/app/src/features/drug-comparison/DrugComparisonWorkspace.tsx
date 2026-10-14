@@ -29,8 +29,10 @@ import { type PairView, printPairs } from '@/features/drug-interactions/interact
 import { AtcMatchBadge } from '@/features/medications/AtcMatchBadge';
 import { loadAtcNames } from '@/features/medications/atc-names';
 import { displayDrugName } from '@/features/medications/drug-screen';
+import { notesDrugComparisonPath } from '@/features/notes/notes-routing';
 import { PrintManager } from '@/features/printing/print-manager';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
+import { replaceToolUrl } from '@/state/tool-url-state';
 import { ComparisonMatrix, ComparisonSources } from './ComparisonMatrix';
 import { ComparisonSections } from './ComparisonSections';
 import { decodeDrug, type FoundDrug, findDrugs, resolveDrugName } from './comparison-candidates';
@@ -160,6 +162,19 @@ export function DrugComparisonWorkspace(props: {
       setUnresolved(missing);
       setResolving(false);
     })();
+  });
+
+  // The chosen drugs live in the address, so back from a drug screen, a tab round trip and a reload
+  // bring them back. Only once the drugs the tool was opened with are resolved.
+  createEffect(() => {
+    if (resolving()) return;
+    replaceToolUrl(
+      '#/notes/drug-comparison',
+      notesDrugComparisonPath(
+        [],
+        items().map((item) => item.id),
+      ),
+    );
   });
 
   // The drug search box.

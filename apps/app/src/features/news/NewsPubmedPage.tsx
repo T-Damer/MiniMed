@@ -32,6 +32,7 @@ import {
   pubmedSearchPageUrl,
 } from '@/features/news/pubmed';
 import type { PubmedSearchResult } from '@/features/news/pubmed-client';
+import { navigateBack } from '@/state/app-back';
 
 type SearchState =
   | { readonly kind: 'idle' }
@@ -143,7 +144,7 @@ export function NewsPubmedPage(props: { readonly snapshot: Accessor<NewsSnapshot
             class="knowledge-back-button"
             aria-label="К ленте"
             onClick={() => {
-              window.location.hash = NEWS_ROOT_HASH;
+              navigateBack(NEWS_ROOT_HASH);
             }}
           />
         }

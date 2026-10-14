@@ -1,11 +1,13 @@
 import { render } from 'solid-js/web';
 
 import { App } from '@/app/App';
+import { BootScreen } from '@/app/BootScreen';
 import { lockNativeSafeBottom } from '@/app/lock-native-safe-bottom';
 import { registerAppServiceWorker } from '@/state/app-update';
 import { installChunkRecovery } from '@/state/chunk-recovery';
 import { installMotionManager } from '@/state/motion';
 import { startReminderNotifications } from '@/state/reminder-notifications';
+import { isStandbyTab, resumeFromStandby } from '@/state/tab-takeover';
 import { installTheme } from '@/state/theme';
 import 'overlayscrollbars/overlayscrollbars.css';
 import '@/styles/theme.css';
@@ -56,9 +58,26 @@ const stopMotionManager = installMotionManager();
 const stopTheme = installTheme();
 // Thin theme-coloured page scrollbar in WebKit engines without `scrollbar-width` (readability.css).
 document.documentElement.classList.add('scrollbar-themed');
-render(() => <App />, root);
-const stopNativeSafeBottomLock = lockNativeSafeBottom();
-const stopReminderNotifications = startReminderNotifications();
+// A tab that was asked to hand the database to another one opens nothing: the reload released its
+// workers and locks, and this page only offers to take the database back (state/tab-takeover.ts).
+const standby = isStandbyTab();
+if (standby) {
+  render(
+    () => (
+      <BootScreen
+        error={undefined}
+        bootSlow={false}
+        waitingForOtherTab
+        onUseHere={resumeFromStandby}
+      />
+    ),
+    root,
+  );
+} else {
+  render(() => <App />, root);
+}
+const stopNativeSafeBottomLock = standby ? () => undefined : lockNativeSafeBottom();
+const stopReminderNotifications = standby ? () => undefined : startReminderNotifications();
 if (import.meta.hot) {
   import.meta.hot.dispose(() => {
     stopMotionManager();
@@ -68,7 +87,7 @@ if (import.meta.hot) {
   });
 }
 
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
+if (!standby && 'serviceWorker' in navigator && import.meta.env.PROD) {
   void registerAppServiceWorker().catch(() => {
     console.warn('Не удалось проверить обновление приложения.');
   });

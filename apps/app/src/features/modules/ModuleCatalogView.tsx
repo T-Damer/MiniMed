@@ -104,6 +104,7 @@ import {
   recommendationCountLabel,
   sectionCountLabel,
 } from '@/i18n/labels';
+import { navigateBack } from '@/state/app-back';
 import { getModuleAutoUpdatesEnabled, subscribeAppPreferences } from '@/state/app-preferences';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentOverlay } from '@/state/document-navigation';
@@ -273,7 +274,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     syncSelectionFromLocation();
   };
   const closeCoreLibrary = (): void => {
-    window.location.hash = '#/modules/documents';
+    navigateBack('#/modules/documents');
     syncSelectionFromLocation();
   };
   const openCategory = (categoryId: string): void => {
@@ -1136,7 +1137,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
             onInstall={() => install(module())}
             onRemove={() => requestRemove(module().id)}
             onBack={() => {
-              window.location.hash = '#/modules/documents/collection/regulatory';
+              navigateBack('#/modules/documents/collection/regulatory');
               syncSelectionFromLocation();
             }}
           />

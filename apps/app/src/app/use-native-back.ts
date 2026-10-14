@@ -1,9 +1,11 @@
 import { App as NativeApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { type Accessor, onCleanup, onMount } from 'solid-js';
-import { nativeBackAction } from '@/app/native-back';
+import { nativeBackTargets } from '@/app/native-back';
 import type { RootView } from '@/app/root-view';
+import { backOneLayer } from '@/state/app-back';
 import { getSplitNavigation } from '@/state/app-preferences';
+import { popTopHistoryLayer } from '@/state/history-layer';
 import { returnFromTool } from '@/state/tool-navigation';
 
 export function useNativeBack(options: {
@@ -12,7 +14,7 @@ export function useNativeBack(options: {
 }): void {
   onMount(async () => {
     if (Capacitor.getPlatform() !== 'android') return;
-    const listener = await NativeApp.addListener('backButton', ({ canGoBack }) => {
+    const listener = await NativeApp.addListener('backButton', () => {
       const openDialogs = document.querySelectorAll<HTMLElement>('[aria-modal="true"]');
       const openDialog = openDialogs[openDialogs.length - 1];
       if (openDialog) {
@@ -23,6 +25,8 @@ export function useNativeBack(options: {
         if (!closeButton) window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
         return;
       }
+      // Previews, menus and popovers are history layers: the topmost one closes first.
+      if (popTopHistoryLayer()) return;
       if (document.querySelector('.document-find--open')) {
         window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
         return;
@@ -42,22 +46,14 @@ export function useNativeBack(options: {
         nativePrintBack.click();
         return;
       }
-      if (document.querySelector('.search-section-menu')) {
-        document.querySelector<HTMLButtonElement>('.search-source-picker')?.click();
-        return;
-      }
       const route = window.location.hash.replace(/^#\/?/u, '');
       if (!/\/results\//u.test(route) && returnFromTool()) return;
-      const action = nativeBackAction(route, options.view(), canGoBack, getSplitNavigation());
-      if (action.type === 'parent') {
-        window.location.hash = action.hash;
-      } else if (action.type === 'history') {
-        window.history.back();
-      } else if (action.type === 'search') {
-        options.navigate('search');
-      } else {
-        void NativeApp.minimizeApp();
-      }
+      // One layer per press: a layer over the page, else the history, else the parent screen, the
+      // home tab, and only from the home tab the app minimises (state/app-back.ts).
+      const targets = nativeBackTargets(route, getSplitNavigation());
+      const outcome = backOneLayer(targets);
+      if (outcome === 'home') options.navigate('search');
+      else if (outcome === 'exit') void NativeApp.minimizeApp();
     });
     onCleanup(() => {
       void listener.remove();

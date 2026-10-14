@@ -31,6 +31,7 @@ import {
   conditionCatalogHash,
   parseConditionCatalogRoute,
 } from '@/features/conditions/condition-routing';
+import { navigateBack } from '@/state/app-back';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import { fuzzyQueryScore } from '@/state/fuzzy-text';
@@ -164,7 +165,7 @@ export function ConditionCatalogView(props: ConditionCatalogViewProps): JSX.Elem
     window.location.hash = conditionCatalogHash(entry.section, entry.id);
   };
   const closeEntry = (): void => {
-    window.location.hash = conditionCatalogHash(section());
+    navigateBack(conditionCatalogHash(section()));
   };
 
   createEffect(() => {

@@ -46,6 +46,7 @@ import { quickToolsFromCatalog } from '@/features/search/quick-tools';
 import { searchCatalogTools } from '@/features/search/searchCatalog';
 import { getPluralMessage } from '@/i18n/browser-i18n';
 import { pluralRu } from '@/i18n/labels';
+import { navigateBack } from '@/state/app-back';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
 import { itemCollections } from '@/state/item-collections';
 import { saveBlobAsFile, shareSystemFile } from '@/state/native-share';
@@ -1417,7 +1418,7 @@ export function UserLibraryPage(props: {
 
   const goUpFolderHierarchy = (): void => {
     if (currentFolderId() === null) {
-      navigate('#/modules/documents');
+      navigateBack('#/modules/documents');
       return;
     }
     const parentId = currentFolder()?.parentId;

@@ -63,10 +63,10 @@ export function AtcCodeSheet(props: {
   });
   const openLevel = (step: AtcLadderStep): void => {
     if (step.code === null) return;
-    const code = step.code;
-    props.onClose();
-    // After the sheet has let go of its history entry, so the group opens on a clean route.
-    window.setTimeout(() => openAtcGroup(code), 0);
+    // The group is a page of its own on top of the sheet's entry; the sheet closes with the
+    // navigation (history layers, state/history-layer.ts), and back from the group returns to the
+    // screen under the sheet in one press.
+    openAtcGroup(step.code);
   };
   return (
     <OverlayDialog

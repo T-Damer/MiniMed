@@ -7,6 +7,7 @@ import { Heading } from '@/components/Text';
 import { listFormSchemas } from '@/features/forms/form-registry';
 import { notesFormsPath, notesPath, notesPatientsPath } from '@/features/notes/notes-routing';
 import '@/styles/forms.css';
+import { navigateBack } from '@/state/app-back';
 
 export function FormsHome(props: {
   readonly backLabel: string;
@@ -22,7 +23,7 @@ export function FormsHome(props: {
             class="knowledge-back-button"
             aria-label={props.patientId ? 'К карточке пациента' : props.backLabel}
             onClick={() =>
-              props.onNavigate(props.patientId ? notesPatientsPath(props.patientId) : notesPath())
+              navigateBack(props.patientId ? notesPatientsPath(props.patientId) : notesPath())
             }
           />
         }

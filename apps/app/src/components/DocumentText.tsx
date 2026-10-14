@@ -38,6 +38,7 @@ import type { ResolvedReferenceImage } from '@/features/library/reference-image-
 import { segmentTextWithAtcCodes } from '@/features/medications/atc-text-links';
 import { segmentTextWithToolLinks } from '@/features/tool-links/document-tool-links';
 import { openDocumentOverlay } from '@/state/document-navigation';
+import { useHistoryLayer } from '@/state/use-history-layer';
 
 /** The code sheet of a code met in a text; its chunk loads on the first tap. */
 const AtcTextCodeSheet = lazy(() => import('@/features/medications/AtcTextCodeSheet'));
@@ -198,6 +199,8 @@ function InlineDocumentLink(props: {
   const primarySource = () =>
     selectedAlternative()?.preview?.source ?? props.segment.preview?.source;
   useInlinePreviewBounds(open, previewCard, () => setOpen(false));
+  // Back (the browser's, Android's) closes the preview before the document goes.
+  useHistoryLayer(open, () => setOpen(false));
 
   const [summary, setSummary] = createSignal<MedicationLinkSummary>();
   const [previewError, setPreviewError] = createSignal<string>();

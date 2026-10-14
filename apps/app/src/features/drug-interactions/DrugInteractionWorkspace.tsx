@@ -14,8 +14,11 @@ import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
 import { Heading } from '@/components/Text';
 import { MAX_COMPARED_NAMES } from '@/features/drug-comparison/comparison-query';
-import { notesDrugComparisonPath } from '@/features/notes/notes-routing';
+import { notesDrugComparisonPath, notesDrugInteractionsPath } from '@/features/notes/notes-routing';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
+import { openDocumentOverlay } from '@/state/document-navigation';
+import { buildOfficialDocumentHash } from '@/state/document-route';
+import { replaceToolUrl } from '@/state/tool-url-state';
 import { DrugSlot, type DrugSuggestion, namesAlcohol } from './DrugSlot';
 import { cardDisplayName, type DrugCandidate, resolveTypedName } from './drug-candidates';
 import { InteractionPairsPanel } from './InteractionPairs';
@@ -115,6 +118,21 @@ export function DrugInteractionWorkspace(props: {
     })();
   });
 
+  // The chosen drugs live in the address (as in «Сравнение препаратов»): back from a drug screen,
+  // a tab round trip and a reload bring them back. Only once the drugs the tool was opened with
+  // are resolved, or the first pass would erase them.
+  createEffect(() => {
+    if (resolving()) return;
+    const chosen = items();
+    replaceToolUrl(
+      '#/notes/drug-interactions',
+      notesDrugInteractionsPath(
+        chosen.some((item) => item.kind === 'alcohol') ? [ALCOHOL_QUERY_NAME] : [],
+        chosen.filter((item) => item.kind === 'drug').map((item) => item.id),
+      ),
+    );
+  });
+
   const [focusNext, setFocusNext] = createSignal(false);
   const pick = (suggestion: DrugSuggestion): void => {
     setFocusNext(true);
@@ -178,7 +196,22 @@ export function DrugInteractionWorkspace(props: {
               {(item) => (
                 <li class="drug-interactions__item" data-testid="interaction-item">
                   <span class="drug-interactions__item-text">
-                    <span class="drug-interactions__item-name">{item.label}</span>
+                    <Show
+                      when={item.kind === 'drug'}
+                      fallback={<span class="drug-interactions__item-name">{item.label}</span>}
+                    >
+                      <a
+                        class="drug-interactions__item-name drug-interactions__item-link"
+                        href={buildOfficialDocumentHash(`esklp.mnn.${item.id}`)}
+                        onClick={(event) => {
+                          if (event.button !== 0 || event.ctrlKey || event.metaKey) return;
+                          event.preventDefault();
+                          openDocumentOverlay(`esklp.mnn.${item.id}`, null, { title: item.label });
+                        }}
+                      >
+                        {item.label}
+                      </a>
+                    </Show>
                     <Show when={item.typed}>
                       {(typed) => (
                         <span class="drug-interactions__item-typed">по запросу «{typed()}»</span>

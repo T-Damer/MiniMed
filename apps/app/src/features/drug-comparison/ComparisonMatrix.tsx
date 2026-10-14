@@ -4,6 +4,7 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { SelectField } from '@/components/SelectField';
 import { QuoteBlock } from '@/features/medication-safety/SafetyBlocks';
 import { NOTHING_SAID_TEXT } from '@/features/medication-safety/safety-view';
+import { openDocumentOverlay } from '@/state/document-navigation';
 import { buildOfficialDocumentHash } from '@/state/document-route';
 import type { RegistryCell, RegistryRowSpec } from './comparison-registry';
 import type { SafetyCell, SafetyRowView } from './comparison-safety';
@@ -35,7 +36,21 @@ function ColumnHead(props: {
       data-state={column().state}
     >
       <div class="drug-comparison__colhead-top">
-        <h3 class="drug-comparison__colhead-name">{column().item.label}</h3>
+        <h3 class="drug-comparison__colhead-name">
+          <a
+            class="drug-comparison__colhead-link"
+            href={buildOfficialDocumentHash(`esklp.mnn.${column().item.id.split('|')[0] ?? ''}`)}
+            onClick={(event) => {
+              if (event.button !== 0 || event.ctrlKey || event.metaKey) return;
+              event.preventDefault();
+              openDocumentOverlay(`esklp.mnn.${column().item.id.split('|')[0] ?? ''}`, null, {
+                title: column().item.label,
+              });
+            }}
+          >
+            {column().item.label}
+          </a>
+        </h3>
         <button
           type="button"
           class="drug-comparison__remove"

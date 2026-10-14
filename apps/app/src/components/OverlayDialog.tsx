@@ -12,6 +12,7 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { lockBodyScroll } from '@/components/body-scroll-lock';
 import { NARROW_VIEWPORT_QUERY } from '@/components/narrow-viewport';
 import { sheetDragOffset, sheetDragShouldClose } from '@/components/sheet-drag';
+import { type HistoryLayer, openHistoryLayer } from '@/state/history-layer';
 import { motionMs } from '@/state/motion';
 import { setDarkHeaderStatusBar } from '@/state/native-system-ui';
 
@@ -67,7 +68,7 @@ function focusableElementsWithin(root: HTMLElement): HTMLElement[] {
 export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
   let panel: HTMLElement | undefined;
   let backdrop: HTMLElement | undefined;
-  let historyEntryPushed = false;
+  let historyLayer: HistoryLayer | undefined;
   const titleId = props.labelledBy ?? `overlay-dialog-title-${++nextOverlayDialogId}`;
   const tracksHistory = () => props.tracksHistory !== false;
   const dismissible = () => props.dismissible !== false;
@@ -125,9 +126,9 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
   );
 
   const closeDialog = (): void => {
-    if (historyEntryPushed) {
-      historyEntryPushed = false;
-      window.history.back();
+    // A dialog that is a history layer closes by stepping the history back; the arrival closes it.
+    if (historyLayer) {
+      historyLayer.pop();
       return;
     }
     props.onClose();
@@ -177,17 +178,11 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
 
   createEffect(() => {
     if (!props.open) return;
-    const restoreUrl = window.location.href;
-    const restoreState = window.history.state;
     const previouslyFocused =
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    if (tracksHistory()) {
-      window.history.pushState(
-        { ...(window.history.state as object | null), overlay: true },
-        '',
-        restoreUrl,
-      );
-      historyEntryPushed = true;
+    // A dialog nobody can dismiss (no close button, Escape and taps ignored) must not take back.
+    if (tracksHistory() && dismissible()) {
+      historyLayer = openHistoryLayer({ onPop: () => props.onClose() });
     }
     setDarkHeaderStatusBar(true);
     const releaseScroll = lockBodyScroll();
@@ -227,13 +222,7 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
         first?.focus();
       }
     };
-    const handlePopState = (): void => {
-      if (!isTopmostDialog() || !dismissible()) return;
-      historyEntryPushed = false;
-      props.onClose();
-    };
     window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('popstate', handlePopState);
     queueMicrotask(() => panel?.focus());
     onCleanup(() => {
       drag = undefined;
@@ -241,11 +230,8 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
       setDarkHeaderStatusBar(false);
       releaseScroll();
       window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('popstate', handlePopState);
-      if (historyEntryPushed && window.location.href === restoreUrl) {
-        window.history.replaceState(restoreState, '', restoreUrl);
-        historyEntryPushed = false;
-      }
+      historyLayer?.dispose();
+      historyLayer = undefined;
       if (previouslyFocused?.isConnected) previouslyFocused.focus();
     });
   });

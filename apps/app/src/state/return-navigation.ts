@@ -1,4 +1,5 @@
 import { isDocumentReadRoute } from '@/state/document-route';
+import { placeOf, stepsBackToPlace } from '@/state/history-entries';
 
 export interface ReturnToLocation {
   readonly hash: string;
@@ -48,13 +49,24 @@ export function consumeReturnTo(): ReturnToLocation | null {
   return location;
 }
 
+/**
+ * Goes back to a place the user came from. When this page load's history holds that place below
+ * the current entry, the history steps back to it (state and scroll intact, no new entry). Else it
+ * is a navigation to a place the history does not know: `replace` swaps the current entry for it
+ * (a way out of a screen), otherwise it is pushed.
+ */
 export function restoreReturnTo(
   location: ReturnToLocation,
   options?: { readonly replace?: boolean },
 ): void {
+  const steps = stepsBackToPlace(placeOf(location.hash, location.search));
+  if (steps !== null && steps < 0) {
+    window.history.go(steps);
+    return;
+  }
   const oldURL = window.location.href;
   const newURL = `${window.location.origin}${window.location.pathname}${location.search}${location.hash}`;
-  if (options?.replace) window.history.replaceState(null, '', newURL);
+  if (options?.replace) window.history.replaceState(window.history.state, '', newURL);
   else window.history.pushState(null, '', newURL);
   window.dispatchEvent(new HashChangeEvent('hashchange', { oldURL, newURL }));
 }

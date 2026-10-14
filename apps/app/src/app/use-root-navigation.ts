@@ -10,9 +10,11 @@ import {
   viewFromLocation,
 } from '@/app/root-view';
 import { medicalImageViewerActive } from '@/features/library/document-reading-mode';
+import { visitRoute } from '@/state/app-back';
 import { isDocumentReadRoute } from '@/state/document-route';
-import { installHistoryEntryTracking } from '@/state/history-entries';
+import { currentHistoryEntry, installHistoryEntryTracking } from '@/state/history-entries';
 import { READER_CHROME_HOLD_EVENT } from '@/state/reader-chrome-hold';
+import { installScrollRestoration, rememberedScroll } from '@/state/scroll-restore';
 import { trackToolNavigation } from '@/state/tool-navigation';
 
 type RootNavigationDirection = 'forward' | 'backward';
@@ -30,6 +32,7 @@ const CHROME_DIRECTION_THRESHOLD = 1;
 export function useRootNavigation() {
   // First listener on the history: every entry is stamped before any route code reads it.
   onCleanup(installHistoryEntryTracking());
+  onCleanup(installScrollRestoration());
   bootstrapDocumentReadLocation();
   const [view, setView] = createSignal<RootView>(viewFromLocation());
   const [documentReadActive, setDocumentReadActive] = createSignal(
@@ -55,19 +58,27 @@ export function useRootNavigation() {
     | { readonly element: HTMLElement; readonly handler: (event: AnimationEvent) => void }
     | undefined;
   const rootNavigationQueue: Array<{ readonly next: RootView; readonly commit: () => void }> = [];
-  const lastRouteByView = new Map<RootView, string>();
+  /** Where each tab was left: hash and query (a tool keeps its state in the query). */
+  const lastRouteByView = new Map<RootView, { readonly hash: string; readonly search: string }>();
   const scrollByView = new Map<RootView, number>();
 
-  const snapshotCurrentRoute = (hash = window.location.hash): void => {
+  const snapshotCurrentRoute = (
+    hash = window.location.hash,
+    search = window.location.search,
+  ): void => {
     if (isDocumentReadRoute(hash)) return;
     if (!rootNavigationMotion()) {
       scrollByView.set(view(), window.scrollY);
     }
-    lastRouteByView.set(view(), hash || `#/${view()}`);
+    lastRouteByView.set(view(), { hash: hash || `#/${view()}`, search });
   };
+  const lastPlace = (target: RootView): { readonly hash: string; readonly search: string } =>
+    lastRouteByView.get(target) ?? { hash: `#/${target}`, search: '' };
 
   const restoreScrollFor = (target: RootView, schedule = true): void => {
-    const top = scrollByView.get(target) ?? 0;
+    // The entry the page is on remembers its own place (back, forward); a tab visit falls back to
+    // the place the tab was left at.
+    const top = rememberedScroll(currentHistoryEntry().id) ?? scrollByView.get(target) ?? 0;
     if (schedule) {
       requestAnimationFrame(() => window.scrollTo({ top, behavior: 'instant' }));
       return;
@@ -226,21 +237,23 @@ export function useRootNavigation() {
 
   const hasMountedView = (target: RootView): boolean => mountedViews().has(target);
 
+  /**
+   * Tabs share one history (see `state/app-back.ts`): a tab tap goes to the place the tab was left
+   * at — by stepping back to it when this branch of the history holds it, else by a push — so back
+   * returns to the tab used before and a round trip between two tabs leaves no pile of entries.
+   */
   const navigate = (next: RootView): void => {
     transitionToRootView(next, () => {
       const changed = view() !== next;
       if (!changed) {
         if (documentReadActive()) {
-          const targetHash = lastRouteByView.get(next) ?? `#/${next}`;
-          window.location.hash = targetHash;
+          const place = lastPlace(next);
+          visitRoute(place.hash, place.search);
           return;
         }
         moveToRootView(next);
-        const oldURL = window.location.href;
-        window.history.replaceState({ view: next }, '', `#/${next}`);
-        window.dispatchEvent(
-          new HashChangeEvent('hashchange', { oldURL, newURL: window.location.href }),
-        );
+        // The tab's own first screen: layers pushed on it are stepped over, else it replaces.
+        visitRoute(`#/${next}`, '', 'replace');
         window.scrollTo({ top: 0, behavior: 'instant' });
         return;
       }
@@ -249,12 +262,8 @@ export function useRootNavigation() {
       const restores = rootViewRestoresRoute(next);
       if (!restores) scrollByView.delete(next);
       moveToRootView(next);
-      const targetHash = (restores ? lastRouteByView.get(next) : undefined) ?? `#/${next}`;
-      const oldURL = window.location.href;
-      window.history.replaceState({ view: next }, '', targetHash);
-      window.dispatchEvent(
-        new HashChangeEvent('hashchange', { oldURL, newURL: window.location.href }),
-      );
+      const place = restores ? lastPlace(next) : { hash: `#/${next}`, search: '' };
+      visitRoute(place.hash, place.search);
     });
   };
 
@@ -273,14 +282,21 @@ export function useRootNavigation() {
     if (next === view()) return;
     transitionToRootView(next, () => {
       let previousHash: string | undefined;
+      let previousSearch: string | undefined;
       if (event.oldURL) {
         try {
-          previousHash = new URL(event.oldURL, window.location.href).hash || undefined;
+          const previousUrl = new URL(event.oldURL, window.location.href);
+          previousHash = previousUrl.hash || undefined;
+          previousSearch = previousUrl.search;
         } catch {
           previousHash = undefined;
         }
       }
-      snapshotCurrentRoute(previousHash ?? lastRouteByView.get(view()) ?? `#/${view()}`);
+      const known = lastRouteByView.get(view());
+      snapshotCurrentRoute(
+        previousHash ?? known?.hash ?? `#/${view()}`,
+        previousSearch ?? known?.search ?? '',
+      );
       moveToRootView(next);
     });
   };

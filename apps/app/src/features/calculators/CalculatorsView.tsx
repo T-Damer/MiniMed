@@ -117,6 +117,7 @@ import { ToolAgeBadge } from '@/features/tools/ToolAgeBadge';
 import { ToolAgeFilterBar } from '@/features/tools/ToolAgeFilterBar';
 import { filterByAge, type ToolAgeFilter } from '@/features/tools/tool-age-filter';
 import { createToolAgeFilter } from '@/features/tools/tool-age-filter-state';
+import { navigateBack } from '@/state/app-back';
 import {
   getExperimentalModulesEnabled,
   getSplitNavigation,
@@ -1640,7 +1641,7 @@ export function CalculatorsView(): JSX.Element {
 
   const backToCatalog = (): void => {
     setActiveRecord(undefined);
-    window.location.hash = getSplitNavigation() ? '#/calculators' : '#/search';
+    navigateBack(getSplitNavigation() ? '#/calculators' : '#/search');
   };
 
   const backFromCalculator = (): void => {
@@ -1648,11 +1649,11 @@ export function CalculatorsView(): JSX.Element {
     if (returnFromTool()) return;
     const definition = selected();
     if (!getSplitNavigation()) {
-      window.location.hash = '#/search';
+      navigateBack('#/search');
       return;
     }
     if (definition?.state === 'available') {
-      window.location.hash = calculatorSectionPath(definition.category);
+      navigateBack(calculatorSectionPath(definition.category));
       return;
     }
     backToCatalog();
@@ -2085,17 +2086,13 @@ export function CalculatorsView(): JSX.Element {
           current.kind === 'edit' ? (
             <UserCalculatorEditorPage
               id={current.id}
-              onBack={() => {
-                window.location.hash = userCalculatorsPath();
-              }}
+              onBack={() => navigateBack(userCalculatorsPath())}
               onOpen={openUserCalculator}
               onMessage={notify}
             />
           ) : current.kind === 'new' ? null : (
             <UserCalculatorsPage
-              onBack={() => {
-                window.location.hash = '#/calculators';
-              }}
+              onBack={() => navigateBack('#/calculators')}
               onCreate={() => {
                 window.location.hash = userCalculatorNewPath();
               }}

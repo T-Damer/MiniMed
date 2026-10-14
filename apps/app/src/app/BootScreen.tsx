@@ -1,13 +1,16 @@
-import { type JSX, Show } from 'solid-js';
+import { createSignal, type JSX, Show } from 'solid-js';
 import { CORE_DOWNLOAD_SIZE_LABEL } from '@/composition/core-download';
 
 import { formatModuleBytes } from '@/features/modules/module-display';
+import { requestTakeover } from '@/state/tab-takeover';
 
 export function BootScreen(props: {
   readonly error: string | undefined;
   readonly bootSlow: boolean;
   /** Another tab owns the local database; this one opens it once that tab closes. */
   readonly waitingForOtherTab?: boolean;
+  /** Overrides what «Использовать здесь» does (the standby page reloads into the owner tab). */
+  readonly onUseHere?: () => void;
   readonly coreDownloadRequired?: boolean;
   readonly coreDownloading?: boolean;
   /** The download was asked for while offline: it starts by itself when the network returns. */
@@ -22,6 +25,7 @@ export function BootScreen(props: {
   readonly onDownloadCore?: () => void;
 }): JSX.Element {
   const progress = () => props.coreProgress;
+  const [takingOver, setTakingOver] = createSignal(false);
   return (
     <section
       class="boot-screen boot-screen--shell-booting archive-boot"
@@ -46,7 +50,7 @@ export function BootScreen(props: {
         <p class="boot-card__description">
           {props.error ??
             (props.waitingForOtherTab
-              ? 'Локальную базу одновременно может открыть только одна вкладка. Закройте другую вкладку или окно MiniMed — поиск откроется здесь автоматически.'
+              ? 'Локальную базу одновременно может открыть только одна вкладка. Закройте другую вкладку или окно MiniMed — или перенесите работу сюда.'
               : props.coreDownloadRequired
                 ? props.coreDownloading
                   ? `Основная база нужна для поиска, загрузка около ${CORE_DOWNLOAD_SIZE_LABEL}. После загрузки поиск работает без интернета. Свои файлы и настройки доступны уже сейчас.`
@@ -80,6 +84,20 @@ export function BootScreen(props: {
               открытие базы.
             </p>
           </Show>
+        </Show>
+        <Show when={props.waitingForOtherTab && !props.error}>
+          <button
+            class="boot-card__action"
+            type="button"
+            disabled={takingOver()}
+            onClick={() => {
+              setTakingOver(true);
+              if (props.onUseHere) props.onUseHere();
+              else requestTakeover();
+            }}
+          >
+            {takingOver() ? 'Переключаем…' : 'Использовать здесь'}
+          </button>
         </Show>
         <Show when={props.error}>
           <button class="boot-card__action" type="button" onClick={() => window.location.reload()}>

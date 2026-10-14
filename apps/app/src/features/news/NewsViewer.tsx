@@ -36,6 +36,7 @@ import type {
   Subscription,
 } from '@/features/news/news-types';
 import { buildPageFrameDocument } from '@/features/news/page-frame';
+import { navigateBack } from '@/state/app-back';
 
 export type NewsViewerTarget =
   | { readonly kind: 'item'; readonly itemId: string }
@@ -406,7 +407,7 @@ export function NewsViewer(props: {
             class="knowledge-back-button"
             aria-label="К ленте"
             onClick={() => {
-              window.location.hash = NEWS_ROOT_HASH;
+              navigateBack(NEWS_ROOT_HASH);
             }}
           />
         }

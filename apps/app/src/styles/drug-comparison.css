@@ -282,6 +282,13 @@
   overflow-wrap: anywhere;
 }
 
+.drug-comparison__colhead-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
 .drug-comparison__colhead-note {
   margin: 0;
   color: var(--theme-text-muted);

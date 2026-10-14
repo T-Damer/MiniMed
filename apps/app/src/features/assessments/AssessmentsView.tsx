@@ -68,6 +68,7 @@ import { formatModuleBytes } from '@/features/modules/module-display';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
 import { filterByAge } from '@/features/tools/tool-age-filter';
 import { createToolAgeFilter } from '@/features/tools/tool-age-filter-state';
+import { navigateBack, visitRoute } from '@/state/app-back';
 import { getSplitNavigation } from '@/state/app-preferences';
 import {
   ASSESSMENT_RESULTS_EVENT,
@@ -702,8 +703,8 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
           recentRecords={records().slice(0, 8)}
           userQuestionnaires={userQuestionnaires()}
           onQuery={setQuery}
-          onBack={() => navigate('#/assessments')}
-          onHome={() => navigate('#/search')}
+          onBack={() => navigateBack('#/assessments')}
+          onHome={() => visitRoute('#/search')}
           onOpenSpecialty={(specialtyId) => navigate(specialtyPath(specialtyId))}
           onOpenUserQuestionnaires={() => navigate(userQuestionnaireHomePath())}
           onCreateUserQuestionnaire={() => navigate(userQuestionnaireNewPath())}
@@ -748,7 +749,7 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
             onQuery={setQuery}
             onBack={() => {
               setQuery('');
-              navigate('#/assessments');
+              navigateBack('#/assessments');
             }}
             onOpenSection={(sectionId) => navigate(sectionPath(specialty().id, sectionId))}
             onOpen={(selected) => {
@@ -795,7 +796,7 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
             onQuery={setQuery}
             onBack={() => {
               setQuery('');
-              navigate(specialtyPath(specialty().id));
+              navigateBack(specialtyPath(specialty().id));
             }}
             onOpenSection={(sectionId) => navigate(sectionPath(specialty().id, sectionId))}
             onOpen={(selected) => {
@@ -855,7 +856,7 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
             stored={stored()}
             onBack={() => {
               if (!returnFromTool())
-                navigate(getSplitNavigation() ? userQuestionnaireHomePath() : '#/search');
+                navigateBack(getSplitNavigation() ? userQuestionnaireHomePath() : '#/search');
             }}
             onRun={() => navigate(userQuestionnairePath(stored().file.id))}
             onMessage={setMessage}
@@ -888,7 +889,7 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
             sectionTitle="Мои опросники"
             onBack={() => {
               if (!returnFromTool())
-                navigate(getSplitNavigation() ? userQuestionnaireHomePath() : '#/search');
+                navigateBack(getSplitNavigation() ? userQuestionnaireHomePath() : '#/search');
             }}
             onDraftSaved={refreshRecords}
             onMessage={setMessage}
@@ -933,7 +934,7 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
                 definition={definition()}
                 record={selectedRecord()}
                 notes={notes()}
-                onBack={() => navigate(userQuestionnairePath(userQuestionnaireFileId() ?? ''))}
+                onBack={() => navigateBack(userQuestionnairePath(userQuestionnaireFileId() ?? ''))}
                 onMessage={setMessage}
                 onNotesChanged={setNotes}
                 onDelete={() =>
@@ -996,7 +997,7 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
               selected().bankLabel
             }
             onBack={() =>
-              navigate(getSplitNavigation() ? assessmentHomePath(selected().slug) : '#/search')
+              navigateBack(getSplitNavigation() ? assessmentHomePath(selected().slug) : '#/search')
             }
             onDraftSaved={refreshRecords}
             onMessage={setMessage}
@@ -1028,7 +1029,7 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
             }
             title={selected().title}
             onBack={() =>
-              navigate(getSplitNavigation() ? assessmentHomePath(selected().slug) : '#/search')
+              navigateBack(getSplitNavigation() ? assessmentHomePath(selected().slug) : '#/search')
             }
             onInstall={() => installDefinition(selected().id)}
             installSize={installSizeOf({ definitionId: selected().id })}
@@ -1045,7 +1046,9 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
                 record={selectedRecord()}
                 notes={notes()}
                 onBack={() =>
-                  navigate(assessmentPath(selectedDefinition().bankId, selectedDefinition().slug))
+                  navigateBack(
+                    assessmentPath(selectedDefinition().bankId, selectedDefinition().slug),
+                  )
                 }
                 onMessage={setMessage}
                 onNotesChanged={setNotes}

@@ -161,6 +161,13 @@
   font-weight: 600;
 }
 
+.drug-interactions__item-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
 .drug-interactions__item-typed {
   color: var(--theme-text-muted);
   font-size: 0.8125rem;

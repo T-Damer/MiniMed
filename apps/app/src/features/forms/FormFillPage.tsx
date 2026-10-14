@@ -64,6 +64,7 @@ import {
   PATIENT_VAULT_LOCK_EVENT,
 } from '@/state/patient-vault';
 import '@/styles/forms.css';
+import { navigateBack } from '@/state/app-back';
 
 /** Typed values are written to the draft once typing has paused for this long. */
 export const FORM_AUTOSAVE_DEBOUNCE_MS = 700;
@@ -299,7 +300,7 @@ export function FormFillPage(props: FormFillPageProps): JSX.Element {
 
   const needsVault = (): boolean => Boolean(props.patientId);
   const back = (): void =>
-    props.onNavigate(props.patientId ? notesPatientsPath(props.patientId) : notesFormsPath());
+    navigateBack(props.patientId ? notesPatientsPath(props.patientId) : notesFormsPath());
   const reference = (): string =>
     `${orderReference(props.schema.source)}, ${registrationReference(props.schema.source)}, приложение № ${props.schema.source.blankAppendix.number}. ${validityLine(props.schema.source, localToday())}`;
 

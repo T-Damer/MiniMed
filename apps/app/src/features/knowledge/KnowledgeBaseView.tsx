@@ -19,6 +19,7 @@ import { isMedicationCatalogRoute } from '@/features/medications/medication-rout
 import { ModuleCatalogView } from '@/features/modules/ModuleCatalogView';
 import { SearchCoreStatusNote } from '@/features/search/SearchCoreStatusNote';
 import type { SearchCoreStatus } from '@/features/search/search-core-status';
+import { navigateBack } from '@/state/app-back';
 
 type KnowledgeRoute = 'conditions' | 'documents' | 'medications';
 
@@ -65,10 +66,10 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
     window.history.replaceState({ view: 'modules', route: 'documents' }, '', '#/modules/documents');
   };
 
-  const navigateBack = (): void => {
+  const leaveCatalogPage = (): void => {
     const currentRoute = window.location.hash.replace(/^#\/?/u, '');
     const backHash = knowledgeDocumentBackHash(currentRoute);
-    if (backHash) window.location.hash = backHash;
+    if (backHash) navigateBack(backHash);
   };
 
   const handleHashChange = (): void => {
@@ -124,7 +125,7 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
                 status={state().status}
                 active={props.active && route() === 'documents'}
                 embedded
-                onBack={navigateBack}
+                onBack={leaveCatalogPage}
                 {...(props.onContentChanged ? { onContentChanged: props.onContentChanged } : {})}
                 {...(props.onAvailableUpdates
                   ? { onAvailableUpdates: props.onAvailableUpdates }
@@ -134,13 +135,13 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
             <Show when={route() === 'medications'}>
               <MedicationCatalogView
                 core={state().core}
-                onBack={navigateBack}
+                onBack={leaveCatalogPage}
                 {...(props.onContentChanged ? { onContentChanged: props.onContentChanged } : {})}
               />
             </Show>
 
             <Show when={route() === 'conditions'}>
-              <ConditionCatalogView core={state().core} onBack={navigateBack} />
+              <ConditionCatalogView core={state().core} onBack={leaveCatalogPage} />
             </Show>
           </>
         )}

@@ -77,6 +77,7 @@ import {
 import { createVisitNoteSaver, recoverVisitNotes, saveVisitNote } from '@/state/patient-visit-note';
 import type { PatientAvatar as Avatar } from '@/state/patientAvatar';
 import '@/styles/patient-workspace.css';
+import { navigateBack } from '@/state/app-back';
 
 export type PatientRoute = Extract<
   NotesRoute,
@@ -771,7 +772,7 @@ function PatientList(props: {
         <NavBack
           class="patient-workspace__back-button knowledge-back-button knowledge-subroute-heading__control"
           aria-label={props.backLabel ?? 'Назад к заметкам'}
-          onClick={() => props.onNavigate(notesPath())}
+          onClick={() => navigateBack(notesPath())}
         />
         <SearchField
           class="patient-workspace__search route-search knowledge-subroute-heading__control"
@@ -1024,7 +1025,7 @@ function PatientDetail(props: {
           <NavBack
             class="knowledge-back-button"
             aria-label="Пациенты"
-            onClick={() => props.onNavigate(notesPatientsPath())}
+            onClick={() => navigateBack(notesPatientsPath())}
           />
         }
         title={
@@ -1371,7 +1372,7 @@ function DynamicsView(props: {
             class="knowledge-back-button"
             aria-label="К карточке пациента"
             title={props.profile.displayName}
-            onClick={() => props.onNavigate(notesPatientsPath(props.profile.id))}
+            onClick={() => navigateBack(notesPatientsPath(props.profile.id))}
           />
         }
         title={<Heading depth={1}>Динамика</Heading>}

@@ -123,6 +123,7 @@ import {
 import { requestReminderNotificationPermission } from '@/state/reminder-notifications';
 import { attachmentViewerKind } from '@/state/thumbnails';
 import '@/styles/notes-root.css';
+import { navigateBack } from '@/state/app-back';
 
 type DeleteTarget =
   | {
@@ -1294,7 +1295,7 @@ export function NotesView(props: {
       <Show when={props.active && route().kind === 'saved'}>
         <SavedItemsPage
           backLabel={props.backToFiles ? 'К файлам' : 'Назад к заметкам'}
-          onBack={() => navigate(notesPath())}
+          onBack={() => navigateBack(notesPath())}
         />
       </Show>
       <Show when={props.active && vaccinationRoute()}>
@@ -1308,10 +1309,7 @@ export function NotesView(props: {
           >
             <VaccinationWorkspace
               initialPart={current().part}
-              onBack={() => {
-                if (window.history.length > 1) window.history.back();
-                else navigate(notesPath());
-              }}
+              onBack={() => navigateBack(notesPath())}
             />
           </Suspense>
         )}
@@ -1330,10 +1328,7 @@ export function NotesView(props: {
               {...(props.onContentChanged ? { onContentChanged: props.onContentChanged } : {})}
               initialNames={current().names}
               initialDrugs={current().drugs}
-              onBack={() => {
-                if (window.history.length > 1) window.history.back();
-                else navigate(notesPath());
-              }}
+              onBack={() => navigateBack(notesPath())}
             />
           </Suspense>
         )}
@@ -1365,10 +1360,7 @@ export function NotesView(props: {
                   : { group: current().group as 'adult' | 'child' }),
               }}
               onNavigate={navigate}
-              onBack={() => {
-                if (window.history.length > 1) window.history.back();
-                else navigate(notesPath());
-              }}
+              onBack={() => navigateBack(notesPath())}
             />
           </Suspense>
         )}
@@ -1387,10 +1379,7 @@ export function NotesView(props: {
               {...(props.onContentChanged ? { onContentChanged: props.onContentChanged } : {})}
               initialNames={current().names}
               initialCards={current().cards}
-              onBack={() => {
-                if (window.history.length > 1) window.history.back();
-                else navigate(notesPath());
-              }}
+              onBack={() => navigateBack(notesPath())}
             />
           </Suspense>
         )}
@@ -1405,7 +1394,7 @@ export function NotesView(props: {
               <NavBack
                 class="patient-notes-heading__back knowledge-back-button"
                 aria-label="К файлам"
-                onClick={() => navigate(USER_LIBRARY_CATALOG_HASH)}
+                onClick={() => navigateBack(USER_LIBRARY_CATALOG_HASH)}
               />
             </Show>
           }
@@ -1574,7 +1563,7 @@ export function NotesView(props: {
 
       <Show when={route().kind === 'templates'}>
         <NoteTemplatesCatalog
-          onBack={() => navigate(notesPath())}
+          onBack={() => navigateBack(notesPath())}
           onOpenTemplate={(documentId) => navigate(noteTemplatePath(documentId))}
           createOnMount={shouldCreateTemplate()}
         />

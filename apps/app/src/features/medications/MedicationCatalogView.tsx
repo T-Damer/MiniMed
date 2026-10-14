@@ -57,6 +57,7 @@ import {
 } from '@/features/medications/mfg-country';
 import { useMfgCountries } from '@/features/medications/use-mfg-countries';
 import { pluralRu } from '@/i18n/labels';
+import { replaceRoute } from '@/state/app-back';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 
 const MedicationAtcTree = lazy(() =>
@@ -345,7 +346,8 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
     return state.view === 'atc' ? state.code : null;
   };
   const switchMode = (next: CatalogViewMode): void => {
-    window.location.hash = next === 'atc' ? MEDICATION_ATC_HASH : MEDICATION_CATALOG_HASH;
+    // The two views of the catalog are one page: switching replaces the entry, it adds no step.
+    replaceRoute(next === 'atc' ? MEDICATION_ATC_HASH : MEDICATION_CATALOG_HASH);
   };
 
   const deferredSearchQuery = createDeferred(searchQuery, { timeoutMs: 120 });
@@ -371,11 +373,7 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
       <Page
         class="medication-page-header"
         navigation={
-          <NavBack
-            class="knowledge-back-button"
-            aria-label="К базе знаний"
-            onClick={props.onBack}
-          />
+          <NavBack class="knowledge-back-button" aria-label="Назад" onClick={props.onBack} />
         }
         icon={<AppGlyph name="pill" class="page__icon-glyph" />}
         title={<Heading depth={1}>Препараты</Heading>}

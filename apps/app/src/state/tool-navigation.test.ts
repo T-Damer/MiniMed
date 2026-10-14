@@ -30,34 +30,43 @@ describe('tool entry navigation', () => {
     move(assessment, result);
     move(result, calculator);
     expect(returnFromTool()).toBe(true);
-    expect(restoreReturnTo).toHaveBeenLastCalledWith({ hash: result, search: '' });
+    expect(restoreReturnTo).toHaveBeenLastCalledWith(
+      { hash: result, search: '' },
+      { replace: true },
+    );
     move(calculator, result);
     move(result, assessment);
     expect(returnFromTool()).toBe(true);
-    expect(restoreReturnTo).toHaveBeenLastCalledWith({
-      hash: '#/modules/documents/d/source',
-      search: '?o=chapter',
-    });
+    expect(restoreReturnTo).toHaveBeenLastCalledWith(
+      { hash: '#/modules/documents/d/source', search: '?o=chapter' },
+      { replace: true },
+    );
   });
 
   it('returns to the actual catalog entry and drops a trail abandoned through navigation', () => {
     move('#/calculators/section/obstetrics', '#/calculators/obstetric-pregnancy-dates');
     expect(returnFromTool()).toBe(true);
-    expect(restoreReturnTo).toHaveBeenLastCalledWith({
-      hash: '#/calculators/section/obstetrics',
-      search: '',
-    });
+    expect(restoreReturnTo).toHaveBeenLastCalledWith(
+      { hash: '#/calculators/section/obstetrics', search: '' },
+      { replace: true },
+    );
     move('#/calculators/obstetric-pregnancy-dates', '#/settings');
     move('#/settings', '#/calculators/unit-converter');
     expect(returnFromTool()).toBe(true);
-    expect(restoreReturnTo).toHaveBeenLastCalledWith({ hash: '#/settings', search: '' });
+    expect(restoreReturnTo).toHaveBeenLastCalledWith(
+      { hash: '#/settings', search: '' },
+      { replace: true },
+    );
   });
 
   it('keeps the original page across the questionnaire creation redirect', () => {
     move('#/search', '#/assessments/mine/new');
     move('#/assessments/mine/new', '#/assessments/mine/file-1/edit');
     expect(returnFromTool()).toBe(true);
-    expect(restoreReturnTo).toHaveBeenLastCalledWith({ hash: '#/search', search: '' });
+    expect(restoreReturnTo).toHaveBeenLastCalledWith(
+      { hash: '#/search', search: '' },
+      { replace: true },
+    );
   });
 
   it('does not invent origins for deep links or malformed/external events', () => {

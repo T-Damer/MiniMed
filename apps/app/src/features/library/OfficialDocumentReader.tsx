@@ -74,6 +74,7 @@ import { ReaderHero } from '@/features/library/ReaderHero';
 import { ReaderSectionPath } from '@/features/library/ReaderSectionPath';
 import { RlsMedicationPackagingPanel } from '@/features/library/RlsMedicationPackagingPanel';
 import { readerMetaParts } from '@/features/library/reader-meta-line';
+import { createReaderJumpHistory } from '@/features/library/reader-jump-history';
 import {
   presentReaderChunkText,
   presentReaderSectionTitle,
@@ -886,6 +887,8 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
     measureFraction: true,
     scrollSpyWhen: () => Boolean(props.document) && orderedSections().length > 0,
     onBeforeScrollTo: (anchor) => {
+      // A jump of the user's is a history step: back returns to the place the reader jumped from.
+      if (anchor !== chrome.activeAnchor()) jumps.record(capturePosition());
       const sectionIndex = sectionIndexForAnchor(orderedSections(), anchor);
       if (sectionIndex >= mountedSectionCount()) setMountedSectionCount(sectionIndex + 1);
     },
@@ -944,6 +947,18 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
   // being restored.
   let trackingPosition = false;
   let positionDirty = false;
+  const jumps = createReaderJumpHistory({
+    entryId: historyEntry.id,
+    restore: (position) => {
+      cancelRestoreJump?.();
+      chrome.setActiveAnchor(position.anchor);
+      cancelRestoreJump = jumpReaderTo(() => globalThis.document.getElementById(position.anchor), {
+        align: 'start',
+        offset: position.offset,
+      });
+    },
+  });
+  onCleanup(() => jumps.dispose());
   let positionTimer: number | undefined;
   const capturePosition = (): ReaderPosition | null => {
     const anchor = chrome.activeAnchor();
@@ -956,7 +971,10 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
     if (!trackingPosition || !positionDirty) return;
     positionDirty = false;
     const position = capturePosition();
-    if (position) saveReaderPosition(historyEntry.id, position);
+    // The reading place goes onto the entry the page is on while it is one of the reader's own
+    // (the entry it was made for, or a step of a jump inside the document).
+    const entryId = currentHistoryEntry().id;
+    if (position && jumps.owns(entryId)) saveReaderPosition(entryId, position);
   };
   const markPositionDirty = (): void => {
     if (!trackingPosition) return;

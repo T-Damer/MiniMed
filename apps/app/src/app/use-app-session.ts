@@ -43,6 +43,7 @@ import {
 } from '@/state/native-update';
 import { dueReminderNotes, loadPatientNotes, PATIENT_NOTES_EVENT } from '@/state/patient-notes';
 import { publishCoreDataVersion, readInstalledDataVersion } from '@/state/search-data-version';
+import { installTakeoverListener } from '@/state/tab-takeover';
 import { installUiFeedback } from '@/state/ui-feedback';
 import { ensureUserLibraryIngestRunning } from '@/state/user-library-ingest';
 
@@ -137,6 +138,7 @@ export function useAppSession() {
   let unsubscribeModuleRuntime: (() => void) | undefined;
   let unsubscribeRecoveredInstalls: (() => void) | undefined;
   let stopButtonHaptics: (() => void) | undefined;
+  let stopTakeoverListener: (() => void) | undefined;
   let bootTimer: ReturnType<typeof setTimeout> | undefined;
   let reminderTimer: ReturnType<typeof setInterval> | undefined;
   let updateFeedbackTimer: ReturnType<typeof setTimeout> | undefined;
@@ -473,6 +475,8 @@ export function useAppSession() {
 
   onMount(async () => {
     stopButtonHaptics = installUiFeedback();
+    // Another tab asking for the database: this tab lets go of it (state/tab-takeover.ts).
+    stopTakeoverListener = installTakeoverListener({ isWaiting: coreWaitingForOtherTab });
     document.documentElement.classList.toggle(
       'platform-android',
       Capacitor.getPlatform() === 'android',
@@ -595,6 +599,7 @@ export function useAppSession() {
     unsubscribeModuleRuntime?.();
     unsubscribeRecoveredInstalls?.();
     stopButtonHaptics?.();
+    stopTakeoverListener?.();
     if (coreToClose) void coreToClose.close();
     const activeSearchCore = searchCore();
     if (activeSearchCore) void activeSearchCore.close();

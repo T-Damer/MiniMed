@@ -1,27 +1,23 @@
 import { describe, expect, it } from 'vitest';
 
-import { hierarchicalParentHash, nativeBackAction } from '@/app/native-back';
+import { hierarchicalParentHash, nativeBackTargets } from '@/app/native-back';
 
-describe('nativeBackAction', () => {
+const parent = (hash: string) => ({ parentHash: hash, homeHash: null });
+const home = { parentHash: null, homeHash: '#/search' };
+
+describe('nativeBackTargets (used only when the history has no app entry below)', () => {
   it('returns parent hashes for nested document routes', () => {
-    expect(nativeBackAction('modules/documents/collection/regulatory', 'modules', true)).toEqual({
-      type: 'parent',
-      hash: '#/modules/documents',
-    });
-    expect(nativeBackAction('modules/documents', 'modules', true)).toEqual({
-      type: 'search',
-    });
+    expect(nativeBackTargets('modules/documents/collection/regulatory')).toEqual(
+      parent('#/modules/documents'),
+    );
+    expect(nativeBackTargets('modules/documents')).toEqual(home);
   });
 
   it('returns parent hashes for the user library catalog and open user documents', () => {
-    expect(nativeBackAction('modules/documents/user', 'modules', true)).toEqual({
-      type: 'parent',
-      hash: '#/modules/documents',
-    });
-    expect(nativeBackAction('modules/documents/user/user-doc-1', 'modules', true)).toEqual({
-      type: 'parent',
-      hash: '#/modules/documents/user',
-    });
+    expect(nativeBackTargets('modules/documents/user')).toEqual(parent('#/modules/documents'));
+    expect(nativeBackTargets('modules/documents/user/user-doc-1')).toEqual(
+      parent('#/modules/documents/user'),
+    );
     expect(hierarchicalParentHash('modules/documents/user/user-doc-1')).toBe(
       '#/modules/documents/user',
     );
@@ -33,100 +29,56 @@ describe('nativeBackAction', () => {
   });
 
   it('returns parent hashes for nested assessment routes', () => {
-    expect(nativeBackAction('assessments/psychology', 'assessments', false)).toEqual({
-      type: 'parent',
-      hash: '#/assessments',
-    });
-    expect(
-      nativeBackAction('assessments/psychology/braverman-behavioral-profile', 'assessments', false),
-    ).toEqual({
-      type: 'parent',
-      hash: '#/assessments/psychology/self-reflection',
-    });
+    expect(nativeBackTargets('assessments/psychology')).toEqual(parent('#/assessments'));
+    expect(nativeBackTargets('assessments/psychology/braverman-behavioral-profile')).toEqual(
+      parent('#/assessments/psychology/self-reflection'),
+    );
   });
 
   it('returns parent hashes for nested calculator routes', () => {
-    expect(nativeBackAction('calculators/section/anthropometry', 'calculators', false)).toEqual({
-      type: 'parent',
-      hash: '#/calculators',
-    });
-    expect(
-      nativeBackAction('calculators/body-surface-area-mosteller', 'calculators', false),
-    ).toEqual({
-      type: 'parent',
-      hash: '#/calculators/section/anthropometry',
-    });
+    expect(nativeBackTargets('calculators/section/anthropometry')).toEqual(parent('#/calculators'));
+    expect(nativeBackTargets('calculators/body-surface-area-mosteller')).toEqual(
+      parent('#/calculators/section/anthropometry'),
+    );
     expect(hierarchicalParentHash('calculators/body-surface-area-mosteller')).toBe(
       '#/calculators/section/anthropometry',
     );
   });
 
   it('returns compact tool pages to search but keeps result-to-questionnaire navigation', () => {
+    expect(nativeBackTargets('assessments/psychology/braverman-behavioral-profile', false)).toEqual(
+      parent('#/search'),
+    );
+    expect(nativeBackTargets('assessments/mine/new', false)).toEqual(parent('#/search'));
+    expect(nativeBackTargets('calculators/body-surface-area-mosteller', false)).toEqual(
+      parent('#/search'),
+    );
     expect(
-      nativeBackAction(
-        'assessments/psychology/braverman-behavioral-profile',
-        'assessments',
-        false,
-        false,
-      ),
-    ).toEqual({ type: 'search' });
-    expect(nativeBackAction('assessments/mine/new', 'assessments', false, false)).toEqual({
-      type: 'search',
-    });
-    expect(
-      nativeBackAction('calculators/body-surface-area-mosteller', 'calculators', false, false),
-    ).toEqual({ type: 'search' });
-    expect(
-      nativeBackAction(
+      nativeBackTargets(
         'assessments/psychology/braverman-behavioral-profile/results/record',
-        'assessments',
-        false,
         false,
       ),
-    ).toEqual({ type: 'parent', hash: '#/assessments/psychology/braverman-behavioral-profile' });
+    ).toEqual(parent('#/assessments/psychology/braverman-behavioral-profile'));
   });
 
-  it('returns through nested routes before minimizing the search root', () => {
-    expect(nativeBackAction('notes/card/records/note', 'notes', true)).toEqual({ type: 'history' });
-    expect(nativeBackAction('notes', 'notes', false)).toEqual({ type: 'search' });
-    expect(nativeBackAction('settings', 'settings', false)).toEqual({ type: 'search' });
-    expect(nativeBackAction('settings/downloads', 'settings', false)).toEqual({
-      type: 'parent',
-      hash: '#/settings',
-    });
-    expect(nativeBackAction('settings/appearance', 'settings', false)).toEqual({
-      type: 'parent',
-      hash: '#/settings',
-    });
-    expect(nativeBackAction('settings/images/reference', 'settings', false)).toEqual({
-      type: 'parent',
-      hash: '#/settings/images',
-    });
-    expect(nativeBackAction('search', 'search', false)).toEqual({ type: 'minimize' });
+  it('goes to the home tab from another tab root and exits only from the home tab', () => {
+    expect(nativeBackTargets('notes')).toEqual(home);
+    expect(nativeBackTargets('settings')).toEqual(home);
+    expect(nativeBackTargets('settings/downloads')).toEqual(parent('#/settings'));
+    expect(nativeBackTargets('settings/images/reference')).toEqual(parent('#/settings/images'));
+    expect(nativeBackTargets('search')).toEqual({ parentHash: null, homeHash: null });
   });
 
   it('returns news sub-routes to the list and the list to search', () => {
-    expect(nativeBackAction('news/item/i-1', 'news', true)).toEqual({
-      type: 'parent',
-      hash: '#/news',
-    });
-    expect(nativeBackAction('news/site/s-1', 'news', true)).toEqual({
-      type: 'parent',
-      hash: '#/news',
-    });
-    expect(nativeBackAction('news/add', 'news', true)).toEqual({ type: 'parent', hash: '#/news' });
-    expect(nativeBackAction('news/sources', 'news', true)).toEqual({
-      type: 'parent',
-      hash: '#/news',
-    });
-    expect(nativeBackAction('news', 'news', false)).toEqual({ type: 'search' });
+    expect(nativeBackTargets('news/item/i-1')).toEqual(parent('#/news'));
+    expect(nativeBackTargets('news/site/s-1')).toEqual(parent('#/news'));
+    expect(nativeBackTargets('news/add')).toEqual(parent('#/news'));
+    expect(nativeBackTargets('news/sources')).toEqual(parent('#/news'));
+    expect(nativeBackTargets('news')).toEqual(home);
   });
 
-  it('uses history for document read pages', () => {
-    expect(nativeBackAction('modules/documents/d/abc-token', 'search', true)).toEqual({
-      type: 'history',
-    });
-    expect(nativeBackAction('read/abc-token', 'search', true)).toEqual({ type: 'history' });
-    expect(nativeBackAction('read/user/user-doc-1', 'modules', true)).toEqual({ type: 'history' });
+  it('sends a deep-linked document, with no history below, to the home tab', () => {
+    expect(nativeBackTargets('modules/documents/d/abc-token')).toEqual(home);
+    expect(nativeBackTargets('read/abc-token')).toEqual(home);
   });
 });

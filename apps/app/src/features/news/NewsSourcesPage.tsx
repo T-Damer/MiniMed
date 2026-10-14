@@ -17,6 +17,7 @@ import { getNewsService } from '@/features/news/news-store';
 import type { Subscription } from '@/features/news/news-types';
 import { buildOpml, parseOpml } from '@/features/news/opml';
 import { hostLabel, normalizeSourceUrl } from '@/features/news/source-url';
+import { navigateBack } from '@/state/app-back';
 import { shareSystemFile } from '@/state/native-share';
 
 function SourceRow(props: {
@@ -158,7 +159,7 @@ export function NewsSourcesPage(props: {
             class="knowledge-back-button"
             aria-label="К ленте"
             onClick={() => {
-              window.location.hash = NEWS_ROOT_HASH;
+              navigateBack(NEWS_ROOT_HASH);
             }}
           />
         }

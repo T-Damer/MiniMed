@@ -101,18 +101,23 @@ export function trackToolNavigation(oldURL: string, newURL: string): void {
   );
 }
 
+/**
+ * Back from a tool to the place it was opened from. That place is normally the entry below (the
+ * history steps back to it, with its scroll and state); a tool opened without one in this page
+ * load (a deep link, a reload) replaces itself with the recorded origin instead.
+ */
 export function returnFromTool(): boolean {
   const entry = readTrail().at(-1);
   if (!entry || entry.workspace !== toolWorkspace(window.location.hash)) return false;
   clearReturnTo();
-  restoreReturnTo(entry.from);
+  restoreReturnTo(entry.from, { replace: true });
   return true;
 }
 
 /**
- * Closes a full-screen tool that has no page of its own (the ECG editor): the tool's history entry
- * is replaced by the page the user came from, so the system «back» never returns to an empty tool
- * route. Without a recorded origin (a deep link) it falls back to the search page.
+ * Closes a full-screen tool that has no page of its own (the ECG editor): the system «back» never
+ * returns to an empty tool route. Without a recorded origin (a deep link) it falls back to the
+ * search page.
  */
 export function leaveTool(): void {
   const entry = readTrail().at(-1);

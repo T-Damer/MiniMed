@@ -60,7 +60,10 @@ function installNavigationMocks(): {
   vi.stubGlobal('window', {
     location,
     history: {
-      replaceState: (_state: unknown, _title: string, url: string) => {
+      state: null,
+      length: 1,
+      replaceState: (_state: unknown, _title: string, url?: string) => {
+        if (url === undefined) return;
         const parsed = new URL(url, location.href);
         location.pathname = parsed.pathname;
         location.search = parsed.search;

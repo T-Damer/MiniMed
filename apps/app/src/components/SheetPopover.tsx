@@ -3,6 +3,7 @@ import { type JSX, Show } from 'solid-js';
 
 import { useNarrowViewport } from '@/components/narrow-viewport';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import { useHistoryLayer } from '@/state/use-history-layer';
 
 import '@/components/SheetPopover.css';
 
@@ -30,6 +31,11 @@ export function SheetPopover(props: {
   readonly children: JSX.Element;
 }): JSX.Element {
   const narrow = useNarrowViewport();
+  // The panel is a history layer in both forms (sheet on phones, popover on wide screens).
+  useHistoryLayer(
+    () => props.open,
+    () => props.onOpenChange(false),
+  );
   return (
     <Show
       when={narrow()}

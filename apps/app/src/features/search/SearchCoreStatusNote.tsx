@@ -1,4 +1,4 @@
-import { type JSX, Match, Show, Switch } from 'solid-js';
+import { createSignal, type JSX, Match, Show, Switch } from 'solid-js';
 import { Button } from '@/components/Button';
 import { DownloadProgressMark } from '@/components/DownloadProgressMark';
 import { CORE_DOWNLOAD_SIZE_LABEL } from '@/composition/core-download';
@@ -8,6 +8,7 @@ import {
   searchCoreStatusDetail,
   searchCoreStatusLabel,
 } from '@/features/search/search-core-status';
+import { requestTakeover } from '@/state/tab-takeover';
 
 /**
  * The medical core is not ready yet. `card` stands on its own (reader, knowledge base); `inline`
@@ -20,6 +21,7 @@ export function SearchCoreStatusNote(props: {
   readonly onDownload?: () => void;
 }): JSX.Element {
   const failed = () => props.status.kind === 'error';
+  const [takingOver, setTakingOver] = createSignal(false);
   const inline = () => props.variant === 'inline';
   return (
     <div
@@ -78,6 +80,19 @@ export function SearchCoreStatusNote(props: {
             Повторить
           </Button>
         )}
+      </Show>
+      <Show when={props.status.kind === 'other-tab'}>
+        <Button
+          class="search-core-status__action"
+          variant="primary"
+          disabled={takingOver()}
+          onClick={() => {
+            setTakingOver(true);
+            requestTakeover();
+          }}
+        >
+          {takingOver() ? 'Переключаем…' : 'Использовать здесь'}
+        </Button>
       </Show>
       <Show when={props.status.kind === 'download-required' && props.onDownload}>
         {(download) => (

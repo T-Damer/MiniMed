@@ -365,7 +365,9 @@ export function App(): JSX.Element {
       hidden={
         showingBootScreen() || navigation.documentReadActive() || !navigation.isViewVisible(id)
       }
-      aria-hidden={showingBootScreen() || navigation.view() !== id}
+      // `inert`, not `aria-hidden`: a pane that is left may hold the focus (the link just tapped),
+      // and hiding a focused subtree from assistive tech is blocked; inert also moves the focus out.
+      inert={showingBootScreen() || navigation.view() !== id}
     >
       {/* Keep-alive: construct on first visit, then stay mounted so tab switches
           preserve composer drafts, scroll position, and per-view state. */}
