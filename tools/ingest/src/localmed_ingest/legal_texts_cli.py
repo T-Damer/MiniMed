@@ -1,0 +1,444 @@
+"""Command line of the full-text pipeline for the regulatory acts (LEGAL1).
+
+    medbase-legal-texts sources   --data-root /path/to/MiniMed/data     # record + checksum of every official file
+    medbase-legal-texts reconcile --data-root … [STEM …]                # flagged pages per act (reports/)
+    medbase-legal-texts images    --data-root … STEM --pages 3,5        # PNG of pages for the image review
+    medbase-legal-texts assemble  --data-root … [STEM …] [--strict]    # cards + provenance
+    medbase-legal-texts check                                           # gate on the committed texts
+
+`--data-root` is the main checkout's gitignored `data/` (read by absolute path, never linked into a worktree).
+A STEM names an act's files: the portal `eoNumber`, or `minzdrav-<number>` for a file from minzdrav.gov.ru.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import re
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Annotated, Any, Final, NoReturn
+
+import typer
+
+from .legal_cards import assemble_card
+from .legal_reconcile import act_identity
+from .legal_text_sources import docx_to_markdown, ips_html_to_markdown, rg_html_to_markdown
+from .legal_texts import (
+    ActText,
+    Review,
+    build_act_text,
+    build_text_source_act,
+    read_marker_pages,
+    read_vision_pages,
+    reconcile_act,
+)
+from .regulatory_verify import load_cards
+
+REPO: Final = Path(__file__).resolve().parents[4]
+CARDS: Final = REPO / "content/regulatory-rf-pilot"
+TEXTS: Final = REPO / "content/regulatory-rf-texts"
+SOURCES: Final = TEXTS / "sources.json"
+SCAN_READERS: Final = frozenset({"scan", "tiff-zip"})
+READERS: Final = {
+    "docx": "Word file of minzdrav.gov.ru (text, no OCR)",
+    "rg": "HTML of rg.ru (text, no OCR)",
+    "ips": "HTML of the IPS of pravo.gov.ru, consolidated edition (text, no OCR)",
+}
+READER: Final = "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)"
+
+_STATIC: Final = "https://static-0.minzdrav.gov.ru/system/attachments/attaches"
+MANUAL_ACTS: Final[dict[str, dict[str, str]]] = {
+    "521н": {
+        "stem": "minzdrav-521n",
+        "file": "minzdrav-521n.pdf",
+        "reader": "scan",
+        "fileUrl": f"{_STATIC}/000/028/224/original/",
+        "name": "Об утверждении Порядка оказания медицинской помощи детям с инфекционными заболеваниями",
+    },
+    "366н": {
+        "stem": "minzdrav-366n",
+        "file": "minzdrav-366n.pdf",
+        "reader": "scan",
+        "fileUrl": f"{_STATIC}/000/028/303/original/",
+        "name": "Об утверждении Порядка оказания педиатрической помощи",
+    },
+    "157-ФЗ": {
+        "stem": "ips-157fz",
+        "file": "ips-157fz.html",
+        "reader": "ips",
+        "fileUrl": "http://pravo.gov.ru/proxy/ips/?doc_itself=&nd=102055517&page=1&rdk=26",
+        "name": "Об иммунопрофилактике инфекционных болезней",
+        "kind": "Федеральный закон",
+    },
+    "255-ФЗ": {
+        "stem": "rg-255fz",
+        "file": "rg-255fz.html",
+        "reader": "rg",
+        "fileUrl": "https://rg.ru/documents/2006/12/31/beremennost-dok.html",
+        "name": "Об обеспечении пособиями по временной нетрудоспособности, по беременности и родам граждан, подлежащих обязательному социальному страхованию",
+        "kind": "Федеральный закон",
+    },
+    "1346н": {
+        "stem": "minzdrav-1346n",
+        "file": "minzdrav-1346n.docx",
+        "reader": "docx",
+        "fileUrl": f"{_STATIC}/000/012/460/original/Prikaz__1346n.docx",
+        "name": "О Порядке прохождения несовершеннолетними медицинских осмотров, в том числе при поступлении в образовательные учреждения и в период обучения в них",
+    },
+}
+
+app = typer.Typer(no_args_is_help=True, help=__doc__)
+
+
+@dataclass(frozen=True)
+class Paths:
+    root: Path
+
+    @property
+    def raw(self) -> Path:
+        return self.root / "raw/regulatory-sources"
+
+    @property
+    def work(self) -> Path:
+        return self.root / "build/marker-legal"
+
+
+DataRoot = Annotated[Path, typer.Option("--data-root", help="the main checkout's data/ directory")]
+
+
+def _fail(message: str) -> NoReturn:
+    typer.echo(message, err=True)
+    raise typer.Exit(1)
+
+
+def _load_sources() -> dict[str, Any]:
+    return json.loads(SOURCES.read_text(encoding="utf-8"))
+
+
+def _review(slug: str) -> Review:
+    path = TEXTS / f"{slug}.review.json"
+    return (
+        Review.from_json(json.loads(path.read_text(encoding="utf-8")))
+        if path.exists()
+        else Review()
+    )
+
+
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+@app.command()
+def sources(data_root: DataRoot, pause: float = 1.0) -> None:
+    """Write sources.json: portal record, file name, SHA-256 and size of each official file on disk."""
+    import time
+
+    from .medical_form_updates import PortalClient
+
+    paths = Paths(data_root)
+    client = PortalClient()
+    previous = _load_sources()["acts"] if SOURCES.exists() else []
+    manual = {row["documentId"]: row for row in previous if row.get("kind") != "portal"}
+    rows: list[dict[str, Any]] = []
+    for card in load_cards():
+        meta = card["metadata"]
+        eo = str(meta.get("officialPublicationNumber", ""))
+        slug = Path(card["path"]).stem
+        if re.fullmatch(r"\d{16}", eo):
+            record = client.document(eo)
+            time.sleep(pause)
+            file = next(paths.raw.glob(f"{eo}.*"), None)
+            if file is None:
+                raise typer.BadParameter(f"{eo}: no file in {paths.raw}")
+            rows.append(
+                {
+                    "documentId": card["id"],
+                    "card": card["path"],
+                    "slug": slug,
+                    "stem": eo,
+                    "kind": "portal",
+                    "reader": "scan" if file.suffix == ".pdf" else "tiff-zip",
+                    "file": file.name,
+                    "sha256": _sha256(file),
+                    "bytes": file.stat().st_size,
+                    "officialUrl": meta["officialSourceUrl"],
+                    "record": {
+                        key: record.get(key)
+                        for key in (
+                            "eoNumber",
+                            "number",
+                            "documentDate",
+                            "name",
+                            "complexName",
+                            "jdRegNumber",
+                            "jdRegDate",
+                            "pagesCount",
+                            "publishDateShort",
+                        )
+                    },
+                }
+            )
+        elif str(meta["documentNumber"]) in MANUAL_ACTS:
+            spec = MANUAL_ACTS[str(meta["documentNumber"])]
+            file = paths.raw / spec["file"]
+            issuer = str(meta["issuer"])
+            date = str(meta["signedAt"])
+            year, month, day = date.split("-")
+            reg_date = meta.get("minjustRegistrationDate")
+            rows.append(
+                {
+                    "documentId": card["id"],
+                    "card": card["path"],
+                    "slug": slug,
+                    "stem": spec["stem"],
+                    "kind": "minzdrav",
+                    "reader": spec["reader"],
+                    "file": spec["file"],
+                    "sha256": _sha256(file),
+                    "bytes": file.stat().st_size,
+                    "officialUrl": meta["officialSourceUrl"],
+                    "fileUrl": spec["fileUrl"],
+                    "record": {
+                        "number": meta["documentNumber"],
+                        "documentDate": f"{date}T00:00:00",
+                        "name": spec["name"],
+                        "complexName": (
+                            f"{spec['kind']} от {day}.{month}.{year} № {meta['documentNumber']}"
+                            if "kind" in spec
+                            else f"Приказ {issuer.replace('Министерство', 'Министерства')} от {day}.{month}.{year} № {meta['documentNumber']}"
+                        ),
+                        "jdRegNumber": meta.get("minjustRegistrationNumber"),
+                        "jdRegDate": f"{reg_date}T00:00:00" if reg_date else None,
+                    },
+                }
+            )
+        elif card["id"] in manual:
+            rows.append(manual[card["id"]])
+    SOURCES.parent.mkdir(parents=True, exist_ok=True)
+    SOURCES.write_text(
+        json.dumps({"schemaVersion": 1, "acts": rows}, ensure_ascii=False, indent=1) + "\n"
+    )
+    typer.echo(f"{len(rows)} acts with a recorded official file -> {SOURCES}")
+
+
+@app.command("fetch-text")
+def fetch_text(data_root: DataRoot) -> None:
+    """Download the text sources (rg.ru HTML, IPS HTML) that are not scans; the checksum goes into sources.json."""
+    import urllib.request
+
+    paths = Paths(data_root)
+    paths.raw.mkdir(parents=True, exist_ok=True)
+    for spec in MANUAL_ACTS.values():
+        if spec["reader"] not in ("rg", "ips"):
+            continue
+        request = urllib.request.Request(spec["fileUrl"], headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(request, timeout=120) as response:
+            data: bytes = response.read()
+        (paths.raw / spec["file"]).write_bytes(data)
+        typer.echo(f"{spec['file']}: {len(data)} bytes")
+
+
+def _act(stem_or_slug: str) -> dict[str, Any]:
+    for row in _load_sources()["acts"]:
+        if stem_or_slug in (row["stem"], row["slug"]):
+            return row
+    raise typer.BadParameter(f"unknown act {stem_or_slug}")
+
+
+def _inputs(
+    paths: Paths, row: dict[str, Any]
+) -> tuple[dict[int, str | None], dict[int, list[str]]]:
+    stem = row["stem"]
+    vision = read_vision_pages(paths.work / f"vision/{stem}.json")
+    marker = read_marker_pages(paths.work / f"marker/{stem}", len(vision))
+    return marker, vision
+
+
+def _text_act(paths: Paths, row: dict[str, Any]) -> ActText:
+    """The act of a text source (Word, rg.ru HTML, IPS HTML), read from its file with the recorded checksum."""
+    file = paths.raw / row["file"]
+    if _sha256(file) != row["sha256"]:
+        raise typer.BadParameter(f"{row['file']} differs from the checksum in sources.json")
+    identity = act_identity(row["record"])
+    if row["reader"] == "docx":
+        return build_text_source_act(
+            docx_to_markdown(file.read_bytes()), identity, cut_header=False
+        )
+    if row["reader"] == "rg":
+        return build_text_source_act(
+            rg_html_to_markdown(file.read_text(encoding="utf-8")), identity, cut_header=False
+        )
+    if row["reader"] == "ips":
+        html = file.read_bytes().decode("cp1251", errors="replace")
+        return build_text_source_act(ips_html_to_markdown([html]), identity, cut_header=True)
+    raise typer.BadParameter(f"unknown reader {row['reader']}")
+
+
+def _selected(names: list[str]) -> list[dict[str, Any]]:
+    rows = _load_sources()["acts"]
+    return [_act(n) for n in names] if names else list(rows)
+
+
+@app.command()
+def reconcile(
+    data_root: DataRoot, names: Annotated[list[str] | None, typer.Argument()] = None
+) -> None:
+    """Reconcile the acts' pages and report the flagged ones (reports/<stem>.json under the work dir)."""
+    paths = Paths(data_root)
+    out = paths.work / "reports"
+    out.mkdir(parents=True, exist_ok=True)
+    for row in _selected(names or []):
+        if row["reader"] not in SCAN_READERS:
+            continue
+        marker, vision = _inputs(paths, row)
+        identity = act_identity(row["record"])
+        results, pending = reconcile_act(marker, vision, identity, _review(row["slug"]))
+        flagged = [r for r in results if r.flags]
+        report = {
+            "stem": row["stem"],
+            "pages": len(results),
+            "pending": pending,
+            "flagged": [
+                {
+                    "page": r.page,
+                    "status": r.status,
+                    "confidence": r.confidence,
+                    "flags": [f.__dict__ for f in r.flags],
+                }
+                for r in flagged
+            ],
+        }
+        (out / f"{row['stem']}.json").write_text(json.dumps(report, ensure_ascii=False, indent=1))
+        typer.echo(
+            f"{row['slug']:55} pages {len(results):4} flagged {len(flagged):4} pending {len(pending):4}"
+        )
+
+
+@app.command()
+def images(
+    data_root: DataRoot,
+    name: str,
+    pages: Annotated[str, typer.Option(help="comma separated 1-based pages")],
+    width: int = 1300,
+) -> None:
+    """Render pages of an act's PDF to PNG for the image review (deleted when the review is done)."""
+    import pymupdf
+
+    paths = Paths(data_root)
+    row = _act(name)
+    out = paths.work / f"images/{row['stem']}"
+    out.mkdir(parents=True, exist_ok=True)
+    source = paths.raw / row["file"]
+    if row["reader"] == "tiff-zip":
+        source = paths.work / f"derived/{row['stem']}.pdf"
+    document = pymupdf.open(source)
+    for number in sorted({int(p) for p in pages.split(",")}):
+        page = document[number - 1]
+        zoom = width / page.rect.width
+        page.get_pixmap(matrix=pymupdf.Matrix(zoom, zoom)).save(out / f"p{number:04d}.png")
+        typer.echo(out / f"p{number:04d}.png")
+
+
+@app.command()
+def assemble(
+    data_root: DataRoot,
+    names: Annotated[list[str] | None, typer.Argument()] = None,
+    strict: bool = False,
+) -> None:
+    """Write the full-text card and the provenance of each act; --strict refuses unreviewed flagged pages."""
+    paths = Paths(data_root)
+    TEXTS.mkdir(parents=True, exist_ok=True)
+    for row in _selected(names or []):
+        identity = act_identity(row["record"])
+        review = _review(row["slug"])
+        if row["reader"] in SCAN_READERS:
+            marker, vision = _inputs(paths, row)
+            results, pending = reconcile_act(marker, vision, identity, review)
+            if pending and strict:
+                _fail(f"{row['slug']}: flagged pages without a review verdict: {pending}")
+            act = build_act_text(results, identity)
+            page_count: int | None = len(results)
+            flagged = sum(1 for r in results if r.flags)
+            reviewed = sum(1 for r in results if r.status == "reviewed")
+        else:
+            act = _text_act(paths, row)
+            page_count, flagged, reviewed = None, 0, 0
+        card_path = CARDS / row["card"]
+        old = card_path.read_text(encoding="utf-8")
+        meta_text = old.partition("\n---\n")[0]
+        amended = (
+            "с изменениями" in meta_text
+            and "первоначальная" not in meta_text.split("edition:")[-1][:80]
+        )
+        extra: dict[str, object] = {
+            "textReading": READER if row["reader"] in SCAN_READERS else READERS[row["reader"]]
+        }
+        if page_count is not None:
+            extra.update(
+                {
+                    "textPages": page_count,
+                    "textFlaggedPages": flagged,
+                    "textPagesReviewed": reviewed,
+                }
+            )
+        card_path.write_text(
+            assemble_card(old, act.body, pages=page_count, amended=amended, extra=extra),
+            encoding="utf-8",
+        )
+        provenance = {
+            "documentId": row["documentId"],
+            "source": {
+                "file": row["file"],
+                "sha256": row["sha256"],
+                "bytes": row["bytes"],
+                "pages": page_count,
+                "officialUrl": row["officialUrl"],
+            },
+            "identityFromPortal": {
+                "number": identity.number,
+                "date": identity.date,
+                "name": identity.name,
+                "registrationNumber": identity.registration_number,
+                "registrationDate": identity.registration_date,
+            },
+            "reader": READER,
+            "review": {
+                "reviewer": review.reviewer,
+                "reviewedAt": review.reviewed_at,
+                "corrections": len(review.corrections),
+            },
+            "pages": act.pages,
+        }
+        (TEXTS / f"{row['slug']}.provenance.json").write_text(
+            json.dumps(provenance, ensure_ascii=False, indent=1) + "\n"
+        )
+        typer.echo(
+            f"{row['slug']}: {page_count} pages, {flagged} flagged, {len(act.pending_pages)} pending"
+        )
+
+
+@app.command()
+def check() -> None:
+    """Gate: every text card has provenance with no pending page and a matching source checksum."""
+    problems: list[str] = []
+    for row in _load_sources()["acts"]:
+        path = TEXTS / f"{row['slug']}.provenance.json"
+        if not path.exists():
+            problems.append(f"{row['slug']}: no provenance (full text not assembled)")
+            continue
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if data["source"]["sha256"] != row["sha256"]:
+            problems.append(f"{row['slug']}: provenance checksum differs from sources.json")
+        for page in data["pages"]:
+            if page["status"] == "review":
+                problems.append(
+                    f"{row['slug']} p.{page['page']}: flagged page without a review verdict"
+                )
+    if problems:
+        _fail("\n".join(problems))
+    typer.echo("all full texts have provenance and no pending page")
+
+
+if __name__ == "__main__":
+    app()

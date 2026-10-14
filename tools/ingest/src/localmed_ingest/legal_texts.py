@@ -40,8 +40,10 @@ _BOLD_ONLY: Final = re.compile(r"^\*\*(.+?)\*\*$|^__(.+?)__$")
 _EMPHASIS: Final = re.compile(
     r"(\*\*|__)(?=\S)(.+?)(?<=\S)\1|(?<![\w*])\*(?=\S)([^*\n]+?)(?<=\S)\*(?![\w*])"
 )
-_ANNEX: Final = re.compile(r"^(?:Приложение(?:\s*№\s*(\d+))?\b)", re.IGNORECASE)
+_ANNEX: Final = re.compile(r"^(?:Приложение(?:\s*[№N]\s*(\d+))?\b)", re.IGNORECASE)
 _APPROVED: Final = re.compile(r"^(?:УТВЕРЖДЕН[ОЫАЫ]?|Утвержден[оыаы]?)\b")
+_LAW_PART: Final = re.compile(r"^(?:Глава|Раздел|Часть)\s+[IVXLC\d]+", re.IGNORECASE)
+_LAW_ARTICLE: Final = re.compile(r"^Статья\s+\d", re.IGNORECASE)
 _ROMAN: Final = re.compile(r"^[IVXLC]{1,6}\.\s+\S")
 _TERMINAL: Final = re.compile(r"[.;:!?»)\]]$")
 
@@ -218,10 +220,10 @@ def title_for(identity: ActIdentity) -> str:
     return f"{kind} № {identity.number}"
 
 
-def structure(blocks: list[Block], identity: ActIdentity) -> list[Block]:
+def structure(blocks: list[Block], identity: ActIdentity, first_page: int = 1) -> list[Block]:
     """Assign heading levels: the act and each annex are level 1, chapters and titles below."""
-    out: list[Block] = [Block("heading", title_for(identity), 1, 1)]
-    out.append(Block("paragraph", f"«{identity.name}»", 1))
+    out: list[Block] = [Block("heading", title_for(identity), first_page, 1)]
+    out.append(Block("paragraph", f"«{identity.name}»", first_page))
     index = 0
     while index < len(blocks):
         block = blocks[index]
@@ -261,8 +263,18 @@ def structure(blocks: list[Block], identity: ActIdentity) -> list[Block]:
             out.append(block)
             index += 1
             continue
+        if block.kind == "heading" and _ANNEX.match(text):
+            block = Block(
+                "paragraph", text, block.page, confidence=block.confidence, reviewed=block.reviewed
+            )
+            blocks[index] = block
+            continue
         if block.kind == "heading":
             level = min(max(block.level, 2), 3)
+            if _LAW_PART.match(text):
+                level = 2
+            elif _LAW_ARTICLE.match(text):
+                level = 3
             out.append(
                 Block(
                     "heading",
@@ -318,7 +330,8 @@ def _merge_adjacent_headings(blocks: list[Block]) -> list[Block]:
 
 
 def _span(block: Block, extra: dict[str, Any] | None = None) -> str:
-    payload: dict[str, Any] = {"page": block.page}
+    """The source marker of a block; a block of a text source (no page) has none unless it carries data."""
+    payload: dict[str, Any] = {"page": block.page} if block.page > 0 else {}
     if block.end_page is not None and block.end_page != block.page:
         payload["pageEnd"] = block.end_page
     if block.reviewed:
@@ -327,6 +340,8 @@ def _span(block: Block, extra: dict[str, Any] | None = None) -> str:
         payload["confidence"] = block.confidence
     if extra:
         payload.update(extra)
+    if not payload:
+        return ""
     return (
         "<!-- localmed:source "
         + json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
@@ -368,7 +383,7 @@ def render_blocks(blocks: list[Block]) -> str:
         elif block.kind == "table":
             parts.append(render_table(block))
         else:
-            lines = [_span(block)]
+            lines = [_span(block)] if _span(block) else []
             if block.pending:
                 lines.append(
                     "<!-- localmed:review "
@@ -457,8 +472,16 @@ def reconcile_act(
     results: list[PageResult] = []
     pending: list[int] = []
     for page in sorted(vision_pages):
-        result = reconcile_page(page, marker_pages.get(page), vision_pages[page], identity=identity)
         fixes = [c for c in review.corrections if c.page == page]
+        # A page read against its image keeps Marker's text: Vision's tokens are not swapped in again.
+        reviewed = page in review.verdicts or bool(fixes)
+        result = reconcile_page(
+            page,
+            marker_pages.get(page),
+            vision_pages[page],
+            identity=identity,
+            substitute=not reviewed,
+        )
         if fixes:
             apply_corrections(result, fixes)
         if result.status == "review":
@@ -504,6 +527,31 @@ def build_act_text(results: list[PageResult], identity: ActIdentity) -> ActText:
     return ActText(body, provenance, pending_pages, blocks)
 
 
+def build_text_source_act(markdown: str, identity: ActIdentity, *, cut_header: bool) -> ActText:
+    """The act from a text source (Word, HTML): no pages, no reconciliation, same structure and rendering.
+
+    `cut_header` removes a title block (agency, «ФЕДЕРАЛЬНЫЙ ЗАКОН», title) that the portal identity replaces.
+    """
+    from .legal_reconcile import strip_header_marker
+
+    cleaned = clean_marker_markdown(markdown)
+    body, removed = strip_header_marker(cleaned, identity) if cut_header else (cleaned, None)
+    blocks = structure(merge_pages([parse_blocks(body, 0)]), identity, first_page=0)
+    provenance: list[dict[str, Any]] = [
+        {
+            "page": None,
+            "reading": "text-source",
+            "status": "pass",
+            "confidence": "high",
+            "flags": []
+            if removed is not None or not cut_header
+            else [{"kind": "header-not-found", "detail": "no header cut"}],
+            "headerRemoved": removed,
+        }
+    ]
+    return ActText(render_blocks(blocks), provenance, [], blocks)
+
+
 def read_marker_pages(directory: Path, count: int) -> dict[int, str | None]:
     pages: dict[int, str | None] = {}
     for page in range(1, count + 1):
@@ -532,6 +580,7 @@ __all__ = [
     "Review",
     "apply_corrections",
     "build_act_text",
+    "build_text_source_act",
     "identity_from_file",
     "merge_pages",
     "parse_blocks",

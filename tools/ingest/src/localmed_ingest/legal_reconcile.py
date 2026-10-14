@@ -148,7 +148,7 @@ def strip_furniture(lines: list[str]) -> tuple[list[str], list[str]]:
 # ------------------------------------------------------------------------------------ tokens
 
 
-_DIGIT_AS_LETTER: Final = re.compile(r"(?<=[А-ЯЁ])([360])(?!\d|[.,]\d)")
+_DIGIT_AS_LETTER: Final = re.compile(r"(?<=[А-ЯЁ])([360])(?!\d{2}|[.,]\d)")
 _LETTER_FOR_DIGIT: Final = {"3": "З", "6": "б", "0": "О"}
 
 
@@ -198,10 +198,6 @@ def tokenize(text: str, line: int = 0, *, vision: bool = False) -> list[Token]:
             after = text[end : end + 2]
             if text[start] in _SUP_GLYPHS or (at_line_start and re.match(r"[.)]($|\s)|$", after)):
                 ignore = True
-            elif vision and len(norm) <= 2:
-                glued = start > 0 and (text[start - 1].islower() or text[start - 1] in ");»")
-                footnote_lead = at_line_start and re.match(r"\s+[А-ЯЁ]", after) is not None
-                ignore = glued or footnote_lead
         tokens.append(Token(norm, match.start(), match.end(), line, ignore))
     return tokens
 
@@ -395,7 +391,7 @@ def act_identity(record: Mapping[str, object]) -> ActIdentity:
 
 
 _SELF_REFERENCE: Final = re.compile(
-    r"(?P<head>\b(?:Приложение|Утвержден[ыо]?)\b[^.;]{0,160}?\bприказ\w*\b[^.;№]{0,160}?)"
+    r"(?P<head>\b(?:Приложение|Утвержден[ыо]?)\b[^.;]{0,260}?\bприказ\w*\b[^.;№]{0,200}?)"
     r"\bот\s+[^№\n]{3,48}?[№N][º°o]?\s*(?P<num>\d+(?: ?[A-Za-zА-Яа-я](?![A-Za-zА-Яа-я]))?)(?!\d)",
     re.IGNORECASE | re.DOTALL,
 )
@@ -420,46 +416,59 @@ def canonical_self_references(text: str, identity: ActIdentity) -> tuple[str, li
     return _SELF_REFERENCE.sub(replace, text), rewrites
 
 
+_PREAMBLE_START: Final = re.compile(
+    r"^(?:В соответствии|Во исполнение|На основании|Руководствуясь|В целях|Приказываю)\b",
+    re.IGNORECASE,
+)
+
+
 def _title_words(identity: ActIdentity) -> list[str]:
     return [t.norm for t in tokenize(identity.name) if len(t.norm) > 1]
+
+
+def _header_end(units: list[str], identity: ActIdentity) -> int | None:
+    """Index of the first unit (paragraph or line) after the header block, or None.
+
+    The preamble («В соответствии с …») ends the header when it is there; the title's last words
+    are searched only above it (they recur in the text of the order). Without a preamble the block
+    ends where the portal's name for the act is complete.
+    """
+    window = units[:30]
+    preamble = next(
+        (i for i, unit in enumerate(window) if _PREAMBLE_START.match(unit.strip())), None
+    )
+    words = _title_words(identity)
+    if len(words) >= 3:
+        tail = " ".join(words[-3:])
+        seen: list[str] = []
+        for index, unit in enumerate(window[: preamble if preamble is not None else len(window)]):
+            seen.extend(t.norm for t in tokenize(unit) if len(t.norm) > 1)
+            if tail in " ".join(seen):
+                return index + 1
+    return preamble
 
 
 def strip_header_marker(first_page: str, identity: ActIdentity) -> tuple[str, str | None]:
     """Remove the scan's header block (agency, date, number, title) from Marker's first page.
 
-    The block ends with the paragraph in which the last words of the portal's name for the act are
-    complete (a title may be split in several paragraphs). Returns (remaining text, removed text);
-    removed is None when the title was not found (nothing is cut then and the caller flags the page).
+    Returns (remaining text, removed text); removed is None when the end of the header was not found
+    (nothing is cut then and the caller flags the page).
     """
-    words = _title_words(identity)
-    if len(words) < 3:
-        return first_page, None
-    tail = " ".join(words[-3:])
     paragraphs = re.split(r"\n\s*\n", first_page)
-    seen: list[str] = []
-    for index, paragraph in enumerate(paragraphs[:8]):
-        seen.extend(t.norm for t in tokenize(paragraph) if len(t.norm) > 1)
-        if tail in " ".join(seen):
-            return "\n\n".join(paragraphs[index + 1 :]).strip(), "\n\n".join(
-                paragraphs[: index + 1]
-            )
-    return first_page, None
+    end = _header_end(paragraphs, identity)
+    if end is None:
+        return first_page, None
+    return "\n\n".join(paragraphs[end:]).strip(), "\n\n".join(paragraphs[:end])
 
 
 def strip_header_vision(
     lines: list[str], identity: ActIdentity
 ) -> tuple[list[str], list[str] | None]:
-    """The same cut for Vision's lines: up to and including the line that completes the title."""
-    words = _title_words(identity)
-    if len(words) < 3:
+    """The same cut for Vision's lines."""
+    end = _header_end(lines, identity)
+    if end is None:
         return lines, None
-    tail = " ".join(words[-3:])
-    seen: list[str] = []
-    for index, line in enumerate(lines[:30]):
-        seen.extend(t.norm for t in tokenize(line) if len(t.norm) > 1)
-        if tail in " ".join(seen):
-            return lines[index + 1 :], lines[: index + 1]
-    return lines, None
+    return lines[end:], lines[:end]
 
 
 # ------------------------------------------------------------------------------------ alignment
@@ -583,6 +592,7 @@ def reconcile_page(
     vision_lines: list[str],
     *,
     identity: ActIdentity | None = None,
+    substitute: bool = True,
 ) -> PageResult:
     """Compare Marker's Markdown of one page with Vision's lines and decide what the page carries.
 
@@ -646,7 +656,7 @@ def reconcile_page(
     alignment = align(marker, vision_kept)
     text = marker
     edits: list[tuple[int, int, str]] = []
-    for sub in alignment.substitutions:
+    for sub in alignment.substitutions if substitute else []:
         edits.append((sub.marker_start, sub.marker_end, sub.new))
         flags.append(Flag("token-substitution", f"«{sub.old}» (Marker) → «{sub.new}» (Vision)"))
     for span in alignment.dropped:
@@ -666,7 +676,16 @@ def reconcile_page(
     # Numbers: what remains different after the swaps (stamp numbers the portal explains are excepted).
     v_numbers = numbers(v_tokens)
     m_numbers = numbers(tokenize(text))
-    only_vision = Counter({k: n for k, n in (v_numbers - m_numbers).items() if k not in known})
+    # Footnote marks: Marker writes them as superscripts, Vision reads them as a digit glued to the word;
+    # a digit only Vision has is excused up to the number of superscript marks Marker has with that value.
+    sup_marks = Counter(t.norm for t in tokenize(text) if t.ignore and text[t.start] in _SUP_GLYPHS)
+    only_vision = Counter(
+        {
+            k: n - sup_marks[k]
+            for k, n in (v_numbers - m_numbers).items()
+            if k not in known and n > sup_marks[k]
+        }
+    )
     only_marker = Counter({k: n for k, n in (m_numbers - v_numbers).items() if k not in known})
     if only_vision or only_marker:
         parts: list[str] = []
