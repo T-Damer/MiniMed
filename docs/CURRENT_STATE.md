@@ -4847,14 +4847,14 @@ the first rendered line of the document's own text, CSS px; the bottom navigatio
 | Document | Before | After |
 | --- | --- | --- |
 | КР, installed (1006_1) | 255 | 241 (+ meta line) |
-| КР, short card with its download offer | 461 | 380 |
-| МКБ-10 card with its download offer (C74) | 440 | 371 |
-| Legal act, full text (1122н, 374н) | 255 | 241 (+ meta line) |
+| КР, short card with its download offer | 461 | 362 (380 before DL1's flat offer row) |
+| МКБ-10 card with its download offer (C74) | 440 | 353 (371 before the flat offer row) |
+| Legal act (1122н, 374н): summary card + offer row of the full-text module (REG2) / full text when installed | 255 | 272–288 with the offer row (241 for the full text) |
 | Term / definition card (terminology fixture) | 329 | 315 |
 | Reference article with picture (hero) | 497 | 414 |
 | User document (Markdown) | 271 | 258 |
 | Calculator, first input (unit conversion / Бишоп) | 162 / 235 | unchanged (already on the first screen) |
-| ГРЛС instruction text in the drug reader | 1173 | drug screen, DRUG-UI1 |
+| ГРЛС instruction text in the drug reader | 1173 | 493 (DRUG-UI1, DRUG-UI2) |
 
 What changed (reader = `OfficialDocumentReader`, shared by КР, acts, МКБ, references, terms):
 
