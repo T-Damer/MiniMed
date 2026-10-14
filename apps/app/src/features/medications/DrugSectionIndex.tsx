@@ -14,7 +14,6 @@ export function DrugSectionIndex(props: {
   readonly count: number;
   readonly onOpen: () => void;
 }): JSX.Element {
-  const [strip, setStrip] = createSignal<HTMLElement>();
   return (
     <div class="drug-section-index">
       <button

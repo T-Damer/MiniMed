@@ -69,8 +69,8 @@ VIS1) and the coordinator's scrollbar decision. Screens: search home and results
 - **Scrollbars.** Fine pointers get thin, ink-coloured scrollbars for the page and inner containers
   (`scrollbar-width: thin`, `--theme-scrollbar-thumb`, OverlayScrollbars handles; `.scrollbar-themed` carries the
   WebKit fallback on `<html>`); touch keeps its overlay bars. **Horizontal strips show no scrollbar and show arrows**:
-  `HorizontalScroller` always did, the native strips (news sources, recent calculators, drug section index, search
-  suggestions, spreadsheet sheet tabs) now use `<ScrollStripArrows>` inside a `scroll-strip`. Wide content (tables,
+  `HorizontalScroller` always did, the native strips (news sources, recent calculators, search suggestions,
+  spreadsheet sheet tabs) now use `<ScrollStripArrows>` inside a `scroll-strip`. Wide content (tables,
   code, charts, PDF columns) keeps a thin scrollbar: it is content, not a strip.
 - **Not done / not tested.** Real devices and WebKit (Safari/iOS) were not run; the e2e ran against the Vite dev
   server, not a release build. The inline `//` hints of calculator and assessment screens (VIS2) and the drug/document

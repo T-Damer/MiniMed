@@ -221,7 +221,6 @@ h6,
 }
 
 .category-tabs,
-.drug-section-index__list,
 .rich-sheet__tabs,
 .suggestion-strip,
 .recent-calculators__list,
@@ -234,7 +233,6 @@ h6,
 }
 
 .category-tabs::-webkit-scrollbar,
-.drug-section-index__list::-webkit-scrollbar,
 .rich-sheet__tabs::-webkit-scrollbar,
 .suggestion-strip::-webkit-scrollbar,
 .recent-calculators__list::-webkit-scrollbar,
