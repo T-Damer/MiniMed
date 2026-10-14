@@ -102,6 +102,49 @@ describe('deriveClassPhrases', () => {
     ]);
   });
 
+  it('lets one alias per word split a name that lists several classes (ATC4c)', () => {
+    // «Макролиды, линкозамиды и стрептограмины» is one name with three words; without aliases every
+    // word stands for J01F as a whole, with one alias each the words are told apart.
+    const names = {
+      ...ATC,
+      J01FA: 'Макролиды',
+      J01FF: 'Линкозамиды',
+      J01FG: 'Стрептограмины',
+    };
+    const matcherFor = (aliases: readonly ClassAlias[]) =>
+      new MentionMatcher(classPatterns(deriveClassPhrases(names, aliases).phrases), {
+        minSingleStem: 3,
+      });
+    const targetsIn = (aliases: readonly ClassAlias[], text: string): readonly string[] =>
+      mentionTargets(matcherFor(aliases).find(tokenizeForMatching(text))).toSorted();
+    expect(targetsIn([], 'макролиды и линкозамиды')).toEqual(['c:J01F']);
+    const aliases: readonly ClassAlias[] = [
+      { text: 'макролиды', codes: ['J01FA'], basis: 'test' },
+      { text: 'линкозамиды', codes: ['J01FF'], basis: 'test' },
+      { text: 'стрептограмины', codes: ['J01FG'], basis: 'test' },
+    ];
+    expect(targetsIn(aliases, 'антагонизм с макролидами')).toEqual(['c:J01FA']);
+    expect(targetsIn(aliases, 'линкозамидов и стрептограминов')).toEqual(['c:J01FF', 'c:J01FG']);
+    expect(targetsIn(aliases, 'макролиды и линкозамиды')).toEqual(['c:J01FA', 'c:J01FF']);
+  });
+
+  it('gives a widened alias one target per code, the sentence named by the word is one mention', () => {
+    const aliases: readonly ClassAlias[] = [
+      { text: 'гипотензивные', codes: ['C03A', 'C07', 'C08'], basis: 'test' },
+    ];
+    const matcher = new MentionMatcher(classPatterns(deriveClassPhrases(ATC, aliases).phrases), {
+      minSingleStem: 3,
+    });
+    const mentions = matcher.find(tokenizeForMatching('усиливает действие гипотензивных средств'));
+    expect(mentions.map((mention) => mention.target).toSorted()).toEqual([
+      'c:C03A',
+      'c:C07',
+      'c:C08',
+    ]);
+    // all of them mark the same words
+    expect(new Set(mentions.map((mention) => `${mention.start}-${mention.end}`)).size).toBe(1);
+  });
+
   it('refuses an alias that points at a code the dictionary does not have', () => {
     const bad: readonly ClassAlias[] = [{ text: 'нечто', codes: ['Z99'], basis: 'test' }];
     expect(() => deriveClassPhrases(ATC, bad)).toThrow(/Z99/u);

@@ -15,7 +15,12 @@
  *   consensus code: the stub stays the official value, the substance code is the more specific
  *   one, and a drug is a member of every class either names (the owner's «show both»);
  * - minus the declared exceptions (`data/atc-code-exceptions.json`): a code the review found
- *   wrong for the product, with the reason and the review entry that decided it.
+ *   wrong for the product, with the reason and the review entry that decided it;
+ * - plus the declared class additions (`addClasses` in the same file, ATC4c): a class the card
+ *   belongs to for the interaction rules although its registry code puts it elsewhere (a cold
+ *   remedy coded `R05X` that contains dextromethorphan is a cough suppressant for the sentence
+ *   «не применять с противокашлевыми средствами»). Each addition quotes the product's own
+ *   instruction as evidence; the build checks the quote against the instruction text.
  */
 
 export interface AtcNodeFields {
@@ -33,12 +38,31 @@ export interface AtcCodeException {
   readonly review: string;
 }
 
+/** A class a card is declared to belong to, on the evidence of the product's own instruction. */
+export interface AtcClassAddition {
+  readonly card: string;
+  /** ATC group codes (level 2–4) the card is added to; they are prefixes, like a card's own codes. */
+  readonly classes: readonly string[];
+  readonly reason: string;
+  readonly evidence: {
+    /** The instruction document that says it. */
+    readonly document: string;
+    readonly section: string;
+    /** Verbatim text of that instruction; the build refuses an addition whose quote is not in it. */
+    readonly quote: string;
+  };
+  /** The entry of the committed review (`docs/research/atc-index-review-*.json`) that decided it. */
+  readonly review: string;
+}
+
 export interface AtcCodeSelection {
   /** The codes the index carries, sorted. */
   readonly codes: readonly string[];
+  /** Classes added by a declaration (`addClasses`), included in `codes`. */
+  readonly added: readonly string[];
   /** Codes of the card that were left out and why (a declared exception). */
   readonly excluded: readonly { readonly code: string; readonly reason: string }[];
-  /** Per code: where it comes from, for the review (`registry`, `completed`, `consensus`). */
+  /** Per code: where it comes from, for the review (`registry`, `completed`, `consensus`, `declared`). */
   readonly origins: Readonly<Record<string, readonly string[]>>;
 }
 
@@ -73,6 +97,7 @@ export function selectAtcCodes(
   cardId: string,
   nodes: readonly AtcNodeFields[],
   exceptions: readonly AtcCodeException[] = [],
+  additions: readonly AtcClassAddition[] = [],
 ): AtcCodeSelection {
   const origins = new Map<string, Set<string>>();
   const add = (code: string | null, origin: string): void => {
@@ -96,9 +121,19 @@ export function selectAtcCodes(
       excluded.push({ code: exception.code, reason: exception.reason });
     }
   }
+  // Additions come last, so an exception for the same card and code never removes a declared class.
+  const added: string[] = [];
+  for (const addition of additions) {
+    if (addition.card !== cardId) continue;
+    for (const code of addition.classes) {
+      if (!origins.has(code)) added.push(code);
+      add(code, 'declared');
+    }
+  }
   const codes = [...origins.keys()].toSorted();
   return {
     codes,
+    added: added.toSorted(),
     excluded,
     origins: Object.fromEntries(codes.map((code) => [code, [...(origins.get(code) ?? [])]])),
   };
@@ -112,11 +147,12 @@ export function selectAtcCodesOfMetadata(
   cardId: string,
   metadata: Record<string, unknown>,
   exceptions: readonly AtcCodeException[] = [],
+  additions: readonly AtcClassAddition[] = [],
 ): AtcCodeSelection {
   const nodes = Array.isArray(metadata['smnnNodes'])
     ? (metadata['smnnNodes'] as readonly AtcNodeFields[])
     : [];
-  return selectAtcCodes(cardId, nodes, exceptions);
+  return selectAtcCodes(cardId, nodes, exceptions, additions);
 }
 
 /** The shape of `data/atc-code-exceptions.json`, validated where it is read. */
@@ -141,4 +177,79 @@ export function parseAtcCodeExceptions(value: unknown): readonly AtcCodeExceptio
     }
     return { card, code, reason, review };
   });
+}
+
+/** A group code an addition may name: level 2–4 (`R05`, `R05D`), never a substance code. */
+const ATC_GROUP = /^[A-Z]\d{2}(?:[A-Z][A-Z]?)?$/u;
+const MIN_QUOTE_LENGTH = 20;
+
+/** The `addClasses` list of `data/atc-code-exceptions.json`, validated where it is read. */
+export function parseAtcClassAdditions(value: unknown): readonly AtcClassAddition[] {
+  if (!isRecord(value)) throw new Error('atc-code-exceptions: not an object');
+  const list = value['addClasses'];
+  if (list === undefined) return [];
+  if (!Array.isArray(list)) throw new Error('atc-code-exceptions: «addClasses» is not a list');
+  const seen = new Set<string>();
+  return (list as readonly unknown[]).map((item, position) => {
+    const where = `atc-code-exceptions.addClasses[${position}]`;
+    if (!isRecord(item)) throw new Error(`${where} is not an object`);
+    const { card, classes, reason, evidence, review } = item;
+    if (typeof card !== 'string' || !card.startsWith('esklp.mnn.')) {
+      throw new Error(`${where}: card must be an esklp.mnn.* id`);
+    }
+    if (seen.has(card)) throw new Error(`${where}: ${card} is declared twice`);
+    seen.add(card);
+    if (
+      !Array.isArray(classes) ||
+      classes.length === 0 ||
+      classes.some((code) => typeof code !== 'string' || !ATC_GROUP.test(code))
+    ) {
+      throw new Error(`${where}: classes must be ATC group codes of level 2–4`);
+    }
+    if (typeof reason !== 'string' || reason.trim().length < 10) {
+      throw new Error(`${where}: a reason is required`);
+    }
+    if (!isRecord(evidence)) throw new Error(`${where}: the evidence is required`);
+    const { document, section, quote } = evidence;
+    if (typeof document !== 'string' || !document.endsWith('.instruction')) {
+      throw new Error(`${where}: the evidence names an instruction document`);
+    }
+    if (typeof section !== 'string' || section.trim() === '') {
+      throw new Error(`${where}: the evidence names the section`);
+    }
+    if (typeof quote !== 'string' || quote.trim().length < MIN_QUOTE_LENGTH) {
+      throw new Error(`${where}: the evidence quotes the instruction`);
+    }
+    if (typeof review !== 'string' || review.trim() === '') {
+      throw new Error(`${where}: the review entry is required`);
+    }
+    return {
+      card,
+      classes: [...classes] as string[],
+      reason,
+      evidence: { document, section, quote },
+      review,
+    };
+  });
+}
+
+/** Text compared without regard to spacing, as the instruction chunks are reflowed. */
+export function normalizeQuote(text: string): string {
+  return text.replace(/\s+/gu, ' ').trim().toLowerCase();
+}
+
+/**
+ * Whether the evidence of an addition is in the instruction: a section whose title contains the
+ * named one holds the quote (compared by `normalizeQuote`).
+ */
+export function additionEvidenceHolds(
+  addition: AtcClassAddition,
+  sections: readonly { readonly title: string; readonly text: string }[],
+): boolean {
+  const title = normalizeQuote(addition.evidence.section);
+  const quote = normalizeQuote(addition.evidence.quote);
+  return sections.some(
+    (section) =>
+      normalizeQuote(section.title).includes(title) && normalizeQuote(section.text).includes(quote),
+  );
 }

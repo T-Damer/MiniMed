@@ -25,6 +25,19 @@ export interface ClassAlias {
 
 const BASIS_NSI = 'НСИ «АТХ»: название группы';
 
+/** Classes an instruction means by «гипотензивные / антигипертензивные средства». */
+const ANTIHYPERTENSIVE_CODES = [
+  'C02',
+  'C03A',
+  'C03B',
+  'C03C',
+  'C03D',
+  'C03E',
+  'C07',
+  'C08',
+  'C09',
+] as const;
+
 /**
  * Words used in instructions that the classification does not spell out. Sources: the ATC group
  * names themselves (НСИ «АТХ» v3.8) and the standard Russian abbreviations of those groups.
@@ -116,11 +129,75 @@ export const CLASS_ALIASES: readonly ClassAlias[] = [
   { text: 'статины', codes: ['C10AA'], basis: `${BASIS_NSI} C10AA «Ингибиторы ГМГ-КоА-редуктазы»` },
   { text: 'нитраты', codes: ['C01DA'], basis: `${BASIS_NSI} C01DA «Органические нитраты»` },
   {
+    // C02 alone is the group «Антигипертензивные средства» of the classification; an instruction that
+    // says «гипотензивные (антигипертензивные) средства» means every class that lowers the pressure
+    // in the treatment of hypertension (the five first-line classes plus the centrally acting ones),
+    // and often lists them in the same sentence («диуретики, бета-адреноблокаторы …»). Owner
+    // decision 2026-10-14 (docs/research/atc-index-review-2026-10-14.md, «ATC4c»).
     text: 'гипотензивные',
-    codes: ['C02'],
-    basis: `${BASIS_NSI} C02 «Антигипертензивные средства»`,
+    codes: ANTIHYPERTENSIVE_CODES,
+    basis: `${BASIS_NSI} C02 «Антигипертензивные средства» и классы, которые назначают для снижения артериального давления: C03A–C03E диуретики (без C03X: антагонисты вазопрессина), C07 бета-адреноблокаторы, C08 блокаторы кальциевых каналов, C09 средства, действующие на ренин-ангиотензиновую систему`,
   },
-  { text: 'цитостатики', codes: ['L01'], basis: `${BASIS_NSI} L01 «Противоопухолевые препараты»` },
+  {
+    text: 'антигипертензивные',
+    codes: ANTIHYPERTENSIVE_CODES,
+    basis: `${BASIS_NSI} C02 «Антигипертензивные средства»; в инструкциях то же, что «гипотензивные» (цисплатин: «антигипертензивными препаратами, как фуросемид, гидралазин, диазоксид и пропранолол»)`,
+  },
+  {
+    // L01 as a whole is «Противоопухолевые препараты» (the derived word «противоопухолевые» keeps it).
+    // «Цитостатики» in an instruction are the cytotoxic agents: the sentences are about
+    // myelosuppression, leukopenia, haematotoxicity, live vaccines and warfarin with chemotherapy.
+    // Protein-kinase inhibitors (L01E, old registry code L01XE) and monoclonal antibodies (L01F, old
+    // L01XC, L01XY) are not cytostatics in that sense. Owner decision 2026-10-14.
+    text: 'цитостатики',
+    codes: ['L01A', 'L01B', 'L01C', 'L01D', 'L01XA', 'L01XB', 'L01XX'],
+    basis: `${BASIS_NSI} L01A алкилирующие средства, L01B антиметаболиты, L01C алкалоиды растительного происхождения, L01D противоопухолевые антибиотики, L01XA соединения платины, L01XB метилгидразины, L01XX прочие противоопухолевые препараты (гидроксикарбамид, аспарагиназа, эрибулин, митотан, триоксид мышьяка …); не L01E ингибиторы протеинкиназы и не L01F/L01XC моноклональные антитела`,
+  },
+  {
+    text: 'макролиды',
+    codes: ['J01FA'],
+    basis: `${BASIS_NSI} J01FA «Макролиды»; не вся J01F «Макролиды, линкозамиды и стрептограмины»`,
+  },
+  {
+    text: 'линкозамиды',
+    codes: ['J01FF'],
+    basis: `${BASIS_NSI} J01FF «Линкозамиды»; не вся J01F`,
+  },
+  {
+    text: 'стрептограмины',
+    codes: ['J01FG'],
+    basis: `${BASIS_NSI} J01FG «Стрептограмины»; не вся J01F`,
+  },
+  {
+    text: 'психостимуляторы',
+    codes: ['N06BA', 'N06BC', 'N06CB'],
+    basis: `${BASIS_NSI} N06BA «Симпатомиметики центрального действия», N06BC «Производные ксантина» (кофеин), N06CB «Психостимуляторы в комбинации с психолептиками»; не N06BX «Другие психостимуляторы и ноотропные препараты» (ноотропы)`,
+  },
+  {
+    text: 'снотворные',
+    codes: ['N05CA', 'N05CB', 'N05CC', 'N05CD', 'N05CE', 'N05CF', 'N05CH', 'N05CJ', 'N05CX'],
+    basis: `${BASIS_NSI} N05C «Снотворные и седативные средства» без N05CM «Другие снотворные и седативные средства» (растительные и бромидные успокоительные); «седативные» остаётся на всей N05C`,
+  },
+  {
+    text: 'противодиарейные',
+    codes: ['A07B', 'A07D', 'A07X'],
+    basis: `${BASIS_NSI} A07B «Кишечные адсорбенты», A07D «Препараты, снижающие моторику желудочно-кишечного тракта», A07X «Другие противодиарейные препараты»; не A07A/A07E кишечные противомикробные и противовоспалительные, A07C регидратация, A07F «Противодиарейные микроорганизмы» (пробиотики, свои слова)`,
+  },
+  {
+    text: 'анальгетики',
+    codes: ['A03EA', 'N02A', 'N02B', 'S02DA'],
+    basis: `${BASIS_NSI} N02A «Опиоиды», N02B «Другие анальгетики и антипиретики»; A03EA и S02DA как раньше (производные названий групп); не N02C «Препараты для лечения мигрени»`,
+  },
+  {
+    text: 'деконгестанты',
+    codes: ['R01AA', 'R01AB', 'R01BA', 'S01GA'],
+    basis: `${BASIS_NSI} R01AA/R01AB «Симпатомиметики» (назальные), R01BA «Симпатомиметики» (системные назальные деконгестанты), S01GA «Симпатомиметики, используемые в качестве деконгестантов»; не R01AC/R01AD/R01AX и не S01GX (противоаллергические средства, кортикостероиды)`,
+  },
+  {
+    text: 'кровезаменители',
+    codes: ['B05A'],
+    basis: `${BASIS_NSI} B05A «Кровь и препараты крови» (B05AA «Кровезаменители и препараты плазмы крови»); не B05B–B05Z (растворы для парентерального питания, электролитные, ирригационные, диализные)`,
+  },
   {
     // The derived phrase would stand for the whole of R05 («Противокашлевые препараты и средства
     // для лечения простудных заболеваний»), expectorants and mucolytics (R05C) included, so a

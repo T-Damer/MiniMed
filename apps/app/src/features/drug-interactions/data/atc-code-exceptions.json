@@ -1,10 +1,34 @@
 {
-  "$comment": "ATC codes the interaction index must not carry for a card, decided by the medical review in docs/research/atc-index-review-2026-10-14.json (its «decisions» list holds the card and code of every entry, with the evidence). Applied at build time by selectAtcCodes; the index never holds them, nothing in the app branches on a drug id. The льна посевного семена / A06AC05 entry was removed by the owner on 2026-10-14 (see «ownerDecisions» in the review).",
+  "$comment": "Declared corrections to the ATC codes the interaction index carries for a card, decided by the medical review in docs/research/atc-index-review-2026-10-14.json. «exceptions»: a code the card must NOT carry (card + code + reason + review). «addClasses»: a class the card belongs to for the class rules although its registry code puts it elsewhere (card + classes + reason + evidence quoted from the product's own instruction + review); the build refuses an addition whose quote is not in the instruction. Both are applied at build time by selectAtcCodes; the index holds the result, nothing in the app branches on a drug id. The льна посевного семена / A06AC05 exception was removed by the owner on 2026-10-14 (see «ownerDecisions» in the review).",
   "exceptions": [
     {
       "card": "esklp.mnn.интерферон-альфа-2b-лоратадин",
       "code": "L03AB",
       "reason": "Intranasal ointment: its own instruction states that the plasma concentration of the active substances is below the detection limit and has no clinical significance, so the systemic interferon class sentences («терапия интерфероном», CYP450, гепатит C) do not apply.",
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    }
+  ],
+  "addClasses": [
+    {
+      "card": "esklp.mnn.декстрометорфан-парацетамол-псевдоэфедрин-аскорбиновая-кислота",
+      "classes": ["R05D"],
+      "reason": "A cold remedy coded R05X (other cold remedies) whose instruction says dextromethorphan is in it to suppress cough, so the sentences that name cough suppressants («не применять с противокашлевыми средствами») apply to it. R05D = «Противокашлевые препараты, кроме комбинаций с отхаркивающими средствами»; the product has no expectorant.",
+      "evidence": {
+        "document": "drug.rf.9374e574b43f16da2090.instruction",
+        "section": "Показания к применению",
+        "quote": "Декстрометорфан уменьшает кашель, вызванный незначительным раздражением горла и дыхательных путей."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.дексаметазон-неомицин-полимиксин-b-фенилэфрин",
+      "classes": ["R01AA"],
+      "reason": "A nasal spray coded R01AD53 (corticosteroid combinations) that contains phenylephrine and whose instruction places itself in the group «деконгестанты и другие препараты для местного применения». The class word «деконгестанты» now means the sympathomimetic decongestants (R01AA, R01AB, R01BA, S01GA), not all of R01A, so the product is declared a member of R01AA («Симпатомиметики») to keep the sentences about decongestants with MAO inhibitors and antihypertensives.",
+      "evidence": {
+        "document": "drug.rf.9e446b30e83d78540737.instruction",
+        "section": "Фармакотерапевтическая группа",
+        "quote": "деконгестанты и другие препараты для местного применения; кортикостероиды. Код АТХ: R01AD53."
+      },
       "review": "docs/research/atc-index-review-2026-10-14.json"
     }
   ]

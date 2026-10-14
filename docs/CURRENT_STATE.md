@@ -4844,10 +4844,27 @@ Review: [research/atc-index-review-2026-10-14.md](research/atc-index-review-2026
   withdrawn. Residual: 3 dextromethorphan cold remedies coded `R05X` lose the antitussive sentences (no per-card extra-code mechanism exists). (2) The two older topical interferon cards stay in
   `L03AB`: Генферон (benzocaine, vaginal/rectal suppositories) states no absorption and indicates acute bronchitis, cystitis, endometritis with systemic interferon reactions; Генферон лайт has
   no instruction in the product. (3) Flax seed `A06AC05` admitted (exception removed): +97 documents / +133 sentences on that card. Shipped memberships 17 → 16. Other class words as broad
-  as R05 (`J01F` macrolide/lincosamide, alias «цитостатики» → all `L01`, `A07`, `N06B`, `R01A`/`S01G`, `B05`, `N02`, `N05C`) are listed in the review, not changed.
+  as R05 (`J01F` macrolide/lincosamide, alias «цитостатики» → all `L01`, `A07`, `N06B`, `R01A`/`S01G`, `B05`, `N02`, `N05C`) were listed in the review and decided the same day (ATC4c, next bullet).
   Tests: `atc-index.data.test.ts` (R05 mapping covers `R05D`/`R05F`, not `R05C`; interferon exceptions; flax in `A06AC`), `class-phrases.test.ts` (alias narrows a derived word).
+- **Owner decisions 2026-10-14, second part (STATE ATC4c)**, in the review note («second part») and its JSON (`ownerDecisions` OD4/OD5, `userPerspective`); index rebuilt (2 101 607 → 2 127 209 bytes; the
+  build before the change reproduced the committed file byte for byte). (A) Eleven class words resolve to the part of the group they name, as aliases in `class-phrases.ts` (each with its basis; the build
+  refuses a code that is not in the НСИ dictionary): «макролиды» → `J01FA`, «линкозамиды» → `J01FF`, «стрептограмины» → `J01FG` (not all `J01F`); «цитостатики» → `L01A`/`B`/`C`/`D`, `L01XA`, `L01XB`, `L01XX`
+  (not kinase inhibitors `L01E`, antibodies `L01F`; «противоопухолевые» keeps `L01`); «психостимуляторы» → `N06BA`, `N06BC`, `N06CB` (not nootropics `N06BX`); «снотворные» → `N05CA`–`N05CF`, `N05CH`, `N05CJ`,
+  `N05CX` (not herbal sedatives `N05CM`; «седативные» stays on `N05C`); «противодиарейные» → `A07B`, `A07D`, `A07X` (not probiotics, anti-infectives, rehydration); «анальгетики» → `A03EA`, `N02A`, `N02B`,
+  `S02DA` (not migraine `N02C`); «деконгестанты» → `R01AA`, `R01AB`, `R01BA`, `S01GA`; «кровезаменители» → `B05A`; «гипотензивные» and «антигипертензивные» **widened** to `C02`, `C03A`–`C03E`, `C07`, `C08`,
+  `C09`. Cards losing a word, in the order above: 2 / 7 / 9 / 109 / 28 / 30 / 27 / 13 / 23 / 44; 97 cards gain «гипотензивные» (**+25 208 document pairs**: the NSAID, metformin and additive-hypotension
+  sentences of ~380 instructions now reach amlodipine, lisinopril, bisoprolol …). All words together: 13 984 document pairs lost, 26 130 gained (the gains are the widening and own-class suppression working per code).
+  (B) `addClasses` in `atc-code-exceptions.json`: a card is added to a class with the instruction document, section and a **verbatim quote** as evidence; `selectAtcCodes(…, additions)` applies it at build
+  time and `build-drug-interactions.ts` refuses a quote that is not in the instruction (`additionEvidenceHolds`). Applied to Каффетин® Колд (dextromethorphan, `R05X` → `R05D`, +98 document pairs) and, as a repair
+  of the «деконгестанты» narrowing, to Полидекса с фенилэфрином (`R01AA`); the other three dextromethorphan cold remedies have no instruction in the product and stay out. (C) User-perspective assessment: 40
+  scenarios through `checkPair`, the installed instruction texts and the run-time highlight: 20 better, 20 neutral (controls that must not change), 0 worse, so every narrowing is applied. The prescription tool
+  shares the pair component and changes the same way; the instruction reader does not show interaction sentences; the drug comparison tool and the ATC tree do not read class words; **main search does not use the
+  alias table** (class words return instructions that mention them, not class members; proposed for ATC5's search by ATC code, not done). Limits: own-class suppression works per code, so self-description sentences
+  reach sibling subgroups of a multi-code word; «антибиотики из группы макролидов» still reaches every antibiotic. Tests: `class-words.data.test.ts` (42 data tests: alias codes and reach, absent broad targets, cards
+  of the index, the review record against the index, class additions), `atc-codes.test.ts` (additions), `class-phrases.test.ts` (split and widened aliases).
 - **Not done / not tested.** No clinician has signed the review (AI reviewer, product instruction texts as evidence); hits that did not change were
-  not re-audited; the app was not run with the new asset in a browser (unit and data tests only); no release was made.
+  not re-audited; the ATC4/ATC4b assets were tested by unit and data tests only (ATC4c ran four pairs in Chromium against the built app with the real instruction modules, before and after: counts match the code
+  path; not on a physical device, not in the dark theme, the Python suite not run); no release was made.
 
 ### Drugs by ATC code in every drug search — 2026-10-14 (STATE ATC5)
 

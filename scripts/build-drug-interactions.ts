@@ -10,8 +10,10 @@
  *   against the SHA-256 the catalog states (`apps/app/src/features/modules/catalog.preview.json`);
  * - the published ЕСКЛП group modules (`scripts/lib/published-esklp.ts`, the same SHA-256 check;
  *   `--esklp-dir` takes a directory of decoded databases instead): names, components, ATC codes,
- *   registration numbers. The ATC codes are chosen by `selectAtcCodes` (ATC4, `atc-codes.ts`) and
- *   the declared exceptions in `data/atc-code-exceptions.json`;
+ *   registration numbers. The ATC codes are chosen by `selectAtcCodes` (ATC4, `atc-codes.ts`),
+ *   the declared exceptions and the declared class additions (`addClasses`, ATC4c; each quotes the
+ *   product's own instruction, and the build refuses a quote that is not in it) in
+ *   `data/atc-code-exceptions.json`;
  * - `MINIMED_DATA_ROOT`: the checkout that holds the ignored `data/` and `output/` (the main one,
  *   when this runs in a worktree);
  * - the НСИ «АТХ» names (`apps/app/src/features/medications/atc-names.json`).
@@ -25,7 +27,10 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import {
+  type AtcClassAddition,
   type AtcCodeException,
+  additionEvidenceHolds,
+  parseAtcClassAdditions,
   parseAtcCodeExceptions,
   selectAtcCodesOfMetadata,
 } from '../apps/app/src/features/drug-interactions/atc-codes';
@@ -104,6 +109,7 @@ interface EsklpCardRow {
 function loadEsklpCards(
   directory: string,
   exceptions: readonly AtcCodeException[],
+  additions: readonly AtcClassAddition[],
 ): readonly EsklpCardRow[] {
   const rows: EsklpCardRow[] = [];
   for (const { id, title, metadata } of readEsklpCardMetadata(directory)) {
@@ -125,12 +131,54 @@ function loadEsklpCards(
         name: textOf(metadata['standardizedInn']) ?? title,
         synonyms: stringList(metadata['inn']),
         components: stringList(metadata['componentInns']),
-        atcCodes: selectAtcCodesOfMetadata(id, metadata, exceptions).codes,
+        atcCodes: selectAtcCodesOfMetadata(id, metadata, exceptions, additions).codes,
       },
       registrationKeys: [...registrations].toSorted(),
     });
   }
+  for (const addition of additions) {
+    if (!rows.some((row) => row.card.id === addition.card)) {
+      throw new Error(`addClasses: the card ${addition.card} is not in the ЕСКЛП modules`);
+    }
+  }
   return rows.toSorted((a, b) => a.card.id.localeCompare(b.card.id));
+}
+
+/**
+ * Checks the quote of each class addition against the text of its instruction (a section of the
+ * module just read). Returns the documents it found; the caller refuses additions left unchecked.
+ */
+function verifyAdditionEvidence(
+  database: Database,
+  additions: readonly AtcClassAddition[],
+  verified: Set<string>,
+): void {
+  const documentRow = database.query<{ current_version_id: string }, [string]>(
+    'select current_version_id from documents where id = ?',
+  );
+  const sectionRows = database.query<{ id: string; title: string }, [string]>(
+    'select id, title from sections where document_version_id = ? order by order_index',
+  );
+  const chunkRows = database.query<{ original_text: string }, [string]>(
+    'select original_text from chunks where section_id = ? order by order_index',
+  );
+  for (const addition of additions) {
+    const document = documentRow.get(addition.evidence.document);
+    if (!document) continue;
+    const sections = sectionRows.all(document.current_version_id).map((section) => ({
+      title: section.title,
+      text: chunkRows
+        .all(section.id)
+        .map((chunk) => chunk.original_text)
+        .join(' '),
+    }));
+    if (!additionEvidenceHolds(addition, sections)) {
+      throw new Error(
+        `addClasses: the quote for ${addition.card} is not in the section «${addition.evidence.section}» of ${addition.evidence.document}`,
+      );
+    }
+    verified.add(addition.card);
+  }
 }
 
 function registrationNumbersOf(metadata: Record<string, unknown>): readonly string[] {
@@ -272,16 +320,28 @@ function main(): void {
     publishDate: string;
     names: Record<string, string>;
   };
-  const exceptions = parseAtcCodeExceptions(JSON.parse(readFileSync(EXCEPTIONS, 'utf8')));
+  const declarations: unknown = JSON.parse(readFileSync(EXCEPTIONS, 'utf8'));
+  const exceptions = parseAtcCodeExceptions(declarations);
+  const additions = parseAtcClassAdditions(declarations);
+  for (const addition of additions) {
+    for (const code of addition.classes) {
+      if (!(code in atc.names)) {
+        throw new Error(`addClasses: ${code} (${addition.card}) is not in the НСИ dictionary`);
+      }
+    }
+  }
+  const verifiedAdditions = new Set<string>();
   const cards = withEsklpDirectory(
     {
       directory: argument('--esklp-dir'),
       modules: catalog.modules as readonly CatalogEsklpModule[],
       dataRoot: DATA_ROOT,
     },
-    (directory) => loadEsklpCards(directory, exceptions),
+    (directory) => loadEsklpCards(directory, exceptions, additions),
   );
-  console.log(`ЕСКЛП cards: ${cards.length}, ATC code exceptions: ${exceptions.length}`);
+  console.log(
+    `ЕСКЛП cards: ${cards.length}, ATC code exceptions: ${exceptions.length}, class additions: ${additions.length}`,
+  );
 
   const debugDirectory = argument('--debug-dir');
   const debugLines: string[] = [];
@@ -330,12 +390,20 @@ function main(): void {
         { id: module.id, version: module.version, sha256: artifact.sha256 },
         readModule(database),
       );
+      verifyAdditionEvidence(database, additions, verifiedAdditions);
       console.log(`${module.id}: read`);
       database.close();
       rmSync(decoded, { force: true });
     }
   } finally {
     rmSync(scratch, { recursive: true, force: true });
+  }
+  for (const addition of additions) {
+    if (!verifiedAdditions.has(addition.card)) {
+      throw new Error(
+        `addClasses: ${addition.evidence.document} (${addition.card}) is not in any instruction module`,
+      );
+    }
   }
   const { asset, report } = builder.finish();
   const coverage = measureCoverage(asset, cards);

@@ -337,7 +337,7 @@ MINIMED_DATA_ROOT=<main> CMP1_ESKLP_DIR=DIR/patched bun scripts/build-drug-compa
 is `atc4` (the task ATC4 reviewed the indexes and left the modules alone). The interaction index (`build-drug-interactions.ts`) takes
 the completed codes since ATC4: `selectAtcCodes` (`apps/app/src/features/drug-interactions/atc-codes.ts`) chooses a card's codes from
 its nodes (completed `atcCode`; only the registry value of a `conflict`/`unconfirmed` node; the stub and the `atcConsensus` code together),
-minus the declared exceptions in `drug-interactions/data/atc-code-exceptions.json`. The medication-safety index uses no ATC and is unchanged.
+minus the declared exceptions and plus the declared class additions (`addClasses`: a card added to a class, each with a verbatim quote of the product's own instruction that the build checks; ATC4c) in `drug-interactions/data/atc-code-exceptions.json`. The medication-safety index uses no ATC and is unchanged.
 After the next ATC fill or ЕСКЛП refresh, review what the new codes change before committing the rebuilt index:
 
 ```bash
@@ -348,8 +348,11 @@ bun scripts/diff-interaction-atc.ts --old /tmp/old.json --new /tmp/new.json --es
 ```
 
 A class word that is too broad is narrowed in `CLASS_ALIASES` (`apps/app/src/features/drug-interactions/class-phrases.ts`), not in the code data: an alias replaces the phrase derived from the
-НСИ group names (the owner's 2026-10-14 decision narrowed «противокашлевые» from the whole of `R05` to `R05D` + `R05F`; the other broad words are listed in the review note). The build
-refuses an alias code that is not in the НСИ dictionary.
+НСИ group names. The owner's 2026-10-14 decisions narrowed «противокашлевые» (`R05D` + `R05F`), «макролиды», «линкозамиды», «стрептограмины», «цитостатики», «психостимуляторы», «снотворные»,
+«противодиарейные», «анальгетики», «деконгестанты», «кровезаменители» to the subgroup each names and widened «гипотензивные» / «антигипертензивные» to the antihypertensive classes; the basis of every
+alias is in its entry and in docs/research/atc-index-review-2026-10-14.md. The build refuses an alias code that is not in the НСИ dictionary. A word that stands for several codes gets one `c:` target per
+code, and own-class suppression works per code. When a product's registry code puts it outside a class its own instruction says it belongs to (a cold remedy coded `R05X` that contains dextromethorphan), declare
+`addClasses` for that card in `atc-code-exceptions.json` with the instruction document, section and a verbatim quote: the build checks the quote and refuses it when it is not in the instruction.
 
 Judge every changed class membership against the product's own instruction (docs/research/atc-index-review-*.md has the method), declare
 the wrong ones as exceptions, rebuild, and update the review JSON that `atc-index.data.test.ts` reads. The index is an app asset

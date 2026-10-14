@@ -2349,7 +2349,7 @@
         "H18"
       ],
       "residualRisk": [
-        "Cough suppressants coded outside R05D/R05F lose the antitussive class sentences: 3 dextromethorphan cold remedies coded R05X (декстрометорфан+парацетамол+псевдоэфедрин, the same with ascorbic acid, декстрометорфан+фенилэфрин+хлорфенамин) and the dextromethorphan combination coded N02BE71. Their substance is still found by the substance rules. The data holds no per-card extra-class mechanism; add one (declared, reviewed) if the owner wants these four back.",
+        "Cough suppressants coded outside R05D/R05F lose the antitussive class sentences: 3 dextromethorphan cold remedies coded R05X (декстрометорфан+парацетамол+псевдоэфедрин, the same with ascorbic acid, декстрометорфан+фенилэфрин+хлорфенамин) and the dextromethorphan combination coded N02BE71. Their substance is still found by the substance rules. ATC4c (OD5) added that mechanism (`addClasses`); of the four, the one whose instruction is in the product (Каффетин® Колд) is back in R05D, the other three have no instruction and stay out.",
         "Codeine in analgesic combinations (N02A/N02B codes) was never in R05 and stays outside."
       ]
     },
@@ -2406,6 +2406,4758 @@
       "supersedes": [
         "H13"
       ]
+    },
+    {
+      "id": "OD4",
+      "decision": "ATC4c part A: the nine class words that name one part of a group are narrowed to that part, and «гипотензивные» is widened to the antihypertensive classes.",
+      "owner": "owner decision 2026-10-14 (yes to A); the exact subgroups were decided from the WHO ATC structure (НСИ «АТХ» names) and from how the instruction sentences use the word",
+      "change": {
+        "file": "apps/app/src/features/drug-interactions/class-phrases.ts",
+        "aliases": [
+          "макролиды",
+          "линкозамиды",
+          "стрептограмины",
+          "цитостатики",
+          "психостимуляторы",
+          "снотворные",
+          "противодиарейные",
+          "анальгетики",
+          "деконгестанты",
+          "кровезаменители",
+          "гипотензивные / антигипертензивные"
+        ],
+        "note": "each alias replaces the phrase derived from the НСИ group names; «макролиды / линкозамиды / стрептограмины», «антигипертензивные» are new aliases beside the existing «цитостатики» and «гипотензивные»"
+      },
+      "method": {
+        "pairs": "pair = (card, instruction sentence or document of ANOTHER drug) the doctor reaches through ANY rule of the build (substance name or class), counted on indexes that differ by this one change only (one build per word on the committed index; `bun scripts/build-drug-interactions.ts` with the other aliases as before), so every difference is the effect of the word, own-class suppression included. «document» counts pairs for which no sentence of that document stays reachable.",
+        "cardsLosing": "cards that carried a code under the old class codes and none under the new ones (cards in the committed index)"
+      },
+      "words": [
+        {
+          "id": "OD4-1",
+          "word": "макролиды",
+          "before": {
+            "origin": "derived",
+            "codes": [
+              "J01F"
+            ],
+            "description": "НСИ J01F «Макролиды, линкозамиды и стрептограмины»: the whole group"
+          },
+          "after": {
+            "origin": "alias",
+            "codes": [
+              "J01FA"
+            ]
+          },
+          "basis": "WHO ATC J01FA = macrolides (azithromycin, clarithromycin, erythromycin, josamycin, midecamycin, roxithromycin, spiramycin); lincosamides are J01FF, streptogramins J01FG.",
+          "applied": true,
+          "userVerdict": "better",
+          "userVerdictWhy": "A sentence about macrolides (CYP3A4 inhibition, QT, hydroxychloroquine) no longer reaches clindamycin and lincomycin. Sentences that say «антибиотики из группы макролидов» still reach them through the separate word «антибиотики» (J01), so the pair count there does not move; only the highlight stops calling clindamycin a macrolide.",
+          "scenarios": [
+            "M1",
+            "M3",
+            "M4"
+          ],
+          "effect": {
+            "cardsBefore": 9,
+            "cardsAfter": 7,
+            "cardsLosingTheClass": 2,
+            "cardsGainingTheClass": 0,
+            "cardsKeepingTheClass": 7,
+            "pairsLost": {
+              "document": 70,
+              "sentence": 166
+            },
+            "pairsGained": {
+              "document": 0,
+              "sentence": 0
+            },
+            "lostByDrug": [
+              {
+                "card": "клиндамицин",
+                "atc": [
+                  "D10AF01",
+                  "G01AA10",
+                  "J01FF01"
+                ],
+                "documents": 54,
+                "sentences": 83
+              },
+              {
+                "card": "линкомицин",
+                "atc": [
+                  "D06AX",
+                  "J01FF02"
+                ],
+                "documents": 54,
+                "sentences": 83
+              }
+            ],
+            "gainedByDrug": []
+          },
+          "oldCodesForMeasure": "J01F"
+        },
+        {
+          "id": "OD4-2",
+          "word": "линкозамиды",
+          "before": {
+            "origin": "derived",
+            "codes": [
+              "J01F"
+            ],
+            "description": "same J01F"
+          },
+          "after": {
+            "origin": "alias",
+            "codes": [
+              "J01FF"
+            ]
+          },
+          "basis": "WHO ATC J01FF = lincosamides (clindamycin, lincomycin).",
+          "applied": true,
+          "userVerdict": "better",
+          "userVerdictWhy": "Sentences about lincosamides (cross-resistance, absorption of lincomycin) stop reaching the seven macrolide cards.",
+          "scenarios": [
+            "M1",
+            "M2"
+          ],
+          "effect": {
+            "cardsBefore": 9,
+            "cardsAfter": 2,
+            "cardsLosingTheClass": 7,
+            "cardsGainingTheClass": 0,
+            "cardsKeepingTheClass": 2,
+            "pairsLost": {
+              "document": 28,
+              "sentence": 28
+            },
+            "pairsGained": {
+              "document": 0,
+              "sentence": 0
+            },
+            "lostByDrug": [
+              {
+                "card": "азитромицин",
+                "atc": [
+                  "J01FA10",
+                  "S01AA26"
+                ],
+                "documents": 4,
+                "sentences": 4
+              },
+              {
+                "card": "джозамицин",
+                "atc": [
+                  "J01FA07"
+                ],
+                "documents": 4,
+                "sentences": 4
+              },
+              {
+                "card": "кларитромицин",
+                "atc": [
+                  "J01FA09"
+                ],
+                "documents": 4,
+                "sentences": 4
+              },
+              {
+                "card": "мидекамицин",
+                "atc": [
+                  "J01FA03"
+                ],
+                "documents": 4,
+                "sentences": 4
+              },
+              {
+                "card": "рокситромицин",
+                "atc": [
+                  "J01FA06"
+                ],
+                "documents": 4,
+                "sentences": 4
+              },
+              {
+                "card": "спирамицин",
+                "atc": [
+                  "J01FA02"
+                ],
+                "documents": 4,
+                "sentences": 4
+              },
+              {
+                "card": "эритромицин",
+                "atc": [
+                  "D10AF02",
+                  "J01FA01",
+                  "S01AA17"
+                ],
+                "documents": 4,
+                "sentences": 4
+              }
+            ],
+            "gainedByDrug": []
+          },
+          "oldCodesForMeasure": "J01F"
+        },
+        {
+          "id": "OD4-3",
+          "word": "стрептограмины",
+          "before": {
+            "origin": "derived",
+            "codes": [
+              "J01F"
+            ],
+            "description": "same J01F"
+          },
+          "after": {
+            "origin": "alias",
+            "codes": [
+              "J01FG"
+            ]
+          },
+          "basis": "WHO ATC J01FG = streptogramins (pristinamycin, quinupristin/dalfopristin).",
+          "applied": true,
+          "userVerdict": "neutral",
+          "userVerdictWhy": "No streptogramin is among the ЕСКЛП cards, so the word now reaches nobody (two sentences in one instruction; before they reached the nine macrolide/lincosamide cards, wrongly). Sentences that name the three classes together still reach macrolides and lincosamides through their own words.",
+          "scenarios": [],
+          "effect": {
+            "cardsBefore": 9,
+            "cardsAfter": 0,
+            "cardsLosingTheClass": 9,
+            "cardsGainingTheClass": 0,
+            "cardsKeepingTheClass": 0,
+            "pairsLost": {
+              "document": 0,
+              "sentence": 18
+            },
+            "pairsGained": {
+              "document": 0,
+              "sentence": 0
+            },
+            "lostByDrug": [
+              {
+                "card": "азитромицин",
+                "atc": [
+                  "J01FA10",
+                  "S01AA26"
+                ],
+                "documents": 1,
+                "sentences": 2
+              },
+              {
+                "card": "джозамицин",
+                "atc": [
+                  "J01FA07"
+                ],
+                "documents": 1,
+                "sentences": 2
+              },
+              {
+                "card": "кларитромицин",
+                "atc": [
+                  "J01FA09"
+                ],
+                "documents": 1,
+                "sentences": 2
+              },
+              {
+                "card": "клиндамицин",
+                "atc": [
+                  "D10AF01",
+                  "G01AA10",
+                  "J01FF01"
+                ],
+                "documents": 1,
+                "sentences": 2
+              },
+              {
+                "card": "линкомицин",
+                "atc": [
+                  "D06AX",
+                  "J01FF02"
+                ],
+                "documents": 1,
+                "sentences": 2
+              },
+              {
+                "card": "мидекамицин",
+                "atc": [
+                  "J01FA03"
+                ],
+                "documents": 1,
+                "sentences": 2
+              },
+              {
+                "card": "рокситромицин",
+                "atc": [
+                  "J01FA06"
+                ],
+                "documents": 1,
+                "sentences": 2
+              },
+              {
+                "card": "спирамицин",
+                "atc": [
+                  "J01FA02"
+                ],
+                "documents": 1,
+                "sentences": 2
+              },
+              {
+                "card": "эритромицин",
+                "atc": [
+                  "D10AF02",
+                  "J01FA01",
+                  "S01AA17"
+                ],
+                "documents": 1,
+                "sentences": 2
+              }
+            ],
+            "gainedByDrug": []
+          },
+          "oldCodesForMeasure": "J01F"
+        },
+        {
+          "id": "OD4-4",
+          "word": "цитостатики",
+          "before": {
+            "origin": "alias",
+            "codes": [
+              "L01"
+            ],
+            "description": "alias → L01, all antineoplastic agents"
+          },
+          "after": {
+            "origin": "alias",
+            "codes": [
+              "L01A",
+              "L01B",
+              "L01C",
+              "L01D",
+              "L01XA",
+              "L01XB",
+              "L01XX"
+            ]
+          },
+          "basis": "«Цитостатики» in the instruction sentences are cytotoxic chemotherapy: myelosuppression and leukopenia with ACE inhibitors, haematotoxicity, live vaccines, warfarin. In ATC that is alkylating agents L01A, antimetabolites L01B, plant alkaloids L01C, cytotoxic antibiotics L01D, platinum L01XA, methylhydrazines L01XB and the residual L01XX (hydroxycarbamide, asparaginase, eribulin, mitotane, arsenic trioxide). Not the kinase inhibitors L01E (old registry code L01XE) or the monoclonal antibodies L01F (old L01XC, L01XY); the word «противоопухолевые» keeps the whole L01.",
+          "applied": true,
+          "userVerdict": "better",
+          "userVerdictWhy": "109 cards lose the word: 52 protein-kinase inhibitors, 40 monoclonal antibodies and conjugates, 10 other targeted agents (proteasome, HDAC, Hedgehog, PARP, IDH inhibitors, a cell therapy), 5 photosensitisers and retinoids and 2 stub-coded cards. They stop receiving chemotherapy sentences (ACE inhibitor haematotoxicity, warfarin potentiation) that are not about them. Residual: L01XX is a mixed group, so venetoclax, olaparib, selinexor and sotorasib stay in it; two stub-coded cards (`L01`, `L01X`) fall out because the code does not name a subgroup.",
+          "scenarios": [
+            "C1",
+            "C2",
+            "C3",
+            "C4"
+          ],
+          "effect": {
+            "cardsBefore": 183,
+            "cardsAfter": 74,
+            "cardsLosingTheClass": 109,
+            "cardsGainingTheClass": 0,
+            "cardsKeepingTheClass": 74,
+            "pairsLost": {
+              "document": 7482,
+              "sentence": 9137
+            },
+            "pairsGained": {
+              "document": 115,
+              "sentence": 126
+            },
+            "lostByDrug": [
+              {
+                "card": "абемациклиб",
+                "atc": [
+                  "L01EF03"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "авелумаб",
+                "atc": [
+                  "L01FF04"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "акалабрутиниб",
+                "atc": [
+                  "L01EL02"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "акситиниб",
+                "atc": [
+                  "L01EK01"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "алектиниб",
+                "atc": [
+                  "L01ED03"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "алпелисиб",
+                "atc": [
+                  "L01EM03"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "амивантамаб",
+                "atc": [
+                  "L01FX18"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "аминолевулиновая-кислота",
+                "atc": [
+                  "L01XD04"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "арглабин",
+                "atc": [
+                  "L01X"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "асциминиб",
+                "atc": [
+                  "L01EA06"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "атезолизумаб",
+                "atc": [
+                  "L01FF05"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "афатиниб",
+                "atc": [
+                  "L01EB03"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "бевацизумаб",
+                "atc": [
+                  "L01FG01"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "биниметиниб",
+                "atc": [
+                  "L01EE03"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "блинатумомаб",
+                "atc": [
+                  "L01FX07"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "бозутиниб",
+                "atc": [
+                  "L01EA04"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "бортезомиб",
+                "atc": [
+                  "L01XG01"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "брентуксимаб-ведотин",
+                "atc": [
+                  "L01FX05"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "вамотиниб",
+                "atc": [
+                  "L01EA"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "вандетаниб",
+                "atc": [
+                  "L01EX04"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "вемурафениб",
+                "atc": [
+                  "L01EC01"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "висмодегиб",
+                "atc": [
+                  "L01XJ01"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "вориностат",
+                "atc": [
+                  "L01XH01"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "гемтузумаб-озогамицин",
+                "atc": [
+                  "L01XC05"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "гефитиниб",
+                "atc": [
+                  "L01EB01"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "гилтеритиниб",
+                "atc": [
+                  "L01EX13"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "глофитамаб",
+                "atc": [
+                  "L01FX28"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "дабрафениб",
+                "atc": [
+                  "L01EC02"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "дазатиниб",
+                "atc": [
+                  "L01EA02"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "даратумумаб",
+                "atc": [
+                  "L01FC01"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "датопотамаб-дерукстекан",
+                "atc": [
+                  "L01FX35"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "диглицидил-метилфосфонат",
+                "atc": [
+                  "L01"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "динутуксимаб-бета",
+                "atc": [
+                  "L01XC16"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "дурвалумаб",
+                "atc": [
+                  "L01FF03"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "занубрутиниб",
+                "atc": [
+                  "L01EL03"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "золбетуксимаб",
+                "atc": [
+                  "L01FX31"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "ибрутиниб",
+                "atc": [
+                  "L01EL01"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "ивосидениб",
+                "atc": [
+                  "L01XM02"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "иксазомиб",
+                "atc": [
+                  "L01XG03"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "иматиниб",
+                "atc": [
+                  "L01EA01",
+                  "L01XE01"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "инаволисиб",
+                "atc": [
+                  "L01EM06"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "инотузумаб-озогамицин",
+                "atc": [
+                  "L01FB01"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "ипилимумаб",
+                "atc": [
+                  "L01FX04"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "кабозантиниб",
+                "atc": [
+                  "L01EX07"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "камрелизумаб",
+                "atc": [
+                  "L01FF"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "капивасертиб",
+                "atc": [
+                  "L01EX27"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "капматиниб",
+                "atc": [
+                  "L01EX17"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "карфилзомиб",
+                "atc": [
+                  "L01XG02"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "кобиметиниб",
+                "atc": [
+                  "L01EE02"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "кризотиниб",
+                "atc": [
+                  "L01ED01"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "лапатиниб",
+                "atc": [
+                  "L01EH01"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "ларотректиниб",
+                "atc": [
+                  "L01EX12",
+                  "L01XE"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "ленватиниб",
+                "atc": [
+                  "L01XE"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "лорлатиниб",
+                "atc": [
+                  "L01ED05"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "мидостаурин",
+                "atc": [
+                  "L01EX10"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "мосунетузумаб",
+                "atc": [
+                  "L01FX25"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "ниволумаб",
+                "atc": [
+                  "L01FF01"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "нилотиниб",
+                "atc": [
+                  "L01EA03"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "нинтеданиб",
+                "atc": [
+                  "L01EX09"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "нирапариб",
+                "atc": [
+                  "L01XK02"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "нурулимаб-пролголимаб",
+                "atc": [
+                  "L01XY"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "обинутузумаб",
+                "atc": [
+                  "L01FA03"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "осимертиниб",
+                "atc": [
+                  "L01EB04"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "пазопаниб",
+                "atc": [
+                  "L01EX03"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "палбоциклиб",
+                "atc": [
+                  "L01EF01"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "панитумумаб",
+                "atc": [
+                  "L01FE02"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "пембролизумаб",
+                "atc": [
+                  "L01FF02"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "пемигатиниб",
+                "atc": [
+                  "L01EN02"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "пертузумаб",
+                "atc": [
+                  "L01FD02"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "пертузумаб-трастузумаб",
+                "atc": [
+                  "L01XY02"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "полатузумаб-ведотин",
+                "atc": [
+                  "L01FX14",
+                  "L01XC"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "пролголимаб",
+                "atc": [
+                  "L01XC"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "рамуцирумаб",
+                "atc": [
+                  "L01FG02"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "регорафениб",
+                "atc": [
+                  "L01EX05"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "рибоциклиб",
+                "atc": [
+                  "L01EF02"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "ритуксимаб",
+                "atc": [
+                  "L01FA01"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "руксолитиниб",
+                "atc": [
+                  "L01EJ01"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "селперкатиниб",
+                "atc": [
+                  "L01EX22"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "селуметиниб",
+                "atc": [
+                  "L01EE04"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "сонидегиб",
+                "atc": [
+                  "L01XJ02"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "сорафениб",
+                "atc": [
+                  "L01XE02",
+                  "L01XE05"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "сумма-натриевых-солей-хлорина-е6-хлорина-р6-пурпурина-5",
+                "atc": [
+                  "L01XD"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "сунитиниб",
+                "atc": [
+                  "L01EX01",
+                  "L01XE01"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "талкветамаб",
+                "atc": [
+                  "L01FX29"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "тафаситамаб",
+                "atc": [
+                  "L01FX12"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "теклистамаб",
+                "atc": [
+                  "L01FX24"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "темсиролимус",
+                "atc": [
+                  "L01XE09"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "тисагенлеклейцел",
+                "atc": [
+                  "L01XL04"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "траметиниб",
+                "atc": [
+                  "L01EE01",
+                  "L01XE25"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "трастузумаб",
+                "atc": [
+                  "L01FD01"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "трастузумаб-дерукстекан",
+                "atc": [
+                  "L01FD04"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "трастузумаб-эмтанзин",
+                "atc": [
+                  "L01FD03"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "тремелимумаб",
+                "atc": [
+                  "L01FX20"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "третиноин",
+                "atc": [
+                  "L01XF01"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "федратиниб",
+                "atc": [
+                  "L01EJ02"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "хисиностат",
+                "atc": [
+                  "L01XH"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "хлорин-е6",
+                "atc": [
+                  "L01XD"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "хлорин-е6-димеглюмин",
+                "atc": [
+                  "L01XD"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "церитиниб",
+                "atc": [
+                  "L01ED02"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "цетуксимаб",
+                "atc": [
+                  "L01FE01"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "эверолимус",
+                "atc": [
+                  "L01EG02",
+                  "L04AA18"
+                ],
+                "documents": 59,
+                "sentences": 65
+              },
+              {
+                "card": "элотузумаб",
+                "atc": [
+                  "L01FX08"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "элранатамаб",
+                "atc": [
+                  "L01FX32"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "энкорафениб",
+                "atc": [
+                  "L01EC03"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "энтректиниб",
+                "atc": [
+                  "L01EX14"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "энфортумаб-ведотин",
+                "atc": [
+                  "L01FX13"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "эпкоритамаб",
+                "atc": [
+                  "L01FX27"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "эрдафитиниб",
+                "atc": [
+                  "L01EN01"
+                ],
+                "documents": 78,
+                "sentences": 84
+              },
+              {
+                "card": "эрлотиниб",
+                "atc": [
+                  "L01EB02"
+                ],
+                "documents": 78,
+                "sentences": 84
+              }
+            ],
+            "gainedByDrug": [],
+            "lostByGroup": {
+              "protein-kinase inhibitors (L01E, L01XE)": 52,
+              "monoclonal antibodies and conjugates (L01F, L01XC, L01XY)": 40,
+              "photosensitisers and retinoids (L01XD, L01XF)": 5,
+              "stub codes without a subgroup (L01, L01X)": 2,
+              "other targeted agents (proteasome, HDAC, Hedgehog, PARP, IDH inhibitors, cell therapy)": 10
+            }
+          },
+          "oldCodesForMeasure": "L01"
+        },
+        {
+          "id": "OD4-5",
+          "word": "психостимуляторы",
+          "before": {
+            "origin": "derived",
+            "codes": [
+              "N06B",
+              "N06CB"
+            ],
+            "description": "НСИ N06B «Психостимуляторы, средства, применяемые при СДВГ и ноотропные препараты» + N06CB"
+          },
+          "after": {
+            "origin": "alias",
+            "codes": [
+              "N06BA",
+              "N06BC",
+              "N06CB"
+            ]
+          },
+          "basis": "The sentences speak of methylphenidate, amphetamine and caffeine («психостимуляторы и аналептики (кофеин, камфора)»): N06BA centrally acting sympathomimetics, N06BC xanthines (caffeine), N06CB combinations. N06BX holds the nootropics (piracetam, vinpocetine, cerebroprotein preparations).",
+          "applied": true,
+          "userVerdict": "better",
+          "userVerdictWhy": "28 nootropic cards (28 of the 32) stop receiving psychostimulant sentences (risperidone/paliperidone extrapyramidal symptoms with methylphenidate, antagonism with diphenhydramine). Caffeine, atomoxetine and mesocarb keep them.",
+          "scenarios": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "effect": {
+            "cardsBefore": 32,
+            "cardsAfter": 4,
+            "cardsLosingTheClass": 28,
+            "cardsGainingTheClass": 0,
+            "cardsKeepingTheClass": 4,
+            "pairsLost": {
+              "document": 828,
+              "sentence": 1034
+            },
+            "pairsGained": {
+              "document": 4,
+              "sentence": 4
+            },
+            "lostByDrug": [
+              {
+                "card": "аминофенилмасляная-кислота",
+                "atc": [
+                  "N05BX",
+                  "N06BX22"
+                ],
+                "documents": 28,
+                "sentences": 35
+              },
+              {
+                "card": "антитела-к-мозгоспецифическому-белку-s-100-антитела-к-эндотелиальной-no-синтазе",
+                "atc": [
+                  "N06BX"
+                ],
+                "documents": 30,
+                "sentences": 37
+              },
+              {
+                "card": "антитела-к-мозгоспецифическому-белку-s-100-антитела-к-эндотелиальной-no-синтазе-аффинно-очищенные",
+                "atc": [
+                  "N06BX"
+                ],
+                "documents": 30,
+                "sentences": 37
+              },
+              {
+                "card": "ацетиламиноянтарная-кислота",
+                "atc": [
+                  "N06BX"
+                ],
+                "documents": 30,
+                "sentences": 37
+              },
+              {
+                "card": "ацетилкарнитин",
+                "atc": [
+                  "N06BX12"
+                ],
+                "documents": 30,
+                "sentences": 37
+              },
+              {
+                "card": "бетагистин-пирацетам",
+                "atc": [
+                  "N06BX"
+                ],
+                "documents": 30,
+                "sentences": 37
+              },
+              {
+                "card": "винпоцетин",
+                "atc": [
+                  "N06BX18"
+                ],
+                "documents": 30,
+                "sentences": 37
+              },
+              {
+                "card": "винпоцетин-пирацетам",
+                "atc": [
+                  "N06BX"
+                ],
+                "documents": 30,
+                "sentences": 37
+              },
+              {
+                "card": "гидроксиникотиноилглутамат-кальция",
+                "atc": [
+                  "N06BX"
+                ],
+                "documents": 30,
+                "sentences": 37
+              },
+              {
+                "card": "гинкго-двулопастного-листьев-экстракт-никотиноил-гамма-аминомасляная-кислота",
+                "atc": [
+                  "N06BX"
+                ],
+                "documents": 30,
+                "sentences": 37
+              },
+              {
+                "card": "глицин",
+                "atc": [
+                  "B05CX03",
+                  "N06BX"
+                ],
+                "documents": 30,
+                "sentences": 37
+              },
+              {
+                "card": "гопантеновая-кислота",
+                "atc": [
+                  "N06BX"
+                ],
+                "documents": 30,
+                "sentences": 37
+              },
+              {
+                "card": "деанола-ацеглумат",
+                "atc": [
+                  "N06BX04"
+                ],
+                "documents": 30,
+                "sentences": 37
+              },
+              {
+                "card": "идебенон",
+                "atc": [
+                  "N06BX13"
+                ],
+                "documents": 30,
+                "sentences": 37
+              },
+              {
+                "card": "комплекс-пептидов-из-головного-мозга-свиньи",
+                "atc": [
+                  "N06BX"
+                ],
+                "documents": 30,
+                "sentences": 37
+              },
+              {
+                "card": "мелатонин-мемантин",
+                "atc": [
+                  "N06BX"
+                ],
+                "documents": 30,
+                "sentences": 37
+              },
+              {
+                "card": "метионил-глутамил-гистидил-фенилаланил-пролил-глицил-пролин",
+                "atc": [
+                  "N06BX"
+                ],
+                "documents": 30,
+                "sentences": 37
+              },
+              {
+                "card": "мозга-крупного-рогатого-скота-гидролизат",
+                "atc": [
+                  "N06BX"
+                ],
+                "documents": 30,
+                "sentences": 37
+              },
+              {
+                "card": "морфолиния-тиазотат-пирацетам",
+                "atc": [
+                  "N06BX"
+                ],
+                "documents": 30,
+                "sentences": 37
+              },
+              {
+                "card": "никотиноил-гамма-аминомасляная-кислота",
+                "atc": [
+                  "N06BX"
+                ],
+                "documents": 30,
+                "sentences": 37
+              },
+              {
+                "card": "омберацетам",
+                "atc": [
+                  "N06BX"
+                ],
+                "documents": 30,
+                "sentences": 37
+              },
+              {
+                "card": "пирацетам",
+                "atc": [
+                  "N06BX03"
+                ],
+                "documents": 30,
+                "sentences": 37
+              },
+              {
+                "card": "пирацетам-циннаризин",
+                "atc": [
+                  "N06BX"
+                ],
+                "documents": 30,
+                "sentences": 37
+              },
+              {
+                "card": "пиритинол",
+                "atc": [
+                  "N06BX02"
+                ],
+                "documents": 30,
+                "sentences": 37
+              },
+              {
+                "card": "полипептиды-из-головного-мозга-эмбрионов-свиней",
+                "atc": [
+                  "N06BX"
+                ],
+                "documents": 30,
+                "sentences": 37
+              },
+              {
+                "card": "полипептиды-коры-головного-мозга-скота",
+                "atc": [
+                  "N06BX"
+                ],
+                "documents": 30,
+                "sentences": 37
+              },
+              {
+                "card": "фонтурацетам",
+                "atc": [
+                  "N06BX"
+                ],
+                "documents": 30,
+                "sentences": 37
+              },
+              {
+                "card": "цитиколин",
+                "atc": [
+                  "N06BX06"
+                ],
+                "documents": 30,
+                "sentences": 37
+              }
+            ],
+            "gainedByDrug": []
+          },
+          "oldCodesForMeasure": "N06B,N06CB"
+        },
+        {
+          "id": "OD4-6",
+          "word": "снотворные",
+          "before": {
+            "origin": "derived",
+            "codes": [
+              "N05C"
+            ],
+            "description": "НСИ N05C «Снотворные и седативные средства»: the whole group"
+          },
+          "after": {
+            "origin": "alias",
+            "codes": [
+              "N05CA",
+              "N05CB",
+              "N05CC",
+              "N05CD",
+              "N05CE",
+              "N05CF",
+              "N05CH",
+              "N05CJ",
+              "N05CX"
+            ]
+          },
+          "basis": "Hypnotics proper: barbiturates N05CA/N05CB, aldehydes N05CC, benzodiazepines N05CD, piperidinediones N05CE, Z-drugs N05CF, melatonin agonists N05CH, orexin antagonists N05CJ and N05CX (melatonin combinations). N05CM «Другие снотворные и седативные средства» is herbal and bromide sedatives (valerian, motherwort, peony, bromcamphor) plus dexmedetomidine. «Седативные» stays on the whole N05C.",
+          "applied": true,
+          "userVerdict": "better",
+          "userVerdictWhy": "30 cards (mostly valerian/motherwort drops) stop receiving the hypnotic sentences (CYP3A4 and zolpidem with ritonavir/itraconazole, thiamine, sibutramine). A sentence that names «седативные и снотворные» together still reaches them through «седативные». Residual: two drops with phenobarbital coded only N05CM and dexmedetomidine lose the word; phenobarbital still has its substance rule.",
+          "scenarios": [
+            "S1",
+            "S2",
+            "S3",
+            "S4"
+          ],
+          "effect": {
+            "cardsBefore": 42,
+            "cardsAfter": 12,
+            "cardsLosingTheClass": 30,
+            "cardsGainingTheClass": 0,
+            "cardsKeepingTheClass": 12,
+            "pairsLost": {
+              "document": 3214,
+              "sentence": 4376
+            },
+            "pairsGained": {
+              "document": 50,
+              "sentence": 110
+            },
+            "lostByDrug": [
+              {
+                "card": "белладонны-настойка-валерианы-лекарственной-корневищ-с-корнями-настойка-ландыша-травы-настойка-левоментол",
+                "atc": [
+                  "N05CM"
+                ],
+                "documents": 128,
+                "sentences": 147
+              },
+              {
+                "card": "боярышника-листьев-и-цветков-экстракт-бузины-черной-цветков-экстракт-валерианы-лекарственной-корневищ-с-корнями-экстракт-гвайфенезин-зверобоя-продырявленного-травы-экстракт-мелиссы-лекарственной-травы-экстракт-страстоцвета-мясо-красного-травы-экстракт-хмеля-соплодий-экстракт",
+                "atc": [
+                  "N05CM"
+                ],
+                "documents": 128,
+                "sentences": 147
+              },
+              {
+                "card": "боярышника-плодов-настойка-валерианы-лекарственной-корневищ-с-корнями-настойка-дифенгидрамин-мяты-перечной-листьев-настойка-пустырника-травы-настойка",
+                "atc": [
+                  "N05CM"
+                ],
+                "documents": 128,
+                "sentences": 147
+              },
+              {
+                "card": "боярышника-плодов-настойка-валерианы-лекарственной-корневищ-с-корнями-настойка-натрия-бромид-левоментол",
+                "atc": [
+                  "N05CM"
+                ],
+                "documents": 128,
+                "sentences": 147
+              },
+              {
+                "card": "боярышника-плоды-донника-трава-кориандра-плоды-мелиссы-лекарственной-трава-овса-посевного-зерно-пустырника-трава-хмеля-соплодия",
+                "atc": [
+                  "N05CM"
+                ],
+                "documents": 128,
+                "sentences": 147
+              },
+              {
+                "card": "боярышника-плоды-мелиссы-лекарственной-трава-пустырника-трава-шиповника-плоды-эхинацеи-пурпурной-трава",
+                "atc": [
+                  "N05CM"
+                ],
+                "documents": 128,
+                "sentences": 147
+              },
+              {
+                "card": "боярышника-экстракт-магний-эшольции-экстракт",
+                "atc": [
+                  "N05CM"
+                ],
+                "documents": 128,
+                "sentences": 147
+              },
+              {
+                "card": "бромкамфора",
+                "atc": [
+                  "N05CM"
+                ],
+                "documents": 127,
+                "sentences": 146
+              },
+              {
+                "card": "валерианы-лекарственной-корневищ-с-корнями-настойка-красавки-листьев-настойка-ландыша-травы-настойка-левоментол",
+                "atc": [
+                  "N05CM"
+                ],
+                "documents": 128,
+                "sentences": 147
+              },
+              {
+                "card": "валерианы-лекарственной-корневищ-с-корнями-настойка-красавки-листьев-настойка-ландыша-травы-настойка-натрия-бромид-левоментол",
+                "atc": [
+                  "N05CM"
+                ],
+                "documents": 127,
+                "sentences": 146
+              },
+              {
+                "card": "валерианы-лекарственной-корневищ-с-корнями-экстракт",
+                "atc": [
+                  "N05CM09"
+                ],
+                "documents": 127,
+                "sentences": 146
+              },
+              {
+                "card": "валерианы-лекарственной-корневищ-с-корнями-экстракт-мелиссы-лекарственной-листьев-экстракт-мяты-перечной-листьев-экстракт",
+                "atc": [
+                  "N05CM"
+                ],
+                "documents": 125,
+                "sentences": 144
+              },
+              {
+                "card": "валерианы-лекарственной-корневища-с-корнями",
+                "atc": [
+                  "N05CM09"
+                ],
+                "documents": 128,
+                "sentences": 147
+              },
+              {
+                "card": "дексмедетомидин",
+                "atc": [
+                  "N05CM18"
+                ],
+                "documents": 128,
+                "sentences": 147
+              },
+              {
+                "card": "диоскореи-корневищ-экстракт-лотоса-орехоносного-зародышей-экстракт-лотоса-орехоносного-семян-экстракт-туи-восточной-семян-экстракт-финика-китайского-семян-экстракт-шелковицы-листьев-экстракт-эритрины-листьев-экстракт-эуфории-лонганы-плодов-экстракт",
+                "atc": [
+                  "N05CM"
+                ],
+                "documents": 128,
+                "sentences": 147
+              },
+              {
+                "card": "дифенгидрамин-мяты-перечной-листьев-масло-пустырника-травы-настойка-этилбромизовалерианат",
+                "atc": [
+                  "N05CM"
+                ],
+                "documents": 128,
+                "sentences": 147
+              },
+              {
+                "card": "душицы-обыкновенной-трава-пустырника-трава-тысячелистника-обыкновенного-трава",
+                "atc": [
+                  "N05CM"
+                ],
+                "documents": 128,
+                "sentences": 147
+              },
+              {
+                "card": "ландыша-травы-настойка-пустырника-травы-настойка",
+                "atc": [
+                  "N05CM"
+                ],
+                "documents": 127,
+                "sentences": 146
+              },
+              {
+                "card": "мелатонин-мяты-перечной-листьев-масло-пустырника-травы-экстракт",
+                "atc": [
+                  "N05CM"
+                ],
+                "documents": 128,
+                "sentences": 147
+              },
+              {
+                "card": "мелиссы-лекарственной-листьев-экстракт-мяты-перечной-листьев-масло-пустырника-травы-экстракт",
+                "atc": [
+                  "N05CM"
+                ],
+                "documents": 128,
+                "sentences": 147
+              },
+              {
+                "card": "мелиссы-лекарственной-трава",
+                "atc": [
+                  "N05CM09"
+                ],
+                "documents": 127,
+                "sentences": 146
+              },
+              {
+                "card": "мелиссы-лекарственной-трава-пустырника-обыкновенного-трава-пустырника-пятилопастного-трава-шиповника-плоды-эхинацеи-пурпурной-трава",
+                "atc": [
+                  "N05CM"
+                ],
+                "documents": 128,
+                "sentences": 147
+              },
+              {
+                "card": "мяты-перечной-листьев-масло-пустырника-травы-настойка-фенобарбитал",
+                "atc": [
+                  "N05CM"
+                ],
+                "documents": 123,
+                "sentences": 137
+              },
+              {
+                "card": "мяты-перечной-листьев-масло-пустырника-травы-настойка-этилбромизовалерианат",
+                "atc": [
+                  "N05CM"
+                ],
+                "documents": 128,
+                "sentences": 147
+              },
+              {
+                "card": "мяты-перечной-листьев-масло-пустырника-травы-экстракт-этилбромизовалерианат",
+                "atc": [
+                  "N05CM"
+                ],
+                "documents": 128,
+                "sentences": 147
+              },
+              {
+                "card": "мяты-перечной-листьев-масло-фенобарбитал-этилбромизовалерианат",
+                "atc": [
+                  "N05CM"
+                ],
+                "documents": 120,
+                "sentences": 134
+              },
+              {
+                "card": "пиона-уклоняющегося-трава-корневища-и-корни",
+                "atc": [
+                  "N05CM"
+                ],
+                "documents": 128,
+                "sentences": 147
+              },
+              {
+                "card": "пустырника-травы-настойка",
+                "atc": [
+                  "N05CM"
+                ],
+                "documents": 125,
+                "sentences": 144
+              },
+              {
+                "card": "пустырника-травы-экстракт",
+                "atc": [
+                  "N05CM"
+                ],
+                "documents": 128,
+                "sentences": 147
+              },
+              {
+                "card": "пустырника-травы-экстракт-магния-аспарагинат-пиридоксин",
+                "atc": [
+                  "N05C"
+                ],
+                "documents": 128,
+                "sentences": 147
+              }
+            ],
+            "gainedByDrug": []
+          },
+          "oldCodesForMeasure": "N05C"
+        },
+        {
+          "id": "OD4-7",
+          "word": "противодиарейные",
+          "before": {
+            "origin": "derived",
+            "codes": [
+              "A07"
+            ],
+            "description": "НСИ A07 «Противодиарейные, кишечные противовоспалительные / противомикробные препараты»: the whole group"
+          },
+          "after": {
+            "origin": "alias",
+            "codes": [
+              "A07B",
+              "A07D",
+              "A07X"
+            ]
+          },
+          "basis": "The sentences are about adsorbent and antimotility antidiarrhoeals (lincomycin and aminophylline absorption: «противодиарейные препараты и энтеросорбенты снижают всасывание»; clindamycin: «не принимайте препараты, останавливающие диарею»): A07B adsorbents, A07D motility reducers, A07X other (racecadotril). Excluded: A07A intestinal anti-infectives, A07C rehydration salts, A07E intestinal anti-inflammatory, A07F live probiotics (own phrase «противодиарейные микроорганизмы»).",
+          "applied": true,
+          "userVerdict": "better",
+          "userVerdictWhy": "27 cards lose the word: 16 live-organism preparations, mesalazine and sulfasalazine, budesonide, cromoglicic acid, nystatin, natamycin, rifaximin, sulfaguanidine, phthalylsulfathiazole, nifuroxazide and a rehydration salt. None of them is an antidiarrhoeal in the sense of an absorption sentence.",
+          "scenarios": [
+            "D1",
+            "D1b",
+            "D2",
+            "D3",
+            "D4"
+          ],
+          "effect": {
+            "cardsBefore": 40,
+            "cardsAfter": 13,
+            "cardsLosingTheClass": 27,
+            "cardsGainingTheClass": 0,
+            "cardsKeepingTheClass": 13,
+            "pairsLost": {
+              "document": 400,
+              "sentence": 405
+            },
+            "pairsGained": {
+              "document": 0,
+              "sentence": 0
+            },
+            "lostByDrug": [
+              {
+                "card": "бацилла-восковая-ip-5832",
+                "atc": [
+                  "A07FA01"
+                ],
+                "documents": 15,
+                "sentences": 15
+              },
+              {
+                "card": "бациллюс-субтилис",
+                "atc": [
+                  "A07FA"
+                ],
+                "documents": 15,
+                "sentences": 15
+              },
+              {
+                "card": "бифидобактерии-анималис-лактобактерии-ацидофильные",
+                "atc": [
+                  "A07FA51"
+                ],
+                "documents": 15,
+                "sentences": 15
+              },
+              {
+                "card": "бифидобактерии-анималис-лактобактерии-рамнозус-пиридоксин-тиамин",
+                "atc": [
+                  "A07FA51"
+                ],
+                "documents": 15,
+                "sentences": 15
+              },
+              {
+                "card": "бифидобактерии-бифидум",
+                "atc": [
+                  "A07FA"
+                ],
+                "documents": 15,
+                "sentences": 15
+              },
+              {
+                "card": "бифидобактерии-бифидум-кишечные-палочки",
+                "atc": [
+                  "A07FA"
+                ],
+                "documents": 15,
+                "sentences": 15
+              },
+              {
+                "card": "бифидобактерии-бифидум-лактобактерии-плантарум",
+                "atc": [
+                  "A07FA51"
+                ],
+                "documents": 15,
+                "sentences": 15
+              },
+              {
+                "card": "бифидобактерии-бифидум-лизоцим",
+                "atc": [
+                  "A07FA"
+                ],
+                "documents": 15,
+                "sentences": 15
+              },
+              {
+                "card": "бифидобактерии-лонгум-энтерококкус-фэциум",
+                "atc": [
+                  "A07FA"
+                ],
+                "documents": 15,
+                "sentences": 15
+              },
+              {
+                "card": "будесонид",
+                "atc": [
+                  "A07EA06",
+                  "R01AD05",
+                  "R03BA02"
+                ],
+                "documents": 15,
+                "sentences": 15
+              },
+              {
+                "card": "декстроза-калия-хлорид-натрия-хлорид-натрия-цитрат",
+                "atc": [
+                  "A07CA"
+                ],
+                "documents": 15,
+                "sentences": 15
+              },
+              {
+                "card": "кишечная-палочка-лактобактерии-ацидофильные-лактобактерии-хелветикус-энтерококк-фекальный",
+                "atc": [
+                  "A07FA"
+                ],
+                "documents": 15,
+                "sentences": 15
+              },
+              {
+                "card": "кишечные-палочки-энтерококки",
+                "atc": [
+                  "A07FA"
+                ],
+                "documents": 15,
+                "sentences": 15
+              },
+              {
+                "card": "кромоглициевая-кислота",
+                "atc": [
+                  "A07EB01",
+                  "R01AC01",
+                  "R03BC01",
+                  "S01GX01"
+                ],
+                "documents": 15,
+                "sentences": 15
+              },
+              {
+                "card": "лактобактерии",
+                "atc": [
+                  "A07FA01",
+                  "G01AX14"
+                ],
+                "documents": 15,
+                "sentences": 15
+              },
+              {
+                "card": "лактобактерии-ацидофильные",
+                "atc": [
+                  "A07FA",
+                  "A07FA01",
+                  "G01AX14"
+                ],
+                "documents": 15,
+                "sentences": 15
+              },
+              {
+                "card": "лебенин",
+                "atc": [
+                  "A07FA51"
+                ],
+                "documents": 15,
+                "sentences": 15
+              },
+              {
+                "card": "месалазин",
+                "atc": [
+                  "A07EC02"
+                ],
+                "documents": 15,
+                "sentences": 15
+              },
+              {
+                "card": "метаболиты-бактерий-escherichia-coli-enterococcus-faecalis-lactobacillus-acidophilus-lactobacillus-helveticus",
+                "atc": [
+                  "A07FA"
+                ],
+                "documents": 15,
+                "sentences": 15
+              },
+              {
+                "card": "натамицин",
+                "atc": [
+                  "A07AA03",
+                  "D01AA02",
+                  "G01AA02"
+                ],
+                "documents": 15,
+                "sentences": 15
+              },
+              {
+                "card": "нистатин",
+                "atc": [
+                  "A07AA02",
+                  "D01AA01",
+                  "G01AA01"
+                ],
+                "documents": 15,
+                "sentences": 15
+              },
+              {
+                "card": "нифуроксазид",
+                "atc": [
+                  "A07AX03"
+                ],
+                "documents": 15,
+                "sentences": 15
+              },
+              {
+                "card": "рифаксимин",
+                "atc": [
+                  "A07AA11"
+                ],
+                "documents": 15,
+                "sentences": 15
+              },
+              {
+                "card": "сахаромицеты-буларди",
+                "atc": [
+                  "A07FA02"
+                ],
+                "documents": 15,
+                "sentences": 15
+              },
+              {
+                "card": "сульфагуанидин",
+                "atc": [
+                  "A07AB03"
+                ],
+                "documents": 15,
+                "sentences": 15
+              },
+              {
+                "card": "сульфасалазин",
+                "atc": [
+                  "A07EC01"
+                ],
+                "documents": 15,
+                "sentences": 15
+              },
+              {
+                "card": "фталилсульфатиазол",
+                "atc": [
+                  "A07AB02"
+                ],
+                "documents": 15,
+                "sentences": 15
+              }
+            ],
+            "gainedByDrug": []
+          },
+          "oldCodesForMeasure": "A07"
+        },
+        {
+          "id": "OD4-8",
+          "word": "анальгетики",
+          "before": {
+            "origin": "derived",
+            "codes": [
+              "A03EA",
+              "N02",
+              "S02DA"
+            ],
+            "description": "НСИ N02 «Анальгетики» (+ A03EA, S02DA, from names that contain the word)"
+          },
+          "after": {
+            "origin": "alias",
+            "codes": [
+              "A03EA",
+              "N02A",
+              "N02B",
+              "S02DA"
+            ]
+          },
+          "basis": "N02A opioids and N02B other analgesics and antipyretics are the analgesics of the sentences (paracetamol, NSAID-like, opioids, gabapentinoids). N02C «Препараты для лечения мигрени» (ergot alkaloids, triptans, CGRP antagonists) treat migraine attacks; the sentences (methadone and nevirapine, folate need under long analgesic therapy, other central analgesics) are not about them. A03EA and S02DA stay as before.",
+          "applied": true,
+          "userVerdict": "better",
+          "userVerdictWhy": "13 cards lose the word: 12 migraine drugs and one turpentine rub coded `N02`. Side effect of two codes instead of one (own-class suppression works per code): the self-description of paracetamol cold remedies («комбинированный анальгетик …») now reaches 13 opioid cards, and the morphine/tramadol sentences about other analgesics reach the paracetamol and NSAID-like cards (63 cards), which is mostly a real warning.",
+          "scenarios": [
+            "A1",
+            "A2",
+            "A3",
+            "A4"
+          ],
+          "effect": {
+            "cardsBefore": 91,
+            "cardsAfter": 78,
+            "cardsLosingTheClass": 13,
+            "cardsGainingTheClass": 0,
+            "cardsKeepingTheClass": 78,
+            "pairsLost": {
+              "document": 1056,
+              "sentence": 1100
+            },
+            "pairsGained": {
+              "document": 536,
+              "sentence": 673
+            },
+            "lostByDrug": [
+              {
+                "card": "атогепант",
+                "atc": [
+                  "N02CD07"
+                ],
+                "documents": 84,
+                "sentences": 85
+              },
+              {
+                "card": "дименгидринат-кофеин-эрготамина-тартрат",
+                "atc": [
+                  "N02CA52"
+                ],
+                "documents": 84,
+                "sentences": 85
+              },
+              {
+                "card": "золмитриптан",
+                "atc": [
+                  "N02CC03"
+                ],
+                "documents": 84,
+                "sentences": 85
+              },
+              {
+                "card": "камилофин-кофеин-меклоксамин-пропифеназон-эрготамин",
+                "atc": [
+                  "N02CA52"
+                ],
+                "documents": 84,
+                "sentences": 85
+              },
+              {
+                "card": "кофеин-эрготамин",
+                "atc": [
+                  "N02CA52"
+                ],
+                "documents": 84,
+                "sentences": 85
+              },
+              {
+                "card": "наратриптан",
+                "atc": [
+                  "N02CC02"
+                ],
+                "documents": 84,
+                "sentences": 85
+              },
+              {
+                "card": "ризатриптан",
+                "atc": [
+                  "N02CC04"
+                ],
+                "documents": 84,
+                "sentences": 85
+              },
+              {
+                "card": "римегепант",
+                "atc": [
+                  "N02CD06"
+                ],
+                "documents": 84,
+                "sentences": 85
+              },
+              {
+                "card": "скипидар-живичный",
+                "atc": [
+                  "M02AX",
+                  "N02"
+                ],
+                "documents": 84,
+                "sentences": 85
+              },
+              {
+                "card": "суматриптан",
+                "atc": [
+                  "N02CC01"
+                ],
+                "documents": 79,
+                "sentences": 80
+              },
+              {
+                "card": "фреманезумаб",
+                "atc": [
+                  "N02CD03"
+                ],
+                "documents": 84,
+                "sentences": 85
+              },
+              {
+                "card": "элетриптан",
+                "atc": [
+                  "N02CC06"
+                ],
+                "documents": 84,
+                "sentences": 85
+              },
+              {
+                "card": "эренумаб",
+                "atc": [
+                  "N02CD01"
+                ],
+                "documents": 84,
+                "sentences": 85
+              }
+            ],
+            "gainedByDrug": []
+          },
+          "oldCodesForMeasure": "A03EA,N02,S02DA"
+        },
+        {
+          "id": "OD4-9",
+          "word": "деконгестанты",
+          "before": {
+            "origin": "derived",
+            "codes": [
+              "R01A",
+              "S01G"
+            ],
+            "description": "НСИ R01A «Деконгестанты и другие назальные препараты для местного применения», S01G «Деконгестанты и противоаллергические средства»: both whole groups"
+          },
+          "after": {
+            "origin": "alias",
+            "codes": [
+              "R01AA",
+              "R01AB",
+              "R01BA",
+              "S01GA"
+            ]
+          },
+          "basis": "The sentences are about sympathomimetic vasoconstrictors with MAO inhibitors, tricyclics and antihypertensives («симпатомиметики, такие как деконгестанты или …»): R01AA/R01AB nasal sympathomimetics, R01BA systemic nasal decongestants, S01GA ocular sympathomimetics. R01AC antiallergics, R01AD corticosteroids, R01AX other and S01GX antiallergics are not decongestants.",
+          "applied": true,
+          "userVerdict": "better",
+          "userVerdictWhy": "23 cards (nasal corticosteroids, antiallergic sprays, sea water, antiseptics, ocular antiallergics) stop receiving the decongestant sentences. The phenylephrine nasal spray coded R01AD53 keeps them by the declared class addition (B below).",
+          "scenarios": [
+            "N1",
+            "N2",
+            "N3"
+          ],
+          "effect": {
+            "cardsBefore": 41,
+            "cardsAfter": 18,
+            "cardsLosingTheClass": 23,
+            "cardsGainingTheClass": 0,
+            "cardsKeepingTheClass": 18,
+            "pairsLost": {
+              "document": 314,
+              "sentence": 366
+            },
+            "pairsGained": {
+              "document": 119,
+              "sentence": 145
+            },
+            "lostByDrug": [
+              {
+                "card": "азеластин",
+                "atc": [
+                  "R01AC03",
+                  "S01GX07"
+                ],
+                "documents": 10,
+                "sentences": 12
+              },
+              {
+                "card": "азеластин-мометазон",
+                "atc": [
+                  "R01A"
+                ],
+                "documents": 15,
+                "sentences": 17
+              },
+              {
+                "card": "азеластин-флутиказон",
+                "atc": [
+                  "R01AD58"
+                ],
+                "documents": 15,
+                "sentences": 17
+              },
+              {
+                "card": "альфа-токоферола-ацетат-гвайазулен-мяты-перечной-листьев-масло-сосны-обыкновенной-масло-тимол-эвкалипта-прутовидного-листьев-масло",
+                "atc": [
+                  "R01A"
+                ],
+                "documents": 15,
+                "sentences": 17
+              },
+              {
+                "card": "альфа-токоферола-ацетат-мяты-перечной-листьев-масло-пихты-масло-эвкалипта-прутовидного-листьев-масло",
+                "atc": [
+                  "R01A"
+                ],
+                "documents": 15,
+                "sentences": 17
+              },
+              {
+                "card": "альфа-токоферола-ацетат-мяты-перечной-листьев-масло-сосны-обыкновенной-масло-тимол-эвкалипта-прутовидного-листьев-масло",
+                "atc": [
+                  "R01A"
+                ],
+                "documents": 15,
+                "sentences": 17
+              },
+              {
+                "card": "беклометазон",
+                "atc": [
+                  "R01AD01",
+                  "R03BA01"
+                ],
+                "documents": 15,
+                "sentences": 17
+              },
+              {
+                "card": "будесонид",
+                "atc": [
+                  "A07EA06",
+                  "R01AD05",
+                  "R03BA02"
+                ],
+                "documents": 15,
+                "sentences": 17
+              },
+              {
+                "card": "кромоглициевая-кислота",
+                "atc": [
+                  "A07EB01",
+                  "R01AC01",
+                  "R03BC01",
+                  "S01GX01"
+                ],
+                "documents": 10,
+                "sentences": 12
+              },
+              {
+                "card": "левокабастин",
+                "atc": [
+                  "R01AC02",
+                  "S01GX02"
+                ],
+                "documents": 10,
+                "sentences": 12
+              },
+              {
+                "card": "левоментол-фенилсалицилат",
+                "atc": [
+                  "M02AX10",
+                  "R01AX30"
+                ],
+                "documents": 15,
+                "sentences": 17
+              },
+              {
+                "card": "левоментол-эвкалипта-шарикового-листьев-масло",
+                "atc": [
+                  "R01AX"
+                ],
+                "documents": 15,
+                "sentences": 17
+              },
+              {
+                "card": "мометазон",
+                "atc": [
+                  "D07AC13",
+                  "R01AD09"
+                ],
+                "documents": 15,
+                "sentences": 17
+              },
+              {
+                "card": "мометазон-олопатадин",
+                "atc": [
+                  "R01AD"
+                ],
+                "documents": 15,
+                "sentences": 17
+              },
+              {
+                "card": "морская-вода",
+                "atc": [
+                  "R01AX10",
+                  "R02A"
+                ],
+                "documents": 15,
+                "sentences": 17
+              },
+              {
+                "card": "мупироцин",
+                "atc": [
+                  "D06AX09",
+                  "R01AX06"
+                ],
+                "documents": 15,
+                "sentences": 17
+              },
+              {
+                "card": "натрия-хлорид",
+                "atc": [
+                  "B05CB01",
+                  "B05XA03",
+                  "D08AX",
+                  "R01AX10",
+                  "V07AB"
+                ],
+                "documents": 15,
+                "sentences": 17
+              },
+              {
+                "card": "олопатадин",
+                "atc": [
+                  "S01GX09"
+                ],
+                "documents": 10,
+                "sentences": 12
+              },
+              {
+                "card": "серебра-протеинат",
+                "atc": [
+                  "D08AL",
+                  "R01AX10"
+                ],
+                "documents": 15,
+                "sentences": 17
+              },
+              {
+                "card": "триамцинолон",
+                "atc": [
+                  "D07AB09",
+                  "H02AB08",
+                  "R01AD11"
+                ],
+                "documents": 15,
+                "sentences": 17
+              },
+              {
+                "card": "флутиказон",
+                "atc": [
+                  "D07AC17",
+                  "R01AD08",
+                  "R01AD12",
+                  "R03BA05"
+                ],
+                "documents": 15,
+                "sentences": 17
+              },
+              {
+                "card": "фрамицетин",
+                "atc": [
+                  "R01AX08"
+                ],
+                "documents": 15,
+                "sentences": 17
+              },
+              {
+                "card": "эпинастин",
+                "atc": [
+                  "S01GX10"
+                ],
+                "documents": 10,
+                "sentences": 12
+              }
+            ],
+            "gainedByDrug": []
+          },
+          "oldCodesForMeasure": "R01A,S01G"
+        },
+        {
+          "id": "OD4-10",
+          "word": "кровезаменители",
+          "before": {
+            "origin": "derived",
+            "codes": [
+              "B05"
+            ],
+            "description": "НСИ B05 «Кровезаменители и перфузионные растворы»: the whole group"
+          },
+          "after": {
+            "origin": "alias",
+            "codes": [
+              "B05A"
+            ]
+          },
+          "basis": "B05A «Кровь и препараты крови» holds B05AA «Кровезаменители и препараты плазмы крови» (dextran, gelatin, hydroxyethyl starch, albumin, povidone). The sentences are about colloidal blood substitutes («коллоидные кровезаменители» with metamizole and penicillin: anaphylaxis). B05B–B05Z are infusion, nutrition, irrigation and dialysis solutions.",
+          "applied": true,
+          "userVerdict": "better",
+          "userVerdictWhy": "44 cards lose the word: electrolyte, glucose, amino-acid, irrigation and dialysis solutions. 17 stay (dextran, gelatin, hydroxyethyl starch, albumin, povidone). Edge: a dextran-containing multi-component solution coded `B05XA16` falls out.",
+          "scenarios": [
+            "B1",
+            "B2",
+            "B3"
+          ],
+          "effect": {
+            "cardsBefore": 61,
+            "cardsAfter": 17,
+            "cardsLosingTheClass": 44,
+            "cardsGainingTheClass": 0,
+            "cardsKeepingTheClass": 17,
+            "pairsLost": {
+              "document": 592,
+              "sentence": 613
+            },
+            "pairsGained": {
+              "document": 0,
+              "sentence": 0
+            },
+            "lostByDrug": [
+              {
+                "card": "аланин-аргинин-валин-гистидин-глицин-изолейцин-лейцин-лизин-метионин-пролин-треонин-триптофан-фенилаланин",
+                "atc": [
+                  "B05BA01"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "альфа-кетоглутаровая-кислота-гистидин-гистидина-гидрохлорид-калия-хлорид-кальция-хлорид-магния-хлорид-маннитол-натрия-хлорид-триптофан",
+                "atc": [
+                  "B05XA16"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "аминокислоты-для-парентерального-питания",
+                "atc": [
+                  "B05BA01",
+                  "B05XB02"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "аминокислоты-для-парентерального-питания-прочие-препараты",
+                "atc": [
+                  "B05BA01",
+                  "B05BA10"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "аминокислоты-для-парентерального-питания-прочие-препараты-жировые-эмульсии-для-парентерального-питания-декстроза-минералы",
+                "atc": [
+                  "B05BA10"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "глицин",
+                "atc": [
+                  "B05CX03",
+                  "N06BX"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "декстран-ср.мол.масса-50000-70000-инозин-калия-хлорид-кальция-глюконат-лидокаина-гидрохлорид-магния-сульфата-гептагидрат-натрия-гидрокарбонат",
+                "atc": [
+                  "B05XA16"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "декстроза",
+                "atc": [
+                  "B05BA03",
+                  "B05CX01",
+                  "V04CA02",
+                  "V06DC01"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "декстроза-калия-хлорид-кальция-хлорид-магния-хлорид-натрия-ацетат-натрия-хлорид",
+                "atc": [
+                  "B05BB02"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "декстроза-калия-хлорид-кальция-хлорид-магния-хлорид-натрия-ацетат-натрия-хлорид-яблочная-кислота",
+                "atc": [
+                  "B05BB02"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "декстроза-калия-хлорид-кальция-хлорид-магния-хлорид-натрия-хлорид-яблочная-кислота",
+                "atc": [
+                  "B05BB02"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "декстроза-калия-хлорид-магния-хлорид-натрия-ацетат-натрия-глюконат-натрия-хлорид",
+                "atc": [
+                  "B05BB02"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "железо-йод-марганец-медь-молибден-селен-фтор-хром-цинк",
+                "atc": [
+                  "B05BB01",
+                  "B05XA31"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "жировые-эмульсии-для-парентерального-питания",
+                "atc": [
+                  "B05BA02"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "икодекстрин",
+                "atc": [
+                  "B05D"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "калия-ацетат-кальция-ацетат-магния-ацетат-натрия-ацетат-натрия-хлорид",
+                "atc": [
+                  "B05BB"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "калия-хлорид",
+                "atc": [
+                  "A12BA01",
+                  "B05XA01"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "калия-хлорид-декстроза",
+                "atc": [
+                  "B05XA01"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "калия-хлорид-кальция-хлорид-магния-хлорид-натрия-ацетат-натрия-хлорид",
+                "atc": [
+                  "B05BB01"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "калия-хлорид-кальция-хлорид-магния-хлорид-натрия-ацетат-натрия-хлорид-яблочная-кислота",
+                "atc": [
+                  "B05BB01"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "калия-хлорид-кальция-хлорид-магния-хлорид-натрия-лактат-натрия-хлорид",
+                "atc": [
+                  "B05BB01"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "калия-хлорид-кальция-хлорид-магния-хлорид-натрия-лактат-натрия-хлорид-сорбитол",
+                "atc": [
+                  "B05BB04"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "калия-хлорид-кальция-хлорид-натрия-лактат-натрия-хлорид",
+                "atc": [
+                  "B05BB01"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "калия-хлорид-кальция-хлорид-натрия-хлорид",
+                "atc": [
+                  "B05BB01"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "калия-хлорид-кальция-хлорид-натрия-хлорид-натрия-лактат",
+                "atc": [
+                  "B05BB01"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "калия-хлорид-магния-сульфат-маннитол",
+                "atc": [
+                  "B05XA16"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "калия-хлорид-магния-хлорид-натрия-ацетат-натрия-глюконат-натрия-хлорид",
+                "atc": [
+                  "B05BB01"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "калия-хлорид-магния-хлорид-натрия-фумарат-натрия-хлорид",
+                "atc": [
+                  "B05BB01"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "калия-хлорид-натрия-ацетат-натрия-хлорид",
+                "atc": [
+                  "B05BB01"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "калия-хлорид-натрия-гидрокарбонат-натрия-хлорид",
+                "atc": [
+                  "B05BB01"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "калия-хлорид-натрия-хлорид",
+                "atc": [
+                  "B05XA01"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "калия-хлорид-натрия-хлорид-трометамол",
+                "atc": [
+                  "B05BB03"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "кальция-хлорид",
+                "atc": [
+                  "B05XA07"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "магния-сульфат",
+                "atc": [
+                  "A06AD04",
+                  "B05XA05"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "маннитол",
+                "atc": [
+                  "B05BC01",
+                  "R05CB16"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "меглюмина-натрия-сукцинат",
+                "atc": [
+                  "B05BB"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "натрия-ацетат-натрия-хлорид",
+                "atc": [
+                  "B05BB01"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "натрия-гидрокарбонат",
+                "atc": [
+                  "B05CB04"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "натрия-фумарат",
+                "atc": [
+                  "B05CB"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "натрия-хлорид",
+                "atc": [
+                  "B05CB01",
+                  "B05XA03",
+                  "D08AX",
+                  "R01AX10",
+                  "V07AB"
+                ],
+                "documents": 11,
+                "sentences": 11
+              },
+              {
+                "card": "поливитамины",
+                "atc": [
+                  "A11BA03",
+                  "A11DB",
+                  "A11JB",
+                  "B03BB51",
+                  "B05XC"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "растворы-для-гемодиализа",
+                "atc": [
+                  "B05ZA"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "растворы-для-гемофильтрации",
+                "atc": [
+                  "B05ZB"
+                ],
+                "documents": 14,
+                "sentences": 14
+              },
+              {
+                "card": "растворы-для-перитонеального-диализа",
+                "atc": [
+                  "B05D",
+                  "B05DB"
+                ],
+                "documents": 14,
+                "sentences": 14
+              }
+            ],
+            "gainedByDrug": []
+          },
+          "oldCodesForMeasure": "B05"
+        },
+        {
+          "id": "OD4-11",
+          "word": "гипотензивные / антигипертензивные",
+          "before": {
+            "origin": "alias",
+            "codes": [
+              "C02"
+            ],
+            "description": "alias «гипотензивные» → C02 «Антигипертензивные средства» (and the derived «антигипертензивные» → C02)"
+          },
+          "after": {
+            "origin": "alias",
+            "codes": [
+              "C02",
+              "C03A",
+              "C03B",
+              "C03C",
+              "C03D",
+              "C03E",
+              "C07",
+              "C08",
+              "C09"
+            ]
+          },
+          "basis": "«Гипотензивные (антигипертензивные) средства» in the sentences are every class that lowers the pressure in hypertension and is usually listed in the same sentence: diuretics (thiazides C03A, thiazide-like C03B, loop C03C, aldosterone antagonists C03D, combinations C03E; not C03X vasopressin antagonists), beta-blockers C07, calcium-channel blockers C08, the renin-angiotensin system C09 and the centrally acting C02. Cisplatin: «антигипертензивными препаратами, как фуросемид, гидралазин, диазоксид и пропранолол». The derived word «антигипертензивные» gets the same codes (an alias).",
+          "applied": true,
+          "userVerdict": "better",
+          "userVerdictWhy": "The widening ADDS warnings: 97 antihypertensive cards (amlodipine, lisinopril, bisoprolol, hydrochlorothiazide, furosemide, valsartan combinations …) now receive the ~380 instructions that name antihypertensives (NSAIDs weaken them, metformin and insulin, additive hypotension, sildenafil, anaesthetics). A sample of 28 of the sentences: all real statements about drugs that lower the pressure; no noise except the pre-existing «гипер- или гипотензивных кризов» (morphine).",
+          "scenarios": [
+            "H1",
+            "H2",
+            "H3",
+            "H4",
+            "H5",
+            "H6"
+          ],
+          "effect": {
+            "cardsBefore": 18,
+            "cardsAfter": 115,
+            "cardsLosingTheClass": 0,
+            "cardsGainingTheClass": 97,
+            "cardsKeepingTheClass": 18,
+            "pairsLost": {
+              "document": 0,
+              "sentence": 0
+            },
+            "pairsGained": {
+              "document": 25208,
+              "sentence": 45278
+            },
+            "lostByDrug": [],
+            "gainedByDrug": [
+              {
+                "card": "s---амлодипин",
+                "atc": [
+                  "C08CA01"
+                ],
+                "documents": 374,
+                "sentences": 507
+              },
+              {
+                "card": "азилсартана-медоксомил",
+                "atc": [
+                  "C09CA09"
+                ],
+                "documents": 358,
+                "sentences": 491
+              },
+              {
+                "card": "азилсартана-медоксомил-амлодипин-набор",
+                "atc": [
+                  "C09DB"
+                ],
+                "documents": 358,
+                "sentences": 491
+              },
+              {
+                "card": "азилсартана-медоксомил-хлорталидон",
+                "atc": [
+                  "C09DA09"
+                ],
+                "documents": 358,
+                "sentences": 491
+              },
+              {
+                "card": "амлодипин",
+                "atc": [
+                  "C08CA01"
+                ],
+                "documents": 373,
+                "sentences": 506
+              },
+              {
+                "card": "амлодипин-атенолол",
+                "atc": [
+                  "C07EB"
+                ],
+                "documents": 333,
+                "sentences": 440
+              },
+              {
+                "card": "амлодипин-бисопролол",
+                "atc": [
+                  "C07FB07"
+                ],
+                "documents": 333,
+                "sentences": 439
+              },
+              {
+                "card": "амлодипин-валсартан",
+                "atc": [
+                  "C09DB01"
+                ],
+                "documents": 356,
+                "sentences": 487
+              },
+              {
+                "card": "амлодипин-валсартан-гидрохлоротиазид",
+                "atc": [
+                  "C09DX01"
+                ],
+                "documents": 358,
+                "sentences": 489
+              },
+              {
+                "card": "амлодипин-гидрохлоротиазид-телмисартан",
+                "atc": [
+                  "C09DX08"
+                ],
+                "documents": 358,
+                "sentences": 490
+              },
+              {
+                "card": "амлодипин-индапамид",
+                "atc": [
+                  "C08GA02"
+                ],
+                "documents": 375,
+                "sentences": 507
+              },
+              {
+                "card": "амлодипин-индапамид-лизиноприл",
+                "atc": [
+                  "C09BX"
+                ],
+                "documents": 349,
+                "sentences": 480
+              },
+              {
+                "card": "амлодипин-индапамид-периндоприл",
+                "atc": [
+                  "C09BX01"
+                ],
+                "documents": 351,
+                "sentences": 483
+              },
+              {
+                "card": "амлодипин-ирбесартан",
+                "atc": [
+                  "C09DB05"
+                ],
+                "documents": 358,
+                "sentences": 491
+              },
+              {
+                "card": "амлодипин-кандесартан",
+                "atc": [
+                  "C09DB07"
+                ],
+                "documents": 358,
+                "sentences": 491
+              },
+              {
+                "card": "амлодипин-лизиноприл",
+                "atc": [
+                  "C09BB03"
+                ],
+                "documents": 350,
+                "sentences": 483
+              },
+              {
+                "card": "амлодипин-лозартан",
+                "atc": [
+                  "C09DB06"
+                ],
+                "documents": 358,
+                "sentences": 490
+              },
+              {
+                "card": "амлодипин-небиволол",
+                "atc": [
+                  "C07FB"
+                ],
+                "documents": 334,
+                "sentences": 441
+              },
+              {
+                "card": "амлодипин-олмесартана-медоксомил",
+                "atc": [
+                  "C09DB02"
+                ],
+                "documents": 358,
+                "sentences": 491
+              },
+              {
+                "card": "амлодипин-периндоприл",
+                "atc": [
+                  "C09BB04"
+                ],
+                "documents": 350,
+                "sentences": 482
+              },
+              {
+                "card": "амлодипин-рамиприл",
+                "atc": [
+                  "C09BB04"
+                ],
+                "documents": 350,
+                "sentences": 483
+              },
+              {
+                "card": "амлодипин-телмисартан",
+                "atc": [
+                  "C09DB04"
+                ],
+                "documents": 358,
+                "sentences": 491
+              },
+              {
+                "card": "атенолол",
+                "atc": [
+                  "C07AB03"
+                ],
+                "documents": 330,
+                "sentences": 437
+              },
+              {
+                "card": "атенолол-хлорталидон",
+                "atc": [
+                  "C07BB03",
+                  "C07CB03"
+                ],
+                "documents": 332,
+                "sentences": 438
+              },
+              {
+                "card": "бетаксолол",
+                "atc": [
+                  "C07AB05",
+                  "S01ED02"
+                ],
+                "documents": 332,
+                "sentences": 439
+              },
+              {
+                "card": "бисопролол",
+                "atc": [
+                  "C07AB07"
+                ],
+                "documents": 331,
+                "sentences": 435
+              },
+              {
+                "card": "бисопролол-гидрохлоротиазид",
+                "atc": [
+                  "C07BB07"
+                ],
+                "documents": 331,
+                "sentences": 433
+              },
+              {
+                "card": "бисопролол-периндоприл",
+                "atc": [
+                  "C09BX02"
+                ],
+                "documents": 351,
+                "sentences": 485
+              },
+              {
+                "card": "валсартан",
+                "atc": [
+                  "C09CA03"
+                ],
+                "documents": 358,
+                "sentences": 490
+              },
+              {
+                "card": "валсартан-гидрохлоротиазид",
+                "atc": [
+                  "C09DA03"
+                ],
+                "documents": 358,
+                "sentences": 489
+              },
+              {
+                "card": "валсартан-индапамид",
+                "atc": [
+                  "C09DA03"
+                ],
+                "documents": 358,
+                "sentences": 489
+              },
+              {
+                "card": "валсартан-сакубитрил",
+                "atc": [
+                  "C09DX04"
+                ],
+                "documents": 358,
+                "sentences": 490
+              },
+              {
+                "card": "верапамил",
+                "atc": [
+                  "C08DA01"
+                ],
+                "documents": 364,
+                "sentences": 497
+              },
+              {
+                "card": "верапамил-трандолаприл",
+                "atc": [
+                  "C09BB10"
+                ],
+                "documents": 344,
+                "sentences": 477
+              },
+              {
+                "card": "винпоцетин-индапамид-метопролол-эналаприл",
+                "atc": [
+                  "C07FB02"
+                ],
+                "documents": 331,
+                "sentences": 436
+              },
+              {
+                "card": "гидрохлоротиазид",
+                "atc": [
+                  "C03AA03"
+                ],
+                "documents": 285,
+                "sentences": 375
+              },
+              {
+                "card": "гидрохлоротиазид-зофеноприл",
+                "atc": [
+                  "C09BA15"
+                ],
+                "documents": 351,
+                "sentences": 484
+              },
+              {
+                "card": "гидрохлоротиазид-ирбесартан",
+                "atc": [
+                  "C09DA04"
+                ],
+                "documents": 358,
+                "sentences": 490
+              },
+              {
+                "card": "гидрохлоротиазид-кандесартан",
+                "atc": [
+                  "C09DA06"
+                ],
+                "documents": 355,
+                "sentences": 487
+              },
+              {
+                "card": "гидрохлоротиазид-каптоприл",
+                "atc": [
+                  "C09BA01"
+                ],
+                "documents": 341,
+                "sentences": 468
+              },
+              {
+                "card": "гидрохлоротиазид-лизиноприл",
+                "atc": [
+                  "C09BA03"
+                ],
+                "documents": 348,
+                "sentences": 475
+              },
+              {
+                "card": "гидрохлоротиазид-лозартан",
+                "atc": [
+                  "C09DA01"
+                ],
+                "documents": 356,
+                "sentences": 485
+              },
+              {
+                "card": "гидрохлоротиазид-небиволол",
+                "atc": [
+                  "C07BB12"
+                ],
+                "documents": 332,
+                "sentences": 436
+              },
+              {
+                "card": "гидрохлоротиазид-олмесартана-медоксомил",
+                "atc": [
+                  "C09DA08"
+                ],
+                "documents": 358,
+                "sentences": 490
+              },
+              {
+                "card": "гидрохлоротиазид-рамиприл",
+                "atc": [
+                  "C09BA05"
+                ],
+                "documents": 348,
+                "sentences": 478
+              },
+              {
+                "card": "гидрохлоротиазид-телмисартан",
+                "atc": [
+                  "C09CA07",
+                  "C09DA07"
+                ],
+                "documents": 357,
+                "sentences": 487
+              },
+              {
+                "card": "гидрохлоротиазид-триамтерен",
+                "atc": [
+                  "C03EA01"
+                ],
+                "documents": 290,
+                "sentences": 388
+              },
+              {
+                "card": "гидрохлоротиазид-фозиноприл",
+                "atc": [
+                  "C09BA09"
+                ],
+                "documents": 351,
+                "sentences": 484
+              },
+              {
+                "card": "гидрохлоротиазид-эналаприл",
+                "atc": [
+                  "C09BA02"
+                ],
+                "documents": 348,
+                "sentences": 479
+              },
+              {
+                "card": "гидрохлоротиазид-эпросартан",
+                "atc": [
+                  "C09DA02"
+                ],
+                "documents": 358,
+                "sentences": 490
+              },
+              {
+                "card": "дилтиазем",
+                "atc": [
+                  "C08DB01"
+                ],
+                "documents": 364,
+                "sentences": 497
+              },
+              {
+                "card": "зофеноприл",
+                "atc": [
+                  "C09AA15"
+                ],
+                "documents": 331,
+                "sentences": 456
+              },
+              {
+                "card": "ивабрадин-метопролол",
+                "atc": [
+                  "C07FX05"
+                ],
+                "documents": 333,
+                "sentences": 440
+              },
+              {
+                "card": "индапамид",
+                "atc": [
+                  "C03BA11"
+                ],
+                "documents": 293,
+                "sentences": 392
+              },
+              {
+                "card": "индапамид-кандесартан",
+                "atc": [
+                  "C09DA06"
+                ],
+                "documents": 358,
+                "sentences": 490
+              },
+              {
+                "card": "индапамид-лизиноприл",
+                "atc": [
+                  "C09BA03"
+                ],
+                "documents": 350,
+                "sentences": 483
+              },
+              {
+                "card": "индапамид-периндоприл",
+                "atc": [
+                  "C09BA04"
+                ],
+                "documents": 348,
+                "sentences": 477
+              },
+              {
+                "card": "индапамид-рамиприл",
+                "atc": [
+                  "C09BA05"
+                ],
+                "documents": 351,
+                "sentences": 484
+              },
+              {
+                "card": "индапамид-телмисартан",
+                "atc": [
+                  "C09DA07"
+                ],
+                "documents": 357,
+                "sentences": 488
+              },
+              {
+                "card": "индапамид-эналаприл-набор",
+                "atc": [
+                  "C09BA02"
+                ],
+                "documents": 348,
+                "sentences": 479
+              },
+              {
+                "card": "ирбесартан",
+                "atc": [
+                  "C09CA04"
+                ],
+                "documents": 357,
+                "sentences": 489
+              },
+              {
+                "card": "кандесартан",
+                "atc": [
+                  "C09CA06"
+                ],
+                "documents": 356,
+                "sentences": 489
+              },
+              {
+                "card": "каптоприл",
+                "atc": [
+                  "C09AA01"
+                ],
+                "documents": 320,
+                "sentences": 438
+              },
+              {
+                "card": "карведилол",
+                "atc": [
+                  "C07AG02"
+                ],
+                "documents": 331,
+                "sentences": 438
+              },
+              {
+                "card": "лацидипин",
+                "atc": [
+                  "C08CA09"
+                ],
+                "documents": 374,
+                "sentences": 508
+              },
+              {
+                "card": "левамлодипин",
+                "atc": [
+                  "C08CA01"
+                ],
+                "documents": 374,
+                "sentences": 508
+              },
+              {
+                "card": "лерканидипин",
+                "atc": [
+                  "C08CA13"
+                ],
+                "documents": 374,
+                "sentences": 508
+              },
+              {
+                "card": "лерканидипин-эналаприл",
+                "atc": [
+                  "C09BB02"
+                ],
+                "documents": 348,
+                "sentences": 480
+              },
+              {
+                "card": "лизиноприл",
+                "atc": [
+                  "C09AA03"
+                ],
+                "documents": 328,
+                "sentences": 451
+              },
+              {
+                "card": "лозартан",
+                "atc": [
+                  "C09CA01"
+                ],
+                "documents": 355,
+                "sentences": 486
+              },
+              {
+                "card": "метопролол",
+                "atc": [
+                  "C07AB02"
+                ],
+                "documents": 333,
+                "sentences": 440
+              },
+              {
+                "card": "метопролол-фелодипин",
+                "atc": [
+                  "C07FB02"
+                ],
+                "documents": 333,
+                "sentences": 440
+              },
+              {
+                "card": "небиволол",
+                "atc": [
+                  "C07AB12"
+                ],
+                "documents": 331,
+                "sentences": 436
+              },
+              {
+                "card": "нимодипин",
+                "atc": [
+                  "C08CA06"
+                ],
+                "documents": 374,
+                "sentences": 508
+              },
+              {
+                "card": "нитрендипин",
+                "atc": [
+                  "C08CA08"
+                ],
+                "documents": 374,
+                "sentences": 508
+              },
+              {
+                "card": "нифедипин",
+                "atc": [
+                  "C08CA05"
+                ],
+                "documents": 364,
+                "sentences": 497
+              },
+              {
+                "card": "олмесартан-медоксомил",
+                "atc": [
+                  "C09CA08"
+                ],
+                "documents": 358,
+                "sentences": 491
+              },
+              {
+                "card": "периндоприл",
+                "atc": [
+                  "C09AA04"
+                ],
+                "documents": 331,
+                "sentences": 456
+              },
+              {
+                "card": "пропранолол",
+                "atc": [
+                  "C07AA05"
+                ],
+                "documents": 326,
+                "sentences": 433
+              },
+              {
+                "card": "рамиприл",
+                "atc": [
+                  "C09AA05"
+                ],
+                "documents": 328,
+                "sentences": 450
+              },
+              {
+                "card": "соталол",
+                "atc": [
+                  "C07AA07"
+                ],
+                "documents": 330,
+                "sentences": 436
+              },
+              {
+                "card": "спиронолактон",
+                "atc": [
+                  "C03DA01"
+                ],
+                "documents": 292,
+                "sentences": 392
+              },
+              {
+                "card": "телмисартан",
+                "atc": [
+                  "C09CA07"
+                ],
+                "documents": 356,
+                "sentences": 487
+              },
+              {
+                "card": "торасемид",
+                "atc": [
+                  "C03CA04"
+                ],
+                "documents": 286,
+                "sentences": 386
+              },
+              {
+                "card": "фелодипин",
+                "atc": [
+                  "C08CA02"
+                ],
+                "documents": 374,
+                "sentences": 508
+              },
+              {
+                "card": "фимасартан",
+                "atc": [
+                  "C09CA10"
+                ],
+                "documents": 358,
+                "sentences": 491
+              },
+              {
+                "card": "финеренон",
+                "atc": [
+                  "C03DA05"
+                ],
+                "documents": 294,
+                "sentences": 394
+              },
+              {
+                "card": "фозиноприл",
+                "atc": [
+                  "C09AA09"
+                ],
+                "documents": 328,
+                "sentences": 453
+              },
+              {
+                "card": "фуросемид",
+                "atc": [
+                  "C03CA01"
+                ],
+                "documents": 287,
+                "sentences": 387
+              },
+              {
+                "card": "хинаприл",
+                "atc": [
+                  "C09AA06"
+                ],
+                "documents": 331,
+                "sentences": 456
+              },
+              {
+                "card": "хлорталидон",
+                "atc": [
+                  "C03BA04"
+                ],
+                "documents": 293,
+                "sentences": 393
+              },
+              {
+                "card": "цилазаприл",
+                "atc": [
+                  "C09AA08"
+                ],
+                "documents": 331,
+                "sentences": 456
+              },
+              {
+                "card": "эналаприл",
+                "atc": [
+                  "C09AA02"
+                ],
+                "documents": 325,
+                "sentences": 443
+              },
+              {
+                "card": "эналаприлат",
+                "atc": [
+                  "C09AA02"
+                ],
+                "documents": 330,
+                "sentences": 455
+              },
+              {
+                "card": "эплеренон",
+                "atc": [
+                  "C03DA04"
+                ],
+                "documents": 294,
+                "sentences": 394
+              },
+              {
+                "card": "эпросартан",
+                "atc": [
+                  "C09CA02"
+                ],
+                "documents": 358,
+                "sentences": 491
+              },
+              {
+                "card": "эсмолол",
+                "atc": [
+                  "C07AB09"
+                ],
+                "documents": 334,
+                "sentences": 441
+              }
+            ]
+          },
+          "oldCodesForMeasure": "C02"
+        }
+      ],
+      "totalEffectOfAllWords": {
+        "pairsLost": {
+          "document": 13984,
+          "sentence": 17243
+        },
+        "pairsGained": {
+          "document": 26130,
+          "sentence": 46443
+        },
+        "indexPairsBefore": {
+          "document": 465620,
+          "sentence": 680516
+        },
+        "indexPairsAfter": {
+          "document": 477766,
+          "sentence": 709716
+        },
+        "note": "all words together and the class additions, committed index before against after",
+        "top200PairsWithMention": {
+          "before": 2520,
+          "after": 2578,
+          "of": 19900
+        }
+      }
+    },
+    {
+      "id": "OD5",
+      "decision": "ATC4c part B: a data-declared way to add a class to a single card (`addClasses`).",
+      "owner": "owner decision 2026-10-14 (yes to B)",
+      "change": {
+        "file": "apps/app/src/features/drug-interactions/data/atc-code-exceptions.json («addClasses»)",
+        "code": "atc-codes.ts: parseAtcClassAdditions, selectAtcCodes(…, additions), additionEvidenceHolds; scripts/build-drug-interactions.ts checks the quote against the instruction text and refuses an addition whose quote or document is missing"
+      },
+      "additions": [
+        {
+          "card": "esklp.mnn.декстрометорфан-парацетамол-псевдоэфедрин-аскорбиновая-кислота",
+          "classes": [
+            "R05D"
+          ],
+          "product": "Каффетин® Колд (leaflet drug.rf.9374e574b43f16da2090.instruction)",
+          "quote": "Декстрометорфан уменьшает кашель, вызванный незначительным раздражением горла и дыхательных путей.",
+          "effect": {
+            "documentPairsGained": 98,
+            "sentencePairsGained": 107,
+            "note": "the antitussive sentences of the expectorant instructions («бромгексин не назначают одновременно с противокашлевыми …», «при применении с противокашлевыми препаратами возможно затруднение отхождения мокроты») reach the cold remedy again"
+          }
+        },
+        {
+          "card": "esklp.mnn.дексаметазон-неомицин-полимиксин-b-фенилэфрин",
+          "classes": [
+            "R01AA"
+          ],
+          "product": "Полидекса с фенилэфрином (drug.rf.9e446b30e83d78540737.instruction)",
+          "quote": "деконгестанты и другие препараты для местного применения; кортикостероиды. Код АТХ: R01AD53.",
+          "effect": "keeps the decongestant sentences (razagiline and other MAO inhibitors) after «деконгестанты» was narrowed, and adds the «симпатомиметики» sentences it never had",
+          "note": "not asked for by the owner: a repair of a loss the narrowing of «деконгестанты» would otherwise cause for a product that contains phenylephrine and calls itself a decongestant"
+        }
+      ],
+      "notApplied": [
+        {
+          "card": "esklp.mnn.декстрометорфан-парацетамол-псевдоэфедрин",
+          "reason": "no instruction of this product is in the instruction modules, so there is no evidence from its own text"
+        },
+        {
+          "card": "esklp.mnn.декстрометорфан-фенилэфрин-хлорфенамин",
+          "reason": "same: no instruction in the product"
+        },
+        {
+          "card": "esklp.mnn.декстрометорфан-парацетамол-фенилэфрин-хлорфенамин",
+          "reason": "same (coded N02BE71, it never had the antitussive sentences)"
+        }
+      ],
+      "sameGapElsewhere": [
+        "Cold remedies coded R05X or N02BE that contain pseudoephedrine/phenylephrine (decongestants) or paracetamol (analgesic) are not in those classes by code, as before; the substance rules find the substances.",
+        "Drops with phenobarbital coded only N05CM (Корвалол) are not in the barbiturate classes; камилофин-кофеин-меклоксамин-пропифеназон-эрготамин (N02CA52) holds an analgesic and has no instruction in the product."
+      ]
     }
-  ]
+  ],
+  "userPerspective": {
+    "date": "2026-10-14",
+    "task": "ATC4c",
+    "askedBy": "owner: judge the decisions by what a doctor experiences when searching, reading and comparing, not by counts alone",
+    "method": "Each scenario runs the real code path: `checkPair` over the interaction index (the committed ATC4b index = before, the rebuilt index = after), the quoted sentences read from the installed ГРЛС instruction modules (`canonicalSectionText`, `spanDisplayText`), and the marks from `highlightPatterns` + `highlightSegments` with the class phrases the app derives at run time (`deriveClassPhrases`, the old alias table for before, the new for after). ⟦…⟧ marks the words the tool highlights. The tool reads the best indexed instruction of each drug (one per card), as in the app.",
+    "rule": "A missed real warning is worse than an extra dismissible quote; noise that buries real warnings is also bad. A narrowing that made it worse for the doctor would not have been applied. None did.",
+    "summary": {
+      "better": 20,
+      "neutral": 20,
+      "worse": 0
+    },
+    "scenarios": [
+      {
+        "id": "M1",
+        "word": "макролиды/линкозамиды",
+        "a": "кларитромицин",
+        "b": "клиндамицин",
+        "situation": "macrolide + lincosamide",
+        "before": {
+          "found": 2,
+          "sentencesShownFirst": [
+            "Совместное применение с гидроксихлорохином и хлорохином Данные наблюдений показали, UTO совместное применение азитромицина с гидроксихлорохином у пациентов с ревматоидным артритом связано с повышенным риском сердечно-сосудистых событий | се",
+            "Возможно развитие перекрестной резистентности к кларитромицину и другим ⟦антибиотикам⟧ группы ⟦макролидов⟧, а также линкомицину и ⟦клиндамицину⟧."
+          ]
+        },
+        "after": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "Возможно развитие перекрестной резистентности к кларитромицину и другим ⟦антибиотикам⟧ группы макролидов, а также линкомицину и ⟦клиндамицину⟧."
+          ]
+        },
+        "verdict": "better",
+        "why": "The pair loses an unrelated sentence (azithromycin with hydroxychloroquine, quoted for clindamycin only because the word «макролиды» reached all of J01F); the cross-resistance sentence stays because it names clindamycin."
+      },
+      {
+        "id": "M2",
+        "word": "макролиды/линкозамиды",
+        "a": "эритромицин",
+        "b": "линкомицин",
+        "situation": "macrolide + lincosamide",
+        "before": {
+          "found": 2,
+          "sentencesShownFirst": [
+            "Снижает бактерицидное действие (антагонизм) бета-лактамных ⟦антибиотиков⟧ (пенициллины, цефалоспорины, карбопенемы), ⟦линкомицина⟧, клиндамицина, хлорамфеникола, стрептомицина, тетрациклинов, колистина.",
+            "Антагонизм – с ⟦эритромицином⟧, пенициллинами, цефалоспоринами и хлорамфениколом, ампициллином и другими бактерицидными ⟦антибиотиками⟧, синергизм – с аминогликозидами."
+          ]
+        },
+        "after": {
+          "found": 2,
+          "sentencesShownFirst": [
+            "Снижает бактерицидное действие (антагонизм) бета-лактамных ⟦антибиотиков⟧ (пенициллины, цефалоспорины, карбопенемы), ⟦линкомицина⟧, клиндамицина, хлорамфеникола, стрептомицина, тетрациклинов, колистина.",
+            "Антагонизм – с ⟦эритромицином⟧, пенициллинами, цефалоспоринами и хлорамфениколом, ампициллином и другими бактерицидными ⟦антибиотиками⟧, синергизм – с аминогликозидами."
+          ]
+        },
+        "verdict": "neutral",
+        "why": "Each instruction names the other drug or «антибиотики»; nothing depended on the macrolide/lincosamide words."
+      },
+      {
+        "id": "M3",
+        "word": "макролиды",
+        "a": "клиндамицин",
+        "b": "домперидон",
+        "situation": "domperidone names macrolides (CYP3A4/QT)",
+        "before": {
+          "found": 4,
+          "sentencesShownFirst": [
+            "• ⟦антибиотики⟧ (эритромицин, левофлоксацин, моксифлоксацин, спирамицин);",
+            "• некоторые ⟦антибиотики⟧ из группы ⟦макролидов⟧ (например, эритромицин, кларитромицин, телитромицин)."
+          ]
+        },
+        "after": {
+          "found": 4,
+          "sentencesShownFirst": [
+            "• ⟦антибиотики⟧ (эритромицин, левофлоксацин, моксифлоксацин, спирамицин);",
+            "• некоторые ⟦антибиотики⟧ из группы макролидов (например, эритромицин, кларитромицин, телитромицин)."
+          ]
+        },
+        "verdict": "neutral",
+        "why": "The domperidone sentences say «антибиотики из группы макролидов»; the word «антибиотики» still reaches clindamycin, so the count does not move. Only the highlight stops marking «макролидов» as clindamycin’s class."
+      },
+      {
+        "id": "M4",
+        "word": "макролиды",
+        "a": "азитромицин",
+        "b": "домперидон",
+        "situation": "control: a real macrolide keeps the warning",
+        "before": {
+          "found": 5,
+          "sentencesShownFirst": [
+            "• ⟦антибиотики⟧ (эритромицин, левофлоксацин, моксифлоксацин, спирамицин);",
+            "• некоторые ⟦антибиотики⟧ из группы ⟦макролидов⟧ (например, эритромицин, кларитромицин, телитромицин)."
+          ]
+        },
+        "after": {
+          "found": 5,
+          "sentencesShownFirst": [
+            "• ⟦антибиотики⟧ (эритромицин, левофлоксацин, моксифлоксацин, спирамицин);",
+            "• некоторые ⟦антибиотики⟧ из группы ⟦макролидов⟧ (например, эритромицин, кларитромицин, телитромицин)."
+          ]
+        },
+        "verdict": "neutral",
+        "why": "Control: a real macrolide keeps every sentence."
+      },
+      {
+        "id": "C1",
+        "word": "цитостатики",
+        "a": "иматиниб",
+        "b": "каптоприл",
+        "situation": "kinase inhibitor + ACE inhibitor sentence about cytostatics",
+        "before": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "Аллопуринол, прокаинамид, ⟦цитостатики⟧, иммунодепрессанты, глюкокортикостероиды (при системном применении) Применение каптоприла у пациентов, принимающих аллопуринол или прокаинамид, повышает риск развития нейтропении/агранулоцитоза и/или "
+          ]
+        },
+        "after": {
+          "found": 0,
+          "sentencesShownFirst": []
+        },
+        "verdict": "better",
+        "why": "Imatinib no longer receives the captopril sentence about haematotoxicity of cytostatics."
+      },
+      {
+        "id": "C2",
+        "word": "цитостатики",
+        "a": "метотрексат",
+        "b": "каптоприл",
+        "situation": "control: cytotoxic keeps it",
+        "before": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "Аллопуринол, прокаинамид, ⟦цитостатики⟧, иммунодепрессанты, глюкокортикостероиды (при системном применении) Применение каптоприла у пациентов, принимающих аллопуринол или прокаинамид, повышает риск развития нейтропении/агранулоцитоза и/или "
+          ]
+        },
+        "after": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "Аллопуринол, прокаинамид, ⟦цитостатики⟧, иммунодепрессанты, глюкокортикостероиды (при системном применении) Применение каптоприла у пациентов, принимающих аллопуринол или прокаинамид, повышает риск развития нейтропении/агранулоцитоза и/или "
+          ]
+        },
+        "verdict": "neutral",
+        "why": "Control: methotrexate keeps the sentence."
+      },
+      {
+        "id": "C3",
+        "word": "цитостатики",
+        "a": "сорафениб",
+        "b": "варфарин",
+        "situation": "kinase inhibitor + warfarin sentence about cytostatics",
+        "before": {
+          "found": 6,
+          "sentencesShownFirst": [
+            "Субстраты СYР2С9 Одновременный прием сорафениба и ⟦варфарина⟧ не привел к изменению средних значений протромбинового времени и международного нормализованного отношения (МНО) по сравнению с плацебо.",
+            "Однако рекомендуется регулярное определение МНО всем больным, получающим сочетанную терапию ⟦варфарином⟧ и сорафенибом."
+          ]
+        },
+        "after": {
+          "found": 4,
+          "sentencesShownFirst": [
+            "Субстраты СYР2С9 Одновременный прием сорафениба и ⟦варфарина⟧ не привел к изменению средних значений протромбинового времени и международного нормализованного отношения (МНО) по сравнению с плацебо.",
+            "Однако рекомендуется регулярное определение МНО всем больным, получающим сочетанную терапию ⟦варфарином⟧ и сорафенибом."
+          ]
+        },
+        "verdict": "better",
+        "why": "Sorafenib no longer receives the warfarin table row «Цитостатики … усиление метаболизма варфарина»; the four sentences of sorafenib’s own instruction about warfarin stay."
+      },
+      {
+        "id": "C4",
+        "word": "цитостатики",
+        "a": "циклофосфамид",
+        "b": "варфарин",
+        "situation": "control: cytotoxic keeps it",
+        "before": {
+          "found": 3,
+          "sentencesShownFirst": [
+            "Хлордиазепоксид | Снижение антикоагулянтного эффекта варфарина ⟦Цитостатики⟧",
+            "Хлоралгидрат | Механизм взаимодействия неизвестен ⟦Цитостатики⟧"
+          ]
+        },
+        "after": {
+          "found": 3,
+          "sentencesShownFirst": [
+            "Хлордиазепоксид | Снижение антикоагулянтного эффекта варфарина ⟦Цитостатики⟧",
+            "Хлоралгидрат | Механизм взаимодействия неизвестен ⟦Цитостатики⟧"
+          ]
+        },
+        "verdict": "neutral",
+        "why": "Control: cyclophosphamide keeps the warfarin rows."
+      },
+      {
+        "id": "D1",
+        "word": "противодиарейные",
+        "a": "сахаромицеты-буларди",
+        "b": "аминофиллин",
+        "situation": "probiotic + aminophylline sentence about antidiarrhoeals",
+        "before": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "⟦Противодиарейные⟧ препараты, кишечные сорбенты ослабляют, а Н2-гистаминоблокаторы, блокаторы медленных кальциевых каналов, мексилетин усиливают действие (связываются с ферментативной системой цитохрома Р450 и изменяют метаболизм) эуфиллина"
+          ]
+        },
+        "after": {
+          "found": 0,
+          "sentencesShownFirst": []
+        },
+        "verdict": "better",
+        "why": "A yeast probiotic no longer receives the aminophylline sentence about antidiarrhoeals that reduce its absorption."
+      },
+      {
+        "id": "D2",
+        "word": "противодиарейные",
+        "a": "лоперамид",
+        "b": "аминофиллин",
+        "situation": "control: loperamide keeps it",
+        "before": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "⟦Противодиарейные⟧ препараты, кишечные сорбенты ослабляют, а Н2-гистаминоблокаторы, блокаторы медленных кальциевых каналов, мексилетин усиливают действие (связываются с ферментативной системой цитохрома Р450 и изменяют метаболизм) эуфиллина"
+          ]
+        },
+        "after": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "⟦Противодиарейные⟧ препараты, кишечные сорбенты ослабляют, а Н2-гистаминоблокаторы, блокаторы медленных кальциевых каналов, мексилетин усиливают действие (связываются с ферментативной системой цитохрома Р450 и изменяют метаболизм) эуфиллина"
+          ]
+        },
+        "verdict": "neutral",
+        "why": "Control: loperamide keeps it."
+      },
+      {
+        "id": "D1b",
+        "word": "противодиарейные",
+        "a": "бифидобактерии-бифидум",
+        "b": "аминофиллин",
+        "situation": "probiotic + aminophylline sentence about antidiarrhoeals",
+        "before": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "⟦Противодиарейные⟧ препараты, кишечные сорбенты ослабляют, а Н2-гистаминоблокаторы, блокаторы медленных кальциевых каналов, мексилетин усиливают действие (связываются с ферментативной системой цитохрома Р450 и изменяют метаболизм) эуфиллина"
+          ]
+        },
+        "after": {
+          "found": 0,
+          "sentencesShownFirst": []
+        },
+        "verdict": "better",
+        "why": "Same for a bifidobacteria preparation."
+      },
+      {
+        "id": "D3",
+        "word": "противодиарейные",
+        "a": "смектит-диоктаэдрический",
+        "b": "аминофиллин",
+        "situation": "control: adsorbent keeps it",
+        "before": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "⟦Противодиарейные⟧ препараты, кишечные сорбенты ослабляют, а Н2-гистаминоблокаторы, блокаторы медленных кальциевых каналов, мексилетин усиливают действие (связываются с ферментативной системой цитохрома Р450 и изменяют метаболизм) эуфиллина"
+          ]
+        },
+        "after": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "⟦Противодиарейные⟧ препараты, кишечные сорбенты ослабляют, а Н2-гистаминоблокаторы, блокаторы медленных кальциевых каналов, мексилетин усиливают действие (связываются с ферментативной системой цитохрома Р450 и изменяют метаболизм) эуфиллина"
+          ]
+        },
+        "verdict": "neutral",
+        "why": "Control: the adsorbent keeps it."
+      },
+      {
+        "id": "D4",
+        "word": "противодиарейные",
+        "a": "месалазин",
+        "b": "аминофиллин",
+        "situation": "mesalazine + sentence about antidiarrhoeals",
+        "before": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "⟦Противодиарейные⟧ препараты, кишечные сорбенты ослабляют, а Н2-гистаминоблокаторы, блокаторы медленных кальциевых каналов, мексилетин усиливают действие (связываются с ферментативной системой цитохрома Р450 и изменяют метаболизм) эуфиллина"
+          ]
+        },
+        "after": {
+          "found": 0,
+          "sentencesShownFirst": []
+        },
+        "verdict": "better",
+        "why": "Mesalazine (an anti-inflammatory) no longer receives it."
+      },
+      {
+        "id": "S1",
+        "word": "снотворные",
+        "a": "золпидем",
+        "b": "ритонавир",
+        "situation": "control: hypnotic keeps the sentence",
+        "before": {
+          "found": 2,
+          "sentencesShownFirst": [
+            "⟦Седативные⟧ и ⟦снотворные⟧ препараты Клоразепат, Одновременный прием с ритонавиром противопоказан, поскольку может диазепам, эстазолам, флуразепам, предназначенн ый для приема внутрь или парентерально мидазолам 200, 4 дозы ↑ > в 20 раз ↑ н",
+            "⟦Снотворные⟧ препараты ⟦Золпидем⟧ 5 200, 4 дозы ↑ на 28 % ↑ на 22 % Применение ⟦золпидема⟧ одновременно с ритонавиром допускается при усиленном мониторинге избыточных ⟦седативных⟧ эффектов."
+          ]
+        },
+        "after": {
+          "found": 2,
+          "sentencesShownFirst": [
+            "⟦Седативные⟧ и ⟦снотворные⟧ препараты Клоразепат, Одновременный прием с ритонавиром противопоказан, поскольку может диазепам, эстазолам, флуразепам, предназначенн ый для приема внутрь или парентерально мидазолам 200, 4 дозы ↑ > в 20 раз ↑ н",
+            "⟦Снотворные⟧ препараты ⟦Золпидем⟧ 5 200, 4 дозы ↑ на 28 % ↑ на 22 % Применение ⟦золпидема⟧ одновременно с ритонавиром допускается при усиленном мониторинге избыточных ⟦седативных⟧ эффектов."
+          ]
+        },
+        "verdict": "neutral",
+        "why": "Control: zolpidem keeps both ritonavir sentences."
+      },
+      {
+        "id": "S2",
+        "word": "снотворные",
+        "a": "валерианы-лекарственной-корневищ-с-корнями-экстракт",
+        "b": "ритонавир",
+        "situation": "herbal sedative + ritonavir sentence about hypnotics",
+        "before": {
+          "found": 2,
+          "sentencesShownFirst": [
+            "⟦Седативные⟧ и ⟦снотворные⟧ препараты Клоразепат, Одновременный прием с ритонавиром противопоказан, поскольку может диазепам, эстазолам, флуразепам, предназначенн ый для приема внутрь или парентерально мидазолам 200, 4 дозы ↑ > в 20 раз ↑ н",
+            "⟦Снотворные⟧ препараты Золпидем 5 200, 4 дозы ↑ на 28 % ↑ на 22 % Применение золпидема одновременно с ритонавиром допускается при усиленном мониторинге избыточных ⟦седативных⟧ эффектов."
+          ]
+        },
+        "after": {
+          "found": 2,
+          "sentencesShownFirst": [
+            "⟦Седативные⟧ и снотворные препараты Клоразепат, Одновременный прием с ритонавиром противопоказан, поскольку может диазепам, эстазолам, флуразепам, предназначенн ый для приема внутрь или парентерально мидазолам 200, 4 дозы ↑ > в 20 раз ↑ на ",
+            "Снотворные препараты Золпидем 5 200, 4 дозы ↑ на 28 % ↑ на 22 % Применение золпидема одновременно с ритонавиром допускается при усиленном мониторинге избыточных ⟦седативных⟧ эффектов."
+          ]
+        },
+        "verdict": "neutral",
+        "why": "Valerian keeps both sentences because they also say «седативные»; only the highlight of «снотворные» goes."
+      },
+      {
+        "id": "S3",
+        "word": "снотворные",
+        "a": "золпидем",
+        "b": "итраконазол",
+        "situation": "control",
+        "before": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "Повышен риск неизвестна)a, b появления нежелательных реакций на иринотекан: потенциально угрожающая жизни миелосупрессия и диарея Антипсихотики, анксиолитики и ⟦снотворные⟧ средства Алпразолам Применять с осторожностью, Алпразолам Cmax , A"
+          ]
+        },
+        "after": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "Повышен риск неизвестна)a, b появления нежелательных реакций на иринотекан: потенциально угрожающая жизни миелосупрессия и диарея Антипсихотики, анксиолитики и ⟦снотворные⟧ средства Алпразолам Применять с осторожностью, Алпразолам Cmax , A"
+          ]
+        },
+        "verdict": "neutral",
+        "why": "Control: zolpidem keeps the itraconazole sentence."
+      },
+      {
+        "id": "S4",
+        "word": "снотворные",
+        "a": "валерианы-лекарственной-корневищ-с-корнями-экстракт",
+        "b": "тиамин",
+        "situation": "valerian + thiamine sentence about hypnotics",
+        "before": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "Тиамин уменьшает фармакологическую активность суксаметония иодида, редергама, фентоламина, анаприлина, симпатолитиков (резерпин, октадин), ⟦снотворных⟧ средств (уменьшается ⟦снотворный⟧ и гипотензивный эффекты)."
+          ]
+        },
+        "after": {
+          "found": 0,
+          "sentencesShownFirst": []
+        },
+        "verdict": "better",
+        "why": "Valerian no longer receives the thiamine sentence about hypnotics."
+      },
+      {
+        "id": "A1",
+        "word": "анальгетики",
+        "a": "суматриптан",
+        "b": "невирапин",
+        "situation": "triptan + nevirapine sentence about analgesics/opioids",
+        "before": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "⟦Анальгетики⟧/опиоиды Метадон, индивидуальное дозирование Метадон AUC ↓ 0,40 (0,31–0,51) Cmin, НО Cmax ↓ 0,58 (0,50–0,67) Пациенты, принимающие метадон, перед терапией невирапином должны находиться под контролем для выявления синдрома отмен"
+          ]
+        },
+        "after": {
+          "found": 0,
+          "sentencesShownFirst": []
+        },
+        "verdict": "better",
+        "why": "Sumatriptan no longer receives the nevirapine/methadone sentence about analgesics."
+      },
+      {
+        "id": "A2",
+        "word": "анальгетики",
+        "a": "парацетамол",
+        "b": "невирапин",
+        "situation": "control: analgesic keeps it",
+        "before": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "⟦Анальгетики⟧/опиоиды Метадон, индивидуальное дозирование Метадон AUC ↓ 0,40 (0,31–0,51) Cmin, НО Cmax ↓ 0,58 (0,50–0,67) Пациенты, принимающие метадон, перед терапией невирапином должны находиться под контролем для выявления синдрома отмен"
+          ]
+        },
+        "after": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "⟦Анальгетики⟧/опиоиды Метадон, индивидуальное дозирование Метадон AUC ↓ 0,40 (0,31–0,51) Cmin, НО Cmax ↓ 0,58 (0,50–0,67) Пациенты, принимающие метадон, перед терапией невирапином должны находиться под контролем для выявления синдрома отмен"
+          ]
+        },
+        "verdict": "neutral",
+        "why": "Control: paracetamol keeps it."
+      },
+      {
+        "id": "A3",
+        "word": "анальгетики",
+        "a": "ризатриптан",
+        "b": "невирапин",
+        "situation": "triptan + nevirapine sentence about analgesics/opioids",
+        "before": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "⟦Анальгетики⟧/опиоиды Метадон, индивидуальное дозирование Метадон AUC ↓ 0,40 (0,31–0,51) Cmin, НО Cmax ↓ 0,58 (0,50–0,67) Пациенты, принимающие метадон, перед терапией невирапином должны находиться под контролем для выявления синдрома отмен"
+          ]
+        },
+        "after": {
+          "found": 0,
+          "sentencesShownFirst": []
+        },
+        "verdict": "better",
+        "why": "Same for rizatriptan."
+      },
+      {
+        "id": "A4",
+        "word": "анальгетики",
+        "a": "морфин",
+        "b": "парацетамол",
+        "situation": "opioid + paracetamol: morphine instruction names other analgesics",
+        "before": {
+          "found": 0,
+          "sentencesShownFirst": []
+        },
+        "after": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "Важно уменьшить дозу морфина при одновременном назначении других ⟦анальгетиков⟧ центрального действия, так как в этом случае существует риск внезапной остановки дыхания."
+          ]
+        },
+        "verdict": "neutral",
+        "why": "New: morphine’s own instruction (reduce the dose with other centrally acting analgesics) now reaches paracetamol. Real but only partly relevant; before, own-class suppression hid it from every analgesic."
+      },
+      {
+        "id": "H1",
+        "word": "гипотензивные",
+        "a": "амлодипин",
+        "b": "диклофенак",
+        "situation": "CCB + NSAID",
+        "before": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "В отличие от других блокаторов «медленных» кальциевых каналов (БМКК) не отмечается клинически значимого взаимодействия амлодипина | ⟦нестероидными противовоспалительными⟧ препаратами, особенно индометацином."
+          ]
+        },
+        "after": {
+          "found": 4,
+          "sentencesShownFirst": [
+            "В отличие от других блокаторов «медленных» кальциевых каналов (БМКК) не отмечается клинически значимого взаимодействия амлодипина | ⟦нестероидными противовоспалительными⟧ препаратами, особенно индометацином.",
+            "Диуретические и ⟦гипотензивные⟧ средства."
+          ]
+        },
+        "verdict": "better",
+        "why": "Amlodipine with diclofenac: the diclofenac instruction’s «диуретические и гипотензивные средства» sentences (NSAIDs weaken them) now reach amlodipine: 1 → 4."
+      },
+      {
+        "id": "H2",
+        "word": "гипотензивные",
+        "a": "лизиноприл",
+        "b": "диклофенак",
+        "situation": "ACE inhibitor + NSAID",
+        "before": {
+          "found": 3,
+          "sentencesShownFirst": [
+            "⟦Нестероидные противовоспалительные⟧ препараты (⟦НПВП⟧), включая селективные ингибиторы циклооксигеназы-2 (ЦОГ-2) и высокие дозы ацетилсалициловой кислоты (2 3 г/сутки) ⟦Нестероидные противовоспалительные⟧ препараты (в том числе селективные",
+            "У некоторых пациентов с нарушенной функцией почек (например, у пожилых пациентов или пациентов с обезвоживанием, в том числе принимающих диуретики), получающих терапию ⟦НПВП⟧ (в том числе селективными ингибиторами ЦОГ-2), одновременное прим"
+          ]
+        },
+        "after": {
+          "found": 6,
+          "sentencesShownFirst": [
+            "⟦Нестероидные противовоспалительные⟧ препараты (⟦НПВП⟧), включая селективные ингибиторы циклооксигеназы-2 (ЦОГ-2) и высокие дозы ацетилсалициловой кислоты (2 3 г/сутки) ⟦Нестероидные противовоспалительные⟧ препараты (в том числе селективные",
+            "У некоторых пациентов с нарушенной функцией почек (например, у пожилых пациентов или пациентов с обезвоживанием, в том числе принимающих диуретики), получающих терапию ⟦НПВП⟧ (в том числе селективными ингибиторами ЦОГ-2), одновременное прим"
+          ]
+        },
+        "verdict": "better",
+        "why": "Same for lisinopril, 3 → 6."
+      },
+      {
+        "id": "H3",
+        "word": "гипотензивные",
+        "a": "амлодипин",
+        "b": "лизиноприл",
+        "situation": "two antihypertensives",
+        "before": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "Тиазидные и \"петлевые\" диуретики, бета-адреноблокаторы, верапамил, ⟦ингибиторы АПФ⟧ и нитраты усиливают антиангинальный или антигипертензивный эффекты амлодипина."
+          ]
+        },
+        "after": {
+          "found": 3,
+          "sentencesShownFirst": [
+            "Тиазидные и \"петлевые\" диуретики, бета-адреноблокаторы, верапамил, ⟦ингибиторы АПФ⟧ и нитраты усиливают антиангинальный или ⟦антигипертензивный⟧ эффекты амлодипина.",
+            "Калийнесберегающие диуретики При одновременном применении лизиноприла с калийнесберегающими диуретиками гипокалиемия, вызванная их применением, может быть Уменыена ТЕЛЬНОСТЬ 0001) Другие ⟦гипотензивные⟧ лекарственные средства При одновремен"
+          ]
+        },
+        "verdict": "better",
+        "why": "Two antihypertensives: lisinopril’s «другие гипотензивные средства: аддитивный эффект» now reaches amlodipine: 1 → 3."
+      },
+      {
+        "id": "H4",
+        "word": "гипотензивные",
+        "a": "амлодипин",
+        "b": "метформин",
+        "situation": "CCB + metformin",
+        "before": {
+          "found": 0,
+          "sentencesShownFirst": []
+        },
+        "after": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "⟦Гипотензивные⟧ лекарственные средства, за исключением ингибиторов ангиотензинпревращающего фермента, могут снижать концентрацию глюкозы в крови."
+          ]
+        },
+        "verdict": "better",
+        "why": "Metformin’s «гипотензивные средства … могут снижать концентрацию глюкозы» reaches amlodipine: 0 → 1 (a missed real warning before)."
+      },
+      {
+        "id": "H5",
+        "word": "гипотензивные",
+        "a": "бисопролол",
+        "b": "ибупрофен",
+        "situation": "beta-blocker + NSAID",
+        "before": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "⟦Нестероидные противовоспалительные⟧ препараты (⟦НПВП⟧) могут снижать гипотензивный эффект бисопролола."
+          ]
+        },
+        "after": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "⟦Нестероидные противовоспалительные⟧ препараты (⟦НПВП⟧) могут снижать гипотензивный эффект бисопролола."
+          ]
+        },
+        "verdict": "neutral",
+        "why": "Bisoprolol already had the NSAID sentence by name."
+      },
+      {
+        "id": "H6",
+        "word": "гипотензивные",
+        "a": "фуросемид",
+        "b": "цисплатин",
+        "situation": "loop diuretic + cisplatin",
+        "before": {
+          "found": 5,
+          "sentencesShownFirst": [
+            "Комбинации, при применении которых следует соблюдать осторожность ⟦Цисплатин⟧ При одновременном применении с фуросемидом существует риск проявления ототоксического действия.",
+            "Кроме этого, возможно усиление нефротоксического действия ⟦цисплатина⟧ при применении фуросемида для проведения форсированного диуреза во время лечения ⟦цисплатином⟧, если фуросемид применяется не в низкой дозе (такой как, например, 40 мг у"
+          ]
+        },
+        "after": {
+          "found": 5,
+          "sentencesShownFirst": [
+            "Комбинации, при применении которых следует соблюдать осторожность ⟦Цисплатин⟧ При одновременном применении с фуросемидом существует риск проявления ототоксического действия.",
+            "Кроме этого, возможно усиление нефротоксического действия ⟦цисплатина⟧ при применении фуросемида для проведения форсированного диуреза во время лечения ⟦цисплатином⟧, если фуросемид применяется не в низкой дозе (такой как, например, 40 мг у"
+          ]
+        },
+        "verdict": "neutral",
+        "why": "Furosemide and cisplatin name each other."
+      },
+      {
+        "id": "X1",
+        "word": "противокашлевые (DXM)",
+        "a": "декстрометорфан-парацетамол-псевдоэфедрин-аскорбиновая-кислота",
+        "b": "бромгексин",
+        "situation": "dextromethorphan cold remedy + expectorant",
+        "beforeATC4b": {
+          "found": 1
+        },
+        "before": {
+          "found": 0,
+          "sentencesShownFirst": []
+        },
+        "after": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "Бромгексин не назначают одновременно с ⟦противокашлевыми⟧ средствами (в том числе содержащими кодеин), так как за счет подавления кашлевого рефлекса может возникнуть опасность скопления мокроты в просвете дыхательных путей с затруднением ее"
+          ]
+        },
+        "verdict": "better",
+        "why": "The dextromethorphan cold remedy and the expectorant: the bromhexine sentence «не назначают одновременно с противокашлевыми» is back (1 → 0 → 1 across ATC4b and this change)."
+      },
+      {
+        "id": "X2",
+        "word": "противокашлевые (DXM)",
+        "a": "декстрометорфан-парацетамол-псевдоэфедрин-аскорбиновая-кислота",
+        "b": "амброксол",
+        "situation": "dextromethorphan cold remedy + expectorant",
+        "beforeATC4b": {
+          "found": 1
+        },
+        "before": {
+          "found": 0,
+          "sentencesShownFirst": []
+        },
+        "after": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "При применении с ⟦противокашлевыми⟧ препаратами возможно затруднение отхождения мокроты в результате подавления кашлевого рефлекса."
+          ]
+        },
+        "verdict": "better",
+        "why": "Same with ambroxol’s instruction (Флавамед): back."
+      },
+      {
+        "id": "X3",
+        "word": "противокашлевые",
+        "a": "кодеин-натрия-гидрокарбонат-терпингидрат",
+        "b": "бромгексин",
+        "situation": "control: codeine antitussive",
+        "beforeATC4b": {
+          "found": 1
+        },
+        "before": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "Бромгексин не назначают одновременно с ⟦противокашлевыми⟧ средствами (в том числе содержащими ⟦кодеин⟧), так как за счет подавления кашлевого рефлекса может возникнуть опасность скопления мокроты в просвете дыхательных путей с затруднением "
+          ]
+        },
+        "after": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "Бромгексин не назначают одновременно с ⟦противокашлевыми⟧ средствами (в том числе содержащими ⟦кодеин⟧), так как за счет подавления кашлевого рефлекса может возникнуть опасность скопления мокроты в просвете дыхательных путей с затруднением "
+          ]
+        },
+        "verdict": "neutral",
+        "why": "Control: codeine antitussive keeps it."
+      },
+      {
+        "id": "X4",
+        "word": "противокашлевые",
+        "a": "амброксол",
+        "b": "бромгексин",
+        "situation": "two expectorants (ATC4b)",
+        "beforeATC4b": {
+          "found": 2
+        },
+        "before": {
+          "found": 0,
+          "sentencesShownFirst": []
+        },
+        "after": {
+          "found": 0,
+          "sentencesShownFirst": []
+        },
+        "verdict": "neutral",
+        "why": "Two expectorants: the false hit that ATC4b removed stays removed."
+      },
+      {
+        "id": "N1",
+        "word": "деконгестанты",
+        "a": "ксилометазолин",
+        "b": "разагилин",
+        "situation": "decongestant + MAO-B inhibitor",
+        "before": {
+          "found": 2,
+          "sentencesShownFirst": [
+            "В связи со свойством разагилина ингибировать МАО, одновременное применение разагилина с ⟦симпатомиметиками⟧, такими как ⟦деконгестанты⟧ или комплексные противопростудные препараты для приема внутрь или для ⟦назального⟧ применения, содержащи",
+            "Одновременное применение разагилина с декстрометорфаном, с ⟦симпатомиметиками⟧ или комплексными противопростудными препаратами для приема внутрь или для ⟦назального⟧ применения, содержащие эфедрин или псевдоэфедрин, не рекомендуется (см. ра"
+          ]
+        },
+        "after": {
+          "found": 2,
+          "sentencesShownFirst": [
+            "В связи со свойством разагилина ингибировать МАО, одновременное применение разагилина с ⟦симпатомиметиками⟧, такими как ⟦деконгестанты⟧ или комплексные противопростудные препараты для приема внутрь или для ⟦назального⟧ применения, содержащи",
+            "Одновременное применение разагилина с декстрометорфаном, с ⟦симпатомиметиками⟧ или комплексными противопростудными препаратами для приема внутрь или для ⟦назального⟧ применения, содержащие эфедрин или псевдоэфедрин, не рекомендуется (см. ра"
+          ]
+        },
+        "verdict": "neutral",
+        "why": "Control: xylometazoline keeps both razagiline sentences."
+      },
+      {
+        "id": "N2",
+        "word": "деконгестанты",
+        "a": "мометазон",
+        "b": "разагилин",
+        "situation": "nasal corticosteroid + MAO-B inhibitor",
+        "before": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "В связи со свойством разагилина ингибировать МАО, одновременное применение разагилина с симпатомиметиками, такими как ⟦деконгестанты⟧ или комплексные противопростудные препараты для приема внутрь или для ⟦назального⟧ применения, содержащие "
+          ]
+        },
+        "after": {
+          "found": 0,
+          "sentencesShownFirst": []
+        },
+        "verdict": "better",
+        "why": "A nasal corticosteroid no longer receives the razagiline sentence about decongestants."
+      },
+      {
+        "id": "N3",
+        "word": "деконгестанты",
+        "a": "дексаметазон-неомицин-полимиксин-b-фенилэфрин",
+        "b": "разагилин",
+        "situation": "phenylephrine nasal spray (addClasses)",
+        "before": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "В связи со свойством разагилина ингибировать МАО, одновременное применение разагилина с симпатомиметиками, такими как ⟦деконгестанты⟧ или комплексные противопростудные препараты для приема внутрь или для ⟦назального⟧ применения, содержащие "
+          ]
+        },
+        "after": {
+          "found": 2,
+          "sentencesShownFirst": [
+            "В связи со свойством разагилина ингибировать МАО, одновременное применение разагилина с ⟦симпатомиметиками⟧, такими как ⟦деконгестанты⟧ или комплексные противопростудные препараты для приема внутрь или для ⟦назального⟧ применения, содержащи",
+            "Одновременное применение разагилина с декстрометорфаном, с ⟦симпатомиметиками⟧ или комплексными противопростудными препаратами для приема внутрь или для ⟦назального⟧ применения, содержащие эфедрин или псевдоэфедрин, не рекомендуется (см. ра"
+          ]
+        },
+        "verdict": "better",
+        "why": "The phenylephrine spray keeps it (declared class) and gains the «симпатомиметики» sentence: 1 → 2."
+      },
+      {
+        "id": "B1",
+        "word": "кровезаменители",
+        "a": "гидроксиэтилкрахмал",
+        "b": "метамизол-натрия",
+        "situation": "colloid blood substitute + metamizole",
+        "before": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "Рентгеноконтрастные вещества, коллоидные ⟦кровезаменители⟧ и пенициллин Ввиду повышенного риска развития анафилактических/анафилактоидных реакций во время лечения метамизолом натрия не следует применять рентгеноконтрастные вещества, коллоид"
+          ]
+        },
+        "after": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "Рентгеноконтрастные вещества, коллоидные ⟦кровезаменители⟧ и пенициллин Ввиду повышенного риска развития анафилактических/анафилактоидных реакций во время лечения метамизолом натрия не следует применять рентгеноконтрастные вещества, коллоид"
+          ]
+        },
+        "verdict": "neutral",
+        "why": "Control: a colloidal substitute keeps the metamizole sentence."
+      },
+      {
+        "id": "B2",
+        "word": "кровезаменители",
+        "a": "декстроза",
+        "b": "метамизол-натрия",
+        "situation": "glucose solution + metamizole",
+        "before": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "Рентгеноконтрастные вещества, коллоидные ⟦кровезаменители⟧ и пенициллин Ввиду повышенного риска развития анафилактических/анафилактоидных реакций во время лечения метамизолом натрия не следует применять рентгеноконтрастные вещества, коллоид"
+          ]
+        },
+        "after": {
+          "found": 0,
+          "sentencesShownFirst": []
+        },
+        "verdict": "better",
+        "why": "A glucose solution no longer receives the metamizole sentence about colloidal blood substitutes."
+      },
+      {
+        "id": "B3",
+        "word": "кровезаменители",
+        "a": "натрия-хлорид",
+        "b": "метамизол-натрия",
+        "situation": "sodium chloride + metamizole",
+        "before": {
+          "found": 1,
+          "sentencesShownFirst": [
+            "Рентгеноконтрастные вещества, коллоидные ⟦кровезаменители⟧ и пенициллин Ввиду повышенного риска развития анафилактических/анафилактоидных реакций во время лечения метамизолом натрия не следует применять рентгеноконтрастные вещества, коллоид"
+          ]
+        },
+        "after": {
+          "found": 0,
+          "sentencesShownFirst": []
+        },
+        "verdict": "better",
+        "why": "Same for sodium chloride."
+      },
+      {
+        "id": "P1",
+        "word": "психостимуляторы",
+        "a": "кофеин",
+        "b": "рисперидон",
+        "situation": "control: caffeine",
+        "before": {
+          "found": 3,
+          "sentencesShownFirst": [
+            "⟦Психостимуляторы⟧ При одновременном применении ⟦психостимуляторов⟧ (например, метилфенидата) и рисперидона изменение порядка приема одного или обоих препаратов может привести к появлению экстрапирамидных симптомов при коррекции дозы одного",
+            "Одновременное применение ⟦психостимуляторов⟧ (например, метилфенидата) и рисперидона у детей не изменяет фармакокинетические параметры и эффективность рисперидона."
+          ]
+        },
+        "after": {
+          "found": 3,
+          "sentencesShownFirst": [
+            "⟦Психостимуляторы⟧ При одновременном применении ⟦психостимуляторов⟧ (например, метилфенидата) и рисперидона изменение порядка приема одного или обоих препаратов может привести к появлению экстрапирамидных симптомов при коррекции дозы одного",
+            "Одновременное применение ⟦психостимуляторов⟧ (например, метилфенидата) и рисперидона у детей не изменяет фармакокинетические параметры и эффективность рисперидона."
+          ]
+        },
+        "verdict": "neutral",
+        "why": "Control: caffeine keeps the risperidone sentences."
+      },
+      {
+        "id": "P2",
+        "word": "психостимуляторы",
+        "a": "пирацетам",
+        "b": "рисперидон",
+        "situation": "nootropic + risperidone sentence about psychostimulants",
+        "before": {
+          "found": 3,
+          "sentencesShownFirst": [
+            "⟦Психостимуляторы⟧ При одновременном применении ⟦психостимуляторов⟧ (например, метилфенидата) и рисперидона изменение порядка приема одного или обоих препаратов может привести к появлению экстрапирамидных симптомов при коррекции дозы одного",
+            "Одновременное применение ⟦психостимуляторов⟧ (например, метилфенидата) и рисперидона у детей не изменяет фармакокинетические параметры и эффективность рисперидона."
+          ]
+        },
+        "after": {
+          "found": 0,
+          "sentencesShownFirst": []
+        },
+        "verdict": "better",
+        "why": "Piracetam no longer receives the risperidone sentences about methylphenidate-type psychostimulants (3 → 0)."
+      },
+      {
+        "id": "P3",
+        "word": "психостимуляторы",
+        "a": "атомоксетин",
+        "b": "рисперидон",
+        "situation": "control: N06BA",
+        "before": {
+          "found": 3,
+          "sentencesShownFirst": [
+            "⟦Психостимуляторы⟧ При одновременном применении ⟦психостимуляторов⟧ (например, метилфенидата) и рисперидона изменение порядка приема одного или обоих препаратов может привести к появлению экстрапирамидных симптомов при коррекции дозы одного",
+            "Одновременное применение ⟦психостимуляторов⟧ (например, метилфенидата) и рисперидона у детей не изменяет фармакокинетические параметры и эффективность рисперидона."
+          ]
+        },
+        "after": {
+          "found": 3,
+          "sentencesShownFirst": [
+            "⟦Психостимуляторы⟧ При одновременном применении ⟦психостимуляторов⟧ (например, метилфенидата) и рисперидона изменение порядка приема одного или обоих препаратов может привести к появлению экстрапирамидных симптомов при коррекции дозы одного",
+            "Одновременное применение ⟦психостимуляторов⟧ (например, метилфенидата) и рисперидона у детей не изменяет фармакокинетические параметры и эффективность рисперидона."
+          ]
+        },
+        "verdict": "neutral",
+        "why": "Control: atomoxetine keeps them."
+      }
+    ],
+    "limits": [
+      "The tool quotes only the best instruction of a card (one document), so a pair is judged on that document; other instructions of the same card (up to three are indexed) are not read.",
+      "Sentences that say «антибиотики из группы макролидов» still reach every antibiotic through the word «антибиотики» (J01): the macrolide/lincosamide narrowing helps only where the class word stands alone.",
+      "Own-class suppression works per code of a phrase: with a word that stands for several codes, a sentence in which the instruction describes its own class reaches the sibling subgroups (cytostatics +115 document pairs, analgesics +536, hypnotics +50). In the measured cases the largest part is real (morphine and tramadol sentences about other analgesics), the rest is self-description of paracetamol cold remedies shown to 13 opioid cards.",
+      "No clinician has judged the verdicts; they are an AI reading of the product’s own sentences."
+    ],
+    "comparing": {
+      "drugComparison": "Not affected. The comparison tool (`features/drug-comparison`) has its own index (`data/comparison-index.json`: both ATC codes per card from ATC3, fields from the instructions) and imports nothing from `drug-interactions`; it never reads `CLASS_ALIASES` or the interaction index.",
+      "groupBrowsing": "Not affected. The «По группам АТХ» tree (UX4) is built from `atc-names.json` and the card codes, not from class words.",
+      "prescriptionTool": "Affected like the interaction tool: «Назначение» shows the same `InteractionPairs` over the same index and the same phrases, so its pair notes change the same way."
+    },
+    "search": {
+      "doClassWordsFeedMainSearch": "No. `CLASS_ALIASES` and the derived class phrases are imported only by the interaction build, the interaction loader and the quote highlighter. Main search (`ScopedMedicalCore` over the core) is lexical text matching; the interaction-query parser reads drug names, not classes. So the alias change does not move any search result: before and after are identical by construction.",
+      "whatSearchReturnsToday": "Probed over the dev corpus (core + medications.db): «макролиды» → МКБ «T36.3 Макролидами» and two КР on pneumonia in all sources; in the drug scope Кофетамин, Бициллин 3, Эсциталопрам … (instructions that mention macrolides), not macrolides. «гипотензивные» → «Гипотензивный синдром …», МКБ T46.5; drugs: Урапидил, Мазь «Нитро» … «снотворные» → МКБ T42, intoxications; drugs: herbal extracts with «витания снотворная», Налбуфин … «цитостатики» → Z51.1; drugs Ганцикловир, Серотонин … «противодиарейные» → T47.6; drugs Пенициллин, Аминофиллин, Линкомицин (instructions that mention antidiarrhoeals), Сахаромицеты Буларди.",
+      "shouldItFeedSearch": "Probably yes, and the narrowed table is the right source: a doctor who types «макролиды» or «гипотензивные» wants the members of the class (азитромицин, кларитромицин …; амлодипин, лизиноприл …), and today gets drugs whose instructions merely mention the word. The class → ATC groups → members step belongs to the ATC5 task (search by ATC code); it can reuse `CLASS_ALIASES` codes. Nothing was implemented here."
+    },
+    "reading": {
+      "documentReader": "The drug instruction screen and reader do not highlight or link interaction sentences; interaction sentences appear only in the interaction tool and the prescription tool, as quotes that open the instruction at their place (unchanged) with the words that name the other drug marked. The marks come from the same alias table at run time, so a narrowed word is marked only for drugs of the narrowed subgroup (M3, S2)."
+    },
+    "browser": {
+      "what": "The built app (`bun run build:app`) in Chromium (Playwright, own port 4191), the interaction tool opened on exact cards (`#/notes/drug-interactions?c=…&c=…`), the real ГРЛС instruction modules installed from their local release copies through the tool’s own download offer, the quoted sentences read from the installed instructions. «Before» is a build of the committed ATC4b files (`class-phrases.ts`, `interaction-index.json`), «after» the ATC4c ones; the same four pairs in both.",
+      "results": [
+        {
+          "id": "M1",
+          "pair": "кларитромицин + клиндамицин",
+          "before": 2,
+          "after": 1,
+          "note": "the azithromycin/hydroxychloroquine sentence of the clarithromycin instruction is gone, the cross-resistance sentence stays"
+        },
+        {
+          "id": "H1",
+          "pair": "амлодипин + диклофенак",
+          "before": 1,
+          "after": 4,
+          "note": "three diclofenac sentences about «гипотензивные средства» are quoted for amlodipine, the word marked in each"
+        },
+        {
+          "id": "X1",
+          "pair": "Каффетин® Колд (декстрометорфан) + бромгексин",
+          "before": 0,
+          "after": 1,
+          "note": "the bromhexine sentence «не назначают одновременно с противокашлевыми средствами» is quoted again"
+        },
+        {
+          "id": "C1",
+          "pair": "иматиниб + каптоприл",
+          "before": 1,
+          "after": 0,
+          "note": "the ACE-inhibitor sentence about cytostatics no longer reaches the kinase inhibitor"
+        }
+      ],
+      "matchesCodePath": true,
+      "screenshots": "session scratchpad only (before-/after-{M1,H1,X1,C1}.png and .txt), not committed",
+      "observed": "The highlight of «гипотензивные» also marks the singular «гипотензивное» (the highlighter does not apply the plural-only rule that the build-time matcher applies); a pre-existing difference, not changed.",
+      "notTested": "a physical device, the dark theme, the other 36 scenarios in a browser (they ran through the same code path in bun)"
+    }
+  }
 }
