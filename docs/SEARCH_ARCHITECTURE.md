@@ -27,6 +27,7 @@ SearchHome / SearchWorkspace (apps/app/src/features/search)
       → collapse by target document
       → drug overview line       medication-overview.ts: group / action / indications first (S6)
   → withNameVariantFallback      layout / transliteration / Latin-name retry of a weak lookup (S3)
+  → withAtcDrugs                 an ATC code or prefix as the whole query: the drugs that carry it in front (ATC5)
 ```
 
 The UI never touches SQL. Every store implements the `MedicalStore` port
@@ -277,6 +278,41 @@ that cover it through source codes only:
 - `createMedicalCore({icdBridge: false | Partial<IcdBridgeTuning>})` switches or tunes it; the e5
   hybrid path uses the same code after `fuseSemanticResults` and grouping.
 
+### Drugs by ATC code (ATC5)
+
+A query that is an ATC code or prefix also lists the drugs carrying it, in front of the text hits. One reading
+rule serves the core and every drug picker (`packages/search-lexical/src/atc-query.ts`):
+
+- `parseAtcQueries(text)`: the whole text, spaces and invisible characters ignored, has the code shape — an anatomical
+  letter, two digits, then as much of «letter, letter, digit, digit» as was typed (`J05`, `J05A`, `J05AX`, `J05AX1`,
+  `J05AX13`); anything else (a word, a lone letter, a letter with one digit such as «С3», «ВИЧ», a longer text) is no code.
+  Typed on the wrong script it is still read: Cyrillic look-alikes (А В С Е Н К М О Р Т Х У) and the keys of the Russian
+  layout (`latinKeyOfRussianLetter`: «о05» is `J05`). The readings come in order — as it looks, as keys, character by
+  character — and a text with two readings («м01ае01»: `M01AE01` by look, `V01FT01` by key) gives both.
+- `findAtcEntries(query, entries)`: an entry matches when any of its codes begins with the typed code; the exact level
+  (the drug carries that very code) first, then by name. A card with an agreed code beside a registry group stub (ATC3)
+  matches under either and reports the agreed code with the stub («J05AX13 · в реестре: L03AX»).
+- **Core side** (`packages/core/src/atc-drug-search.ts`, `createMedicalCore({ drugCodes })`): `search()` runs the text
+  search with its fallbacks as before, then `withAtcDrugs` — only for lookup mode and without specialty / audience /
+  section filters. The first reading that names a drug wins; each drug is the installed record
+  (`esklp.mnn.<slug>`) or, when its module is not installed, its catalogue pointer
+  (`QueryDocumentIndex.documentIdsForTarget`), read through `buildExactIdentityResults`, so the request's
+  `documentIds` scope applies. The groups carry `atcMatch` (`SearchAtcMatch`), go in front of the text hits (an МКБ-10
+  card named by the same letters and digits, `M05`, stays first), a drug the text search found too is listed once, and a
+  query typed with the Russian layout gets `queryRewrite: {kind: 'layout'}` («Показаны результаты по: «J05»»).
+  `ScopedMedicalCore` keeps `atcMatch` groups through its medication-intent filters. Without `drugCodes` nothing changes.
+- **Directory** (`apps/app/src/features/drug-comparison/comparison-atc-directory.ts`): one entry per ЕСКЛП МНН card of the
+  comparison index (`a`: the registry's, the completed and the agreed codes; `q`: `[agreed, registry]` pairs, added by
+  `scripts/build-drug-comparison.ts`). The index ships with the app (a lazy 2.5 MB chunk, loaded on the first code query), so
+  the lookup is offline and needs no module. The composition passes it to the three cores (`create-browser-core.ts`).
+- **Pickers** read the same groups through `ScopedMedicalCore('medications')`: comparison (`findDrugs`, `resolveDrugName`),
+  interactions (`findDrugCandidates`, `resolveTypedName`), prescription and the search dose card (`findDoseCandidates`), the
+  safety card (`resolveSafetyCandidate`); suggestions show the code (`AtcMatchBadge`). A resolver that needs one drug takes
+  a full code or a prefix that holds exactly one (`atc-groups.ts` `singleByCode`). The medication list
+  (`medication-catalog-search.ts`) matches `MedicationProduct.atcCodes` with the same reading.
+
+Measured by `bun run benchmark:atc` (generated from the directory) and the unchanged name gates: see roadmap item 21.
+
 ## 6. Packs and modules
 
 - **Core** (`core.db`, bundled/downloaded): pointers for medications, КР and legal documents,
@@ -303,6 +339,7 @@ that cover it through source codes only:
 | `tools/benchmarks/src/build-name-variant-queries.ts` → `name-variant-queries.json`, `run-name-variants.ts` | S3 item 3: layout / Latin-spelling variants of real names plus negative controls, fallback off/on, hit@1/hit@5 and latency |
 | `tools/benchmarks/src/build-typo-queries.ts` → `typo-queries.json`, `run-typo-queries.ts` | item 19: one slip (neighbour key, sound-alike vowel, unrelated letter in the first three letters; a late neighbour key) in real names, plus controls that must not change, correction off/on |
 | `S3_OFF=1` (any `openRealCorpus` benchmark), `S3_BRIDGE_JSON='{…}'` | state before S3 / tuning override for `run-real-corpus`, `run-doctor-lookup`, `run-owner-queries` |
+| `bun run benchmark:atc` | ATC5: every full code of every card finds its card, agreed pairs show both codes, typing variants (case, spaces, look-alikes, Russian layout) give the same drugs, words and short codes never match; `ATC5_OFF=1` removes the directory from any `openRealCorpus` benchmark |
 | `bun run benchmark:source-names` (`source-name-queries.json`) | source-name intent (read as expected, results inside the source, negatives stay plain) and the drug overview line; `--check` fails on any miss |
 | `tools/benchmarks/src/run-semantic-kr.ts` | Q1 over the embedded КР packs through MedicalCore: lexical / semantic / hybrid, `--grid` over fusion constants |
 

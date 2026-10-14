@@ -1,0 +1,24 @@
+/* The ATC code a drug was found under: the code, and the registry's stub beside an agreed code. */
+.atc-match-badge {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  flex: none;
+  gap: 0.125rem 0.5rem;
+}
+
+.atc-match-badge__code {
+  padding: 0.0625rem 0.5rem;
+  border-radius: 999px;
+  background: var(--theme-accent-soft);
+  color: var(--theme-accent);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.atc-match-badge__note {
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+}

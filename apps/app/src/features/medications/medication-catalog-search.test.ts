@@ -152,6 +152,13 @@ describe('rankMedicationCatalog', () => {
       expect(rankMedicationCatalog(products, 'М01АЕ')).toEqual([other]);
     });
 
+    it('reads a code typed up to its last digit, with spaces, or with the Russian layout (ATC5)', () => {
+      expect(rankMedicationCatalog(products, 'J05AX1')).toEqual([arbidol]);
+      expect(rankMedicationCatalog(products, 'j05 ax 13')).toEqual([arbidol]);
+      expect(rankMedicationCatalog(products, 'о05')).toEqual([arbidol]);
+      expect(rankMedicationCatalog(products, 'ь01')).toEqual([other]);
+    });
+
     it('does not read a short word as a code, and ignores products without codes', () => {
       expect(rankMedicationCatalog(products, 'J')).toEqual([]);
       expect(rankMedicationCatalog(products, 'N02')).toEqual([]);

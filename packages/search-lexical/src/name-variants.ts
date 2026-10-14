@@ -47,6 +47,16 @@ const EN_TO_RU: Readonly<Record<string, string>> = {
 const RU_TO_EN: Readonly<Record<string, string>> = Object.fromEntries(
   Object.entries(EN_TO_RU).map(([latin, cyrillic]) => [cyrillic, latin]),
 );
+
+/**
+ * The Latin letter on the same physical key as a Russian-layout letter («о» → «j», «ф» → «a»);
+ * null for a character that is no letter key of the ЙЦУКЕН layout.
+ */
+export function latinKeyOfRussianLetter(character: string): string | null {
+  const key = RU_TO_EN[character.toLowerCase()];
+  return key !== undefined && /^[a-z]$/u.test(key) ? key : null;
+}
+
 /** Layout punctuation that is a letter on the other layout. */
 const LAYOUT_PUNCTUATION = new Set(['[', ']', ';', "'", ',', '.', '`']);
 

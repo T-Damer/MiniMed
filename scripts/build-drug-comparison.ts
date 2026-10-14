@@ -25,6 +25,7 @@ import {
   type Dispensing,
   registryFacts,
 } from '../apps/app/src/features/drug-comparison/comparison-build';
+import { normalizeAtcCode, parseAtcConsensus } from '../apps/app/src/features/medications/atc-code';
 import { normalizeRegistrationKey } from '../apps/app/src/features/medications/mfg-country';
 
 const ROOT = resolve(import.meta.dirname, '..');
@@ -76,6 +77,26 @@ function stringList(value: unknown): readonly string[] {
     : [];
 }
 
+/** `[agreed code, registry stub]` of the nodes that carry an `atcConsensus` (ATC3). */
+function agreedCodes(
+  metadata: Record<string, unknown>,
+): readonly { readonly code: string; readonly registry: string }[] {
+  const nodes = metadata['smnnNodes'];
+  if (!Array.isArray(nodes)) return [];
+  const pairs = new Map<string, { code: string; registry: string }>();
+  for (const node of nodes as readonly Record<string, unknown>[]) {
+    const consensus = parseAtcConsensus(node['atcConsensus']);
+    const registry = typeof node['atcCode'] === 'string' ? normalizeAtcCode(node['atcCode']) : null;
+    if (consensus && registry) {
+      pairs.set(`${consensus.code}|${registry.code}`, {
+        code: consensus.code,
+        registry: registry.code,
+      });
+    }
+  }
+  return [...pairs.values()];
+}
+
 function loadEsklpCards(): { cards: readonly ComparisonBuildCard[]; edition: string } {
   const rows: ComparisonBuildCard[] = [];
   let edition = '';
@@ -100,6 +121,7 @@ function loadEsklpCards(): { cards: readonly ComparisonBuildCard[]; edition: str
           ...stringList(metadata['atcCodes']),
           ...stringList(metadata['atcConsensusCodes']),
         ],
+        atcAgreed: agreedCodes(metadata),
         registrationKeys: [...facts.registrations].toSorted(),
         facts,
       });

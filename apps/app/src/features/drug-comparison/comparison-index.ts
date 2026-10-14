@@ -43,6 +43,11 @@ export interface AssetCard {
   /** The standardized МНН as the registry writes it. */
   readonly n: string;
   readonly a: readonly string[];
+  /**
+   * Codes sources agree on where the registry holds only a group stub: `[agreed code, registry
+   * stub]` pairs (ATC3). Both codes are in `a`; absent on a card without such a pair.
+   */
+  readonly q?: readonly (readonly [agreed: string, registry: string])[];
   /** Pharmacotherapeutic groups as the registry words them. */
   readonly g: readonly string[];
   readonly f: readonly AssetForm[];
@@ -113,9 +118,24 @@ function stringList(value: unknown, what: string): readonly string[] {
   return value as readonly string[];
 }
 
+function agreedPairs(value: unknown, card: string): NonNullable<AssetCard['q']> {
+  if (
+    !Array.isArray(value) ||
+    value.some(
+      (pair) =>
+        !Array.isArray(pair) ||
+        pair.length !== 2 ||
+        pair.some((code) => typeof code !== 'string' || code === ''),
+    )
+  ) {
+    fail(`card ${card} has malformed agreed ATC codes`);
+  }
+  return value as NonNullable<AssetCard['q']>;
+}
+
 function parseCard(value: unknown, formCount: number): AssetCard {
   if (!isRecord(value)) fail('a card is not an object');
-  const { s, n, a, g, f, r, t, m, h, x } = value;
+  const { s, n, a, g, f, r, t, m, h, x, q } = value;
   if (typeof s !== 'string' || s === '') fail('a card has no id');
   if (typeof n !== 'string') fail(`card ${s} has no name`);
   if (![r, t, m, h].every(isCount)) fail(`card ${s} has a malformed count`);
@@ -133,6 +153,7 @@ function parseCard(value: unknown, formCount: number): AssetCard {
     s,
     n,
     a: stringList(a, `card ${s} ATC codes`),
+    ...(q === undefined ? {} : { q: agreedPairs(q, s) }),
     g: stringList(g, `card ${s} groups`),
     f: forms,
     r: r as number,

@@ -1,3 +1,4 @@
+export * from './atc-drug-search';
 export * from './content-module-catalog-client';
 export * from './content-module-installer';
 export * from './create-medical-core';

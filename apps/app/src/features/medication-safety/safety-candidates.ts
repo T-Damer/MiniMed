@@ -6,11 +6,13 @@
  * («давление при беременности») finds no card.
  */
 import type { MedicalCore, SearchResultGroup } from '@localmed/contracts';
+import { parseAtcQuery } from '@localmed/search-lexical';
 
 import {
   cardDisplayName,
   cardSlugOfDocumentId,
 } from '@/features/drug-interactions/drug-candidates';
+import { singleByCode } from '@/features/medications/atc-groups';
 import { displayDrugName } from '@/features/medications/drug-screen';
 import { ScopedMedicalCore } from '@/features/search/ScopedMedicalCore';
 import type { SafetyIndex } from './safety-index';
@@ -94,6 +96,17 @@ export async function resolveSafetyCandidate(
     includeSuggestions: false,
   });
   if (!result.ok) return null;
+  // A typed ATC code (ATC5) names the drugs the code search found: one drug, or none.
+  if (parseAtcQuery(text)) {
+    const only = singleByCode(
+      text,
+      result.value.groups.flatMap((group) => {
+        const item = group.atcMatch ? candidateOfGroup(index, group) : null;
+        return item ? [item.candidate] : [];
+      }),
+    );
+    return only;
+  }
   const typed = wordsOf(text);
   const rewritten =
     result.value.queryRewrite !== undefined || result.value.queryCorrection !== undefined;

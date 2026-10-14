@@ -149,6 +149,34 @@ describe('createComparisonBuilder', () => {
     ]);
     const { asset } = builder.finish();
     expect(asset.cards[0]?.a).toEqual(['J05AX13', 'L03AX']);
+    // No agreed pair was given: the card has none.
+    expect(asset.cards[0]?.q).toBeUndefined();
+  });
+
+  it('records which code is the agreed one beside the registry stub (ATC5)', () => {
+    const builder = createComparisonBuilder({
+      cards: [
+        {
+          ...card('умифеновир', 'УМИФЕНОВИР', ['лп-1']),
+          atcCodes: ['L03AX', 'J05AX13'],
+          atcAgreed: [{ code: 'J05AX13', registry: 'L03AX' }],
+        },
+      ],
+      register: new Map([['лп-1', 'rx' as const]]),
+      editions: { esklp: '2026-08-28', grls: '02.10.2026' },
+    });
+    builder.addModule({ id: 'm', version: '1', sha256: 'sha256:x' }, [
+      document('d1', ['лп-1'], ['indications']),
+    ]);
+    const { asset } = builder.finish();
+    expect(asset.cards[0]?.q).toEqual([['J05AX13', 'L03AX']]);
+    // The pair survives the validation at the package boundary; a malformed pair does not.
+    expect(parseComparisonIndex(JSON.parse(JSON.stringify(asset))).cards[0]?.q).toEqual([
+      ['J05AX13', 'L03AX'],
+    ]);
+    const broken = JSON.parse(JSON.stringify(asset));
+    broken.cards[0].q = [['J05AX13']];
+    expect(() => parseComparisonIndex(broken)).toThrow(/agreed ATC codes/u);
   });
 
   it('marks the pharmacotherapeutic group and dispensing lines only on the matching titles', () => {

@@ -26,6 +26,7 @@ import type { DrugItem } from '@/features/drug-interactions/interaction-check';
 import { loadInteractionIndex } from '@/features/drug-interactions/interaction-load';
 import type { PrintPair } from '@/features/drug-interactions/interaction-print';
 import { type PairView, printPairs } from '@/features/drug-interactions/interaction-view';
+import { AtcMatchBadge } from '@/features/medications/AtcMatchBadge';
 import { loadAtcNames } from '@/features/medications/atc-names';
 import { displayDrugName } from '@/features/medications/drug-screen';
 import { PrintManager } from '@/features/printing/print-manager';
@@ -381,7 +382,7 @@ export function DrugComparisonWorkspace(props: {
         <SearchField
           class="drug-comparison__search"
           label="Добавить препарат"
-          placeholder="Препарат или МНН"
+          placeholder="Препарат, МНН или код АТХ"
           value={query()}
           onInput={setQuery}
           inputRef={(element) => {
@@ -408,7 +409,8 @@ export function DrugComparisonWorkspace(props: {
                     }}
                   >
                     <AppGlyph name={hasDrug(drug) ? 'check' : 'plus'} />
-                    <span>{drug.label}</span>
+                    <span class="drug-comparison__candidate-name">{drug.label}</span>
+                    <Show when={drug.atc}>{(match) => <AtcMatchBadge match={match()} />}</Show>
                   </button>
                 </li>
               )}

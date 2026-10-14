@@ -21,6 +21,7 @@ export class QueryDocumentIndex {
   private latinNames: ReadonlyMap<string, readonly string[]> | undefined;
   private icdCards: ReadonlyMap<string, readonly string[]> | undefined;
   private linkedProducts: ReadonlyMap<string, readonly string[]> | undefined;
+  private pointersByTarget: ReadonlyMap<string, readonly string[]> | undefined;
 
   constructor(documents: readonly SearchDocumentDescriptor[]) {
     this.documents = documents;
@@ -122,6 +123,19 @@ export class QueryDocumentIndex {
     return this.linkedProducts.get(substanceDocumentId) ?? [];
   }
 
+  /**
+   * The mounted documents that stand for the record `targetDocumentId` («esklp.mnn.амоксициллин»):
+   * the record itself when its module is installed, then the catalogue pointers that name it. An
+   * empty list means the corpus holds nothing of that record.
+   */
+  documentIdsForTarget(targetDocumentId: string): readonly string[] {
+    this.pointersByTarget ??= buildPointersByTarget(this.documents);
+    return [
+      ...(this.byId.has(targetDocumentId) ? [targetDocumentId] : []),
+      ...(this.pointersByTarget.get(targetDocumentId) ?? []),
+    ];
+  }
+
   private addIdentity(value: string, documentId: string, index: Map<string, Set<string>>): void {
     const normalized = normalizeSurfaceText(value);
     let ids = index.get(normalized);
@@ -185,6 +199,20 @@ function buildLatinNames(
     names.set(key, titles);
   }
   return names;
+}
+
+function buildPointersByTarget(
+  documents: readonly SearchDocumentDescriptor[],
+): ReadonlyMap<string, readonly string[]> {
+  const pointers = new Map<string, string[]>();
+  for (const document of documents) {
+    const target = document.metadata['targetDocumentId'];
+    if (typeof target !== 'string' || target === document.id) continue;
+    const ids = pointers.get(target) ?? [];
+    ids.push(document.id);
+    pointers.set(target, ids);
+  }
+  return pointers;
 }
 
 function buildIcdCards(

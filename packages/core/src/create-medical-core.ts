@@ -40,6 +40,7 @@ import {
   MIN_FUZZY_TOKEN_LENGTH,
   type NameVocabulary,
   normalizeSurfaceText,
+  parseAtcQuery,
   searchSubjectText,
   tokenize,
 } from '@localmed/search-lexical';
@@ -56,6 +57,7 @@ import type {
   VectorHit,
 } from '@localmed/storage';
 
+import { atcDrugGroups, type DrugCodeDirectory, withAtcGroups } from './atc-drug-search';
 import { isSupersededSummaryDocument } from './document-siblings';
 import {
   DEFAULT_ICD_BRIDGE_TUNING,
@@ -115,6 +117,12 @@ export interface CreateMedicalCoreOptions {
    * recommendations the semantic model finds for it; on by default.
    */
   readonly descriptionRecommendations?: boolean;
+  /**
+   * ATC5: the drugs and the ATC codes they are found under. With it, a query that is an ATC code or
+   * prefix («J05AX13», «N06», «о05») also lists the drugs that carry it; without it such a query is
+   * an ordinary text query.
+   */
+  readonly drugCodes?: DrugCodeDirectory;
 }
 
 /** Recommendations a description lookup adds, and the first group they go behind. */
@@ -1880,6 +1888,59 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
     };
   };
 
+  /** The text search with its fallbacks (name variants, spelling, description recommendations). */
+  const searchWithFallbacks = async (
+    request: SearchRequest,
+  ): Promise<Result<SearchResponse, LocalMedError>> => {
+    const primary = await runSearch(request);
+    if (
+      options.nameVariants === false ||
+      !primary.ok ||
+      request.analysisMode !== 'lookup' ||
+      !queryDocumentIndex
+    )
+      return primary;
+    const named = await withNameVariantFallback(request, primary.value, queryDocumentIndex);
+    if (!named.ok || options.descriptionRecommendations === false) return named;
+    return ok(await withDescriptionRecommendations(request, named.value, queryDocumentIndex));
+  };
+
+  /**
+   * ATC5: a query that is an ATC code or prefix also lists the drugs carrying it, in front of the
+   * text hits (`atc-drug-search.ts`). A query with other words, a specialty, an audience or a
+   * section filter is not a code lookup and keeps its response.
+   */
+  const withAtcDrugs = async (
+    request: SearchRequest,
+    response: SearchResponse,
+    directory: DrugCodeDirectory,
+    index: QueryDocumentIndex,
+  ): Promise<Result<SearchResponse, LocalMedError>> => {
+    const filters = request.filters;
+    if (
+      filters.specialties?.length ||
+      filters.ageGroups?.length ||
+      filters.sectionTypes?.length ||
+      parseAtcQuery(request.query) === null
+    )
+      return ok(response);
+    try {
+      const found = await atcDrugGroups({
+        query: request.query,
+        directory,
+        index,
+        filters,
+        limit: request.limit,
+        readResults: async (ids) => buildExactIdentityResults(options.store, ids, filters, [], []),
+      });
+      return ok(
+        withAtcGroups({ response, found, query: request.query, index, limit: request.limit }),
+      );
+    } catch (error) {
+      return err(asLocalMedError(error));
+    }
+  };
+
   return {
     initialize,
 
@@ -1987,17 +2048,15 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           }),
         );
       }
-      const primary = await runSearch(parsed.data);
+      const searched = await searchWithFallbacks(parsed.data);
       if (
-        options.nameVariants === false ||
-        !primary.ok ||
+        !searched.ok ||
+        !options.drugCodes ||
         parsed.data.analysisMode !== 'lookup' ||
         !queryDocumentIndex
       )
-        return primary;
-      const named = await withNameVariantFallback(parsed.data, primary.value, queryDocumentIndex);
-      if (!named.ok || options.descriptionRecommendations === false) return named;
-      return ok(await withDescriptionRecommendations(parsed.data, named.value, queryDocumentIndex));
+        return searched;
+      return withAtcDrugs(parsed.data, searched.value, options.drugCodes, queryDocumentIndex);
     },
 
     async reference(request) {

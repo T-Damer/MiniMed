@@ -3,8 +3,10 @@
  * search is the app's own medication search (`ScopedMedicalCore`, scope «Препараты»); this module
  * only maps the groups it returns to cards of the interaction index.
  */
-import type { MedicalCore, SearchResultGroup } from '@localmed/contracts';
+import type { MedicalCore, SearchAtcMatch, SearchResultGroup } from '@localmed/contracts';
+import { parseAtcQuery } from '@localmed/search-lexical';
 
+import { atcMatchOf, singleByCode } from '@/features/medications/atc-groups';
 import { displayDrugName } from '@/features/medications/drug-screen';
 import { ScopedMedicalCore } from '@/features/search/ScopedMedicalCore';
 import type { InteractionIndex } from './interaction-index';
@@ -14,6 +16,8 @@ export interface DrugCandidate {
   /** Index into the asset's `cards`. */
   readonly card: number;
   readonly label: string;
+  /** The ATC code the drug was found under, when it was searched by a code (ATC5). */
+  readonly atc?: SearchAtcMatch;
 }
 
 const CARD_PREFIX = 'esklp.mnn.';
@@ -36,12 +40,14 @@ function labelOfTitle(title: string): string {
 
 function cardOfGroup(
   index: InteractionIndex,
-  group: Pick<SearchResultGroup, 'documentId' | 'title'>,
+  group: Pick<SearchResultGroup, 'documentId' | 'title' | 'atcMatch'>,
 ): DrugCandidate | null {
   const direct = cardSlugOfDocumentId(group.documentId);
   if (direct !== null) {
     const card = index.cardBySlug.get(direct);
-    return card === undefined ? null : { slug: direct, card, label: labelOfTitle(group.title) };
+    return card === undefined
+      ? null
+      : { slug: direct, card, label: labelOfTitle(group.title), ...atcMatchOf(group) };
   }
   // An indexed instruction: its first card (a trade-name hit finds its substance).
   const document = index.asset.documents[group.documentId];
@@ -49,7 +55,7 @@ function cardOfGroup(
   const slug = first === undefined ? undefined : index.asset.cards[first]?.[0];
   return first === undefined || slug === undefined
     ? null
-    : { slug, card: first, label: cardDisplayName(slug) };
+    : { slug, card: first, label: cardDisplayName(slug), ...atcMatchOf(group) };
 }
 
 /** Candidates for a name, best first. */
@@ -91,6 +97,14 @@ export async function resolveTypedName(
   index: InteractionIndex,
   name: string,
 ): Promise<readonly DrugCandidate[]> {
+  // An ATC code names its drug through the code search; a prefix only when it holds one drug.
+  if (parseAtcQuery(name)) {
+    const byCode = (await findDrugCandidates(core, index, name, 24)).filter(
+      (candidate) => candidate.atc !== undefined,
+    );
+    const only = singleByCode(name, byCode);
+    return only ? [only] : [];
+  }
   const direct = await findDrugCandidates(core, index, name, 1);
   if (direct.length > 0) return direct;
   const words = name.split(/\s+/u).filter((word) => word.length >= 3);

@@ -12,6 +12,7 @@ import {
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { SearchField } from '@/components/SearchField';
+import { AtcMatchBadge } from '@/features/medications/AtcMatchBadge';
 import { DrugCatalogOffer } from './DrugCatalogOffer';
 import { type DrugCandidate, findDrugCandidates } from './drug-candidates';
 import { ALCOHOL_ITEM_ID } from './interaction-check';
@@ -128,6 +129,9 @@ export function DrugSlot(props: {
                     </span>
                     <Show when={suggestion.kind === 'alcohol'}>
                       <span class="drug-interactions__candidate-note">не препарат</span>
+                    </Show>
+                    <Show when={suggestion.kind === 'drug' && suggestion.candidate.atc}>
+                      {(match) => <AtcMatchBadge match={match()} />}
                     </Show>
                   </button>
                 </li>

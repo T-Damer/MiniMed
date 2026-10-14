@@ -261,6 +261,16 @@ export type SearchResultDocumentType =
   | 'definition'
   | 'reference';
 
+/**
+ * The ATC code that found a drug when the typed query was an ATC code or prefix (ATC5): the code the
+ * drug is found under, and, when the code is one several sources agree on where the registry holds
+ * only a group stub, that stub («J05AX13 · в реестре: L03AX»).
+ */
+export interface SearchAtcMatch {
+  readonly code: string;
+  readonly registryCode?: string;
+}
+
 export interface SearchResultGroup {
   /** Present only when every grouped hit resolves to the same canonical concept. */
   readonly conceptId?: string;
@@ -280,6 +290,8 @@ export interface SearchResultGroup {
   readonly documentType?: SearchResultDocumentType;
   readonly ageGroups?: readonly string[];
   readonly contentKind?: 'summary' | 'pointer' | 'full-text';
+  /** Present only when the group was found by an ATC code typed as the query. */
+  readonly atcMatch?: SearchAtcMatch;
   readonly results: readonly SearchResult[];
 }
 

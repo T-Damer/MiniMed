@@ -28,6 +28,7 @@ and the list is updated when the proposal is better. How search works today:
 | Complaint → КР | Q1 RuMedPrime, test | R@5 0.04 (0.10 with the pointers) , unchanged by the bridge | 0.28 (0.19 in the S3 re-run) | weakest area |
 | Drug by indication («от головы») | `drug-indication-queries.json`, 45 | hit@1 0.16, hit@5 0.47 | hit@1 0.62, hit@5 0.91 | E3 shipped to main |
 | Drug names | 100 ГРЛС trade names | top-1 0.99 | 1.00 | E3 gate |
+| Drug by ATC code («J05AX13», «J05», «о05») | `benchmark:atc`, 2 192 generated | every full code finds its card; 220/220 variants identical | — | ATC5, code groups in front of the text hits |
 | Drug safety questions («X при беременности / при ГВ / ребёнку 3 лет») | `safe1-queries.json`, 44 (card, not ranking) | card correct 44/44, see item 15 | — | SAFE1, answer card above the results |
 | Drug comparison queries («X или Y», «X vs Y», «сравнить X и Y», «чем отличается X от Y») | `cmp1-queries.json`, 35 (card, not ranking) | card correct 35/35, see item 16 | — | CMP1, comparison card above the results |
 | Dose questions («амоксициллин ребенок 20 кг», «парацетамол 15 кг») | `dose-queries.json`, 134 (card, not ranking) | exact 134/134, wrong 0, see item 20 | — | RX1, dose card above the results |
@@ -197,6 +198,23 @@ hit@5 0.444 (rush 0.581, thoughtful 0.261), and with S3 0.278 / 0.574 (0.774, 0.
     `dose-queries.json` (`bun run benchmark:dose`): 134 cases, exact 134, wrong answers 0, missing 0; `benchmark:all` within
     tolerance, search code unchanged. Left: a table row read without its clearance band, unstated-population adult rules for «пожилой»,
     instructions of other manufacturers are one switch away; details: [`research/dose-rules-2026-10-14.md`](research/dose-rules-2026-10-14.md).
+
+21. **Drugs by ATC code** (ATC5, 2026-10-14; owner: «ATC search must work in the main search and in the other drug
+    searches, along with the name»). Compared with the list first: extends item 3 (a typed code or a wrongly typed
+    layout still names a drug) and the МКБ-code lookup of item 4; not ranking work, every name gate untouched (results
+    identical with the directory off and on). A query that, spaces ignored, has the code shape (`J05`, `J05A`, `J05AX`,
+    `J05AX1`, `J05AX13`; Cyrillic look-alikes А В С Е Н К М О Р Т Х У and Russian-layout keys read; a letter with one digit,
+    a lone letter, any word is no code) lists the drugs carrying it in front of the text hits: exact level first, then by
+    name, each with the code that matched («J05AX13 · в реестре: L03AX» for an agreed code, ATC3). The codes come from the
+    drug directory the app hands the core (`createMedicalCore({drugCodes})`, built from the shipped comparison index), so it
+    works offline and for drugs whose module is not installed. The pickers of the comparison, interaction and prescription
+    tools, the safety and dose cards and the medication list read the same answer. Measured on generated queries
+    (`bun run benchmark:atc`, 2 192 full codes of the 2 787 cards that carry one): every code finds its card (2 192/2 192, top-5
+    2 093), 13/13 agreed pairs show both codes, 220/220 typing variants give the same drugs, 0 of 8 word negatives match;
+    `benchmark:all`, name variants and CMP1 unchanged. Left: a text that reads as two codes («м01ае01» is `M01AE01` by look,
+    `V01FT01` by key) is answered by the first reading that names a drug; ATC levels 1 (a lone letter) are never read as a
+    code; drugs are found as substance cards, not as the products under them. Design:
+    [`SEARCH_ARCHITECTURE.md`](SEARCH_ARCHITECTURE.md) «Drugs by ATC code».
 
 ## Measured and rejected
 

@@ -13,6 +13,7 @@ import {
 import { AppGlyph } from '@/components/AppGlyph';
 import { SearchField } from '@/components/SearchField';
 import { DrugCatalogOffer } from '@/features/drug-interactions/DrugCatalogOffer';
+import { AtcMatchBadge } from '@/features/medications/AtcMatchBadge';
 import { type DoseCandidate, findDoseCandidates } from './dose-candidates';
 import type { DoseIndex } from './dose-index';
 import '@/styles/prescription.css';
@@ -100,6 +101,7 @@ export function PrescriptionDrugSlot(props: {
                 >
                   <AppGlyph name={props.taken(candidate.slug) ? 'check' : 'plus'} />
                   <span class="prescription__candidate-name">{candidate.label}</span>
+                  <Show when={candidate.atc}>{(match) => <AtcMatchBadge match={match()} />}</Show>
                 </button>
               </li>
             )}

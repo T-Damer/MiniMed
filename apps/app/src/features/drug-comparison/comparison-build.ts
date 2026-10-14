@@ -58,6 +58,8 @@ export interface RegistryFacts {
 }
 
 export interface ComparisonBuildCard extends InteractionCard {
+  /** Codes sources agree on beside the registry's group stub (`atcConsensus` of a node, ATC3). */
+  readonly atcAgreed?: readonly { readonly code: string; readonly registry: string }[];
   readonly registrationKeys: readonly string[];
   readonly facts: RegistryFacts;
 }
@@ -254,6 +256,15 @@ function cardRow(
     s: card.id.replace(/^esklp\.mnn\./u, ''),
     n: card.name,
     a: [...new Set(card.atcCodes)].toSorted(),
+    ...(card.atcAgreed && card.atcAgreed.length > 0
+      ? {
+          q: card.atcAgreed
+            .map((pair): readonly [string, string] => [pair.code, pair.registry])
+            .toSorted(
+              (left, right) => left[0].localeCompare(right[0]) || left[1].localeCompare(right[1]),
+            ),
+        }
+      : {}),
     g: [...card.facts.groups].toSorted((left, right) => left.localeCompare(right, 'ru')),
     f: cardForms,
     r: card.facts.registrations.size,

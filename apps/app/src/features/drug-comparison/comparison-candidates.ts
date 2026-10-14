@@ -6,7 +6,8 @@
  * answer to a typed name only when the typed words begin words of its names (or the search itself
  * rewrote the query to a name of the corpus), so a disease or a symptom finds no drug.
  */
-import type { MedicalCore, SearchResultGroup } from '@localmed/contracts';
+import type { MedicalCore, SearchAtcMatch, SearchResultGroup } from '@localmed/contracts';
+import { parseAtcQuery } from '@localmed/search-lexical';
 
 import {
   cardDisplayName,
@@ -14,6 +15,7 @@ import {
 } from '@/features/drug-interactions/drug-candidates';
 import { nameWordStem } from '@/features/drug-interactions/mention-matcher';
 import { namesCoverTypedWords } from '@/features/medication-safety/safety-candidates';
+import { atcMatchOf, singleAtcGroup } from '@/features/medications/atc-groups';
 import { displayDrugName } from '@/features/medications/drug-screen';
 import { ScopedMedicalCore } from '@/features/search/ScopedMedicalCore';
 
@@ -24,6 +26,8 @@ export interface FoundDrug {
   /** «Нурофен · Ибупрофен» or «Ибупрофен», as the search titles it. */
   readonly label: string;
   readonly product: string | null;
+  /** The ATC code the drug was found under, when the picker was given a code (ATC5). */
+  readonly atc?: SearchAtcMatch;
 }
 
 const ALLMED_PREFIX = 'drug.allmed.';
@@ -65,7 +69,7 @@ function splitTitle(title: string): { product: string | null; substance: string 
 
 async function drugOfGroup(
   core: MedicalCore,
-  group: Pick<SearchResultGroup, 'documentId' | 'title'>,
+  group: Pick<SearchResultGroup, 'documentId' | 'title' | 'atcMatch'>,
 ): Promise<{ drug: FoundDrug; names: readonly string[] } | null> {
   const slug = cardSlugOfDocumentId(group.documentId);
   if (slug !== null) {
@@ -75,6 +79,7 @@ async function drugOfGroup(
         slug,
         label: product ? `${product} · ${substance}` : substance,
         product,
+        ...atcMatchOf(group),
       },
       names: [group.title, cardDisplayName(slug)],
     };
@@ -86,7 +91,12 @@ async function drugOfGroup(
     const linkedSlug = linked.slice(MNN_PREFIX.length);
     const product = displayDrugName(group.title);
     return {
-      drug: { slug: linkedSlug, label: `${product} · ${cardDisplayName(linkedSlug)}`, product },
+      drug: {
+        slug: linkedSlug,
+        label: `${product} · ${cardDisplayName(linkedSlug)}`,
+        product,
+        ...atcMatchOf(group),
+      },
       names: [group.title],
     };
   }
@@ -150,6 +160,13 @@ async function pick(
 export async function resolveDrugName(core: MedicalCore, name: string): Promise<FoundDrug | null> {
   const text = name.trim();
   if (text.length < 3) return null;
+  // An ATC code names its drug through the code search; a prefix only when it holds one drug.
+  if (parseAtcQuery(text)) {
+    const searched = await searchGroups(core, text, 24);
+    const group = searched ? singleAtcGroup(text, searched.groups) : null;
+    const byCode = group ? await drugOfGroup(core, group) : null;
+    if (byCode) return byCode.drug;
+  }
   const typed = wordsOf(text);
   const first = await pick(core, text, typed);
   if (first?.exact) return first.exact;

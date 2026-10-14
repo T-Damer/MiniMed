@@ -4798,8 +4798,8 @@ beside it as the primary one; search and class comparison use both.**
   apps ignore `atcConsensus`; the field needs app ≥ the release that contains this change to show.
 - Not done / known: the interaction (INT1) and medication-safety (SAFE1) indexes were still built from the original
   ЕСКЛП release when this shipped; ATC4 below reviewed and rebuilt them; the global
-  full-text search runs over the card text («АТХ: …» of the registry), which the metadata-only rebuild does not touch, so
-  an ATC code typed into the main search finds only the registry code there (the medication list search finds both).
+  full-text search runs over the card text («АТХ: …» of the registry), which the metadata-only rebuild does not touch (the
+  main search finds drugs by every code through the drug directory since ATC5, below).
   Checked in a browser only as the chip and the code sheet in a throwaway Vite page (chip text, NSI level names of the
   consensus code, the sources and registry lines); not tested: the full app with the `atc3` modules installed from the
   mirror in a clean profile, the e2e specs (they need the local core and the network), a physical device.
@@ -4848,6 +4848,46 @@ Review: [research/atc-index-review-2026-10-14.md](research/atc-index-review-2026
   Tests: `atc-index.data.test.ts` (R05 mapping covers `R05D`/`R05F`, not `R05C`; interferon exceptions; flax in `A06AC`), `class-phrases.test.ts` (alias narrows a derived word).
 - **Not done / not tested.** No clinician has signed the review (AI reviewer, product instruction texts as evidence); hits that did not change were
   not re-audited; the app was not run with the new asset in a browser (unit and data tests only); no release was made.
+
+### Drugs by ATC code in every drug search — 2026-10-14 (STATE ATC5)
+
+Owner 2026-10-14: ATC search must work in the main search and in the other drug searches (the comparison tool and the
+rest), along with the name. Design and numbers: `docs/SEARCH_ARCHITECTURE.md` «Drugs by ATC code», `docs/SEARCH_ROADMAP.md`
+item 21.
+
+- **Reading rule** (`packages/search-lexical/src/atc-query.ts`, 40 unit cases): a query is an ATC code only when the whole
+  text, spaces ignored, has the code shape — `J05`, `J05A`, `J05AX`, `J05AX1` (typed up to the last digit), `J05AX13`,
+  upper or lower case. Cyrillic look-alikes (А В С Е Н К М О Р Т Х У) and the keys of the Russian layout are read («о05» is
+  `J05`, «о05фч13» is `J05AX13`, a mix works); a text with two readings gives both and the first one that names a drug wins.
+  Not codes: a lone letter, a letter with one digit («С3», «B1»), words («ВИЧ»), a code plus words («J05 ацикловир», which
+  stays a name query), anything longer than seven characters. «В12» has the shape; no ATC group `B12` exists, so it lists no
+  drug.
+- **Main search**: the core takes a drug directory (`createMedicalCore({drugCodes})`, `DrugCodeDirectory`; the app passes the
+  comparison index through `comparison-atc-directory.ts`) and puts the drugs carrying the typed code in front of the text hits,
+  exact level first, then by name; each group has `atcMatch` and the result card shows the code that matched (`AtcMatchBadge`:
+  «J05AX13 · в реестре: L03AX» for the 13 ATC3 cards, the code alone otherwise). It works offline and without the module: a
+  drug whose group module is not installed is listed by its catalogue pointer with the download chip, as under a name search.
+  An МКБ-10 card with the same letters and digits (`M05`) stays first. A code typed on the Russian layout says «Показаны
+  результаты по: «J05»». Lookup mode only, and not with a specialty, audience or section filter.
+- **Other places** (all go through the same answer): the medication list search (`medication-catalog-search.ts`: partial
+  last digit, spaces, layout), the drug comparison picker and the comparison card's names, the interaction checker picker,
+  the prescription drug picker and the search dose card, the safety card. Suggestions show the code beside the name. One-drug
+  resolvers (comparison names, interaction names, dose and safety questions) take a full code, or a prefix only when it holds
+  exactly one drug.
+- **Data**: the comparison index carries the agreed pairs (`q`: `[agreed code, registry stub]`, 13 cards) beside the codes in
+  `a`; `scripts/build-drug-comparison.ts` writes them. Rebuilt on 2026-10-14 from the published `atc3`/`atc2` modules
+  (decoded in a scratch directory, deleted after): the new asset is identical to the committed one except for the 13 `q` fields.
+  No module, pointer or core was rebuilt.
+- **Measured**: `bun run benchmark:atc` over the real core (2 787 cards with codes): 2 192 full codes → 2 192 found (top-5
+  2 093, the rest share a code with other cards), 13/13 agreed pairs show both codes under either, 142 prefix queries return
+  only drugs under the prefix, 220/220 typing variants (lower case, spaces, look-alikes, Russian layout) give the same drugs, 0/8
+  word negatives; `benchmark:all` (core), `run-name-variants.ts`, `benchmark:cmp1` (35/35) and `benchmark:source-names`
+  identical with the directory on and off (`ATC5_OFF=1`). Built app, real core, Chromium (`apps/app/e2e/atc-search.spec.ts`,
+  2 cases): `J05AX13` shows «Умифеновир · J05AX13 · в реестре: L03AX», `j05ab` lists drugs under `J05AB`, `о05ах13` reads as
+  `J05AX13`, «ВИЧ» has no code badge, and the comparison picker suggests the drug with the code.
+- Not done / known: drugs are found as substance cards, not as the products (trade names) under them; a lone letter never
+  names an anatomical group; the first call of a code query loads the 2.5 MB comparison chunk (not measured on a phone); not tested: a physical device,
+  the native (Capacitor) core with the directory, the `atc3` modules installed from the mirror.
 
 ### «Лента»: opt-in news feed and site viewer — 2026-10-05 (STATE NEWS1, ADR-0024)
 

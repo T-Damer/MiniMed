@@ -8,6 +8,7 @@ import type { MedicalCore, MedicalDocumentSummary } from '@localmed/contracts';
 import { type CreateMedicalCoreOptions, createMedicalCore } from '@localmed/core';
 import type { QueryEmbedder } from '@localmed/search-semantic';
 import { MultiMedicalStore } from '@localmed/storage';
+import { comparisonDrugCodes } from '../../../apps/app/src/features/drug-comparison/comparison-atc-directory';
 
 export const REPOSITORY_ROOT = resolve(import.meta.dirname, '../../..');
 const CONTENT = resolve(REPOSITORY_ROOT, 'apps/app/public/content');
@@ -92,6 +93,8 @@ export async function openRealCorpus(
     ...(options.embedder ? { embedder: options.embedder } : {}),
     // `S3_OFF=1` measures the state before roadmap items 3 and 4 (name variants, МКБ bridge).
     ...(process.env['S3_OFF'] ? { nameVariants: false, icdBridge: false } : {}),
+    // The app's drug directory (ATC5); `ATC5_OFF=1` measures the state before it.
+    ...(process.env['ATC5_OFF'] ? {} : { drugCodes: comparisonDrugCodes }),
     ...(process.env['S3_BRIDGE_JSON']
       ? { icdBridge: JSON.parse(process.env['S3_BRIDGE_JSON']) }
       : {}),

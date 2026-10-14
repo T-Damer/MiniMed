@@ -12,6 +12,7 @@ import { ANDROID_CORE_DOWNLOAD } from '@/composition/core-download';
 import { createRegisteredExternalMedicalCore } from '@/composition/external-medical-core';
 import { WorkerOpfsMedicalStore } from '@/composition/worker-opfs-medical-store';
 import { getDownloadQueue } from '@/features/downloads/download-service';
+import { comparisonDrugCodes } from '@/features/drug-comparison/comparison-atc-directory';
 import { loadInstalledModuleMounts } from '@/features/modules/browser-module-runtime';
 import { timeInstallPhase } from '@/features/modules/install-timing';
 import { downloadFileWithRetry, hasRetainedFileDownload } from '@/features/network/download-retry';
@@ -612,6 +613,7 @@ export async function createBrowserCore(downloadUi?: CoreDownloadUi) {
         store,
         platform,
         embedder: QUERY_EMBEDDER,
+        drugCodes: comparisonDrugCodes,
         // Search must reuse the native bridge and its installed packs, not open a second WASM core.
         searchExecution: 'direct-only',
       });
@@ -657,6 +659,7 @@ export async function createBrowserCore(downloadUi?: CoreDownloadUi) {
       store,
       platform,
       embedder: QUERY_EMBEDDER,
+      drugCodes: comparisonDrugCodes,
       // SQL already runs in the OPFS owner worker. A second search core would reopen its
       // exclusive pool and wait on the live owner's lock.
       searchExecution:
@@ -682,7 +685,12 @@ export async function createBrowserWorkerCore(contentBaseUrl: string) {
       includeMedications: shouldOpenPackagedMedicationsInSearchWorker(),
     });
     const store = await withInstalledModules(coreStore, companions);
-    return createMedicalCore({ store, platform: 'web', embedder: QUERY_EMBEDDER });
+    return createMedicalCore({
+      store,
+      platform: 'web',
+      embedder: QUERY_EMBEDDER,
+      drugCodes: comparisonDrugCodes,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Не удалось открыть основную базу MiniMed: ${message}`, { cause: error });

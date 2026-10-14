@@ -4,6 +4,7 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { Disclosure } from '@/components/Disclosure';
 import { IcdText } from '@/components/IcdText';
 import { isIcd11DocumentId } from '@/features/icd11/icd11-document';
+import { AtcMatchBadge } from '@/features/medications/AtcMatchBadge';
 import { SearchResultFragment } from '@/features/search/SearchResultFragment';
 import {
   orderResultsForDisplay,
@@ -81,6 +82,9 @@ export function SearchResultGroupCard(props: {
             <strong class="result-group-header__title">
               <IcdText text={tidyResultTitle(props.group.title)} />
             </strong>
+            <Show when={props.group.atcMatch}>
+              {(match) => <AtcMatchBadge class="result-group-header__atc" match={match()} />}
+            </Show>
             <Show when={props.qualifier}>
               {(qualifier) => <span class="result-group-header__qualifier">{qualifier()}</span>}
             </Show>

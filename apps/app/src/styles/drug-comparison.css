@@ -58,6 +58,11 @@
   cursor: pointer;
 }
 
+.drug-comparison__candidate-name {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .drug-comparison__candidate:hover:not(:disabled) {
   background: var(--theme-accent-soft);
 }

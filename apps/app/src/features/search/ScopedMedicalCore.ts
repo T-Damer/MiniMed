@@ -227,6 +227,7 @@ function keepExplicitMedicationMatches(response: SearchResponse): SearchResponse
     groups: response.groups.filter((group) => {
       const title = normalizeSurfaceText(group.title);
       return (
+        group.atcMatch !== undefined ||
         [...medicationTerms].some((term) => title.includes(term)) ||
         group.results.some((result) =>
           result.matchedTerms.some((term) =>
@@ -364,9 +365,14 @@ function filterMedicationDocuments(
       const document = documentsById.get(group.documentId);
       const metadata = document?.metadata as SearchDocumentKindMetadata | undefined;
       if (!document || !isMedicationSearchDocument(document)) return [group];
-      // A drug the core found for a misspelt name («обакавир») is named too, if not by its letters.
+      // A drug the core found for a misspelt name («обакавир») is named too, if not by its letters;
+      // so is one found by the ATC code that was typed (ATC5).
       if (excludeByIntent)
-        return titleNamedInQuery(group.title) || namedBySpelling(group) ? [group] : [];
+        return titleNamedInQuery(group.title) ||
+          namedBySpelling(group) ||
+          group.atcMatch !== undefined
+          ? [group]
+          : [];
       if (!requireSameResult) return [group];
       const isMedicationPointer =
         document.sourceType === 'core_catalog_pointer' && metadata?.catalogFamily === 'medication';

@@ -11,6 +11,7 @@ export {
   isSymptomPhraseQuery,
   lookupGroupCovered,
 } from './analysis';
+export * from './atc-query';
 export { analyzeClinicalQuery } from './clinical-query';
 export * from './definition-description';
 export * from './definition-name-variants';
