@@ -782,12 +782,16 @@ def align(marker: str, vision_lines: list[str], skip: tuple[str, ...] = ()) -> A
                             ROMAN_PREFIX
                         ):
                             continue  # a Roman numeral against an Arabic one («I группа» / «1 группа»): flagged, never swapped
-                        long_code = max(len(m_tok.norm), len(v_tok.norm)) >= 5
-                        if (long_code and not _one_digit_apart(m_tok.norm, v_tok.norm)) or abs(
-                            len(m_tok.norm) - len(v_tok.norm)
-                        ) >= 2:
-                            # «81000» against «2», «184200» against «157600»: more than a misread digit is a
-                            # lost or mis-aligned cell, and which reading is right is for the image to say
+                        longer_code = max(len(m_tok.norm), len(v_tok.norm)) >= 5
+                        if (
+                            len(v_tok.norm) < len(m_tok.norm)
+                            or abs(len(m_tok.norm) - len(v_tok.norm)) >= 2
+                            or (longer_code and not _one_digit_apart(m_tok.norm, v_tok.norm))
+                        ):
+                            # Vision's reading replaces Marker's only when it is the same length or one digit
+                            # longer (a lost digit): «0,5» / «0,05», «2» / «17». A shorter reading («78» / «8»,
+                            # «81000» / «2») or a different long code («184200» / «157600») is a lost digit on
+                            # Vision's side or a mis-aligned cell: the image says which reading is right.
                             continue
                         new = _vision_text(prepared_lines, v_tokens, j1 + offset, j1 + offset)
                         old = marker[m_tok.start : m_tok.end]
