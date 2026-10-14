@@ -360,8 +360,10 @@
       "class": "RELEASED",
       "producer": "release staging",
       "consumers": [],
-      "release": "v0.6.34 (20/22 assets)",
-      "note": "Kept by the AGENTS.md rule (newest releases, never fewer than 2)."
+      "release": "v0.6.34 (26 of 28 assets; knowledge-packages.tar.gz and reference-images.tar.gz not re-downloaded)",
+      "note": "Kept by the AGENTS.md rule (newest releases, never fewer than 2). Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2). The two large tarballs (1.4 GB) stay on GitHub only.",
+      "bytes": 905077485,
+      "modified": "2026-10-14"
     },
     {
       "path": "output/release-0.6.35",
@@ -369,7 +371,9 @@
       "producer": "release staging and CI evidence",
       "consumers": [],
       "release": "v0.6.35 (assets)",
-      "note": "Kept by the AGENTS.md rule."
+      "note": "Kept by the AGENTS.md rule. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
+      "bytes": 921419274,
+      "modified": "2026-10-14"
     },
     {
       "path": "apps/app/public/content/core.db",
@@ -379,7 +383,7 @@
       "release": "v0.6.37-v0.6.44 MiniMed-*-core.db",
       "note": "Never delete or replace by hand (AGENTS.md, docs/RELEASES.md).",
       "bytes": 445677568,
-      "modified": "2026-10-14"
+      "modified": "2026-10-08"
     },
     {
       "path": "apps/app/public/content/mkb.db",
@@ -390,14 +394,18 @@
         "benchmark:real:release (docs/RELEASES.md step 6)"
       ],
       "release": "v0.6.19 (mkb.db)",
-      "note": "Kept: the release benchmark needs every companion pack. Restorable from the v0.6.19 release asset."
+      "note": "Kept: the release benchmark needs every companion pack. Restorable from the v0.6.19 release asset.",
+      "bytes": 1501626368,
+      "modified": "2026-08-15"
     },
     {
       "path": "apps/app/public/content/ambulatory.db",
       "class": "RELEASED",
       "producer": "bun run content:publish:ambulatory",
       "consumers": ["DEV ambulatory companion"],
-      "release": "v0.6.13 (ambulatory.db)"
+      "release": "v0.6.13 (ambulatory.db)",
+      "bytes": 238510080,
+      "modified": "2026-08-09"
     },
     {
       "path": "apps/app/public/content/medications.db",
@@ -407,7 +415,9 @@
         "DEV medications companion",
         "data/build/medications-unified.db (compose input)"
       ],
-      "rebuild": "medbase prepare-allmed-medications + medbase build (Allmed snapshot needed)"
+      "rebuild": "medbase prepare-allmed-medications + medbase build (Allmed snapshot needed)",
+      "bytes": 514322432,
+      "modified": "2026-09-01"
     },
     {
       "path": "apps/app/public/content/reference-images",
@@ -415,8 +425,8 @@
       "producer": "reference image pack",
       "consumers": ["DEV reference image assets"],
       "release": "v0.6.34 reference-images.tar.gz + branch datasets/content-2026-09-06",
-      "bytes": 4455106,
-      "modified": "2026-10-13"
+      "bytes": 482740515,
+      "modified": "2026-09-07"
     },
     {
       "path": "model-mirror/Giga-Embeddings-instruct-480M-0826-Q8_0.gguf",
@@ -424,7 +434,9 @@
       "producer": "local Q8_0 conversion of GigaEmbeddings",
       "consumers": ["GigaEmbeddings benchmark"],
       "rebuild": "re-convert from the public Hugging Face weights",
-      "note": "No hosted immutable copy yet (docs/CURRENT_STATE.md)."
+      "note": "No hosted immutable copy yet (docs/CURRENT_STATE.md).",
+      "bytes": 520209504,
+      "modified": "2026-08-25"
     },
     {
       "path": "output/release-rls-mkb-2026.9.30",
@@ -434,9 +446,9 @@
         "Current catalog MKB reference module and source-listed packaging reader links"
       ],
       "rebuild": "bun run content:module:rls-mkb",
-      "note": "All original document/source identities, section/chunk anchors, text/spans and raw checksums match 2026.9.28; source-listed packaging links added. Packaging 2026.9.28 is reused unchanged.",
+      "note": "All original document/source identities, section/chunk anchors, text/spans and raw checksums match 2026.9.28; source-listed packaging links added. Packaging 2026.9.28 is reused unchanged. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
       "bytes": 397137179,
-      "modified": "2026-09-29",
+      "modified": "2026-10-14",
       "release": "reference-rls-mkb-2026.9.30"
     },
     {
@@ -467,9 +479,9 @@
         "Candidate catalog entries catalog.candidate.plain.json / catalog.candidate.compacted.json; upload plan in each repack-report.json"
       ],
       "rebuild": "see the four subdirectories; ~30 min of CPU",
-      "note": "Unpublished candidate artifacts (ESKLP x15, clinical recommendations x744, plain and search-compacted). Delete after the owner publishes one set or rejects both. clinical-compacted deleted on 2026-10-05 after 0.6.48 shipped the e5 copy (output/module-zstd-e5-2026-10-05).",
-      "bytes": 76998538,
-      "modified": "2026-10-01"
+      "note": "Unpublished candidate artifacts (ESKLP x15, clinical recommendations x744, plain and search-compacted). Delete after the owner publishes one set or rejects both. clinical-compacted deleted on 2026-10-05 after 0.6.48 shipped the e5 copy (output/module-zstd-e5-2026-10-05). On 2026-10-14 only esklp-compacted was restored from datasets/esklp-2026-08-28; the plain and clinical candidate sets, repack reports and compaction reports were local-only and are lost.",
+      "bytes": 68726678,
+      "modified": "2026-10-14"
     },
     {
       "path": "output/module-zstd-2026-10-01/esklp-compacted",
@@ -479,9 +491,9 @@
         "Candidate release artifacts for the ESKLP / clinical-recommendation catalog entries (not published)"
       ],
       "rebuild": "medbase compact-module-search --input data/build/release-esklp --output <dir> --report <file>; bun scripts/repack-module-indexes-zstd.ts --family esklp --source-dir <dir> --out-dir output/module-zstd-2026-10-01/esklp-compacted --compacted",
-      "note": "15 files; external-content FTS and empty normalized_text, fingerprints identical to the published packs. New decoded checksums. Published 2026-10-02 to the dataset mirror branches for 0.6.46; kept as the local release copy.",
-      "bytes": 68736867,
-      "modified": "2026-10-01"
+      "note": "15 files; external-content FTS and empty normalized_text, fingerprints identical to the published packs. New decoded checksums. Published 2026-10-02 to the dataset mirror branches for 0.6.46; kept as the local release copy. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
+      "bytes": 68726678,
+      "modified": "2026-10-14"
     },
     {
       "path": "output/module-zstd-e5-2026-10-05",
@@ -492,9 +504,9 @@
         "apps/app/e2e/clinical-module-fixture.ts, module-pointer.spec.ts"
       ],
       "rebuild": "uv run tools/ingest/scripts/embed_modules_e5.py --family clinical --source <published zstd dirs> --out data/build/clinical-e5/decoded; bun scripts/reframe-modules-e5.ts --family clinical --decoded-dir data/build/clinical-e5/decoded --out-dir output/module-zstd-e5-2026-10-05 --tag clinical-e5-2026.10.05",
-      "note": "774 single-КР modules with e5-small passage vectors; published 2026-10-05 to datasets/clinical-e5-2026.10.05; kept as the local release copy. 122 of them were superseded on 2026-10-07 by output/module-zstd-json-2026-10-07 (STATE KR3); this copy stays for the other 652 modules and as the rollback copy. 52 of the remaining modules were superseded on 2026-10-08 (STATE KR4, output/module-zstd-json-2026-10-08). Most of the remaining modules were superseded on 2026-10-09 by output/module-zstd-json-2026-10-09 (STATE KR5); this copy stays as the rollback copy. On 2026-10-11 (STATE KD1) every КР module was republished with KD1 vectors (output/module-zstd-kd1-2026-10-11); this copy is the input of that rebuild and the e5 rollback copy.",
-      "bytes": 688576048,
-      "modified": "2026-10-05"
+      "note": "774 single-КР modules with e5-small passage vectors; published 2026-10-05 to datasets/clinical-e5-2026.10.05; kept as the local release copy. 122 of them were superseded on 2026-10-07 by output/module-zstd-json-2026-10-07 (STATE KR3); this copy stays for the other 652 modules and as the rollback copy. 52 of the remaining modules were superseded on 2026-10-08 (STATE KR4, output/module-zstd-json-2026-10-08). Most of the remaining modules were superseded on 2026-10-09 by output/module-zstd-json-2026-10-09 (STATE KR5); this copy stays as the rollback copy. On 2026-10-11 (STATE KD1) every КР module was republished with KD1 vectors (output/module-zstd-kd1-2026-10-11); this copy is the input of that rebuild and the e5 rollback copy. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
+      "bytes": 688424967,
+      "modified": "2026-10-14"
     },
     {
       "path": "output/allmed-images-2026.10.13-c8e85a688094",
@@ -507,9 +519,9 @@
       ],
       "release": "branch datasets/allmed-images-2026.10.13-c8e85a688094 (index + 16 ZIP shards)",
       "rebuild": "same command; resume re-downloads ~279 MB from allmed.pro (4 214 photos, ~25 min at 8 workers)",
-      "note": "Local release copy of the published Allmed packaging-photo pack (index, 16 shards, catalog fragment, build report). Keep while the project is active; the Allmed snapshot input is ~/Downloads/allmed_tinybase.db.",
-      "bytes": 281367944,
-      "modified": "2026-10-13"
+      "note": "Local release copy of the published Allmed packaging-photo pack (index, 16 shards, catalog fragment, build report). Keep while the project is active; the Allmed snapshot input is ~/Downloads/allmed_tinybase.db. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2). The catalog fragment and build report that were beside the shards are not on the branch and were not restored.",
+      "bytes": 281348171,
+      "modified": "2026-10-14"
     },
     {
       "path": "output/module-zstd-json-2026-10-07",
@@ -521,9 +533,9 @@
       ],
       "release": "branch datasets/clinical-json-2026.10.07-197a48d1f268 (122 .db.zst)",
       "rebuild": "uv run --project tools/ingest medbase-clinical-catalog build-documents (plan data/build/official-clinical-source-plan, 10-02 plan for the 30 newer editions; source data/raw/official-clinical-documents) -> medbase compact-module-search -> uv run tools/ingest/scripts/embed_modules_e5.py --family clinical --from-dir <compacted> --out <e5/decoded> -> bun scripts/republish-clinical-modules.ts --decoded-dir <e5/decoded> --out-dir output/module-zstd-json-2026-10-07 --snapshot-id clinical-json-2026.10.07-197a48d1f268 --published-at 2026-10-07T15:40:00Z --write-catalog (~15 min; the module list is data/build/official-clinical-2026-10-07/changed-ids.txt)",
-      "note": "Local release copy of the 122 КР modules rebuilt with numbered sub-headings; the intermediate builds were deleted after verification. 26 of them were superseded on 2026-10-08 by output/module-zstd-json-2026-10-08 (STATE KR4); this copy stays for the other 96 modules and as the rollback copy. 117 of its 122 modules were superseded on 2026-10-09 by output/module-zstd-json-2026-10-09 (STATE KR5). On 2026-10-11 (STATE KD1) every КР module was republished with KD1 vectors (output/module-zstd-kd1-2026-10-11); this copy is the input of that rebuild and the e5 rollback copy.",
-      "bytes": 139061640,
-      "modified": "2026-10-07"
+      "note": "Local release copy of the 122 КР modules rebuilt with numbered sub-headings; the intermediate builds were deleted after verification. 26 of them were superseded on 2026-10-08 by output/module-zstd-json-2026-10-08 (STATE KR4); this copy stays for the other 96 modules and as the rollback copy. 117 of its 122 modules were superseded on 2026-10-09 by output/module-zstd-json-2026-10-09 (STATE KR5). On 2026-10-11 (STATE KD1) every КР module was republished with KD1 vectors (output/module-zstd-kd1-2026-10-11); this copy is the input of that rebuild and the e5 rollback copy. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
+      "bytes": 138992262,
+      "modified": "2026-10-14"
     },
     {
       "path": "output/module-zstd-json-2026-10-08",
@@ -535,9 +547,9 @@
       ],
       "release": "branch datasets/clinical-json-2026.10.08-f3039e82214e (78 .db.zst)",
       "rebuild": "uv run --project tools/ingest medbase-clinical-catalog build-documents (plan data/build/official-clinical-source-plan, --official-id for the 78 modules; source data/raw/official-clinical-documents) -> medbase compact-module-search -> uv run tools/ingest/scripts/embed_modules_e5.py --family clinical --from-dir <compacted> --out <e5/decoded> -> bun scripts/republish-clinical-modules.ts --decoded-dir <e5/decoded> --out-dir output/module-zstd-json-2026-10-08 --snapshot-id clinical-json-2026.10.08-f3039e82214e --published-at 2026-10-08T17:05:00Z --write-catalog (~10 min; the module list is data/build/official-clinical-2026-10-08/changed-ids.txt)",
-      "note": "Local release copy of the 78 КР modules rebuilt with appendix headings (238 promoted titles); the intermediate builds (control, compacted, e5 decoded, published decoded) were deleted after verification. 72 of its 78 modules were superseded on 2026-10-09 by output/module-zstd-json-2026-10-09 (STATE KR5); this copy stays for the other 6 modules and as the rollback copy. On 2026-10-11 (STATE KD1) every КР module was republished with KD1 vectors (output/module-zstd-kd1-2026-10-11); this copy is the input of that rebuild and the e5 rollback copy.",
-      "bytes": 85035562,
-      "modified": "2026-10-08"
+      "note": "Local release copy of the 78 КР modules rebuilt with appendix headings (238 promoted titles); the intermediate builds (control, compacted, e5 decoded, published decoded) were deleted after verification. 72 of its 78 modules were superseded on 2026-10-09 by output/module-zstd-json-2026-10-09 (STATE KR5); this copy stays for the other 6 modules and as the rollback copy. On 2026-10-11 (STATE KD1) every КР module was republished with KD1 vectors (output/module-zstd-kd1-2026-10-11); this copy is the input of that rebuild and the e5 rollback copy. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
+      "bytes": 84990337,
+      "modified": "2026-10-14"
     },
     {
       "path": "output/module-zstd-json-2026-10-09",
@@ -549,9 +561,9 @@
       ],
       "release": "branch datasets/clinical-json-2026.10.09-17bb72b87531 (737 .db.zst)",
       "rebuild": "uv run --project tools/ingest medbase-clinical-catalog build-documents --all (plan data/build/official-clinical-source-plan for the 744 earlier modules, data/build/official-clinical-2026-10-02/source-plan for the 30 newer; source data/raw/official-clinical-documents) -> medbase compact-module-search -> uv run tools/ingest/scripts/embed_modules_e5.py --family clinical --from-dir <compacted> --out <e5/decoded> -> bun scripts/republish-clinical-modules.ts --decoded-dir <e5/decoded> --out-dir output/module-zstd-json-2026-10-09 --snapshot-id clinical-json-2026.10.09-17bb72b87531 --published-at 2026-10-09T07:10:00Z --write-catalog (~45 min; the module list is data/build/official-clinical-2026-10-09/changed-ids.txt)",
-      "note": "Local release copy of the 737 КР modules rebuilt with KR template labels as headings (3 925 promoted); the intermediate builds (rule-off control, compacted, e5 decoded, published decoded) were deleted after verification. It supersedes most of the KR4, KR3 and E2 copies, which stay for the 37 modules not republished and as rollback copies. On 2026-10-11 (STATE KD1) every КР module was republished with KD1 vectors (output/module-zstd-kd1-2026-10-11); this copy is the input of that rebuild and the e5 rollback copy.",
-      "bytes": 664825773,
-      "modified": "2026-10-09"
+      "note": "Local release copy of the 737 КР modules rebuilt with KR template labels as headings (3 925 promoted); the intermediate builds (rule-off control, compacted, e5 decoded, published decoded) were deleted after verification. It supersedes most of the KR4, KR3 and E2 copies, which stay for the 37 modules not republished and as rollback copies. On 2026-10-11 (STATE KD1) every КР module was republished with KD1 vectors (output/module-zstd-kd1-2026-10-11); this copy is the input of that rebuild and the e5 rollback copy. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
+      "bytes": 664403645,
+      "modified": "2026-10-14"
     },
     {
       "path": "output/module-zstd-drug-e5-2026-10-05",
@@ -561,9 +573,9 @@
         "catalog.preview.json ГРЛС instruction and Allmed modules (tags grls-instructions-2026.10.05-056961ab2b54-e5, allmed-2026.10.05-2d39a7fc2b43-e5)"
       ],
       "rebuild": "uv run tools/ingest/scripts/embed_modules_e5.py --family medications --source data/build/grls-instruction-modules/zst --source data/build/allmed-module/zst --out data/build/drug-e5/decoded; bun scripts/reframe-modules-e5.ts --family medications --decoded-dir data/build/drug-e5/decoded --out-dir output/module-zstd-drug-e5-2026-10-05",
-      "note": "16 medication modules with e5 vectors for their indication sections (14 116 chunks); published 2026-10-05; kept as the local release copy. Supersedes data/build/grls-instruction-modules/zst and data/build/allmed-module/zst as release copies. Superseded on 2026-10-11 by output/module-zstd-drug-kd1-2026-10-11 (STATE KD1); kept as its input and the e5 rollback copy.",
-      "bytes": 283358006,
-      "modified": "2026-10-05"
+      "note": "16 medication modules with e5 vectors for their indication sections (14 116 chunks); published 2026-10-05; kept as the local release copy. Supersedes data/build/grls-instruction-modules/zst and data/build/allmed-module/zst as release copies. Superseded on 2026-10-11 by output/module-zstd-drug-kd1-2026-10-11 (STATE KD1); kept as its input and the e5 rollback copy. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
+      "bytes": 283353394,
+      "modified": "2026-10-14"
     },
     {
       "path": "data/build/official-clinical-2026-10-02",
@@ -584,9 +596,9 @@
       "producer": "scripts/build-core.mjs finalize, gzip -9 -n, scripts/write-core-report.mjs",
       "consumers": ["Offline rollback to 0.6.47 (the 0.6.45 copy was removed 2026-10-08)"],
       "rebuild": "gh release download core-0.6.47",
-      "note": "Previous core, kept for rollback while 0.6.57 is the current core.",
+      "note": "Previous core, kept for rollback while 0.6.57 is the current core. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
       "bytes": 525375692,
-      "modified": "2026-10-02",
+      "modified": "2026-10-14",
       "release": "core-0.6.47"
     },
     {
@@ -652,9 +664,9 @@
         "Offline rollback to 0.6.47 is output/release-core-0.6.47"
       ],
       "rebuild": "gh release download core-0.6.57",
-      "note": "Current core: documents identical to 0.6.47, identity index points at dictionary 2026.10.08.",
+      "note": "Current core: documents identical to 0.6.47, identity index points at dictionary 2026.10.08. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
       "bytes": 529122413,
-      "modified": "2026-10-08",
+      "modified": "2026-10-14",
       "release": "core-0.6.57"
     },
     {
@@ -680,9 +692,9 @@
       ],
       "release": "branch datasets/clinical-kd1-2026.10.11 (774 .db.zst)",
       "rebuild": "uv run tools/ingest/scripts/embed_modules.py --projection data/build/kd1/giga480m-projection-384.npy --family clinical --source output/module-zstd-json-2026-10-09 --source output/module-zstd-json-2026-10-08 --source output/module-zstd-json-2026-10-07 --source output/module-zstd-e5-2026-10-05 --out data/build/clinical-kd1/decoded; bun scripts/reframe-modules.ts --marker kd1 --family clinical --decoded-dir data/build/clinical-kd1/decoded --out-dir output/module-zstd-kd1-2026-10-11 --tag clinical-kd1-2026.10.11 (~1 h GPU)",
-      "note": "Local release copy of the 774 single-КР modules with Giga-480M passage vectors projected to 384 d (localmed.kd1-giga480m.384.int8.v1); only embedding_profiles/chunk_embeddings differ from the KR5/KR4/KR3/E2 copies. Decoded copies and encoder shards were deleted after verification.",
-      "bytes": 691308728,
-      "modified": "2026-10-11"
+      "note": "Local release copy of the 774 single-КР modules with Giga-480M passage vectors projected to 384 d (localmed.kd1-giga480m.384.int8.v1); only embedding_profiles/chunk_embeddings differ from the KR5/KR4/KR3/E2 copies. Decoded copies and encoder shards were deleted after verification. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
+      "bytes": 691125850,
+      "modified": "2026-10-14"
     },
     {
       "path": "output/module-zstd-drug-kd1-2026-10-11",
@@ -693,9 +705,9 @@
       ],
       "release": "branches datasets/grls-instructions-2026.10.05-056961ab2b54-kd1, datasets/allmed-2026.10.05-2d39a7fc2b43-kd1",
       "rebuild": "uv run tools/ingest/scripts/embed_modules.py --projection data/build/kd1/giga480m-projection-384.npy --family medications --source output/module-zstd-drug-e5-2026-10-05/grls-instructions-2026.10.05-056961ab2b54-e5 --source output/module-zstd-drug-e5-2026-10-05/allmed-2026.10.05-2d39a7fc2b43-e5 --out data/build/drug-kd1/decoded; bun scripts/reframe-modules.ts --marker kd1 --family medications --decoded-dir data/build/drug-kd1/decoded --out-dir output/module-zstd-drug-kd1-2026-10-11",
-      "note": "16 medication modules with KD1 vectors for their indication sections (14 116 chunks); local release copy.",
-      "bytes": 283363914,
-      "modified": "2026-10-11"
+      "note": "16 medication modules with KD1 vectors for their indication sections (14 116 chunks); local release copy. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
+      "bytes": 283359286,
+      "modified": "2026-10-14"
     },
     {
       "path": "output/module-zstd-esklp-atc2-2026-10-13",
@@ -706,9 +718,9 @@
       ],
       "release": "branch datasets/esklp-2026-08-28-atc2",
       "rebuild": "decode output/module-zstd-2026-10-01/esklp-compacted into data/build/atc-fill/base; uv run --project tools/ingest python tools/ingest/scripts/build_atc_fill.py derive|apply --out data/build/atc-fill/out; bun scripts/reframe-modules.ts --marker atc2 --family esklp --module-id … --decoded-dir data/build/atc-fill/out/patched --out-dir output/module-zstd-esklp-atc2-2026-10-13",
-      "note": "14 ЕСКЛП modules with completed ATC codes (269 nodes) and flags (676 conflicts); only documents.metadata_json differs from output/module-zstd-2026-10-01/esklp-compacted, which stays as the previous release copy. Decoded copies, patched databases and the Allmed decode were deleted after verification.",
-      "bytes": 68577477,
-      "modified": "2026-10-13"
+      "note": "14 ЕСКЛП modules with completed ATC codes (269 nodes) and flags (676 conflicts); only documents.metadata_json differs from output/module-zstd-2026-10-01/esklp-compacted, which stays as the previous release copy. Decoded copies, patched databases and the Allmed decode were deleted after verification. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
+      "bytes": 68574066,
+      "modified": "2026-10-14"
     },
     {
       "path": "data/build/kd1",
@@ -746,9 +758,9 @@
         "owner installs *.minimed-module.zip on the device (Settings → Загрузки → install from file)"
       ],
       "rebuild": "Re-run the three content:local:* scripts (~10 min).",
-      "note": "Personal-use modules (Vidal, Citilab lab reference, TNM, Pevzner diets). Never commit, push or upload: the repository is public.",
-      "bytes": 119993903,
-      "modified": "2026-10-12"
+      "note": "Personal-use modules (Vidal, Citilab lab reference, TNM, Pevzner diets). Never commit, push or upload: the repository is public. Rebuilt on 2026-10-14 after the output/ loss with the three content:local:* scripts.",
+      "bytes": 211962023,
+      "modified": "2026-10-14"
     },
     {
       "path": "data/intermediate/grls-ocr-cleaned",
@@ -772,8 +784,8 @@
       ],
       "release": "branch datasets/grls-instructions-2026.10.14-15ce0cf79f45-kd1 (15 .db.zst)",
       "rebuild": "gh/git checkout of the branch; or the commands above over data/intermediate/grls-ocr-cleaned",
-      "note": "Local copy of the released OCR1 instruction modules (224.9 MB); the earlier copy of the 2026-10-05 release stays under data/build/grls-instruction-modules/zst.",
-      "bytes": 224893427,
+      "note": "Local copy of the released OCR1 instruction modules (224.9 MB); the earlier copy of the 2026-10-05 release stays under data/build/grls-instruction-modules/zst. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
+      "bytes": 224889019,
       "modified": "2026-10-14"
     },
     {
@@ -795,7 +807,7 @@
       "consumers": ["scripts/marker_convert.py"],
       "rebuild": "uv venv --python 3.12 data/build/marker-eval/venv && uv pip install --python data/build/marker-eval/venv/bin/python marker-pdf==2.0.0 (about 1 GiB of wheels)",
       "note": "Optional local build tool for scanned legal acts, textbook scans and the second reading of low-grade ГРЛС scans (docs/research/marker-eval-2026-10-14.md). Not used by the app or any pack.",
-      "bytes": 1147674624,
+      "bytes": 1051905326,
       "modified": "2026-10-14"
     },
     {
@@ -805,7 +817,7 @@
       "consumers": ["scripts/marker_convert.py"],
       "rebuild": "run scripts/marker_convert.py on any PDF; it downloads about 1.76 GiB of weights (needs network and the Homebrew llama-server)",
       "note": "Model weights of the Marker environment; delete together with the venv if Marker is dropped.",
-      "bytes": 1888485376,
+      "bytes": 1888349901,
       "modified": "2026-10-14"
     }
   ]
