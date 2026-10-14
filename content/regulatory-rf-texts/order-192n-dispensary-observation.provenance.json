@@ -145,14 +145,9 @@
   {
    "page": 7,
    "reading": "marker",
-   "status": "reviewed",
+   "status": "pass",
    "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 18"
-    }
-   ],
+   "flags": [],
    "furniture": [
     "5"
    ],
@@ -162,7 +157,7 @@
     "markerTokens": 250,
     "visionTokens": 247,
     "coverageVision": 0.9953,
-    "coverageMarker": 0.9953,
+    "coverageMarker": 1.0,
     "respaced": 0,
     "tableRows": 0
    }

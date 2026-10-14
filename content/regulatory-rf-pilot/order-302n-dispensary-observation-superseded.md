@@ -246,7 +246,7 @@ metadata:
 
 # Источник и редакция
 
-<!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/Document/View/0001201906100012","sourceSection":"реквизиты и редакция","contentMode":"paraphrase","publicationNumber":"0001201906100012","documentNumber":"302н"} -->
+<!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/Document/View/0001201906100012","sourceSection":"реквизиты и редакция","contentMode":"source_text","publicationNumber":"0001201906100012","documentNumber":"302н"} -->
 Приказ Минздрава России от 16 мая 2019 г. № 302н, зарегистрирован Минюстом России 7 июня 2019 г. № 54887.
 
 Редакция: последняя редакция — с изменениями до 19.11.2020; утратил силу с 01.09.2025. Текст выше — первоначальная публикация, изменения в него не внесены.

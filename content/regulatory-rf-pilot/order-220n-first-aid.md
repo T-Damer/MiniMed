@@ -304,7 +304,7 @@ metadata:
 
 # Источник и редакция
 
-<!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202405310015","sourceSection":"реквизиты и редакция","contentMode":"paraphrase","publicationNumber":"0001202405310015","documentNumber":"220н"} -->
+<!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/document/0001202405310015","sourceSection":"реквизиты и редакция","contentMode":"source_text","publicationNumber":"0001202405310015","documentNumber":"220н"} -->
 Приказ Минздрава России от 3 мая 2024 г. № 220н, зарегистрирован Минюстом России 31 мая 2024 г. № 78363.
 
 Редакция: первоначальная редакция; изменений на портале не найдено.

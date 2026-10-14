@@ -5,7 +5,7 @@
   "verdicts": {
     "1": "image read: preamble and items 1-2 match; the stamps (registration, copy certification) are not text of the order; header number/date come from the portal",
     "2": "image read: the annex approval line was missing from Marker's text and is restored with the portal's date and number; the contents table and the general data match",
-    "3": "image read (page printed sideways): the functional map matches, five functions A/01.7-A/05.7 of level 7; the two-level header is restored",
+    "3": "image read (page scanned sideways, read from an upright copy): the functional map matches, two-level header and the five functions A/01.7-A/05.7 of level 7",
     "4": "image read: the table of the generalized labour function matches, including footnote marks 4-8",
     "5": "image read: items, ОКЗ/ЕКС/ОКПДТР/ОКСО codes (221, 20458, 060103) and the first labour function match",
     "6": "image read: the table matches (the only digit Vision adds is the printed page number 5)",
@@ -25,20 +25,6 @@
       "find": "# ПРОФЕССИОНАЛЬНЫЙ СТАНДАРТ",
       "replace": "УТВЕРЖДЕН приказом Министерства труда и социальной защиты Российской Федерации от 27 марта 2017 г. № 306н\n\n# ПРОФЕССИОНАЛЬНЫЙ СТАНДАРТ",
       "why": "The approval block at the top of the annex («УТВЕРЖДЕН приказом Министерства труда и социальной защиты Российской Федерации от «27» марта 2017 г. № 306н», date and number handwritten) is on the page; Marker dropped it. Date and number are the portal's."
-    },
-    {
-      "page": 3,
-      "kind": "header",
-      "find": "| КОД | НАИМЕНОВАНИЕ | УРОВЕНЬ⏎КВАЛИФИКАЦИИ | Трудовые функции | | |",
-      "replace": "| Обобщенные трудовые функции | | | Трудовые функции | | |",
-      "why": "The group header «Обобщенные трудовые функции» was lost and its column captions were read as a header row in capitals."
-    },
-    {
-      "page": 3,
-      "kind": "header",
-      "find": "| | | | наименование | код | уровень (подуровень) квалификации |",
-      "replace": "| код | наименование | уровень квалификации | наименование | код | уровень (подуровень) квалификации |",
-      "why": "Second header row: the captions of the generalized functions (код, наименование, уровень квалификации) belong here, as printed."
     },
     {
       "page": 11,

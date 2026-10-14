@@ -252,7 +252,7 @@ def test_card_keeps_status_and_footer_and_replaces_the_paraphrase() -> None:
     assert "contentMode: source_text" in front
     assert "contentMode: source_linked_paraphrase" not in front
     assert 'description: "Приказ № 366н утратил силу. Действует приказ № 120н."' in front
-    assert "version_label: 366n-superseded-fulltext" in front
+    assert "version_label: 366n-superseded\n" in front and "fulltext" not in front
     assert "textPages: 35" in front
     titles = [s.title for s in sections_of(body)]
     assert titles == ["Статус документа", "Приказ № 366н", "Источник и редакция"]

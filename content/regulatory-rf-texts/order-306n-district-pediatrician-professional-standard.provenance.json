@@ -18,7 +18,7 @@
  "review": {
   "reviewer": "Claude (agent), against the page images; not a lawyer",
   "reviewedAt": "2026-10-14",
-  "corrections": 6
+  "corrections": 4
  },
  "pages": [
   {
@@ -70,11 +70,11 @@
     },
     {
      "kind": "number-mismatch",
-     "detail": "only in Marker: 221, 3×2, 833"
+     "detail": "only in Vision: II; only in Marker: 3"
     },
     {
      "kind": "coverage-vision",
-     "detail": "Marker lacks 7% of Vision's tokens (e.g. утвержден, приказом, министерства, труда, социальной, защиты, российской, федерации)"
+     "detail": "Marker lacks 8% of Vision's tokens (e.g. утвержден, приказом, министерства, труда, социальной, защиты, российской, федерации, rom:ii)"
     }
    ],
    "furniture": [],
@@ -82,9 +82,9 @@
    "headerRemoved": null,
    "stats": {
     "markerTokens": 117,
-    "visionTokens": 128,
-    "coverageVision": 0.9273,
-    "coverageMarker": 0.9623,
+    "visionTokens": 130,
+    "coverageVision": 0.9189,
+    "coverageMarker": 0.9903,
     "respaced": 0,
     "tableRows": 12
    }
@@ -97,25 +97,19 @@
    "flags": [
     {
      "kind": "number-mismatch",
-     "detail": "only in Marker: 7×6"
-    },
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 7% of Vision's tokens (e.g. трудовые, функции, медне, долго, провынка, обобщенные)"
-    },
-    {
-     "kind": "coverage-marker",
-     "detail": "13% of Marker's tokens are not in Vision (e.g. 7, медицинского, числе, дому, при, вызове, работника)"
+     "detail": "only in Marker: 7"
     }
    ],
-   "furniture": [],
+   "furniture": [
+    "2"
+   ],
    "portalRewrites": [],
    "headerRemoved": null,
    "stats": {
-    "markerTokens": 111,
-    "visionTokens": 103,
-    "coverageVision": 0.931,
-    "coverageMarker": 0.871,
+    "markerTokens": 114,
+    "visionTokens": 112,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9895,
     "respaced": 0,
     "tableRows": 7
    }
@@ -123,14 +117,9 @@
   {
    "page": 4,
    "reading": "marker",
-   "status": "reviewed",
+   "status": "pass",
    "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 7"
-    }
-   ],
+   "flags": [],
    "furniture": [
     "3"
    ],
@@ -139,8 +128,8 @@
    "stats": {
     "markerTokens": 233,
     "visionTokens": 227,
-    "coverageVision": 0.995,
-    "coverageMarker": 0.9803,
+    "coverageVision": 0.9901,
+    "coverageMarker": 0.9901,
     "respaced": 0,
     "tableRows": 7
    }
@@ -148,14 +137,9 @@
   {
    "page": 5,
    "reading": "marker",
-   "status": "reviewed",
+   "status": "pass",
    "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 221, 7"
-    }
-   ],
+   "flags": [],
    "furniture": [
     "4"
    ],
@@ -163,9 +147,9 @@
    "headerRemoved": null,
    "stats": {
     "markerTokens": 249,
-    "visionTokens": 245,
-    "coverageVision": 0.9903,
-    "coverageMarker": 0.9809,
+    "visionTokens": 244,
+    "coverageVision": 0.9952,
+    "coverageMarker": 0.9904,
     "respaced": 0,
     "tableRows": 10
    }
@@ -173,16 +157,21 @@
   {
    "page": 6,
    "reading": "marker",
-   "status": "pass",
+   "status": "reviewed",
    "confidence": "high",
-   "flags": [],
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 5"
+    }
+   ],
    "furniture": [],
    "portalRewrites": [],
    "headerRemoved": null,
    "stats": {
     "markerTokens": 319,
     "visionTokens": 317,
-    "coverageVision": 0.9926,
+    "coverageVision": 0.989,
     "coverageMarker": 0.989,
     "respaced": 0,
     "tableRows": 7
@@ -256,14 +245,9 @@
   {
    "page": 10,
    "reading": "marker",
-   "status": "reviewed",
+   "status": "pass",
    "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 7"
-    }
-   ],
+   "flags": [],
    "furniture": [
     "9"
    ],
@@ -272,8 +256,8 @@
    "stats": {
     "markerTokens": 272,
     "visionTokens": 271,
-    "coverageVision": 0.9913,
-    "coverageMarker": 0.9871,
+    "coverageVision": 0.9914,
+    "coverageMarker": 0.9914,
     "respaced": 0,
     "tableRows": 5
    }
@@ -430,7 +414,7 @@
    "flags": [
     {
      "kind": "number-mismatch",
-     "detail": "only in Marker: 1"
+     "detail": "only in Vision: 16; only in Marker: 1"
     }
    ],
    "furniture": [],
@@ -439,8 +423,8 @@
    "stats": {
     "markerTokens": 338,
     "visionTokens": 331,
-    "coverageVision": 0.9966,
-    "coverageMarker": 0.977,
+    "coverageVision": 0.9933,
+    "coverageMarker": 0.9769,
     "respaced": 0,
     "tableRows": 13
    }

@@ -270,14 +270,9 @@
   {
    "page": 13,
    "reading": "marker",
-   "status": "reviewed",
+   "status": "pass",
    "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 1×2, 2"
-    }
-   ],
+   "flags": [],
    "furniture": [],
    "portalRewrites": [
     "от «14» апреля 2025 г. № 2134"
@@ -286,8 +281,8 @@
    "stats": {
     "markerTokens": 170,
     "visionTokens": 168,
-    "coverageVision": 0.9926,
-    "coverageMarker": 0.9712,
+    "coverageVision": 0.9928,
+    "coverageMarker": 0.9928,
     "respaced": 0,
     "tableRows": 8
    }
@@ -295,22 +290,9 @@
   {
    "page": 14,
    "reading": "marker",
-   "status": "reviewed",
+   "status": "pass",
    "confidence": "high",
-   "flags": [
-    {
-     "kind": "dropped-span",
-     "detail": "Vision reads text that Marker lacks (inside a paragraph): «люкометр с тест-полосками анцетами/скарификаторам»"
-    },
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 1, 2×2, 4×2"
-    },
-    {
-     "kind": "coverage-marker",
-     "detail": "10% of Marker's tokens are not in Vision (e.g. 2, 4, батареи, глюкометр, для, пациента, от, постели, ланцетами, скарификаторами, 1, питание)"
-    }
-   ],
+   "flags": [],
    "furniture": [
     "2"
    ],
@@ -319,8 +301,8 @@
    "stats": {
     "markerTokens": 166,
     "visionTokens": 159,
-    "coverageVision": 0.958,
-    "coverageMarker": 0.8954,
+    "coverageVision": 0.9595,
+    "coverageMarker": 0.9281,
     "respaced": 0,
     "tableRows": 14
    }
@@ -333,7 +315,7 @@
    "flags": [
     {
      "kind": "number-mismatch",
-     "detail": "only in Vision: 14, 17; only in Marker: 1×2, 10×2, 2×6, 4"
+     "detail": "only in Vision: 14, 17; only in Marker: 1, 10"
     }
    ],
    "furniture": [
@@ -344,8 +326,8 @@
    "stats": {
     "markerTokens": 185,
     "visionTokens": 183,
-    "coverageVision": 0.9752,
-    "coverageMarker": 0.9235,
+    "coverageVision": 0.9765,
+    "coverageMarker": 0.9765,
     "respaced": 0,
     "tableRows": 16
    }
@@ -358,7 +340,7 @@
    "flags": [
     {
      "kind": "number-mismatch",
-     "detail": "only in Vision: 25; only in Marker: 1×4, 2×3, 4×2"
+     "detail": "only in Vision: 25; only in Marker: 2"
     }
    ],
    "furniture": [
@@ -370,8 +352,8 @@
    "stats": {
     "markerTokens": 166,
     "visionTokens": 165,
-    "coverageVision": 0.9929,
-    "coverageMarker": 0.9396,
+    "coverageVision": 0.9933,
+    "coverageMarker": 0.9933,
     "respaced": 0,
     "tableRows": 18
    }
@@ -384,11 +366,11 @@
    "flags": [
     {
      "kind": "number-mismatch",
-     "detail": "only in Marker: 1×4, 2"
+     "detail": "only in Marker: 1"
     },
     {
      "kind": "coverage-marker",
-     "detail": "20% of Marker's tokens are not in Vision (e.g. 1, для, сеть, 2, вливаний, стеллаж, палаты, пациента, кресло, общего, электропитанием, сестры)"
+     "detail": "17% of Marker's tokens are not in Vision (e.g. для, сеть, 1, вливаний, стеллаж, палаты, пациента, кресло, общего, электропитанием, сестры, специалиста)"
     },
     {
      "kind": "numbered-rows",
@@ -405,8 +387,8 @@
    "stats": {
     "markerTokens": 213,
     "visionTokens": 180,
-    "coverageVision": 0.9682,
-    "coverageMarker": 0.8042,
+    "coverageVision": 0.9689,
+    "coverageMarker": 0.8254,
     "respaced": 1,
     "tableRows": 16
    }
@@ -414,18 +396,9 @@
   {
    "page": 18,
    "reading": "marker",
-   "status": "reviewed",
+   "status": "pass",
    "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 1×2, 2×6"
-    },
-    {
-     "kind": "coverage-marker",
-     "detail": "11% of Marker's tokens are not in Vision (e.g. 2, 1)"
-    }
-   ],
+   "flags": [],
    "furniture": [
     "6",
     "4."
@@ -436,7 +409,7 @@
     "markerTokens": 95,
     "visionTokens": 94,
     "coverageVision": 1.0,
-    "coverageMarker": 0.8933,
+    "coverageMarker": 1.0,
     "respaced": 0,
     "tableRows": 12
    }

@@ -523,6 +523,8 @@ class Review:
     reviewed_at: str = ""
     corrections: list[Correction] = field(default_factory=list)
     verdicts: dict[int, str] = field(default_factory=dict)
+    keep_marker: set[int] = field(default_factory=set)
+    """Pages whose Marker text is longer than Vision's because Vision reads a sideways table badly (not a loop)."""
     transcriptions: dict[int, str] = field(default_factory=dict)
     """Pages whose Markdown was re-typed from the image because Marker's text was beyond a few fixes."""
 
@@ -542,6 +544,7 @@ class Review:
                 for item in payload.get("corrections", [])
             ],
             verdicts={int(page): str(text) for page, text in payload.get("verdicts", {}).items()},
+            keep_marker={int(page) for page in payload.get("keepMarker", [])},
             transcriptions={
                 int(page): str(item["text"])
                 for page, item in payload.get("transcriptions", {}).items()
@@ -598,6 +601,7 @@ def reconcile_act(
             identity=identity,
             substitute=not reviewed,
             exact_primary=exact_primary,
+            inflation_checked=page not in review.keep_marker,
         )
         if page in review.transcriptions:
             result.text = review.transcriptions[page]

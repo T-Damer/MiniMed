@@ -1,0 +1,603 @@
+{
+ "documentId": "regulatory.rf.minzdrav.127n-2019-tuberculosis",
+ "source": {
+  "file": "0001201906200019.pdf",
+  "sha256": "bc2c58584e05cda3de335f02d9856dda630833ad3c76f44b82643c93c9331693",
+  "bytes": 1245874,
+  "pages": 24,
+  "officialUrl": "https://publication.pravo.gov.ru/document/0001201906200019"
+ },
+ "identityFromPortal": {
+  "number": "127н",
+  "date": "2019-03-13",
+  "name": "Об утверждении порядка диспансерного наблюдения за больными туберкулезом, лицами, находящимися или находившимися в контакте с источником туберкулеза, а также лицами с подозрением на туберкулез и излечеиными от туберкулеза и признании утратившими силу пунктов 16-17 Порядка оказания медицинской помощи больным туберкулезом, утвержденного приказом Министерства здравоохранения Российской Федерации от 15 ноября 2012 г. № 932н",
+  "registrationNumber": "54975",
+  "registrationDate": "2019-06-19"
+ },
+ "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
+ "review": {
+  "reviewer": "Claude (agent), against the page images; not a lawyer",
+  "reviewedAt": "2026-10-14",
+  "corrections": 1
+ },
+ "pages": [
+  {
+   "page": 1,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": "МИНИСТЕРСТВО ЗДРАВООХРАНЕНИЯ\nРОССИЙСКОЙ ФЕДЕРАЦИИ\n\n(Минздрав России)\n\nПРИКАЗ\n\n13 марта 2019 г.\n\n№ 1274\n\nМосква\n\n**Об утверждении**\n**порядка диспансерного наблюдения за больными туберкулезом,**\n**лицами, находящимися или находившимися в контакте**\n**с источником туберкулеза, а также лицами с подозрением**\n**на туберкулез и излеченными от туберкулеза и признании**\n**утратившими силу пунктов 16-17 Порядка оказания медицинской**\n**помощи больным туберкулезом, утвержденного приказом**\n**Министерства здравоохранения Российской Федерации**\n**от 15 ноября 2012 г. № 932н**",
+   "stats": {
+    "markerTokens": 182,
+    "visionTokens": 182,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 2,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "2"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 118,
+    "visionTokens": 119,
+    "coverageVision": 0.9802,
+    "coverageMarker": 0.99,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 3,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [
+    "от «13» иарта 2019 г. № 1244"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 307,
+    "visionTokens": 305,
+    "coverageVision": 0.9923,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 4,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 379,
+    "visionTokens": 374,
+    "coverageVision": 0.9817,
+    "coverageMarker": 0.9969,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 5,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Marker: 30714"
+    }
+   ],
+   "furniture": [
+    "3"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 347,
+    "visionTokens": 340,
+    "coverageVision": 0.9966,
+    "coverageMarker": 0.9898,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 6,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "4"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 325,
+    "visionTokens": 324,
+    "coverageVision": 0.9964,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 7,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 1"
+    }
+   ],
+   "furniture": [
+    "5"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 302,
+    "visionTokens": 298,
+    "coverageVision": 0.9883,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 8,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "6"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 198,
+    "visionTokens": 198,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 9,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [
+    "от «13» мерта 2019 г. № 1174"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 257,
+    "visionTokens": 237,
+    "coverageVision": 0.9899,
+    "coverageMarker": 0.9336,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 10,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Marker: 10, 6"
+    },
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 8% of Vision's tokens (e.g. облюдать, во, врем, тахождения, обы, ния, срокарне, месяце, лиза, оный, бронны, ne)"
+    },
+    {
+     "kind": "coverage-marker",
+     "detail": "14% of Marker's tokens are not in Vision (e.g. соблюдать, на, время, нахождения, обращаем, внимание, пребывания, срок, более, 6, месяцев, вы)"
+    }
+   ],
+   "furniture": [
+    "2"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 186,
+    "visionTokens": 175,
+    "coverageVision": 0.9187,
+    "coverageMarker": 0.8647,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 11,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Marker: 20"
+    }
+   ],
+   "furniture": [],
+   "portalRewrites": [
+    "от « 13 » *иафма* 2019 г. № 1244"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 204,
+    "visionTokens": 209,
+    "coverageVision": 0.9483,
+    "coverageMarker": 0.9706,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 12,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Marker: 20"
+    }
+   ],
+   "furniture": [
+    "2",
+    "20"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 56,
+    "visionTokens": 52,
+    "coverageVision": 0.9792,
+    "coverageMarker": 0.9792,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 13,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Marker: 0"
+    }
+   ],
+   "furniture": [],
+   "portalRewrites": [
+    "от «13» *шарта* 2019 г. № 1274"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 152,
+    "visionTokens": 146,
+    "coverageVision": 0.992,
+    "coverageMarker": 0.9466,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 14,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "2"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 116,
+    "visionTokens": 116,
+    "coverageVision": 0.9717,
+    "coverageMarker": 0.9717,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 15,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Marker: 2, 3, III"
+    },
+    {
+     "kind": "coverage-marker",
+     "detail": "15% of Marker's tokens are not in Vision (e.g. методом, лица, которых, микроскопии, или, культуральным, туберкулеза, мокроте, обнаружены, микобактерии, выделяемых, во)"
+    }
+   ],
+   "furniture": [
+    "3"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 202,
+    "visionTokens": 173,
+    "coverageVision": 0.9935,
+    "coverageMarker": 0.8462,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 16,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Marker: 1, 2, I"
+    },
+    {
+     "kind": "coverage-marker",
+     "detail": "45% of Marker's tokens are not in Vision (e.g. туберкулеза, лица, которых, методом, устойчивостью, возбудителя, или, микроскопии, культуральным, обнаружены, микобактерии, гдн)"
+    }
+   ],
+   "furniture": [
+    "4"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 182,
+    "visionTokens": 107,
+    "coverageVision": 0.9468,
+    "coverageMarker": 0.5494,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 17,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 121,
+    "visionTokens": 113,
+    "coverageVision": 0.9898,
+    "coverageMarker": 0.9151,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 18,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 7% of Vision's tokens (e.g. оганизма, друго, иологическом, материал, ликобактерох, бе, кулара, датноз)"
+    },
+    {
+     "kind": "coverage-marker",
+     "detail": "28% of Marker's tokens are not in Vision (e.g. туберкулеза, лица, обнаружены, микобактерии, которых, не, методов, диагноз, установлен, на, основании, лекарственной)"
+    }
+   ],
+   "furniture": [
+    "6"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 172,
+    "visionTokens": 134,
+    "coverageVision": 0.9322,
+    "coverageMarker": 0.719,
+    "respaced": 0,
+    "tableRows": 6
+   }
+  },
+  {
+   "page": 19,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: I"
+    }
+   ],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 154,
+    "visionTokens": 142,
+    "coverageVision": 0.9695,
+    "coverageMarker": 0.9007,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 20,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Marker: III"
+    }
+   ],
+   "furniture": [
+    "8"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 174,
+    "visionTokens": 161,
+    "coverageVision": 0.9862,
+    "coverageMarker": 0.9108,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 21,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Marker: I"
+    }
+   ],
+   "furniture": [
+    "9"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 123,
+    "visionTokens": 116,
+    "coverageVision": 0.9903,
+    "coverageMarker": 0.9358,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 22,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Marker: 5"
+    },
+    {
+     "kind": "coverage-marker",
+     "detail": "15% of Marker's tokens are not in Vision (e.g. туберкулеза, находившиеся, для, от, взрослые, года, дети, 5, лет, организаций, находящиеся, профессионального)"
+    }
+   ],
+   "furniture": [
+    "10"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 201,
+    "visionTokens": 176,
+    "coverageVision": 0.9744,
+    "coverageMarker": 0.8492,
+    "respaced": 0,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 23,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Marker: 1"
+    },
+    {
+     "kind": "coverage-marker",
+     "detail": "21% of Marker's tokens are not in Vision (e.g. туберкулеза, поражениями, гнойно, лимфадениты, более, лимфоузлов, дети, вакцины, которых, туберкулез, развился, как)"
+    }
+   ],
+   "furniture": [
+    "11"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 210,
+    "visionTokens": 169,
+    "coverageVision": 0.9869,
+    "coverageMarker": 0.7947,
+    "respaced": 0,
+    "tableRows": 4
+   }
+  },
+  {
+   "page": 24,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 3×2; only in Marker: 1"
+    },
+    {
+     "kind": "coverage-marker",
+     "detail": "12% of Marker's tokens are not in Vision (e.g. осмотров, остаточными, изменениями, 1, проведения, химиотерапии, отягощающих, факторов, до, вич, инфекции, достижения)"
+    }
+   ],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 110,
+    "visionTokens": 97,
+    "coverageVision": 0.9659,
+    "coverageMarker": 0.8763,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  }
+ ]
+}

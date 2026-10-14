@@ -161,7 +161,7 @@ metadata:
 
 # Источник и редакция
 
-<!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/Document/View/0001201702210016","sourceSection":"реквизиты и редакция","contentMode":"paraphrase","publicationNumber":"0001201702210016","documentNumber":"625н"} -->
+<!-- localmed:source {"officialUrl":"https://publication.pravo.gov.ru/Document/View/0001201702210016","sourceSection":"реквизиты и редакция","contentMode":"source_text","publicationNumber":"0001201702210016","documentNumber":"625н"} -->
 Приказ Минздрава России от 23 августа 2016 г. № 625н, зарегистрирован Минюстом России № 45704.
 
 Редакция: первоначальная редакция; утратил силу с 01.09.2025.

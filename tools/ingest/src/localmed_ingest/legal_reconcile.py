@@ -30,6 +30,10 @@ Status = Literal["pass", "review", "reviewed"]
 Reading = Literal["marker", "marker+vision-tokens", "vision-fallback", "image-transcription"]
 Confidence = Literal["high", "medium", "low"]
 
+ROMAN_PREFIX: Final = "rom:"
+_ROMAN_WORD: Final = re.compile(r"I{1,3}|IV|VI{1,3}|V|IX|XI{1,2}|XII")
+PAREN_PREFIX: Final = "pl:"
+_CYRILLIC_I: Final = str.maketrans("І", "I")  # Cyrillic І (U+0406) for the Roman numeral
 _SUPERSCRIPTS: Final = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉", "01234567890123456789")
 _TO_SUPERSCRIPT: Final = str.maketrans("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹")
 _LOOKALIKE: Final = str.maketrans(
@@ -93,7 +97,7 @@ class Token:
 
     @property
     def is_number(self) -> bool:
-        return self.norm[:1].isdigit()
+        return self.norm[:1].isdigit() or self.norm.startswith((ROMAN_PREFIX, PAREN_PREFIX))
 
 
 @dataclass(frozen=True)
@@ -147,6 +151,9 @@ def clean_marker_markdown(text: str) -> str:
     """Deterministic repairs of Marker's Markdown that do not touch words or numbers."""
     value = text.replace("\xa0", " ").replace("\r\n", "\n")
     value = _IMAGE.sub("", value)
+    value = value.replace("\\_", "_")  # form blanks
+    value = re.sub(r'<input type="checkbox"\s+checked[^>]*/?>', "☒ ", value)
+    value = re.sub(r'<input type="checkbox"[^>]*/?>', "☐ ", value)
     value = re.sub(r"\s*\.{5,}\s*", " ", value)
     value = re.sub(
         r"(?<=[а-яё]о)-[ \t]+(?=[а-яё])", "-", value
@@ -203,7 +210,7 @@ def _prepare(text: str) -> str:
     value = _HTML_ENTITY.sub(lambda m: " " * len(m.group()), value)
     value = _IMAGE.sub(lambda m: " " * len(m.group()), value)
     value = _DIGIT_AS_LETTER.sub(lambda m: _LETTER_FOR_DIGIT[m.group(1)], value)
-    return value.translate(_SUPERSCRIPTS)
+    return value.translate(_SUPERSCRIPTS).translate(_CYRILLIC_I)
 
 
 def _fold(token: str) -> str:
@@ -239,7 +246,22 @@ def tokenize(
             _fold(value.translate(_LOOKALIKE)) if re.search(r"[А-Яа-яЁё]", value) else _fold(value)
         )
         ignore = False
-        if norm.isdigit() and len(norm) <= 3:
+        if _ROMAN_WORD.fullmatch(value):
+            # A Roman numeral (group I, II, III …) is data; a dropped «I» changes the meaning of a sentence.
+            norm = ROMAN_PREFIX + value.lower()
+            before_line = text[text.rfind("\n", 0, match.start()) + 1 : match.start()]
+            ignore = bool(_LINE_LEAD.match(before_line)) and bool(
+                re.match(r"[.)](?:$|\s)", text[match.end() : match.end() + 2])
+            )
+        elif (
+            len(value) == 1
+            and match.start() > 0
+            and text[match.start() - 1] == "("
+            and text[match.end() : match.end() + 1] == ")"
+        ):
+            # «II (А)»: the letter that names a group is data
+            norm = PAREN_PREFIX + _fold(value.translate(_LOOKALIKE))
+        elif norm.isdigit() and len(norm) <= 3:
             start, end = match.start(), match.end()
             line_start = text.rfind("\n", 0, start) + 1
             at_line_start = bool(_LINE_LEAD.match(text[line_start:start]))
@@ -709,7 +731,11 @@ def align(marker: str, vision_lines: list[str], skip: tuple[str, ...] = ()) -> A
 
 
 def _listing(counter: Counter[str]) -> str:
-    return ", ".join(f"{k}×{n}" if n > 1 else k for k, n in sorted(counter.items()))
+    return ", ".join(
+        f"{k.removeprefix(ROMAN_PREFIX).upper() if k.startswith(ROMAN_PREFIX) else k.removeprefix(PAREN_PREFIX)}"
+        f"{f'×{n}' if n > 1 else ''}"
+        for k, n in sorted(counter.items())
+    )
 
 
 def reconcile_page(
@@ -720,6 +746,7 @@ def reconcile_page(
     identity: ActIdentity | None = None,
     substitute: bool = True,
     exact_primary: bool = False,
+    inflation_checked: bool = True,
 ) -> PageResult:
     """Compare Marker's Markdown of one page with Vision's lines and decide what the page carries.
 
@@ -774,7 +801,7 @@ def reconcile_page(
 
     loops = detect_loops(m_tokens)
     inflation = len(m_countable) / max(len(v_countable), 1)
-    if loops or (len(v_countable) >= 20 and inflation > INFLATION_MAX):
+    if loops or (inflation_checked and len(v_countable) >= 20 and inflation > INFLATION_MAX):
         detail = (
             "; ".join(loops) if loops else f"Marker text is {inflation:.1f}x longer than Vision's"
         )

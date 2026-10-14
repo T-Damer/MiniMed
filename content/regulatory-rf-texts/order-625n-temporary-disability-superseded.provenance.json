@@ -33,11 +33,11 @@
     },
     {
      "kind": "number-mismatch",
-     "detail": "only in Vision: 25, 5:2.84; only in Marker: 5.2.84"
+     "detail": "only in Vision: 102, 25, 5:2.84; only in Marker: 5.2.84"
     },
     {
      "kind": "coverage-vision",
-     "detail": "Marker lacks 7% of Vision's tokens (e.g. 5:2.84, lukgurok, верна, департамент, бого, управления, елами, кадров, 25, авгусите)"
+     "detail": "Marker lacks 8% of Vision's tokens (e.g. 5:2.84, lukgurok, верна, департамент, бого, управления, елами, кадров, 102, 25, авгусите)"
     }
    ],
    "furniture": [],
@@ -46,7 +46,7 @@
    "stats": {
     "markerTokens": 140,
     "visionTokens": 146,
-    "coverageVision": 0.9254,
+    "coverageVision": 0.9185,
     "coverageMarker": 0.9612,
     "respaced": 0,
     "tableRows": 0

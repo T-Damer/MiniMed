@@ -1,0 +1,32 @@
+{
+  "documentId": "regulatory.rf.minzdrav.127n-2019-tuberculosis",
+  "reviewer": "Claude (agent), against the page images; not a lawyer",
+  "reviewedAt": "2026-10-14",
+  "keepMarker": [16],
+  "verdicts": {
+    "5": "image read: items 7-10, footnotes 8 and 9 (№ 30714) match; Vision lacks the last footnote lines",
+    "7": "image read: items 11-14 and footnotes 11-13 match",
+    "10": "image read: the notice form (checkbox lines, table of reception hours, tear-off slip) matches; form blanks are underscores",
+    "11": "image read: annex 2 (notice of termination), the two checkbox rows with their right-hand actions match",
+    "12": "image read: the tear-off slip of the termination notice matches",
+    "13": "image read (landscape table, read from an upright copy): annex 3 header and group 0 match",
+    "15": "image read: group I, its five categories, term and criteria match; in-cell line breaks are kept",
+    "16": "image read: the four categories of the drug-resistance rows and group II(А) match; Marker's text is longer than Vision's because Vision reads the sideways table badly (not a loop)",
+    "18": "image read: group II(Б), the three categories of the previous group and every cell match, including «в I ГДН»",
+    "19": "image read: Marker dropped the Roman numeral in «из I ГДН» (group III criteria); restored",
+    "20": "image read: group III tail, group IV(А) start match, including «в I ГДН» and «по III ГДН»",
+    "21": "image read: IV(А) tail matches, including «перевод пациента в I ГДН»",
+    "22": "image read: IV(Б), IV(В), V(А) match; «Х» marks are in the printed cells",
+    "23": "image read: V(А) tail, V(Б), VI(А) match",
+    "24": "image read: VI(Б) matches, including «в I ГДН»"
+  },
+  "corrections": [
+    {
+      "page": 19,
+      "kind": "dropped-numeral",
+      "find": "ГДН устанавливается при переводе пациента из ГДН.",
+      "replace": "ГДН устанавливается при переводе пациента из I ГДН.",
+      "why": "The printed text reads «из I ГДН» (group I); Marker dropped the Roman numeral, which changes the rule. Vision read it."
+    }
+  ]
+}
