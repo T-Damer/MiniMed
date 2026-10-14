@@ -429,6 +429,31 @@ describe('query-aware group ranking', () => {
     expect(ranked.map((item) => item.documentId)).toEqual(['current', 'old']);
   });
 
+  it('keeps the current act first for a plain clinical question and the old order first when it is named', () => {
+    const groups = [
+      group(
+        'old',
+        'Профилактические медицинские осмотры несовершеннолетних — приказ № 514н (утратил силу)',
+        0.8,
+      ),
+      group(
+        'current',
+        'Профилактические медицинские осмотры несовершеннолетних — приказ № 211н',
+        0.78,
+      ),
+    ];
+    expect(
+      rankSearchGroupsByQuery(groups, 'Какая группа здоровья у ребенка после профосмотра?').map(
+        (item) => item.documentId,
+      ),
+    ).toEqual(['current', 'old']);
+    expect(
+      rankSearchGroupsByQuery(groups, 'Что говорит приказ 514н о группах здоровья?').map(
+        (item) => item.documentId,
+      ),
+    ).toEqual(['old', 'current']);
+  });
+
   it('keeps a historical redirect discoverable when the query asks about an obsolete order', () => {
     const ranked = rankSearchGroupsByQuery(
       [

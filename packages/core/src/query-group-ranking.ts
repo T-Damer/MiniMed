@@ -100,7 +100,17 @@ function editionStatusBoost(query: string, text: string): number {
   const historicalDocument = HISTORICAL_DOCUMENT_TEXT.test(normalizedText);
   if (CURRENT_EDITION_QUERY.test(normalizedQuery) && historicalDocument) return -2;
   if (HISTORICAL_EDITION_QUERY.test(normalizedQuery) && historicalDocument) return 0.8;
+  // Full act texts make a superseded order as relevant as its replacement for the same clinical question: a
+  // query that names neither the old order's number nor the history keeps the current act first.
+  if (historicalDocument && !queryNamesDocumentNumber(normalizedQuery, normalizedText)) return -0.6;
   return 0;
+}
+
+const LEGAL_NUMBER = /(?<![\p{L}\d])\d{1,4}(?:н|-?фз)(?![\p{L}\d])/gu;
+
+function queryNamesDocumentNumber(normalizedQuery: string, normalizedTitle: string): boolean {
+  const titleNumbers = new Set(normalizedTitle.match(LEGAL_NUMBER) ?? []);
+  return (normalizedQuery.match(LEGAL_NUMBER) ?? []).some((number) => titleNumbers.has(number));
 }
 
 function stemToken(token: string): string {

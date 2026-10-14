@@ -7,7 +7,7 @@
     "expectedDocumentNumber": "192н",
     "expectedPublicationNumber": "0001202505190026",
     "expectedSectionType": "rehabilitation",
-    "expectedAnchorPrefix": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11/круг-диспансерного-наблюдения",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11/приложение/порядок-прохождения-несовершеннолетними-диспансерного-наблюдения-в-том-числе-в-п",
     "category": "dispensary-observation"
   },
   {
@@ -18,7 +18,7 @@
     "expectedDocumentNumber": "192н",
     "expectedPublicationNumber": "0001202505190026",
     "expectedSectionType": "rehabilitation",
-    "expectedAnchorPrefix": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11/срок-постановки-под-наблюдение",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11/приложение/порядок-прохождения-несовершеннолетними-диспансерного-наблюдения-в-том-числе-в-п",
     "category": "dispensary-observation"
   },
   {
@@ -29,7 +29,7 @@
     "expectedDocumentNumber": "192н",
     "expectedPublicationNumber": "0001202505190026",
     "expectedSectionType": "rehabilitation",
-    "expectedAnchorPrefix": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11/организация-и-план-наблюдения",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11/приложение/порядок-прохождения-несовершеннолетними-диспансерного-наблюдения-в-том-числе-в-п",
     "category": "dispensary-observation"
   },
   {
@@ -40,7 +40,7 @@
     "expectedDocumentNumber": "192н",
     "expectedPublicationNumber": "0001202505190026",
     "expectedSectionType": "rehabilitation",
-    "expectedAnchorPrefix": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11/организация-и-план-наблюдения",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11/приложение/порядок-прохождения-несовершеннолетними-диспансерного-наблюдения-в-том-числе-в-п",
     "category": "dispensary-observation"
   },
   {
@@ -51,7 +51,7 @@
     "expectedDocumentNumber": "192н",
     "expectedPublicationNumber": "0001202505190026",
     "expectedSectionType": "routing",
-    "expectedAnchorPrefix": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11/маршрутизация-к-специалисту",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11/приложение/порядок-прохождения-несовершеннолетними-диспансерного-наблюдения-в-том-числе-в-п",
     "category": "dispensary-observation"
   },
   {
@@ -62,7 +62,7 @@
     "expectedDocumentNumber": "211н",
     "expectedPublicationNumber": "0001202505230032",
     "expectedSectionType": "other",
-    "expectedAnchorPrefix": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14/цели-и-согласие",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14-reviewed-2026-07-31/приложение-no-1/порядок-прохождения-несовершеннолетними-профилактических-медицинских-осмотров",
     "category": "preventive-exam"
   },
   {
@@ -73,7 +73,7 @@
     "expectedDocumentNumber": "211н",
     "expectedPublicationNumber": "0001202505230032",
     "expectedSectionType": "other",
-    "expectedAnchorPrefix": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14/информирование-и-защита-несовершеннолетнего",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14-reviewed-2026-07-31/приложение-no-1/порядок-прохождения-несовершеннолетними-профилактических-медицинских-осмотров",
     "category": "preventive-exam"
   },
   {
@@ -84,7 +84,7 @@
     "expectedDocumentNumber": "211н",
     "expectedPublicationNumber": "0001202505230032",
     "expectedSectionType": "other",
-    "expectedAnchorPrefix": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14/организация-проведения",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14-reviewed-2026-07-31/приложение-no-1/порядок-прохождения-несовершеннолетними-профилактических-медицинских-осмотров",
     "category": "preventive-exam"
   },
   {
@@ -95,7 +95,7 @@
     "expectedDocumentNumber": "211н",
     "expectedPublicationNumber": "0001202505230032",
     "expectedSectionType": "other",
-    "expectedAnchorPrefix": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14/планирование-и-направление",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14-reviewed-2026-07-31/приложение-no-1/порядок-прохождения-несовершеннолетними-профилактических-медицинских-осмотров",
     "category": "preventive-exam"
   },
   {
@@ -106,7 +106,7 @@
     "expectedDocumentNumber": "211н",
     "expectedPublicationNumber": "0001202505230032",
     "expectedSectionType": "other",
-    "expectedAnchorPrefix": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14/планирование-и-направление",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.211n-2025@211n-2025-04-14-reviewed-2026-07-31/приложение-no-1/порядок-прохождения-несовершеннолетними-профилактических-медицинских-осмотров",
     "category": "preventive-exam"
   },
   {
@@ -143,7 +143,7 @@
     "expectedDocumentNumber": "323-ФЗ",
     "expectedPublicationNumber": "0001201111220007",
     "expectedSectionType": "other",
-    "expectedAnchorPrefix": "regulatory.rf.federal-law.323-fz-2011@323-fz-2011-11-21-reviewed-2026-07-30/информированное-добровольное-согласие-и-отказ",
+    "expectedAnchorPrefix": "regulatory.rf.federal-law.323-fz-2011@323-fz-2011-11-21-reviewed-2026-07-30/федеральный-закон-no-323-фз/глава-4-права-и-обязанности-граждан-в-сфере-охраны-здоровья/статья-20-информированное-добровольное-согласие-на-медицинское-вмешательство-и-н",
     "requireTop1": true,
     "category": "patient-rights"
   },
@@ -155,7 +155,7 @@
     "expectedDocumentNumber": "323-ФЗ",
     "expectedPublicationNumber": "0001201111220007",
     "expectedSectionType": "other",
-    "expectedAnchorPrefix": "regulatory.rf.federal-law.323-fz-2011@323-fz-2011-11-21-reviewed-2026-07-30/медицинская-тайна",
+    "expectedAnchorPrefix": "regulatory.rf.federal-law.323-fz-2011@323-fz-2011-11-21-reviewed-2026-07-30/федеральный-закон-no-323-фз/глава-2-основные-принципы-охраны-здоровья/статья-13-соблюдение-врачебной-тайны",
     "category": "patient-rights"
   },
   {
@@ -166,7 +166,7 @@
     "expectedDocumentNumber": "323-ФЗ",
     "expectedPublicationNumber": "0001201111220007",
     "expectedSectionType": "other",
-    "expectedAnchorPrefix": "regulatory.rf.federal-law.323-fz-2011@323-fz-2011-11-21-reviewed-2026-07-30/информация-о-состоянии-здоровья",
+    "expectedAnchorPrefix": "regulatory.rf.federal-law.323-fz-2011@323-fz-2011-11-21-reviewed-2026-07-30/федеральный-закон-no-323-фз/глава-4-права-и-обязанности-граждан-в-сфере-охраны-здоровья/статья-22-информация-о-состоянии-здоровья",
     "category": "patient-rights"
   },
   {
@@ -177,7 +177,7 @@
     "expectedDocumentNumber": "323-ФЗ",
     "expectedPublicationNumber": "0001201111220007",
     "expectedSectionType": "other",
-    "expectedAnchorPrefix": "regulatory.rf.federal-law.323-fz-2011@323-fz-2011-11-21-reviewed-2026-07-30/совместное-пребывание-с-ребенком-в-стационаре",
+    "expectedAnchorPrefix": "regulatory.rf.federal-law.323-fz-2011@323-fz-2011-11-21-reviewed-2026-07-30/федеральный-закон-no-323-фз/глава-6-охрана-здоровья-матери-и-ребенка-вопросы-семьи-и-репродуктивного-здоровь",
     "category": "patient-rights"
   },
   {
@@ -188,19 +188,19 @@
     "expectedDocumentNumber": "157-ФЗ",
     "expectedPublicationNumber": "СЗ РФ 1998 № 38 ст. 4736",
     "expectedSectionType": "prevention",
-    "expectedAnchorPrefix": "regulatory.rf.federal-law.157-fz-1998@157-fz-1998-09-17-reviewed-2026-07-30/права-граждан-и-отказ-от-профилактической-прививки",
+    "expectedAnchorPrefix": "regulatory.rf.federal-law.157-fz-1998@157-fz-1998-09-17-reviewed-2026-07-30/федеральный-закон-no-157-фз/глава-ii-государственная-политика-в-области-иммунопрофилактики-права-и-обязаннос/статья-5-права-и-обязанности-граждан-при-осуществлении-иммунопрофилактики",
     "requireTop1": true,
     "category": "vaccination-law"
   },
   {
     "id": "regulatory.157fz.school-restriction",
-    "query": "Могут ли временно не принять непривитого ребенка в школу или детский сад при угрозе эпидемии",
+    "query": "Могут ли временно отказать в приеме в школу или детский сад непривитому ребенку при угрозе эпидемии",
     "expectedDocumentId": "regulatory.rf.federal-law.157-fz-1998",
     "expectedVersionId": "regulatory.rf.federal-law.157-fz-1998@157-fz-1998-09-17-reviewed-2026-07-30",
     "expectedDocumentNumber": "157-ФЗ",
     "expectedPublicationNumber": "СЗ РФ 1998 № 38 ст. 4736",
     "expectedSectionType": "prevention",
-    "expectedAnchorPrefix": "regulatory.rf.federal-law.157-fz-1998@157-fz-1998-09-17-reviewed-2026-07-30/возможные-последствия-отсутствия-профилактической-прививки",
+    "expectedAnchorPrefix": "regulatory.rf.federal-law.157-fz-1998@157-fz-1998-09-17-reviewed-2026-07-30/федеральный-закон-no-157-фз/глава-ii-государственная-политика-в-области-иммунопрофилактики-права-и-обязаннос/статья-5-права-и-обязанности-граждан-при-осуществлении-иммунопрофилактики",
     "category": "vaccination-law"
   },
   {
@@ -211,7 +211,7 @@
     "expectedDocumentNumber": "157-ФЗ",
     "expectedPublicationNumber": "СЗ РФ 1998 № 38 ст. 4736",
     "expectedSectionType": "prevention",
-    "expectedAnchorPrefix": "regulatory.rf.federal-law.157-fz-1998@157-fz-1998-09-17-reviewed-2026-07-30/условия-проведения-профилактических-прививок",
+    "expectedAnchorPrefix": "regulatory.rf.federal-law.157-fz-1998@157-fz-1998-09-17-reviewed-2026-07-30/федеральный-закон-no-157-фз/глава-iv-организационные-основы-деятельности-в-области-иммунопрофилактики/статья-11-требования-к-проведению-профилактических-прививок",
     "category": "vaccination-law"
   },
   {
@@ -222,7 +222,7 @@
     "expectedDocumentNumber": "157-ФЗ",
     "expectedPublicationNumber": "СЗ РФ 1998 № 38 ст. 4736",
     "expectedSectionType": "other",
-    "expectedAnchorPrefix": "regulatory.rf.federal-law.157-fz-1998@157-fz-1998-09-17-reviewed-2026-07-30/учет-прививок-и-отказов",
+    "expectedAnchorPrefix": "regulatory.rf.federal-law.157-fz-1998@157-fz-1998-09-17-reviewed-2026-07-30/федеральный-закон-no-157-фз/глава-iv-организационные-основы-деятельности-в-области-иммунопрофилактики/статья-17-государственное-статистическое-наблюдение-в-области-иммунопрофилактики",
     "category": "vaccination-law"
   },
   {
@@ -233,7 +233,7 @@
     "expectedDocumentNumber": "1122н",
     "expectedPublicationNumber": "0001202112200070",
     "expectedSectionType": "prevention",
-    "expectedAnchorPrefix": "regulatory.rf.minzdrav.1122n-2021@1122n-2021-12-06-amended-2024-09-01/национальный-календарь-профилактических-прививок",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.1122n-2021@1122n-2021-12-06-amended-2024-09-01/приказ-no-1122н",
     "requireTop1": true,
     "category": "vaccination-calendar"
   },
@@ -245,7 +245,7 @@
     "expectedDocumentNumber": "1122н",
     "expectedPublicationNumber": "0001202112200070",
     "expectedSectionType": "prevention",
-    "expectedAnchorPrefix": "regulatory.rf.minzdrav.1122n-2021@1122n-2021-12-06-amended-2024-09-01/профилактические-прививки-по-эпидемическим-показаниям",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.1122n-2021@1122n-2021-12-06-amended-2024-09-01/приказ-no-1122н",
     "category": "vaccination-calendar"
   },
   {
@@ -256,7 +256,7 @@
     "expectedDocumentNumber": "1122н",
     "expectedPublicationNumber": "0001202112200070",
     "expectedSectionType": "prevention",
-    "expectedAnchorPrefix": "regulatory.rf.minzdrav.1122n-2021@1122n-2021-12-06-amended-2024-09-01/порядок-проведения-профилактических-прививок",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.1122n-2021@1122n-2021-12-06-amended-2024-09-01/приказ-no-1122н",
     "category": "vaccination-calendar"
   },
   {

@@ -224,3 +224,28 @@ aliases:
     alias: медицинская помощь в школе приказ
     category: school-medicine
     weight: 1.45
+  - id: alias.regulatory.child-care-school-order
+    canonicalTerm: порядок оказания медицинской помощи несовершеннолетним в образовательных организациях приказ 213н медицинский пункт школы
+    alias: приказ регулирует медицинскую помощь ребенку школе детском саду
+    category: school-medicine
+    weight: 1.45
+  - id: alias.regulatory.child-care-school-emergency
+    canonicalTerm: неотложная помощь несовершеннолетнему в образовательной организации приказ 213н медицинский работник вызов скорой помощи
+    alias: ребенку стало плохо на уроке кто вызывает скорую в школе
+    category: school-medicine
+    weight: 1.4
+  - id: alias.regulatory.unvaccinated-child-epidemic
+    canonicalTerm: отсутствие профилактических прививок запрет на посещение образовательных организаций при угрозе эпидемий статья 5 157-ФЗ
+    alias: непривитого ребенка школу детский сад эпидемии
+    category: vaccination
+    weight: 1.35
+  - id: alias.regulatory.child-health-group-frequent-illness
+    canonicalTerm: II группа здоровья детей часто и длительно болеющие острыми респираторными заболеваниями приказ 211н комплексная оценка состояния здоровья
+    alias: ребенок часто длительно болеет ОРИ группа здоровья
+    category: child-health
+    weight: 1.4
+  - id: alias.regulatory.tb-suspicion-timing
+    canonicalTerm: срок обследования при подозрении на туберкулез у детей приказ 190н дальнейшее обследование врач-фтизиатр
+    alias: срок дальнейшее обследование изменениях подозрительных на туберкулез
+    category: tuberculosis
+    weight: 1.3
