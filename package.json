@@ -21,7 +21,7 @@
     "clean": "bun scripts/clean.mjs",
     "format": "biome format --write .",
     "lint": "biome lint .",
-    "check": "biome check .",
+    "check": "biome check . && bun scripts/check-tracked-paths.mjs",
     "check:write": "biome check --write .",
     "typecheck": "bun run --filter '@localmed/*' --if-present typecheck",
     "test:unit": "bun run content:restore:core && vitest run",

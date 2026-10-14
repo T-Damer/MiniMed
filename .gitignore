@@ -10,6 +10,8 @@ test-results/
 .playwright-mcp/
 .firecrawl/
 output/
+# A root `output` symlink too: `output/` matches only a directory (2026-10-14).
+/output
 .astro/
 .cache/
 .local/
