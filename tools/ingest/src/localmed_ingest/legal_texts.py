@@ -652,6 +652,8 @@ class ActText:
     pages: list[dict[str, Any]]
     pending_pages: list[int]
     blocks: list[Block]
+    unfit: list[str] = field(default_factory=list)
+    """Requirement blocks whose rows could not be labelled (a review item)."""
 
 
 def reconcile_act(
@@ -725,14 +727,134 @@ def rejoin_wrapped_words(blocks: list[Block]) -> int:
     return joined_count
 
 
-def build_act_text(results: list[PageResult], identity: ActIdentity) -> ActText:
+_SPECIALTY_LINE: Final = re.compile(r"^(?:#{1,6}\s*)?\*{0,2}(Специальность\s+«.+?»)\*{0,2}\s*$")
+
+
+def label_rows_markdown(text: str, labels: tuple[str, ...]) -> str:
+    """One layout for the labelled rows of a requirements act («Уровень профессионального образования», …).
+
+    Marker reads the same two-column rows as a table, as «**Label** text», as «Label      text» or as a
+    heading followed by the text; the page's text stays what it is, only the shape becomes one: a heading
+    «Специальность «X»» and a paragraph «**Label.** text» per row. A row cut by a page break has its label cut
+    too: the beginning on one page («Уровень») is completed to the label, which the act prints as one cell; the
+    end on the next («профессионального образования») is dropped and its text continues the paragraph above.
+    """
+    lowered = [label.lower() for label in labels]
+
+    def label_of(candidate: str, *, partial: bool) -> tuple[str, str] | None:
+        """(label, 'whole' | 'head' | 'tail') for a cell that is a label or, with `partial`, a part of one."""
+        plain = re.sub(r"[*#]", "", candidate).strip().rstrip(".:").lower()
+        for label, low in zip(labels, lowered, strict=True):
+            if plain == low:
+                return label, "whole"
+            if partial and len(plain) >= 6 and low.startswith(plain):
+                return label, "head"
+            if partial and len(plain) >= 8 and low.endswith(plain):
+                return label, "tail"
+        return None
+
+    output: list[str] = []
+    pending: tuple[str, str] | None = None
+
+    def emit(found: tuple[str, str], value: str) -> None:
+        label, part = found
+        if part == "tail":
+            output.extend(["", value, ""])
+        else:
+            output.extend(["", f"**{label}.** {value}".rstrip(), ""])
+
+    for line in text.split("\n"):
+        stripped = line.strip()
+        if not stripped:
+            output.append("")
+            continue
+        if _TABLE_SEPARATOR.match(stripped):
+            continue
+        specialty = _SPECIALTY_LINE.match(stripped)
+        if specialty:
+            pending = None
+            output.extend(["", "### " + specialty.group(1), ""])
+            continue
+        if _TABLE_LINE.match(stripped):
+            cells = _split_row(stripped)
+            found = label_of(cells[0], partial=True) if cells else None
+            if found and len(cells) >= 2:
+                emit(found, "\n\n".join(part for part in cells[1].split("\n") if part))
+                continue
+        multispace = re.match(r"^(\*{0,2}[^|*]+?\*{0,2})\s{3,}(\S.*)$", stripped)
+        if multispace and (found := label_of(multispace.group(1), partial=True)):
+            emit(found, multispace.group(2))
+            continue
+        bold = re.match(r"^\*\*(.+?)\*\*\s*(\S.*)$", stripped)
+        if bold and (found := label_of(bold.group(1), partial=True)):
+            emit(found, bold.group(2))
+            continue
+        if re.match(r"^#{1,6}\s", stripped) or stripped.startswith("**"):
+            found = label_of(stripped, partial=True)
+            if found:
+                pending = found
+                continue
+        if pending is not None:
+            emit(pending, stripped)
+            pending = None
+            continue
+        output.append(line)
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(output))
+
+
+def label_specialty_rows(blocks: list[Block]) -> list[str]:
+    """Put the row labels back on a requirements act read without its label column (`legal_unlabel`).
+
+    Under each «Специальность «X»» heading the paragraphs are the three rows of the table in order; the label of
+    each paragraph comes from `row_labels`. A block that does not fit the pattern is left as it is and named in
+    the result, so that the review sees it.
+    """
+    from .legal_unlabel import row_labels
+
+    unfit: list[str] = []
+    index = 0
+    while index < len(blocks):
+        block = blocks[index]
+        if block.kind != "heading" or not block.text.startswith("Специальность «"):
+            index += 1
+            continue
+        end = index + 1
+        while end < len(blocks) and blocks[end].kind != "heading":
+            end += 1
+        members = [
+            blocks[i]
+            for i in range(index + 1, end)
+            if blocks[i].kind == "paragraph" and not blocks[i].text.startswith("(")
+        ]
+        if any(m.text.startswith(("Уровень профессионального", "Должности.")) for m in members):
+            index = end
+            continue  # a block that kept its printed labels
+        labels = row_labels([m.text for m in members])
+        if labels is None:
+            unfit.append(block.text)
+        else:
+            previous = ""
+            for member, label in zip(members, labels, strict=True):
+                if label != previous:
+                    member.text = f"{label}. {member.text}"
+                previous = label
+        index = end
+    return unfit
+
+
+def build_act_text(
+    results: list[PageResult], identity: ActIdentity, *, label_rows: tuple[str, ...] = ()
+) -> ActText:
     pages: list[list[Block]] = []
     pending_pages: list[int] = []
     for result in results:
         reviewed = result.status == "reviewed"
         pending = result.status == "review"
         confidence = "low" if pending and result.confidence == "low" else result.confidence
-        blocks = parse_blocks(clean_marker_markdown(result.text), result.page, confidence, reviewed)
+        cleaned = clean_marker_markdown(result.text)
+        if label_rows:
+            cleaned = label_rows_markdown(cleaned, label_rows)
+        blocks = parse_blocks(cleaned, result.page, confidence, reviewed)
         if pending and blocks:
             blocks[0].pending = [
                 f"page {result.page}: " + ", ".join(sorted({f.kind for f in result.flags}))
@@ -740,6 +862,7 @@ def build_act_text(results: list[PageResult], identity: ActIdentity) -> ActText:
             pending_pages.append(result.page)
         pages.append(blocks)
     blocks = structure(merge_pages(pages), identity)
+    unfit_blocks = label_specialty_rows(blocks) if label_rows else []
     rejoin_wrapped_words(blocks)
     body = render_blocks(blocks)
     provenance = [
@@ -756,7 +879,7 @@ def build_act_text(results: list[PageResult], identity: ActIdentity) -> ActText:
         }
         for result in results
     ]
-    return ActText(body, provenance, pending_pages, blocks)
+    return ActText(body, provenance, pending_pages, blocks, unfit_blocks)
 
 
 def build_text_source_act(markdown: str, identity: ActIdentity, *, cut_header: bool) -> ActText:
@@ -830,6 +953,7 @@ __all__ = [
     "build_act_text",
     "build_text_source_act",
     "identity_from_file",
+    "label_rows_markdown",
     "merge_pages",
     "parse_blocks",
     "read_marker_pages",

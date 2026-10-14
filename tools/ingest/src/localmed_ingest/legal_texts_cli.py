@@ -235,7 +235,7 @@ def sources(data_root: DataRoot, pause: float = 1.0) -> None:
     for (
         row
     ) in rows:  # what other commands recorded about an act survives a refresh of the checksums
-        for key in ("rotatedPages", "rotatedPagesManual"):
+        for key in ("rotatedPages", "rotatedPagesManual", "labelRows"):
             if key in kept.get(row["documentId"], {}):
                 row[key] = kept[row["documentId"]][key]
     SOURCES.parent.mkdir(parents=True, exist_ok=True)
@@ -306,6 +306,47 @@ def upright(
     SOURCES.write_text(_json.dumps(sources_doc, ensure_ascii=False, indent=1) + "\n")
 
 
+@app.command()
+def unlabel(
+    data_root: DataRoot, names: Annotated[list[str] | None, typer.Argument()] = None
+) -> None:
+    """Paint the label column of the two-column requirement tables white and read the copy with Vision.
+
+    The copy is `derived/<stem>-nolabel.pdf`, its Vision reading `vision/<stem>-nolabel.json`; Marker reads
+    the copy as the job `<stem>-nolabel` (see `legal_unlabel`). Acts are those with `labelRows` in sources.json.
+    """
+    import subprocess
+
+    from .legal_unlabel import paint_labels
+
+    paths = Paths(data_root)
+    for row in _load_sources()["acts"]:
+        if not row.get("labelRows") or (names and not {row["stem"], row["slug"]} & set(names)):
+            continue
+        derived = paths.work / "derived"
+        derived.mkdir(parents=True, exist_ok=True)
+        source = paths.raw / row["file"]
+        # a rotated scan is painted in its upright copy
+        upright = derived / f"{row['stem']}-upright.pdf"
+        base = upright if upright.exists() and row.get("rotatedPages") else source
+        target = derived / f"{row['stem']}-nolabel.pdf"
+        vision_in = (
+            paths.work / f"vision/{row['stem']}-upright.json"
+            if base == upright
+            else paths.work / f"vision/{row['stem']}.json"
+        )
+        foreign = paint_labels(base, vision_in, target)
+        result = subprocess.run(
+            [str(paths.work / "bin/vision_ocr"), str(target)], capture_output=True, check=True
+        )
+        (paths.work / f"vision/{row['stem']}-nolabel.json").write_bytes(result.stdout)
+        typer.echo(
+            f"{row['slug']}: painted copy {target.name}; left-edge lines that are not labels:"
+        )
+        for page, lines in sorted(foreign.items()):
+            typer.echo(f"  page {page}: {lines}")
+
+
 @app.command("fetch-text")
 def fetch_text(data_root: DataRoot) -> None:
     """Download the text sources (rg.ru HTML, IPS HTML) that are not scans; the checksum goes into sources.json."""
@@ -334,14 +375,19 @@ def _inputs(
     paths: Paths, row: dict[str, Any]
 ) -> tuple[dict[int, str | None], dict[int, list[str]]]:
     stem = row["stem"]
-    vision = read_vision_pages(paths.work / f"vision/{stem}.json")
+    painted = row.get("labelRows") and (paths.work / f"marker/{stem}-nolabel").exists()
+    vision = read_vision_pages(
+        paths.work / (f"vision/{stem}-nolabel.json" if painted else f"vision/{stem}.json")
+    )
     if row.get("markerSource") == "pdf-layer":
         from .legal_layer import document_pages
 
         layer = document_pages(str(paths.raw / row["file"]))
         marker: dict[int, str | None] = {page: layer.get(page) for page in vision}
     else:
-        marker = read_marker_pages(paths.work / f"marker/{stem}", len(vision))
+        marker = read_marker_pages(
+            paths.work / (f"marker/{stem}-nolabel" if painted else f"marker/{stem}"), len(vision)
+        )
     sideways = row.get("rotatedPages", [])
     if sideways:  # a table scanned sideways is read from its upright copy
         upright = read_vision_pages(paths.work / f"vision/{stem}-upright.json")
@@ -552,7 +598,9 @@ def assemble(
             )
             if pending and strict:
                 _fail(f"{row['slug']}: flagged pages without a review verdict: {pending}")
-            act = build_act_text(results, identity)
+            act = build_act_text(results, identity, label_rows=tuple(row.get("labelRows", ())))
+            if act.unfit:
+                typer.echo(f"{row['slug']}: requirement blocks not labelled: {act.unfit}")
             page_count: int | None = len(results)
             flagged = sum(1 for r in results if r.flags)
             reviewed = sum(1 for r in results if r.status == "reviewed")

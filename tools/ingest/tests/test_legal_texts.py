@@ -147,6 +147,40 @@ def test_a_wrapped_word_is_rejoined_only_when_the_act_prints_the_whole_word() ->
     assert "номенклатурной классификации номенклатурной" in table.rows[1][2]
 
 
+def test_label_rows_take_one_shape_whatever_marker_made_of_them() -> None:
+    from localmed_ingest.legal_texts import label_rows_markdown
+
+    labels = ("Уровень профессионального образования", "Должности")
+    text = "\n".join(
+        [
+            "Специальность «Авиационная медицина»",
+            "",
+            "| Уровень профессионального образования | Высшее⏎Ординатура |",
+            "|---|---|",
+            "",
+            "#### Специальность «Гигиена труда»",
+            "",
+            "Должности      Врач по гигиене труда",
+            "",
+            "**Уровень профессионального образования** Высшее образование",
+            "",
+            "#### Уровень профессионального",
+            "",
+            "Высшее образование – специалитет",
+            "",
+            "Обычный абзац.",
+        ]
+    )
+    result = label_rows_markdown(text, labels)
+    assert "### Специальность «Авиационная медицина»" in result
+    assert "**Уровень профессионального образования.** Высшее\n\nОрдинатура" in result
+    assert "### Специальность «Гигиена труда»" in result
+    assert "**Должности.** Врач по гигиене труда" in result
+    assert "**Уровень профессионального образования.** Высшее образование\n" in result
+    assert "**Уровень профессионального образования.** Высшее образование – специалитет" in result
+    assert "Обычный абзац." in result
+
+
 def test_act_text_has_portal_title_annex_sections_and_no_empty_section(tmp_path: Path) -> None:
     results, _pending = reconcile_act(
         {1: PAGE1, 2: PAGE2, 3: PAGE3, 4: PAGE4}, vision_for(1, 2, 3, 4), IDENTITY
