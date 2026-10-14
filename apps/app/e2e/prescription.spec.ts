@@ -62,7 +62,8 @@ test('a 20 kg child: amoxicillin and metronidazole are quoted while computed dos
   // The instruction is not installed yet: the offer names its group and its size.
   await expect(page.getByTestId('prescription-not-installed')).toBeVisible({ timeout: 90_000 });
   const offer = page.locator('.safety-card__offer-button');
-  await expect(offer).toContainText(/Скачать инструкции группы .* · \d/u, { timeout: 60_000 });
+  await expect(offer).toContainText(/^Скачать · \d/u, { timeout: 60_000 });
+  await expect(page.locator('.module-offer__subtitle')).toContainText('Инструкции группы');
   await shoot(page, 'not-installed');
   await offer.click({ force: true });
 
@@ -139,7 +140,8 @@ test('the search card answers «метронидазол 6 лет 20 кг», ope
   // The instruction is not installed: the card offers it in place, with its size.
   await pickProduct(card, /таблетки/u);
   const offer = card.locator('.safety-card__offer-button');
-  await expect(offer).toContainText(/Скачать инструкции группы .* · \d/u, { timeout: 90_000 });
+  await expect(offer).toContainText(/^Скачать · \d/u, { timeout: 90_000 });
+  await expect(card.locator('.module-offer__subtitle')).toContainText('Инструкции группы');
   await shoot(page, 'search-card-offer');
   await offer.dispatchEvent('click');
 

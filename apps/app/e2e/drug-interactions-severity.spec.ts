@@ -44,8 +44,8 @@ test('a pair gets no label without the module, and a labelled, sourced one after
   // licence are named once the labels are installed (the source block below).
   await expect(page.getByTestId('interaction-severity')).toHaveCount(0);
   const offer = page.getByTestId('severity-offer');
-  await expect(offer).toContainText('Скачать метки степени риска', { timeout: 60_000 });
-  await expect(offer).toContainText(/\d+\s*КБ/u);
+  await expect(offer).toContainText('Метки степени риска', { timeout: 60_000 });
+  await expect(offer).toContainText(/Скачать · \d+\s*КБ/u);
   await expect(offer).not.toContainText('CC BY-NC-SA 4.0');
   await expect(page.getByTestId('severity-source')).toHaveCount(0);
   await shoot(page, 'severity-offer');

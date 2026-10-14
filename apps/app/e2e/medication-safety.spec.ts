@@ -48,7 +48,8 @@ test('a pregnancy question shows the instruction sentences, never an answer of i
   await expect(page.getByTestId('safety-not-installed')).toBeVisible({ timeout: 60_000 });
   // The dose card of the prescription tool offers the same group download: take the safety card's.
   const offer = card.locator('.safety-card__offer-button');
-  await expect(offer).toContainText('Скачать инструкции группы', { timeout: 60_000 });
+  await expect(offer).toContainText(/^Скачать · \d/u, { timeout: 60_000 });
+  await expect(card.locator('.module-offer__subtitle')).toContainText('Инструкции группы');
   await shoot(page, 'not-installed');
   await offer.click({ force: true });
 

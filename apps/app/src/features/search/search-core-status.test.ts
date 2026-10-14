@@ -21,6 +21,17 @@ const idle: CoreSessionSnapshot = {
 };
 
 describe('search core status', () => {
+  it('says the download waits for the network instead of showing an endless download', () => {
+    const offline = searchCoreStatus({ ...idle, downloading: true, waitingForNetwork: true });
+    expect(offline).toEqual({ kind: 'offline' });
+    expect(searchCoreStatusLabel(offline ?? { kind: 'verifying' })).toBe('Нет сети');
+    expect(searchCoreStatusDetail(offline ?? { kind: 'verifying' })).toContain(
+      'скачается сама, когда появится соединение',
+    );
+    // An error still wins: the offline wait is not a failure.
+    expect(searchCoreStatus({ ...idle, error: 'x', waitingForNetwork: true })?.kind).toBe('error');
+  });
+
   it('disappears once the core is ready, whatever else the session still reports', () => {
     expect(searchCoreStatus({ ...idle, ready: true, error: 'x', downloading: true })).toBe(
       undefined,

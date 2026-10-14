@@ -336,10 +336,12 @@
 }
 
 .onboarding-intro__choice-title {
+  display: block;
   font-weight: 600;
 }
 
 .onboarding-intro__choice-note {
+  display: block;
   font-size: 0.8125rem;
   font-weight: 400;
   opacity: 0.85;

@@ -372,14 +372,10 @@
   padding: 0.8rem 1rem;
 }
 
-.drug-interactions__offer {
-  display: flex;
-}
-
+/* The offer's own layout (a compact button, its subtitle under it) is `.module-offer`. */
 .drug-interactions__offer-button,
 .drug-interactions__severity-offer-button {
   max-width: 100%;
-  white-space: normal;
 }
 
 .drug-interactions__severity {

@@ -161,6 +161,7 @@ export function App(): JSX.Element {
       waitingToStart: session.coreWaitingToStart(),
       downloadRequired: session.coreDownloadRequired(),
       downloading: session.coreDownloading(),
+      waitingForNetwork: session.coreWaitingForNetwork(),
       progress: session.coreProgress(),
       slow: session.bootSlow(),
     }),

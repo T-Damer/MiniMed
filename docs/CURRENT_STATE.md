@@ -57,6 +57,67 @@ above it small and calm. Measured on «Вермокс» with the ГРЛС instru
   (`ComparisonSources`) and of the recipe card, in small text.
 - Not changed: the stored module text (the identifier lines are hidden at display, not rewritten —
   a module rebuild would drop them), the other document readers (DOC-UI1).
+## Downloads and modules — 2026-10-14 (STATE DL1)
+
+Source: the «Downloads and modules» findings of [qa-haiku-2026-10-14](research/qa-haiku-2026-10-14.md)
+and the owner decisions of the same day.
+
+- **Nothing downloads before the person chooses (owner 2026-10-14).** The first launch no longer
+  starts the main database by itself. The onboarding's last intro scene asks «Что скачать сейчас?»:
+  «Скачать всё · N» (recommended: the main database, every released content module and the
+  130 MB meaning-search model; the image packs stay out — a pack whose download is ≥ 90 % source
+  assets, today the Allmed packaging photos — and are offered separately), «Только основа · 76 МБ»,
+  «Позже». Sizes come from the catalog through `formatModuleBytes` (`features/setup/full-download.ts`
+  is the pure plan, `use-full-download.ts` queues it; a module added to the catalog, such as the
+  regulatory pack of REG2, is included without special-casing). The catalog (~10 MB) is read only
+  when the choice scene is reached. «Позже» leaves «Скачать» on the progress line, in search and
+  on the boot screen; Settings → Загрузки has the same «Скачать всё · N» card.
+- **Consent.** `minimed:core-download-consent:v1` (`features/setup/setup-state.ts`) is set by every
+  button that starts the base download and read by `use-app-session.ts`; with it a later launch
+  (a reload mid-download) continues without asking. A retained partial download resumes as before.
+  E2E mounts set it through `mountBuiltApp` (the same preference the buttons set, not a UI branch).
+  The old «metered connection only» rule is gone; the connection hint now only gates the catalog
+  refresh.
+- **Cancel / pause of the first-launch download — what exists.** The core download is a `core`
+  task of the shared queue: the bottom pie (`ContentDownloadNavIndicator`) opens Settings →
+  Загрузки, where each task has «Отменить» and the page has «Отменить все»; a cancelled or failed
+  core offers «Повторить» there and on the boot screen, and a retained partial file resumes. The
+  onboarding progress line itself has no stop control and there is no separate «pause»: cancel +
+  retry is the pause. A real pause button is not built.
+- **One download state for every offer** (`features/downloads/module-download-view.ts`, hook
+  `use-module-download-view.ts`): derived from the persisted download queue (available on the
+  first frame), the module runtime's tasks once loaded and the durable install intents, so a
+  download that reached 30 % shows «Скачиваем · 30 %» immediately after leaving and reopening a
+  screen, and a reload shows «Продолжаем…» until the runtime picks it up. Unit-tested.
+  A download resumed after a reload now also connects to the search core when it completes
+  (`BrowserContentModuleRuntime.subscribeRecoveredInstalls`, used by `use-app-session.ts`).
+- **One compact offer per module** (`features/modules/ModuleDownloadOffer.tsx`, used by
+  `InstructionDownloadOffer`, `SafetyDownloadOffer`, `SeverityDownloadOffer`): «Скачать · 37 МБ» with
+  the group as a small line under the button; the first offer created for a module on a screen
+  draws, the rest stay hidden (`features/downloads/offer-claim.ts`), so the interaction and
+  comparison screens show one. The comparison copy no longer says «скачайте её ниже».
+- **Remove a downloaded section** (Settings → Загрузки): a trash button on any section row that has
+  something on the device, a confirmation that says what is freed, then
+  `ModuleInstaller.remove` → `BrowserContentModuleRuntime.remove` per module (registry + OPFS
+  pool + sweep) and `onContentChanged` (core reconnect). The plan (`section-removal.ts`) removes the
+  section's recommendations and the drug packages no other downloaded section names. A complete
+  section shows a check mark instead of a disabled checkbox.
+- **State labels.** A section row shows queue state from its own recommendations (and from its drug
+  groups only once those are installed), so a shared drug group in flight no longer marks every
+  other section «в очереди»; «скачивается…» replaces «в очереди» for work that has started. The
+  calculators' «Скачиваем модуль…» notice resolves the moment the download completes; connecting
+  the tools runs after it.
+- **Sizes.** Calculator and questionnaire downloads show the catalog size («Скачать · 3,4 МБ» on
+  the pack-required page, the questionnaire section header, the missing-test page, card tooltips).
+- **ATC tree.** Rows show state only («не скачано · 10 МБ», «в очереди», «скачивается · 40 %») and
+  counts only for an installed package; one «Скачать всё · N МБ» action replaces the 14 buttons; a
+  single group downloads from its own page.
+- **Offline first visit.** A download asked for while offline waits for the `online` event
+  («Нет сети … скачается сама»), a start-up failure that happened offline reloads once when the
+  network returns.
+- Tests: unit for the download view, offer claims, section removal and queue labels, ATC labels,
+  the full-download plan and the consent; e2e `download-offers`, `module-removal`, `core-offline`,
+  and the updated `boot-screen`, `onboarding`, `medication-atc-tree` specs.
 
 ## Regulatory full texts are a downloadable module — 2026-10-14 (STATE REG2)
 

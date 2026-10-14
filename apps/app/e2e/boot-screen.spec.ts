@@ -192,7 +192,10 @@ test('the first run asks what to download and fetches nothing before the choice'
   await page.setViewportSize({ width: 375, height: 812 });
   const coreRequests: string[] = [];
   page.on('request', (request) => {
-    if (/\/core\.db(\.gz)?(\?|$)/u.test(request.url())) coreRequests.push(request.url());
+    // The start-up probe is a HEAD; only a real download is a GET.
+    if (request.method() === 'GET' && /\/core\.db(\.gz)?(\?|$)/u.test(request.url())) {
+      coreRequests.push(request.url());
+    }
   });
   await page.goto(`${process.env.MINIMED_LIVE_URL ?? E2E_ASSET_ORIGIN}/#/search`);
   const onboarding = page.getByRole('dialog', { name: 'Добро пожаловать в MiniMed' });

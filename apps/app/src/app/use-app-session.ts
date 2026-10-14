@@ -135,6 +135,7 @@ export function useAppSession() {
   let moduleRuntimeService: ModuleRuntimeService | undefined;
   let unsubscribeInstalledModules: (() => void) | undefined;
   let unsubscribeModuleRuntime: (() => void) | undefined;
+  let unsubscribeRecoveredInstalls: (() => void) | undefined;
   let stopButtonHaptics: (() => void) | undefined;
   let bootTimer: ReturnType<typeof setTimeout> | undefined;
   let reminderTimer: ReturnType<typeof setInterval> | undefined;
@@ -535,7 +536,14 @@ export function useAppSession() {
         .then(([catalog, runtimeService]) => {
           if (disposed) return;
           moduleRuntimeService = runtimeService;
-          bindModuleRuntime(runtimeService.getContentModuleRuntime(catalog));
+          const contentRuntime = runtimeService.getContentModuleRuntime(catalog);
+          bindModuleRuntime(contentRuntime);
+          // A download resumed after a reload has no screen waiting on it: connect it here.
+          unsubscribeRecoveredInstalls = contentRuntime.subscribeRecoveredInstalls(() => {
+            void connectInstalledModules().catch((cause: unknown) => {
+              console.warn('Продолженная загрузка не подключилась к поиску.', cause);
+            });
+          });
           unsubscribeModuleRuntime =
             runtimeService.subscribeContentModuleRuntime(bindModuleRuntime);
         })
@@ -585,6 +593,7 @@ export function useAppSession() {
     void apkTaskListener?.remove();
     unsubscribeInstalledModules?.();
     unsubscribeModuleRuntime?.();
+    unsubscribeRecoveredInstalls?.();
     stopButtonHaptics?.();
     if (coreToClose) void coreToClose.close();
     const activeSearchCore = searchCore();

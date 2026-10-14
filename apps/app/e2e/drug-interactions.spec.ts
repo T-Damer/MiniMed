@@ -69,7 +69,9 @@ test('a search for two drugs opens the tool, offers the instruction and quotes i
   await expect(page.getByTestId('interaction-side-status')).toHaveCount(0);
   const offer = pair.locator('.drug-interactions__offer-button');
   await expect(offer).toHaveCount(1, { timeout: 60_000 });
-  await expect(offer).toContainText('Скачать инструкции группы', { timeout: 60_000 });
+  // A compact button; the group it downloads is the small line under it, once per module.
+  await expect(offer).toContainText(/^Скачать · \d/u, { timeout: 60_000 });
+  await expect(pair.locator('.module-offer__subtitle')).toContainText('Инструкции группы');
   await shoot(page, 'not-installed');
   await offer.click({ force: true });
 

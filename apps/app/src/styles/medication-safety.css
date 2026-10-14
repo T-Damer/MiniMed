@@ -175,13 +175,9 @@
   text-underline-offset: var(--theme-text-underline-offset, 0.2em);
 }
 
-.safety-card__offer {
-  display: flex;
-}
-
+/* The offer's own layout (a compact button, its subtitle under it) is `.module-offer`. */
 .safety-card__offer-button {
   max-width: 100%;
-  white-space: normal;
 }
 
 .safety-card__choices {

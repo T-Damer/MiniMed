@@ -1,6 +1,7 @@
 import {
   type ContentModuleCatalog,
   type ContentModuleCatalogEntry,
+  type ContentModuleDownloadTask,
   hasDownloadableModuleIndex,
 } from '@localmed/contracts';
 import type { DownloadQueue } from '@/features/downloads/download-queue';
@@ -131,6 +132,8 @@ export function recoverPendingModuleInstalls(
   runtime: Pick<BrowserContentModuleRuntime, 'listTasks' | 'install'>,
   catalog: ContentModuleCatalog,
   installedModuleIds: ReadonlySet<string>,
+  /** Called with each install this recovery starts, so its result is not left unobserved. */
+  onStarted?: (task: ContentModuleDownloadTask) => void,
 ): void {
   for (const pending of listPendingModuleInstalls()) {
     if (
@@ -160,7 +163,8 @@ export function recoverPendingModuleInstalls(
       );
     if (activeTask) continue;
     try {
-      runtime.install(module);
+      const task = runtime.install(module);
+      onStarted?.(task);
     } catch (cause) {
       // One stale/unsupported job must not abort runtime construction or block the next job.
       discardPendingModuleInstall(pending.moduleId, pending.version);

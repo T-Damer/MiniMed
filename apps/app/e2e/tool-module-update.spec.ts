@@ -207,7 +207,7 @@ test('while the update cannot be fetched, an older installed tool module offers 
   await page.evaluate((route) => {
     window.location.hash = route;
   }, CALCULATOR_ROUTE);
-  await required.getByRole('button', { name: 'Скачать', exact: true }).click();
+  await required.getByRole('button', { name: /^Скачать(?: · [^·]+)?$/u }).click();
   await expect.poll(() => installedVersion(page), { timeout: 60_000 }).toBe(SHIPPED_VERSION);
   await expect(required).toHaveCount(0, { timeout: 30_000 });
   await expect(

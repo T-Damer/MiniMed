@@ -938,6 +938,7 @@ export class BrowserContentModuleRuntime {
   private readonly backend = new BrowserModuleBackend();
   private readonly installer: ForegroundContentModuleInstaller;
   private readonly retryTimers = new Map<string, number>();
+  private readonly recoveredInstallListeners = new Set<(task: ContentModuleDownloadTask) => void>();
   private readonly assessmentDependencyScans = new Map<string, Promise<void>>();
   private readonly assessmentDependencyGenerations = new Map<string, number>();
   private disposed = false;
@@ -949,6 +950,7 @@ export class BrowserContentModuleRuntime {
       this,
       this.catalog,
       new Set(this.listInstalled().map((module) => module.moduleId)),
+      (task) => this.watchRecoveredInstall(task),
     );
   };
 
@@ -1055,6 +1057,7 @@ export class BrowserContentModuleRuntime {
       this,
       catalog,
       new Set(this.listInstalled().map((module) => module.moduleId)),
+      (task) => this.watchRecoveredInstall(task),
     );
     const queue = getDownloadQueue();
     for (const task of queue
@@ -1107,6 +1110,24 @@ export class BrowserContentModuleRuntime {
     } catch (cause) {
       console.warn('Unable to reconcile stored module indexes.', cause);
     }
+  }
+
+  /**
+   * A download resumed by recovery (after a reload, or when the network returned) has no screen
+   * waiting on it: whoever connects installed content to the search core listens here.
+   */
+  public subscribeRecoveredInstalls(
+    listener: (task: ContentModuleDownloadTask) => void,
+  ): () => void {
+    this.recoveredInstallListeners.add(listener);
+    return () => this.recoveredInstallListeners.delete(listener);
+  }
+
+  private watchRecoveredInstall(task: ContentModuleDownloadTask): void {
+    void this.wait(task.id).then((finished) => {
+      if (finished.state !== 'completed' || this.disposed) return;
+      for (const listener of this.recoveredInstallListeners) listener(finished);
+    });
   }
 
   public whenLocalPackagedModulesReady(): Promise<void> {

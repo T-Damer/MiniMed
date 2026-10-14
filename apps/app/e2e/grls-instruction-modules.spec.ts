@@ -23,12 +23,9 @@ test('a drug without an official text offers the group instructions, then shows 
   });
 
   // The ATC tree downloads a missing ЕСКЛП group through the catalog's own queue.
-  await page.goto(`${E2E_ASSET_ORIGIN}/#/modules/documents/medications/atc`);
-  const group = page.locator('.atc-group').filter({
-    has: page.locator('.atc-row__code', { hasText: /^P$/u }),
-  });
-  await group.locator('.atc-group__action').click();
-  await expect(group.locator('button.atc-row')).toBeVisible({ timeout: 180_000 });
+  await page.goto(`${E2E_ASSET_ORIGIN}/#/modules/documents/medications/atc/P`);
+  await page.locator('.atc-group__action').click();
+  await expect(page.locator('.atc-tree__head-code')).toHaveText('P', { timeout: 180_000 });
 
   await page.goto(`${E2E_ASSET_ORIGIN}/#/modules/documents/medications/atc/P01BC`);
   const substance = page.locator('.atc-substance').first();
@@ -47,7 +44,8 @@ test('a drug without an official text offers the group instructions, then shows 
 
   // No instruction module is installed: the switch is disabled and the group is offered.
   const offer = page.locator('.document-medication-product__offer-button');
-  await expect(offer).toContainText('Скачать инструкции группы', { timeout: 60_000 });
+  await expect(offer).toContainText(/^Скачать · \d/u, { timeout: 60_000 });
+  await expect(page.locator('.module-offer__subtitle')).toContainText('Инструкции группы');
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/offer.png` });
   await offer.click({ force: true });
 

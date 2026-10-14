@@ -54,7 +54,8 @@ test('a product without its own text shows another registration’s text with a 
   // Level 1: Албендазол-Эдвансд has no text of its own; same МНН, form and strength exist.
   await openCatalogProduct(page, 'Албендазол-Эдвансд');
   const offer = page.locator('.document-medication-product__offer-button');
-  await expect(offer).toContainText('Скачать инструкции группы', { timeout: 60_000 });
+  await expect(offer).toContainText(/^Скачать · \d/u, { timeout: 60_000 });
+  await expect(page.locator('.module-offer__subtitle')).toContainText('Инструкции группы');
   await offer.click({ force: true });
 
   const fallback = page.locator('.document-instruction-fallback');

@@ -18,7 +18,7 @@ for (const available of [true, false]) {
       window.location.hash = '#/calculators/body-surface-area-mosteller';
     });
     const required = page.locator('.calculator-pack-required');
-    const download = required.getByRole('button', { name: 'Скачать', exact: true });
+    const download = required.getByRole('button', { name: /^Скачать(?: · [^·]+)?$/u });
     await expect(download).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Подключаем калькулятор' })).toHaveCount(0);
     expect(requests).toEqual([]);

@@ -7,6 +7,8 @@ import { expect, type Page, test } from '@playwright/test';
 import { E2E_ASSET_ORIGIN } from './mount-built-app';
 
 const ROOT = resolve(import.meta.dirname, '../../..');
+// The local release copies stay in the main checkout; an agent worktree (`<main>/.claude/worktrees/…`) reads them there.
+const DATA_ROOT = existsSync(resolve(ROOT, 'output')) ? ROOT : resolve(ROOT, '../../..');
 // Local copy of the published zstd indexes (docs/data-ledger.json keeps it as the release copy):
 // every КР module since the KD1 republish of 2026-10-11.
 const PUBLISHED_DIRECTORIES = ['output/module-zstd-kd1-2026-10-11'];
@@ -34,9 +36,9 @@ export async function routeClinicalModule(page: Page): Promise<void> {
   if (!artifact?.url) throw new Error(`Missing ${MODULE_ID} artifact`);
   const fileName = new URL(artifact.url).pathname.split('/').at(-1) ?? '';
   const localPath =
-    PUBLISHED_DIRECTORIES.map((directory) => resolve(ROOT, directory, fileName)).find((path) =>
+    PUBLISHED_DIRECTORIES.map((directory) => resolve(DATA_ROOT, directory, fileName)).find((path) =>
       existsSync(path),
-    ) ?? resolve(ROOT, PUBLISHED_DIRECTORIES[0] ?? '', fileName);
+    ) ?? resolve(DATA_ROOT, PUBLISHED_DIRECTORIES[0] ?? '', fileName);
   test.skip(!existsSync(localPath), `The published module file ${fileName} is local-only.`);
   const bytes = await readFile(localPath);
   expect(`sha256:${createHash('sha256').update(bytes).digest('hex')}`).toBe(artifact.sha256);

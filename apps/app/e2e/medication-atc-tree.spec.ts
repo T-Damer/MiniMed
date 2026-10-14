@@ -5,8 +5,10 @@ import { expect, test } from '@playwright/test';
 import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
 
 const ROOT = resolve(import.meta.dirname, '../../..');
+// The local release copies stay in the main checkout; an agent worktree (`<main>/.claude/worktrees/…`) reads them there.
+const DATA_ROOT = existsSync(resolve(ROOT, 'output')) ? ROOT : resolve(ROOT, '../../..');
 // Local copy of the published zstd index (docs/data-ledger.json keeps it as the release copy).
-const PUBLISHED_DIRECTORY = resolve(ROOT, 'output/module-zstd-2026-10-01/esklp-compacted');
+const PUBLISHED_DIRECTORY = resolve(DATA_ROOT, 'output/module-zstd-2026-10-01/esklp-compacted');
 const GROUP = process.env['UX4_GROUP'] ?? 'antiparasitic';
 const GROUP_FILE = `minimed.medications.${GROUP}.ru.db.zst`;
 const GROUP_CODES: Readonly<Record<string, string>> = {
@@ -50,14 +52,25 @@ test('the ATC tree downloads a group, drills down to a substance and deep-links'
   const installable = page.locator('.atc-group').filter({
     has: page.locator('.atc-row__code', { hasText: new RegExp(`^${GROUP_CODE}$`, 'u') }),
   });
-  const action = installable.locator('.atc-group__action');
-  await expect(action).toContainText('Скачать', { timeout: 60_000 });
+  // The list shows state only: no per-group buttons, no counts for a package that is not there,
+  // and a single «Скачать всё · N МБ» action for the whole tree.
+  await expect(installable.locator('.atc-row__meta')).toContainText(/^не скачано/u, {
+    timeout: 60_000,
+  });
+  await expect(page.locator('.atc-group__action')).toHaveCount(0);
+  await expect(page.getByTestId('atc-download-all')).toContainText(/^Скачать всё · \d/u);
+  await expect(installable.locator('.atc-row__meta')).not.toContainText('вещ');
+  // One group is downloaded from its own page.
   const code = GROUP_CODE;
+  await installable.locator('button.atc-row').click();
+  await expect(page).toHaveURL(new RegExp(`/atc/${code}$`, 'u'));
+  const action = page.locator('.atc-group__action');
+  await expect(action).toContainText('Скачать', { timeout: 60_000 });
   await action.click();
-  await expect(installable.locator('button.atc-row')).toBeVisible({ timeout: 120_000 });
-  await expect(installable.locator('.atc-row__meta')).toContainText('вещ');
+  await expect(page.locator('.atc-tree__head-code')).toHaveText(code, { timeout: 120_000 });
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/level1-installed.png` });
-
+  await page.goBack();
+  await expect(installable.locator('.atc-row__meta')).toContainText('вещ');
   await installable.locator('button.atc-row').click();
   await expect(page).toHaveURL(new RegExp(`/atc/${code}$`, 'u'));
   await expect(page.locator('.atc-tree__head-code')).toHaveText(code);

@@ -11,6 +11,8 @@ export type SearchCoreStatus =
   | { readonly kind: 'waiting' }
   | { readonly kind: 'other-tab' }
   | { readonly kind: 'downloading'; readonly loaded: number; readonly total: number }
+  /** The download was asked for while offline: it starts by itself when the network returns. */
+  | { readonly kind: 'offline' }
   | { readonly kind: 'verifying' }
   | { readonly kind: 'installing' }
   /** Missing core held for the user's consent (metered network); the setup screen owns it. */
@@ -25,6 +27,8 @@ export interface CoreSessionSnapshot {
   readonly waitingToStart?: boolean;
   readonly downloadRequired: boolean;
   readonly downloading: boolean;
+  /** The download waits for the network (the device is offline). */
+  readonly waitingForNetwork?: boolean;
   readonly progress:
     | {
         readonly loaded: number;
@@ -41,6 +45,7 @@ export function searchCoreStatus(session: CoreSessionSnapshot): SearchCoreStatus
   if (session.error) return { kind: 'error', message: session.error };
   if (session.waitingForOtherTab) return { kind: 'other-tab' };
   if (session.waitingToStart) return { kind: 'waiting' };
+  if (session.waitingForNetwork) return { kind: 'offline' };
   const phase = session.progress?.phase;
   if (phase === 'verifying') return { kind: 'verifying' };
   if (phase === 'installing') return { kind: 'installing' };
@@ -103,6 +108,8 @@ export function searchCoreStatusLabel(status: SearchCoreStatus): string {
         ? 'Загружаем базу…'
         : `Загружаем базу… ${Math.floor(progress * 100)}%`;
     }
+    case 'offline':
+      return 'Нет сети';
     case 'verifying':
       return 'Проверяем базу…';
     case 'installing':
@@ -129,6 +136,8 @@ export function searchCoreStatusDetail(status: SearchCoreStatus): string {
       return status.total > 0
         ? `Скачано ${formatModuleBytes(status.loaded)} из ${formatModuleBytes(status.total)}. Затем проверим и откроем базу.`
         : 'Начинаем загрузку…';
+    case 'offline':
+      return 'Основная база скачается сама, когда появится соединение. Инструменты, свои файлы и настройки уже доступны.';
     case 'verifying':
       return 'Сверяем контрольную сумму основной базы.';
     case 'installing':
