@@ -4741,9 +4741,8 @@ and «Источники расходятся: …» with the other codes (`AtcC
 older apps ignore the new fields.
 
 Not done / known:
-- The interaction (INT1), medication-safety (SAFE1) and drug-comparison (CMP1) indexes are built from
-  `data/build/release-esklp` and were **not** rebuilt: their ATC prefixes drive class-level interaction rules, so new codes
-  must be reviewed there before they ship. Core pointers and the module partition stay as published (a card whose code
+- The interaction (INT1), medication-safety (SAFE1) and drug-comparison (CMP1) indexes were **not** rebuilt with ATC2: their ATC
+  prefixes drive class-level interaction rules, so the new codes were reviewed first (done in ATC4, below; CMP1 in ATC3). Core pointers and the module partition stay as published (a card whose code
   was filled keeps its module, e.g. a former «без АТХ» card is not moved to its anatomical group; the tree lists
   installed cards only).
 - Instruction documents without an ЕСКЛП card (78) and the 1 170 Allmed entries without an МНН link get no code: the app
@@ -4797,13 +4796,51 @@ beside it as the primary one; search and class comparison use both.**
   (`build-drug-comparison.ts`, `CMP1_ESKLP_DIR`, `MINIMED_DATA_ROOT`) carries both codes of a card in its `a` list and
   was rebuilt from the patched set, so it also carries the ATC2 completed codes (155 cards changed, `a` only). Older
   apps ignore `atcConsensus`; the field needs app ≥ the release that contains this change to show.
-- Not done / known: the interaction (INT1) and medication-safety (SAFE1) indexes are still built from the original
-  ЕСКЛП release and carry neither the ATC2 nor the ATC3 codes (their class rules need a review first); the global
+- Not done / known: the interaction (INT1) and medication-safety (SAFE1) indexes were still built from the original
+  ЕСКЛП release when this shipped; ATC4 below reviewed and rebuilt them; the global
   full-text search runs over the card text («АТХ: …» of the registry), which the metadata-only rebuild does not touch, so
   an ATC code typed into the main search finds only the registry code there (the medication list search finds both).
   Checked in a browser only as the chip and the code sheet in a throwaway Vite page (chip text, NSI level names of the
   consensus code, the sources and registry lines); not tested: the full app with the `atc3` modules installed from the
   mirror in a clean profile, the e2e specs (they need the local core and the network), a physical device.
+
+### ATC codes in the interaction and safety indexes — 2026-10-14 (STATE ATC4)
+
+Review: [research/atc-index-review-2026-10-14.md](research/atc-index-review-2026-10-14.md) (+ `.json`, selection audit `.json`).
+
+- **What uses ATC.** The interaction index (INT1) in two places: class membership at query time (`drugTargetSet`: a drug is hit by the class
+  target `c:<code>` when a card code starts with it, so a sentence naming «противовирусные препараты» is shown for every member) and own-class
+  suppression at build time (`keepMention`: in warnings a class mention is dropped when the document's own card is in the class). The
+  medication-safety index (SAFE1) uses **no** ATC (substance names and registration numbers only): rebuilt from the published modules it is
+  byte-identical, so nothing changes and a data test keeps it ATC-free. Substance rules (`s:`) never use ATC.
+- **Code selection** (`features/drug-interactions/atc-codes.ts`, `selectAtcCodes`, 14 unit tests): the node's completed `atcCode`; a node flagged
+  `conflict`/`unconfirmed` gives only the registry value, never a candidate; a stub conflict with `atcConsensus` gives **both** the registry stub and
+  the consensus code (class membership and own-class suppression alike: the stub stays official, the substance code is the specific one);
+  minus the exceptions in `features/drug-interactions/data/atc-code-exceptions.json` (card, code, reason, review; validated by
+  `parseAtcCodeExceptions`, applied at build time, so the index never holds an excepted code and no UI code branches on a drug id). Cards are
+  chosen from the nodes, not from the card's `atcCodes` total; the old index is reproduced exactly this way from the original release (the
+  «~» placeholder that old cards carried is gone).
+- **Builders** (`scripts/build-drug-interactions.ts`, `build-medication-safety.ts`): the ЕСКЛП cards now come from the **published** group modules
+  found among the local release copies by the catalog SHA-256 (`scripts/lib/published-esklp.ts`), no hand-kept `data/build/release-esklp`; options
+  `--out`, `--report`, `--esklp-dir` (decoded databases, for comparing with an earlier release), `MINIMED_DATA_ROOT` (the main checkout from a
+  worktree). `scripts/diff-interaction-atc.ts` produces the review input (changed class memberships with the code's node and sources, the class
+  rule and its basis, readers and quotes, own-class suppressions) and `--audit-out` the selection audit.
+- **Diff and verdicts.** Old index (original release) against the new one (atc2/atc3 codes), same instruction modules: 120 cards with another code
+  set, but a refined stub keeps its classes, so **20 class memberships gained on 15 cards, 0 lost, 5 own-class suppressions** (C09D removed from
+  sentences of the three sacubitril/valsartan instructions); the 13 ATC3 consensus codes were already on their cards (no change). Review: memberships
+  **12 plausible, 6 unsure, 2 wrong**; suppressions 5 plausible. Wrong: the intranasal interferon + loratadine ointment in the systemic
+  interferon classes `L03AB`/`L03` (its instruction: plasma level below the detection limit) → exception. Unsure: R05 ×2 (the НСИ class word
+  «противокашлевые» covers all of R05), N02B xenon–oxygen, J05AB remdesivir, R02AA eucalyptus tincture — shipped because the product's own
+  instruction prints the class; flax seed `A06AC05` (code from the НСИ dictionary only) → exception, for the owner. **Index shipped: 17 memberships
+  on 13 cards**; `interaction-index.json` 2 102 425 → 2 100 458 bytes (app asset: it is committed and ships with the next app release, not a
+  module, so there is no mirror tag, catalog entry or ledger line; the local-data ledger lists only ≥ 50 MiB artifacts).
+- **Tests.** `atc-codes.test.ts` (selection, flags, consensus, exceptions, file validation), `atc-index.data.test.ts` (class codes valid in the
+  НСИ dictionary, every judged membership shipped or excluded as the review says and each exclusion declared, suppressed sentences no longer name
+  the class, none of the 215 ignored conflict/unconfirmed candidate codes in the index, the 13 consensus codes present, SAFE1 without ATC).
+- **For the owner** (in the review note): the R05 class word covers 78 non-antitussive cards (alias to `R05D`/`R05F` would fix it; not applied,
+  it changes existing hits), two older topical interferon cards in `L03AB`, admit or keep out flax seed.
+- **Not done / not tested.** No clinician has signed the review (AI reviewer, product instruction texts as evidence); hits that did not change were
+  not re-audited; the app was not run with the new asset in a browser (unit and data tests only); no release was made.
 
 ### «Лента»: opt-in news feed and site viewer — 2026-10-05 (STATE NEWS1, ADR-0024)
 

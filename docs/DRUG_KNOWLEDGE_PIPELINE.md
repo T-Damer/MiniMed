@@ -334,9 +334,22 @@ MINIMED_DATA_ROOT=<main> CMP1_ESKLP_DIR=DIR/patched bun scripts/build-drug-compa
 ```
 
 `reframe-modules.ts` replaces an `atcN` marker of the earlier tag and version (`…-atc2` becomes `…-atc3`), so a later fill
-is `atc4`. The interaction and medication-safety indexes (`build-drug-interactions.ts`, `build-medication-safety.ts`) still
-read the original ЕСКЛП release and take neither the ATC2 nor the ATC3 codes: their class rules (an ATC prefix decides
-which interaction phrases apply) need a review of the new codes before they are rebuilt.
+is `atc4` (the task ATC4 reviewed the indexes and left the modules alone). The interaction index (`build-drug-interactions.ts`) takes
+the completed codes since ATC4: `selectAtcCodes` (`apps/app/src/features/drug-interactions/atc-codes.ts`) chooses a card's codes from
+its nodes (completed `atcCode`; only the registry value of a `conflict`/`unconfirmed` node; the stub and the `atcConsensus` code together),
+minus the declared exceptions in `drug-interactions/data/atc-code-exceptions.json`. The medication-safety index uses no ATC and is unchanged.
+After the next ATC fill or ЕСКЛП refresh, review what the new codes change before committing the rebuilt index:
+
+```bash
+# from a worktree MINIMED_DATA_ROOT is the main checkout (it holds output/ with the published modules)
+bun scripts/build-drug-interactions.ts --esklp-dir <decoded OLD release> --out /tmp/old.json   # reproduces the committed index
+bun scripts/build-drug-interactions.ts --out /tmp/new.json                                      # published modules, sha-checked
+bun scripts/diff-interaction-atc.ts --old /tmp/old.json --new /tmp/new.json --esklp-dir <decoded new modules> --out review-input.json
+```
+
+Judge every changed class membership against the product's own instruction (docs/research/atc-index-review-*.md has the method), declare
+the wrong ones as exceptions, rebuild, and update the review JSON that `atc-index.data.test.ts` reads. The index is an app asset
+(committed, ships with the app release); there is no mirror tag for it.
 
 ## Update policy
 

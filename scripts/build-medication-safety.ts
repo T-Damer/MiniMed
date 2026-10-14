@@ -2,17 +2,19 @@
  * Builds the pregnancy / lactation / age-limit index (SAFE1) from the released ГРЛС / holder-site
  * instruction modules and the ЕСКЛП cards.
  *
- *   bun scripts/build-medication-safety.ts
+ *   bun scripts/build-medication-safety.ts [--out <file>] [--report <file>] [--esklp-dir <dir>]
  *
  * Inputs and checks are those of `scripts/build-drug-interactions.ts`: the published `.db.zst` of
- * the instruction modules (SHA-256 checked against the catalog) and the ЕСКЛП МНН cards. Output:
+ * the instruction modules (SHA-256 checked against the catalog) and the published ЕСКЛП МНН cards.
+ * The index uses no ATC code (ATC4 review: no rule here matches by ATC class or prefix; it matches
+ * the substance names and registration numbers only), so the ATC fill does not change it. Output:
  * `apps/app/src/features/medication-safety/data/safety-index.json` (a lazy chunk) and
  * `data/build/medication-safety/report.json`. The index holds offsets into the instruction
  * sections, never instruction text. Every decompressed module is deleted after it is read.
  */
 import { Database } from 'bun:sqlite';
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import type { InteractionCard } from '../apps/app/src/features/drug-interactions/substance-names';
@@ -22,17 +24,27 @@ import {
   type SafetyBuildDocument,
 } from '../apps/app/src/features/medication-safety/safety-build';
 import { normalizeRegistrationKey } from '../apps/app/src/features/medications/mfg-country';
+import {
+  type CatalogEsklpModule,
+  readEsklpCardMetadata,
+  withEsklpDirectory,
+} from './lib/published-esklp';
 
 const ROOT = resolve(import.meta.dirname, '..');
+/** The checkout that holds the ignored local `data/` and `output/` (the main one, from a worktree). */
+const DATA_ROOT = process.env['MINIMED_DATA_ROOT'] ?? ROOT;
 const CATALOG = join(ROOT, 'apps/app/src/features/modules/catalog.preview.json');
-const ESKLP_DIRECTORY = join(ROOT, 'data/build/release-esklp');
-const OUTPUT = join(ROOT, 'apps/app/src/features/medication-safety/data/safety-index.json');
-const REPORT = join(ROOT, 'data/build/medication-safety/report.json');
+const OUTPUT = resolve(
+  argument('--out') ?? join(ROOT, 'apps/app/src/features/medication-safety/data/safety-index.json'),
+);
+const REPORT = resolve(
+  argument('--report') ?? join(DATA_ROOT, 'data/build/medication-safety/report.json'),
+);
 /** Where the published instruction-module bytes are kept locally (the release copies). */
 const MODULE_DIRECTORIES = [
   'output/module-zstd-grls-ocr1-kd1-2026-10-14/grls-instructions-2026.10.14-15ce0cf79f45-kd1',
   'output/module-zstd-manufacturer-ocr1-2026-10-14/manufacturer-instructions-2026.10.14-769c87d55bcc',
-].map((directory) => join(ROOT, directory));
+].map((directory) => join(DATA_ROOT, directory));
 /** Already decompressed modules (a directory of `<module id>.db`), to skip the zstd step. */
 const DECODED_DIRECTORY = process.env['SAFE1_DECODED_DIR'];
 
@@ -40,6 +52,11 @@ interface CatalogModule {
   readonly id: string;
   readonly version: string;
   readonly artifacts: readonly { readonly sha256: string }[];
+}
+
+function argument(name: string): string | undefined {
+  const index = process.argv.indexOf(name);
+  return index >= 0 ? process.argv[index + 1] : undefined;
 }
 
 function sha256File(path: string): string {
@@ -56,39 +73,30 @@ function stringList(value: unknown): readonly string[] {
     : [];
 }
 
-function loadEsklpCards(): readonly SafetyBuildCard[] {
+function loadEsklpCards(directory: string): readonly SafetyBuildCard[] {
   const rows: SafetyBuildCard[] = [];
-  for (const file of readdirSync(ESKLP_DIRECTORY)
-    .filter((name) => name.endsWith('.db'))
-    .toSorted()) {
-    const database = new Database(join(ESKLP_DIRECTORY, file), { readonly: true });
-    const query = database.query<{ id: string; title: string; metadata_json: string }, []>(
-      "select id, title, metadata_json from documents where id like 'esklp.mnn.%'",
-    );
-    for (const row of query.all()) {
-      const metadata = JSON.parse(row.metadata_json) as Record<string, unknown>;
-      const registrations = new Set<string>();
-      const nodes = Array.isArray(metadata['smnnNodes']) ? metadata['smnnNodes'] : [];
-      for (const node of nodes as readonly Record<string, unknown>[]) {
-        for (const key of ['tradeNames', 'klpPositions']) {
-          const list = node[key];
-          if (!Array.isArray(list)) continue;
-          for (const item of list as readonly Record<string, unknown>[]) {
-            const registration = textOf(item['registrationNumber']);
-            if (registration) registrations.add(normalizeRegistrationKey(registration));
-          }
+  for (const { id, title, metadata } of readEsklpCardMetadata(directory)) {
+    const registrations = new Set<string>();
+    const nodes = Array.isArray(metadata['smnnNodes']) ? metadata['smnnNodes'] : [];
+    for (const node of nodes as readonly Record<string, unknown>[]) {
+      for (const key of ['tradeNames', 'klpPositions']) {
+        const list = node[key];
+        if (!Array.isArray(list)) continue;
+        for (const item of list as readonly Record<string, unknown>[]) {
+          const registration = textOf(item['registrationNumber']);
+          if (registration) registrations.add(normalizeRegistrationKey(registration));
         }
       }
-      const card: InteractionCard = {
-        id: row.id,
-        name: textOf(metadata['standardizedInn']) ?? row.title,
-        synonyms: stringList(metadata['inn']),
-        components: stringList(metadata['componentInns']),
-        atcCodes: stringList(metadata['atcCodes']),
-      };
-      rows.push({ ...card, registrationKeys: [...registrations].toSorted() });
     }
-    database.close();
+    // The safety index matches by name and registration only; the ATC field is carried empty.
+    const card: InteractionCard = {
+      id,
+      name: textOf(metadata['standardizedInn']) ?? title,
+      synonyms: stringList(metadata['inn']),
+      components: stringList(metadata['componentInns']),
+      atcCodes: [],
+    };
+    rows.push({ ...card, registrationKeys: [...registrations].toSorted() });
   }
   return rows.toSorted((a, b) => a.id.localeCompare(b.id));
 }
@@ -152,7 +160,14 @@ function main(): void {
   const instructionModules = catalog.modules
     .filter((module) => module.id.startsWith('minimed.medications.instructions.'))
     .toSorted((a, b) => a.id.localeCompare(b.id));
-  const cards = loadEsklpCards();
+  const cards = withEsklpDirectory(
+    {
+      directory: argument('--esklp-dir'),
+      modules: catalog.modules as readonly CatalogEsklpModule[],
+      dataRoot: DATA_ROOT,
+    },
+    loadEsklpCards,
+  );
   console.log(`ЕСКЛП cards: ${cards.length}`);
 
   const builder = createSafetyBuilder({ cards });

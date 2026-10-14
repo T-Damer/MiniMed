@@ -2,13 +2,18 @@
  * Builds the drug-interaction index (INT1) from the released ГРЛС / holder-site instruction
  * modules and the ЕСКЛП cards.
  *
- *   bun scripts/build-drug-interactions.ts [--debug-dir <dir>]
+ *   bun scripts/build-drug-interactions.ts [--debug-dir <dir>] [--out <file>] [--report <file>]
+ *                                          [--esklp-dir <dir>]
  *
  * Inputs (all local, none is changed):
  * - the published `.db.zst` of the 15 ГРЛС instruction modules and the holder-site module, checked
  *   against the SHA-256 the catalog states (`apps/app/src/features/modules/catalog.preview.json`);
- * - the ЕСКЛП МНН cards (`data/build/release-esklp/*.db`): names, components, ATC codes,
- *   registration numbers;
+ * - the published ЕСКЛП group modules (`scripts/lib/published-esklp.ts`, the same SHA-256 check;
+ *   `--esklp-dir` takes a directory of decoded databases instead): names, components, ATC codes,
+ *   registration numbers. The ATC codes are chosen by `selectAtcCodes` (ATC4, `atc-codes.ts`) and
+ *   the declared exceptions in `data/atc-code-exceptions.json`;
+ * - `MINIMED_DATA_ROOT`: the checkout that holds the ignored `data/` and `output/` (the main one,
+ *   when this runs in a worktree);
  * - the НСИ «АТХ» names (`apps/app/src/features/medications/atc-names.json`).
  * Output: `apps/app/src/features/drug-interactions/data/interaction-index.json` (a lazy chunk) and
  * `data/build/drug-interactions/report.json`. The index holds offsets into the instruction
@@ -16,9 +21,14 @@
  */
 import { Database } from 'bun:sqlite';
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import {
+  type AtcCodeException,
+  parseAtcCodeExceptions,
+  selectAtcCodesOfMetadata,
+} from '../apps/app/src/features/drug-interactions/atc-codes';
 import {
   type BuildCard,
   type BuildInputDocument,
@@ -33,18 +43,33 @@ import { SPAN_FLAG_INTERACTIONS } from '../apps/app/src/features/drug-interactio
 import { createInteractionIndex } from '../apps/app/src/features/drug-interactions/interaction-index';
 import type { InteractionCard } from '../apps/app/src/features/drug-interactions/substance-names';
 import { normalizeRegistrationKey } from '../apps/app/src/features/medications/mfg-country';
+import {
+  type CatalogEsklpModule,
+  readEsklpCardMetadata,
+  withEsklpDirectory,
+} from './lib/published-esklp';
 
 const ROOT = resolve(import.meta.dirname, '..');
+/** The checkout that holds the ignored local `data/` and `output/` (the main one, from a worktree). */
+const DATA_ROOT = process.env['MINIMED_DATA_ROOT'] ?? ROOT;
 const CATALOG = join(ROOT, 'apps/app/src/features/modules/catalog.preview.json');
 const ATC_NAMES = join(ROOT, 'apps/app/src/features/medications/atc-names.json');
-const ESKLP_DIRECTORY = join(ROOT, 'data/build/release-esklp');
-const OUTPUT = join(ROOT, 'apps/app/src/features/drug-interactions/data/interaction-index.json');
-const REPORT = join(ROOT, 'data/build/drug-interactions/report.json');
+const EXCEPTIONS = join(
+  ROOT,
+  'apps/app/src/features/drug-interactions/data/atc-code-exceptions.json',
+);
+const OUTPUT = resolve(
+  argument('--out') ??
+    join(ROOT, 'apps/app/src/features/drug-interactions/data/interaction-index.json'),
+);
+const REPORT = resolve(
+  argument('--report') ?? join(DATA_ROOT, 'data/build/drug-interactions/report.json'),
+);
 /** Where the published instruction-module bytes are kept locally (the release copies). */
 const MODULE_DIRECTORIES = [
   'output/module-zstd-grls-ocr1-kd1-2026-10-14/grls-instructions-2026.10.14-15ce0cf79f45-kd1',
   'output/module-zstd-manufacturer-ocr1-2026-10-14/manufacturer-instructions-2026.10.14-769c87d55bcc',
-].map((directory) => join(ROOT, directory));
+].map((directory) => join(DATA_ROOT, directory));
 
 interface CatalogModule {
   readonly id: string;
@@ -76,41 +101,34 @@ interface EsklpCardRow {
   readonly registrationKeys: readonly string[];
 }
 
-function loadEsklpCards(): readonly EsklpCardRow[] {
+function loadEsklpCards(
+  directory: string,
+  exceptions: readonly AtcCodeException[],
+): readonly EsklpCardRow[] {
   const rows: EsklpCardRow[] = [];
-  for (const file of readdirSync(ESKLP_DIRECTORY)
-    .filter((name) => name.endsWith('.db'))
-    .toSorted()) {
-    const database = new Database(join(ESKLP_DIRECTORY, file), { readonly: true });
-    const query = database.query<{ id: string; title: string; metadata_json: string }, []>(
-      "select id, title, metadata_json from documents where id like 'esklp.mnn.%'",
-    );
-    for (const row of query.all()) {
-      const metadata = JSON.parse(row.metadata_json) as Record<string, unknown>;
-      const registrations = new Set<string>();
-      const nodes = Array.isArray(metadata['smnnNodes']) ? metadata['smnnNodes'] : [];
-      for (const node of nodes as readonly Record<string, unknown>[]) {
-        for (const key of ['tradeNames', 'klpPositions']) {
-          const list = node[key];
-          if (!Array.isArray(list)) continue;
-          for (const item of list as readonly Record<string, unknown>[]) {
-            const registration = textOf(item['registrationNumber']);
-            if (registration) registrations.add(normalizeRegistrationKey(registration));
-          }
+  for (const { id, title, metadata } of readEsklpCardMetadata(directory)) {
+    const registrations = new Set<string>();
+    const nodes = Array.isArray(metadata['smnnNodes']) ? metadata['smnnNodes'] : [];
+    for (const node of nodes as readonly Record<string, unknown>[]) {
+      for (const key of ['tradeNames', 'klpPositions']) {
+        const list = node[key];
+        if (!Array.isArray(list)) continue;
+        for (const item of list as readonly Record<string, unknown>[]) {
+          const registration = textOf(item['registrationNumber']);
+          if (registration) registrations.add(normalizeRegistrationKey(registration));
         }
       }
-      rows.push({
-        card: {
-          id: row.id,
-          name: textOf(metadata['standardizedInn']) ?? row.title,
-          synonyms: stringList(metadata['inn']),
-          components: stringList(metadata['componentInns']),
-          atcCodes: stringList(metadata['atcCodes']),
-        },
-        registrationKeys: [...registrations].toSorted(),
-      });
     }
-    database.close();
+    rows.push({
+      card: {
+        id,
+        name: textOf(metadata['standardizedInn']) ?? title,
+        synonyms: stringList(metadata['inn']),
+        components: stringList(metadata['componentInns']),
+        atcCodes: selectAtcCodesOfMetadata(id, metadata, exceptions).codes,
+      },
+      registrationKeys: [...registrations].toSorted(),
+    });
   }
   return rows.toSorted((a, b) => a.card.id.localeCompare(b.card.id));
 }
@@ -254,8 +272,16 @@ function main(): void {
     publishDate: string;
     names: Record<string, string>;
   };
-  const cards = loadEsklpCards();
-  console.log(`ЕСКЛП cards: ${cards.length}`);
+  const exceptions = parseAtcCodeExceptions(JSON.parse(readFileSync(EXCEPTIONS, 'utf8')));
+  const cards = withEsklpDirectory(
+    {
+      directory: argument('--esklp-dir'),
+      modules: catalog.modules as readonly CatalogEsklpModule[],
+      dataRoot: DATA_ROOT,
+    },
+    (directory) => loadEsklpCards(directory, exceptions),
+  );
+  console.log(`ЕСКЛП cards: ${cards.length}, ATC code exceptions: ${exceptions.length}`);
 
   const debugDirectory = argument('--debug-dir');
   const debugLines: string[] = [];
