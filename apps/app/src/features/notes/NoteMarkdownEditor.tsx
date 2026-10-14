@@ -16,6 +16,7 @@ import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { AudioWaveformPlayer } from '@/components/AudioWaveformPlayer';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
+import { ScrollStripArrows } from '@/components/ScrollStripArrows';
 import { isAsrReady, transcribeBlob } from '@/features/asr/asr-models';
 import { toastMicrophoneError } from '@/features/conversations/microphone-toast';
 import { documentSectionHeadingTag } from '@/features/library/document-display';
@@ -866,7 +867,12 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
     return title || null;
   };
 
-  const formattingToolbar = (variant: 'embedded' | 'fullscreen'): JSX.Element => {
+  const [toolbarStrip, setToolbarStrip] = createSignal<HTMLDivElement>();
+
+  const formattingToolbar = (
+    variant: 'embedded' | 'fullscreen',
+    stripRef?: (element: HTMLDivElement) => void,
+  ): JSX.Element => {
     const toolGroupClass =
       variant === 'fullscreen'
         ? 'note-markdown-editor__tool-group note-markdown-editor__tool-group--fullscreen'
@@ -874,6 +880,7 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
 
     return (
       <div
+        ref={stripRef}
         class="note-markdown-editor__toolbar"
         classList={{
           'note-markdown-editor__toolbar--embedded': variant === 'embedded',
@@ -1342,7 +1349,12 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
         </div>
       }
       bodyPrefix={
-        <div class="note-markdown-editor__chrome-tools">{formattingToolbar('fullscreen')}</div>
+        <div class="note-markdown-editor__chrome-tools">
+          <div class="scroll-strip">
+            {formattingToolbar('fullscreen', setToolbarStrip)}
+            <ScrollStripArrows target={toolbarStrip} label="инструменты" />
+          </div>
+        </div>
       }
       showLayout
       outlineNav={

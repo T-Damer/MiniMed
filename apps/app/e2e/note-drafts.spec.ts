@@ -35,9 +35,9 @@ async function openFormData(page: Page): Promise<void> {
 }
 
 const diagnosisText = (page: Page) => page.getByLabel('Диагноз осмотра', { exact: true });
-const icdCode = (page: Page) => page.getByLabel('Код МКБ-10', { exact: true });
+const icdCode = (page: Page) => page.getByLabel(/^Код МКБ-10/u);
 const workplace = (page: Page) => page.getByLabel('Место работы / учёбы');
-const snils = (page: Page) => page.getByLabel('СНИЛС', { exact: true });
+const snils = (page: Page) => page.getByLabel(/^СНИЛС/u);
 
 for (const delayMs of RELOAD_DELAYS_MS) {
   test(`visit diagnosis and ICD-10 code survive a reload ${delayMs} ms after typing`, async ({
@@ -130,6 +130,22 @@ for (const delayMs of RELOAD_DELAYS_MS) {
     await expect(page.getByLabel('Масса, кг')).toHaveValue('12.5');
   });
 }
+
+test('the fullscreen note toolbar scrolls with arrows, not a scrollbar', async ({ page }) => {
+  test.setTimeout(120_000);
+  await mountBuiltApp(page, { persistentOrigin: true });
+  await openNotes(page);
+  await page.getByRole('button', { name: 'Добавить', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Обычная заметка', exact: true }).press('Enter');
+  await page.getByLabel('Название заметки').fill('Панель');
+  await page.getByRole('button', { name: 'Создать', exact: true }).click();
+  // The toolbar scrolls sideways only on a phone-width screen.
+  await page.setViewportSize({ width: 375, height: 812 });
+  const next = page.getByRole('button', { name: 'Прокрутить инструменты вправо' });
+  await expect(next).toBeVisible();
+  await next.click();
+  await expect(page.getByRole('button', { name: 'Прокрутить инструменты влево' })).toBeVisible();
+});
 
 test('cancelling a new patient form discards its draft', async ({ page }) => {
   test.setTimeout(120_000);

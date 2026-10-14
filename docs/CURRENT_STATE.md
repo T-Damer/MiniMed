@@ -271,8 +271,8 @@ QA ([qa-haiku-2026-10-14](research/qa-haiku-2026-10-14.md) «Data safety») lost
   open visits exist (older data).
 - **Rows.** `.patient-workspace__episode*` had no CSS: the status text ran into the ✓/✕ icons. Row = head (title that
   wraps, status label, icon buttons that keep their size) + the note preview.
-- **Not covered.** «Диагноз осмотра» / «Код МКБ-10» keep their explicit save button (validated fields, typed text
-  there is still lost on reload) and the manual measurement form is unchanged.
+- **Not covered.** Diagnosis, code and the form-data panel — done in NOTE2 below; the manual measurement form is
+  unchanged (listed there).
 - **Tests.** Unit: `debounced-saver.test.ts` (debounce, ordering, no overlap, failure retry, lifecycle flush),
   `patient-domain.test.ts` (visit note rules), `patient-vault.test.ts` «visit note autosave» (sealed copy, recovery
   after a simulated reload, plain vault, one open visit, seal/open). E2E `note-persistence.spec.ts`: plain note and
@@ -334,6 +334,61 @@ Tests: unit `state/{app-back,history-layer,history-places,tab-takeover}.test.ts`
 `features/library/reader-jump-history.test.ts`, `app/native-back.test.ts` (a stand-in session history,
 `state/history-test-double.ts`); e2e `navigation-back`, `navigation-reader`, `navigation-drugs`, `navigation-takeover`
 (addresses, screens and `history.length` at every step).
+## Typed text is never lost, part 2 — 2026-10-15 (STATE NOTE2)
+
+NOTE1's remaining gaps: «Диагноз осмотра» / «Код МКБ-10» and «Данные для справок и форм» needed an explicit
+save, so typed text was lost on reload. They are now autosaved drafts on the same machinery, which was generalised.
+
+- **Machinery (`state/draft-write-ahead.ts`).** `createDraftWriteAheadStore({storageKey, sealType, label})` is the
+  sealed localStorage copy (key = patient id + record id, vault key, plain only in a plain vault) with `write`, `read`,
+  `remove`, ownership of copies a live autosave holds, and `recover(apply)` (applies earlier-session copies inside one
+  vault mutation; a copy the handler `keep`s stays, one it throws on stays with a warning, unreadable ones are
+  dropped). `createDraftAutosave({store, patientId, target, serialize, save})` = write-ahead at every change +
+  `debounced-saver` (ordered, flushed on pagehide/beforeunload/freeze/hidden/online); the record a change belongs to is
+  fixed **when it is typed** (a flush after switching visits cannot save into the wrong one). `save` returns
+  `{complete}`: when false the copy is **kept** (and still written even if the save wins the race with sealing).
+  `createCopyDraft` is a draft whose only home is the copy (creation forms). `patient-visit-note.ts` is now a thin
+  user of this (visit-note copies: field `targetId`, was `episodeId`; DEV format).
+- **Validation never blocks a draft.** `applyFormDraft` / `applyDiagnosisDraft` (`features/notes/patient-form-data.ts`)
+  save the valid part and leave a group with an error at its **last stored value**: SNILS and the OMS policy are
+  separate groups (the rest of the form still saves); wording + ICD-10 code are one unit (never a new wording with an
+  old code). The typed text stays in the copy, the editor reads it back after a reload (`readFormDraft`,
+  `readDiagnosisDraft`) and shows the inline error (error shown after the debounce, cleared as soon as the field is
+  edited) and a quiet status line «Сохраняем… / Сохранено / Черновик: исправьте отмеченное» (`draft-status.ts`; the
+  form panel also gets a «Черновик» badge on its header). A draft equal to the stored value writes nothing and keeps
+  `updatedAt`. Recovery on vault open (`recoverPatientDrafts`, called by `PatientWorkspace` before the vault is read)
+  applies notes, form data and diagnoses; invalid ones remain as drafts (idempotent).
+- **«Сохранить» decisions.** Form data: removed — it is the patient's own record, nothing to approve. Diagnosis: removed
+  — the visit's «Закрыть» is the sign-off. «Создать карточку» / «Создать осмотр» stay (they create a record).
+- **New-patient form** (`NewPatientForm`) keeps name, number, birth date, sex, mass, height as a copy draft until
+  «Создать карточку» (or «Отмена» discards it); the photo is not kept. `PatientDetail` is keyed by patient id, so
+  another patient is a new card with its own savers (the NOTE1 note saver used to keep the first patient's id).
+- **Note toolbar.** The fullscreen formatting toolbar of `NoteMarkdownEditor` scrolls with `ScrollStripArrows` (VIS1's
+  request), no scrollbar.
+- **Audit of other personal editors** (loses typed text on reload?):
+  - plain note, visit note, diagnosis, ICD code, form data, new patient: fixed (NOTE1/NOTE2).
+  - **Forms (`features/forms/FormFillPage`) and prescription (`prescription-controller`)**: autosave to the vault
+    after 700 ms but flush only when the screen unmounts, not on pagehide/hidden, and have no write-ahead copy, so a
+    reload inside the debounce loses the last edits (anonymous prescription draft: same). Not fixed here (VIS2's
+    paths; Request in STATE.md): `registerNoteEditorFlush(flush)` in both would close the unload case; a write-ahead
+    copy needs a blob `recover` variant of the store.
+  - **Calculators / assessments**: inputs and mid-way answers live in memory only (by design: transient); «Записать» /
+    «Сохранить в карточку пациента» are single explicit actions. The assessment result note
+    (`AssessmentResultPage`, «Сохранить в карточку пациента») is typed text with an explicit save: loses on reload.
+    Listed, not fixed (VIS2's paths).
+  - **Manual measurement form** («Быстрая запись» → «Записать») and **observation correction**: one number and one tap,
+    transient; not changed.
+  - **Listed, not touched (other owners / larger editors)**: `NoteTranscriptPanel` («Сохранить правки»),
+    `NoteDrawingEditor` («Сохранить схему»), `UserDocumentReader` («Сохранить черновик» is an explicit draft save),
+    `SpreadsheetRenderer`, `PatientDiaryPanel` («Сохранить в карту»), `VisitRecorderPanel`
+    («Сохранить в осмотр»), reminder text and completion note in `NotesView`, tag input of a record form. Each has an
+    explicit save over typed text and no write-ahead copy.
+- **Tests.** Unit: `draft-write-ahead.test.ts` (generic store/autosave/recovery/copy draft with a vault double),
+  `patient-form-data.test.ts` (partial patch, apply, no-op, serialisation), `patient-vault.test.ts` «form data and
+  diagnosis drafts» (real vault: sealed copy, invalid SNILS/code kept and fixed, recovery after a simulated reload,
+  idempotent second open). E2E `note-drafts.spec.ts`: diagnosis + code, malformed code kept with its error, form data
+  with invalid SNILS kept, new-patient form — each reloaded 0.5/2/5 s after typing; cancel discards; diagnoses of two
+  visits; toolbar arrows at 375 px.
 
 ## Regulatory acts as full texts — 2026-10-14 (STATE LEGAL1)
 
