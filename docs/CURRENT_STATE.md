@@ -139,7 +139,7 @@ a guideline module did not open after the network was cut (its lazy chunks `Docu
 - **Not tested**: the real Pages deploy (the base path `/MiniMed/app/`, the carry step against the
   live manifest, Pages' `max-age=600` on `sw.js`), Safari/WebKit (including iOS storage eviction of
   Cache Storage), Firefox, a real flaky mobile network during the 19 MB install.
-## Green suites before 0.6.60 — 2026-10-14 (STATE TEST1)
+## Green suites before 0.6.60 — 2026-10-14 (STATE TEST2)
 
 - **Reader find counts only what is shown.** `OfficialDocumentReader` builds its find units from
   `presentReaderChunkText(...)` (the reader-word text), not from the stored `originalText`; hidden catalogue
@@ -204,7 +204,7 @@ and `…/minimed-qa-power/`). What changed, at the cause:
   raw source URLs and «Ограничение покрытия» are gone from the page; ICD cards offer «Препараты РЛС для этого
   кода» instead of «Полная версия»; instruction editions read «ЛП-009219, 2025» (`presentInstructionEdition`).
   Only the display changes: stored text, anchors and checksums are as before; in-document find is built from
-  the shown text (TEST1 below), so its count and highlights match what is on the page.
+  the shown text (TEST2 below), so its count and highlights match what is on the page.
 - **Overlaps and waiting.** A paper fade behind the floating tab bar in readers; the toast sits under the route
   header; the tour prefetches its views. Drug, ICD-11 and sick-leave panels read through quiet resources, so an
   install no longer swaps the whole page for a spinner (≈ 5 s blank before); the module offer says
