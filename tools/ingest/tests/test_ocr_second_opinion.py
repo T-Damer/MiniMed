@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pymupdf
 
@@ -187,7 +187,7 @@ def test_the_pipeline_takes_the_better_line_and_marks_the_numbers_in_doubt(tmp_p
     paragraph = next(
         block for page in extracted.pages for block in page.blocks if "контурной" in block.text
     )
-    (alternative,) = paragraph.metadata["ocrAlternatives"]
+    (alternative,) = cast(list[dict[str, Any]], paragraph.metadata["ocrAlternatives"])
     assert alternative["chosen"] == "tesseract"
     assert alternative["other"] == "по пекла контурной пейовой раковке 20 1,23"
     assert paragraph.metadata["enginesDisagreeOnNumbers"] is True

@@ -148,7 +148,7 @@ describe('catalog.preview.json', () => {
         compression: 'zstd',
         url: expect.stringMatching(
           new RegExp(
-            `^https://github.com/T-Damer/MiniMed/releases/download/grls-instructions-2026\\.10\\.05-[0-9a-f]{12}-kd1/${module.id.replaceAll('.', '\\.')}\\.db\\.zst$`,
+            `^https://github.com/T-Damer/MiniMed/releases/download/grls-instructions-2026\\.10\\.14-[0-9a-f]{12}-kd1/${module.id.replaceAll('.', '\\.')}\\.db\\.zst$`,
             'u',
           ),
         ),
@@ -156,9 +156,10 @@ describe('catalog.preview.json', () => {
       expect(module.sizes.downloadBytes).toBe(module.artifacts[0]?.sizeBytes);
       expect(module.sizes.installedBytes).toBe(module.artifacts[0]?.decodedSizeBytes);
     }
-    // 8 944 prepared instructions of 8 947 (three fail lint; see docs/CURRENT_STATE.md «GI1»).
+    // 8 946 prepared documents of 8 947 (one OCR-noise heading fails lint; docs/CURRENT_STATE.md «OCR1»);
+    // 730 of them are sheets of amendments, labelled as such.
     expect(instructionModules.reduce((sum, module) => sum + module.previewDocumentCount, 0)).toBe(
-      8944,
+      8946,
     );
   });
 
@@ -197,7 +198,7 @@ describe('catalog.preview.json', () => {
       (entry) => entry.id === 'minimed.medications.instructions.manufacturer-site.ru',
     );
     expect(module).toMatchObject({
-      version: 'manufacturer-2026.10.05',
+      version: 'manufacturer-2026.10.14',
       kind: 'medication',
       // Not `grls-instructions`: the sections feature maps that collection to the per-ATC groups.
       collection: 'manufacturer-instructions',
@@ -207,9 +208,9 @@ describe('catalog.preview.json', () => {
       tags: ['manufacturer-site', 'official-instruction', 'instructions'],
       dependencies: [{ moduleId: 'minimed.core.ru', required: true }],
       compatibility: { minAppVersion: '0.6.48', schemaVersion: 2 },
-      // 272 documents of the 277 manufacturer files (five match only ambiguously and are left out);
-      // see docs/CURRENT_STATE.md «Manufacturer-site instruction module».
-      previewDocumentCount: 272,
+      // 271 documents of the 277 manufacturer files (five match only ambiguously and one is a journal
+      // article); see docs/CURRENT_STATE.md «Manufacturer-site instruction module» and «OCR1».
+      previewDocumentCount: 271,
     });
     expect(module?.description).toContain('не файлы ГРЛС');
     expect(module?.artifacts).toHaveLength(1);
@@ -217,7 +218,7 @@ describe('catalog.preview.json', () => {
       kind: 'index',
       compression: 'zstd',
       url: expect.stringMatching(
-        /^https:\/\/github\.com\/T-Damer\/MiniMed\/releases\/download\/manufacturer-instructions-2026\.10\.05-[0-9a-f]{12}\/minimed\.medications\.instructions\.manufacturer-site\.ru\.db\.zst$/u,
+        /^https:\/\/github\.com\/T-Damer\/MiniMed\/releases\/download\/manufacturer-instructions-2026\.10\.14-[0-9a-f]{12}\/minimed\.medications\.instructions\.manufacturer-site\.ru\.db\.zst$/u,
       ),
     });
     expect(module?.sizes.downloadBytes).toBe(module?.artifacts[0]?.sizeBytes);

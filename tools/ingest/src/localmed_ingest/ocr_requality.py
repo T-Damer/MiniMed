@@ -69,6 +69,10 @@ MIN_NATIVE_PAGE_CHARACTERS = 40
 NATIVE_PAGE_MIN_KNOWN_WORDS = 0.25
 # Russian text holds about one word of four or more letters per seven characters.
 NATIVE_PAGE_MIN_WORD_DENSITY = 0.30
+# Normal Russian text: at most 29 % one-or-two-letter tokens, at least 92 % known longer words
+# (measured on 60 native pages); the spaced-out layer of one leaflet reads 48-51 % and 41-47 %.
+NATIVE_PAGE_MAX_TINY_TOKENS = 0.40
+NATIVE_PAGE_MIN_KNOWN_LONGER = 0.70
 _TERMINAL = re.compile(r"[.!?»…]\s*$")
 _FIELD_START = re.compile(r"^[A-ZА-ЯЁ][^.:;!?]{2,60}:(?:\s|$)")
 _LIST_START = re.compile(r"^(?:[-–—•●○▪·*]\s*|\d{1,2}[.)]\s+|[a-zа-я]\)\s+)")
@@ -482,8 +486,11 @@ def refine_page(
         elif (
             current.kind == "heading"
             and canonical is None
-            and re.search(r"\d", current.text)
-            and len(current.text) <= 14
+            and (
+                (re.search(r"\d", current.text) and len(current.text) <= 14)
+                or "\\"
+                in current.text  # a heading of scan noise: a paragraph the builder can carry
+            )
         ):
             counters.headings_demoted += 1
             current = current.model_copy(update={"kind": "paragraph", "heading_level": None})
@@ -648,6 +655,17 @@ def ocr_signal_from_confidences(blocks: Sequence[RawBlock], pages: set[int]) -> 
 # ---------------------------------------------------------------------------------------------
 
 
+def _spaced_out(text: str, lexicon: Lexicon) -> bool:
+    """Words cut into one-and-two-letter pieces: many tiny tokens and few known longer ones."""
+    tokens = re.findall(r"[а-яёА-ЯЁ]+", text)
+    if len(tokens) < 30:
+        return False
+    tiny = sum(1 for token in tokens if len(token) <= 2) / len(tokens)
+    longer = [token.casefold() for token in tokens if len(token) >= 3]
+    known = sum(1 for token in longer if lexicon.cyrillic.get(token, 0) >= 3) / max(1, len(longer))
+    return tiny > NATIVE_PAGE_MAX_TINY_TOKENS and known < NATIVE_PAGE_MIN_KNOWN_LONGER
+
+
 def native_page_usable(text: str, lexicon: Lexicon | None) -> bool:
     if len(text.strip()) < MIN_NATIVE_PAGE_CHARACTERS:
         return False
@@ -658,6 +676,8 @@ def native_page_usable(text: str, lexicon: Lexicon | None) -> bool:
     words = [w.casefold() for w in re.findall(r"[а-яёА-ЯЁ]{4,}", text)]
     if len(text) >= 800 and len(words) / (len(text) / 7) < NATIVE_PAGE_MIN_WORD_DENSITY:
         return False  # a broken encoding leaves few real words on a page full of characters
+    if lexicon is not None and _spaced_out(text, lexicon):
+        return False  # a text layer that breaks words into pieces («ин формаци я д ля пац и ент а»)
     if lexicon is None or len(words) < 20:
         return True
     known = sum(1 for w in words if lexicon.cyrillic.get(w, 0) >= 3)

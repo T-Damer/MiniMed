@@ -28,7 +28,8 @@ LENGTH_RATIO = (0.6, 1.7)
 MIN_HORIZONTAL_COVER = 0.7
 MIN_VERTICAL_OVERLAP = 0.5
 _WORD = re.compile(r"[а-яёА-ЯЁ]{4,}")
-# A standalone number: not part of a code («L01EA01», «B12», «мг/м2»), where the engines only differ in
+# A standalone number: not part of a code («L01EA01», «B12», «мг/м2»), where the engines only
+# differ in
 # look-alike letters.
 _NUMBER = re.compile(r"(?<!\w)\d+(?:[.,]\d+)?(?!\w)")
 
@@ -107,7 +108,8 @@ def digit_tokens(text: str) -> list[str]:
 def numbers_conflict(first: str, second: str) -> bool:
     """Each reading has a standalone number the other lacks: a real disagreement about a number.
 
-    A number one engine merely lost (a dropped digit in a unit, a code read with look-alike letters) is not a
+    A number one engine merely lost (a dropped digit in a unit, a code read with look-alike
+    letters) is not a
     conflict; the other reading keeps the number.
     """
     a, b = set(digit_tokens(first)), set(digit_tokens(second))
@@ -124,7 +126,8 @@ def matching_alternative(
     """The second engine's text at the same place, as one line.
 
     Every line of the second engine that lies inside the box (a Vision observation can span two text
-    lines) is joined top to bottom; the result must cover the box's width without running far past it.
+    lines) is joined top to bottom; the result must cover the box's width without running far
+    past it.
     """
     x0, y0, x1, y1 = box
     width = max(x1 - x0, 1.0)
@@ -157,7 +160,7 @@ def matching_alternative(
 def choose_reading(vision: str, tesseract: str, lexicon: Lexicon, parts: int = 1) -> AltInfo | None:
     """Which reading has the better words, and whether the engines disagree about digits."""
     ratio = len(tesseract) / max(len(vision), 1)
-    # a Vision observation that spans several text lines is read as several lines by the other engine
+    # a Vision observation that spans several text lines is read as several by the other engine
     if not LENGTH_RATIO[0] <= ratio <= LENGTH_RATIO[1] * max(parts, 1):
         return None
     digits_differ = numbers_conflict(vision, tesseract)

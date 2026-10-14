@@ -21,7 +21,7 @@ from typing import Any, cast
 import yaml
 
 from .grls_document_kind import classify_scan_document
-from .grls_text_manifest import _text_digest as text_digest  # pyright: ignore[reportPrivateUsage]
+from .grls_text_manifest import _text_digest  # pyright: ignore[reportPrivateUsage]
 from .ocr_requality import extract_with_vision
 from .ocr_second_opinion import TESSERACT_TOOL, AltLine, load_alt_lines
 from .ocr_text_cleanup import COMPOUND_TOKEN, Lexicon
@@ -30,6 +30,11 @@ from .source_registry import extraction_front_matter, render_body
 _FRONT_MATTER = re.compile(r"\A---\n(.*?)\n---\n", re.DOTALL)
 _MARKER = re.compile(r"<!-- localmed:[^\n]*-->\n?")
 OVERLAY_VERSION = 1
+
+
+def text_digest(text: str) -> str:
+    """The manifest's digest of a text (`textSha256`): whitespace- and case-insensitive."""
+    return _text_digest(text)
 
 
 def read_jsonl(path: Path) -> list[dict[str, Any]]:

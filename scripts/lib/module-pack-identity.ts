@@ -43,7 +43,11 @@ export function readPackIdentity(path: string): PackIdentity {
       .all() as Array<{ kind: string | null; n: number }>) {
       kinds[row.kind ?? 'none'] = row.n;
     }
-    return { ...packs[0], documents: rows, instructionKinds: kinds };
+    // Copy the strings out of the result rows: Bun 1.2 can leave row strings backed by SQLite memory, and a
+    // pack id read here was seen to change after later databases were opened (duplicate catalog ids).
+    return JSON.parse(
+      JSON.stringify({ ...packs[0], documents: rows, instructionKinds: kinds }),
+    ) as PackIdentity;
   } finally {
     database.close();
   }

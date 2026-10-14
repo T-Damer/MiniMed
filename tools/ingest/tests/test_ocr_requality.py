@@ -335,3 +335,24 @@ def test_native_text_layer_usability() -> None:
         "лекарственного средства после еды принимают внутрь. "
     ) * 8
     assert native_page_usable(plants, LEXICON)
+
+
+def test_a_text_layer_that_cuts_words_into_pieces_is_replaced() -> None:
+    lexicon = Lexicon(
+        cyrillic={w: 900 for w in ("перед", "применением", "препарата", "прочтите", "внимательно")}
+    )
+    spaced = "Пе ред п рименени ем п репарат а вни мательно п рочт ите и нструкцию " * 6
+    assert not native_page_usable(spaced, lexicon)
+    normal = "Перед применением препарата внимательно прочтите инструкцию и сохраните ее " * 6
+    assert native_page_usable(normal, lexicon)
+    # a table of units has many short tokens but real longer words
+    table = "мг мл г кг л мкг препарата применением внимательно прочтите перед " * 6
+    assert native_page_usable(table, lexicon)
+
+
+def test_a_heading_of_scan_noise_with_a_backslash_becomes_a_paragraph() -> None:
+    page_after, counters = refine(
+        [block(0, "·~;ill EЧA~G ~.\\\\ристах) ЛИСТОВ КУН", 100, kind="heading")]
+    )
+    assert page_after.blocks[0].kind == "paragraph"
+    assert counters.headings_demoted == 1

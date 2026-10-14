@@ -32,6 +32,7 @@ from typing import Any, cast
 import yaml
 
 from .builder import build_content_pack
+from .grls_document_kind import classify_scan_document
 from .sqlite_builder import repository_root
 
 # Private data (manifest, prepared workspaces, ЕСКЛП release) lives in the main checkout only:
@@ -174,6 +175,11 @@ def assign_group(
     return winners[0], "esklp-registration" if len(winners) == 1 else "esklp-registration-tie"
 
 
+def plain_body(markdown: str) -> str:
+    """The body of a prepared Markdown file without its front matter."""
+    return split_front_matter(markdown)[1]
+
+
 def read_manifest_rows(
     path: Path = MANIFEST_PATH, overlay: Path | None = OVERLAY_PATH
 ) -> list[dict[str, Any]]:
@@ -261,6 +267,15 @@ def plan_instructions(
             continue
         registrations = sorted({number for r in group_rows for number in _row_registrations(r)})
         newest = group_rows[-1]
+        if not newest.get("documentKind") or newest.get("documentKind") == "unknown":
+            # A text layer whose title page the collector did not read: use the content.
+            evidence = classify_scan_document(plain_body(path.read_text(encoding="utf-8")))
+            if evidence.kind != "unknown":
+                newest = {
+                    **newest,
+                    "documentKind": evidence.kind,
+                    "documentKindReason": evidence.reason,
+                }
         group, basis = assign_group(
             str(newest["registrationNumber"]), registrations, registration_groups
         )

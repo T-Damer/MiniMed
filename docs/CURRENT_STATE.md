@@ -2991,6 +2991,9 @@ Owner 2026-10-13: «resurrect the collector, or search for a drugs db once again
 
 ## Official ГРЛС instructions and Allmed as downloadable modules — 2026-10-05 (STATE GI1)
 
+> Republished 2026-10-14 with cleaned OCR text, content kinds and quality grades: see «OCR quality of the ГРЛС instruction
+> modules» below (versions `grls-2026.10.14.kd1`, the numbers in this section are those of 2026-10-05).
+
 The ~8 950 collected ГРЛС instructions were in no module; now they ship, one module per ЕСКЛП group, and the
 Allmed reference (until now only the local dev companion `public/content/medications.db`, catalog entry without
 artifact) is a downloadable module too. Both need app **0.6.48** (`minAppVersion`); the catalog entries are
@@ -3078,6 +3081,103 @@ artifact) is a downloadable module too. Both need app **0.6.48** (`minAppVersion
   lexical search as `official_drug_instruction`, which the scoped search already treats as medication); registrations
   with several documents of different kinds (none exist yet: the collector now keeps all of a card's current documents);
   the 3 left-out documents are not repaired.
+
+## OCR quality of the ГРЛС instruction modules — 2026-10-14 (STATE OCR1)
+
+Owner 2026-10-13 («Data with quality problems — fix it»). The 15 ГРЛС instruction modules held 2 302 OCR texts
+(19 740 pages, every one flagged «OCR» in the app) and 457 unclassified scans; 16 manufacturer-site texts were OCR
+too. Measurements, defects, the engine comparison and what was rejected:
+[research/ocr-quality-2026-10-14.md](research/ocr-quality-2026-10-14.md). The released texts were macOS Vision output
+(the confidence was recorded for 29 of them); Tesseract is not installed on the build machine.
+
+- **Engines compared** (20 documents with a native-text edition of the same product as a yardstick): Vision at 1 800,
+  2 480 and 3 300 px, with and without language correction, and Tesseract.js `rus`+`eng` all land within 0.03 of each
+  other (word-trigram agreement with the native edition 0.746–0.757, released text 0.776), they agree on 95.5 % of the
+  words. A different setting or a full second engine pass does not pay (Tesseract 5–10 s per page for 0.2 % of the
+  words). **Marker (Surya) was not run:** it needs a package and model weights downloaded, which needs the owner's
+  approval; to be compared on ~20 of the worst scans with batch size 1 once approved.
+- **What was wrong** (measured on the released text, `scripts/grls_ocr_report.py`): 7 507 scan-stamp lines in the body
+  («СООТВЕТСТВУЕТ ЭКСПЕРТНОМУ ОТЧЕТУ», «СОГЛАСОВАНО», «ЛП - 005351-021219»; 281 documents with the expert-report stamp
+  as a *heading*), one paragraph per OCR line (median 38 characters, 74.6 % without closing punctuation), **730 of the
+  2 302 OCR documents are sheets of amendments** («Изменение № N», «Старая / Новая редакция»; 668 of them labelled
+  «Инструкция по медицинскому применению»), 451 OCR texts and 8 text layers had no recognised kind, systematic
+  misreads («Стах» for Cmax ×2 224, «иньекций», «коньюнктивит», «вышуска», «вкладьи», the dropped «У» of «Условия»),
+  two-column amendment tables read line by line across the columns, three text layers with a broken font encoding
+  (one cut every word into pieces: «Ли ст ок-вкладыш – ин формаци я д ля пац и ент а»; two decoded to Latin look-alike
+  noise).
+- **Pipeline** (`tools/ingest`, all deterministic, every change recorded; none touches a number or a unit):
+  `grls_ocr_vision_cache.py` re-runs the same Vision engine once over the 2 296 OCR PDFs + 10 text layers a lexicon check
+  rejected (19 894 pages, 0 failures, ≈ 1.7 h) and keeps the raw payload with the per-line confidence;
+  `ocr_requality.py` assembles lines (observations on one baseline, stamps on a title baseline apart, amendment
+  tables column by column), turns stamps into `page_mark` blocks (kept as `<!-- localmed:page-mark … -->` comments in
+  the prepared Markdown, outside the body; 0 false positives on 6 655 native documents), recognises the standard
+  headings, reflows lines into paragraphs from geometry and punctuation (line-break hyphens joined only when the joined
+  word is a lexicon word), applies `ocr_text_cleanup.py` word rules (an unknown word with exactly one lexicon spelling
+  one *measured* confusion away — `ь`↔`ъ`, `н`↔`п`, `ш`↔`п`, a dropped letter, never in the last two characters,
+  names skipped: 388 correct and 2 wrong in 56 693 correct-but-unknown tokens on 241 OCR/native pairs; the
+  pharmacokinetic symbols, «ATX», the leaflet title word), and replaces a text layer that reads as noise by the
+  recognised page. The raw lines stay in the extraction JSON (`ocrRaw`, `lines`), the source marker lists every
+  line block of a paragraph and its confidence. `grls_ocr_second_opinion.py` + `scripts/ocr-tesseract-worker.mjs` read
+  6 561 pages again with Tesseract.js (the pages of low-graded documents and every page with a low-confidence line of
+  two or more unknown words; 82 min, 0 failures): for each Vision line the lexicon picks the reading with fewer unknown
+  words and less junk (no word given up, at least one known word to stand on, lines a box spans joined), the other
+  reading is kept as `ocrAlternatives`: 5 306 lines compared, **4 282 replaced** (e.g. a dose line read as
+  «мли по 10 г, 20 1,23 банковало ной …» became «По 5 г в пенале … или по 10 г, 20 г, 25 г в банке …»), and 1 082 lines
+  where the engines disagree about a standalone number (not a unit or a code) mark the paragraph
+  `<!-- localmed:review ocr-uncertain-number -->`. Uncertain numbers are only marked: a digit run with a look-alike
+  letter («1О», «5l0») or a unit that is none («500 мr»): 254 tokens.
+- **Classification** (`grls_document_kind.py`, by content: ОХЛП / leaflet / instruction for use / **amendment sheet** /
+  other): the 451 unclassified OCR texts are 383 instructions, 62 amendment sheets and 6 leaflets, the 8 unclassified
+  text layers are classified by the module builder the same way; every OCR text now has a kind: 1 364 instructions,
+  211 leaflets, 1 ОХЛП, **730 amendment sheets** (351 of one page); 8 947 documents in all: 4 394 instructions, 3 818
+  leaflets, 5 ОХЛП, 730 amendment sheets. An amendment sheet is labelled («Лист изменений к инструкции», title
+  «…: лист изменений к инструкции»), ranks below every real instruction of a registration (even a holder-site one),
+  is never a same-substance donor, and registrations it serves alone are counted apart: **736 registrations have only
+  a sheet of amendments**, so the registrations with a real instruction text are 12 015 of 27 049 active (44.4 %, was
+  reported as 47.1 % with the sheets), ЕСКЛП МНН cards 2 225 of 3 324. A journal article collected from a holder site is
+  not an instruction (`other`) and was dropped from the manufacturer module.
+- **Measured, 2 306 re-prepared documents, before → after:** unknown words against the native-text lexicon 3.27 % →
+  2.42 % overall (median per document 3.65 % → 2.67 %; native text 0.9 %); stamp lines in the body 7 507 → 2; paragraphs
+  816 142 → 324 156, median length 38 → 65 characters, paragraphs without closing punctuation 74.6 % → 44.6 %; recognition
+  confidence recorded for 29 → 2 303 documents; instruction-section coverage (the builder's own segmentation, ≥ 3 pages)
+  95.1 / 96.8 / 96.3 % → 95.2 / 96.9 / 96.5 % for dosage / indications / contraindications — the builder already
+  recovered the standard headings, so nothing is claimed there. 6 107 word edits, 8 925 page marks. Spot checks against the
+  page images (ten pages of good, fair and low documents): every dose and number read exactly except one unit
+  («5 м.» for «5 мл», in a document graded low); the two lines a scan had lost (a pack-size line with its doses, an indication
+  line) were recovered by the second engine. Sibling text layers: 50 of 1 448 OCR instructions have a native-text
+  document of the same product (trade name, INN, holder, dosage form), none is demonstrably the same text with the same
+  doses, so none replaced an OCR text (`grls_ocr_siblings.py`, tested).
+- **Quality grade and the app note.** Every OCR document carries `ocr`, `ocrTool`, `ocrMeanConfidence`,
+  `ocrLowConfidenceRatio`, `ocrQuality` (`good` / `fair` / `low`) with `ocrQualityReasons`, the counters and
+  `textSha256`, next to the raw `pdfSha256` and the pages (`ocrPages`). The grade combines mean confidence (< 0.80
+  low, < 0.90 fair), the low-confidence share, the unknown-word ratio (relaxed for amendment sheets, which are names and
+  addresses) and uncertain numbers per 1 000 words. Result: **1 108 good, 1 044 fair, 151 low** (122 of the low are amendment
+  sheets). `instruction-source.ts` shows its OCR note only for `low` (and keeps «сверен со страницами» for the reviewed
+  oseltamivir text); modules without the grade keep the old behaviour. Was: all 2 303 flagged.
+- **Modules republished.** The 15 ГРЛС instruction modules (8 946 documents; the document with an OCR-noise heading that
+  fails the builder's JSON guard is still left out; indication vectors re-embedded, 9 446 chunks, KD1 profile) →
+  `datasets/grls-instructions-2026.10.14-15ce0cf79f45-kd1`, 224.9 MB download / 1 328.7 MB installed (was 230.6 / 1 367.8),
+  largest blob 39.3 MB, version `grls-2026.10.14.kd1`; the manufacturer-site module (271 documents, 240 registrations)
+  → `datasets/manufacturer-instructions-2026.10.14-769c87d55bcc`, 7.2 MB / 45.8 MB, `manufacturer-2026.10.14`. Nothing
+  published earlier was touched or overwritten; all 16 URLs return the catalog's bytes with CORS; the catalog is
+  `publishedAt` 2026-10-14T12:00Z. The `-kd1` source tag is the only branch of the new release (the lexical stage was
+  packaged for its catalog entries only). Rebuilt on the new modules: interaction, safety and comparison indexes, dose-rule
+  index, same-substance fallback (registrations with text 12 897 → 12 185, change sheets are no donors). Local
+  copies and builds: `data/build/grls-instruction-modules-ocr1`, `output/module-zstd-grls-ocr1-kd1-2026-10-14`.
+  `scripts/lib/module-pack-identity.ts` copies the pack identity out of Bun's SQLite rows: with Bun 1.2.3 strings read there
+  changed after later databases were opened (duplicate catalog ids, only in the slow real run), which would have mislabelled
+  catalog entries.
+- **Tests.** `tools/ingest/tests/test_ocr_text_cleanup.py` (rule fixtures: stamps, headings, hyphenation, look-alikes,
+  edits, numbers never edited), `test_ocr_requality.py` (line assembly, tables, reflow, page marks, grading, native-layer
+  checks, end to end), `test_ocr_second_opinion.py`, `test_grls_document_kind.py` (classification), `test_grls_ocr_requality.py`
+  (manifest/overlay integrity: provenance, digests, selection), `test_grls_ocr_siblings.py`, `test_grls_ocr_sibling_stage.py`,
+  `test_grls_instruction_modules.py` (overlay join), TS `instruction-source.test.ts` (grade, labels, ranking),
+  `catalog.preview.test.ts`.
+- **Not done / not tested:** Marker (above); truncated word endings («терапи») are not repaired (several lexicon
+  completions exist); tables stay text rows (`a | b`, flagged `table-candidate`); only ten pages were compared with the page
+  image by eye — there is no page-level ground truth for the other 19 700; the OCR note of already installed modules
+  changes only after the module update; Android/WebView and the on-device display of the new labels were not run; the
+  hand-reviewed oseltamivir text (`content/grls-reviewed-ocr/`) is carried unchanged by the builder (its checksum matches).
 
 ## Manufacturer-site instructions (M1) — 2026-10-02
 

@@ -18,7 +18,8 @@ TEXT = (
 HEAD = (
     "---\nid: {id}\ntitle: 'Тест'\nsource_checksum: {sha}\nmetadata:\n"
     "  tradeName: Тест\n  inn: Тестовое\n  holder: ООО Тест\n  dosageForm: таблетки\n"
-    "  pdfSha256: {sha}\n  extraction:\n    format: pdf\n    pageCount: 4\n    ocrQuality: low\n---\n"
+    "  pdfSha256: {sha}\n  extraction:\n    format: pdf\n    pageCount: 4\n"
+    "    ocrQuality: low\n---\n"
 )
 
 

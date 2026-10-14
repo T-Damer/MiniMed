@@ -34,8 +34,8 @@ const GRLS_DIRECTORY = join(ROOT, 'data/raw/official-grls-registry');
 const OUTPUT = join(ROOT, 'apps/app/src/features/drug-comparison/data/comparison-index.json');
 const REPORT = join(ROOT, 'data/build/drug-comparison/report.json');
 const MODULE_DIRECTORIES = [
-  'output/module-zstd-drug-kd1-2026-10-11/grls-instructions-2026.10.05-056961ab2b54-kd1',
-  'data/build/manufacturer-instruction-module/zst',
+  'output/module-zstd-grls-ocr1-kd1-2026-10-14/grls-instructions-2026.10.14-15ce0cf79f45-kd1',
+  'output/module-zstd-manufacturer-ocr1-2026-10-14/manufacturer-instructions-2026.10.14-769c87d55bcc',
 ].map((directory) => join(ROOT, directory));
 /** Already decompressed modules (a directory of `<module id>.db`), to skip the zstd step. */
 const DECODED_DIRECTORY = process.env['CMP1_DECODED_DIR'] ?? process.env['SAFE1_DECODED_DIR'];
