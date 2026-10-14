@@ -417,6 +417,8 @@ def structure(blocks: list[Block], identity: ActIdentity, first_page: int = 1) -
                 level = 2
             elif _LAW_ARTICLE.match(text):
                 level = 3
+            elif _ROMAN.match(text):
+                level = 2  # «II. Формирование …»: the chapters of an order share one level whatever Marker set
             out.append(
                 Block(
                     "heading",

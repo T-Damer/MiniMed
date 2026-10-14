@@ -1,0 +1,88 @@
+{
+  "documentId": "regulatory.rf.minzdrav.1089n-2021",
+  "reviewer": "Claude (agent), against the page images; not a lawyer",
+  "reviewedAt": "2026-10-14",
+  "verdicts": {
+    "5": "image read: items 2-4, footnotes 7-11 (№ 5485, № 5573, № 5956, № 42/130, № 625н, № 45704) match; the digits Vision adds are footnote marks",
+    "6": "image read: items 4-8 and footnote 12 (№ 1567, № 8145, № 6294) match; Vision's «2» is a footnote mark",
+    "7": "image read: items 8-12 and footnotes 13-14 (№ 834н, № 36160, № 2н, № 50614, № 1186н, № 61121) match; Vision's «4» is a footnote mark",
+    "9": "image read: items 17-23 and footnotes 15-16 (№ 4462-1, ст. 357, № 5182, ст. 6724, ст. 3070) match; the footnote printed «N 18» reads «№ 18»",
+    "12": "image read: items 33-34 and footnotes 19-20 match, including «№ 95», «ст. 1018» and «ст. 2966»",
+    "15": "image read: the first and the last line of the page restored (fixed); items 44-48 match",
+    "17": "image read: items 52-54 and footnotes 23-27 match",
+    "18": "image read: items 54-56 and footnotes 28-31 (№ 715, № 973, № 555) match; Vision's digits are footnote marks",
+    "31": "image read: the last line of the page restored (fixed); the rest matches",
+    "32": "image read: items 71-72 and the code list 31-32; the date boxes of item 72 corrected to four (fixed)",
+    "33": "image read: codes 33-37, items 73-76 and the chapter X title match; date boxes corrected (fixed)",
+    "35": "image read: item 77, the boxes of the form rows corrected by pixel count (fixed)",
+    "44": "image read: item 82 and the codes 31-35; the last three items restored (fixed)",
+    "45": "image read: codes 36-37 and items 83-86 match, with four boxes in the date cells",
+    "47": "image read: codes 51-52, the form lines of chapter X (four boxes in every date cell) and footnotes 37-38 match",
+    "48": "image read: item 86 end and item 87 and footnote 39 match; Vision's digits are footnote marks"
+  },
+  "corrections": [
+    {
+      "page": 5,
+      "kind": "punctuation",
+      "find": "19 февраля 2004 г. регистрационный № 5573",
+      "replace": "19 февраля 2004 г, регистрационный № 5573",
+      "why": "Footnote 9 prints «2004 г, регистрационный № 5573» (a comma after «г»); Marker wrote a full stop."
+    },
+    {
+      "page": 15,
+      "kind": "dropped-line",
+      "find": "в случае ухода за больным ребенком-инвалидом в возрасте до 18 лет",
+      "replace": "стационарных условиях (условиях дневного стационара);\n\nв случае ухода за больным ребенком-инвалидом в возрасте до 18 лет",
+      "why": "The first line of the page («стационарных условиях (условиях дневного стационара);», the end of the item begun on the previous page) is in the image; Marker dropped it."
+    },
+    {
+      "page": 15,
+      "kind": "dropped-line",
+      "find": "48. При заболевании второго (третьего и более) ребенка в период болезни первого ребенка сформированный листок нетрудоспособности по уходу за первым ребенком продлевается до выздоровления всех детей без зачета дней, совпавших с днями освобождения от работы по уходу за первым ребенком.",
+      "replace": "48. При заболевании второго (третьего и более) ребенка в период болезни первого ребенка сформированный листок нетрудоспособности по уходу за первым ребенком продлевается до выздоровления всех детей без зачета дней, совпавших с днями освобождения от работы по уходу за первым ребенком.\n\nПри этом в листке нетрудоспособности указываются родственная (семейная)",
+      "why": "The last line of the page («При этом в листке нетрудоспособности указываются родственная (семейная)», continued on the next page) is in the image; Marker dropped it."
+    },
+    {
+      "page": 31,
+      "kind": "dropped-line",
+      "find": "Допускается формирование листка нетрудоспособности за период лечения в санаторно-курортной организации, не превышающий 24 календарных дня, медицинской организацией, направившей гражданина на лечение в санаторно-курортную организацию, по решению врачебной комиссии на основании документа, подтверждающего пребывание гражданина в данной санаторно-курортной организации.",
+      "replace": "Допускается формирование листка нетрудоспособности за период лечения в санаторно-курортной организации, не превышающий 24 календарных дня, медицинской организацией, направившей гражданина на лечение в санаторно-курортную организацию, по решению врачебной комиссии на основании документа, подтверждающего пребывание гражданина в данной санаторно-курортной организации.\n\nПри направлении лиц, пострадавших в связи с тяжелым несчастным случаем",
+      "why": "The last line of the page («При направлении лиц, пострадавших в связи с тяжелым несчастным случаем», continued on the next page) is in the image; Marker dropped it."
+    },
+    {
+      "page": 32,
+      "kind": "boxes",
+      "find": "«с □□-□□-□□□»",
+      "replace": "«с □□-□□-□□□»",
+      "why": "The date cell of the form is «□□-□□-□□□□» (four boxes for the year, counted from the ruling); Marker drew three."
+    },
+    {
+      "page": 33,
+      "kind": "boxes",
+      "find": "«□□-□□-□□□»",
+      "replace": "«□□-□□-□□□»",
+      "why": "The date cell of the form is «□□-□□-□□□□» (four boxes for the year, counted from the ruling); Marker drew three."
+    },
+    {
+      "page": 35,
+      "kind": "boxes",
+      "find": "«№ истории болезни □□□□□□□□»",
+      "replace": "«№ истории болезни □□□□□□□□□»",
+      "why": "The row «№ истории болезни» has nine boxes in the image (counted by the pixel columns of the box edges); Marker drew eight."
+    },
+    {
+      "page": 35,
+      "kind": "boxes",
+      "find": "«По совместительству № □□□□□□□□□□»",
+      "replace": "«По совместительству № □□□□□□□□□□□□»",
+      "why": "The row «По совместительству №» has twelve boxes in the image (counted by the pixel columns of the box edges); Marker drew ten."
+    },
+    {
+      "page": 44,
+      "kind": "dropped-lines",
+      "find": "32 – при установлении инвалидности (степени утраты профессиональной трудоспособности в результате несчастных случаев на производстве и профессиональных заболеваний);",
+      "replace": "32 – при установлении инвалидности (степени утраты профессиональной трудоспособности в результате несчастных случаев на производстве и профессиональных заболеваний);\n\n33 – при изменении группы инвалидности;\n\n34 —- в случае смерти;\n\n35 – в случае отказа от проведения медико-социальной экспертизы;",
+      "why": "The last three items of the code list (33, 34, 35; «34 —-» is printed with a dash and a hyphen) are at the foot of the page in the image; Marker dropped them."
+    }
+  ]
+}
