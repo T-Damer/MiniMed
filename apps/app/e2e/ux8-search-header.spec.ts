@@ -103,11 +103,15 @@ test('the first run shows no status line while the download waits for the greeti
     'placeholder',
     'Болезнь, код МКБ, препарат, фраза',
   );
-  // Once the user is past the greeting the download is real, and the status follows it.
+  // Past the greeting nothing downloads until the user chooses (DL1); once they pick the base, the
+  // download is real and the status follows it.
   const intro = page.getByRole('dialog', { name: 'Добро пожаловать в MiniMed' });
   const next = intro.getByRole('button', { name: 'Далее', exact: true });
   await next.click();
   await next.click();
+  await expect(intro.getByText('Что скачать сейчас?')).toBeVisible();
+  expect(downloads).toBe(0);
+  await intro.getByTestId('core-choice-core').click();
   await expect.poll(() => downloads).toBe(1);
   await expect(page.locator('.search-home .search-core-status')).toContainText('Загружаем базу');
   await expect(page.locator('.search-core-status__spinner')).toHaveCount(0);
