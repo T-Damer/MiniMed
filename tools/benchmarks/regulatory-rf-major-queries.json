@@ -239,13 +239,13 @@
   },
   {
     "id": "regulatory.374n.diabetes-disability-adult",
-    "query": "У взрослого пациента диабет 2 типа. Какая группа инвалидности ему присваивается?",
+    "query": "Сахарный диабет у взрослого: степень стойких нарушений функций в процентах и группа инвалидности",
     "expectedDocumentId": "regulatory.rf.mintrud.374n-2024-disability",
     "expectedVersionId": "regulatory.rf.mintrud.374n-2024-disability@374n-2024-07-26-reviewed-2026-07-31",
     "expectedDocumentNumber": "374н",
     "expectedPublicationNumber": "0001202408260026",
     "expectedSectionType": "other",
-    "expectedAnchorPrefix": "regulatory.rf.mintrud.374n-2024-disability@374n-2024-07-26-reviewed-2026-07-31/сахарный-диабет-и-другие-диагнозы",
+    "expectedAnchorPrefix": "regulatory.rf.mintrud.374n-2024-disability@374n-2024-07-26-reviewed-2026-07-31/приложение-no-1",
     "expectedAgeGroups": ["adults"],
     "expectedAudienceLabel": "Отдельные критерии для детей и взрослых",
     "requireTop1": true,
@@ -259,7 +259,7 @@
     "expectedDocumentNumber": "374н",
     "expectedPublicationNumber": "0001202408260026",
     "expectedSectionType": "other",
-    "expectedAnchorPrefix": "regulatory.rf.mintrud.374n-2024-disability@374n-2024-07-26-reviewed-2026-07-31/категория-ребенок-инвалид",
+    "expectedAnchorPrefix": "regulatory.rf.mintrud.374n-2024-disability@374n-2024-07-26-reviewed-2026-07-31/приложение/v-критерии-для-установления-групп-инвалидности-и-категории-ребенок-инвалид",
     "expectedAgeGroups": ["children"],
     "requireTop1": true,
     "category": "disability-child"
@@ -272,7 +272,7 @@
     "expectedDocumentNumber": "374н",
     "expectedPublicationNumber": "0001202408260026",
     "expectedSectionType": "other",
-    "expectedAnchorPrefix": "regulatory.rf.mintrud.374n-2024-disability@374n-2024-07-26-reviewed-2026-07-31/группы-инвалидности-у-взрослых",
+    "expectedAnchorPrefix": "regulatory.rf.mintrud.374n-2024-disability@374n-2024-07-26-reviewed-2026-07-31/приложение/v-критерии-для-установления-групп-инвалидности-и-категории-ребенок-инвалид",
     "expectedAgeGroups": ["adults"],
     "requireTop1": true,
     "category": "disability-adult"
@@ -285,7 +285,7 @@
     "expectedDocumentNumber": "374н",
     "expectedPublicationNumber": "0001202408260026",
     "expectedSectionType": "other",
-    "expectedAnchorPrefix": "regulatory.rf.mintrud.374n-2024-disability@374n-2024-07-26-reviewed-2026-07-31/расчет-при-нескольких-нарушениях",
+    "expectedAnchorPrefix": "regulatory.rf.mintrud.374n-2024-disability@374n-2024-07-26-reviewed-2026-07-31/приложение/ii-классификации-основных-видов-стойких-расстройств-функций-организма-человека-о",
     "requireTop1": true,
     "category": "disability-calculation"
   },

@@ -399,6 +399,38 @@ def test_an_empty_row_between_filled_rows_is_dropped_but_a_blank_form_stays() ->
     assert _without_stray_empty_rows(form) == form
 
 
+def test_a_huge_table_is_cut_into_pieces_that_keep_the_header_and_their_own_pages() -> None:
+    from localmed_ingest.legal_texts import (
+        SPLIT_TABLE_CHARS,
+        TABLE_PIECE_CHARS,
+        Block,
+        render_blocks,
+        table_pieces,
+    )
+
+    body = [[f"{n}.", "Критерий " + "х" * 900] for n in range(1, 61)]
+    rows = [["№ п/п", "Критерий"], *body]
+    pages = [10] + [10 + n // 10 for n in range(1, 61)]
+    table = Block("table", "", 10, rows=rows, end_page=16, row_pages=pages)
+    assert sum(len(c) for r in rows for c in r) > SPLIT_TABLE_CHARS
+
+    pieces = table_pieces(table)
+    assert len(pieces) > 5
+    assert all(piece.rows[0] == rows[0] for piece in pieces)
+    assert [row for piece in pieces for row in piece.rows[1:]] == body
+    assert all(
+        sum(len(c) for r in piece.rows[1:] for c in r) < TABLE_PIECE_CHARS + 1000
+        for piece in pieces
+    )
+    assert pieces[0].page == 10 and pieces[-1].end_page == 16
+    for before, after in zip(pieces, pieces[1:], strict=False):  # the pages run on without a gap
+        assert (before.end_page or before.page) <= after.page
+    assert render_blocks([table]).count("localmed:source") == len(pieces)
+
+    small = Block("table", "", 3, rows=[["a", "b"], ["1", "2"]])
+    assert table_pieces(small) == [small]
+
+
 def test_look_alike_cyrillic_letters_in_icd_and_icf_codes_become_latin_but_words_stay() -> None:
     from localmed_ingest.legal_texts import fold_latin_codes
 

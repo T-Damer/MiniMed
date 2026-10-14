@@ -71,6 +71,13 @@ class Block:
     reviewed: bool = False
     pending: list[str] = field(default_factory=list)
     end_page: int | None = None
+    row_pages: list[int] = field(default_factory=list)
+    """The PDF page of each row of a table (a table that runs over many pages keeps where each row stands)."""
+
+    def pages_of_rows(self) -> list[int]:
+        if len(self.row_pages) == len(self.rows):
+            return self.row_pages
+        return [self.page] * len(self.rows)
 
 
 # ------------------------------------------------------------------------------------ parsing
@@ -277,6 +284,7 @@ def merge_pages(pages: list[list[Block]], *, labelled_rows: bool = False) -> lis
                         if cell:
                             last[index] = f"{last[index]}\n{cell}"
                     rows = rows[1:]
+                table_tail.row_pages = [*table_tail.pages_of_rows(), *([head.page] * len(rows))]
                 table_tail.rows.extend(rows)
                 table_tail.end_page = head.page
                 merged.extend(footnotes_before)
@@ -297,14 +305,17 @@ def merge_pages(pages: list[list[Block]], *, labelled_rows: bool = False) -> lis
     merged.extend(carried_footnotes)
     for block in merged:
         if block.kind == "table":
-            block.rows = _without_stray_empty_rows(block.rows)
+            keep = _kept_row_indices(block.rows)
+            pages = block.pages_of_rows()
+            block.rows = [block.rows[index] for index in keep]
+            block.row_pages = [pages[index] for index in keep]
     return merged
 
 
-def _without_stray_empty_rows(rows: list[list[str]]) -> list[list[str]]:
-    """Rows with no text between two rows that have text are an artefact of the reading (an edge or a speck of
-    the scan, a stripped separator); empty rows at the end of a table are a blank form and stay."""
-    kept: list[list[str]] = []
+def _kept_row_indices(rows: list[list[str]]) -> list[int]:
+    """The rows to keep: rows with no text between two rows that have text are an artefact of the reading (an
+    edge or a speck of the scan, a stripped separator); empty rows at the end of a table are a blank form and stay."""
+    kept: list[int] = []
     for index, row in enumerate(rows):
         if (
             not any(cell.strip() for cell in row)
@@ -313,8 +324,12 @@ def _without_stray_empty_rows(rows: list[list[str]]) -> list[list[str]]:
             and any(cell.strip() for cell in rows[index + 1])
         ):
             continue
-        kept.append(row)
+        kept.append(index)
     return kept
+
+
+def _without_stray_empty_rows(rows: list[list[str]]) -> list[list[str]]:
+    return [rows[index] for index in _kept_row_indices(rows)]
 
 
 def _continues_row(previous: list[str], row: list[str]) -> tuple[int, int] | None:
@@ -574,6 +589,45 @@ def _markdown_row(cells: list[str]) -> str:
     return "| " + " | ".join(cell.replace("|", "\\|").replace("\n", " ") for cell in cells) + " |"
 
 
+SPLIT_TABLE_CHARS: Final = 24000
+"""A table with more text than this is cut into pieces (the header row repeated), one search chunk each."""
+TABLE_PIECE_CHARS: Final = 6000
+
+
+def table_pieces(block: Block) -> list[Block]:
+    """The table as one block, or, when it is far larger than a search chunk, consecutive pieces of about
+    `TABLE_PIECE_CHARS` characters; each piece repeats the header row and carries the pages of its own rows."""
+    size = sum(len(cell) for row in block.rows for cell in row)
+    if size <= SPLIT_TABLE_CHARS or len(block.rows) < 3:
+        return [block]
+    header, pages = block.rows[0], block.pages_of_rows()
+    pieces: list[Block] = []
+    start, used = 1, 0
+    for index in range(1, len(block.rows) + 1):
+        if index < len(block.rows):
+            used += sum(len(cell) for cell in block.rows[index])
+            if used < TABLE_PIECE_CHARS:
+                continue
+        first, last = (pages[0] if not pieces else pages[start]), pages[index - 1]
+        if index < len(block.rows):  # a page that only continues the last row stands with that row
+            last = max(last, pages[index] - 1)
+        pieces.append(
+            Block(
+                "table",
+                "",
+                first,
+                rows=[header, *block.rows[start:index]],
+                confidence=block.confidence,
+                reviewed=block.reviewed,
+                pending=block.pending if not pieces else [],
+                end_page=last if last != first else None,
+                row_pages=[pages[0] if not pieces else pages[start], *pages[start:index]],
+            )
+        )
+        start, used = index, 0
+    return pieces
+
+
 def render_table(block: Block) -> str:
     width = max(len(row) for row in block.rows)
     rows = [row + [""] * (width - len(row)) for row in block.rows]
@@ -602,7 +656,7 @@ def render_blocks(blocks: list[Block]) -> str:
         if block.kind == "heading":
             parts.append(f"{'#' * block.level} {block.text}")
         elif block.kind == "table":
-            parts.append(render_table(block))
+            parts.extend(render_table(piece) for piece in table_pieces(block))
         else:
             lines = [_span(block)] if _span(block) else []
             if block.pending:
