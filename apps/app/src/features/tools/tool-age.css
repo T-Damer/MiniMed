@@ -16,6 +16,9 @@
 
 .tool-age-badge {
   display: inline-flex;
+  /* Never stretched to the column in a grid or flex parent: a tag is as wide as its words. */
+  align-self: center;
+  justify-self: start;
   min-width: 0;
   max-width: 100%;
   align-items: center;

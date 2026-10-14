@@ -112,12 +112,14 @@ function QuickToolRow(props: {
             <span class="quick-tool-row__copy">
               <span class="quick-tool-row__title">{tool().title}</span>
               <span class="quick-tool-row__meta">
-                {tool().unavailableReason ?? tool().kindLabel}
+                <span class="quick-tool-row__kind">
+                  {tool().unavailableReason ?? tool().kindLabel}
+                </span>
+                {/* «Любой возраст» says nothing on a row; only a real restriction is worth showing. */}
+                <Show when={!isAnyAge(tool().ageScope)}>
+                  <ToolAgeBadge scope={tool().ageScope} />
+                </Show>
               </span>
-              {/* «Любой возраст» says nothing on a row; only a real restriction is worth showing. */}
-              <Show when={!isAnyAge(tool().ageScope)}>
-                <ToolAgeBadge scope={tool().ageScope} />
-              </Show>
             </span>
           </button>
         )}
