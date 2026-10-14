@@ -70,7 +70,8 @@ _INLINE_TAG: Final = re.compile(
     r"</?(?:p|b|i|u|em|strong|span|div|ul|ol|li|table|thead|tbody|tr|td|th|a)(?:\s[^>]*)?>",
     re.IGNORECASE,
 )
-_BR_PEEK: Final = re.compile(r"<br\s*/?>\s*(?=(\S))", re.IGNORECASE)
+_BR_PEEK: Final = re.compile(r"<br\s*/?>\s*(?=([^<|]{0,8}))", re.IGNORECASE)
+_WRAP_TAIL: Final = re.compile(r"[А-ЯЁ]{2,5}(?![а-яёА-ЯЁ])|\d{4}\s*г")
 _BR: Final = re.compile(r"<br\s*/?>", re.IGNORECASE)
 _DOUBLE_NUMBERED: Final = re.compile(r"^(\s*)\d+\.\s+(\d+[.)]\s)", re.MULTILINE)
 _FURNITURE: Final = re.compile(r"^[\s#*_|\\\-–—.()]*\d{1,4}[\s#*_|\\\-–—.()]*$")
@@ -134,7 +135,12 @@ def _flatten_breaks(line: str) -> str:
     # In a cell a `<br>` is either a visual wrap («пневмококковой<br>инфекции») or the end of an item
     # («…ребенка<br>Сбор анамнеза»): an item ends where the next part starts like a new sentence.
     line = _BR_PEEK.sub(
-        lambda m: LINE_BREAK_IN_CELL if re.match(r"[A-ZА-ЯЁ0-9•\-–—]", m.group(1)) else " ", line
+        lambda m: (
+            LINE_BREAK_IN_CELL
+            if re.match(r"[A-ZА-ЯЁ0-9•\-–—]", m.group(1)) and not _WRAP_TAIL.match(m.group(1))
+            else " "
+        ),
+        line,
     )
     return _BLOCK_END.sub(LINE_BREAK_IN_CELL, _BR.sub(" ", line))
 
@@ -329,7 +335,29 @@ def tokenize(
         if any(a <= match.start() < b for a, b in skipped):
             ignore = True
         tokens.append(Token(norm, match.start(), match.end(), line, ignore))
-    return tokens
+    return _join_thousands(tokens, prepared)
+
+
+def _join_thousands(tokens: list[Token], text: str) -> list[Token]:
+    """«1 700», «20 000»: groups of three digits after a space are one number (Vision drops the space)."""
+    joined: list[Token] = []
+    for token in tokens:
+        if (
+            joined
+            and token.norm.isdigit()
+            and len(token.norm) == 3
+            and joined[-1].norm.isdigit()
+            and len(joined[-1].norm) <= 3
+            and not joined[-1].ignore
+            and text[joined[-1].end : token.start] in (" ", "\u00a0")
+        ):
+            previous = joined.pop()
+            joined.append(
+                Token(previous.norm + token.norm, previous.start, token.end, previous.line, False)
+            )
+        else:
+            joined.append(token)
+    return joined
 
 
 def vision_tokens(lines: list[str], skip: tuple[str, ...] = ()) -> list[Token]:
@@ -601,7 +629,7 @@ def act_identity(record: Mapping[str, object]) -> ActIdentity:
 
 _SELF_REFERENCE: Final = re.compile(
     r"(?P<head>\b(?:Приложение|Утвержден[ыо]?)\b[^.;]{0,260}?\bприказ\w*\b[^.;№]{0,200}?)"
-    r"\b(?:от|ot)\s+[^№]{3,60}?[№N][º°o]?[\s*]*(?P<num>\d+(?: ?[A-Za-zА-Яа-я](?![A-Za-zА-Яа-я]))?)(?!\d)\**",
+    r"\b(?:от|ot)\s+[^№]{3,60}?[№N][º°o]?\.?[\s*]*(?P<num>\d+(?: ?[A-Za-zА-Яа-я](?![A-Za-zА-Яа-я]))?)(?!\d)",
     re.IGNORECASE | re.DOTALL,
 )
 

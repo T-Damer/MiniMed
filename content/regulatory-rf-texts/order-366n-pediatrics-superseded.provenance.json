@@ -259,10 +259,10 @@
    ],
    "headerRemoved": null,
    "stats": {
-    "markerTokens": 190,
-    "visionTokens": 178,
+    "markerTokens": 189,
+    "visionTokens": 177,
     "coverageVision": 0.993,
-    "coverageMarker": 0.9281,
+    "coverageMarker": 0.9276,
     "respaced": 0,
     "tableRows": 26
    }

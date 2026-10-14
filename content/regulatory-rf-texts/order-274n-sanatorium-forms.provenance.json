@@ -860,10 +860,10 @@
    "portalRewrites": [],
    "headerRemoved": null,
    "stats": {
-    "markerTokens": 167,
-    "visionTokens": 167,
-    "coverageVision": 0.9815,
-    "coverageMarker": 0.9755,
+    "markerTokens": 165,
+    "visionTokens": 165,
+    "coverageVision": 0.9812,
+    "coverageMarker": 0.9752,
     "respaced": 0,
     "tableRows": 0
    }
@@ -1071,7 +1071,7 @@
    "flags": [
     {
      "kind": "number-mismatch",
-     "detail": "only in Vision: 7, 71; only in Marker: 6, 711×2"
+     "detail": "only in Vision: 7, 71100, 71150; only in Marker: 6, 71, 711100, 711150"
     }
    ],
    "furniture": [
@@ -1080,10 +1080,10 @@
    "portalRewrites": [],
    "headerRemoved": null,
    "stats": {
-    "markerTokens": 166,
-    "visionTokens": 166,
-    "coverageVision": 0.9876,
-    "coverageMarker": 0.9815,
+    "markerTokens": 164,
+    "visionTokens": 164,
+    "coverageVision": 0.9811,
+    "coverageMarker": 0.975,
     "respaced": 0,
     "tableRows": 0
    }
@@ -1309,10 +1309,10 @@
    "portalRewrites": [],
    "headerRemoved": null,
    "stats": {
-    "markerTokens": 234,
-    "visionTokens": 233,
-    "coverageVision": 0.9858,
-    "coverageMarker": 0.9811,
+    "markerTokens": 232,
+    "visionTokens": 231,
+    "coverageVision": 0.9856,
+    "coverageMarker": 0.981,
     "respaced": 0,
     "tableRows": 0
    }

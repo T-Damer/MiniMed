@@ -143,7 +143,7 @@
     },
     {
      "kind": "number-mismatch",
-     "detail": "only in Vision: 011, 190, 2025; only in Marker: 000, 100, 40"
+     "detail": "only in Vision: 011, 190, 2025; only in Marker: 100000, 40"
     },
     {
      "kind": "coverage-vision",
@@ -151,7 +151,7 @@
     },
     {
      "kind": "coverage-marker",
-     "detail": "14% of Marker's tokens are not in Vision (e.g. российской, федерации, индивидуальном, общей, заболеваемости, туберкулезом, субъекте, 40, более, на, 100, 000)"
+     "detail": "13% of Marker's tokens are not in Vision (e.g. российской, федерации, индивидуальном, общей, заболеваемости, туберкулезом, субъекте, 40, более, на, 100000, населения)"
     }
    ],
    "furniture": [],
@@ -160,10 +160,10 @@
    ],
    "headerRemoved": null,
    "stats": {
-    "markerTokens": 120,
-    "visionTokens": 106,
-    "coverageVision": 0.9326,
-    "coverageMarker": 0.8646,
+    "markerTokens": 118,
+    "visionTokens": 105,
+    "coverageVision": 0.9318,
+    "coverageMarker": 0.8723,
     "respaced": 0,
     "tableRows": 7
    }

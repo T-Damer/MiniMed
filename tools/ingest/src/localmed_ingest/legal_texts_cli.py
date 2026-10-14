@@ -466,7 +466,14 @@ def _apply_cells(
     extra: dict[int, list[tuple[str, str]]],
 ) -> None:
     """Replace the second reading of each page that has a cell reading by «lines outside the table, cells, lines below»."""
-    from .legal_cells import MIN_INK, grid_markdown, harmonize, merge_lines, read_cells
+    from .legal_cells import (
+        MIN_INK,
+        grid_markdown,
+        harmonize,
+        marker_cells,
+        merge_lines,
+        read_cells,
+    )
 
     stem = row["stem"]
     layout_path = paths.work / f"vision/{stem}-cells-layout.json"
@@ -491,6 +498,11 @@ def _apply_cells(
             reading = marker.get(page)
             inked = [cell["ink"] >= MIN_INK for cell in layout["cells"]]
             rebuilt = grid_markdown(reading, layout, texts, inked) if reading else None
+            if rebuilt is not None and (
+                sum(1 for kind, _ in rebuilt[1] if kind == "cell-marker-only")
+                > 0.4 * max(len(marker_cells(reading or "")), 1)
+            ):
+                continue  # the ruling was not read well on this page: both readings stay as they are
             if rebuilt is not None:
                 marker[page], found = rebuilt
                 if found:

@@ -175,10 +175,10 @@
    "portalRewrites": [],
    "headerRemoved": null,
    "stats": {
-    "markerTokens": 185,
-    "visionTokens": 185,
-    "coverageVision": 0.9943,
-    "coverageMarker": 0.9943,
+    "markerTokens": 184,
+    "visionTokens": 184,
+    "coverageVision": 0.9942,
+    "coverageMarker": 0.9942,
     "respaced": 0,
     "tableRows": 5
    }

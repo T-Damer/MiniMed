@@ -1,0 +1,308 @@
+{
+  "documentId": "regulatory.rf.minzdrav.202n-2025",
+  "reviewer": "Claude (agent), against the page images; not a lawyer",
+  "reviewedAt": "2026-10-14",
+  "verdicts": {
+    "7": "image read: the text matches the page; «1 700», «1 300» are printed with a space, Vision joined them",
+    "8": "image read: the text matches the page; the number groups «1 001», «2 000» are printed with a space",
+    "9": "image read: the text matches the page; the number groups are printed with a space",
+    "12": "image read: the text matches the page; «20 000» is printed with a space",
+    "21": "image read (table): every row and cell matches the page (rows 15 end – 29); Vision's lone «28» is the row number",
+    "22": "image read (table): every row and cell matches the page (rows 29 end – 36); the multi-line cell of row 31 is as Marker has it (a colon after «условиях», items on separate lines), Vision's «.» is a misreading",
+    "29": "image read (table): every row and cell matches the page (rows 1 end – 4); the quantity of row 4 restored",
+    "32": "image read (table): every row and cell matches the page (row 5 end, 6 and rows 1–3 of «Дополнительное оснащение прививочного кабинета»)",
+    "34": "image read: the text matches the page; items 4–11 of the list; the «11» only Marker has is the item number",
+    "37": "image read: the text matches the page; annex 5, items 1–4; the annex header's date and number are handwritten (the portal's are used)",
+    "44": "image read (table): every row and cell matches the page (rows 1–2); the header's handwritten date and number are the portal's; Vision's «Nº II/II» is the header cell «№ п/п»",
+    "48": "image read (table): every row and cell matches the page (rows 1–3); the header's handwritten date and number are the portal's",
+    "53": "image read (table): every row and cell matches the page (rows 2 end – 4); the ruled-cell reading was not used on this page",
+    "55": "image read (table): every row and cell matches the page (rows 4 end – 10); row 10 is cut by the page end (the name «Стол» goes on on the next page)",
+    "57": "image read (table): every row and cell matches the page (rows 11 end – 13); Marker's text is longer than Vision's because Vision reads the table cell by cell, not a loop",
+    "58": "image read (table): every row and cell matches the page (rows 14–21)",
+    "59": "image read (table): every row and cell matches the page (rows 21 end – 22); the end of the page restored",
+    "60": "image read (table): every row and cell matches the page (rows 22 end – 25 and the start of the header of table 2); the header of table 2 is cut by the page end and goes on on page 61",
+    "61": "image read (table): every row and cell matches the page (header end and rows 1–4 of the standard of the mobile brigade)",
+    "62": "image read (table): every row and cell matches the page (the end of table 2, the header and rows 1–2 of table 3)",
+    "65": "image read (table): every row and cell matches the page (rows 1–2 of «Дополнительное оснащение мобильной медицинской бригады»); the lone «1» is the page number",
+    "70": "image read (table): every row and cell matches the page (the header, rows 1–3 start); the header's handwritten date and number are the portal's",
+    "71": "image read: the table rows 3 end – 8 match",
+    "72": "image read (page typed from the image): Marker's cells of rows 3 end – 8 are shifted between columns; the page is typed from the image (the last cell is cut by the page end)",
+    "74": "image read (table): every row and cell matches the page (rows 10 end, 11 and row 1 start of «Дополнительное оснащение»)",
+    "75": "image read (table): every row and cell matches the page (row 1 end and row 3 of «Дополнительное оснащение»); the lone «1» is the quantity",
+    "77": "image read: the text matches the page; items 6–8 and footnotes 3–5",
+    "78": "image read: the text matches the page; items 9–12; the numbered list of premises 1)–19) is as printed",
+    "83": "image read (table): every row and cell matches the page (rows 6 end – 15); the numbers flagged are the thousands groups («2 200», «3 500 – 4 000») and the row numbers",
+    "85": "image read (table): every row and cell matches the page (rows 1 end – 2 of the standard of the first-aid post)",
+    "86": "image read (table): every row and cell matches the page (rows 2 end – 4 start); row 4 is cut by the page end",
+    "88": "image read (page typed from the image): Marker's table of this page has its cells of rows 5 and 6 in shifted columns and a sixth column; the whole page is typed from the image",
+    "89": "image read (table): every row and cell matches the page (rows 6 end – 11 start)",
+    "90": "image read (page typed from the image): Marker's table of this page is a flat list of cells without its columns; the page is typed from the image (row 16 is cut by the page end and goes on on the next page)",
+    "91": "image read (table): every row and cell matches the page (row 16 end of the equipment standard)",
+    "93": "image read (table): every row and cell matches the page (rows 20 end – 23 start)",
+    "94": "image read (page typed from the image): Marker's table of this page lost the cell borders of rows 24 and 27; the page is typed from the image (the last cell is cut by the page end). Row 23's tail «2027 г.)» is on the previous page's cell and not repeated here",
+    "95": "image read (table): every row and cell matches the page (rows 27 end – 34 start); the duplicate cell flagged is the same cell read twice",
+    "97": "image read (table): every row and cell matches the page (rows 39 end – 43 start)",
+    "98": "image read (table): every row and cell matches the page (rows 43 end – 45 start)",
+    "99": "image read (table): every row and cell matches the page (rows 45 end – 49 start); the number 48 restored in its cell",
+    "100": "image read (table): every row and cell matches the page (rows 49 end – 52 start)",
+    "101": "image read (table): every row and cell matches the page (rows 52 end – 54 and row 1 start of «Дополнительное оснащение»); the first row's «1» is the page number",
+    "102": "image read (table): every row and cell matches the page (rows 1 end – 8 of «Дополнительное оснащение»); the row number 6 restored",
+    "103": "image read: the text matches the page; annex 18, items 1–5 and footnotes 1–3; the header's date and number are handwritten (the portal's); the doubled «профессионального стандарта» in item 4 is as printed",
+    "107": "image read (table): every row and cell matches the page (annex 19, rows 1–3); the two-level header is kept as Marker has it; the header's date and number are handwritten (the portal's)",
+    "108": "image read: the text matches the page; annex 20, items 1–4 and footnotes 1, 2; the header's date and number are handwritten (the portal's)",
+    "113": "image read (table): every row and cell matches the page (annex 21, rows 1–7); the header's date and number are handwritten (the portal's)",
+    "115": "image read (table): every row and cell matches the page (annex 22, the header and row 1); the header's date and number are handwritten (the portal's)",
+    "117": "image read (table): every row and cell matches the page (rows 5 end – 9 start)",
+    "118": "image read (table): every row and cell matches the page (rows 8 end – 13 start); the equipment and quantity cells of row 11 come from the ruled reading, which is what the image shows",
+    "120": "image read (table): every row and cell matches the page (rows 17–18 start); the code of row 18 is 187150",
+    "121": "image read (table): every row and cell matches the page (rows 18 end – 22 start); the row number 21 restored",
+    "124": "image read (table): every row and cell matches the page (row 29)",
+    "127": "image read (table): every row and cell matches the page (rows 37 end – 42 start); the word «Стетофонендоскоп» is cut without a hyphen at the line end in the image, as Marker has it",
+    "129": "image read (table): every row and cell matches the page (rows 43 end – 45)",
+    "130": "image read (table): every row and cell matches the page (rows 46–48 start); the quantity «не менее 10 на 1 кабинет врача общей практики (семейного врача) и на 1 кабинет доврачебной помощи» is as the image shows",
+    "134": "image read (table): every row and cell matches the page (rows 57 end – 59 and row 1 of «Дополнительное оснащение»)"
+  },
+  "corrections": [
+    {
+      "page": 29,
+      "kind": "dropped-cell",
+      "find": "| Термометр медицинский | |",
+      "replace": "| Термометр медицинский | 1 |",
+      "why": "The quantity «1» of row 4 is in the image (the cell spans the three thermometer rows); Marker dropped it."
+    },
+    {
+      "page": 57,
+      "kind": "empty-rows",
+      "find": "\n| | | | | |\n| | | | | |",
+      "replace": "",
+      "why": "Two empty rows that Marker invented under row 12 (the image has none)."
+    },
+    {
+      "page": 59,
+      "kind": "row",
+      "find": "| | 22 | 215850 | | |",
+      "replace": "| 22 | 215850 | Холодильник фармацевти- | Холодильник для хранения | 2 |",
+      "why": "Row 22 is cut by the page end (the name «Холодильник фармацевтический», «Холодильник для хранения лекарственных препаратов» go on on the next page); Marker shifted its cells one column to the right and lost the names and the quantity «2»."
+    },
+    {
+      "page": 61,
+      "kind": "word",
+      "find": "транспальнеб-ральный",
+      "replace": "транспальпеб-ральный",
+      "why": "The printed word is «транспальпебральный» (a wrap at the line end); Marker read «н» for «п»."
+    },
+    {
+      "page": 61,
+      "kind": "dup-cell",
+      "find": "| Тонометр офтальмологи-ческий, с питанием от сети | го давления | |",
+      "replace": "| Тонометр офтальмологи-ческий, с питанием от сети | | |",
+      "why": "«го давления» is the end of the cell of row 2 («… внутриглазно-го давления»), already there."
+    },
+    {
+      "page": 61,
+      "kind": "dup-row",
+      "find": "\n| | | ИВД, для использования вблизи пациента | | |",
+      "replace": "",
+      "why": "A duplicate row: «ИВД, для использования вблизи пациента» is the end of the name in row 4, which is whole above."
+    },
+    {
+      "page": 62,
+      "kind": "columns",
+      "find": "Требуемое количество, штук | |",
+      "replace": "Требуемое количество, штук |",
+      "why": "Marker's table has a sixth, empty column that the image does not have (five columns: number, code, nomenclature name, equipment, quantity)."
+    },
+    {
+      "page": 62,
+      "kind": "columns",
+      "find": "профилактического медицинского осмотра: | | 1 |",
+      "replace": "профилактического медицинского осмотра: | 1 |",
+      "why": "The quantity «1» of row 1 is in the fifth column; Marker put it in a sixth one."
+    },
+    {
+      "page": 62,
+      "kind": "columns",
+      "find": "| Маммограф | 1 | |",
+      "replace": "| Маммограф | 1 |",
+      "why": "The quantity «1» of row 2 is in the fifth column; Marker added an empty sixth cell."
+    },
+    {
+      "page": 70,
+      "kind": "stray",
+      "find": "№ 202н*",
+      "replace": "№ 202н",
+      "why": "A stray asterisk after the number of the order in the annex header."
+    },
+    {
+      "page": 70,
+      "kind": "columns",
+      "find": "| № п/п Код вида медицинского изделия в соответствии с номенклатурной классификацией | |",
+      "replace": "| № п/п | Код вида медицинского изделия в соответствии с номенклатурной классификацией |",
+      "why": "Marker joined the first two header cells («№ п/п» and «Код вида …») and added an empty one; the image has the five header cells."
+    },
+    {
+      "page": 89,
+      "kind": "cell",
+      "find": "| Киотопопикй | 1 |",
+      "replace": "| Кислородный ингалятор | 1 |",
+      "why": "The equipment cell of row 11 (spanning the three codes) is «Кислородный ингалятор»; Vision garbled it, Marker had put it one row lower."
+    },
+    {
+      "page": 89,
+      "kind": "cell",
+      "find": "| Концентратор кислорода стационарный | Кислородный ингалятор | |",
+      "replace": "| Концентратор кислорода стационарный | | |",
+      "why": "The equipment cell «Кислородный ингалятор» belongs to row 11 as a whole (above), not to its second code."
+    },
+    {
+      "page": 93,
+      "kind": "cell",
+      "find": "| Осветитель ГОЛОвНОй |",
+      "replace": "| Осветитель головной |",
+      "why": "The name is «Осветитель головной» in the image; Vision read the capitals badly."
+    },
+    {
+      "page": 97,
+      "kind": "cell",
+      "find": "г.) | | | | - |",
+      "replace": "г.) | | | | |",
+      "why": "A speck of the scan in an empty cell of the image, read as a dash."
+    },
+    {
+      "page": 98,
+      "kind": "code",
+      "find": "| 12637( |",
+      "replace": "| 126370 |",
+      "why": "The code printed in the image is 126370; Vision read the last digit as a bracket."
+    },
+    {
+      "page": 99,
+      "kind": "number",
+      "find": "| 1X | 215850 |",
+      "replace": "| 48 | 215850 |",
+      "why": "The row number printed in the image is 48; Vision read it as «1X»."
+    },
+    {
+      "page": 100,
+      "kind": "cell",
+      "find": "| Щит спинальный с | 1 |\n| | | | Щит спинальный с устройством для фиксации головы, рентгенпрозрачный, амагнитный | |",
+      "replace": "| Щит спинальный с устройством для фиксации головы, рентгенпрозрачный, амагнитный | 1 |",
+      "why": "The equipment cell of row 51 is one cell in the image: «Щит спинальный с устройством для фиксации головы, рентгенпрозрачный, амагнитный»; Marker cut it in two rows."
+    },
+    {
+      "page": 102,
+      "kind": "number",
+      "find": "| 9 | Шкаф для белья",
+      "replace": "| 6 | Шкаф для белья",
+      "why": "The row number printed in the image is 6; both readings gave 9."
+    },
+    {
+      "page": 107,
+      "kind": "dropped-char",
+      "find": "| 2. | Акушерка (акушер) | |",
+      "replace": "| 2. | Акушерка (акушер) | - |",
+      "why": "The cell of row 2 under «от 101 до 800 человек» holds a dash in the image; Marker left it empty."
+    },
+    {
+      "page": 113,
+      "kind": "stray",
+      "find": "№ 202н*",
+      "replace": "№ 202н",
+      "why": "A stray asterisk after the number of the order in the annex header."
+    },
+    {
+      "page": 115,
+      "kind": "stray",
+      "find": "№ 202н*",
+      "replace": "№ 202н",
+      "why": "A stray asterisk after the number of the order in the annex header."
+    },
+    {
+      "page": 115,
+      "kind": "columns",
+      "find": "| № п/п Код вида медицинского изделия в соответствии с номенклатур-ной классифи-кацией | |",
+      "replace": "| № п/п | Код вида медицинского изделия в соответствии с номенклатур-ной классифи-кацией |",
+      "why": "Marker joined the first two header cells («№ п/п» and «Код вида …») and added an empty one; the image has five header cells."
+    },
+    {
+      "page": 115,
+      "kind": "code",
+      "find": "| 1 | 1M7C 175450 |",
+      "replace": "| 1 | 175450 |",
+      "why": "The code printed in the image is 175450; the letters before it are Vision's misreading of the row number cell."
+    },
+    {
+      "page": 117,
+      "kind": "dash",
+      "find": "| полей зрения (периметр) | - |",
+      "replace": "| полей зрения (периметр) | |",
+      "why": "A speck of the scan in an empty cell of the image, read as a dash."
+    },
+    {
+      "page": 117,
+      "kind": "number",
+      "find": "| (необходимо наличие одной из указанных ПОЗИЦИЙ) | 293180 |",
+      "replace": "| 6 (необходимо наличие одной из указанных позиций) | 293180 |",
+      "why": "The row number «6» is printed in the image and the capitals of «позиций» are lowercase; Marker lost the number, Vision read the capitals badly."
+    },
+    {
+      "page": 118,
+      "kind": "cell",
+      "find": "плоскопружин-НЫЙ",
+      "replace": "плоскопружин-ный",
+      "why": "The cell is «Динамометр ручной и плоскопружинный» (a hyphen wrap) in the image; Marker lost the cell and Vision read the capitals badly."
+    },
+    {
+      "page": 120,
+      "kind": "code",
+      "find": "| 18715( |",
+      "replace": "| 187150 |",
+      "why": "The code printed in the image is 187150; Vision read the last digit as a bracket."
+    },
+    {
+      "page": 121,
+      "kind": "number",
+      "find": "| 17 | 181320 |",
+      "replace": "| 21 | 181320 |",
+      "why": "The row number printed in the image is 21; Vision read it as 17."
+    },
+    {
+      "page": 124,
+      "kind": "cell",
+      "find": "пневматическая | \"элекурическии | |",
+      "replace": "пневматическая | | |",
+      "why": "A speck of the scan in an empty cell, read as a word by Vision; the image has no text there."
+    },
+    {
+      "page": 127,
+      "kind": "cell",
+      "find": "| | - | | |",
+      "replace": "| | | | |",
+      "why": "A speck of the scan in an empty cell of the image, read as a dash."
+    },
+    {
+      "page": 134,
+      "kind": "cell",
+      "find": "| | | 287910 | | |",
+      "replace": "| | 287910 | Анализатор биохимический одноканальный ИВД, для использования вблизи пациента | | |",
+      "why": "The row of code 287910 has its name «Анализатор биохимический одноканальный ИВД, для использования вблизи пациента» in the image; Marker put the code in the name column and lost the name."
+    }
+  ],
+  "keepMarker": [
+    57
+  ],
+  "transcriptions": {
+    "72": {
+      "text": "| | | измерения артериального давления телеметрический | | |\n|---|---|---|---|---|\n| | 239410 | Аппарат для измерения артериального давления анероидный механический | | |\n| | 366210 | Аппарат для измерения артериального давления с определением аритмии | | |\n| 4 (необходимо наличие одной из указанных позиций) | 213210 | Небулайзер настольный, с подогревом | Ингалятор аэрозольный компрессорный (небулайзер) портативный | 1 |\n| | 213220 | Небулайзер настольный, без подогрева | | |\n| 5 (необходимо наличие одной из указанных позиций) | 191650 | Набор для сердечно-легочной реанимации, одноразового использования | Набор реанимационный | 1 |\n| | 271350 | Набор для сердечно-легочной реанимации, многоразового использования | | |\n| 6 | 149980 | Пульсоксиметр | Пульсоксиметр | 1 |\n| 7 | 157600 | Ростомер медицинский | Ростомер | 1 |\n| 8 (необходимо наличие одной из указанных позиций) | 232490 | Спирометр диагностический, профессиональный | Спирограф электронный | 1 (в случае отсутствия отделения (кабинета) функциональ- |"
+    },
+    "88": {
+      "text": "| | 366210 | Аппарат для измерения артериального давления с определением аритмии | | |\n|---|---|---|---|---|\n| 5 (необходимо наличие одной из указанных позиций) (рекомендуемый до 31 декабря 2027 г.) | 121390 | Периметр, ручной | Аппарат для определения полей зрения (периметр) | не менее 1 |\n| | 216690 | Периметр автоматический | | |\n| 6 (необходимо наличие одной из указанных позиций) (рекомендуемый до 31 декабря 2027 г.) | 358710 | Система аспирационная хирургическая общего назначения, электрическая | Аспиратор электрический | 1 |\n| | 182530 | Система аспирационная для хирургии | | |\n| | 114410 | Система аспирационная для грудной клетки | | |\n| | 162580 | Система аспирационная для очищения дыхательных путей для экстренной помощи, электрическая | | |\n| | 172990 | Система аспирационная для трахеи | | |\n| | 256700 | Система аспирационная низкого давления | | |"
+    },
+    "90": {
+      "text": "| | | кислорода мобильный/портативный | | |\n|---|---|---|---|---|\n| 12 | 248430 | Кольпоскоп | Кольпоскоп | 1 |\n| 13 (необходимо наличие одной из указанных позиций) (рекомендуемый до 31 декабря 2027 г.) | 172730 | Воздуховод ротоглоточный, одноразового использования | Комплект воздуховодов для искусственного дыхания «рот в рот» | 2 |\n| | 351540 | Загубник/покрытие для сердечно-легочной реанимации | | |\n| 14 (необходимо наличие одной из указанных позиций) (рекомендуемый до 31 декабря 2027 г.) | 146830 | Комплект для ЛОР диагностики | Комплект инструментов для осмотра ЛОР-органов | 1 |\n| | 172070 | Комплект диагностический офтальмологический/отологический | | |\n| | 343020 | Набор для ЛОР диагностических /терапевтических процедур, одноразового использования | | |\n| 15 (необходимо наличие одной из указанных позиций) | 126520 | Костыль с опорой на предплечье | Костыли | 2 |\n| | 207290 | Костыль подмышечный | | |\n| | 302470 | Костыль с опорой под локоть | | |\n| | 349550 | Костыль без опоры на руки | | |\n| 16 | 151550 | Стол гинекологический для осмотра/терапевтических | Кресло гинекологическое | 1 (предусматривается для врачебной амбулатории, |"
+    },
+    "94": {
+      "text": "| | | | | |\n|---|---|---|---|---|\n| 24 (необходимо наличие одной из указанных позиций) (рекомендуемый до 31 декабря 2027 г.) | 172390 | Источник света офтальмологический | Офтальмологический фонарик | 1 |\n| | 382340 | Модуль источника света для офтальмологических процедур | | |\n| 25 (необходимо наличие одной из указанных позиций) | 303440 | Стол пеленальный, стационарный | Пеленальный стол | 1 |\n| | 233010 | Стол пеленальный для младенцев | | |\n| 26 (необходимо наличие одной из указанных позиций) (рекомендуемый до 31 декабря 2027 г.) | 172440 | Пинцет офтальмологический, многоразового использования | Пинцеты офтальмологические | 1 набор |\n| | 345480 | Щипцы офтальмологические для манипуляций с мягкими тканями, в форме пинцета, многоразового использования | | |\n| 27 (необходимо наличие одной из указанных позиций) (рекомендуемый до 31 декабря 2027 г.) | 259730 | Стекло предметное/ слайд для микроскопии ИВД, одноразового использования | Предметные стекла | 1 набор |\n| | 353390 | Стекло предметное/ слайд для микроскопии ИВД, многоразового | | |"
+    }
+  }
+}

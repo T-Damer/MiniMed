@@ -162,22 +162,19 @@
   {
    "page": 8,
    "reading": "marker",
-   "status": "reviewed",
+   "status": "pass",
    "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 2025, 3134"
-    }
-   ],
+   "flags": [],
    "furniture": [],
-   "portalRewrites": [],
+   "portalRewrites": [
+    "от *[Signature]* 2025 г. № *3134"
+   ],
    "headerRemoved": null,
    "stats": {
-    "markerTokens": 259,
+    "markerTokens": 261,
     "visionTokens": 258,
     "coverageVision": 0.9954,
-    "coverageMarker": 0.9819,
+    "coverageMarker": 1.0,
     "respaced": 0,
     "tableRows": 0
    }
