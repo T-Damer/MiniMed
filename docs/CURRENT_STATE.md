@@ -180,7 +180,7 @@ QA ([qa-haiku-2026-10-14](research/qa-haiku-2026-10-14.md) «Data safety») lost
   `localStorage["minimed.patient-visit-note-ahead.v1"]` (opaque patient/visit ids + ciphertext). It is removed when
   the newest text is in the vault; a copy left by a reload inside the debounce, or by a vault locked at that moment
   (`pagehide` locks the vault synchronously), is applied by `recoverVisitNotes()` when `PatientWorkspace` reads or
-  unlocks the vault. Unreadable copies (vault replaced) are dropped with a console warning that carries no text.
+  unlocks the vault. Copies a live autosave of the page still owns are skipped (they are newer); unreadable ones (vault replaced) are dropped with a console warning that carries no text.
 - **One open visit.** `recordVisitNote` (patient-domain) is the only writer of the note: it picks the open visit,
   creates one only when none is open, and runs inside the vault mutation, so a double tap (or the autosave racing the
   button) cannot make a second open visit. «Создать осмотр» is shown only while no visit is open; ✓ only when several
