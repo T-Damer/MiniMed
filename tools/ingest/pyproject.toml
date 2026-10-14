@@ -78,6 +78,9 @@ ignore = ["RUF001"]
 "src/localmed_ingest/grls_ocr_*.py" = ["RUF002", "RUF003"]
 "src/localmed_ingest/grls_document_kind.py" = ["RUF002", "RUF003"]
 "tests/test_ocr_*.py" = ["RUF002", "RUF003"]
+# LEGAL1: Cyrillic act text, look-alike letters and superscript digits in docstrings, patterns and fixtures.
+"src/localmed_ingest/legal_*.py" = ["E501", "RUF001", "RUF002", "RUF003"]
+"tests/test_legal_*.py" = ["E501", "RUF001", "RUF002", "RUF003"]
 "tests/test_grls_ocr_*.py" = ["RUF002", "RUF003"]
 "tests/test_grls_document_kind.py" = ["RUF002", "RUF003"]
 
