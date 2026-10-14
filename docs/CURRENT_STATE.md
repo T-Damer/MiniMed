@@ -20,6 +20,39 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Regulatory acts as full texts — 2026-10-14 (STATE LEGAL1)
+
+Owner 2026-10-14: «legal acts are just copies of documents — release them». The 30 cards of
+`minimed.regulatory.pediatrics.ru` are now the **full texts of the acts** (module 2026.10.14, bundled `regulatory.db`,
+file `minimed.regulatory.pediatrics.2026.10.14.db.gz`; 2026.10.13 stays as the paraphrase release). Pipeline, limits and
+numbers: [REGULATORY_PACK.md](REGULATORY_PACK.md) «Full texts»; tests: [DATA_TESTS.md](DATA_TESTS.md).
+
+- **What is in a card.** Headings, numbered items, tables as reader tables (cells, header row), annexes, each paragraph
+  with the PDF page it came from (`localmed:source` span); the old summary stays as the short description; the section
+  «Источник и редакция» is last. Number, date and title come from the portal record only. Amending orders are named in
+  the edition line, not merged into the text.
+- **How the text was made (`tools/ingest`, `medbase-legal-texts`).** Official PDFs with SHA-256 (outside the repository,
+  by absolute path); Marker 2.0.0 one page at a time, detached and resumable (about 13 h in all); macOS Vision as the
+  second reading; the reconciliation (`legal_reconcile.py`) requires numbers, dates, codes and order numbers to agree and
+  flags silent Marker failures (dropped rows and spans, loops, a dropped last line); ruled tables are read cell by cell
+  (`legal_cells.py`). 624 of 1 581 scanned pages were flagged; each was read against its page image (598 verdicts, 618
+  recorded corrections in `content/regulatory-rf-texts/*.review.json`, provenance per page in `*.provenance.json`).
+  `assemble --strict` refuses an unreviewed flagged page.
+- **374н** (469 pages, two 9-column appendices of criteria, ICD-10/ICF codes, TNM stages, CRG): 187 flagged pages, 325
+  corrections; a table above 24 000 characters (the two appendices, 436н) is cut into pieces of about 6 000 characters,
+  each with the header row repeated and the pages of its own rows, so that search and the reader get chunks, not one
+  366 kB cell. Printed typos of the originals stay as printed.
+- **Module.** 31 documents, 861 sections, 1 818 chunks, 4.8 MB gzip / 27.8 MB decoded; the bundled `regulatory.db` grew
+  from 1.5 MB to 27.8 MB, 5.7 MiB below the 32 MiB WASM limit and read into memory at every start (a larger pack must
+  leave the bundle). `regulatory:verify`: 25 acts confirmed on the portal, 5 not checkable there (as before).
+- **Search.** «приказ <номер>» still finds each act first; the four 374н section queries were retargeted to the real
+  sections (`regulatory-rf-major-queries.json`), `benchmark:regulatory` passes.
+- **Feeding (Капитан, chapter on feeding).** Cross-checked against the book pages: three omitted paragraphs added,
+  `minimed.reference.feeding.ru` 2026.10.14 (earlier commit).
+- **Not done / honest limits.** The review was an agent reading images, not a lawyer or a clinician; no amending order
+  was merged into any text; a speck of a scan can survive in an empty cell; the 5 acts not on the portal were converted
+  from their own sources (IPS, rg.ru, minzdrav.gov.ru, docx) and only checked by the pack tests.
+
 ## Dose semantics, prescription tool and the dose card in search — 2026-10-14 (STATE RX1, RX2, RX3, RX4, RX5)
 
 Owner 2026-10-13: «semantics on drugs … select a drug, patient age/weight/state, a duration, a form → a printable prescription,

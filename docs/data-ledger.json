@@ -61,7 +61,9 @@
       "path": "data/raw/official-grls-registry",
       "class": "SOURCE",
       "producer": "bun run content:catalog:drugs (grls-sync)",
-      "consumers": ["data/build/official-grls-coverage-ledger.json"],
+      "consumers": [
+        "data/build/official-grls-coverage-ledger.json"
+      ],
       "note": "Includes catalog-02.10.2026.json and grls-02.10.2026.zip beside the 24.07.2026 export (never overwritten).",
       "bytes": 295788807,
       "modified": "2026-10-02"
@@ -70,7 +72,9 @@
       "path": "data/raw/vaccine-instructions-2026",
       "class": "SOURCE",
       "producer": "vaccine instruction PDF downloads",
-      "consumers": ["data/intermediate/vaccine/medication instruction builds"],
+      "consumers": [
+        "data/intermediate/vaccine/medication instruction builds"
+      ],
       "bytes": 90394769,
       "modified": "2026-09-09"
     },
@@ -78,7 +82,10 @@
       "path": "data/intermediate/rls-mkb",
       "class": "SOURCE",
       "producer": "bun run content:scrape:mkb (rls_mkb.py; network scrape, raw HTML is not kept)",
-      "consumers": ["bun run content:build:mkb", "bun run content:module:rls-mkb"],
+      "consumers": [
+        "bun run content:build:mkb",
+        "bun run content:module:rls-mkb"
+      ],
       "note": "details/*.json hold the scraped RLS pages with response checksums; data/raw/rls-mkb is only 28 MB. Treat as irreplaceable.",
       "bytes": 1643733982,
       "modified": "2026-08-14"
@@ -87,7 +94,9 @@
       "path": "data/intermediate/allmed-medications",
       "class": "SOURCE",
       "producer": "medbase prepare-allmed-medications --input <Allmed snapshot>",
-      "consumers": ["apps/app/public/content/medications.db"],
+      "consumers": [
+        "apps/app/public/content/medications.db"
+      ],
       "note": "The Allmed snapshot input is not on this machine, so this workspace is kept as a source.",
       "bytes": 91667487,
       "modified": "2026-08-29"
@@ -96,7 +105,9 @@
       "path": "data/intermediate/allmed-reference-candidates.jsonl",
       "class": "SOURCE",
       "producer": "Allmed reference candidate extraction (docs/research/allmed-ui-data-contract-2026-09-27.md)",
-      "consumers": ["Allmed UI research"],
+      "consumers": [
+        "Allmed UI research"
+      ],
       "note": "Input snapshot not on this machine.",
       "bytes": 82052250,
       "modified": "2026-07-29"
@@ -105,7 +116,9 @@
       "path": "data/intermediate/grls-full-final",
       "class": "REBUILDABLE",
       "producer": "GRLS prepare over data/raw/grls-instructions-active (reuses OCR extractions)",
-      "consumers": ["tools/ingest/scripts/build_grls_atc_modules.py"],
+      "consumers": [
+        "tools/ingest/scripts/build_grls_atc_modules.py"
+      ],
       "rebuild": "Re-run the GRLS prepare; without its .localmed extraction cache this is hours of OCR.",
       "note": "Contains every batch workspace below (8 868 reused extractions).",
       "bytes": 2337081373,
@@ -115,7 +128,9 @@
       "path": "data/intermediate/grls-instructions-current-189-v2",
       "class": "REBUILDABLE",
       "producer": "GRLS 189-instruction prepare",
-      "consumers": ["data/build/grls-instructions-current-189-v2.db"],
+      "consumers": [
+        "data/build/grls-instructions-current-189-v2.db"
+      ],
       "rebuild": "medbase prepare with --reuse-from (minutes; OCR reused)",
       "bytes": 64486637,
       "modified": "2026-09-01"
@@ -124,7 +139,9 @@
       "path": "data/intermediate/ambulatory-v1",
       "class": "REBUILDABLE",
       "producer": "scripts/anydoc_batch.py + scripts/vision_ocr_batch.py over Med/",
-      "consumers": ["scripts/ambulatory_pack.py"],
+      "consumers": [
+        "scripts/ambulatory_pack.py"
+      ],
       "rebuild": "bun run content:rebuild:ambulatory (OCR of the user's textbooks; slow)",
       "bytes": 70813542,
       "modified": "2026-08-09"
@@ -133,7 +150,9 @@
       "path": "data/intermediate/ambulatory-pack",
       "class": "REBUILDABLE",
       "producer": "scripts/ambulatory_pack.py",
-      "consumers": ["data/build/ambulatory.db"],
+      "consumers": [
+        "data/build/ambulatory.db"
+      ],
       "rebuild": "python3 scripts/ambulatory_pack.py (minutes)",
       "bytes": 70816202,
       "modified": "2026-08-09"
@@ -142,7 +161,9 @@
       "path": "data/intermediate/medication-instructions-2026",
       "class": "REBUILDABLE",
       "producer": "medication instruction prepare (2026 selection)",
-      "consumers": ["data/build/medication-instructions-2026"],
+      "consumers": [
+        "data/build/medication-instructions-2026"
+      ],
       "rebuild": "medbase prepare over the 2026 instruction registry",
       "bytes": 79599288,
       "modified": "2026-09-09"
@@ -199,7 +220,9 @@
       "path": "data/build/core-reference-pointers",
       "class": "REBUILDABLE",
       "producer": "bun run content:core:build (scripts/build-core.mjs) stage reference-pointers",
-      "consumers": ["bun run content:core:build (scripts/build-core.mjs) (pointers-build)"],
+      "consumers": [
+        "bun run content:core:build (scripts/build-core.mjs) (pointers-build)"
+      ],
       "rebuild": "bun run content:core:build (scripts/build-core.mjs)",
       "bytes": 91705612,
       "modified": "2026-10-08"
@@ -208,7 +231,9 @@
       "path": "data/build/core-pointers-base.db",
       "class": "REBUILDABLE",
       "producer": "bun run content:core:build (scripts/build-core.mjs) stage pointers-build",
-      "consumers": ["bun run content:core:build (scripts/build-core.mjs) (finalize)"],
+      "consumers": [
+        "bun run content:core:build (scripts/build-core.mjs) (finalize)"
+      ],
       "rebuild": "bun run content:core:build (scripts/build-core.mjs)",
       "bytes": 267624448,
       "modified": "2026-10-08"
@@ -217,7 +242,9 @@
       "path": "data/build/core-medication-pointers-pinned.db",
       "class": "REBUILDABLE",
       "producer": "tools/ingest/scripts/pin_medication_pointers.py",
-      "consumers": ["bun run content:core:build (scripts/build-core.mjs) (finalize)"],
+      "consumers": [
+        "bun run content:core:build (scripts/build-core.mjs) (finalize)"
+      ],
       "rebuild": "bun run content:core:build (scripts/build-core.mjs) (~14 s)",
       "bytes": 65372160,
       "modified": "2026-10-08"
@@ -319,7 +346,9 @@
       "path": "data/build/grls-instructions-current-189-v2.db",
       "class": "REBUILDABLE",
       "producer": "medbase build data/intermediate/grls-instructions-current-189-v2",
-      "consumers": ["data/build/medications-unified.db (compose input, checksum recorded)"],
+      "consumers": [
+        "data/build/medications-unified.db (compose input, checksum recorded)"
+      ],
       "rebuild": "medbase build --lexical-only (minutes)",
       "bytes": 65335296,
       "modified": "2026-09-01"
@@ -328,7 +357,9 @@
       "path": "data/build/medications-unified.db",
       "class": "REBUILDABLE",
       "producer": "data/build/medications-unified-run.sh",
-      "consumers": ["docs/research/allmed-ui-data-contract-2026-09-27.md"],
+      "consumers": [
+        "docs/research/allmed-ui-data-contract-2026-09-27.md"
+      ],
       "rebuild": "medbase compose of public medications.db + grls-189-v2.db + esklp-full.db (asset of v0.6.31)",
       "bytes": 3028381696,
       "modified": "2026-09-02"
@@ -337,7 +368,9 @@
       "path": "data/build/medication-instructions-2026",
       "class": "REBUILDABLE",
       "producer": "medbase build + compress of data/intermediate/medication-instructions-2026",
-      "consumers": ["catalog-entry.preview.json (not merged into the app catalog)"],
+      "consumers": [
+        "catalog-entry.preview.json (not merged into the app catalog)"
+      ],
       "rebuild": "medbase build + scripts/compress-module-index.mjs (minutes)",
       "bytes": 79689571,
       "modified": "2026-09-09"
@@ -379,7 +412,10 @@
       "path": "apps/app/public/content/core.db",
       "class": "RELEASED",
       "producer": "bun run content:restore:core",
-      "consumers": ["app DEV/build", ".github/workflows/*"],
+      "consumers": [
+        "app DEV/build",
+        ".github/workflows/*"
+      ],
       "release": "v0.6.37-v0.6.44 MiniMed-*-core.db",
       "note": "Never delete or replace by hand (AGENTS.md, docs/RELEASES.md).",
       "bytes": 445677568,
@@ -402,7 +438,9 @@
       "path": "apps/app/public/content/ambulatory.db",
       "class": "RELEASED",
       "producer": "bun run content:publish:ambulatory",
-      "consumers": ["DEV ambulatory companion"],
+      "consumers": [
+        "DEV ambulatory companion"
+      ],
       "release": "v0.6.13 (ambulatory.db)",
       "bytes": 238510080,
       "modified": "2026-08-09"
@@ -423,7 +461,9 @@
       "path": "apps/app/public/content/reference-images",
       "class": "RELEASED",
       "producer": "reference image pack",
-      "consumers": ["DEV reference image assets"],
+      "consumers": [
+        "DEV reference image assets"
+      ],
       "release": "v0.6.34 reference-images.tar.gz + branch datasets/content-2026-09-06",
       "bytes": 482740515,
       "modified": "2026-09-07"
@@ -432,7 +472,9 @@
       "path": "model-mirror/Giga-Embeddings-instruct-480M-0826-Q8_0.gguf",
       "class": "REBUILDABLE",
       "producer": "local Q8_0 conversion of GigaEmbeddings",
-      "consumers": ["GigaEmbeddings benchmark"],
+      "consumers": [
+        "GigaEmbeddings benchmark"
+      ],
       "rebuild": "re-convert from the public Hugging Face weights",
       "note": "No hosted immutable copy yet (docs/CURRENT_STATE.md).",
       "bytes": 520209504,
@@ -455,7 +497,9 @@
       "path": "data/build/core-reference-merged.db",
       "class": "REBUILDABLE",
       "producer": "Deterministic content:core:build stages and checksum-verified core release staging",
-      "consumers": ["Core rebuild and release qualification"],
+      "consumers": [
+        "Core rebuild and release qualification"
+      ],
       "rebuild": "CORE_BUILD_VERSION=0.6.47 CORE_BUILT_AT=2026-10-02T00:00:00Z bun run content:core:build -- --stage=finalize",
       "note": "Build input of core 0.6.47 (pilot-free, with the 2026-10-02 clinical editions).",
       "bytes": 1927856128,
@@ -465,7 +509,9 @@
       "path": "data/build/official-clinical-documents-merged",
       "class": "REBUILDABLE",
       "producer": "Deterministic content:core:build stages and checksum-verified core release staging",
-      "consumers": ["Core rebuild and release qualification"],
+      "consumers": [
+        "Core rebuild and release qualification"
+      ],
       "rebuild": "CORE_BUILD_VERSION=0.6.47 CORE_BUILT_AT=2026-10-02T00:00:00Z bun run content:core:build -- --stage=finalize",
       "note": "Build input of core 0.6.47 (pilot-free, with the 2026-10-02 clinical editions).",
       "bytes": 2144260096,
@@ -594,7 +640,9 @@
       "path": "output/release-core-0.6.47",
       "class": "RELEASED",
       "producer": "scripts/build-core.mjs finalize, gzip -9 -n, scripts/write-core-report.mjs",
-      "consumers": ["Offline rollback to 0.6.47 (the 0.6.45 copy was removed 2026-10-08)"],
+      "consumers": [
+        "Offline rollback to 0.6.47 (the 0.6.45 copy was removed 2026-10-08)"
+      ],
       "rebuild": "gh release download core-0.6.47",
       "note": "Previous core, kept for rollback while 0.6.57 is the current core. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
       "bytes": 525375692,
@@ -649,7 +697,9 @@
       "path": "data/build/icd11-module",
       "class": "RELEASED",
       "producer": "bun run content:module:icd11",
-      "consumers": ["apps/app/e2e/icd11-module.spec.ts"],
+      "consumers": [
+        "apps/app/e2e/icd11-module.spec.ts"
+      ],
       "release": "reference-icd11-2026.10.6 (.db.gz asset); the SQLite and release/ copies are the local release copy",
       "bytes": 309358500,
       "modified": "2026-10-06"
@@ -817,7 +867,9 @@
       "path": "data/build/marker-eval/venv",
       "class": "REBUILDABLE",
       "producer": "STATE MARKER1: uv venv (CPython 3.12) + marker-pdf 2.0.0 (surya-ocr 0.22.1, torch 2.14.1)",
-      "consumers": ["scripts/marker_convert.py"],
+      "consumers": [
+        "scripts/marker_convert.py"
+      ],
       "rebuild": "uv venv --python 3.12 data/build/marker-eval/venv && uv pip install --python data/build/marker-eval/venv/bin/python marker-pdf==2.0.0 (about 1 GiB of wheels)",
       "note": "Optional local build tool for scanned legal acts, textbook scans and the second reading of low-grade ГРЛС scans (docs/research/marker-eval-2026-10-14.md). Not used by the app or any pack.",
       "bytes": 1051905326,
@@ -827,7 +879,9 @@
       "path": "data/build/marker-eval/cache",
       "class": "REBUILDABLE",
       "producer": "first run of scripts/marker_convert.py (HF_HOME and MODEL_CACHE_DIR inside the folder): Surya-2 GGUF + projector and layout model from Hugging Face, detection and OCR-error models from datalab",
-      "consumers": ["scripts/marker_convert.py"],
+      "consumers": [
+        "scripts/marker_convert.py"
+      ],
       "rebuild": "run scripts/marker_convert.py on any PDF; it downloads about 1.76 GiB of weights (needs network and the Homebrew llama-server)",
       "note": "Model weights of the Marker environment; delete together with the venv if Marker is dropped.",
       "bytes": 1888349901,
@@ -837,7 +891,10 @@
       "path": "data/build/marker-eval",
       "class": "REBUILDABLE",
       "producer": "STATE MARKER1: scripts/marker_convert.py environment (venv and model cache below)",
-      "consumers": ["scripts/marker_convert.py", "scripts/marker_pages_run.py"],
+      "consumers": [
+        "scripts/marker_convert.py",
+        "scripts/marker_pages_run.py"
+      ],
       "rebuild": "see the venv and cache entries",
       "note": "Parent folder of the Marker environment; only the two nested entries are large.",
       "bytes": 0,

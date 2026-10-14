@@ -1,13 +1,13 @@
 {
   "documents": 31,
-  "sections": 176,
-  "chunks": 176,
-  "aliases": 45,
+  "sections": 861,
+  "chunks": 1818,
+  "aliases": 50,
   "embeddingProfiles": 1,
-  "embeddings": 176,
+  "embeddings": 1818,
   "warnings": [],
   "errors": [],
-  "outputChecksum": "sha256:fefa62d44982cc65d566601143f641eab8212a134886b17c2a04fd571429e2c3",
+  "outputChecksum": "sha256:023541fe589fb5133e070275f8258e926ba8e6c7c80d826f6c71c37c64a8081b",
   "sqliteIntegrity": "ok",
   "foreignKeyViolations": 0
 }

@@ -48,8 +48,20 @@ Pipeline (`tools/ingest`, `medbase-legal-texts`; every input outside the reposit
    `tools/ingest/tests/test_legal_texts_pack.py` (every page 1..N has provenance and a source span, flagged pages
    have a verdict, tables are rectangular, no empty section, `AWAITING_FULL_TEXT` is empty).
 
+7. A table with more text than a search chunk (`SPLIT_TABLE_CHARS`, 24 000 characters: the two appendices of
+   374н, 436н) is cut into pieces of about 6 000 characters; each piece repeats the header row, is its own reader
+   table and chunk, and carries the PDF pages of its own rows (`pageEnd`). A page that only continues the last row of
+   a table stands with that row.
+
+Result (2026-10-14): 30 acts, 1 581 scanned PDF pages read by Marker and Vision (the other four acts are a text
+layer, docx or HTML source), 624 pages flagged by the reconciliation, every one read against its page image (598
+verdicts, 618 recorded corrections, 6 pages where Marker's text is kept whole). 374н alone is 469 pages: its two
+ruled appendices (225 + 210 pages of criteria, 9 columns) were read cell by cell, 187 pages flagged, 325 corrections
+(columns of the names and ICD-10 codes, MKF ranges, TNM stages, CRG, percent, look-alike letters in codes).
+
 Limits: the review was done by an agent against the images, not by a lawyer or a clinician; amending orders are not
-merged into the text (the edition line says so); a speck in a scan can still survive in an empty cell.
+merged into the text (the edition line says so); a speck in a scan can still survive in an empty cell; the printed
+typos of the originals are kept as printed (e.g. «B 117-139», «(тазоберденных)» in 374н).
 
 ## Current-edition rule
 
@@ -63,14 +75,16 @@ approving act and edition for most forms, so only the verified 030-PO/u replacem
 as current or superseded. Other identifiers remain searchable and require source verification before
 practical use.
 
-## Released module (2026-10-13, REG1)
+## Released module (2026-10-14, LEGAL1; 2026-10-13, REG1)
 
-`minimed.regulatory.pediatrics.ru` 2026.10.13 (`minAppVersion` 0.6.59, kind `regulatory`, gzip, 261 218
-bytes, 31 documents: 30 acts and the study-list crosswalk) replaces the 3-document 0.3.4 preview and is
-the same content as the bundled `regulatory.db`. The file is committed as
-`apps/app/public/content/modules/minimed.regulatory.pediatrics.2026.10.13.db.gz`; the catalog URL
-names the GitHub release `regulatory-2026.10.13`, which the app resolves to the raw `main` copy (release
-asset hosts have no CORS). Build and publish:
+`minimed.regulatory.pediatrics.ru` **2026.10.14** (`minAppVersion` 0.6.59, kind `regulatory`, gzip, 4 836 762
+bytes, 27 807 744 bytes decoded, 31 documents: 30 acts and the study-list crosswalk, 861 sections, 1 818 chunks) is
+the full-text release and is the same content as the bundled `regulatory.db` (grew from 1.5 MB to 27.8 MB, below
+the 32 MiB WASM limit by 5.7 MiB: a bigger pack has to leave the bundle). The file is committed as
+`apps/app/public/content/modules/minimed.regulatory.pediatrics.2026.10.14.db.gz`; the catalog URL names the
+GitHub release `regulatory-2026.10.14`, which the app resolves to the raw `main` copy (release asset hosts have no
+CORS). 2026.10.13 (261 218 bytes, the paraphrase cards, replacing the 3-document 0.3.4 preview) stays committed
+and is never overwritten. Build and publish:
 
 ```bash
 bun run content:rebuild:regulatory          # sync + lint + build + benchmark
