@@ -92,7 +92,12 @@ test('a 20 kg child: amoxicillin and metronidazole are quoted while computed dos
   await expect(metronidazole.getByTestId('prescription-result')).toHaveCount(0);
   await shoot(page, 'result');
 
-  // «Рецепт»: the prescription text with Rp. and the sign the doctor writes.
+  // «Рецепт»: the prescription text with Rp. and the sign the doctor writes under «Текст рецепта»
+  // (with computed doses off nothing fills it, and an empty sign is left out of the text).
+  await metronidazole.getByText('Текст рецепта').click();
+  await metronidazole
+    .getByLabel('Способ применения')
+    .fill('Внутрь по 1 таблетке 3 раза в день 7 дней.');
   await page.getByTestId('prescription-recipe-button').click();
   const recipe = page.getByTestId('recipe-text');
   await expect(recipe).toContainText('Rp.:');
