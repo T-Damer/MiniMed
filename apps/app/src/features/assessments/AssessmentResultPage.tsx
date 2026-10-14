@@ -17,6 +17,7 @@ import {
 } from '@/features/assessments/assessment-print';
 import type {
   AssessmentDefinition,
+  AssessmentEvaluation,
   AssessmentRecord,
   ScoredAssessment,
 } from '@/features/assessments/assessment-types';
@@ -40,6 +41,35 @@ function formatDate(value: string): string {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(date);
+}
+
+interface EvaluationNotice {
+  readonly title: string;
+  readonly text: string;
+}
+
+/**
+ * What the declared evaluation tells the reader. Only a verdict, a context the reader can still
+ * supply, or a declared reason the result does not apply is shown; an evaluation the tool schema
+ * never declared rules for says nothing — the score and its interpretation stand alone.
+ */
+export function evaluationNotice(
+  evaluation: AssessmentEvaluation | undefined,
+): EvaluationNotice | undefined {
+  if (!evaluation) return undefined;
+  if (evaluation.status === 'verdict') {
+    const verdict = evaluation.verdict;
+    const text = verdict?.explanation ?? evaluation.reason;
+    return text ? { title: verdict?.title ?? 'Оценка результата', text } : undefined;
+  }
+  if (evaluation.status === 'missing-context') {
+    const text = evaluation.missingContext.join(' ').trim();
+    return text ? { title: 'Не хватает данных для оценки', text } : undefined;
+  }
+  if (evaluation.status === 'not-applicable' && evaluation.reason) {
+    return { title: 'Оценка не применяется', text: evaluation.reason };
+  }
+  return undefined;
 }
 
 /** Scores the result does not already draw on a score scale. */
@@ -158,6 +188,8 @@ export function AssessmentResultPage(props: {
           </Heading>
         }
         description={`${props.record.subjectLabel || 'Без подписи'} · ${formatDate(props.record.createdAt)}`}
+        help={<p class="assessment-disclaimer">{props.definition.disclaimer}</p>}
+        helpTitle="Как читать результат"
         actions={
           <div class="assessment-subpage-header-actions assessment-subpage-header-actions--trailing">
             <AppContextMenu
@@ -183,50 +215,23 @@ export function AssessmentResultPage(props: {
         when={completed()}
         fallback={
           <section class="assessment-result-summary paper-card">
-            <section class="assessment-result-evaluation" aria-live="polite">
-              <strong class="assessment-result-evaluation__title">Оценка недоступна</strong>
-              <p class="assessment-result-evaluation__text">
-                Результат введён вручную; MiniMed не пересчитывал его и не проверял референс.
-              </p>
-            </section>
             <h2 class="assessment-result-summary__heading">Результат внесён вручную</h2>
             <pre class="assessment-result-summary__manual-text">{manualText()}</pre>
             <p class="assessment-result-summary__text">
-              MiniMed не пересчитывал баллы и не проверял версию внешнего бланка.
+              Баллы не пересчитывались, версия бланка не проверялась.
             </p>
           </section>
         }
       >
         {(result) => (
           <section class="assessment-result-summary paper-card">
-            <Show
-              when={Boolean(result().evaluation)}
-              fallback={
+            <Show when={evaluationNotice(result().evaluation)}>
+              {(notice) => (
                 <section class="assessment-result-evaluation" aria-live="polite">
-                  <strong class="assessment-result-evaluation__title">Оценка недоступна</strong>
-                  <p class="assessment-result-evaluation__text">
-                    Опросник не объявил проверенный референсный диапазон.
-                  </p>
+                  <strong class="assessment-result-evaluation__title">{notice().title}</strong>
+                  <p class="assessment-result-evaluation__text">{notice().text}</p>
                 </section>
-              }
-            >
-              <section class="assessment-result-evaluation" aria-live="polite">
-                <strong class="assessment-result-evaluation__title">
-                  {result().evaluation?.status === 'verdict'
-                    ? (result().evaluation?.verdict?.title ?? 'Оценка результата')
-                    : result().evaluation?.status === 'missing-context'
-                      ? 'Оценка недоступна: не хватает контекста'
-                      : result().evaluation?.status === 'not-applicable'
-                        ? 'Оценка не применяется к этому результату'
-                        : 'Оценка недоступна'}
-                </strong>
-                <p class="assessment-result-evaluation__text">
-                  {result().evaluation?.verdict?.explanation ??
-                    result().evaluation?.reason ??
-                    (result().evaluation?.missingContext.join(' ') ||
-                      'Проверенный референсный диапазон не объявлен.')}
-                </p>
-              </section>
+              )}
             </Show>
             <Show when={result().headline.trim()}>
               <h2 class="assessment-result-summary__heading">{result().headline}</h2>
@@ -266,7 +271,6 @@ export function AssessmentResultPage(props: {
                 </For>
               </div>
             </Show>
-            <p class="assessment-disclaimer">{props.definition.disclaimer}</p>
           </section>
         )}
       </Show>
@@ -291,7 +295,9 @@ export function AssessmentResultPage(props: {
 
       <div class="assessment-result-actions paper-card">
         <Button
-          class="assessment-result-actions__button"
+          variant="icon"
+          aria-label="Поделиться"
+          title="Поделиться"
           icon={<AppGlyph name="share" />}
           onClick={() => {
             setShareMessage('Подготавливаем результат…');
@@ -303,28 +309,25 @@ export function AssessmentResultPage(props: {
               )
               .catch(() => setShareMessage('Не удалось поделиться результатом.'));
           }}
-        >
-          Поделиться
-        </Button>
+        />
         <Show when={!props.record.patientId}>
           <Button
-            class="assessment-result-actions__button"
-            variant="secondary"
+            variant="icon"
+            aria-label="Записать"
+            title="Записать в карточку пациента"
             icon={<AppGlyph name="notes" />}
             data-testid="assessment-save-note"
             onClick={() => setNotePanelOpen((value) => !value)}
-          >
-            Записать
-          </Button>
+          />
         </Show>
         <Button
-          class="assessment-result-actions__button"
-          variant="danger"
+          variant="icon"
+          class="assessment-result-actions__delete"
+          aria-label="Удалить"
+          title="Удалить"
           icon={<AppGlyph name="trash" />}
           onClick={props.onDelete}
-        >
-          Удалить
-        </Button>
+        />
       </div>
 
       <p class="assessment-footnote">{props.definition.license.notice}</p>

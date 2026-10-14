@@ -26,12 +26,22 @@
 }
 
 .prescription__chips {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
   gap: 0.4rem;
   margin: 0;
   padding: 0;
   border: 0;
+}
+
+/* An example or a card value in a field is a hint, never ink: it must not read as typed. */
+.prescription__fact-input::placeholder {
+  color: color-mix(in srgb, var(--theme-text) 48%, var(--theme-surface-raised));
+  font-style: italic;
+}
+
+.prescription__group {
+  min-width: 0;
 }
 
 .prescription__slot {
@@ -211,6 +221,26 @@
   border-left: 3px solid var(--theme-border-strong, var(--theme-border));
   border-radius: 0 var(--theme-radius-control) var(--theme-radius-control) 0;
   background: var(--theme-surface-muted, transparent);
+}
+
+.prescription__quote--fit {
+  border-left-color: var(--theme-accent);
+  background: var(--theme-accent-soft);
+}
+
+.prescription__quote-fit {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0;
+  color: var(--theme-accent);
+  font-size: 0.78rem;
+  font-weight: var(--theme-weight-emphasis);
+}
+
+.prescription__quote-fit-icon {
+  width: 0.9rem;
+  height: 0.9rem;
 }
 
 .prescription__quote-context,

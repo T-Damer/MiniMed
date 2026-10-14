@@ -1,3 +1,7 @@
+import {
+  displayCalculatorLabel,
+  formatCalculatorQuantity,
+} from '@/features/calculators/calculator-quantity';
 import { findCalculator } from '@/features/calculators/calculator-registry';
 import { calculatorResultLayout } from '@/features/calculators/calculator-schema-catalog';
 import { parsePediatricFeedingPlan } from '@/features/calculators/pediatric-feeding-plan';
@@ -18,13 +22,6 @@ function escapeHtml(value: string): string {
     .replaceAll("'", '&#039;');
 }
 
-export function formatCalculatorNumber(value: number, precision: number): string {
-  return new Intl.NumberFormat('ru-RU', {
-    maximumFractionDigits: precision,
-    minimumFractionDigits: 0,
-  }).format(value);
-}
-
 export function calculationRecordOutputs(
   record: CalculationRecord,
 ): readonly { readonly id?: string; readonly label: string; readonly display: string }[] {
@@ -40,15 +37,20 @@ export function calculationRecordOutputs(
     return [
       {
         ...(result.outputId ? { id: result.outputId } : {}),
-        label: result.label ?? 'Результат',
-        display: `${formatCalculatorNumber(result.value, result.displayPrecision)} ${result.unit}`,
+        label: displayCalculatorLabel(result.label ?? 'Результат'),
+        display: formatCalculatorQuantity(
+          result.value,
+          result.displayPrecision,
+          result.unit,
+          result.label,
+        ),
       },
     ];
   }
   return result.values.map((item) => ({
     ...(item.id ? { id: item.id } : {}),
-    label: item.label,
-    display: `${formatCalculatorNumber(item.value, item.displayPrecision)} ${item.unit}`,
+    label: displayCalculatorLabel(item.label),
+    display: formatCalculatorQuantity(item.value, item.displayPrecision, item.unit, item.label),
   }));
 }
 

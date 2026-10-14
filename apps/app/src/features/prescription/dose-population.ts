@@ -44,6 +44,8 @@ export interface PopulationMatch {
   readonly missing: readonly ('age' | 'weight')[];
   /** The patient's age is within the year of an age bound of the rule. */
   readonly boundary: boolean;
+  /** What the patient surely fits of the rule's population words: age, weight, a group word. */
+  readonly matched: readonly ('age' | 'weight' | 'group')[];
 }
 
 interface Range {
@@ -113,7 +115,14 @@ export function matchPopulation(rule: DoseRule, patient: PatientFacts): Populati
   if (!states) {
     // A dose per kilogram that names no population is most often a child's: never computed for an adult.
     if (rule.pk !== undefined) {
-      return { fit: 'no', unstated: true, conditional, missing: [], boundary: false };
+      return {
+        fit: 'no',
+        unstated: true,
+        conditional,
+        missing: [],
+        boundary: false,
+        matched: [],
+      };
     }
     const adult = age.lo >= ADULT_AGE_DAYS;
     const mightBeAdult = age.hi >= ADULT_AGE_DAYS;
@@ -123,6 +132,7 @@ export function matchPopulation(rule: DoseRule, patient: PatientFacts): Populati
       conditional,
       missing: adult || !mightBeAdult ? [] : ['age'],
       boundary: false,
+      matched: [],
     };
   }
   // «от 6 до 12 лет» ends at the twelfth birthday: a child of 12 belongs to «старше 12 лет», not to both.
@@ -148,7 +158,11 @@ export function matchPopulation(rule: DoseRule, patient: PatientFacts): Populati
   const boundary =
     patient.ageDays !== undefined &&
     (inSameYear(patient.ageDays, rule.p0) || inSameYear(patient.ageDays, rule.p1));
-  return { fit, unstated: false, conditional, missing, boundary };
+  const matched: ('age' | 'weight' | 'group')[] = [];
+  if (ageFit === 'yes') matched.push('age');
+  if (weightFit === 'yes') matched.push('weight');
+  if (groupFit === 'yes') matched.push('group');
+  return { fit, unstated: false, conditional, missing, boundary, matched };
 }
 
 /** Whether a rule that names its population describes a child (or only children). */

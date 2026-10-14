@@ -105,13 +105,12 @@ describe('pairView', () => {
   it('shows the quoted sentences of both instructions when a mention is found', () => {
     const view = pairView(index, checkPair(index, warfarin, ibuprofen), states, []);
     expect(view.status).toBe('found');
-    expect(pairStatusText(view)).toBe('Упоминание найдено: 2 предложения');
+    expect(pairStatusText(view)).toBe('В инструкциях 2 предложения об этом сочетании');
     expect(view.sides.map((side) => side.state)).toEqual(['ready', 'ready']);
     expect(view.sides[0]?.quotes[0]?.text).toContain('ибупрофеном');
     expect(view.sides[1]?.source?.edition).toBe('Изм. № 1');
-    expect(sideNote(view.sides[0] as NonNullable<(typeof view.sides)[0]>)).toContain(
-      'Тексты инструкций других производителей могут отличаться',
-    );
+    // The «one of the manufacturers' instructions» note is said once in the help, not per drug.
+    expect(sideNote(view.sides[0] as NonNullable<(typeof view.sides)[0]>)).toBeNull();
   });
 
   it('offers the module when the instruction is not installed, and still counts the sentences', () => {
@@ -124,6 +123,10 @@ describe('pairView', () => {
     expect(view.sides[0]?.count).toBe(1);
     expect(view.sides[0]?.moduleId).toBe('minimed.medications.instructions.test.ru');
     expect(view.status).toBe('found');
+    // Nothing can be shown yet: the status says the sentences appear after the download.
+    expect(pairStatusText(view)).toBe(
+      'В инструкциях 2 предложения об этом сочетании — они появятся после скачивания инструкций',
+    );
   });
 
   it('offers one download in the pair for the instructions it could quote, and shows no block for them', () => {
@@ -143,7 +146,7 @@ describe('pairView', () => {
   it('names a drug without an instruction once, in the status line, also when a mention is found', () => {
     const view = pairView(index, checkPair(index, ibuprofen, omeprazole), new Map(states), []);
     expect(pairStatusText(view)).toBe(
-      'В инструкциях упоминаний не найдено; для Омепразол инструкции нет в источниках приложения',
+      'В инструкциях упоминаний не найдено; в источниках приложения нет инструкции: Омепразол',
     );
   });
 
@@ -174,7 +177,7 @@ describe('pairView', () => {
     expect(html).toContain('поиск по текстам официальных инструкций');
     expect(html).not.toContain('<script');
     const text = interactionShareText(pairs);
-    expect(text).toContain('Упоминание найдено: 2 предложения');
+    expect(text).toContain('В инструкциях 2 предложения об этом сочетании');
     expect(text).toContain('ибупрофеном');
   });
 

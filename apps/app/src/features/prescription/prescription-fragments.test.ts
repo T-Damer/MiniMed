@@ -36,6 +36,7 @@ function analysis(patch: Partial<ItemAnalysis>): ItemAnalysis {
     pending: [],
     restricted: [],
     quoted: [],
+    quotedMarks: new Map(),
     caps: [],
     chosen: null,
     ...patch,

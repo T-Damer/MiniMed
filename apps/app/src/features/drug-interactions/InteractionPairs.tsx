@@ -151,7 +151,7 @@ function SideBlock(props: { readonly side: SideView }): JSX.Element {
             <p class="drug-interactions__side-status" data-testid="interaction-side-status">
               {props.side.changed > 0
                 ? note()
-                : `В этой инструкции упоминаний «${props.side.to.label}» не найдено.`}
+                : 'В этой инструкции предложений об этом сочетании не найдено.'}
             </p>
           }
         >
@@ -160,7 +160,7 @@ function SideBlock(props: { readonly side: SideView }): JSX.Element {
           </For>
           <Show when={split().main.length === 0}>
             <p class="drug-interactions__side-status" data-testid="interaction-main-empty">
-              {`В разделе о взаимодействии с другими лекарственными средствами упоминаний «${props.side.to.label}» нет.`}
+              В разделе о взаимодействии с другими лекарственными средствами этого сочетания нет.
             </p>
           </Show>
           <Show when={split().other.length > 0}>
@@ -416,7 +416,7 @@ export function InteractionPairsPanel(props: {
         <div class="drug-interactions__summary" role="status" data-testid="interaction-summary">
           <Show when={views().length > 1}>
             <span>
-              Пар: {views().length}. Упоминание найдено в {foundCount()}.
+              Пар: {views().length} · с упоминаниями в инструкциях: {foundCount()}
             </span>
           </Show>
         </div>

@@ -17,6 +17,7 @@ import { nameWordStem } from '@/features/drug-interactions/mention-matcher';
 import { directoryExtras, drugDirectoryGroups } from '@/features/drug-picker/drug-search';
 import { namesCoverTypedWords } from '@/features/medication-safety/safety-candidates';
 import { atcMatchOf, singleAtcGroup } from '@/features/medications/atc-groups';
+import { joinProductAndSubstance, sameDrugName } from '@/features/medications/drug-label';
 import { displayDrugName } from '@/features/medications/drug-screen';
 import { ScopedMedicalCore } from '@/features/search/ScopedMedicalCore';
 
@@ -74,7 +75,9 @@ async function searchGroups(
 function splitTitle(title: string): { product: string | null; substance: string } {
   const [first, second] = title.split(' · ');
   if (second === undefined) return { product: null, substance: displayDrugName(title) };
-  return { product: displayDrugName(first ?? ''), substance: displayDrugName(second) };
+  const substance = displayDrugName(second);
+  const product = displayDrugName(first ?? '');
+  return { product: sameDrugName(product, substance) ? null : product, substance };
 }
 
 async function drugOfGroup(
@@ -87,7 +90,7 @@ async function drugOfGroup(
     return {
       drug: {
         slug,
-        label: product ? `${product} · ${substance}` : substance,
+        label: joinProductAndSubstance(product, substance),
         product,
         ...atcMatchOf(group),
       },
@@ -103,7 +106,7 @@ async function drugOfGroup(
     return {
       drug: {
         slug: linkedSlug,
-        label: `${product} · ${cardDisplayName(linkedSlug)}`,
+        label: joinProductAndSubstance(product, cardDisplayName(linkedSlug)),
         product,
         ...atcMatchOf(group),
       },

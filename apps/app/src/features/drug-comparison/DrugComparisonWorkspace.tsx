@@ -28,6 +28,7 @@ import type { PrintPair } from '@/features/drug-interactions/interaction-print';
 import { type PairView, printPairs } from '@/features/drug-interactions/interaction-view';
 import { AtcMatchBadge } from '@/features/medications/AtcMatchBadge';
 import { loadAtcNames } from '@/features/medications/atc-names';
+import { joinProductAndSubstance } from '@/features/medications/drug-label';
 import { displayDrugName } from '@/features/medications/drug-screen';
 import { notesDrugComparisonPath } from '@/features/notes/notes-routing';
 import { PrintManager } from '@/features/printing/print-manager';
@@ -113,7 +114,7 @@ export function DrugComparisonWorkspace(props: {
     const card = loaded?.cardBySlug.get(drug.slug);
     if (!loaded || card === undefined) return;
     const name = displayDrugName(loaded.asset.cards[card]?.n ?? drug.slug);
-    const label = drug.product ? `${drug.product} · ${name}` : name;
+    const label = joinProductAndSubstance(drug.product ?? null, name);
     setItems((current) =>
       current.length >= MAX_DRUGS || current.some((item) => item.id === itemId(drug))
         ? current
@@ -386,8 +387,9 @@ export function DrugComparisonWorkspace(props: {
             </p>
             <p class="drug-comparison__help">
               Для каждого препарата читается одна инструкция; где возможно, у всех препаратов
-              берётся одна лекарственная форма. Другую инструкцию вещества можно выбрать в заголовке
-              столбца. Тексты других производителей могут отличаться.
+              берётся одна лекарственная форма. Если у вещества несколько препаратов, это инструкция
+              одного из них: тексты других производителей могут отличаться. Другую инструкцию можно
+              выбрать в заголовке столбца.
             </p>
           </>
         }

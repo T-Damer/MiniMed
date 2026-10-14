@@ -183,9 +183,13 @@ export function pairStatusText(view: PairView): string {
     .filter((side) => side.state === 'no-instruction')
     .map((side) => side.from.label);
   const noInstruction =
-    names.length > 0 ? `; для ${names.join(', ')} инструкции нет в источниках приложения` : '';
+    names.length > 0 ? `; в источниках приложения нет инструкции: ${names.join(', ')}` : '';
   if (view.status === 'found') {
-    return `Упоминание найдено: ${view.found} ${pluralSentence(view.found)}${noInstruction}`;
+    const waiting = view.sides.some((side) => side.state === 'not-installed' && side.count > 0);
+    const shown = view.sides.reduce((total, side) => total + side.quotes.length, 0);
+    const base = `В инструкциях ${view.found} ${pluralSentence(view.found)} об этом сочетании`;
+    // The index knows the sentences before their instructions are installed: say when they appear.
+    return `${base}${waiting && shown === 0 ? ' — они появятся после скачивания инструкций' : ''}${noInstruction}`;
   }
   return `В инструкциях упоминаний не найдено${noInstruction}`;
 }
@@ -201,9 +205,12 @@ function pluralSentence(count: number): string {
 
 export { pluralSentence };
 
-/** «Инструкция препарата «НУРОФЕН» …»: which instruction was read and what it stands for. */
+/**
+ * Which instruction was read and what was looked for in it. The names stay in the nominative after
+ * a colon: a drug name is never declined («упоминание: «Симвастатин»»), so no case can come out wrong.
+ */
 export function sideHeading(side: SideView): string {
-  return `В инструкции «${side.from.label}» — о «${side.to.label}»`;
+  return `В инструкции «${side.from.label}» — упоминание: «${side.to.label}»`;
 }
 
 export function sideSourceLine(side: SideView): string {
@@ -219,19 +226,20 @@ export function sideSourceLine(side: SideView): string {
   return parts.join(' · ');
 }
 
-/** The note that the text is one manufacturer's instruction chosen for the substance (ADR-0023). */
-export const SUBSTANCE_INSTRUCTION_NOTE =
-  'Это инструкция одного из препаратов с этим веществом. Тексты инструкций других производителей могут отличаться.';
-
+/**
+ * What is wrong with reading one side, if anything. That the text is one manufacturer's instruction
+ * chosen for the substance (ADR-0023) is said once, in the tool's «?» help and in the print/share
+ * notice, never under every drug.
+ */
 export function sideNote(side: SideView): string | null {
   if (side.state === 'not-installed') return 'Инструкция не установлена.';
   if (side.state === 'no-instruction') {
-    return `Инструкции «${side.from.label}» нет в источниках приложения.`;
+    return `Нет инструкции в источниках приложения: «${side.from.label}».`;
   }
   if (side.changed > 0) {
     return 'Текст инструкции изменился с момента составления указателя: откройте инструкцию.';
   }
-  return side.state === 'ready' ? SUBSTANCE_INSTRUCTION_NOTE : null;
+  return null;
 }
 
 /**

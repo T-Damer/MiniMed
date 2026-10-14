@@ -378,6 +378,15 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
         icon={<AppGlyph name="pill" class="page__icon-glyph" />}
         title={<Heading depth={1}>Препараты</Heading>}
         description="Справочник препаратов и инструкций."
+        help={
+          mode() === 'atc' ? (
+            <p class="medication-page__help">
+              Анатомо-терапевтическо-химическая классификация: 14 групп. Вещества берутся из
+              скачанных пакетов, поэтому каждая группа скачивается отдельно.
+            </p>
+          ) : undefined
+        }
+        helpTitle="Группы АТХ"
       />
       <div class="medication-view-switch">
         <SegmentedControl<CatalogViewMode>

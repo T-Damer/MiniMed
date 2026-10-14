@@ -73,7 +73,9 @@ import {
 } from '@/features/calculators/calculator-schema-catalog';
 import {
   applyCalculatorInputChange,
+  type CalculatorInputFact,
   type CalculatorSchemaEvaluation,
+  calculatorInputFacts,
   calculatorInputOptions,
   calculatorInputSummary,
   calculatorSchemaInputsReady,
@@ -990,6 +992,41 @@ function CalculatorForm(props: {
   );
 }
 
+/** What the result was calculated from, as label/value pairs instead of one dense line. */
+function InputFacts(props: {
+  readonly record: CalculationRecord;
+  readonly definition: AvailableCalculatorDefinition;
+}): JSX.Element {
+  const facts = (): readonly CalculatorInputFact[] => {
+    const schema = getCalculatorSchema(props.definition.id);
+    const inputs = props.record.normalizedInputs;
+    return schema && inputs ? calculatorInputFacts(schema, inputs) : [];
+  };
+  return (
+    <Show
+      when={facts().length > 0}
+      fallback={
+        <Show when={props.record.inputSummary.trim()}>
+          {(summary) => <p class="calculator-input-facts__summary">{summary()}</p>}
+        </Show>
+      }
+    >
+      <dl class="calculator-input-facts" aria-label="Исходные данные">
+        <For each={facts()}>
+          {(fact) => (
+            <div class="calculator-input-facts__item">
+              <dt class="calculator-input-facts__label">{fact.label}</dt>
+              <Show when={fact.value}>
+                {(value) => <dd class="calculator-input-facts__value">{value()}</dd>}
+              </Show>
+            </div>
+          )}
+        </For>
+      </dl>
+    </Show>
+  );
+}
+
 function CalculationResultPanel(props: {
   readonly record: CalculationRecord;
   readonly definition: AvailableCalculatorDefinition;
@@ -1089,10 +1126,12 @@ function CalculationResultPanel(props: {
                 {props.record.patientId ? 'Результат в защищённой карточке' : 'Результат'}
               </p>
               <h2>{props.definition.shortTitle}</h2>
-              <small>{props.record.inputSummary}</small>
             </header>
             <Show when={plainOutputs().length > 0}>
-              <div class="calculator-output-list">
+              <div
+                class="calculator-output-list"
+                classList={{ 'calculator-output-list--dense': plainOutputs().length > 3 }}
+              >
                 <For each={plainOutputs()}>
                   {(item) => (
                     <div>
@@ -1115,6 +1154,7 @@ function CalculationResultPanel(props: {
                 />
               )}
             </For>
+            <InputFacts record={props.record} definition={props.definition} />
             <div class="calculator-result-details">
               <Button
                 variant="icon"
@@ -1230,14 +1270,18 @@ function CalculationResultPanel(props: {
 
       <div class="calculator-result-actions">
         <Button
+          variant="icon"
+          aria-label="Распечатать"
+          title="Распечатать"
           icon={<AppGlyph name="printer" />}
           onClick={() =>
             printCalculationRecord(props.record, attachedResultNoteTitle(notes(), props.record.id))
           }
-        >
-          Распечатать
-        </Button>
+        />
         <Button
+          variant="icon"
+          aria-label="Поделиться"
+          title="Поделиться"
           icon={<AppGlyph name="share" />}
           onClick={() => {
             void shareCalculationRecord(props.record)
@@ -1248,22 +1292,26 @@ function CalculationResultPanel(props: {
               })
               .catch(() => props.onMessage('Не удалось поделиться расчётом.'));
           }}
-        >
-          Поделиться
-        </Button>
+        />
         <Button
           variant="primary"
+          class="calculator-result-actions__record"
+          aria-label="Записать"
+          title="Записать в карточку пациента"
           icon={<AppGlyph name="notes" />}
           data-testid="calculator-save-note"
           onClick={() => setNoteOpen((open) => !open)}
-        >
-          Записать
-        </Button>
+        />
         <Show when={props.onDelete}>
           {(onDelete) => (
-            <Button variant="danger" icon={<AppGlyph name="trash" />} onClick={onDelete()}>
-              Удалить
-            </Button>
+            <Button
+              variant="icon"
+              class="calculator-result-actions__delete"
+              aria-label="Удалить"
+              title="Удалить"
+              icon={<AppGlyph name="trash" />}
+              onClick={onDelete()}
+            />
           )}
         </Show>
       </div>
@@ -1913,31 +1961,39 @@ export function CalculatorsView(): JSX.Element {
                         (candidate) => candidate.id === definition().category,
                       );
                       return (
-                        <section class="calculator-pack-required paper-card" role="status">
-                          <Show
-                            when={toolsReady() && !toolsError()}
-                            fallback={
-                              <>
-                                <h1 class="calculator-pack-required__title">
-                                  {toolsError()
-                                    ? 'Не удалось открыть калькулятор'
-                                    : 'Подключаем калькулятор'}
-                                </h1>
+                        <section class="calculator-pack-required" role="status">
+                          <Page
+                            class="calculator-pack-required__header"
+                            navigation={
+                              <NavBack
+                                class="knowledge-back-button"
+                                aria-label="К разделам калькуляторов"
+                                onClick={backToCatalog}
+                              />
+                            }
+                            title={
+                              <Heading depth={3} class="calculator-subpage-title">
+                                {definition().title}
+                              </Heading>
+                            }
+                            description={section?.title ?? 'Раздел калькуляторов'}
+                          />
+                          <div class="calculator-pack-required__body paper-card">
+                            <Show
+                              when={toolsReady() && !toolsError()}
+                              fallback={
                                 <p class="calculator-pack-required__text">
                                   {toolsError() ||
                                     'Проверяем локальные пакеты и открываем калькулятор.'}
                                 </p>
-                              </>
-                            }
-                          >
-                            <p class="archive-kicker">{section?.title ?? 'Раздел калькуляторов'}</p>
-                            <Heading depth={3}>{definition().title}</Heading>
-                            <p>
-                              Этот инструмент входит в скачиваемый раздел. Сначала скачайте раздел,
-                              затем откройте калькулятор без сети.
-                            </p>
-                            <div>
+                              }
+                            >
+                              <p class="calculator-pack-required__text">
+                                Инструмент входит в раздел «{section?.title ?? 'калькуляторов'}».
+                                Скачайте его один раз — дальше работает без сети.
+                              </p>
                               <Button
+                                class="calculator-pack-required__download"
                                 icon={<AppGlyph name="download" />}
                                 onClick={() => installSection(definition().category)}
                               >
@@ -1945,15 +2001,8 @@ export function CalculatorsView(): JSX.Element {
                                   downloadableModulesForSection(definition().category),
                                 )}
                               </Button>
-                              <Button
-                                variant="quiet"
-                                icon={<AppGlyph name="arrow-left" />}
-                                onClick={backToCatalog}
-                              >
-                                К разделам
-                              </Button>
-                            </div>
-                          </Show>
+                            </Show>
+                          </div>
                         </section>
                       );
                     }}

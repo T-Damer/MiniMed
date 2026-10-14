@@ -8,6 +8,7 @@ import { parseAtcQuery } from '@localmed/search-lexical';
 import { cardSlugOfDocumentId } from '@/features/drug-picker/card-id';
 import { drugDirectoryGroups, withDirectoryGroups } from '@/features/drug-picker/drug-search';
 import { atcMatchOf, singleByCode } from '@/features/medications/atc-groups';
+import { drugLabelOfTitle } from '@/features/medications/drug-label';
 import { displayDrugName } from '@/features/medications/drug-screen';
 import { ScopedMedicalCore } from '@/features/search/ScopedMedicalCore';
 import type { InteractionIndex } from './interaction-index';
@@ -29,7 +30,7 @@ export function cardDisplayName(slug: string): string {
 }
 
 function labelOfTitle(title: string): string {
-  return displayDrugName(title.split(':')[0] ?? title);
+  return drugLabelOfTitle(title);
 }
 
 function cardOfGroup(

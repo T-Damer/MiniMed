@@ -179,10 +179,6 @@ export function MedicationAtcTree(props: {
             when={props.code}
             fallback={
               <>
-                <p class="atc-tree__intro">
-                  Анатомо-терапевтическо-химическая классификация: 14 групп. Вещества берутся из
-                  скачанных пакетов, поэтому каждая группа скачивается отдельно.
-                </p>
                 <Show when={missingAny() && !props.loading}>
                   <Button
                     class="atc-tree__all"

@@ -13,6 +13,7 @@ import { PrescriptionItemCard } from './PrescriptionItemCard';
 import { createPrescriptionController, type PrescriptionSeed } from './prescription-controller';
 import { ageText } from './prescription-safety';
 import { RecipeDialog } from './RecipeDialog';
+import { recipeMissingText } from './recipe-missing';
 import '@/styles/prescription.css';
 
 export function seedOfQuery(slug: string, query: DoseQuery): PrescriptionSeed {
@@ -116,7 +117,7 @@ function DoseCardBody(props: {
           open={recipeOpen()}
           text={controller.recipe()}
           onClose={() => setRecipeOpen(false)}
-          empty="Выберите форму и дозировку: текст рецепта появится здесь."
+          empty={recipeMissingText(controller.analyses())}
         />
       </section>
     </Show>

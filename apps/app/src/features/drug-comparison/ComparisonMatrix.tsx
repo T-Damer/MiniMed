@@ -8,12 +8,7 @@ import { openDocumentOverlay } from '@/state/document-navigation';
 import { buildOfficialDocumentHash } from '@/state/document-route';
 import type { RegistryCell, RegistryRowSpec } from './comparison-registry';
 import type { SafetyCell, SafetyRowView } from './comparison-safety';
-import {
-  type ColumnView,
-  columnSourceLine,
-  type QuoteRowView,
-  SUBSTANCE_INSTRUCTION_NOTE,
-} from './comparison-view';
+import { type ColumnView, columnSourceLine, type QuoteRowView } from './comparison-view';
 import '@/styles/drug-comparison.css';
 
 export const NO_LINE_NOTE = 'В прочитанной инструкции такой строки нет';
@@ -94,9 +89,6 @@ function ColumnHead(props: {
       <Show when={column().state === 'ready'}>
         <Show when={column().source?.qualityNote}>
           {(note) => <p class="drug-comparison__colhead-note">{note()}</p>}
-        </Show>
-        <Show when={!column().own}>
-          <p class="drug-comparison__colhead-note">{SUBSTANCE_INSTRUCTION_NOTE}</p>
         </Show>
         <Show when={column().kindLabel === 'листок-вкладыш'}>
           <p class="drug-comparison__colhead-note">

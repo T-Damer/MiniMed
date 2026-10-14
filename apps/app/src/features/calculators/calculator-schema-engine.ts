@@ -90,31 +90,50 @@ export function initialCalculatorSchemaValues(schema: CalculatorSchema): Record<
   return defaults;
 }
 
+export interface CalculatorInputFact {
+  readonly label: string;
+  /** Absent for a marked yes/no answer: the label alone says it. */
+  readonly value?: string;
+}
+
 /**
  * What was entered, for the line under a result and for the history: numbers and choices as
  * «label value unit». A yes/no flag left at its first option (value 0) is not an answer worth
  * repeating, so only the marked ones are listed, by name — a score of eight questions shows the
  * two that were ticked, not all eight. Decided from the schema's options alone.
+ * {@link calculatorInputSummary} joins the same facts into one line.
  */
+export function calculatorInputFacts(
+  schema: CalculatorSchema,
+  values: Readonly<Record<string, string | number>>,
+): readonly CalculatorInputFact[] {
+  const facts: CalculatorInputFact[] = [];
+  for (const input of schema.inputs) {
+    const raw = values[input.id];
+    if (raw === undefined || raw === '') continue;
+    const options = calculatorInputOptions(input, values);
+    const optionLabel = options.find((option) => String(option.value) === String(raw))?.label;
+    const isFlag =
+      input.kind === 'select' &&
+      options.length === 2 &&
+      String(options[0]?.value) === '0' &&
+      String(options[1]?.value) === '1';
+    if (isFlag) {
+      if (String(raw) !== '0') facts.push({ label: input.label });
+      continue;
+    }
+    const value = `${optionLabel ?? raw}${input.unit ? ` ${input.unit}` : ''}`;
+    facts.push({ label: input.label, value });
+  }
+  return facts;
+}
+
 export function calculatorInputSummary(
   schema: CalculatorSchema,
   values: Readonly<Record<string, string | number>>,
 ): string {
-  return schema.inputs
-    .map((input) => {
-      const raw = values[input.id];
-      if (raw === undefined || raw === '') return null;
-      const options = calculatorInputOptions(input, values);
-      const optionLabel = options.find((option) => String(option.value) === String(raw))?.label;
-      const isFlag =
-        input.kind === 'select' &&
-        options.length === 2 &&
-        String(options[0]?.value) === '0' &&
-        String(options[1]?.value) === '1';
-      if (isFlag) return String(raw) === '0' ? null : input.label;
-      return `${input.label} ${optionLabel ?? raw}${input.unit ? ` ${input.unit}` : ''}`;
-    })
-    .filter((part): part is string => part !== null)
+  return calculatorInputFacts(schema, values)
+    .map((fact) => (fact.value === undefined ? fact.label : `${fact.label} ${fact.value}`))
     .join(', ');
 }
 

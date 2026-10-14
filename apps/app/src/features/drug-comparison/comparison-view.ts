@@ -305,9 +305,6 @@ export function columnSourceLine(column: ColumnView): string {
   return text.charAt(0).toLocaleUpperCase('ru-RU') + text.slice(1);
 }
 
-export const SUBSTANCE_INSTRUCTION_NOTE =
-  'Это инструкция одного из препаратов с этим веществом. Тексты инструкций других производителей могут отличаться.';
-
 /* ------------------------------------------------------------------------------------------ */
 /* Quoted section rows                                                                         */
 /* ------------------------------------------------------------------------------------------ */

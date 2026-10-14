@@ -268,7 +268,13 @@ export function PrescriptionItemCard(props: {
                         : 'В инструкции нет дозы для этого пациента, которую можно рассчитать.'}
                   </p>
                   <Show when={analysis().quoted[0]}>
-                    {(lead) => <RuleQuote documentId={documentId()} resolved={lead()} />}
+                    {(lead) => (
+                      <RuleQuote
+                        documentId={documentId()}
+                        resolved={lead()}
+                        fitMark={analysis().quotedMarks.get(lead())}
+                      />
+                    )}
                   </Show>
                   <Show when={analysis().pending.length > 0}>
                     <p class="prescription__note" data-testid="prescription-pending">

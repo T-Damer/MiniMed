@@ -533,10 +533,7 @@ export function AssessmentQuestionnairePage(props: {
                 <Show
                   when={(question.responseOptions ?? props.definition.responseOptions).length > 5}
                   fallback={
-                    <div
-                      class="assessment-response-options"
-                      style={`--assessment-option-count: ${(question.responseOptions ?? props.definition.responseOptions).length};`}
-                    >
+                    <div class="assessment-response-options">
                       <For each={question.responseOptions ?? props.definition.responseOptions}>
                         {(option) => responseOptionLabel(question.id, option)}
                       </For>
@@ -569,7 +566,6 @@ export function AssessmentQuestionnairePage(props: {
                 ? 'Все пункты заполнены'
                 : `${pluralRu(remaining(), 'Остался', 'Осталось', 'Осталось')} ${remaining()} ${pluralRu(remaining(), 'пункт', 'пункта', 'пунктов')}`}
             </strong>
-            <p class="assessment-submit-panel__disclaimer">{props.definition.disclaimer}</p>
           </div>
           <Button
             type="submit"

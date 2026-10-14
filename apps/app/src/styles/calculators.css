@@ -242,8 +242,7 @@ html.calculator-route-open body {
   min-width: 0;
 }
 
-.calculator-section-actions button,
-.calculator-pack-required button {
+.calculator-section-actions button {
   min-height: 2.55rem;
   padding: 0.55rem 0.75rem;
   border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
@@ -255,8 +254,7 @@ html.calculator-route-open body {
   font-weight: 700;
 }
 
-.calculator-section-actions .calculator-section-action,
-.calculator-pack-required button:first-child {
+.calculator-section-actions .calculator-section-action {
   color: var(--theme-accent-contrast);
   background: var(--theme-accent);
 }
@@ -399,15 +397,14 @@ html.calculator-route-open body {
   margin-inline: auto;
 }
 
-.calculator-pack-required h1,
-.calculator-pack-required p {
+.calculator-pack-required__text {
   margin: 0;
 }
 
-.calculator-pack-required > div {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.55rem;
+.calculator-pack-required__body {
+  display: grid;
+  justify-items: start;
+  gap: 0.75rem;
 }
 
 .calculator-card {
@@ -724,9 +721,65 @@ html.calculator-route-open body {
   color: var(--theme-text-muted);
 }
 
+/* Many values (growth charts): one line each, the label on the left and the value on the right. */
+.calculator-output-list--dense {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.4rem;
+}
+
+.calculator-output-list--dense > div {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.55rem 0.75rem;
+}
+
+.calculator-output-list--dense strong {
+  font-size: 1.125rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
 .calculator-output-list strong {
   color: var(--theme-text);
   font-size: clamp(1.25rem, 4vw, 2rem);
+}
+
+.calculator-input-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.4rem;
+  margin: 0;
+  padding: 0;
+}
+
+.calculator-input-facts__item {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  min-width: 0;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--theme-text) 6%, transparent);
+  font-size: var(--theme-type-caption);
+  line-height: 1.35;
+}
+
+.calculator-input-facts__label {
+  color: var(--theme-text-muted);
+}
+
+.calculator-input-facts__value {
+  margin: 0;
+  color: var(--theme-text);
+  font-weight: var(--theme-weight-emphasis);
+  font-variant-numeric: tabular-nums;
+}
+
+.calculator-input-facts__summary {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: var(--theme-type-caption);
 }
 
 .calculator-chart {
@@ -955,6 +1008,15 @@ html.calculator-route-open body {
   flex-wrap: wrap;
   gap: 0.55rem;
   align-items: center;
+}
+
+.calculator-result-actions__delete {
+  /* A destructive action stays out of the way: quiet, danger-tinted, apart from the others. */
+  margin-inline-start: auto;
+  border-color: transparent;
+  color: var(--theme-danger);
+  background: transparent;
+  box-shadow: none;
 }
 
 .calculator-note-panel {

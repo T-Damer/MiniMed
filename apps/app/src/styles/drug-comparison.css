@@ -2,6 +2,7 @@
   --cmp-head-width: 9.5rem;
   --cmp-column-min: 15rem;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.9rem;
   min-height: 100%;
   min-width: 0;
@@ -20,7 +21,9 @@
 
 .drug-comparison__picker {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.55rem;
+  min-width: 0;
 }
 
 .drug-comparison__search {
@@ -44,7 +47,7 @@
 
 .drug-comparison__candidate {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.55rem;
   width: 100%;
   min-height: 2.4rem;
@@ -61,6 +64,7 @@
 .drug-comparison__candidate-name {
   flex: 1 1 auto;
   min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .drug-comparison__candidate:hover:not(:disabled) {

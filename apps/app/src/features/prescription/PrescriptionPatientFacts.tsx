@@ -3,6 +3,7 @@ import { createEffect, createSignal, type JSX, on, Show } from 'solid-js';
 
 import { ChoiceChip, ChoiceChipList } from '@/components/ChoiceChip';
 import { createDebouncer } from '@/components/debounced-value';
+import { SegmentedControl } from '@/components/SegmentedControl';
 import { TextField } from '@/components/TextField';
 import { parseTypedAge } from '@/features/medication-safety/age-limits';
 import type { PatientCardFacts } from './prescription-facts';
@@ -11,7 +12,6 @@ import '@/styles/prescription.css';
 
 const INPUT_DEBOUNCE_MS = 300;
 const YEAR_DAYS = 365.25;
-const ADULT_AGE_DAYS = Math.round(18 * YEAR_DAYS);
 
 /** «6 лет», «8 мес», «3 года» or a bare number of years → days; null when it is not an age. */
 export function parseAgeInput(text: string): number | null {
@@ -27,6 +27,8 @@ export function parseWeightInput(text: string): number | null {
   const value = Number(text.trim().replace(',', '.'));
   return Number.isFinite(value) && value >= 0.4 && value <= 400 ? value : null;
 }
+
+type PatientGroupChoice = '' | 'child' | 'adult';
 
 /**
  * Age, weight and state of the patient, as one compact row. The card of a chosen patient fills what
@@ -76,18 +78,21 @@ export function PrescriptionPatientFacts(props: {
     const days = props.patient.ageDays ?? props.card.ageDays;
     return days === null || (days >= 12 * YEAR_DAYS && days < 60 * YEAR_DAYS);
   };
-  const isAdultGroup = (): boolean => props.patient.group === 'adult';
-  const isChildGroup = (): boolean => props.patient.group === 'child';
-  void ADULT_AGE_DAYS;
+
+  const group = (): PatientGroupChoice => props.patient.group ?? '';
+  const ageFromCard = (): boolean => age() === '' && cardAge() !== undefined;
+  const weightFromCard = (): boolean => weight() === '' && cardWeight() !== undefined;
 
   return (
     <div class="prescription__facts" data-testid="prescription-facts">
       <div class="prescription__facts-row">
         <TextField
           class="prescription__fact"
+          inputClass="prescription__fact-input"
           label="Возраст"
           value={age()}
-          placeholder={cardAge() ?? '6 лет, 8 мес'}
+          placeholder={cardAge() ?? 'лет, мес'}
+          {...(ageFromCard() ? { hint: 'из карточки пациента' } : {})}
           autocomplete="off"
           inputmode="text"
           data-testid="prescription-age"
@@ -98,9 +103,11 @@ export function PrescriptionPatientFacts(props: {
         />
         <TextField
           class="prescription__fact"
+          inputClass="prescription__fact-input"
           label="Масса, кг"
           value={weight()}
-          placeholder={cardWeight() ?? '20'}
+          placeholder={cardWeight() ?? 'кг'}
+          {...(weightFromCard() ? { hint: 'из карточки пациента' } : {})}
           autocomplete="off"
           inputmode="decimal"
           data-testid="prescription-weight"
@@ -112,9 +119,10 @@ export function PrescriptionPatientFacts(props: {
         <Show when={props.needsHeight}>
           <TextField
             class="prescription__fact"
+            inputClass="prescription__fact-input"
             label="Рост, см"
             value={height()}
-            placeholder={props.card.heightCm === null ? '120' : String(props.card.heightCm)}
+            {...(props.card.heightCm === null ? {} : { placeholder: String(props.card.heightCm) })}
             autocomplete="off"
             inputmode="decimal"
             onInput={(event) => {
@@ -124,26 +132,21 @@ export function PrescriptionPatientFacts(props: {
           />
         </Show>
       </div>
-      <ChoiceChipList label="Состояние пациента" class="prescription__chips">
-        <Show when={!ageKnown()}>
-          <ChoiceChip
-            compact
-            accent={isChildGroup()}
-            aria-pressed={isChildGroup()}
-            onClick={() => props.onChange({ group: isChildGroup() ? null : 'child' })}
-          >
-            Ребёнок
-          </ChoiceChip>
-          <ChoiceChip
-            compact
-            accent={isAdultGroup()}
-            aria-pressed={isAdultGroup()}
-            onClick={() => props.onChange({ group: isAdultGroup() ? null : 'adult' })}
-          >
-            Взрослый
-          </ChoiceChip>
-        </Show>
-        <Show when={mayBePregnant()}>
+      <Show when={!ageKnown()}>
+        <SegmentedControl<PatientGroupChoice>
+          label="Возрастная группа"
+          class="prescription__group"
+          stretch
+          value={group()}
+          options={[
+            { value: 'child', label: 'Ребёнок' },
+            { value: 'adult', label: 'Взрослый' },
+          ]}
+          onChange={(next) => props.onChange({ group: next === '' ? null : next })}
+        />
+      </Show>
+      <Show when={mayBePregnant()}>
+        <ChoiceChipList label="Состояние пациента" class="prescription__chips">
           <ChoiceChip
             compact
             accent={props.patient.pregnant || props.card.pregnant}
@@ -160,8 +163,8 @@ export function PrescriptionPatientFacts(props: {
           >
             Грудное вскармливание
           </ChoiceChip>
-        </Show>
-      </ChoiceChipList>
+        </ChoiceChipList>
+      </Show>
     </div>
   );
 }

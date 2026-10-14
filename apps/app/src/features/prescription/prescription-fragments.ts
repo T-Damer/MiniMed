@@ -12,6 +12,8 @@ export interface Fragment {
   readonly option: RuleOption | null;
   /** What is missing for the patient («нужен возраст»), or null. */
   readonly note: string | null;
+  /** The sentence is the patient's own: why («по возрасту и массе»), when it is only quoted. */
+  readonly fitMark?: string | undefined;
 }
 
 export interface FragmentGroup {
@@ -50,7 +52,8 @@ export function foldedFragments(analysis: ItemAnalysis): readonly FragmentGroup[
   ): void => {
     if (seen.has(resolved.quote) || fragments.length >= MAX_FRAGMENTS) return;
     seen.add(resolved.quote);
-    fragments.push({ key, kind, resolved, option, note });
+    const fitMark = kind === 'quoted' ? analysis.quotedMarks.get(resolved) : undefined;
+    fragments.push({ key, kind, resolved, option, note, ...(fitMark ? { fitMark } : {}) });
   };
   for (const option of analysis.options) {
     if (option.key !== analysis.chosen?.key)

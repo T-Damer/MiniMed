@@ -59,34 +59,36 @@ export function RecipeDialog(props: {
       bodyClass="recipe-dialog__body"
       onClose={props.onClose}
       headerEnd={
-        <Show when={hasText()}>
-          <span class="recipe-dialog__tools">
-            <Button
-              type="button"
-              variant="icon"
-              aria-label={copied() ? 'Скопировано' : 'Копировать'}
-              title="Копировать"
-              icon={<AppGlyph name={copied() ? 'check' : 'copy'} />}
-              onClick={() => void copy()}
-            />
-            <Button
-              type="button"
-              variant="icon"
-              aria-label="Поделиться"
-              title="Поделиться"
-              icon={<AppGlyph name="share" />}
-              onClick={() => void share()}
-            />
-            <Button
-              type="button"
-              variant="icon"
-              aria-label="Печать"
-              title="Печать"
-              icon={<AppGlyph name="printer" />}
-              onClick={print}
-            />
-          </span>
-        </Show>
+        // The tools are always there; without a text they are dimmed and the sheet says what is missing.
+        <span class="recipe-dialog__tools">
+          <Button
+            type="button"
+            variant="icon"
+            aria-label={copied() ? 'Скопировано' : 'Копировать'}
+            title="Копировать"
+            disabled={!hasText()}
+            icon={<AppGlyph name={copied() ? 'check' : 'copy'} />}
+            onClick={() => void copy()}
+          />
+          <Button
+            type="button"
+            variant="icon"
+            aria-label="Поделиться"
+            title="Поделиться"
+            disabled={!hasText()}
+            icon={<AppGlyph name="share" />}
+            onClick={() => void share()}
+          />
+          <Button
+            type="button"
+            variant="icon"
+            aria-label="Печать"
+            title="Печать"
+            disabled={!hasText()}
+            icon={<AppGlyph name="printer" />}
+            onClick={print}
+          />
+        </span>
       }
     >
       {props.children}

@@ -19,7 +19,7 @@ import {
 } from '@/features/drug-picker/drug-search';
 import { namesCoverTypedWords } from '@/features/medication-safety/safety-candidates';
 import { atcMatchOf, singleByCode } from '@/features/medications/atc-groups';
-import { displayDrugName } from '@/features/medications/drug-screen';
+import { drugLabelOfTitle } from '@/features/medications/drug-label';
 import { ScopedMedicalCore } from '@/features/search/ScopedMedicalCore';
 import type { DoseIndex } from './dose-index';
 
@@ -41,7 +41,7 @@ function wordsOf(text: string): readonly string[] {
 }
 
 function titleName(title: string): string {
-  return displayDrugName(title.split(':')[0] ?? title);
+  return drugLabelOfTitle(title);
 }
 
 function candidateOf(

@@ -14,7 +14,7 @@ import {
 } from '@/features/drug-interactions/drug-candidates';
 import { checkedWithDirectory, drugDirectoryGroups } from '@/features/drug-picker/drug-search';
 import { singleByCode } from '@/features/medications/atc-groups';
-import { displayDrugName } from '@/features/medications/drug-screen';
+import { drugLabelOfTitle } from '@/features/medications/drug-label';
 import { ScopedMedicalCore } from '@/features/search/ScopedMedicalCore';
 import type { SafetyIndex } from './safety-index';
 import type { SafetyCandidate } from './safety-view';
@@ -45,7 +45,7 @@ export function namesCoverTypedWords(names: readonly string[], typed: readonly s
 }
 
 function titleName(title: string): string {
-  return displayDrugName(title.split(':')[0] ?? title);
+  return drugLabelOfTitle(title);
 }
 
 function candidateOfGroup(

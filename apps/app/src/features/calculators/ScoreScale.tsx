@@ -1,5 +1,6 @@
 import { createMemo, createSignal, For, type JSX, onMount, Show } from 'solid-js';
 
+import { formatCalculatorQuantity } from '@/features/calculators/calculator-quantity';
 import {
   formatScaleNumber,
   type ScoreScaleSpec,
@@ -8,10 +9,7 @@ import {
 } from '@/features/calculators/score-scale';
 
 function formatValue(spec: ScoreScaleSpec): string {
-  const number = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: spec.precision }).format(
-    spec.value,
-  );
-  return spec.unit ? `${number} ${spec.unit}` : number;
+  return formatCalculatorQuantity(spec.value, spec.precision, spec.unit ?? '', spec.label);
 }
 
 /**
@@ -31,6 +29,11 @@ export function ScoreScale(props: {
     props.spec.activeBand === undefined
       ? undefined
       : props.spec.bands[props.spec.activeBand]?.label;
+  /** Ordinal classes (`equal` layout): the class name is the result, so it replaces «3 класс». */
+  const ordinal = (): boolean => props.spec.layout === 'equal' && activeLabel() !== undefined;
+  /** Cut-points are written once: in the legend, or on the track when no legend is drawn. */
+  const showTicks = (): boolean =>
+    props.spec.layout !== 'equal' && (props.spec.bands.length === 0 || geometry().labelsFitInside);
   const activeLevel = (): string =>
     (props.spec.activeBand === undefined
       ? undefined
@@ -52,8 +55,10 @@ export function ScoreScale(props: {
         <Show when={props.spec.label}>
           {(label) => <span class="score-scale__label">{label()}</span>}
         </Show>
-        <strong class="score-scale__value">{formatValue(props.spec)}</strong>
-        <Show when={!geometry().labelsFitInside}>
+        <strong class="score-scale__value">
+          {ordinal() ? activeLabel() : formatValue(props.spec)}
+        </strong>
+        <Show when={!geometry().labelsFitInside && !ordinal()}>
           <Show when={activeLabel()}>
             {(label) => (
               <span class={`score-scale__band score-scale__band--${activeLevel()}`}>{label()}</span>
@@ -103,7 +108,7 @@ export function ScoreScale(props: {
             aria-hidden="true"
           />
         </div>
-        <Show when={props.spec.layout !== 'equal'}>
+        <Show when={showTicks()}>
           <div class="score-scale__ticks" aria-hidden="true">
             <For each={geometry().ticks}>
               {(tick) => (

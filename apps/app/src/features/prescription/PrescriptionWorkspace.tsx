@@ -31,6 +31,7 @@ import { PrescriptionPatientFacts } from './PrescriptionPatientFacts';
 import { createPrescriptionController, type PrescriptionSeed } from './prescription-controller';
 import { FORM_107_ID, FORM_148_ID, isSingleNameAtc, splitIntoBlanks } from './prescription-output';
 import { RecipeDialog } from './RecipeDialog';
+import { recipeMissingText } from './recipe-missing';
 import '@/styles/prescription.css';
 
 export interface PrescriptionWorkspaceProps {
@@ -326,7 +327,7 @@ export function PrescriptionWorkspace(props: PrescriptionWorkspaceProps): JSX.El
         open={recipeOpen()}
         text={controller.recipe()}
         onClose={() => setRecipeOpen(false)}
-        empty="Добавьте препарат и выберите форму: текст рецепта появится здесь."
+        empty={recipeMissingText(controller.analyses())}
       />
     </section>
   );

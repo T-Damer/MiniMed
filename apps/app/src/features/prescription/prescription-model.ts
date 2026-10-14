@@ -311,6 +311,12 @@ export interface ItemAnalysis {
    * borrowed populations …) that may be about this patient: quoted with a link, never computed.
    */
   readonly quoted: readonly ResolvedRule[];
+  /**
+   * Why a quoted sentence is marked as the patient's own («по возрасту и массе»): the sentence names
+   * a population and the patient stands surely inside it. Quoted sentences come in this order: the
+   * ones that fit the patient first, then those that might, in the instruction's order.
+   */
+  readonly quotedMarks: ReadonlyMap<ResolvedRule, string>;
   readonly chosen: RuleOption | null;
   readonly plan: IntakePlan | null;
   readonly caps: readonly CapView[];
@@ -491,6 +497,16 @@ export function productTie(
   return strengths.length === 1;
 }
 
+/** «по возрасту и массе»: what of the patient the sentence's population words surely match. */
+export function populationFitMark(match: Pick<PopulationMatch, 'matched'>): string | null {
+  const age = match.matched.includes('age');
+  const weight = match.matched.includes('weight');
+  if (age && weight) return 'по возрасту и массе';
+  if (age) return 'по возрасту';
+  if (weight) return 'по массе';
+  return match.matched.includes('group') ? 'по возрастной группе' : null;
+}
+
 export function analyzeItem(item: PrescriptionItem, inputs: ItemInputs): ItemAnalysis {
   const { index, patient } = inputs;
   const enabled = (inputs.settings ?? PRESCRIPTION_SETTINGS).computedDoses;
@@ -509,6 +525,7 @@ export function analyzeItem(item: PrescriptionItem, inputs: ItemInputs): ItemAna
     pending: [] as readonly RuleOption[],
     restricted: [] as readonly ResolvedRule[],
     quoted: [] as readonly ResolvedRule[],
+    quotedMarks: new Map<ResolvedRule, string>() as ReadonlyMap<ResolvedRule, string>,
     chosen: null,
     plan: null,
     caps: [] as readonly CapView[],
@@ -571,6 +588,7 @@ export function analyzeItem(item: PrescriptionItem, inputs: ItemInputs): ItemAna
   const quotedSeen = new Set<string>();
   // The sentence that names the patient's group and states a dose comes first.
   const quotedRank = new Map<ResolvedRule, number>();
+  const quotedMarks = new Map<ResolvedRule, string>();
   const durations: ResolvedRule[] = [];
   const doseRules = instruction.rules.map((resolved) => resolved.rule);
   instruction.rules.forEach((resolved, position) => {
@@ -585,10 +603,18 @@ export function analyzeItem(item: PrescriptionItem, inputs: ItemInputs): ItemAna
       ) {
         quotedSeen.add(resolved.quote);
         quoted.push(resolved);
+        // A sentence the patient surely fits comes before one that only might apply (the adult band
+        // of «взрослые и дети старше 13 лет и/или массой более 40 кг» is not the 20 kg child's).
         quotedRank.set(
           resolved,
-          Number(match.unstated) * 4 + (rule.k === RULE_DOSE ? 0 : rule.k === RULE_CAP ? 1 : 2),
+          (match.fit === 'yes' ? 0 : 8) +
+            Number(match.unstated) * 4 +
+            (rule.k === RULE_DOSE ? 0 : rule.k === RULE_CAP ? 1 : 2),
         );
+        if (match.fit === 'yes' && !match.unstated) {
+          const mark = populationFitMark(match);
+          if (mark) quotedMarks.set(resolved, mark);
+        }
       }
       return;
     }
@@ -707,6 +733,7 @@ export function analyzeItem(item: PrescriptionItem, inputs: ItemInputs): ItemAna
     pending,
     restricted,
     quoted,
+    quotedMarks,
     chosen,
     plan,
     caps,

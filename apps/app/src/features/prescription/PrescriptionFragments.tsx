@@ -18,9 +18,23 @@ export function RuleQuote(props: {
   readonly resolved: ResolvedRule;
   /** In the fold the section is the group heading: the line keeps only the link. */
   readonly inGroup?: boolean;
+  /** The sentence is the patient's own: why («по возрасту и массе»). */
+  readonly fitMark?: string | undefined;
 }): JSX.Element {
   return (
-    <blockquote class="prescription__quote" data-testid="prescription-quote">
+    <blockquote
+      class="prescription__quote"
+      classList={{ 'prescription__quote--fit': props.fitMark !== undefined }}
+      data-testid="prescription-quote"
+    >
+      <Show when={props.fitMark}>
+        {(mark) => (
+          <p class="prescription__quote-fit" data-testid="prescription-quote-fit">
+            <AppGlyph name="check" class="prescription__quote-fit-icon" />
+            Подходит пациенту {mark()}
+          </p>
+        )}
+      </Show>
       <Show when={props.resolved.context}>
         {(context) => <p class="prescription__quote-context">{context()}</p>}
       </Show>
@@ -82,7 +96,12 @@ function FragmentRows(props: {
                 <Show when={fragment.note}>
                   {(note) => <p class="prescription__note">{note()}</p>}
                 </Show>
-                <RuleQuote documentId={props.documentId} resolved={fragment.resolved} inGroup />
+                <RuleQuote
+                  documentId={props.documentId}
+                  resolved={fragment.resolved}
+                  fitMark={fragment.fitMark}
+                  inGroup
+                />
               </div>
             )}
           </For>

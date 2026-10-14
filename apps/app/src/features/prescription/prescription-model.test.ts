@@ -338,6 +338,43 @@ describe('the release switch for computed doses (RX4)', () => {
   });
 });
 
+describe('quoted dose sentences with computed doses off', () => {
+  // «Взрослые и дети старше 13 лет и/или массой тела более 40 кг» is printed first in the leaflet.
+  const adultOrHeavy = resolved(
+    { d0: 500, f0: 3, f1: 3, p0: Math.round(13 * YEAR), w0: 400, or: 1, g: 3, u: 0 },
+    'Взрослые и дети старше 13 лет и/или массой тела более 40 кг: 500 мг 3 раза в сутки',
+  );
+  const rules = instruction([adultOrHeavy, childRule]);
+  const quotedFor = (patient: Parameters<typeof analyzeItem>[1]['patient']) =>
+    analyzeItem(newItem('1', 'amoxicillin', 'Амоксициллин'), {
+      index,
+      patient,
+      instructionOf: () => rules,
+      settings: { computedDoses: false },
+    });
+
+  it('puts the band of the patient’s own weight before the adult band and marks it', () => {
+    const analysis = quotedFor({ weightKg: 20, group: 'child' });
+    expect(analysis.quoted.map((entry) => entry.quote)).toEqual([
+      childRule.quote,
+      adultOrHeavy.quote,
+    ]);
+    // Only the weight is known and fits; the unknown age is not claimed.
+    expect(analysis.quotedMarks.get(childRule)).toBe('по массе');
+    // A sentence that only might apply (the age is unknown) is quoted without the mark.
+    expect(analysis.quotedMarks.has(adultOrHeavy)).toBe(false);
+  });
+
+  it('keeps the leaflet’s order when no sentence is the patient’s own', () => {
+    const analysis = quotedFor({});
+    expect(analysis.quoted.map((entry) => entry.quote)).toEqual([
+      adultOrHeavy.quote,
+      childRule.quote,
+    ]);
+    expect(analysis.quotedMarks.size).toBe(0);
+  });
+});
+
 describe('the instruction’s own product (RX3 audit: one count for every registry strength)', () => {
   const pieces = resolved(
     { u: 7, d0: 2, q0: 2, qu: 0, f0: 2, f1: 2, p0: Math.round(18 * YEAR), g: 1 },
