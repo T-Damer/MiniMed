@@ -191,6 +191,18 @@ html:has(.user-document-reader--sheet-fullscreen) .app-bottom-nav {
   }
 }
 
+/* The header of a document that is only read holds one icon button: it takes a line, not a block. */
+.document-overlay-paper__header--idle {
+  margin-bottom: 0.5rem;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.document-overlay-paper__actions--idle {
+  justify-content: flex-end;
+  margin-top: 0;
+}
+
 /* XLS/XLSX/XLSM/CSV sheets */
 
 .document-overlay-paper__title--sheet-fullscreen,

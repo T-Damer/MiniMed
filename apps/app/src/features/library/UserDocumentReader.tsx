@@ -47,6 +47,7 @@ import {
 import { MediaViewer } from '@/features/library/document-rich-block';
 import { PaginatedTextEditor } from '@/features/library/PaginatedTextEditor';
 import { PinchZoomSurface } from '@/features/library/PinchZoomSurface';
+import { ReaderSectionPath } from '@/features/library/ReaderSectionPath';
 import { isRichDocumentMime, RichDocumentRenderer } from '@/features/library/RichDocumentRenderer';
 import {
   type ParsedMarkdownDocument,
@@ -1231,16 +1232,24 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                     class="document-overlay-paper__header"
                     classList={{
                       'document-overlay-paper__header--sheet-fullscreen': isSheet() && fullscreen(),
+                      // Only the edit button: no rule, no spacing — the text follows the title.
+                      'document-overlay-paper__header--idle': !draftOpen(),
                     }}
                   >
-                    <div class="document-overlay-paper__actions">
+                    <div
+                      class="document-overlay-paper__actions"
+                      classList={{ 'document-overlay-paper__actions--idle': !draftOpen() }}
+                    >
                       <Show
                         when={draftOpen()}
                         fallback={
                           <Show when={editableSource()}>
                             <Button
                               type="button"
-                              class="document-overlay-action-button"
+                              variant="icon"
+                              class="document-overlay-action-button user-document-reader__edit"
+                              aria-label="Редактировать"
+                              title="Редактировать"
                               onClick={openDraftEditor}
                               icon={
                                 <AppGlyph
@@ -1248,9 +1257,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                                   class="document-overlay-action-button__icon"
                                 />
                               }
-                            >
-                              Редактировать
-                            </Button>
+                            />
                           </Show>
                         }
                       >
@@ -1289,6 +1296,12 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                   </header>
                 </Show>
               )}
+            </Show>
+
+            {/* A text document has no headings in the official reader's markup: the line only holds
+                the page counter, on an opaque bar instead of floating over the text. */}
+            <Show when={pageModel() !== null && !draftOpen()}>
+              <ReaderSectionPath />
             </Show>
 
             <Show
