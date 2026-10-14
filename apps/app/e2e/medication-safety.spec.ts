@@ -46,7 +46,8 @@ test('a pregnancy question shows the instruction sentences, never an answer of i
 
   // The index knows where the instruction speaks of it; the instruction is not installed yet.
   await expect(page.getByTestId('safety-not-installed')).toBeVisible({ timeout: 60_000 });
-  const offer = page.locator('.safety-card__offer-button');
+  // The dose card of the prescription tool offers the same group download: take the safety card's.
+  const offer = card.locator('.safety-card__offer-button');
   await expect(offer).toContainText('Скачать инструкции группы', { timeout: 60_000 });
   await shoot(page, 'not-installed');
   await offer.click({ force: true });

@@ -66,8 +66,8 @@ for (const viewport of COLUMN_VIEWPORTS) {
         listCovered: Boolean(centre(listBox)?.closest('.app-bottom-nav')),
       };
     });
-    // The check means something only where the bar does reach over the column.
-    if (viewport.width <= 800) expect(result.horizontalOverlap).toBe(true);
+    // The floating bar is centred and narrow now, so at 768-800 px it no longer reaches over the
+    // column's footer; whether it does or not, nothing of the column may sit under it.
     expect(result.footerCovered).toBe(false);
     expect(result.listCovered).toBe(false);
     if (result.horizontalOverlap) {

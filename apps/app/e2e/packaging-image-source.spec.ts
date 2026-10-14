@@ -53,11 +53,9 @@ async function routeLocalFiles(page: Page): Promise<void> {
   );
 }
 
-const SHOTS =
-  '/private/tmp/claude-501/-Users-d-Projects-Personal-MiniMed/51ab9309-0662-41e7-b665-56590bb2a664/scratchpad';
-
-test('the «?» over a packaging photo opens its source', async ({ page }) => {
+test('the «?» over a packaging photo opens its source', async ({ page }, testInfo) => {
   test.setTimeout(480_000);
+  const SHOTS = testInfo.outputDir;
   // Only the files served below may leave the machine: every other module download fails at once.
   await page.route(/raw\.githubusercontent\.com|github\.com\/T-Damer/u, (route) => route.abort());
   await routeMedicationModule(page);

@@ -12,7 +12,8 @@ const VIEWPORTS = [
 ] as const;
 
 const DOCUMENT_HASH = new URL(CLINICAL_DOCUMENT_ROUTE).hash;
-const TERM = 'Парадоксальная эмболия';
+// A term deep in the text: the glossary-like section of terms now comes first, near the top of the page.
+const TERM = 'инфаркт миокарда';
 
 interface Snapshot {
   readonly scrollY: number;

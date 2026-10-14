@@ -146,8 +146,11 @@ a guideline module did not open after the network was cut (its lazy chunks `Docu
   labels («Официальный идентификатор»), identifiers and boilerplate no longer produce matches, and a reworded
   chunk keeps exact highlights and jumps (the old fallback highlighted by the query only). Covered by
   `search.spec.ts` (outline test: a visible word marks, the hidden label gives `0/0`).
-- **Search skeleton shift.** An empty `.unified-catalog` left its `margin-block` between the field and the
-  results while a query was typing, moving the skeleton 16 px; `.unified-catalog:empty` is now `display: none`.
+- **Search skeleton shift.** The 16 px between the tool strip and the next block came from the catalog's own
+  `margin-block`, which an empty catalog leaked (a typing query moved the skeleton by 16 px) and which the
+  chip list's `-1.6rem` bottom margin relied on. `.search-tool-strip` now owns the gap
+  (`margin-block: 0.75rem 1rem`) and an empty `.unified-catalog` is `display: none`; skeleton and results sit at
+  one position from the first frame.
 - **Unit tests have no wall-clock budgets.** `KnowledgeGraph.test.ts` asserted 250 000 pairs with one `expect`
   each (1.4 s of assertion bookkeeping, the layout itself takes ~20 ms): one assertion over the collected
   violations. `document-medication-links.test.ts` checks every paragraph links the right document instead of
@@ -162,8 +165,11 @@ a guideline module did not open after the network was cut (its lazy chunks `Docu
   cardiology section is checked as «N из N» offline, not a fixed 43.
 - **Specs that need `data/` skip with a reason.** `e2e/local-data.ts` (`missingLocalData`) is used by
   `core-identities`, `module-lifecycle` and `terminology`; `module-install-timing` points at the release copy of
-  the published ЕСКЛП edition (`output/module-zstd-esklp-atc2-2026-10-13`). In a worktree, link the main
-  checkout's `data/` (`ln -s <main>/data data`, remove it afterwards) to run them.
+  the published ЕСКЛП edition (`output/module-zstd-esklp-atc2-2026-10-13`). Specs that read release copies
+  from `output/` (clinical-module fixture, Allmed, severity) skip in a worktree: link the main checkout's
+  `data/` and `output/` (`ln -s <main>/data data`, remove the links afterwards) to run all of them. Reader
+  specs that need the КР fixture: the glossary-first «Термины и определения» now sits at the top (the abbreviation
+  list moved behind the chapters), so `reader-back-position` clicks a term deeper in the text.
 - **Source gate.** `scripts/check-browser-integration.mjs` compares whitespace-insensitively (formatter
   re-wraps no longer fail it) and its patterns follow the current code (speech-model removal dialog, worker
   request guard, patient backup copy, diary list/entry form/theme, diary service worker); 58/58.

@@ -9,7 +9,10 @@
 
 /* The tool row stays under the field while results show: close to it, never in the results' way. */
 .search-tool-strip {
-  margin-block-start: 0.75rem;
+  /* The bottom margin is what keeps the next block clear of the chip list, whose frame reaches
+     1.6rem below the strip (negative margin below): it was the catalog's own margin before, which
+     disappeared with the catalog while a query types and moved the skeleton and the results. */
+  margin-block: 0.75rem 1rem;
 }
 
 /* The scroll viewport clips what it contains, so the elevated chip's shadow needs room inside it:

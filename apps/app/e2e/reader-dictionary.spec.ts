@@ -16,6 +16,8 @@ async function openClinicalDocument(page: Page): Promise<void> {
  * in the text would (the reader's own text is left otherwise alone).
  */
 async function selectWordInChunk(page: Page, chunkIndex: number, word: string): Promise<void> {
+  // The reader mounts its sections in idle batches: wait until the chunk exists.
+  await page.locator('.document-text-chunk').nth(chunkIndex).waitFor({ state: 'attached' });
   await page.evaluate(
     ({ chunkIndex: index, word: text }) => {
       const chunk = document.querySelectorAll('.document-text-chunk')[index];

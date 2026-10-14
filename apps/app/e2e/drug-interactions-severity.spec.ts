@@ -40,11 +40,13 @@ test('a pair gets no label without the module, and a labelled, sourced one after
   await expect(quote).toBeVisible({ timeout: 180_000 });
   await expect(quote).toContainText(/празиквант/iu);
 
-  // Without the optional module: no label, an offer that names the source and the licence.
+  // Without the optional module: no label, one inline offer with its size; the source and the
+  // licence are named once the labels are installed (the source block below).
   await expect(page.getByTestId('interaction-severity')).toHaveCount(0);
   const offer = page.getByTestId('severity-offer');
-  await expect(offer).toContainText('DDInter', { timeout: 60_000 });
-  await expect(offer).toContainText('CC BY-NC-SA 4.0');
+  await expect(offer).toContainText('Скачать метки степени риска', { timeout: 60_000 });
+  await expect(offer).toContainText(/\d+\s*КБ/u);
+  await expect(offer).not.toContainText('CC BY-NC-SA 4.0');
   await expect(page.getByTestId('severity-source')).toHaveCount(0);
   await shoot(page, 'severity-offer');
 

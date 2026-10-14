@@ -116,7 +116,18 @@ test('the reader shows its page in a bottom-left bubble, jumps from it in place 
   await expect(page.locator('.document-overlay-outline--hidden')).toHaveCount(1);
 
   // Tapping the bubble turns it into a field in place: nothing scrolls, no separate panel opens.
-  const before = await page.evaluate(() => window.scrollY);
+  // Closing the contents list leaves a smooth scroll settling for a moment: measure when the
+  // position has stood still for a while.
+  let before = await page.evaluate(() => window.scrollY);
+  await expect
+    .poll(async () => {
+      await page.waitForTimeout(400);
+      const now = await page.evaluate(() => window.scrollY);
+      const steady = now === before;
+      before = now;
+      return steady;
+    })
+    .toBe(true);
   await summary.click();
   const field = page.locator('[data-reader-page-bubble="input"]');
   await expect(field).toBeFocused();
