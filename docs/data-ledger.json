@@ -28,8 +28,8 @@
         "data/intermediate/grls-instructions-current-*"
       ],
       "note": "Rate-limited official downloads plus the download state ledger; the only local copy. G1 (2026-10-02) added 30 PDFs; collection stopped at a CAPTCHA (data/build/grls-collect/BLOCKED-by-site).",
-      "bytes": 13392145384,
-      "modified": "2026-10-05"
+      "bytes": 13411426268,
+      "modified": "2026-10-13"
     },
     {
       "path": "data/raw/krasotaimedicina",
@@ -379,7 +379,7 @@
       "release": "v0.6.37-v0.6.44 MiniMed-*-core.db",
       "note": "Never delete or replace by hand (AGENTS.md, docs/RELEASES.md).",
       "bytes": 445677568,
-      "modified": "2026-10-08"
+      "modified": "2026-10-14"
     },
     {
       "path": "apps/app/public/content/mkb.db",
@@ -390,8 +390,6 @@
         "benchmark:real:release (docs/RELEASES.md step 6)"
       ],
       "release": "v0.6.19 (mkb.db)",
-      "bytes": 65,
-      "modified": "2026-10-08",
       "note": "Kept: the release benchmark needs every companion pack. Restorable from the v0.6.19 release asset."
     },
     {
@@ -399,9 +397,7 @@
       "class": "RELEASED",
       "producer": "bun run content:publish:ambulatory",
       "consumers": ["DEV ambulatory companion"],
-      "release": "v0.6.13 (ambulatory.db)",
-      "bytes": 72,
-      "modified": "2026-10-08"
+      "release": "v0.6.13 (ambulatory.db)"
     },
     {
       "path": "apps/app/public/content/medications.db",
@@ -411,9 +407,7 @@
         "DEV medications companion",
         "data/build/medications-unified.db (compose input)"
       ],
-      "rebuild": "medbase prepare-allmed-medications + medbase build (Allmed snapshot needed)",
-      "bytes": 73,
-      "modified": "2026-10-08"
+      "rebuild": "medbase prepare-allmed-medications + medbase build (Allmed snapshot needed)"
     },
     {
       "path": "apps/app/public/content/reference-images",
@@ -422,7 +416,7 @@
       "consumers": ["DEV reference image assets"],
       "release": "v0.6.34 reference-images.tar.gz + branch datasets/content-2026-09-06",
       "bytes": 4455106,
-      "modified": "2026-10-08"
+      "modified": "2026-10-13"
     },
     {
       "path": "model-mirror/Giga-Embeddings-instruct-480M-0826-Q8_0.gguf",
@@ -636,8 +630,8 @@
       "producer": "medbase-eaeu-sister-registers lists/collect/manifest (G2, 2026-10-13; docs/research/drug-sources-2026-10-13.md): leaflets and ОХЛП of EAEU dossiers from rceth.by (Belarus) and register.ndda.kz (Kazakhstan), source class eaeu-sister-register",
       "consumers": [],
       "note": "entries-BY/KZ.jsonl (listing snapshots with checksum and fetch time), files/<country>/<sha256>.pdf|docx (950 files), state.jsonl (fetch ledger), manifest.jsonl (derived by manifest; pilot rows only). Never mixed with data/raw/grls-instructions-active.",
-      "bytes": 714551296,
-      "modified": "2026-10-14"
+      "bytes": 712566428,
+      "modified": "2026-10-13"
     },
     {
       "path": "data/build/icd11-module",
@@ -728,7 +722,7 @@
       "release": "branch datasets/kd1-query-encoder-2026.10.11",
       "rebuild": "see docs/research/embedding-distillation-2026-10-09.md (Giga corpus + target encoding ~1.5 h, v3 training ~75 min, v4c +25 min with build-distill-pairs.ts pairs on MPS); not bit-identical on retraining — keep this copy",
       "note": "query-encoder/: the on-device query encoder (student v4c, published as datasets/kd1-query-encoder-2026.10.11.2; v3 was datasets/kd1-query-encoder-2026.10.11) (config, tokenizer, int8 ONNX in two parts), the passage projection and the training log as published; giga480m-projection-384.npy: the projection embed_modules.py reads (same bytes); rebuild.log. Benchmarks need a model dir with the joined ONNX: cat query-encoder/onnx/model_quantized.onnx.part-* > <dir>/minimed/kd1-query-encoder/onnx/model_quantized.onnx plus the three JSON files.",
-      "bytes": 139211597,
+      "bytes": 139207775,
       "modified": "2026-10-11"
     },
     {
@@ -753,8 +747,46 @@
       ],
       "rebuild": "Re-run the three content:local:* scripts (~10 min).",
       "note": "Personal-use modules (Vidal, Citilab lab reference, TNM, Pevzner diets). Never commit, push or upload: the repository is public.",
-      "bytes": 120024859,
+      "bytes": 119993903,
       "modified": "2026-10-12"
+    },
+    {
+      "path": "data/intermediate/grls-ocr-cleaned",
+      "class": "REBUILDABLE",
+      "producer": "STATE OCR1: tools/ingest/scripts/grls_ocr_requality.py run (Vision payloads from grls_ocr_vision_cache.py, Tesseract pages from grls_ocr_second_opinion.py)",
+      "consumers": [
+        "tools/ingest/scripts/build_grls_instruction_modules.py via data/build/grls-ocr-quality.jsonl (overlay workspace column)"
+      ],
+      "rebuild": "grls_ocr_vision_cache.py (≈1.7 h, 19 894 pages), grls_ocr_second_opinion.py (≈80 min), grls_ocr_requality.py lexicon|run; the extraction JSON in .localmed keeps the raw OCR lines, so existing documents need no OCR again",
+      "note": "2 306 re-prepared GRLS OCR documents (Markdown + extraction + diagnostics), the current build input of the 15 ГРЛС instruction modules.",
+      "bytes": 522865123,
+      "modified": "2026-10-14"
+    },
+    {
+      "path": "output/module-zstd-grls-ocr1-kd1-2026-10-14",
+      "class": "RELEASED",
+      "producer": "STATE OCR1: build_grls_instruction_modules.py build -> medbase compact-module-search -> package-instruction-modules.ts (lexical stage) -> embed_modules.py --family medications --from-dir -> reframe-modules.ts --marker kd1",
+      "consumers": [
+        "catalog.preview.json minimed.medications.instructions.<group>.ru (15 modules, version grls-2026.10.14.kd1)",
+        "scripts/build-drug-interactions.ts, build-medication-safety.ts, build-drug-comparison.ts, build-dose-rules.ts (MODULE_DIRECTORIES)"
+      ],
+      "release": "branch datasets/grls-instructions-2026.10.14-15ce0cf79f45-kd1 (15 .db.zst)",
+      "rebuild": "gh/git checkout of the branch; or the commands above over data/intermediate/grls-ocr-cleaned",
+      "note": "Local copy of the released OCR1 instruction modules (224.9 MB); the earlier copy of the 2026-10-05 release stays under data/build/grls-instruction-modules/zst.",
+      "bytes": 224893427,
+      "modified": "2026-10-14"
+    },
+    {
+      "path": "data/intermediate/manufacturer-instructions-m1",
+      "class": "REBUILDABLE",
+      "producer": "STATE OCR1 / M1: build_manufacturer_instruction_module.py registry, medbase prepare (PDF, text), grls_ocr_requality.py manufacturer (prepared-pdf-ocr1)",
+      "consumers": [
+        "tools/ingest/scripts/build_manufacturer_instruction_module.py build (prepared-pdf-ocr1 first)"
+      ],
+      "rebuild": "build_manufacturer_instruction_module.py registry, the two medbase prepare commands it prints, grls_ocr_vision_cache.py --manufacturer, grls_ocr_requality.py manufacturer (minutes)",
+      "note": "Prepared Markdown of the 272 holder-site documents; the 16 scans are re-prepared in prepared-pdf-ocr1.",
+      "bytes": 79546903,
+      "modified": "2026-10-14"
     }
   ]
 }
