@@ -11,7 +11,11 @@ import { MultiMedicalStore } from '@localmed/storage';
 import { comparisonDrugCodes } from '../../../apps/app/src/features/drug-comparison/comparison-atc-directory';
 
 export const REPOSITORY_ROOT = resolve(import.meta.dirname, '../../..');
-const CONTENT = resolve(REPOSITORY_ROOT, 'apps/app/public/content');
+// A worktree has no gitignored release databases: `MINIMED_CONTENT_DIR` names the main checkout's
+// `apps/app/public/content` by absolute path (never symlink it into the worktree).
+const CONTENT = process.env['MINIMED_CONTENT_DIR']
+  ? resolve(process.env['MINIMED_CONTENT_DIR'])
+  : resolve(REPOSITORY_ROOT, 'apps/app/public/content');
 // Mirrors builtInCompanionMounts in apps/app/src/composition/create-browser-core.ts.
 const COMPANIONS = [
   ['mkb.db', 1.05],

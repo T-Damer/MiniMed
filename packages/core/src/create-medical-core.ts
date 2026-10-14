@@ -56,9 +56,10 @@ import type {
   SearchDocumentDescriptor,
   VectorHit,
 } from '@localmed/storage';
-
 import { atcDrugGroups, type DrugCodeDirectory, withAtcGroups } from './atc-drug-search';
 import { isSupersededSummaryDocument } from './document-siblings';
+import { drugClassSearch, withDrugClassGroups } from './drug-class-search';
+import { demoteHomeopathicGroups } from './homeopathy-demotion';
 import {
   DEFAULT_ICD_BRIDGE_TUNING,
   documentIcdCodes,
@@ -124,6 +125,9 @@ export interface CreateMedicalCoreOptions {
    */
   readonly drugCodes?: DrugCodeDirectory;
 }
+
+/** A whole HTML tag with attributes: a pasted `<img src=x onerror=alert(1)>` is no query. */
+const MARKUP_TAG = /<\/?[a-z][a-z0-9-]*(?:\s[^<>]*)?>/giu;
 
 /** Recommendations a description lookup adds, and the first group they go behind. */
 const DESCRIPTION_RECOMMENDATIONS = 3;
@@ -381,6 +385,12 @@ function presentationTradeNameFromSnippet(
   );
 }
 
+/** The group is titled with the product the whole query names: «Аспирин · АЦЕТИЛСАЛИЦИЛОВАЯ КИСЛОТА». */
+function namesTypedProduct(group: SearchResultGroup, typedQuery: string): boolean {
+  const separator = group.title.indexOf(' · ');
+  return separator > 0 && normalizeSurfaceText(group.title.slice(0, separator)) === typedQuery;
+}
+
 function selectedGroupPresentation(
   first: SearchResult,
   query: string,
@@ -398,8 +408,13 @@ function selectedGroupPresentation(
     aliases.filter((candidate) => candidate.normalizedCanonicalTerm === normalizedTitle),
   );
   if (!queryAlias || !snippetTradeName) return queryAlias ?? null;
-  return tokenize(normalizeSurfaceText(snippetTradeName)).length >
-    tokenize(normalizeSurfaceText(queryAlias)).length
+  // The product line may name a longer product of the same brand («Нурофен Экспресс» for the typed
+  // «Нурофен»), never another name that merely shares more of the expanded query («Аспирин» is not
+  // retitled «Ацетилсалициловая кислота Медисорб», SRCH1).
+  const aliasWords = tokenize(normalizeSurfaceText(queryAlias));
+  const productWords = tokenize(normalizeSurfaceText(snippetTradeName));
+  return productWords.length > aliasWords.length &&
+    aliasWords.every((word, index) => productWords[index] === word)
     ? snippetTradeName
     : queryAlias;
 }
@@ -1655,6 +1670,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
               ]),
             )
           : groupedResults;
+      const typedProductName = normalizeSurfaceText(parsed.data.query);
       const termRankedGroups = termIndex.rank(subjectGroups, terminologyMatch);
       const rankedGroups = (
         parsed.data.analysisMode === 'lookup' &&
@@ -1666,6 +1682,10 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         (left, right) =>
           Number(exactTitleDocumentIds.has(right.documentId)) -
             Number(exactTitleDocumentIds.has(left.documentId)) ||
+          // A trade name typed whole («Аспирин», «Кандид Б») leads, before words that merely begin
+          // with it («Аспиринорезистентность», «Кандидоз»): SRCH1.
+          Number(namesTypedProduct(right, typedProductName)) -
+            Number(namesTypedProduct(left, typedProductName)) ||
           Number(exactSecondaryIdentityDocumentIds.has(right.documentId)) -
             Number(exactSecondaryIdentityDocumentIds.has(left.documentId)) ||
           Number(spellingDocumentIds.has(right.documentId)) -
@@ -1941,6 +1961,64 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
     }
   };
 
+  /**
+   * SRCH1 (owner decision 2026-10-14): a query that names a drug class as a whole puts the class
+   * card and the drugs of the class in front of the text hits (`drug-class-search.ts`). A query
+   * with a specialty, an audience or a section filter is not a class lookup.
+   */
+  const withDrugClass = async (
+    request: SearchRequest,
+    response: SearchResponse,
+    directory: DrugCodeDirectory,
+    index: QueryDocumentIndex,
+  ): Promise<Result<SearchResponse, LocalMedError>> => {
+    const filters = request.filters;
+    if (
+      !directory.classOf ||
+      filters.specialties?.length ||
+      filters.ageGroups?.length ||
+      filters.sectionTypes?.length
+    )
+      return ok(response);
+    try {
+      const found = await drugClassSearch({
+        query: request.query,
+        directory,
+        index,
+        filters,
+        readResults: async (ids) => buildExactIdentityResults(options.store, ids, filters, [], []),
+      });
+      return ok(withDrugClassGroups({ response, found, index, limit: request.limit }));
+    } catch (error) {
+      return err(asLocalMedError(error));
+    }
+  };
+
+  /**
+   * SRCH1: homeopathic mixtures go behind the ordinary drug cards that name the query
+   * (`homeopathy-demotion.ts`). Only when the application's directory says which cards they are.
+   */
+  const withHomeopathyDemoted = async (
+    request: SearchRequest,
+    response: SearchResponse,
+    directory: DrugCodeDirectory,
+    index: QueryDocumentIndex,
+  ): Promise<Result<SearchResponse, LocalMedError>> => {
+    if (!directory.homeopathicIds) return ok(response);
+    try {
+      return ok(
+        demoteHomeopathicGroups({
+          response,
+          homeopathic: await directory.homeopathicIds(),
+          index,
+          query: request.query,
+        }),
+      );
+    } catch (error) {
+      return err(asLocalMedError(error));
+    }
+  };
+
   return {
     initialize,
 
@@ -2048,6 +2126,10 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           }),
         );
       }
+      // Pasted markup («<img src=x onerror=…>») has no word of the user's in it: nothing to find.
+      if (!/[\p{L}\p{N}]/u.test(parsed.data.query.replaceAll(MARKUP_TAG, ' '))) {
+        return err(localMedError('INVALID_REQUEST', 'Search query has no searchable terms.'));
+      }
       const searched = await searchWithFallbacks(parsed.data);
       if (
         !searched.ok ||
@@ -2056,7 +2138,26 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         !queryDocumentIndex
       )
         return searched;
-      return withAtcDrugs(parsed.data, searched.value, options.drugCodes, queryDocumentIndex);
+      const withDrugs = await withAtcDrugs(
+        parsed.data,
+        searched.value,
+        options.drugCodes,
+        queryDocumentIndex,
+      );
+      if (!withDrugs.ok) return withDrugs;
+      const withClass = await withDrugClass(
+        parsed.data,
+        withDrugs.value,
+        options.drugCodes,
+        queryDocumentIndex,
+      );
+      if (!withClass.ok) return withClass;
+      return withHomeopathyDemoted(
+        parsed.data,
+        withClass.value,
+        options.drugCodes,
+        queryDocumentIndex,
+      );
     },
 
     async reference(request) {

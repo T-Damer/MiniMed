@@ -271,6 +271,30 @@ export interface SearchAtcMatch {
   readonly registryCode?: string;
 }
 
+/** One ATC group of a drug class and how many drugs of the directory carry its code. */
+export interface SearchDrugClassGroup {
+  /** ATC code of the group (level 2–4, Latin upper case). */
+  readonly code: string;
+  /** The group's name in the НСИ «АТХ» dictionary, when the application knows it. */
+  readonly name: string | null;
+  readonly drugCount: number;
+}
+
+/**
+ * The drug class a query named as a whole («макролиды», «статинами», «ингибиторы АПФ»): the class
+ * as the reader calls it and the ATC groups it stands for. The drugs of the class come first among
+ * the response's groups (each with its `atcMatch`), at most {@link SearchDrugClass.listed} of
+ * {@link SearchDrugClass.drugCount}; the usual documents follow them (SRCH1, owner decision 10-14).
+ */
+export interface SearchDrugClass {
+  readonly label: string;
+  readonly groups: readonly SearchDrugClassGroup[];
+  /** Distinct drugs (substance cards) under the class's codes. */
+  readonly drugCount: number;
+  /** How many of them are the first groups of the response. */
+  readonly listed: number;
+}
+
 export interface SearchResultGroup {
   /** Present only when every grouped hit resolves to the same canonical concept. */
   readonly conceptId?: string;
@@ -408,6 +432,8 @@ export interface SearchResponse {
    * would answer such a query is not installed, so the UI can offer it.
    */
   readonly descriptionRecommendations?: DescriptionRecommendations;
+  /** Present only when the whole query named a drug class; see {@link SearchDrugClass}. */
+  readonly drugClass?: SearchDrugClass;
 }
 
 export type DescriptionRecommendations =

@@ -30,6 +30,8 @@ export interface AtcQuery {
   readonly reading: AtcQueryReading;
 }
 
+/** A code of this length or less (level 2, «J05») is the group itself, never the exact level of a drug. */
+const MIN_EXACT_CODE_LENGTH = 3;
 /** First letters of ATC codes (the 14 anatomical groups). */
 const ANATOMICAL_LETTERS = 'ABCDGHJLMNPRSV';
 const MAX_TYPED_LENGTH = 24;
@@ -164,6 +166,8 @@ export interface AtcDirectoryEntry {
   /** Normalised codes: the completed ones, the registry's and the agreed ones. */
   readonly codes: readonly string[];
   readonly agreed?: readonly AtcAgreedCode[];
+  /** How common the drug is (registrations); orders the drugs of a class, commoner first. */
+  readonly weight?: number;
 }
 
 export interface AtcEntryMatch<T extends AtcDirectoryEntry = AtcDirectoryEntry> {
@@ -172,7 +176,7 @@ export interface AtcEntryMatch<T extends AtcDirectoryEntry = AtcDirectoryEntry> 
   readonly code: string;
   /** The registry's stub beside an agreed `code`; null for any other code. */
   readonly registryCode: string | null;
-  /** The entry carries exactly the typed code (a group stub for a group query), not a longer one. */
+  /** The entry carries exactly the typed code (a level 3–4 group stub for a group query), not a longer one. */
   readonly exact: boolean;
 }
 
@@ -183,7 +187,11 @@ export function matchAtcEntry<T extends AtcDirectoryEntry>(
 ): AtcEntryMatch<T> | null {
   const matched = entry.codes.filter((code) => atcCodeMatches(query, code));
   if (matched.length === 0) return null;
-  const exact = matched.includes(query.code);
+  // A level-2 code is no stub of a substance but the whole anatomical-therapeutic group (the registry
+  // gives it to 17 herbal and biological cards that no source can code further, «Вейника наземного
+  // трава + щучки дернистой трава» = J05): such a card carries no more than the group query says,
+  // so it is not "the exact level" ahead of the drugs that are classified in it (SRCH1, QA 10-14).
+  const exact = matched.includes(query.code) && query.code.length > MIN_EXACT_CODE_LENGTH;
   const pair = entry.agreed?.find(
     (agreed) => matched.includes(agreed.code) || matched.includes(agreed.registry),
   );

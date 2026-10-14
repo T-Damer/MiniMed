@@ -1,0 +1,3355 @@
+{
+  "description": "SRCH1: brand and INN queries derived from the shipped comparison index.",
+  "queries": [
+    {
+      "id": "brand-001",
+      "kind": "brand",
+      "query": "Аспирин",
+      "expectedSlugs": ["ацетилсалициловая-кислота"],
+      "documents": 1
+    },
+    {
+      "id": "brand-002",
+      "kind": "brand",
+      "query": "Нурофен",
+      "expectedSlugs": ["ибупрофен"],
+      "documents": 1
+    },
+    {
+      "id": "brand-003",
+      "kind": "brand",
+      "query": "Ксарелто",
+      "expectedSlugs": ["ривароксабан"],
+      "documents": 1
+    },
+    {
+      "id": "brand-004",
+      "kind": "brand",
+      "query": "Эналаприл-ФПО",
+      "expectedSlugs": ["эналаприл"],
+      "documents": 1
+    },
+    {
+      "id": "brand-005",
+      "kind": "brand",
+      "query": "Эликвис",
+      "expectedSlugs": ["апиксабан"],
+      "documents": 2
+    },
+    {
+      "id": "brand-006",
+      "kind": "brand",
+      "query": "Но-шпа",
+      "expectedSlugs": ["дротаверин"],
+      "documents": 2
+    },
+    {
+      "id": "brand-007",
+      "kind": "brand",
+      "query": "Супрастин",
+      "expectedSlugs": ["хлоропирамин"],
+      "documents": 2
+    },
+    {
+      "id": "brand-008",
+      "kind": "brand",
+      "query": "Кардиомагнил",
+      "expectedSlugs": ["ацетилсалициловая-кислота-магния-гидроксид"],
+      "documents": 1
+    },
+    {
+      "id": "brand-009",
+      "kind": "brand",
+      "query": "Конкор",
+      "expectedSlugs": ["бисопролол"],
+      "documents": 1
+    },
+    {
+      "id": "brand-010",
+      "kind": "brand",
+      "query": "Омез",
+      "expectedSlugs": ["омепразол"],
+      "documents": 1
+    },
+    {
+      "id": "brand-011",
+      "kind": "brand",
+      "query": "Нексиум",
+      "expectedSlugs": ["эзомепразол"],
+      "documents": 1
+    },
+    {
+      "id": "brand-012",
+      "kind": "brand",
+      "query": "Беродуал",
+      "expectedSlugs": ["ипратропия-бромид-фенотерол"],
+      "documents": 1
+    },
+    {
+      "id": "brand-013",
+      "kind": "brand",
+      "query": "Тамифлю",
+      "expectedSlugs": ["осельтамивир"],
+      "documents": 1
+    },
+    {
+      "id": "brand-014",
+      "kind": "brand",
+      "query": "Зиртек",
+      "expectedSlugs": ["цетиризин"],
+      "documents": 2
+    },
+    {
+      "id": "brand-015",
+      "kind": "brand",
+      "query": "Лоратадин-Акрихин",
+      "expectedSlugs": ["лоратадин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-016",
+      "kind": "brand",
+      "query": "Кислород газообразный медицинский",
+      "expectedSlugs": ["кислород"],
+      "documents": 53
+    },
+    {
+      "id": "brand-017",
+      "kind": "brand",
+      "query": "Глюкоза",
+      "expectedSlugs": ["декстроза"],
+      "documents": 20
+    },
+    {
+      "id": "brand-018",
+      "kind": "brand",
+      "query": "Новокаин",
+      "expectedSlugs": ["прокаин"],
+      "documents": 20
+    },
+    {
+      "id": "brand-019",
+      "kind": "brand",
+      "query": "Этиловый спирт",
+      "expectedSlugs": ["этанол"],
+      "documents": 19
+    },
+    {
+      "id": "brand-020",
+      "kind": "brand",
+      "query": "Анальгин",
+      "expectedSlugs": ["метамизол-натрия"],
+      "documents": 18
+    },
+    {
+      "id": "brand-021",
+      "kind": "brand",
+      "query": "Метилурацил",
+      "expectedSlugs": ["диоксометилтетрагидропиримидин"],
+      "documents": 15
+    },
+    {
+      "id": "brand-022",
+      "kind": "brand",
+      "query": "Облепиховое масло",
+      "expectedSlugs": ["облепихи-масло"],
+      "documents": 15
+    },
+    {
+      "id": "brand-023",
+      "kind": "brand",
+      "query": "Валидол",
+      "expectedSlugs": ["левоментола-раствор-в-ментил-изовалерате"],
+      "documents": 14
+    },
+    {
+      "id": "brand-024",
+      "kind": "brand",
+      "query": "Нафтизин",
+      "expectedSlugs": ["нафазолин"],
+      "documents": 12
+    },
+    {
+      "id": "brand-025",
+      "kind": "brand",
+      "query": "Фурацилин",
+      "expectedSlugs": ["нитрофурал"],
+      "documents": 12
+    },
+    {
+      "id": "brand-026",
+      "kind": "brand",
+      "query": "Гепарин",
+      "expectedSlugs": ["гепарин-натрия"],
+      "documents": 10
+    },
+    {
+      "id": "brand-027",
+      "kind": "brand",
+      "query": "Рибоксин",
+      "expectedSlugs": ["инозин"],
+      "documents": 10
+    },
+    {
+      "id": "brand-028",
+      "kind": "brand",
+      "query": "Боярышника настойка",
+      "expectedSlugs": ["боярышника-плоды"],
+      "documents": 9
+    },
+    {
+      "id": "brand-029",
+      "kind": "brand",
+      "query": "Глицерин",
+      "expectedSlugs": ["глицерол"],
+      "documents": 9
+    },
+    {
+      "id": "brand-030",
+      "kind": "brand",
+      "query": "Димексид",
+      "expectedSlugs": ["диметилсульфоксид"],
+      "documents": 9
+    },
+    {
+      "id": "brand-031",
+      "kind": "brand",
+      "query": "Корвалол",
+      "expectedSlugs": ["мяты-перечной-листьев-масло-фенобарбитал-этилбромизовалерианат"],
+      "documents": 9
+    },
+    {
+      "id": "brand-032",
+      "kind": "brand",
+      "query": "Кордиамин",
+      "expectedSlugs": ["никетамид"],
+      "documents": 9
+    },
+    {
+      "id": "brand-033",
+      "kind": "brand",
+      "query": "Левомицетин",
+      "expectedSlugs": ["хлорамфеникол"],
+      "documents": 9
+    },
+    {
+      "id": "brand-034",
+      "kind": "brand",
+      "query": "СОЛОДКИ СИРОП",
+      "expectedSlugs": ["солодки-корней-экстракт"],
+      "documents": 9
+    },
+    {
+      "id": "brand-035",
+      "kind": "brand",
+      "query": "Альбумин",
+      "expectedSlugs": ["альбумин-человека"],
+      "documents": 8
+    },
+    {
+      "id": "brand-036",
+      "kind": "brand",
+      "query": "Валерианы настойка",
+      "expectedSlugs": ["валерианы-лекарственной-корневища-с-корнями"],
+      "documents": 8
+    },
+    {
+      "id": "brand-037",
+      "kind": "brand",
+      "query": "Ихтиол",
+      "expectedSlugs": ["ихтаммол"],
+      "documents": 8
+    },
+    {
+      "id": "brand-038",
+      "kind": "brand",
+      "query": "Кислород медицинский газообразный",
+      "expectedSlugs": ["кислород"],
+      "documents": 8
+    },
+    {
+      "id": "brand-039",
+      "kind": "brand",
+      "query": "Меновазин",
+      "expectedSlugs": ["бензокаин-левоментол-прокаин"],
+      "documents": 8
+    },
+    {
+      "id": "brand-040",
+      "kind": "brand",
+      "query": "Муравьиный спирт",
+      "expectedSlugs": ["муравьиная-кислота"],
+      "documents": 8
+    },
+    {
+      "id": "brand-041",
+      "kind": "brand",
+      "query": "Перекись водорода",
+      "expectedSlugs": ["водорода-пероксид"],
+      "documents": 8
+    },
+    {
+      "id": "brand-042",
+      "kind": "brand",
+      "query": "Эуфиллин",
+      "expectedSlugs": ["аминофиллин"],
+      "documents": 8
+    },
+    {
+      "id": "brand-043",
+      "kind": "brand",
+      "query": "Пиона уклоняющегося настойка",
+      "expectedSlugs": ["пиона-уклоняющегося-трава-корневища-и-корни"],
+      "documents": 7
+    },
+    {
+      "id": "brand-044",
+      "kind": "brand",
+      "query": "Пустырника настойка",
+      "expectedSlugs": ["пустырника-травы-настойка"],
+      "documents": 7
+    },
+    {
+      "id": "brand-045",
+      "kind": "brand",
+      "query": "Ромашки цветки",
+      "expectedSlugs": ["ромашки-аптечной-цветки"],
+      "documents": 7
+    },
+    {
+      "id": "brand-046",
+      "kind": "brand",
+      "query": "Ротокан",
+      "expectedSlugs": [
+        "календулы-лекарственной-цветков-экстракт-ромашки-аптечной-цветков-экстракт-тысячелистника-обыкновенного-травы-экстракт"
+      ],
+      "documents": 7
+    },
+    {
+      "id": "brand-047",
+      "kind": "brand",
+      "query": "Синтомицин",
+      "expectedSlugs": ["хлорамфеникол"],
+      "documents": 7
+    },
+    {
+      "id": "brand-048",
+      "kind": "brand",
+      "query": "Стрептоцид",
+      "expectedSlugs": ["сульфаниламид"],
+      "documents": 7
+    },
+    {
+      "id": "brand-049",
+      "kind": "brand",
+      "query": "Фенибут",
+      "expectedSlugs": ["аминофенилмасляная-кислота"],
+      "documents": 7
+    },
+    {
+      "id": "brand-050",
+      "kind": "brand",
+      "query": "Аспаркам",
+      "expectedSlugs": ["калия-аспарагинат-магния-аспарагинат"],
+      "documents": 6
+    },
+    {
+      "id": "brand-051",
+      "kind": "brand",
+      "query": "Бифидумбактерин",
+      "expectedSlugs": ["бифидобактерии-бифидум"],
+      "documents": 6
+    },
+    {
+      "id": "brand-052",
+      "kind": "brand",
+      "query": "Валерианы корневища с корнями",
+      "expectedSlugs": ["валерианы-лекарственной-корневища-с-корнями"],
+      "documents": 6
+    },
+    {
+      "id": "brand-053",
+      "kind": "brand",
+      "query": "Вольтарен",
+      "expectedSlugs": ["диклофенак"],
+      "documents": 6
+    },
+    {
+      "id": "brand-054",
+      "kind": "brand",
+      "query": "Димедрол",
+      "expectedSlugs": ["дифенгидрамин"],
+      "documents": 6
+    },
+    {
+      "id": "brand-055",
+      "kind": "brand",
+      "query": "Женьшеня настойка",
+      "expectedSlugs": ["женьшеня-настоящего-корней-настойка", "женьшень"],
+      "documents": 6
+    },
+    {
+      "id": "brand-056",
+      "kind": "brand",
+      "query": "Зверобоя трава",
+      "expectedSlugs": ["зверобоя-продырявленного-трава"],
+      "documents": 6
+    },
+    {
+      "id": "brand-057",
+      "kind": "brand",
+      "query": "Ингалипт",
+      "expectedSlugs": [
+        "мяты-перечной-листьев-масло-сульфаниламид-сульфатиазол-тимол-эвкалипта-листьев-масло"
+      ],
+      "documents": 6
+    },
+    {
+      "id": "brand-058",
+      "kind": "brand",
+      "query": "Календулы настойка",
+      "expectedSlugs": ["календулы-лекарственной-цветков-настойка"],
+      "documents": 6
+    },
+    {
+      "id": "brand-059",
+      "kind": "brand",
+      "query": "Кетонал",
+      "expectedSlugs": ["кетопрофен"],
+      "documents": 6
+    },
+    {
+      "id": "brand-060",
+      "kind": "brand",
+      "query": "Натрия пара-аминосалицилат",
+      "expectedSlugs": ["аминосалициловая-кислота"],
+      "documents": 6
+    },
+    {
+      "id": "brand-061",
+      "kind": "brand",
+      "query": "Никоретте",
+      "expectedSlugs": ["никотин"],
+      "documents": 6
+    },
+    {
+      "id": "brand-062",
+      "kind": "brand",
+      "query": "Протаргол",
+      "expectedSlugs": ["серебра-протеинат"],
+      "documents": 6
+    },
+    {
+      "id": "brand-063",
+      "kind": "brand",
+      "query": "Амбробене",
+      "expectedSlugs": ["амброксол"],
+      "documents": 5
+    },
+    {
+      "id": "brand-064",
+      "kind": "brand",
+      "query": "Бензонал",
+      "expectedSlugs": ["бензобарбитал"],
+      "documents": 5
+    },
+    {
+      "id": "brand-065",
+      "kind": "brand",
+      "query": "Даларгин",
+      "expectedSlugs": ["тирозил-d-аланил-глицил-фенилаланил-лейцил-аргинин"],
+      "documents": 5
+    },
+    {
+      "id": "brand-066",
+      "kind": "brand",
+      "query": "Душицы трава",
+      "expectedSlugs": ["душицы-обыкновенной-трава"],
+      "documents": 5
+    },
+    {
+      "id": "brand-067",
+      "kind": "brand",
+      "query": "Люголя раствор с глицерином",
+      "expectedSlugs": ["йод-калия-йодид-глицерол"],
+      "documents": 5
+    },
+    {
+      "id": "brand-068",
+      "kind": "brand",
+      "query": "Микстура от кашля для детей сухая",
+      "expectedSlugs": [
+        "алтея-лекарственного-корней-экстракт-аммония-хлорид-натрия-бензоат-натрия-гидрокарбонат-солодки-корней-экстракт",
+        "алтея-корней-экстракт-солодки-корней-экстракт-натрия-гидрокарбонат"
+      ],
+      "documents": 5
+    },
+    {
+      "id": "brand-069",
+      "kind": "brand",
+      "query": "Мяты перечной настойка",
+      "expectedSlugs": ["мяты-перечной-листья"],
+      "documents": 5
+    },
+    {
+      "id": "brand-070",
+      "kind": "brand",
+      "query": "Нольпаза",
+      "expectedSlugs": ["пантопразол"],
+      "documents": 5
+    },
+    {
+      "id": "brand-071",
+      "kind": "brand",
+      "query": "Панавир",
+      "expectedSlugs": ["картофеля-побегов-сумма-полисахаридов"],
+      "documents": 5
+    },
+    {
+      "id": "brand-072",
+      "kind": "brand",
+      "query": "Папаверина гидрохлорид",
+      "expectedSlugs": ["папаверин"],
+      "documents": 5
+    },
+    {
+      "id": "brand-073",
+      "kind": "brand",
+      "query": "Прополиса настойка",
+      "expectedSlugs": ["прополис"],
+      "documents": 5
+    },
+    {
+      "id": "brand-074",
+      "kind": "brand",
+      "query": "Санорин",
+      "expectedSlugs": ["нафазолин"],
+      "documents": 5
+    },
+    {
+      "id": "brand-075",
+      "kind": "brand",
+      "query": "Таблетки от кашля",
+      "expectedSlugs": ["термопсиса-ланцетного-трава-натрия-гидрокарбонат"],
+      "documents": 5
+    },
+    {
+      "id": "brand-076",
+      "kind": "brand",
+      "query": "Толокнянки листья",
+      "expectedSlugs": ["толокнянки-обыкновенной-листья"],
+      "documents": 5
+    },
+    {
+      "id": "brand-077",
+      "kind": "brand",
+      "query": "Тысячелистника трава",
+      "expectedSlugs": ["тысячелистника-обыкновенного-трава"],
+      "documents": 5
+    },
+    {
+      "id": "brand-078",
+      "kind": "brand",
+      "query": "Фталазол",
+      "expectedSlugs": ["фталилсульфатиазол"],
+      "documents": 5
+    },
+    {
+      "id": "brand-079",
+      "kind": "brand",
+      "query": "Фурагин",
+      "expectedSlugs": ["фуразидин"],
+      "documents": 5
+    },
+    {
+      "id": "brand-080",
+      "kind": "brand",
+      "query": "Фурадонин",
+      "expectedSlugs": ["нитрофурантоин"],
+      "documents": 5
+    },
+    {
+      "id": "brand-081",
+      "kind": "brand",
+      "query": "Хлоргексидина биглюконат",
+      "expectedSlugs": ["хлоргексидин"],
+      "documents": 5
+    },
+    {
+      "id": "brand-082",
+      "kind": "brand",
+      "query": "Цинковая мазь",
+      "expectedSlugs": ["цинка-оксид"],
+      "documents": 5
+    },
+    {
+      "id": "brand-083",
+      "kind": "brand",
+      "query": "Шалфея листья",
+      "expectedSlugs": ["шалфея-лекарственного-листья"],
+      "documents": 5
+    },
+    {
+      "id": "brand-084",
+      "kind": "brand",
+      "query": "Эвкалипта настойка",
+      "expectedSlugs": ["эвкалипта-прутовидного-листьев-настойка"],
+      "documents": 5
+    },
+    {
+      "id": "brand-085",
+      "kind": "brand",
+      "query": "Адвантан",
+      "expectedSlugs": ["метилпреднизолона-ацепонат"],
+      "documents": 4
+    },
+    {
+      "id": "brand-086",
+      "kind": "brand",
+      "query": "Аира корневища",
+      "expectedSlugs": ["аира-обыкновенного-корневища"],
+      "documents": 4
+    },
+    {
+      "id": "brand-087",
+      "kind": "brand",
+      "query": "Аквадетрим",
+      "expectedSlugs": ["колекальциферол"],
+      "documents": 4
+    },
+    {
+      "id": "brand-088",
+      "kind": "brand",
+      "query": "Андипал",
+      "expectedSlugs": ["бендазол-метамизол-натрия-папаверин-фенобарбитал"],
+      "documents": 4
+    },
+    {
+      "id": "brand-089",
+      "kind": "brand",
+      "query": "АРЕПЛИВИР",
+      "expectedSlugs": ["фавипиравир"],
+      "documents": 4
+    },
+    {
+      "id": "brand-090",
+      "kind": "brand",
+      "query": "Аскорутин",
+      "expectedSlugs": ["аскорбиновая-кислота-рутозид"],
+      "documents": 4
+    },
+    {
+      "id": "brand-091",
+      "kind": "brand",
+      "query": "Ацетилсалициловая кислота Кардио",
+      "expectedSlugs": ["ацетилсалициловая-кислота"],
+      "documents": 4
+    },
+    {
+      "id": "brand-092",
+      "kind": "brand",
+      "query": "Ацилакт",
+      "expectedSlugs": ["лактобактерии-ацидофильные"],
+      "documents": 4
+    },
+    {
+      "id": "brand-093",
+      "kind": "brand",
+      "query": "Брусники листья",
+      "expectedSlugs": ["брусники-обыкновенной-листья"],
+      "documents": 4
+    },
+    {
+      "id": "brand-094",
+      "kind": "brand",
+      "query": "Валерианы экстракт",
+      "expectedSlugs": ["валерианы-лекарственной-корневищ-с-корнями-экстракт"],
+      "documents": 4
+    },
+    {
+      "id": "brand-095",
+      "kind": "brand",
+      "query": "Вамлосет",
+      "expectedSlugs": ["амлодипин-валсартан"],
+      "documents": 4
+    },
+    {
+      "id": "brand-096",
+      "kind": "brand",
+      "query": "Винилин",
+      "expectedSlugs": ["поливинокс"],
+      "documents": 4
+    },
+    {
+      "id": "brand-097",
+      "kind": "brand",
+      "query": "Вифенд",
+      "expectedSlugs": ["вориконазол"],
+      "documents": 4
+    },
+    {
+      "id": "brand-098",
+      "kind": "brand",
+      "query": "Дибазол",
+      "expectedSlugs": ["бендазол"],
+      "documents": 4
+    },
+    {
+      "id": "brand-099",
+      "kind": "brand",
+      "query": "Диклофенак-АКОС",
+      "expectedSlugs": ["диклофенак"],
+      "documents": 4
+    },
+    {
+      "id": "brand-100",
+      "kind": "brand",
+      "query": "Дисоль",
+      "expectedSlugs": ["натрия-ацетат-натрия-хлорид"],
+      "documents": 4
+    },
+    {
+      "id": "brand-101",
+      "kind": "brand",
+      "query": "Зеленина капли",
+      "expectedSlugs": [
+        "белладонны-настойка-валерианы-лекарственной-корневищ-с-корнями-настойка-ландыша-травы-настойка-левоментол",
+        "валерианы-лекарственной-корневищ-с-корнями-настойка-красавки-листьев-настойка-ландыша-травы-настойка-левоментол"
+      ],
+      "documents": 4
+    },
+    {
+      "id": "brand-102",
+      "kind": "brand",
+      "query": "Зинакорен",
+      "expectedSlugs": ["ривароксабан"],
+      "documents": 4
+    },
+    {
+      "id": "brand-103",
+      "kind": "brand",
+      "query": "Калия оротат",
+      "expectedSlugs": ["оротовая-кислота"],
+      "documents": 4
+    },
+    {
+      "id": "brand-104",
+      "kind": "brand",
+      "query": "Касторовое масло",
+      "expectedSlugs": ["клещевины-обыкновенной-семян-масло"],
+      "documents": 4
+    },
+    {
+      "id": "brand-105",
+      "kind": "brand",
+      "query": "Клацид",
+      "expectedSlugs": ["кларитромицин"],
+      "documents": 4
+    },
+    {
+      "id": "brand-106",
+      "kind": "brand",
+      "query": "Мукалтин",
+      "expectedSlugs": ["алтея-лекарственного-травы-экстракт"],
+      "documents": 4
+    },
+    {
+      "id": "brand-107",
+      "kind": "brand",
+      "query": "Ноготков цветки",
+      "expectedSlugs": ["календулы-лекарственной-цветки"],
+      "documents": 4
+    },
+    {
+      "id": "brand-108",
+      "kind": "brand",
+      "query": "ОКСОЛИН",
+      "expectedSlugs": ["диоксотетрагидрокситетрагидронафталин"],
+      "documents": 4
+    },
+    {
+      "id": "brand-109",
+      "kind": "brand",
+      "query": "Перинева",
+      "expectedSlugs": ["периндоприл"],
+      "documents": 4
+    },
+    {
+      "id": "brand-110",
+      "kind": "brand",
+      "query": "Пертуссин-Ч",
+      "expectedSlugs": ["тимьяна-ползучего-травы-экстракт-калия-бромид"],
+      "documents": 4
+    },
+    {
+      "id": "brand-111",
+      "kind": "brand",
+      "query": "Пустырника экстракт",
+      "expectedSlugs": ["пустырника-травы-экстракт"],
+      "documents": 4
+    },
+    {
+      "id": "brand-112",
+      "kind": "brand",
+      "query": "Салицилово-цинковая паста",
+      "expectedSlugs": ["салициловая-кислота-цинка-оксид"],
+      "documents": 4
+    },
+    {
+      "id": "brand-113",
+      "kind": "brand",
+      "query": "Салофальк",
+      "expectedSlugs": ["месалазин"],
+      "documents": 4
+    },
+    {
+      "id": "brand-114",
+      "kind": "brand",
+      "query": "Сульфацил-натрия",
+      "expectedSlugs": ["сульфацетамид"],
+      "documents": 4
+    },
+    {
+      "id": "brand-115",
+      "kind": "brand",
+      "query": "Ципринол",
+      "expectedSlugs": ["ципрофлоксацин"],
+      "documents": 4
+    },
+    {
+      "id": "brand-116",
+      "kind": "brand",
+      "query": "Цитрамон П",
+      "expectedSlugs": ["ацетилсалициловая-кислота-кофеин-парацетамол"],
+      "documents": 4
+    },
+    {
+      "id": "brand-117",
+      "kind": "brand",
+      "query": "Чабреца трава",
+      "expectedSlugs": ["тимьяна-ползучего-трава"],
+      "documents": 4
+    },
+    {
+      "id": "brand-118",
+      "kind": "brand",
+      "query": "Чистотела трава",
+      "expectedSlugs": ["чистотела-большого-трава"],
+      "documents": 4
+    },
+    {
+      "id": "brand-119",
+      "kind": "brand",
+      "query": "ЭЛЕУТЕРОКОККА ЭКСТРАКТ ЖИДКИЙ",
+      "expectedSlugs": ["элеутерококка-колючего-корневища-и-корни"],
+      "documents": 4
+    },
+    {
+      "id": "brand-120",
+      "kind": "brand",
+      "query": "Элоком",
+      "expectedSlugs": ["мометазона-фуроат", "мометазон"],
+      "documents": 4
+    },
+    {
+      "id": "brand-121",
+      "kind": "brand",
+      "query": "Аденурик",
+      "expectedSlugs": ["фебуксостат"],
+      "documents": 3
+    },
+    {
+      "id": "brand-122",
+      "kind": "brand",
+      "query": "Аевит",
+      "expectedSlugs": ["альфа-токоферола-ацетат-ретинол"],
+      "documents": 3
+    },
+    {
+      "id": "brand-123",
+      "kind": "brand",
+      "query": "Азитромицин Экомед",
+      "expectedSlugs": ["азитромицин"],
+      "documents": 3
+    },
+    {
+      "id": "brand-124",
+      "kind": "brand",
+      "query": "Азитромицин-ВЕРТЕКС",
+      "expectedSlugs": ["азитромицин"],
+      "documents": 3
+    },
+    {
+      "id": "brand-125",
+      "kind": "brand",
+      "query": "Алоэ экстракт жидкий",
+      "expectedSlugs": ["алоэ-древовидного-листьев-экстракт"],
+      "documents": 3
+    },
+    {
+      "id": "brand-126",
+      "kind": "brand",
+      "query": "Алтея сироп",
+      "expectedSlugs": ["алтея-лекарственного-корней-экстракт"],
+      "documents": 3
+    },
+    {
+      "id": "brand-127",
+      "kind": "brand",
+      "query": "АМЕЛОТЕКС",
+      "expectedSlugs": ["мелоксикам"],
+      "documents": 3
+    },
+    {
+      "id": "brand-128",
+      "kind": "brand",
+      "query": "Амоксиклав",
+      "expectedSlugs": ["амоксициллин-клавулановая-кислота"],
+      "documents": 3
+    },
+    {
+      "id": "brand-129",
+      "kind": "brand",
+      "query": "Анэспум",
+      "expectedSlugs": ["симетикон"],
+      "documents": 3
+    },
+    {
+      "id": "brand-130",
+      "kind": "brand",
+      "query": "Аралии настойка",
+      "expectedSlugs": ["аралии-маньчжурской-корни"],
+      "documents": 3
+    },
+    {
+      "id": "brand-131",
+      "kind": "brand",
+      "query": "Артрум",
+      "expectedSlugs": ["кетопрофен"],
+      "documents": 3
+    },
+    {
+      "id": "brand-132",
+      "kind": "brand",
+      "query": "Аторис",
+      "expectedSlugs": ["аторвастатин"],
+      "documents": 3
+    },
+    {
+      "id": "brand-133",
+      "kind": "brand",
+      "query": "Бетадин",
+      "expectedSlugs": ["повидон-йод"],
+      "documents": 3
+    },
+    {
+      "id": "brand-134",
+      "kind": "brand",
+      "query": "Бефунгин",
+      "expectedSlugs": ["гриб-березовый-кобальт"],
+      "documents": 3
+    },
+    {
+      "id": "brand-135",
+      "kind": "brand",
+      "query": "Вазелиновое масло",
+      "expectedSlugs": ["парафин-жидкий"],
+      "documents": 3
+    },
+    {
+      "id": "brand-136",
+      "kind": "brand",
+      "query": "Викасол",
+      "expectedSlugs": ["менадиона-натрия-бисульфит"],
+      "documents": 3
+    },
+    {
+      "id": "brand-137",
+      "kind": "brand",
+      "query": "Винпоцетин-АКОС",
+      "expectedSlugs": ["винпоцетин"],
+      "documents": 3
+    },
+    {
+      "id": "brand-138",
+      "kind": "brand",
+      "query": "ГАЛАВИТ",
+      "expectedSlugs": ["аминодигидрофталазиндион-натрия"],
+      "documents": 3
+    },
+    {
+      "id": "brand-139",
+      "kind": "brand",
+      "query": "Гексавит",
+      "expectedSlugs": ["поливитамины"],
+      "documents": 3
+    },
+    {
+      "id": "brand-140",
+      "kind": "brand",
+      "query": "Гемодез-Н",
+      "expectedSlugs": [
+        "повидон",
+        "калия-хлорид-кальция-хлорид-магния-хлорид-натрия-гидрокарбонат-натрия-хлорид-повидон-8-тыс"
+      ],
+      "documents": 3
+    },
+    {
+      "id": "brand-141",
+      "kind": "brand",
+      "query": "ГИДРОХЛОРТИАЗИД",
+      "expectedSlugs": ["гидрохлоротиазид"],
+      "documents": 3
+    },
+    {
+      "id": "brand-142",
+      "kind": "brand",
+      "query": "ГИНКОУМ",
+      "expectedSlugs": ["гинкго-двулопастного-листьев-экстракт"],
+      "documents": 3
+    },
+    {
+      "id": "brand-143",
+      "kind": "brand",
+      "query": "Глиатилин",
+      "expectedSlugs": ["холина-альфосцерат"],
+      "documents": 3
+    },
+    {
+      "id": "brand-144",
+      "kind": "brand",
+      "query": "Глидиаб",
+      "expectedSlugs": ["гликлазид"],
+      "documents": 3
+    },
+    {
+      "id": "brand-145",
+      "kind": "brand",
+      "query": "Гэвкамен",
+      "expectedSlugs": [
+        "камфора-левоментол-эвкалипта-шарикового-листьев-масло",
+        "камфора-левоментол-эвкалипта-прутовидного-листьев-масло"
+      ],
+      "documents": 3
+    },
+    {
+      "id": "brand-146",
+      "kind": "brand",
+      "query": "Детралекс",
+      "expectedSlugs": ["гесперидин-диосмин"],
+      "documents": 3
+    },
+    {
+      "id": "brand-147",
+      "kind": "brand",
+      "query": "Диазолин",
+      "expectedSlugs": ["мебгидролин"],
+      "documents": 3
+    },
+    {
+      "id": "brand-148",
+      "kind": "brand",
+      "query": "Диклофарм",
+      "expectedSlugs": ["диклофенак"],
+      "documents": 3
+    },
+    {
+      "id": "brand-149",
+      "kind": "brand",
+      "query": "Диклофенак Реневал",
+      "expectedSlugs": ["диклофенак"],
+      "documents": 3
+    },
+    {
+      "id": "brand-150",
+      "kind": "brand",
+      "query": "Диспорт",
+      "expectedSlugs": ["ботулинический-токсин-типа-a-гемагглютинин-комплекс"],
+      "documents": 3
+    },
+    {
+      "id": "brand-151",
+      "kind": "brand",
+      "query": "Имунофан",
+      "expectedSlugs": ["аргинил-альфа-аспартил-лизил-валил-тирозил-аргинин"],
+      "documents": 3
+    },
+    {
+      "id": "brand-152",
+      "kind": "brand",
+      "query": "Камфорное масло",
+      "expectedSlugs": ["камфора"],
+      "documents": 3
+    },
+    {
+      "id": "brand-153",
+      "kind": "brand",
+      "query": "Камфорный спирт",
+      "expectedSlugs": ["камфора"],
+      "documents": 3
+    },
+    {
+      "id": "brand-154",
+      "kind": "brand",
+      "query": "Квентиакс СР",
+      "expectedSlugs": ["кветиапин"],
+      "documents": 3
+    },
+    {
+      "id": "brand-155",
+      "kind": "brand",
+      "query": "Кеппра",
+      "expectedSlugs": ["леветирацетам"],
+      "documents": 3
+    },
+    {
+      "id": "brand-156",
+      "kind": "brand",
+      "query": "КЕТОПРОФЕН ВЕЛФАРМ",
+      "expectedSlugs": ["кетопрофен"],
+      "documents": 3
+    },
+    {
+      "id": "brand-157",
+      "kind": "brand",
+      "query": "Кетопрофен-АКОС",
+      "expectedSlugs": ["кетопрофен"],
+      "documents": 3
+    },
+    {
+      "id": "brand-158",
+      "kind": "brand",
+      "query": "Кетопрофен-ВЕРТЕКС",
+      "expectedSlugs": ["кетопрофен"],
+      "documents": 3
+    },
+    {
+      "id": "brand-159",
+      "kind": "brand",
+      "query": "Клофелин",
+      "expectedSlugs": ["клонидин"],
+      "documents": 3
+    },
+    {
+      "id": "brand-160",
+      "kind": "brand",
+      "query": "Кофеин-бензоат натрия",
+      "expectedSlugs": ["кофеин"],
+      "documents": 3
+    },
+    {
+      "id": "brand-161",
+      "kind": "brand",
+      "query": "Кофицил-Плюс",
+      "expectedSlugs": ["ацетилсалициловая-кислота-кофеин-парацетамол"],
+      "documents": 3
+    },
+    {
+      "id": "brand-162",
+      "kind": "brand",
+      "query": "Красавки экстракт",
+      "expectedSlugs": ["белладонны-листьев-экстракт"],
+      "documents": 3
+    },
+    {
+      "id": "brand-163",
+      "kind": "brand",
+      "query": "Лазолван",
+      "expectedSlugs": ["амброксол"],
+      "documents": 3
+    },
+    {
+      "id": "brand-164",
+      "kind": "brand",
+      "query": "Лимонника семян настойка",
+      "expectedSlugs": ["лимонника-китайского-семян-настойка"],
+      "documents": 3
+    },
+    {
+      "id": "brand-165",
+      "kind": "brand",
+      "query": "Лимфомиозот",
+      "expectedSlugs": [
+        "аранеа-диадема-вероница-генциана-лютеа-гераниум-робертариум-кальциум-фосфорикум-левотироксин-миозотис-арвенсис-настурциум-официнале-натриум-сульфурикум-пинус-сильвестрис-сарсапарилла-скрофуляриа-нодоза-теуцриум-сцородиниа-феррум-йодатум-фумариа-официналис-эквизетум-гиемале-югланс-региа",
+        "аранеус-диадематус-феррум-йодатум-пинус-сильвестрис-вероница-генциана-лютеа-гераниум-робертариум-кальциум-фосфорикум-левотироксин-миозотис-арвенсис-настурциум-официнале-натриум-сульфурикум-скрофуляриа-нодоза-смилакс-теуцриум-сцородиниа-фумариа-официналис-эквизетум-гиемале-югланс"
+      ],
+      "documents": 3
+    },
+    {
+      "id": "brand-166",
+      "kind": "brand",
+      "query": "Липоевая кислота",
+      "expectedSlugs": ["тиоктовая-кислота"],
+      "documents": 3
+    },
+    {
+      "id": "brand-167",
+      "kind": "brand",
+      "query": "Стопдиар",
+      "expectedSlugs": ["нифуроксазид"],
+      "documents": 3
+    },
+    {
+      "id": "brand-168",
+      "kind": "brand",
+      "query": "Аксосеф",
+      "expectedSlugs": ["цефуроксим"],
+      "documents": 2
+    },
+    {
+      "id": "brand-169",
+      "kind": "brand",
+      "query": "Артрозан",
+      "expectedSlugs": ["мелоксикам"],
+      "documents": 2
+    },
+    {
+      "id": "brand-170",
+      "kind": "brand",
+      "query": "Браунодин Б. Браун",
+      "expectedSlugs": ["повидон-йод"],
+      "documents": 2
+    },
+    {
+      "id": "brand-171",
+      "kind": "brand",
+      "query": "Гидрокортизон-АКОС",
+      "expectedSlugs": ["гидрокортизон"],
+      "documents": 2
+    },
+    {
+      "id": "brand-172",
+      "kind": "brand",
+      "query": "Диоксисепт",
+      "expectedSlugs": ["гидроксиметилхиноксалиндиоксид"],
+      "documents": 2
+    },
+    {
+      "id": "brand-173",
+      "kind": "brand",
+      "query": "Кавинтон",
+      "expectedSlugs": ["винпоцетин"],
+      "documents": 2
+    },
+    {
+      "id": "brand-174",
+      "kind": "brand",
+      "query": "Леветинол",
+      "expectedSlugs": ["леветирацетам"],
+      "documents": 2
+    },
+    {
+      "id": "brand-175",
+      "kind": "brand",
+      "query": "Миканисал",
+      "expectedSlugs": ["кетоконазол"],
+      "documents": 2
+    },
+    {
+      "id": "brand-176",
+      "kind": "brand",
+      "query": "Нурофен Экспресс",
+      "expectedSlugs": ["ибупрофен"],
+      "documents": 2
+    },
+    {
+      "id": "brand-177",
+      "kind": "brand",
+      "query": "Презартан",
+      "expectedSlugs": ["лозартан"],
+      "documents": 2
+    },
+    {
+      "id": "brand-178",
+      "kind": "brand",
+      "query": "РУЗАМ",
+      "expectedSlugs": ["экстракт-из-культуры-термофильного-штамма-золотистого-стафилококка"],
+      "documents": 2
+    },
+    {
+      "id": "brand-179",
+      "kind": "brand",
+      "query": "Супрастинекс",
+      "expectedSlugs": ["левоцетиризин"],
+      "documents": 2
+    },
+    {
+      "id": "brand-180",
+      "kind": "brand",
+      "query": "Урофосфабол",
+      "expectedSlugs": ["фосфомицин"],
+      "documents": 2
+    },
+    {
+      "id": "brand-181",
+      "kind": "brand",
+      "query": "ЦИКЛОФЕРОН",
+      "expectedSlugs": ["меглюмина-акридонацетат"],
+      "documents": 2
+    },
+    {
+      "id": "brand-182",
+      "kind": "brand",
+      "query": "АБАКАВИР-АВС",
+      "expectedSlugs": ["абакавир"],
+      "documents": 1
+    },
+    {
+      "id": "brand-183",
+      "kind": "brand",
+      "query": "АДЖИДЕРИЛИН",
+      "expectedSlugs": ["нафтифин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-184",
+      "kind": "brand",
+      "query": "Азопт",
+      "expectedSlugs": ["бринзоламид"],
+      "documents": 1
+    },
+    {
+      "id": "brand-185",
+      "kind": "brand",
+      "query": "АЛАРИО-ТЛ",
+      "expectedSlugs": ["молнупиравир"],
+      "documents": 1
+    },
+    {
+      "id": "brand-186",
+      "kind": "brand",
+      "query": "Аллерген из мяса курицы для диагностики",
+      "expectedSlugs": ["аллергены-пищевые"],
+      "documents": 1
+    },
+    {
+      "id": "brand-187",
+      "kind": "brand",
+      "query": "Аллерген эпидермальный из волос человека для диагностики",
+      "expectedSlugs": ["аллергены-эпидермальные"],
+      "documents": 1
+    },
+    {
+      "id": "brand-188",
+      "kind": "brand",
+      "query": "Алфупрост МР",
+      "expectedSlugs": ["алфузозин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-189",
+      "kind": "brand",
+      "query": "АМЕКАРБ",
+      "expectedSlugs": ["кабозантиниб"],
+      "documents": 1
+    },
+    {
+      "id": "brand-190",
+      "kind": "brand",
+      "query": "Амприлан",
+      "expectedSlugs": ["рамиприл"],
+      "documents": 1
+    },
+    {
+      "id": "brand-191",
+      "kind": "brand",
+      "query": "Андроит",
+      "expectedSlugs": [
+        "болиголов-пятнистый-клематис-ректа-пульсатилла-пратенсис-сереноа-репенс-туя-западная"
+      ],
+      "documents": 1
+    },
+    {
+      "id": "brand-192",
+      "kind": "brand",
+      "query": "Апизартрон",
+      "expectedSlugs": ["аллилизотиоцианат-метилсалицилат-яд-пчелиный"],
+      "documents": 1
+    },
+    {
+      "id": "brand-193",
+      "kind": "brand",
+      "query": "АРНАУР ЭДАС-138",
+      "expectedSlugs": ["арника-монтана-аурум-йодатум-вискум-альбум-секале-корнутум"],
+      "documents": 1
+    },
+    {
+      "id": "brand-194",
+      "kind": "brand",
+      "query": "Аскобайрон",
+      "expectedSlugs": ["железа-сульфат-аскорбиновая-кислота"],
+      "documents": 1
+    },
+    {
+      "id": "brand-195",
+      "kind": "brand",
+      "query": "Атермик",
+      "expectedSlugs": ["ибупрофен-парацетамол"],
+      "documents": 1
+    },
+    {
+      "id": "brand-196",
+      "kind": "brand",
+      "query": "Ацетилсалициловая кислота Медисорб",
+      "expectedSlugs": ["ацетилсалициловая-кислота"],
+      "documents": 1
+    },
+    {
+      "id": "brand-197",
+      "kind": "brand",
+      "query": "Бексист",
+      "expectedSlugs": ["фексофенадин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-198",
+      "kind": "brand",
+      "query": "Бетаметазон-ВЕРТЕКС",
+      "expectedSlugs": ["бетаметазон"],
+      "documents": 1
+    },
+    {
+      "id": "brand-199",
+      "kind": "brand",
+      "query": "Бисакодил-Хемофарм",
+      "expectedSlugs": ["бисакодил"],
+      "documents": 1
+    },
+    {
+      "id": "brand-200",
+      "kind": "brand",
+      "query": "БОРАТЕРИН",
+      "expectedSlugs": ["бортезомиб"],
+      "documents": 1
+    },
+    {
+      "id": "brand-201",
+      "kind": "brand",
+      "query": "Брипрессия",
+      "expectedSlugs": ["бримонидин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-202",
+      "kind": "brand",
+      "query": "Бруснивер",
+      "expectedSlugs": [
+        "брусники-листья-зверобоя-продырявленного-трава-череды-трехраздельной-трава-шиповника-плоды"
+      ],
+      "documents": 1
+    },
+    {
+      "id": "brand-203",
+      "kind": "brand",
+      "query": "Вакцина бруцеллезная живая",
+      "expectedSlugs": ["вакцина-для-профилактики-бруцеллеза"],
+      "documents": 1
+    },
+    {
+      "id": "brand-204",
+      "kind": "brand",
+      "query": "ВАЛОСОМНИН",
+      "expectedSlugs": [
+        "валерианы-лекарственной-корневищ-с-корнями-экстракт-мелиссы-лекарственной-листьев-экстракт-мяты-перечной-листьев-экстракт"
+      ],
+      "documents": 1
+    },
+    {
+      "id": "brand-205",
+      "kind": "brand",
+      "query": "Велгия эко",
+      "expectedSlugs": ["семаглутид"],
+      "documents": 1
+    },
+    {
+      "id": "brand-206",
+      "kind": "brand",
+      "query": "Виагра",
+      "expectedSlugs": ["силденафил"],
+      "documents": 1
+    },
+    {
+      "id": "brand-207",
+      "kind": "brand",
+      "query": "Вилимиксин",
+      "expectedSlugs": ["полимиксин-b"],
+      "documents": 1
+    },
+    {
+      "id": "brand-208",
+      "kind": "brand",
+      "query": "Вицеф",
+      "expectedSlugs": ["цефтазидим"],
+      "documents": 1
+    },
+    {
+      "id": "brand-209",
+      "kind": "brand",
+      "query": "Галвус",
+      "expectedSlugs": ["вилдаглиптин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-210",
+      "kind": "brand",
+      "query": "Гелтракса",
+      "expectedSlugs": ["ривароксабан"],
+      "documents": 1
+    },
+    {
+      "id": "brand-211",
+      "kind": "brand",
+      "query": "Гербилесил",
+      "expectedSlugs": [
+        "аскорбиновая-кислота-мальвы-цветков-экстракт-подорожника-ланцетовидного-листьев-экстракт"
+      ],
+      "documents": 1
+    },
+    {
+      "id": "brand-212",
+      "kind": "brand",
+      "query": "Гиотриф",
+      "expectedSlugs": ["афатиниб"],
+      "documents": 1
+    },
+    {
+      "id": "brand-213",
+      "kind": "brand",
+      "query": "Глицин Форте",
+      "expectedSlugs": ["глицин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-214",
+      "kind": "brand",
+      "query": "ГриппоФлю Экстра от простуды и гриппа",
+      "expectedSlugs": ["парацетамол-фенилэфрин-фенирамин-аскорбиновая-кислота"],
+      "documents": 1
+    },
+    {
+      "id": "brand-215",
+      "kind": "brand",
+      "query": "ДАЛИБРА",
+      "expectedSlugs": ["адалимумаб"],
+      "documents": 1
+    },
+    {
+      "id": "brand-216",
+      "kind": "brand",
+      "query": "ДЕКОЛДАКС",
+      "expectedSlugs": ["парацетамол-фенилэфрин-аскорбиновая-кислота"],
+      "documents": 1
+    },
+    {
+      "id": "brand-217",
+      "kind": "brand",
+      "query": "Дермазин",
+      "expectedSlugs": ["сульфадиазин-серебра"],
+      "documents": 1
+    },
+    {
+      "id": "brand-218",
+      "kind": "brand",
+      "query": "Диара",
+      "expectedSlugs": ["лоперамид"],
+      "documents": 1
+    },
+    {
+      "id": "brand-219",
+      "kind": "brand",
+      "query": "Дилтиазем ретард",
+      "expectedSlugs": ["дилтиазем"],
+      "documents": 1
+    },
+    {
+      "id": "brand-220",
+      "kind": "brand",
+      "query": "Дифенадрим Комби",
+      "expectedSlugs": ["дифенгидрамин-ибупрофен"],
+      "documents": 1
+    },
+    {
+      "id": "brand-221",
+      "kind": "brand",
+      "query": "Долонит-МосФарма",
+      "expectedSlugs": ["гепарин-натрия-декспантенол-диметилсульфоксид"],
+      "documents": 1
+    },
+    {
+      "id": "brand-222",
+      "kind": "brand",
+      "query": "Драстоп",
+      "expectedSlugs": ["хондроитина-сульфат"],
+      "documents": 1
+    },
+    {
+      "id": "brand-223",
+      "kind": "brand",
+      "query": "Жень-шень комп",
+      "expectedSlugs": ["женьшень-кокорыш-обыкновенный-фосфорная-кислота"],
+      "documents": 1
+    },
+    {
+      "id": "brand-224",
+      "kind": "brand",
+      "query": "Золедроновая кислота-Келун-Казфарм",
+      "expectedSlugs": ["золедроновая-кислота"],
+      "documents": 1
+    },
+    {
+      "id": "brand-225",
+      "kind": "brand",
+      "query": "Идельвион",
+      "expectedSlugs": ["албутрепенонаког-альфа"],
+      "documents": 1
+    },
+    {
+      "id": "brand-226",
+      "kind": "brand",
+      "query": "Иммуноглобулин человека антистафилококковый",
+      "expectedSlugs": ["иммуноглобулин-человека-противостафилококковый"],
+      "documents": 1
+    },
+    {
+      "id": "brand-227",
+      "kind": "brand",
+      "query": "Иновелон",
+      "expectedSlugs": ["руфинамид"],
+      "documents": 1
+    },
+    {
+      "id": "brand-228",
+      "kind": "brand",
+      "query": "Иринотел",
+      "expectedSlugs": ["иринотекан"],
+      "documents": 1
+    },
+    {
+      "id": "brand-229",
+      "kind": "brand",
+      "query": "Йонделис",
+      "expectedSlugs": ["трабектедин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-230",
+      "kind": "brand",
+      "query": "Кальцекс",
+      "expectedSlugs": ["метенамина-кальция-хлорид"],
+      "documents": 1
+    },
+    {
+      "id": "brand-231",
+      "kind": "brand",
+      "query": "Кандид Б",
+      "expectedSlugs": ["беклометазон-клотримазол"],
+      "documents": 1
+    },
+    {
+      "id": "brand-232",
+      "kind": "brand",
+      "query": "Карведилол-Акрихин",
+      "expectedSlugs": ["карведилол"],
+      "documents": 1
+    },
+    {
+      "id": "brand-233",
+      "kind": "brand",
+      "query": "Каффетин",
+      "expectedSlugs": ["кодеин-кофеин-парацетамол-пропифеназон"],
+      "documents": 1
+    },
+    {
+      "id": "brand-234",
+      "kind": "brand",
+      "query": "Кетопрофен СТМФАРМ",
+      "expectedSlugs": ["кетопрофен"],
+      "documents": 1
+    },
+    {
+      "id": "brand-235",
+      "kind": "brand",
+      "query": "Клафоран",
+      "expectedSlugs": ["цефотаксим"],
+      "documents": 1
+    },
+    {
+      "id": "brand-236",
+      "kind": "brand",
+      "query": "Ко-Перинева",
+      "expectedSlugs": ["индапамид-периндоприл"],
+      "documents": 1
+    },
+    {
+      "id": "brand-237",
+      "kind": "brand",
+      "query": "КОМБИТУБ-Нео",
+      "expectedSlugs": ["ломефлоксацин-пиразинамид-протионамид-этамбутол"],
+      "documents": 1
+    },
+    {
+      "id": "brand-238",
+      "kind": "brand",
+      "query": "Кортимент",
+      "expectedSlugs": ["будесонид"],
+      "documents": 1
+    },
+    {
+      "id": "brand-239",
+      "kind": "brand",
+      "query": "Ксилометазолин ДС",
+      "expectedSlugs": ["ксилометазолин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-240",
+      "kind": "brand",
+      "query": "Лакропос",
+      "expectedSlugs": ["карбомер"],
+      "documents": 1
+    },
+    {
+      "id": "brand-241",
+      "kind": "brand",
+      "query": "Латан Антиглау ЭКО",
+      "expectedSlugs": ["латанопрост"],
+      "documents": 1
+    },
+    {
+      "id": "brand-242",
+      "kind": "brand",
+      "query": "Левофлоксацин-НИКА",
+      "expectedSlugs": ["левофлоксацин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-243",
+      "kind": "brand",
+      "query": "Ливенциале",
+      "expectedSlugs": ["фосфолипиды"],
+      "documents": 1
+    },
+    {
+      "id": "brand-244",
+      "kind": "brand",
+      "query": "Линкас Плющ",
+      "expectedSlugs": ["плюща-обыкновенного-листьев-экстракт"],
+      "documents": 1
+    },
+    {
+      "id": "brand-245",
+      "kind": "brand",
+      "query": "Лонгидаза",
+      "expectedSlugs": ["бовгиалуронидаза-азоксимер"],
+      "documents": 1
+    },
+    {
+      "id": "brand-246",
+      "kind": "brand",
+      "query": "ЛУКАСТОЛ",
+      "expectedSlugs": ["монтелукаст"],
+      "documents": 1
+    },
+    {
+      "id": "brand-247",
+      "kind": "brand",
+      "query": "Макрогол Канон",
+      "expectedSlugs": ["макрогол"],
+      "documents": 1
+    },
+    {
+      "id": "brand-248",
+      "kind": "brand",
+      "query": "Мебеверин солофарм",
+      "expectedSlugs": ["мебеверин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-249",
+      "kind": "brand",
+      "query": "Мелоксикам-Акрихин",
+      "expectedSlugs": ["мелоксикам"],
+      "documents": 1
+    },
+    {
+      "id": "brand-250",
+      "kind": "brand",
+      "query": "Меркур Эдас-934",
+      "expectedSlugs": [
+        "бария-карбонат-гамамелис-виргинский-зимолюбка-зонтичная-прострел-луговой-ртуть-растворимая-по-ганнеману-туя"
+      ],
+      "documents": 1
+    },
+    {
+      "id": "brand-251",
+      "kind": "brand",
+      "query": "Метронидазол Медисорб",
+      "expectedSlugs": ["метронидазол"],
+      "documents": 1
+    },
+    {
+      "id": "brand-252",
+      "kind": "brand",
+      "query": "Микафунгин-АМЕДАРТ",
+      "expectedSlugs": ["микафунгин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-253",
+      "kind": "brand",
+      "query": "Миропристон",
+      "expectedSlugs": ["мифепристон"],
+      "documents": 1
+    },
+    {
+      "id": "brand-254",
+      "kind": "brand",
+      "query": "Моксонидин Медисорб",
+      "expectedSlugs": ["моксонидин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-255",
+      "kind": "brand",
+      "query": "Мотилиум ЭКСПРЕСС",
+      "expectedSlugs": ["домперидон"],
+      "documents": 1
+    },
+    {
+      "id": "brand-256",
+      "kind": "brand",
+      "query": "Налбуфина гидрохлорид",
+      "expectedSlugs": ["налбуфин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-257",
+      "kind": "brand",
+      "query": "Нейродакрин",
+      "expectedSlugs": ["ипидакрин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-258",
+      "kind": "brand",
+      "query": "Неулептил",
+      "expectedSlugs": ["перициазин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-259",
+      "kind": "brand",
+      "query": "Нинларо",
+      "expectedSlugs": ["иксазомиб"],
+      "documents": 1
+    },
+    {
+      "id": "brand-260",
+      "kind": "brand",
+      "query": "Нозепам",
+      "expectedSlugs": ["оксазепам"],
+      "documents": 1
+    },
+    {
+      "id": "brand-261",
+      "kind": "brand",
+      "query": "Нош-Бра",
+      "expectedSlugs": ["дротаверин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-262",
+      "kind": "brand",
+      "query": "ОКСИМЕТАЗОЛИН ВЕЛФАРМ",
+      "expectedSlugs": ["оксиметазолин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-263",
+      "kind": "brand",
+      "query": "Омакор",
+      "expectedSlugs": ["омега-3-кислот-этиловые-эфиры-90"],
+      "documents": 1
+    },
+    {
+      "id": "brand-264",
+      "kind": "brand",
+      "query": "ОРВИС Рино",
+      "expectedSlugs": [
+        "бузины-черной-цветки-вербены-трава-горечавки-корни-первоцвета-цветки-щавеля-трава"
+      ],
+      "documents": 1
+    },
+    {
+      "id": "brand-265",
+      "kind": "brand",
+      "query": "Отофа",
+      "expectedSlugs": ["рифамицин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-266",
+      "kind": "brand",
+      "query": "Панаспар",
+      "expectedSlugs": ["калия-аспарагинат-магния-аспарагинат"],
+      "documents": 1
+    },
+    {
+      "id": "brand-267",
+      "kind": "brand",
+      "query": "Парацетамол-ЭКОлаб",
+      "expectedSlugs": ["парацетамол"],
+      "documents": 1
+    },
+    {
+      "id": "brand-268",
+      "kind": "brand",
+      "query": "Пеония-плюс",
+      "expectedSlugs": [
+        "азотная-кислота-арника-горная-гамамелис-виргинский-каштан-конский-крамерия-трехтычинковая-пион-лекарственный"
+      ],
+      "documents": 1
+    },
+    {
+      "id": "brand-269",
+      "kind": "brand",
+      "query": "Пиклосепт",
+      "expectedSlugs": ["пиклоксидин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-270",
+      "kind": "brand",
+      "query": "ПИТАВАСТАТИН ВЕЛФАРМ",
+      "expectedSlugs": ["питавастатин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-271",
+      "kind": "brand",
+      "query": "Полижинакс Вирго",
+      "expectedSlugs": ["неомицин-нистатин-полимиксин-b"],
+      "documents": 1
+    },
+    {
+      "id": "brand-272",
+      "kind": "brand",
+      "query": "Презартан Н",
+      "expectedSlugs": ["гидрохлоротиазид-лозартан"],
+      "documents": 1
+    },
+    {
+      "id": "brand-273",
+      "kind": "brand",
+      "query": "Прополис ДН",
+      "expectedSlugs": ["прополис"],
+      "documents": 1
+    },
+    {
+      "id": "brand-274",
+      "kind": "brand",
+      "query": "Пумпан",
+      "expectedSlugs": ["арника-монтана-дигиталис-калиум-карбоникум-конвалярия-майалис-кратегус"],
+      "documents": 1
+    },
+    {
+      "id": "brand-275",
+      "kind": "brand",
+      "query": "РАНКОФ",
+      "expectedSlugs": ["кофеин-парацетамол-фенилэфрин-хлорфенамин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-276",
+      "kind": "brand",
+      "query": "Регаст",
+      "expectedSlugs": ["эфавиренз"],
+      "documents": 1
+    },
+    {
+      "id": "brand-277",
+      "kind": "brand",
+      "query": "Ремаксолив",
+      "expectedSlugs": ["инозин-метионин-никотинамид-янтарная-кислота"],
+      "documents": 1
+    },
+    {
+      "id": "brand-278",
+      "kind": "brand",
+      "query": "Рефралон",
+      "expectedSlugs": ["кавутилид"],
+      "documents": 1
+    },
+    {
+      "id": "brand-279",
+      "kind": "brand",
+      "query": "Рингера-ацетат",
+      "expectedSlugs": ["калия-хлорид-кальция-хлорид-магния-хлорид-натрия-ацетат-натрия-хлорид"],
+      "documents": 1
+    },
+    {
+      "id": "brand-280",
+      "kind": "brand",
+      "query": "Ритонавир ПСК",
+      "expectedSlugs": ["ритонавир"],
+      "documents": 1
+    },
+    {
+      "id": "brand-281",
+      "kind": "brand",
+      "query": "Рокуроний",
+      "expectedSlugs": ["рокурония-бромид"],
+      "documents": 1
+    },
+    {
+      "id": "brand-282",
+      "kind": "brand",
+      "query": "Саксаглиптин ПСК",
+      "expectedSlugs": ["саксаглиптин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-283",
+      "kind": "brand",
+      "query": "Севэлла",
+      "expectedSlugs": ["севеламер"],
+      "documents": 1
+    },
+    {
+      "id": "brand-284",
+      "kind": "brand",
+      "query": "Сертикан",
+      "expectedSlugs": ["эверолимус"],
+      "documents": 1
+    },
+    {
+      "id": "brand-285",
+      "kind": "brand",
+      "query": "Симфитум ДН",
+      "expectedSlugs": ["симфитум-официнале"],
+      "documents": 1
+    },
+    {
+      "id": "brand-286",
+      "kind": "brand",
+      "query": "Солантра",
+      "expectedSlugs": ["ивермектин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-287",
+      "kind": "brand",
+      "query": "Спазгель",
+      "expectedSlugs": ["кетопрофен"],
+      "documents": 1
+    },
+    {
+      "id": "brand-288",
+      "kind": "brand",
+      "query": "СТИБЕВАРА",
+      "expectedSlugs": ["бевацизумаб"],
+      "documents": 1
+    },
+    {
+      "id": "brand-289",
+      "kind": "brand",
+      "query": "СУЛЬГИН АВЕКСИМА",
+      "expectedSlugs": ["сульфагуанидин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-290",
+      "kind": "brand",
+      "query": "Сустэффект Биоактив",
+      "expectedSlugs": [
+        "алоэ-древовидного-листьев-сок-календулы-лекарственной-цветков-экстракт-левоментол-ромашки-аптечной-цветков-экстракт-эвкалипта-прутовидного-листьев-масло"
+      ],
+      "documents": 1
+    },
+    {
+      "id": "brand-291",
+      "kind": "brand",
+      "query": "ТАЛС",
+      "expectedSlugs": ["иксекизумаб"],
+      "documents": 1
+    },
+    {
+      "id": "brand-292",
+      "kind": "brand",
+      "query": "Телзап АМ",
+      "expectedSlugs": ["амлодипин-телмисартан"],
+      "documents": 1
+    },
+    {
+      "id": "brand-293",
+      "kind": "brand",
+      "query": "ТераФлю",
+      "expectedSlugs": ["парацетамол-фенилэфрин-фенирамин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-294",
+      "kind": "brand",
+      "query": "Тиепенем",
+      "expectedSlugs": ["имипенем-циластатин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-295",
+      "kind": "brand",
+      "query": "Тиолепта",
+      "expectedSlugs": ["тиоктовая-кислота"],
+      "documents": 1
+    },
+    {
+      "id": "brand-296",
+      "kind": "brand",
+      "query": "Тораксол Солюшн Таблетс",
+      "expectedSlugs": ["амброксол"],
+      "documents": 1
+    },
+    {
+      "id": "brand-297",
+      "kind": "brand",
+      "query": "Трентал",
+      "expectedSlugs": ["пентоксифиллин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-298",
+      "kind": "brand",
+      "query": "Троксерутин Альфактив",
+      "expectedSlugs": ["троксерутин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-299",
+      "kind": "brand",
+      "query": "Тэлви",
+      "expectedSlugs": ["талкветамаб"],
+      "documents": 1
+    },
+    {
+      "id": "brand-300",
+      "kind": "brand",
+      "query": "Уролесан",
+      "expectedSlugs": [
+        "душицы-обыкновенной-травы-экстракт-клещевины-обыкновенной-семян-масло-моркови-дикой-семян-экстракт-мяты-перечной-листьев-масло-пихты-масло-хмеля-соплодий-экстракт"
+      ],
+      "documents": 1
+    },
+    {
+      "id": "brand-301",
+      "kind": "brand",
+      "query": "Фарбутин",
+      "expectedSlugs": ["рифабутин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-302",
+      "kind": "brand",
+      "query": "Фенотерол ПСК",
+      "expectedSlugs": ["фенотерол"],
+      "documents": 1
+    },
+    {
+      "id": "brand-303",
+      "kind": "brand",
+      "query": "Фириалта",
+      "expectedSlugs": ["финеренон"],
+      "documents": 1
+    },
+    {
+      "id": "brand-304",
+      "kind": "brand",
+      "query": "Флуконазол-OBL",
+      "expectedSlugs": ["флуконазол"],
+      "documents": 1
+    },
+    {
+      "id": "brand-305",
+      "kind": "brand",
+      "query": "Фордиглиф",
+      "expectedSlugs": ["дапаглифлозин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-306",
+      "kind": "brand",
+      "query": "Фрест",
+      "expectedSlugs": ["диметинден"],
+      "documents": 1
+    },
+    {
+      "id": "brand-307",
+      "kind": "brand",
+      "query": "Фуросемид-СОЛОфарм",
+      "expectedSlugs": ["фуросемид"],
+      "documents": 1
+    },
+    {
+      "id": "brand-308",
+      "kind": "brand",
+      "query": "ХОНДРОГАРД",
+      "expectedSlugs": ["хондроитина-сульфат"],
+      "documents": 1
+    },
+    {
+      "id": "brand-309",
+      "kind": "brand",
+      "query": "Цетиризин ДС",
+      "expectedSlugs": ["цетиризин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-310",
+      "kind": "brand",
+      "query": "ЦИКАДОКС",
+      "expectedSlugs": ["цитохром-с"],
+      "documents": 1
+    },
+    {
+      "id": "brand-311",
+      "kind": "brand",
+      "query": "Цистон",
+      "expectedSlugs": [
+        "вернонии-пепельной-экстракт-двуплодника-стебелькового-цветков-экстракт-извести-силикат-камнеломки-язычковой-стеблей-экстракт-марены-сердцелистной-стеблей-экстракт-мумие-очищенный-оносмы-прицветковой-травы-экстракт-соломоцвета-шероховатого-семян-экстракт-сыти-пленчатой-корневищ-экстракт"
+      ],
+      "documents": 1
+    },
+    {
+      "id": "brand-312",
+      "kind": "brand",
+      "query": "Эгилок",
+      "expectedSlugs": ["метопролол"],
+      "documents": 1
+    },
+    {
+      "id": "brand-313",
+      "kind": "brand",
+      "query": "Эксинта",
+      "expectedSlugs": ["аминобензойная-кислота"],
+      "documents": 1
+    },
+    {
+      "id": "brand-314",
+      "kind": "brand",
+      "query": "Эльцет",
+      "expectedSlugs": ["левоцетиризин"],
+      "documents": 1
+    },
+    {
+      "id": "brand-315",
+      "kind": "brand",
+      "query": "Энема Клин",
+      "expectedSlugs": ["натрия-гидрофосфата-гептагидрат-натрия-дигидрофосфата-моногидрат"],
+      "documents": 1
+    },
+    {
+      "id": "inn-001",
+      "kind": "inn",
+      "query": "ибупрофен",
+      "expectedSlugs": ["ибупрофен"],
+      "documents": 61
+    },
+    {
+      "id": "inn-002",
+      "kind": "inn",
+      "query": "азитромицин",
+      "expectedSlugs": ["азитромицин"],
+      "documents": 48
+    },
+    {
+      "id": "inn-003",
+      "kind": "inn",
+      "query": "диклофенак",
+      "expectedSlugs": ["диклофенак"],
+      "documents": 47
+    },
+    {
+      "id": "inn-004",
+      "kind": "inn",
+      "query": "кетопрофен",
+      "expectedSlugs": ["кетопрофен"],
+      "documents": 47
+    },
+    {
+      "id": "inn-005",
+      "kind": "inn",
+      "query": "левофлоксацин",
+      "expectedSlugs": ["левофлоксацин"],
+      "documents": 47
+    },
+    {
+      "id": "inn-006",
+      "kind": "inn",
+      "query": "амброксол",
+      "expectedSlugs": ["амброксол"],
+      "documents": 46
+    },
+    {
+      "id": "inn-007",
+      "kind": "inn",
+      "query": "оксиметазолин",
+      "expectedSlugs": ["оксиметазолин"],
+      "documents": 46
+    },
+    {
+      "id": "inn-008",
+      "kind": "inn",
+      "query": "ривароксабан",
+      "expectedSlugs": ["ривароксабан"],
+      "documents": 42
+    },
+    {
+      "id": "inn-009",
+      "kind": "inn",
+      "query": "метформин",
+      "expectedSlugs": ["метформин"],
+      "documents": 41
+    },
+    {
+      "id": "inn-010",
+      "kind": "inn",
+      "query": "моксифлоксацин",
+      "expectedSlugs": ["моксифлоксацин"],
+      "documents": 41
+    },
+    {
+      "id": "inn-011",
+      "kind": "inn",
+      "query": "мелоксикам",
+      "expectedSlugs": ["мелоксикам"],
+      "documents": 40
+    },
+    {
+      "id": "inn-012",
+      "kind": "inn",
+      "query": "ксилометазолин",
+      "expectedSlugs": ["ксилометазолин"],
+      "documents": 39
+    },
+    {
+      "id": "inn-013",
+      "kind": "inn",
+      "query": "панкреатин",
+      "expectedSlugs": ["панкреатин"],
+      "documents": 36
+    },
+    {
+      "id": "inn-014",
+      "kind": "inn",
+      "query": "розувастатин",
+      "expectedSlugs": ["розувастатин"],
+      "documents": 36
+    },
+    {
+      "id": "inn-015",
+      "kind": "inn",
+      "query": "амлодипин",
+      "expectedSlugs": ["амлодипин"],
+      "documents": 35
+    },
+    {
+      "id": "inn-016",
+      "kind": "inn",
+      "query": "индапамид",
+      "expectedSlugs": ["индапамид"],
+      "documents": 35
+    },
+    {
+      "id": "inn-017",
+      "kind": "inn",
+      "query": "силденафил",
+      "expectedSlugs": ["силденафил"],
+      "documents": 35
+    },
+    {
+      "id": "inn-018",
+      "kind": "inn",
+      "query": "хондроитина сульфат",
+      "expectedSlugs": ["хондроитина-сульфат"],
+      "documents": 35
+    },
+    {
+      "id": "inn-019",
+      "kind": "inn",
+      "query": "бензидамин",
+      "expectedSlugs": ["бензидамин"],
+      "documents": 33
+    },
+    {
+      "id": "inn-020",
+      "kind": "inn",
+      "query": "нимесулид",
+      "expectedSlugs": ["нимесулид"],
+      "documents": 33
+    },
+    {
+      "id": "inn-021",
+      "kind": "inn",
+      "query": "урсодезоксихолевая кислота",
+      "expectedSlugs": ["урсодезоксихолевая-кислота"],
+      "documents": 33
+    },
+    {
+      "id": "inn-022",
+      "kind": "inn",
+      "query": "флуконазол",
+      "expectedSlugs": ["флуконазол"],
+      "documents": 33
+    },
+    {
+      "id": "inn-023",
+      "kind": "inn",
+      "query": "ципрофлоксацин",
+      "expectedSlugs": ["ципрофлоксацин"],
+      "documents": 33
+    },
+    {
+      "id": "inn-024",
+      "kind": "inn",
+      "query": "клопидогрел",
+      "expectedSlugs": ["клопидогрел"],
+      "documents": 32
+    },
+    {
+      "id": "inn-025",
+      "kind": "inn",
+      "query": "аторвастатин",
+      "expectedSlugs": ["аторвастатин"],
+      "documents": 30
+    },
+    {
+      "id": "inn-026",
+      "kind": "inn",
+      "query": "ацетилсалициловая кислота",
+      "expectedSlugs": ["ацетилсалициловая-кислота"],
+      "documents": 30
+    },
+    {
+      "id": "inn-027",
+      "kind": "inn",
+      "query": "бисопролол",
+      "expectedSlugs": ["бисопролол"],
+      "documents": 30
+    },
+    {
+      "id": "inn-028",
+      "kind": "inn",
+      "query": "метронидазол",
+      "expectedSlugs": ["метронидазол"],
+      "documents": 30
+    },
+    {
+      "id": "inn-029",
+      "kind": "inn",
+      "query": "тербинафин",
+      "expectedSlugs": ["тербинафин"],
+      "documents": 30
+    },
+    {
+      "id": "inn-030",
+      "kind": "inn",
+      "query": "этилметилгидроксипиридина сукцинат",
+      "expectedSlugs": ["этилметилгидроксипиридина-сукцинат"],
+      "documents": 30
+    },
+    {
+      "id": "inn-031",
+      "kind": "inn",
+      "query": "вилдаглиптин",
+      "expectedSlugs": ["вилдаглиптин"],
+      "documents": 29
+    },
+    {
+      "id": "inn-032",
+      "kind": "inn",
+      "query": "декскетопрофен",
+      "expectedSlugs": ["декскетопрофен"],
+      "documents": 29
+    },
+    {
+      "id": "inn-033",
+      "kind": "inn",
+      "query": "колекальциферол",
+      "expectedSlugs": ["колекальциферол"],
+      "documents": 29
+    },
+    {
+      "id": "inn-034",
+      "kind": "inn",
+      "query": "омепразол",
+      "expectedSlugs": ["омепразол"],
+      "documents": 29
+    },
+    {
+      "id": "inn-035",
+      "kind": "inn",
+      "query": "цитиколин",
+      "expectedSlugs": ["цитиколин"],
+      "documents": 29
+    },
+    {
+      "id": "inn-036",
+      "kind": "inn",
+      "query": "цефтриаксон",
+      "expectedSlugs": ["цефтриаксон"],
+      "documents": 28
+    },
+    {
+      "id": "inn-037",
+      "kind": "inn",
+      "query": "аллергены трав пыльцевые",
+      "expectedSlugs": ["аллергены-трав-пыльцевые"],
+      "documents": 27
+    },
+    {
+      "id": "inn-038",
+      "kind": "inn",
+      "query": "дротаверин",
+      "expectedSlugs": ["дротаверин"],
+      "documents": 27
+    },
+    {
+      "id": "inn-039",
+      "kind": "inn",
+      "query": "парацетамол",
+      "expectedSlugs": ["парацетамол"],
+      "documents": 27
+    },
+    {
+      "id": "inn-040",
+      "kind": "inn",
+      "query": "тамсулозин",
+      "expectedSlugs": ["тамсулозин"],
+      "documents": 27
+    },
+    {
+      "id": "inn-041",
+      "kind": "inn",
+      "query": "цетиризин",
+      "expectedSlugs": ["цетиризин"],
+      "documents": 27
+    },
+    {
+      "id": "inn-042",
+      "kind": "inn",
+      "query": "декспантенол",
+      "expectedSlugs": ["декспантенол"],
+      "documents": 26
+    },
+    {
+      "id": "inn-043",
+      "kind": "inn",
+      "query": "дезлоратадин",
+      "expectedSlugs": ["дезлоратадин"],
+      "documents": 25
+    },
+    {
+      "id": "inn-044",
+      "kind": "inn",
+      "query": "кларитромицин",
+      "expectedSlugs": ["кларитромицин"],
+      "documents": 25
+    },
+    {
+      "id": "inn-045",
+      "kind": "inn",
+      "query": "лозартан",
+      "expectedSlugs": ["лозартан"],
+      "documents": 25
+    },
+    {
+      "id": "inn-046",
+      "kind": "inn",
+      "query": "мемантин",
+      "expectedSlugs": ["мемантин"],
+      "documents": 25
+    },
+    {
+      "id": "inn-047",
+      "kind": "inn",
+      "query": "тикагрелор",
+      "expectedSlugs": ["тикагрелор"],
+      "documents": 25
+    },
+    {
+      "id": "inn-048",
+      "kind": "inn",
+      "query": "меропенем",
+      "expectedSlugs": ["меропенем"],
+      "documents": 24
+    },
+    {
+      "id": "inn-049",
+      "kind": "inn",
+      "query": "апиксабан",
+      "expectedSlugs": ["апиксабан"],
+      "documents": 23
+    },
+    {
+      "id": "inn-050",
+      "kind": "inn",
+      "query": "ацикловир",
+      "expectedSlugs": ["ацикловир"],
+      "documents": 23
+    },
+    {
+      "id": "inn-051",
+      "kind": "inn",
+      "query": "фенилэфрин",
+      "expectedSlugs": ["фенилэфрин"],
+      "documents": 23
+    },
+    {
+      "id": "inn-052",
+      "kind": "inn",
+      "query": "эторикоксиб",
+      "expectedSlugs": ["эторикоксиб"],
+      "documents": 23
+    },
+    {
+      "id": "inn-053",
+      "kind": "inn",
+      "query": "винпоцетин",
+      "expectedSlugs": ["винпоцетин"],
+      "documents": 22
+    },
+    {
+      "id": "inn-054",
+      "kind": "inn",
+      "query": "домперидон",
+      "expectedSlugs": ["домперидон"],
+      "documents": 22
+    },
+    {
+      "id": "inn-055",
+      "kind": "inn",
+      "query": "лоратадин",
+      "expectedSlugs": ["лоратадин"],
+      "documents": 22
+    },
+    {
+      "id": "inn-056",
+      "kind": "inn",
+      "query": "мометазон",
+      "expectedSlugs": ["мометазон"],
+      "documents": 22
+    },
+    {
+      "id": "inn-057",
+      "kind": "inn",
+      "query": "натрия пикосульфат",
+      "expectedSlugs": ["натрия-пикосульфат"],
+      "documents": 22
+    },
+    {
+      "id": "inn-058",
+      "kind": "inn",
+      "query": "нафтифин",
+      "expectedSlugs": ["нафтифин"],
+      "documents": 22
+    },
+    {
+      "id": "inn-059",
+      "kind": "inn",
+      "query": "офлоксацин",
+      "expectedSlugs": ["офлоксацин"],
+      "documents": 22
+    },
+    {
+      "id": "inn-060",
+      "kind": "inn",
+      "query": "семаглутид",
+      "expectedSlugs": ["семаглутид"],
+      "documents": 22
+    },
+    {
+      "id": "inn-061",
+      "kind": "inn",
+      "query": "тадалафил",
+      "expectedSlugs": ["тадалафил"],
+      "documents": 22
+    },
+    {
+      "id": "inn-062",
+      "kind": "inn",
+      "query": "транексамовая кислота",
+      "expectedSlugs": ["транексамовая-кислота"],
+      "documents": 22
+    },
+    {
+      "id": "inn-063",
+      "kind": "inn",
+      "query": "аминосалициловая кислота",
+      "expectedSlugs": ["аминосалициловая-кислота"],
+      "documents": 21
+    },
+    {
+      "id": "inn-064",
+      "kind": "inn",
+      "query": "левоцетиризин",
+      "expectedSlugs": ["левоцетиризин"],
+      "documents": 21
+    },
+    {
+      "id": "inn-065",
+      "kind": "inn",
+      "query": "лизиноприл",
+      "expectedSlugs": ["лизиноприл"],
+      "documents": 21
+    },
+    {
+      "id": "inn-066",
+      "kind": "inn",
+      "query": "мельдоний",
+      "expectedSlugs": ["мельдоний"],
+      "documents": 21
+    },
+    {
+      "id": "inn-067",
+      "kind": "inn",
+      "query": "моксонидин",
+      "expectedSlugs": ["моксонидин"],
+      "documents": 21
+    },
+    {
+      "id": "inn-068",
+      "kind": "inn",
+      "query": "небиволол",
+      "expectedSlugs": ["небиволол"],
+      "documents": 21
+    },
+    {
+      "id": "inn-069",
+      "kind": "inn",
+      "query": "паклитаксел",
+      "expectedSlugs": ["паклитаксел"],
+      "documents": 21
+    },
+    {
+      "id": "inn-070",
+      "kind": "inn",
+      "query": "периндоприл",
+      "expectedSlugs": ["периндоприл"],
+      "documents": 21
+    },
+    {
+      "id": "inn-071",
+      "kind": "inn",
+      "query": "тиоктовая кислота",
+      "expectedSlugs": ["тиоктовая-кислота"],
+      "documents": 21
+    },
+    {
+      "id": "inn-072",
+      "kind": "inn",
+      "query": "фосфомицин",
+      "expectedSlugs": ["фосфомицин"],
+      "documents": 21
+    },
+    {
+      "id": "inn-073",
+      "kind": "inn",
+      "query": "аллергены пищевые",
+      "expectedSlugs": ["аллергены-пищевые"],
+      "documents": 20
+    },
+    {
+      "id": "inn-074",
+      "kind": "inn",
+      "query": "бензилдиметил-миристоиламино-пропиламмоний",
+      "expectedSlugs": ["бензилдиметил-миристоиламино-пропиламмоний"],
+      "documents": 20
+    },
+    {
+      "id": "inn-075",
+      "kind": "inn",
+      "query": "дабигатрана этексилат",
+      "expectedSlugs": ["дабигатрана-этексилат"],
+      "documents": 20
+    },
+    {
+      "id": "inn-076",
+      "kind": "inn",
+      "query": "диметинден",
+      "expectedSlugs": ["диметинден"],
+      "documents": 20
+    },
+    {
+      "id": "inn-077",
+      "kind": "inn",
+      "query": "золедроновая кислота",
+      "expectedSlugs": ["золедроновая-кислота"],
+      "documents": 20
+    },
+    {
+      "id": "inn-078",
+      "kind": "inn",
+      "query": "кветиапин",
+      "expectedSlugs": ["кветиапин"],
+      "documents": 20
+    },
+    {
+      "id": "inn-079",
+      "kind": "inn",
+      "query": "кеторолак",
+      "expectedSlugs": ["кеторолак"],
+      "documents": 20
+    },
+    {
+      "id": "inn-080",
+      "kind": "inn",
+      "query": "метопролол",
+      "expectedSlugs": ["метопролол"],
+      "documents": 20
+    },
+    {
+      "id": "inn-081",
+      "kind": "inn",
+      "query": "монтелукаст",
+      "expectedSlugs": ["монтелукаст"],
+      "documents": 20
+    },
+    {
+      "id": "inn-082",
+      "kind": "inn",
+      "query": "нифуроксазид",
+      "expectedSlugs": ["нифуроксазид"],
+      "documents": 20
+    },
+    {
+      "id": "inn-083",
+      "kind": "inn",
+      "query": "осельтамивир",
+      "expectedSlugs": ["осельтамивир"],
+      "documents": 20
+    },
+    {
+      "id": "inn-084",
+      "kind": "inn",
+      "query": "симетикон",
+      "expectedSlugs": ["симетикон"],
+      "documents": 20
+    },
+    {
+      "id": "inn-085",
+      "kind": "inn",
+      "query": "ситаглиптин",
+      "expectedSlugs": ["ситаглиптин"],
+      "documents": 20
+    },
+    {
+      "id": "inn-086",
+      "kind": "inn",
+      "query": "триметазидин",
+      "expectedSlugs": ["триметазидин"],
+      "documents": 20
+    },
+    {
+      "id": "inn-087",
+      "kind": "inn",
+      "query": "цефотаксим",
+      "expectedSlugs": ["цефотаксим"],
+      "documents": 20
+    },
+    {
+      "id": "inn-088",
+      "kind": "inn",
+      "query": "бетагистин",
+      "expectedSlugs": ["бетагистин"],
+      "documents": 19
+    },
+    {
+      "id": "inn-089",
+      "kind": "inn",
+      "query": "валсартан",
+      "expectedSlugs": ["валсартан"],
+      "documents": 19
+    },
+    {
+      "id": "inn-090",
+      "kind": "inn",
+      "query": "гемцитабин",
+      "expectedSlugs": ["гемцитабин"],
+      "documents": 19
+    },
+    {
+      "id": "inn-091",
+      "kind": "inn",
+      "query": "гидроксиэтилкрахмал",
+      "expectedSlugs": ["гидроксиэтилкрахмал"],
+      "documents": 19
+    },
+    {
+      "id": "inn-092",
+      "kind": "inn",
+      "query": "иммуноглобулин человека нормальный",
+      "expectedSlugs": ["иммуноглобулин-человека-нормальный"],
+      "documents": 19
+    },
+    {
+      "id": "inn-093",
+      "kind": "inn",
+      "query": "латанопрост",
+      "expectedSlugs": ["латанопрост"],
+      "documents": 19
+    },
+    {
+      "id": "inn-094",
+      "kind": "inn",
+      "query": "мелатонин",
+      "expectedSlugs": ["мелатонин"],
+      "documents": 19
+    },
+    {
+      "id": "inn-095",
+      "kind": "inn",
+      "query": "пантопразол",
+      "expectedSlugs": ["пантопразол"],
+      "documents": 19
+    },
+    {
+      "id": "inn-096",
+      "kind": "inn",
+      "query": "сальбутамол",
+      "expectedSlugs": ["сальбутамол"],
+      "documents": 19
+    },
+    {
+      "id": "inn-097",
+      "kind": "inn",
+      "query": "холина альфосцерат",
+      "expectedSlugs": ["холина-альфосцерат"],
+      "documents": 19
+    },
+    {
+      "id": "inn-098",
+      "kind": "inn",
+      "query": "гликлазид",
+      "expectedSlugs": ["гликлазид"],
+      "documents": 18
+    },
+    {
+      "id": "inn-099",
+      "kind": "inn",
+      "query": "дапаглифлозин",
+      "expectedSlugs": ["дапаглифлозин"],
+      "documents": 18
+    },
+    {
+      "id": "inn-100",
+      "kind": "inn",
+      "query": "карведилол",
+      "expectedSlugs": ["карведилол"],
+      "documents": 18
+    },
+    {
+      "id": "inn-101",
+      "kind": "inn",
+      "query": "пирацетам",
+      "expectedSlugs": ["пирацетам"],
+      "documents": 18
+    },
+    {
+      "id": "inn-102",
+      "kind": "inn",
+      "query": "троксерутин",
+      "expectedSlugs": ["троксерутин"],
+      "documents": 18
+    },
+    {
+      "id": "inn-103",
+      "kind": "inn",
+      "query": "эналаприл",
+      "expectedSlugs": ["эналаприл"],
+      "documents": 18
+    },
+    {
+      "id": "inn-104",
+      "kind": "inn",
+      "query": "адеметионин",
+      "expectedSlugs": ["адеметионин"],
+      "documents": 17
+    },
+    {
+      "id": "inn-105",
+      "kind": "inn",
+      "query": "бупивакаин",
+      "expectedSlugs": ["бупивакаин"],
+      "documents": 17
+    },
+    {
+      "id": "inn-106",
+      "kind": "inn",
+      "query": "висмута трикалия дицитрат",
+      "expectedSlugs": ["висмута-трикалия-дицитрат"],
+      "documents": 17
+    },
+    {
+      "id": "inn-107",
+      "kind": "inn",
+      "query": "линезолид",
+      "expectedSlugs": ["линезолид"],
+      "documents": 17
+    },
+    {
+      "id": "inn-108",
+      "kind": "inn",
+      "query": "орлистат",
+      "expectedSlugs": ["орлистат"],
+      "documents": 17
+    },
+    {
+      "id": "inn-109",
+      "kind": "inn",
+      "query": "пеметрексед",
+      "expectedSlugs": ["пеметрексед"],
+      "documents": 17
+    },
+    {
+      "id": "inn-110",
+      "kind": "inn",
+      "query": "рабепразол",
+      "expectedSlugs": ["рабепразол"],
+      "documents": 17
+    },
+    {
+      "id": "inn-111",
+      "kind": "inn",
+      "query": "цефуроксим",
+      "expectedSlugs": ["цефуроксим"],
+      "documents": 17
+    },
+    {
+      "id": "inn-112",
+      "kind": "inn",
+      "query": "вориконазол",
+      "expectedSlugs": ["вориконазол"],
+      "documents": 16
+    },
+    {
+      "id": "inn-113",
+      "kind": "inn",
+      "query": "дексаметазон",
+      "expectedSlugs": ["дексаметазон"],
+      "documents": 16
+    },
+    {
+      "id": "inn-114",
+      "kind": "inn",
+      "query": "иринотекан",
+      "expectedSlugs": ["иринотекан"],
+      "documents": 16
+    },
+    {
+      "id": "inn-115",
+      "kind": "inn",
+      "query": "метилэтилпиридинол",
+      "expectedSlugs": ["метилэтилпиридинол"],
+      "documents": 16
+    },
+    {
+      "id": "inn-116",
+      "kind": "inn",
+      "query": "оксалиплатин",
+      "expectedSlugs": ["оксалиплатин"],
+      "documents": 16
+    },
+    {
+      "id": "inn-117",
+      "kind": "inn",
+      "query": "ондансетрон",
+      "expectedSlugs": ["ондансетрон"],
+      "documents": 16
+    },
+    {
+      "id": "inn-118",
+      "kind": "inn",
+      "query": "плюща обыкновенного листьев экстракт",
+      "expectedSlugs": ["плюща-обыкновенного-листьев-экстракт"],
+      "documents": 16
+    },
+    {
+      "id": "inn-119",
+      "kind": "inn",
+      "query": "поливитамины",
+      "expectedSlugs": ["поливитамины"],
+      "documents": 16
+    },
+    {
+      "id": "inn-120",
+      "kind": "inn",
+      "query": "простаты экстракт",
+      "expectedSlugs": ["простаты-экстракт"],
+      "documents": 16
+    },
+    {
+      "id": "inn-121",
+      "kind": "inn",
+      "query": "растворы для перитонеального диализа",
+      "expectedSlugs": ["растворы-для-перитонеального-диализа"],
+      "documents": 16
+    },
+    {
+      "id": "inn-122",
+      "kind": "inn",
+      "query": "рисперидон",
+      "expectedSlugs": ["рисперидон"],
+      "documents": 16
+    },
+    {
+      "id": "inn-123",
+      "kind": "inn",
+      "query": "телмисартан",
+      "expectedSlugs": ["телмисартан"],
+      "documents": 16
+    },
+    {
+      "id": "inn-124",
+      "kind": "inn",
+      "query": "тимолол",
+      "expectedSlugs": ["тимолол"],
+      "documents": 16
+    },
+    {
+      "id": "inn-125",
+      "kind": "inn",
+      "query": "тобрамицин",
+      "expectedSlugs": ["тобрамицин"],
+      "documents": 16
+    },
+    {
+      "id": "inn-126",
+      "kind": "inn",
+      "query": "торасемид",
+      "expectedSlugs": ["торасемид"],
+      "documents": 16
+    },
+    {
+      "id": "inn-127",
+      "kind": "inn",
+      "query": "тримебутин",
+      "expectedSlugs": ["тримебутин"],
+      "documents": 16
+    },
+    {
+      "id": "inn-128",
+      "kind": "inn",
+      "query": "фосфолипиды",
+      "expectedSlugs": ["фосфолипиды"],
+      "documents": 16
+    },
+    {
+      "id": "inn-129",
+      "kind": "inn",
+      "query": "абиратерон",
+      "expectedSlugs": ["абиратерон"],
+      "documents": 15
+    },
+    {
+      "id": "inn-130",
+      "kind": "inn",
+      "query": "альбумин человека",
+      "expectedSlugs": ["альбумин-человека"],
+      "documents": 15
+    },
+    {
+      "id": "inn-131",
+      "kind": "inn",
+      "query": "ацетилцистеин",
+      "expectedSlugs": ["ацетилцистеин"],
+      "documents": 15
+    },
+    {
+      "id": "inn-132",
+      "kind": "inn",
+      "query": "бетаметазон",
+      "expectedSlugs": ["бетаметазон"],
+      "documents": 15
+    },
+    {
+      "id": "inn-133",
+      "kind": "inn",
+      "query": "гепарин натрия",
+      "expectedSlugs": ["гепарин-натрия"],
+      "documents": 15
+    },
+    {
+      "id": "inn-134",
+      "kind": "inn",
+      "query": "гопантеновая кислота",
+      "expectedSlugs": ["гопантеновая-кислота"],
+      "documents": 15
+    },
+    {
+      "id": "inn-135",
+      "kind": "inn",
+      "query": "дорзоламид",
+      "expectedSlugs": ["дорзоламид"],
+      "documents": 15
+    },
+    {
+      "id": "inn-136",
+      "kind": "inn",
+      "query": "клотримазол",
+      "expectedSlugs": ["клотримазол"],
+      "documents": 15
+    },
+    {
+      "id": "inn-137",
+      "kind": "inn",
+      "query": "оланзапин",
+      "expectedSlugs": ["оланзапин"],
+      "documents": 15
+    },
+    {
+      "id": "inn-138",
+      "kind": "inn",
+      "query": "таурин",
+      "expectedSlugs": ["таурин"],
+      "documents": 15
+    },
+    {
+      "id": "inn-139",
+      "kind": "inn",
+      "query": "тилорон",
+      "expectedSlugs": ["тилорон"],
+      "documents": 15
+    },
+    {
+      "id": "inn-140",
+      "kind": "inn",
+      "query": "толперизон",
+      "expectedSlugs": ["толперизон"],
+      "documents": 15
+    },
+    {
+      "id": "inn-141",
+      "kind": "inn",
+      "query": "фебуксостат",
+      "expectedSlugs": ["фебуксостат"],
+      "documents": 15
+    },
+    {
+      "id": "inn-142",
+      "kind": "inn",
+      "query": "бромгексин",
+      "expectedSlugs": ["бромгексин"],
+      "documents": 14
+    },
+    {
+      "id": "inn-143",
+      "kind": "inn",
+      "query": "бутамират",
+      "expectedSlugs": ["бутамират"],
+      "documents": 14
+    },
+    {
+      "id": "inn-144",
+      "kind": "inn",
+      "query": "валацикловир",
+      "expectedSlugs": ["валацикловир"],
+      "documents": 14
+    },
+    {
+      "id": "inn-145",
+      "kind": "inn",
+      "query": "иматиниб",
+      "expectedSlugs": ["иматиниб"],
+      "documents": 14
+    },
+    {
+      "id": "inn-146",
+      "kind": "inn",
+      "query": "каптоприл",
+      "expectedSlugs": ["каптоприл"],
+      "documents": 14
+    },
+    {
+      "id": "inn-147",
+      "kind": "inn",
+      "query": "колистиметат натрия",
+      "expectedSlugs": ["колистиметат-натрия"],
+      "documents": 14
+    },
+    {
+      "id": "inn-148",
+      "kind": "inn",
+      "query": "леветирацетам",
+      "expectedSlugs": ["леветирацетам"],
+      "documents": 14
+    },
+    {
+      "id": "inn-149",
+      "kind": "inn",
+      "query": "лоперамид",
+      "expectedSlugs": ["лоперамид"],
+      "documents": 14
+    },
+    {
+      "id": "inn-150",
+      "kind": "inn",
+      "query": "натрия хлорид",
+      "expectedSlugs": ["натрия-хлорид"],
+      "documents": 14
+    }
+  ],
+  "nonsense": [
+    "<script>alert(1)</script>",
+    "<img src=x onerror=alert(1)>",
+    "'; ;; --",
+    "!!!@@@###",
+    ";;;;;;;;",
+    "%%%%%%",
+    "asdfghjkl",
+    "qwertyuiop",
+    "zzzxxqqww",
+    "ъъъъъъ",
+    "ыыыыыы",
+    "щщщщщщ",
+    "фывапролдж",
+    "xkcdqzvbn",
+    "ёёёёё",
+    "1234567890123"
+  ],
+  "controls": [
+    "аспирин",
+    "J05",
+    "пневмония",
+    "ибупрофен",
+    "пневмания",
+    "оменция",
+    "ьуеащкьшт",
+    "цефтриаксн",
+    "ВИЧ",
+    "E11",
+    "гипертония",
+    "Mycoplasma pneumoniae",
+    "бронхит у детей",
+    "амоксицилин",
+    "астма",
+    "сахарный диабет",
+    "инфаркт миокарда",
+    "Q86.2",
+    "метформин"
+  ],
+  "homeopathy": [
+    "фосфор",
+    "ртуть",
+    "сера",
+    "кальций",
+    "мышьяк",
+    "железо",
+    "калий",
+    "магний",
+    "цинк",
+    "натрий",
+    "золото",
+    "серебро",
+    "йод",
+    "медь",
+    "свинец"
+  ]
+}

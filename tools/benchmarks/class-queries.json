@@ -1,0 +1,310 @@
+{
+  "description": "SRCH1 (owner decision 2026-10-14): queries that name a drug class. The first result block is the class card (response.drugClass) with the ATC groups of the shared class vocabulary, then the drugs of the class, then the usual documents. `codes`: ATC prefixes the card's groups must include (any of them); `drugs`: card slugs (esklp.mnn.<slug>) that a doctor expects among the class's drugs; `top`: how many of the leading result groups must be class drugs. Labels are hand-set from medical knowledge, not from the data they test.",
+  "queries": [
+    {
+      "id": "macrolides",
+      "query": "макролиды",
+      "codes": ["J01FA"],
+      "drugs": ["азитромицин", "кларитромицин", "эритромицин"]
+    },
+    {
+      "id": "macrolides-gen",
+      "query": "макролидов",
+      "codes": ["J01FA"],
+      "drugs": ["азитромицин", "кларитромицин"]
+    },
+    {
+      "id": "macrolides-group",
+      "query": "группа макролидов",
+      "codes": ["J01FA"],
+      "drugs": ["азитромицин"]
+    },
+    {
+      "id": "statins",
+      "query": "статины",
+      "codes": ["C10AA"],
+      "drugs": ["аторвастатин", "розувастатин", "симвастатин"]
+    },
+    {
+      "id": "statins-instr",
+      "query": "статинами",
+      "codes": ["C10AA"],
+      "drugs": ["аторвастатин", "розувастатин"]
+    },
+    { "id": "statins-gen", "query": "статинов", "codes": ["C10AA"], "drugs": ["аторвастатин"] },
+    {
+      "id": "acei",
+      "query": "ингибиторы АПФ",
+      "codes": ["C09AA", "C09A"],
+      "drugs": ["эналаприл", "лизиноприл", "периндоприл", "рамиприл"]
+    },
+    {
+      "id": "acei-gen",
+      "query": "ингибиторов АПФ",
+      "codes": ["C09AA", "C09A"],
+      "drugs": ["эналаприл", "лизиноприл"]
+    },
+    {
+      "id": "arb",
+      "query": "сартаны",
+      "codes": ["C09C"],
+      "drugs": ["лозартан", "валсартан", "телмисартан"]
+    },
+    {
+      "id": "arb-formal",
+      "query": "антагонисты рецепторов ангиотензина",
+      "codes": ["C09C"],
+      "drugs": ["лозартан", "валсартан"]
+    },
+    {
+      "id": "beta-blockers",
+      "query": "бета-блокаторы",
+      "codes": ["C07"],
+      "drugs": ["метопролол", "бисопролол", "карведилол"]
+    },
+    {
+      "id": "beta-adrenoblockers",
+      "query": "бета-адреноблокаторы",
+      "codes": ["C07"],
+      "drugs": ["метопролол", "бисопролол"]
+    },
+    {
+      "id": "beta-greek",
+      "query": "β-блокаторы",
+      "codes": ["C07"],
+      "drugs": ["метопролол", "бисопролол"]
+    },
+    {
+      "id": "ccb",
+      "query": "блокаторы кальциевых каналов",
+      "codes": ["C08"],
+      "drugs": ["амлодипин", "нифедипин", "верапамил"]
+    },
+    {
+      "id": "ccb-synonym",
+      "query": "антагонисты кальция",
+      "codes": ["C08"],
+      "drugs": ["амлодипин", "нифедипин"]
+    },
+    {
+      "id": "diuretics",
+      "query": "диуретики",
+      "codes": ["C03"],
+      "drugs": ["фуросемид", "индапамид", "спиронолактон"]
+    },
+    {
+      "id": "diuretics-synonym",
+      "query": "мочегонные",
+      "codes": ["C03"],
+      "drugs": ["фуросемид", "спиронолактон"]
+    },
+    {
+      "id": "cytostatics",
+      "query": "цитостатики",
+      "codes": ["L01XX", "L01A", "L01B"],
+      "drugs": ["метотрексат", "паклитаксел"]
+    },
+    {
+      "id": "hypnotics",
+      "query": "снотворные",
+      "codes": ["N05C"],
+      "drugs": ["зопиклон", "золпидем"]
+    },
+    {
+      "id": "antidepressants",
+      "query": "антидепрессанты",
+      "codes": ["N06A"],
+      "drugs": ["сертралин", "флуоксетин", "амитриптилин"]
+    },
+    {
+      "id": "antipsychotics",
+      "query": "антипсихотики",
+      "codes": ["N05A"],
+      "drugs": ["галоперидол", "кветиапин", "рисперидон"]
+    },
+    {
+      "id": "neuroleptics",
+      "query": "нейролептики",
+      "codes": ["N05A"],
+      "drugs": ["галоперидол", "кветиапин"]
+    },
+    {
+      "id": "benzodiazepines",
+      "query": "бензодиазепины",
+      "codes": ["N05BA", "N03AE", "N05CD"],
+      "drugs": ["диазепам", "алпразолам"]
+    },
+    {
+      "id": "anticonvulsants",
+      "query": "противосудорожные",
+      "codes": ["N03"],
+      "drugs": ["карбамазепин", "леветирацетам"]
+    },
+    {
+      "id": "anticonvulsants-synonym",
+      "query": "антиконвульсанты",
+      "codes": ["N03"],
+      "drugs": ["карбамазепин", "леветирацетам"]
+    },
+    {
+      "id": "anticoagulants",
+      "query": "антикоагулянты",
+      "codes": ["B01A"],
+      "drugs": ["варфарин", "ривароксабан", "апиксабан"]
+    },
+    {
+      "id": "antiplatelets",
+      "query": "антиагреганты",
+      "codes": ["B01AC"],
+      "drugs": ["клопидогрел", "ацетилсалициловая-кислота"]
+    },
+    {
+      "id": "nsaids",
+      "query": "НПВС",
+      "codes": ["M01A"],
+      "drugs": ["ибупрофен", "диклофенак", "кетопрофен"]
+    },
+    { "id": "nsaids-p", "query": "НПВП", "codes": ["M01A"], "drugs": ["ибупрофен", "диклофенак"] },
+    {
+      "id": "nsaids-full",
+      "query": "нестероидные противовоспалительные средства",
+      "codes": ["M01A"],
+      "drugs": ["ибупрофен", "диклофенак"]
+    },
+    {
+      "id": "opioids",
+      "query": "опиоиды",
+      "codes": ["N02A"],
+      "drugs": ["морфин", "трамадол", "фентанил"]
+    },
+    {
+      "id": "fluoroquinolones",
+      "query": "фторхинолоны",
+      "codes": ["J01M"],
+      "drugs": ["левофлоксацин", "ципрофлоксацин", "моксифлоксацин"]
+    },
+    {
+      "id": "cephalosporins",
+      "query": "цефалоспорины",
+      "codes": ["J01D"],
+      "drugs": ["цефтриаксон", "цефазолин", "цефиксим"]
+    },
+    {
+      "id": "penicillins",
+      "query": "пенициллины",
+      "codes": ["J01C"],
+      "drugs": ["амоксициллин", "бензилпенициллин"]
+    },
+    {
+      "id": "aminoglycosides",
+      "query": "аминогликозиды",
+      "codes": ["J01G"],
+      "drugs": ["гентамицин", "амикацин"]
+    },
+    {
+      "id": "carbapenems",
+      "query": "карбапенемы",
+      "codes": ["J01DH"],
+      "drugs": ["меропенем", "имипенем-циластатин"]
+    },
+    { "id": "tetracyclines", "query": "тетрациклины", "codes": ["J01A"], "drugs": ["доксициклин"] },
+    {
+      "id": "ppi",
+      "query": "ингибиторы протонной помпы",
+      "codes": ["A02BC"],
+      "drugs": ["омепразол", "пантопразол", "эзомепразол"]
+    },
+    { "id": "ppi-abbr", "query": "ИПП", "codes": ["A02BC"], "drugs": ["омепразол", "пантопразол"] },
+    {
+      "id": "antihistamines",
+      "query": "антигистаминные",
+      "codes": ["R06"],
+      "drugs": ["лоратадин", "цетиризин"]
+    },
+    {
+      "id": "antivirals",
+      "query": "противовирусные",
+      "codes": ["J05"],
+      "drugs": ["ацикловир", "осельтамивир"]
+    },
+    {
+      "id": "antifungals",
+      "query": "противогрибковые",
+      "codes": ["J02", "D01"],
+      "drugs": ["флуконазол", "итраконазол"]
+    },
+    {
+      "id": "antiarrhythmics",
+      "query": "антиаритмики",
+      "codes": ["C01B"],
+      "drugs": ["амиодарон", "пропафенон"]
+    },
+    {
+      "id": "glycosides",
+      "query": "сердечные гликозиды",
+      "codes": ["C01A"],
+      "drugs": ["дигоксин"]
+    },
+    {
+      "id": "nitrates",
+      "query": "нитраты",
+      "codes": ["C01DA"],
+      "drugs": ["нитроглицерин", "изосорбида-динитрат"]
+    },
+    {
+      "id": "glucocorticoids",
+      "query": "глюкокортикостероиды",
+      "codes": ["H02A"],
+      "drugs": ["преднизолон", "дексаметазон"]
+    },
+    {
+      "id": "laxatives",
+      "query": "слабительные",
+      "codes": ["A06"],
+      "drugs": ["лактулоза", "бисакодил"]
+    },
+    {
+      "id": "insulins",
+      "query": "инсулины",
+      "codes": ["A10A"],
+      "drugs": ["инсулин-аспарт", "инсулин-гларгин"]
+    },
+    {
+      "id": "mucolytics",
+      "query": "муколитики",
+      "codes": ["R05CB"],
+      "drugs": ["ацетилцистеин", "амброксол"]
+    },
+    {
+      "id": "bronchodilators",
+      "query": "бронходилататоры",
+      "codes": ["R03"],
+      "drugs": ["сальбутамол", "ипратропия-бромид"]
+    },
+    {
+      "id": "antidiabetics",
+      "query": "сахароснижающие",
+      "codes": ["A10"],
+      "drugs": ["метформин", "глибенкламид"]
+    },
+    {
+      "id": "antihypertensives",
+      "query": "гипотензивные",
+      "codes": ["C09", "C08", "C07", "C03"],
+      "drugs": ["амлодипин", "эналаприл"]
+    }
+  ],
+  "negatives": [
+    "пневмония",
+    "аспирин",
+    "ибупрофен",
+    "гипертония",
+    "сахарный диабет",
+    "антибиотик амоксициллин",
+    "J01FA",
+    "боль в животе",
+    "лекарства от кашля",
+    "статин-индуцированная миопатия",
+    "группа крови"
+  ]
+}

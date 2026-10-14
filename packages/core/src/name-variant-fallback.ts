@@ -107,6 +107,7 @@ export function nameVariantCandidates(
 }
 
 const LETTER_WORD = /[a-zа-я]+/gu;
+const SHORT_LATIN_WORD = /^[a-z]{1,6}$/u;
 
 /**
  * The typed query with every misspelt word corrected to the closest beginning of a title or alias
@@ -128,6 +129,9 @@ export function spellingCorrection(
     const after = normalized[match.index + word.length];
     // «b12», «4-5» and similar tokens are codes and numbers, not names.
     if (/[0-9]/u.test(`${before ?? ''}${after ?? ''}`)) continue;
+    // A short Latin word is a term, a code or a stray word of pasted code («alert», «script»), not a
+    // slip of a name: one edit away from a rare Latin name («Apert») it would find nonsense.
+    if (SHORT_LATIN_WORD.test(word)) continue;
     const found = correctWord(word, vocabulary);
     if (!found) continue;
     corrected += normalized.slice(cursor, match.index) + found.corrected;

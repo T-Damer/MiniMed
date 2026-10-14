@@ -22,6 +22,24 @@ import { collapseGroupsByTargetDocument } from './query-group-ranking';
  */
 export interface DrugCodeDirectory {
   entries(): Promise<readonly AtcDirectoryEntry[]>;
+  /**
+   * Card ids (`esklp.mnn.<slug>`) of the homeopathic preparations, which carry no ATC code. With it,
+   * the main search puts them behind the ordinary drug cards that name the query (SRCH1).
+   */
+  homeopathicIds?(): Promise<ReadonlySet<string>>;
+  /**
+   * The drug class a whole query names («макролиды», «статинами»): its label and the ATC groups it
+   * stands for. The class words are the application's one vocabulary (the interaction check reads
+   * the same table); the core only asks. With it, the main search puts a class card and the drugs of
+   * the class in front of the text hits (`drug-class-search.ts`).
+   */
+  classOf?(query: string): Promise<DrugClassMatch | null>;
+}
+
+/** A class a query named: how to call it and the ATC groups (codes with their names) it stands for. */
+export interface DrugClassMatch {
+  readonly label: string;
+  readonly groups: readonly { readonly code: string; readonly name: string | null }[];
 }
 
 /** Matched-branch label of a result found by its code. */
@@ -72,13 +90,13 @@ export async function atcDrugGroups(input: {
       if (found.length >= input.limit) break;
     }
     if (found.length === 0) continue;
-    const groups = await groupsOf(found, input.readResults);
+    const groups = await atcResultGroups(found, input.readResults);
     if (groups.length > 0) return { query, groups };
   }
   return null;
 }
 
-async function groupsOf(
+export async function atcResultGroups(
   found: readonly { documentId: string; code: string; registryCode: string | null }[],
   readResults: ReadIdentityResults,
 ): Promise<readonly SearchResultGroup[]> {

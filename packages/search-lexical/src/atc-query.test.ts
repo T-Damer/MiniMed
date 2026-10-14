@@ -142,6 +142,27 @@ describe('matching a code', () => {
     expect(group.every((match) => !match.exact)).toBe(true);
   });
 
+  it('lists a card the registry coded only to level 2 with the rest of the group, not first (SRCH1)', () => {
+    const level2: AtcDirectoryEntry = {
+      id: 'v',
+      name: 'Яя вейника',
+      codes: ['J05'],
+    };
+    const group = findAtcEntries({ code: 'J05' }, [...entries, level2]);
+    expect(group.map((match) => match.entry.name)).toEqual([
+      'Ацикловир',
+      'Валганцикловир',
+      'Стаб',
+      'Умифеновир',
+      'Яя вейника',
+    ]);
+    expect(group.at(-1)).toMatchObject({ code: 'J05', exact: false });
+    // The deeper levels keep their exact-first order.
+    expect(
+      findAtcEntries({ code: 'J05A' }, [level2, ...entries]).map((m) => m.entry.id),
+    ).not.toContain('v');
+  });
+
   it('shows the matched code of a drug', () => {
     const found = findAtcEntries({ code: 'J05AB01' }, entries);
     expect(found.map((match) => [match.entry.id, match.code, match.exact])).toEqual([
