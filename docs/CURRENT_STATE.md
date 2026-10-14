@@ -4782,6 +4782,58 @@ Every card ends with a plain-text «Источник и редакция» secti
 ordinary text, not yet as a small footer). Not done: full act texts and tables (scans without a text
 layer), consolidated editions of the federal laws, a clinician review of the paraphrases.
 
+## Compact document opening — 2026-10-14 (DOC-UI1)
+
+Owner: «Keep all UI compact. You open a doc — you see some info about the topic as well as the text; you
+shouldn't scroll much to see actual info.» Measured at 375×812 with Playwright (`getBoundingClientRect` of
+the first rendered line of the document's own text, CSS px; the bottom navigation starts at 752):
+
+| Document | Before | After |
+| --- | --- | --- |
+| КР, installed (1006_1) | 255 | 241 (+ meta line) |
+| КР, short card with its download offer | 461 | 380 |
+| МКБ-10 card with its download offer (C74) | 440 | 371 |
+| Legal act, full text (1122н, 374н) | 255 | 241 (+ meta line) |
+| Term / definition card (terminology fixture) | 329 | 315 |
+| Reference article with picture (hero) | 497 | 414 |
+| User document (Markdown) | 271 | 258 |
+| Calculator, first input (unit conversion / Бишоп) | 162 / 235 | unchanged (already on the first screen) |
+| ГРЛС instruction text in the drug reader | 1173 | drug screen, DRUG-UI1 |
+
+What changed (reader = `OfficialDocumentReader`, shared by КР, acts, МКБ, references, terms):
+
+- **Meta line** (`reader-meta-line.ts`): one line under the title — kind (the search card's label), edition,
+  audience — replaces the uppercase source label. Verification, source links and catalogue fields stay in
+  «Сведения о документе» / the source section at the bottom.
+- **Title block** shorter: paper top padding 1 rem, header rule 0.5 rem below the title; the reference hero
+  picture is 36 vw tall (was 56 vw); a user document's idle header (only «Редактировать») is an icon button row.
+- **Stacked rows folded**: the ICD-11 mapping and the sick-leave periods use `Disclosure variant="inline"`
+  with the new `singleLine` option — flat 44 px rows with a hairline, no card, no wrapped title. The download
+  offer row (`DocumentModulePointer`) belongs to DL1 (request in STATE.md).
+- **«N / total» pager** no longer floats over the text: it is a chip at the right end of the sticky section-path
+  line (`ReaderSectionPath`, an opaque bar of the chrome). It appears once the reader has scrolled
+  (page 1 at the top is not shown), taps into the same in-place jump field, and the dock at the bottom-left is
+  the fallback only for readers without a path line (PDF has its own page box). The shell registers a
+  `ReaderPageHost` on its root (`reader-page-host.ts`); the line claims it from its DOM position. Also fixed:
+  `--document-heading-top` was measured only on resize/mutation, so after the chrome slid back the line stayed
+  under it — it is re-measured when the slide ends.
+- **Raw ids out of the UI**: `documentVersionLabel()` turns the version label «359_3» into «ред. 3» and drops
+  `site-<hash>` and other internal ids (result-card qualifier, «Редакция» row, print header, source label of a
+  medication link). A long external address in text shows its site name (`externalUrlLabel`: «publication.pravo.gov.ru»),
+  the full address stays in the link and its title.
+- **1122н**: the «open the current table of the annex» card text was the paraphrase release; since the full texts
+  (regulatory 2026.10.14) the act shows its annexes and tables, and the source section ends with a link named
+  by its site instead of the raw URL.
+- **Unreadable document links**: `#/modules/documents/d/%%%` (and any document address that does not parse)
+  shows «Документ не найден» with back and «Искать в базе» (`DocumentNotFound`); an address no source knows shows
+  «Документ не найден.» in the reader instead of the installation hint.
+
+Tests: unit (`document-version-label`, `reader-meta-line`, `external-url-label`); e2e `first-screen.spec.ts`
+(КР, act, ICD card, calculator, user document: first text line above the nav and under the limit, meta line,
+pager in the bar and not floating, damaged and unknown links), `reader-navigation.spec.ts` updated for the
+pager's new place; the clinical fixture reads the release copies from the main checkout. Not covered: a physical
+device; the instruction text's first-screen assertion lives with the drug screen (DRUG-UI1).
+
 ## Known limits
 
 

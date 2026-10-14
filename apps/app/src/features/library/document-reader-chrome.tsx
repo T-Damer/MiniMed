@@ -42,7 +42,7 @@ import { ReaderPageBubble } from '@/features/library/ReaderPageBubble';
 import {
   createReaderPageClaims,
   type ReaderPageHost,
-  ReaderPageHostContext,
+  registerReaderPageHost,
 } from '@/features/library/reader-page-host';
 import { useDocumentOutlineSwipe } from '@/features/library/use-document-outline-swipe';
 import type { DocumentTrail } from '@/state/document-trail';
@@ -530,8 +530,10 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
   };
 
   return (
-    <ReaderPageHostContext.Provider value={pageHost}>
+    <>
       <section
+        ref={(element) => registerReaderPageHost(element, pageHost)}
+        data-reader-page-root
         class={props.class ?? 'document-page page-surface page-grain'}
         classList={props.classList}
         aria-label={props.ariaLabel}
@@ -706,6 +708,6 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
           </div>
         </div>
       </section>
-    </ReaderPageHostContext.Provider>
+    </>
   );
 }

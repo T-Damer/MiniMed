@@ -1,4 +1,4 @@
-import { type Accessor, createContext, createSignal, useContext } from 'solid-js';
+import { type Accessor, createSignal } from 'solid-js';
 
 /**
  * Where the reader's page counter («12 / 94») lives. The shell owns the numbers; a surface inside
@@ -15,10 +15,19 @@ export interface ReaderPageHost {
   readonly claim: () => () => void;
 }
 
-export const ReaderPageHostContext = createContext<ReaderPageHost>();
+const hosts = new WeakMap<Element, ReaderPageHost>();
 
-export function useReaderPageHost(): ReaderPageHost | undefined {
-  return useContext(ReaderPageHostContext);
+/**
+ * The shell registers its host on its root element and the section-path line looks it up from its
+ * own place in the DOM (a context would depend on which owner happened to create the line).
+ */
+export function registerReaderPageHost(root: Element, host: ReaderPageHost): void {
+  hosts.set(root, host);
+}
+
+export function readerPageHostOf(element: Element | null | undefined): ReaderPageHost | undefined {
+  const root = element?.closest('[data-reader-page-root]');
+  return root ? hosts.get(root) : undefined;
 }
 
 /** Claim state of one reader shell: the count of surfaces that hold the counter. */

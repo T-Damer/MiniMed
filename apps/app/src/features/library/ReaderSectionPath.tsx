@@ -7,7 +7,7 @@ import {
   sectionTitlePath,
 } from '@/features/library/document-reader-section-path';
 import { ReaderPageBubble } from '@/features/library/ReaderPageBubble';
-import { useReaderPageHost } from '@/features/library/reader-page-host';
+import { type ReaderPageHost, readerPageHostOf } from '@/features/library/reader-page-host';
 
 import './reader-section-path.css';
 
@@ -27,7 +27,7 @@ const PAGE_LINE_SCROLL_PX = 160;
 export function ReaderSectionPath(): JSX.Element {
   const [path, setPath] = createSignal<readonly string[]>([], { equals: sameTitlePath });
   const [shown, setShown] = createSignal(false);
-  const pageHost = useReaderPageHost();
+  let pageHost: ReaderPageHost | undefined;
   const [hostsPages, setHostsPages] = createSignal(false);
   let anchor: HTMLDivElement | undefined;
   let line: HTMLDivElement | undefined;
@@ -35,6 +35,7 @@ export function ReaderSectionPath(): JSX.Element {
   onMount(() => {
     const paper = anchor?.closest<HTMLElement>('.document-overlay-paper');
     if (!anchor || !line || !paper) return;
+    pageHost = readerPageHostOf(anchor);
     if (pageHost) {
       const release = pageHost.claim();
       setHostsPages(true);
