@@ -38,7 +38,7 @@ _TABLE_SEPARATOR: Final = re.compile(r"^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)
 _ITEM_START: Final = re.compile(r"^(?:\d{1,3}(?:\.\d+)*[.)]\s|[а-яa-z]\)\s|[-•*+]\s)")
 _HEADING: Final = re.compile(r"^(#{1,6})\s+(.+?)\s*#*\s*$")
 _FOOTNOTE: Final = re.compile(r"^[⁰¹²³⁴⁵⁶⁷⁸⁹]+\s+\S")
-_BOLD_ONLY: Final = re.compile(r"^\*\*(.+?)\*\*$|^__(.+?)__$")
+_BOLD_ONLY: Final = re.compile(r"^\*\*(.+?)\*\*$|^__(?!_)(.+?)(?<!_)__$")
 _EMPHASIS: Final = re.compile(
     r"(\*\*|__)(?=\S)(.+?)(?<=\S)\1|(?<![\w*])\*(?=\S)([^*\n]+?)(?<=\S)\*(?![\w*])"
 )
@@ -165,8 +165,10 @@ def parse_blocks(
                     Block("paragraph", text, page, confidence=confidence, reviewed=reviewed)
                 )
             elif rows:
-                # a row without any text is a layout artefact of a merged cell, not a row of the act
-                rows = [rows[0], *[row for row in rows[1:] if any(cell for cell in row)]]
+                # a row without any text under a table that has text rows is a layout artefact of a merged cell;
+                # a blank form grid (every body row empty) is kept as it is
+                if any(any(cell for cell in row) for row in rows[1:]):
+                    rows = [rows[0], *[row for row in rows[1:] if any(cell for cell in row)]]
                 blocks.append(
                     Block("table", "", page, rows=rows, confidence=confidence, reviewed=reviewed)
                 )

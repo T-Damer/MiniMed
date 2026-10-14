@@ -26,7 +26,6 @@ AWAITING_FULL_TEXT = {
     "order-202n-adult-primary-care.md",
     "order-206n-qualification-requirements.md",
     "order-222n-neonatology.md",
-    "order-274n-sanatorium-forms.md",
     "order-374n-disability-criteria.md",
     "order-436n-qualification-requirements.md",
     "order-707n-qualification-requirements-superseded.md",

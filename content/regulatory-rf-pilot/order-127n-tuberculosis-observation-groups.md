@@ -323,9 +323,10 @@ metadata:
 <!-- localmed:source {"page":10,"reviewed":true} -->
 График приема врача-фтизиатра/(врача-фтизиатра участкового)
 
-<!-- localmed:source {"page":10,"reviewed":true,"renderBlock":{"kind":"table","caption":"","rows":[{"cells":[{"text":"№ кабинета","header":true,"rowSpan":1,"colSpan":1},{"text":"(фамилия, имя, отчество (при наличии) врача-фтизиатра/ (врача-фтизиатра участкового)","header":true,"rowSpan":1,"colSpan":1},{"text":"Пн","header":true,"rowSpan":1,"colSpan":1},{"text":"Вт","header":true,"rowSpan":1,"colSpan":1},{"text":"Ср","header":true,"rowSpan":1,"colSpan":1},{"text":"Чт","header":true,"rowSpan":1,"colSpan":1},{"text":"Пт","header":true,"rowSpan":1,"colSpan":1}]}]}} -->
+<!-- localmed:source {"page":10,"reviewed":true,"renderBlock":{"kind":"table","caption":"","rows":[{"cells":[{"text":"№ кабинета","header":true,"rowSpan":1,"colSpan":1},{"text":"(фамилия, имя, отчество (при наличии) врача-фтизиатра/ (врача-фтизиатра участкового)","header":true,"rowSpan":1,"colSpan":1},{"text":"Пн","header":true,"rowSpan":1,"colSpan":1},{"text":"Вт","header":true,"rowSpan":1,"colSpan":1},{"text":"Ср","header":true,"rowSpan":1,"colSpan":1},{"text":"Чт","header":true,"rowSpan":1,"colSpan":1},{"text":"Пт","header":true,"rowSpan":1,"colSpan":1}]},{"cells":[{"text":"","header":false,"rowSpan":1,"colSpan":1},{"text":"","header":false,"rowSpan":1,"colSpan":1},{"text":"","header":false,"rowSpan":1,"colSpan":1},{"text":"","header":false,"rowSpan":1,"colSpan":1},{"text":"","header":false,"rowSpan":1,"colSpan":1},{"text":"","header":false,"rowSpan":1,"colSpan":1},{"text":"","header":false,"rowSpan":1,"colSpan":1}]}]}} -->
 | № кабинета | (фамилия, имя, отчество (при наличии) врача-фтизиатра/ (врача-фтизиатра участкового) | Пн | Вт | Ср | Чт | Пт |
 | --- | --- | --- | --- | --- | --- | --- |
+|  |  |  |  |  |  |  |
 
 <!-- localmed:source {"page":10,"reviewed":true} -->
 Дата выдачи извещения « _ » ___ 20 ___ г.
