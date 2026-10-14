@@ -100,6 +100,21 @@ describe('places on the branch', () => {
     expect(stepsBackToPlace(placeOf('#/never'))).toBeNull();
   });
 
+  it('the search page with its query is the same place as its path; other queries keep the entry apart', async () => {
+    expect(placeOf('#/search?q=аспирин')).toBe(placeOf('#/search'));
+    expect(placeOf('#/search/section/medications?q=x')).toBe(
+      placeOf('#/search/section/medications'),
+    );
+    expect(placeOf('')).toBe(placeOf('#/search'));
+    expect(placeOf('#/notes/drug-interactions?c=a')).not.toBe(
+      placeOf('#/notes/drug-interactions?c=b'),
+    );
+    await link('#/search?q=аспирин');
+    await link('#/calculators/x');
+    // A tab tap to the search page lands on the entry the search was committed on.
+    expect(stepsBackToPlace(placeOf('#/search'))).toBe(-1);
+  });
+
   it('forgets the places above an entry once a new push replaces them', async () => {
     await link('#/a');
     await link('#/b');

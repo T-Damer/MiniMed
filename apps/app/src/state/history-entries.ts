@@ -261,7 +261,23 @@ export function stepsBackToPlace(place: string): number | null {
 
 /** The address of the entry the page is on, in the form {@link stepsBackToPlace} compares. */
 export function placeOf(hash: string, search = ''): string {
-  return `${search}${hash === '' ? HOME_HASH : hash}`;
+  return `${search}${normalizeHash(hash)}`;
+}
+
+/**
+ * The hash as a place is compared: the bare address is the search page, and the search page's
+ * query (`#/search?q=…`, `#/search/section/<id>?q=…`) is the same entry as its path — the query
+ * is written onto the current entry by replacing, never by a new step (search-query-route.ts).
+ */
+function normalizeHash(hash: string): string {
+  if (hash === '' || hash === '#' || hash === '#/') return HOME_HASH;
+  if (!/^#\/search(?:[/?]|$)/u.test(hash)) return hash;
+  const mark = hash.indexOf('?');
+  if (mark < 0) return hash;
+  const params = new URLSearchParams(hash.slice(mark + 1));
+  params.delete('q');
+  const rest = params.toString();
+  return rest === '' ? hash.slice(0, mark) : `${hash.slice(0, mark)}?${rest}`;
 }
 
 type ArrivalListener = (entry: HistoryEntryInfo, previous: HistoryEntryInfo | null) => void;
