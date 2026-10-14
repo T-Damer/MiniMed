@@ -240,7 +240,10 @@ test('fills form 070/у from a patient card, shows the rule behind a field and p
   await popup.close();
 
   // Typed values survive leaving the screen and coming back.
+  // Back is one step each: the form returns to the forms list, the list to the patient card.
   await page.getByRole('button', { name: 'Закрыть', exact: true }).click();
+  await page.getByRole('button', { name: 'Назад', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Формы', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'К карточке пациента' }).click();
   await expect(page.getByRole('heading', { name: 'Пациент для справки' })).toBeVisible();
   await page.getByRole('button', { name: 'Заполнить форму', exact: true }).click();
@@ -312,9 +315,8 @@ test('fills 072/у, 076/у, 079/у and 025-1/у from one patient and previews ev
 
   for (const [index, form] of NEW_FORMS.entries()) {
     if (index > 0) {
-      // Back to the patient card and the list; a reload would lock the vault again.
-      await page.getByRole('button', { name: 'К карточке пациента' }).click();
-      await page.getByRole('button', { name: 'Заполнить форму', exact: true }).click();
+      // Back to the forms list (one step); a reload would lock the vault again.
+      await page.getByRole('button', { name: 'Назад', exact: true }).click();
     }
     await fillButton(page, form.slug.replace('u', '/у')).click();
     await expect(page).toHaveURL(
@@ -377,8 +379,7 @@ test('fills the referral 057/у (order 519н) from one patient: prefill, underli
   const comingReference = page.locator('.forms-workspace__reference');
   await expect(comingReference).toContainText('Вступает в силу с 01.03.2027.');
   await expect(comingReference).not.toContainText('Действует с');
-  await page.getByRole('button', { name: 'К карточке пациента' }).click();
-  await page.getByRole('button', { name: 'Заполнить форму', exact: true }).click();
+  await page.getByRole('button', { name: 'Назад', exact: true }).click();
   await fillButton(page, '057/у').click();
   await expect(page).toHaveURL(/#\/notes\/forms\/ru\.minzdrav\.519n\.057u\?patient=/u);
   const reference = page.locator('.forms-workspace__reference');
@@ -538,10 +539,7 @@ test('opens 088/у, the prescription blanks, the certificates and 058/у, prefil
   await expect(page.getByRole('heading', { name: 'Формы', exact: true })).toBeVisible();
 
   for (const [index, form] of F3_FORMS.entries()) {
-    if (index > 0) {
-      await page.getByRole('button', { name: 'К карточке пациента' }).click();
-      await page.getByRole('button', { name: 'Заполнить форму', exact: true }).click();
-    }
+    if (index > 0) await page.getByRole('button', { name: 'Назад', exact: true }).click();
     await fillButton(page, form.number).click();
     await expect(
       page.locator('#form-field-patientFullName, #form-field-organization').first(),

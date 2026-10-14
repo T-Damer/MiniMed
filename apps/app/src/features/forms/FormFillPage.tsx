@@ -310,7 +310,8 @@ export function FormFillPage(props: FormFillPageProps): JSX.Element {
         navigation={
           <NavBack
             class="knowledge-back-button"
-            aria-label={props.patientId ? 'К карточке пациента' : 'К списку форм'}
+            /* One step back, wherever the form was opened from (usually the forms list). */
+            aria-label="Назад"
             onClick={back}
           />
         }

@@ -1,5 +1,14 @@
-import { type Accessor, createSignal, For, type JSX, lazy, Show, Suspense } from 'solid-js';
-
+import {
+  type Accessor,
+  createSignal,
+  For,
+  type JSX,
+  lazy,
+  onCleanup,
+  Show,
+  Suspense,
+} from 'solid-js';
+import { watchNavCrowding } from '@/app/nav-crowding';
 import type { RootView, RootViewItem } from '@/app/root-view';
 import { AppGlyph } from '@/components/AppGlyph';
 import {
@@ -47,7 +56,10 @@ export function AppBottomNav(props: {
     isHomeAppUpdateVisible(props.appUpdateVersion(), ignoredAppUpdates());
   return (
     <nav
-      ref={props.bindNav}
+      ref={(element) => {
+        props.bindNav(element);
+        onCleanup(watchNavCrowding(element));
+      }}
       class="app-bottom-nav"
       data-tour="nav"
       classList={{

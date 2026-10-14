@@ -61,7 +61,15 @@
    row, beside the bar, instead of floating over the content above it. */
 .floating-window-controls {
   --floating-control-bottom: calc(0.625rem + var(--nav-safe-bottom, 0px) + 0.40625rem);
-  bottom: var(--floating-control-bottom);
+  --floating-control-above-nav: calc(var(--bottom-nav-clearance) + 0.25rem);
+  /* `--nav-crowded` (set by the bar, `app/nav-crowding.ts`) is 1 when a five- or six-tab bar on a
+     phone leaves no room beside it: the tools then stand above the bar so it never covers them. */
+  bottom: calc(
+    var(--floating-control-bottom) *
+    (1 - var(--nav-crowded, 0)) +
+    var(--floating-control-above-nav) *
+    var(--nav-crowded, 0)
+  );
 }
 
 /* The loading ring is a badge on the corner of the settings tab; its hit area reaches outwards
