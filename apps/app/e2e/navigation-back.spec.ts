@@ -109,6 +109,7 @@ test.describe('back returns where the user came from', () => {
   test('tab switches share one history: a round trip adds no entries and back returns to the tab used before', async ({
     page,
   }) => {
+    const warnings = collectFocusWarnings(page);
     const nav = page.locator('.app-bottom-nav');
     await waitForHomeSections(page);
     const start = await place(page);
@@ -129,6 +130,8 @@ test.describe('back returns where the user came from', () => {
     await page.goBack();
     await expect(page.getByTestId('search-input')).toBeVisible();
     await expect(page).not.toHaveURL(/#\/settings/u);
+    // Leaving a tab with the focus inside it must not log «Blocked aria-hidden».
+    expect(warnings).toEqual([]);
   });
 
   test('the section menu and the «?» help are layers: back closes them, the page stays', async ({
@@ -140,6 +143,14 @@ test.describe('back returns where the user came from', () => {
     await picker.click();
     await expect(page.locator('.search-section-menu__row').first()).toBeVisible();
     await page.goBack();
+    await expect(page.locator('.search-section-menu__row')).toHaveCount(0);
+    expect((await place(page)).hash).toBe(start.hash);
+    await expect(page.getByTestId('search-input')).toBeVisible();
+
+    // A tap outside the sheet closes the layer too.
+    await picker.click();
+    await expect(page.locator('.search-section-menu__row').first()).toBeVisible();
+    await page.locator('.overlay-backdrop').click({ position: { x: 8, y: 8 } });
     await expect(page.locator('.search-section-menu__row')).toHaveCount(0);
     expect((await place(page)).hash).toBe(start.hash);
     await expect(page.getByTestId('search-input')).toBeVisible();

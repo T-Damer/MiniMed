@@ -29,14 +29,23 @@ export interface ReaderJumpHistory {
 }
 
 export function createReaderJumpHistory(options: {
-  /** The entry the reader was made for. */
-  readonly entryId: string;
+  /**
+   * The entry the reader was made for. Absent when the reader was made while the history stood on
+   * a dead layer about to be stepped over (back from a document opened out of a preview): the
+   * reader then adopts the page entry the history lands on.
+   */
+  readonly entryId?: string;
   /** Puts the reader at a saved position (history arrived on one of its entries). */
   readonly restore: (position: ReaderPosition) => void;
 }): ReaderJumpHistory {
-  const owned = new Set<string>([options.entryId]);
+  const owned = new Set<string>(options.entryId === undefined ? [] : [options.entryId]);
+  let adopting = options.entryId === undefined;
   const stopArrival = onHistoryArrival((entry: HistoryEntryInfo, previous) => {
     if (previous?.id === entry.id) return;
+    if (adopting && !entry.layer) {
+      owned.add(entry.id);
+      adopting = false;
+    }
     if (!owned.has(entry.id) || !entry.position) return;
     options.restore(entry.position);
   });

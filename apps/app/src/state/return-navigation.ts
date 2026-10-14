@@ -1,5 +1,6 @@
 import { isDocumentReadRoute } from '@/state/document-route';
 import { placeOf, stepsBackToPlace } from '@/state/history-entries';
+import { goBackToPlace } from '@/state/history-layer';
 
 export interface ReturnToLocation {
   readonly hash: string;
@@ -61,7 +62,7 @@ export function restoreReturnTo(
 ): void {
   const steps = stepsBackToPlace(placeOf(location.hash, location.search));
   if (steps !== null && steps < 0) {
-    window.history.go(steps);
+    goBackToPlace(steps);
     return;
   }
   const oldURL = window.location.href;

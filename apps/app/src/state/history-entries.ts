@@ -76,6 +76,8 @@ export function withHistoryEntry(state: unknown, entry: HistoryEntryInfo): Recor
   return { ...(isRecord(state) ? state : {}), [ENTRY_KEY]: entry };
 }
 
+export type NavigationKind = 'push' | 'replace' | 'traverse' | 'reload';
+
 export interface HistoryObservation {
   readonly state: unknown;
   readonly length: number;
@@ -83,15 +85,31 @@ export interface HistoryObservation {
   readonly previous: HistoryEntryInfo | null;
   /** `history.length` at the previous observation. */
   readonly previousLength: number;
+  /**
+   * What the Navigation API reported since the previous observation, when the browser has it: the
+   * only way to tell a push that cut off forward entries (the length does not change) from an
+   * entry whose state was replaced.
+   */
+  readonly navigation?: ReadonlySet<NavigationKind>;
 }
 
 /** The entry to stamp on an unstamped arrival; `null` when the state already carries a stamp. */
 export function classifyArrival(observation: HistoryObservation): HistoryEntryInfo | null {
   if (readHistoryEntry(observation.state)) return null;
-  const pushed = observation.length > observation.previousLength && observation.previous !== null;
+  const { previous, navigation } = observation;
+  let pushed: boolean;
+  if (navigation && navigation.size > 0 && previous !== null) {
+    if (navigation.has('push')) pushed = true;
+    else if (navigation.has('replace')) {
+      // The same entry with its state replaced: it keeps its place.
+      return { id: newEntryId(), depth: previous.depth };
+    } else pushed = false;
+  } else {
+    pushed = observation.length > observation.previousLength && previous !== null;
+  }
   return {
     id: newEntryId(),
-    depth: pushed && observation.previous ? observation.previous.depth + 1 : 0,
+    depth: pushed && previous ? previous.depth + 1 : 0,
   };
 }
 
@@ -107,6 +125,21 @@ function newEntryId(): string {
 
 let lastEntry: HistoryEntryInfo | null = null;
 let lastLength = 0;
+/** What the Navigation API said happened since the last observation (empty without the API). */
+let seenNavigations: Set<NavigationKind> = new Set();
+
+interface NavigateEventLike extends Event {
+  readonly navigationType?: string;
+}
+interface NavigationLike {
+  addEventListener(type: 'navigate', listener: (event: NavigateEventLike) => void): void;
+  removeEventListener(type: 'navigate', listener: (event: NavigateEventLike) => void): void;
+}
+
+function navigationApi(): NavigationLike | null {
+  const candidate = (window as unknown as { navigation?: NavigationLike }).navigation;
+  return candidate && typeof candidate.addEventListener === 'function' ? candidate : null;
+}
 
 /**
  * Where the entries of the current branch point: `places[depth]` is the address (search and hash)
@@ -116,8 +149,11 @@ let lastLength = 0;
  */
 const places: string[] = [];
 
+/** The address a tab opens on (no hash at all) is the search page. */
+const HOME_HASH = '#/search';
+
 function currentPlace(): string {
-  return `${window.location.search}${window.location.hash}`;
+  return placeOf(window.location.hash, window.location.search);
 }
 
 function recordPlace(entry: HistoryEntryInfo, restart: 'none' | 'branch' | 'all'): void {
@@ -137,7 +173,9 @@ export function observeHistoryEntry(): HistoryEntryInfo {
     length: window.history.length,
     previous: lastEntry,
     previousLength: lastLength,
+    navigation: seenNavigations,
   });
+  seenNavigations = new Set();
   const entry = stamp ?? (readHistoryEntry(state) as HistoryEntryInfo);
   if (stamp) window.history.replaceState(withHistoryEntry(state, stamp), '');
   // A stamped arrival is a traversal and only refreshes its own place; a push drops the entries
@@ -158,8 +196,14 @@ export function pushStampedEntry(state: unknown, layer: boolean): HistoryEntryIn
     id: newEntryId(),
     depth: below.depth + 1,
     ...(layer ? { layer: true } : {}),
+    // A layer covers the page: it carries the reading place of the page under it (a reload on the
+    // layer brings the page back at that place), and none of the page's other state — the
+    // page's own code must not mistake the layer for its entry.
+    ...(layer && below.position ? { position: below.position } : {}),
   };
-  window.history.pushState(withHistoryEntry(state, entry), '', window.location.href);
+  window.history.pushState(withHistoryEntry(layer ? null : state, entry), '', window.location.href);
+  // This push is stamped here: the Navigation API's note of it must not colour a later arrival.
+  seenNavigations = new Set();
   recordPlace(entry, 'branch');
   lastEntry = entry;
   lastLength = window.history.length;
@@ -180,7 +224,7 @@ export function stepsBackToPlace(place: string): number | null {
 
 /** The address of the entry the page is on, in the form {@link stepsBackToPlace} compares. */
 export function placeOf(hash: string, search = ''): string {
-  return `${search}${hash}`;
+  return `${search}${hash === '' ? HOME_HASH : hash}`;
 }
 
 type ArrivalListener = (entry: HistoryEntryInfo, previous: HistoryEntryInfo | null) => void;
@@ -259,6 +303,13 @@ export function installHistoryEntryTracking(): () => void {
   const flushOnHide = (): void => {
     if (document.visibilityState === 'hidden') flushReaderPositions();
   };
+  const noteNavigation = (event: NavigateEventLike): void => {
+    const kind = event.navigationType;
+    if (kind === 'push' || kind === 'replace' || kind === 'traverse' || kind === 'reload') {
+      seenNavigations.add(kind);
+    }
+  };
+  navigationApi()?.addEventListener('navigate', noteNavigation);
   window.addEventListener('hashchange', observe);
   window.addEventListener('popstate', observe);
   window.addEventListener('click', flushReaderPositions, true);
@@ -266,6 +317,7 @@ export function installHistoryEntryTracking(): () => void {
   window.addEventListener('pagehide', flushReaderPositions);
   document.addEventListener('visibilitychange', flushOnHide);
   return () => {
+    navigationApi()?.removeEventListener('navigate', noteNavigation);
     window.removeEventListener('hashchange', observe);
     window.removeEventListener('popstate', observe);
     window.removeEventListener('click', flushReaderPositions, true);
@@ -279,6 +331,7 @@ export function installHistoryEntryTracking(): () => void {
 export function resetHistoryEntryTrackingForTests(): void {
   lastEntry = null;
   lastLength = 0;
+  seenNavigations = new Set();
   places.length = 0;
   flushers.clear();
   arrivalListeners.clear();

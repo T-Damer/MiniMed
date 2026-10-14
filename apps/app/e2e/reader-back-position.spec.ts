@@ -118,7 +118,9 @@ for (const viewport of VIEWPORTS) {
         expect((await snapshot(page)).scrollY).toBe(0);
       }
       const opened = await snapshot(page);
-      expect(opened.entries).toBe(entriesAtA + 1);
+      // The term preview was a history layer: its entry stays under B as a dead one, which back
+      // steps over (below), so B is two entries above A.
+      expect(opened.entries).toBe(entriesAtA + 2);
       await expect(page.locator('.document-overlay-paper__title').first()).toBeInViewport();
 
       // The app's back pops: A returns, the history does not grow.
@@ -127,7 +129,7 @@ for (const viewport of VIEWPORTS) {
       await expect(page.locator('.document-overlay-section').first()).toBeAttached();
       await expectPlaceRestored(page, left);
       const back = await snapshot(page);
-      expect(back.entries).toBe(entriesAtA + 1);
+      expect(back.entries).toBe(entriesAtA + 2);
       expect(back.scrollY).toBeGreaterThan(1000);
 
       // And once more: back to the search, still without growing; a system back then leaves to the
@@ -135,10 +137,10 @@ for (const viewport of VIEWPORTS) {
       await page.getByRole('button', { name: 'Назад' }).first().click();
       await expect(page.getByTestId('search-input')).toBeVisible();
       expect(new URL(page.url()).hash).not.toContain('/modules/documents/d/');
-      expect((await snapshot(page)).entries).toBe(entriesAtA + 1);
+      expect((await snapshot(page)).entries).toBe(entriesAtA + 2);
       await page.goBack();
       await expect(page.locator('.document-overlay-section').first()).toBeVisible();
-      expect((await snapshot(page)).entries).toBe(entriesAtA + 1);
+      expect((await snapshot(page)).entries).toBe(entriesAtA + 2);
     });
 
     test('the system back and forward follow the same path: places restored, breadcrumbs follow', async ({

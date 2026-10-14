@@ -47,6 +47,7 @@ import { ReaderDictionaryHost } from '@/features/reader-dictionary/ReaderDiction
 import { searchCoreStatus } from '@/features/search/search-core-status';
 import { requestSettingsPage } from '@/features/settings/settings-routing';
 import { holdCoreStart, isSetupDismissed, releaseCoreStart } from '@/features/setup/setup-state';
+import { visitRoute } from '@/state/app-back';
 import {
   getFloatingWindowsEnabled,
   getSplitNavigation,
@@ -144,8 +145,10 @@ export function App(): JSX.Element {
     expandedNavigation() ? navigation.view() : compactRootView(navigation.view(), currentHash());
   const navigateTab = (next: RootView): void => {
     if (!expandedNavigation() && next === 'notes') {
-      window.location.hash =
-        navView() === 'notes' ? USER_LIBRARY_CATALOG_HASH : filesTabHash(lastPersonalHash);
+      // «Мои файлы» is a tab like the others: a place the history may already hold is stepped back to.
+      visitRoute(
+        navView() === 'notes' ? USER_LIBRARY_CATALOG_HASH : filesTabHash(lastPersonalHash),
+      );
       return;
     }
     navigation.navigate(next);

@@ -3,6 +3,7 @@ import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { NavBack } from '@/components/NavBack';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import { navigatingToParent } from '@/state/app-back';
 import {
   consumeAndRestoreReturnTo,
   peekReturnTo,
@@ -38,7 +39,8 @@ export function NavBackWithReturnTo(props: {
 
   const navigateToCatalog = (): void => {
     closeChooser();
-    props.onBackToCatalog();
+    // The parent by the user's choice, not the entry below (which may be where they came from).
+    navigatingToParent(() => props.onBackToCatalog());
   };
 
   const navigateToReturnTo = (): void => {

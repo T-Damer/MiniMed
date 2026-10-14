@@ -88,6 +88,7 @@ import {
   getContentModuleRuntime,
   peekContentModuleRuntime,
 } from '@/features/modules/module-runtime-service';
+import { canStepBack } from '@/state/app-back';
 import { canonicalDocumentId, isSameDocumentIdentity } from '@/state/document-identity';
 import {
   consumePreferSummaryDocumentId,
@@ -113,7 +114,7 @@ import {
   updateCurrentCrumbDocument,
   updateCurrentCrumbTitle,
 } from '@/state/document-trail';
-import { hasInAppPreviousEntry } from '@/state/history-entries';
+import { stepHistoryBackOnce } from '@/state/history-layer';
 
 interface DocumentPageHostProps {
   readonly getCore: () => MedicalCore | undefined;
@@ -296,8 +297,8 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     // The place the reader's back control leads to is the entry below this one: go there by
     // stepping back, so a crumb tap behaves like «Назад» instead of stacking the page again.
     if (!options?.replace && current && href === documentReaderBackTarget(current)) {
-      if (hasInAppPreviousEntry()) {
-        window.history.back();
+      if (canStepBack()) {
+        stepHistoryBackOnce();
         return;
       }
     }

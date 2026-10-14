@@ -199,7 +199,6 @@ export function PatientVaultUnlock(props: {
         open={!attempting() && !opened()}
         title={dialog.title}
         class="patient-vault-dialog"
-        tracksHistory={false}
         onClose={dialog.onClose}
       >
         {card()}

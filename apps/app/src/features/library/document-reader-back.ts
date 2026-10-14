@@ -1,5 +1,6 @@
+import { canStepBack } from '@/state/app-back';
 import { type DocumentTrail, sliceTrailToCrumb } from '@/state/document-trail';
-import { hasInAppPreviousEntry } from '@/state/history-entries';
+import { stepHistoryBackOnce } from '@/state/history-layer';
 
 export interface DocumentNavigateOptions {
   /** Take the current history entry instead of adding one (no way back to the page being left). */
@@ -27,8 +28,8 @@ export function navigateDocumentReaderBack(
   trail: DocumentTrail | null | undefined,
   onNavigate: DocumentNavigate | undefined,
 ): void {
-  if (hasInAppPreviousEntry()) {
-    window.history.back();
+  if (canStepBack()) {
+    stepHistoryBackOnce();
     return;
   }
   if (trail && trail.crumbs.length > 1 && onNavigate) {

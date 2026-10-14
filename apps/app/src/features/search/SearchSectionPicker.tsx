@@ -25,6 +25,7 @@ import type { SearchSectionDownloads } from '@/features/search/useSearchSectionD
 import { SETTINGS_DOWNLOADS_HASH } from '@/features/settings/settings-routing';
 import { formatCount } from '@/i18n/format-count';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
+import { afterLayersClosed } from '@/state/history-layer';
 
 export function SearchSectionPicker(props: {
   readonly loading: boolean;
@@ -71,8 +72,10 @@ export function SearchSectionPicker(props: {
     onCleanup(() => window.removeEventListener('scroll', close));
   });
   const select = (scope: SearchScope, group?: string): void => {
-    props.onSelect(scope, group);
+    // The sheet closes first (its history layer comes off); the section then changes the page's
+    // own address, not the closed layer's.
     setOpen(false);
+    afterLayersClosed(() => props.onSelect(scope, group));
   };
   return (
     <SheetPopover

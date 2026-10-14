@@ -88,6 +88,8 @@ export interface UseDocumentReaderChromeOptions {
   /** Track how far through the active section the reader is (needs sections that nest their children). */
   readonly measureFraction?: boolean;
   readonly onBeforeScrollTo?: (anchor: string) => void;
+  /** A user jump is about to start, with the place it leaves from (the reader's history step). */
+  readonly onBeforeJump?: (anchor: string, from: string) => void;
   readonly onScrollTo?: (anchor: string, element: HTMLElement | null) => void;
 }
 
@@ -368,6 +370,8 @@ export function useDocumentReaderChrome(
 
   const scrollTo = (anchor: string, jump?: { readonly fraction?: number }): void => {
     const fraction = clamp01(jump?.fraction ?? 0);
+    // Before the reader's place moves: the jump may need to remember where it left from.
+    options.onBeforeJump?.(anchor, activeAnchor());
     setActiveAnchor(anchor);
     setActiveFraction(fraction);
     if (!isDesktopReaderLayout()) {

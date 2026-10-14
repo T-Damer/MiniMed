@@ -35,7 +35,6 @@ export function OcrLanguagePackSheet(props: OcrLanguagePackSheetProps): JSX.Elem
       open={props.open}
       title="Распознавание текста"
       describedBy={descriptionId}
-      tracksHistory={false}
       class="ocr-pack-sheet"
       onClose={props.onClose}
     >

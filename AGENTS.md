@@ -224,6 +224,16 @@ reported.
   loading → partial → loading → full flicker; background data refreshes never replace visible
   content with a loader.
 
+## Navigation (user decision, 2026-10-14)
+
+- Back returns where the user came from, with state intact. The in-app ‹, the browser back and Android back are one
+  history step (`state/app-back.ts`); each peels exactly one layer. A ‹ calls `navigateBack(parentHash)`, never
+  `window.location.hash = parent` (that pushes, and the history grows with every back press).
+- Sheets, popovers, previews and menus are history layers (`OverlayDialog`, `SheetPopover` or `useHistoryLayer`), not
+  private state. Close-then-navigate is safe; navigate from inside a layer, do not close it with a timer first.
+- Tabs share one history (`visitRoute`); a tool keeps its state in its address (`replaceToolUrl`) so back and tab round trips
+  restore it. Details and the rejected alternatives: `docs/CURRENT_STATE.md` «Back returns where the user came from».
+
 ## Native sticky chrome
 
 - Read `docs/NATIVE_STICKY_CHROME.md` before changing safe-area, sticky-header, backdrop blur/grain,

@@ -1678,12 +1678,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
           )}
         </Show>
       </OverlayDialog>
-      <OverlayDialog
-        open={discardOpen()}
-        title="Несохранённый черновик"
-        tracksHistory={false}
-        onClose={stayInDraft}
-      >
+      <OverlayDialog open={discardOpen()} title="Несохранённый черновик" onClose={stayInDraft}>
         <p class="user-document-reader__discard-copy">
           В черновике есть изменения. Сохранить их перед выходом?
         </p>

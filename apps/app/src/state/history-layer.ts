@@ -63,7 +63,36 @@ function handleArrival(entry: HistoryEntryInfo, previous: HistoryEntryInfo | nul
   }
 }
 
-function stepBack(): void {
+/**
+ * A layer whose component has closed and whose entry is still to be taken off (one task later, so
+ * that *close, then navigate* is not a race).
+ */
+interface PendingPop {
+  readonly layerId: string;
+  done: boolean;
+}
+const pendingPops: PendingPop[] = [];
+
+/** How many closed layers still sit on top of the page the history is on. */
+export function pendingLayerPops(): number {
+  const id = currentHistoryEntry().id;
+  return pendingPops.filter((pop) => !pop.done && pop.layerId === id).length;
+}
+
+/** Takes over the pending pops: the caller's own history step covers them. Returns how many. */
+function consumePendingLayerPops(): number {
+  const id = currentHistoryEntry().id;
+  let consumed = 0;
+  for (const pop of pendingPops) {
+    if (!pop.done && pop.layerId === id) {
+      pop.done = true;
+      consumed += 1;
+    }
+  }
+  return consumed;
+}
+
+function stepBack(steps = 1): void {
   const settled = new Promise<void>((resolve) => {
     let timer: ReturnType<typeof setTimeout> | undefined;
     const done = (): void => {
@@ -77,7 +106,47 @@ function stepBack(): void {
     timer = setTimeout(done, 300);
   });
   pendingStep = settled;
-  window.history.back();
+  if (steps === 1) window.history.back();
+  else window.history.go(-steps);
+}
+
+/**
+ * Steps the history back by one entry *of the page*: layers that have just closed (and whose entry
+ * is not off yet) are stepped over in the same traversal, so *close a dialog, then go back* is two
+ * entries in one step. A second request while the first step is on its way (a double tap on ‹) is
+ * ignored: it would take the page two levels up.
+ */
+export function stepHistoryBackOnce(): void {
+  if (pendingStep) return;
+  stepBack(1 + consumePendingLayerPops());
+}
+
+/**
+ * Steps the history by `steps` (negative) entries counted from the entry the page is on now, as
+ * `stepsBackToPlace` measures them. Closed layers waiting to be taken off are covered by the step.
+ */
+export function goBackToPlace(steps: number): void {
+  consumePendingLayerPops();
+  window.history.go(steps);
+}
+
+/**
+ * Runs `run` once no layer is left on top of the page: the closed layers' entries are off and the
+ * traversal that took them has arrived. For a choice made in a sheet that changes the page's own
+ * address (the section menu): it must act on the page's entry, not on the closed layer's.
+ */
+export function afterLayersClosed(run: () => void): void {
+  const started = Date.now();
+  const check = (): void => {
+    const settling = pendingPops.some((pop) => !pop.done) || pendingStep !== undefined;
+    if (!settling || Date.now() - started > 500) {
+      run();
+      return;
+    }
+    setTimeout(check, 16);
+  };
+  // The pops are scheduled one task later than the close that precedes this call.
+  setTimeout(check, 0);
 }
 
 /** Whether a layer is open over the page. */
@@ -109,7 +178,7 @@ export function openHistoryLayer(options: HistoryLayerOptions): HistoryLayer {
 
   const open = (): void => {
     if (disposed) return;
-    const entry = pushStampedEntry(window.history.state, true);
+    const entry = pushStampedEntry(null, true);
     layerId = entry.id;
     live.push({ id: entry.id, onPop: options.onPop });
   };
@@ -150,7 +219,11 @@ export function openHistoryLayer(options: HistoryLayerOptions): HistoryLayer {
       // A component that closes and then navigates (a link in a sheet, «Открыть» in a preview) is
       // not racing the step back: by the time this runs the new page is on top of the layer's
       // entry, which stays below it as a dead layer, and nothing is stepped back.
+      const pending: PendingPop = { layerId: layer.id, done: false };
+      pendingPops.push(pending);
       setTimeout(() => {
+        pendingPops.splice(pendingPops.indexOf(pending), 1);
+        if (pending.done) return;
         if (currentHistoryEntry().id === layer.id) stepBack();
       }, 0);
     },
@@ -160,6 +233,7 @@ export function openHistoryLayer(options: HistoryLayerOptions): HistoryLayer {
 /** For tests: forgets every layer and the listener. */
 export function resetHistoryLayersForTests(): void {
   live.length = 0;
+  pendingPops.length = 0;
   listening?.();
   listening = undefined;
   pendingStep = undefined;

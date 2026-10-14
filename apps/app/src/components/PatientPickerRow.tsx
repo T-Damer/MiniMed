@@ -129,7 +129,6 @@ export function PatientPickerRow(props: PatientPickerRowProps): JSX.Element {
       <OverlayDialog
         open={open()}
         title="Пациент"
-        tracksHistory={false}
         class="patient-picker-dialog"
         bodyClass="patient-picker-dialog__body"
         onClose={close}

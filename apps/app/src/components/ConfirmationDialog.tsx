@@ -29,7 +29,6 @@ export function ConfirmationDialog(props: ConfirmationDialogProps): JSX.Element 
       title={props.title}
       role="alertdialog"
       describedBy={descriptionId}
-      tracksHistory={false}
       class="confirmation-sheet"
       onClose={cancel}
     >

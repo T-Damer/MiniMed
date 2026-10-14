@@ -588,7 +588,6 @@ export function NoteDrawingEditor(props: {
       subtitle="Excalidraw сохраняется как редактируемое офлайн-вложение"
       class={`note-drawing-dialog${fullscreen() ? ' note-drawing-dialog--fullscreen' : ''}`}
       bodyClass="note-drawing-dialog__body"
-      tracksHistory={false}
       onClose={props.onCancel}
     >
       <div class="note-drawing-editor">

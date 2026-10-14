@@ -703,7 +703,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       if (id === undefined || id === 'all') {
         if (current) {
           if (ownsSectionEntry()) window.history.back();
-          else window.history.replaceState(null, '', '#/search');
+          else window.history.replaceState(window.history.state, '', '#/search');
         }
         if (previous !== undefined && id === undefined) {
           restoreScroll(listScroll);

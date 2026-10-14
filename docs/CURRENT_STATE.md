@@ -279,6 +279,62 @@ QA ([qa-haiku-2026-10-14](research/qa-haiku-2026-10-14.md) «Data safety») lost
   visit note reloaded 0.5/2/5/12 s after typing and at once, visit note kept after create and after a closed visit,
   double «Создать осмотр», row layout at 375 px.
 
+## Back returns where the user came from — 2026-10-14 (STATE NAV1)
+
+Owner principle (QA pass `docs/research/qa-haiku-2026-10-14.md` «Navigation»): a tool opened from search returns to the
+search results — same query, same scroll — not to the tools catalogue; the in-app ‹, the browser back and Android's
+hardware back agree, and each peels exactly one layer. One model, in `state/app-back.ts`:
+
+- **Back is a history step.** ‹ is `navigateBack(parent)`: with an app entry below (`hasInAppPreviousEntry()`) the history
+  steps back (`stepHistoryBackOnce()`, so a double tap cannot take the page two levels up); with none (a deep link in a
+  fresh tab, a reload of an old entry) the screen is *replaced* by its logical parent — a back control never pushes. All
+  ‹ controls of the app (calculators, assessments, news, settings, notes, knowledge base, conditions, forms, ATC list …)
+  and `returnFromTool` / `restoreReturnTo` / `leaveTool` use it. The reader's ‹ was already right and is unchanged.
+- **Android back** (`use-native-back.ts`, `native-back.ts`): open dialogs first (their close button), then any history layer
+  (`popTopHistoryLayer`), then the DOM-owned modes (find bar, search drawer, section ‹, print), then `backOneLayer`:
+  history step → parent screen → home tab (`#/search`) → minimise, only from the home tab. Native validation needs a
+  device and was **not run**; the web history model is what the native handler calls.
+- **Layers** (`state/history-layer.ts`, `use-history-layer.ts`): `OverlayDialog`, `SheetPopover` (the «?» help and the
+  «Раздел поиска» menu, sheet and wide popover alike), the inline link preview and every other sheet push one stamped entry
+  at the same address; back, Android back and a swipe close exactly that layer; Escape and a tap outside close the
+  component, whose cleanup takes the entry off (deferred one task, so *close, then navigate* never races its own step back).
+  A navigation made from a layer (a level link in the ATC sheet, a section chosen in a menu) closes it and leaves a *dead*
+  entry; the history steps over dead entries in the direction it was going, so one back from the destination lands on the
+  page under the layer (no phantom step). A reload on a layer entry turns it into a page. The ATC sheet no longer closes
+  and then navigates with a timer.
+- **Entry classification** (`state/history-entries.ts`): `history.length` cannot tell a push that cut off forward entries
+  from a replaced state, so a link taken after a back step was stamped as "no app entry below" (‹ then replaced instead of
+  stepping back). The tracker now reads the Navigation API (`navigate` events: push / replace / traverse) where it exists
+  (Chromium, Android WebView) and keeps the length heuristic elsewhere. The tracker also keeps the address of every entry of
+  the branch (`stepsBackToPlace`) and notifies arrival listeners.
+- **Tabs share the one history.** A tab tap goes to the place the tab was left at (hash and query): if the branch already
+  holds that place the history steps back to it (`visitRoute`), otherwise it pushes; re-tapping the active tab steps back to
+  its first screen or replaces. So a round trip A → B → A adds no entries, back from a tab's first screen returns to the tab
+  used before, and the app is left only from the entry the session began on (Android: minimise only from the home tab). The
+  tab bar no longer replaces the entry (which left the previous tab's layers in the history and reset the depth stamp).
+  Rejected: per-tab stacks inside the one browser history (a tab's layers would leak into the next tab's back).
+- **Scroll** (`state/scroll-restore.ts`): `history.scrollRestoration = 'manual'`; the position is remembered per entry (and
+  in session storage for a reload) and restored when the history arrives on the entry, re-applied every frame until the page
+  height has been still for 10 frames, the user touches the page, or 2.5 s pass (late-loading results). Readers keep their
+  own section + offset position.
+- **Reader contents jumps are history steps** (`features/library/reader-jump-history.ts`, `OfficialDocumentReader`): a jump
+  from the contents / page bubble saves the place on the current entry, pushes a step at the same address and, on back or
+  forward, restores the saved place in the same document. A jump writes its landing place at once.
+- **Interaction checker and comparison keep their drugs in the address** (`#/notes/drug-interactions?c=…`,
+  `state/tool-url-state.ts`), so back from a drug screen, a tab round trip and a reload bring them back. Drug names in the
+  checker's list and the comparison's column titles open the drug screen.
+- **Second tab.** A tab waiting for the database now has «Использовать здесь» (`state/tab-takeover.ts`): the owner receives
+  a BroadcastChannel request, marks itself *standby* in session storage and reloads — the reload ends every worker, so every
+  OPFS pool lock is released before the asking tab opens the pool (AGENTS.md single-owner rule) — and the standby page opens
+  nothing and offers the same button back. A tab that is itself waiting never yields.
+- **Console warning** «Blocked aria-hidden … descendant retained focus»: left root panes are `inert` (not `aria-hidden`).
+- **Unchanged on purpose:** the drug screen and reader first-screen layouts (DRUG-UI1 / DOC-UI1).
+
+Tests: unit `state/{app-back,history-layer,history-places,tab-takeover}.test.ts`,
+`features/library/reader-jump-history.test.ts`, `app/native-back.test.ts` (a stand-in session history,
+`state/history-test-double.ts`); e2e `navigation-back`, `navigation-reader`, `navigation-drugs`, `navigation-takeover`
+(addresses, screens and `history.length` at every step).
+
 ## Regulatory acts as full texts — 2026-10-14 (STATE LEGAL1)
 
 Owner 2026-10-14: «legal acts are just copies of documents — release them». The 30 cards of

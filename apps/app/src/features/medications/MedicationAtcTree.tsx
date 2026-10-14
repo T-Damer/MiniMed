@@ -27,6 +27,7 @@ import { useDrugDownload } from '@/features/medications/use-drug-download';
 import { openDocumentOverlay } from '@/state/document-navigation';
 
 import '@/features/medications/medication-atc-tree.css';
+import { visitRoute } from '@/state/app-back';
 
 function goTo(code: string | null): void {
   window.location.hash = medicationAtcHash(code);
@@ -171,12 +172,7 @@ export function MedicationAtcTree(props: {
 
   return (
     <section class="atc-tree" aria-label="Препараты по группам АТХ">
-      <AppBreadcrumbs
-        items={crumbs()}
-        onNavigate={(href) => {
-          window.location.hash = href;
-        }}
-      />
+      <AppBreadcrumbs items={crumbs()} onNavigate={(href) => visitRoute(href)} />
       <Show when={props.code ?? 'root'} keyed>
         <div class="atc-tree__panel">
           <Show

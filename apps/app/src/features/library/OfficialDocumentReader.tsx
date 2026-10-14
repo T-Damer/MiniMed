@@ -886,13 +886,19 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
     outlineItemAttr: 'data-section-anchor',
     measureFraction: true,
     scrollSpyWhen: () => Boolean(props.document) && orderedSections().length > 0,
+    // A jump of the user's is a history step: back returns to the place the reader jumped from.
+    onBeforeJump: (anchor, from) => {
+      if (anchor !== from) jumps.record(capturePosition());
+    },
     onBeforeScrollTo: (anchor) => {
-      // A jump of the user's is a history step: back returns to the place the reader jumped from.
-      if (anchor !== chrome.activeAnchor()) jumps.record(capturePosition());
       const sectionIndex = sectionIndexForAnchor(orderedSections(), anchor);
       if (sectionIndex >= mountedSectionCount()) setMountedSectionCount(sectionIndex + 1);
     },
     onScrollTo: (_anchor, section) => {
+      // The place a jump landed on goes onto its history entry at once: back and forward right
+      // after a jump must find it (the scroll-driven write waits for the page to be still).
+      positionDirty = true;
+      writePosition();
       const heading = section?.querySelector<HTMLElement>('.document-overlay-section__title');
       if (heading) {
         if (flashTimeout !== undefined) {
@@ -948,13 +954,26 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
   let trackingPosition = false;
   let positionDirty = false;
   const jumps = createReaderJumpHistory({
-    entryId: historyEntry.id,
+    ...(historyEntry.layer ? {} : { entryId: historyEntry.id }),
     restore: (position) => {
       cancelRestoreJump?.();
+      // The scroll of the restore itself must not be written back as the reader's place: tracking
+      // resumes once the place stands still, or at once when the user takes over.
+      trackingPosition = false;
+      positionDirty = false;
+      window.clearTimeout(positionTimer);
+      positionTimer = undefined;
+      const resume = (): void => {
+        trackingPosition = true;
+      };
+      for (const name of ['wheel', 'touchstart', 'keydown', 'pointerdown'] as const) {
+        window.addEventListener(name, resume, { once: true, passive: true, capture: true });
+      }
       chrome.setActiveAnchor(position.anchor);
       cancelRestoreJump = jumpReaderTo(() => globalThis.document.getElementById(position.anchor), {
         align: 'start',
         offset: position.offset,
+        onSettled: resume,
       });
     },
   });
