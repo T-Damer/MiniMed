@@ -14,6 +14,16 @@ import {
   vaultOffer,
 } from '@/features/conversations/conversation-transcript';
 import {
+  createDiagnosisSaver,
+  createFormDataSaver,
+  DIAGNOSIS_WRITE_AHEAD_KEY,
+  FORM_DATA_WRITE_AHEAD_KEY,
+  readDiagnosisDraft,
+  readFormDraft,
+  recoverPatientDrafts,
+} from '@/features/notes/patient-draft-savers';
+import { profileToDraft } from '@/features/notes/patient-form-data';
+import {
   appendEvent,
   createManualMeasurementEvent,
   createPatientProfile,
@@ -971,5 +981,166 @@ describe('visit note autosave', () => {
     await expect(sealPatientVaultText('visit-note-ahead', 'a|new', 'x')).rejects.toMatchObject({
       code: 'locked',
     });
+  });
+});
+
+describe('form data and diagnosis drafts', () => {
+  let storage: Map<string, string>;
+
+  const stored = (key: string): string => storage.get(key) ?? '';
+  const until = async (condition: () => boolean): Promise<void> => {
+    for (let attempt = 0; attempt < 200 && !condition(); attempt += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    }
+    expect(condition()).toBe(true);
+  };
+  const formSaver = (patientId: string, delayMs = 20) =>
+    createFormDataSaver({
+      patientId,
+      delayMs,
+      onSnapshot: () => undefined,
+      onValidation: () => undefined,
+      onError: (cause) => {
+        throw cause;
+      },
+    });
+  const diagnosisSaver = (patientId: string, episodeId: string, delayMs = 20) =>
+    createDiagnosisSaver({
+      patientId,
+      episodeId: () => episodeId,
+      delayMs,
+      onSnapshot: () => undefined,
+      onValidation: () => undefined,
+      onError: (cause) => {
+        throw cause;
+      },
+    });
+
+  beforeEach(() => {
+    installIndexedDbDouble();
+    storage = new Map();
+    const target = new EventTarget();
+    vi.stubGlobal('window', {
+      localStorage: {
+        getItem: (key: string) => storage.get(key) ?? null,
+        setItem: (key: string, value: string) => void storage.set(key, value),
+        removeItem: (key: string) => void storage.delete(key),
+      },
+      addEventListener: target.addEventListener.bind(target),
+      removeEventListener: target.removeEventListener.bind(target),
+      dispatchEvent: target.dispatchEvent.bind(target),
+    });
+    vi.stubGlobal('document', new EventTarget());
+    nativeBridge.native = false;
+    nativeBridge.available = false;
+    lockPatientVault();
+  });
+
+  afterEach(() => {
+    lockPatientVault();
+    vi.clearAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it('saves the valid fields, keeps an invalid SNILS as a sealed draft and clears it once fixed', async () => {
+    await createPatientVault();
+    const { patientId, snapshot } = await createPatientInVault({ displayName: 'Пациент' });
+    const profile = snapshot.profiles.find((candidate) => candidate.id === patientId);
+    if (!profile) throw new Error('profile missing');
+    const typed = { ...profileToDraft(profile), workplace: 'Лицей 5', snils: '123-4' };
+    const saver = formSaver(patientId);
+
+    saver.edit(typed);
+    await until(() => stored(FORM_DATA_WRITE_AHEAD_KEY) !== '');
+    expect(stored(FORM_DATA_WRITE_AHEAD_KEY)).toContain('ciphertext');
+    expect(stored(FORM_DATA_WRITE_AHEAD_KEY)).not.toContain('Лицей');
+    await expect(saver.flush()).resolves.toBe(true);
+
+    const [saved] = (await readPatientVault()).profiles;
+    expect(saved).toMatchObject({ workplace: 'Лицей 5' });
+    expect(saved).not.toHaveProperty('snils');
+    // The part the vault could not take stays, and comes back as the draft after a reload.
+    await until(() => stored(FORM_DATA_WRITE_AHEAD_KEY) !== '');
+    await expect(readFormDraft(patientId)).resolves.toMatchObject({ snils: '123-4' });
+
+    saver.edit({ ...typed, snils: '12345678901' });
+    await expect(saver.flush()).resolves.toBe(true);
+    expect(stored(FORM_DATA_WRITE_AHEAD_KEY)).toBe('');
+    expect((await readPatientVault()).profiles[0]).toMatchObject({ snils: '123-456-789 01' });
+    await expect(readFormDraft(patientId)).resolves.toBeUndefined();
+    saver.dispose();
+  });
+
+  it('recovers form data typed just before a reload, and keeps only what is still invalid', async () => {
+    await createPatientVault();
+    const { patientId, snapshot } = await createPatientInVault({ displayName: 'Пациент' });
+    const profile = snapshot.profiles.find((candidate) => candidate.id === patientId);
+    if (!profile) throw new Error('profile missing');
+    // The durable save never starts: the page is reloaded inside the debounce window.
+    const saver = formSaver(patientId, 60_000);
+    saver.edit({ ...profileToDraft(profile), workplace: 'Поликлиника 3', snils: '12' });
+    await until(() => stored(FORM_DATA_WRITE_AHEAD_KEY) !== '');
+    saver.dispose();
+    lockPatientVault();
+    expect((await unlockPatientVault()).profiles[0]).not.toHaveProperty('workplace');
+
+    const recovered = await recoverPatientDrafts();
+    expect(recovered?.profiles[0]).toMatchObject({ workplace: 'Поликлиника 3' });
+    expect(recovered?.profiles[0]).not.toHaveProperty('snils');
+    // The invalid SNILS is still a draft; a second open changes nothing in the vault.
+    expect(stored(FORM_DATA_WRITE_AHEAD_KEY)).not.toBe('');
+    const updatedAt = recovered?.profiles[0]?.updatedAt;
+    const again = await recoverPatientDrafts();
+    expect(again?.profiles[0]?.updatedAt).toBe(updatedAt);
+    await expect(readFormDraft(patientId)).resolves.toMatchObject({
+      snils: '12',
+      workplace: 'Поликлиника 3',
+    });
+  });
+
+  it('saves a visit diagnosis, keeps a bad ICD-10 code as a draft per visit and recovers after a reload', async () => {
+    await createPatientVault();
+    const { patientId } = await createPatientInVault({ displayName: 'Пациент' });
+    const snapshot = await saveVisitNote({ patientId, text: 'Осмотр', create: true });
+    const episodeId = snapshot.episodes[0]?.id;
+    if (!episodeId) throw new Error('visit missing');
+    const saver = diagnosisSaver(patientId, episodeId);
+
+    saver.edit({ text: 'Бронхиальная астма', icd10: 'J45.0' });
+    await expect(saver.flush()).resolves.toBe(true);
+    expect((await readPatientVault()).episodes[0]?.diagnosis).toEqual({
+      text: 'Бронхиальная астма',
+      icd10: 'J45.0',
+    });
+    expect(stored(DIAGNOSIS_WRITE_AHEAD_KEY)).toBe('');
+
+    saver.edit({ text: 'Бронхит', icd10: 'J4' });
+    await expect(saver.flush()).resolves.toBe(true);
+    // The stored diagnosis is untouched; the typed pair waits as a sealed draft.
+    expect((await readPatientVault()).episodes[0]?.diagnosis).toEqual({
+      text: 'Бронхиальная астма',
+      icd10: 'J45.0',
+    });
+    await until(() => stored(DIAGNOSIS_WRITE_AHEAD_KEY) !== '');
+    expect(stored(DIAGNOSIS_WRITE_AHEAD_KEY)).not.toContain('Бронхит');
+    await expect(readDiagnosisDraft(patientId, episodeId)).resolves.toEqual({
+      text: 'Бронхит',
+      icd10: 'J4',
+    });
+    saver.dispose();
+
+    // A reload and a new open: the code is fixed in a new session that never reached its save.
+    const next = diagnosisSaver(patientId, episodeId, 60_000);
+    next.edit({ text: 'Бронхит', icd10: 'J20.9' });
+    for (let attempt = 0; attempt < 200; attempt += 1) {
+      if ((await readDiagnosisDraft(patientId, episodeId))?.icd10 === 'J20.9') break;
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    }
+    next.dispose();
+    lockPatientVault();
+    await unlockPatientVault();
+    const recovered = await recoverPatientDrafts();
+    expect(recovered?.episodes[0]?.diagnosis).toEqual({ text: 'Бронхит', icd10: 'J20.9' });
+    expect(stored(DIAGNOSIS_WRITE_AHEAD_KEY)).toBe('');
   });
 });

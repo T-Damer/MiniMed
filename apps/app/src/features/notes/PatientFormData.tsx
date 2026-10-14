@@ -1,15 +1,24 @@
-import { createEffect, createMemo, createSignal, For, type JSX, on, Show } from 'solid-js';
+import { createEffect, createSignal, For, type JSX, on, onCleanup, onMount, Show } from 'solid-js';
 import { toast } from 'solid-sonner';
 
-import { Button } from '@/components/Button';
 import { Disclosure } from '@/components/Disclosure';
 import { NativeDateTimeField } from '@/components/NativeDateTimeField';
 import { TextField } from '@/components/TextField';
 import {
+  createDraftState,
+  DRAFT_STATE_LABELS,
+  type DraftState,
+} from '@/features/notes/draft-status';
+import {
+  createDiagnosisSaver,
+  createFormDataSaver,
+  readDiagnosisDraft,
+  readFormDraft,
+} from '@/features/notes/patient-draft-savers';
+import {
   type DiagnosisDraftErrors,
   diagnosisFromDraft,
   diagnosisToDraft,
-  draftsEqual,
   draftToPatch,
   type PatientFormDraft,
   type PatientFormDraftErrors,
@@ -21,10 +30,7 @@ import {
   type PatientAddress,
   type PatientProfile,
   type PatientVaultSnapshot,
-  setEpisodeDiagnosis,
-  updatePatientProfileData,
 } from '@/state/patient-domain';
-import { updatePatientVault } from '@/state/patient-vault';
 import '@/styles/patient-form-data.css';
 
 type AddressKind = 'address' | 'stayAddress';
@@ -53,27 +59,79 @@ function AddressFields(props: {
   );
 }
 
-/** Collapsible editor of the administrative data that official forms are filled from. */
+function diagnosisErrors(text: string, icd10: string): DiagnosisDraftErrors {
+  return diagnosisFromDraft(text, icd10).errors ?? {};
+}
+
+/** Quiet autosave status line; keeps its height so the fields below never jump. */
+function DraftStatus(props: { readonly state: DraftState; readonly class?: string }): JSX.Element {
+  return (
+    <p
+      class={`draft-status ${props.class ?? ''}`.trim()}
+      classList={{
+        'draft-status--visible': props.state !== 'idle',
+        'draft-status--draft': props.state === 'draft',
+      }}
+      role="status"
+      aria-live="polite"
+    >
+      {DRAFT_STATE_LABELS[props.state]}
+    </p>
+  );
+}
+
+/**
+ * Collapsible editor of the administrative data that official forms are filled from. It is an
+ * autosaved draft: valid fields reach the patient vault as they are typed; a field that is not
+ * valid yet (SNILS, policy) keeps the typed text and shows its error, and nothing is lost on a
+ * reload. There is nothing to approve here, so there is no «Сохранить».
+ */
 export function PatientFormData(props: {
   readonly profile: PatientProfile;
   readonly onSnapshot: (snapshot: PatientVaultSnapshot) => void;
 }): JSX.Element {
   const [draft, setDraft] = createSignal<PatientFormDraft>(profileToDraft(props.profile));
   const [errors, setErrors] = createSignal<PatientFormDraftErrors>({});
-  const [busy, setBusy] = createSignal(false);
-  const dirty = createMemo(() => !draftsEqual(draft(), profileToDraft(props.profile)));
+  const status = createDraftState();
   const idPrefix = `patient-form-${props.profile.id}`;
-  createEffect(
-    on(
-      () => props.profile.id,
-      () => {
-        setDraft(profileToDraft(props.profile));
-        setErrors({});
-      },
-      { defer: true },
-    ),
-  );
+  let edits = 0;
+  const showErrors = (next: PatientFormDraftErrors): void => {
+    setErrors(next);
+    status.setIncomplete(Object.keys(next).length > 0);
+  };
+  const saver = createFormDataSaver({
+    patientId: props.profile.id,
+    onSnapshot: (snapshot) => props.onSnapshot(snapshot),
+    onError: (cause) =>
+      toast(cause instanceof Error ? cause.message : 'Не удалось сохранить данные для форм.'),
+    onPendingChange: status.setPending,
+    onValidation: showErrors,
+  });
+  // Text a reload cut off before the vault could take it comes back as the draft.
+  onMount(() => {
+    const seen = edits;
+    void readFormDraft(props.profile.id)
+      .then((copy) => {
+        if (!copy || edits !== seen) return;
+        setDraft(copy);
+        showErrors(draftToPatch(copy).errors);
+      })
+      .catch((cause: unknown) =>
+        toast(cause instanceof Error ? cause.message : 'Не удалось прочитать черновик.'),
+      );
+  });
+  // Leaving the card saves what is typed; the write-ahead copy covers a closed page.
+  onCleanup(() => {
+    void saver.flush();
+    saver.dispose();
+  });
 
+  const change = (next: PatientFormDraft): void => {
+    edits += 1;
+    setDraft(next);
+    status.touch();
+    saver.edit(next);
+  };
   const setField = (
     key:
       | 'fullName'
@@ -85,38 +143,13 @@ export function PatientFormData(props: {
       | 'citizenship',
     value: string,
   ): void => {
-    setDraft((current) => ({ ...current, [key]: value }));
+    change({ ...draft(), [key]: value });
     if (key === 'snils' || key === 'omsNumber') {
       setErrors(({ [key]: _cleared, ...rest }) => rest);
     }
   };
   const setAddress = (kind: AddressKind, key: keyof PatientAddress, value: string): void => {
-    setDraft((current) => ({ ...current, [kind]: { ...current[kind], [key]: value } }));
-  };
-
-  const save = async (): Promise<void> => {
-    if (busy()) return;
-    const result = draftToPatch(draft());
-    if (!result.patch) {
-      setErrors(result.errors);
-      return;
-    }
-    setErrors({});
-    setBusy(true);
-    try {
-      const patch = result.patch;
-      const snapshot = await updatePatientVault((current) =>
-        updatePatientProfileData(current, props.profile.id, patch),
-      );
-      const saved = snapshot.profiles.find((profile) => profile.id === props.profile.id);
-      if (saved) setDraft(profileToDraft(saved));
-      props.onSnapshot(snapshot);
-      toast('Данные для форм сохранены.');
-    } catch (cause) {
-      toast(cause instanceof Error ? cause.message : 'Не удалось сохранить данные для форм.');
-    } finally {
-      setBusy(false);
-    }
+    change({ ...draft(), [kind]: { ...draft()[kind], [key]: value } });
   };
 
   return (
@@ -124,6 +157,11 @@ export function PatientFormData(props: {
       class="patient-form-data paper-card"
       title="Данные для справок и форм"
       description="ФИО, СНИЛС, полис ОМС, адрес, место работы, гражданство"
+      meta={
+        <Show when={status.state() === 'draft'}>
+          <span class="patient-form-data__draft-badge">Черновик</span>
+        </Show>
+      }
     >
       <div class="patient-form-data__body">
         <p class="patient-form-data__note">
@@ -209,22 +247,18 @@ export function PatientFormData(props: {
           />
         </Disclosure>
 
-        <div class="patient-form-data__actions">
-          <Button
-            type="button"
-            variant="primary"
-            disabled={busy() || !dirty()}
-            onClick={() => void save()}
-          >
-            {busy() ? 'Сохраняем…' : 'Сохранить данные'}
-          </Button>
-        </div>
+        <DraftStatus state={status.state()} />
       </div>
     </Disclosure>
   );
 }
 
-/** Diagnosis (wording and ICD-10 code) of one episode; prefills official forms. */
+/**
+ * Diagnosis (wording and ICD-10 code) of one visit; prefills official forms. An autosaved draft: a
+ * well-formed diagnosis reaches the vault as it is typed; a code in the wrong format keeps the
+ * typed text, shows its error and leaves the stored diagnosis as it was until it is fixed. The
+ * visit's «Закрыть» is the sign-off, so there is no «Сохранить».
+ */
 export function EpisodeDiagnosisEditor(props: {
   readonly episode: ClinicalEpisode;
   readonly onSnapshot: (snapshot: PatientVaultSnapshot) => void;
@@ -233,51 +267,67 @@ export function EpisodeDiagnosisEditor(props: {
   const [text, setText] = createSignal(initial.text);
   const [icd10, setIcd10] = createSignal(initial.icd10);
   const [errors, setErrors] = createSignal<DiagnosisDraftErrors>({});
-  const [busy, setBusy] = createSignal(false);
+  const status = createDraftState();
+  let edits = 0;
+  const showErrors = (next: DiagnosisDraftErrors): void => {
+    setErrors(next);
+    status.setIncomplete(Object.keys(next).length > 0);
+  };
+  const saver = createDiagnosisSaver({
+    patientId: props.episode.patientId,
+    episodeId: () => props.episode.id,
+    onSnapshot: (snapshot) => props.onSnapshot(snapshot),
+    onError: (cause) =>
+      toast(cause instanceof Error ? cause.message : 'Не удалось сохранить диагноз.'),
+    onPendingChange: status.setPending,
+    // The answer of a save for a visit that is no longer shown is not this editor's.
+    onValidation: (next, episodeId) => {
+      if (episodeId === props.episode.id) showErrors(next);
+    },
+  });
+  /** Shows what a reload cut off before the vault could take it, unless the person typed first. */
+  const seedFromDraft = (episodeId: string): void => {
+    const seen = edits;
+    void readDiagnosisDraft(props.episode.patientId, episodeId)
+      .then((copy) => {
+        if (!copy || edits !== seen || props.episode.id !== episodeId) return;
+        setText(copy.text);
+        setIcd10(copy.icd10);
+        showErrors(diagnosisErrors(copy.text, copy.icd10));
+      })
+      .catch((cause: unknown) =>
+        toast(cause instanceof Error ? cause.message : 'Не удалось прочитать черновик.'),
+      );
+  };
+  onMount(() => seedFromDraft(props.episode.id));
   createEffect(
     on(
       () => props.episode.id,
-      () => {
+      (episodeId) => {
+        // What was typed belongs to the visit it was typed in; its save is already bound to it.
+        void saver.flush();
+        edits += 1;
         const stored = diagnosisToDraft(props.episode.diagnosis);
         setText(stored.text);
         setIcd10(stored.icd10);
+        status.reset();
         setErrors({});
+        seedFromDraft(episodeId);
       },
       { defer: true },
     ),
   );
-  const dirty = createMemo(() => {
-    const stored = diagnosisToDraft(props.episode.diagnosis);
-    return text() !== stored.text || icd10() !== stored.icd10;
+  onCleanup(() => {
+    void saver.flush();
+    saver.dispose();
   });
 
-  const save = async (): Promise<void> => {
-    if (busy()) return;
-    const result = diagnosisFromDraft(text(), icd10());
-    if (result.errors) {
-      setErrors(result.errors);
-      return;
-    }
-    setErrors({});
-    setBusy(true);
-    try {
-      const diagnosis = result.diagnosis;
-      const episodeId = props.episode.id;
-      const snapshot = await updatePatientVault((current) =>
-        setEpisodeDiagnosis(current, episodeId, diagnosis),
-      );
-      const saved = diagnosisToDraft(
-        snapshot.episodes.find((candidate) => candidate.id === episodeId)?.diagnosis,
-      );
-      setText(saved.text);
-      setIcd10(saved.icd10);
-      props.onSnapshot(snapshot);
-      toast('Диагноз осмотра сохранён.');
-    } catch (cause) {
-      toast(cause instanceof Error ? cause.message : 'Не удалось сохранить диагноз.');
-    } finally {
-      setBusy(false);
-    }
+  const change = (nextText: string, nextCode: string): void => {
+    edits += 1;
+    setText(nextText);
+    setIcd10(nextCode);
+    status.touch();
+    saver.edit({ text: nextText, icd10: nextCode });
   };
 
   return (
@@ -289,7 +339,7 @@ export function EpisodeDiagnosisEditor(props: {
         value={text()}
         error={errors().text}
         onInput={(event) => {
-          setText(event.currentTarget.value);
+          change(event.currentTarget.value, icd10());
           setErrors(({ text: _cleared, ...rest }) => rest);
         }}
       />
@@ -301,21 +351,11 @@ export function EpisodeDiagnosisEditor(props: {
         value={icd10()}
         error={errors().icd10}
         onInput={(event) => {
-          setIcd10(event.currentTarget.value.toUpperCase());
+          change(text(), event.currentTarget.value.toUpperCase());
           setErrors(({ icd10: _cleared, ...rest }) => rest);
         }}
       />
-      <Show when={dirty()}>
-        <Button
-          type="button"
-          variant="secondary"
-          class="episode-diagnosis__save"
-          disabled={busy()}
-          onClick={() => void save()}
-        >
-          {busy() ? 'Сохраняем…' : 'Сохранить диагноз'}
-        </Button>
-      </Show>
+      <DraftStatus state={status.state()} class="episode-diagnosis__status" />
     </div>
   );
 }

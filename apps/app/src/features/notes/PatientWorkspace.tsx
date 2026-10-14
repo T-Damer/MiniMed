@@ -37,8 +37,15 @@ import type { NotesRoute } from '@/features/notes/notes-routing';
 import { notesFormsPath, notesPath, notesPatientsPath } from '@/features/notes/notes-routing';
 import { EpisodeDiagnosisEditor, PatientFormData } from '@/features/notes/PatientFormData';
 import { PatientStorageHelp } from '@/features/notes/PatientStorageHelp';
+import {
+  NEW_PATIENT_DRAFT_SCOPE,
+  newPatientDrafts,
+  recoverPatientDrafts,
+} from '@/features/notes/patient-draft-savers';
+import { parseNewPatientDraft, serializeNewPatientDraft } from '@/features/notes/patient-form-data';
 import { patientMetricLabel, patientSexLabel } from '@/features/notes/patient-labels';
 import { openDocumentOverlay } from '@/state/document-navigation';
+import { createCopyDraft } from '@/state/draft-write-ahead';
 import { saveBlobAsFile } from '@/state/native-share';
 import {
   appendEvent,
@@ -75,7 +82,7 @@ import {
   readPatientVault,
   updatePatientVault,
 } from '@/state/patient-vault';
-import { createVisitNoteSaver, recoverVisitNotes, saveVisitNote } from '@/state/patient-visit-note';
+import { createVisitNoteSaver, saveVisitNote } from '@/state/patient-visit-note';
 import type { PatientAvatar as Avatar } from '@/state/patientAvatar';
 import '@/styles/patient-workspace.css';
 import { navigateBack } from '@/state/app-back';
@@ -339,6 +346,47 @@ function NewPatientForm(props: {
   const [height, setHeight] = createSignal('');
   const [error, setError] = createSignal('');
   const [busy, setBusy] = createSignal(false);
+  // The form is a draft until «Создать карточку»: what is typed survives a reload, the sealed copy
+  // is its only home, and creating or cancelling is the approval.
+  const draft = createCopyDraft(newPatientDrafts, NEW_PATIENT_DRAFT_SCOPE, 'form', (cause) =>
+    toast(cause instanceof Error ? cause.message : 'Не удалось сохранить черновик.'),
+  );
+  let edits = 0;
+  const remember = (): void => {
+    edits += 1;
+    draft.save(
+      serializeNewPatientDraft({
+        name: name(),
+        recordNumber: recordNumber(),
+        birthDate: birthDate(),
+        sex: sex() ?? '',
+        weight: weight(),
+        height: height(),
+      }),
+    );
+  };
+  onMount(() => {
+    const seen = edits;
+    void draft
+      .read()
+      .then((text) => {
+        const copy = text === undefined ? undefined : parseNewPatientDraft(text);
+        if (!copy || edits !== seen) return;
+        setName(copy.name);
+        setRecordNumber(copy.recordNumber);
+        setBirthDate(copy.birthDate);
+        setSex((copy.sex || undefined) as PatientProfile['biologicalSex']);
+        setWeight(copy.weight);
+        setHeight(copy.height);
+      })
+      .catch((cause: unknown) =>
+        toast(cause instanceof Error ? cause.message : 'Не удалось прочитать черновик.'),
+      );
+  });
+  const cancel = (): void => {
+    draft.discard();
+    props.onCancel();
+  };
   const submit = async (event: SubmitEvent): Promise<void> => {
     event.preventDefault();
     if (busy()) return;
@@ -362,6 +410,7 @@ function NewPatientForm(props: {
         ...profileInput,
         ...(selectedAvatar ? { avatar: selectedAvatar } : {}),
       });
+      draft.discard();
       props.onCreated(created.snapshot, created.patientId);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Не удалось создать карточку пациента.');
@@ -384,21 +433,30 @@ function NewPatientForm(props: {
           class="patient-workspace__field"
           label="Имя или псевдоним"
           value={name()}
-          onInput={(event) => setName(event.currentTarget.value)}
+          onInput={(event) => {
+            setName(event.currentTarget.value);
+            remember();
+          }}
           required
         />
         <TextField
           class="patient-workspace__field"
           label="Номер карты (необязательно)"
           value={recordNumber()}
-          onInput={(event) => setRecordNumber(event.currentTarget.value)}
+          onInput={(event) => {
+            setRecordNumber(event.currentTarget.value);
+            remember();
+          }}
         />
         <TextField
           class="patient-workspace__field"
           label="Дата рождения"
           type="date"
           value={birthDate()}
-          onInput={(event) => setBirthDate(event.currentTarget.value)}
+          onInput={(event) => {
+            setBirthDate(event.currentTarget.value);
+            remember();
+          }}
         />
         <SelectField
           class="patient-workspace__field"
@@ -411,9 +469,10 @@ function NewPatientForm(props: {
               label: patientSexLabel(value) ?? value,
             })),
           ]}
-          onChange={(event) =>
-            setSex((event.currentTarget.value || undefined) as PatientProfile['biologicalSex'])
-          }
+          onChange={(event) => {
+            setSex((event.currentTarget.value || undefined) as PatientProfile['biologicalSex']);
+            remember();
+          }}
         />
         <div class="patient-workspace__form-grid">
           <TextField
@@ -423,7 +482,10 @@ function NewPatientForm(props: {
             min="0"
             step="0.01"
             value={weight()}
-            onInput={(event) => setWeight(event.currentTarget.value)}
+            onInput={(event) => {
+              setWeight(event.currentTarget.value);
+              remember();
+            }}
           />
           <TextField
             class="patient-workspace__field"
@@ -432,7 +494,10 @@ function NewPatientForm(props: {
             min="0"
             step="0.1"
             value={height()}
-            onInput={(event) => setHeight(event.currentTarget.value)}
+            onInput={(event) => {
+              setHeight(event.currentTarget.value);
+              remember();
+            }}
           />
         </div>
         <Show when={error()}>
@@ -441,7 +506,7 @@ function NewPatientForm(props: {
           </p>
         </Show>
         <div class="patient-workspace__actions">
-          <Button type="button" variant="quiet" disabled={busy()} onClick={props.onCancel}>
+          <Button type="button" variant="quiet" disabled={busy()} onClick={cancel}>
             Отмена
           </Button>
           <Button type="submit" variant="primary" disabled={busy()}>
@@ -1633,8 +1698,8 @@ function DynamicsView(props: {
 
 /** Recovery must never hide the vault: a failure is shown and the vault is read as it is. */
 function recoverNotes(): Promise<PatientVaultSnapshot | undefined> {
-  return recoverVisitNotes().catch((cause: unknown) => {
-    toast(cause instanceof Error ? cause.message : 'Не удалось восстановить запись осмотра.');
+  return recoverPatientDrafts().catch((cause: unknown) => {
+    toast(cause instanceof Error ? cause.message : 'Не удалось восстановить введённый текст.');
     return undefined;
   });
 }
@@ -1850,17 +1915,20 @@ export function PatientWorkspace(props: PatientWorkspaceProps): JSX.Element {
                       />
                     }
                   >
-                    <PatientDetail
-                      profile={profile()}
-                      snapshot={snapshot() ?? emptyPatientVaultSnapshot()}
-                      {...(props.route.kind === 'patient' && props.route.episodeId
-                        ? { focusEpisodeId: props.route.episodeId }
-                        : {})}
-                      onNavigate={props.onNavigate}
-                      onSnapshot={onSnapshot}
-                      onExport={(patientId) => void exportPatient(patientId)}
-                      onDelete={(patientId) => void deletePatient(patientId)}
-                    />
+                    {/* Autosaved drafts are bound to one patient: another patient is a new card. */}
+                    <Show when={profile().id} keyed>
+                      <PatientDetail
+                        profile={profile()}
+                        snapshot={snapshot() ?? emptyPatientVaultSnapshot()}
+                        {...(props.route.kind === 'patient' && props.route.episodeId
+                          ? { focusEpisodeId: props.route.episodeId }
+                          : {})}
+                        onNavigate={props.onNavigate}
+                        onSnapshot={onSnapshot}
+                        onExport={(patientId) => void exportPatient(patientId)}
+                        onDelete={(patientId) => void deletePatient(patientId)}
+                      />
+                    </Show>
                   </Show>
                 )}
               </Show>
