@@ -486,7 +486,7 @@
 .patient-workspace__episode-status {
   flex: none;
   color: var(--theme-text-muted);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   white-space: nowrap;
 }
 
