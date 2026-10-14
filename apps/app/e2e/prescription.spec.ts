@@ -36,7 +36,7 @@ async function shoot(page: Page, name: string): Promise<void> {
   await page.emulateMedia({ colorScheme: 'light' });
 }
 
-test('a 20 kg child: amoxicillin is only quoted, metronidazole is computed, the rest sits in one fold', async ({
+test('a 20 kg child: amoxicillin and metronidazole are quoted while computed doses are off', async ({
   page,
 }) => {
   test.setTimeout(420_000);
@@ -77,46 +77,25 @@ test('a 20 kg child: amoxicillin is only quoted, metronidazole is computed, the 
   await expect(page.getByTestId('prescription-result')).toHaveCount(0);
   await shoot(page, 'quoted-only');
 
-  // Metronidazole: a dose per kilogram stated with its own population is computed.
+  // Metronidazole: its dose per kilogram passes the confidence gate, but the release ships with
+  // computed doses off (RX5 audit): the sentence is quoted, nothing is computed, and the doctor writes
+  // the sign in the recipe text.
   await page.goto(`${E2E_ASSET_ORIGIN}/#/notes/prescription?c=метронидазол&age=2200&w=20`);
   await page.reload();
   const metronidazole = page.getByTestId('prescription-item').filter({ hasText: 'Метронидазол' });
   await expect(metronidazole).toContainText('Метронидазол', { timeout: 90_000 });
   await pickProduct(metronidazole, /таблетки/u);
-  await expect(page.getByTestId('prescription-rules')).toBeVisible({ timeout: 120_000 });
-  await expect(page.getByTestId('prescription-quote').first()).toContainText(/мг/u);
-  await expect(page.getByTestId('prescription-result')).toContainText('На приём');
-  await expect(page.getByTestId('prescription-result')).toContainText('Приёмов');
-
-  // The other sentences of the instruction are one disclosure, grouped by section; the answer stays
-  // the single chosen sentence.
-  const fold = metronidazole.getByRole('button', {
-    name: /^Ещё \d+ (?:фрагмент|фрагмента|фрагментов) из инструкции/u,
-  });
-  await expect(fold).toBeVisible();
-  await expect(
-    page.getByTestId('prescription-rules').getByTestId('prescription-quote'),
-  ).toHaveCount(1);
-  await shoot(page, 'rules');
-  await fold.click();
-  await expect(page.getByTestId('prescription-fragments')).toBeVisible();
-  await expect(page.getByTestId('prescription-fragment-group').first()).toBeVisible();
-  await shoot(page, 'fold-open');
-  await fold.click();
-
-  // The course: the packages follow.
-  await page.getByTestId('prescription-days-7').click();
-  await expect(page.getByTestId('prescription-quantity')).toContainText('упаков', {
-    timeout: 30_000,
-  });
+  const quoted = metronidazole.getByTestId('prescription-no-rule');
+  await expect(quoted).toContainText('Расчёт доз в этой версии выключен', { timeout: 120_000 });
+  await expect(quoted.getByTestId('prescription-quote').first()).toContainText(/мг/u);
+  await expect(metronidazole.getByTestId('prescription-result')).toHaveCount(0);
   await shoot(page, 'result');
 
-  // «Рецепт»: the text of the prescription, with the sign.
+  // «Рецепт»: the prescription text with Rp. and the sign the doctor writes.
   await page.getByTestId('prescription-recipe-button').click();
   const recipe = page.getByTestId('recipe-text');
   await expect(recipe).toContainText('Rp.:');
   await expect(recipe).toContainText('D.S.');
-  await expect(recipe).toContainText('в течение 7 дней');
   await shoot(page, 'recipe');
   await page.keyboard.press('Escape');
 
@@ -164,11 +143,12 @@ test('the search card answers «метронидазол 6 лет 20 кг», ope
   await shoot(page, 'search-card-offer');
   await offer.dispatchEvent('click');
 
-  // Installed: the sentence of the instruction for a child of 20 kg and the computed intake.
+  // Installed: the sentence of the instruction for a child of 20 kg, quoted (computed doses are off
+  // in this release, RX5).
   await expect(card.getByTestId('prescription-quote').first()).toContainText(/мг/u, {
     timeout: 240_000,
   });
-  await expect(card.getByTestId('prescription-result')).toContainText('На приём');
+  await expect(card.getByTestId('prescription-result')).toHaveCount(0);
   await shoot(page, 'search-card');
 
   // The recipe icon of the card: the text needs a form and a strength.

@@ -541,6 +541,17 @@ and assessment pages; assessments gained the section «Депрессия и т�
 0.1.0-preview.6 needs app 0.6.60, the other 13 rebuilt modules stay at 0.6.59 since `scoreScales` is optional).
 Not tested: Android/device, Safari, a real printer; the verdict `attentionLevel`s of about 25 tools are still all `none`.
 
+## Computed doses off for release — 2026-10-14 (after RX5)
+
+The second independent audit (RX5, 170 gate-passing rules from untouched instructions) found 15
+wrong (8.8 %, CI 5.0–14.1 %) from ten new causes, none repeating the first audit's. Following its
+recommendation, `apps/app/src/features/prescription/data/prescription-settings.json` ships
+`computedDoses: false`: every dose, cap and duration sentence is quoted with «Открыть в инструкции»;
+the registry choice, the 107-1/у / 148-1/у-88 blank, Rp. / D.S. (written by the doctor) and the
+«Рецепт» modal stay; the search dose card quotes. The engine stays tested with the switch on
+(`ENGINE_ON` in `prescription-model.test.ts`). Turning numbers back on needs a fix of the RX5 causes
+and a further independent audit with no wrong dose-relevant output.
+
 ## Complaints and descriptions in «Все» — 2026-10-14 (STATE CMPL1)
 
 Owner: complaint → recommendation search «is for you»; two QA passes (2026-10-13) found that «Все»

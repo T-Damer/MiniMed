@@ -110,8 +110,11 @@ function analyze(
   state: InstructionState | undefined,
   item = newItem('1', 'amoxicillin', 'Амоксициллин'),
 ) {
-  return analyzeItem(item, { index, patient, instructionOf: () => state });
+  return analyzeItem(item, { index, patient, instructionOf: () => state, settings: ENGINE_ON });
 }
+
+// These tests check the dose engine itself; the release ships with computed doses off (RX5).
+const ENGINE_ON = { computedDoses: true } as const;
 
 describe('analysing one drug of the prescription', () => {
   it('asks for a drug first', () => {
@@ -300,7 +303,7 @@ describe('caps are compared only when the gate lets them compute (RX3 audit)', (
 describe('the release switch for computed doses (RX4)', () => {
   const rules = instruction([adultRule, childRule]);
 
-  it('is on by default', () => {
+  it('computes when the switch is on', () => {
     const analysis = analyze(ADULT, rules);
     expect(analysis.numbersOff).toBe(false);
     expect(analysis.options).toHaveLength(1);
@@ -351,6 +354,7 @@ describe('the instruction’s own product (RX3 audit: one count for every regist
   function plan(strength: string) {
     const item = { ...newItem('1', 'drug', 'Препарат'), form: 'таблетки', strength, days: 5 };
     return analyzeItem(item, {
+      settings: ENGINE_ON,
       index: withPs,
       patient: ADULT,
       instructionOf: () => instruction([pieces]),
@@ -423,6 +427,7 @@ describe('what the instruction counts is shown as the instruction names it (RX3 
       days: 5,
     };
     const analysis = analyzeItem(item, {
+      settings: ENGINE_ON,
       index: syrupIndex,
       patient: ADULT,
       instructionOf: () => instruction([spoon]),
@@ -444,6 +449,7 @@ describe('what the instruction counts is shown as the instruction names it (RX3 
       days: 5,
     };
     const analysis = analyzeItem(item, {
+      settings: ENGINE_ON,
       index: syrupIndex,
       patient: { ageDays: Math.round(2.5 * YEAR), weightKg: 13 },
       instructionOf: () => instruction([teaspoon]),
@@ -473,6 +479,7 @@ describe('a rounding beyond the tolerance is shown as a dose without a count (RX
       days: 7,
     };
     const analysis = analyzeItem(item, {
+      settings: ENGINE_ON,
       index: tabletIndex,
       patient: { ageDays: Math.round(8 * YEAR), weightKg: 26 },
       instructionOf: () => instruction([fixed]),
