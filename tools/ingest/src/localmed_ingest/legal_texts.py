@@ -188,7 +188,18 @@ def _open_table(merged: list[Block]) -> Block | None:
 
 
 def _table_head(head: Block, table: Block) -> bool:
-    return head.kind == "table" and _same_width(table, head)
+    """Whether `head` (the first block of a page) continues `table`; a continuation that lost up to two empty
+    trailing columns (every row's last cell is empty) is padded back to the table's width."""
+    if head.kind != "table" or not head.rows or not table.rows:
+        return False
+    missing = len(table.rows[0]) - len(head.rows[0])
+    if (
+        0 < missing <= 2
+        and all(len(row) == len(head.rows[0]) for row in head.rows)
+        and all(not row[-1] for row in head.rows)
+    ):
+        head.rows = [[*row, *([""] * missing)] for row in head.rows]
+    return _same_width(table, head)
 
 
 def _cell_key(cell: str) -> str:
@@ -341,7 +352,8 @@ def structure(blocks: list[Block], identity: ActIdentity, first_page: int = 1) -
         text = block.text
         if block.kind == "heading" and _APPROVED.match(text):
             follow = blocks[index + 1] if index + 1 < len(blocks) else None
-            if follow is not None and follow.kind == "paragraph":
+            top_of_page = index == 0 or blocks[index - 1].page != block.page
+            if top_of_page and follow is not None and follow.kind == "paragraph":
                 out.append(
                     Block("heading", "Приложение", block.page, 1, confidence=block.confidence)
                 )
@@ -354,7 +366,10 @@ def structure(blocks: list[Block], identity: ActIdentity, first_page: int = 1) -
                 continue
             block = Block("paragraph", text, block.page, confidence=block.confidence)
             text = block.text
-        if block.kind == "paragraph" and (_ANNEX.match(text) or _APPROVED.match(text)):
+        starts_page = index == 0 or blocks[index - 1].page != block.page
+        if block.kind == "paragraph" and (
+            _ANNEX.match(text) or (_APPROVED.match(text) and starts_page)
+        ):
             annex = _ANNEX.match(text)
             number = annex.group(1) if annex and annex.group(1) else ""
             previous = out[-1]

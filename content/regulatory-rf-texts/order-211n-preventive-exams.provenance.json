@@ -1,0 +1,1000 @@
+{
+ "documentId": "regulatory.rf.minzdrav.211n-2025",
+ "source": {
+  "file": "0001202505230032.pdf",
+  "sha256": "4cfd3143c89432e4b305ccccd9a0179b7006b9b1dd7eeb72904629d2f4a20fa4",
+  "bytes": 2325450,
+  "pages": 39,
+  "officialUrl": "https://publication.pravo.gov.ru/document/0001202505230032"
+ },
+ "identityFromPortal": {
+  "number": "211н",
+  "date": "2025-04-14",
+  "name": "Об утверждении порядка прохождения несовершеннолетними профилактических медицинских осмотров, учетной формы № 030-ПО/у «Карта профилактического медицинского осмотра несовершеннолетнего», порядка ее ведения, а также формы отраслевого статистического наблюдения № 030-ПО/о «Сведения о профилактических медицинских осмотрах несовершеннолетних», порядка ее заполнения",
+  "registrationNumber": "82300",
+  "registrationDate": "2025-05-22"
+ },
+ "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
+ "review": {
+  "reviewer": "Claude (agent), against the page images; not a lawyer",
+  "reviewedAt": "2026-10-14",
+  "corrections": 20
+ },
+ "pages": [
+  {
+   "page": 1,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": "МИНИСТЕРСТВО ЗДРАВООХРАНЕНИЯ\nРОССИЙСКОЙ ФЕДЕРАЦИИ\n(МИНЗДРАВ РОССИИ)\n\nПРИКАЗ\n\n14 августа 2025 г.\n\n№ 2114\n\n**Об утверждении порядка прохождения несовершеннолетними профилактических медицинских осмотров, учетной формы № 030-ПО/у «Карта профилактического медицинского осмотра несовершеннолетнего», порядка ее ведения, а также формы отраслевого статистического наблюдения № 030-ПО/о «Сведения о профилактических медицинских осмотрах несовершеннолетних», порядка ее заполнения**",
+   "stats": {
+    "markerTokens": 161,
+    "visionTokens": 159,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 2,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Marker: 6"
+    }
+   ],
+   "furniture": [
+    "2"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 198,
+    "visionTokens": 198,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9939,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 3,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "annex-header-restored",
+     "detail": "Marker dropped the annex header; Vision's: «Приложение Nº 1  \nк приказу Министерства здравоохранения»"
+    },
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 53; only in Marker: 534"
+    },
+    {
+     "kind": "repeated-content-missing",
+     "detail": "Vision has these words more often than Marker (dropped rows or lines?): здравоохранения, министерства, российской, федерации"
+    }
+   ],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 273,
+    "visionTokens": 287,
+    "coverageVision": 0.9583,
+    "coverageMarker": 0.9914,
+    "respaced": 1,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 4,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Marker: 1"
+    }
+   ],
+   "furniture": [
+    "2"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 400,
+    "visionTokens": 395,
+    "coverageVision": 0.9916,
+    "coverageMarker": 0.9888,
+    "respaced": 1,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 5,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "3"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 332,
+    "visionTokens": 332,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 6,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 91; only in Marker: 911"
+    }
+   ],
+   "furniture": [
+    "4"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 329,
+    "visionTokens": 327,
+    "coverageVision": 0.9897,
+    "coverageMarker": 0.9863,
+    "respaced": 1,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 7,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "5"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 299,
+    "visionTokens": 297,
+    "coverageVision": 0.9844,
+    "coverageMarker": 0.9844,
+    "respaced": 1,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 8,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 346,
+    "visionTokens": 344,
+    "coverageVision": 0.9902,
+    "coverageMarker": 0.9869,
+    "respaced": 1,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 9,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "7"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 333,
+    "visionTokens": 333,
+    "coverageVision": 0.9965,
+    "coverageMarker": 0.9965,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 10,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "8"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 199,
+    "visionTokens": 199,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 11,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "dropped-span",
+     "detail": "Vision reads text that Marker lacks (at a paragraph start): «от «14 » апреля 2022г. Nod 1M»"
+    },
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 1, 14, 2022"
+    }
+   ],
+   "furniture": [],
+   "portalRewrites": [
+    "от «14» апреля 20 декабря г. № 2114"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 211,
+    "visionTokens": 212,
+    "coverageVision": 0.9409,
+    "coverageMarker": 0.9777,
+    "respaced": 0,
+    "tableRows": 14
+   }
+  },
+  {
+   "page": 12,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 1"
+    },
+    {
+     "kind": "coverage-marker",
+     "detail": "48% of Marker's tokens are not in Vision (e.g. врач, детский, педиатр, стоматолог, невролог, хирург, офтальмолог, для, детей, из, группы, риска)"
+    }
+   ],
+   "furniture": [
+    "2",
+    "14.",
+    "15."
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 291,
+    "visionTokens": 164,
+    "coverageVision": 0.9524,
+    "coverageMarker": 0.5166,
+    "respaced": 0,
+    "tableRows": 14
+   }
+  },
+  {
+   "page": 13,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "coverage-marker",
+     "detail": "58% of Marker's tokens are not in Vision (e.g. врач, детский, отношении, стоматолог, педиатр, хирург, андролог, мальчиков, акушер, гинеколог, офтальмолог, психиатр)"
+    }
+   ],
+   "furniture": [
+    "3"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 189,
+    "visionTokens": 84,
+    "coverageVision": 0.9733,
+    "coverageMarker": 0.4171,
+    "respaced": 0,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 14,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [
+    "от «14» *A.M. Lehr* 20 26 г. № 2114"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 236,
+    "visionTokens": 236,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 15,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "2"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 126,
+    "visionTokens": 126,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 16,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "dropped-span",
+     "detail": "Vision reads text that Marker lacks (at a paragraph start): «от «14» апреля 2025г. № 21 н»"
+    },
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 14, 2025, 21; only in Marker: I"
+    }
+   ],
+   "furniture": [],
+   "portalRewrites": [
+    "от «14» *anders* 20 25 г. № 2114"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 247,
+    "visionTokens": 246,
+    "coverageVision": 0.9663,
+    "coverageMarker": 0.995,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 17,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "numbered-rows",
+     "detail": "Vision has numbered lines 3 that Marker lacks"
+    }
+   ],
+   "furniture": [
+    "2"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 362,
+    "visionTokens": 360,
+    "coverageVision": 0.9935,
+    "coverageMarker": 0.9967,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 18,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 0, I"
+    }
+   ],
+   "furniture": [],
+   "portalRewrites": [
+    "от «14» ~~АККА~~ 20 ²⁵г. № 2114"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 117,
+    "visionTokens": 120,
+    "coverageVision": 0.9794,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 19,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 0, 2; only in Marker: 202"
+    },
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 8% of Vision's tokens (e.g. 2, адрес, организации, ава, 0, места, которой, несовершеннолетний, нахождения, образовательной, обучается)"
+    }
+   ],
+   "furniture": [],
+   "portalRewrites": [
+    "от «14» апреля 2025 г. № 2114"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 145,
+    "visionTokens": 159,
+    "coverageVision": 0.9154,
+    "coverageMarker": 0.9835,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 20,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "dropped-span",
+     "detail": "Vision reads text that Marker lacks (at a paragraph start): «фон настроения • ровный/О лабильный/ • дисфоричный/С тревожный; обманы восприятия • да/О нет»"
+    }
+   ],
+   "furniture": [
+    "2"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 199,
+    "visionTokens": 231,
+    "coverageVision": 0.949,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 21,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 0×6; only in Marker: I, II, III, IV, V"
+    },
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 6% of Vision's tokens (e.g. 0, песть, te, ax, ma, me, iда, oiv, ov)"
+    }
+   ],
+   "furniture": [
+    "3"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 244,
+    "visionTokens": 263,
+    "coverageVision": 0.9383,
+    "coverageMarker": 0.9509,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 22,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 0×6, 16.3.5, 16.5, 16.5.1"
+    },
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 12% of Vision's tokens (e.g. 0, нет, да, диагноз, лечение, назначено, амбулаторных, условиях, код, по, мкб, установлен)"
+    }
+   ],
+   "furniture": [
+    "4"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 212,
+    "visionTokens": 248,
+    "coverageVision": 0.875,
+    "coverageMarker": 0.9943,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 23,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 0×2; only in Marker: I, II, III, IV, V"
+    }
+   ],
+   "furniture": [
+    "5"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 211,
+    "visionTokens": 230,
+    "coverageVision": 0.95,
+    "coverageMarker": 0.9607,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 24,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "6"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 58,
+    "visionTokens": 58,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 25,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [
+    "от « 14 » angele 2025 г. № 2114"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 337,
+    "visionTokens": 335,
+    "coverageVision": 0.9928,
+    "coverageMarker": 0.9928,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 26,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "2"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 357,
+    "visionTokens": 354,
+    "coverageVision": 0.987,
+    "coverageMarker": 0.9967,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 27,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "3"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 360,
+    "visionTokens": 360,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 28,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "4"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 338,
+    "visionTokens": 337,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 29,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "5"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 174,
+    "visionTokens": 173,
+    "coverageVision": 0.9935,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 30,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "dropped-span",
+     "detail": "Vision reads text that Marker lacks (at a paragraph start): «2025 г. № 2114 от «14» апреля»"
+    },
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 10/0, 14, 2025, 2114; only in Marker: 3, 4"
+    },
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 17% of Vision's tokens (e.g. 2025, 2114, от, 14, апреля, арушение, недостоверны, ервичных, правонарушения, тредставляют, 10/0, мединских)"
+    },
+    {
+     "kind": "coverage-marker",
+     "detail": "35% of Marker's tokens are not in Vision (e.g. российской, федерации, организации, власти, сфере, по, отчитывающейся, подразделения, 4, нарушение, первичных, недостоверных)"
+    }
+   ],
+   "furniture": [],
+   "portalRewrites": [
+    "от « 14 » апрель 20 05 г. № 8114"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 182,
+    "visionTokens": 140,
+    "coverageVision": 0.8254,
+    "coverageMarker": 0.6541,
+    "respaced": 0,
+    "tableRows": 6
+   }
+  },
+  {
+   "page": 31,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "2"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 188,
+    "visionTokens": 188,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 32,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 0; only in Marker: 00×3, 1, 2, 50, 7"
+    },
+    {
+     "kind": "coverage-marker",
+     "detail": "15% of Marker's tokens are not in Vision (e.g. 00, из, расстройства, ожирение, всего, них, 1, 2, 7, некоторые, болезни, вич)"
+    }
+   ],
+   "furniture": [
+    "3"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 246,
+    "visionTokens": 215,
+    "coverageVision": 0.9586,
+    "coverageMarker": 0.8526,
+    "respaced": 0,
+    "tableRows": 22
+   }
+  },
+  {
+   "page": 33,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 100, 110, 113, 199; only in Marker: 00, 05, 10, 13, 7.2, 99, I×4"
+    }
+   ],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 201,
+    "visionTokens": 184,
+    "coverageVision": 0.9643,
+    "coverageMarker": 0.906,
+    "respaced": 0,
+    "tableRows": 20
+   }
+  },
+  {
+   "page": 34,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 010, 018, 020, 028, 038, 045, 052, 055, 060, 065, 079; only in Marker: 10, 16.1, 16.2, 16.3, 16.4, 16.5, 16.6, 16.7, 16.8, 16.9, 18, 20, 28, 38, 45, 52, 55, 60, 65, 79, 90, 99"
+    },
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 34% of Vision's tokens (e.g. системь, лаза, шек, 010, 018, истемы, кровообращени, 020, 028, 038, 045, 052)"
+    },
+    {
+     "kind": "coverage-marker",
+     "detail": "50% of Marker's tokens are not in Vision (e.g. системы, органов, развития, деформации, 99, 16.1, 16.2, глаза, шеи, 10, 18, 16.3)"
+    }
+   ],
+   "furniture": [
+    "5"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 107,
+    "visionTokens": 74,
+    "coverageVision": 0.661,
+    "coverageMarker": 0.5,
+    "respaced": 0,
+    "tableRows": 13
+   }
+  },
+  {
+   "page": 35,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Marker: 2, 3, 4.2"
+    },
+    {
+     "kind": "numbered-rows",
+     "detail": "Vision has numbered lines 2, 3 that Marker lacks"
+    }
+   ],
+   "furniture": [
+    "6"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 225,
+    "visionTokens": 206,
+    "coverageVision": 0.9945,
+    "coverageMarker": 0.9141,
+    "respaced": 0,
+    "tableRows": 16
+   }
+  },
+  {
+   "page": 36,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Marker: 0×4, 10, 14×3, 15, 17×2, 2, 3, 4×2, 5, 8, 9, I, II, III×2"
+    },
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 11% of Vision's tokens (e.g. таблица, he, развития, ченовск, культурой, проведенны, профилактически, ледицинских, смотров, период)"
+    },
+    {
+     "kind": "coverage-marker",
+     "detail": "52% of Marker's tokens are not in Vision (e.g. лет, включительно, до, от, том, числе, мальчиков, 0, 14, по, периоде, из)"
+    },
+    {
+     "kind": "numbered-rows",
+     "detail": "Vision has numbered lines 2, 3, 4 that Marker lacks"
+    }
+   ],
+   "furniture": [
+    "7"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 218,
+    "visionTokens": 118,
+    "coverageVision": 0.8899,
+    "coverageMarker": 0.4802,
+    "respaced": 1,
+    "tableRows": 25
+   }
+  },
+  {
+   "page": 37,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Marker: 10, 14, 15, 17, 5, 9, I×2"
+    },
+    {
+     "kind": "coverage-marker",
+     "detail": "23% of Marker's tokens are not in Vision (e.g. лет, включительно, мальчиков, от, до, том, числе, rom:i, 10, 14, 15, 17)"
+    },
+    {
+     "kind": "numbered-rows",
+     "detail": "Vision has numbered lines 2, 3, 4, 5, 6 that Marker lacks"
+    }
+   ],
+   "furniture": [
+    "8",
+    "20_."
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 170,
+    "visionTokens": 139,
+    "coverageVision": 0.9531,
+    "coverageMarker": 0.7722,
+    "respaced": 0,
+    "tableRows": 19
+   }
+  },
+  {
+   "page": 38,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "dropped-span",
+     "detail": "Vision reads text that Marker lacks (at a paragraph start): «от «14 » апреля 2025г. Nºd 114»"
+    },
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 114, 14, 2025"
+    }
+   ],
+   "furniture": [],
+   "portalRewrites": [
+    "hyphen restored: медикосанитарную → медико-санитарную",
+    "от « 14 » 08/06/68 20 25 г. № 2114"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 305,
+    "visionTokens": 306,
+    "coverageVision": 0.9769,
+    "coverageMarker": 0.9961,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 39,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "2"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 141,
+    "visionTokens": 141,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  }
+ ]
+}

@@ -1,0 +1,177 @@
+{
+  "documentId": "regulatory.rf.minzdrav.211n-2025",
+  "reviewer": "Claude (agent), against the page images; not a lawyer",
+  "reviewedAt": "2026-10-14",
+  "keepMarker": [
+    12,
+    13,
+    36
+  ],
+  "verdicts": {
+    "2": "image read: items of the amending acts, item 3 and the signature match (the one digit Vision lacks is the page number)",
+    "3": "image read: annex 1 header restored in full (fixed); items 1-6 match, including «статьи 53⁴» (article 53 with the superscript 4) and the laws № 3-ФЗ, № 77-ФЗ, № 323-ФЗ",
+    "4": "image read: items 7-9 and footnotes 1-2 match; the footnote's registration number is 81000 (Vision reads «№ 2»; the tool no longer swaps a number for one that lost digits)",
+    "6": "image read: items 10-12 and footnote 3 (статья 91¹) match",
+    "11": "image read: annex 1 header (date and number are the portal's), the table head and rows 1-13 (periods of life and doctors) match",
+    "12": "image read: rows 14-27 of the table of examinations match; «Эхокардиография» fixed; Vision reads the table badly (Marker's text is longer, not a loop)",
+    "13": "image read: the end of row 27 and rows 28-31 (14-17 years) match, including the sex-specific doctors in brackets; the row cut by the page break is joined to row 27 by the tool",
+    "16": "image read: annex 3 header and items 1-4 match; groups I and II are Roman numerals",
+    "17": "image read: items 5 (groups III and IV) and footnote 2 match, including the printed «Порядка порядка», № 1144н, № 61238, № 106н, № 67554, № 497н, № 75373",
+    "18": "image read: annex 4 sample of the medical conclusion matches; checkbox glyphs are not carried by Marker (the options are complete)",
+    "19": "image read: annex 2 form, items 1-9 (item 9 and the blanks of the approval line restored); checkbox glyphs are not carried by Marker",
+    "20": "image read: form items 10-13.2; the two last lines restored («фон настроения», «обманы восприятия»); checkbox glyphs are not carried by Marker",
+    "21": "image read: form items 13.2-16.2.4; Latin letters of the sexual formulas restored; footnote 1 matches",
+    "22": "image read: form items 16.2.5-16.4.6; fused items split, 16.3.5 and the last items 16.5 and 16.5.1 restored",
+    "23": "image read: form items 16.5.2-16.9 match, including the disability lines and the groups I-V",
+    "30": "image read (landscape, upright copy): annex 4 header and the title block of the form 030-ПО/о match (articles 13.19 and 8, № 282-ФЗ, OKUD 0609339); two small errors fixed",
+    "32": "image read (landscape): table 1000 rows 1-7.1 and every ICD range match (A00 - B99 … H52)",
+    "33": "image read (landscape): table 1000 rows 7.2-15 match (H52.1 … P05 - P96), including the printed «отсуствие менструаций»",
+    "34": "image read (landscape): table 1000 end (rows 16-18, Q00 - Q99 … A00 - T98); the printed numbers 16.7 and 16.8 have no final dot (fixed)",
+    "35": "image read: tables 2000 and 3000 match (headers, column numbers, age rows)",
+    "36": "image read: tables 4000 and 5000 match; the fused table names are split (fixed); Vision reads the empty tables badly",
+    "37": "image read: tables 5000 end and 6000 match; the end of the form restored",
+    "38": "image read: annex 5 header and items 1-6 match"
+  },
+  "corrections": [
+    {
+      "page": 3,
+      "kind": "dropped-lines",
+      "find": "Приложение Nº 1  \nк приказу Министерства здравоохранения",
+      "replace": "Приложение № 1\nк приказу Министерства здравоохранения\nРоссийской Федерации\nот 14 апреля 2025 г. № 211н",
+      "why": "Marker dropped the approval block of the annex (the date and number are handwritten); the tool restored two lines from Vision. The printed block is «Приложение № 1 к приказу Министерства здравоохранения Российской Федерации от «14» апреля 2025 г. № 211н»; date and number are the portal's."
+    },
+    {
+      "page": 12,
+      "kind": "word",
+      "find": "- Экокардиография",
+      "replace": "- Эхокардиография",
+      "why": "The printed name is «Эхокардиография» (as on the previous page); Marker wrote «Экокардиография»."
+    },
+    {
+      "page": 19,
+      "kind": "blanks",
+      "find": "от « » 202 г. №",
+      "replace": "от «__» _______ 202_ г. № ___",
+      "why": "The printed line of the form reads «от «__» _______ 202_ г. № ___» (blanks); Marker dropped the underscores."
+    },
+    {
+      "page": 19,
+      "kind": "dropped-line",
+      "find": "8. Полное наименование образовательной организации, в которой обучается несовершеннолетний: _____",
+      "replace": "8. Полное наименование образовательной организации, в которой обучается несовершеннолетний: _____\n\n9. Адрес места нахождения образовательной организации, в которой обучается несовершеннолетний: _____",
+      "why": "Item 9 of the form («Адрес места нахождения образовательной организации, в которой обучается несовершеннолетний») is the last line of the page; Marker dropped it."
+    },
+    {
+      "page": 20,
+      "kind": "dropped-lines",
+      "find": "доступен к контакту  да/ частично доступен/ нет;",
+      "replace": "доступен к контакту  да/ частично доступен/ нет;\n\nфон настроения  ровный/ лабильный/ дисфоричный/ тревожный;\n\nобманы восприятия  да/ нет;",
+      "why": "The last two lines of the page («фон настроения: ровный/лабильный/дисфоричный/тревожный» and «обманы восприятия: да/нет») are in the image; Marker dropped them."
+    },
+    {
+      "page": 21,
+      "kind": "letters",
+      "find": "Ах _____ Р _____ Г _____ Те _____",
+      "replace": "Ax _____ P _____ G _____ Te _____",
+      "why": "Item 14.1 is printed with Latin letters (Ax, P, G, Te); Marker read them as Cyrillic and «G» as «Г»."
+    },
+    {
+      "page": 21,
+      "kind": "letters",
+      "find": "Р _____ Ах _____ Ма _____ Ме _____",
+      "replace": "P _____ Ax _____ Ma _____ Me _____",
+      "why": "Item 14.2 is printed with Latin letters (P, Ax, Ma, Me); Marker read them as Cyrillic."
+    },
+    {
+      "page": 22,
+      "kind": "fused-lines",
+      "find": "16.3. Диагноз _____ Код по МКБ _____ :16.3.1. Диагноз установлен впервые:  да/ нет.16.3.2. Диспансерное наблюдение:  установлено ранее;",
+      "replace": "16.3. Диагноз _____ Код по МКБ _____:\n\n16.3.1. Диагноз установлен впервые:  да/ нет.\n\n16.3.2. Диспансерное наблюдение:  установлено ранее;",
+      "why": "Marker fused item 16.3 with 16.3.1 and 16.3.2 into one line; in the image they are three lines."
+    },
+    {
+      "page": 22,
+      "kind": "dropped-item",
+      "find": "16.3.4. Дополнительные консультации и исследования выполнены: нет/ да:  в амбулаторных условиях;\n в условиях дневного стационара;\n в стационарных условиях.\n в условиях дневного стационара;\n в стационарных условиях.",
+      "replace": "16.3.4. Дополнительные консультации и исследования выполнены: нет/ да:  в амбулаторных условиях;\n в условиях дневного стационара;\n в стационарных условиях.\n\n16.3.5. Лечение назначено: нет/ да:  в амбулаторных условиях;\n в условиях дневного стационара;\n в стационарных условиях.",
+      "why": "Item 16.3.5 («Лечение назначено: нет/да: в амбулаторных условиях; в условиях дневного стационара; в стационарных условиях») was dropped by Marker; only its last two options were left after 16.3.4."
+    },
+    {
+      "page": 22,
+      "kind": "fused-lines",
+      "find": "16.4. Диагноз _____ Код по МКБ _____ .16.4.1. Диагноз установлен впервые:  да/ нет.16.4.2. Диспансерное наблюдение: установлено ранее  установлено впервые  не установлено.",
+      "replace": "16.4. Диагноз _____ Код по МКБ _____.\n\n16.4.1. Диагноз установлен впервые:  да/ нет.\n\n16.4.2. Диспансерное наблюдение:\n\n установлено ранее  установлено впервые  не установлено.",
+      "why": "Marker fused item 16.4 with 16.4.1 and 16.4.2 into one line; in the image they are separate lines."
+    },
+    {
+      "page": 22,
+      "kind": "dropped-lines",
+      "find": "16.4.6. Медицинская реабилитация и (или) санаторно-курортное лечение назначены: нет/ да:  в амбулаторных условиях;\n в условиях дневного стационара;\n в стационарных условиях.",
+      "replace": "16.4.6. Медицинская реабилитация и (или) санаторно-курортное лечение назначены: нет/ да:  в амбулаторных условиях;\n в условиях дневного стационара;\n в стационарных условиях.\n\n16.5. Диагноз _____ Код по МКБ _____:\n\n16.5.1. Диагноз установлен впервые:  да/ нет.",
+      "why": "The last two items of the page (16.5 «Диагноз … Код по МКБ» and 16.5.1) are in the image; Marker dropped them."
+    },
+    {
+      "page": 30,
+      "kind": "word",
+      "find": "статистическом учетк и системе",
+      "replace": "статистическом учете и системе",
+      "why": "The printed words are «статистическом учете и системе государственной статистики»; Marker wrote «учетк и»."
+    },
+    {
+      "page": 30,
+      "kind": "table-cells",
+      "find": "идентификационный номер) | 3 | 4 |",
+      "replace": "идентификационный номер) | | |",
+      "why": "The column numbers «3» and «4» are the cells of the next row («1 2 3 4»); in the row of «отчитывающейся организации по ОКПО» the third and fourth cells are empty in the image."
+    },
+    {
+      "page": 30,
+      "kind": "heading-level",
+      "find": "**Форма № 030-ПО/о**",
+      "replace": "Форма № 030-ПО/о",
+      "why": "«Форма № 030-ПО/о» is a bold caption in the title block of the form, not a section title; Marker's bold made the tool open a section for it."
+    },
+    {
+      "page": 30,
+      "kind": "heading-level",
+      "find": "**Годовая**",
+      "replace": "Годовая",
+      "why": "«Годовая» (periodicity of the form) is a bold caption of the title block, not a section title."
+    },
+    {
+      "page": 34,
+      "kind": "numbering",
+      "find": "| 16.7. |",
+      "replace": "| 16.7 |",
+      "why": "The row numbers 16.7 and 16.8 are printed without a final dot (like 4.3.1); Marker added one."
+    },
+    {
+      "page": 34,
+      "kind": "numbering",
+      "find": "| 16.8. |",
+      "replace": "| 16.8 |",
+      "why": "See 16.7: printed without a final dot."
+    },
+    {
+      "page": 36,
+      "kind": "fused-lines",
+      "find": "5. Число детей по уровню физического развитияТаблица 4000",
+      "replace": "5. Число детей по уровню физического развития\n\nТаблица 4000",
+      "why": "Marker fused the section title and the table name «Таблица 4000» into one line."
+    },
+    {
+      "page": 36,
+      "kind": "fused-lines",
+      "find": "6. Распределение количества детей по отношению к медицинским группам для занятий физической культуройТаблица 5000",
+      "replace": "6. Распределение количества детей по отношению к медицинским группам для занятий физической культурой\n\nТаблица 5000",
+      "why": "Marker fused the section title and the table name «Таблица 5000» into one line."
+    },
+    {
+      "page": 37,
+      "kind": "dropped-lines",
+      "find": "за составление отчётной формы\n\n(подпись)\n\n(фамилия, имя, отчество (при наличии)",
+      "replace": "за составление отчётной формы\n\n(подпись)\n\n(фамилия, имя, отчество (при наличии)\n\nМ.П.\n\n(подпись) «___» ____________ 20__ г.\n\n(дата составления)",
+      "why": "The end of the form («М.П.» and the line «(подпись) «__» ______ 20__ г. (дата составления)») is in the image; Marker dropped it."
+    }
+  ]
+}
