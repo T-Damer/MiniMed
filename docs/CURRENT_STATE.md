@@ -81,7 +81,7 @@ VIS1) and the coordinator's scrollbar decision. Screens: search home and results
 ## Drug screen: plain text links, no bubbles — 2026-10-14 (STATE DRUG-UI2)
 
 Owner 2026-10-14 (screenshot of «Вермокс», 375×812): «too many bubble buttons». The first paragraph of the
-instruction now starts at y = 419 px at 375×812 (was 497) and 414 px at 768×1024 (was 479); e2e
+instruction now starts at y = 421 px at 375×812 (was 497) and 416 px at 768×1024 (was 479); e2e
 `drug-screen-first-screen.spec.ts` asserts the layout and that nothing on top is a bordered pill.
 
 - **Text links, not chips** (`.drug-link`): «Мебендазол · Антигельминтное средство · P02CA01» and
