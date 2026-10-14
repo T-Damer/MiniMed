@@ -26,7 +26,7 @@ describe('sameSearchOutcome', () => {
     ).toBe(true);
   });
 
-  it('sees a new document, a new fragment or a new order', () => {
+  it('sees a new document among the first groups or a new order', () => {
     const current = response([group('a', ['1']), group('b', ['2'])]);
     expect(
       sameSearchOutcome(
@@ -34,11 +34,24 @@ describe('sameSearchOutcome', () => {
         response([group('a', ['1']), group('b', ['2']), group('c', ['3'])]),
       ),
     ).toBe(false);
-    expect(sameSearchOutcome(current, response([group('a', ['1', '4']), group('b', ['2'])]))).toBe(
-      false,
-    );
     expect(sameSearchOutcome(current, response([group('b', ['2']), group('a', ['1'])]))).toBe(
       false,
     );
+  });
+
+  it('does not see other passages of the same documents', () => {
+    const current = response([group('a', ['1']), group('b', ['2'])]);
+    expect(sameSearchOutcome(current, response([group('a', ['1', '4']), group('b', ['9'])]))).toBe(
+      true,
+    );
+  });
+
+  it('does not see a change far down the list', () => {
+    const many = (extra: string) =>
+      response([
+        ...Array.from({ length: 12 }, (_, index) => group(`d${index}`, ['1'])),
+        group(extra, ['1']),
+      ]);
+    expect(sameSearchOutcome(many('x'), many('y'))).toBe(true);
   });
 });

@@ -32,6 +32,7 @@ import {
   tokenize,
 } from '@localmed/search-lexical';
 import { isIcd11Document, isIcd11DocumentId } from '@/features/icd11/icd11-document';
+import { refineResponseHighlights } from '@/features/search/search-highlight';
 import { RESULT_TYPE_VISUALS } from '@/features/search/searchResultKindVisuals';
 import {
   detectSourceNameIntent,
@@ -330,6 +331,20 @@ function namedBySpelling(group: SearchResultGroup): boolean {
   );
 }
 
+/**
+ * A catalogue pointer holds only the names of a drug (substance, trade names, forms), so a typed
+ * word that one of its fragments matched as itself is a name of the drug. Words the search added by
+ * expanding the query (the substance behind a trade name) are not the typed ones.
+ */
+function listsTypedName(group: SearchResultGroup, typedStems: ReadonlySet<string>): boolean {
+  return group.results.some((result) =>
+    result.matchedTerms.some((term) => {
+      const stem = lightStemRussian(normalizeSurfaceText(term));
+      return stem.length >= 3 && typedStems.has(stem);
+    }),
+  );
+}
+
 function filterMedicationDocuments(
   response: SearchResponse,
   documents: readonly SearchDocumentDescriptor[],
@@ -365,17 +380,19 @@ function filterMedicationDocuments(
       const document = documentsById.get(group.documentId);
       const metadata = document?.metadata as SearchDocumentKindMetadata | undefined;
       if (!document || !isMedicationSearchDocument(document)) return [group];
+      const isMedicationPointer =
+        document.sourceType === 'core_catalog_pointer' && metadata?.catalogFamily === 'medication';
       // A drug the core found for a misspelt name («обакавир») is named too, if not by its letters;
-      // so is one found by the ATC code that was typed (ATC5).
+      // so is one found by the ATC code that was typed (ATC5), and one whose catalogue row lists
+      // the typed trade name («Аспирин» → ацетилсалициловая кислота, SRCH1).
       if (excludeByIntent)
         return titleNamedInQuery(group.title) ||
           namedBySpelling(group) ||
-          group.atcMatch !== undefined
+          group.atcMatch !== undefined ||
+          (isMedicationPointer && listsTypedName(group, queryStems))
           ? [group]
           : [];
       if (!requireSameResult) return [group];
-      const isMedicationPointer =
-        document.sourceType === 'core_catalog_pointer' && metadata?.catalogFamily === 'medication';
       const rankedResults = group.results
         .map((result) => ({
           result,
@@ -438,12 +455,10 @@ export function searchResultDocumentKind(
 ): SearchResultDocumentKind {
   const metadata = document.metadata as SearchDocumentKindMetadata | undefined;
   if (typeof metadata?.interactiveAssessmentId === 'string') return 'assessment';
-  if (
-    metadata?.calculationRequired === true ||
-    typeof metadata?.interactiveCalculatorId === 'string'
-  ) {
-    return 'calculator';
-  }
+  // A document is a calculator only when it names the calculator it opens. `calculationRequired`
+  // says that the text is *about* a calculation (the WHO BMI table, the eGFR formulas): it is a
+  // reference document, and «Калькулятор» on it opened a reference page (SRCH1, QA 10-14, «ИМТ»).
+  if (typeof metadata?.interactiveCalculatorId === 'string') return 'calculator';
   if (document.sourceType === 'core_catalog_pointer') {
     if (metadata?.catalogFamily === 'medication') return 'medication';
     if (metadata?.catalogFamily === 'legal') return 'legal';
@@ -788,7 +803,9 @@ export class ScopedMedicalCore implements MedicalCore {
     if (!documents.ok) return { ok: false, error: documents.error };
 
     const named = await this.searchNamedSource(request, documents.value);
-    return named ?? this.searchScoped(request, documents.value);
+    const result = named ?? (await this.searchScoped(request, documents.value));
+    // The marks of a snippet are the typed words, whole (search-highlight.ts).
+    return result.ok ? { ok: true, value: refineResponseHighlights(result.value) } : result;
   }
 
   /**

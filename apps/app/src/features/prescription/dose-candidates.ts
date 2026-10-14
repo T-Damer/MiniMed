@@ -12,6 +12,11 @@ import {
   cardDisplayName,
   cardSlugOfDocumentId,
 } from '@/features/drug-interactions/drug-candidates';
+import {
+  checkedWithDirectory,
+  drugDirectoryGroups,
+  withDirectoryGroups,
+} from '@/features/drug-picker/drug-search';
 import { namesCoverTypedWords } from '@/features/medication-safety/safety-candidates';
 import { atcMatchOf, singleByCode } from '@/features/medications/atc-groups';
 import { displayDrugName } from '@/features/medications/drug-screen';
@@ -85,14 +90,17 @@ export async function findDoseCandidates(
 ): Promise<readonly DoseCandidate[]> {
   const text = query.trim();
   if (text.length < 2) return [];
-  const result = await new ScopedMedicalCore(core, 'medications').search({
-    query: text,
-    mode: 'lexical',
-    analysisMode: 'lookup',
-    filters: {},
-    limit: 24,
-    includeSuggestions: false,
-  });
+  const [result, directory] = await Promise.all([
+    new ScopedMedicalCore(core, 'medications').search({
+      query: text,
+      mode: 'lexical',
+      analysisMode: 'lookup',
+      filters: {},
+      limit: 24,
+      includeSuggestions: false,
+    }),
+    drugDirectoryGroups(text),
+  ]);
   if (!result.ok) return [];
   const typed = wordsOf(text);
   const rewritten =
@@ -112,7 +120,11 @@ export async function findDoseCandidates(
     );
     return only ? [only] : [];
   }
-  for (const group of result.value.groups.slice(0, options.strict ? CHECKED_GROUPS : 24)) {
+  // The search's groups, then the cards the shared name rule adds (SRCH1).
+  const groups = options.strict
+    ? checkedWithDirectory(result.value.groups, directory, CHECKED_GROUPS)
+    : withDirectoryGroups(result.value.groups.slice(0, 24), directory);
+  for (const group of groups) {
     const item = candidateOf(index, group);
     if (!item || seen.has(item.candidate.slug)) continue;
     if (options.strict && !rewritten && !namesCoverTypedWords(item.names, typed)) continue;

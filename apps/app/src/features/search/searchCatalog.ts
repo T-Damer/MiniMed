@@ -324,14 +324,16 @@ export function toolNamesQuery(tool: SearchCatalogTool, query: string): boolean 
 /**
  * Tools wait behind the documents for a bare disease name: the article is the answer, a scale that
  * mentions the disease is a next step. They lead when the query asks for a tool or names one.
+ * A drug name is the exception to the second rule (SRCH1): when the first result is the drug
+ * itself, the calculators that merely mention it («варфарин» → INR, дозы) follow its card.
  */
-export function toolsFollowResults(query: string, tools: readonly SearchCatalogTool[]): boolean {
-  return (
-    query.trim() !== '' &&
-    tools.length > 0 &&
-    !queryAsksForTool(query) &&
-    !tools.some((tool) => !tool.createsNew && toolNamesQuery(tool, query))
-  );
+export function toolsFollowResults(
+  query: string,
+  tools: readonly SearchCatalogTool[],
+  leadIsDrug = false,
+): boolean {
+  if (query.trim() === '' || tools.length === 0 || queryAsksForTool(query)) return false;
+  return leadIsDrug || !tools.some((tool) => !tool.createsNew && toolNamesQuery(tool, query));
 }
 export function searchGroupLabel(scope: SearchScope, id: string): string {
   if (scope === 'medications') return medicationGroupLabel(id);

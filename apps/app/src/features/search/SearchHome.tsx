@@ -61,6 +61,7 @@ import {
   documentMatchesSearchScope,
   ScopedMedicalCore,
   type SearchScope,
+  searchResultDocumentKind,
 } from '@/features/search/ScopedMedicalCore';
 import { SearchCoreStatusNote } from '@/features/search/SearchCoreStatusNote';
 import { type HomeFeature, SearchHomeIntro } from '@/features/search/SearchHomeIntro';
@@ -76,6 +77,7 @@ import {
   searchCoreStatusHomeNoteVisible,
 } from '@/features/search/search-core-status';
 import { packOfferOwners, pointerModuleOf } from '@/features/search/search-pack-offers';
+import { isSearchHash } from '@/features/search/search-query-route';
 import { searchSectionFromHash, searchSectionHash } from '@/features/search/search-section-route';
 import {
   matchingCatalogTools,
@@ -181,6 +183,12 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   const documentsById = createMemo(
     () => new Map(documents().map((document) => [document.id, document])),
   );
+  /** The first result is a drug card: a calculator that mentions the drug waits behind it. */
+  const leadIsDrug = createMemo(() => {
+    const first = resultDocumentIds()[0];
+    const document = first === undefined ? undefined : documentsById().get(first);
+    return document !== undefined && searchResultDocumentKind(document) === 'medication';
+  });
   /** The result that carries each pack's download chip: a pack is offered once per list. */
   const packOffers = createMemo(() =>
     packOfferOwners(
@@ -252,7 +260,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   );
   /** Tools wait behind the documents for a bare disease name (searchCatalog `toolsFollowResults`). */
   const toolsAfterResults = createMemo(
-    () => scope() === 'all' && toolsFollowResults(catalogQuery(), visibleTools()),
+    () => scope() === 'all' && toolsFollowResults(catalogQuery(), visibleTools(), leadIsDrug()),
   );
   const catalogView = (): JSX.Element => (
     <Show
@@ -757,7 +765,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     const handleHashChange = (): void => {
       const hash = window.location.hash;
       // Other tabs own their routes; only react to the search page's own addresses.
-      if (hash !== '' && !/^#\/search(\/|$)/u.test(hash)) return;
+      if (hash !== '' && !isSearchHash(hash)) return;
       const section = searchSectionFromHash(hash, isSearchSection);
       if (section) {
         if (openSectionId() !== section) {

@@ -448,7 +448,18 @@ describe('ScopedMedicalCore', () => {
       sourceType: 'medical_reference',
       metadata: { interactiveAssessmentId: 'paei' },
     };
-    const calculator = { sourceType: 'medical_reference', metadata: { calculationRequired: true } };
+    const calculator = {
+      sourceType: 'medical_reference',
+      metadata: { interactiveCalculatorId: 'bmi' },
+    };
+    // A reference text about a calculation names no calculator: it is a reference document.
+    const aboutCalculation = {
+      sourceType: 'medical_reference',
+      metadata: { calculationRequired: true },
+    };
+    expect(documentMatchesSearchScope(aboutCalculation, 'calculators')).toBe(false);
+    expect(documentMatchesSearchScope(aboutCalculation, 'guidelines')).toBe(true);
+    expect(searchResultDocumentKind(aboutCalculation)).toBe('reference');
     expect(documentMatchesSearchScope(assessment, 'guidelines')).toBe(false);
     expect(documentMatchesSearchScope(assessment, 'assessments')).toBe(true);
     expect(documentMatchesSearchScope(assessment, 'all')).toBe(true);
@@ -569,6 +580,85 @@ describe('ScopedMedicalCore', () => {
     const result = await new ScopedMedicalCore(base.core, 'all').search(queryRequest('обакавир'));
 
     expect(result.ok && result.value.groups.map((group) => group.documentId)).toEqual([spelled.id]);
+  });
+
+  it('keeps in «Все» the drug whose catalogue row lists the typed trade name (SRCH1)', async () => {
+    const brand = pointerDocument('aspirin-pointer', 'medication', 'medication');
+    const unrelated = pointerDocument('combination-pointer', 'medication', 'medication');
+    const base = coreWithDocuments([brand, unrelated]);
+    const value = response();
+    base.search.mockResolvedValueOnce({
+      ok: true,
+      value: {
+        ...value,
+        analysis: { ...value.analysis, originalQuery: 'Аспирин' },
+        groups: [
+          // The title does not carry the brand; the row that was found lists it.
+          searchGroup(
+            brand.id,
+            [
+              {
+                ...searchResult(brand.id, '- ТН: Аспирин; форма/дозировка: ТАБЛЕТКИ (500 мг)'),
+                matchedTerms: ['аспирин', 'ацетилсалициловая', 'кислота'],
+              },
+            ],
+            'АЦЕТИЛСАЛИЦИЛОВАЯ КИСЛОТА',
+          ),
+          // Found only through the substance the query was expanded to: not named by the query.
+          searchGroup(
+            unrelated.id,
+            [
+              {
+                ...searchResult(unrelated.id, '- ТН: Кофеин-Комби'),
+                matchedTerms: ['ацетилсалициловая', 'кислота'],
+              },
+            ],
+            'АЦЕТИЛСАЛИЦИЛОВАЯ КИСЛОТА+КОФЕИН',
+          ),
+        ],
+      },
+    });
+
+    const result = await new ScopedMedicalCore(base.core, 'all').search(queryRequest('Аспирин'));
+
+    expect(result.ok && result.value.groups.map((group) => group.documentId)).toEqual([brand.id]);
+  });
+
+  it('marks only the typed words in a snippet, whole words (SRCH1)', async () => {
+    const drug = pointerDocument('aspirin-pointer', 'medication', 'medication');
+    const base = coreWithDocuments([drug]);
+    const value = response();
+    const snippet = '- ТН: Аспирин; ацетилсалициловая кислота';
+    base.search.mockResolvedValueOnce({
+      ok: true,
+      value: {
+        ...value,
+        analysis: { ...value.analysis, originalQuery: 'Аспирин' },
+        groups: [
+          searchGroup(
+            drug.id,
+            [
+              {
+                ...searchResult(drug.id, snippet),
+                // The stem «ацетилсалицилов» came from expanding the query; «Аспир» stops mid-word.
+                highlightedRanges: [
+                  { start: 6, end: 11 },
+                  { start: 14, end: 29 },
+                ],
+              },
+            ],
+            'АСПИРИН',
+          ),
+        ],
+      },
+    });
+
+    const result = await new ScopedMedicalCore(base.core, 'medications').search(
+      queryRequest('Аспирин'),
+    );
+
+    const ranges = result.ok ? (result.value.groups[0]?.results[0]?.highlightedRanges ?? []) : [];
+    expect(ranges.map((range) => snippet.slice(range.start, range.end))).toEqual(['Аспирин']);
   });
 
   it('filters core catalog pointers by family in scoped search', async () => {

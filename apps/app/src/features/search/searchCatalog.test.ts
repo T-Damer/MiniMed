@@ -54,6 +54,16 @@ describe('tools after the documents (S5)', () => {
     expect(toolsFollowResults('Апгар', matches('Апгар'))).toBe(false);
     expect(toolsFollowResults('', matches(''))).toBe(false);
   });
+
+  it('puts the calculators that mention a drug behind the drug card (SRCH1)', () => {
+    // «Апгар» names a scale: it leads. A drug name that a calculator also names does not.
+    const naming = matches('Апгар');
+    expect(toolsFollowResults('Апгар', naming, false)).toBe(false);
+    expect(toolsFollowResults('Апгар', naming, true)).toBe(true);
+    // A query that asks for a tool still leads with it, whatever the first result is.
+    expect(toolsFollowResults('шкала Апгар', matches('шкала Апгар'), true)).toBe(false);
+    expect(toolsFollowResults('', matches(''), true)).toBe(false);
+  });
 });
 
 describe('unified tool catalog', () => {

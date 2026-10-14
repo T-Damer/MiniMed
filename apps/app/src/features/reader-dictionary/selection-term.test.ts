@@ -8,6 +8,7 @@ import {
   resolveSelectionTerm,
   type SelectionSearch,
   selectionLookupQueries,
+  titleNamesWords,
 } from './selection-term';
 
 const hit = (title: string, coverage = 'definition'): CoreIdentityHit => ({
@@ -173,8 +174,30 @@ describe('resolveSelectionTerm', () => {
     const { search } = searchOver([], { инфаркту: found });
     const lookup = await resolveSelectionTerm('инфаркту', search);
     expect(lookup?.identities).toEqual([]);
-    expect(lookup?.groups).toBe(found);
+    expect(lookup?.groups).toEqual(found);
     expect(lookup?.matched).toBe('инфаркту');
+  });
+
+  it('lists only documents whose title carries the selected word (SRCH1)', async () => {
+    const about = group('Национальный календарь прививок');
+    const mention = group('Расстройство расщепления личности');
+    const { search } = searchOver([], { национальный: [mention, about] });
+    const lookup = await resolveSelectionTerm('национальный', search);
+    expect(lookup?.groups).toEqual([about]);
+    const none = searchOver([], { национальный: [mention] });
+    expect(await resolveSelectionTerm('национальный', none.search)).toMatchObject({
+      identities: [],
+      groups: [],
+      matched: 'национальный',
+    });
+  });
+
+  it('matches title words by form, not by a shared beginning', () => {
+    expect(titleNamesWords('Болиголов пятнистый', 'боли')).toBe(false);
+    expect(titleNamesWords('Боли в животе', 'боли')).toBe(true);
+    expect(titleNamesWords('Инфаркт миокарда', 'инфаркту')).toBe(true);
+    expect(titleNamesWords('Лечение пневмонии', 'пневмония')).toBe(true);
+    expect(titleNamesWords('Острый коронарный синдром', 'острого коронарного синдрома')).toBe(true);
   });
 
   it('answers with nothing found when nothing matches', async () => {

@@ -14,6 +14,7 @@ import {
   cardSlugOfDocumentId,
 } from '@/features/drug-interactions/drug-candidates';
 import { nameWordStem } from '@/features/drug-interactions/mention-matcher';
+import { directoryExtras, drugDirectoryGroups } from '@/features/drug-picker/drug-search';
 import { namesCoverTypedWords } from '@/features/medication-safety/safety-candidates';
 import { atcMatchOf, singleAtcGroup } from '@/features/medications/atc-groups';
 import { displayDrugName } from '@/features/medications/drug-screen';
@@ -43,18 +44,27 @@ async function searchGroups(
   core: MedicalCore,
   text: string,
   limit: number,
-): Promise<{ groups: readonly SearchResultGroup[]; rewritten: boolean } | null> {
-  const result = await new ScopedMedicalCore(core, 'medications').search({
-    query: text,
-    mode: 'lexical',
-    analysisMode: 'lookup',
-    filters: {},
-    limit,
-    includeSuggestions: false,
-  });
+): Promise<{
+  groups: readonly SearchResultGroup[];
+  /** Cards the shared name rule adds to what the search returned (SRCH1). */
+  extra: readonly SearchResultGroup[];
+  rewritten: boolean;
+} | null> {
+  const [result, directory] = await Promise.all([
+    new ScopedMedicalCore(core, 'medications').search({
+      query: text,
+      mode: 'lexical',
+      analysisMode: 'lookup',
+      filters: {},
+      limit,
+      includeSuggestions: false,
+    }),
+    drugDirectoryGroups(text),
+  ]);
   if (!result.ok) return null;
   return {
     groups: result.value.groups,
+    extra: directoryExtras(result.value.groups, directory),
     rewritten:
       result.value.queryRewrite !== undefined || result.value.queryCorrection !== undefined,
   };
@@ -132,7 +142,9 @@ async function pick(
   if (!searched) return null;
   const found = (
     await Promise.all(
-      searched.groups.slice(0, CHECKED_GROUPS).map((group) => drugOfGroup(core, group)),
+      [...searched.groups.slice(0, CHECKED_GROUPS), ...searched.extra].map((group) =>
+        drugOfGroup(core, group),
+      ),
     )
   ).filter((entry): entry is NonNullable<typeof entry> => entry !== null);
   const whole = found.filter((entry) => namesMatchWholeWords(entry.names, typed));
@@ -190,7 +202,9 @@ export async function findDrugs(
   const searched = await searchGroups(core, text, 24);
   if (!searched) return [];
   const found = await Promise.all(
-    searched.groups.slice(0, limit + 4).map((group) => drugOfGroup(core, group)),
+    [...searched.groups.slice(0, limit + 4), ...searched.extra].map((group) =>
+      drugOfGroup(core, group),
+    ),
   );
   const seen = new Set<string>();
   const drugs: FoundDrug[] = [];

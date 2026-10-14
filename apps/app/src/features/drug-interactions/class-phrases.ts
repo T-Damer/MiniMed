@@ -219,7 +219,77 @@ export const CLASS_ALIASES: readonly ClassAlias[] = [
   { text: 'оральные контрацептивы', codes: ['G03A'], basis: `${BASIS_NSI} G03A` },
 ];
 
+/**
+ * Names a doctor types for a class that instructions rarely use or spell differently (SRCH1, owner
+ * decision 2026-10-14: class words in the main search). Used by the search only
+ * (`medications/drug-class-lookup.ts`): the interaction index was built with {@link CLASS_ALIASES}
+ * alone, so a word added here does not change which sentences it marks. Every code is a group of the
+ * НСИ «АТХ» dictionary; the build of the phrases refuses a code that is not in it.
+ */
+export const CLASS_QUERY_ALIASES: readonly ClassAlias[] = [
+  {
+    text: 'бета-блокаторы',
+    codes: ['C07', 'S01ED'],
+    basis: `${BASIS_NSI} C07 «Бета-адреноблокаторы» и S01ED (глазные формы): то же, что бета-адреноблокаторы`,
+  },
+  { text: 'мочегонные', codes: ['C03'], basis: `${BASIS_NSI} C03 «Диуретики»` },
+  {
+    text: 'антипсихотики',
+    codes: ['N05A'],
+    basis: `${BASIS_NSI} N05A «Антипсихотические средства»`,
+  },
+  {
+    text: 'сартаны',
+    codes: ['C09C', 'C09D'],
+    basis: `${BASIS_NSI} C09C/C09D «Антагонисты рецепторов ангиотензина II» (сартаны — название по окончаниям МНН)`,
+  },
+  {
+    text: 'антагонисты кальция',
+    codes: ['C08'],
+    basis: `${BASIS_NSI} C08 «Блокаторы кальциевых каналов»`,
+  },
+  {
+    text: 'ингибиторы протонной помпы',
+    codes: ['A02BC'],
+    basis: `${BASIS_NSI} A02BC «Ингибиторы протонного насоса»`,
+  },
+  { text: 'ИПП', codes: ['A02BC'], basis: `${BASIS_NSI} A02BC (ИПП — ингибиторы протонной помпы)` },
+  {
+    text: 'антиаритмики',
+    codes: ['C01B'],
+    basis: `${BASIS_NSI} C01B «Антиаритмические препараты, классы I и III»`,
+  },
+  {
+    text: 'бронходилататоры',
+    codes: ['R03AC', 'R03AL', 'R03BB', 'R03CC', 'R03DA', 'R03DB'],
+    basis: `${BASIS_NSI} R03AC/R03CC «Селективные бета2-адреномиметики», R03AL «Адренергические средства в комбинации с антихолинергическими», R03BB «Антихолинергические средства», R03DA/R03DB «Ксантины»; не ингаляционные глюкокортикоиды R03BA и антилейкотриеновые R03DC`,
+  },
+  { text: 'муколитики', codes: ['R05CB'], basis: `${BASIS_NSI} R05CB «Муколитические препараты»` },
+  {
+    text: 'цефалоспорины',
+    codes: ['J01DB', 'J01DC', 'J01DD', 'J01DE', 'J01DI'],
+    basis: `${BASIS_NSI} J01DB–J01DE «Цефалоспорины первого–четвертого поколения», J01DI «Другие цефалоспорины и пенемы»; без J01DF монобактамов и J01DH карбапенемов`,
+  },
+  {
+    text: 'сахароснижающие',
+    codes: ['A10'],
+    basis: `${BASIS_NSI} A10 «Препараты для лечения сахарного диабета» (инсулины и пероральные гипогликемические)`,
+  },
+  {
+    text: 'антиконвульсанты',
+    codes: ['N03'],
+    basis: `${BASIS_NSI} N03 «Противоэпилептические препараты»`,
+  },
+  {
+    text: 'глюкокортикоиды',
+    codes: ['H02A'],
+    basis: `${BASIS_NSI} H02A «Кортикостероиды для системного использования»`,
+  },
+];
+
 export interface ClassPhrase {
+  /** The words as the alias or the ATC group name spells them. */
+  readonly label?: string;
   readonly stems: readonly string[];
   readonly codes: readonly string[];
   readonly origin: 'atc-name' | 'alias';
@@ -346,6 +416,8 @@ function minimalCodes(codes: readonly string[]): readonly string[] {
 }
 
 interface DerivedPhrase {
+  /** The words as the group name spells them, container words dropped. */
+  readonly label: string;
   readonly stems: readonly string[];
   readonly pluralOnly: boolean;
 }
@@ -377,7 +449,11 @@ function phrasesOfName(name: string, containers: ReadonlySet<string>): readonly 
       continue;
     if (stems.length === 1 && (stems[0] ?? '').length < MIN_SINGLE_PHRASE_LENGTH) continue;
     const last = words.at(-1)?.word ?? '';
-    phrases.push({ stems, pluralOnly: ADJECTIVE_ENDING.test(last) });
+    phrases.push({
+      label: words.map((entry) => entry.word).join(' '),
+      stems,
+      pluralOnly: ADJECTIVE_ENDING.test(last),
+    });
   }
   return phrases;
 }
@@ -407,7 +483,7 @@ export function deriveClassPhrases(
 
   const byPhrase = new Map<
     string,
-    { stems: readonly string[]; pluralOnly: boolean; codes: string[] }
+    { label: string; stems: readonly string[]; pluralOnly: boolean; codes: string[] }
   >();
   for (const [code, name] of entries) {
     for (const phrase of phrasesOfName(name, containers)) {
@@ -427,7 +503,13 @@ export function deriveClassPhrases(
     // The same class name stands in several branches (systemic and eye drops: «бета-адреноблокаторы»
     // are C07 and S01ED): the phrase names the class in all of them.
     if (new Set(codes.map((code) => code.charAt(0))).size > 1) manyBranches.push(key);
-    phrases.push({ stems: entry.stems, codes, origin: 'atc-name', pluralOnly: entry.pluralOnly });
+    phrases.push({
+      label: entry.label,
+      stems: entry.stems,
+      codes,
+      origin: 'atc-name',
+      pluralOnly: entry.pluralOnly,
+    });
   }
   const fromNames = phrases.length;
   for (const alias of aliases) {
@@ -440,6 +522,7 @@ export function deriveClassPhrases(
     }
     const lastWord = wordsOf(alias.text).at(-1)?.word ?? '';
     phrases.push({
+      label: alias.text,
       stems: nameStems(alias.text),
       codes: [...alias.codes],
       origin: 'alias',

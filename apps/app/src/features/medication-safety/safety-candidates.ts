@@ -12,6 +12,7 @@ import {
   cardDisplayName,
   cardSlugOfDocumentId,
 } from '@/features/drug-interactions/drug-candidates';
+import { checkedWithDirectory, drugDirectoryGroups } from '@/features/drug-picker/drug-search';
 import { singleByCode } from '@/features/medications/atc-groups';
 import { displayDrugName } from '@/features/medications/drug-screen';
 import { ScopedMedicalCore } from '@/features/search/ScopedMedicalCore';
@@ -87,14 +88,17 @@ export async function resolveSafetyCandidate(
 ): Promise<SafetyCandidate | null> {
   const text = name.trim();
   if (text.length < 3) return null;
-  const result = await new ScopedMedicalCore(core, 'medications').search({
-    query: text,
-    mode: 'lexical',
-    analysisMode: 'lookup',
-    filters: {},
-    limit: 24,
-    includeSuggestions: false,
-  });
+  const [result, directory] = await Promise.all([
+    new ScopedMedicalCore(core, 'medications').search({
+      query: text,
+      mode: 'lexical',
+      analysisMode: 'lookup',
+      filters: {},
+      limit: 24,
+      includeSuggestions: false,
+    }),
+    drugDirectoryGroups(text),
+  ]);
   if (!result.ok) return null;
   // A typed ATC code (ATC5) names the drugs the code search found: one drug, or none.
   if (parseAtcQuery(text)) {
@@ -110,7 +114,8 @@ export async function resolveSafetyCandidate(
   const typed = wordsOf(text);
   const rewritten =
     result.value.queryRewrite !== undefined || result.value.queryCorrection !== undefined;
-  for (const group of result.value.groups.slice(0, CHECKED_GROUPS)) {
+  // The first groups of the search, then the cards the shared name rule adds (SRCH1).
+  for (const group of checkedWithDirectory(result.value.groups, directory, CHECKED_GROUPS)) {
     const found = candidateOfGroup(index, group);
     if (!found) continue;
     if (rewritten || namesCoverTypedWords(found.names, typed)) return found.candidate;

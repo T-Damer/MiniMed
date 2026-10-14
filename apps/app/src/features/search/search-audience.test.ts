@@ -141,9 +141,17 @@ describe('search result document kind', () => {
     expect(
       searchResultDocumentKind({ ...base, sourceType: 'clinical_recommendation_summary' }),
     ).toBe('clinical-recommendation');
-    expect(searchResultDocumentKind({ ...base, metadata: { calculationRequired: true } })).toBe(
-      'calculator',
-    );
+    expect(
+      searchResultDocumentKind({ ...base, metadata: { interactiveCalculatorId: 'bmi' } }),
+    ).toBe('calculator');
+    // «Индекс массы тела — классификация ВОЗ» is about a calculation but opens as a document (SRCH1).
+    expect(
+      searchResultDocumentKind({
+        ...base,
+        sourceType: 'medical_reference',
+        metadata: { calculationRequired: true },
+      }),
+    ).toBe('reference');
     expect(
       searchResultDocumentKind({
         ...base,

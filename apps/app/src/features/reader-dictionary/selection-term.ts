@@ -8,6 +8,7 @@ import type {
 } from '@localmed/contracts';
 
 import { definitionHitHasText } from '@/features/search/definition-preview';
+import { isFormOfTypedWord, typedWord } from '@/features/search/typed-word';
 
 /**
  * Reader dictionary: what a selected word or phrase is looked up as. Pure over text and an injected
@@ -198,6 +199,30 @@ function hasDefinition(identities: readonly CoreIdentityHit[]): boolean {
   return identities.some((hit) => hit.target.type === 'definition' && definitionHitHasText(hit));
 }
 
+const MIN_TITLE_WORD_LETTERS = 3;
+
+/**
+ * True when every word of the selection (a function word of one or two letters excepted) is a form
+ * of a word of the document's title. The dictionary lists documents that are *about* the selected
+ * word; a document that merely mentions it in the body («национальный» in an article on a
+ * personality disorder) is no dictionary answer, and the lookup says so and offers a search
+ * everywhere instead (SRCH1).
+ */
+export function titleNamesWords(title: string, selection: string): boolean {
+  const titleWords =
+    title
+      .toLowerCase()
+      .replaceAll('ё', 'е')
+      .match(/[\p{L}\p{N}]+/gu) ?? [];
+  const words = (selection.match(/[\p{L}\p{N}]+/gu) ?? [])
+    .map((word) => typedWord(word))
+    .filter((word) => word.text.length >= MIN_TITLE_WORD_LETTERS);
+  return (
+    words.length > 0 &&
+    words.every((word) => titleWords.some((candidate) => isFormOfTypedWord(candidate, word)))
+  );
+}
+
 /**
  * Looks a selection up: each query of {@link selectionLookupQueries} is searched until one names
  * a dictionary entry with a definition. A name that only a document or a bare dictionary name
@@ -243,11 +268,16 @@ export async function resolveSelectionTerm(
   }
   if (named) return named;
   if (!answered && lastError) throw new Error(lastError.message);
+  // The words the documents must carry in their titles: the selection, or what the core corrected it to.
+  const titleWords = fallback?.queryCorrection ? fallback.queryCorrection.correctedQuery : text;
+  const groups = (fallback?.groups ?? []).filter((group) =>
+    titleNamesWords(group.title, titleWords),
+  );
   return {
     text,
-    matched: fallbackQuery === text || !fallback?.groups.length ? text : fallbackQuery,
+    matched: fallbackQuery === text || groups.length === 0 ? text : fallbackQuery,
     identities: [],
-    groups: fallback?.groups ?? [],
+    groups,
     ...(fallback?.queryCorrection ? { correction: fallback.queryCorrection } : {}),
   };
 }

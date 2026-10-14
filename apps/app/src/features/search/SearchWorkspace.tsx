@@ -75,6 +75,7 @@ import {
   parseCalculatorToolMention,
   replaceCalculatorToolTrigger,
 } from '@/features/search/calculator-tool-mention';
+import { DrugClassCard } from '@/features/search/DrugClassCard';
 import {
   documentMatchesSearchScope,
   type SearchScope,
@@ -88,6 +89,10 @@ import { SearchResultGroupCard } from '@/features/search/SearchResultGroupCard';
 import { SearchResultsSkeleton } from '@/features/search/SearchResultsSkeleton';
 import { SearchSourceNote } from '@/features/search/SearchSourceNote';
 import { correctionPieces } from '@/features/search/search-correction';
+import {
+  replaceSearchQueryInAddress,
+  searchQueryFromHash,
+} from '@/features/search/search-query-route';
 import { sameSearchOutcome } from '@/features/search/search-refresh';
 import {
   presentSourceChunkText,
@@ -284,7 +289,12 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   // Resolved once: reading the slot twice (class and content) would build two pickers and
   // rebuild the visible one, closing its open menu, whenever the class is re-evaluated.
   const modePicker = children(() => props.modePicker);
-  const [query, setQuery] = createSignal('');
+  // The address may carry the query (`#/search?q=…`): a reload or a shared link restores it. It
+  // waits here until the doctor types or the page has searched it, because opening a section
+  // from the address changes the scope once after this component is built.
+  let urlQuery: string | undefined = searchQueryFromHash(window.location.hash);
+  let urlRestorePending = urlQuery !== undefined;
+  const [query, setQuery] = createSignal(urlQuery ?? '');
   const [draftAnalysis, setDraftAnalysis] = createSignal<QueryAnalysis>();
   const [response, setResponse] = createSignal<SearchResponse>();
   const [context, setContext] = createSignal<ChunkContext>();
@@ -577,7 +587,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       if (searchTimer) clearTimeout(searchTimer);
       setSearchQueued(false);
       if (analysisTimer) clearTimeout(analysisTimer);
-      setQuery(saved?.query ?? (clinicalToggle ? query() : ''));
+      setQuery(saved?.query ?? (clinicalToggle ? query() : (urlQuery ?? '')));
       setResponse(saved?.response);
       setDraftAnalysis(saved?.response?.analysis);
       setContext(undefined);
@@ -600,7 +610,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       const hasMatchingCache = Boolean(cached && cached.analysis.originalQuery === trimmed);
       if (hasMatchingCache) {
         lastSearchedQuery = trimmed;
-      } else if (scopeChanged || !searchWasAllowed) {
+      } else if (scopeChanged || !searchWasAllowed || urlRestorePending) {
+        urlRestorePending = false;
         lastSearchedQuery = '';
         // A query typed while the core was still opening gets its analysis now as well.
         if (!searchWasAllowed) untrack(() => scheduleAnalysis(query()));
@@ -663,6 +674,11 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   };
 
   onMount(() => {
+    // The page above has opened the section of the address by now (same tick): later scope changes
+    // are the doctor's, and start with an empty field.
+    setTimeout(() => {
+      urlQuery = undefined;
+    }, 0);
     void refreshDownloadedCalculatorDefinitions()
       .then(handleCalculatorPacksChanged)
       .catch((cause: unknown) => {
@@ -746,6 +762,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   }
 
   function updateQuery(value: string, debounce = true): void {
+    urlQuery = undefined;
+    urlRestorePending = false;
     if (searchableQuery(value) !== searchableQuery(query())) setRequestedInlineCalculator();
     // «Искать везде» belongs to the words it was asked for; an edited query names sources again.
     if (searchableQuery(value) !== everywhereQuery()) setEverywhereQuery(undefined);
@@ -841,6 +859,9 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     const everywhere = everywhereQuery() === trimmed;
     if (!everywhere && (await showSavedSearch(trimmed, generation, specialty, dataVersion))) {
       lastSearchedQuery = trimmed;
+      if (recordHistory || options.autoRecord || options.apply) {
+        replaceSearchQueryInAddress(rawQuery);
+      }
       const shownResponse = response();
       if (shownResponse && (recordHistory || options.autoRecord))
         appendSearchHistory(rawQuery, props.scope, shownResponse, specialty, {
@@ -880,13 +901,17 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     }
 
     lastSearchedQuery = trimmed;
-    // An automatic refresh never swaps the list under the reader: an identical outcome is applied
-    // silently, a different one is offered. A search the user asked for is applied at once.
+    if (recordHistory || options.autoRecord || options.apply) replaceSearchQueryInAddress(rawQuery);
+    // A refresh after installed content changed never swaps the list under the reader: an
+    // identical outcome is applied silently, a different one is offered. Any other search of the
+    // query on screen (a return to the page, a retyped query) is applied at once, so «Обновить»
+    // never appears without a reason the reader can name.
     const current = response();
     if (
       refreshOfShown &&
       !recordHistory &&
       !options.apply &&
+      options.reloadContextDocuments &&
       current &&
       !sameSearchOutcome(current, result.value)
     ) {
@@ -996,6 +1021,9 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   }
 
   function clearQuery(): void {
+    urlQuery = undefined;
+    urlRestorePending = false;
+    replaceSearchQueryInAddress(undefined);
     searchGeneration += 1;
     if (analysisTimer) clearTimeout(analysisTimer);
     if (searchTimer) clearTimeout(searchTimer);
@@ -1593,6 +1621,9 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                 </Show>
 
                 <Show when={props.scope !== 'personal'}>
+                  <Show when={response()?.drugClass}>
+                    {(drugClass) => <DrugClassCard drugClass={drugClass()} />}
+                  </Show>
                   <Show when={visibleIdentities().length ? props.referenceCore : undefined}>
                     {(referenceCore) => (
                       <CoreIdentityMatches

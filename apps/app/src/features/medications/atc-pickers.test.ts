@@ -117,6 +117,8 @@ describe('the drug directory of the comparison index', () => {
         id: `esklp.mnn.${first.s}`,
         name: first.n,
         codes: ['J05AX13', 'L03AX'],
+        // How common the drug is (registrations): orders the drugs of a class (SRCH1).
+        weight: first.r,
         agreed: [{ code: 'J05AX13', registry: 'L03AX' }],
       },
     ]);
@@ -169,7 +171,9 @@ describe('the drug comparison picker', () => {
 
   it('still finds a drug by its name', async () => {
     const found = await findDrugs(createCore(), 'ибупрофен');
-    expect(found.map((drug) => drug.slug)).toEqual(['ибупрофен']);
+    // The substance first; the shared name rule (SRCH1) lists the combinations that carry it after.
+    expect(found[0]?.slug).toBe('ибупрофен');
+    expect(found.every((drug) => drug.slug.includes('ибупрофен'))).toBe(true);
     expect(found[0]?.atc).toBeUndefined();
   });
 

@@ -5,11 +5,14 @@
  */
 import type { MedicalCore, SearchAtcMatch, SearchResultGroup } from '@localmed/contracts';
 import { parseAtcQuery } from '@localmed/search-lexical';
-
+import { cardSlugOfDocumentId } from '@/features/drug-picker/card-id';
+import { drugDirectoryGroups, withDirectoryGroups } from '@/features/drug-picker/drug-search';
 import { atcMatchOf, singleByCode } from '@/features/medications/atc-groups';
 import { displayDrugName } from '@/features/medications/drug-screen';
 import { ScopedMedicalCore } from '@/features/search/ScopedMedicalCore';
 import type { InteractionIndex } from './interaction-index';
+
+export { cardSlugOfDocumentId };
 
 export interface DrugCandidate {
   readonly slug: string;
@@ -18,15 +21,6 @@ export interface DrugCandidate {
   readonly label: string;
   /** The ATC code the drug was found under, when it was searched by a code (ATC5). */
   readonly atc?: SearchAtcMatch;
-}
-
-const CARD_PREFIX = 'esklp.mnn.';
-const POINTER = /^core\.catalog\.pointer\.medication\.esklp\.mnn\.(.+)-[0-9a-f]{16}$/u;
-
-/** `esklp.mnn.<slug>` or its core pointer → `<slug>`; null for any other document. */
-export function cardSlugOfDocumentId(documentId: string): string | null {
-  if (documentId.startsWith(CARD_PREFIX)) return documentId.slice(CARD_PREFIX.length);
-  return POINTER.exec(documentId)?.[1] ?? null;
 }
 
 /** The name of a card as the doctor reads it, from its id when no title is at hand. */
@@ -67,18 +61,21 @@ export async function findDrugCandidates(
 ): Promise<readonly DrugCandidate[]> {
   const text = query.trim();
   if (text.length < 2) return [];
-  const result = await new ScopedMedicalCore(core, 'medications').search({
-    query: text,
-    mode: 'lexical',
-    analysisMode: 'lookup',
-    filters: {},
-    limit: 24,
-    includeSuggestions: false,
-  });
-  if (!result.ok) return [];
+  const [result, directory] = await Promise.all([
+    new ScopedMedicalCore(core, 'medications').search({
+      query: text,
+      mode: 'lexical',
+      analysisMode: 'lookup',
+      filters: {},
+      limit: 24,
+      includeSuggestions: false,
+    }),
+    drugDirectoryGroups(text),
+  ]);
   const seen = new Set<string>();
   const candidates: DrugCandidate[] = [];
-  for (const group of result.value.groups) {
+  // The search's groups, then the cards the shared name rule adds (any component, any word).
+  for (const group of withDirectoryGroups(result.ok ? result.value.groups : [], directory)) {
     const candidate = cardOfGroup(index, group);
     if (!candidate || seen.has(candidate.slug)) continue;
     seen.add(candidate.slug);
