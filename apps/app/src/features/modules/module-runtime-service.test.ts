@@ -75,6 +75,21 @@ describe('contentModuleCatalogFingerprint', () => {
     );
   });
 
+  it('changes when only the compatibility of a module changes', () => {
+    const first = catalog('1.0.0', `sha256:${'a'.repeat(64)}`);
+    const second = catalog('1.0.0', `sha256:${'a'.repeat(64)}`);
+    const module = second.modules[0];
+    if (!module) throw new Error('fixture module missing');
+    second.modules[0] = {
+      ...module,
+      compatibility: { ...module.compatibility, minAppVersion: '0.6.60' },
+    };
+
+    expect(contentModuleCatalogFingerprint(first)).not.toBe(
+      contentModuleCatalogFingerprint(second),
+    );
+  });
+
   it('is stable for equivalent catalog content', () => {
     const first = catalog('1.0.0', `sha256:${'a'.repeat(64)}`);
     const second = catalog('1.0.0', `sha256:${'a'.repeat(64)}`);

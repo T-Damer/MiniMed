@@ -15,6 +15,8 @@ export function contentModuleCatalogFingerprint(catalog: ContentModuleCatalog): 
       version: module.version,
       releaseState: module.releaseState,
       sourceSetDigest: module.sourceSetDigest,
+      // A catalog that only raises or lowers minAppVersion must still replace the running one.
+      compatibility: module.compatibility,
       definitionReference: module.definitionReference,
       artifacts: module.artifacts.map((artifact) => ({
         id: artifact.id,
