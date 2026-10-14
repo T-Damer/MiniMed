@@ -82,7 +82,9 @@ _ORIGINAL_ONLY: Final = " Текст выше — первоначальная �
 _SCAN_LINE: Final = re.compile(r"^Текст набран с официального скана .*$")
 
 
-def rewrite_footer(footer: Section, *, pages: int | None, amended: bool) -> str:
+def rewrite_footer(
+    footer: Section, *, pages: int | None, amended: bool, text_note: str | None = None
+) -> str:
     """The footer with the edition line made honest about the text above it (idempotent)."""
     lines: list[str] = []
     text = footer.text.rstrip("\n").replace(
@@ -90,9 +92,13 @@ def rewrite_footer(footer: Section, *, pages: int | None, amended: bool) -> str:
     )
     for raw in text.split("\n"):
         raw = raw.replace(_ORIGINAL_ONLY, "")
-        if _SCAN_LINE.match(raw):
+        if _SCAN_LINE.match(raw) or (text_note and raw.startswith("Текст — ")):
             continue
-        if raw.startswith("Редакция:") and amended:
+        if raw.startswith("Редакция:") and text_note:
+            lines.append(raw)
+            lines.append("")
+            lines.append(text_note)
+        elif raw.startswith("Редакция:") and amended:
             lines.append(raw.rstrip(".") + "." + _ORIGINAL_ONLY)
         elif raw.startswith("Сверено с официальным текстом") and pages:
             lines.append(raw)
@@ -120,9 +126,6 @@ def front_with(front: str, *, content_mode: str, description: str, extra: dict[s
             continue
         else:
             out.append(line)
-    label = next((i for i, line in enumerate(out) if line.startswith("version_label:")), None)
-    if label is not None and "-fulltext" not in out[label]:
-        out[label] = out[label].rstrip() + "-fulltext"
     insert_at = (
         max(
             i for i, line in enumerate(out) if line.startswith("  ") or line.startswith("metadata:")
@@ -143,6 +146,7 @@ def assemble_card(
     pages: int | None,
     amended: bool,
     extra: dict[str, object],
+    text_note: str | None = None,
 ) -> str:
     """The new card from the old card's text and the reconciled body of the act."""
     front, body = split_card(old_text)
@@ -150,7 +154,7 @@ def assemble_card(
     kept = re.search(r"^  description: (.*)$", front, re.MULTILINE)
     description = json.loads(kept.group(1)) if kept else description_of(sections)
     keep = status_section(sections)
-    footer = rewrite_footer(footer_of(sections), pages=pages, amended=amended)
+    footer = rewrite_footer(footer_of(sections), pages=pages, amended=amended, text_note=text_note)
     parts = [keep.text.rstrip("\n") if keep else None, text_body.rstrip("\n"), footer.rstrip("\n")]
     new_body = "\n\n".join(part for part in parts if part)
     new_front = front_with(front, content_mode="source_text", description=description, extra=extra)

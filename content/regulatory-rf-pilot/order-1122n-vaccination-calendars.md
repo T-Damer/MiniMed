@@ -2,7 +2,7 @@
 id: regulatory.rf.minzdrav.1122n-2021
 title: Национальный календарь профилактических прививок — приказ № 1122н
 short_title: Календарь прививок — 1122н
-version_label: 1122n-2021-12-06-amended-2024-09-01-fulltext
+version_label: 1122n-2021-12-06-amended-2024-09-01
 source_type: regulatory_act_summary
 status: active
 specialties:

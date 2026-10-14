@@ -2,7 +2,7 @@
 id: regulatory.rf.minzdrav.213n-2025
 title: Медицинская помощь несовершеннолетним в образовательных организациях — приказ № 213н
 short_title: Медпомощь детям в образовании — 213н
-version_label: 213n-2025-04-14-reviewed-2026-07-31-fulltext
+version_label: 213n-2025-04-14-reviewed-2026-07-31
 source_type: regulatory_act_summary
 status: active
 effective_from: "2025-09-01"

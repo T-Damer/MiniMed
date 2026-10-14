@@ -2,7 +2,7 @@
 id: regulatory.rf.minzdrav.625n-2016
 title: Экспертиза временной нетрудоспособности — приказ № 625н (утратил силу)
 short_title: Исторический порядок — 625н
-version_label: 625n-2016-08-23-superseded-2025-09-01-fulltext
+version_label: 625n-2016-08-23-superseded-2025-09-01
 source_type: regulatory_act_summary
 status: superseded
 specialties:

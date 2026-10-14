@@ -2,7 +2,7 @@
 id: regulatory.rf.minzdrav.1346n-2012
 title: Медицинские осмотры несовершеннолетних — приказ № 1346н (утратил силу)
 short_title: Исторические осмотры — 1346н
-version_label: 1346n-superseded-2018-01-01-fulltext
+version_label: 1346n-superseded-2018-01-01
 source_type: regulatory_act_summary
 status: superseded
 specialties:

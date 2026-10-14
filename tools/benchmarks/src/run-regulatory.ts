@@ -252,7 +252,7 @@ for (const fixture of queries) {
     metadata.jurisdiction === 'RU' &&
     metadata.documentNumber === fixture.expectedDocumentNumber &&
     (metadata.officialPublicationNumber ?? '') === fixture.expectedPublicationNumber &&
-    metadata.contentMode === 'source_linked_paraphrase' &&
+    metadata.contentMode === 'source_text' &&
     ageGroupsValid &&
     audienceLabelValid &&
     (fixture.expectedSupersededBy === undefined ||

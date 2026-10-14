@@ -2,7 +2,7 @@
 id: regulatory.rf.minzdravsoc.521n-2012
 title: Медицинская помощь детям с инфекционными заболеваниями — приказ № 521н
 short_title: Детские инфекции — 521н
-version_label: 521n-edition-2020-02-21-reviewed-2026-08-02-fulltext
+version_label: 521n-edition-2020-02-21-reviewed-2026-08-02
 source_type: regulatory_act_summary
 status: active
 specialties:

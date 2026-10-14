@@ -53,6 +53,7 @@ _ANNEX_RUNON: Final = re.compile(
 _STRUCTURAL: Final = re.compile(
     r"^(?:Глава|Раздел|Часть|Статья|Приложение|\d{1,3}[.)]\s|[IVXLC]{1,6}\.\s)", re.IGNORECASE
 )
+_ADOPTED: Final = re.compile(r"^(?:Принят|Одобрен|Подписан|Москва, Кремль)", re.IGNORECASE)
 _ROMAN: Final = re.compile(r"^[IVXLC]{1,6}\.\s+\S")
 _TERMINAL: Final = re.compile(r"[.;:!?»)\]]$")
 
@@ -267,6 +268,20 @@ def title_for(identity: ActIdentity) -> str:
     return f"{kind} № {identity.number}"
 
 
+def _law_heading_level(block: Block) -> int:
+    """Chapter (2) and article (3) lines of a law, plain or bold; the adoption lines are not headings."""
+    text = block.text
+    if block.kind not in ("heading", "paragraph") or len(text) > 250:
+        return 0
+    if _ADOPTED.match(text):
+        return 0
+    if re.match(r"^(?:Глава|Раздел)\s+[IVXLC\d]+\.?\s", text, re.IGNORECASE):
+        return 2
+    if re.match(r"^Статья\s+\d+(?:\.\d+)*\.\s+[А-ЯЁ«\"]", text) and not text.endswith("."):
+        return 3
+    return 0
+
+
 def structure(blocks: list[Block], identity: ActIdentity, first_page: int = 1) -> list[Block]:
     """Assign heading levels: the act and each annex are level 1, chapters and titles below."""
     out: list[Block] = [Block("heading", title_for(identity), first_page, 1)]
@@ -328,6 +343,10 @@ def structure(blocks: list[Block], identity: ActIdentity, first_page: int = 1) -
             )
             blocks[index] = block
             continue
+        if block.kind == "heading" and _ADOPTED.match(text):
+            block = Block("paragraph", text, block.page, confidence=block.confidence)
+            blocks[index] = block
+            continue
         if block.kind == "heading":
             level = min(max(block.level, 2), 3)
             if _LAW_PART.match(text):
@@ -340,6 +359,20 @@ def structure(blocks: list[Block], identity: ActIdentity, first_page: int = 1) -
                     text,
                     block.page,
                     level,
+                    confidence=block.confidence,
+                    reviewed=block.reviewed,
+                )
+            )
+            index += 1
+            continue
+        law_level = _law_heading_level(block)
+        if law_level:
+            out.append(
+                Block(
+                    "heading",
+                    text,
+                    block.page,
+                    law_level,
                     confidence=block.confidence,
                     reviewed=block.reviewed,
                 )
@@ -373,6 +406,16 @@ def _merge_adjacent_headings(blocks: list[Block]) -> list[Block]:
     merged: list[Block] = []
     for block in blocks:
         previous = merged[-1] if merged else None
+        if (
+            block.kind == "heading"
+            and previous is not None
+            and previous.kind == "heading"
+            and re.match(r"^(?:Глава|Раздел)\s", previous.text, re.IGNORECASE)
+            and re.match(r"^Статья\s", block.text, re.IGNORECASE)
+        ):
+            # a chapter opens with its first article: the article's title stays a line of the chapter section
+            merged.append(Block("paragraph", block.text, block.page, confidence=block.confidence))
+            continue
         if block.kind == "heading" and previous is not None and previous.kind == "heading":
             title = previous.text.rstrip()
             if not title:

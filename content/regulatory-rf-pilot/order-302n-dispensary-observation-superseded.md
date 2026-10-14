@@ -2,7 +2,7 @@
 id: regulatory.rf.minzdrav.302n-2019
 title: Диспансерное наблюдение несовершеннолетних — приказ № 302н (утратил силу)
 short_title: Исторический порядок — 302н
-version_label: 302n-2020-11-19-fulltext
+version_label: 302n-2020-11-19
 source_type: regulatory_act_summary
 status: superseded
 specialties:

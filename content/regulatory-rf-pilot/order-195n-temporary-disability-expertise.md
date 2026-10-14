@@ -2,7 +2,7 @@
 id: regulatory.rf.minzdrav.195n-2025
 title: Экспертиза временной нетрудоспособности — приказ № 195н
 short_title: Экспертиза нетрудоспособности — 195н
-version_label: 195n-2025-04-11-reviewed-2026-08-02-fulltext
+version_label: 195n-2025-04-11-reviewed-2026-08-02
 source_type: regulatory_act_summary
 status: active
 specialties:

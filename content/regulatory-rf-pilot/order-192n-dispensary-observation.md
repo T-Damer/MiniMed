@@ -2,7 +2,7 @@
 id: regulatory.rf.minzdrav.192n-2025
 title: Порядок диспансерного наблюдения несовершеннолетних — приказ № 192н
 short_title: Диспансерное наблюдение детей — 192н
-version_label: 192n-2025-04-11-fulltext
+version_label: 192n-2025-04-11
 source_type: regulatory_act_summary
 status: active
 specialties:

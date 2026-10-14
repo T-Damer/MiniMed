@@ -131,7 +131,7 @@ def test_structure_merges_adjacent_headings_and_keeps_law_levels() -> None:
     blocks = structure(law, IDENTITY, first_page=0)
     headings = [(b.level, b.text) for b in blocks if b.kind == "heading"]
     assert headings[0] == (1, "Приказ № 195н")
-    assert (2, "Глава 1. Общие положения — Статья 1. Предмет") in headings
+    assert (2, "Глава 1. Общие положения") in headings
     assert (3, "Статья 2. Лица") in headings
     assert "<!-- localmed:source {} -->" not in render_blocks(blocks)
 

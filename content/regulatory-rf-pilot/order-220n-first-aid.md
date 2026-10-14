@@ -2,7 +2,7 @@
 id: regulatory.rf.minzdrav.220n-2024
 title: Порядок оказания первой помощи — приказ № 220н
 short_title: Первая помощь — 220н
-version_label: 220n-2024-05-03-reviewed-2026-07-31-fulltext
+version_label: 220n-2024-05-03-reviewed-2026-07-31
 source_type: regulatory_act_summary
 status: active
 specialties:

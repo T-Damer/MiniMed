@@ -2,7 +2,7 @@
 id: regulatory.rf.minzdrav.190n-2025
 title: Профилактические осмотры для выявления туберкулеза — приказ № 190н
 short_title: Скрининг туберкулеза — 190н
-version_label: 190n-2025-04-11-reviewed-2026-08-01-fulltext
+version_label: 190n-2025-04-11-reviewed-2026-08-01
 source_type: regulatory_act_summary
 status: active
 specialties:

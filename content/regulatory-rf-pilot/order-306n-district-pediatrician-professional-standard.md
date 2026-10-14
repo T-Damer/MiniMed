@@ -2,7 +2,7 @@
 id: regulatory.rf.mintrud.306n-2017-district-pediatrician
 title: Профессиональный стандарт «Врач-педиатр участковый» — приказ № 306н
 short_title: Профстандарт педиатра — 306н
-version_label: 306n-2017-03-27-reviewed-2026-08-02-fulltext
+version_label: 306n-2017-03-27-reviewed-2026-08-02
 source_type: regulatory_act_summary
 status: active
 specialties:

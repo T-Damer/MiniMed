@@ -2,7 +2,7 @@
 id: regulatory.rf.minzdravsoc.366n-2012
 title: Порядок оказания педиатрической помощи — приказ № 366н (утратил силу)
 short_title: Исторический порядок педиатрии — 366н
-version_label: 366n-superseded-2026-04-06-fulltext
+version_label: 366n-superseded-2026-04-06
 source_type: regulatory_act_summary
 status: superseded
 specialties:

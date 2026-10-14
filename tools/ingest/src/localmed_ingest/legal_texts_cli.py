@@ -73,6 +73,7 @@ MANUAL_ACTS: Final[dict[str, dict[str, str]]] = {
         "fileUrl": "http://pravo.gov.ru/proxy/ips/?doc_itself=&nd=102055517&page=1&rdk=26",
         "name": "Об иммунопрофилактике инфекционных болезней",
         "kind": "Федеральный закон",
+        "textNote": "Текст — редакция Официального интернет-портала правовой информации pravo.gov.ru с изменениями по № 635-ФЗ от 25.12.2023; принятые позднее изменения в него не включены.",
     },
     "255-ФЗ": {
         "stem": "rg-255fz",
@@ -81,6 +82,16 @@ MANUAL_ACTS: Final[dict[str, dict[str, str]]] = {
         "fileUrl": "https://rg.ru/documents/2006/12/31/beremennost-dok.html",
         "name": "Об обеспечении пособиями по временной нетрудоспособности, по беременности и родам граждан, подлежащих обязательному социальному страхованию",
         "kind": "Федеральный закон",
+        "textNote": "Текст — первоначальная публикация в «Российской газете» от 31.12.2006; последующие изменения в него не внесены.",
+    },
+    "323-ФЗ": {
+        "stem": "rg-323fz",
+        "file": "rg-323fz.html",
+        "reader": "rg",
+        "fileUrl": "https://rg.ru/documents/2011/11/23/zdorovie-dok.html",
+        "name": "Об основах охраны здоровья граждан в Российской Федерации",
+        "kind": "Федеральный закон",
+        "textNote": "Текст — первоначальная публикация в «Российской газете» от 23.11.2011, совпадающая с официальной публикацией на publication.pravo.gov.ru; последующие изменения в него не внесены.",
     },
     "1346н": {
         "stem": "minzdrav-1346n",
@@ -148,7 +159,7 @@ def sources(data_root: DataRoot, pause: float = 1.0) -> None:
         meta = card["metadata"]
         eo = str(meta.get("officialPublicationNumber", ""))
         slug = Path(card["path"]).stem
-        if re.fullmatch(r"\d{16}", eo):
+        if re.fullmatch(r"\d{16}", eo) and str(meta["documentNumber"]) not in MANUAL_ACTS:
             record = client.document(eo)
             time.sleep(pause)
             file = next(paths.raw.glob(f"{eo}.*"), None)
@@ -196,6 +207,7 @@ def sources(data_root: DataRoot, pause: float = 1.0) -> None:
                     "slug": slug,
                     "stem": spec["stem"],
                     "kind": "minzdrav",
+                    **({"textNote": spec["textNote"]} if "textNote" in spec else {}),
                     "reader": spec["reader"],
                     **({"markerSource": "pdf-layer"} if spec.get("layer") else {}),
                     "file": spec["file"],
@@ -568,7 +580,14 @@ def assemble(
                 }
             )
         card_path.write_text(
-            assemble_card(old, act.body, pages=page_count, amended=amended, extra=extra),
+            assemble_card(
+                old,
+                act.body,
+                pages=page_count,
+                amended=amended,
+                extra=extra,
+                text_note=row.get("textNote"),
+            ),
             encoding="utf-8",
         )
         provenance = {
