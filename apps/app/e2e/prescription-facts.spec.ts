@@ -34,7 +34,7 @@ test('the age and weight fields hold hints, not example values, and the group fi
   await expect(group.getByText('Взрослый')).toBeVisible();
   const groupBox = await group.first().boundingBox();
   expect(groupBox?.width ?? 0).toBeGreaterThan(300);
-  const chips = page.locator('.prescription__chips .choice-chip');
+  const chips = page.locator('.prescription__states .choice-chip');
   await expect(chips).toHaveCount(2);
   const [first, second] = await Promise.all([
     chips.nth(0).boundingBox(),

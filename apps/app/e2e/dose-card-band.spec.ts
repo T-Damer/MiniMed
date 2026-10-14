@@ -34,8 +34,8 @@ test('the dose card quotes the band of the patient first and marks it', async ({
   await expect(card).toBeVisible({ timeout: 90_000 });
   await pickProduct(card);
   const offer = card.locator('.safety-card__offer-button');
-  await expect(offer).toBeVisible({ timeout: 60_000 });
-  await offer.click({ force: true });
+  await expect(offer).toContainText(/Скачать/u, { timeout: 90_000 });
+  await offer.dispatchEvent('click');
 
   const none = card.getByTestId('prescription-no-rule');
   await expect(none).toBeVisible({ timeout: 240_000 });

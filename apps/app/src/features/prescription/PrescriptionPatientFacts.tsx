@@ -146,7 +146,7 @@ export function PrescriptionPatientFacts(props: {
         />
       </Show>
       <Show when={mayBePregnant()}>
-        <ChoiceChipList label="Состояние пациента" class="prescription__chips">
+        <ChoiceChipList label="Состояние пациента" class="prescription__states">
           <ChoiceChip
             compact
             accent={props.patient.pregnant || props.card.pregnant}

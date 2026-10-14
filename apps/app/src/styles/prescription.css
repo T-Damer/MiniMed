@@ -26,6 +26,16 @@
 }
 
 .prescription__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* The two states of the patient (pregnancy, feeding) share one even row. */
+.prescription__states {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
   gap: 0.4rem;
