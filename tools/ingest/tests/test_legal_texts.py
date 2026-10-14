@@ -92,6 +92,21 @@ def test_paragraph_and_table_running_across_a_page_break_are_joined() -> None:
     assert tables[0].end_page == 4
 
 
+def test_table_continues_across_a_footnote_and_a_repeated_header_block_is_dropped() -> None:
+    first = parse_blocks(
+        "| Код | Наименование |\n|---|---|\n| 1 | 2 |\n| 3 | Кушетка |\n\n¹ Сноска страницы.", 1
+    )
+    second = parse_blocks(
+        "| Код | Наименование |\n|---|---|\n| 1 | 2 |\n| 4 | Весы |\n| 5 | Ширма |", 2
+    )
+    merged = merge_pages([first, second])
+    tables = [b for b in merged if b.kind == "table"]
+    assert len(tables) == 1
+    assert [row[0] for row in tables[0].rows] == ["Код", "1", "3", "4", "5"]
+    assert tables[0].end_page == 2
+    assert merged[-1].kind == "footnote"  # the footnote stays after the table it was printed under
+
+
 def test_act_text_has_portal_title_annex_sections_and_no_empty_section(tmp_path: Path) -> None:
     results, _pending = reconcile_act(
         {1: PAGE1, 2: PAGE2, 3: PAGE3, 4: PAGE4}, vision_for(1, 2, 3, 4), IDENTITY
