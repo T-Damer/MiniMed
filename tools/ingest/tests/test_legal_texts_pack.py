@@ -22,7 +22,6 @@ TEXTS = ROOT / "content" / "regulatory-rf-texts"
 SOURCES = json.loads((TEXTS / "sources.json").read_text(encoding="utf-8"))["acts"]
 CHECKSUM = "sha256:" + "0" * 64
 AWAITING_FULL_TEXT = {
-    "order-120n-pediatrics.md",
     "order-374n-disability-criteria.md",
     "order-436n-qualification-requirements.md",
 }

@@ -25,7 +25,7 @@ MIN_RULE: Final = 150
 """Ink run (pixels at ZOOM) that makes a vertical rule; text never makes a run that long."""
 MIN_ROW: Final = 0.08
 """A horizontal rule is a run of at least this share of the table's width (and 120 pixels)."""
-EDGE: Final = 0.03
+EDGE: Final = 0.012
 """Rules this close to the page edge are the scanner's border, not the table's."""
 BORDER: Final = 0.7
 """Share of an edge of two neighbouring rectangles that must be ink for a rule to separate them."""
@@ -489,6 +489,7 @@ def marker_cells(markdown: str) -> list[str]:
 UNREAD: Final = "?"
 """The text of a cell with ink that Vision read as empty (a lone digit it cannot read)."""
 _LONE_NUMBER: Final = re.compile(r"\d{1,3}|[-–—]")
+_NO_LEAD: Final = re.compile(r"^\s*\d{1,3}\.\s*")
 
 
 def match_cells(
@@ -661,6 +662,13 @@ def _agrees(vision: str, marker: str) -> bool:
         return bool(_LONE_NUMBER.fullmatch(marker.strip().rstrip(".")))
     a, b = _same_text(vision), _same_text(marker)
     if a == b:
+        return True
+    # a row number («5. (необходимо …)») that only one reading carries in the same cell
+    bare_vision, bare_marker = (
+        _same_text(_NO_LEAD.sub("", vision)),
+        _same_text(_NO_LEAD.sub("", marker)),
+    )
+    if (bare_marker and bare_marker == a) or (bare_vision and bare_vision == b):
         return True
     if (
         _LONE_NUMBER.fullmatch(marker.strip().rstrip("."))
