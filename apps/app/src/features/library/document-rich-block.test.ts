@@ -128,3 +128,54 @@ describe('readDocumentRenderBlock', () => {
     ).toBe('Показатели\nВозраст');
   });
 });
+
+describe('regulatory act tables', () => {
+  // The shape written by the legal-text assembler (tools/ingest legal_texts.render_table): no caption,
+  // a header row, blank continuation cells, line breaks inside a cell kept as newlines.
+  const table = {
+    renderBlock: {
+      kind: 'table',
+      caption: '',
+      rows: [
+        {
+          cells: [
+            { text: '№ п/п', header: true, rowSpan: 1, colSpan: 1 },
+            { text: 'Код вида медицинского изделия', header: true, rowSpan: 1, colSpan: 1 },
+            { text: 'Требуемое количество, штук', header: true, rowSpan: 1, colSpan: 1 },
+          ],
+        },
+        {
+          cells: [
+            { text: '1.', header: false, rowSpan: 1, colSpan: 1 },
+            { text: '187150', header: false, rowSpan: 1, colSpan: 1 },
+            { text: '1', header: false, rowSpan: 1, colSpan: 1 },
+          ],
+        },
+        {
+          cells: [
+            { text: '', header: false, rowSpan: 1, colSpan: 1 },
+            { text: 'Стол\nдля осмотра', header: false, rowSpan: 1, colSpan: 1 },
+            { text: '', header: false, rowSpan: 1, colSpan: 1 },
+          ],
+        },
+      ],
+    },
+  };
+
+  it('reads the table the assembler writes, keeping every row and cell', () => {
+    const block = readDocumentRenderBlock(table);
+    expect(block?.kind).toBe('table');
+    if (block?.kind !== 'table') return;
+    expect(block.rows).toHaveLength(3);
+    expect(block.rows.every((row) => row.cells.length === 3)).toBe(true);
+    expect(block.rows[0]?.cells.every((cell) => cell.header)).toBe(true);
+    expect(block.rows[2]?.cells[1]?.text).toBe('Стол\nдля осмотра');
+  });
+
+  it('finds an equipment code inside a table cell', () => {
+    const block = readDocumentRenderBlock(table);
+    expect(block).not.toBeNull();
+    if (!block) return;
+    expect(documentRenderBlockSearchText(block)).toContain('187150');
+  });
+});
