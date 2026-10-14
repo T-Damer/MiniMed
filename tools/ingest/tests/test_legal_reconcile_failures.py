@@ -161,3 +161,12 @@ def test_a_number_is_not_swapped_for_one_that_lost_digits() -> None:
         vision("зарегистрирован, регистрационный № 2)."),
     )
     assert "81000" in result.text and "№ 2)" not in result.text
+
+
+def test_a_long_code_is_not_swapped_for_a_different_code_of_a_mis_aligned_row() -> None:
+    result = reconcile_page(
+        14, "3. | 184200 | Ширма прикроватная | 1", vision("3. 157600 Ширма прикроватная 1")
+    )
+    assert "184200" in result.text and "157600" not in result.text
+    one_digit = reconcile_page(14, "4. | 157600 | Ростомер | 1", vision("4. 157680 Ростомер 1"))
+    assert "157680" in one_digit.text

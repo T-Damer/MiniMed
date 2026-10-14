@@ -720,6 +720,11 @@ class Alignment:
     merges: list[Substitution] = field(default_factory=list)
 
 
+def _one_digit_apart(left: str, right: str) -> bool:
+    """Two numbers of the same length that differ in exactly one character (a misread digit)."""
+    return len(left) == len(right) and sum(a != b for a, b in zip(left, right, strict=True)) == 1
+
+
 def align(marker: str, vision_lines: list[str], skip: tuple[str, ...] = ()) -> Alignment:
     """Ordered comparison of Marker's text with Vision's lines.
 
@@ -771,8 +776,13 @@ def align(marker: str, vision_lines: list[str], skip: tuple[str, ...] = ()) -> A
                             ROMAN_PREFIX
                         ):
                             continue  # a Roman numeral against an Arabic one («I группа» / «1 группа»): flagged, never swapped
-                        if abs(len(m_tok.norm) - len(v_tok.norm)) >= 2:
-                            continue  # «81000» against «2»: one reading lost digits, which one is for the image to say
+                        long_code = max(len(m_tok.norm), len(v_tok.norm)) >= 5
+                        if (long_code and not _one_digit_apart(m_tok.norm, v_tok.norm)) or abs(
+                            len(m_tok.norm) - len(v_tok.norm)
+                        ) >= 2:
+                            # «81000» against «2», «184200» against «157600»: more than a misread digit is a
+                            # lost or mis-aligned cell, and which reading is right is for the image to say
+                            continue
                         new = _vision_text(prepared_lines, v_tokens, j1 + offset, j1 + offset)
                         old = marker[m_tok.start : m_tok.end]
                         result.substitutions.append(Substitution(m_tok.start, m_tok.end, old, new))
