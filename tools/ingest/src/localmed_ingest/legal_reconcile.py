@@ -171,9 +171,6 @@ def clean_marker_markdown(text: str) -> str:
     return drop_phantom_columns(value).strip()
 
 
-_TABLE_SEPARATOR: Final = re.compile(r"^\s*\|[-:| ]+\|\s*$")
-
-
 def _table_cells(line: str) -> list[str]:
     inner = line.strip()
     inner = inner[1:] if inner.startswith("|") else inner
