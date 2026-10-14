@@ -125,6 +125,28 @@ def test_a_numbered_row_cut_by_the_page_break_is_joined_cell_by_cell() -> None:
     assert [row[1] for row in kept[1:]] == ["Первое умение", "Второе умение", "Третье умение"]
 
 
+def test_a_wrapped_word_is_rejoined_only_when_the_act_prints_the_whole_word() -> None:
+    from localmed_ingest.legal_texts import Block, rejoin_wrapped_words
+
+    table = Block(
+        "table",
+        "",
+        1,
+        rows=[
+            ["1.", "под кодом медицинс-ким изделием", "1 на 1 врача-специалиста"],
+            [
+                "2.",
+                "медицинским изделием",
+                "номен-клатурной классифи-кации номенклатурной классификации",
+            ],
+        ],
+    )
+    assert rejoin_wrapped_words([table]) == 3
+    assert table.rows[0][1] == "под кодом медицинским изделием"
+    assert table.rows[0][2] == "1 на 1 врача-специалиста"
+    assert "номенклатурной классификации номенклатурной" in table.rows[1][2]
+
+
 def test_act_text_has_portal_title_annex_sections_and_no_empty_section(tmp_path: Path) -> None:
     results, _pending = reconcile_act(
         {1: PAGE1, 2: PAGE2, 3: PAGE3, 4: PAGE4}, vision_for(1, 2, 3, 4), IDENTITY

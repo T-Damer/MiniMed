@@ -29,7 +29,6 @@ AWAITING_FULL_TEXT = {
     "order-274n-sanatorium-forms.md",
     "order-374n-disability-criteria.md",
     "order-436n-qualification-requirements.md",
-    "order-583n-pediatric-endocrinology.md",
     "order-707n-qualification-requirements-superseded.md",
 }
 """Acts whose full text is still being converted and reviewed (LEGAL1). The set only shrinks; it must be empty

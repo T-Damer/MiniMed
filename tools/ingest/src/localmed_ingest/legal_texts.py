@@ -692,6 +692,37 @@ def reconcile_act(
     return results, pending
 
 
+_WRAPPED: Final = re.compile(r"(?<![\w-])([а-яё]{3,})-([а-яё]{2,})(?![\w-])", re.IGNORECASE)
+
+
+def rejoin_wrapped_words(blocks: list[Block]) -> int:
+    """Join the words a printed line wrap split with a hyphen («медицинс-ким», «классифи-кации»).
+
+    A hyphenated pair is joined only when the act itself prints the joined word somewhere else:
+    «врача-специалиста» stays (nobody prints «врачаспециалиста»), «медицинс-ким» becomes «медицинским».
+    """
+    texts: list[str] = []
+    for block in blocks:
+        texts.append(block.text)
+        for row in block.rows:
+            texts.extend(row)
+    corpus = "\n".join(texts)
+    words = {word.lower() for word in re.findall(r"[а-яё]+", corpus, re.IGNORECASE)}
+    joined_count = 0
+
+    def join(match: re.Match[str]) -> str:
+        nonlocal joined_count
+        if (match.group(1) + match.group(2)).lower() in words:
+            joined_count += 1
+            return match.group(1) + match.group(2)
+        return match.group(0)
+
+    for block in blocks:
+        block.text = _WRAPPED.sub(join, block.text)
+        block.rows = [[_WRAPPED.sub(join, cell) for cell in row] for row in block.rows]
+    return joined_count
+
+
 def build_act_text(results: list[PageResult], identity: ActIdentity) -> ActText:
     pages: list[list[Block]] = []
     pending_pages: list[int] = []
@@ -707,6 +738,7 @@ def build_act_text(results: list[PageResult], identity: ActIdentity) -> ActText:
             pending_pages.append(result.page)
         pages.append(blocks)
     blocks = structure(merge_pages(pages), identity)
+    rejoin_wrapped_words(blocks)
     body = render_blocks(blocks)
     provenance = [
         {

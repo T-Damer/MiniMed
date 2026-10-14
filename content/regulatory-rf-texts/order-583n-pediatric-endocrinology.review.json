@@ -1,0 +1,66 @@
+{
+  "documentId": "regulatory.rf.minzdrav.583n-2024",
+  "reviewer": "Claude (agent), against the page images; not a lawyer",
+  "reviewedAt": "2026-10-14",
+  "verdicts": {
+    "2": "image read: the end of the amending-order list (№ 114н, № 59083), item 3 and the signature block (name restored)",
+    "8": "image read: items 21-26 and footnotes 8-11 (№ 55053, № 56954, № 42580, № 114н, № 59083, № 1028н, № 60957, № 49577) match; Vision's «I» is a footnote mark",
+    "14": "image read: annex 3 header (handwritten date and number are the portal's) and the first standard (rows 1-8 of the room, every code); the tool no longer replaces a code by Vision's when it differs by more than a digit",
+    "16": "image read: rows 15-18 of the pediatric endocrinologist's room standard, codes 164390 … 128970 and the quantities, including «300680/300690» in the brackets",
+    "17": "image read: the miscellaneous equipment of the room and footnote 1 match",
+    "25": "image read: rows 18-21 and the additional equipment match; the quantity of row 21 restored",
+    "32": "image read: annex 9 header and rows 1-9 of the department standard match (codes 188320 … 122830, quantities 2, 1, 2, 1 and «1 на 15 коек»)",
+    "33": "image read: rows 9-16 of the department standard; row 10's equipment name and quantity restored",
+    "35": "image read: rows 28-32 of the department standard (codes 300680 … 269540); row 31 moved back to its columns with its quantity",
+    "36": "image read: rows 32-34, the additional equipment and footnote 1 match, including «По числу врачей-детских эндокринологов» and «1 на 15 коек»",
+    "38": "image read: items 6-7 of the school's rules; the last line restored and the printed «коррекция» kept",
+    "47": "image read: annex 15 header and rows 1-9 of the day-hospital standard match",
+    "48": "image read: rows 9-17 of the day-hospital standard match, including «1 на пациента» and «По числу коек»",
+    "49": "image read: rows 17-27 of the day-hospital standard match",
+    "50": "image read: rows 27-29 and the additional equipment match; the hyphenated line wraps of the quantity cells are joined by the tool"
+  },
+  "corrections": [
+    {
+      "page": 2,
+      "kind": "dropped-line",
+      "find": "Министр",
+      "replace": "Министр\n\nМ.А. Мурашко",
+      "why": "The signature line reads «Министр … М.А. Мурашко» (the name is printed next to the handwritten signature); Marker kept the title and dropped the name."
+    },
+    {
+      "page": 25,
+      "kind": "dropped-cell",
+      "find": "| 21. | 279970 | Набор первой помощи, содержащий лекарственные средства | Набор для оказания первой помощи, содержащий лекарственные средства | |",
+      "replace": "| 21. | 279970 | Набор первой помощи, содержащий лекарственные средства | Набор для оказания первой помощи, содержащий лекарственные средства | 1 |",
+      "why": "The quantity of row 21 («Набор для оказания первой помощи, содержащий лекарственные средства») is «1» in the image; Marker lost the cell."
+    },
+    {
+      "page": 33,
+      "kind": "dropped-cells",
+      "find": "| 10. | 126390 | Термометр инфракрасный для измерения температуры тела пациента, кожный | | |",
+      "replace": "| 10. | 126390 | Термометр инфракрасный для измерения температуры тела пациента, кожный | Термометр для измерения температуры тела пациента | По числу коек |",
+      "why": "The equipment name («Термометр для измерения температуры тела пациента») and the quantity («По числу коек») of row 10 span its four code rows in the image; Marker lost both cells."
+    },
+    {
+      "page": 35,
+      "kind": "column",
+      "find": "| | 31. | 128970 | Гликированный гемоглобин (HbA1c) ИВД, набор, жидкостная хроматография | Расходные материалы к анализатору для измерения уровня гликогемоглобина в крови |",
+      "replace": "| 31. | 128970 | Гликированный гемоглобин (HbA1c) ИВД, набор, жидкостная хроматография | Расходные материалы к анализатору для измерения уровня гликогемоглобина в крови | Не менее 5 на 1 рабочий день (при оснащении медицинским изделием под кодом вида номенклатурной классификации 287890) |",
+      "why": "Row 31 was shifted one column to the right (the number in the second cell) and lost its quantity «Не менее 5 на 1 рабочий день (при оснащении медицинским изделием под кодом вида номенклатурной классификации 287890)»."
+    },
+    {
+      "page": 38,
+      "kind": "word",
+      "find": "самостоятельной коррекции доз инсулина",
+      "replace": "самостоятельной коррекция доз инсулина",
+      "why": "The printed text reads «обучение принципам самостоятельной коррекция доз инсулина» (the order itself has the wrong case; checked on a 3x crop); Marker corrected it silently."
+    },
+    {
+      "page": 38,
+      "kind": "dropped-line",
+      "find": "обучение правилам поведения в образовательной организации, во время путешествий, отдыха и оздоровления, позволяющим предотвратить развитие острых осложнений сахарного диабета (тяжелая гипогликемия, диабетический кетоацидоз);",
+      "replace": "обучение правилам поведения в образовательной организации, во время путешествий, отдыха и оздоровления, позволяющим предотвратить развитие острых осложнений сахарного диабета (тяжелая гипогликемия, диабетический кетоацидоз);\n\nпредставление отчетности в соответствии с пунктом 11 части 1 статьи 79",
+      "why": "The last line of the page («представление отчетности в соответствии с пунктом 11 части 1 статьи 79», continued on the next page) is in the image; Marker dropped it."
+    }
+  ]
+}
