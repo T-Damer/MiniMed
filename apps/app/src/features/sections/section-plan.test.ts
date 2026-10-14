@@ -54,6 +54,22 @@ describe('sectionStatus', () => {
     ] as never;
     expect(sectionStatus(psychiatry, none, () => false, tasks).queue).toBe('queued');
   });
+
+  it('does not show a section as queued for a drug group that only another section started', () => {
+    // Psychiatry was ticked; the nervous-system registry it shares with cardiology is in flight.
+    const tasks = [
+      { moduleId: 'minimed.medications.nervous-system.ru', state: 'queued' },
+      { moduleId: 'kr.1', state: 'downloading', downloadedBytes: 1, totalBytes: 10 },
+    ] as never;
+    expect(sectionStatus(psychiatry, none, () => false, tasks).queue).toBe('active');
+    expect(sectionStatus(cardiology, none, () => false, tasks).queue).toBeNull();
+  });
+
+  it('shows the queue of the drug groups once the recommendations are installed', () => {
+    const tasks = [{ moduleId: 'minimed.medications.nervous-system.ru', state: 'queued' }] as never;
+    const clinicalInstalled = (module: { readonly id: string }) => module.id.startsWith('kr.');
+    expect(sectionStatus(psychiatry, none, clinicalInstalled, tasks).queue).toBe('queued');
+  });
 });
 
 describe('labels', () => {

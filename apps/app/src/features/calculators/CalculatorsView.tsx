@@ -238,8 +238,8 @@ function CalculatorCard(props: {
               type="button"
               variant="icon"
               class="calculator-card__download"
-              aria-label={`Скачать «${definition.title}»`}
-              title={`Скачать «${definition.title}»`}
+              aria-label={`Скачать «${definition.title}»${downloadSizeSuffix(definition)}`}
+              title={`Скачать «${definition.title}»${downloadSizeSuffix(definition)}`}
               onClick={() => {
                 const available = availableDefinition();
                 if (available) props.onInstall(available);
@@ -260,6 +260,20 @@ function downloadSize(modules: readonly ContentModuleCatalogEntry[]): string {
   return formatModuleBytes(
     modules.reduce((sum, module) => sum + (module.sizes.downloadBytes ?? 0), 0),
   );
+}
+
+/** « · 3,4 МБ» for the module that carries a calculator, from the catalog; empty when unknown. */
+function downloadSizeSuffix(definition: AvailableCalculatorDefinition): string {
+  const moduleId =
+    moduleForTool(definition.id)?.id ?? moduleIdForCalculatorSection(definition.category);
+  const bytes = MODULE_CATALOG.modules.find((module) => module.id === moduleId)?.sizes
+    .downloadBytes;
+  return typeof bytes === 'number' ? ` · ${formatModuleBytes(bytes)}` : '';
+}
+
+/** «Скачать · 3,4 МБ»: the catalog size of what the download adds; plain «Скачать» when nothing is fetched. */
+function downloadActionLabel(modules: readonly ContentModuleCatalogEntry[]): string {
+  return modules.length === 0 ? 'Скачать' : `Скачать · ${downloadSize(modules)}`;
 }
 
 function CalculatorSectionCard(props: {
@@ -1649,7 +1663,7 @@ export function CalculatorsView(): JSX.Element {
     window.location.hash = calculatorSectionPath(sectionId);
   };
 
-  const installToolModule = async (moduleId: string | undefined): Promise<void> => {
+  const installToolModule = async (moduleId: string | undefined, refresh = true): Promise<void> => {
     if (!moduleId) return;
     const runtime = getContentModuleRuntime(MODULE_CATALOG);
     const module = MODULE_CATALOG.modules.find((entry) => entry.id === moduleId);
@@ -1661,7 +1675,7 @@ export function CalculatorsView(): JSX.Element {
     if (completed.state !== 'completed') {
       throw new Error('Не удалось скачать модуль инструментов.');
     }
-    await refreshDownloadedTools();
+    if (refresh) await refreshDownloadedTools();
   };
 
   const installSection = (sectionId: CalculatorSectionId): void => {
@@ -1671,11 +1685,11 @@ export function CalculatorsView(): JSX.Element {
     );
     if (modules.length === 0 && !hasBundledCalculator) return;
     void (async () => {
-      // One notice that turns from «Скачиваем…» into the result, so no stale progress stays up.
+      // One notice that turns from «Скачиваем…» into the result the moment the download is done;
+      // connecting the tools afterwards runs in the background and never keeps the notice up.
       const notice = toast.loading('Скачиваем модуль…');
       try {
-        for (const module of modules) await installToolModule(module.id);
-        setInstallation(installCalculatorSection(sectionId, calculatorRegistry()));
+        for (const module of modules) await installToolModule(module.id, false);
         const section = CALCULATOR_SECTIONS.find((candidate) => candidate.id === sectionId);
         notifyWithOpen(
           `«${section?.title ?? 'Раздел'}» скачан. Инструменты доступны офлайн.`,
@@ -1684,6 +1698,8 @@ export function CalculatorsView(): JSX.Element {
           },
           { id: notice },
         );
+        await refreshDownloadedTools();
+        setInstallation(installCalculatorSection(sectionId, calculatorRegistry()));
       } catch (cause) {
         toast.error(cause instanceof Error ? cause.message : 'Не удалось скачать раздел.', {
           id: notice,
@@ -1697,15 +1713,17 @@ export function CalculatorsView(): JSX.Element {
       try {
         await installToolModule(
           moduleForTool(definition.id)?.id ?? moduleIdForCalculatorSection(definition.category),
+          false,
         );
-        if (!getCalculatorSchema(definition.id))
-          throw new Error('Схема инструмента отсутствует в скачанном модуле.');
-        setInstallation(installCalculator(definition.id, calculatorRegistry()));
         notifyWithOpen(
           `«${definition.title}» скачан. Инструмент доступен офлайн.`,
           () => openCalculator(definition),
           { id: notice },
         );
+        await refreshDownloadedTools();
+        if (!getCalculatorSchema(definition.id))
+          throw new Error('Схема инструмента отсутствует в скачанном модуле.');
+        setInstallation(installCalculator(definition.id, calculatorRegistry()));
       } catch (cause) {
         toast.error(cause instanceof Error ? cause.message : 'Не удалось скачать инструмент.', {
           id: notice,
@@ -1922,7 +1940,9 @@ export function CalculatorsView(): JSX.Element {
                                 icon={<AppGlyph name="download" />}
                                 onClick={() => installSection(definition().category)}
                               >
-                                Скачать
+                                {downloadActionLabel(
+                                  downloadableModulesForSection(definition().category),
+                                )}
                               </Button>
                               <Button
                                 variant="quiet"

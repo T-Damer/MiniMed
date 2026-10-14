@@ -49,6 +49,32 @@ export function whenCoreStartReleased(): Promise<void> {
   return new Promise<void>((resolve) => coreStartWaiters.push(resolve));
 }
 
+const CORE_CONSENT_KEY = 'minimed:core-download-consent:v1';
+let coreConsentInSession = false;
+
+/**
+ * Whether the person (or an automation that sets the same preference up front) has allowed the
+ * main database to download. Nothing downloads on a first launch before this is true; once it is,
+ * later launches (a reload mid-download, a re-open) continue without asking again.
+ */
+export function isCoreDownloadConsented(): boolean {
+  if (coreConsentInSession) return true;
+  try {
+    return localStorage.getItem(CORE_CONSENT_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function grantCoreDownloadConsent(): void {
+  coreConsentInSession = true;
+  try {
+    localStorage.setItem(CORE_CONSENT_KEY, '1');
+  } catch {
+    /* Private browsing keeps the consent for this application session. */
+  }
+}
+
 /** Subset of the Network Information API; absent in Safari/Firefox. */
 export interface NetworkConnectionHint {
   readonly saveData?: boolean;
@@ -56,9 +82,9 @@ export interface NetworkConnectionHint {
 }
 
 /**
- * The core (a ~76 MB gzip download) starts downloading on first launch without a tap, except on a
- * connection the platform reports as cellular or data-saving: there the user decides.
- * An unknown connection (no API) counts as unmetered, matching the desktop browser case.
+ * Whether the app may fetch its small remote catalog by itself (the core itself waits for
+ * {@link isCoreDownloadConsented}). A connection the platform reports as cellular or data-saving
+ * is left alone; an unknown connection (no API) counts as unmetered.
  */
 export function coreAutoDownloadAllowed(connection: NetworkConnectionHint | undefined): boolean {
   if (!connection) return true;

@@ -36,6 +36,8 @@ export function AssessmentCard(props: {
   readonly onInstall: (definition: AssessmentCatalogEntry) => void;
   readonly onRemove: (definition: AssessmentCatalogEntry) => void;
   readonly onPrint: (definition: AssessmentCatalogEntry) => void;
+  /** «3,4 МБ»: the catalog size of the download, when there is one. */
+  readonly installSize?: string | undefined;
 }): JSX.Element {
   return (
     <article
@@ -73,8 +75,8 @@ export function AssessmentCard(props: {
               variant="icon"
               class="assessment-card-icon-button assessment-card-icon-button--download"
               data-testid={`assessment-install-${props.definition.slug}`}
-              aria-label={`Скачать «${props.definition.shortTitle}»`}
-              title="Скачать"
+              aria-label={`Скачать «${props.definition.shortTitle}»${props.installSize ? ` · ${props.installSize}` : ''}`}
+              title={props.installSize ? `Скачать · ${props.installSize}` : 'Скачать'}
               onClick={(event) => {
                 event.stopPropagation();
                 props.onInstall(props.definition);
@@ -139,8 +141,17 @@ export function AssessmentCatalogPage(props: {
   readonly onOpenSection: (sectionId: AssessmentSectionId) => void;
   readonly onInstallSection: (sectionId: AssessmentSectionId) => void;
   readonly onRemoveSection: (sectionId: AssessmentSectionId) => void;
+  /** «Скачать · 3,4 МБ»: the catalog size of what a download of this tool or section adds. */
+  readonly installSizeOf?: (target: {
+    readonly sectionId?: AssessmentSectionId;
+    readonly definitionId?: string;
+  }) => string | undefined;
 }): JSX.Element {
   const installed = (id: string): boolean => props.installation.installedIds.has(id);
+  const sectionDownloadLabel = (sectionId: AssessmentSectionId): string => {
+    const size = props.installSizeOf?.({ sectionId });
+    return size ? `Скачать · ${size}` : 'Скачать';
+  };
 
   return (
     <>
@@ -264,7 +275,7 @@ export function AssessmentCatalogPage(props: {
                             />
                           }
                         >
-                          {complete() ? 'Удалить' : 'Скачать'}
+                          {complete() ? 'Удалить' : sectionDownloadLabel(group.section.id)}
                         </Button>
                       </Show>
                     </header>
@@ -290,6 +301,7 @@ export function AssessmentCatalogPage(props: {
                                 onInstall={props.onInstall}
                                 onRemove={props.onRemove}
                                 onPrint={props.onPrint}
+                                installSize={props.installSizeOf?.({ definitionId: definition.id })}
                               />
                             );
                           }}

@@ -3,7 +3,14 @@ import type {
   ContentModuleCatalogEntry,
   ContentModuleDownloadTask,
 } from '@localmed/contracts';
-import { type Accessor, createMemo, createSignal, onCleanup, onMount } from 'solid-js';
+import {
+  type Accessor,
+  createEffect,
+  createMemo,
+  createSignal,
+  onCleanup,
+  onMount,
+} from 'solid-js';
 import { toast } from 'solid-sonner';
 
 import type { BrowserContentModuleRuntime } from '@/features/modules/browser-module-runtime';
@@ -13,7 +20,10 @@ import {
 } from '@/features/modules/local-packaged-modules';
 import { loadModuleCatalog } from '@/features/modules/module-catalog-state';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
-import { installPublishedCategoryModules } from '@/features/modules/recommendation-category-operations';
+import {
+  installPublishedCategoryModules,
+  removeInstalledCategoryModules,
+} from '@/features/modules/recommendation-category-operations';
 
 const FINISHED_TASK_STATES = new Set<ContentModuleDownloadTask['state']>([
   'completed',
@@ -43,6 +53,13 @@ export interface ModuleInstaller {
   readonly starting: Accessor<boolean>;
   /** Queues the packages not yet installed or queued; resolves when they are all done. */
   readonly start: (modules: readonly ContentModuleCatalogEntry[]) => Promise<void>;
+  /** Packages are being removed by {@link ModuleInstaller.remove}. */
+  readonly removing: Accessor<boolean>;
+  /**
+   * Removes the installed packages from the device and reconnects the search core (it may hold a
+   * removed module's OPFS pool open). Resolves true when they are gone.
+   */
+  readonly remove: (modules: readonly ContentModuleCatalogEntry[]) => Promise<boolean>;
 }
 
 /**
@@ -53,31 +70,39 @@ export interface ModuleInstaller {
 export function useModuleInstaller(
   onContentChanged: () => Promise<void>,
   failureMessage = 'Не удалось скачать пакеты.',
+  /** The catalog loads once this becomes true (default: on mount). */
+  enabled: Accessor<boolean> = () => true,
 ): ModuleInstaller {
   const [runtime, setRuntime] = createSignal<BrowserContentModuleRuntime>();
   const [failed, setFailed] = createSignal(false);
   const [revision, setRevision] = createSignal(0);
   const [starting, setStarting] = createSignal(0);
   const [problem, setProblem] = createSignal(false);
+  const [removing, setRemoving] = createSignal(0);
 
+  let loading = false;
+  let disposed = false;
+  let unsubscribe: (() => void) | undefined;
+  onCleanup(() => {
+    disposed = true;
+    unsubscribe?.();
+  });
   onMount(() => {
-    let disposed = false;
-    let unsubscribe: (() => void) | undefined;
-    onCleanup(() => {
-      disposed = true;
-      unsubscribe?.();
+    createEffect(() => {
+      if (!enabled() || loading) return;
+      loading = true;
+      loadModuleCatalog()
+        .then((catalog) => {
+          if (disposed) return;
+          const current = getContentModuleRuntime(catalog);
+          setRuntime(current);
+          unsubscribe = current.subscribe(() => setRevision((value) => value + 1));
+        })
+        .catch((cause: unknown) => {
+          console.warn('Каталог пакетов не загрузился.', cause);
+          if (!disposed) setFailed(true);
+        });
     });
-    loadModuleCatalog()
-      .then((catalog) => {
-        if (disposed) return;
-        const current = getContentModuleRuntime(catalog);
-        setRuntime(current);
-        unsubscribe = current.subscribe(() => setRevision((value) => value + 1));
-      })
-      .catch((cause: unknown) => {
-        console.warn('Каталог пакетов не загрузился.', cause);
-        if (!disposed) setFailed(true);
-      });
   });
 
   const current = createMemo(() => {
@@ -139,5 +164,32 @@ export function useModuleInstaller(
     }
   };
 
-  return { snapshot, failed, problem, starting: () => starting() > 0, start };
+  const remove = async (modules: readonly ContentModuleCatalogEntry[]): Promise<boolean> => {
+    const value = current();
+    if (!value) return false;
+    setRemoving((count) => count + 1);
+    try {
+      await removeInstalledCategoryModules(value.active, modules, value.snapshot.installedIds);
+      // The runtime announces download tasks, not removals: look at the registry again.
+      setRevision((count) => count + 1);
+      await onContentChanged();
+      return true;
+    } catch (cause) {
+      setRevision((count) => count + 1);
+      toast.error(cause instanceof Error ? cause.message : 'Не удалось удалить с устройства.');
+      return false;
+    } finally {
+      setRemoving((count) => count - 1);
+    }
+  };
+
+  return {
+    snapshot,
+    failed,
+    problem,
+    starting: () => starting() > 0,
+    start,
+    removing: () => removing() > 0,
+    remove,
+  };
 }

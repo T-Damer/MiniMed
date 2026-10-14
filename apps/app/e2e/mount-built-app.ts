@@ -108,6 +108,9 @@ export async function mountBuiltApp(page: Page, options: MountBuiltAppOptions = 
   const initialStorage = {
     // Route suites test the app behind onboarding; the setup screen has its own coverage.
     'minimed:package-setup-dismissed:v1': '1',
+    // The base download starts only on consent; specs that need the core grant it up front, the
+    // same preference the «Скачать» buttons of the app set.
+    'minimed:core-download-consent:v1': '1',
     ...(options.splitNavigation === false
       ? {}
       : {

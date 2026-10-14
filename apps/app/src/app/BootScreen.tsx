@@ -10,6 +10,8 @@ export function BootScreen(props: {
   readonly waitingForOtherTab?: boolean;
   readonly coreDownloadRequired?: boolean;
   readonly coreDownloading?: boolean;
+  /** The download was asked for while offline: it starts by itself when the network returns. */
+  readonly coreWaitingForNetwork?: boolean;
   readonly coreProgress?:
     | {
         readonly loaded: number;
@@ -48,7 +50,7 @@ export function BootScreen(props: {
               : props.coreDownloadRequired
                 ? props.coreDownloading
                   ? `Основная база нужна для поиска, загрузка около ${CORE_DOWNLOAD_SIZE_LABEL}. После загрузки поиск работает без интернета. Свои файлы и настройки доступны уже сейчас.`
-                  : `Похоже, вы в мобильной сети, поэтому загрузка не началась сама. Основная база — около ${CORE_DOWNLOAD_SIZE_LABEL}: скачайте сейчас или позже через Wi‑Fi. Свои файлы и настройки доступны и без неё.`
+                  : `Основная база — около ${CORE_DOWNLOAD_SIZE_LABEL}: скачайте сейчас или позже по Wi‑Fi. Свои файлы и настройки доступны и без неё.`
                 : props.bootSlow
                   ? 'Подготовка базы продолжается. Свои файлы и настройки доступны через нижнее меню.'
                   : 'Поиск откроется, когда основная база будет готова. Пока можно пользоваться своими файлами и настройками.')}
@@ -63,13 +65,15 @@ export function BootScreen(props: {
             }
           >
             <p class="boot-card__progress" role="status" aria-live="polite">
-              {progress()?.phase === 'verifying'
-                ? 'Проверяем контрольную сумму основной базы…'
-                : progress()?.phase === 'installing'
-                  ? 'Устанавливаем проверенную основную базу…'
-                  : progress()
-                    ? `Скачано ${formatModuleBytes(progress()?.loaded ?? 0)}${(progress()?.total ?? 0) > 0 ? ` из ${formatModuleBytes(progress()?.total ?? 0)}` : ''}. Затем проверим и откроем базу.`
-                    : 'Начинаем загрузку…'}
+              {props.coreWaitingForNetwork
+                ? 'Нет сети. Загрузка начнётся сама, когда появится соединение.'
+                : progress()?.phase === 'verifying'
+                  ? 'Проверяем контрольную сумму основной базы…'
+                  : progress()?.phase === 'installing'
+                    ? 'Устанавливаем проверенную основную базу…'
+                    : progress()
+                      ? `Скачано ${formatModuleBytes(progress()?.loaded ?? 0)}${(progress()?.total ?? 0) > 0 ? ` из ${formatModuleBytes(progress()?.total ?? 0)}` : ''}. Затем проверим и откроем базу.`
+                      : 'Начинаем загрузку…'}
             </p>
             <p class="boot-card__description">
               Скачивание продолжается в фоне. Вернитесь в приложение, чтобы завершить проверку и

@@ -320,8 +320,29 @@
   text-wrap: balance;
 }
 
-.onboarding-intro__download {
+.onboarding-intro__choices {
+  display: grid;
+  width: min(100%, 22rem);
+  gap: 0.5rem;
   pointer-events: auto;
+}
+
+.onboarding-intro__choice {
+  display: grid;
+  min-height: 3rem;
+  justify-items: center;
+  gap: 0.15rem;
+  white-space: normal;
+}
+
+.onboarding-intro__choice-title {
+  font-weight: 600;
+}
+
+.onboarding-intro__choice-note {
+  font-size: 0.8125rem;
+  font-weight: 400;
+  opacity: 0.85;
 }
 
 /* The footer clears the core progress label in the bottom corner (a 2.75 rem strip). */

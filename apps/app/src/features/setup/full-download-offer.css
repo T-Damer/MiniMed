@@ -1,0 +1,16 @@
+.full-download-offer {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1rem;
+}
+
+.full-download-offer__button {
+  width: 100%;
+}
+
+.full-download-offer__note {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+  text-align: center;
+}

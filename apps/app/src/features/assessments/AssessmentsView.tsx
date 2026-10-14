@@ -64,6 +64,7 @@ import type {
 } from '@/features/assessments/assessment-types';
 import { UserQuestionnaireEditorPage } from '@/features/assessments/UserQuestionnaireEditorPage';
 import { MODULE_CATALOG, moduleForTool } from '@/features/modules/module-catalog';
+import { formatModuleBytes } from '@/features/modules/module-display';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
 import { filterByAge } from '@/features/tools/tool-age-filter';
 import { createToolAgeFilter } from '@/features/tools/tool-age-filter-state';
@@ -478,6 +479,42 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
     }
   };
 
+  /** «3,4 МБ» for the module a download needs, from the catalog; nothing when it is on the device. */
+  const moduleSizeLabel = (moduleId: string | undefined): string | undefined => {
+    if (!moduleId) return undefined;
+    const runtime = getContentModuleRuntime(MODULE_CATALOG);
+    if (runtime.listInstalled().some((item) => item.moduleId === moduleId)) return undefined;
+    const bytes = MODULE_CATALOG.modules.find((entry) => entry.id === moduleId)?.sizes
+      .downloadBytes;
+    return typeof bytes === 'number' ? formatModuleBytes(bytes) : undefined;
+  };
+  const moduleIdOfDefinition = (id: string): string | undefined => {
+    const entry = assessmentCatalog().find((definition) => definition.id === id);
+    return entry
+      ? (moduleForTool(entry.id)?.id ??
+          moduleIdForAssessmentSection(entry.category) ??
+          moduleIdForAssessmentSpecialty(entry.bankId))
+      : undefined;
+  };
+  const moduleIdOfSection = (sectionId: AssessmentSectionId): string | undefined => {
+    const section = assessmentCatalog().find((entry) => entry.category === sectionId);
+    return (
+      moduleIdForAssessmentSection(sectionId) ??
+      (section ? moduleIdForAssessmentSpecialty(section.bankId) : undefined)
+    );
+  };
+  const installSizeOf = (target: {
+    readonly sectionId?: AssessmentSectionId;
+    readonly definitionId?: string;
+  }): string | undefined =>
+    moduleSizeLabel(
+      target.definitionId
+        ? moduleIdOfDefinition(target.definitionId)
+        : target.sectionId
+          ? moduleIdOfSection(target.sectionId)
+          : undefined,
+    );
+
   const installDefinition = (id: string): void => {
     const entry = assessmentCatalog().find((definition) => definition.id === id);
     const moduleId = entry
@@ -727,6 +764,7 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
             onPrint={(selected) => printDefinition(selected.id)}
             onInstallSection={installSection}
             onRemoveSection={requestDeleteSection}
+            installSizeOf={installSizeOf}
           />
         )}
       </Show>
@@ -773,6 +811,7 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
             onPrint={(selected) => printDefinition(selected.id)}
             onInstallSection={installSection}
             onRemoveSection={requestDeleteSection}
+            installSizeOf={installSizeOf}
           />
         )}
       </Show>
@@ -992,6 +1031,7 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
               navigate(getSplitNavigation() ? assessmentHomePath(selected().slug) : '#/search')
             }
             onInstall={() => installDefinition(selected().id)}
+            installSize={installSizeOf({ definitionId: selected().id })}
           />
         )}
       </Show>

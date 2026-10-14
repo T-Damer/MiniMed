@@ -13,6 +13,7 @@ for (const viewport of [
     await page.setViewportSize(viewport);
     await page.addInitScript(() => {
       window.localStorage.setItem('minimed:package-setup-dismissed:v1', '1');
+      window.localStorage.setItem('minimed:core-download-consent:v1', '1');
     });
     await page.goto(`${ORIGIN}/#/settings/downloads`, { waitUntil: 'domcontentloaded' });
 

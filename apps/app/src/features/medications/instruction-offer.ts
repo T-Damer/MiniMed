@@ -38,17 +38,29 @@ export function instructionModuleOffer(input: {
   if (!module || !input.isReleased(module)) return null;
   return {
     moduleId,
-    groupTitle: module.title.startsWith(MODULE_TITLE_PREFIX)
-      ? module.title.slice(MODULE_TITLE_PREFIX.length)
-      : module.title,
+    groupTitle: instructionGroupTitle(module.title),
     downloadBytes: module.sizes.downloadBytes,
   };
 }
 
-/** «Скачать инструкции группы «Нервная система» · 24 МБ». */
+/** The button: «Скачать · 24 МБ». What it downloads is the {@link instructionOfferSubtitle}. */
 export function instructionOfferLabel(offer: InstructionModuleOffer): string {
   const size = offer.downloadBytes === null ? '' : ` · ${formatModuleBytes(offer.downloadBytes)}`;
-  return `Скачать инструкции группы «${offer.groupTitle}»${size}`;
+  return `Скачать${size}`;
+}
+
+/** The small line under the button: «Инструкции группы «Нервная система»». */
+export function instructionOfferSubtitle(
+  offer: Pick<InstructionModuleOffer, 'groupTitle'>,
+): string {
+  return `Инструкции группы «${offer.groupTitle}»`;
+}
+
+/** The group a module of the instruction catalog covers, without the «Инструкции ГРЛС — » prefix. */
+export function instructionGroupTitle(moduleTitle: string): string {
+  return moduleTitle.startsWith(MODULE_TITLE_PREFIX)
+    ? moduleTitle.slice(MODULE_TITLE_PREFIX.length)
+    : moduleTitle;
 }
 
 /** «…показана краткая справка Allmed» (or «Видаль», «Allmed и Видаль»: the sources on screen). */

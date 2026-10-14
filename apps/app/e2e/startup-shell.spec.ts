@@ -31,7 +31,10 @@ for (const viewport of [
         body: '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>',
       });
     });
-    await page.addInitScript(() => localStorage.setItem('minimed:package-setup-dismissed:v1', '1'));
+    await page.addInitScript(() => {
+      localStorage.setItem('minimed:package-setup-dismissed:v1', '1');
+      localStorage.setItem('minimed:core-download-consent:v1', '1');
+    });
     let release: (() => void) | undefined;
     const blocked = new Promise<void>((resolve) => {
       release = resolve;

@@ -68,7 +68,7 @@ function ColumnHead(props: {
       </Show>
       <Show when={column().state === 'not-installed'}>
         <p class="drug-comparison__colhead-note" data-testid="comparison-not-installed">
-          Инструкция не установлена: скачайте её ниже.
+          Инструкция не установлена.
         </p>
       </Show>
       <Show when={column().state === 'no-instruction'}>

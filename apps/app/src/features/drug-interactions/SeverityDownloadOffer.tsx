@@ -1,102 +1,30 @@
-import { createMemo, type JSX, Show } from 'solid-js';
+import type { JSX } from 'solid-js';
 
-import { AppGlyph } from '@/components/AppGlyph';
-import { Button } from '@/components/Button';
-import { DownloadProgressMark } from '@/components/DownloadProgressMark';
-import { isModuleReleased } from '@/features/modules/local-packaged-modules';
-import { contentModuleTaskProgress, formatModuleBytes } from '@/features/modules/module-display';
-import { useModuleInstaller } from '@/features/sections/use-module-installer';
+import { ModuleDownloadOffer } from '@/features/modules/ModuleDownloadOffer';
 import { SEVERITY_MODULE_ID } from './interaction-severity';
 
-const FINISHED_TASK_STATES = new Set(['completed', 'failed', 'cancelled']);
-
 /**
- * «Скачать метки степени риска»: the optional DDInter module, queued through the same module
- * runtime as every other download. Mounted only where a pair has instruction sentences and the
- * module is missing, so the catalog is not loaded for a tool that has nothing to offer.
+ * «Скачать · 2 МБ» under which «Метки степени риска» stand: the optional DDInter module, queued
+ * through the same module runtime as every other download. Mounted only where a pair has
+ * instruction sentences and the module is missing, so the catalog is not loaded for a tool that
+ * has nothing to offer.
  */
 export function SeverityDownloadOffer(props: {
   readonly onContentChanged: () => Promise<void>;
 }): JSX.Element {
-  const installer = useModuleInstaller(props.onContentChanged, 'Не удалось скачать метки.');
-  const entry = createMemo(() =>
-    installer.snapshot()?.catalog.modules.find((module) => module.id === SEVERITY_MODULE_ID),
-  );
-  const installed = () => installer.snapshot()?.installedIds.has(SEVERITY_MODULE_ID) ?? false;
-  const active = () =>
-    installer.starting() ||
-    (installer
-      .snapshot()
-      ?.tasks.some(
-        (task) => task.moduleId === SEVERITY_MODULE_ID && !FINISHED_TASK_STATES.has(task.state),
-      ) ??
-      false);
-  const percent = (): number | null => {
-    const task = installer
-      .snapshot()
-      ?.tasks.find(
-        (candidate) =>
-          candidate.moduleId === SEVERITY_MODULE_ID && !FINISHED_TASK_STATES.has(candidate.state),
-      );
-    const value = task ? contentModuleTaskProgress(task) : null;
-    return value === null ? null : Math.min(99, Math.round(value * 100));
-  };
-  const size = () => {
-    const bytes = entry()?.sizes.downloadBytes;
-    return typeof bytes === 'number' ? formatModuleBytes(bytes) : null;
-  };
   return (
-    <Show when={!installed()}>
-      <section
-        class="drug-interactions__severity-offer"
-        aria-label="Метки степени риска"
-        data-testid="severity-offer"
-      >
-        <Show
-          when={entry()}
-          fallback={
-            <p class="drug-interactions__side-note" role="status">
-              {installer.failed()
-                ? 'Каталог модулей не загрузился.'
-                : 'Проверяем, доступен ли модуль для скачивания…'}
-            </p>
-          }
-        >
-          {(module) => (
-            <Show
-              when={isModuleReleased(module())}
-              fallback={
-                <p class="drug-interactions__side-note">
-                  Модуль меток пока недоступен для скачивания в этой версии приложения.
-                </p>
-              }
-            >
-              <Button
-                type="button"
-                variant="secondary"
-                class="drug-interactions__severity-offer-button"
-                disabled={active()}
-                data-testid="severity-offer-button"
-                icon={
-                  <Show when={active()} fallback={<AppGlyph name="download" />}>
-                    <DownloadProgressMark
-                      state="running"
-                      progress={percent() === null ? null : (percent() ?? 0) / 100}
-                    />
-                  </Show>
-                }
-                onClick={() => void installer.start([module()])}
-              >
-                {active()
-                  ? percent() === null
-                    ? 'Скачиваем…'
-                    : `Скачиваем… ${percent()}%`
-                  : `Скачать метки степени риска${size() ? ` · ${size()}` : ''}`}
-              </Button>
-            </Show>
-          )}
-        </Show>
-      </section>
-    </Show>
+    <ModuleDownloadOffer
+      moduleId={SEVERITY_MODULE_ID}
+      onContentChanged={props.onContentChanged}
+      failureMessage="Не удалось скачать метки."
+      subtitle={() => 'Метки степени риска'}
+      variant="secondary"
+      class="drug-interactions__severity-offer"
+      buttonClass="drug-interactions__severity-offer-button"
+      testId="severity-offer"
+      buttonTestId="severity-offer-button"
+      ariaLabel="Скачать метки степени риска"
+      unavailableText="Метки степени риска пока нельзя скачать в этой версии приложения."
+    />
   );
 }

@@ -495,6 +495,7 @@ export function App(): JSX.Element {
             waitingForOtherTab={session.coreWaitingForOtherTab()}
             coreDownloadRequired={session.coreDownloadRequired()}
             coreDownloading={session.coreDownloading()}
+            coreWaitingForNetwork={session.coreWaitingForNetwork()}
             coreProgress={session.coreProgress()}
             onDownloadCore={session.downloadCore}
           />

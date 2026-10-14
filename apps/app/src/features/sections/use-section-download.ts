@@ -10,6 +10,7 @@ import { noteSectionsInstalled } from '@/features/reference/doctor-profile-feeds
 import { sectionManifest } from './section-manifest';
 import { buildSections, type Section, selectedModules, skippedGroupKey } from './section-model';
 import { type SectionStatus, sectionStatus } from './section-plan';
+import { type SectionRemovalPlan, sectionRemovalPlan } from './section-removal';
 import { useModuleInstaller } from './use-module-installer';
 
 export interface SectionDownload {
@@ -31,6 +32,12 @@ export interface SectionDownload {
   readonly toggleGroup: (sectionId: string, groupId: string) => void;
   /** Queues what the ticked sections still lack and clears the ticks. */
   readonly start: () => Promise<void>;
+  /** What removing the section would take off the device. */
+  readonly removalPlan: (section: Section) => SectionRemovalPlan;
+  /** Section ids being removed right now. */
+  readonly removingIds: Accessor<ReadonlySet<string>>;
+  /** Removes the section's downloaded recommendations and the drug groups only it needs. */
+  readonly removeSection: (section: Section) => Promise<void>;
 }
 
 const EMPTY_PLAN: DrugDownloadPlan = { pending: [], bytes: 0, complete: false };
@@ -75,6 +82,12 @@ export function useSectionDownload(onContentChanged: () => Promise<void>): Secti
     );
   };
 
+  const [removingIds, setRemovingIds] = createSignal<ReadonlySet<string>>(new Set<string>());
+  const removalPlanOf = (section: Section): SectionRemovalPlan => {
+    const snapshot = installer.snapshot();
+    return sectionRemovalPlan(section, sections() ?? [], snapshot?.isInstalled ?? (() => false));
+  };
+
   return {
     sections,
     failed: installer.failed,
@@ -90,6 +103,22 @@ export function useSectionDownload(onContentChanged: () => Promise<void>): Secti
     toggleSection: (sectionId) => setSelected((current) => toggled(current, sectionId)),
     toggleGroup: (sectionId, groupId) =>
       setSkipped((current) => toggled(current, skippedGroupKey(sectionId, groupId))),
+    removalPlan: removalPlanOf,
+    removingIds,
+    removeSection: async (section) => {
+      const plan = removalPlanOf(section);
+      if (plan.modules.length === 0 || removingIds().has(section.id)) return;
+      setRemovingIds((current) => new Set(current).add(section.id));
+      try {
+        await installer.remove(plan.modules);
+      } finally {
+        setRemovingIds((current) => {
+          const next = new Set(current);
+          next.delete(section.id);
+          return next;
+        });
+      }
+    },
     start: async () => {
       const pending = plan().pending;
       if (pending.length === 0) return;

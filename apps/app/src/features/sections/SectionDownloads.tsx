@@ -3,7 +3,9 @@ import { createSignal, createUniqueId, For, type JSX, Show } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { ClinicalGlyph } from '@/components/ClinicalGlyph';
+import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { DownloadProgressMark } from '@/components/DownloadProgressMark';
+import { formatModuleBytes } from '@/features/modules/module-display';
 import {
   LARGE_DOWNLOAD_BYTES,
   moduleDownloadPlan,
@@ -39,6 +41,7 @@ export function SectionDownloads(props: {
   readonly variant?: SectionDownloadsVariant;
 }): JSX.Element {
   const download = useSectionDownload(props.onContentChanged);
+  const [pendingRemoval, setPendingRemoval] = createSignal<Section>();
   const variant = () => props.variant ?? 'page';
   const totalLabel = () => selectionTotalLabel(download.selectedCount(), download.plan());
   const startDisabled = () =>
@@ -82,32 +85,66 @@ export function SectionDownloads(props: {
             </div>
             <ul class="section-downloads__list" aria-label="Разделы медицины">
               <For each={sections()}>
-                {(section) => <SectionItem section={section} download={download} />}
+                {(section) => (
+                  <SectionItem
+                    section={section}
+                    download={download}
+                    onRemove={() => setPendingRemoval(section)}
+                  />
+                )}
               </For>
             </ul>
           </Show>
         )}
       </Show>
+      <ConfirmationDialog
+        open={pendingRemoval() !== undefined}
+        title="Удалить раздел с устройства?"
+        description={removalDescription(pendingRemoval(), download)}
+        confirmLabel="Удалить"
+        danger
+        onConfirm={() => {
+          const section = pendingRemoval();
+          setPendingRemoval(undefined);
+          if (section) void download.removeSection(section);
+        }}
+        onOpenChange={(open) => {
+          if (!open) setPendingRemoval(undefined);
+        }}
+      />
     </div>
   );
+}
+
+/** «Кардиология»: рекомендации и препараты, нужные только ей. Освободится около 210 МБ. */
+function removalDescription(section: Section | undefined, download: SectionDownload): string {
+  if (!section) return '';
+  const plan = download.removalPlan(section);
+  const freed = plan.bytes > 0 ? ` Освободится около ${formatModuleBytes(plan.bytes)}.` : '';
+  const shared = plan.keptShared > 0 ? ' Препараты, нужные другим разделам, останутся.' : '';
+  return `«${section.title}» будет удалён с устройства.${freed}${shared} Скачать его можно снова.`;
 }
 
 function SectionItem(props: {
   readonly section: Section;
   readonly download: SectionDownload;
+  readonly onRemove: () => void;
 }): JSX.Element {
   const detailsId = createUniqueId();
   const [open, setOpen] = createSignal(false);
   const status = (): SectionStatus => props.download.status(props.section);
   const complete = () => status().install === 'complete';
+  const removing = () => props.download.removingIds().has(props.section.id);
+  // Anything of the section on the device can go, unless the section is downloading right now.
+  const removable = () =>
+    status().queue === null && props.download.removalPlan(props.section).modules.length > 0;
   const selected = () => props.download.isSelected(props.section.id);
   const queueText = (): string => {
     const { queue, progress } = status();
     if (queue === null) return '';
     const fraction = progress.byteProgress;
-    return queue === 'queued' || fraction === null
-      ? 'в очереди'
-      : `скачивается · ${Math.floor(fraction * 100)} %`;
+    if (queue === 'queued') return 'в очереди';
+    return fraction === null ? 'скачивается…' : `скачивается · ${Math.floor(fraction * 100)} %`;
   };
 
   return (
@@ -120,13 +157,21 @@ function SectionItem(props: {
     >
       <div class="section-downloads__row">
         <label class="section-downloads__select">
-          <input
-            class="section-downloads__check"
-            type="checkbox"
-            checked={selected() || complete()}
-            disabled={complete()}
-            onChange={() => props.download.toggleSection(props.section.id)}
-          />
+          <Show
+            when={!complete()}
+            fallback={
+              <span class="section-downloads__done" aria-hidden="true">
+                <AppGlyph name="check" class="section-downloads__done-glyph" />
+              </span>
+            }
+          >
+            <input
+              class="section-downloads__check"
+              type="checkbox"
+              checked={selected()}
+              onChange={() => props.download.toggleSection(props.section.id)}
+            />
+          </Show>
           <ClinicalGlyph
             class={`section-downloads__glyph${complete() ? ' section-downloads__glyph--muted' : ''}`}
             name={sectionGlyph(props.section.id)}
@@ -147,6 +192,18 @@ function SectionItem(props: {
             />
             <span class="section-downloads__queue-text">{queueText()}</span>
           </span>
+        </Show>
+        <Show when={removable()}>
+          <Button
+            class="section-downloads__remove"
+            variant="icon"
+            disabled={removing()}
+            aria-label={`Удалить «${props.section.title}» с устройства`}
+            title="Удалить с устройства"
+            data-testid={`section-remove-${props.section.id}`}
+            icon={<AppGlyph name="trash" class="section-downloads__remove-glyph" />}
+            onClick={props.onRemove}
+          />
         </Show>
         <button
           class="section-downloads__expand"

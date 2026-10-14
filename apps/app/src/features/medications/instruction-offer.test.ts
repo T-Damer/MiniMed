@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { instructionModuleOffer, instructionOfferLabel } from './instruction-offer';
+import {
+  instructionModuleOffer,
+  instructionOfferLabel,
+  instructionOfferSubtitle,
+} from './instruction-offer';
 
 const ARTIFACT = {
   id: 'a',
@@ -54,9 +58,9 @@ describe('instructionModuleOffer', () => {
       groupTitle: 'Нервная система',
       downloadBytes: 24 * 1024 * 1024,
     });
-    expect(offer && instructionOfferLabel(offer)).toBe(
-      'Скачать инструкции группы «Нервная система» · 24 МБ',
-    );
+    // The button stays short; the group it downloads is a separate small line.
+    expect(offer && instructionOfferLabel(offer)).toBe('Скачать · 24 МБ');
+    expect(offer && instructionOfferSubtitle(offer)).toBe('Инструкции группы «Нервная система»');
   });
 
   it('names no size when the catalog has none', () => {
@@ -64,7 +68,7 @@ describe('instructionModuleOffer', () => {
       ...base,
       substanceModuleId: 'minimed.medications.blood.ru',
     });
-    expect(offer && instructionOfferLabel(offer)).toBe('Скачать инструкции группы «Кровь»');
+    expect(offer && instructionOfferLabel(offer)).toBe('Скачать');
   });
 
   it('offers nothing once the group is installed, when it is not released, or unlisted', () => {

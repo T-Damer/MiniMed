@@ -11,6 +11,8 @@ export function AssessmentMissingPage(props: {
   readonly title: string;
   readonly onBack: () => void;
   readonly onInstall: () => void;
+  /** «3,4 МБ»: the catalog size of the download, when there is one. */
+  readonly installSize?: string | undefined;
 }): JSX.Element {
   return (
     <div class="assessment-workspace">
@@ -43,7 +45,9 @@ export function AssessmentMissingPage(props: {
             onClick={props.onInstall}
             icon={<AppGlyph name="download" />}
           >
-            Скачать только этот тест
+            {props.installSize
+              ? `Скачать только этот тест · ${props.installSize}`
+              : 'Скачать только этот тест'}
           </Button>
         </div>
       </section>

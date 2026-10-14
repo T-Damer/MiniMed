@@ -1,6 +1,6 @@
 import { Capacitor, type PluginListenerHandle } from '@capacitor/core';
 import type { MedicalCore } from '@localmed/contracts';
-import { createSignal, onCleanup, onMount } from 'solid-js';
+import { createEffect, createSignal, onCleanup, onMount } from 'solid-js';
 import { toast } from 'solid-sonner';
 import { afterBootReveal } from '@/app/boot-surface';
 import { countPublishedCatalogModules } from '@/app/root-view';
@@ -18,8 +18,8 @@ import {
 import { recordInstallPhase } from '@/features/modules/install-timing';
 import { WorkerSearchMedicalCore } from '@/features/search/WorkerSearchMedicalCore';
 import {
-  coreAutoDownloadAllowed,
-  currentNetworkConnection,
+  grantCoreDownloadConsent,
+  isCoreDownloadConsented,
   isCoreStartHeld,
   whenCoreStartReleased,
 } from '@/features/setup/setup-state';
@@ -95,9 +95,21 @@ export function useAppSession() {
     readonly phase?: 'downloading' | 'verifying' | 'installing';
   }>();
   let beginCoreDownload: (() => void) | undefined;
+  // The download was asked for while the device is offline: it begins when the network returns.
+  const [coreWaitingForNetwork, setCoreWaitingForNetwork] = createSignal(false);
+  const untilOnline = async (): Promise<void> => {
+    if (navigator.onLine !== false) return;
+    setCoreWaitingForNetwork(true);
+    await new Promise<void>((resolve) =>
+      window.addEventListener('online', () => resolve(), { once: true }),
+    );
+    setCoreWaitingForNetwork(false);
+  };
   // True only while a metered connection holds the first core download for the user's tap.
   const [coreDownloadDeferred, setCoreDownloadDeferred] = createSignal(false);
   const downloadCore = (): void => {
+    // The person asked for it: later launches continue without asking again.
+    grantCoreDownloadConsent();
     setCoreDownloadDeferred(false);
     setCoreDownloading(true);
     beginCoreDownload?.();
@@ -397,12 +409,12 @@ export function useAppSession() {
               return;
             }
             setCoreDownloadRequired(true);
-            if (resuming || coreAutoDownloadAllowed(currentNetworkConnection())) {
+            if (resuming || isCoreDownloadConsented()) {
               setCoreDownloading(true);
-              resolve();
+              void untilOnline().then(resolve);
             } else {
               setCoreDownloadDeferred(true);
-              beginCoreDownload = resolve;
+              beginCoreDownload = () => void untilOnline().then(resolve);
             }
           });
         },
@@ -552,6 +564,15 @@ export function useAppSession() {
     }
   });
 
+  // A start-up failure that happened offline (the main database could not be fetched) heals itself
+  // when the network returns: the page reloads once instead of asking for a manual «Повторить».
+  createEffect(() => {
+    if (!error() || navigator.onLine !== false) return;
+    const reload = (): void => window.location.reload();
+    window.addEventListener('online', reload, { once: true });
+    onCleanup(() => window.removeEventListener('online', reload));
+  });
+
   onCleanup(() => {
     disposed = true;
     document.documentElement.classList.remove('platform-android');
@@ -575,6 +596,7 @@ export function useAppSession() {
     coreDownloadRequired,
     coreDownloadDeferred,
     coreDownloading,
+    coreWaitingForNetwork,
     coreProgress,
     downloadCore,
     ready,

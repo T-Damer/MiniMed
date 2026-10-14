@@ -11,7 +11,9 @@ import {
 import { Portal } from 'solid-js/web';
 
 import { afterBootReveal } from '@/app/boot-surface';
+import { formatModuleBytes } from '@/features/modules/module-display';
 import { dismissSetup, releaseCoreStart } from '@/features/setup/setup-state';
+import { useFullDownload } from '@/features/setup/use-full-download';
 import { motionMs } from '@/state/motion';
 import { CoreProgressLine } from './CoreProgressLine';
 import { OnboardingArrow } from './OnboardingArrow';
@@ -20,6 +22,7 @@ import { OnboardingHintCard } from './OnboardingHintCard';
 import { OnboardingIntro } from './OnboardingIntro';
 import { OnboardingRing } from './OnboardingRing';
 import {
+  type CoreChoice,
   coreDownloadMayStart,
   createOnboardingController,
   dismissesPermanently,
@@ -49,7 +52,7 @@ import './onboarding.css';
 export interface OnboardingProps {
   readonly coreReady: boolean;
   readonly coreDownloading: boolean;
-  /** A metered connection is holding the automatic core download for the user's decision. */
+  /** The core download waits for the person's choice: nothing downloads before it. */
   readonly coreDeferred: boolean;
   readonly coreError: string | undefined;
   readonly coreProgress:
@@ -110,6 +113,24 @@ export function Onboarding(props: OnboardingProps): JSX.Element {
   let root: HTMLDivElement | undefined;
   let introGone: ReturnType<typeof setTimeout> | undefined;
   onCleanup(() => clearTimeout(introGone));
+
+  // ---- the first download is a choice: everything recommended, the base only, or later ----
+  const [chosen, setChosen] = createSignal<CoreChoice>();
+  const fullDownload = useFullDownload(
+    props.onContentChanged,
+    () => props.coreReady,
+    () => startedWithoutCore && coreDownloadMayStart(state()),
+  );
+  const fullSize = (): string | undefined => {
+    const total = fullDownload.plan()?.totalBytes;
+    return total === null || total === undefined ? undefined : formatModuleBytes(total);
+  };
+  const choose = (choice: CoreChoice): void => {
+    setChosen(choice);
+    if (choice === 'later') return;
+    props.onDownloadCore();
+    if (choice === 'all') void fullDownload.start();
+  };
 
   const introPhase = (): IntroPhase => {
     const current = state();
@@ -447,11 +468,13 @@ export function Onboarding(props: OnboardingProps): JSX.Element {
                 <OnboardingIntro
                   phase={introPhase()}
                   coreReady={props.coreReady}
-                  coreDeferred={props.coreDeferred && !props.coreDownloading}
+                  awaitingChoice={props.coreDeferred && !props.coreDownloading}
+                  chosen={chosen()}
+                  fullSize={fullSize()}
                   coreError={props.coreError}
                   onNext={(button) => next(button)}
                   onSkip={skip}
-                  onDownloadCore={props.onDownloadCore}
+                  onChoose={choose}
                 />
               </div>
             </Show>

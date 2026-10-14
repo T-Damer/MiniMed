@@ -2,7 +2,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   coreAutoDownloadAllowed,
   downloadPercent,
+  grantCoreDownloadConsent,
   holdCoreStart,
+  isCoreDownloadConsented,
   releaseCoreStart,
   whenCoreStartReleased,
 } from './setup-state';
@@ -32,6 +34,34 @@ describe('core auto-download policy', () => {
   it('waits for the user on cellular or data-saver connections', () => {
     expect(coreAutoDownloadAllowed({ type: 'cellular' })).toBe(false);
     expect(coreAutoDownloadAllowed({ type: 'wifi', saveData: true })).toBe(false);
+  });
+});
+
+describe('core download consent', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('is absent on a first launch, so nothing downloads by itself', () => {
+    vi.stubGlobal('localStorage', { getItem: () => null, setItem: vi.fn() });
+    expect(isCoreDownloadConsented()).toBe(false);
+  });
+
+  it('is remembered once granted, in storage and for the session', () => {
+    const setItem = vi.fn();
+    vi.stubGlobal('localStorage', { getItem: () => null, setItem });
+    grantCoreDownloadConsent();
+    expect(setItem).toHaveBeenCalledWith('minimed:core-download-consent:v1', '1');
+    // Even where storage is unavailable (private mode), the session keeps the decision.
+    vi.stubGlobal('localStorage', {
+      getItem: () => {
+        throw new Error('blocked');
+      },
+      setItem: () => {
+        throw new Error('blocked');
+      },
+    });
+    expect(isCoreDownloadConsented()).toBe(true);
   });
 });
 

@@ -10,7 +10,10 @@ for (const viewport of [
   }, testInfo) => {
     await page.setViewportSize(viewport);
     // Onboarding has separate coverage; this suite covers later opens with the setup dismissed.
-    await page.addInitScript(() => localStorage.setItem('minimed:package-setup-dismissed:v1', '1'));
+    await page.addInitScript(() => {
+      localStorage.setItem('minimed:package-setup-dismissed:v1', '1');
+      localStorage.setItem('minimed:core-download-consent:v1', '1');
+    });
     let releaseCore = () => {};
     const coreGate = new Promise<void>((resolve) => {
       releaseCore = resolve;
@@ -93,7 +96,10 @@ test('the knowledge base shows the core status by direct link and keeps its page
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.addInitScript(() => localStorage.setItem('minimed:package-setup-dismissed:v1', '1'));
+  await page.addInitScript(() => {
+    localStorage.setItem('minimed:package-setup-dismissed:v1', '1');
+    localStorage.setItem('minimed:core-download-consent:v1', '1');
+  });
   let releaseCore = () => {};
   const coreGate = new Promise<void>((resolve) => {
     releaseCore = resolve;
@@ -130,13 +136,12 @@ test('the knowledge base shows the core status by direct link and keeps its page
   ).toBe(true);
 });
 
-test('missing core on a cellular connection waits for the user while files and settings remain available', async ({
+test('a missing core waits for the user (no automatic download) while files and settings remain available', async ({
   page,
 }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.addInitScript(() => {
-    // On Wi-Fi the core starts downloading by itself; cellular keeps the explicit button.
-    Object.defineProperty(navigator, 'connection', { value: { type: 'cellular' } });
+    // No consent is stored: the core never downloads by itself, whatever the connection.
     localStorage.setItem('minimed:package-setup-dismissed:v1', '1');
     Object.assign(window, {
       CapacitorCustomPlatform: { name: 'android' },
@@ -181,28 +186,37 @@ test('missing core on a cellular connection waits for the user while files and s
   ).toBeVisible();
 });
 
-test('the first run on a cellular connection waits for the user inside the onboarding', async ({
+test('the first run asks what to download and fetches nothing before the choice', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 375, height: 812 });
-  await page.addInitScript(() => {
-    Object.defineProperty(navigator, 'connection', { value: { type: 'cellular' } });
+  const coreRequests: string[] = [];
+  page.on('request', (request) => {
+    if (/\/core\.db(\.gz)?(\?|$)/u.test(request.url())) coreRequests.push(request.url());
   });
   await page.goto(`${process.env.MINIMED_LIVE_URL ?? E2E_ASSET_ORIGIN}/#/search`);
   const onboarding = page.getByRole('dialog', { name: 'Добро пожаловать в MiniMed' });
   await expect(onboarding).toBeAttached();
-  // The greeting and the welcome wait for the user; the consent to download comes after them.
+  // The greeting and the welcome wait for the user; the choice comes after them.
   await expect(page.getByText('Привет', { exact: true })).toBeVisible({ timeout: 30_000 });
   await page.keyboard.press('ArrowRight');
   await page.keyboard.press('ArrowRight');
-  // The consent to download belongs to the onboarding; no boot card may layer under it.
-  await expect(onboarding).toContainText(/Основная база — около \d+ МБ/u, {
-    timeout: 30_000,
-  });
-  await expect(onboarding.getByRole('button', { name: /^Скачать · ~\d+ МБ$/u })).toBeVisible();
+  // The choice belongs to the onboarding; no boot card may layer under it.
+  await expect(onboarding).toContainText('Что скачать сейчас?', { timeout: 30_000 });
+  await expect(onboarding.getByTestId('core-choice-all')).toContainText(
+    /Скачать всё · [\d,]+ (ГБ|МБ)/u,
+    {
+      timeout: 60_000,
+    },
+  );
+  await expect(onboarding.getByTestId('core-choice-core')).toContainText(/Только основа · \d+ МБ/u);
+  await expect(onboarding.getByTestId('core-choice-later')).toHaveText('Позже');
   await expect(page.locator('.boot-screen')).toHaveCount(0);
-  // The same decision stays reachable on the thin line along the bottom edge.
+  expect(coreRequests).toEqual([]);
+  // «Позже» keeps the decision reachable on the thin line along the bottom edge.
+  await onboarding.getByTestId('core-choice-later').click();
   await expect(
     page.locator('.core-progress-line').getByRole('button', { name: 'Скачать' }),
   ).toBeVisible();
+  expect(coreRequests).toEqual([]);
 });

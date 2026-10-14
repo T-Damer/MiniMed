@@ -5,7 +5,12 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { DownloadProgressMark } from '@/components/DownloadProgressMark';
 import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
-import { atcGroupActionLabel, atcGroupPackage } from '@/features/medications/atc-group-package';
+import {
+  atcDownloadAllLabel,
+  atcGroupActionLabel,
+  atcGroupPackage,
+  atcGroupRowMeta,
+} from '@/features/medications/atc-group-package';
 import { loadAtcNames } from '@/features/medications/atc-names';
 import {
   type AtcSubstance,
@@ -136,11 +141,12 @@ export function MedicationAtcTree(props: {
     readonly node: AtcTreeNode | undefined;
   }): JSX.Element => {
     const count = () => rowProps.node?.substanceCount ?? 0;
-    const status = () => packageOf(rowProps.moduleId).status;
+    // Counts only come from an installed package; otherwise the row says what the package is.
     const meta = () => {
-      if (rowProps.node) return nodeMeta(rowProps.node);
-      if (props.loading) return 'Читаем базу…';
-      return status() === 'installed' ? substanceCountLabel(0) : 'Не скачано';
+      const counts = rowProps.node ? nodeMeta(rowProps.node) : null;
+      // The synthetic «без кода» group has no package of its own: its counts are the whole truth.
+      if (rowProps.moduleId === null) return counts ?? '';
+      return atcGroupRowMeta(packageOf(rowProps.moduleId), counts, props.loading);
     };
     const body = (
       <>
@@ -153,13 +159,10 @@ export function MedicationAtcTree(props: {
     );
     return (
       <li class="atc-group paper-card" classList={{ 'atc-group--empty': count() === 0 }}>
-        <Show when={count() > 0} fallback={<div class="atc-row atc-row--static">{body}</div>}>
-          <button type="button" class="atc-row" onClick={() => goTo(rowProps.code)}>
-            {body}
-            <AppGlyph name="caret-right" class="atc-row__chevron" />
-          </button>
-        </Show>
-        <Action moduleId={rowProps.moduleId} />
+        <button type="button" class="atc-row" onClick={() => goTo(rowProps.code)}>
+          {body}
+          <AppGlyph name="caret-right" class="atc-row__chevron" />
+        </button>
       </li>
     );
   };
@@ -184,6 +187,25 @@ export function MedicationAtcTree(props: {
                   Анатомо-терапевтическо-химическая классификация: 14 групп. Вещества берутся из
                   скачанных пакетов, поэтому каждая группа скачивается отдельно.
                 </p>
+                <Show when={missingAny() && !props.loading}>
+                  <Button
+                    class="atc-tree__all"
+                    variant="primary"
+                    disabled={download.active()}
+                    data-testid="atc-download-all"
+                    icon={
+                      <Show when={download.active()} fallback={<AppGlyph name="download" />}>
+                        <DownloadProgressMark
+                          state="running"
+                          progress={download.state()?.progress.byteProgress ?? null}
+                        />
+                      </Show>
+                    }
+                    onClick={() => void download.start()}
+                  >
+                    {atcDownloadAllLabel(download.state(), download.active(), download.problem())}
+                  </Button>
+                </Show>
                 <ul class="atc-tree__list">
                   <For each={groups()}>
                     {(group) => (
@@ -206,16 +228,6 @@ export function MedicationAtcTree(props: {
                     )}
                   </Show>
                 </ul>
-                <Show when={missingAny() && !props.loading}>
-                  <Button
-                    class="atc-tree__all"
-                    variant="quiet"
-                    disabled={download.active()}
-                    onClick={() => void download.start()}
-                  >
-                    Скачать все группы
-                  </Button>
-                </Show>
               </>
             }
           >
@@ -227,7 +239,9 @@ export function MedicationAtcTree(props: {
                     <p class="atc-tree__empty-text">
                       {props.loading
                         ? 'Читаем локальную базу…'
-                        : `В скачанных препаратах нет веществ группы ${code()}.`}
+                        : packageOf(atcGroupModuleId(code())).status === 'installed'
+                          ? `В скачанных препаратах нет веществ группы ${code()}.`
+                          : 'Эта группа ещё не скачана.'}
                     </p>
                     <Action moduleId={atcGroupModuleId(code())} />
                   </div>
@@ -243,6 +257,7 @@ export function MedicationAtcTree(props: {
                         {current().name ?? `Группа ${current().code}`}
                       </h3>
                       <p class="atc-tree__meta">{nodeMeta(current())}</p>
+                      <Action moduleId={atcGroupModuleId(current().code)} />
                     </header>
                     <Show when={current().children.length > 0}>
                       <ul class="atc-tree__list">

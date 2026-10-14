@@ -3,6 +3,7 @@ import type { JSX } from 'solid-js';
 import { ContentDownloadStatus } from '@/features/modules/ContentDownloadStatus';
 import { ModuleFileImport } from '@/features/modules/ModuleFileImport';
 import { SectionDownloads } from '@/features/sections/SectionDownloads';
+import { FullDownloadOffer } from '@/features/setup/FullDownloadOffer';
 
 /**
  * The body of Settings → «Загрузки и разделы»; the settings frame supplies the heading and the
@@ -14,6 +15,7 @@ export function DownloadsPage(props: {
 }): JSX.Element {
   return (
     <>
+      <FullDownloadOffer onContentChanged={props.onContentChanged ?? (() => Promise.resolve())} />
       <section class="downloads-sections paper-card" aria-labelledby="downloads-sections-title">
         <h2 class="downloads-sections__title" id="downloads-sections-title">
           Скачать по специальности

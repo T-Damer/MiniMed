@@ -3,7 +3,7 @@ import { Button } from '@/components/Button';
 import { CORE_DOWNLOAD_SIZE_LABEL } from '@/composition/core-download';
 import { OnboardingArrow } from './OnboardingArrow';
 import { OnboardingDocuments } from './OnboardingDocuments';
-import type { IntroPhase } from './onboarding-controller';
+import type { CoreChoice, IntroPhase } from './onboarding-controller';
 import type { Point } from './onboarding-geometry';
 
 /** Clear space between the arrow's tip and the progress label it points at. */
@@ -42,17 +42,24 @@ function introArrow(
 export function OnboardingIntro(props: {
   readonly phase: IntroPhase;
   readonly coreReady: boolean;
-  readonly coreDeferred: boolean;
+  /** The main database waits for the person to choose what to download. */
+  readonly awaitingChoice: boolean;
+  /** The choice made so far; `undefined` while nothing is chosen. */
+  readonly chosen: CoreChoice | undefined;
+  /** The size of «Скачать всё», e.g. «1,5 ГБ»; undefined while the catalog is being read. */
+  readonly fullSize: string | undefined;
   readonly coreError: string | undefined;
   readonly onNext: (button: HTMLElement) => void;
   readonly onSkip: () => void;
-  readonly onDownloadCore: () => void;
+  readonly onChoose: (choice: CoreChoice) => void;
 }): JSX.Element {
   const [arrow, setArrow] = createSignal<{ readonly from: Point; readonly to: Point }>();
   let coreText: HTMLElement | undefined;
 
   const coreVisible = () => props.phase === 'core';
-  const arrowWanted = () => coreVisible() && !props.coreReady;
+  const choosing = () => props.awaitingChoice && props.chosen === undefined;
+  const arrowWanted = () =>
+    coreVisible() && !props.coreReady && !choosing() && props.chosen !== 'later';
 
   const placeArrow = (): void => {
     if (!coreText || !arrowWanted()) {
@@ -62,7 +69,7 @@ export function OnboardingIntro(props: {
     setArrow(introArrow(coreText, { width: window.innerWidth, height: window.innerHeight }));
   };
   createEffect(
-    on([arrowWanted, () => props.phase, () => props.coreDeferred, () => props.coreError], () => {
+    on([arrowWanted, () => props.phase, () => props.chosen, () => props.coreError], () => {
       // After layout: the scene's text has its final box one frame after it is shown.
       const frame = requestAnimationFrame(() => requestAnimationFrame(placeArrow));
       onCleanup(() => cancelAnimationFrame(frame));
@@ -85,15 +92,17 @@ export function OnboardingIntro(props: {
     if (props.coreReady) return 'Основная база уже на месте';
     if (props.coreError)
       return 'Основную базу скачать не получилось — проверьте интернет и нажмите «Повторить» внизу';
-    if (props.coreDeferred) {
-      return `Основная база — около ${CORE_DOWNLOAD_SIZE_LABEL}, а вы в мобильной сети: скачайте сейчас или позже по Wi‑Fi`;
+    if (choosing()) return 'Что скачать сейчас?';
+    if (props.chosen === 'later') {
+      return 'Хорошо, скачаете позже: кнопка будет в поиске и внизу экрана';
     }
-    return `Сейчас скачаем основную базу — около ${CORE_DOWNLOAD_SIZE_LABEL}. Прогресс загрузки будет внизу`;
+    return `Скачиваем в фоне — прогресс внизу. Остановить можно в «Настройки → Загрузки»`;
   };
-  const nextHint = (): string =>
-    props.coreReady
-      ? 'Нажмите «Далее» — покажем, что умеет приложение'
-      : 'Нажмите «Далее», чтобы продолжить знакомство, пока идёт загрузка';
+  const nextHint = (): string => {
+    if (props.coreReady) return 'Нажмите «Далее» — покажем, что умеет приложение';
+    if (choosing()) return 'Нажмите «Далее», чтобы ничего не скачивать сейчас';
+    return 'Нажмите «Далее», чтобы продолжить знакомство, пока идёт загрузка';
+  };
   const footerShown = () => props.phase !== 'wait';
 
   return (
@@ -152,14 +161,41 @@ export function OnboardingIntro(props: {
               }}
             >
               <p class="onboarding-intro__lead">{coreHeadline()}</p>
-              <Show when={props.coreDeferred && !props.coreReady}>
-                <Button
-                  class="onboarding-intro__download"
-                  variant="secondary"
-                  onClick={props.onDownloadCore}
-                >
-                  Скачать · ~{CORE_DOWNLOAD_SIZE_LABEL}
-                </Button>
+              <Show when={choosing() && !props.coreReady}>
+                <div class="onboarding-intro__choices">
+                  <Button
+                    class="onboarding-intro__choice"
+                    variant="primary"
+                    data-testid="core-choice-all"
+                    disabled={props.fullSize === undefined}
+                    onClick={() => props.onChoose('all')}
+                  >
+                    <span class="onboarding-intro__choice-title">
+                      Скачать всё · {props.fullSize ?? '…'}
+                    </span>
+                    <span class="onboarding-intro__choice-note">
+                      Рекомендуем: справочники и поиск по жалобам
+                    </span>
+                  </Button>
+                  <Button
+                    class="onboarding-intro__choice"
+                    variant="secondary"
+                    data-testid="core-choice-core"
+                    onClick={() => props.onChoose('core')}
+                  >
+                    <span class="onboarding-intro__choice-title">
+                      Только основа · {CORE_DOWNLOAD_SIZE_LABEL}
+                    </span>
+                  </Button>
+                  <Button
+                    class="onboarding-intro__choice"
+                    variant="quiet"
+                    data-testid="core-choice-later"
+                    onClick={() => props.onChoose('later')}
+                  >
+                    Позже
+                  </Button>
+                </div>
               </Show>
               <p class="onboarding-intro__hint">{nextHint()}</p>
             </div>

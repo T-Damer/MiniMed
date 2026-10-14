@@ -19,6 +19,7 @@ for (const width of [360, 1280]) {
     await page.addInitScript(() => {
       // Onboarding has its own coverage; this suite reopens an app whose setup was completed.
       localStorage.setItem('minimed:package-setup-dismissed:v1', '1');
+      localStorage.setItem('minimed:core-download-consent:v1', '1');
       // Completed/failed public records are history, not executable URLs or consent to fetch.
       if (localStorage.getItem('queue-test-seeded')) return;
       localStorage.setItem('queue-test-seeded', '1');

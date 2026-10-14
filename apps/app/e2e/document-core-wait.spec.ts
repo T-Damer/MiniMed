@@ -15,7 +15,10 @@ for (const viewport of [
     page,
   }, testInfo) => {
     await page.setViewportSize(viewport);
-    await page.addInitScript(() => localStorage.setItem('minimed:package-setup-dismissed:v1', '1'));
+    await page.addInitScript(() => {
+      localStorage.setItem('minimed:package-setup-dismissed:v1', '1');
+      localStorage.setItem('minimed:core-download-consent:v1', '1');
+    });
     let releaseCore = () => {};
     const coreGate = new Promise<void>((resolve) => {
       releaseCore = resolve;

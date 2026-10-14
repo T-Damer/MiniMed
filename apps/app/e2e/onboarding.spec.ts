@@ -64,8 +64,20 @@ for (const viewport of [
     await page.screenshot({ path: testInfo.outputPath('intro-welcome.png') });
     await next.click();
 
-    // The core download begins now; the icon opens and three documents float, the middle higher.
-    await expect(intro.getByText(/Сейчас скачаем основную базу — около \d+ МБ/u)).toBeVisible();
+    // The icon opens and three documents float; nothing downloads until a choice is made.
+    await expect(intro.getByText('Что скачать сейчас?')).toBeVisible();
+    await expect(intro.getByTestId('core-choice-all')).toContainText(
+      /Скачать всё · [\d,]+ (ГБ|МБ)/u,
+      {
+        timeout: 60_000,
+      },
+    );
+    await expect(intro.getByTestId('core-choice-core')).toContainText(/Только основа · \d+ МБ/u);
+    await expect(intro.getByTestId('core-choice-later')).toHaveText('Позже');
+    await page.waitForTimeout(1_000);
+    expect(core.downloads()).toBe(0);
+    await intro.getByTestId('core-choice-core').click();
+    await expect(intro.getByText(/Скачиваем в фоне/u)).toBeVisible();
     await expect(
       intro.getByText('Нажмите «Далее», чтобы продолжить знакомство, пока идёт загрузка'),
     ).toBeVisible();
@@ -255,13 +267,10 @@ for (const size of [
   { width: 390, height: 844 },
   { width: 360, height: 800 },
 ]) {
-  test(`on a metered connection no notice covers a button of the intro or the tour at ${size.width}px`, async ({
+  test(`with the download undecided no notice covers a button of the intro or the tour at ${size.width}px`, async ({
     page,
   }) => {
     await page.setViewportSize(size);
-    await page.addInitScript(() => {
-      Object.defineProperty(navigator, 'connection', { value: { type: 'cellular' } });
-    });
     await page.goto(`${ORIGIN}/#/search`, { waitUntil: 'domcontentloaded' });
     const caption = page.locator('.core-progress-line__caption');
     const buttonsOf = (scope: string) =>
@@ -290,8 +299,8 @@ for (const size of [
     await expect(page.getByText('Привет', { exact: true })).toBeVisible({ timeout: 30_000 });
     await page.keyboard.press('ArrowRight');
     await page.keyboard.press('ArrowRight');
-    await expect(caption).toContainText('Мобильная сеть', { timeout: 30_000 });
-    await expect(caption).not.toContainText('основная база около');
+    await expect(caption).toContainText('Не скачано', { timeout: 30_000 });
+    await expect(caption).not.toContainText('Основная база не скачана');
     expect(await covered('.onboarding-intro')).toBe(0);
     await expect(caption.getByRole('button', { name: 'Скачать' })).toBeVisible();
 

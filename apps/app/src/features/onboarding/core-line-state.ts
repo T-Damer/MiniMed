@@ -6,7 +6,7 @@ import { formatSpeed } from './download-speed';
 export interface CoreLineInput {
   readonly ready: boolean;
   readonly downloading: boolean;
-  /** A metered connection is holding the automatic download for the user's decision. */
+  /** The download waits for the person's choice. */
   readonly deferred: boolean;
   readonly error: string | undefined;
   readonly progress:
@@ -61,8 +61,8 @@ export function coreLineState(input: CoreLineInput): CoreLineState {
     return {
       kind: 'deferred',
       fraction: 0,
-      label: `Мобильная сеть: основная база около ${CORE_DOWNLOAD_SIZE_LABEL}`,
-      compactLabel: 'Мобильная сеть',
+      label: `Основная база не скачана · около ${CORE_DOWNLOAD_SIZE_LABEL}`,
+      compactLabel: 'Не скачано',
     };
   }
   const phase = input.progress?.phase;

@@ -94,6 +94,34 @@
   cursor: default;
 }
 
+.section-downloads__done {
+  display: grid;
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--theme-accent-soft);
+  color: var(--theme-accent);
+}
+
+.section-downloads__done-glyph {
+  width: 0.8rem;
+  height: 0.8rem;
+}
+
+.section-downloads__remove {
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 auto;
+  color: var(--theme-text-muted);
+}
+
+.section-downloads__remove-glyph {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
 .section-downloads__glyph {
   width: 1.25rem;
   height: 1.25rem;

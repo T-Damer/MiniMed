@@ -67,3 +67,46 @@ export function atcGroupActionLabel(item: AtcGroupPackage, failed: boolean): str
       return '';
   }
 }
+
+/**
+ * What a group row says about its package: its size while it is missing, the queue state while it
+ * is coming, and the substance counts only once the package is installed (a count read from a
+ * package that is not there would describe a part of the group as if it were all of it).
+ */
+export function atcGroupRowMeta(
+  item: AtcGroupPackage,
+  counts: string | null,
+  loading: boolean,
+): string {
+  switch (item.status) {
+    case 'installed':
+      return counts ?? (loading ? 'Читаем базу…' : '');
+    case 'missing':
+      return item.bytes === null ? 'не скачано' : `не скачано · ${formatModuleBytes(item.bytes)}`;
+    case 'queued':
+      return 'в очереди';
+    case 'downloading':
+      return item.progress === null
+        ? 'скачивается…'
+        : `скачивается · ${String(Math.floor(item.progress * 100))} %`;
+    case 'unavailable':
+      return 'недоступно';
+    default:
+      return loading ? 'Читаем базу…' : '';
+  }
+}
+
+/** «Скачать всё · 286 МБ», «Скачиваем · 40 %»; empty when there is nothing left to fetch. */
+export function atcDownloadAllLabel(
+  state: DrugDownloadState | undefined,
+  active: boolean,
+  failed: boolean,
+): string {
+  if (!state || state.modules.length === 0 || state.plan.complete) return '';
+  if (active) {
+    const fraction = state.progress.byteProgress;
+    return fraction === null ? 'Скачиваем…' : `Скачиваем · ${String(Math.floor(fraction * 100))} %`;
+  }
+  const size = state.plan.bytes === null ? '' : ` · ${formatModuleBytes(state.plan.bytes)}`;
+  return `${failed ? 'Повторить' : 'Скачать всё'}${size}`;
+}

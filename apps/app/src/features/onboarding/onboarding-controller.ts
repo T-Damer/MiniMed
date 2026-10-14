@@ -12,6 +12,12 @@ import { type Accessor, createSignal } from 'solid-js';
  */
 export type IntroPhase = 'wait' | 'hello' | 'welcome' | 'core';
 
+/**
+ * What the person chose for the first download: everything recommended, the main database only,
+ * or nothing yet. Nothing downloads before one of the first two is chosen.
+ */
+export type CoreChoice = 'all' | 'core' | 'later';
+
 export type OnboardingState =
   | { readonly kind: 'intro'; readonly phase: IntroPhase }
   | { readonly kind: 'tour'; readonly index: number }

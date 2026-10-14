@@ -108,6 +108,7 @@ import {
 import {
   type InstructionModuleOffer,
   instructionOfferLabel,
+  instructionOfferSubtitle,
   instructionUnavailableNotice,
 } from '@/features/medications/instruction-offer';
 import {
@@ -156,6 +157,8 @@ import {
   saveReaderPosition,
 } from '@/state/history-entries';
 import type { ItemRefInput } from '@/state/item-collections';
+
+import '@/features/modules/module-download-offer.css';
 
 interface OfficialDocumentReaderProps {
   readonly core?: MedicalCore | undefined;
@@ -557,6 +560,7 @@ function MedicationProductPanel(props: {
                     : `Скачиваем инструкции · ${Math.floor(props.instructionOfferProgress * 100)} %`
                   : instructionOfferLabel(offer())}
               </Button>
+              <span class="module-offer__subtitle">{instructionOfferSubtitle(offer())}</span>
               <Show when={props.instructionOfferError}>
                 {(message) => (
                   <p class="document-medication-product__offer-error" role="alert">
