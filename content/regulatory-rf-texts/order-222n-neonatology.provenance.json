@@ -473,7 +473,7 @@
    "flags": [],
    "furniture": [],
    "portalRewrites": [
-    "от «*14*» *anperla* 2025 г. № *2224*"
+    "от «*14*» *anperla* 2025 г. № *2224"
    ],
    "headerRemoved": null,
    "stats": {
@@ -1431,7 +1431,7 @@
    "flags": [],
    "furniture": [],
    "portalRewrites": [
-    "от «17» *апреля 2025 г. № 2224*"
+    "от «17» *апреля 2025 г. № 2224"
    ],
    "headerRemoved": null,
    "stats": {
@@ -2094,7 +2094,7 @@
    ],
    "furniture": [],
    "portalRewrites": [
-    "от «*17*» *anpere* 2025 г. № *2224*"
+    "от «*17*» *anpere* 2025 г. № *2224"
    ],
    "headerRemoved": null,
    "stats": {
@@ -2113,84 +2113,16 @@
    "confidence": "high",
    "flags": [
     {
-     "kind": "cell-vision-only",
-     "detail": "row 1, column 1: Marker has no such cell; Vision reads «... передвижной дезинфекции 152700 Очиститель поверхностей воздуха фильтрующий высокоэффек-тивный, стационарный 375930 О»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 5, column 4: Marker has no such cell; Vision reads «Стол инструменталь-ный для разведения 2 и порционного розлива молочной смеси»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 6, column 2: Marker has no such cell; Vision reads «202390 Тележка медицинская универсальная»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «(необходимо наличие одной из указанных позиций)» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «вый бактерицидный» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «очиститель воздуха/устройство для обеззараживания и (или) фильтрации воздуха и (или) дезинфекции поверхностей» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «152690» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «Очиститель воздуха фильтрующий высокоэффективный, передвижной» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «Стол инструментальный для разведения и порционного розлива молочной смеси» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «202390» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «Тележка медицинская универсальная» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «2» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «7» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «202390» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «Тележка медицинская универсальная» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «Транспортная тележка для перевозки кассет/термоконтейнеров с бутылочками» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «3» is in no ruled cell"
-    },
-    {
-     "kind": "dropped-span",
-     "detail": "Vision reads text that Marker lacks (at a paragraph start): «7 202390 Тележка Транспортная медицинская тележка для универсальная перевозки кассет/ 3 термоконтейнеров с бутылочками»"
-    },
-    {
      "kind": "number-mismatch",
-     "detail": "only in Vision: 152690, 202390, 3, 7"
+     "detail": "only in Marker: 5"
     },
     {
      "kind": "coverage-vision",
-     "detail": "Marker lacks 35% of Vision's tokens (e.g. для, воздуха, очиститель, посуды, или, тележка, необхо, вый, приема, димо, бактерицидный, дезинфекции)"
+     "detail": "Marker lacks 17% of Vision's tokens (e.g. необхо, димо, ных, тивный, обеззараживапомещений, указанфильтрующий, ния, высокоэффекфильтрации, воздухар, высокоэффексмеси, централизо, ванного)"
+    },
+    {
+     "kind": "coverage-marker",
+     "detail": "15% of Marker's tokens are not in Vision (e.g. необходимо, указанных, высокоэффективный, наличие, воздуха, обеззараживания, фильтрации, помещений, смеси, фильтрующий, 5, централизованного)"
     }
    ],
    "furniture": [
@@ -2201,12 +2133,12 @@
    ],
    "headerRemoved": null,
    "stats": {
-    "markerTokens": 95,
-    "visionTokens": 140,
-    "coverageVision": 0.6489,
-    "coverageMarker": 0.9444,
-    "respaced": 3,
-    "tableRows": 6
+    "markerTokens": 117,
+    "visionTokens": 119,
+    "coverageVision": 0.8304,
+    "coverageMarker": 0.8455,
+    "respaced": 0,
+    "tableRows": 8
    }
   },
   {

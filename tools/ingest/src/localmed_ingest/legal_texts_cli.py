@@ -798,7 +798,7 @@ def assemble(
         old = card_path.read_text(encoding="utf-8")
         meta_text = old.partition("\n---\n")[0]
         amended = (
-            "с изменениями" in meta_text
+            re.search(r"с изменени(?:ями|ем)", meta_text) is not None
             and "первоначальная" not in meta_text.split("edition:")[-1][:80]
         )
         extra: dict[str, object] = {

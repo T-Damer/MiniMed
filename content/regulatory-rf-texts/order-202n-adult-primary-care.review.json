@@ -128,13 +128,6 @@
     },
     {
       "page": 70,
-      "kind": "stray",
-      "find": "№ 202н*",
-      "replace": "№ 202н",
-      "why": "A stray asterisk after the number of the order in the annex header."
-    },
-    {
-      "page": 70,
       "kind": "columns",
       "find": "| № п/п Код вида медицинского изделия в соответствии с номенклатурной классификацией | |",
       "replace": "| № п/п | Код вида медицинского изделия в соответствии с номенклатурной классификацией |",
@@ -202,20 +195,6 @@
       "find": "| 2. | Акушерка (акушер) | |",
       "replace": "| 2. | Акушерка (акушер) | - |",
       "why": "The cell of row 2 under «от 101 до 800 человек» holds a dash in the image; Marker left it empty."
-    },
-    {
-      "page": 113,
-      "kind": "stray",
-      "find": "№ 202н*",
-      "replace": "№ 202н",
-      "why": "A stray asterisk after the number of the order in the annex header."
-    },
-    {
-      "page": 115,
-      "kind": "stray",
-      "find": "№ 202н*",
-      "replace": "№ 202н",
-      "why": "A stray asterisk after the number of the order in the annex header."
     },
     {
       "page": 115,

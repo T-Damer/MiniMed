@@ -629,7 +629,7 @@ def act_identity(record: Mapping[str, object]) -> ActIdentity:
 
 _SELF_REFERENCE: Final = re.compile(
     r"(?P<head>\b(?:Приложение|Утвержден[ыо]?)\b[^.;]{0,260}?\bприказ\w*\b[^.;№]{0,200}?)"
-    r"\b(?:от|ot)\s+[^№]{3,60}?[№N][º°o]?\.?[\s*]*(?P<num>\d+(?: ?[A-Za-zА-Яа-я](?![A-Za-zА-Яа-я]))?)(?!\d)",
+    r"\b(?:от|ot)\s+[^№]{3,60}?[№N][º°o]?\.?[\s*]*(?P<num>\d+(?: ?[A-Za-zА-Яа-я](?![A-Za-zА-Яа-я]))?)(?!\d)(?P<tail>\*?)",
     re.IGNORECASE | re.DOTALL,
 )
 
@@ -650,8 +650,12 @@ def canonical_self_references(text: str, identity: ActIdentity) -> tuple[str, li
         ) <= (1 if len(act_digits) >= 3 else 0)
         if not act_digits or not close:
             return match.group(0)
-        rewrites.append(re.sub(r"\s+", " ", match.group(0)[len(match.group("head")) :]).strip())
-        return match.group("head") + identity.reference
+        tail = match.group("tail")
+        span = match.group(0)[len(match.group("head")) : len(match.group(0)) - len(tail)]
+        rewrites.append(re.sub(r"\s+", " ", span).strip())
+        # an emphasis mark opened inside the citation («*апреля … № 222н*») closes with it
+        closes = tail if span.count("*") % 2 == 0 else ""
+        return match.group("head") + identity.reference + closes
 
     return _SELF_REFERENCE.sub(replace, text), rewrites
 
