@@ -569,7 +569,8 @@ Owner 2026-10-13: «just show a "?" on the image; clicking it shows the image so
   «Получено 13 октября 2026 г.». The credit line, the caption and the settings card's «Experimental» badge
   and raw version were removed.
 - **Checks:** pytest (pack builder, published-pack integrity: every image has checksum, source URL and drug
-  link), vitest (resolver, shard rule, popover view, URL mapping, catalog entry, IndexedDB shards), targeted
+  link; since 2026-10-14 the shard and index checksums are read from the committed `catalog.preview.json`, the
+  build's `catalog-fragment.json` having been lost with `output/`), vitest (resolver, shard rule, popover view, URL mapping, catalog entry, IndexedDB shards), targeted
   e2e `packaging-image-source.spec.ts` (real Allmed module + photo pack from local copies, install through
   the UI, popover at 375×812 light/dark and wide). Not tested: a phone/Android WebView (install stages all 17
   artifacts in memory, 279 MB), the app update path from IndexedDB v1 on a device with installed modules,
