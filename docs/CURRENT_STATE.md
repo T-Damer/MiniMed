@@ -46,8 +46,8 @@ above it small and calm. Measured on «Вермокс» with the ГРЛС instru
   truncated section chips is gone. The kind of text («Листок-вкладыш») is one small line; edition,
   publisher, fetch date and the registers behind the card are small plain text at the end
   (`DrugReferenceFooter`). The «Беременность, ГВ, дети» block is one slim row.
-- **Page bubble** («1 / 138») is parked on a drug screen until the reader has scrolled
-  (`pageBubbleAfterScroll` of the reader chrome shell, opt-in; a hidden bubble is `inert`).
+- **Page bubble** («1 / 138») over the first screen: handled with the reader chrome by DOC-UI1 (hidden at the
+  top, then in the section-path line); the drug screen does not touch it.
 - **QA fixes**: strengths that differ only in notation («100.0мг» / «100 мг») are one presentation
   (`uniquePresentations`); the registry's dosage-form code («smnnCode: 21.20.10.194-…»), the machine
   status («Статус записи ЕСКЛП: active») and a guideline's source number are dropped from reader text

@@ -81,9 +81,5 @@ for (const viewport of VIEWPORTS) {
     // The header is one compact block: title, tools and the chip rows end well above the text.
     const title = await page.locator('.drug-header__title').boundingBox();
     expect(title?.y ?? 999).toBeLessThan(160);
-    // The page bubble stays out of the first screen until the reader has scrolled.
-    await expect(page.locator('.reader-page-dock--hidden')).toHaveCount(1);
-    await page.evaluate(() => window.scrollBy(0, 400));
-    await expect(page.locator('.reader-page-dock--hidden')).toHaveCount(0);
   });
 }

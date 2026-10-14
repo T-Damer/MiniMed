@@ -1143,7 +1143,6 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
       ariaLabel={pageTitle()}
       class="document-page document-overlay page-surface page-grain"
       chrome={chrome}
-      pageBubbleAfterScroll={!!drugScreen()}
       searchOpen={findOpen}
       trail={props.trail}
       onNavigate={props.onNavigate}

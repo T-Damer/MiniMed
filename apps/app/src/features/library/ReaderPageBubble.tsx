@@ -88,7 +88,6 @@ export function ReaderPageBubble(props: {
           form = element;
         }}
         class="reader-page-bubble"
-        inert={props.hidden ?? false}
         classList={{
           'reader-page-bubble--editing': editing(),
           'reader-page-bubble--invalid': invalid(),

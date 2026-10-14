@@ -20,7 +20,9 @@ export function DrugReferenceFooter(props: {
     <Show when={props.sources.length > 0 || props.instruction}>
       <footer class="drug-reference">
         <Show when={props.sources.length > 0}>
-          <p class="drug-reference__line">Источник: {props.sources.join(' · ')}</p>
+          <p class="drug-reference__line" data-testid="drug-reference-sources">
+            Источник: {props.sources.join(' · ')}
+          </p>
         </Show>
         <Show when={props.instruction}>
           {(info) => (

@@ -69,7 +69,7 @@ test('a product without its own text shows another registration’s text with a 
   // The donor's own provenance stays below the label.
   await expect(page.locator('.document-instruction-source')).toBeVisible();
   // The product's own source line never claims a ГРЛС text for it.
-  await expect(page.locator('.document-medication-product__source')).not.toContainText('ГРЛС');
+  await expect(page.getByTestId('drug-reference-sources')).not.toContainText('ГРЛС');
   await shoot(page, 'level1');
 
   // The «Кратко» side stays the product's own card; the tab note names the fallback.
