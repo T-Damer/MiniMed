@@ -85,7 +85,7 @@ import {
 import { createVisitNoteSaver, saveVisitNote } from '@/state/patient-visit-note';
 import type { PatientAvatar as Avatar } from '@/state/patientAvatar';
 import '@/styles/patient-workspace.css';
-import { navigateBack } from '@/state/app-back';
+import { navigateBack, replaceRoute } from '@/state/app-back';
 
 export type PatientRoute = Extract<
   NotesRoute,
@@ -1887,9 +1887,10 @@ export function PatientWorkspace(props: PatientWorkspaceProps): JSX.Element {
               <NewPatientForm
                 onCreated={(next, id) => {
                   setSnapshot(next);
-                  props.onNavigate(notesPatientsPath(id));
+                  // The card takes the form's place: back from it is the list, not the used form.
+                  replaceRoute(notesPatientsPath(id));
                 }}
-                onCancel={() => props.onNavigate(notesPatientsPath())}
+                onCancel={() => navigateBack(notesPatientsPath())}
               />
             </Show>
             <Show when={props.route.kind === 'patient' || props.route.kind === 'patient-dynamics'}>
