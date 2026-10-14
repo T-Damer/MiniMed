@@ -1,0 +1,3922 @@
+{
+ "documentId": "regulatory.rf.minzdrav.436n-2026-qualification",
+ "source": {
+  "file": "0001202605290053.pdf",
+  "sha256": "b3d1e1eca9db493bbbe128f06262edf3bf5689185a60bdb8989ede0d87632207",
+  "bytes": 9208141,
+  "pages": 177,
+  "officialUrl": "https://publication.pravo.gov.ru/document/0001202605290053"
+ },
+ "identityFromPortal": {
+  "number": "436н",
+  "date": "2026-05-14",
+  "name": "Об утверждении квалификационных требований к медицинским и фармацевтическим работникам",
+  "registrationNumber": "86713",
+  "registrationDate": "2026-05-29"
+ },
+ "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
+ "review": {
+  "reviewer": "Claude (agent), against the page images; not a lawyer",
+  "reviewedAt": "2026-10-14",
+  "corrections": 79
+ },
+ "pages": [
+  {
+   "page": 1,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 20, 5; only in Marker: 206, 51"
+    }
+   ],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": "МИНИСТЕРСТВО ЗДРАВООХРАНЕНИЯ\nРОССИЙСКОЙ ФЕДЕРАЦИИ\n(МИНЗДРАВ РОССИИ)\n\nПРИКАЗ\n\n14 мая 2026 г.\n\n№ 4364\n\nМосква\n\n**Об утверждении квалификационных требований\nк медицинским и фармацевтическим работникам**",
+   "stats": {
+    "markerTokens": 238,
+    "visionTokens": 238,
+    "coverageVision": 0.9592,
+    "coverageMarker": 0.9641,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 2,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "2"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 19,
+    "visionTokens": 19,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 3,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [
+    "от «14» 2026 г. № 4364"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 190,
+    "visionTokens": 181,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.981,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 4,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "2"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 159,
+    "visionTokens": 153,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.986,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 5,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "3"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 138,
+    "visionTokens": 131,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9835,
+    "respaced": 0,
+    "tableRows": 4
+   }
+  },
+  {
+   "page": 6,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "4"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 151,
+    "visionTokens": 142,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9781,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 7,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "5"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 268,
+    "visionTokens": 258,
+    "coverageVision": 0.9793,
+    "coverageMarker": 0.9555,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 8,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "6"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 165,
+    "visionTokens": 156,
+    "coverageVision": 0.9517,
+    "coverageMarker": 0.9139,
+    "respaced": 1,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 9,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Marker: 5"
+    },
+    {
+     "kind": "coverage-marker",
+     "detail": "10% of Marker's tokens are not in Vision (e.g. врач, 5, бактериолог, генетик, клинической, лабораторной, диагностики, лабораторный, медицинской, организации, отдела, отделения)"
+    }
+   ],
+   "furniture": [
+    "7"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 200,
+    "visionTokens": 184,
+    "coverageVision": 0.9769,
+    "coverageMarker": 0.8989,
+    "respaced": 2,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 10,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "8"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 170,
+    "visionTokens": 167,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9873,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 11,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "9"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 175,
+    "visionTokens": 168,
+    "coverageVision": 0.9806,
+    "coverageMarker": 0.9806,
+    "respaced": 1,
+    "tableRows": 4
+   }
+  },
+  {
+   "page": 12,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "10"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 206,
+    "visionTokens": 199,
+    "coverageVision": 0.9946,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 13,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "11"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 183,
+    "visionTokens": 173,
+    "coverageVision": 0.9625,
+    "coverageMarker": 0.9506,
+    "respaced": 0,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 14,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "12"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 127,
+    "visionTokens": 120,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 15,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "13"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 184,
+    "visionTokens": 174,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9878,
+    "respaced": 0,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 16,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "14"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 139,
+    "visionTokens": 131,
+    "coverageVision": 0.9756,
+    "coverageMarker": 0.9524,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 17,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "15"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 181,
+    "visionTokens": 169,
+    "coverageVision": 0.9689,
+    "coverageMarker": 0.9455,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 18,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Marker: 3"
+    },
+    {
+     "kind": "coverage-marker",
+     "detail": "35% of Marker's tokens are not in Vision (e.g. по, одной, эндокринология, из, специальностей, педиатрия, образование, специальности, медицина, гастроэнтерология, высшее, детская)"
+    }
+   ],
+   "furniture": [
+    "16"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 335,
+    "visionTokens": 210,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.6503,
+    "respaced": 0,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 19,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "17"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 194,
+    "visionTokens": 182,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9602,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 20,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "dropped-span",
+     "detail": "Vision reads text that Marker lacks (inside a paragraph): «раза в 5 лет в течение всей отряда другое»"
+    },
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 5"
+    },
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 9% of Vision's tokens (e.g. лечебное, дело, генетика, онкологиязаместитель, не, реже, одного, раза, 5, лет, течение, всей)"
+    }
+   ],
+   "furniture": [
+    "18"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 162,
+    "visionTokens": 163,
+    "coverageVision": 0.9103,
+    "coverageMarker": 0.9467,
+    "respaced": 0,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 21,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: I"
+    }
+   ],
+   "furniture": [
+    "19"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 182,
+    "visionTokens": 177,
+    "coverageVision": 0.9882,
+    "coverageMarker": 0.9941,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 22,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "20"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 213,
+    "visionTokens": 205,
+    "coverageVision": 0.9947,
+    "coverageMarker": 0.9895,
+    "respaced": 0,
+    "tableRows": 4
+   }
+  },
+  {
+   "page": 23,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 1"
+    }
+   ],
+   "furniture": [
+    "21"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 192,
+    "visionTokens": 188,
+    "coverageVision": 0.9825,
+    "coverageMarker": 0.9882,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 24,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 7, I×2"
+    }
+   ],
+   "furniture": [
+    "22"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 172,
+    "visionTokens": 165,
+    "coverageVision": 0.9675,
+    "coverageMarker": 0.9803,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 25,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 8; only in Marker: 5"
+    },
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 15% of Vision's tokens (e.g. специальности, образование, по, высшее, специалитет, медико, профилактическое, дело, подготовка, ординатуре, гигиеническое, воспитание)"
+    }
+   ],
+   "furniture": [
+    "23"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 161,
+    "visionTokens": 178,
+    "coverageVision": 0.8545,
+    "coverageMarker": 0.9792,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 26,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 1"
+    }
+   ],
+   "furniture": [
+    "24"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 190,
+    "visionTokens": 182,
+    "coverageVision": 0.9701,
+    "coverageMarker": 0.9701,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 27,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: I"
+    }
+   ],
+   "furniture": [
+    "25"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 168,
+    "visionTokens": 164,
+    "coverageVision": 0.9664,
+    "coverageMarker": 0.9664,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 28,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 14% of Vision's tokens (e.g. одной, из, специальностей, педиатрия, no, образование, по, подготовка, интернатуре, или, ординатуре, высшее)"
+    }
+   ],
+   "furniture": [
+    "26"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 134,
+    "visionTokens": 151,
+    "coverageVision": 0.8571,
+    "coverageMarker": 0.9917,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 29,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 208,
+    "visionTokens": 199,
+    "coverageVision": 0.9892,
+    "coverageMarker": 0.9787,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 30,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "coverage-marker",
+     "detail": "12% of Marker's tokens are not in Vision (e.g. онкология, по, медицинскую, помощь, или, наличии, медицинской, структурного, подразделения, специализированную, из, гематология)"
+    }
+   ],
+   "furniture": [
+    "28"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 209,
+    "visionTokens": 190,
+    "coverageVision": 0.9489,
+    "coverageMarker": 0.8836,
+    "respaced": 0,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 31,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "29"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 138,
+    "visionTokens": 129,
+    "coverageVision": 0.9917,
+    "coverageMarker": 0.9836,
+    "respaced": 1,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 32,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 1"
+    }
+   ],
+   "furniture": [
+    "30"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 193,
+    "visionTokens": 180,
+    "coverageVision": 0.9706,
+    "coverageMarker": 0.9483,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 33,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "31"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 205,
+    "visionTokens": 195,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9945,
+    "respaced": 0,
+    "tableRows": 4
+   }
+  },
+  {
+   "page": 34,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "32"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 226,
+    "visionTokens": 208,
+    "coverageVision": 0.9948,
+    "coverageMarker": 0.9415,
+    "respaced": 0,
+    "tableRows": 7
+   }
+  },
+  {
+   "page": 35,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "repeated-content-missing",
+     "detail": "Vision has these words more often than Marker (dropped rows or lines?): болезни, инфекционные, квалификации, повышение, специальности"
+    }
+   ],
+   "furniture": [
+    "33"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 198,
+    "visionTokens": 190,
+    "coverageVision": 0.9672,
+    "coverageMarker": 0.9833,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 36,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "garbled-span",
+     "detail": "the readings disagree on a passage: «соответствующее квалификационным медицинскую помощь, или требованиям медицинским при наличии в мединской фармацевтическим работникам»"
+    },
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 3"
+    },
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 27% of Vision's tokens (e.g. по, одной, из, специальностей, педиатрия, нефрология, общая, врачебная, практика, семейная, медицина, пульмонология)"
+    }
+   ],
+   "furniture": [
+    "34"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 157,
+    "visionTokens": 201,
+    "coverageVision": 0.733,
+    "coverageMarker": 0.9859,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 37,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "dropped-span",
+     "detail": "Vision reads text that Marker lacks (inside a paragraph): «требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Общая»"
+    },
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 3"
+    },
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 28% of Vision's tokens (e.g. по, одной, из, специальностей, общая, врачебная, практика, семейная, медицина, ревматология, терапия, гериатрия)"
+    }
+   ],
+   "furniture": [
+    "35"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 123,
+    "visionTokens": 166,
+    "coverageVision": 0.7179,
+    "coverageMarker": 0.9912,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 38,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Marker: 5"
+    }
+   ],
+   "furniture": [
+    "36"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 192,
+    "visionTokens": 173,
+    "coverageVision": 0.9937,
+    "coverageMarker": 0.9186,
+    "respaced": 0,
+    "tableRows": 4
+   }
+  },
+  {
+   "page": 39,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 15% of Vision's tokens (e.g. методист, лечебной, физкультуре, no, по, инструктор, то, заведующий, начальник, аместитель, начальника, подразделени)"
+    }
+   ],
+   "furniture": [
+    "37"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 160,
+    "visionTokens": 176,
+    "coverageVision": 0.8545,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 40,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "38"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 175,
+    "visionTokens": 168,
+    "coverageVision": 0.974,
+    "coverageMarker": 0.9494,
+    "respaced": 1,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 41,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "39"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 194,
+    "visionTokens": 189,
+    "coverageVision": 0.983,
+    "coverageMarker": 0.9774,
+    "respaced": 0,
+    "tableRows": 4
+   }
+  },
+  {
+   "page": 42,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 1"
+    }
+   ],
+   "furniture": [
+    "40"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 175,
+    "visionTokens": 167,
+    "coverageVision": 0.9809,
+    "coverageMarker": 0.9686,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 43,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "41"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 153,
+    "visionTokens": 144,
+    "coverageVision": 0.9853,
+    "coverageMarker": 0.964,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 44,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 1, 5"
+    },
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 10% of Vision's tokens (e.g. no, повышение, квалификации, специальности, реже, одного, раза, 5, лет, течение, всей, трудовой)"
+    }
+   ],
+   "furniture": [
+    "42"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 206,
+    "visionTokens": 210,
+    "coverageVision": 0.9031,
+    "coverageMarker": 0.9672,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 45,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "43"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 170,
+    "visionTokens": 160,
+    "coverageVision": 0.9933,
+    "coverageMarker": 0.9933,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 46,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "repeated-content-missing",
+     "detail": "Vision has these words more often than Marker (dropped rows or lines?): генетика, лабораторная, переподготовка, профессиональная, специальности"
+    }
+   ],
+   "furniture": [
+    "44"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 159,
+    "visionTokens": 152,
+    "coverageVision": 0.9514,
+    "coverageMarker": 0.9448,
+    "respaced": 0,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 47,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "45"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 211,
+    "visionTokens": 199,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9791,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 48,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "46"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 162,
+    "visionTokens": 150,
+    "coverageVision": 0.9784,
+    "coverageMarker": 0.9315,
+    "respaced": 1,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 49,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: I"
+    }
+   ],
+   "furniture": [
+    "47"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 162,
+    "visionTokens": 153,
+    "coverageVision": 0.9583,
+    "coverageMarker": 0.9262,
+    "respaced": 1,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 50,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "48"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 161,
+    "visionTokens": 164,
+    "coverageVision": 0.9474,
+    "coverageMarker": 0.9796,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 51,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "49"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 127,
+    "visionTokens": 122,
+    "coverageVision": 0.9908,
+    "coverageMarker": 0.9818,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 52,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "50"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 210,
+    "visionTokens": 202,
+    "coverageVision": 0.984,
+    "coverageMarker": 0.9635,
+    "respaced": 1,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 53,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 160,
+    "visionTokens": 154,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9931,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 54,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 8% of Vision's tokens (e.g. заведующий, начальник, заместитель, начальника, врачдеятельности, структурного, подразделения, генетик, отдела, отделения, дезинфектолог, лаборатории)"
+    }
+   ],
+   "furniture": [
+    "52"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 221,
+    "visionTokens": 232,
+    "coverageVision": 0.9167,
+    "coverageMarker": 0.9659,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 55,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 1"
+    }
+   ],
+   "furniture": [
+    "53"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 159,
+    "visionTokens": 152,
+    "coverageVision": 0.951,
+    "coverageMarker": 0.9315,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 56,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Marker: 5"
+    },
+    {
+     "kind": "coverage-marker",
+     "detail": "15% of Marker's tokens are not in Vision (e.g. врач, повышение, квалификации, по, специальности, 5, стаже, более, должностях, биолог, бактериолог, генетик)"
+    }
+   ],
+   "furniture": [
+    "54"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 200,
+    "visionTokens": 178,
+    "coverageVision": 0.9408,
+    "coverageMarker": 0.8457,
+    "respaced": 2,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 57,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "55"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 165,
+    "visionTokens": 162,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.987,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 58,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "56"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 136,
+    "visionTokens": 130,
+    "coverageVision": 0.9752,
+    "coverageMarker": 0.9516,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 59,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "57"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 244,
+    "visionTokens": 239,
+    "coverageVision": 0.9863,
+    "coverageMarker": 0.9818,
+    "respaced": 0,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 60,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "58"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 162,
+    "visionTokens": 156,
+    "coverageVision": 0.9793,
+    "coverageMarker": 0.9726,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 61,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: I"
+    }
+   ],
+   "furniture": [
+    "59"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 148,
+    "visionTokens": 146,
+    "coverageVision": 0.9771,
+    "coverageMarker": 0.9771,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 62,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 1"
+    },
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 7% of Vision's tokens (e.g. no, квалификаци, 1, специальностi, медиций, рач, аведующий, освоивши)"
+    }
+   ],
+   "furniture": [
+    "60"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 130,
+    "visionTokens": 129,
+    "coverageVision": 0.9316,
+    "coverageMarker": 0.9316,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 63,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "61"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 174,
+    "visionTokens": 168,
+    "coverageVision": 0.9937,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 64,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "62"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 171,
+    "visionTokens": 162,
+    "coverageVision": 0.9933,
+    "coverageMarker": 0.9675,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 65,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Marker: 10, 5"
+    },
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 9% of Vision's tokens (e.g. no, ровень, начальниен, отен, лабора, рир, кахинота)"
+    },
+    {
+     "kind": "coverage-marker",
+     "detail": "50% of Marker's tokens are not in Vision (e.g. врач, лаборатории, кабинета, заведующий, начальник, заместитель, начальника, структурного, подразделения, отдела, отделения, по)"
+    }
+   ],
+   "furniture": [
+    "63"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 157,
+    "visionTokens": 84,
+    "coverageVision": 0.9136,
+    "coverageMarker": 0.5034,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 66,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "64"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 207,
+    "visionTokens": 199,
+    "coverageVision": 0.9677,
+    "coverageMarker": 0.9574,
+    "respaced": 2,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 67,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "65"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 202,
+    "visionTokens": 193,
+    "coverageVision": 0.9889,
+    "coverageMarker": 0.9674,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 68,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "66"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 189,
+    "visionTokens": 179,
+    "coverageVision": 0.9759,
+    "coverageMarker": 0.9474,
+    "respaced": 1,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 69,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "67"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 162,
+    "visionTokens": 156,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9789,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 70,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "68"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 192,
+    "visionTokens": 181,
+    "coverageVision": 0.9878,
+    "coverageMarker": 0.9643,
+    "respaced": 0,
+    "tableRows": 4
+   }
+  },
+  {
+   "page": 71,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "69"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 135,
+    "visionTokens": 127,
+    "coverageVision": 0.9833,
+    "coverageMarker": 0.9516,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 72,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "coverage-marker",
+     "detail": "25% of Marker's tokens are not in Vision (e.g. по, образование, специальности, дело, профессиональная, переподготовка, высшее, бакалавриат, подготовки, медицинский, массаж, сестринское)"
+    }
+   ],
+   "furniture": [
+    "70"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 178,
+    "visionTokens": 130,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.75,
+    "respaced": 0,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 73,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "coverage-marker",
+     "detail": "20% of Marker's tokens are not in Vision (e.g. по, образование, одной, из, специальностей, педиатрия, терапия, эндокринология, профессиональная, переподготовка, специальности, неврология)"
+    }
+   ],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 242,
+    "visionTokens": 186,
+    "coverageVision": 0.9943,
+    "coverageMarker": 0.7955,
+    "respaced": 0,
+    "tableRows": 4
+   }
+  },
+  {
+   "page": 74,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "72"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 159,
+    "visionTokens": 154,
+    "coverageVision": 0.9932,
+    "coverageMarker": 0.9865,
+    "respaced": 0,
+    "tableRows": 6
+   }
+  },
+  {
+   "page": 75,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "73"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 123,
+    "visionTokens": 117,
+    "coverageVision": 0.9908,
+    "coverageMarker": 0.9643,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 76,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "74"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 254,
+    "visionTokens": 220,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9075,
+    "respaced": 0,
+    "tableRows": 8
+   }
+  },
+  {
+   "page": 77,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 3"
+    },
+    {
+     "kind": "coverage-marker",
+     "detail": "16% of Marker's tokens are not in Vision (e.g. детская, эндокринология, кардиология, общая, врачебная, медицинской, организации, медицинскую, или, при, наличии, из)"
+    }
+   ],
+   "furniture": [
+    "75"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 179,
+    "visionTokens": 155,
+    "coverageVision": 0.9524,
+    "coverageMarker": 0.8434,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 78,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "76"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 225,
+    "visionTokens": 215,
+    "coverageVision": 0.99,
+    "coverageMarker": 0.9755,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 79,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "77"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 122,
+    "visionTokens": 116,
+    "coverageVision": 0.9737,
+    "coverageMarker": 0.9737,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 80,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 186,
+    "visionTokens": 180,
+    "coverageVision": 0.994,
+    "coverageMarker": 0.994,
+    "respaced": 0,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 81,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 7% of Vision's tokens (e.g. одной, из, специальностей, лечебное, дело, педиатрия, подготовка, интернатуре, или, ординатуре, ордина, уре)"
+    }
+   ],
+   "furniture": [
+    "79"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 187,
+    "visionTokens": 195,
+    "coverageVision": 0.9337,
+    "coverageMarker": 0.9941,
+    "respaced": 0,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 82,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "80"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 199,
+    "visionTokens": 190,
+    "coverageVision": 0.9889,
+    "coverageMarker": 0.978,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 83,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "81"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 92,
+    "visionTokens": 90,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 84,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "82"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 223,
+    "visionTokens": 214,
+    "coverageVision": 0.99,
+    "coverageMarker": 0.99,
+    "respaced": 0,
+    "tableRows": 4
+   }
+  },
+  {
+   "page": 85,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 3"
+    },
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 24% of Vision's tokens (e.g. хирургия, по, одной, специальностей, оториноларингология, no, дополнительное, профессиональное, стаж, специальности, приемного, внач)"
+    }
+   ],
+   "furniture": [
+    "83"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 138,
+    "visionTokens": 171,
+    "coverageVision": 0.7578,
+    "coverageMarker": 0.976,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 86,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "84"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 163,
+    "visionTokens": 161,
+    "coverageVision": 0.9933,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 87,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "85"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 151,
+    "visionTokens": 147,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9857,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 88,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "86"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 130,
+    "visionTokens": 126,
+    "coverageVision": 0.9748,
+    "coverageMarker": 0.9587,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 89,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "87"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 183,
+    "visionTokens": 172,
+    "coverageVision": 0.9815,
+    "coverageMarker": 0.9521,
+    "respaced": 0,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 90,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "88"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 187,
+    "visionTokens": 181,
+    "coverageVision": 0.982,
+    "coverageMarker": 0.9762,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 91,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "89"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 134,
+    "visionTokens": 126,
+    "coverageVision": 0.9748,
+    "coverageMarker": 0.9355,
+    "respaced": 2,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 92,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "90"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 149,
+    "visionTokens": 145,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 93,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "91"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 171,
+    "visionTokens": 161,
+    "coverageVision": 0.9872,
+    "coverageMarker": 0.9809,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 94,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "92"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 103,
+    "visionTokens": 102,
+    "coverageVision": 0.9896,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 95,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "93"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 186,
+    "visionTokens": 178,
+    "coverageVision": 0.988,
+    "coverageMarker": 0.988,
+    "respaced": 0,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 96,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "coverage-marker",
+     "detail": "11% of Marker's tokens are not in Vision (e.g. по, психиатрия, заведующий, отряда, врач, не, заместитель, отдела, медицинской, организации, из, гериатрия)"
+    }
+   ],
+   "furniture": [
+    "94"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 226,
+    "visionTokens": 204,
+    "coverageVision": 0.9634,
+    "coverageMarker": 0.8932,
+    "respaced": 0,
+    "tableRows": 4
+   }
+  },
+  {
+   "page": 97,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "95"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 146,
+    "visionTokens": 140,
+    "coverageVision": 0.9692,
+    "coverageMarker": 0.9403,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 98,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "96"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 200,
+    "visionTokens": 188,
+    "coverageVision": 0.9774,
+    "coverageMarker": 0.9505,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 99,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "97"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 164,
+    "visionTokens": 156,
+    "coverageVision": 0.9932,
+    "coverageMarker": 0.9799,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 100,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "98"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 189,
+    "visionTokens": 177,
+    "coverageVision": 0.988,
+    "coverageMarker": 0.9821,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 101,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: I"
+    }
+   ],
+   "furniture": [
+    "99"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 192,
+    "visionTokens": 179,
+    "coverageVision": 0.982,
+    "coverageMarker": 0.948,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 102,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "100"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 193,
+    "visionTokens": 186,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9884,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 103,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "101"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 124,
+    "visionTokens": 114,
+    "coverageVision": 0.9907,
+    "coverageMarker": 0.9554,
+    "respaced": 1,
+    "tableRows": 4
+   }
+  },
+  {
+   "page": 104,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "102"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 137,
+    "visionTokens": 130,
+    "coverageVision": 0.9837,
+    "coverageMarker": 0.9528,
+    "respaced": 2,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 105,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "103"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 169,
+    "visionTokens": 161,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9932,
+    "respaced": 0,
+    "tableRows": 6
+   }
+  },
+  {
+   "page": 106,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "104"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 205,
+    "visionTokens": 196,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 107,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "105"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 172,
+    "visionTokens": 165,
+    "coverageVision": 0.9872,
+    "coverageMarker": 0.9809,
+    "respaced": 1,
+    "tableRows": 4
+   }
+  },
+  {
+   "page": 108,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "106"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 132,
+    "visionTokens": 125,
+    "coverageVision": 0.9915,
+    "coverageMarker": 0.975,
+    "respaced": 1,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 109,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "107"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 181,
+    "visionTokens": 160,
+    "coverageVision": 0.9864,
+    "coverageMarker": 0.9062,
+    "respaced": 1,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 110,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "108"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 179,
+    "visionTokens": 166,
+    "coverageVision": 0.9935,
+    "coverageMarker": 0.95,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 111,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 7% of Vision's tokens (e.g. овышение, квалификаци, специальност, сосудиста, хорурия, игорот, порош)"
+    },
+    {
+     "kind": "coverage-marker",
+     "detail": "11% of Marker's tokens are not in Vision (e.g. повышение, квалификации, по, специальности, хирургия, терапия, профпатология, психиатрия, наркология, сосудистая, скорая, помощь)"
+    }
+   ],
+   "furniture": [
+    "109"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 122,
+    "visionTokens": 114,
+    "coverageVision": 0.934,
+    "coverageMarker": 0.8919,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 112,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "110"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 140,
+    "visionTokens": 134,
+    "coverageVision": 0.9524,
+    "coverageMarker": 0.9231,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 113,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "111"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 174,
+    "visionTokens": 166,
+    "coverageVision": 0.9679,
+    "coverageMarker": 0.9679,
+    "respaced": 0,
+    "tableRows": 4
+   }
+  },
+  {
+   "page": 114,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "112"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 233,
+    "visionTokens": 224,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9904,
+    "respaced": 0,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 115,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "113"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 115,
+    "visionTokens": 109,
+    "coverageVision": 0.9902,
+    "coverageMarker": 0.9352,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 116,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "114"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 156,
+    "visionTokens": 154,
+    "coverageVision": 0.9726,
+    "coverageMarker": 0.9726,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 117,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "115"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 196,
+    "visionTokens": 191,
+    "coverageVision": 0.9945,
+    "coverageMarker": 0.9945,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 118,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "116"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 100,
+    "visionTokens": 96,
+    "coverageVision": 0.989,
+    "coverageMarker": 0.9574,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 119,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "117"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 234,
+    "visionTokens": 215,
+    "coverageVision": 0.9851,
+    "coverageMarker": 0.9429,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 120,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "118"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 223,
+    "visionTokens": 216,
+    "coverageVision": 0.9851,
+    "coverageMarker": 0.99,
+    "respaced": 0,
+    "tableRows": 6
+   }
+  },
+  {
+   "page": 121,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 19% of Vision's tokens (e.g. стоматология, по, специальности, образование, высшее, специалитет, подготовка, интернатуре, или, ординатуре, одной, из)"
+    }
+   ],
+   "furniture": [
+    "119"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 174,
+    "visionTokens": 202,
+    "coverageVision": 0.8105,
+    "coverageMarker": 0.9935,
+    "respaced": 0,
+    "tableRows": 4
+   }
+  },
+  {
+   "page": 122,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "120"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 221,
+    "visionTokens": 208,
+    "coverageVision": 0.9643,
+    "coverageMarker": 0.9356,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 123,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "121"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 171,
+    "visionTokens": 166,
+    "coverageVision": 0.9873,
+    "coverageMarker": 0.981,
+    "respaced": 1,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 124,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "122"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 184,
+    "visionTokens": 173,
+    "coverageVision": 0.9759,
+    "coverageMarker": 0.9701,
+    "respaced": 0,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 125,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "123"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 182,
+    "visionTokens": 174,
+    "coverageVision": 0.9877,
+    "coverageMarker": 0.9756,
+    "respaced": 1,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 126,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "124"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 226,
+    "visionTokens": 209,
+    "coverageVision": 0.9794,
+    "coverageMarker": 0.9314,
+    "respaced": 1,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 127,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 3; only in Marker: 1"
+    },
+    {
+     "kind": "coverage-marker",
+     "detail": "12% of Marker's tokens are not in Vision (e.g. по, из, специальностей, образование, семейная, медицина, педиатрия, не, 1, высшее, одной, подготовка)"
+    }
+   ],
+   "furniture": [
+    "125"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 220,
+    "visionTokens": 193,
+    "coverageVision": 0.9725,
+    "coverageMarker": 0.885,
+    "respaced": 0,
+    "tableRows": 4
+   }
+  },
+  {
+   "page": 128,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "126"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 93,
+    "visionTokens": 92,
+    "coverageVision": 0.9529,
+    "coverageMarker": 0.9419,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 129,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "127"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 84,
+    "visionTokens": 82,
+    "coverageVision": 0.9873,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 130,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "128"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 158,
+    "visionTokens": 150,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9859,
+    "respaced": 0,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 131,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "129"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 136,
+    "visionTokens": 134,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 132,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "dropped-span",
+     "detail": "Vision reads text that Marker lacks (inside a paragraph): «одного раза в 5 лет структурного подразделения»"
+    },
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 5"
+    },
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 9% of Vision's tokens (e.g. no, повышение, квалификации, специальности, травматология, ортопедия, не, реже, одного, раза, 5, лет)"
+    }
+   ],
+   "furniture": [
+    "130"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 195,
+    "visionTokens": 206,
+    "coverageVision": 0.9101,
+    "coverageMarker": 0.9942,
+    "respaced": 0,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 133,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "131"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 167,
+    "visionTokens": 164,
+    "coverageVision": 0.9737,
+    "coverageMarker": 0.9737,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 134,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "132"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 142,
+    "visionTokens": 137,
+    "coverageVision": 0.9767,
+    "coverageMarker": 0.9618,
+    "respaced": 2,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 135,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "133"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 178,
+    "visionTokens": 171,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9817,
+    "respaced": 0,
+    "tableRows": 4
+   }
+  },
+  {
+   "page": 136,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "134"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 125,
+    "visionTokens": 118,
+    "coverageVision": 0.982,
+    "coverageMarker": 0.9646,
+    "respaced": 2,
+    "tableRows": 6
+   }
+  },
+  {
+   "page": 137,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "135"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 159,
+    "visionTokens": 151,
+    "coverageVision": 0.9857,
+    "coverageMarker": 0.965,
+    "respaced": 2,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 138,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "dropped-span",
+     "detail": "Vision reads text that Marker lacks (inside a paragraph): «стаж работы не менее 6 месяцев на должностях торговли лекарственными руководителей фармацевтических организаций, руководителей средствами; структурных подразделений заведующий складом фармацевтических организаций, специалистов с высшим орга»"
+    },
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 6"
+    },
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 23% of Vision's tokens (e.g. по, специальности, руководителей, фармацевтических, организаций, no, образование, стаж, профессиональная, переподготовка, экономика, фармации)"
+    }
+   ],
+   "furniture": [
+    "136"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 120,
+    "visionTokens": 156,
+    "coverageVision": 0.7671,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 139,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "137"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 196,
+    "visionTokens": 190,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 140,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "138"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 183,
+    "visionTokens": 174,
+    "coverageVision": 0.9938,
+    "coverageMarker": 0.9816,
+    "respaced": 0,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 141,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "139"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 208,
+    "visionTokens": 200,
+    "coverageVision": 0.9946,
+    "coverageMarker": 0.984,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 142,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Marker: 1×2, 10, 2016×2, 5×2"
+    },
+    {
+     "kind": "coverage-marker",
+     "detail": "32% of Marker's tokens are not in Vision (e.g. по, специальности, фармацевтическая, химия, фармакогнозия, образование, высшее, специалитет, фармация, профессиональная, переподготовка, для)"
+    }
+   ],
+   "furniture": [
+    "140"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 310,
+    "visionTokens": 212,
+    "coverageVision": 0.9688,
+    "coverageMarker": 0.6838,
+    "respaced": 0,
+    "tableRows": 4
+   }
+  },
+  {
+   "page": 143,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "141"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 190,
+    "visionTokens": 183,
+    "coverageVision": 0.9704,
+    "coverageMarker": 0.9535,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 144,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "142"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 129,
+    "visionTokens": 122,
+    "coverageVision": 0.9732,
+    "coverageMarker": 0.9478,
+    "respaced": 1,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 145,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "143"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 135,
+    "visionTokens": 132,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 146,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "dropped-span",
+     "detail": "Vision reads text that Marker lacks (inside a paragraph): «раза в 5 лет в течение всей физической»"
+    },
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 5"
+    },
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 8% of Vision's tokens (e.g. физическая, реабилитационная, медицина, астроэнтерология, не, реже, одного, раза, 5, лет, течение, всей)"
+    }
+   ],
+   "furniture": [
+    "144"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 200,
+    "visionTokens": 206,
+    "coverageVision": 0.9227,
+    "coverageMarker": 0.9835,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 147,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "145"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 133,
+    "visionTokens": 125,
+    "coverageVision": 0.9828,
+    "coverageMarker": 0.958,
+    "respaced": 2,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 148,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: I"
+    }
+   ],
+   "furniture": [
+    "146"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 170,
+    "visionTokens": 162,
+    "coverageVision": 0.9739,
+    "coverageMarker": 0.9613,
+    "respaced": 2,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 149,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 3"
+    },
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 30% of Vision's tokens (e.g. по, одной, из, специальностей, инфекционные, болезни, неврология, врачебная, практика, семейная, медицина, педиатрия)"
+    }
+   ],
+   "furniture": [
+    "147"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 150,
+    "visionTokens": 204,
+    "coverageVision": 0.6984,
+    "coverageMarker": 0.9565,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 150,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "148"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 149,
+    "visionTokens": 141,
+    "coverageVision": 0.9848,
+    "coverageMarker": 0.963,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 151,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "149"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 138,
+    "visionTokens": 133,
+    "coverageVision": 0.959,
+    "coverageMarker": 0.9512,
+    "respaced": 1,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 152,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "150"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 157,
+    "visionTokens": 150,
+    "coverageVision": 0.9858,
+    "coverageMarker": 0.972,
+    "respaced": 1,
+    "tableRows": 4
+   }
+  },
+  {
+   "page": 153,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "151"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 123,
+    "visionTokens": 123,
+    "coverageVision": 0.9825,
+    "coverageMarker": 0.9912,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 154,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "152"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 150,
+    "visionTokens": 142,
+    "coverageVision": 0.985,
+    "coverageMarker": 0.9632,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 155,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "153"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 198,
+    "visionTokens": 189,
+    "coverageVision": 0.9886,
+    "coverageMarker": 0.9721,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 156,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "154"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 142,
+    "visionTokens": 139,
+    "coverageVision": 0.9535,
+    "coverageMarker": 0.9462,
+    "respaced": 1,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 157,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "155"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 173,
+    "visionTokens": 166,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9935,
+    "respaced": 0,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 158,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "156"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 186,
+    "visionTokens": 178,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9821,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 159,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "157"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 171,
+    "visionTokens": 166,
+    "coverageVision": 0.9935,
+    "coverageMarker": 0.9935,
+    "respaced": 0,
+    "tableRows": 4
+   }
+  },
+  {
+   "page": 160,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "158"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 159,
+    "visionTokens": 144,
+    "coverageVision": 0.9776,
+    "coverageMarker": 0.9097,
+    "respaced": 0,
+    "tableRows": 4
+   }
+  },
+  {
+   "page": 161,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "159"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 218,
+    "visionTokens": 212,
+    "coverageVision": 0.9899,
+    "coverageMarker": 0.9801,
+    "respaced": 0,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 162,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "160"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 193,
+    "visionTokens": 186,
+    "coverageVision": 0.9769,
+    "coverageMarker": 0.9602,
+    "respaced": 0,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 163,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "161"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 132,
+    "visionTokens": 128,
+    "coverageVision": 0.9831,
+    "coverageMarker": 0.9587,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 164,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 16% of Vision's tokens (e.g. дело, no, профессиональное, образование, специальности, медицинский, техник, фельдшередицинский, лабораторны, хник, среднее, фельдшерлаборант)"
+    }
+   ],
+   "furniture": [
+    "162"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 133,
+    "visionTokens": 157,
+    "coverageVision": 0.8367,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 4
+   }
+  },
+  {
+   "page": 165,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 6% of Vision's tokens (e.g. no, улктом, фельдиму, вызовох, корой, помощ)"
+    },
+    {
+     "kind": "coverage-marker",
+     "detail": "10% of Marker's tokens are not in Vision (e.g. фельдшер, по, заведующий, пунктом, приему, вызовов, скорой, помощи)"
+    }
+   ],
+   "furniture": [
+    "163"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 103,
+    "visionTokens": 99,
+    "coverageVision": 0.9362,
+    "coverageMarker": 0.898,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 166,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "coverage-marker",
+     "detail": "11% of Marker's tokens are not in Vision (e.g. старший, лаборант, по, специальность, квалификации, медико, среднее, из, дело, сестринское, присвоением, лабораторный)"
+    }
+   ],
+   "furniture": [
+    "164"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 168,
+    "visionTokens": 150,
+    "coverageVision": 0.9857,
+    "coverageMarker": 0.8903,
+    "respaced": 0,
+    "tableRows": 4
+   }
+  },
+  {
+   "page": 167,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 8% of Vision's tokens (e.g. по, профессиональное, образование, специальности, медицинский, фельдшерлаборант, среднее, массаж, для, лиц, ограниченными, возможностями)"
+    }
+   ],
+   "furniture": [
+    "165"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 191,
+    "visionTokens": 203,
+    "coverageVision": 0.9206,
+    "coverageMarker": 0.9831,
+    "respaced": 0,
+    "tableRows": 6
+   }
+  },
+  {
+   "page": 168,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Marker: 5"
+    }
+   ],
+   "furniture": [
+    "166"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 245,
+    "visionTokens": 234,
+    "coverageVision": 0.9954,
+    "coverageMarker": 0.9643,
+    "respaced": 0,
+    "tableRows": 6
+   }
+  },
+  {
+   "page": 169,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 8% of Vision's tokens (e.g. ne, лавный, заледующий, завлуктокая, естра, едицинской, профилактик, медицинска)"
+    }
+   ],
+   "furniture": [
+    "167"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 112,
+    "visionTokens": 109,
+    "coverageVision": 0.9238,
+    "coverageMarker": 0.9151,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 170,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 1"
+    },
+    {
+     "kind": "repeated-content-missing",
+     "detail": "Vision has these words more often than Marker (dropped rows or lines?): образование, профессиональное, специальности, среднее"
+    }
+   ],
+   "furniture": [
+    "168"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 195,
+    "visionTokens": 192,
+    "coverageVision": 0.9503,
+    "coverageMarker": 0.9503,
+    "respaced": 0,
+    "tableRows": 4
+   }
+  },
+  {
+   "page": 171,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "169"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 83,
+    "visionTokens": 83,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 172,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "170"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 181,
+    "visionTokens": 179,
+    "coverageVision": 0.9939,
+    "coverageMarker": 0.9939,
+    "respaced": 0,
+    "tableRows": 4
+   }
+  },
+  {
+   "page": 173,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "171"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 108,
+    "visionTokens": 102,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.94,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 174,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "172"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 225,
+    "visionTokens": 223,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.9951,
+    "respaced": 0,
+    "tableRows": 6
+   }
+  },
+  {
+   "page": 175,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "173"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 127,
+    "visionTokens": 121,
+    "coverageVision": 0.9823,
+    "coverageMarker": 0.9328,
+    "respaced": 0,
+    "tableRows": 4
+   }
+  },
+  {
+   "page": 176,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "174"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 151,
+    "visionTokens": 146,
+    "coverageVision": 0.9928,
+    "coverageMarker": 0.9718,
+    "respaced": 0,
+    "tableRows": 4
+   }
+  },
+  {
+   "page": 177,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "175"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 100,
+    "visionTokens": 96,
+    "coverageVision": 0.954,
+    "coverageMarker": 0.9222,
+    "respaced": 0,
+    "tableRows": 4
+   }
+  }
+ ]
+}

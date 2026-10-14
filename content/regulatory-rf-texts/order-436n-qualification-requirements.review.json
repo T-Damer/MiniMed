@@ -1,0 +1,633 @@
+{
+  "documentId": "regulatory.rf.minzdrav.436n-2026-qualification",
+  "reviewer": "Claude (agent), against the page images; not a lawyer",
+  "reviewedAt": "2026-10-14",
+  "verdicts": {
+    "1": "image read: the text matches the page; the header's date and number are handwritten (the portal's are used); «5¹» is a superscript; the numbers flagged are the orders cited (206н, 515н, 5¹)",
+    "9": "image read: one cell, the continuation of the list of positions; the page ends in «врач-» (page 10 continues); the number flagged is «5 лет», as printed",
+    "15": "image read (table): every row and cell matches the page (end of position 6 bacteriology, position 7 virology with four education variants, the fourth cut by the page end); the variants returned to the education cell",
+    "18": "image read: the text matches the page (table): position 9 gastroenterology, three education variants in one cell; the two extra rows Marker made of them removed; the number flagged is «более 3 лет»",
+    "20": "image read (table): every row and cell matches the page (position 11 genetics, three education variants; the page ends in «Онкология»,); the number flagged is the five-year rule, which Marker had cut",
+    "21": "image read (table): every row and cell matches the page (end of position 11, position 12 gerontology start); the page ends in the list of positions «(отдела, отделения,»; the number flagged is a Roman numeral Vision misread",
+    "23": "image read (table): every row and cell matches the page (end of position 13, position 14 hygiene of nutrition start); the number flagged is the three-year rule, as printed",
+    "24": "image read (table): every row and cell matches the page (end of position 14, position 15 occupational hygiene start); the numbers flagged are the three-year rule and Roman numerals Vision misread",
+    "25": "image read (table): every row and cell matches the page (end of position 15 with its third education variant, position 16 hygiene education start); Marker's row of the position 16 restored; the number flagged is «3 лет»",
+    "26": "image read (table): every row and cell matches the page (end of position 16, position 17 disinfectology start); «по специальности программе» in the last variant of the position 16 is as printed",
+    "27": "image read (table): every row and cell matches the page (end of position 17, position 18 dermatovenereology start); the number flagged is a Roman numeral Vision misread",
+    "28": "image read (table): every row and cell matches the page (end of position 18, position 19 pediatric cardiology start); the page ends in «и» after the second education variant",
+    "30": "image read (table): every row and cell matches the page (end of position 20, position 21 pediatric oncology-hematology start); the page ends in «и» after the second variant",
+    "32": "image read (table): every row and cell matches the page (end of position 21, position 22 pediatric urology-andrology start); the number flagged is «10 лет», as printed",
+    "35": "image read (table): every row and cell matches the page (end of position 25 dietology, position 26 infectious diseases start); the qualification cell of the position 26 restored",
+    "36": "image read (table): every row and cell matches the page (end of position 26 infectious diseases with its third variant restored, position 27 cardiology start); the number flagged is the three-year rule",
+    "37": "image read (table): every row and cell matches the page (position 27 cardiology, positions of the heads of units, second and third education variants); the third variant restored",
+    "38": "image read (table): every row and cell matches the page (end of position 27 and position 28 kinesiorehabilitation, three education variants; the page ends in «и»); the number flagged is «5 лет»",
+    "39": "image read (table): every row and cell matches the page (end of the position 28 specialists, positions of the instructor-methodist with two education variants; the page ends in «заведующий (начальник,»); the position cell restored",
+    "42": "image read (table): every row and cell matches the page (end of position 29 clinical laboratory diagnostics, position 30 clinical pharmacology start); the number flagged is «2026», as printed",
+    "44": "image read (table): every row and cell matches the page (end of position 31 coloproctology, position 32 communal hygiene start); the qualification cell of the position 32 restored",
+    "46": "image read (table): every row and cell matches the page (end of position 33 cosmetology, position 34 laboratory genetics with three education variants and the start of the fourth); the cells of the last row moved into the education column",
+    "49": "image read (table): every row and cell matches the page (end of position 35 sports medicine, position 36 general medicine start); the number flagged is a Roman numeral Vision misread",
+    "50": "image read (table): every row and cell matches the page (end of position 36 general medicine, position 37 manual therapy start with two education variants); the lost position cell, the number and the specialty restored",
+    "54": "image read: positions of the heads of units and the list of positions of the ten-year rule; the page ends in «врач-» (page 55 continues)",
+    "55": "image read (table): every row and cell matches the page (end of the ten-year list, the first education variant of the next position; the page ends in «и»); the number flagged is «2026», as printed",
+    "56": "image read: the list of positions of the five-to-ten-year rule; the page ends in «врач-» (page 57 continues); the number flagged is «5 лет», as printed",
+    "61": "image read (table): every row and cell matches the page (two long lists of the directions of preparation of the position 43 medical zoology); the page ends in ««Педагогика»,»; the number flagged is a Roman numeral Vision misread",
+    "62": "image read (table): every row and cell matches the page (end of position 43, position 44 medical cybernetics); a speck read as a dash removed",
+    "65": "image read: Marker's text kept (Vision lost the table here); lists of the education variants of the position 46 medical microbiology and the start of the ten-year list; the page ends in «кабинета,»; the loop Marker made in one list removed",
+    "72": "image read (table): every row and cell matches the page (end of the position 49 medical embryology, position 50 medical massage with two education variants); the two extra rows Marker repeated at the end removed",
+    "73": "image read (table): every row and cell matches the page (position 51 neurology with three education variants); the cells restored to their columns",
+    "74": "image read (table): every row and cell matches the page (end of position 51, position 52 neuropsychology with four education variants); the variants returned to the education cell",
+    "76": "image read (table): every row and cell matches the page (position 54 neonatology with three education variants, position 55 nephrology with its first variant and the start of the second, cut by the page end); the variants returned to the education cells",
+    "77": "image read (table): every row and cell matches the page (end of position 55 nephrology, position 56 nutritionology start); the number flagged is «3 лет», as printed",
+    "80": "image read (table): every row and cell matches the page (end of position 57, position 58 general hygiene with three education variants, the third cut by the page end); the variants returned to the education cell",
+    "81": "image read (table): every row and cell matches the page (end of position 58, position 59 oncology with three education variants, the third one cut by the page end); the cells of the last row moved into the education column",
+    "85": "image read (table): every row and cell matches the page (end of position 63 otorhinolaryngology, position 64 ophthalmology start); the second education variant restored; the number flagged is «3 лет», as printed",
+    "89": "image read (table): every row and cell matches the page (end of position 65 palliative care, position 66 parasitology with two education variants, the position cell cut by the page end); an empty strip at the bottom is not a row",
+    "96": "image read (table): every row and cell matches the page (end of position 70 occupational pathology, position 71 psychiatry with three education variants, the third one cut by the page end)",
+    "101": "image read (table): every row and cell matches the page (end of position 74 pulmonology, position 75 radiation hygiene); the number flagged is a Roman numeral Vision misread",
+    "105": "image read (table): every row and cell matches the page (end of position 76 radiology, position 77 radiotherapy with four education variants, the fourth cut by the page end); the variants returned to the education cell",
+    "111": "image read (table): every row and cell matches the page (end of the list of the specialties of the position 80 reflexology and its second variant); the page ends in «и профессиональная переподготовка по специальности «Рефлексотерапия»»",
+    "113": "image read (table): every row and cell matches the page (end of position 80 reflexology, position 82 sanitary and hygienic laboratory studies with three education variants, the third cut by the page end)",
+    "121": "image read (table): every row and cell matches the page (end of position 90 orthopedic dentistry, positions 91 and 92); the second education variants of the positions 91 and 92 restored",
+    "127": "image read (table): every row and cell matches the page (end of position 96 surdology-otorhinolaryngology, position 97 therapy with three education variants); the number flagged is «3 лет» and the sequence number «1» is «1 сентября»",
+    "128": "image read (table): every row and cell matches the page (the position cell of the position 97 therapy continues); the header, the separator line and the row have five columns",
+    "132": "image read (table): every row and cell matches the page (position 100 traumatology and orthopedics with two position cells and four education variants); columns restored, the qualification cell restored; the number flagged is the five-year rule",
+    "133": "image read (table): every row and cell matches the page (end of position 100, position 101 transfusiology with two education variants, the second cut by the page end); the number and the specialty separated; the number flagged is the row number",
+    "135": "image read (table): every row and cell matches the page (end of position 101, position 102 ultrasound diagnostics with two education variants); the second variant and the qualification cell returned to the row of the position",
+    "138": "image read (table): every row and cell matches the page (end of position 103 pharmacy management, position 104 nursing management start); the second education variant restored; the number flagged is «6 месяцев»",
+    "140": "image read (table): every row and cell matches the page (end of position 104, position 105 urology with three education variants); the number, the specialty and the variants restored to their columns",
+    "141": "image read (table): every row and cell matches the page (position 106 pharmaceutical technology with four education variants)",
+    "142": "image read (table): every row and cell matches the page (position 107 pharmaceutical chemistry and pharmacognosy with four education variants); two extra rows Marker repeated at the end removed; the numbers flagged are the dates and the ten-year rule",
+    "146": "image read (table): every row and cell matches the page (position 110 physical and rehabilitation medicine with its second variant, the page ends in «и»); the qualification cell completed",
+    "148": "image read (table): every row and cell matches the page (end of position 110, position 111 phthisiology start); the number flagged is a Roman numeral Vision misread",
+    "149": "image read (table): every row and cell matches the page (end of position 111 phthisiology, position 112 functional diagnostics start); the third education variant restored; the number flagged is «3 лет»",
+    "152": "image read (table): every row and cell matches the page (end of position 112 functional diagnostics, position 113 surgery with two position cells); the number, the specialty and the cells restored to their columns",
+    "157": "image read (table): every row and cell matches the page (end of position 116 endoscopy, position 117 epidemiology with three education variants, the third cut by the page end); the number, the specialty and the variants restored to their columns",
+    "158": "image read (table): every row and cell matches the page (end of position 117 epidemiology, position 118 ergorehabilitation start); the number and the specialty separated",
+    "164": "image read (table): every row and cell matches the page (end of position 9, position 10 second sub-row, positions 11 and 12 of the secondary education section); the rows restored",
+    "165": "image read (table): every row and cell matches the page (end of position 12 and its second sub-row of the secondary education section); the two position cells separated",
+    "166": "image read (table): every row and cell matches the page (positions 13 and 14, start of the second sub-row of the position 14); the cells match the image",
+    "167": "image read (table): every row and cell matches the page (end of position 14, positions 15, 16, 17 with its second education variant restored, position 18 narcology start)",
+    "168": "image read (table): every row and cell matches the page (end of position 18, positions 19, 20, 21, position 22 organization of nursing start); the number flagged is «1296 часов», as printed",
+    "169": "image read (table): every row and cell matches the page (end of position 22 with the list of positions of the managers, the second sub-row «Главный лаборант»); the brackets in «заведующий … – фельдшер (акушер (акушерка);» are as printed",
+    "170": "image read (table): every row and cell matches the page (positions 23, 24, 25 nursing); the first education variant of the position 25 restored; the number flagged is a Roman numeral Vision misread",
+    "177": "image read (table): every row and cell matches the page (end of the position 35 functional diagnostics, positions 36 and 37, the end of the table)"
+  },
+  "corrections": [
+    {
+      "page": 1,
+      "kind": "letter",
+      "find": "№ 83п «Об",
+      "replace": "№ 83н «Об",
+      "why": "The order number printed in the image is 83н; both readings gave a Cyrillic «п» for «н»."
+    },
+    {
+      "page": 1,
+      "kind": "letter",
+      "find": "№ 72п «О внесении изменений в Квалификационные",
+      "replace": "№ 72н «О внесении изменений в Квалификационные",
+      "why": "The order number printed in the image is 72н; both readings gave «п»."
+    },
+    {
+      "page": 1,
+      "kind": "letter",
+      "find": "№ 72п» (зарегистрирован",
+      "replace": "№ 72н» (зарегистрирован",
+      "why": "The order number printed in the image is 72н; both readings gave «п»."
+    },
+    {
+      "page": 9,
+      "kind": "loop",
+      "find": "заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач-клинической лабораторной диагностики, заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач-клинической лабораторной диагностики",
+      "replace": "заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач-дезинфектолог, заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач клинической лабораторной диагностики",
+      "why": "Marker repeated a clause of the list and skipped the next ones; the image has «заведующий … – врач-дезинфектолог, заведующий … – врач клинической лабораторной диагностики»"
+    },
+    {
+      "page": 10,
+      "kind": "bracket",
+      "find": "«Фундаментальная и прикладная химия», «Химическая технология»",
+      "replace": "«Фундаментальная и прикладная химия», «Химическая технология",
+      "why": "The list is cut by the page end after «Химическая технология» (page 11 continues with «и биотехнология»); the image has no closing quote there."
+    },
+    {
+      "page": 18,
+      "kind": "duplicate-row",
+      "find": "\n| | | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по специальности «Гастроэнтерология»⏎Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по одной из специальностей: «Детская эндокринология», «Диетология», «Нефрология», «Общая врачебная практика (семейная медицина)», «Педиатрия», «Терапия», «Эндокринология» и профессиональная переподготовка по специальности «Гастроэнтерология» | | |",
+      "replace": "",
+      "why": "Marker repeated the education items of the position above as extra table rows; the image has them once, in the education cell of the position"
+    },
+    {
+      "page": 18,
+      "kind": "duplicate-row",
+      "find": "\n| | | Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Детская эндокринология», «Диетология», «Нефрология», «Общая врачебная практика (семейная медицина)», «Педиатрия», «Терапия», «Эндокринология» и стаж работы более 3 лет по одной из специальностей: «Детская эндокринология», «Диетология», «Нефрология», «Общая врачебная практика (семейная медицина)», «Педиатрия», «Терапия», «Эндокринология» и профессиональная переподготовка по специальности «Гастроэнтерология» | | |",
+      "replace": "",
+      "why": "Marker repeated the education items of the position above as extra table rows; the image has them once, in the education cell of the position"
+    },
+    {
+      "page": 20,
+      "kind": "cell",
+      "find": "«Генетика» | Повышение квалификации по специальности |",
+      "replace": "«Генетика» | Повышение квалификации по специальности «Генетика» не реже одного раза в 5 лет в течение всей трудовой деятельности |",
+      "why": "The cell of the position 11 reads «Повышение квалификации по специальности «Генетика» не реже одного раза в 5 лет в течение всей трудовой деятельности» in the image; Marker cut it after «специальности»."
+    },
+    {
+      "page": 20,
+      "kind": "column",
+      "find": "\n| Высшее и дополнительное профессиональное образование",
+      "replace": "\n| | | | Высшее и дополнительное профессиональное образование",
+      "why": "The third education variant belongs to the education column of the position 11; Marker put it in the first column."
+    },
+    {
+      "page": 20,
+      "kind": "column",
+      "find": "«Онкология», | | | | |",
+      "replace": "«Онкология», | |",
+      "why": "The row has five columns; Marker put the third variant in the first one and left four empty cells after it."
+    },
+    {
+      "page": 25,
+      "kind": "dropped-cell",
+      "find": "| | Гигиеническое воспитание | Врач по гигиеническому воспитанию; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, лаборатории, кабинета, | Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Гигиена детей и подростков», «Гигиена питания», «Гигиеническое воспитание», «Коммунальная гигиена», «Общая гигиена», «Радиационная гигиена», «Социальная гигиена и организация госсанэпидслужбы» и стаж работы более 3 лет по одной из специальностей: «Гигиена детей и подростков», «Гигиена питания», «Гигиеническое воспитание», «Коммунальная гигиена», «Общая гигиена», «Радиационная гигиена», «Социальная гигиена и организация госсанэпидслужбы» и профессиональная переподготовка по специальности «Гигиена труда» | Повышение квалификации по специальности «Гигиеническое воспитание» не реже одного раза в 5 лет в течение всей трудовой деятельности |",
+      "replace": "| | | | Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Гигиена детей и подростков», «Гигиена питания», «Гигиеническое воспитание», «Коммунальная гигиена», «Общая гигиена», «Радиационная гигиена», «Социальная гигиена и организация госсанэпидслужбы» и стаж работы более 3 лет по одной из специальностей: «Гигиена детей и подростков», «Гигиена питания», «Гигиеническое воспитание», «Коммунальная гигиена», «Общая гигиена», «Радиационная гигиена», «Социальная гигиена и организация госсанэпидслужбы» и профессиональная переподготовка по специальности «Гигиена труда» | |\n| 16. | Гигиеническое воспитание | Врач по гигиеническому воспитанию; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, | Высшее образование – специалитет по специальности «Медико-профилактическое дело»⏎и⏎подготовка в ординатуре по специальности «Гигиеническое воспитание»⏎Высшее образование – специалитет по специальности «Медико-профилактическое дело» | Повышение квалификации по специальности «Гигиеническое воспитание» не реже одного раза в 5 лет в течение всей трудовой деятельности |",
+      "why": "Marker lost the number «16.» and the first education variant of the position 16 («Высшее образование – специалитет по специальности «Медико-профилактическое дело» и подготовка в ординатуре по специальности «Гигиеническое воспитание»») and the start of the second one, and attached the third variant of the position 15 to the position 16; the word «отделения,» of the list of the units is also dropped. The image has them as restored."
+    },
+    {
+      "page": 28,
+      "kind": "dropped-cell",
+      "find": "подготовка в ординатуре по специальности «Детская кардиология» | Повышение квалификации",
+      "replace": "подготовка в ординатуре по специальности «Детская кардиология»⏎Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по одной из специальностей: «Кардиология», «Педиатрия» и | Повышение квалификации",
+      "why": "The second education variant of the position 19 is in the image («Высшее образование – специалитет … и подготовка в интернатуре или ординатуре по одной из специальностей: «Кардиология», «Педиатрия» и»); Marker dropped it."
+    },
+    {
+      "page": 28,
+      "kind": "bracket",
+      "find": "врач приемного отделения (наименование должности) |",
+      "replace": "врач приемного отделения (наименование должности |",
+      "why": "The cell is cut by the page end after «(наименование должности»; the image has no closing bracket there."
+    },
+    {
+      "page": 32,
+      "kind": "bracket",
+      "find": "врач приемного отделения (наименование должности) |",
+      "replace": "врач приемного отделения (наименование должности |",
+      "why": "The cell is cut by the page end after «(наименование должности»; the image has no closing bracket there."
+    },
+    {
+      "page": 35,
+      "kind": "dropped-cell",
+      "find": "«Педиатрия» и | |",
+      "replace": "«Педиатрия» и | Повышение квалификации по специальности «Инфекционные болезни» |",
+      "why": "The qualification cell of the position 26 starts on this page in the image («Повышение квалификации по специальности «Инфекционные болезни»», the rest is on page 36); Marker left it empty."
+    },
+    {
+      "page": 36,
+      "kind": "dropped-variant",
+      "find": "и профессиональная переподготовка по специальности «Инфекционные болезни» | не реже одного раза",
+      "replace": "и профессиональная переподготовка по специальности «Инфекционные болезни»⏎Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Нефрология», «Общая врачебная практика (семейная медицина)», «Педиатрия», «Пульмонология», «Ревматология», «Терапия», «Фтизиатрия» и стаж работы более 3 лет по одной из специальностей: «Нефрология», «Общая врачебная практика (семейная медицина)», «Педиатрия», «Пульмонология», «Ревматология», «Терапия», «Фтизиатрия» и профессиональная переподготовка по специальности «Инфекционные болезни» | не реже одного раза",
+      "why": "The third education variant of the position 26 («Высшее и дополнительное профессиональное образование … и стаж работы более 3 лет … и профессиональная переподготовка по специальности «Инфекционные болезни»») is in the image; Marker dropped it."
+    },
+    {
+      "page": 37,
+      "kind": "dropped-variant",
+      "find": "профессиональная переподготовка по специальности «Кардиология» | в течение всей трудовой деятельности |",
+      "replace": "профессиональная переподготовка по специальности «Кардиология»⏎Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Общая врачебная практика (семейная медицина)», «Ревматология», «Терапия», «Гериатрия» и стаж работы более 3 лет по одной из специальностей: «Общая врачебная практика (семейная медицина)», «Ревматология», «Терапия», «Гериатрия» и профессиональная переподготовка по специальности «Кардиология» | в течение всей трудовой деятельности |",
+      "why": "The third education variant of the position 27 is in the image; Marker dropped it."
+    },
+    {
+      "page": 38,
+      "kind": "duplicate-row",
+      "find": "\n| | | | | |",
+      "replace": "",
+      "why": "An empty table row Marker made out of the bottom edge of the page; the image has no such row."
+    },
+    {
+      "page": 39,
+      "kind": "dropped-cell",
+      "find": "⏎Высшее образование – бакалавриат, специалитет, магистратура без предъявления требований к квалификации и специальности (направлению подготовки)⏎и⏎стаж работы 10 лет",
+      "replace": " | |\n| | | Инструктор-методист по лечебной физкультуре; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – инструктор-методист по лечебной физкультуре | Высшее образование – бакалавриат, специалитет, магистратура без предъявления требований к квалификации и специальности (направлению подготовки)⏎и⏎стаж работы 10 лет",
+      "why": "The position cell «Инструктор-методист по лечебной физкультуре; заведующий (начальник, заместитель начальника) структурного подразделения … – инструктор-методист по лечебной физкультуре» of the two last education variants is in the image; Marker lost it and ran the variants into the education cell of the kinesiorehabilitation specialists."
+    },
+    {
+      "page": 44,
+      "kind": "dropped-cell",
+      "find": "«Гигиена детей и подростков», | |",
+      "replace": "«Гигиена детей и подростков», | Повышение квалификации по специальности «Коммунальная гигиена» не реже одного раза в 5 лет в течение всей трудовой деятельности |",
+      "why": "The qualification cell of the position 32 is in the image («Повышение квалификации по специальности «Коммунальная гигиена» не реже одного раза в 5 лет в течение всей трудовой деятельности»); Marker left it empty."
+    },
+    {
+      "page": 46,
+      "kind": "column",
+      "find": "| Высшее образование – специалитет по одной из специальностей: «Медицинская биофизика», «Медицинская кибернетика», «Медико-профилактическое дело» и подготовка в интернатуре или ординатуре по специальности «Клиническая лабораторная диагностика» и профессиональная переподготовка по специальности «Лабораторная генетика» | Высшее и дополнительное профессиональное образование, соответствующее квалификационным | | | |",
+      "replace": "| | | | Высшее образование – специалитет по одной из специальностей: «Медицинская биофизика», «Медицинская кибернетика», «Медико-профилактическое дело» и подготовка в интернатуре или ординатуре по специальности «Клиническая лабораторная диагностика» и профессиональная переподготовка по специальности «Лабораторная генетика»⏎Высшее и дополнительное профессиональное образование, соответствующее квалификационным | |",
+      "why": "The third education variant of the position 34 and the start of the fourth belong to the education cell (fourth column); Marker put them in the first and second columns."
+    },
+    {
+      "page": 49,
+      "kind": "line-break",
+      "find": "по специальности⏎«Лечебная физкультура и спортивная медицина»",
+      "replace": "по специальности «Лечебная физкультура и спортивная медицина»",
+      "why": "The two lines are one wrapped line in the image («профессиональная переподготовка по специальности «Лечебная физкультура и спортивная медицина»»)."
+    },
+    {
+      "page": 54,
+      "kind": "loop",
+      "find": "заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач-вирусолог, заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач-клинической лабораторной диагностики, заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач-клинической лабораторной диагностики, заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач- |",
+      "replace": "заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач-вирусолог, заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач-генетик, заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач-дезинфектолог, заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач клинической лабораторной диагностики, заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач- |",
+      "why": "Marker repeated a clause of the list and skipped the next ones; the image has «заведующий … – врач-генетик, заведующий … – врач-дезинфектолог, заведующий … – врач клинической лабораторной диагностики»"
+    },
+    {
+      "page": 56,
+      "kind": "loop",
+      "find": "заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач-клинической лабораторной диагностики, заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач-клинической лабораторной диагностики",
+      "replace": "заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач-дезинфектолог, заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач клинической лабораторной диагностики",
+      "why": "Marker repeated a clause of the list and skipped the next ones; the image has «заведующий … – врач-дезинфектолог, заведующий … – врач клинической лабораторной диагностики»"
+    },
+    {
+      "page": 62,
+      "kind": "speck",
+      "find": "| -⏎Высшее образование – специалитет по специальности «Медицинская кибернетика»",
+      "replace": "| Высшее образование – специалитет по специальности «Медицинская кибернетика»",
+      "why": "A speck of the scan in an empty cell of the image, read as a dash."
+    },
+    {
+      "page": 65,
+      "kind": "loop",
+      "find": "кабинета, отделения, лаборатории, кабинета, отряда",
+      "replace": "кабинета, отряда",
+      "why": "Marker repeated «отделения, лаборатории, кабинета,» in the list of the units; the image has it once."
+    },
+    {
+      "page": 72,
+      "kind": "duplicate-row",
+      "find": "\n| | | | Высшее образование – бакалавриат по направлению подготовки «Сестринское дело» и профессиональная переподготовка по специальности «Медицинский массаж» | |\n| | | | Высшее образование – бакалавриат по направлению подготовки «Сестринское дело» и профессиональная переподготовка по специальности «Медицинский массаж» | |",
+      "replace": "",
+      "why": "Marker repeated the education items of the position above as extra table rows; the image has them once, in the education cell of the position"
+    },
+    {
+      "page": 73,
+      "kind": "columns",
+      "find": "| 51. | Неврология | Врач-невролог; врач по медицине здорового долголетия; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач-невролог; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач по медицине здорового долголетия; врач приемного отделения (наименование должности дополняется наименованием должности врача соответствующей специальности – в медицинской организации, оказывающей специализированную медицинскую помощь, или при наличии в медицинской организации структурного подразделения, | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по специальности «Неврология» | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по одной из специальностей: «Нейрохирургия», «Общая врачебная практика (семейная медицина)», «Педиатрия», «Терапия», «Эндокринология» и профессиональная переподготовка по специальности «Неврология» |\n| | | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по одной из специальностей: «Нейрохирургия», «Общая врачебная практика (семейная медицина)», «Педиатрия», «Терапия», «Эндокринология» и профессиональная переподготовка по специальности «Неврология» | | |\n| Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Общая врачебная практика (семейная медицина)», «Педиатрия», «Терапия», «Эндокринология» и стаж работы более 3 лет по одной из специальностей: «Общая врачебная практика (семейная медицина)», «Педиатрия», «Терапия», «Эндокринология» и профессиональная переподготовка по специальности «Неврология» | Повышение квалификации по специальности «Неврология» не реже одного раза в 5 лет в течение всей трудовой деятельности | | | |",
+      "replace": "| 51. | Неврология | Врач-невролог; врач по медицине здорового долголетия; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач-невролог; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач по медицине здорового долголетия; врач приемного отделения (наименование должности дополняется наименованием должности врача соответствующей специальности – в медицинской организации, оказывающей специализированную медицинскую помощь, или при наличии в медицинской организации структурного подразделения, | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по специальности «Неврология»⏎Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по одной из специальностей: «Нейрохирургия», «Общая врачебная практика (семейная медицина)», «Педиатрия», «Терапия», «Эндокринология» и профессиональная переподготовка по специальности «Неврология»⏎Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Общая врачебная практика (семейная медицина)», «Педиатрия», «Терапия», «Эндокринология» и стаж работы более 3 лет по одной из специальностей: «Общая врачебная практика (семейная медицина)», «Педиатрия», «Терапия», «Эндокринология» и профессиональная переподготовка по специальности «Неврология» | Повышение квалификации по специальности «Неврология» не реже одного раза в 5 лет в течение всей трудовой деятельности |",
+      "why": "Marker put the second education variant of the position 51 into the qualification column and again into the position column, and the third variant into the first column; the image has the three variants in the education cell and «Повышение квалификации по специальности «Неврология» не реже одного раза в 5 лет в течение всей трудовой деятельности» in the last one."
+    },
+    {
+      "page": 81,
+      "kind": "column",
+      "find": "\n| | Высшее и дополнительное профессиональное образование",
+      "replace": "\n| | | | Высшее и дополнительное профессиональное образование",
+      "why": "The third education variant of the position 59 belongs to the education column; Marker put it in the second column."
+    },
+    {
+      "page": 81,
+      "kind": "column",
+      "find": "«Офтальмология», | | | |",
+      "replace": "«Офтальмология», | |",
+      "why": "The row has five columns; Marker left four empty cells after the variant it had put in the second column."
+    },
+    {
+      "page": 85,
+      "kind": "dropped-variant",
+      "find": "«Челюстно-лицевая хирургия» и профессиональная переподготовка по специальности «Оториноларингология» | |",
+      "replace": "«Челюстно-лицевая хирургия» и профессиональная переподготовка по специальности «Оториноларингология»⏎Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Детская хирургия», «Сурдология-оториноларингология», «Хирургия» и стаж работы более 3 лет по одной из специальностей: «Детская хирургия», «Сурдология-оториноларингология», «Хирургия» и профессиональная переподготовка по специальности «Оториноларингология» | |",
+      "why": "The second education variant of the position 63 («Высшее и дополнительное профессиональное образование … и стаж работы более 3 лет … и профессиональная переподготовка по специальности «Оториноларингология»») is in the image; Marker dropped it."
+    },
+    {
+      "page": 96,
+      "kind": "duplicate-row",
+      "find": "\n| | | | Психиатрия | |",
+      "replace": "",
+      "why": "A stray row «Психиатрия» that is nowhere on the page; Vision's reading of a speck of the scan. The image has the third education variant of the position 71 ending in ««Пульмонология»,» at the bottom of the page."
+    },
+    {
+      "page": 121,
+      "kind": "dropped-variant",
+      "find": "и подготовка в интернатуре или ординатуре по специальности «Стоматология терапевтическая» | Повышение",
+      "replace": "и подготовка в интернатуре или ординатуре по специальности «Стоматология терапевтическая»⏎Высшее образование – специалитет по специальности «Стоматология» и подготовка в интернатуре или ординатуре по одной из специальностей: «Стоматология», «Стоматология общей практики», «Стоматология ортопедическая», «Стоматология детская», «Стоматология хирургическая» и профессиональная переподготовка по специальности «Стоматология терапевтическая» | Повышение",
+      "why": "The second education variant of the position 91 is in the image; Marker dropped it."
+    },
+    {
+      "page": 121,
+      "kind": "dropped-variant",
+      "find": "«Стоматология хирургическая» | Повышение квалификации по специальности «Стоматология хирургическая»",
+      "replace": "«Стоматология хирургическая»⏎Высшее образование – специалитет по специальности «Стоматология» | Повышение квалификации по специальности «Стоматология хирургическая»",
+      "why": "The second education variant of the position 92 starts at the bottom of the image («Высшее образование – специалитет по специальности «Стоматология»»); Marker dropped it."
+    },
+    {
+      "page": 127,
+      "kind": "duplicate-row",
+      "find": "\n| | | | | |",
+      "replace": "",
+      "why": "An empty table row Marker made out of the bottom edge of the page; the image has no such row."
+    },
+    {
+      "page": 132,
+      "kind": "columns",
+      "find": "| 100⏎Травматология и ортопедия | | Врач-травматолог-ортопед | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и профессиональная переподготовка по специальности «Травматология и ортопедия» в объеме не менее 1296 часов | |\n| | Врач-травматолог-ортопед; судовой врач; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач-травматолог-ортопед; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – судовой врач; врач приемного отделения (наименование должности дополняется наименованием должности врача соответствующей специальности – в медицинской организации, оказывающей специализированную | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по специальности «Травматология и ортопедия» | | |\n| | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по одной из специальностей: «Детская хирургия», «Хирургия» и профессиональная переподготовка по специальности «Травматология и ортопедия» | | | |\n| | Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Детская хирургия», «Хирургия» и стаж работы более 3 лет по одной из специальностей: «Детская хирургия», «Хирургия» и профессиональная переподготовка по специальности «Травматология и ортопедия» | | | |",
+      "replace": "| 100. | Травматология и ортопедия | Врач-травматолог-ортопед | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и профессиональная переподготовка по специальности «Травматология и ортопедия» в объеме не менее 1296 часов | Повышение квалификации по специальности «Травматология и ортопедия» не реже одного раза в 5 лет в течение всей трудовой деятельности |\n| | | Врач-травматолог-ортопед; судовой врач; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач-травматолог-ортопед; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – судовой врач; врач приемного отделения (наименование должности дополняется наименованием должности врача соответствующей специальности – в медицинской организации, оказывающей специализированную | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по специальности «Травматология и ортопедия»⏎Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по одной из специальностей: «Детская хирургия», «Хирургия» и профессиональная переподготовка по специальности «Травматология и ортопедия»⏎Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Детская хирургия», «Хирургия» и стаж работы более 3 лет по одной из специальностей: «Детская хирургия», «Хирургия» и профессиональная переподготовка по специальности «Травматология и ортопедия» | |",
+      "why": "The number «100.» (cut by the edge of the scan, the rows run 99, 100, 101) and the specialty «Травматология и ортопедия» are the first two columns, the position the third and the education variants the fourth; Marker ran the number and the specialty together and shifted the cells of the next rows by one column, and dropped the qualification cell «Повышение квалификации по специальности «Травматология и ортопедия» не реже одного раза в 5 лет в течение всей трудовой деятельности»."
+    },
+    {
+      "page": 138,
+      "kind": "dropped-variant",
+      "find": "и профессиональная переподготовка по специальности «Управление и экономика фармации» | |",
+      "replace": "и профессиональная переподготовка по специальности «Управление и экономика фармации»⏎Высшее образование – специалитет по специальности «Фармация» и стаж работы не менее 6 месяцев на должностях руководителей фармацевтических организаций, руководителей структурных подразделений фармацевтических организаций, специалистов с высшим фармацевтическим образованием и профессиональная переподготовка по специальности «Управление и экономика фармации» | |",
+      "why": "The second education variant of the position 103 («Высшее образование – специалитет по специальности «Фармация» и стаж работы не менее 6 месяцев на должностях руководителей фармацевтических организаций … и профессиональная переподготовка по специальности «Управление и экономика фармации»») is in the image; Marker dropped it."
+    },
+    {
+      "page": 142,
+      "kind": "duplicate-row",
+      "find": "\n| | | | Высшее образование – специалитет по специальности «Фармация» (для лиц, освоивших образовательную программу до 1 января 2016 г.) и стаж работы 10 лет и более (при отсутствии перерыва в стаже 5 лет и более) на должности провизора-аналитика и профессиональная переподготовка по специальности «Фармацевтическая химия и фармакогнозия» | |",
+      "replace": "",
+      "why": "Marker repeated the education items of the position above as extra table rows; the image has them once, in the education cell of the position"
+    },
+    {
+      "page": 142,
+      "kind": "duplicate-row",
+      "find": "\n| | | Высшее образование – специалитет по специальности «Фармация» (для лиц, освоивших образовательную программу после 1 января 2016 г.) и профессиональная переподготовка по специальности «Фармацевтическая химия и фармакогнозия» | Повышение квалификации по специальности «Фармацевтическая химия и фармакогнозия» не реже одного раза в 5 лет в течение всей трудовой деятельности | |",
+      "replace": "",
+      "why": "Marker repeated the education items of the position above as extra table rows; the image has them once, in the education cell of the position (the row also repeated the qualification cell)"
+    },
+    {
+      "page": 146,
+      "kind": "cell",
+      "find": "«Физическая и реабилитационная медицина» | Повышение квалификации по специальности |",
+      "replace": "«Физическая и реабилитационная медицина» | Повышение квалификации по специальности «Физическая и реабилитационная медицина» не реже одного раза в 5 лет в течение всей трудовой деятельности |",
+      "why": "The qualification cell of the position 110 reads «Повышение квалификации по специальности «Физическая и реабилитационная медицина» не реже одного раза в 5 лет в течение всей трудовой деятельности» in the image; Marker cut it after «специальности»."
+    },
+    {
+      "page": 149,
+      "kind": "dropped-variant",
+      "find": "и профессиональная переподготовка по специальности «Фтизиатрия» | |",
+      "replace": "и профессиональная переподготовка по специальности «Фтизиатрия»⏎Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Инфекционные болезни», «Неврология», «Общая врачебная практика (семейная медицина)», «Педиатрия», «Пульмонология», «Рентгенология», «Терапия», «Травматология и ортопедия», «Урология», «Хирургия» и стаж работы более 3 лет по одной из специальностей: «Инфекционные болезни», «Неврология», «Общая врачебная практика (семейная медицина)», «Педиатрия», «Пульмонология», «Рентгенология», «Терапия», «Травматология и ортопедия», «Урология», «Хирургия» и профессиональная переподготовка по специальности «Фтизиатрия» | |",
+      "why": "The third education variant of the position 111 is in the image; Marker dropped it."
+    },
+    {
+      "page": 164,
+      "kind": "dropped-cell",
+      "find": "| | Лечебная физкультура | Инструктор по лечебной⏎физкультуре;⏎старшая медицинская сестра⏎(старший медицинский брат) | Среднее профессиональное образование по специальности⏎«Медико-профилактическое дело»⏎и⏎профессиональная переподготовка по специальности⏎«Лабораторное дело» | Повышение квалификации⏎по специальности⏎«Лечебная физкультура»⏎не реже одного раза в 5 лет⏎в течение всей трудовой⏎деятельности |",
+      "replace": "| | | Медицинский лабораторный техник (фельдшер-лаборант); старший медицинский лабораторный техник (старший фельдшер-лаборант); лаборант; старший лаборант | Среднее профессиональное образование по специальности⏎«Медико-профилактическое дело»⏎и⏎профессиональная переподготовка по специальности⏎«Лабораторное дело» | |\n| 11. | Лечебная физкультура | Инструктор по лечебной⏎физкультуре;⏎старшая медицинская сестра⏎(старший медицинский брат) | Среднее профессиональное образование по одной из специальностей: «Акушерское дело», «Лечебное дело», «Сестринское дело» и профессиональная переподготовка по специальности «Лечебная физкультура» | Повышение квалификации⏎по специальности⏎«Лечебная физкультура»⏎не реже одного раза в 5 лет⏎в течение всей трудовой⏎деятельности |",
+      "why": "The image has the second position cell of the position 10 («Медицинский лабораторный техник (фельдшер-лаборант); старший медицинский лабораторный техник …; лаборант; старший лаборант») with its education «Среднее профессиональное образование по специальности «Медико-профилактическое дело» и профессиональная переподготовка по специальности «Лабораторное дело»», and the position 11 with the number «11.» and its education «Среднее профессиональное образование по одной из специальностей: «Акушерское дело», «Лечебное дело», «Сестринское дело» и профессиональная переподготовка по специальности «Лечебная физкультура»»; Marker lost the position cell and the number and the education of the position 11 and put the education of the position 10 into the row of the position 11."
+    },
+    {
+      "page": 165,
+      "kind": "row-split",
+      "find": "| | | заведующий фельдшерским здравпунктом – фельдшер; заведующий кабинетом медицинской профилактики – фельдшер; заведующий фельдшерским пунктом – фельдшер; фельдшер по приему вызовов скорой медицинской помощи и передачи их выездным бригадам скорой медицинской помощи⏎Фельдшер; старший фельдшер; фельдшер скорой медицинской помощи; заведующий фельдшерско-акушерским пунктом – фельдшер; заведующий здравпунктом – фельдшер; заведующий фельдшерским здравпунктом – фельдшер; заведующий кабинетом медицинской профилактики – фельдшер; заведующий фельдшерским пунктом – фельдшер; фельдшер по приему вызовов скорой медицинской помощи и передачи их выездным бригадам скорой медицинской помощи | Среднее профессиональное образование по специальности «Лечебное дело» (для лиц, освоивших образовательную программу после 1 сентября 2026 г.) | |",
+      "replace": "| | | заведующий фельдшерским здравпунктом – фельдшер; заведующий кабинетом медицинской профилактики – фельдшер; заведующий фельдшерским пунктом – фельдшер; фельдшер по приему вызовов скорой медицинской помощи и передачи их выездным бригадам скорой медицинской помощи | | |\n| | | Фельдшер; старший фельдшер; фельдшер скорой медицинской помощи; заведующий фельдшерско-акушерским пунктом – фельдшер; заведующий здравпунктом – фельдшер; заведующий фельдшерским здравпунктом – фельдшер; заведующий кабинетом медицинской профилактики – фельдшер; заведующий фельдшерским пунктом – фельдшер; фельдшер по приему вызовов скорой медицинской помощи и передачи их выездным бригадам скорой медицинской помощи | Среднее профессиональное образование по специальности «Лечебное дело» (для лиц, освоивших образовательную программу после 1 сентября 2026 г.) | |",
+      "why": "The image has two position cells of the position 12: the end of the first one (up to «… скорой медицинской помощи») and a second one («Фельдшер; старший фельдшер; …») with its own education «… (для лиц, освоивших образовательную программу после 1 сентября 2026 г.)»; Marker ran them into one cell."
+    },
+    {
+      "page": 167,
+      "kind": "dropped-variant",
+      "find": "и профессиональная переподготовка по специальности «Медицинский массаж» | Повышение квалификации по специальности «Медицинский массаж»",
+      "replace": "и профессиональная переподготовка по специальности «Медицинский массаж»⏎Среднее профессиональное образование по специальности «Медицинский массаж (для лиц с ограниченными возможностями здоровья по зрению)» | Повышение квалификации по специальности «Медицинский массаж»",
+      "why": "The second education variant of the position 17 («Среднее профессиональное образование по специальности «Медицинский массаж (для лиц с ограниченными возможностями здоровья по зрению)»») is in the image; Marker dropped it."
+    },
+    {
+      "page": 170,
+      "kind": "dropped-variant",
+      "find": "| Среднее профессиональное образование по одной из специальностей: «Акушерское дело», «Лечебное дело» и профессиональная переподготовка по специальности «Сестринское дело» |",
+      "replace": "| Среднее профессиональное образование по специальности «Сестринское дело»⏎Среднее профессиональное образование по одной из специальностей: «Акушерское дело», «Лечебное дело» и профессиональная переподготовка по специальности «Сестринское дело» |",
+      "why": "The first education variant of the position 25 («Среднее профессиональное образование по специальности «Сестринское дело»») is in the image; Marker dropped it."
+    },
+    {
+      "page": 133,
+      "kind": "columns",
+      "find": "| 101. Трансфузиология | | Врач-трансфузиолог",
+      "replace": "| 101. | Трансфузиология | Врач-трансфузиолог",
+      "why": "The number «101.» and the specialty «Трансфузиология» are two columns in the image; Marker ran them into one cell and left the next one empty."
+    },
+    {
+      "page": 50,
+      "kind": "columns",
+      "find": "| | | Врач мануальной терапии; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач мануальной терапии | Высшее образование – специалитет по специальности «Лечебное дело» (для лиц, освоивших образовательную программу после 1 января 2023 г.)⏎Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Остеопатия», «Педиатрия» и подготовка в ординатуре по специальности «Мануальная терапия»⏎Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по одной из специальностей: «Лечебная физкультура и спортивная медицина», «Неврология», «Нейрохирургия», «Общая врачебная практика (семейная медицина)», «Педиатрия», «Ревматология», «Рефлексотерапия», «Терапия», | Повышение квалификации по специальности «Мануальная терапия» не реже одного раза в 5 лет в течение всей трудовой деятельности |",
+      "replace": "| | | Врач выездной бригады скорой медицинской помощи | Высшее образование – специалитет по специальности «Лечебное дело» (для лиц, освоивших образовательную программу после 1 января 2023 г.) | |\n| 37. | Мануальная терапия | Врач мануальной терапии; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач мануальной терапии | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Остеопатия», «Педиатрия» и подготовка в ординатуре по специальности «Мануальная терапия»⏎Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по одной из специальностей: «Лечебная физкультура и спортивная медицина», «Неврология», «Нейрохирургия», «Общая врачебная практика (семейная медицина)», «Педиатрия», «Ревматология», «Рефлексотерапия», «Терапия», | Повышение квалификации по специальности «Мануальная терапия» не реже одного раза в 5 лет в течение всей трудовой деятельности |",
+      "why": "The image has the last position of the position 36 («Врач выездной бригады скорой медицинской помощи» with «Высшее образование – специалитет по специальности «Лечебное дело» (для лиц, освоивших образовательную программу после 1 января 2023 г.)») and then the position 37 «Мануальная терапия» with its number; Marker lost the position cell «Врач выездной бригады скорой медицинской помощи», the number «37.» and the specialty, and ran the two rows together."
+    },
+    {
+      "page": 15,
+      "kind": "columns",
+      "find": "| 7. | Вирусология (сохраняется до 1 сентября 2028 г.) | Врач-вирусолог (прием на данную должность не осуществляется с 1 сентября 2028 г.); заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач-вирусолог (прием на данную должность не осуществляется с 1 сентября 2028 г.) | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Медицинская кибернетика», «Медицинская биофизика», «Медицинская биохимия», «Педиатрия», «Медико-профилактическое дело» и подготовка в ординатуре по специальности «Вирусология» | Повышение квалификации по специальности «Вирусология» не реже одного раза в 5 лет в течение всей трудовой деятельности |\n| | | | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по одной из специальностей: «Бактериология», «Инфекционные болезни», «Клиническая лабораторная диагностика», «Лабораторная микология», «Эпидемиология» и профессиональная переподготовка по специальности «Вирусология» | |\n| Высшее образование – специалитет по специальности «Стоматология» и подготовка в интернатуре или ординатуре по специальности «Клиническая лабораторная диагностика» и профессиональная переподготовка по специальности «Вирусология» | Высшее образование – специалитет по одной из специальностей: «Медицинская кибернетика», «Медицинская биофизика», «Медицинская биохимия» и | | | |",
+      "replace": "| 7. | Вирусология (сохраняется до 1 сентября 2028 г.) | Врач-вирусолог (прием на данную должность не осуществляется с 1 сентября 2028 г.); заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач-вирусолог (прием на данную должность не осуществляется с 1 сентября 2028 г.) | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Медицинская кибернетика», «Медицинская биофизика», «Медицинская биохимия», «Педиатрия», «Медико-профилактическое дело» и подготовка в ординатуре по специальности «Вирусология»⏎Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по одной из специальностей: «Бактериология», «Инфекционные болезни», «Клиническая лабораторная диагностика», «Лабораторная микология», «Эпидемиология» и профессиональная переподготовка по специальности «Вирусология»⏎Высшее образование – специалитет по специальности «Стоматология» и подготовка в интернатуре или ординатуре по специальности «Клиническая лабораторная диагностика» и профессиональная переподготовка по специальности «Вирусология»⏎Высшее образование – специалитет по одной из специальностей: «Медицинская кибернетика», «Медицинская биофизика», «Медицинская биохимия» и | Повышение квалификации по специальности «Вирусология» не реже одного раза в 5 лет в течение всей трудовой деятельности |",
+      "why": "The position 7 has four education variants in one cell in the image; Marker made rows of the second, third and fourth ones and put the third in the first column and the fourth (cut by the page end after «и») in the second."
+    },
+    {
+      "page": 74,
+      "kind": "columns",
+      "find": "| 52. | Нейропсихология | Нейропсихолог;⏎Заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – нейропсихолог | Высшее образование – специалитет по специальности «Клиническая психология» по образовательной программе (профилю, направлению, специализации) «Нейропсихология» | |\n| | | | Высшее образование – специалитет по специальности «Клиническая психология» (за исключением образовательной программы (профиля, направления, специализации) «Нейропсихология») и дополнительное профессиональное образование по направлению профессиональной деятельности (для лиц, освоивших образовательную программу до 1 сентября 2026 г.) | Повышение квалификации по специальности «Нейропсихология» не реже одного раза в 5 лет в течение всей трудовой деятельности |\n| Высшее образование – бакалавриат, специалитет, магистратура по одной из специальностей (одному из направлений подготовки): «Психология», «Психология служебной деятельности» и дополнительное профессиональное образование по направлению профессиональной деятельности (для лиц, освоивших образовательную программу до 1 сентября 2026 г.) | | | | |\n| | Высшее образование – специалитет по специальности «Клиническая психология» по образовательной программе (профилю, направлению, специализации) за исключением «Нейропсихология» и профессиональная переподготовка по специальности «Нейропсихология» | | | |",
+      "replace": "| 52. | Нейропсихология | Нейропсихолог;⏎Заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – нейропсихолог | Высшее образование – специалитет по специальности «Клиническая психология» по образовательной программе (профилю, направлению, специализации) «Нейропсихология»⏎Высшее образование – специалитет по специальности «Клиническая психология» (за исключением образовательной программы (профиля, направления, специализации) «Нейропсихология») и дополнительное профессиональное образование по направлению профессиональной деятельности (для лиц, освоивших образовательную программу до 1 сентября 2026 г.)⏎Высшее образование – бакалавриат, специалитет, магистратура по одной из специальностей (одному из направлений подготовки): «Психология», «Психология служебной деятельности» и дополнительное профессиональное образование по направлению профессиональной деятельности (для лиц, освоивших образовательную программу до 1 сентября 2026 г.)⏎Высшее образование – специалитет по специальности «Клиническая психология» по образовательной программе (профилю, направлению, специализации) за исключением «Нейропсихология» и профессиональная переподготовка по специальности «Нейропсихология» | Повышение квалификации по специальности «Нейропсихология» не реже одного раза в 5 лет в течение всей трудовой деятельности |",
+      "why": "The position 52 has four education variants in one cell in the image; Marker made rows of the second, third and fourth ones and put the third in the first column and the fourth in the second."
+    },
+    {
+      "page": 76,
+      "kind": "columns",
+      "find": "| 54. | Неонатология | Врач-неонатолог; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач-неонатолог; врач приемного отделения (наименование должности дополняется наименованием должности врача соответствующей специальности – в медицинской организации, оказывающей специализированную медицинскую помощь, или при наличии в медицинской организации структурного подразделения, оказывающего специализированную медицинскую помощь) | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по специальности «Неонатология» | |\n| | | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по одной из специальностей: «Анестезиология-реаниматология», «Педиатрия» и профессиональная переподготовка по специальности «Неонатология» | Повышение квалификации по специальности «Неонатология» не реже одного раза в 5 лет в течение всей трудовой деятельности | |\n| | | Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Анестезиология-реаниматология», «Педиатрия» и стаж работы более 3 лет по одной из специальностей: «Анестезиология-реаниматология», «Педиатрия» и профессиональная переподготовка по специальности «Неонатология» | | |\n| | | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в ординатуре по специальности «Нефрология» | | |\n| Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и | | | | |\n| 55. | Нефрология | Врач-нефролог; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и | Повышение квалификации по специальности «Нефрология» не реже одного раза в 5 лет в течение всей трудовой деятельности |\n| | | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и | | |",
+      "replace": "| 54. | Неонатология | Врач-неонатолог; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач-неонатолог; врач приемного отделения (наименование должности дополняется наименованием должности врача соответствующей специальности – в медицинской организации, оказывающей специализированную медицинскую помощь, или при наличии в медицинской организации структурного подразделения, оказывающего специализированную медицинскую помощь) | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по специальности «Неонатология»⏎Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по одной из специальностей: «Анестезиология-реаниматология», «Педиатрия» и профессиональная переподготовка по специальности «Неонатология»⏎Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Анестезиология-реаниматология», «Педиатрия» и стаж работы более 3 лет по одной из специальностей: «Анестезиология-реаниматология», «Педиатрия» и профессиональная переподготовка по специальности «Неонатология» | Повышение квалификации по специальности «Неонатология» не реже одного раза в 5 лет в течение всей трудовой деятельности |\n| 55. | Нефрология | Врач-нефролог; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в ординатуре по специальности «Нефрология»⏎Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и | Повышение квалификации по специальности «Нефрология» не реже одного раза в 5 лет в течение всей трудовой деятельности |",
+      "why": "The positions 54 and 55 have their education variants in one cell each in the image; Marker made rows of the further variants, put some in the position column and the qualification cell in the education one, and repeated the last variant of the page three times."
+    },
+    {
+      "page": 80,
+      "kind": "columns",
+      "find": "| 58. | Общая гигиена | Врач по общей гигиене; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач по общей гигиене | Высшее образование – специалитет по специальности «Медико-профилактическое дело» и подготовка в интернатуре или ординатуре по специальности «Общая гигиена» | |\n| | | | Высшее образование – специалитет по специальности «Медико-профилактическое дело» и подготовка в интернатуре или ординатуре по одной из специальностей: «Гигиена детей и подростков», «Гигиена труда», «Гигиена питания», «Гигиеническое воспитание», «Дезинфектология», «Коммунальная гигиена», «Радиационная гигиена», «Социальная гигиена и организация госсанэпидслужбы» и профессиональная переподготовка по специальности «Общая гигиена» | Повышение квалификации по специальности «Общая гигиена» не реже одного раза в 5 лет в течение всей трудовой деятельности |\n| Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Гигиена детей и подростков», «Гигиена труда», «Гигиена питания», «Гигиеническое воспитание», «Дезинфектология», «Коммунальная гигиена», «Радиационная гигиена», «Социальная гигиена и организация госсанэпидслужбы» и стаж работы более 3 лет по одной из специальностей: «Гигиена детей и подростков», «Гигиена труда», «Гигиена питания», «Гигиеническое воспитание», «Дезинфектология», «Коммунальная гигиена», | | | | |",
+      "replace": "| 58. | Общая гигиена | Врач по общей гигиене; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач по общей гигиене | Высшее образование – специалитет по специальности «Медико-профилактическое дело» и подготовка в интернатуре или ординатуре по специальности «Общая гигиена»⏎Высшее образование – специалитет по специальности «Медико-профилактическое дело» и подготовка в интернатуре или ординатуре по одной из специальностей: «Гигиена детей и подростков», «Гигиена труда», «Гигиена питания», «Гигиеническое воспитание», «Дезинфектология», «Коммунальная гигиена», «Радиационная гигиена», «Социальная гигиена и организация госсанэпидслужбы» и профессиональная переподготовка по специальности «Общая гигиена»⏎Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Гигиена детей и подростков», «Гигиена труда», «Гигиена питания», «Гигиеническое воспитание», «Дезинфектология», «Коммунальная гигиена», «Радиационная гигиена», «Социальная гигиена и организация госсанэпидслужбы» и стаж работы более 3 лет по одной из специальностей: «Гигиена детей и подростков», «Гигиена труда», «Гигиена питания», «Гигиеническое воспитание», «Дезинфектология», «Коммунальная гигиена», | Повышение квалификации по специальности «Общая гигиена» не реже одного раза в 5 лет в течение всей трудовой деятельности |",
+      "why": "The position 58 has three education variants in one cell in the image; Marker made rows of the second and third ones and put the third (cut by the page end) in the first column."
+    },
+    {
+      "page": 89,
+      "kind": "duplicate-row",
+      "find": "\n| | | | | |",
+      "replace": "",
+      "why": "An empty table row Marker made out of the bottom edge of the page; the image has an empty strip there, no row."
+    },
+    {
+      "page": 105,
+      "kind": "columns",
+      "find": "| 77. | Радиотерапия | Врач-радиотерапевт; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач-радиотерапевт | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в ординатуре по специальности «Радиотерапия» | Повышение квалификации по специальности «Радиотерапия» не реже одного раза в 5 лет в течение всей трудовой деятельности |\n| | | | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по одной из специальностей: «Детская онкология», «Онкология» и профессиональная переподготовка по специальности «Радиотерапия» | |\n| Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в ординатуре по специальности «Радиология» и стаж непрерывной работы 5 лет и более на должностях: врач-радиолог, заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач-радиолог и профессиональная переподготовка по специальности «Радиотерапия» | | | | |\n| | Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим | | | |",
+      "replace": "| 77. | Радиотерапия | Врач-радиотерапевт; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач-радиотерапевт | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в ординатуре по специальности «Радиотерапия»⏎Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по одной из специальностей: «Детская онкология», «Онкология» и профессиональная переподготовка по специальности «Радиотерапия»⏎Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в ординатуре по специальности «Радиология» и стаж непрерывной работы 5 лет и более на должностях: врач-радиолог, заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач-радиолог и профессиональная переподготовка по специальности «Радиотерапия»⏎Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим | Повышение квалификации по специальности «Радиотерапия» не реже одного раза в 5 лет в течение всей трудовой деятельности |",
+      "why": "The position 77 has four education variants in one cell in the image; Marker made rows of the second, third and fourth ones and put the third in the first column and the fourth (cut by the page end) in the second."
+    },
+    {
+      "page": 113,
+      "kind": "duplicate-row",
+      "find": "\n| | | | | |",
+      "replace": "",
+      "why": "An empty table row Marker made out of the bottom edge of the page; the image has no such row."
+    },
+    {
+      "page": 141,
+      "kind": "duplicate-row",
+      "find": "\n| | | | | |",
+      "replace": "",
+      "why": "An empty table row Marker made out of the bottom edge of the page; the image has no such row."
+    },
+    {
+      "page": 128,
+      "kind": "separator",
+      "find": "|--|",
+      "replace": "|",
+      "why": "Marker's separator line had a sixth column; the table has five (the sixth made the card start a new table here)."
+    },
+    {
+      "page": 128,
+      "kind": "columns",
+      "find": "Повышение квалификации по специальности | |",
+      "replace": "Повышение квалификации по специальности |",
+      "why": "The header has five columns; Marker added an empty sixth one."
+    },
+    {
+      "page": 128,
+      "kind": "columns",
+      "find": "структурного подразделения | | | |",
+      "replace": "структурного подразделения | | |",
+      "why": "The row has five columns; Marker added an empty sixth one."
+    },
+    {
+      "page": 140,
+      "kind": "columns",
+      "find": "| 105. Урология | | Врач-уролог; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач-уролог; врач приемного отделения (наименование должности дополняется наименованием должности врача соответствующей специальности – в медицинской организации, оказывающей специализированную медицинскую помощь, или при наличии в медицинской организации структурного подразделения, оказывающего специализированную медицинскую помощь) | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в ординатуре по специальности «Урология» | Повышение квалификации по специальности «Урология» не реже одного раза в 5 лет в течение всей трудовой деятельности |\n| | | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по одной из специальностей: «Акушерство и гинекология», «Онкология», «Хирургия» и профессиональная переподготовка по специальности «Урология» | | |\n| | Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Онкология», «Хирургия» и стаж работы более 3 лет по одной из специальностей: «Онкология», «Хирургия» и профессиональная переподготовка по специальности «Урология» | | | |",
+      "replace": "| 105. | Урология | Врач-уролог; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач-уролог; врач приемного отделения (наименование должности дополняется наименованием должности врача соответствующей специальности – в медицинской организации, оказывающей специализированную медицинскую помощь, или при наличии в медицинской организации структурного подразделения, оказывающего специализированную медицинскую помощь) | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в ординатуре по специальности «Урология»⏎Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по одной из специальностей: «Акушерство и гинекология», «Онкология», «Хирургия» и профессиональная переподготовка по специальности «Урология»⏎Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Онкология», «Хирургия» и стаж работы более 3 лет по одной из специальностей: «Онкология», «Хирургия» и профессиональная переподготовка по специальности «Урология» | Повышение квалификации по специальности «Урология» не реже одного раза в 5 лет в течение всей трудовой деятельности |",
+      "why": "The number «105.» and the specialty «Урология» are two columns, and the position 105 has three education variants in one cell in the image; Marker ran the number and the specialty together, made rows of the second and third variants and put them in the position and the specialty columns."
+    },
+    {
+      "page": 152,
+      "kind": "columns",
+      "find": "| 113. Хирургия | Врач-хирург | | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и профессиональная переподготовка по специальности «Хирургия» в объеме не менее 1296 часов | Повышение квалификации по специальности «Хирургия» не реже одного раза в 5 лет в течение всей трудовой деятельности |\n| | Врач-хирург; судовой врач; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по специальности «Хирургия» | | |",
+      "replace": "| 113. | Хирургия | Врач-хирург | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и профессиональная переподготовка по специальности «Хирургия» в объеме не менее 1296 часов | Повышение квалификации по специальности «Хирургия» не реже одного раза в 5 лет в течение всей трудовой деятельности |\n|  |  | Врач-хирург; судовой врач; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по специальности «Хирургия» |  |",
+      "why": "The number «113.» and the specialty «Хирургия» are two columns, the position «Врач-хирург» the third and its education the fourth; the second position cell and its education are the next row. Marker ran the number and the specialty together and shifted the cells of the row by one column."
+    },
+    {
+      "page": 157,
+      "kind": "columns",
+      "find": "| 117. Эпидемиология | | Врач-эпидемиолог; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач-эпидемиолог | Высшее образование – специалитет по специальности «Медико-профилактическое дело» и подготовка в интернатуре или ординатуре по специальности «Эпидемиология» | Повышение квалификации по специальности «Эпидемиология» не реже одного раза в 5 лет в течение всей трудовой деятельности |\n| | Высшее образование – специалитет по специальности «Медико-профилактическое дело» и подготовка в интернатуре или ординатуре по одной из специальностей: «Бактериология», «Вирусология, «Гигиена детей и подростков», «Гигиена питания», «Гигиена труда», «Гигиеническое воспитание», «Дезинфектология», «Коммунальная гигиена», «Медицинская микробиология», «Общая гигиена», «Организация здравоохранения и общественное здоровье», «Паразитология», «Радиационная гигиена», «Социальная гигиена и организация госсанэпидслужбы» и профессиональная переподготовка по специальности «Эпидемиология» | | | |\n| | Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Бактериология», «Вирусология», «Гигиена детей и подростков», «Гигиена питания», «Гигиена труда», «Гигиеническое воспитание», «Дезинфектология», «Коммунальная гигиена», «Медицинская | | | |",
+      "replace": "| 117. | Эпидемиология | Врач-эпидемиолог; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач-эпидемиолог | Высшее образование – специалитет по специальности «Медико-профилактическое дело» и подготовка в интернатуре или ординатуре по специальности «Эпидемиология»⏎Высшее образование – специалитет по специальности «Медико-профилактическое дело» и подготовка в интернатуре или ординатуре по одной из специальностей: «Бактериология», «Вирусология, «Гигиена детей и подростков», «Гигиена питания», «Гигиена труда», «Гигиеническое воспитание», «Дезинфектология», «Коммунальная гигиена», «Медицинская микробиология», «Общая гигиена», «Организация здравоохранения и общественное здоровье», «Паразитология», «Радиационная гигиена», «Социальная гигиена и организация госсанэпидслужбы» и профессиональная переподготовка по специальности «Эпидемиология»⏎Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Бактериология», «Вирусология», «Гигиена детей и подростков», «Гигиена питания», «Гигиена труда», «Гигиеническое воспитание», «Дезинфектология», «Коммунальная гигиена», «Медицинская | Повышение квалификации по специальности «Эпидемиология» не реже одного раза в 5 лет в течение всей трудовой деятельности |",
+      "why": "The number «117.» and the specialty «Эпидемиология» are two columns, and the position 117 has three education variants in one cell in the image; Marker ran the number and the specialty together and made rows of the second and third variants in the specialty column."
+    },
+    {
+      "page": 158,
+      "kind": "columns",
+      "find": "| 118. Эргореабилитация | | Специалист по эргореабилитации (эргоспециалист); заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – специалист по эргореабилитации (эргоспециалист) | Высшее образование – специалитет по специальности «Клиническая психология»⏎и⏎профессиональная переподготовка по направлению профессиональной деятельности (для лиц, освоивших образовательную программу до 1 сентября 2026 г.)⏎Высшее образование – бакалавриат, специалитет, магистратура по одной из специальностей (одному из направлений подготовки): «Педагогическое образование», «Психолого-педагогическое образование», «Психология», «Специальное (дефектологическое) образование», «Олигофренопедагогика», «Педагогика и психология», «Социальная педагогика», «Специальная психология», «Социология», «Физическая культура для лиц с отклонениями в состоянии здоровья (адаптивная | Повышение квалификации по специальности «Эргореабилитация» не реже одного раза в 5 лет в течение всей трудовой деятельности |",
+      "replace": "| 118. | Эргореабилитация | Специалист по эргореабилитации (эргоспециалист); заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – специалист по эргореабилитации (эргоспециалист) | Высшее образование – специалитет по специальности «Клиническая психология»⏎и⏎профессиональная переподготовка по направлению профессиональной деятельности (для лиц, освоивших образовательную программу до 1 сентября 2026 г.)⏎Высшее образование – бакалавриат, специалитет, магистратура по одной из специальностей (одному из направлений подготовки): «Педагогическое образование», «Психолого-педагогическое образование», «Психология», «Специальное (дефектологическое) образование», «Олигофренопедагогика», «Педагогика и психология», «Социальная педагогика», «Специальная психология», «Социология», «Физическая культура для лиц с отклонениями в состоянии здоровья (адаптивная | Повышение квалификации по специальности «Эргореабилитация» не реже одного раза в 5 лет в течение всей трудовой деятельности |",
+      "why": "The number «118.» and the specialty «Эргореабилитация» are two columns; Marker ran them together and left the next cell empty."
+    },
+    {
+      "page": 135,
+      "kind": "columns",
+      "find": "| 102. | Ультразвуковая диагностика | Врач ультразвуковой диагностики; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач ультразвуковой диагностики | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия», «Медицинская биофизика», «Медицинская кибернетика» и подготовка в ординатуре по специальности «Ультразвуковая диагностика» | |\n| | | | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по одной из специальностей: «Авиационная и космическая медицина», «Акушерство и гинекология», «Анестезиология-реаниматология», «Водолазная медицина», «Гастроэнтерология», «Гематология», «Гериатрия», «Дерматовенерология», «Детская онкология», «Детская урология-андрология», «Детская хирургия», «Детская эндокринология», «Инфекционные болезни», «Кардиология», «Колопроктология», «Неврология», «Нейрохирургия», «Неонатология», «Нефрология», «Общая врачебная практика (семейная медицина)», «Онкология», «Оториноларингология», «Офтальмология», «Педиатрия», «Пластическая хирургия», «Профпатология», «Пульмонология», «Ревматология», «Рентгенология», «Рентгенэндоваскулярные диагностика и лечение», «Сердечно-сосудистая хирургия», «Скорая медицинская помощь», «Сурдология-оториноларингология», «Терапия», «Торакальная хирургия», «Травматология и ортопедия», «Урология», «Функциональная диагностика», «Фтизиатрия», «Хирургия», «Челюстно-лицевая хирургия», «Эндокринология» | Повышение квалификации по специальности «Ультразвуковая диагностика» не реже одного раза в 5 лет в течение всей трудовой деятельности |",
+      "replace": "| 102. | Ультразвуковая диагностика | Врач ультразвуковой диагностики; заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач ультразвуковой диагностики | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия», «Медицинская биофизика», «Медицинская кибернетика» и подготовка в ординатуре по специальности «Ультразвуковая диагностика»⏎Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по одной из специальностей: «Авиационная и космическая медицина», «Акушерство и гинекология», «Анестезиология-реаниматология», «Водолазная медицина», «Гастроэнтерология», «Гематология», «Гериатрия», «Дерматовенерология», «Детская онкология», «Детская урология-андрология», «Детская хирургия», «Детская эндокринология», «Инфекционные болезни», «Кардиология», «Колопроктология», «Неврология», «Нейрохирургия», «Неонатология», «Нефрология», «Общая врачебная практика (семейная медицина)», «Онкология», «Оториноларингология», «Офтальмология», «Педиатрия», «Пластическая хирургия», «Профпатология», «Пульмонология», «Ревматология», «Рентгенология», «Рентгенэндоваскулярные диагностика и лечение», «Сердечно-сосудистая хирургия», «Скорая медицинская помощь», «Сурдология-оториноларингология», «Терапия», «Торакальная хирургия», «Травматология и ортопедия», «Урология», «Функциональная диагностика», «Фтизиатрия», «Хирургия», «Челюстно-лицевая хирургия», «Эндокринология» | Повышение квалификации по специальности «Ультразвуковая диагностика» не реже одного раза в 5 лет в течение всей трудовой деятельности |",
+      "why": "The position 102 has its two education variants and its qualification cell in one row in the image; Marker made a separate row of the second variant and put the qualification cell there."
+    },
+    {
+      "page": 5,
+      "kind": "columns",
+      "find": "| | | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и | | |",
+      "replace": "|  |  |  | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и |  |",
+      "why": "The education variant of the position above is in the education column in the image; Marker put it in the position column."
+    },
+    {
+      "page": 13,
+      "kind": "columns",
+      "find": "| | Высшее образование – специалитет по специальности «Стоматология» и подготовка в интернатуре или ординатуре по специальности «Клиническая лабораторная диагностика» и профессиональная переподготовка по специальности «Бактериология» | | | |",
+      "replace": "|  |  |  | Высшее образование – специалитет по специальности «Стоматология» и подготовка в интернатуре или ординатуре по специальности «Клиническая лабораторная диагностика» и профессиональная переподготовка по специальности «Бактериология» |  |",
+      "why": "The education variant of the position above is in the education column in the image; Marker put it in the specialty column."
+    },
+    {
+      "page": 22,
+      "kind": "columns",
+      "find": "| | | Высшее образование – специалитет по одной из специальностей: «Медико-профилактическое дело», «Педиатрия» и подготовка в интернатуре или ординатуре по одной из специальностей: «Гигиена питания», «Гигиена труда», | | |",
+      "replace": "|  |  |  | Высшее образование – специалитет по одной из специальностей: «Медико-профилактическое дело», «Педиатрия» и подготовка в интернатуре или ординатуре по одной из специальностей: «Гигиена питания», «Гигиена труда», |  |",
+      "why": "The education variant of the position above is in the education column in the image; Marker put it in the position column."
+    },
+    {
+      "page": 30,
+      "kind": "columns",
+      "find": "| | | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в ординатуре по специальности «Детская онкология-гематология» | | |",
+      "replace": "|  |  |  | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в ординатуре по специальности «Детская онкология-гематология» |  |",
+      "why": "The education variant of the position above is in the education column in the image; Marker put it in the position column."
+    },
+    {
+      "page": 30,
+      "kind": "columns",
+      "find": "| | | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и | | |",
+      "replace": "|  |  |  | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и |  |",
+      "why": "The education variant of the position above is in the education column in the image; Marker put it in the position column."
+    },
+    {
+      "page": 33,
+      "kind": "columns",
+      "find": "| | Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по специальности «Хирургия» и | | | |",
+      "replace": "|  |  |  | Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по специальности «Хирургия» и |  |",
+      "why": "The education variant of the position above is in the education column in the image; Marker put it in the specialty column."
+    },
+    {
+      "page": 34,
+      "kind": "columns",
+      "find": "| | | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по одной из специальностей: «Педиатрия», «Эндокринология» и профессиональная переподготовка по специальности «Детская эндокринология» | | |",
+      "replace": "|  |  |  | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по одной из специальностей: «Педиатрия», «Эндокринология» и профессиональная переподготовка по специальности «Детская эндокринология» |  |",
+      "why": "The education variant of the position above is in the education column in the image; Marker put it in the position column."
+    },
+    {
+      "page": 34,
+      "kind": "columns",
+      "find": "| | | Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Педиатрия», «Эндокринология» и стаж работы более 3 лет по одной из специальностей: «Педиатрия», «Эндокринология» и профессиональная переподготовка по специальности «Детская эндокринология» | | |",
+      "replace": "|  |  |  | Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Педиатрия», «Эндокринология» и стаж работы более 3 лет по одной из специальностей: «Педиатрия», «Эндокринология» и профессиональная переподготовка по специальности «Детская эндокринология» |  |",
+      "why": "The education variant of the position above is in the education column in the image; Marker put it in the position column."
+    },
+    {
+      "page": 34,
+      "kind": "columns",
+      "find": "| | | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» | | |",
+      "replace": "|  |  |  | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» |  |",
+      "why": "The education variant of the position above is in the education column in the image; Marker put it in the position column."
+    },
+    {
+      "page": 41,
+      "kind": "columns",
+      "find": "| | | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Медико-профилактическое дело», «Медицинская биофизика», «Медицинская биохимия», «Медицинская кибернетика», «Педиатрия», «Стоматология» и стаж работы от 5 лет до 10 лет (при отсутствии перерыва в стаже 5 лет и более) на должностях: врач клинической лабораторной диагностики, заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач клинической лабораторной диагностики и профессиональная переподготовка по направлению профессиональной деятельности (для лиц, освоивших образовательную программу до 1 сентября 2026 г.) | | |",
+      "replace": "|  |  |  | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Медико-профилактическое дело», «Медицинская биофизика», «Медицинская биохимия», «Медицинская кибернетика», «Педиатрия», «Стоматология» и стаж работы от 5 лет до 10 лет (при отсутствии перерыва в стаже 5 лет и более) на должностях: врач клинической лабораторной диагностики, заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач клинической лабораторной диагностики и профессиональная переподготовка по направлению профессиональной деятельности (для лиц, освоивших образовательную программу до 1 сентября 2026 г.) |  |",
+      "why": "The education variant of the position above is in the education column in the image; Marker put it in the position column."
+    },
+    {
+      "page": 41,
+      "kind": "columns",
+      "find": "| | | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Медико-профилактическое дело», «Медицинская биофизика», «Медицинская биохимия», «Медицинская кибернетика», «Педиатрия», «Стоматология» и стаж работы 10 лет и более (при отсутствии перерыва в стаже 5 лет и более) на должностях: врач клинической лабораторной диагностики, заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач клинической лабораторной диагностики | | |",
+      "replace": "|  |  |  | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Медико-профилактическое дело», «Медицинская биофизика», «Медицинская биохимия», «Медицинская кибернетика», «Педиатрия», «Стоматология» и стаж работы 10 лет и более (при отсутствии перерыва в стаже 5 лет и более) на должностях: врач клинической лабораторной диагностики, заведующий (начальник, заместитель начальника) структурного подразделения (отдела, отделения, лаборатории, кабинета, отряда и другое) медицинской организации – врач клинической лабораторной диагностики |  |",
+      "why": "The education variant of the position above is in the education column in the image; Marker put it in the position column."
+    },
+    {
+      "page": 95,
+      "kind": "columns",
+      "find": "| | Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Неврология», «Общая врачебная практика (семейная медицина)», «Сурдология-оториноларингология», «Терапия» и стаж работы более 3 лет по одной из специальностей: «Неврология», «Общая врачебная практика (семейная медицина)», «Сурдология-оториноларингология», «Терапия» и | | | |",
+      "replace": "|  |  |  | Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Неврология», «Общая врачебная практика (семейная медицина)», «Сурдология-оториноларингология», «Терапия» и стаж работы более 3 лет по одной из специальностей: «Неврология», «Общая врачебная практика (семейная медицина)», «Сурдология-оториноларингология», «Терапия» и |  |",
+      "why": "The education variant of the position above is in the education column in the image; Marker put it in the specialty column."
+    },
+    {
+      "page": 114,
+      "kind": "columns",
+      "find": "| | | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по одной из специальностей: «Гастроэнтерология», «Гериатрия», «Кардиология», «Неврология», «Общая врачебная практика (семейная медицина)», «Педиатрия», «Психиатрия», «Психиатрия-наркология», «Психотерапия», «Судебно-психиатрическая экспертиза», «Терапия», «Эндокринология», «Акушерство и гинекология», «Анестезиология-реаниматология», «Гематология», «Дерматовенерология», «Пульмонология», «Урология» и профессиональная переподготовка по специальности «Сексология» | | |",
+      "replace": "|  |  |  | Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия» и подготовка в интернатуре или ординатуре по одной из специальностей: «Гастроэнтерология», «Гериатрия», «Кардиология», «Неврология», «Общая врачебная практика (семейная медицина)», «Педиатрия», «Психиатрия», «Психиатрия-наркология», «Психотерапия», «Судебно-психиатрическая экспертиза», «Терапия», «Эндокринология», «Акушерство и гинекология», «Анестезиология-реаниматология», «Гематология», «Дерматовенерология», «Пульмонология», «Урология» и профессиональная переподготовка по специальности «Сексология» |  |",
+      "why": "The education variant of the position above is in the education column in the image; Marker put it in the position column."
+    },
+    {
+      "page": 124,
+      "kind": "columns",
+      "find": "| | Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Детская онкология», «Детская урология-андрология», «Детская хирургия», «Колопроктология», «Онкология», | | | |",
+      "replace": "|  |  |  | Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Детская онкология», «Детская урология-андрология», «Детская хирургия», «Колопроктология», «Онкология», |  |",
+      "why": "The education variant of the position above is in the education column in the image; Marker put it in the specialty column."
+    },
+    {
+      "page": 125,
+      "kind": "columns",
+      "find": "| | Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Психотерапия», «Психиатрия», «Психиатрия-наркология», «Сексология» | | | |",
+      "replace": "|  |  |  | Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Психотерапия», «Психиатрия», «Психиатрия-наркология», «Сексология» |  |",
+      "why": "The education variant of the position above is in the education column in the image; Marker put it in the specialty column."
+    },
+    {
+      "page": 130,
+      "kind": "columns",
+      "find": "| | Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Анестезиология-реаниматология», «Кардиология», «Неврология», «Общая врачебная практика (семейная медицина)», «Педиатрия», «Психиатрия», «Скорая медицинская помощь», «Терапия», «Хирургия» и | | | |",
+      "replace": "|  |  |  | Высшее и дополнительное профессиональное образование, соответствующее квалификационным требованиям к медицинским и фармацевтическим работникам, по одной из специальностей: «Анестезиология-реаниматология», «Кардиология», «Неврология», «Общая врачебная практика (семейная медицина)», «Педиатрия», «Психиатрия», «Скорая медицинская помощь», «Терапия», «Хирургия» и |  |",
+      "why": "The education variant of the position above is in the education column in the image; Marker put it in the specialty column."
+    }
+  ],
+  "keepMarker": [
+    65
+  ]
+}
