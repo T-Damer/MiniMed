@@ -65,6 +65,7 @@ _INLINE_TAG: Final = re.compile(
     r"</?(?:p|b|i|u|em|strong|span|div|ul|ol|li|table|thead|tbody|tr|td|th|a)(?:\s[^>]*)?>",
     re.IGNORECASE,
 )
+_BR_PEEK: Final = re.compile(r"<br\s*/?>\s*(?=(\S))", re.IGNORECASE)
 _BR: Final = re.compile(r"<br\s*/?>", re.IGNORECASE)
 _DOUBLE_NUMBERED: Final = re.compile(r"^(\s*)\d+\.\s+(\d+[.)]\s)", re.MULTILINE)
 _FURNITURE: Final = re.compile(r"^[\s#*_|\\\-–—.()]*\d{1,4}[\s#*_|\\\-–—.()]*$")
@@ -123,10 +124,14 @@ LINE_BREAK_IN_CELL: Final = "\u23ce"
 
 def _flatten_breaks(line: str) -> str:
     """`<br>`, `</p>` and `<li>` are a space in running text and a line break (⏎) inside a table cell."""
-    separator = LINE_BREAK_IN_CELL if line.lstrip().startswith("|") else " "
-    line = _BR.sub(separator, line)
-    line = _BLOCK_END.sub(separator, line)
-    return line
+    if not line.lstrip().startswith("|"):
+        return _BLOCK_END.sub(" ", _BR.sub(" ", line))
+    # In a cell a `<br>` is either a visual wrap («пневмококковой<br>инфекции») or the end of an item
+    # («…ребенка<br>Сбор анамнеза»): an item ends where the next part starts like a new sentence.
+    line = _BR_PEEK.sub(
+        lambda m: LINE_BREAK_IN_CELL if re.match(r"[A-ZА-ЯЁ0-9•\-–—]", m.group(1)) else " ", line
+    )
+    return _BLOCK_END.sub(LINE_BREAK_IN_CELL, _BR.sub(" ", line))
 
 
 def _tidy_cell_breaks(line: str) -> str:

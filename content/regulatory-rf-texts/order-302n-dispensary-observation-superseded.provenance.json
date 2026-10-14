@@ -1,0 +1,177 @@
+{
+ "documentId": "regulatory.rf.minzdrav.302n-2019",
+ "source": {
+  "file": "0001201906100012.pdf",
+  "sha256": "e62b08a4987f4c82543db550e2febfbc0ceb69664448bae1c9406c055d14cda5",
+  "bytes": 473842,
+  "pages": 7,
+  "officialUrl": "https://publication.pravo.gov.ru/Document/View/0001201906100012"
+ },
+ "identityFromPortal": {
+  "number": "302н",
+  "date": "2019-05-16",
+  "name": "Об утверждении Порядка прохождения несовершеннолетними диспансерного наблюдения, в том числе в период обучения и воспитания в образовательных организациях",
+  "registrationNumber": "54887",
+  "registrationDate": "2019-06-07"
+ },
+ "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
+ "review": {
+  "reviewer": "Claude (agent), against the page images; not a lawyer",
+  "reviewedAt": "2026-10-14",
+  "corrections": 0
+ },
+ "pages": [
+  {
+   "page": 1,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": "МИНИСТЕРСТВО ЗДРАВООХРАНЕНИЯ\nРОССИЙСКОЙ ФЕДЕРАЦИИ\n(Минздрав России)\n\n**ПРИКАЗ**\n\n*16. 2022 2019.*\n\n№ 3024\n\nМосква\n\n**Об утверждении\nПорядка прохождения несовершеннолетними\nдиспансерного наблюдения, в том числе в период обучения\nи воспитания в образовательных организациях**",
+   "stats": {
+    "markerTokens": 110,
+    "visionTokens": 108,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 2,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [
+    "от «16» *май* 2019 г. № 3024"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 266,
+    "visionTokens": 264,
+    "coverageVision": 0.9911,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 3,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "2"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 277,
+    "visionTokens": 275,
+    "coverageVision": 0.9916,
+    "coverageMarker": 0.9958,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 4,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Marker: 2004, 2012, 30, 4275, 49, 4916"
+    }
+   ],
+   "furniture": [
+    "3"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 307,
+    "visionTokens": 292,
+    "coverageVision": 0.9961,
+    "coverageMarker": 0.9511,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 5,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "4"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 315,
+    "visionTokens": 310,
+    "coverageVision": 0.9964,
+    "coverageMarker": 0.9964,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 6,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "5"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 236,
+    "visionTokens": 235,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 7,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Marker: 20, 2015, 2018, 36160, 9"
+    },
+    {
+     "kind": "coverage-marker",
+     "detail": "17% of Marker's tokens are not in Vision (e.g. российской, федерации, приказом, министерства, здравоохранения, от, зарегистрирован, министерством, юстиции, 20, февраля, 2015)"
+    }
+   ],
+   "furniture": [
+    "6"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 145,
+    "visionTokens": 117,
+    "coverageVision": 1.0,
+    "coverageMarker": 0.8306,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  }
+ ]
+}

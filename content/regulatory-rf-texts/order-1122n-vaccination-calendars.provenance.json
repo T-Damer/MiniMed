@@ -1,0 +1,336 @@
+{
+ "documentId": "regulatory.rf.minzdrav.1122n-2021",
+ "source": {
+  "file": "0001202112200070.pdf",
+  "sha256": "5bc4f95c44d6caedef5eb1519bc6a53f4383509d80df63d025492708af4cfa9d",
+  "bytes": 911733,
+  "pages": 15,
+  "officialUrl": "https://publication.pravo.gov.ru/Document/View/0001202112200070"
+ },
+ "identityFromPortal": {
+  "number": "1122н",
+  "date": "2021-12-06",
+  "name": "Об утверждении национального календаря профилактических прививок, календаря профилактических прививок по эпидемическим показаниям и порядка проведения профилактических прививок",
+  "registrationNumber": "66435",
+  "registrationDate": "2021-12-20"
+ },
+ "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
+ "review": {
+  "reviewer": "Claude (agent), against the page images; not a lawyer",
+  "reviewedAt": "2026-10-14",
+  "corrections": 2
+ },
+ "pages": [
+  {
+   "page": 1,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": "МИНИСТЕРСТВО ЗДРАВООХРАНЕНИЯ\nРОССИЙСКОЙ ФЕДЕРАЦИИ\n(МИНЗДРАВ РОССИИ)\n\nПРИКАЗ\n\n6 декабря 2021 г.\n\nМосква\n\n№ 1122Н\n\n**Об утверждении\nнационального календаря профилактических прививок,\nкалендаря профилактических прививок по эпидемическим показаниям\nи порядка проведения профилактических прививок**",
+   "stats": {
+    "markerTokens": 192,
+    "visionTokens": 192,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 2,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "2"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 318,
+    "visionTokens": 320,
+    "coverageVision": 0.9962,
+    "coverageMarker": 0.9962,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 3,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "repeated-content-missing",
+     "detail": "Vision has these words more often than Marker (dropped rows or lines?): вакцинация×2, первая, полиомиелита×2, против×2"
+    }
+   ],
+   "furniture": [],
+   "portalRewrites": [
+    "от « б » gmadpe 2021 г. № 11224"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 173,
+    "visionTokens": 178,
+    "coverageVision": 0.9536,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 19
+   }
+  },
+  {
+   "page": 4,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "2"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 197,
+    "visionTokens": 197,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 13
+   }
+  },
+  {
+   "page": 5,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "3"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 116,
+    "visionTokens": 116,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 2
+   }
+  },
+  {
+   "page": 6,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "4"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 25,
+    "visionTokens": 25,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 1
+   }
+  },
+  {
+   "page": 7,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [
+    "от « б » *улица Фр* 2021 г. № 11224"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 197,
+    "visionTokens": 198,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 8,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "2"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 207,
+    "visionTokens": 207,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 9,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "3"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 228,
+    "visionTokens": 228,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 5
+   }
+  },
+  {
+   "page": 10,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "4"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 236,
+    "visionTokens": 236,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 6
+   }
+  },
+  {
+   "page": 11,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Vision: 13; only in Marker: 15"
+    }
+   ],
+   "furniture": [
+    "5"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 247,
+    "visionTokens": 246,
+    "coverageVision": 0.982,
+    "coverageMarker": 0.982,
+    "respaced": 0,
+    "tableRows": 6
+   }
+  },
+  {
+   "page": 12,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 187,
+    "visionTokens": 187,
+    "coverageVision": 0.9939,
+    "coverageMarker": 0.9939,
+    "respaced": 0,
+    "tableRows": 3
+   }
+  },
+  {
+   "page": 13,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [
+    "от «Б» *genabyle* 2021 г. № 1122"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 363,
+    "visionTokens": 356,
+    "coverageVision": 0.9968,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 14,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Marker: 18"
+    }
+   ],
+   "furniture": [
+    "2"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 392,
+    "visionTokens": 391,
+    "coverageVision": 0.9971,
+    "coverageMarker": 0.9941,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 15,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "3"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 160,
+    "visionTokens": 160,
+    "coverageVision": 1.0,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  }
+ ]
+}

@@ -1,0 +1,103 @@
+{
+ "documentId": "regulatory.rf.minzdrav.195n-2025",
+ "source": {
+  "file": "0001202505140009.pdf",
+  "sha256": "d4352d00b2543861f9e0fbb07c9cb5ce7082eb118e74c9b3bf0c385e0124804f",
+  "bytes": 254447,
+  "pages": 4,
+  "officialUrl": "https://publication.pravo.gov.ru/document/0001202505140009"
+ },
+ "identityFromPortal": {
+  "number": "195н",
+  "date": "2025-04-11",
+  "name": "Об утверждении Порядка проведения экспертизы временной нетрудоспособности",
+  "registrationNumber": "82144",
+  "registrationDate": "2025-05-13"
+ },
+ "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
+ "review": {
+  "reviewer": "",
+  "reviewedAt": "",
+  "corrections": 0
+ },
+ "pages": [
+  {
+   "page": 1,
+   "reading": "marker+vision-tokens",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": "МИНИСТЕРСТВО ЗДРАВООХРАНЕНИЯ\nРОССИЙСКОЙ ФЕДЕРАЦИИ\n(МИНЗДРАВ РОССИИ)\n\n*11 апреля 2025 г.*\n\n№ *1954*\n\n**Об утверждении Порядка проведения экспертизы временной\nнетрудоспособности**",
+   "stats": {
+    "markerTokens": 117,
+    "visionTokens": 115,
+    "coverageVision": 0.9894,
+    "coverageMarker": 0.9789,
+    "respaced": 1,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 2,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [
+    "от 11 апреля 2015 г. № 1954"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 301,
+    "visionTokens": 296,
+    "coverageVision": 0.9879,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 3,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "2"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 318,
+    "visionTokens": 319,
+    "coverageVision": 0.9925,
+    "coverageMarker": 0.9962,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 4,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "3"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 185,
+    "visionTokens": 182,
+    "coverageVision": 0.9803,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  }
+ ]
+}

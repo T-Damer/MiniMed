@@ -78,15 +78,20 @@ def footer_of(sections: list[Section]) -> Section:
     raise ValueError("card has no «Источник и редакция» footer")
 
 
+_ORIGINAL_ONLY: Final = " Текст выше — первоначальная публикация, изменения в него не внесены."
+_SCAN_LINE: Final = re.compile(r"^Текст набран с официального скана .*$")
+
+
 def rewrite_footer(footer: Section, *, pages: int | None, amended: bool) -> str:
-    """The footer with the edition line made honest about the text above it."""
+    """The footer with the edition line made honest about the text above it (idempotent)."""
     lines: list[str] = []
-    for raw in footer.text.rstrip("\n").split("\n"):
+    text = footer.text.rstrip("\n").replace('"contentMode":"paraphrase"', '"contentMode":"source_text"')
+    for raw in text.split("\n"):
+        raw = raw.replace(_ORIGINAL_ONLY, "")
+        if _SCAN_LINE.match(raw):
+            continue
         if raw.startswith("Редакция:") and amended:
-            lines.append(
-                raw.rstrip(".")
-                + ". Текст выше — первоначальная публикация, изменения в него не внесены."
-            )
+            lines.append(raw.rstrip(".") + "." + _ORIGINAL_ONLY)
         elif raw.startswith("Сверено с официальным текстом") and pages:
             lines.append(raw)
             lines.append("")
@@ -95,7 +100,8 @@ def rewrite_footer(footer: Section, *, pages: int | None, amended: bool) -> str:
             )
         else:
             lines.append(raw)
-    return "\n".join(lines).rstrip("\n") + "\n"
+    out = "\n".join(lines)
+    return re.sub(r"\n{3,}", "\n\n", out).rstrip("\n") + "\n"
 
 
 def front_with(front: str, *, content_mode: str, description: str, extra: dict[str, object]) -> str:
@@ -139,7 +145,8 @@ def assemble_card(
     """The new card from the old card's text and the reconciled body of the act."""
     front, body = split_card(old_text)
     sections = sections_of(body)
-    description = description_of(sections)
+    kept = re.search(r"^  description: (.*)$", front, re.MULTILINE)
+    description = json.loads(kept.group(1)) if kept else description_of(sections)
     keep = status_section(sections)
     footer = rewrite_footer(footer_of(sections), pages=pages, amended=amended)
     parts = [keep.text.rstrip("\n") if keep else None, text_body.rstrip("\n"), footer.rstrip("\n")]

@@ -1,0 +1,171 @@
+{
+ "documentId": "regulatory.rf.minzdrav.192n-2025",
+ "source": {
+  "file": "0001202505190026.pdf",
+  "sha256": "ffc4b314eee9450e39d7ee2c906dd5bdb0734c69ec14209f678a00af0d8f2e13",
+  "bytes": 449547,
+  "pages": 7,
+  "officialUrl": "https://publication.pravo.gov.ru/document/0001202505190026"
+ },
+ "identityFromPortal": {
+  "number": "192н",
+  "date": "2025-04-11",
+  "name": "Об утверждении порядка прохождения несовершеннолетними диспансерного наблюдения, в том числе в период обучения и воспитания в образовательных организациях",
+  "registrationNumber": "82218",
+  "registrationDate": "2025-05-16"
+ },
+ "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
+ "review": {
+  "reviewer": "Claude (agent), against the page images; not a lawyer",
+  "reviewedAt": "2026-10-14",
+  "corrections": 0
+ },
+ "pages": [
+  {
+   "page": 1,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": "МИНИСТЕРСТВО ЗДРАВООХРАНЕНИЯ\nРОССИЙСКОЙ ФЕДЕРАЦИИ\n(МИНЗДРАВ РОССИИ)\n\n**П Р И К А З**\n\n*11 октября 2025 г.*\n\n№ *1924*\n\n**Об утверждении порядка прохождения несовершеннолетними\nдиспансерного наблюдения, в том числе в период обучения и воспитания\nв образовательных организациях**",
+   "stats": {
+    "markerTokens": 176,
+    "visionTokens": 167,
+    "coverageVision": 0.9928,
+    "coverageMarker": 1.0,
+    "respaced": 1,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 2,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "coverage-vision",
+     "detail": "Marker lacks 6% of Vision's tokens (e.g. grant)"
+    }
+   ],
+   "furniture": [
+    "2"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 22,
+    "visionTokens": 23,
+    "coverageVision": 0.9375,
+    "coverageMarker": 1.0,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 3,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [
+    "от «11» апреля 20.25 г. № 1924"
+   ],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 270,
+    "visionTokens": 266,
+    "coverageVision": 0.9821,
+    "coverageMarker": 0.9955,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 4,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "2"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 303,
+    "visionTokens": 302,
+    "coverageVision": 0.9706,
+    "coverageMarker": 0.9814,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 5,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 298,
+    "visionTokens": 294,
+    "coverageVision": 0.9837,
+    "coverageMarker": 0.9837,
+    "respaced": 2,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 6,
+   "reading": "marker",
+   "status": "pass",
+   "confidence": "high",
+   "flags": [],
+   "furniture": [
+    "4"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 271,
+    "visionTokens": 269,
+    "coverageVision": 0.9956,
+    "coverageMarker": 0.9912,
+    "respaced": 1,
+    "tableRows": 0
+   }
+  },
+  {
+   "page": 7,
+   "reading": "marker",
+   "status": "reviewed",
+   "confidence": "high",
+   "flags": [
+    {
+     "kind": "number-mismatch",
+     "detail": "only in Marker: 18"
+    }
+   ],
+   "furniture": [
+    "5"
+   ],
+   "portalRewrites": [],
+   "headerRemoved": null,
+   "stats": {
+    "markerTokens": 250,
+    "visionTokens": 247,
+    "coverageVision": 0.9953,
+    "coverageMarker": 0.9953,
+    "respaced": 0,
+    "tableRows": 0
+   }
+  }
+ ]
+}
