@@ -19,7 +19,7 @@ async function openDrugWithModule(page: Page): Promise<void> {
     },
   });
   await installMedicationModule(page);
-  await expect(page.locator('.drug-chip--code').first()).toBeVisible({ timeout: 60_000 });
+  await expect(page.locator('.drug-link--code').first()).toBeVisible({ timeout: 60_000 });
 }
 
 test.describe('ATC sheet and tree return to the drug', () => {
@@ -28,7 +28,7 @@ test.describe('ATC sheet and tree return to the drug', () => {
   }) => {
     test.setTimeout(240_000);
     await openDrugWithModule(page);
-    const chip = page.locator('.drug-chip--code').first();
+    const chip = page.locator('.drug-link--code').first();
     const code = ((await chip.textContent()) ?? '').trim().split(/\s/u)[0] ?? '';
     const atEntries = await entries(page);
 
@@ -68,7 +68,7 @@ test.describe('ATC sheet and tree return to the drug', () => {
   test('the system back follows the same path as ‹', async ({ page }) => {
     test.setTimeout(240_000);
     await openDrugWithModule(page);
-    const chip = page.locator('.drug-chip--code').first();
+    const chip = page.locator('.drug-link--code').first();
     const code = ((await chip.textContent()) ?? '').trim().split(/\s/u)[0] ?? '';
     await chip.click();
     await expect(page.getByTestId('atc-level')).toHaveCount(5, { timeout: 30_000 });

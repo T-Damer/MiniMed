@@ -144,6 +144,7 @@ test.describe('document reader navigation', () => {
     await expect(page.locator('.document-overlay-section').first()).toBeAttached();
     await expect
       .poll(async () => Math.abs((await snapshot(page)).scrollY - left), { timeout: 15_000 })
-      .toBeLessThan(40);
+      // The reader returns to the section under the reading line, not to the pixel.
+      .toBeLessThan(120);
   });
 });

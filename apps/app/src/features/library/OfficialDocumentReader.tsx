@@ -73,8 +73,8 @@ import { isClinicalRecommendationSource } from '@/features/library/numbered-head
 import { ReaderHero } from '@/features/library/ReaderHero';
 import { ReaderSectionPath } from '@/features/library/ReaderSectionPath';
 import { RlsMedicationPackagingPanel } from '@/features/library/RlsMedicationPackagingPanel';
-import { readerMetaParts } from '@/features/library/reader-meta-line';
 import { createReaderJumpHistory } from '@/features/library/reader-jump-history';
+import { readerMetaParts } from '@/features/library/reader-meta-line';
 import {
   presentReaderChunkText,
   presentReaderSectionTitle,
