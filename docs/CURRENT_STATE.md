@@ -56,6 +56,15 @@ limits: [research/dose-rules-2026-10-14.md](research/dose-rules-2026-10-14.md).
   with a course length). The gate is tuned on its development sample; on unseen rules of seen documents its first measurement (68 rules)
   still found 4 dose-relevant defects (5.9 %), fixed at their cause afterwards but not re-measured out of sample. Not a clinical review;
   see the research note §2 for the protocol and the caveats.
+- **Independent audit (RX3, 2026-10-14).** 120 gate-passing rules from 739 instructions that no sample or benchmark case had touched
+  (`tools/benchmarks/dose-rule-audit-2026-10-14.json`, `draw-dose-audit.ts`, seed `rx3-audit-2026-10-14`), judged by an auditor who had not
+  read the earlier judgements and run through the screen's own analysis: **wrong 4/120 = 3.3 % (95 % CI 0.9–8.3 %)**, dose rules 2/86 = 2.3 %,
+  caps 2/20 = 10 %, course lengths 0/14, incomplete 4 more. Causes: a population qualifier on the line after the sentence (weight ≥41 kg),
+  a population read from «ребенок» while the heading above bounds age and weight plus a co-medication condition (cap), a cap range kept at
+  its upper end, «суточные дозы» read as per-day for «N таблетки M раз в сутки». Also: 21 % of the sentences are one indication of several;
+  the signa prints «Внутрь» for rectal / vaginal / sublingual forms and «1 шт.» for a spoon, rounding to a registry strength has no ceiling
+  (+100 … +300 %), and `analyzeItem` passes every cap, rejected shapes included, to `checkCaps` (167 of 881 documents with a computing dose
+  rule). Recommendation: do not ship computed doses as they are; fix the causes and re-audit on a new sample (research note §2).
 - **Result page (RX2).** At 375 px one drug is about 1 000–1 200 px tall (was ~4 100): the chosen sentence with its quote, the intake
   and course, the cap line, one «Ещё N фрагментов» disclosure (other rules to pick, quoted-only sentences, conditions, ceilings, by
   section), one «Цитаты из инструкции» disclosure for the patient-state quotes with a few calculated lines in view.

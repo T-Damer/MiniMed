@@ -76,6 +76,45 @@ indication-specific one (ceftriaxone «средний отит», ciprofloxacin 
 tables («5–13 лет и/или 19–40 кг»): 11 rules of 2 documents were judged only by their text, and the family is not allowed until a
 sample of it exists, so amoxicillin children are quoted only. Not a clinical review.
 
+**Independent audit (RX3, 2026-10-14).** An auditor who had not read the earlier judgement files drew 120 rules that the final gate
+lets compute (seed `rx3-audit-2026-10-14`, `tools/benchmarks/src/draw-dose-audit.ts`) from the 739 indexed instructions that no earlier
+sample or benchmark case touched (672 documents excluded: the 623 of the blind, development and fresh sets and every instruction of the
+50 cards of `dose-queries.json`); all cards, not only ЖНВЛП; stratified by kind and population (44 child and 42 adult / unstated doses, 20
+caps, 14 course lengths), one rule per document and per card, 14 of 16 modules. Each rule was judged field by field against its sentence
+and paragraph, then run through the screen's own analysis (`analyzeItem`) for a realistic patient (units per registry strength, signa).
+Set `tools/benchmarks/dose-rule-audit-2026-10-14.json`, `bun run benchmark:dose-precision --file=…` (exits 1 on purpose: wrong rules compute).
+**Wrong 4/120 = 3.3 % (95 % CI 0.9–8.3 %), all in a dose-relevant field**; dose rules 2/86 = 2.3 % (0.3–8.1 %), caps 2/20 = 10 %
+(1.2–31.7 %), course lengths 0/14; weighted to the frame 1.2 %; incomplete 4 more (wrong or incomplete 8 = 6.7 %). By field: population 2/92,
+cap 2/20, dose 1/86; unit, per kg, frequency, duration 0. The development sample's 0 % was tuned on and did not generalise; this
+interval agrees with the last fresh draw (5/68). The wrong rules and their causes:
+(1) ibuprofen + paracetamol, «Дети в возрасте старше 12 лет / Разовая доза – 2 таблетки.» then the next line «(до 18 лет), масса тела ≥41 кг»:
+the population qualifier continues after the sentence, so a 12-year-old of 30 kg is offered 2 tablets (`splitSentenceSpans` / `readClause`
+in `dose-parse.ts` read the sentence only; `headingsOf` joins a broken heading only when the continuation comes before the sentence);
+(2) rufinamide cap `cap.local`, «Если ребенок не принимает вальпроат, то максимальная суточная доза составляет 1000 мг» under the heading
+«Дети 4 лет и старше с массой тела менее 30 кг»: population read from the word «ребенок» in the clause (child < 18 y) although a heading line
+with age and weight bounds stands two sentences above, and a co-medication condition («если … не принимает …») is no rejection cue in
+`classifyRule` (`dose-gate.ts`); the 1000 mg is offered to a 16-year-old of 50 kg and as the ceiling of a child on valproate (600 mg);
+(3) povidone cap, «Максимальная разовая доза для детей грудного возраста – от 50 до 70 мл» (a per-age list follows): `capsOf` keeps only the
+upper end of the range after the dash, so the permissive end (70 ml) is the cap for every infant (the rule «caps that are ranges» did not fire);
+(4) metamizole + pitofenone + fenpiverinium, «Рекомендуемые суточные дозы: Для взрослых: 1–2 таблетки 2–3 раза в сутки»: the lead-in «суточные
+дозы» makes it «1–2 pieces per day» (summary «1–2 шт. в сутки · 2–3 раза в сутки»); a daily total smaller than the number of intakes is
+impossible and should reject the rule. The intake the screen computes (1 tablet × 2) happens to be right.
+Not counted as wrong but found: **25/120 (21 %) of the sentences are one indication or regimen of several** (prophylaxis versus treatment,
+a named disease, a post-COVID course; the quote shows it, the rule does not carry it), 20 of them dose rules, so the first sentence the tool
+offers is often not the general dose; and **15/120 rules print a defect in the tool's own output**: the signa starts «Внутрь» for rectal /
+vaginal / sublingual forms when the sentence names no route (`routeWord`, `prescription-text.ts`: the default for solid forms; 6 rules) and
+«Наружно» for a lozenge, a spoon of syrup prints «1 шт.» (`pieceWords` / `unitNoun` lose `qu` = spoon; 5), and `roundToProduct`
+(`dose-compute.ts`) has no ceiling on rounding up to the registry strength (+100 % … +300 % in the signa, only a note on screen; 4), and
+takes tablet or millilitre counts of the instruction's own product for every registry strength of the card (ibuprofen + paracetamol
+200+500 / 400+200 / 400+325 mg all show «2 таблетки»). **The gate is bypassed for caps**: `analyzeItem` (`prescription-model.ts`) passes
+every rule of the instruction to `checkCaps`, so caps of rejected shapes are compared and shown (887 of 1 223 cap rules are rejected shapes;
+167 of the 881 documents with a computing dose rule hold one): the audit's Temalgin page shows an adolescent cap (2 tablets, shape
+`rejected.context`, population «Взрослые» carried over from a heading 1 300 characters up) next to the adult cap.
+Recommendation: do not ship computed doses as they are. A narrower gate cannot reach zero by shape: the four wrong rules sit in the core
+shapes `dose.local.abs.*` and `cap.local`; dropping `cap.local` numbers (2/8 wrong) helps only caps. Fix the four causes, gate the cap
+comparison, make the signa route and the spoon / ampoule words come from the dosage form, refuse a rounding beyond a small tolerance and
+tie piece / ml counts to the strength of the instruction's product; then draw a new sample of at least 150 rules from untouched documents.
+
 Known limits (unchanged): sentences about other drugs in combination regimens are filtered heuristically; ЕСКЛП has no suspension form
 for amoxicillin so the suspension strengths come from the instruction text; when Allmed has no Latin name the Rp line is Russian in the
 genitive (order 1094н, clause 16); the 148-1/у-88 is chosen by the doctor.
