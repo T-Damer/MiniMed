@@ -413,17 +413,35 @@ def numbers(tokens: list[Token]) -> Counter[str]:
 # ------------------------------------------------------------------------------------ detectors
 
 
-def detect_loops(tokens: list[Token]) -> list[str]:
-    """Runs of consecutive integers and repeated n-grams: the number-counting loop of Marker."""
+_NUMBERING_ROW: Final = re.compile(r"^\s*\|(?:\s*\d{1,3}\s*\|)+\s*$")
+
+
+def _is_numbering_row(text: str, tokens: list[Token]) -> bool:
+    """A table row of column numbers («| 1 | 2 | 3 | … |») is a legitimate counting sequence."""
+    start = text.rfind("\n", 0, tokens[0].start) + 1
+    end = text.find("\n", tokens[-1].end)
+    line = text[start : end if end >= 0 else len(text)]
+    return bool(_NUMBERING_ROW.match(line))
+
+
+def detect_loops(tokens: list[Token], text: str | None = None) -> list[str]:
+    """Runs of counting integers (n, n+1, n+2, …) and repeated n-grams: the number-counting loop of Marker.
+
+    A table row of column numbers is not a loop (checked on `text` when it is given); a run of integers
+    that does not count up (a table of quantities) never is.
+    """
     found: list[str] = []
-    run = 0
-    for index, token in enumerate(tokens):
-        if token.norm.isdigit():
-            run += 1
-            if run == LOOP_INTEGER_RUN:
-                found.append(f"{LOOP_INTEGER_RUN}+ integers in a row near token {index - run + 1}")
+    run: list[Token] = []
+    for token in tokens:
+        if token.norm.isdigit() and len(token.norm) <= 3:
+            if run and int(token.norm) == int(run[-1].norm) + 1:
+                run.append(token)
+            else:
+                run = [token]
+            if len(run) == LOOP_INTEGER_RUN and not (text and _is_numbering_row(text, run)):
+                found.append(f"{LOOP_INTEGER_RUN}+ integers counting up near «{run[0].norm}»")
         else:
-            run = 0
+            run = []
     values = [token.norm for token in tokens]
     for size in (1, 2, 3, 4):
         index = 0
@@ -744,6 +762,10 @@ def align(marker: str, vision_lines: list[str], skip: tuple[str, ...] = ()) -> A
             if numeric and len(m_span) == len(v_span) and len(m_span) <= 4:
                 for offset, (m_tok, v_tok) in enumerate(zip(m_span, v_span, strict=True)):
                     if m_tok.norm != v_tok.norm and m_tok.is_number and v_tok.is_number:
+                        if m_tok.norm.startswith(ROMAN_PREFIX) != v_tok.norm.startswith(
+                            ROMAN_PREFIX
+                        ):
+                            continue  # a Roman numeral against an Arabic one («I группа» / «1 группа»): flagged, never swapped
                         new = _vision_text(prepared_lines, v_tokens, j1 + offset, j1 + offset)
                         old = marker[m_tok.start : m_tok.end]
                         result.substitutions.append(Substitution(m_tok.start, m_tok.end, old, new))
@@ -848,7 +870,7 @@ def reconcile_page(
     m_countable = [t for t in m_tokens if _countable(t)]
     v_countable = [t for t in v_tokens if _countable(t)]
 
-    loops = detect_loops(m_tokens)
+    loops = detect_loops(m_tokens, marker)
     inflation = len(m_countable) / max(len(v_countable), 1)
     if loops or (inflation_checked and len(v_countable) >= 20 and inflation > INFLATION_MAX):
         detail = (

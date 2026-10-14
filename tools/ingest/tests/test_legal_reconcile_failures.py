@@ -4,7 +4,9 @@ from localmed_ingest.legal_reconcile import (
     act_identity,
     canonical_self_references,
     clean_marker_markdown,
+    detect_loops,
     reconcile_page,
+    tokenize,
 )
 
 RECORD = {
@@ -131,3 +133,22 @@ def test_phantom_table_column_is_dropped_but_a_continuation_fragment_is_kept() -
         "| 3. | Кушетка | 2, 3 | 187150 | Стол | 1 |"
     )
     assert clean_marker_markdown(fragment).count("|") == fragment.count("|")
+
+
+def test_a_roman_numeral_is_never_swapped_for_an_arabic_one() -> None:
+    result = reconcile_page(
+        8,
+        "К основной группе (I группа) относятся",
+        vision("К основной группе (1 группа) относятся"),
+    )
+    assert "(I группа)" in result.text and "(1 группа)" not in result.text
+    assert result.status == "review"
+
+
+def test_a_row_of_column_numbers_and_a_table_of_quantities_are_not_loops() -> None:
+    numbering = "| 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 |"
+    assert not detect_loops(tokenize(numbering), numbering)
+    quantities = "| 400 | 500 | 600 | 300 | 400 | 500 | 50 | 60 | 70 | 4 | 7 | 10 | 3 | 4 | 7 |"
+    assert not detect_loops(tokenize(quantities), quantities)
+    counting = "Показатели 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 и далее"
+    assert detect_loops(tokenize(counting), counting)
