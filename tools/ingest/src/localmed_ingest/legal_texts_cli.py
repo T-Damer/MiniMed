@@ -235,8 +235,9 @@ def sources(data_root: DataRoot, pause: float = 1.0) -> None:
     for (
         row
     ) in rows:  # what other commands recorded about an act survives a refresh of the checksums
-        if "rotatedPages" in kept.get(row["documentId"], {}):
-            row["rotatedPages"] = kept[row["documentId"]]["rotatedPages"]
+        for key in ("rotatedPages", "rotatedPagesManual"):
+            if key in kept.get(row["documentId"], {}):
+                row[key] = kept[row["documentId"]][key]
     SOURCES.parent.mkdir(parents=True, exist_ok=True)
     SOURCES.write_text(
         json.dumps({"schemaVersion": 1, "acts": rows}, ensure_ascii=False, indent=1) + "\n"
@@ -250,7 +251,7 @@ def rotated_pages(vision: dict[int, list[dict[str, Any]]]) -> list[int]:
     for page, lines in vision.items():
         long_lines = [x for x in lines if len(str(x["text"])) > 6]
         tall = [x for x in long_lines if x["bbox"][3] > x["bbox"][2] * 1.2]
-        if len(long_lines) >= 6 and len(tall) >= 0.5 * len(long_lines):
+        if len(long_lines) >= 3 and len(tall) >= 0.6 * len(long_lines):
             found.append(page)
     return sorted(found)
 
@@ -279,7 +280,8 @@ def upright(
             continue
         raw = _json.loads((paths.work / f"vision/{row['stem']}.json").read_text())
         vision = {int(p["page"]): p["lines"] for p in raw["pages"]}
-        sideways = rotated_pages(vision)
+        # `rotatedPagesManual`: sideways pages with too little text for the detector (read by eye from the image)
+        sideways = sorted({*rotated_pages(vision), *row.get("rotatedPagesManual", [])})
         row["rotatedPages"] = sideways
         if not sideways:
             continue

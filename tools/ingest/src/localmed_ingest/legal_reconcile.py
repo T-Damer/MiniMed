@@ -152,7 +152,9 @@ def clean_marker_markdown(text: str) -> str:
     value = text.replace("\xa0", " ").replace("\r\n", "\n")
     value = _IMAGE.sub("", value)
     value = value.replace("\\_", "_")  # form blanks
-    value = re.sub(r"<(https?://[^>\s]+)>", r"\1", value)  # Markdown autolink brackets around a printed address
+    value = re.sub(
+        r"<(https?://[^>\s]+)>", r"\1", value
+    )  # Markdown autolink brackets around a printed address
     value = re.sub(r'<input type="checkbox"\s+checked[^>]*/?>', "☒ ", value)
     value = re.sub(r'<input type="checkbox"[^>]*/?>', "☐ ", value)
     value = re.sub(r"\s*\.{5,}\s*", " ", value)
@@ -414,15 +416,17 @@ def numbers(tokens: list[Token]) -> Counter[str]:
 # ------------------------------------------------------------------------------------ detectors
 
 
-_NUMBERING_ROW: Final = re.compile(r"^\s*\|(?:\s*\d{1,3}\s*\|)+\s*$")
-
-
 def _is_numbering_row(text: str, tokens: list[Token]) -> bool:
-    """A table row of column numbers («| 1 | 2 | 3 | … |») is a legitimate counting sequence."""
-    start = text.rfind("\n", 0, tokens[0].start) + 1
-    end = text.find("\n", tokens[-1].end)
-    line = text[start : end if end >= 0 else len(text)]
-    return bool(_NUMBERING_ROW.match(line))
+    """A counting run whose every number is a cell of its own (column numbers, an age header: «| 18 | 19 | 20 |»).
+
+    Marker's counting loop runs inside one cell or paragraph, never as a separate cell per number.
+    """
+    for token in tokens:
+        before = text[: token.start].rstrip(" \t")
+        after = text[token.end :].lstrip(" \t")
+        if not before.endswith("|") or not after.startswith("|"):
+            return False
+    return True
 
 
 def detect_loops(tokens: list[Token], text: str | None = None) -> list[str]:
