@@ -20,6 +20,8 @@ export function ReaderPageBubble(props: {
   readonly onGo: (page: number) => void;
   /** Moves out of the way (the contents drawer covers the page). */
   readonly hidden?: boolean;
+  /** Sits in a bar of its own (the section-path line) instead of floating over the text. */
+  readonly inline?: boolean;
 }): JSX.Element {
   const [editing, setEditing] = createSignal(false);
   const [invalid, setInvalid] = createSignal(false);
@@ -77,89 +79,96 @@ export function ReaderPageBubble(props: {
 
   const totalLabel = (): string => `/ ${String(props.total)}`;
 
-  return (
-    <div
-      class="reader-page-dock"
-      classList={{ 'reader-page-dock--hidden': props.hidden ?? false }}
-      data-reader-page-dock
+  const bubble = (): JSX.Element => (
+    <form
+      ref={(element) => {
+        form = element;
+      }}
+      class="reader-page-bubble"
+      classList={{
+        'reader-page-bubble--inline': props.inline ?? false,
+        'reader-page-bubble--editing': editing(),
+        'reader-page-bubble--invalid': invalid(),
+      }}
+      style={{ '--reader-page-digits': String(String(props.total).length) }}
+      onSubmit={submit}
+      onFocusOut={(event) => {
+        // Only the field leaving counts: the summary button that the field replaces loses focus
+        // as it is removed, and that must not close the bubble it has just opened.
+        if (event.target !== input) return;
+        const next = event.relatedTarget;
+        if (next instanceof Node && form?.contains(next)) return;
+        close();
+      }}
+      onKeyDown={(event) => {
+        if (event.key !== 'Escape' || !editing()) return;
+        event.preventDefault();
+        event.stopPropagation();
+        close();
+      }}
     >
-      <form
-        ref={(element) => {
-          form = element;
-        }}
-        class="reader-page-bubble"
-        classList={{
-          'reader-page-bubble--editing': editing(),
-          'reader-page-bubble--invalid': invalid(),
-        }}
-        style={{ '--reader-page-digits': String(String(props.total).length) }}
-        onSubmit={submit}
-        onFocusOut={(event) => {
-          // Only the field leaving counts: the summary button that the field replaces loses focus
-          // as it is removed, and that must not close the bubble it has just opened.
-          if (event.target !== input) return;
-          const next = event.relatedTarget;
-          if (next instanceof Node && form?.contains(next)) return;
-          close();
-        }}
-        onKeyDown={(event) => {
-          if (event.key !== 'Escape' || !editing()) return;
-          event.preventDefault();
-          event.stopPropagation();
-          close();
-        }}
-      >
-        <Show
-          when={editing()}
-          fallback={
-            <button
-              type="button"
-              class="reader-page-bubble__summary"
-              aria-label={readerPageAriaLabel(props.page, props.total)}
-              data-reader-page-bubble="summary"
-              onClick={open}
-            >
-              <RollingNumber class="reader-page-bubble__current" value={props.page} />
-              <span class="reader-page-bubble__total" aria-hidden="true">
-                {totalLabel()}
-              </span>
-            </button>
-          }
-        >
-          <span class="reader-page-bubble__editor">
-            <input
-              ref={(element) => {
-                input = element;
-              }}
-              class="reader-page-bubble__input"
-              type="text"
-              inputmode="numeric"
-              autocomplete="off"
-              enterkeyhint="go"
-              aria-label={`Страница, от 1 до ${String(props.total)}`}
-              aria-invalid={invalid()}
-              data-reader-page-bubble="input"
-              value={String(props.page)}
-              onInput={() => setInvalid(false)}
-            />
+      <Show
+        when={editing()}
+        fallback={
+          <button
+            type="button"
+            class="reader-page-bubble__summary"
+            aria-label={readerPageAriaLabel(props.page, props.total)}
+            data-reader-page-bubble="summary"
+            onClick={open}
+          >
+            <RollingNumber class="reader-page-bubble__current" value={props.page} />
             <span class="reader-page-bubble__total" aria-hidden="true">
               {totalLabel()}
             </span>
-            <button
-              type="submit"
-              class="reader-page-bubble__go"
-              aria-label="Перейти к странице"
-              data-reader-page-bubble="go"
-              // The field keeps focus while the arrow is pressed: a blur first would close the bubble
-              // before the tap lands (touch browsers that do not focus buttons report no related target).
-              onPointerDown={(event) => event.preventDefault()}
-              onMouseDown={(event) => event.preventDefault()}
-            >
-              <AppGlyph name="arrow-right" class="reader-page-bubble__go-icon" />
-            </button>
+          </button>
+        }
+      >
+        <span class="reader-page-bubble__editor">
+          <input
+            ref={(element) => {
+              input = element;
+            }}
+            class="reader-page-bubble__input"
+            type="text"
+            inputmode="numeric"
+            autocomplete="off"
+            enterkeyhint="go"
+            aria-label={`Страница, от 1 до ${String(props.total)}`}
+            aria-invalid={invalid()}
+            data-reader-page-bubble="input"
+            value={String(props.page)}
+            onInput={() => setInvalid(false)}
+          />
+          <span class="reader-page-bubble__total" aria-hidden="true">
+            {totalLabel()}
           </span>
-        </Show>
-      </form>
-    </div>
+          <button
+            type="submit"
+            class="reader-page-bubble__go"
+            aria-label="Перейти к странице"
+            data-reader-page-bubble="go"
+            // The field keeps focus while the arrow is pressed: a blur first would close the bubble
+            // before the tap lands (touch browsers that do not focus buttons report no related target).
+            onPointerDown={(event) => event.preventDefault()}
+            onMouseDown={(event) => event.preventDefault()}
+          >
+            <AppGlyph name="arrow-right" class="reader-page-bubble__go-icon" />
+          </button>
+        </span>
+      </Show>
+    </form>
+  );
+
+  return (
+    <Show when={!props.inline} fallback={bubble()}>
+      <div
+        class="reader-page-dock"
+        classList={{ 'reader-page-dock--hidden': props.hidden ?? false }}
+        data-reader-page-dock
+      >
+        {bubble()}
+      </div>
+    </Show>
   );
 }

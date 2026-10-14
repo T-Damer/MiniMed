@@ -49,7 +49,7 @@
   position: relative;
   z-index: 2;
   display: none;
-  height: clamp(10rem, 56vw, 16rem);
+  height: clamp(7.5rem, 36vw, 14rem);
   grid-area: 1 / 1;
 }
 

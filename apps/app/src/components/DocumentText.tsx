@@ -13,6 +13,7 @@ import {
 } from 'solid-js';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
+import { externalUrlLabel } from '@/components/external-url-label';
 import { QueryHighlightedText } from '@/components/HighlightedText';
 import { stripKnownHtmlMarkup } from '@/components/html-markup';
 import { useInlinePreviewBounds } from '@/components/useInlinePreviewBounds';
@@ -559,18 +560,24 @@ function LinkedPlainText(props: {
                           href={urlSegment.value}
                           target="_blank"
                           rel="noopener noreferrer"
+                          title={urlSegment.value}
                         >
                           <AppGlyph
                             name="arrow-square-up-right"
                             class="document-inline-link__icon"
                           />
                           <HighlightedLabel
-                            text={urlSegment.value}
+                            text={externalUrlLabel(urlSegment.value)}
                             query={props.query}
                             exactQuery={props.exactQuery}
                             fuzzyQuery={props.fuzzyQuery}
                             highlightClass={props.highlightClass}
-                            ranges={props.ranges}
+                            // A shortened label no longer lines up with the ranges of the full address.
+                            ranges={
+                              externalUrlLabel(urlSegment.value) === urlSegment.value
+                                ? props.ranges
+                                : undefined
+                            }
                             unitId={props.unitId}
                             activeStart={props.activeStart}
                             rangeOffset={

@@ -46,7 +46,6 @@ import {
   type MutableDocumentSectionTree,
   nestDocumentSections,
   resolveReadableDocumentId,
-  sourceTypeReaderLabel,
   visibleReaderSections,
 } from '@/features/library/document-display';
 import { type DocumentFindUnit, rangesForFindUnit } from '@/features/library/document-find';
@@ -68,11 +67,13 @@ import {
   documentRenderBlockSearchText,
   resolveDocumentChunkItems,
 } from '@/features/library/document-rich-block-data';
+import { documentEditionValue } from '@/features/library/document-version-label';
 import { earlierEditionDocumentIds } from '@/features/library/edition-predecessors';
 import { isClinicalRecommendationSource } from '@/features/library/numbered-heading-sections';
 import { ReaderHero } from '@/features/library/ReaderHero';
 import { ReaderSectionPath } from '@/features/library/ReaderSectionPath';
 import { RlsMedicationPackagingPanel } from '@/features/library/RlsMedicationPackagingPanel';
+import { readerMetaParts } from '@/features/library/reader-meta-line';
 import {
   presentReaderChunkText,
   presentReaderSectionTitle,
@@ -1337,10 +1338,14 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
               title="Сведения об источнике"
             >
               <dl class="doctor-technical-details__list">
-                <div class="doctor-technical-details__row">
-                  <dt class="doctor-technical-details__term">Редакция</dt>
-                  <dd class="doctor-technical-details__value">{documentValue().versionLabel}</dd>
-                </div>
+                <Show when={documentEditionValue(documentValue().versionLabel)}>
+                  {(edition) => (
+                    <div class="doctor-technical-details__row">
+                      <dt class="doctor-technical-details__term">Редакция</dt>
+                      <dd class="doctor-technical-details__value">{edition()}</dd>
+                    </div>
+                  )}
+                </Show>
                 <div class="doctor-technical-details__row">
                   <dt class="doctor-technical-details__term">Статус</dt>
                   <dd class="doctor-technical-details__value">
@@ -1398,9 +1403,6 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                         imageDocumentId={heroImageDocumentId()}
                         onSource={setHeroImageSource}
                       >
-                        <Show when={sourceTypeReaderLabel(documentValue().sourceType)}>
-                          {(label) => <p class="document-overlay-paper__source-label">{label()}</p>}
-                        </Show>
                         <ReaderTitleRow item={bookmarkItem(documentValue())} bookmark={bookmark}>
                           <h1
                             class="document-overlay-paper__title"
@@ -1430,6 +1432,11 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                             />
                           </h1>
                         </ReaderTitleRow>
+                        <Show when={readerMetaParts(documentValue()).length > 0}>
+                          <p class="document-overlay-paper__meta">
+                            {readerMetaParts(documentValue()).join(' · ')}
+                          </p>
+                        </Show>
                       </ReaderHero>
                       <Show when={medicationPointerSlug()}>
                         {(slug) => <DrugIndexAtc slug={slug()} />}

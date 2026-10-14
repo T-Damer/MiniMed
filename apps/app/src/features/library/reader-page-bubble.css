@@ -44,6 +44,20 @@ html.app-chrome-hidden .reader-page-bubble {
   transform: translateY(3.5rem);
 }
 
+/* In the section-path line: a quiet chip at its right end, not a floating pill. */
+.reader-page-bubble--inline {
+  height: 1.75rem;
+  flex: none;
+  margin-inline-start: auto;
+  background: var(--theme-surface-muted);
+  box-shadow: none;
+  pointer-events: auto;
+}
+
+html.app-chrome-hidden .reader-page-bubble--inline {
+  transform: none;
+}
+
 .reader-page-bubble--editing {
   border-color: var(--theme-accent);
   background: var(--theme-surface);

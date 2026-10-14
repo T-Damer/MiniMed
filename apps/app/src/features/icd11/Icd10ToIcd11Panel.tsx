@@ -299,6 +299,8 @@ export function Icd10ToIcd11Panel(props: {
     <Show when={shown().length > 0}>
       <section class="icd10-to-icd11" data-testid="icd10-to-icd11-panel">
         <Disclosure
+          variant="inline"
+          singleLine
           title={
             <Show
               when={shown().length === 1 ? shown()[0] : null}

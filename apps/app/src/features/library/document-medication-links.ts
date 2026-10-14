@@ -5,6 +5,7 @@ import {
   type DocumentTableBlock,
   documentRenderBlockSearchText,
 } from '@/features/library/document-rich-block-data';
+import { documentVersionLabel } from '@/features/library/document-version-label';
 
 export type DocumentInlineLinkKind = 'document' | 'medication' | 'recommendation';
 
@@ -549,7 +550,7 @@ function documentLinkPreview(
           source: {
             label: [
               document.title,
-              document.versionLabel,
+              documentVersionLabel(document.versionLabel),
               typeof section === 'string' ? section : null,
             ]
               .filter(Boolean)

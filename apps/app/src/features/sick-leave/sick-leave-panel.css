@@ -1,7 +1,9 @@
 /* «Больничный» row of an ICD-10 card. Motion follows AGENTS.md: the shared tokens, transform and
    opacity only. */
 .sick-leave {
-  margin-block: 0.5rem;
+  /* A flat line under the title, one of the reader's compact facts rows. */
+  margin-block: 0;
+  border-bottom: 1px solid var(--paper-line);
   animation: sick-leave-enter var(--motion-base) var(--motion-ease-out) both;
 }
 

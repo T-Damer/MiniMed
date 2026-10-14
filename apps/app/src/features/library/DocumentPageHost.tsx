@@ -8,6 +8,7 @@ import {
 import { fullDocumentCandidateIds } from '@localmed/core';
 import { createEffect, createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { toast } from 'solid-sonner';
+import { DocumentNotFound } from '@/features/library/DocumentNotFound';
 import {
   displayDocumentTitle,
   resolveReadableDocumentId,
@@ -16,6 +17,7 @@ import { shouldReloadOfficialDocument } from '@/features/library/document-page-l
 import {
   type DocumentNavigateOptions,
   documentReaderBackTarget,
+  navigateDocumentReaderBack,
 } from '@/features/library/document-reader-back';
 import {
   isPlaceholderDocumentTitle,
@@ -95,6 +97,7 @@ import {
 import {
   buildOfficialDocumentHash,
   type DocumentReadRoute,
+  isDocumentReadRoute,
   migrateLegacyDocumentHash,
   migrateLegacyOverlaySearch,
   parseDocumentReadRoute,
@@ -197,6 +200,8 @@ function earlyDocumentTitle(documentId: string): string | undefined {
 
 export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
   const [route, setRoute] = createSignal<DocumentReadRoute | null>(null);
+  /** The address is a document address that cannot be read (damaged or typed by hand). */
+  const [unreadableRoute, setUnreadableRoute] = createSignal(false);
   const [trail, setTrail] = createSignal<DocumentTrail | null>(null);
   const [document, setDocument] = createSignal<MedicalDocument | undefined>();
   const [pendingTitle, setPendingTitle] = createSignal<string | undefined>(OPENING_DOCUMENT_TITLE);
@@ -532,7 +537,11 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       }
       if (!current()) return;
       if (!result.ok) {
-        if (result.error.code !== 'CONTENT_NOT_FOUND') {
+        // The message is the fallback: the error may cross a worker boundary without its code.
+        const notFound =
+          result.error.code === 'CONTENT_NOT_FOUND' ||
+          result.error.message.includes('Document not found');
+        if (!notFound) {
           setOpenError(userFacingOpenError(result.error.message));
           return;
         }
@@ -559,7 +568,8 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
           }
           return;
         }
-        setOpenError(userFacingOpenError(result.error.message));
+        // Neither the core nor the catalog knows this address: say so plainly.
+        setOpenError('Документ не найден.');
         return;
       }
       assertIdentityDocumentTarget(result.value, expectedIdentity);
@@ -1053,6 +1063,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       window.scrollTo({ top: 0, behavior: 'instant' });
     }
     setRoute(parsed);
+    setUnreadableRoute(!parsed && isDocumentReadRoute(window.location.hash));
     if (!parsed) {
       officialLoadGeneration += 1;
       requestedIdentityKey = '';
@@ -1125,71 +1136,79 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
   };
 
   return (
-    <Show when={route()}>
-      <>
-        <Show when={userDocumentId()} keyed>
-          {(documentId) => (
-            <UserDocumentReader
-              documentId={documentId}
-              {...(userPageIndex() !== undefined
-                ? { initialPageIndex: userPageIndex() as number }
+    <>
+      <Show when={unreadableRoute()}>
+        <DocumentNotFound
+          onBack={() => navigateDocumentReaderBack(null, navigateTrail)}
+          onSearch={() => navigateTrail('#/search', { replace: true })}
+        />
+      </Show>
+      <Show when={route()}>
+        <>
+          <Show when={userDocumentId()} keyed>
+            {(documentId) => (
+              <UserDocumentReader
+                documentId={documentId}
+                {...(userPageIndex() !== undefined
+                  ? { initialPageIndex: userPageIndex() as number }
+                  : {})}
+                {...(trail() ? { trail: trail() } : {})}
+                onNavigate={navigateTrail}
+                onTitle={(title) => {
+                  const currentTrail = trail();
+                  if (!currentTrail) return;
+                  setTrail(updateCurrentCrumbTitle(currentTrail, title));
+                }}
+              />
+            )}
+          </Show>
+          <Show when={officialDocumentId()} keyed>
+            <OfficialDocumentReader
+              core={props.getCore()}
+              document={readerDocument()}
+              {...(readerPendingTitle() ? { pendingTitle: readerPendingTitle() as string } : {})}
+              availableDocuments={availableDocuments()}
+              {...(medicationProduct()
+                ? {
+                    medicationProduct: medicationProduct() as MedicationProduct,
+                    medicationReadingMode: medicationReadingMode(),
+                    onMedicationReadingModeChange: (mode: MedicationReadingMode) =>
+                      void changeMedicationReadingMode(mode),
+                  }
                 : {})}
-              {...(trail() ? { trail: trail() } : {})}
+              {...(document()
+                ? { medicationOpenedDocumentId: (document() as MedicalDocument).id }
+                : {})}
+              instructionOffer={instructionOffer()}
+              instructionOfferPending={instructionOfferPending()}
+              instructionOfferProgress={instructionOfferProgress()}
+              instructionOfferError={instructionOfferError()}
+              onInstallInstructionModule={() => void installInstructionModule()}
+              supplementalPanels={showsInstruction() ? [] : supplementalPanels()}
+              drugSupplements={supplementalPanels()}
+              {...(document() ? { medicationSource: document() as MedicalDocument } : {})}
+              onSelectMedicationProduct={(product) => void selectMedicationProduct(product)}
+              clinicalMedicationLinks={clinicalMedicationLinks()}
+              initialAnchor={initialAnchor()}
+              trail={trail()}
+              openError={openError()}
+              modulePointer={modulePointer()}
+              modulePointerPending={modulePointerPending()}
+              modulePointerProgress={modulePointerProgress()}
+              modulePointerInstallError={modulePointerInstallError()}
               onNavigate={navigateTrail}
-              onTitle={(title) => {
-                const currentTrail = trail();
-                if (!currentTrail) return;
-                setTrail(updateCurrentCrumbTitle(currentTrail, title));
-              }}
+              onInstallModulePointer={requestModulePointerInstall}
+              {...(props.reconnectContent ? { onContentChanged: props.reconnectContent } : {})}
+              {...(editionNotice() ? { editionNotice: editionNotice() } : {})}
+              editionPending={editionPending()}
+              editionProgress={editionProgress()}
+              editionError={editionError()}
+              onOpenEdition={(target) => void openClinicalEdition(target)}
+              onRequestFullText={requestFullText}
             />
-          )}
-        </Show>
-        <Show when={officialDocumentId()} keyed>
-          <OfficialDocumentReader
-            core={props.getCore()}
-            document={readerDocument()}
-            {...(readerPendingTitle() ? { pendingTitle: readerPendingTitle() as string } : {})}
-            availableDocuments={availableDocuments()}
-            {...(medicationProduct()
-              ? {
-                  medicationProduct: medicationProduct() as MedicationProduct,
-                  medicationReadingMode: medicationReadingMode(),
-                  onMedicationReadingModeChange: (mode: MedicationReadingMode) =>
-                    void changeMedicationReadingMode(mode),
-                }
-              : {})}
-            {...(document()
-              ? { medicationOpenedDocumentId: (document() as MedicalDocument).id }
-              : {})}
-            instructionOffer={instructionOffer()}
-            instructionOfferPending={instructionOfferPending()}
-            instructionOfferProgress={instructionOfferProgress()}
-            instructionOfferError={instructionOfferError()}
-            onInstallInstructionModule={() => void installInstructionModule()}
-            supplementalPanels={showsInstruction() ? [] : supplementalPanels()}
-            drugSupplements={supplementalPanels()}
-            {...(document() ? { medicationSource: document() as MedicalDocument } : {})}
-            onSelectMedicationProduct={(product) => void selectMedicationProduct(product)}
-            clinicalMedicationLinks={clinicalMedicationLinks()}
-            initialAnchor={initialAnchor()}
-            trail={trail()}
-            openError={openError()}
-            modulePointer={modulePointer()}
-            modulePointerPending={modulePointerPending()}
-            modulePointerProgress={modulePointerProgress()}
-            modulePointerInstallError={modulePointerInstallError()}
-            onNavigate={navigateTrail}
-            onInstallModulePointer={requestModulePointerInstall}
-            {...(props.reconnectContent ? { onContentChanged: props.reconnectContent } : {})}
-            {...(editionNotice() ? { editionNotice: editionNotice() } : {})}
-            editionPending={editionPending()}
-            editionProgress={editionProgress()}
-            editionError={editionError()}
-            onOpenEdition={(target) => void openClinicalEdition(target)}
-            onRequestFullText={requestFullText}
-          />
-        </Show>
-      </>
-    </Show>
+          </Show>
+        </>
+      </Show>
+    </>
   );
 }

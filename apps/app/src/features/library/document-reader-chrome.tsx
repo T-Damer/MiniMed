@@ -39,6 +39,11 @@ import {
 } from '@/features/library/document-reader-position';
 import { jumpReaderTo } from '@/features/library/document-reader-scroll';
 import { ReaderPageBubble } from '@/features/library/ReaderPageBubble';
+import {
+  createReaderPageClaims,
+  type ReaderPageHost,
+  ReaderPageHostContext,
+} from '@/features/library/reader-page-host';
 import { useDocumentOutlineSwipe } from '@/features/library/use-document-outline-swipe';
 import type { DocumentTrail } from '@/state/document-trail';
 import { holdReaderChrome } from '@/state/reader-chrome-hold';
@@ -194,10 +199,23 @@ export function useDocumentReaderChrome(
     if (mutations && bodyElement)
       mutations.observe(bodyElement, { childList: true, subtree: true });
     window.addEventListener('resize', schedule);
+    // The chrome slides out and back (`app-chrome-hidden`): its bottom edge moves without any
+    // resize, so the section path line would stay at the safe-area edge, under the revealed chrome.
+    // Measure again once the slide has settled.
+    element.addEventListener('transitionend', schedule);
+    let settleTimer: number | undefined;
+    const rootClass = new MutationObserver(() => {
+      if (settleTimer !== undefined) window.clearTimeout(settleTimer);
+      settleTimer = window.setTimeout(schedule, 320);
+    });
+    rootClass.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     onCleanup(() => {
       if (frame !== undefined) cancelAnimationFrame(frame);
+      if (settleTimer !== undefined) window.clearTimeout(settleTimer);
       observer.disconnect();
       mutations?.disconnect();
+      rootClass.disconnect();
+      element.removeEventListener('transitionend', schedule);
       window.removeEventListener('resize', schedule);
     });
   });
@@ -489,6 +507,17 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
     chrome.scrollTo(target.anchor, { fraction: target.fraction });
   };
 
+  // The counter is held by the section-path line when the reader has one (opaque, so it never lies
+  // over the text); otherwise it floats at the bottom-left as before.
+  const pageClaims = createReaderPageClaims();
+  const pageHost: ReaderPageHost = {
+    page: currentPage,
+    total: () => pageModel()?.total ?? 0,
+    hidden: () => chrome.drawerOpen(),
+    go: goToPage,
+    claim: pageClaims.claim,
+  };
+
   const handleBack = (): void => {
     const header = chrome.chromeElement();
     if (header && dismissOpenDocumentFind(header)) return;
@@ -501,178 +530,182 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
   };
 
   return (
-    <section
-      class={props.class ?? 'document-page page-surface page-grain'}
-      classList={props.classList}
-      aria-label={props.ariaLabel}
-    >
-      <div
-        ref={outlineSwipe.ref}
-        class="document-overlay-layout"
-        classList={{
-          ...props.layoutClassList,
-          'document-overlay-layout--outline-hidden':
-            props.outlineEnabled === false || !chrome.outlineOpen(),
-          'document-overlay-layout--outline-disabled': props.outlineEnabled === false,
-        }}
+    <ReaderPageHostContext.Provider value={pageHost}>
+      <section
+        class={props.class ?? 'document-page page-surface page-grain'}
+        classList={props.classList}
+        aria-label={props.ariaLabel}
       >
-        <Show when={props.outlineEnabled !== false}>
-          <button
-            type="button"
-            class="document-overlay-outline-backdrop"
-            classList={{ 'document-overlay-outline-backdrop--open': chrome.outlineOpen() }}
-            aria-label="Закрыть оглавление"
-            onPointerDown={(event) => event.stopPropagation()}
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              chrome.closeOutline();
-            }}
-          />
-          <aside
-            ref={chrome.setOutline}
-            class="document-overlay-outline"
-            classList={{
-              'document-overlay-outline--hidden': !chrome.outlineOpen(),
-              'document-overlay-outline--open': chrome.outlineOpen(),
-            }}
-            aria-hidden={!chrome.outlineOpen()}
-          >
+        <div
+          ref={outlineSwipe.ref}
+          class="document-overlay-layout"
+          classList={{
+            ...props.layoutClassList,
+            'document-overlay-layout--outline-hidden':
+              props.outlineEnabled === false || !chrome.outlineOpen(),
+            'document-overlay-layout--outline-disabled': props.outlineEnabled === false,
+          }}
+        >
+          <Show when={props.outlineEnabled !== false}>
             <button
               type="button"
-              class="document-overlay-outline-resize"
-              aria-label="Изменить ширину оглавления"
-              onPointerDown={(pointerDown) => {
-                const handle = pointerDown.currentTarget;
-                const layout = handle.closest<HTMLElement>('.document-overlay-layout');
-                if (!layout) return;
-                pointerDown.preventDefault();
-                handle.setPointerCapture(pointerDown.pointerId);
-                const startX = pointerDown.clientX;
-                const outlineElement = layout.querySelector<HTMLElement>(
-                  '.document-overlay-outline',
-                );
-                const startWidth = Math.round(outlineElement?.getBoundingClientRect().width ?? 220);
-                let frame: number | undefined;
-                let width = startWidth;
-                const applyWidth = (): void => {
-                  frame = undefined;
-                  layout.style.setProperty('--outline-column-width', `${width}px`);
-                };
-                const onMove = (move: PointerEvent): void => {
-                  width = Math.min(480, Math.max(200, startWidth + move.clientX - startX));
-                  if (frame === undefined) frame = requestAnimationFrame(applyWidth);
-                };
-                const stop = (): void => {
-                  handle.removeEventListener('pointermove', onMove);
-                  handle.removeEventListener('pointerup', stop);
-                  handle.removeEventListener('pointercancel', stop);
-                  if (frame !== undefined) cancelAnimationFrame(frame);
-                  layout.classList.remove('document-overlay-layout--resizing');
-                  try {
-                    localStorage.setItem('minimed.outline.width', String(width));
-                  } catch {
-                    // storage unavailable — width applies until reload
-                  }
-                };
-                handle.addEventListener('pointermove', onMove);
-                handle.addEventListener('pointerup', stop);
-                handle.addEventListener('pointercancel', stop);
-                layout.classList.add('document-overlay-layout--resizing');
+              class="document-overlay-outline-backdrop"
+              classList={{ 'document-overlay-outline-backdrop--open': chrome.outlineOpen() }}
+              aria-label="Закрыть оглавление"
+              onPointerDown={(event) => event.stopPropagation()}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                chrome.closeOutline();
               }}
             />
-            <header class="document-overlay-outline-header">
-              <strong>{props.outlineTitle ?? 'Оглавление'}</strong>
-              <button
-                type="button"
-                class="document-overlay-outline-header__close-button"
-                aria-label="Закрыть оглавление"
-                onClick={chrome.closeOutline}
-              >
-                <AppGlyph name="close" class="document-overlay-outline-header__close-icon" />
-              </button>
-            </header>
-            {props.outlineSearchSlot}
-            <OverlayScrollbarsComponent
-              ref={(value) => {
-                chrome.setOutlineScrollbars(value);
-                const instance = value?.osInstance();
-                if (instance) chrome.bindOutlineScrollbars(instance);
+            <aside
+              ref={chrome.setOutline}
+              class="document-overlay-outline"
+              classList={{
+                'document-overlay-outline--hidden': !chrome.outlineOpen(),
+                'document-overlay-outline--open': chrome.outlineOpen(),
               }}
-              class="document-overlay-outline-nav-scroll os-theme-dark"
-              options={{ overflow: { x: 'hidden', y: 'scroll' } }}
-              defer
+              aria-hidden={!chrome.outlineOpen()}
             >
-              <nav
-                ref={chrome.setOutlineNav}
-                class={`document-overlay-outline-nav${chrome.outlineSearchStuck() ? ' document-overlay-outline-nav--stuck' : ''}`}
-                aria-label="Разделы документа"
-              >
-                {props.outlineNav}
-              </nav>
-            </OverlayScrollbarsComponent>
-            {props.outlineFooter}
-          </aside>
-        </Show>
-        <div class="document-page__main">
-          <header
-            ref={chrome.setChromeElement}
-            class={
-              props.chromeClass ??
-              'document-page__chrome sticky-surface route-sticky-chrome route-sticky-chrome--opaque'
-            }
-            classList={{
-              'document-page__chrome--with-search': Boolean(props.headerSearchSlot),
-              'document-page__chrome--with-print': Boolean(props.printButton),
-              ...props.chromeClassList,
-            }}
-          >
-            <NavBack
-              class="document-page__back"
-              aria-label={searchOpen() ? 'Закрыть поиск' : (props.backLabel ?? 'Назад')}
-              onClick={handleBack}
-              icon={
-                <AppGlyph
-                  name={searchOpen() ? 'close' : 'arrow-left'}
-                  class="document-page__back-icon"
-                />
-              }
-            />
-            <Show when={props.outlineEnabled !== false}>
               <button
                 type="button"
-                class="document-overlay-outline-toggle"
-                aria-label={chrome.outlineOpen() ? 'Скрыть оглавление' : 'Открыть оглавление'}
-                aria-expanded={chrome.outlineOpen()}
-                disabled={!props.showLayout}
-                onClick={chrome.toggleOutline}
+                class="document-overlay-outline-resize"
+                aria-label="Изменить ширину оглавления"
+                onPointerDown={(pointerDown) => {
+                  const handle = pointerDown.currentTarget;
+                  const layout = handle.closest<HTMLElement>('.document-overlay-layout');
+                  if (!layout) return;
+                  pointerDown.preventDefault();
+                  handle.setPointerCapture(pointerDown.pointerId);
+                  const startX = pointerDown.clientX;
+                  const outlineElement = layout.querySelector<HTMLElement>(
+                    '.document-overlay-outline',
+                  );
+                  const startWidth = Math.round(
+                    outlineElement?.getBoundingClientRect().width ?? 220,
+                  );
+                  let frame: number | undefined;
+                  let width = startWidth;
+                  const applyWidth = (): void => {
+                    frame = undefined;
+                    layout.style.setProperty('--outline-column-width', `${width}px`);
+                  };
+                  const onMove = (move: PointerEvent): void => {
+                    width = Math.min(480, Math.max(200, startWidth + move.clientX - startX));
+                    if (frame === undefined) frame = requestAnimationFrame(applyWidth);
+                  };
+                  const stop = (): void => {
+                    handle.removeEventListener('pointermove', onMove);
+                    handle.removeEventListener('pointerup', stop);
+                    handle.removeEventListener('pointercancel', stop);
+                    if (frame !== undefined) cancelAnimationFrame(frame);
+                    layout.classList.remove('document-overlay-layout--resizing');
+                    try {
+                      localStorage.setItem('minimed.outline.width', String(width));
+                    } catch {
+                      // storage unavailable — width applies until reload
+                    }
+                  };
+                  handle.addEventListener('pointermove', onMove);
+                  handle.addEventListener('pointerup', stop);
+                  handle.addEventListener('pointercancel', stop);
+                  layout.classList.add('document-overlay-layout--resizing');
+                }}
+              />
+              <header class="document-overlay-outline-header">
+                <strong>{props.outlineTitle ?? 'Оглавление'}</strong>
+                <button
+                  type="button"
+                  class="document-overlay-outline-header__close-button"
+                  aria-label="Закрыть оглавление"
+                  onClick={chrome.closeOutline}
+                >
+                  <AppGlyph name="close" class="document-overlay-outline-header__close-icon" />
+                </button>
+              </header>
+              {props.outlineSearchSlot}
+              <OverlayScrollbarsComponent
+                ref={(value) => {
+                  chrome.setOutlineScrollbars(value);
+                  const instance = value?.osInstance();
+                  if (instance) chrome.bindOutlineScrollbars(instance);
+                }}
+                class="document-overlay-outline-nav-scroll os-theme-dark"
+                options={{ overflow: { x: 'hidden', y: 'scroll' } }}
+                defer
               >
-                <AppGlyph name="menu" class="document-overlay-outline-toggle__icon" />
-              </button>
-            </Show>
-            <div class="document-page__trail">{props.breadcrumbs}</div>
-            {props.headerSearchSlot}
-            <Show when={props.printButton}>{props.printButton}</Show>
-          </header>
-          <div class="document-page__body document-overlay__body" classList={props.bodyClassList}>
-            {props.bodyError}
-            {props.bodyPrefix}
-            <Show when={props.showLayout} fallback={props.loadingBody}>
-              {props.content}
+                <nav
+                  ref={chrome.setOutlineNav}
+                  class={`document-overlay-outline-nav${chrome.outlineSearchStuck() ? ' document-overlay-outline-nav--stuck' : ''}`}
+                  aria-label="Разделы документа"
+                >
+                  {props.outlineNav}
+                </nav>
+              </OverlayScrollbarsComponent>
+              {props.outlineFooter}
+            </aside>
+          </Show>
+          <div class="document-page__main">
+            <header
+              ref={chrome.setChromeElement}
+              class={
+                props.chromeClass ??
+                'document-page__chrome sticky-surface route-sticky-chrome route-sticky-chrome--opaque'
+              }
+              classList={{
+                'document-page__chrome--with-search': Boolean(props.headerSearchSlot),
+                'document-page__chrome--with-print': Boolean(props.printButton),
+                ...props.chromeClassList,
+              }}
+            >
+              <NavBack
+                class="document-page__back"
+                aria-label={searchOpen() ? 'Закрыть поиск' : (props.backLabel ?? 'Назад')}
+                onClick={handleBack}
+                icon={
+                  <AppGlyph
+                    name={searchOpen() ? 'close' : 'arrow-left'}
+                    class="document-page__back-icon"
+                  />
+                }
+              />
+              <Show when={props.outlineEnabled !== false}>
+                <button
+                  type="button"
+                  class="document-overlay-outline-toggle"
+                  aria-label={chrome.outlineOpen() ? 'Скрыть оглавление' : 'Открыть оглавление'}
+                  aria-expanded={chrome.outlineOpen()}
+                  disabled={!props.showLayout}
+                  onClick={chrome.toggleOutline}
+                >
+                  <AppGlyph name="menu" class="document-overlay-outline-toggle__icon" />
+                </button>
+              </Show>
+              <div class="document-page__trail">{props.breadcrumbs}</div>
+              {props.headerSearchSlot}
+              <Show when={props.printButton}>{props.printButton}</Show>
+            </header>
+            <div class="document-page__body document-overlay__body" classList={props.bodyClassList}>
+              {props.bodyError}
+              {props.bodyPrefix}
+              <Show when={props.showLayout} fallback={props.loadingBody}>
+                {props.content}
+              </Show>
+            </div>
+            <Show when={props.showLayout && !pageClaims.claimed() ? pageModel() : null}>
+              {(model) => (
+                <ReaderPageBubble
+                  page={currentPage()}
+                  total={model().total}
+                  hidden={chrome.drawerOpen()}
+                  onGo={goToPage}
+                />
+              )}
             </Show>
           </div>
-          <Show when={props.showLayout ? pageModel() : null}>
-            {(model) => (
-              <ReaderPageBubble
-                page={currentPage()}
-                total={model().total}
-                hidden={chrome.drawerOpen()}
-                onGo={goToPage}
-              />
-            )}
-          </Show>
         </div>
-      </div>
-    </section>
+      </section>
+    </ReaderPageHostContext.Provider>
   );
 }

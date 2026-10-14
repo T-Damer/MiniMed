@@ -360,7 +360,7 @@
   margin: 0;
   overflow-wrap: break-word;
   hyphens: auto;
-  padding: clamp(1.5rem, 5vw, 3.625rem) var(--document-paper-inline-padding) 4.375rem;
+  padding: clamp(1rem, 3vw, 3rem) var(--document-paper-inline-padding) 4.375rem;
   overflow: visible;
   color: var(--ink);
   background:
@@ -387,9 +387,23 @@ html.app-chrome-hidden .document-overlay-paper::before {
 }
 
 .document-overlay-paper__header {
-  margin-bottom: 1.875rem;
-  padding-bottom: 1.25rem;
+  /* The title block stays short: the text starts on the first screen. */
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--paper-line);
+}
+
+.document-overlay-paper__meta {
+  /* Kind · edition · audience on one line under the title. */
+  min-width: 0;
+  margin: 0.125rem 0 0;
+  overflow: hidden;
+  color: var(--theme-text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .document-overlay-paper__source-label {
@@ -1955,7 +1969,7 @@ html.app-chrome-hidden .document-overlay-paper::before {
   .document-overlay-paper {
     --document-paper-inline-padding: 1.125rem;
     overflow: visible;
-    padding: 1.5rem var(--document-paper-inline-padding) 3.75rem;
+    padding: 1rem var(--document-paper-inline-padding) 3.75rem;
   }
 
   .document-library-grid {

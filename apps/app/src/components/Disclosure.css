@@ -106,6 +106,18 @@
   overflow-wrap: anywhere;
 }
 
+/* One line with an ellipsis: the heading and the title give up their wrapping. */
+.ui-disclosure--single-line .ui-disclosure__heading {
+  display: block;
+}
+
+.ui-disclosure--single-line .ui-disclosure__title {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .ui-disclosure__description {
   color: var(--theme-text-muted);
   font-size: 0.85rem;

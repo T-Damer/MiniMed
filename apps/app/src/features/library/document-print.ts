@@ -8,6 +8,7 @@ import {
   resolveDocumentChunkItems,
   visibleImageCaption,
 } from '@/features/library/document-rich-block-data';
+import { documentEditionValue } from '@/features/library/document-version-label';
 import { PrintManager } from '@/features/printing/print-manager';
 
 function escapeHtml(value: string): string {
@@ -106,6 +107,7 @@ function renderSectionHtml(section: MedicalSection): string {
 function printableDocumentHtml(document: MedicalDocument, pageLink: string): string {
   const body = document.sections.map(renderSectionHtml).join('');
   const escapedPageLink = escapeHtml(pageLink);
+  const editionValue = documentEditionValue(document.versionLabel);
   return `<!doctype html>
 <html lang="ru">
 <head>
@@ -149,7 +151,7 @@ function printableDocumentHtml(document: MedicalDocument, pageLink: string): str
 <body>
   <p class="doc-print__kicker">MiniMed — Нормы и расчёты</p>
   <h1 class="doc-print__title">${escapeHtml(document.title)}</h1>
-  <p class="doc-print__meta">Редакция: ${escapeHtml(document.versionLabel)}</p>
+  ${editionValue ? `<p class="doc-print__meta">Редакция: ${escapeHtml(editionValue)}</p>` : ''}
   ${body}
   <footer class="doc-print__footer">
     <span>MiniMed</span>

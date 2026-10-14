@@ -1,7 +1,9 @@
 /* «В МКБ-11» row of an ICD-10 card. Motion follows DESIGN.md: micro 140 ms ease-out for hover,
    200 ms ease-in-out for the panel's entry; transform and opacity only. */
 .icd10-to-icd11 {
-  margin-block: 0.5rem;
+  /* A flat line under the title, one of the reader's compact facts rows. */
+  margin-block: 0;
+  border-bottom: 1px solid var(--paper-line);
   animation: icd10-to-icd11-enter 200ms ease-in-out both;
 }
 

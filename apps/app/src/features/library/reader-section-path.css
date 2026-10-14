@@ -31,14 +31,28 @@ html.app-chrome-hidden .reader-section-path {
   line-height: 1.2;
   opacity: 0;
   transform: translateY(-0.375rem);
+  /* A hidden line must not take taps meant for the text below (it holds the page counter). */
+  visibility: hidden;
   transition:
     opacity var(--motion-fast) var(--motion-ease),
-    transform var(--motion-base) var(--motion-ease-out);
+    transform var(--motion-base) var(--motion-ease-out),
+    visibility 0s linear var(--motion-base);
 }
 
 .reader-section-path__line--shown {
   opacity: 1;
   transform: none;
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+/* The titles share the line with the page counter: they give way to it. */
+.reader-section-path__trail {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 0.375rem;
 }
 
 /* An outer section is its short label (or a title capped at a third of the line); the current one

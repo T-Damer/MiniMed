@@ -98,6 +98,8 @@ export function SickLeavePanel(props: { readonly document: MedicalDocument }): J
       {(letter) => (
         <section class="sick-leave" data-testid="sick-leave-panel">
           <Disclosure
+            variant="inline"
+            singleLine
             title={
               <span class="sick-leave__title">{headerText(shown().entries, shown().rest)}</span>
             }

@@ -12,6 +12,8 @@ export interface DisclosureProps {
   readonly defaultOpen?: boolean;
   /** `card` is a bordered panel; `inline` is a compact text row for secondary details. */
   readonly variant?: 'card' | 'inline';
+  /** The title keeps to one line and ends in an ellipsis (a row of a compact list). */
+  readonly singleLine?: boolean;
   /** Short trailing meta such as a count; rendered before the chevron. */
   readonly meta?: JSX.Element;
   readonly description?: string;
@@ -73,6 +75,7 @@ export function Disclosure(props: DisclosureProps): JSX.Element {
       classList={{
         'ui-disclosure--open': open(),
         'ui-disclosure--inline': props.variant === 'inline',
+        'ui-disclosure--single-line': props.singleLine ?? false,
       }}
     >
       <Show when={props.action !== undefined} fallback={header()}>
