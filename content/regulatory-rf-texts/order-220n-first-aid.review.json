@@ -1,0 +1,17 @@
+{
+  "documentId": "regulatory.rf.minzdrav.220n-2024",
+  "reviewer": "Claude (agent), against the page images; not a lawyer",
+  "reviewedAt": "2026-10-14",
+  "verdicts": {
+    "5": "image read: Marker cut the list of item 5 after «проведение осмотра головы;» (two lines lost at the foot of the page); restored from the image"
+  },
+  "corrections": [
+    {
+      "page": 5,
+      "kind": "dropped-lines",
+      "find": "проведение осмотра головы;",
+      "replace": "проведение осмотра головы;\n\nпроведение осмотра шеи;\n\nпроведение осмотра груди;",
+      "why": "Marker's page ended after «проведение осмотра головы;»; the image has two more lines of the list, «проведение осмотра шеи;» and «проведение осмотра груди;» (Vision read them too)."
+    }
+  ]
+}

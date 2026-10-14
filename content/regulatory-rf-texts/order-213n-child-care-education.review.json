@@ -1,0 +1,23 @@
+{
+  "documentId": "regulatory.rf.minzdrav.213n-2025",
+  "reviewer": "Claude (agent), against the page images; not a lawyer",
+  "reviewedAt": "2026-10-14",
+  "verdicts": {
+    "10": "image read: Marker lost the last line of the list at the foot of the page (участие в работе психолого-медико-педагогической комиссии); restored from the image. The printed hyphen of «медико-социального» (line end) is restored by the tool",
+    "13": "image read cell by cell: the equipment table (items 1-4, codes 258800-122830, quantities 1, 1, 1, 2) matches; the annex header number/date come from the portal",
+    "14": "image read cell by cell: items 4-9 with all codes and quantities (2, 4, 2, 4, 1) match",
+    "15": "image read cell by cell: items 9-20 with all codes and quantities match, including item 16 «Грелка медицинская» = 2 (Vision's «17» is a misread)",
+    "16": "image read cell by cell: items 20-30 match, including «по 1 в 2-х размерах» (item 23) and «до - 20С» (item 29)",
+    "17": "image read cell by cell: items 31-33 and the table «Прочее оборудование (оснащение)» items 1-3 match",
+    "18": "image read cell by cell: items 4-15 of the second table match, including «2 на кабинет» and «по количеству кабинетов»"
+  },
+  "corrections": [
+    {
+      "page": 10,
+      "kind": "dropped-lines",
+      "find": "причинен в результате противоправных действий;",
+      "replace": "причинен в результате противоправных действий;\n\nучастие в работе психолого-медико-педагогической комиссии;",
+      "why": "The last line of the list on the page, «участие в работе психолого-медико-педагогической комиссии;», is missing from Marker's text (Vision read it)."
+    }
+  ]
+}

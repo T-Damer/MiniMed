@@ -1,0 +1,19 @@
+{
+  "documentId": "regulatory.rf.minzdrav.625n-2016",
+  "reviewer": "Claude (agent), against the page images; not a lawyer",
+  "reviewedAt": "2026-10-14",
+  "verdicts": {
+    "1": "image read: Marker's text is right; the copy-certification stamp (КОПИЯ ВЕРНА, department seal) removed as not text of the act; header number/date come from the portal",
+    "3": "image read: Marker's text and footnote 2 (down to № 33147) are right; Vision dropped the last footnote line",
+    "4": "image read: Marker's text and footnote 3 (№ 30714) are right; Vision dropped the last footnote lines"
+  },
+  "corrections": [
+    {
+      "page": 1,
+      "kind": "stamp",
+      "find": "\n\nКОПИЯ БЕРНА\n\nЗаместитель начальника\nОбщего отдела\n\n23 августа 2016 г.\n\nТ.В. Крундышева",
+      "replace": "",
+      "why": "Certification stamp of the copy («КОПИЯ ВЕРНА», Заместитель начальника Общего отдела, 23 августа 2016 г., Т.В. Крундышева, seal of the Департамент управления делами и кадров № 2); not text of the order. Marker misread «ВЕРНА» as «БЕРНА»."
+    }
+  ]
+}

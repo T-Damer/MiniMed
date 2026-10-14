@@ -1,0 +1,10 @@
+{
+  "documentId": "regulatory.rf.minzdrav.192n-2025",
+  "reviewer": "Claude (agent), against the page images; not a lawyer",
+  "reviewedAt": "2026-10-14",
+  "verdicts": {
+    "2": "image read: only item 3 and the signature are on the page; Marker's text is right; Vision's extra token is the signature",
+    "7": "image read: Marker's text is right (18 лет in item 13.4); Vision missed «18»"
+  },
+  "corrections": []
+}

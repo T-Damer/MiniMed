@@ -1,0 +1,19 @@
+{
+  "documentId": "regulatory.rf.minzdrav.190n-2025",
+  "reviewer": "Claude (agent), against the page images; not a lawyer",
+  "reviewedAt": "2026-10-14",
+  "verdicts": {
+    "1": "image read: preamble and items 1-3 match; header number/date come from the portal (the scan has a handwritten «190н» that Marker read as «1904» and an invented date)",
+    "5": "image read: Marker's items 17-20, footnotes 2 and 3 (№ 73523) are right; Vision dropped the last footnote line",
+    "6": "image read: the table of terms matches cell by cell (Дети, Взрослые with 40 и более / менее 40 на 100 000, родильные дома, ВИЧ, снятые с наблюдения); the annex header date/number come from the portal; Vision lost the table cells"
+  },
+  "corrections": [
+    {
+      "page": 1,
+      "kind": "noise",
+      "find": "\n\n183000",
+      "replace": "",
+      "why": "Faint print at the foot of the page, not text; Marker transcribed it as «183000»."
+    }
+  ]
+}

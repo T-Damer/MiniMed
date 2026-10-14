@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Any, Final, Literal
 
 from .legal_reconcile import (
+    LINE_BREAK_IN_CELL,
     ActIdentity,
     PageResult,
     act_identity,
@@ -71,12 +72,21 @@ def _unemphasize(text: str) -> str:
     return _EMPHASIS.sub(replace, text)
 
 
+def _cell(raw: str) -> str:
+    """A cell's text: spaces collapsed, line breaks (⏎) kept as newlines between the parts."""
+    parts = [
+        re.sub(r"\s+", " ", _unemphasize(part.replace("\\|", "|"))).strip()
+        for part in raw.split(LINE_BREAK_IN_CELL)
+    ]
+    return "\n".join(part for part in parts if part)
+
+
 def _split_row(line: str) -> list[str]:
     inner = line.strip()
     inner = inner[1:] if inner.startswith("|") else inner
     inner = inner[:-1] if inner.endswith("|") and not inner.endswith("\\|") else inner
     cells = re.split(r"(?<!\\)\|", inner)
-    return [_unemphasize(cell.replace("\\|", "|")).strip() for cell in cells]
+    return [_cell(cell) for cell in cells]
 
 
 def parse_blocks(
@@ -139,7 +149,10 @@ def parse_blocks(
                 if not _TABLE_SEPARATOR.match(lines[index]):
                     rows.append(_split_row(lines[index]))
                 index += 1
-            if rows:
+            if len(rows) == 1 and len(rows[0]) == 1:  # a boxed field of a form, not a table
+                text = rows[0][0].replace("\n", " ")
+                blocks.append(Block("paragraph", text, page, confidence=confidence, reviewed=reviewed))
+            elif rows:
                 blocks.append(
                     Block("table", "", page, rows=rows, confidence=confidence, reviewed=reviewed)
                 )

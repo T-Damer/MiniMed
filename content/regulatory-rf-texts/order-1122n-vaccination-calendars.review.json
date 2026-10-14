@@ -1,0 +1,26 @@
+{
+  "documentId": "regulatory.rf.minzdrav.1122n-2021",
+  "reviewer": "Claude (agent), against the page images; not a lawyer",
+  "reviewedAt": "2026-10-14",
+  "verdicts": {
+    "3": "image read cell by cell: Marker dropped the polio rows of the national calendar (first dose at 3 months, second dose at 4,5 months, the latter left as an empty row); restored from the image, all other rows and the header match",
+    "11": "image read: Marker's rows 18-22 match, including all three «с 3 месяцев до 15 лет» of row 19; Vision misread one 15 as 13",
+    "14": "image read: Marker's items 7-12 match word for word, including the schemes 0-1-6 and 0-1-2-12 and the polio ages (3, 4,5, 6, 18, 20 months, 6 years); Vision missed «18»"
+  },
+  "corrections": [
+    {
+      "page": 3,
+      "kind": "dropped-row",
+      "find": "| 5. | Дети 3 месяца | Первая вакцинация против дифтерии, коклюша, столбняка |\n| | | Первая вакцинация против гемофильной инфекции типа b |",
+      "replace": "| 5. | Дети 3 месяца | Первая вакцинация против дифтерии, коклюша, столбняка |\n| | | Первая вакцинация против полиомиелита |\n| | | Первая вакцинация против гемофильной инфекции типа b |",
+      "why": "Row «Первая вакцинация против полиомиелита» (children of 3 months) is on the page and missing from Marker's table."
+    },
+    {
+      "page": 3,
+      "kind": "dropped-row",
+      "find": "| | | Вторая вакцинация против гемофильной инфекции типа b |\n| | | Вторая вакцинация против пневмококковой инфекции |\n| | | |",
+      "replace": "| | | Вторая вакцинация против гемофильной инфекции типа b |\n| | | Вторая вакцинация против полиомиелита |\n| | | Вторая вакцинация против пневмококковой инфекции |",
+      "why": "Row «Вторая вакцинация против полиомиелита» (children of 4,5 months) is on the page; Marker left an empty row in its place."
+    }
+  ]
+}

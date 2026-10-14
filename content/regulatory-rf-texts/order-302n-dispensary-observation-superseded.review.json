@@ -1,0 +1,10 @@
+{
+  "documentId": "regulatory.rf.minzdrav.302n-2019",
+  "reviewer": "Claude (agent), against the page images; not a lawyer",
+  "reviewedAt": "2026-10-14",
+  "verdicts": {
+    "4": "image read: Marker's text and footnotes 4 and 5 are right, including the printed «Российского Федерации» of the original; Vision dropped the footnote lines",
+    "7": "image read: Marker's text and footnote 8 (№ 36160, № 50614) are right; Vision dropped the footnote"
+  },
+  "corrections": []
+}

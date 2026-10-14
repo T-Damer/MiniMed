@@ -60,6 +60,11 @@ _HTML_ENTITY: Final = re.compile(r"&[a-zA-Z]+;|&#\d+;")
 _IMAGE: Final = re.compile(r"!\[[^\]]*\]\([^)]*\)")
 _SUP: Final = re.compile(r"<sup>\s*([^<]*?)\s*</sup>", re.IGNORECASE)
 _SUB: Final = re.compile(r"</?sub>", re.IGNORECASE)
+_BLOCK_END: Final = re.compile(r"</(?:p|li)>|<li[^>]*>", re.IGNORECASE)
+_INLINE_TAG: Final = re.compile(
+    r"</?(?:p|b|i|u|em|strong|span|div|ul|ol|li|table|thead|tbody|tr|td|th|a)(?:\s[^>]*)?>",
+    re.IGNORECASE,
+)
 _BR: Final = re.compile(r"<br\s*/?>", re.IGNORECASE)
 _DOUBLE_NUMBERED: Final = re.compile(r"^(\s*)\d+\.\s+(\d+[.)]\s)", re.MULTILINE)
 _FURNITURE: Final = re.compile(r"^[\s#*_|\\\-–—.()]*\d{1,4}[\s#*_|\\\-–—.()]*$")
@@ -72,6 +77,7 @@ DROPPED_SPAN_TOKENS: Final = 6
 COVERAGE_VISION_MIN: Final = 0.94
 COVERAGE_MARKER_MIN: Final = 0.90
 INFLATION_MAX: Final = 1.6
+REPEAT_DEFICIT_MIN: Final = 4
 
 
 @dataclass(frozen=True)
@@ -111,14 +117,39 @@ class PageResult:
 # ------------------------------------------------------------------------------------ cleaning
 
 
+LINE_BREAK_IN_CELL: Final = "\u23ce"
+"""Stands for a line break inside a table cell until the cell is rendered (a newline in the rich table)."""
+
+
+def _flatten_breaks(line: str) -> str:
+    """`<br>`, `</p>` and `<li>` are a space in running text and a line break (⏎) inside a table cell."""
+    separator = LINE_BREAK_IN_CELL if line.lstrip().startswith("|") else " "
+    line = _BR.sub(separator, line)
+    line = _BLOCK_END.sub(separator, line)
+    return line
+
+
+def _tidy_cell_breaks(line: str) -> str:
+    if LINE_BREAK_IN_CELL not in line:
+        return line
+    line = re.sub(rf"\s*{LINE_BREAK_IN_CELL}[\s{LINE_BREAK_IN_CELL}]*", LINE_BREAK_IN_CELL, line)
+    line = re.sub(rf"\|{LINE_BREAK_IN_CELL}", "| ", line)
+    return re.sub(rf"{LINE_BREAK_IN_CELL}\|", " |", line)
+
+
 def clean_marker_markdown(text: str) -> str:
     """Deterministic repairs of Marker's Markdown that do not touch words or numbers."""
     value = text.replace("\xa0", " ").replace("\r\n", "\n")
     value = _IMAGE.sub("", value)
+    value = re.sub(r"\s*\.{5,}\s*", " ", value)
     value = _SUP.sub(lambda m: m.group(1).translate(_TO_SUPERSCRIPT), value)
     value = _SUB.sub("", value)
-    value = _BR.sub(" ", value)
+    value = "\n".join(_flatten_breaks(line) for line in value.split("\n"))
+    value = _INLINE_TAG.sub("", value)
+    value = "\n".join(_tidy_cell_breaks(line) for line in value.split("\n"))
+    value = re.sub(r"(?<=\|)[ \t]{2,}|[ \t]{2,}(?=\|)", " ", value)
     value = _DOUBLE_NUMBERED.sub(r"\1\2", value)
+    value = re.sub(r"^\s*(?:-{3,}|\*{3,}|_{3,})\s*$", "", value, flags=re.MULTILINE)
     value = re.sub(r"[ \t]+\n", "\n", value)
     value = re.sub(r"\n{3,}", "\n\n", value)
     return value.strip()
@@ -177,7 +208,9 @@ _SUP_GLYPHS: Final = "⁰¹²³⁴⁵⁶⁷⁸⁹"
 _LINE_LEAD: Final = re.compile(r"^[\s*_#>|•·\-]*$")
 
 
-def tokenize(text: str, line: int = 0, *, vision: bool = False) -> list[Token]:
+def tokenize(
+    text: str, line: int = 0, *, vision: bool = False, skip: tuple[str, ...] = ()
+) -> list[Token]:
     """Tokens with offsets into `text`. Footnote marks and list ordinals are tokens with `ignore` set.
 
     Marker writes a footnote mark as a superscript glyph; Vision reads it as a digit glued to the word
@@ -185,6 +218,12 @@ def tokenize(text: str, line: int = 0, *, vision: bool = False) -> list[Token]:
     """
     prepared = _prepare(text)
     tokens: list[Token] = []
+    skipped: list[tuple[int, int]] = []
+    for literal in skip:
+        position = text.find(literal)
+        while position >= 0:
+            skipped.append((position, position + len(literal)))
+            position = text.find(literal, position + len(literal))
     for match in _TOKEN.finditer(prepared):
         value = match.group()
         norm = (
@@ -198,28 +237,65 @@ def tokenize(text: str, line: int = 0, *, vision: bool = False) -> list[Token]:
             after = text[end : end + 2]
             if text[start] in _SUP_GLYPHS or (at_line_start and re.match(r"[.)]($|\s)|$", after)):
                 ignore = True
+        if any(a <= match.start() < b for a, b in skipped):
+            ignore = True
         tokens.append(Token(norm, match.start(), match.end(), line, ignore))
     return tokens
 
 
-def vision_tokens(lines: list[str]) -> list[Token]:
+def vision_tokens(lines: list[str], skip: tuple[str, ...] = ()) -> list[Token]:
     """Tokens of Vision's lines; `line` is the index of the line, offsets are inside that line."""
     tokens: list[Token] = []
     for index, line in enumerate(lines):
         value = re.sub(r"\bN[º°o]\.?(?=\s*\d)", "№", line)
-        tokens.extend(tokenize(value, index, vision=True))
+        tokens.extend(tokenize(value, index, vision=True, skip=skip))
     return tokens
 
 
 def dehyphenate(lines: list[str]) -> list[str]:
-    """Join a word split by a line-end hyphen with its continuation (Vision keeps visual lines)."""
+    """Join a word split by a line-end hyphen with its continuation (Vision keeps visual lines).
+
+    A compound («медико-» + «социального») keeps its hyphen, like the text Marker is restored to.
+    """
     out: list[str] = []
     for line in lines:
         if out and re.search(r"[А-Яа-яЁё]-$", out[-1]) and re.match(r"[а-яё]", line):
-            out[-1] = out[-1][:-1] + line
+            compound = re.search(r"([А-Яа-яЁё]{4,}о)-$", out[-1]) is not None and re.match(
+                r"[а-яё]{4,}", line
+            )
+            out[-1] = out[-1] + line if compound else out[-1][:-1] + line
         else:
             out.append(line)
     return out
+
+
+def compound_hyphens(lines: list[str]) -> list[tuple[str, str]]:
+    """Word pairs split at a line end whose first part is an adverbial combining form («медико-» + «социального»).
+
+    The official scans hyphenate only compounds, so the hyphen is part of the word. Marker joins such
+    a pair («медикосоциального»); `restore_compound_hyphens` puts the hyphen back.
+    """
+    pairs: list[tuple[str, str]] = []
+    for line, following in zip(lines, lines[1:], strict=False):
+        first = re.search(r"([А-Яа-яЁё]+)-$", line)
+        second = re.match(r"([а-яё]{4,})", following)
+        if first and second and first.group(1).lower().endswith("о") and len(first.group(1)) >= 5:
+            pairs.append((first.group(1), second.group(1)))
+    return pairs
+
+
+def restore_compound_hyphens(text: str, pairs: list[tuple[str, str]]) -> tuple[str, list[str]]:
+    """Put the hyphen back into the words Marker joined (letters are compared after the look-alike fold)."""
+    repairs: list[str] = []
+    for first, second in pairs:
+        joined = _fold(first + second)
+        for match in re.finditer(r"[A-Za-zА-Яа-яЁё]+", text):
+            if _fold(match.group()) == joined:
+                cut = match.start() + len(first)
+                text = text[:cut] + "-" + text[cut:]
+                repairs.append(f"{first}{second} → {first}-{second}")
+                break
+    return text, repairs
 
 
 def _countable(token: Token) -> bool:
@@ -392,7 +468,7 @@ def act_identity(record: Mapping[str, object]) -> ActIdentity:
 
 _SELF_REFERENCE: Final = re.compile(
     r"(?P<head>\b(?:Приложение|Утвержден[ыо]?)\b[^.;]{0,260}?\bприказ\w*\b[^.;№]{0,200}?)"
-    r"\bот\s+[^№\n]{3,48}?[№N][º°o]?\s*(?P<num>\d+(?: ?[A-Za-zА-Яа-я](?![A-Za-zА-Яа-я]))?)(?!\d)",
+    r"\b(?:от|ot)\s+[^№]{3,60}?[№N][º°o]?\s*(?P<num>\d+(?: ?[A-Za-zА-Яа-я](?![A-Za-zА-Яа-я]))?)(?!\d)",
     re.IGNORECASE | re.DOTALL,
 )
 
@@ -401,14 +477,17 @@ def canonical_self_references(text: str, identity: ActIdentity) -> tuple[str, li
     """Rewrite «Приложение к приказу … от <date> № <number>» to the portal's date and number.
 
     Typed annex headers cite the act itself; both readings garble them (2015 for 2025, 1954 for 195н).
-    Only a citation whose number begins with the act's digits is rewritten.
+    Only a citation whose number begins with the act's digits (one misread digit allowed) is rewritten.
     """
     act_digits = re.sub(r"\D", "", identity.number)
     rewrites: list[str] = []
 
     def replace(match: re.Match[str]) -> str:
         cited = re.sub(r"\D", "", match.group("num"))
-        if not act_digits or not cited.startswith(act_digits):
+        close = len(cited) >= len(act_digits) and sum(
+            1 for a, b in zip(act_digits, cited, strict=False) if a != b
+        ) <= (1 if len(act_digits) >= 3 else 0)
+        if not act_digits or not close:
             return match.group(0)
         rewrites.append(re.sub(r"\s+", " ", match.group(0)[len(match.group("head")) :]).strip())
         return match.group("head") + identity.reference
@@ -511,9 +590,10 @@ class Alignment:
     dropped: list[Dropped] = field(default_factory=list)
     garbled: list[str] = field(default_factory=list)
     respaced: int = 0
+    merges: list[Substitution] = field(default_factory=list)
 
 
-def align(marker: str, vision_lines: list[str]) -> Alignment:
+def align(marker: str, vision_lines: list[str], skip: tuple[str, ...] = ()) -> Alignment:
     """Ordered comparison of Marker's text with Vision's lines.
 
     * a short replaced span with a number on either side is a disputed token → Vision's reading;
@@ -523,8 +603,8 @@ def align(marker: str, vision_lines: list[str]) -> Alignment:
     * a span that differs only by spaces («пр и казываю») is merged silently.
     """
     prepared_lines = [re.sub(r"\bN[º°o]\.?(?=\s*\d)", "№", line) for line in vision_lines]
-    m_tokens = [t for t in tokenize(marker) if not t.ignore]
-    all_v = vision_tokens(vision_lines)
+    m_tokens = [t for t in tokenize(marker, skip=skip) if not t.ignore]
+    all_v = vision_tokens(vision_lines, skip)
     v_tokens = [t for t in all_v if not t.ignore]
     result = Alignment()
     matcher = SequenceMatcher(
@@ -544,17 +624,29 @@ def align(marker: str, vision_lines: list[str]) -> Alignment:
         if tag == "replace":
             if "".join(t.norm for t in m_span) == "".join(t.norm for t in v_span):
                 result.respaced += 1
+                if (
+                    2 <= len(m_span) <= 3
+                    and len(v_span) == 1
+                    and len(v_span[0].norm) >= 7
+                    and not any(t.is_number for t in m_span)
+                    and marker[m_span[0].start : m_span[-1].end].replace(" ", "")
+                    == "".join(marker[t.start : t.end] for t in m_span)
+                ):
+                    start, end = m_span[0].start, m_span[-1].end
+                    new = _vision_text(prepared_lines, v_tokens, j1, j1)
+                    result.merges.append(Substitution(start, end, marker[start:end], new))
                 continue
             numeric = any(t.is_number for t in m_span) or any(t.is_number for t in v_span)
             if numeric and len(m_span) == len(v_span) and len(m_span) <= 4:
                 for offset, (m_tok, v_tok) in enumerate(zip(m_span, v_span, strict=True)):
-                    if m_tok.norm != v_tok.norm and (m_tok.is_number or v_tok.is_number):
+                    if m_tok.norm != v_tok.norm and m_tok.is_number and v_tok.is_number:
                         new = _vision_text(prepared_lines, v_tokens, j1 + offset, j1 + offset)
                         old = marker[m_tok.start : m_tok.end]
                         result.substitutions.append(Substitution(m_tok.start, m_tok.end, old, new))
                 continue
             if (
                 numeric
+                and all(t.is_number for t in v_span)
                 and len(m_span) <= 2
                 and len(v_span) <= 2
                 and "\n" not in marker[m_span[0].start : m_span[-1].end]
@@ -600,7 +692,9 @@ def reconcile_page(
     replaced by the caller with the portal's title, and annex headers that cite the act are rewritten to
     the portal's date and number. Page furniture (printed page numbers) is removed from both readings.
     """
-    vision_all = dehyphenate([line.strip() for line in vision_lines if line.strip()])
+    raw_lines = [line.strip() for line in vision_lines if line.strip()]
+    hyphen_pairs = compound_hyphens(raw_lines)
+    vision_all = dehyphenate(raw_lines)
     vision_kept, v_furniture = strip_furniture(vision_all)
     flags: list[Flag] = []
     notes: list[str] = []
@@ -615,6 +709,8 @@ def reconcile_page(
         )  # fmt: skip
     marker_lines, m_furniture = strip_furniture(clean_marker_markdown(marker_md).splitlines())
     marker = "\n".join(marker_lines).strip()
+    marker, hyphen_repairs = restore_compound_hyphens(marker, hyphen_pairs)
+    notes.extend(f"hyphen restored: {item}" for item in hyphen_repairs)
 
     if identity is not None:
         if page == 1:
@@ -635,8 +731,9 @@ def reconcile_page(
     else:
         known = frozenset()
 
-    m_tokens = tokenize(marker)
-    v_tokens = vision_tokens(vision_kept)
+    skip = (identity.reference,) if identity is not None else ()
+    m_tokens = tokenize(marker, skip=skip)
+    v_tokens = vision_tokens(vision_kept, skip)
     m_countable = [t for t in m_tokens if _countable(t)]
     v_countable = [t for t in v_tokens if _countable(t)]
 
@@ -653,12 +750,14 @@ def reconcile_page(
             {"markerTokens": len(m_tokens), "visionTokens": len(v_tokens)}, header_removed, notes,
         )  # fmt: skip
 
-    alignment = align(marker, vision_kept)
+    alignment = align(marker, vision_kept, skip)
     text = marker
     edits: list[tuple[int, int, str]] = []
     for sub in alignment.substitutions if substitute else []:
         edits.append((sub.marker_start, sub.marker_end, sub.new))
         flags.append(Flag("token-substitution", f"«{sub.old}» (Marker) → «{sub.new}» (Vision)"))
+    # A word Marker broke into pieces («пр и казываю») is taken from Vision; not a review item.
+    edits.extend((m.marker_start, m.marker_end, m.new) for m in alignment.merges)
     for span in alignment.dropped:
         where = "at a paragraph start" if span.paragraph_boundary else "inside a paragraph"
         flags.append(
@@ -675,10 +774,12 @@ def reconcile_page(
 
     # Numbers: what remains different after the swaps (stamp numbers the portal explains are excepted).
     v_numbers = numbers(v_tokens)
-    m_numbers = numbers(tokenize(text))
+    m_numbers = numbers(tokenize(text, skip=skip))
     # Footnote marks: Marker writes them as superscripts, Vision reads them as a digit glued to the word;
     # a digit only Vision has is excused up to the number of superscript marks Marker has with that value.
-    sup_marks = Counter(t.norm for t in tokenize(text) if t.ignore and text[t.start] in _SUP_GLYPHS)
+    sup_marks = Counter(
+        t.norm for t in tokenize(text, skip=skip) if t.ignore and text[t.start] in _SUP_GLYPHS
+    )
     only_vision = Counter(
         {
             k: n - sup_marks[k]
@@ -701,6 +802,23 @@ def reconcile_page(
     common = sum((v_bag & m_bag).values())
     cov_vision = common / max(sum(v_bag.values()), 1)
     cov_marker = common / max(sum(m_bag.values()), 1)
+    # A word Marker has but fewer times than Vision: dropped table rows and lines repeat known words
+    # («Первая вакцинация против полиомиелита» lost twice leaves the other rows' words in place).
+    repeats = Counter(
+        {
+            k: n - m_bag[k]
+            for k, n in v_bag.items()
+            if n > m_bag[k] >= 1 and len(k) >= 5 and not k[0].isdigit()
+        }
+    )
+    if sum(repeats.values()) >= REPEAT_DEFICIT_MIN and cov_vision >= COVERAGE_VISION_MIN:
+        flags.append(
+            Flag(
+                "repeated-content-missing",
+                "Vision has these words more often than Marker (dropped rows or lines?): "
+                + _listing(repeats),
+            )
+        )
     if cov_vision < COVERAGE_VISION_MIN:
         sample = ", ".join(k for k, _ in (v_bag - m_bag).most_common(12))
         flags.append(
@@ -743,6 +861,7 @@ LOW_CONFIDENCE_KINDS: Final = frozenset(
     {
         "dropped-span",
         "coverage-vision",
+        "repeated-content-missing",
         "coverage-marker",
         "garbled-span",
         "numbered-rows",

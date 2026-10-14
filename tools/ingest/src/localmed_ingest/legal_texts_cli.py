@@ -316,6 +316,44 @@ def reconcile(
 
 
 @app.command()
+def show(
+    data_root: DataRoot,
+    name: str,
+    pages: Annotated[str, typer.Option(help="comma separated pages")],
+    lines: Annotated[
+        bool, typer.Option("--lines", help="numbered repr lines, to build exact corrections")
+    ] = False,
+    first: int = 0,
+    last: int = 100000,
+    no_images: bool = False,
+) -> None:
+    """Print flags and the reconciled text of pages, and render their images (for the image review)."""
+    paths = Paths(data_root)
+    row = _act(name)
+    marker, vision = _inputs(paths, row)
+    identity = act_identity(row["record"])
+    wanted = {int(p) for p in pages.split(",")}
+    results, _pending = reconcile_act(
+        {p: t for p, t in marker.items() if p in wanted},
+        {p: t for p, t in vision.items() if p in wanted},
+        identity,
+        Review(verdicts={p: "" for p in wanted}) if lines else Review(),
+    )
+    for result in results:
+        typer.echo(f"=== page {result.page}: {result.status} {result.confidence} {result.reading}")
+        for flag in result.flags:
+            typer.echo(f"  ! {flag.kind}: {flag.detail}")
+        if lines:
+            for number, text in enumerate(result.text.split("\n")):
+                if first <= number <= last:
+                    typer.echo(f"{number} {text!r}")
+        else:
+            typer.echo(result.text)
+    if not no_images:
+        images(data_root, name, pages)
+
+
+@app.command()
 def images(
     data_root: DataRoot,
     name: str,
