@@ -1,0 +1,267 @@
+{
+  "documentId": "regulatory.rf.minzdrav.222n-2025",
+  "reviewer": "Claude (agent), against the page images; not a lawyer",
+  "reviewedAt": "2026-10-14",
+  "verdicts": {
+    "2": "image read: the header «от «17» апреля 2025 г. № 222н» is handwritten on the original; the date and number are the portal's; the text of paragraphs 1–5 matches",
+    "6": "image read: paragraphs 19–21 match; the last line of the page was restored",
+    "7": "image read: paragraphs 22–26 match; the last line of the page was restored",
+    "11": "image read: paragraphs 46–51 and footnotes 4, 5 match; «36²» is the printed article number with a superscript, Vision's «36» lacks it",
+    "12": "image read: the page holds only paragraph 52; Vision's extra word is a speck of the scan",
+    "14": "image read: paragraphs 5–9 match (the number in «№ 136н» is as printed, Vision's «13» is a misreading); the last lines of the page were restored",
+    "15": "image read: items of paragraphs 10 and 11 match; the last lines of the page were restored",
+    "17": "image read (table): every row and cell matches the page (rows 1–4; the cell of row 4 goes on to page 18)",
+    "18": "image read (table): every row and cell matches the page (rows 4–9); the first row repeats the end of row 4",
+    "19": "image read (table): every row and cell matches the page (rows 1 and 2); the annex header's date and number are the portal's",
+    "20": "image read (table): every row and cell matches the page (rows 2 end, 3 and 4); the code 126500 is read alike by both readings",
+    "21": "image read (table): every row and cell matches the page (rows 5–8); Marker had lost the quantity of row 7 and shifted its cells, the ruled cells give them back: «1 на отделение, созданное в структуре медицинской организации второй или третьей группы (уровня)»",
+    "24": "image read (table): every row and cell matches the page (rows 13–16); Marker had lost row 15 («229100 Билирубинометр чрескожный / Прибор для транскутанного определения билирубина / 1 на 20 коек»), the ruled cells give it back",
+    "27": "image read (table): every row and cell matches the page (rows 26 end – 29); the cell flagged is the end of the quantity cell of row 28 («… против туберкулеза, выписных комнат»), read twice",
+    "28": "image read (table): every row and cell matches the page (rows 30–35)",
+    "30": "image read (table): every row and cell matches the page (rows 40–43 and rows 1, 2 of «Дополнительное оснащение»); the number flags are Vision's misreadings of the narrow columns",
+    "31": "image read (table): every row and cell matches the page (rows 3–13); the row numbers 6 and 9 were exchanged by both readings and are corrected",
+    "33": "image read: paragraphs 4–9 and footnotes 3, 4 match; «№ 136н⁴» carries a superscript 4, Vision's «13» is a misreading",
+    "34": "image read: paragraphs 10 and 11 match; the last line of the page was restored",
+    "37": "image read (table): every row and cell matches the page (rows 1–12 of the staffing table)",
+    "40": "image read (table): every row and cell matches the page (rows 5 end, 6 and 7); the cells flagged are Vision's duplicates of cells Marker has in another order, read alike",
+    "41": "image read (table): every row and cell matches the page (rows 8–11); the row number 9 was read as 6 by Vision and is corrected",
+    "45": "image read (table): every row and cell matches the page (rows 4 end, 24, 25); the cells Marker reads as one are one cell of the ruled grid, the flags are the order of the two readings",
+    "47": "image read (table): every row and cell matches the page (rows 28 end and 29)",
+    "54": "image read (table): every row and cell matches the page (rows 49 end – 53)",
+    "56": "image read (table): every row and cell matches the page (rows 54 end – 60)",
+    "57": "image read (table): every row and cell matches the page (rows 61–64)",
+    "58": "image read (table): every row and cell matches the page (row 65 and rows 1, 2 of «Дополнительное оснащение»)",
+    "59": "image read (table): every row and cell matches the page (rows 3–13); the row numbers 6 and 9 were exchanged by both readings and are corrected",
+    "61": "image read: paragraphs 4–7 match; the last lines of the page were restored",
+    "64": "image read (table): every row and cell matches the page (rows 1–13 of the staffing table)",
+    "67": "image read (table): every row and cell matches the page (rows 2 end and 3); the quantity «2» is in the ruled cell of row 3; the number flag is the page number",
+    "68": "image read (table): every row and cell matches the page (rows 3 end, 4 and 5); the cells flagged are the two readings of one ruled cell",
+    "69": "image read (table): every row and cell matches the page (rows 6–13); the row number 6 was read as 9 by both readings and is corrected",
+    "70": "image read (table): every row and cell matches the page (rows 13 end, 14, 15)",
+    "71": "image read (table): every row and cell matches the page (rows 16–19); the flag is a cell Vision read in the order of the other reading",
+    "72": "image read (table): every row and cell matches the page (rows 19 end – 22); the flagged cells are read twice (the ruled and the line reading)",
+    "75": "image read (table): every row and cell matches the page (rows 29–33)",
+    "77": "image read (table): every row and cell matches the page (rows 35 end – 39)",
+    "78": "image read (table): every row and cell matches the page (rows 40–46)",
+    "80": "image read (table): every row and cell matches the page (row 11 end and rows 1–7 of «Дополнительное оснащение»); the flagged numbers are the page number and the code «00280-05» of row 1",
+    "81": "image read (table): every row and cell matches the page (rows 8–13); the row number 9 was read as 6 by Vision and is corrected",
+    "84": "image read (table): every row and cell matches the page (rows 1–3 of the staffing table of the milk unit); the annex header's date and number are handwritten and the portal's",
+    "85": "image read (table): every row and cell matches the page (rows 1–4); the annex header's date and number are handwritten and the portal's",
+    "86": "image read (table typed from the image): Marker and the ruled reading both lost the merged cells of the first row of this page; the whole page is typed from the image: the continued row 4, rows 5, 6, 7 with their codes, names and quantities",
+    "87": "image read (page typed from the image): Marker's table of this page has its codes in the wrong columns (rows 10); the page is typed from the image: rows 8, 9, 10 and the table «Дополнительное оснащение» rows 1–5",
+    "88": "image read (table): every row and cell matches the page (rows 6–11 of «Дополнительное оснащение» and the footnote); the row numbers 6 and 9 were exchanged by both readings and are corrected"
+  },
+  "corrections": [
+    {
+      "page": 6,
+      "kind": "dropped-line",
+      "find": "состояние новорожденного после рождения требует оказания медицинской помощи в родовспомогательной медицинской организации третьей группы (уровня) или в иной медицинской организации, оказывающей медицинскую помощь в стационарных условиях в соответствии с заболеванием новорожденного;",
+      "replace": "состояние новорожденного после рождения требует оказания медицинской помощи в родовспомогательной медицинской организации третьей группы (уровня) или в иной медицинской организации, оказывающей медицинскую помощь в стационарных условиях в соответствии с заболеванием новорожденного;\n\nпредполагаемая длительность оказания медицинской помощи на основе",
+      "why": "The last lines of the page are in the image; Marker dropped them: «предполагаемая длительность оказания медицинской помощи на основе» (paragraph 19, third item)"
+    },
+    {
+      "page": 7,
+      "kind": "dropped-line",
+      "find": "26. При необходимости новорожденные после окончания лечения в медицинской организации, оказывающей медицинскую помощь по профилям «акушерство и гинекология» и «неонатология», могут быть переведены для продолжения лечения в профильные структурные подразделения медицинских организаций, оказывающих медицинскую помощь в стационарных условиях детям, приближенных к месту жительства новорожденного и имеющих необходимые условия для продолжения лечения в необходимом объеме.",
+      "replace": "26. При необходимости новорожденные после окончания лечения в медицинской организации, оказывающей медицинскую помощь по профилям «акушерство и гинекология» и «неонатология», могут быть переведены для продолжения лечения в профильные структурные подразделения медицинских организаций, оказывающих медицинскую помощь в стационарных условиях детям, приближенных к месту жительства новорожденного и имеющих необходимые условия для продолжения лечения в необходимом объеме.\n\n27. При решении вопроса о маршрутизации новорожденного необходимо",
+      "why": "The last lines of the page are in the image; Marker dropped them: «27. При решении вопроса о маршрутизации новорожденного необходимо», which page 8 continues"
+    },
+    {
+      "page": 14,
+      "kind": "dropped-line",
+      "find": "кабинет с рабочими местами врачей-неонатологов;",
+      "replace": "кабинет с рабочими местами врачей-неонатологов;\n\nпроцедурный кабинет (процедурную);\n\nкабинет старшей медицинской сестры (старшего медицинского брата).\n\n10. В отделении рекомендуется предусматривать:",
+      "why": "The last lines of the page are in the image; Marker dropped them: «процедурный кабинет (процедурную);», «кабинет старшей медицинской сестры (старшего медицинского брата).» and «10. В отделении рекомендуется предусматривать:»"
+    },
+    {
+      "page": 15,
+      "kind": "dropped-line",
+      "find": "проведение профилактических мероприятий новорожденным, включая неонатальный скрининг и вакцинацию;",
+      "replace": "проведение профилактических мероприятий новорожденным, включая неонатальный скрининг и вакцинацию;\n\nпроведение мероприятий по уходу за новорожденными;\n\nорганизация совместного пребывания матери с новорожденным;\n\nорганизация и проведение мероприятий по поддержке грудного",
+      "why": "The last lines of the page are in the image; Marker dropped them: «проведение мероприятий по уходу за новорожденными;», «организация совместного пребывания матери с новорожденным;» and «организация и проведение мероприятий по поддержке грудного», which page 16 continues"
+    },
+    {
+      "page": 34,
+      "kind": "dropped-line",
+      "find": "освоение и внедрение в практику новых эффективных методов профилактики, диагностики и лечения заболеваний и состояний новорожденных;",
+      "replace": "освоение и внедрение в практику новых эффективных методов профилактики, диагностики и лечения заболеваний и состояний новорожденных;\n\nосуществление консультативной и лечебной помощи новорожденным,",
+      "why": "The last lines of the page are in the image; Marker dropped them: «осуществление консультативной и лечебной помощи новорожденным,», which page 35 continues"
+    },
+    {
+      "page": 61,
+      "kind": "dropped-line",
+      "find": "помещение сестры-хозяйки;",
+      "replace": "помещение сестры-хозяйки;\n\nсанузлы и душевые для медицинских работников;\n\nгардеробную для медицинских работников с санпропускником;",
+      "why": "The last lines of the page are in the image; Marker dropped them: «санузлы и душевые для медицинских работников;» and «гардеробную для медицинских работников с санпропускником;»"
+    },
+    {
+      "page": 17,
+      "kind": "cell",
+      "find": "П/П1",
+      "replace": "№ п/п",
+      "why": "The first header cell is «№ п/п» in the image; Vision read it as «П/П1»."
+    },
+    {
+      "page": 17,
+      "kind": "cell",
+      "find": "1 должность на 25 коек; 1 должность на 15 коек в палатах для новорожденных при акушерском обсервационном отделении акушерского стационара медицинской организации (при наличии в медицинской организации акушерского обсервационного отделения акушерского стационара); • должность на 10 коек поста интенсивного наблюдения и интенсивной терапии или поста интенсивного наблюдения; обеспечения 4,75 ДОлЖнОСтИ (ДЛя круглосуточной работы отделения)",
+      "replace": "1 должность на 25 коек;⏎1 должность на 15 коек в палатах для новорожденных при акушерском обсервационном отделении акушерского стационара медицинской организации (при наличии в медицинской организации акушерского обсервационного отделения акушерского стационара);⏎1 должность на 10 коек поста интенсивного наблюдения и интенсивной терапии или поста интенсивного наблюдения;⏎4,75 должности (для обеспечения круглосуточной работы отделения)",
+      "why": "Vision's reading of the cell is garbled; Marker's text is what the image shows"
+    },
+    {
+      "page": 17,
+      "kind": "cell",
+      "find": "ПО должность на 20 коек 0,5 должности на каждые последующие коек (для поддержки грудного вскармливания); 1 должность на 20 коек (для проведения новорожденным аудиологического скрининга); 4,75 должности (для обеспечения круглосуточной работы молочной комнаты); 4,75 должности (для обеспечения круглосуточной работы в родовом зале (операционной) медицинской",
+      "replace": "1 должность на 20 коек и по 0,5 должности на каждые последующие 10 коек (для поддержки грудного вскармливания);⏎1 должность на 20 коек (для проведения новорожденным аудиологического скрининга);⏎4,75 должности (для обеспечения круглосуточной работы молочной комнаты);⏎4,75 должности (для обеспечения круглосуточной работы в родовом зале (операционной) медицинской",
+      "why": "Vision's reading of the cell is garbled; Marker's text is what the image shows"
+    },
+    {
+      "page": 31,
+      "kind": "number",
+      "find": "| 9 | Автоматизированное рабочее место медицинского работника",
+      "replace": "| 6 | Автоматизированное рабочее место медицинского работника",
+      "why": "The row number printed in the image is 6 (the rows run 3, 4, 5, 6, 7, 8, 9, 10…); both readings gave 9."
+    },
+    {
+      "page": 31,
+      "kind": "number",
+      "find": "| 6 | Дозатор для жидкого мыла",
+      "replace": "| 9 | Дозатор для жидкого мыла",
+      "why": "The row number printed in the image is 9; both readings gave 6."
+    },
+    {
+      "page": 37,
+      "kind": "header",
+      "find": "от «*14*» *апреля* 2025 г. № *2484*",
+      "replace": "от 17 апреля 2025 г. № 222н",
+      "why": "The annex header cites the order itself («от «17» апреля 2025 г. № 222н», the date and number are handwritten on the original); both readings garbled it, the portal's date and number are given."
+    },
+    {
+      "page": 37,
+      "kind": "cell",
+      "find": "•6/",
+      "replace": "9.",
+      "why": "The row number printed in the image is «9.»; Vision read it as «•6/»."
+    },
+    {
+      "page": 41,
+      "kind": "number",
+      "find": "| 6 | 233210",
+      "replace": "| 9 | 233210",
+      "why": "The row number printed in the image is 9 (rows 8, 9, 10, 11); Vision reads an isolated 9 as 6."
+    },
+    {
+      "page": 54,
+      "kind": "cell",
+      "find": "Передвижной",
+      "replace": "Передвижной рентгеновский аппарат",
+      "why": "The cell «Передвижной рентгеновский аппарат» spans two rows of the image; the ruled reading split it in two."
+    },
+    {
+      "page": 54,
+      "kind": "cell",
+      "find": "цифровая | аппарат |",
+      "replace": "цифровая |  |",
+      "why": "The second half of the cell above («… аппарат»)."
+    },
+    {
+      "page": 54,
+      "kind": "cell",
+      "find": " | - |",
+      "replace": " |  |",
+      "why": "A speck of the scan in an empty cell of the image, read as a dash."
+    },
+    {
+      "page": 57,
+      "kind": "cell",
+      "find": "использования | Набор для проведения бронхоскопии у детей, включая новорожденных |",
+      "replace": "использования |  |",
+      "why": "The cell «Набор для проведения бронхоскопии у детей, включая новорожденных» spans rows 63 of the image; the ruled reading split it in two, the second half is dropped here and the cell is whole above."
+    },
+    {
+      "page": 57,
+      "kind": "cell",
+      "find": " | Набор для проведения | ",
+      "replace": " | Набор для проведения бронхоскопии у детей, включая новорожденных | ",
+      "why": "The cell «Набор для проведения бронхоскопии у детей, включая новорожденных» is whole in the image."
+    },
+    {
+      "page": 59,
+      "kind": "number",
+      "find": "| 9 | Система палатной сигнализации",
+      "replace": "| 6 | Система палатной сигнализации",
+      "why": "The row number printed in the image is 6 (the rows run in sequence); both readings gave 9."
+    },
+    {
+      "page": 59,
+      "kind": "number",
+      "find": "| 6 | Дозатор для жидкого мыла",
+      "replace": "| 9 | Дозатор для жидкого мыла",
+      "why": "The row number printed in the image is 9 (the rows run in sequence); both readings gave 6."
+    },
+    {
+      "page": 64,
+      "kind": "cell",
+      "find": "0,5 должности (для проведения новорожденным аудиологического скрининга); ДОЛЖНОСТИ (для обеспечения круглосуточной работы молочной комнаты)",
+      "replace": "0,5 должности (для проведения новорожденным аудиологического скрининга);⏎2 должности (для обеспечения круглосуточной работы молочной комнаты)",
+      "why": "Vision's reading of the cell is garbled; Marker's text is what the image shows"
+    },
+    {
+      "page": 67,
+      "kind": "cell",
+      "find": "батареи | - |",
+      "replace": "батареи |  |",
+      "why": "A speck of the scan in an empty cell of the image, read as a dash."
+    },
+    {
+      "page": 69,
+      "kind": "number",
+      "find": "| 9 | 130380",
+      "replace": "| 6 | 130380",
+      "why": "The row number printed in the image is 6 (the rows run in sequence); both readings gave 9."
+    },
+    {
+      "page": 70,
+      "kind": "cell",
+      "find": "| 15 238840 | | ",
+      "replace": "| 15 | 238840 | ",
+      "why": "Vision read the row number and the code of row 15 as one cell; the image has «15» and «238840» in two cells."
+    },
+    {
+      "page": 81,
+      "kind": "number",
+      "find": "| 6 | Дозатор для жидкого мыла",
+      "replace": "| 9 | Дозатор для жидкого мыла",
+      "why": "The row number printed in the image is 9 (the rows run in sequence); both readings gave 6."
+    },
+    {
+      "page": 84,
+      "kind": "cell",
+      "find": "-Nº п/11",
+      "replace": "№ п/п",
+      "why": "The first header cell is «№ п/п» in the image; Vision read it as «-Nº п/11»."
+    },
+    {
+      "page": 88,
+      "kind": "number",
+      "find": "| 9 | Диспенсер для бумажных полотенец",
+      "replace": "| 6 | Диспенсер для бумажных полотенец",
+      "why": "The row number printed in the image is 6 (the rows run in sequence); both readings gave 9."
+    },
+    {
+      "page": 88,
+      "kind": "number",
+      "find": "| 6 | Термоконтейнер",
+      "replace": "| 9 | Термоконтейнер",
+      "why": "The row number printed in the image is 9 (the rows run in sequence); both readings gave 6."
+    }
+  ],
+  "transcriptions": {
+    "86": {
+      "text": "| (необходимо наличие одной из указанных позиций) | | вый бактерицидный | очиститель воздуха/устройство для обеззараживания и (или) фильтрации воздуха и (или) дезинфекции поверхностей | для приема и дезинфекции посуды, помещений для стерилизации посуды, помещений для разведения молочной смеси, помещений для хранения молочных смесей |\n|---|---|---|---|---|\n| | 152690 | Очиститель воздуха фильтрующий высокоэффективный, передвижной | | |\n| | 152700 | Очиститель воздуха фильтрующий высокоэффективный, стационарный | | |\n| | 375930 | Очиститель воздуха с использованием ультрафиолетового излучения | | |\n| 5 | 330780 | Стерилизатор паровой | Паровой стерилизатор проходного типа | 1 (при отсутствии в медицинской организации централизованного стерилизационного отделения) |\n| 6 (необходимо наличие одной из указанных позиций) | 270020 | Тележка для медицинских инструментов | Стол инструментальный для разведения и порционного розлива молочной смеси | 2 |\n| | 202390 | Тележка медицинская универсальная | | |\n| 7 | 202390 | Тележка медицинская универсальная | Транспортная тележка для перевозки кассет/термоконтейнеров с бутылочками | 3 |"
+    },
+    "87": {
+      "text": "| 8 (необходимо наличие одной из указанных позиций) | 215850 | Холодильник фармацевтический | Холодильник медицинский | 1 |\n|---|---|---|---|---|\n| | 261620 | Холодильник лабораторный, стандартный | | |\n| 9 | 139690 | Шкаф для хранения лекарственных средств | Шкаф медицинский | 1 |\n| 10 (необходимо наличие одной из указанных позиций) | 145090 | Камера морозильная для плазмы крови | Морозильник для временного хранения замороженного сцеженного грудного молока | 1 |\n| | 321680 | Холодильник/ камера морозильная для хранения крови | | |\n| | 305950 | Камера морозильная | | |\n\n## Дополнительное оснащение\n\n| № п/п | Наименование оборудования (оснащения) | Требуемое количество, шт. |\n|---|---|---|\n| 1 | Кассеты на 25 бутылочек «М-25» | 1 |\n| 2 | Автоматизированное рабочее место медицинского работника со средним профессиональным образованием, оснащенное персональным компьютером с выходом в информационно-телекоммуникационную сеть «Интернет» и источником бесперебойного питания в комплекте с многофункциональным устройством (принтер, сканер, копировально-множительная техника) | 1 |\n| 3 | Плита электрическая | 1 |\n| 4 | Дозатор для жидкого мыла | По числу помещений, имеющих раковины |\n| 5 | Дозатор для средств дезинфекции | По числу помещений, имеющих раковины |"
+    }
+  }
+}

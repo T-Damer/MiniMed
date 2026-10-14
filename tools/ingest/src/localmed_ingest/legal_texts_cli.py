@@ -463,9 +463,10 @@ def _apply_cells(
     row: dict[str, Any],
     vision: dict[int, list[str]],
     marker: dict[int, str | None],
+    extra: dict[int, list[tuple[str, str]]],
 ) -> None:
     """Replace the second reading of each page that has a cell reading by «lines outside the table, cells, lines below»."""
-    from .legal_cells import MIN_INK, harmonize, merge_lines, read_cells
+    from .legal_cells import MIN_INK, grid_markdown, harmonize, merge_lines, read_cells
 
     stem = row["stem"]
     layout_path = paths.work / f"vision/{stem}-cells-layout.json"
@@ -488,6 +489,12 @@ def _apply_cells(
         lines = (upright if page in sideways else plain).get(page)
         if lines is not None:
             reading = marker.get(page)
+            inked = [cell["ink"] >= MIN_INK for cell in layout["cells"]]
+            rebuilt = grid_markdown(reading, layout, texts, inked) if reading else None
+            if rebuilt is not None:
+                marker[page], found = rebuilt
+                if found:
+                    extra[page] = found
             vision[page] = merge_lines(
                 lines,
                 layout,
@@ -504,9 +511,23 @@ def _act(stem_or_slug: str) -> dict[str, Any]:
     raise typer.BadParameter(f"unknown act {stem_or_slug}")
 
 
-def _inputs(
-    paths: Paths, row: dict[str, Any]
-) -> tuple[dict[int, str | None], dict[int, list[str]]]:
+class Inputs(tuple[dict[int, str | None], dict[int, list[str]]]):
+    """(Marker's pages, Vision's pages) of an act; `extra` are the flags of cells that only one reading confirms."""
+
+    extra: dict[int, list[tuple[str, str]]]
+
+    def __new__(
+        cls,
+        marker: dict[int, str | None],
+        vision: dict[int, list[str]],
+        extra: dict[int, list[tuple[str, str]]],
+    ) -> Inputs:
+        self = super().__new__(cls, (marker, vision))
+        self.extra = extra
+        return self
+
+
+def _inputs(paths: Paths, row: dict[str, Any]) -> Inputs:
     stem = row["stem"]
     painted = row.get("labelRows") and (paths.work / f"marker/{stem}-nolabel").exists()
     vision = read_vision_pages(
@@ -534,9 +555,10 @@ def _inputs(
             vision[page] = upright[page]
             copy = paths.work / f"marker/{stem}-rot/p{page:04d}.md"
             marker[page] = copy.read_text(encoding="utf-8") if copy.exists() else None
+    extra: dict[int, list[tuple[str, str]]] = {}
     if not painted:
-        _apply_cells(paths, row, vision, marker)
-    return marker, vision
+        _apply_cells(paths, row, vision, marker, extra)
+    return Inputs(marker, vision, extra)
 
 
 def _text_act(paths: Paths, row: dict[str, Any]) -> ActText:
@@ -579,10 +601,15 @@ def reconcile(
     for row in _selected(names or []):
         if row["reader"] not in SCAN_READERS:
             continue
-        marker, vision = _inputs(paths, row)
+        marker, vision = inputs = _inputs(paths, row)
         identity = act_identity(row["record"])
         results, pending = reconcile_act(
-            marker, vision, identity, _review(row["slug"]), exact_primary=_exact(row)
+            marker,
+            vision,
+            identity,
+            _review(row["slug"]),
+            exact_primary=_exact(row),
+            extra_flags=inputs.extra,
         )
         flagged = [r for r in results if r.flags]
         report = {
@@ -620,7 +647,7 @@ def show(
     """Print flags and the reconciled text of pages, and render their images (for the image review)."""
     paths = Paths(data_root)
     row = _act(name)
-    marker, vision = _inputs(paths, row)
+    marker, vision = inputs = _inputs(paths, row)
     identity = act_identity(row["record"])
     wanted = {int(p) for p in pages.split(",")}
     results, _pending = reconcile_act(
@@ -629,6 +656,7 @@ def show(
         identity,
         Review(verdicts={p: "" for p in wanted}) if lines else Review(),
         exact_primary=_exact(row),
+        extra_flags=inputs.extra,
     )
     for result in results:
         typer.echo(f"=== page {result.page}: {result.status} {result.confidence} {result.reading}")
@@ -654,7 +682,7 @@ def ctx(
     """Short review view: the flags of pages with the lines of both readings around each disputed token."""
     paths = Paths(data_root)
     row = _act(name)
-    marker, vision = _inputs(paths, row)
+    marker, vision = inputs = _inputs(paths, row)
     identity = act_identity(row["record"])
     wanted = {int(p) for p in pages.split(",")}
     results, _pending = reconcile_act(
@@ -663,6 +691,7 @@ def ctx(
         identity,
         Review(),
         exact_primary=_exact(row),
+        extra_flags=inputs.extra,
     )
     for result in results:
         typer.echo(f"=== page {result.page}: {result.confidence} {result.reading}")
@@ -733,9 +762,14 @@ def assemble(
         identity = act_identity(row["record"])
         review = _review(row["slug"])
         if row["reader"] in SCAN_READERS:
-            marker, vision = _inputs(paths, row)
+            marker, vision = inputs = _inputs(paths, row)
             results, pending = reconcile_act(
-                marker, vision, identity, review, exact_primary=_exact(row)
+                marker,
+                vision,
+                identity,
+                review,
+                exact_primary=_exact(row),
+                extra_flags=inputs.extra,
             )
             if pending and strict:
                 _fail(f"{row['slug']}: flagged pages without a review verdict: {pending}")

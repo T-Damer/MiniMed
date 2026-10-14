@@ -681,6 +681,7 @@ def reconcile_act(
     review: Review | None = None,
     *,
     exact_primary: bool = False,
+    extra_flags: dict[int, list[tuple[str, str]]] | None = None,
 ) -> tuple[list[PageResult], list[int]]:
     """Reconcile every page; returns the results and the flagged pages without a review verdict."""
     review = review or Review()
@@ -698,6 +699,7 @@ def reconcile_act(
             substitute=not reviewed,
             exact_primary=exact_primary,
             inflation_checked=page not in review.keep_marker,
+            extra_flags=(extra_flags or {}).get(page),
         )
         if page in review.transcriptions:
             result.text = review.transcriptions[page]

@@ -601,7 +601,7 @@ def act_identity(record: Mapping[str, object]) -> ActIdentity:
 
 _SELF_REFERENCE: Final = re.compile(
     r"(?P<head>\b(?:Приложение|Утвержден[ыо]?)\b[^.;]{0,260}?\bприказ\w*\b[^.;№]{0,200}?)"
-    r"\b(?:от|ot)\s+[^№]{3,60}?[№N][º°o]?\s*(?P<num>\d+(?: ?[A-Za-zА-Яа-я](?![A-Za-zА-Яа-я]))?)(?!\d)",
+    r"\b(?:от|ot)\s+[^№]{3,60}?[№N][º°o]?[\s*]*(?P<num>\d+(?: ?[A-Za-zА-Яа-я](?![A-Za-zА-Яа-я]))?)(?!\d)\**",
     re.IGNORECASE | re.DOTALL,
 )
 
@@ -845,6 +845,7 @@ def reconcile_page(
     substitute: bool = True,
     exact_primary: bool = False,
     inflation_checked: bool = True,
+    extra_flags: list[tuple[str, str]] | None = None,
 ) -> PageResult:
     """Compare Marker's Markdown of one page with Vision's lines and decide what the page carries.
 
@@ -856,7 +857,7 @@ def reconcile_page(
     hyphen_pairs = compound_hyphens(raw_lines)
     vision_all = dehyphenate(raw_lines)
     vision_kept, v_furniture = strip_furniture(vision_all)
-    flags: list[Flag] = []
+    flags: list[Flag] = [Flag(kind, detail) for kind, detail in extra_flags or []]
     notes: list[str] = []
     header_removed: str | None = None
     if marker_md is None or not marker_md.strip():
@@ -1062,6 +1063,9 @@ def page_end_missing(marker: str, vision_lines: list[str]) -> str:
 
 LOW_CONFIDENCE_KINDS: Final = frozenset(
     {
+        "cell-vision-only",
+        "cell-unread",
+        "cell-marker-only",
         "page-end-missing",
         "dropped-span",
         "annex-header-restored",

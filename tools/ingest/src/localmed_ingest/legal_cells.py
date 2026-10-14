@@ -15,6 +15,7 @@ from __future__ import annotations
 import re
 from collections.abc import Callable
 from dataclasses import dataclass
+from itertools import pairwise
 from pathlib import Path
 from typing import Any, Final
 
@@ -84,35 +85,101 @@ def vertical_rules(grid: Grid) -> list[int]:
     return _clusters(candidates)
 
 
-def horizontal_rules(grid: Grid, left: int, right: int) -> list[int]:
-    need = max(120, int((right - left) * MIN_ROW))
-    candidates = [
-        y
-        for y in range(int(grid.height * EDGE), int(grid.height * (1 - EDGE)))
-        if _longest(grid.row(y)[left:right]) >= need
-    ]
-    return _clusters(candidates)
+def _thick_column(grid: Grid, x: int) -> bytes:
+    """Ink of the pixel columns around x: a thin rule of a scan wanders by a pixel or two along the page."""
+    columns = [grid.column(c) for c in range(max(0, x - 3), min(grid.width, x + 4))]
+    return bytes(max(values) for values in zip(*columns, strict=True))
 
 
-def _ink_share(grid: Grid, x0: int, x1: int, y0: int, y1: int, *, vertical: bool) -> float:
-    """Share of the edge (x0..x1 × y0..y1, one side thin) that has ink within two pixels across it."""
+def _extent(column: bytes) -> tuple[int, int]:
+    """(first, last) y of the substantial unbroken ink runs of a pixel column (gaps of up to three pixels bridged).
+
+    A run is substantial from 60 pixels: a letter stroke is shorter, a broken stretch of a rule is not.
+    """
+    first, last = 0, 0
+    at = 0
+    for part in _bridged(column).split(b"\x00"):
+        if len(part) >= 60:
+            if first == last:
+                first = at
+            last = at + len(part)
+        at += len(part) + 1
+    return first, last
+
+
+def horizontal_rules(grid: Grid, xs: list[int]) -> list[tuple[int, int]]:
+    """(first y, last y) of every horizontal rule across at least one ruled column: a run of 60 % of the column's width.
+
+    A rule that spans only some columns (the rows of a merged cell) is still a rule; whether it separates two
+    particular cells is decided later from the ink along their common edge.
+    """
+    left, right = xs[0], xs[-1]
+    wide = max(120, int((right - left) * MIN_ROW))
+    found: set[int] = set()
+    for a, b in pairwise(xs):
+        need = max(60, int((b - a) * 0.6))
+        if b - a >= wide:
+            need = max(need, wide)
+        for y in range(int(grid.height * EDGE), int(grid.height * (1 - EDGE))):
+            if _longest(grid.row(y)[a + 4 : b - 3]) >= need:
+                found.add(y)
+    groups: list[list[int]] = []
+    for y in sorted(found):
+        if groups and y - groups[-1][-1] <= 10:  # a rule drawn twice is one rule
+            groups[-1].append(y)
+        else:
+            groups.append([y])
+    return [(group[0], group[-1]) for group in groups]
+
+
+def _or(parts: list[bytes]) -> bytes:
+    merged = 0
+    for part in parts:
+        merged |= int.from_bytes(part)
+    return merged.to_bytes(len(parts[0]))
+
+
+def _edge_present(grid: Grid, x0: int, x1: int, y0: int, y1: int, *, vertical: bool) -> bool:
+    """Whether a rule runs along the edge (x0..x1 × y0..y1).
+
+    The rule of a scan wanders by a pixel or two and is broken here and there, so a band of neighbouring pixel
+    lines is merged and the rule is there when 85 % of the edge is ink in the band or an unbroken run covers
+    70 % of it; text along the same line covers far less.
+    """
     if vertical:
         length = y1 - y0
         if length <= 0:
-            return 0.0
-        hits = 0
-        for y in range(y0, y1):
-            if grid.data[y * grid.width + x0 - 2 : y * grid.width + x0 + 3].count(1):
-                hits += 1
-        return hits / length
-    length = x1 - x0
-    if length <= 0:
-        return 0.0
-    hits = 0
-    for x in range(x0, x1):
-        if any(grid.data[(y0 + dy) * grid.width + x] for dy in range(-2, 3)):
-            hits += 1
-    return hits / length
+            return False
+        band = _or([grid.column(c)[y0:y1] for c in range(max(0, x0 - 3), min(grid.width, x0 + 4))])
+    else:
+        length = x1 - x0
+        if length <= 0:
+            return False
+        band = _or([grid.row(r)[x0:x1] for r in range(max(0, y0), min(grid.height, y1))])
+    return band.count(1) >= 0.85 * length or _longest(band) >= 0.7 * length
+
+
+def _rule_between(grid: Grid, xs: list[int], band: tuple[int, int], column: int) -> bool:
+    """Whether a horizontal rule separates the cells above and below it in `column`.
+
+    A rule is drawn across several columns; the line of a text can chain into a «rule» inside one column
+    (the tops of a justified narrow line of capitals). So an edge counts when the rule is there in a neighbouring
+    column too, or is complete (95 % of the edge) in this one.
+    """
+
+    def seen(c: int, *, strict: bool) -> bool:
+        a, b = xs[c] + 3, xs[c + 1] - 3
+        row = _or([grid.row(r)[a:b] for r in range(max(0, band[0]), min(grid.height, band[1]))])
+        share = row.count(1) / max(b - a, 1)
+        return share >= (0.95 if strict else 0.85) or _longest(row) >= (0.95 if strict else 0.7) * (
+            b - a
+        )
+
+    if not seen(column, strict=False):
+        return False
+    if seen(column, strict=True):
+        return True
+    return any(0 <= c < len(xs) - 1 and seen(c, strict=False) for c in (column - 1, column + 1))
 
 
 def find_cells(grid: Grid) -> tuple[list[Cell], tuple[int, int, int, int]] | None:
@@ -121,11 +188,19 @@ def find_cells(grid: Grid) -> tuple[list[Cell], tuple[int, int, int, int]] | Non
     if len(xs) < 2:
         return None
     left, right = xs[0], xs[-1]
-    ys = horizontal_rules(grid, left, right)
+    spans = [_extent(_thick_column(grid, x)) for x in xs]
+    longest = max(end - start for start, end in spans)
+    # the table's top and bottom are where its long vertical rules start and end (a handwritten underline or
+    # a title rule above the table is a long horizontal line too, but no vertical rule hangs from it)
+    top = min(start for start, end in spans if end - start >= 0.6 * longest)
+    bottom = max(end for start, end in spans if end - start >= 0.6 * longest)
+    bands = [
+        (lo, hi) for lo, hi in horizontal_rules(grid, xs) if top + 12 < (lo + hi) // 2 < bottom - 12
+    ]
+    ys = [top, *((lo + hi) // 2 for lo, hi in bands), bottom]
+    rule_band = [(top - 2, top + 3), *[(lo - 2, hi + 3) for lo, hi in bands]]
     if len(ys) < 2:
         return None
-    # the table's top and bottom: the first and the last rule across it
-    top, bottom = ys[0], ys[-1]
     if right - left < grid.width * 0.3 or bottom - top < grid.height * 0.05:
         return None
     rows = len(ys) - 1
@@ -143,18 +218,12 @@ def find_cells(grid: Grid) -> tuple[list[Cell], tuple[int, int, int, int]] | Non
 
     for r in range(rows):
         for c in range(cols):
-            if c + 1 < cols:
-                share = _ink_share(
-                    grid, xs[c + 1], xs[c + 1] + 1, ys[r] + 3, ys[r + 1] - 3, vertical=True
-                )
-                if share < BORDER:
-                    join(r * cols + c, r * cols + c + 1)
-            if r + 1 < rows:
-                share = _ink_share(
-                    grid, xs[c] + 3, xs[c + 1] - 3, ys[r + 1], ys[r + 1] + 1, vertical=False
-                )
-                if share < BORDER:
-                    join(r * cols + c, (r + 1) * cols + c)
+            if c + 1 < cols and not _edge_present(
+                grid, xs[c + 1], xs[c + 1] + 1, ys[r] + 3, ys[r + 1] - 3, vertical=True
+            ):
+                join(r * cols + c, r * cols + c + 1)
+            if r + 1 < rows and not _rule_between(grid, xs, rule_band[r + 1], c):
+                join(r * cols + c, (r + 1) * cols + c)
     members: dict[int, list[tuple[int, int]]] = {}
     for r in range(rows):
         for c in range(cols):
@@ -262,6 +331,19 @@ def _add_crop(
     )
 
 
+def _text_ink(grid: Grid, box: tuple[int, int, int, int]) -> int:
+    """Ink pixels of a cell's text: ruling remnants at the edges and lines across the whole cell do not count."""
+    left, top, right, bottom = box
+    left, right, top, bottom = left + 8, right - 8, top + 8, bottom - 8
+    width = right - left
+    total = 0
+    for y in range(top, bottom):
+        count = grid.data[y * grid.width + left : y * grid.width + right].count(1)
+        if count < width * 0.6:
+            total += count
+    return total
+
+
 def cells_pdf(
     source: Callable[[int], Any], pages: list[int], target: Path
 ) -> tuple[dict[int, dict[str, Any]], list[tuple[int, int]]]:
@@ -293,7 +375,7 @@ def cells_pdf(
                     "rowSpan": c.row_span,
                     "colSpan": c.col_span,
                     "box": list(c.box),
-                    "ink": grid.ink(c.box[0], c.box[2], c.box[1], c.box[3]),
+                    "ink": _text_ink(grid, c.box),
                 }
                 for c in cells
             ],
@@ -388,7 +470,7 @@ def _same_text(text: str) -> str:
 
 def marker_cells(markdown: str) -> list[str]:
     """The non-empty cells of every table of Marker's Markdown, in reading order."""
-    from .legal_reconcile import LINE_BREAK_IN_CELL, clean_marker_markdown
+    from .legal_reconcile import clean_marker_markdown
 
     cells: list[str] = []
     for line in clean_marker_markdown(markdown).splitlines():
@@ -398,7 +480,7 @@ def marker_cells(markdown: str) -> list[str]:
         inner = stripped[1:]
         inner = inner[:-1] if inner.endswith("|") and not inner.endswith("\\|") else inner
         for cell in re.split(r"(?<!\\)\|", inner):
-            text = cell.replace(LINE_BREAK_IN_CELL, " ").strip()
+            text = cell.strip()
             if text:
                 cells.append(text)
     return cells
@@ -407,6 +489,70 @@ def marker_cells(markdown: str) -> list[str]:
 UNREAD: Final = "?"
 """The text of a cell with ink that Vision read as empty (a lone digit it cannot read)."""
 _LONE_NUMBER: Final = re.compile(r"\d{1,3}|[-–—]")
+
+
+def match_cells(
+    marker: list[str], vision: list[tuple[int, str]]
+) -> tuple[dict[int, str], list[str]]:
+    """Match Vision's cells (index, text) with Marker's cell texts in reading order.
+
+    Returns Marker's text for each Vision cell that agrees with a Marker cell (the same letters and digits,
+    or the same numbers and nearly the same letters; a lone number Vision could not read matches a lone
+    number), «» for the cells that were merged into a neighbour's text, and the Marker cells nothing matched.
+    """
+    from difflib import SequenceMatcher
+
+    matcher = SequenceMatcher(
+        None,
+        [_same_text(text) for _, text in vision],
+        [_same_text(text) for text in marker],
+        autojunk=False,
+    )
+    assigned: dict[int, str] = {}
+    used: set[int] = set()
+    for tag, a1, a2, b1, b2 in matcher.get_opcodes():
+        if tag == "equal":
+            for offset in range(a2 - a1):
+                assigned[vision[a1 + offset][0]] = marker[b1 + offset]
+                used.add(b1 + offset)
+        elif tag == "replace":
+            group_vision = " ".join(vision[i][1] for i in range(a1, a2))
+            group_marker = " ".join(marker[j] for j in range(b1, b2))
+            if a2 - a1 > 1 and _agrees(group_vision, group_marker):  # cut into cells differently
+                assigned[vision[a1][0]] = group_marker
+                for i in range(a1 + 1, a2):
+                    assigned[vision[i][0]] = ""
+                used.update(range(b1, b2))
+                continue
+            at = b1
+            for i in range(a1, a2):  # cells that differ only in letters (a slip of either reading)
+                for j in range(at, b2):
+                    if _agrees(vision[i][1], marker[j]):
+                        assigned[vision[i][0]] = marker[j]
+                        used.add(j)
+                        at = j + 1
+                        break
+    # What the reading order did not pair (a cell that spans rows is read at another place by each reader):
+    # pair the rest by similarity, wherever they are.
+    for index, text in vision:
+        if index in assigned:
+            continue
+        best = next(
+            (j for j, candidate in enumerate(marker) if j not in used and _agrees(text, candidate)),
+            None,
+        )
+        if best is not None:
+            assigned[index] = marker[best]
+            used.add(best)
+    return assigned, [text for j, text in enumerate(marker) if j not in used]
+
+
+def _vision_cells(cells: list[list[str]], inked: list[bool] | None) -> list[tuple[int, str]]:
+    found = [
+        (index, _joined(lines) or (UNREAD if inked and inked[index] else ""))
+        for index, lines in enumerate(cells)
+    ]
+    return [(index, text) for index, text in found if text]
 
 
 def harmonize(
@@ -419,45 +565,92 @@ def harmonize(
     What does not agree stays Vision's text, and the page's ordinary comparison flags it. A cell that holds ink
     but that Vision cannot read stands for Marker's lone number at its place (`inked` says which cells have ink).
     """
-    from difflib import SequenceMatcher
-
-    marker = marker_cells(markdown)
-    vision = [
-        (index, _joined(lines) or (UNREAD if inked and inked[index] else ""))
-        for index, lines in enumerate(cells)
+    assigned, _ = match_cells(marker_cells(markdown), _vision_cells(cells, inked))
+    return [
+        [assigned[i]] if assigned.get(i) else ([] if i in assigned else list(lines))
+        for i, lines in enumerate(cells)
     ]
-    vision = [(index, text) for index, text in vision if text]
-    matcher = SequenceMatcher(
-        None,
-        [_same_text(text) for _, text in vision],
-        [_same_text(text) for text in marker],
-        autojunk=False,
-    )
-    result = [list(lines) for lines in cells]
-    for tag, a1, a2, b1, b2 in matcher.get_opcodes():
-        if tag == "equal":
-            for offset in range(a2 - a1):
-                result[vision[a1 + offset][0]] = [marker[b1 + offset]]
-        elif tag == "replace":
-            group_vision = " ".join(vision[i][1] for i in range(a1, a2))
-            group_marker = " ".join(marker[j] for j in range(b1, b2))
-            if _agrees(group_vision, group_marker):  # the readings cut the cells differently
-                result[vision[a1][0]] = [group_marker]
-                for i in range(a1 + 1, a2):
-                    result[vision[i][0]] = []
-                continue
-            at = b1
-            for i in range(a1, a2):  # cells that differ only in letters (a slip of either reading)
-                for j in range(at, b2):
-                    if _agrees(vision[i][1], marker[j]):
-                        result[vision[i][0]] = [marker[j]]
-                        at = j + 1
-                        break
-    return result
 
 
-AGREE: Final = 0.8
+def _escape(text: str) -> str:
+    return text.replace("|", "\\|").replace("\n", " ")
+
+
+def grid_markdown(
+    markdown: str,
+    layout: dict[str, Any],
+    cells: list[list[str]],
+    inked: list[bool],
+) -> tuple[str, list[tuple[str, str]]] | None:
+    """Marker's page with its table rebuilt on the ruled grid of the scan, and what stays uncertain.
+
+    The ruling gives the table's rows and columns (Marker loses rows, shifts cells and drops cells of
+    a narrow-columned table); every ruled cell carries Marker's text when Vision's reading of that cell agrees
+    with a Marker cell, else Vision's own reading. Returns the page's Markdown and the (kind, detail) of every
+    cell that is not confirmed by both readings; None when the page has no single Marker table to replace.
+    """
+    from .legal_reconcile import clean_marker_markdown
+
+    text = clean_marker_markdown(markdown)
+    lines = text.split("\n")
+    runs: list[tuple[int, int]] = []
+    start: int | None = None
+    for index, line in enumerate([*lines, ""]):
+        if line.lstrip().startswith("|"):
+            start = index if start is None else start
+        elif start is not None:
+            runs.append((start, index))
+            start = None
+    if len(runs) != 1:
+        return None
+    marker = marker_cells(text)
+    vision = _vision_cells(cells, inked)
+    assigned, leftover = match_cells(marker, vision)
+    # an elementary row in which no cell starts is only the middle of rows that span it
+    starts = sorted({c["row"] for c in layout["cells"]})
+    row_of = {row: index for index, row in enumerate(starts)}
+    rows = len(starts)
+    cols = max(c["col"] + c["colSpan"] for c in layout["cells"])
+    grid = [["" for _ in range(cols)] for _ in range(rows)]
+    flags: list[tuple[str, str]] = []
+    for index, cell in enumerate(layout["cells"]):
+        raw = _joined(cells[index])
+        if index in assigned:
+            value = assigned[index]
+        elif raw:
+            value = raw
+            flags.append(
+                (
+                    "cell-vision-only",
+                    f"row {cell['row'] + 1}, column {cell['col'] + 1}: Marker has no such cell; Vision reads «{raw[:120]}»",
+                )
+            )
+        elif inked[index]:
+            value = ""
+            flags.append(
+                (
+                    "cell-unread",
+                    f"row {cell['row'] + 1}, column {cell['col'] + 1} holds ink that neither reading gave",
+                )
+            )
+        else:
+            value = ""
+        grid[row_of[cell["row"]]][cell["col"]] = _escape(value)
+    for text_left in leftover:
+        flags.append(("cell-marker-only", f"Marker's cell «{text_left[:120]}» is in no ruled cell"))
+    body = ["| " + " | ".join(row) + " |" for row in grid]
+    table = [body[0], "|" + "---|" * cols, *body[1:]]
+    first, last = runs[0]
+    return "\n".join([*lines[:first], *table, *lines[last:]]), flags
+
+
+AGREE: Final = 0.55
 """Similarity of two cells' letters at which the cells are taken as the same text (their numbers must be equal)."""
+
+
+def _numbers(text: str) -> list[str]:
+    """The numbers of a cell as digit strings, sorted (a decimal comma is part of its number)."""
+    return sorted(re.sub(r"\D", "", n) for n in re.findall(r"\d+(?:[.,]\d+)?", text))
 
 
 def _agrees(vision: str, marker: str) -> bool:
@@ -465,11 +658,17 @@ def _agrees(vision: str, marker: str) -> bool:
     from difflib import SequenceMatcher
 
     if vision == UNREAD:
-        return bool(_LONE_NUMBER.fullmatch(marker.strip()))
+        return bool(_LONE_NUMBER.fullmatch(marker.strip().rstrip(".")))
     a, b = _same_text(vision), _same_text(marker)
     if a == b:
         return True
-    if not a or not b or re.findall(r"\d+", a) != re.findall(r"\d+", b):
+    if (
+        _LONE_NUMBER.fullmatch(marker.strip().rstrip("."))
+        and len(a) <= 3
+        and not re.search(r"\d", a)
+    ):
+        return True  # a row number that Vision read as a few letters («ri» for «5.»)
+    if not a or not b or _numbers(vision) != _numbers(marker):
         return False
     return SequenceMatcher(None, a, b, autojunk=False).ratio() >= AGREE
 
@@ -510,8 +709,10 @@ __all__ = [
     "cell_pairs",
     "cells_pdf",
     "find_cells",
+    "grid_markdown",
     "harmonize",
     "marker_cells",
+    "match_cells",
     "merge_lines",
     "read_cells",
     "render_upright",
