@@ -9,7 +9,10 @@ import { normalizeForIndex } from '@localmed/search-lexical';
 import { InMemoryMedicalStore } from '@localmed/storage';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { atcDirectoryEntries } from '@/features/drug-comparison/comparison-atc-directory';
+import {
+  atcDirectoryEntries,
+  homeopathicCardIds,
+} from '@/features/drug-comparison/comparison-atc-directory';
 import { findDrugs, resolveDrugName } from '@/features/drug-comparison/comparison-candidates';
 import { fixtureAsset } from '@/features/drug-comparison/comparison-test-fixtures';
 import { findDrugCandidates, resolveTypedName } from '@/features/drug-interactions/drug-candidates';
@@ -126,6 +129,19 @@ describe('the drug directory of the comparison index', () => {
       ['M01AE01'],
       ['N02BE01'],
     ]);
+  });
+
+  it('names as homeopathic only the cards whose every group says so (SRCH1)', () => {
+    const asset = fixtureAsset();
+    const [first, second] = asset.cards;
+    if (!first || !second) throw new Error('fixture has no cards');
+    const cards = [
+      { ...first, s: 'only', g: ['гомеопатическое средство'] },
+      { ...second, s: 'mixed', g: ['гомеопатическое средство', 'вяжущее средство'] },
+      { ...second, s: 'ordinary', g: ['нестероидное противовоспалительное средство'] },
+      { ...second, s: 'ungrouped', g: [] },
+    ];
+    expect([...homeopathicCardIds({ ...asset, cards })]).toEqual(['esklp.mnn.only']);
   });
 
   it('repairs a registry code written with Cyrillic look-alike letters', () => {

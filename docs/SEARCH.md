@@ -282,6 +282,13 @@ one falls more than 0.02 below its baseline. These sets protect mechanics only; 
 physician-authored real-corpus golden set is still required before judging medical retrieval
 quality.
 
+`bun run benchmark:srch1` and `bun run benchmark:class` (SRCH1, 2026-10-14) run the QA-pass fixes on the real core through
+`ScopedMedicalCore`: 315 trade names and 150 INN names derived from the shipped comparison index must find their substance card
+first («Все» and «Препараты»), homeopathic mixtures must not stand in front of an ordinary card that names the query, markup and
+keyboard smashes find nothing, and 52 class words (inflected, synonyms, abbreviations) must show the class card with the right ATC
+groups followed by the class's drugs. In a worktree set `MINIMED_CONTENT_DIR` to the main checkout's `apps/app/public/content`
+(never link the databases into the worktree). Design: `SEARCH_ARCHITECTURE.md` «Brand names, class words, homeopathy and nonsense».
+
 `bun run benchmark:runtime` runs the application `MedicalCore`, `ScopedMedicalCore` and
 `MultiMedicalStore` against the canonical SQLite core, without a model or the research prototype's
 ranking. Repeat `--pack=/absolute/path/to/pack.db` to compare core-only and installed editions;

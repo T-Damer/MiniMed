@@ -19,6 +19,8 @@ import { loadAtcNames } from '@/features/medications/atc-names';
 /** Words around a class name that are not part of it: «группа статинов», «лекарства от класса …». */
 const FILLER_STEMS = new Set(['препарат', 'средств', 'лекарств', 'групп', 'класс']);
 const MAX_QUERY_LENGTH = 80;
+/** The longest class name: «нестероидные противовоспалительные и противоревматические препараты». */
+const MAX_CLASS_WORDS = 6;
 
 export interface ClassVocabulary {
   readonly byStems: ReadonlyMap<string, readonly ClassPhrase[]>;
@@ -74,5 +76,7 @@ export function loadClassVocabulary(): Promise<ClassVocabulary> {
 
 /** What `createMedicalCore({ drugCodes })` asks: the class a query names. */
 export async function classOfSearchQuery(query: string): Promise<DrugClassMatch | null> {
+  // No class word has a digit or more than a few words: such a query never loads the dictionary.
+  if (/\p{N}/u.test(query) || nameStems(query).length > MAX_CLASS_WORDS) return null;
   return classOfQuery(await loadClassVocabulary(), query);
 }

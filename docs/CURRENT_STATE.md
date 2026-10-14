@@ -5280,6 +5280,76 @@ item 21.
   names an anatomical group; the first call of a code query loads the 2.5 MB comparison chunk (not measured on a phone); not tested: a physical device,
   the native (Capacitor) core with the directory, the `atc3` modules installed from the mirror.
 
+### Search fixes from the QA pass — 2026-10-14 (STATE SRCH1)
+
+The Haiku QA pass of 2026-10-14 (`docs/research/qa-haiku-2026-10-14.md`, «Search quality») and the owner's class-word decision of the
+same day. Design: `docs/SEARCH_ARCHITECTURE.md` «Brand names, class words, homeopathy and nonsense (SRCH1)»; roadmap item 22. Measured
+below (the core alone, `MINIMED_CONTENT_DIR` = the main checkout's `apps/app/public/content`, a baseline worktree at `04dab36a` for «before»).
+
+- **Trade names** (item 1): «Аспирин», «Нурофен», «Амоксиклав», «Но-шпа», «Кардиомагнил»… were in the core (the pointer of the substance lists every
+  trade name) but «Все» dropped the pointer because its title does not carry the brand; now a pointer whose found fragment matched a
+  typed word as itself stays, its title is `Бренд · ВЕЩЕСТВО` (not another product line of the expanded query), and a product typed
+  whole leads. Benchmark: 315 trade names from the shipped drug index.
+- **Drug before tools** (item 2): an INN query already put its card first in the core (150/150); the calculators that mention it were laid
+  out above it by the app (`toolsFollowResults`). When the first result is a drug card, tools follow it unless the query asks for a tool.
+- **Homeopathic mixtures** (item 3): behind the ordinary cards that name the query («фосфор», «ртуть», «сера», «кальций»); the registry
+  group «гомеопатическое средство» (344 cards) is the class; nothing is hidden (`createMedicalCore({drugCodes}).homeopathicIds`).
+- **Drug pickers** (item 4): one rule (`features/drug-picker/drug-name-match.ts`) for the interaction, comparison, prescription / dose
+  and safety pickers: any typed word begins any word of the МНН or of a trade name of the card, any order, «/», «+», «,», «-», spaces.
+  «сакубитрил», «сакубитрил/валсартан», «рил валсартан» find `валсартан+сакубитрил` even without the core.
+- **Nonsense** (item 5): `<script>alert(1)</script>`, `<img …>`, keyboard smashes and symbol-only text find nothing («Ничего не
+  найдено», also no tool cards: `fuzzyQueryScore` of a query without a word is 0); a spelling correction never turns a Latin word of up to
+  six letters into a rare Latin name («alert» → «Apert»). Typo correction of names is untouched.
+- **Marks** (item 6): only the typed words, whole (`search-highlight.ts`); `J05` marks nothing but the typed characters of a code.
+- **Label = target** (item 7): `searchResultDocumentKind` calls a document a calculator only when it names one (`interactiveCalculatorId`);
+  the four reference documents flagged `calculationRequired` (WHO BMI table, eGFR, child growth) are reference documents. Data follow-up
+  (not done): link them to their calculators with `interactiveCalculatorId` + `interactiveRoute` in `content/reference-rf-pilot/*.md`
+  and rebuild `reference.db`.
+- **«Обновить»** (item 8): only after installed content changed and only if the first 12 documents or their order differ; every other
+  re-run of the query on screen replaces the list at once.
+- **Query in the address** (item 9): `#/search?q=…` / `#/search/section/<id>?q=…`; reload and shared links restore the field and the search;
+  the entry is the one navigation made (replace only; NAV1 owns push), see the request in STATE.md.
+- **Dictionary** (item 10): a selection without a dictionary entry lists only documents whose title carries the selected word.
+- **ATC data** (item 11): the card «Вейника наземного трава + щучки дернистой трава» carries `J05` because ЕСКЛП gives it that level-2 code
+  («противовирусное средство растительного происхождения»); no source can code it further and 16 more herbal / biological cards have
+  only a level-2 code. The registry value stays (ATC2 rule: published codes are changed only by agreement of sources); the search no
+  longer ranks such a card as "the exact level" of its group, so `J05` lists the classified antivirals first. No module or core was rebuilt.
+- **Class words** (owner decision 2026-10-14): a query that names a drug class as a whole returns the class card (name, its ATC groups
+  with НСИ names and drug counts, each group a link to the ATC tree), then up to 12 drugs of the class (single substances before
+  combinations, commoner first, each with the ATC code that matched), then the documents. One vocabulary: the НСИ group names of
+  `class-phrases.ts` read in every inflection, its declared aliases (owner decisions ATC4/4b/4c: «макролиды» = `J01FA`, «цитостатики» =
+  `L01A–D, L01XA, L01XB, L01XX`…) and the search-only synonyms `CLASS_QUERY_ALIASES` (бета-блокаторы, мочегонные, сартаны, ИПП,
+  цефалоспорины, бронходилататоры, муколитики, антиаритмики, сахароснижающие…, not added to `CLASS_ALIASES` because the interaction index
+  was built with that table). `bun run benchmark:class`.
+- **Measured** (before → after; `bun run benchmark:srch1`, `benchmark:class`, the unchanged gates):
+
+  | Set | Before | After |
+  |---|---|---|
+  | 315 trade names, «Все»: card first / in the first three | 0.911 / 0.943 | 0.978 / 1.000 |
+  | 315 trade names, «Препараты»: first / first three | 0.959 / 1.000 | 0.978 / 1.000 |
+  | 150 INN names, own card first (both scopes) | 1.000 | 1.000 |
+  | 15 words that homeopathic mixtures also contain, no mixture in front of an ordinary card | 13/15 | 15/15 |
+  | 16 nonsense strings find nothing («Все» / «Препараты») | 14/16 / 16/16 | 16/16 / 16/16 |
+  | 19 controls (names, codes, Latin terms, misspellings) still find something | 19/19 | 19/19 |
+  | 52 class words × 2 scopes: class card / right ATC groups / drugs lead | 0 / 0 / 0 of 104 | 104 / 104 / 104 |
+  | expected drugs among the listed ones; 22 negatives (disease, drug, code, brand) carry no class | – ; 22/22 | 232/232 ; 22/22 |
+  | `benchmark:all` (core): lookup R@1 / R@5 / MRR, demo R@1 / R@5 | 0.180 / 0.279 / 0.214, 0.053 / 0.158 | identical |
+  | `benchmark:all` demo MRR (19 queries) | 0.105 | 0.096 (one query, «аугментин пневмония»: the Амоксиклав card is no longer dropped in «Все», the КР moves from second to third; hit@5 unchanged, tolerance 0.02) |
+  | `benchmark:all` latency p50 / p95, both checkouts run at the same time under load 45 | 1 102 / 2 914 ms | 1 071 / 2 949 ms |
+  | `benchmark:cmp1` (35 cases), `benchmark:atc` (2 192 codes, 220 variants, 142 prefixes, 8 negatives) | 35/35, all pass | identical |
+  | typo set (698 first-letter slips, 231 late slips, 220 controls), `run-typo-queries.ts --no-companions`: hit@1 / hit@5 of the first-letter slips with correction on | 0.831 / 0.832 | 0.831 / 0.832 (every row and every control identical) |
+  | name variants (720 layout / Latin spellings, 166 controls), `run-name-variants.ts --no-companions`: hit@1 / hit@5 on | 0.804 / 0.818 | 0.804 / 0.818 (identical rows, controls identical) |
+
+  The first two baseline runs of the typo set (21:50 and 23:13, with other agents loading the machine) came out broken (correction «on» 0.000 for diseases and
+  guidelines, every control «changed»); the third solo run is the one above. Unit: 600 files / 17 652 tests pass. E2E in Chromium on the built app
+  with the real core (`apps/app/e2e/search-srch1.spec.ts`, 6 cases): «Аспирин» leads with its card, «макролиды» shows the class card above the drugs
+  (group link opens `#/modules/documents/medications/atc/J01FA`), disease / drug / code carry no class card, the query is in the address and survives a reload,
+  markup shows «Ничего не найдено», marks are whole typed words.
+- Not done / known: the class card on the native (Capacitor) core was not run; the class list is 12 drugs (the card says how many more and
+  links to the groups); the first class-shaped query loads the 110 kB НСИ dictionary chunk and derives the phrases (59 ms on a laptop);
+  a class word inside a longer query («макролиды при пневмонии») is a text query; not measured on a phone; the reference documents of
+  item 7 still need the data link above.
+
 ### «Лента»: opt-in news feed and site viewer — 2026-10-05 (STATE NEWS1, ADR-0024)
 
 Owner decision: a fourth bottom tab «Лента» (Поиск · Файлы · Лента · Настройки; in the six-section

@@ -63,12 +63,18 @@ export async function loadAtcDirectoryEntries(): Promise<readonly AtcDirectoryEn
 const HOMEOPATHIC_GROUP = 'гомеопат';
 const homeopathicOfAsset = new WeakMap<ComparisonIndexAsset, ReadonlySet<string>>();
 
-/** Card ids of the homeopathic preparations: the registry's pharmacotherapeutic group says so. */
+/**
+ * Card ids of the homeopathic preparations: every pharmacotherapeutic group the registry gives the
+ * card says so. A card with one such group beside others (propolis, the herb of зверобой: a
+ * homeopathic product of the same substance exists) is an ordinary drug.
+ */
 export function homeopathicCardIds(asset: ComparisonIndexAsset): ReadonlySet<string> {
   return new Set(
     asset.cards
-      .filter((card) =>
-        card.g.some((group) => group.toLocaleLowerCase('ru-RU').includes(HOMEOPATHIC_GROUP)),
+      .filter(
+        (card) =>
+          card.g.length > 0 &&
+          card.g.every((group) => group.toLocaleLowerCase('ru-RU').includes(HOMEOPATHIC_GROUP)),
       )
       .map((card) => `${CARD_PREFIX}${card.s}`),
   );

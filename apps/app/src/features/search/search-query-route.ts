@@ -9,6 +9,7 @@
 /** Longest query kept in the address; a pasted case history is not a link. */
 export const MAX_QUERY_IN_HASH = 300;
 
+const SEARCH_HASH = '#/search';
 const SEARCH_PATH = /^#\/search(?:\/[a-z-]+(?:\/[a-z-]+)?)?\/?$/u;
 
 /** The part of a hash before «?»: `#/search?q=x` → `#/search`. */
@@ -51,8 +52,10 @@ export function hashWithSearchQuery(hash: string, query: string | undefined): st
  */
 export function replaceSearchQueryInAddress(query: string | undefined): void {
   const hash = window.location.hash;
-  if (!isSearchHash(hash)) return;
-  const next = hashWithSearchQuery(hash, query);
-  if (next === hash) return;
+  // The bare address is the search page itself.
+  const path = hash === '' || hash === '#' || hash === '#/' ? SEARCH_HASH : hash;
+  if (!isSearchHash(path)) return;
+  const next = hashWithSearchQuery(path, query);
+  if (next === hash || (hash === '' && next === SEARCH_HASH)) return;
   window.history.replaceState(window.history.state, '', next);
 }

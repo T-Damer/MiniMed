@@ -28,6 +28,8 @@ SearchHome / SearchWorkspace (apps/app/src/features/search)
       → drug overview line       medication-overview.ts: group / action / indications first (S6)
   → withNameVariantFallback      layout / transliteration / Latin-name retry of a weak lookup (S3)
   → withAtcDrugs                 an ATC code or prefix as the whole query: the drugs that carry it in front (ATC5)
+  → withDrugClass                a class word as the whole query («макролиды»): class card + its drugs in front (SRCH1)
+  → withHomeopathyDemoted        homeopathic cards behind the ordinary cards that name the query (SRCH1)
 ```
 
 The UI never touches SQL. Every store implements the `MedicalStore` port
@@ -313,6 +315,68 @@ rule serves the core and every drug picker (`packages/search-lexical/src/atc-que
 
 Measured by `bun run benchmark:atc` (generated from the directory) and the unchanged name gates: see roadmap item 21.
 
+### Brand names, class words, homeopathy and nonsense (SRCH1)
+
+The fixes of the 2026-10-14 QA pass that live in the search path (the rest is presentation, below):
+
+- **Trade names.** A catalogue pointer lists every trade name of its substance (`ТН: Аспирин; форма/дозировка: …`), so
+  «Аспирин» always found the pointer of ацетилсалициловая кислота — and «Все» dropped it, because its title does not carry
+  the typed word. `ScopedMedicalCore.filterMedicationDocuments` now keeps a medication *pointer* whose found fragment matched
+  a typed word as itself (`listsTypedName`: a pointer holds only names, so a typed word in it is a name; words the search
+  added by expanding the query are not typed). The group title `Product · SUBSTANCE`
+  (`selectedGroupPresentation`) takes the longer product of the same brand («Нурофен Экспресс» for «нурофен»), never
+  another name that merely shares more of the expanded query. A group titled with the product the whole query names leads
+  (`namesTypedProduct`, a tier of the final stable sort, below the exact title): «Аспирин» before «Аспиринорезистентность»,
+  «Глюкоза» before «Глюкозамин», «Кандид Б» before «Кандидоз».
+- **Class words** (`packages/core/src/drug-class-search.ts`, owner decision 2026-10-14). `createMedicalCore({drugCodes})`
+  takes a directory that also answers `classOf(query)`: the class a *whole* query names (`{label, groups: [{code, name}]}`).
+  The app answers it from the one class vocabulary (`drug-interactions/class-phrases.ts`: the НСИ «АТХ» group names read in
+  every inflection through `nameWordStem`, plus `CLASS_ALIASES`, plus the search-only `CLASS_QUERY_ALIASES` — «бета-блокаторы»,
+  «мочегонные», «сартаны», «ИПП», «цефалоспорины»…; those are not in `CLASS_ALIASES` because the interaction index was
+  built with that table alone) in `medications/drug-class-lookup.ts`; filler words «препараты / средства / группа / класс»
+  are ignored. For a class the core lists the drugs under its codes (`matchAtcEntry` over the same directory as ATC5), once
+  each: single substances before combinations, commoner (registrations, `AtcDirectoryEntry.weight`) before rarer, then by
+  name; at most 12 lead the results, each with its `atcMatch`; only drugs the corpus holds (a card or its pointer) count.
+  `SearchResponse.drugClass` (`{label, groups: [{code, name, drugCount}], drugCount, listed}`) is what the UI draws
+  (`DrugClassCard`, above the identities and the groups; every ATC group is a link to `openAtcGroup`). The text hits follow
+  the drugs and keep their limit. A query with a specialty / audience / section filter, a drug, a disease or an ATC code is
+  no class lookup.
+- **Homeopathic mixtures** (`homeopathy-demotion.ts`). The registry's pharmacotherapeutic group «гомеопатическое средство»
+  (344 cards, ATC `~`) is the class. The directory's `homeopathicIds()` names them; when the response also has an ordinary
+  (not homeopathic) medication card whose title carries a typed word, the homeopathic cards move behind every ordinary
+  card, keeping their order and their number; groups of other kinds stay where they are. «аконит» (no ordinary card)
+  still lists its homeopathic cards first.
+- **Nonsense.** A spelling correction never touches a Latin-script word of up to six letters («alert» was one edit from
+  the rare Latin name «Apert»); a query that is only markup (`<img src=x onerror=…>`) answers «no searchable terms», which
+  the UI shows as «Ничего не найдено».
+- **ATC level 2.** A card whose only code is a level-2 group (`J05`: 17 herbal and biological cards the registry cannot
+  code further) is no longer the "exact level" ahead of the drugs classified in that group (`matchAtcEntry`).
+
+Presentation, in the app only:
+
+- **Marks** (`search-highlight.ts`, applied in `ScopedMedicalCore.search`): the core marks every term it matched, stems and
+  alias expansions included. Each mark is stretched to its whole word and kept only if the word is a form of a typed word (or
+  of the rewritten / corrected query): the word-start rule of the search (`typed-word.ts`: a short word is itself or an
+  inflection, a longer one is the start of a word). A code keeps exactly the typed characters.
+- **Reader dictionary** (`reader-dictionary/selection-term.ts`): documents listed for a selection without a dictionary entry
+  must carry the selected word in their *title* (`titleNamesWords`), otherwise «национальный» listed an article on a
+  personality disorder that mentions it once.
+- **«Обновить»** (`search-refresh.ts`, `SearchWorkspace`): offered only after installed content changed (`CONTENT_CHANGED_EVENT`)
+  and only if the first 12 documents or their order differ; every other re-run of the query on screen is applied at once.
+- **Query in the address** (`search-query-route.ts`): `#/search?q=…` and `#/search/section/<id>?q=…`. The workspace writes the
+  committed query with `history.replaceState` (the entry stays the one the navigation code made; NAV1 owns push / replace),
+  reads it at construction and restores the field and the search (also when opening a section from the address changes the
+  scope once).
+- **Tools after the drug** (`searchCatalog.toolsFollowResults(query, tools, leadIsDrug)`): when the first result is a drug
+  card, calculators that merely mention it follow it (a query that asks for a tool still leads with tools).
+- **Label = target** (`searchResultDocumentKind`): «Калькулятор» only for a document that names its calculator
+  (`interactiveCalculatorId`); `calculationRequired` (the WHO BMI table, the eGFR formulas) is a reference document.
+- **Drug pickers** (`features/drug-picker/`): one rule for the interaction, comparison, prescription / dose and safety pickers
+  (`drug-name-match.ts`): each typed word begins a different word of one name of a card (the МНН or a trade name of the
+  shipped comparison index), in any order, with «/», «+», «,», «-» and spaces as word breaks, inflected typed words
+  (up to three letters longer) allowed. `drug-search.ts` adds the cards that rule finds and the search did not return as
+  `esklp.mnn.<slug>` groups, so each picker's own mapping applies unchanged.
+
 ## 6. Packs and modules
 
 - **Core** (`core.db`, bundled/downloaded): pointers for medications, КР and legal documents,
@@ -340,6 +404,8 @@ Measured by `bun run benchmark:atc` (generated from the directory) and the uncha
 | `tools/benchmarks/src/build-typo-queries.ts` → `typo-queries.json`, `run-typo-queries.ts` | item 19: one slip (neighbour key, sound-alike vowel, unrelated letter in the first three letters; a late neighbour key) in real names, plus controls that must not change, correction off/on |
 | `S3_OFF=1` (any `openRealCorpus` benchmark), `S3_BRIDGE_JSON='{…}'` | state before S3 / tuning override for `run-real-corpus`, `run-doctor-lookup`, `run-owner-queries` |
 | `bun run benchmark:atc` | ATC5: every full code of every card finds its card, agreed pairs show both codes, typing variants (case, spaces, look-alikes, Russian layout) give the same drugs, words and short codes never match; `ATC5_OFF=1` removes the directory from any `openRealCorpus` benchmark |
+| `bun run benchmark:srch1` (`srch1-queries.json`, built by `build-srch1-queries.ts` from the comparison index) | SRCH1: 315 trade names (the commonest 150 + an even sample + the QA's named brands) → the substance card first in «Все» and «Препараты», 150 INN names → their own card first, 15 homeopathy-prone words (no homeopathic card ahead of an ordinary one that names it), 16 nonsense strings → nothing, 19 controls → something; `MINIMED_CONTENT_DIR=<main checkout>/apps/app/public/content` in a worktree |
+| `bun run benchmark:class` (`class-queries.json`) | SRCH1: 52 class words (inflections, synonyms, abbreviations) × «Все» / «Препараты» → class card with the expected ATC groups, the drugs of the class lead (`atcMatch`), expected drugs listed; 11 negatives carry no class |
 | `bun run benchmark:source-names` (`source-name-queries.json`) | source-name intent (read as expected, results inside the source, negatives stay plain) and the drug overview line; `--check` fails on any miss |
 | `tools/benchmarks/src/run-semantic-kr.ts` | Q1 over the embedded КР packs through MedicalCore: lexical / semantic / hybrid, `--grid` over fusion constants |
 

@@ -1,9 +1,10 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   hashPath,
   hashWithSearchQuery,
   isSearchHash,
+  replaceSearchQueryInAddress,
   searchQueryFromHash,
 } from './search-query-route';
 
@@ -47,5 +48,47 @@ describe('search query in the address', () => {
   it('caps the length of the query', () => {
     const long = 'а'.repeat(1000);
     expect(searchQueryFromHash(hashWithSearchQuery('#/search', long))?.length).toBe(300);
+  });
+});
+
+describe('writing the query into the address', () => {
+  function browser(hash: string) {
+    const location = { hash };
+    const history = {
+      state: { searchSection: true },
+      replaceState: vi.fn((_state: unknown, _title: string, url: string) => {
+        location.hash = url;
+      }),
+    };
+    vi.stubGlobal('window', { location, history });
+    return { location, history };
+  }
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('turns the bare address into the search address with the query, keeping the entry state', () => {
+    const { location, history } = browser('');
+    replaceSearchQueryInAddress('варфарин');
+    expect(searchQueryFromHash(location.hash)).toBe('варфарин');
+    expect(history.replaceState).toHaveBeenCalledWith({ searchSection: true }, '', location.hash);
+    expect(location.hash.startsWith('#/search?q=')).toBe(true);
+  });
+
+  it('keeps the section of the address and removes the query when the field is emptied', () => {
+    const { location } = browser('#/search/section/medications');
+    replaceSearchQueryInAddress('аспирин');
+    expect(hashPath(location.hash)).toBe('#/search/section/medications');
+    replaceSearchQueryInAddress(undefined);
+    expect(location.hash).toBe('#/search/section/medications');
+  });
+
+  it('does not touch the address of another page, nor an address that is already right', () => {
+    const other = browser('#/calculators/bmi');
+    replaceSearchQueryInAddress('аспирин');
+    expect(other.history.replaceState).not.toHaveBeenCalled();
+    const same = browser('');
+    replaceSearchQueryInAddress(undefined);
+    expect(same.history.replaceState).not.toHaveBeenCalled();
   });
 });

@@ -766,6 +766,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   function updateQuery(value: string, debounce = true): void {
     urlQuery = undefined;
     urlRestorePending = false;
+    // An emptied field leaves no query in the address; a half-typed one keeps the last committed.
+    if (!searchableQuery(value)) replaceSearchQueryInAddress(undefined);
     if (searchableQuery(value) !== searchableQuery(query())) setRequestedInlineCalculator();
     // «Искать везде» belongs to the words it was asked for; an edited query names sources again.
     if (searchableQuery(value) !== everywhereQuery()) setEverywhereQuery(undefined);
@@ -1535,7 +1537,15 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
         <PersonalNoteMatches query={searchableQuery(query())} scope={props.scope} />
 
         <Show when={error() === SEARCH_QUERY_EMPTY_ERROR}>
-          <QueryEmptyState message="Недостаточно данных для поиска. Уточните запрос." />
+          {/* Markup around words («<img src=x onerror=…>») is text the search read and found nothing in. */}
+          <Show
+            when={/[\p{L}\p{N}]/u.test(query()) ? props.emptyResults : undefined}
+            fallback={
+              <QueryEmptyState message="Недостаточно данных для поиска. Уточните запрос." />
+            }
+          >
+            {(emptyResults) => emptyResults()(searchableQuery(query()))}
+          </Show>
         </Show>
         <Show when={error() && error() !== SEARCH_QUERY_EMPTY_ERROR}>
           {(message) => <div class="error-card">{message()}</div>}

@@ -28,7 +28,7 @@ function tokenMatches(queryToken: string, hayToken: string): boolean {
 
 /** Inexact catalog/field matching: substring first, then bounded-edit token matches. */
 export function matchesFuzzyQuery(query: string, values: readonly string[]): boolean {
-  return fuzzyQueryScore(query, values) > 0 || tokens(query).length === 0;
+  return fuzzyQueryScore(query, values) > 0;
 }
 
 /**
@@ -37,7 +37,8 @@ export function matchesFuzzyQuery(query: string, values: readonly string[]): boo
  */
 export function fuzzyQueryScore(query: string, values: readonly string[]): number {
   const queryTokens = tokens(query);
-  if (queryTokens.length === 0) return 1;
+  // An empty query lists everything; a query of symbols only («!!!@@@») has no word to match.
+  if (queryTokens.length === 0) return query.trim() === '' ? 1 : 0;
   const title = normalize(values[0] ?? '');
   const haystack = normalize(values.join(' '));
   const hayTokens = tokens(haystack);
