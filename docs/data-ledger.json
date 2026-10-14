@@ -832,6 +832,40 @@
       "note": "Model weights of the Marker environment; delete together with the venv if Marker is dropped.",
       "bytes": 1888349901,
       "modified": "2026-10-14"
+    },
+    {
+      "path": "data/build/marker-eval",
+      "class": "REBUILDABLE",
+      "producer": "STATE MARKER1: scripts/marker_convert.py environment (venv and model cache below)",
+      "consumers": ["scripts/marker_convert.py", "scripts/marker_pages_run.py"],
+      "rebuild": "see the venv and cache entries",
+      "note": "Parent folder of the Marker environment; only the two nested entries are large.",
+      "bytes": 0,
+      "modified": "2026-10-14"
+    },
+    {
+      "path": "data/raw/regulatory-sources",
+      "class": "SOURCE",
+      "producer": "medbase-legal-texts sources: official PDF, docx and HTML files of the 30 regulatory acts from publication.pravo.gov.ru, minzdrav.gov.ru, pravo.gov.ru and rg.ru (STATE LEGAL1)",
+      "consumers": [
+        "data/build/marker-legal",
+        "content/regulatory-rf-texts/sources.json (SHA-256 of every file)"
+      ],
+      "note": "Official files of the acts of the regulatory pack; the checksums are committed in content/regulatory-rf-texts/sources.json, re-download from the officialUrl there if lost.",
+      "bytes": 86290000,
+      "modified": "2026-10-14"
+    },
+    {
+      "path": "data/build/marker-legal",
+      "class": "REBUILDABLE",
+      "producer": "STATE LEGAL1: medbase-legal-texts (reconcile, cells, images) and scripts/marker_pages_run.py over data/raw/regulatory-sources",
+      "consumers": [
+        "medbase-legal-texts assemble (content/regulatory-rf-pilot, content/regulatory-rf-texts)"
+      ],
+      "rebuild": "scripts/marker_pages_run.py over jobs.json (about 13 h on the Mac, resumable), then medbase-legal-texts reconcile and cells; page images are rendered on demand by medbase-legal-texts images",
+      "note": "Per-page Marker Markdown, Vision readings and derived PDFs of the regulatory acts. Everything the cards need is committed (cards, provenance, review logs); intermediates are deleted once an act is finished and verified.",
+      "bytes": 240000000,
+      "modified": "2026-10-14"
     }
   ]
 }

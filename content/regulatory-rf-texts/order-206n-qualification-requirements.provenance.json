@@ -1,1366 +1,1248 @@
 {
- "documentId": "regulatory.rf.minzdrav.206n-2023-qualification",
- "source": {
-  "file": "0001202306010041.pdf",
-  "sha256": "04c6588ca3531c8f52691d4a5868184a80b4e2d94d17d09465a10d2fa8a127dd",
-  "bytes": 3704998,
-  "pages": 63,
-  "officialUrl": "https://publication.pravo.gov.ru/document/0001202306010041"
- },
- "identityFromPortal": {
-  "number": "206н",
-  "date": "2023-05-02",
-  "name": "Об утверждении Квалификационных требований к медицинским и фармацевтическим работникам с высшим образованием",
-  "registrationNumber": "73677",
-  "registrationDate": "2023-06-01"
- },
- "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
- "review": {
-  "reviewer": "Claude (agent), against the page images; not a lawyer",
-  "reviewedAt": "2026-10-14",
-  "corrections": 9
- },
- "pages": [
-  {
-   "page": 1,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
+  "documentId": "regulatory.rf.minzdrav.206n-2023-qualification",
+  "source": {
+    "file": "0001202306010041.pdf",
+    "sha256": "04c6588ca3531c8f52691d4a5868184a80b4e2d94d17d09465a10d2fa8a127dd",
+    "bytes": 3704998,
+    "pages": 63,
+    "officialUrl": "https://publication.pravo.gov.ru/document/0001202306010041"
+  },
+  "identityFromPortal": {
+    "number": "206н",
+    "date": "2023-05-02",
+    "name": "Об утверждении Квалификационных требований к медицинским и фармацевтическим работникам с высшим образованием",
+    "registrationNumber": "73677",
+    "registrationDate": "2023-06-01"
+  },
+  "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
+  "review": {
+    "reviewer": "Claude (agent), against the page images; not a lawyer",
+    "reviewedAt": "2026-10-14",
+    "corrections": 9
+  },
+  "pages": [
     {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 600; only in Marker: 608"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": "МИНИСТЕРСТВО ЗДРАВООХРАНЕНИЯ\nРОССИЙСКОЙ ФЕДЕРАЦИИ\n(МИНЗДРАВ РОССИИ)\n\n**ПРИКАЗ**\n\n2 мая 2023 г.\n\n№ 2064\n\n**Об утверждении**\n\n**Квалификационных требований к медицинским и фармацевтическим\nработникам с высшим образованием**",
-   "stats": {
-    "markerTokens": 60,
-    "visionTokens": 60,
-    "coverageVision": 0.9773,
-    "coverageMarker": 0.9773,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 2,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от «2» мая 2023 г. № 2064"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 165,
-    "visionTokens": 164,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9926,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 3,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 173,
-    "visionTokens": 171,
-    "coverageVision": 0.9873,
-    "coverageMarker": 0.9748,
-    "respaced": 2,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 4,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 171,
-    "visionTokens": 168,
-    "coverageVision": 0.9872,
-    "coverageMarker": 0.9686,
-    "respaced": 2,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 5,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "4"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 169,
-    "visionTokens": 168,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9937,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 6,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 1"
-    }
-   ],
-   "furniture": [
-    "5"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 166,
-    "visionTokens": 164,
-    "coverageVision": 0.9804,
-    "coverageMarker": 0.974,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 7,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "6"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 164,
-    "visionTokens": 162,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9933,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 8,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 174,
-    "visionTokens": 174,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 9,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: I"
-    }
-   ],
-   "furniture": [
-    "8"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 164,
-    "visionTokens": 164,
-    "coverageVision": 0.9868,
-    "coverageMarker": 0.9868,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 10,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "9"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 156,
-    "visionTokens": 149,
-    "coverageVision": 0.9855,
-    "coverageMarker": 0.951,
-    "respaced": 2,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 11,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "10"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 166,
-    "visionTokens": 165,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9935,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 12,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "11"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 205,
-    "visionTokens": 202,
-    "coverageVision": 0.9892,
-    "coverageMarker": 0.9786,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 13,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "12"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 173,
-    "visionTokens": 172,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 14,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "13"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 167,
-    "visionTokens": 166,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9935,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 15,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "14"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 164,
-    "visionTokens": 162,
-    "coverageVision": 0.9933,
-    "coverageMarker": 0.9801,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 16,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "15"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 184,
-    "visionTokens": 183,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 17,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "16"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 163,
-    "visionTokens": 162,
-    "coverageVision": 0.9864,
-    "coverageMarker": 0.9732,
-    "respaced": 2,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 18,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "17"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 161,
-    "visionTokens": 158,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9867,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 19,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "18"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 176,
-    "visionTokens": 173,
-    "coverageVision": 0.9936,
-    "coverageMarker": 0.9811,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 20,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "19"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 166,
-    "visionTokens": 164,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9871,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 21,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 176,
-    "visionTokens": 174,
-    "coverageVision": 0.9877,
-    "coverageMarker": 0.9816,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 22,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 5"
-    }
-   ],
-   "furniture": [
-    "21"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 167,
-    "visionTokens": 165,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9935,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 23,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "22"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 169,
-    "visionTokens": 169,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 24,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "23"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 171,
-    "visionTokens": 169,
-    "coverageVision": 0.9936,
-    "coverageMarker": 0.9811,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 25,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "24"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 177,
-    "visionTokens": 172,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9758,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 26,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: I"
-    }
-   ],
-   "furniture": [
-    "25"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 178,
-    "visionTokens": 172,
-    "coverageVision": 0.9876,
-    "coverageMarker": 0.9695,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 27,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "repeated-content-missing",
-     "detail": "Vision has these words more often than Marker (dropped rows or lines?): высшее, образование, специалитет, специальности"
-    }
-   ],
-   "furniture": [
-    "26"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 176,
-    "visionTokens": 179,
-    "coverageVision": 0.9636,
-    "coverageMarker": 0.9876,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 28,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "27"
-   ],
-   "portalRewrites": [
-    "hyphen restored: Челюстнолицевая → Челюстно-лицевая"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 160,
-    "visionTokens": 162,
-    "coverageVision": 0.9613,
-    "coverageMarker": 0.9868,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 29,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "28"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 153,
-    "visionTokens": 150,
-    "coverageVision": 0.9708,
-    "coverageMarker": 0.95,
-    "respaced": 2,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 30,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "29"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 162,
-    "visionTokens": 154,
-    "coverageVision": 0.9792,
-    "coverageMarker": 0.9338,
-    "respaced": 3,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 31,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 5"
-    }
-   ],
-   "furniture": [
-    "30"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 174,
-    "visionTokens": 168,
-    "coverageVision": 0.9936,
-    "coverageMarker": 0.9627,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 32,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "31"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 150,
-    "visionTokens": 148,
-    "coverageVision": 0.9928,
-    "coverageMarker": 0.9786,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 33,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "32"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 171,
-    "visionTokens": 166,
-    "coverageVision": 0.9805,
-    "coverageMarker": 0.9497,
-    "respaced": 3,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 34,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "33"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 170,
-    "visionTokens": 165,
-    "coverageVision": 0.9869,
-    "coverageMarker": 0.9618,
-    "respaced": 2,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 35,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 5"
-    }
-   ],
-   "furniture": [
-    "34"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 167,
-    "visionTokens": 163,
-    "coverageVision": 0.9934,
-    "coverageMarker": 0.9804,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 36,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "35"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 171,
-    "visionTokens": 170,
-    "coverageVision": 0.9937,
-    "coverageMarker": 0.9874,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 37,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 172,
-    "visionTokens": 169,
-    "coverageVision": 0.9935,
-    "coverageMarker": 0.9872,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 38,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "repeated-content-missing",
-     "detail": "Vision has these words more often than Marker (dropped rows or lines?): ординатуре, подготовка, санитарно, специальности"
-    }
-   ],
-   "furniture": [
-    "37"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 162,
-    "visionTokens": 163,
-    "coverageVision": 0.9548,
-    "coverageMarker": 0.9737,
-    "respaced": 2,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 39,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "38"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 171,
-    "visionTokens": 169,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9873,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 40,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "39"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 191,
-    "visionTokens": 190,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9945,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 41,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "40"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 198,
-    "visionTokens": 198,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 42,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "repeated-content-missing",
-     "detail": "Vision has these words more often than Marker (dropped rows or lines?): интернатуре, ординатуре, подготовка, специальности"
-    }
-   ],
-   "furniture": [
-    "41"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 165,
-    "visionTokens": 170,
-    "coverageVision": 0.9618,
-    "coverageMarker": 0.9869,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 43,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "42"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 165,
-    "visionTokens": 163,
-    "coverageVision": 0.9868,
-    "coverageMarker": 0.974,
-    "respaced": 2,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 44,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "43"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 176,
-    "visionTokens": 174,
-    "coverageVision": 0.9939,
-    "coverageMarker": 0.9818,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 45,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "44"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 183,
-    "visionTokens": 180,
-    "coverageVision": 0.976,
-    "coverageMarker": 0.9588,
-    "respaced": 2,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 46,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "45"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 182,
-    "visionTokens": 180,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9882,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 47,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "46"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 170,
-    "visionTokens": 163,
-    "coverageVision": 0.9866,
-    "coverageMarker": 0.9545,
-    "respaced": 2,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 48,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "47"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 161,
-    "visionTokens": 160,
-    "coverageVision": 0.9933,
-    "coverageMarker": 0.9868,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 49,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 5"
-    }
-   ],
-   "furniture": [
-    "48"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 181,
-    "visionTokens": 176,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9878,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 50,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "49"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 181,
-    "visionTokens": 180,
-    "coverageVision": 0.982,
-    "coverageMarker": 0.982,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 51,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 5"
+      "page": 1,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 600; only in Marker: 608"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": "МИНИСТЕРСТВО ЗДРАВООХРАНЕНИЯ\nРОССИЙСКОЙ ФЕДЕРАЦИИ\n(МИНЗДРАВ РОССИИ)\n\n**ПРИКАЗ**\n\n2 мая 2023 г.\n\n№ 2064\n\n**Об утверждении**\n\n**Квалификационных требований к медицинским и фармацевтическим\nработникам с высшим образованием**",
+      "stats": {
+        "markerTokens": 60,
+        "visionTokens": 60,
+        "coverageVision": 0.9773,
+        "coverageMarker": 0.9773,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "repeated-content-missing",
-     "detail": "Vision has these words more often than Marker (dropped rows or lines?): ординатуре, подготовка, специальности, физиотерапия"
-    }
-   ],
-   "furniture": [
-    "50"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 144,
-    "visionTokens": 143,
-    "coverageVision": 0.969,
-    "coverageMarker": 0.969,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 52,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
+      "page": 2,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от «2» мая 2023 г. № 2064"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 165,
+        "visionTokens": 164,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9926,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
     {
-     "kind": "page-end-missing",
-     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «Подготовка в ординатуре по специальности «Физическая»"
-    }
-   ],
-   "furniture": [
-    "51"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 163,
-    "visionTokens": 165,
-    "coverageVision": 0.9481,
-    "coverageMarker": 0.9605,
-    "respaced": 2,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 53,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "52"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 167,
-    "visionTokens": 163,
-    "coverageVision": 0.9868,
-    "coverageMarker": 0.9675,
-    "respaced": 2,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 54,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
+      "page": 3,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 173,
+        "visionTokens": 171,
+        "coverageVision": 0.9873,
+        "coverageMarker": 0.9748,
+        "respaced": 2,
+        "tableRows": 0
+      }
+    },
     {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 5"
-    }
-   ],
-   "furniture": [
-    "53"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 173,
-    "visionTokens": 169,
-    "coverageVision": 0.9937,
-    "coverageMarker": 0.9814,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 55,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "54"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 163,
-    "visionTokens": 161,
-    "coverageVision": 0.9932,
-    "coverageMarker": 0.98,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 56,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "55"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 176,
-    "visionTokens": 172,
-    "coverageVision": 0.975,
-    "coverageMarker": 0.9571,
-    "respaced": 3,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 57,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
+      "page": 4,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 171,
+        "visionTokens": 168,
+        "coverageVision": 0.9872,
+        "coverageMarker": 0.9686,
+        "respaced": 2,
+        "tableRows": 0
+      }
+    },
     {
-     "kind": "page-end-missing",
-     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «и другое) медицинской организации - врачэпидемиолог»"
-    }
-   ],
-   "furniture": [
-    "56"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 156,
-    "visionTokens": 153,
-    "coverageVision": 0.9858,
-    "coverageMarker": 0.972,
-    "respaced": 2,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 58,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
+      "page": 5,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["4"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 169,
+        "visionTokens": 168,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9937,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
     {
-     "kind": "repeated-content-missing",
-     "detail": "Vision has these words more often than Marker (dropped rows or lines?): высшее, образование, одной, специальностей"
-    }
-   ],
-   "furniture": [
-    "57"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 197,
-    "visionTokens": 204,
-    "coverageVision": 0.963,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 59,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 177,
-    "visionTokens": 176,
-    "coverageVision": 0.994,
-    "coverageMarker": 0.994,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 60,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "59"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 205,
-    "visionTokens": 203,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9947,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 61,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "60"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 193,
-    "visionTokens": 192,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9945,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 62,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "61"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 217,
-    "visionTokens": 216,
-    "coverageVision": 0.9949,
-    "coverageMarker": 0.9899,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 63,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
+      "page": 6,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 1"
+        }
+      ],
+      "furniture": ["5"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 166,
+        "visionTokens": 164,
+        "coverageVision": 0.9804,
+        "coverageMarker": 0.974,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
     {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 5"
+      "page": 7,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["6"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 164,
+        "visionTokens": 162,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9933,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 8,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 174,
+        "visionTokens": 174,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 9,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: I"
+        }
+      ],
+      "furniture": ["8"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 164,
+        "visionTokens": 164,
+        "coverageVision": 0.9868,
+        "coverageMarker": 0.9868,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 10,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["9"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 156,
+        "visionTokens": 149,
+        "coverageVision": 0.9855,
+        "coverageMarker": 0.951,
+        "respaced": 2,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 11,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["10"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 166,
+        "visionTokens": 165,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9935,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 12,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["11"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 205,
+        "visionTokens": 202,
+        "coverageVision": 0.9892,
+        "coverageMarker": 0.9786,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 13,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["12"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 173,
+        "visionTokens": 172,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 14,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["13"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 167,
+        "visionTokens": 166,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9935,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 15,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["14"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 164,
+        "visionTokens": 162,
+        "coverageVision": 0.9933,
+        "coverageMarker": 0.9801,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 16,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["15"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 184,
+        "visionTokens": 183,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 17,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["16"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 163,
+        "visionTokens": 162,
+        "coverageVision": 0.9864,
+        "coverageMarker": 0.9732,
+        "respaced": 2,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 18,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["17"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 161,
+        "visionTokens": 158,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9867,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 19,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["18"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 176,
+        "visionTokens": 173,
+        "coverageVision": 0.9936,
+        "coverageMarker": 0.9811,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 20,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["19"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 166,
+        "visionTokens": 164,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9871,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 21,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 176,
+        "visionTokens": 174,
+        "coverageVision": 0.9877,
+        "coverageMarker": 0.9816,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 22,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 5"
+        }
+      ],
+      "furniture": ["21"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 167,
+        "visionTokens": 165,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9935,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 23,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["22"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 169,
+        "visionTokens": 169,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 24,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["23"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 171,
+        "visionTokens": 169,
+        "coverageVision": 0.9936,
+        "coverageMarker": 0.9811,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 25,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["24"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 177,
+        "visionTokens": 172,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9758,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 26,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: I"
+        }
+      ],
+      "furniture": ["25"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 178,
+        "visionTokens": 172,
+        "coverageVision": 0.9876,
+        "coverageMarker": 0.9695,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 27,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "repeated-content-missing",
+          "detail": "Vision has these words more often than Marker (dropped rows or lines?): высшее, образование, специалитет, специальности"
+        }
+      ],
+      "furniture": ["26"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 176,
+        "visionTokens": 179,
+        "coverageVision": 0.9636,
+        "coverageMarker": 0.9876,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 28,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["27"],
+      "portalRewrites": ["hyphen restored: Челюстнолицевая → Челюстно-лицевая"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 160,
+        "visionTokens": 162,
+        "coverageVision": 0.9613,
+        "coverageMarker": 0.9868,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 29,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["28"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 153,
+        "visionTokens": 150,
+        "coverageVision": 0.9708,
+        "coverageMarker": 0.95,
+        "respaced": 2,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 30,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["29"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 162,
+        "visionTokens": 154,
+        "coverageVision": 0.9792,
+        "coverageMarker": 0.9338,
+        "respaced": 3,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 31,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 5"
+        }
+      ],
+      "furniture": ["30"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 174,
+        "visionTokens": 168,
+        "coverageVision": 0.9936,
+        "coverageMarker": 0.9627,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 32,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["31"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 150,
+        "visionTokens": 148,
+        "coverageVision": 0.9928,
+        "coverageMarker": 0.9786,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 33,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["32"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 171,
+        "visionTokens": 166,
+        "coverageVision": 0.9805,
+        "coverageMarker": 0.9497,
+        "respaced": 3,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 34,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["33"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 170,
+        "visionTokens": 165,
+        "coverageVision": 0.9869,
+        "coverageMarker": 0.9618,
+        "respaced": 2,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 35,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 5"
+        }
+      ],
+      "furniture": ["34"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 167,
+        "visionTokens": 163,
+        "coverageVision": 0.9934,
+        "coverageMarker": 0.9804,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 36,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["35"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 171,
+        "visionTokens": 170,
+        "coverageVision": 0.9937,
+        "coverageMarker": 0.9874,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 37,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 172,
+        "visionTokens": 169,
+        "coverageVision": 0.9935,
+        "coverageMarker": 0.9872,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 38,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "repeated-content-missing",
+          "detail": "Vision has these words more often than Marker (dropped rows or lines?): ординатуре, подготовка, санитарно, специальности"
+        }
+      ],
+      "furniture": ["37"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 162,
+        "visionTokens": 163,
+        "coverageVision": 0.9548,
+        "coverageMarker": 0.9737,
+        "respaced": 2,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 39,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["38"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 171,
+        "visionTokens": 169,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9873,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 40,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["39"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 191,
+        "visionTokens": 190,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9945,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 41,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["40"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 198,
+        "visionTokens": 198,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 42,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "repeated-content-missing",
+          "detail": "Vision has these words more often than Marker (dropped rows or lines?): интернатуре, ординатуре, подготовка, специальности"
+        }
+      ],
+      "furniture": ["41"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 165,
+        "visionTokens": 170,
+        "coverageVision": 0.9618,
+        "coverageMarker": 0.9869,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 43,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["42"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 165,
+        "visionTokens": 163,
+        "coverageVision": 0.9868,
+        "coverageMarker": 0.974,
+        "respaced": 2,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 44,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["43"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 176,
+        "visionTokens": 174,
+        "coverageVision": 0.9939,
+        "coverageMarker": 0.9818,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 45,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["44"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 183,
+        "visionTokens": 180,
+        "coverageVision": 0.976,
+        "coverageMarker": 0.9588,
+        "respaced": 2,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 46,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["45"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 182,
+        "visionTokens": 180,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9882,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 47,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["46"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 170,
+        "visionTokens": 163,
+        "coverageVision": 0.9866,
+        "coverageMarker": 0.9545,
+        "respaced": 2,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 48,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["47"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 161,
+        "visionTokens": 160,
+        "coverageVision": 0.9933,
+        "coverageMarker": 0.9868,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 49,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 5"
+        }
+      ],
+      "furniture": ["48"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 181,
+        "visionTokens": 176,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9878,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 50,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["49"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 181,
+        "visionTokens": 180,
+        "coverageVision": 0.982,
+        "coverageMarker": 0.982,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 51,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 5"
+        },
+        {
+          "kind": "repeated-content-missing",
+          "detail": "Vision has these words more often than Marker (dropped rows or lines?): ординатуре, подготовка, специальности, физиотерапия"
+        }
+      ],
+      "furniture": ["50"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 144,
+        "visionTokens": 143,
+        "coverageVision": 0.969,
+        "coverageMarker": 0.969,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 52,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "page-end-missing",
+          "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «Подготовка в ординатуре по специальности «Физическая»"
+        }
+      ],
+      "furniture": ["51"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 163,
+        "visionTokens": 165,
+        "coverageVision": 0.9481,
+        "coverageMarker": 0.9605,
+        "respaced": 2,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 53,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["52"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 167,
+        "visionTokens": 163,
+        "coverageVision": 0.9868,
+        "coverageMarker": 0.9675,
+        "respaced": 2,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 54,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 5"
+        }
+      ],
+      "furniture": ["53"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 173,
+        "visionTokens": 169,
+        "coverageVision": 0.9937,
+        "coverageMarker": 0.9814,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 55,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["54"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 163,
+        "visionTokens": 161,
+        "coverageVision": 0.9932,
+        "coverageMarker": 0.98,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 56,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["55"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 176,
+        "visionTokens": 172,
+        "coverageVision": 0.975,
+        "coverageMarker": 0.9571,
+        "respaced": 3,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 57,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "page-end-missing",
+          "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «и другое) медицинской организации - врачэпидемиолог»"
+        }
+      ],
+      "furniture": ["56"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 156,
+        "visionTokens": 153,
+        "coverageVision": 0.9858,
+        "coverageMarker": 0.972,
+        "respaced": 2,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 58,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "repeated-content-missing",
+          "detail": "Vision has these words more often than Marker (dropped rows or lines?): высшее, образование, одной, специальностей"
+        }
+      ],
+      "furniture": ["57"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 197,
+        "visionTokens": 204,
+        "coverageVision": 0.963,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 59,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 177,
+        "visionTokens": 176,
+        "coverageVision": 0.994,
+        "coverageMarker": 0.994,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 60,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["59"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 205,
+        "visionTokens": 203,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9947,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 61,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["60"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 193,
+        "visionTokens": 192,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9945,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 62,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["61"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 217,
+        "visionTokens": 216,
+        "coverageVision": 0.9949,
+        "coverageMarker": 0.9899,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 63,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 5"
+        }
+      ],
+      "furniture": ["62"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 175,
+        "visionTokens": 173,
+        "coverageVision": 0.9938,
+        "coverageMarker": 0.9877,
+        "respaced": 0,
+        "tableRows": 0
+      }
     }
-   ],
-   "furniture": [
-    "62"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 175,
-    "visionTokens": 173,
-    "coverageVision": 0.9938,
-    "coverageMarker": 0.9877,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  }
- ]
+  ]
 }

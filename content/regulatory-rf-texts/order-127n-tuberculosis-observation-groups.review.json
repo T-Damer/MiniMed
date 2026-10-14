@@ -2,9 +2,7 @@
   "documentId": "regulatory.rf.minzdrav.127n-2019-tuberculosis",
   "reviewer": "Claude (agent), against the page images; not a lawyer",
   "reviewedAt": "2026-10-14",
-  "keepMarker": [
-    16
-  ],
+  "keepMarker": [16],
   "verdicts": {
     "5": "image read: items 7-10, footnotes 8 and 9 (№ 30714) match; Vision lacks the last footnote lines",
     "7": "image read: items 11-14 and footnotes 11-13 match",

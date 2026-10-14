@@ -1,33 +1,33 @@
 {
- "documentId": "regulatory.rf.federal-law.157-fz-1998",
- "source": {
-  "file": "ips-157fz.html",
-  "sha256": "0434e1340351e405edb5245341db24bfcf5025f621fd238bf6f636171d2246b1",
-  "bytes": 85234,
-  "pages": null,
-  "officialUrl": "https://pravo.gov.ru/proxy/ips/?docbody=&nd=102055517"
- },
- "identityFromPortal": {
-  "number": "157-ФЗ",
-  "date": "1998-09-17",
-  "name": "Об иммунопрофилактике инфекционных болезней",
-  "registrationNumber": null,
-  "registrationDate": null
- },
- "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
- "review": {
-  "reviewer": "",
-  "reviewedAt": "",
-  "corrections": 0
- },
- "pages": [
-  {
-   "page": null,
-   "reading": "text-source",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "headerRemoved": "РОССИЙСКАЯ ФЕДЕРАЦИЯ\n\n**ФЕДЕРАЛЬНЫЙ ЗАКОН**\n\n**Об иммунопрофилактике инфекционных болезней**"
-  }
- ]
+  "documentId": "regulatory.rf.federal-law.157-fz-1998",
+  "source": {
+    "file": "ips-157fz.html",
+    "sha256": "0434e1340351e405edb5245341db24bfcf5025f621fd238bf6f636171d2246b1",
+    "bytes": 85234,
+    "pages": null,
+    "officialUrl": "https://pravo.gov.ru/proxy/ips/?docbody=&nd=102055517"
+  },
+  "identityFromPortal": {
+    "number": "157-ФЗ",
+    "date": "1998-09-17",
+    "name": "Об иммунопрофилактике инфекционных болезней",
+    "registrationNumber": null,
+    "registrationDate": null
+  },
+  "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
+  "review": {
+    "reviewer": "",
+    "reviewedAt": "",
+    "corrections": 0
+  },
+  "pages": [
+    {
+      "page": null,
+      "reading": "text-source",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "headerRemoved": "РОССИЙСКАЯ ФЕДЕРАЦИЯ\n\n**ФЕДЕРАЛЬНЫЙ ЗАКОН**\n\n**Об иммунопрофилактике инфекционных болезней**"
+    }
+  ]
 }

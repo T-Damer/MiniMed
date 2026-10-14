@@ -1,2208 +1,2022 @@
 {
- "documentId": "regulatory.rf.minzdrav.222n-2025",
- "source": {
-  "file": "0001202506030010.pdf",
-  "sha256": "82aae4fce89e7ce9d71190e186ca9c756e536bfca3d01ecd1e445b877a14011c",
-  "bytes": 3970786,
-  "pages": 88,
-  "officialUrl": "https://publication.pravo.gov.ru/document/0001202506030010"
- },
- "identityFromPortal": {
-  "number": "222н",
-  "date": "2025-04-17",
-  "name": "Об утверждении Порядка оказания медицинской помощи по профилю «неонатология",
-  "registrationNumber": "82516",
-  "registrationDate": "2025-06-02"
- },
- "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
- "review": {
-  "reviewer": "Claude (agent), against the page images; not a lawyer",
-  "reviewedAt": "2026-10-14",
-  "corrections": 29
- },
- "pages": [
-  {
-   "page": 1,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": "МИНИСТЕРСТВО ЗДРАВООХРАНЕНИЯ\nРОССИЙСКОЙ ФЕДЕРАЦИИ\n(МИНЗДРАВ РОССИИ)\n\n**П Р И К А З**\n\n*14 октября 2025 г.*\n\n№ 2224\n\n**Об утверждении\nПорядка оказания медицинской помощи\nпо профилю «неонатология»**",
-   "stats": {
-    "markerTokens": 108,
-    "visionTokens": 99,
-    "coverageVision": 0.9765,
-    "coverageMarker": 0.9881,
-    "respaced": 1,
-    "tableRows": 0
-   }
+  "documentId": "regulatory.rf.minzdrav.222n-2025",
+  "source": {
+    "file": "0001202506030010.pdf",
+    "sha256": "82aae4fce89e7ce9d71190e186ca9c756e536bfca3d01ecd1e445b877a14011c",
+    "bytes": 3970786,
+    "pages": 88,
+    "officialUrl": "https://publication.pravo.gov.ru/document/0001202506030010"
   },
-  {
-   "page": 2,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
+  "identityFromPortal": {
+    "number": "222н",
+    "date": "2025-04-17",
+    "name": "Об утверждении Порядка оказания медицинской помощи по профилю «неонатология",
+    "registrationNumber": "82516",
+    "registrationDate": "2025-06-02"
+  },
+  "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
+  "review": {
+    "reviewer": "Claude (agent), against the page images; not a lawyer",
+    "reviewedAt": "2026-10-14",
+    "corrections": 29
+  },
+  "pages": [
     {
-     "kind": "dropped-span",
-     "detail": "Vision reads text that Marker lacks (at a paragraph start): «ог «17 » апреля 2025 г. № 222н»"
+      "page": 1,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": "МИНИСТЕРСТВО ЗДРАВООХРАНЕНИЯ\nРОССИЙСКОЙ ФЕДЕРАЦИИ\n(МИНЗДРАВ РОССИИ)\n\n**П Р И К А З**\n\n*14 октября 2025 г.*\n\n№ 2224\n\n**Об утверждении\nПорядка оказания медицинской помощи\nпо профилю «неонатология»**",
+      "stats": {
+        "markerTokens": 108,
+        "visionTokens": 99,
+        "coverageVision": 0.9765,
+        "coverageMarker": 0.9881,
+        "respaced": 1,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 17, 2025, 222"
+      "page": 2,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "dropped-span",
+          "detail": "Vision reads text that Marker lacks (at a paragraph start): «ог «17 » апреля 2025 г. № 222н»"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 17, 2025, 222"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": ["от « 17 » *anpere* 2025 г. № 2224"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 235,
+        "visionTokens": 235,
+        "coverageVision": 0.9763,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 3,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 375,
+        "visionTokens": 370,
+        "coverageVision": 0.9969,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 4,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 277,
+        "visionTokens": 277,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 5,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["4"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 265,
+        "visionTokens": 265,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 6,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "repeated-content-missing",
+          "detail": "Vision has these words more often than Marker (dropped rows or lines?): длительность, медицинской, оказания, основе, помощи, предполагаемая"
+        },
+        {
+          "kind": "page-end-missing",
+          "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «предполагаемая длительность оказания медицинской помощи на основе»"
+        }
+      ],
+      "furniture": ["5"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 273,
+        "visionTokens": 280,
+        "coverageVision": 0.9706,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 7,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "dropped-span",
+          "detail": "Vision reads text that Marker lacks (at a paragraph start): «При решении вопроса о маршрутизации новорожденного необходимо»"
+        },
+        {
+          "kind": "page-end-missing",
+          "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «27. При решении вопроса о маршрутизации новорожденного необходимо»"
+        }
+      ],
+      "furniture": ["6"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 250,
+        "visionTokens": 258,
+        "coverageVision": 0.9725,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 8,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["7"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 283,
+        "visionTokens": 283,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 9,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["8"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 256,
+        "visionTokens": 256,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 10,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 253,
+        "visionTokens": 251,
+        "coverageVision": 0.9952,
+        "coverageMarker": 0.9905,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 11,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 36; only in Marker: 362"
+        }
+      ],
+      "furniture": ["10"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 337,
+        "visionTokens": 334,
+        "coverageVision": 0.9894,
+        "coverageMarker": 0.9965,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 12,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 7% of Vision's tokens (e.g. доказывающие)"
+        }
+      ],
+      "furniture": ["11"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 18,
+        "visionTokens": 18,
+        "coverageVision": 0.9286,
+        "coverageMarker": 0.9286,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 13,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от « 17 » апреля 2025 г. № 2224"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 255,
+        "visionTokens": 251,
+        "coverageVision": 0.9905,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 14,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "dropped-span",
+          "detail": "Vision reads text that Marker lacks (at a paragraph start): «процедурный кабинет (процедурную); кабинет старшей медицинской сестры (старшего медицинского брата). 10. В отделении рекомендуется предусматривать»"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 13; only in Marker: 136"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 7% of Vision's tokens (e.g. кабинет, врачнеонатолог, 13, бн, медицинской, отделении, рекомендуется, предусматривать, процедурный, процедурную, старшей, сестры)"
+        },
+        {
+          "kind": "page-end-missing",
+          "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «10. В отделении рекомендуется предусматривать:»"
+        }
+      ],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 251,
+        "visionTokens": 265,
+        "coverageVision": 0.9289,
+        "coverageMarker": 0.9858,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 15,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 8% of Vision's tokens (e.g. проведение, мероприятий, по, организация, совместного, пребывания, матери, новорожденным, грудного, уходу, за, новорожденными)"
+        },
+        {
+          "kind": "page-end-missing",
+          "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «проведение мероприятий по поддержке грудного»"
+        }
+      ],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 216,
+        "visionTokens": 235,
+        "coverageVision": 0.9187,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 16,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["4"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 115,
+        "visionTokens": 114,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 17,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 1, column 1: Marker has no such cell; Vision reads «П/П1»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 3, column 3: Marker has no such cell; Vision reads «1 должность на 25 коек; 1 должность на 15 коек в палатах для новорожденных при акушерском обсервационном отделении акуше»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 5, column 3: Marker has no such cell; Vision reads «ПО должность на 20 коек 0,5 должности на каждые последующие коек (для поддержки грудного вскармливания); 1 должность на »"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «№ п/п» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «1 должность на 25 коек;⏎1 должность на 15 коек в палатах для новорожденных при акушерском обсервационном отделении акуше» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «1 должность на 20 коек и по 0,5 должности на каждые последующие 10 коек (для поддержки грудного вскармливания);⏎1 должно» is in no ruled cell"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": ["от «17» *операция* 2025 г. № 2224"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 157,
+        "visionTokens": 157,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 5
+      }
+    },
+    {
+      "page": 18,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 130,
+        "visionTokens": 130,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 6
+      }
+    },
+    {
+      "page": 19,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от «*14*» *anperla* 2025 г. № *2224"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 136,
+        "visionTokens": 136,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 6
+      }
+    },
+    {
+      "page": 20,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 124,
+        "visionTokens": 124,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 7
+      }
+    },
+    {
+      "page": 21,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 6, column 5: Marker has no such cell; Vision reads «1 на отделение, созданное в структуре медицинской организации второй или третьей группы (уровня)»"
+        }
+      ],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 133,
+        "visionTokens": 133,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 7
+      }
+    },
+    {
+      "page": 22,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["4"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 113,
+        "visionTokens": 113,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 7
+      }
+    },
+    {
+      "page": 23,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["5"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 84,
+        "visionTokens": 84,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 4
+      }
+    },
+    {
+      "page": 24,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 6, column 3: Marker has no such cell; Vision reads «Билирубинометр чрескожный»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 6, column 4: Marker has no such cell; Vision reads «Прибор для транскутанного определения билирубина»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 6, column 5: Marker has no such cell; Vision reads «1 на 20 коек»"
+        }
+      ],
+      "furniture": ["6"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 112,
+        "visionTokens": 112,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 8
+      }
+    },
+    {
+      "page": 25,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["7"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 122,
+        "visionTokens": 122,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 9
+      }
+    },
+    {
+      "page": 26,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["8"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 150,
+        "visionTokens": 150,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 11
+      }
+    },
+    {
+      "page": 27,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["9"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 81,
+        "visionTokens": 81,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 5
+      }
+    },
+    {
+      "page": 28,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 1"
+        }
+      ],
+      "furniture": ["10", "1"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 149,
+        "visionTokens": 148,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9926,
+        "respaced": 0,
+        "tableRows": 7
+      }
+    },
+    {
+      "page": 29,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["11"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 113,
+        "visionTokens": 113,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 12
+      }
+    },
+    {
+      "page": 30,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "numbered-rows",
+          "detail": "table numbering skips 3, 4, 5, 6, 7, 8, 9, 10, 11, 12"
+        }
+      ],
+      "furniture": ["12"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 130,
+        "visionTokens": 131,
+        "coverageVision": 0.9919,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 9
+      }
+    },
+    {
+      "page": 31,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["13"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 210,
+        "visionTokens": 210,
+        "coverageVision": 0.9948,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 12
+      }
+    },
+    {
+      "page": 32,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от «17» апреля 2025 г. № 2224"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 271,
+        "visionTokens": 265,
+        "coverageVision": 0.9819,
+        "coverageMarker": 0.9731,
+        "respaced": 3,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 33,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 13; only in Marker: 136"
+        }
+      ],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 280,
+        "visionTokens": 277,
+        "coverageVision": 0.9748,
+        "coverageMarker": 0.9872,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 34,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "dropped-span",
+          "detail": "Vision reads text that Marker lacks (at a paragraph start): «осуществление консультативной и лечебной помощи новорожденным»"
+        },
+        {
+          "kind": "page-end-missing",
+          "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «осуществление консультативной и лечебной помощи новорожденным,»"
+        }
+      ],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 216,
+        "visionTokens": 222,
+        "coverageVision": 0.9742,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 35,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["4"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 298,
+        "visionTokens": 292,
+        "coverageVision": 0.9834,
+        "coverageMarker": 0.9793,
+        "respaced": 2,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 36,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["5"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 98,
+        "visionTokens": 96,
+        "coverageVision": 0.9877,
+        "coverageMarker": 0.9756,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 37,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 10, column 1: Marker has no such cell; Vision reads «•6/»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «9.» is in no ruled cell"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 17, 2; only in Marker: 14, 2484"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "table numbering skips 9"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 184,
+        "visionTokens": 185,
+        "coverageVision": 0.9821,
+        "coverageMarker": 0.988,
+        "respaced": 0,
+        "tableRows": 13
+      }
+    },
+    {
+      "page": 38,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от « 17 » апреля 2025 г. № 2224"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 129,
+        "visionTokens": 129,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 6
+      }
+    },
+    {
+      "page": 39,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 128,
+        "visionTokens": 128,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 7
+      }
+    },
+    {
+      "page": 40,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 5, column 3: Marker has no such cell; Vision reads «Аппарат вентиляции легких положительным давлением терапевтический»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 6, column 4: Marker has no such cell; Vision reads «Устройство для фототерапии новорожденных»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 6, column 5: Marker has no such cell; Vision reads «По числу коек»"
+        }
+      ],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 112,
+        "visionTokens": 112,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 7
+      }
+    },
+    {
+      "page": 41,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 4, column 1: Marker has no such cell; Vision reads «6»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «9» is in no ruled cell"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "table numbering skips 7, 9"
+        }
+      ],
+      "furniture": ["4"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 121,
+        "visionTokens": 121,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 8
+      }
+    },
+    {
+      "page": 42,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["5"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 121,
+        "visionTokens": 121,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 8
+      }
+    },
+    {
+      "page": 43,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["6"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 113,
+        "visionTokens": 113,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 8
+      }
+    },
+    {
+      "page": 44,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["7"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 120,
+        "visionTokens": 120,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 8
+      }
+    },
+    {
+      "page": 45,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["8"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 99,
+        "visionTokens": 99,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 5
+      }
+    },
+    {
+      "page": 46,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["9"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 95,
+        "visionTokens": 95,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 5
+      }
+    },
+    {
+      "page": 47,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 1"
+        }
+      ],
+      "furniture": ["10", "1"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 63,
+        "visionTokens": 62,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9836,
+        "respaced": 0,
+        "tableRows": 2
+      }
+    },
+    {
+      "page": 48,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["11"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 116,
+        "visionTokens": 116,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 10
+      }
+    },
+    {
+      "page": 49,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["12"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 76,
+        "visionTokens": 76,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 9
+      }
+    },
+    {
+      "page": 50,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["13"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 103,
+        "visionTokens": 103,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 8
+      }
+    },
+    {
+      "page": 51,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["14"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 139,
+        "visionTokens": 139,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 9
+      }
+    },
+    {
+      "page": 52,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["15"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 97,
+        "visionTokens": 97,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 5
+      }
+    },
+    {
+      "page": 53,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["16"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 113,
+        "visionTokens": 113,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 11
+      }
+    },
+    {
+      "page": 54,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 1, column 5: Marker has no such cell; Vision reads «-»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 2, column 4: Marker has no such cell; Vision reads «Передвижной»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 3, column 4: Marker has no such cell; Vision reads «аппарат»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «Передвижной рентгеновский аппарат» is in no ruled cell"
+        }
+      ],
+      "furniture": ["17"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 104,
+        "visionTokens": 104,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 8
+      }
+    },
+    {
+      "page": 55,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["18"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 82,
+        "visionTokens": 82,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 6
+      }
+    },
+    {
+      "page": 56,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 2"
+        }
+      ],
+      "furniture": ["19", "2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 106,
+        "visionTokens": 105,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9902,
+        "respaced": 0,
+        "tableRows": 8
+      }
+    },
+    {
+      "page": 57,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 3, column 4: Marker has no such cell; Vision reads «Набор для проведения»"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 61"
+        }
+      ],
+      "furniture": ["20", "61"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 128,
+        "visionTokens": 127,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9916,
+        "respaced": 0,
+        "tableRows": 10
+      }
+    },
+    {
+      "page": 58,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: II"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "table numbering skips 3, 4, 5, 6, 7, 8, 9, 10, 11, 12"
+        }
+      ],
+      "furniture": ["21"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 144,
+        "visionTokens": 144,
+        "coverageVision": 0.9924,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 10
+      }
+    },
+    {
+      "page": 59,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 3"
+        }
+      ],
+      "furniture": ["22", "3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 166,
+        "visionTokens": 165,
+        "coverageVision": 0.9935,
+        "coverageMarker": 0.9935,
+        "respaced": 0,
+        "tableRows": 11
+      }
+    },
+    {
+      "page": 60,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от «17» *апреля 2025 г. № 2224"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 278,
+        "visionTokens": 275,
+        "coverageVision": 0.987,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 61,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "repeated-content-missing",
+          "detail": "Vision has these words more often than Marker (dropped rows or lines?): медицинских×2, работников×2"
+        },
+        {
+          "kind": "page-end-missing",
+          "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «гардеробную для медицинских работников с санпропускником;»"
+        }
+      ],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 220,
+        "visionTokens": 232,
+        "coverageVision": 0.9519,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 62,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 250,
+        "visionTokens": 248,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 63,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 83,
+        "visionTokens": 83,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 64,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 11, column 3: Marker has no such cell; Vision reads «0,5 должности (для проведения новорожденным аудиологического скрининга); ДОЛЖНОСТИ (для обеспечения круглосуточной работ»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «0,5 должности (для проведения новорожденным аудиологического скрининга);⏎2 должности (для обеспечения круглосуточной раб» is in no ruled cell"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": ["от «17» *опублика* 2025 г. № 2224"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 175,
+        "visionTokens": 175,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 14
+      }
+    },
+    {
+      "page": 65,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2", "14."],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 19,
+        "visionTokens": 18,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 2
+      }
+    },
+    {
+      "page": 66,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от « 17 » *апреля* 2025 г. № 2224"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 130,
+        "visionTokens": 130,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 6
+      }
+    },
+    {
+      "page": 67,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 1, column 4: Marker has no such cell; Vision reads «-»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 3, column 5: Marker has no such cell; Vision reads «2»"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 2"
+        }
+      ],
+      "furniture": ["2", "2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 79,
+        "visionTokens": 78,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9868,
+        "respaced": 0,
+        "tableRows": 3
+      }
+    },
+    {
+      "page": 68,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 6, column 4: Marker has no such cell; Vision reads «Инкубатор для транспорти-ровки новорожденных»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 6, column 5: Marker has no such cell; Vision reads «1»"
+        }
+      ],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 107,
+        "visionTokens": 106,
+        "coverageVision": 0.9903,
+        "coverageMarker": 0.9808,
+        "respaced": 1,
+        "tableRows": 8
+      }
+    },
+    {
+      "page": 69,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 1, column 1: Marker has no such cell; Vision reads «9»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «6» is in no ruled cell"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 9"
+        }
+      ],
+      "furniture": ["4", "9"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 149,
+        "visionTokens": 148,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.993,
+        "respaced": 0,
+        "tableRows": 12
+      }
+    },
+    {
+      "page": 70,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 7, column 1: Marker has no such cell; Vision reads «15 238840»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 7, column 5: Marker has no such cell; Vision reads «1»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «15» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «238840» is in no ruled cell"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 1"
+        }
+      ],
+      "furniture": ["5", "1"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 87,
+        "visionTokens": 86,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9882,
+        "respaced": 0,
+        "tableRows": 7
+      }
+    },
+    {
+      "page": 71,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 8, column 3: Marker has no such cell; Vision reads «Система аспирационная хирургическая общего назначения, вакуумная»"
+        }
+      ],
+      "furniture": ["6"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 111,
+        "visionTokens": 111,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 9
+      }
+    },
+    {
+      "page": 72,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 4, column 4: Marker has no such cell; Vision reads «Установка для подогрева, увлажнения и подачи кислородно-воздушной смеси»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 4, column 5: Marker has no such cell; Vision reads «1 на 6 коек»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 7, column 2: Marker has no such cell; Vision reads «213210»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 7, column 3: Marker has no such cell; Vision reads «Небулайзер настольный, с подогревом»"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 1"
+        }
+      ],
+      "furniture": ["7", "1"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 104,
+        "visionTokens": 103,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9895,
+        "respaced": 0,
+        "tableRows": 8
+      }
+    },
+    {
+      "page": 73,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["8"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 76,
+        "visionTokens": 76,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 5
+      }
+    },
+    {
+      "page": 74,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["9"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 99,
+        "visionTokens": 99,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 7
+      }
+    },
+    {
+      "page": 75,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 1"
+        }
+      ],
+      "furniture": ["10", "1"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 122,
+        "visionTokens": 121,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9917,
+        "respaced": 0,
+        "tableRows": 10
+      }
+    },
+    {
+      "page": 76,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["11"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 77,
+        "visionTokens": 77,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 3
+      }
+    },
+    {
+      "page": 77,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 1"
+        }
+      ],
+      "furniture": ["12", "1"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 91,
+        "visionTokens": 90,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9889,
+        "respaced": 0,
+        "tableRows": 7
+      }
+    },
+    {
+      "page": 78,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 1, 40"
+        }
+      ],
+      "furniture": ["13", "40", "1"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 123,
+        "visionTokens": 121,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9828,
+        "respaced": 0,
+        "tableRows": 7
+      }
+    },
+    {
+      "page": 79,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["14"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 132,
+        "visionTokens": 132,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 8
+      }
+    },
+    {
+      "page": 80,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 9; only in Marker: 6"
+        }
+      ],
+      "furniture": ["15"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 166,
+        "visionTokens": 166,
+        "coverageVision": 0.9932,
+        "coverageMarker": 0.9932,
+        "respaced": 0,
+        "tableRows": 9
+      }
+    },
+    {
+      "page": 81,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 3, column 1: Marker has no such cell; Vision reads «6»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «9» is in no ruled cell"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 8"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "table numbering skips 7, 9"
+        }
+      ],
+      "furniture": ["16", "8"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 82,
+        "visionTokens": 81,
+        "coverageVision": 0.987,
+        "coverageMarker": 0.987,
+        "respaced": 0,
+        "tableRows": 7
+      }
+    },
+    {
+      "page": 82,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от «17» апреля 2025 г. № 2224"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 274,
+        "visionTokens": 271,
+        "coverageVision": 0.9957,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 83,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 215,
+        "visionTokens": 215,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 84,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 1, column 1: Marker has no such cell; Vision reads «-Nº п/11»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «№ п/п» is in no ruled cell"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 2025, 222"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": ["от «17» *Федерат* 2025 г. № 2226"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 64,
+        "visionTokens": 61,
+        "coverageVision": 0.9623,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 4
+      }
+    },
+    {
+      "page": 85,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 4"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": ["от «*17*» *anpere* 2025 г. № *2224"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 142,
+        "visionTokens": 143,
+        "coverageVision": 0.9918,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 6
+      }
+    },
+    {
+      "page": 86,
+      "reading": "image-transcription",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 5"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 17% of Vision's tokens (e.g. необхо, димо, ных, тивный, обеззараживапомещений, указанфильтрующий, ния, высокоэффекфильтрации, воздухар, высокоэффексмеси, централизо, ванного)"
+        },
+        {
+          "kind": "coverage-marker",
+          "detail": "15% of Marker's tokens are not in Vision (e.g. необходимо, указанных, высокоэффективный, наличие, воздуха, обеззараживания, фильтрации, помещений, смеси, фильтрующий, 5, централизованного)"
+        }
+      ],
+      "furniture": ["2"],
+      "portalRewrites": ["hyphen restored: ультрафиолетового → ультрафиолето-вого"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 117,
+        "visionTokens": 119,
+        "coverageVision": 0.8304,
+        "coverageMarker": 0.8455,
+        "respaced": 0,
+        "tableRows": 8
+      }
+    },
+    {
+      "page": 87,
+      "reading": "image-transcription",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 145090, 6; only in Marker: 9"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "table numbering skips 6, 7"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "Vision has numbered lines 6 that Marker lacks"
+        }
+      ],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 140,
+        "visionTokens": 141,
+        "coverageVision": 0.985,
+        "coverageMarker": 0.9924,
+        "respaced": 0,
+        "tableRows": 12
+      }
+    },
+    {
+      "page": 88,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 9"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "Vision has numbered lines 3 that Marker lacks"
+        }
+      ],
+      "furniture": ["4", "9"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 81,
+        "visionTokens": 80,
+        "coverageVision": 0.9868,
+        "coverageMarker": 0.9868,
+        "respaced": 0,
+        "tableRows": 6
+      }
     }
-   ],
-   "furniture": [],
-   "portalRewrites": [
-    "от « 17 » *anpere* 2025 г. № 2224"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 235,
-    "visionTokens": 235,
-    "coverageVision": 0.9763,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 3,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 375,
-    "visionTokens": 370,
-    "coverageVision": 0.9969,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 4,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 277,
-    "visionTokens": 277,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 5,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "4"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 265,
-    "visionTokens": 265,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 6,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "repeated-content-missing",
-     "detail": "Vision has these words more often than Marker (dropped rows or lines?): длительность, медицинской, оказания, основе, помощи, предполагаемая"
-    },
-    {
-     "kind": "page-end-missing",
-     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «предполагаемая длительность оказания медицинской помощи на основе»"
-    }
-   ],
-   "furniture": [
-    "5"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 273,
-    "visionTokens": 280,
-    "coverageVision": 0.9706,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 7,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "dropped-span",
-     "detail": "Vision reads text that Marker lacks (at a paragraph start): «При решении вопроса о маршрутизации новорожденного необходимо»"
-    },
-    {
-     "kind": "page-end-missing",
-     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «27. При решении вопроса о маршрутизации новорожденного необходимо»"
-    }
-   ],
-   "furniture": [
-    "6"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 250,
-    "visionTokens": 258,
-    "coverageVision": 0.9725,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 8,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "7"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 283,
-    "visionTokens": 283,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 9,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "8"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 256,
-    "visionTokens": 256,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 10,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 253,
-    "visionTokens": 251,
-    "coverageVision": 0.9952,
-    "coverageMarker": 0.9905,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 11,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 36; only in Marker: 362"
-    }
-   ],
-   "furniture": [
-    "10"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 337,
-    "visionTokens": 334,
-    "coverageVision": 0.9894,
-    "coverageMarker": 0.9965,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 12,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 7% of Vision's tokens (e.g. доказывающие)"
-    }
-   ],
-   "furniture": [
-    "11"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 18,
-    "visionTokens": 18,
-    "coverageVision": 0.9286,
-    "coverageMarker": 0.9286,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 13,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от « 17 » апреля 2025 г. № 2224"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 255,
-    "visionTokens": 251,
-    "coverageVision": 0.9905,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 14,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "dropped-span",
-     "detail": "Vision reads text that Marker lacks (at a paragraph start): «процедурный кабинет (процедурную); кабинет старшей медицинской сестры (старшего медицинского брата). 10. В отделении рекомендуется предусматривать»"
-    },
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 13; only in Marker: 136"
-    },
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 7% of Vision's tokens (e.g. кабинет, врачнеонатолог, 13, бн, медицинской, отделении, рекомендуется, предусматривать, процедурный, процедурную, старшей, сестры)"
-    },
-    {
-     "kind": "page-end-missing",
-     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «10. В отделении рекомендуется предусматривать:»"
-    }
-   ],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 251,
-    "visionTokens": 265,
-    "coverageVision": 0.9289,
-    "coverageMarker": 0.9858,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 15,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 8% of Vision's tokens (e.g. проведение, мероприятий, по, организация, совместного, пребывания, матери, новорожденным, грудного, уходу, за, новорожденными)"
-    },
-    {
-     "kind": "page-end-missing",
-     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «проведение мероприятий по поддержке грудного»"
-    }
-   ],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 216,
-    "visionTokens": 235,
-    "coverageVision": 0.9187,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 16,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "4"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 115,
-    "visionTokens": 114,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 17,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 1, column 1: Marker has no such cell; Vision reads «П/П1»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 3, column 3: Marker has no such cell; Vision reads «1 должность на 25 коек; 1 должность на 15 коек в палатах для новорожденных при акушерском обсервационном отделении акуше»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 5, column 3: Marker has no such cell; Vision reads «ПО должность на 20 коек 0,5 должности на каждые последующие коек (для поддержки грудного вскармливания); 1 должность на »"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «№ п/п» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «1 должность на 25 коек;⏎1 должность на 15 коек в палатах для новорожденных при акушерском обсервационном отделении акуше» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «1 должность на 20 коек и по 0,5 должности на каждые последующие 10 коек (для поддержки грудного вскармливания);⏎1 должно» is in no ruled cell"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [
-    "от «17» *операция* 2025 г. № 2224"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 157,
-    "visionTokens": 157,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 5
-   }
-  },
-  {
-   "page": 18,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 130,
-    "visionTokens": 130,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 6
-   }
-  },
-  {
-   "page": 19,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от «*14*» *anperla* 2025 г. № *2224"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 136,
-    "visionTokens": 136,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 6
-   }
-  },
-  {
-   "page": 20,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 124,
-    "visionTokens": 124,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 7
-   }
-  },
-  {
-   "page": 21,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 6, column 5: Marker has no such cell; Vision reads «1 на отделение, созданное в структуре медицинской организации второй или третьей группы (уровня)»"
-    }
-   ],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 133,
-    "visionTokens": 133,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 7
-   }
-  },
-  {
-   "page": 22,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "4"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 113,
-    "visionTokens": 113,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 7
-   }
-  },
-  {
-   "page": 23,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "5"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 84,
-    "visionTokens": 84,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 4
-   }
-  },
-  {
-   "page": 24,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 6, column 3: Marker has no such cell; Vision reads «Билирубинометр чрескожный»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 6, column 4: Marker has no such cell; Vision reads «Прибор для транскутанного определения билирубина»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 6, column 5: Marker has no such cell; Vision reads «1 на 20 коек»"
-    }
-   ],
-   "furniture": [
-    "6"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 112,
-    "visionTokens": 112,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 8
-   }
-  },
-  {
-   "page": 25,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "7"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 122,
-    "visionTokens": 122,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 9
-   }
-  },
-  {
-   "page": 26,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "8"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 150,
-    "visionTokens": 150,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 11
-   }
-  },
-  {
-   "page": 27,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "9"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 81,
-    "visionTokens": 81,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 5
-   }
-  },
-  {
-   "page": 28,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 1"
-    }
-   ],
-   "furniture": [
-    "10",
-    "1"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 149,
-    "visionTokens": 148,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9926,
-    "respaced": 0,
-    "tableRows": 7
-   }
-  },
-  {
-   "page": 29,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "11"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 113,
-    "visionTokens": 113,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 12
-   }
-  },
-  {
-   "page": 30,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "numbered-rows",
-     "detail": "table numbering skips 3, 4, 5, 6, 7, 8, 9, 10, 11, 12"
-    }
-   ],
-   "furniture": [
-    "12"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 130,
-    "visionTokens": 131,
-    "coverageVision": 0.9919,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 9
-   }
-  },
-  {
-   "page": 31,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "13"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 210,
-    "visionTokens": 210,
-    "coverageVision": 0.9948,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 12
-   }
-  },
-  {
-   "page": 32,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от «17» апреля 2025 г. № 2224"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 271,
-    "visionTokens": 265,
-    "coverageVision": 0.9819,
-    "coverageMarker": 0.9731,
-    "respaced": 3,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 33,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 13; only in Marker: 136"
-    }
-   ],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 280,
-    "visionTokens": 277,
-    "coverageVision": 0.9748,
-    "coverageMarker": 0.9872,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 34,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "dropped-span",
-     "detail": "Vision reads text that Marker lacks (at a paragraph start): «осуществление консультативной и лечебной помощи новорожденным»"
-    },
-    {
-     "kind": "page-end-missing",
-     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «осуществление консультативной и лечебной помощи новорожденным,»"
-    }
-   ],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 216,
-    "visionTokens": 222,
-    "coverageVision": 0.9742,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 35,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "4"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 298,
-    "visionTokens": 292,
-    "coverageVision": 0.9834,
-    "coverageMarker": 0.9793,
-    "respaced": 2,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 36,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "5"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 98,
-    "visionTokens": 96,
-    "coverageVision": 0.9877,
-    "coverageMarker": 0.9756,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 37,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 10, column 1: Marker has no such cell; Vision reads «•6/»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «9.» is in no ruled cell"
-    },
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 17, 2; only in Marker: 14, 2484"
-    },
-    {
-     "kind": "numbered-rows",
-     "detail": "table numbering skips 9"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 184,
-    "visionTokens": 185,
-    "coverageVision": 0.9821,
-    "coverageMarker": 0.988,
-    "respaced": 0,
-    "tableRows": 13
-   }
-  },
-  {
-   "page": 38,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от « 17 » апреля 2025 г. № 2224"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 129,
-    "visionTokens": 129,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 6
-   }
-  },
-  {
-   "page": 39,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 128,
-    "visionTokens": 128,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 7
-   }
-  },
-  {
-   "page": 40,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 5, column 3: Marker has no such cell; Vision reads «Аппарат вентиляции легких положительным давлением терапевтический»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 6, column 4: Marker has no such cell; Vision reads «Устройство для фототерапии новорожденных»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 6, column 5: Marker has no such cell; Vision reads «По числу коек»"
-    }
-   ],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 112,
-    "visionTokens": 112,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 7
-   }
-  },
-  {
-   "page": 41,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 4, column 1: Marker has no such cell; Vision reads «6»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «9» is in no ruled cell"
-    },
-    {
-     "kind": "numbered-rows",
-     "detail": "table numbering skips 7, 9"
-    }
-   ],
-   "furniture": [
-    "4"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 121,
-    "visionTokens": 121,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 8
-   }
-  },
-  {
-   "page": 42,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "5"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 121,
-    "visionTokens": 121,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 8
-   }
-  },
-  {
-   "page": 43,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "6"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 113,
-    "visionTokens": 113,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 8
-   }
-  },
-  {
-   "page": 44,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "7"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 120,
-    "visionTokens": 120,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 8
-   }
-  },
-  {
-   "page": 45,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "8"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 99,
-    "visionTokens": 99,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 5
-   }
-  },
-  {
-   "page": 46,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "9"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 95,
-    "visionTokens": 95,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 5
-   }
-  },
-  {
-   "page": 47,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 1"
-    }
-   ],
-   "furniture": [
-    "10",
-    "1"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 63,
-    "visionTokens": 62,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9836,
-    "respaced": 0,
-    "tableRows": 2
-   }
-  },
-  {
-   "page": 48,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "11"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 116,
-    "visionTokens": 116,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 10
-   }
-  },
-  {
-   "page": 49,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "12"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 76,
-    "visionTokens": 76,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 9
-   }
-  },
-  {
-   "page": 50,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "13"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 103,
-    "visionTokens": 103,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 8
-   }
-  },
-  {
-   "page": 51,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "14"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 139,
-    "visionTokens": 139,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 9
-   }
-  },
-  {
-   "page": 52,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "15"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 97,
-    "visionTokens": 97,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 5
-   }
-  },
-  {
-   "page": 53,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "16"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 113,
-    "visionTokens": 113,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 11
-   }
-  },
-  {
-   "page": 54,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 1, column 5: Marker has no such cell; Vision reads «-»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 2, column 4: Marker has no such cell; Vision reads «Передвижной»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 3, column 4: Marker has no such cell; Vision reads «аппарат»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «Передвижной рентгеновский аппарат» is in no ruled cell"
-    }
-   ],
-   "furniture": [
-    "17"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 104,
-    "visionTokens": 104,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 8
-   }
-  },
-  {
-   "page": 55,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "18"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 82,
-    "visionTokens": 82,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 6
-   }
-  },
-  {
-   "page": 56,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 2"
-    }
-   ],
-   "furniture": [
-    "19",
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 106,
-    "visionTokens": 105,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9902,
-    "respaced": 0,
-    "tableRows": 8
-   }
-  },
-  {
-   "page": 57,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 3, column 4: Marker has no such cell; Vision reads «Набор для проведения»"
-    },
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 61"
-    }
-   ],
-   "furniture": [
-    "20",
-    "61"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 128,
-    "visionTokens": 127,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9916,
-    "respaced": 0,
-    "tableRows": 10
-   }
-  },
-  {
-   "page": 58,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: II"
-    },
-    {
-     "kind": "numbered-rows",
-     "detail": "table numbering skips 3, 4, 5, 6, 7, 8, 9, 10, 11, 12"
-    }
-   ],
-   "furniture": [
-    "21"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 144,
-    "visionTokens": 144,
-    "coverageVision": 0.9924,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 10
-   }
-  },
-  {
-   "page": 59,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 3"
-    }
-   ],
-   "furniture": [
-    "22",
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 166,
-    "visionTokens": 165,
-    "coverageVision": 0.9935,
-    "coverageMarker": 0.9935,
-    "respaced": 0,
-    "tableRows": 11
-   }
-  },
-  {
-   "page": 60,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от «17» *апреля 2025 г. № 2224"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 278,
-    "visionTokens": 275,
-    "coverageVision": 0.987,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 61,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "repeated-content-missing",
-     "detail": "Vision has these words more often than Marker (dropped rows or lines?): медицинских×2, работников×2"
-    },
-    {
-     "kind": "page-end-missing",
-     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «гардеробную для медицинских работников с санпропускником;»"
-    }
-   ],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 220,
-    "visionTokens": 232,
-    "coverageVision": 0.9519,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 62,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 250,
-    "visionTokens": 248,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 63,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 83,
-    "visionTokens": 83,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 64,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 11, column 3: Marker has no such cell; Vision reads «0,5 должности (для проведения новорожденным аудиологического скрининга); ДОЛЖНОСТИ (для обеспечения круглосуточной работ»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «0,5 должности (для проведения новорожденным аудиологического скрининга);⏎2 должности (для обеспечения круглосуточной раб» is in no ruled cell"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [
-    "от «17» *опублика* 2025 г. № 2224"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 175,
-    "visionTokens": 175,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 14
-   }
-  },
-  {
-   "page": 65,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2",
-    "14."
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 19,
-    "visionTokens": 18,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 2
-   }
-  },
-  {
-   "page": 66,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от « 17 » *апреля* 2025 г. № 2224"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 130,
-    "visionTokens": 130,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 6
-   }
-  },
-  {
-   "page": 67,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 1, column 4: Marker has no such cell; Vision reads «-»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 3, column 5: Marker has no such cell; Vision reads «2»"
-    },
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 2"
-    }
-   ],
-   "furniture": [
-    "2",
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 79,
-    "visionTokens": 78,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9868,
-    "respaced": 0,
-    "tableRows": 3
-   }
-  },
-  {
-   "page": 68,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 6, column 4: Marker has no such cell; Vision reads «Инкубатор для транспорти-ровки новорожденных»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 6, column 5: Marker has no such cell; Vision reads «1»"
-    }
-   ],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 107,
-    "visionTokens": 106,
-    "coverageVision": 0.9903,
-    "coverageMarker": 0.9808,
-    "respaced": 1,
-    "tableRows": 8
-   }
-  },
-  {
-   "page": 69,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 1, column 1: Marker has no such cell; Vision reads «9»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «6» is in no ruled cell"
-    },
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 9"
-    }
-   ],
-   "furniture": [
-    "4",
-    "9"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 149,
-    "visionTokens": 148,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.993,
-    "respaced": 0,
-    "tableRows": 12
-   }
-  },
-  {
-   "page": 70,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 7, column 1: Marker has no such cell; Vision reads «15 238840»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 7, column 5: Marker has no such cell; Vision reads «1»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «15» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «238840» is in no ruled cell"
-    },
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 1"
-    }
-   ],
-   "furniture": [
-    "5",
-    "1"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 87,
-    "visionTokens": 86,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9882,
-    "respaced": 0,
-    "tableRows": 7
-   }
-  },
-  {
-   "page": 71,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 8, column 3: Marker has no such cell; Vision reads «Система аспирационная хирургическая общего назначения, вакуумная»"
-    }
-   ],
-   "furniture": [
-    "6"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 111,
-    "visionTokens": 111,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 9
-   }
-  },
-  {
-   "page": 72,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 4, column 4: Marker has no such cell; Vision reads «Установка для подогрева, увлажнения и подачи кислородно-воздушной смеси»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 4, column 5: Marker has no such cell; Vision reads «1 на 6 коек»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 7, column 2: Marker has no such cell; Vision reads «213210»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 7, column 3: Marker has no such cell; Vision reads «Небулайзер настольный, с подогревом»"
-    },
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 1"
-    }
-   ],
-   "furniture": [
-    "7",
-    "1"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 104,
-    "visionTokens": 103,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9895,
-    "respaced": 0,
-    "tableRows": 8
-   }
-  },
-  {
-   "page": 73,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "8"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 76,
-    "visionTokens": 76,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 5
-   }
-  },
-  {
-   "page": 74,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "9"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 99,
-    "visionTokens": 99,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 7
-   }
-  },
-  {
-   "page": 75,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 1"
-    }
-   ],
-   "furniture": [
-    "10",
-    "1"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 122,
-    "visionTokens": 121,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9917,
-    "respaced": 0,
-    "tableRows": 10
-   }
-  },
-  {
-   "page": 76,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "11"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 77,
-    "visionTokens": 77,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 3
-   }
-  },
-  {
-   "page": 77,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 1"
-    }
-   ],
-   "furniture": [
-    "12",
-    "1"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 91,
-    "visionTokens": 90,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9889,
-    "respaced": 0,
-    "tableRows": 7
-   }
-  },
-  {
-   "page": 78,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 1, 40"
-    }
-   ],
-   "furniture": [
-    "13",
-    "40",
-    "1"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 123,
-    "visionTokens": 121,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9828,
-    "respaced": 0,
-    "tableRows": 7
-   }
-  },
-  {
-   "page": 79,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "14"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 132,
-    "visionTokens": 132,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 8
-   }
-  },
-  {
-   "page": 80,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 9; only in Marker: 6"
-    }
-   ],
-   "furniture": [
-    "15"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 166,
-    "visionTokens": 166,
-    "coverageVision": 0.9932,
-    "coverageMarker": 0.9932,
-    "respaced": 0,
-    "tableRows": 9
-   }
-  },
-  {
-   "page": 81,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 3, column 1: Marker has no such cell; Vision reads «6»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «9» is in no ruled cell"
-    },
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 8"
-    },
-    {
-     "kind": "numbered-rows",
-     "detail": "table numbering skips 7, 9"
-    }
-   ],
-   "furniture": [
-    "16",
-    "8"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 82,
-    "visionTokens": 81,
-    "coverageVision": 0.987,
-    "coverageMarker": 0.987,
-    "respaced": 0,
-    "tableRows": 7
-   }
-  },
-  {
-   "page": 82,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от «17» апреля 2025 г. № 2224"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 274,
-    "visionTokens": 271,
-    "coverageVision": 0.9957,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 83,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 215,
-    "visionTokens": 215,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 84,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 1, column 1: Marker has no such cell; Vision reads «-Nº п/11»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «№ п/п» is in no ruled cell"
-    },
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 2025, 222"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [
-    "от «17» *Федерат* 2025 г. № 2226"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 64,
-    "visionTokens": 61,
-    "coverageVision": 0.9623,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 4
-   }
-  },
-  {
-   "page": 85,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 4"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [
-    "от «*17*» *anpere* 2025 г. № *2224"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 142,
-    "visionTokens": 143,
-    "coverageVision": 0.9918,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 6
-   }
-  },
-  {
-   "page": 86,
-   "reading": "image-transcription",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 5"
-    },
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 17% of Vision's tokens (e.g. необхо, димо, ных, тивный, обеззараживапомещений, указанфильтрующий, ния, высокоэффекфильтрации, воздухар, высокоэффексмеси, централизо, ванного)"
-    },
-    {
-     "kind": "coverage-marker",
-     "detail": "15% of Marker's tokens are not in Vision (e.g. необходимо, указанных, высокоэффективный, наличие, воздуха, обеззараживания, фильтрации, помещений, смеси, фильтрующий, 5, централизованного)"
-    }
-   ],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [
-    "hyphen restored: ультрафиолетового → ультрафиолето-вого"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 117,
-    "visionTokens": 119,
-    "coverageVision": 0.8304,
-    "coverageMarker": 0.8455,
-    "respaced": 0,
-    "tableRows": 8
-   }
-  },
-  {
-   "page": 87,
-   "reading": "image-transcription",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 145090, 6; only in Marker: 9"
-    },
-    {
-     "kind": "numbered-rows",
-     "detail": "table numbering skips 6, 7"
-    },
-    {
-     "kind": "numbered-rows",
-     "detail": "Vision has numbered lines 6 that Marker lacks"
-    }
-   ],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 140,
-    "visionTokens": 141,
-    "coverageVision": 0.985,
-    "coverageMarker": 0.9924,
-    "respaced": 0,
-    "tableRows": 12
-   }
-  },
-  {
-   "page": 88,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 9"
-    },
-    {
-     "kind": "numbered-rows",
-     "detail": "Vision has numbered lines 3 that Marker lacks"
-    }
-   ],
-   "furniture": [
-    "4",
-    "9"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 81,
-    "visionTokens": 80,
-    "coverageVision": 0.9868,
-    "coverageMarker": 0.9868,
-    "respaced": 0,
-    "tableRows": 6
-   }
-  }
- ]
+  ]
 }

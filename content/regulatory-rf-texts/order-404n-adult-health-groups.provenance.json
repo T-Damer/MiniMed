@@ -1,839 +1,785 @@
 {
- "documentId": "regulatory.rf.minzdrav.404n-2021-adult-health-groups",
- "source": {
-  "file": "0001202106300043.pdf",
-  "sha256": "8c030881e26255c9c33afb3fd15019b8b71b9cb7f080e20db596fa71e01d7995",
-  "bytes": 2456665,
-  "pages": 34,
-  "officialUrl": "https://publication.pravo.gov.ru/Document/View/0001202106300043"
- },
- "identityFromPortal": {
-  "number": "404н",
-  "date": "2021-04-27",
-  "name": "Об утверждении Порядка проведения профилактического медицинского осмотра и диспансеризации определенных групп взрослого населения",
-  "registrationNumber": "64042",
-  "registrationDate": "2021-06-30"
- },
- "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
- "review": {
-  "reviewer": "Claude (agent), against the page images; not a lawyer",
-  "reviewedAt": "2026-10-14",
-  "corrections": 11
- },
- "pages": [
-  {
-   "page": 1,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": "**МИНИСТЕРСТВО ЗДРАВООХРАНЕНИЯ\nРОССИЙСКОЙ ФЕДЕРАЦИИ**\n(Минздрав России)\n\n**ПРИКАЗ**\n\n27.04.2021\n\n№ 404 Н\n\nМосква\n\n**Об утверждении Порядка проведения\nпрофилактического медицинского осмотра\nи диспансеризации определенных групп взрослого населения**",
-   "stats": {
-    "markerTokens": 172,
-    "visionTokens": 171,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9932,
-    "respaced": 0,
-    "tableRows": 0
-   }
+  "documentId": "regulatory.rf.minzdrav.404n-2021-adult-health-groups",
+  "source": {
+    "file": "0001202106300043.pdf",
+    "sha256": "8c030881e26255c9c33afb3fd15019b8b71b9cb7f080e20db596fa71e01d7995",
+    "bytes": 2456665,
+    "pages": 34,
+    "officialUrl": "https://publication.pravo.gov.ru/Document/View/0001202106300043"
   },
-  {
-   "page": 2,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 42,
-    "visionTokens": 42,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
+  "identityFromPortal": {
+    "number": "404н",
+    "date": "2021-04-27",
+    "name": "Об утверждении Порядка проведения профилактического медицинского осмотра и диспансеризации определенных групп взрослого населения",
+    "registrationNumber": "64042",
+    "registrationDate": "2021-06-30"
   },
-  {
-   "page": 3,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от 27.04.2021 № 4044"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 298,
-    "visionTokens": 296,
-    "coverageVision": 0.984,
-    "coverageMarker": 0.988,
-    "respaced": 0,
-    "tableRows": 0
-   }
+  "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
+  "review": {
+    "reviewer": "Claude (agent), against the page images; not a lawyer",
+    "reviewedAt": "2026-10-14",
+    "corrections": 11
   },
-  {
-   "page": 4,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 428,
-    "visionTokens": 423,
-    "coverageVision": 0.9917,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 5,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 322,
-    "visionTokens": 320,
-    "coverageVision": 0.9855,
-    "coverageMarker": 0.9927,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 6,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "4"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 308,
-    "visionTokens": 303,
-    "coverageVision": 0.9964,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 7,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "5"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 384,
-    "visionTokens": 379,
-    "coverageVision": 0.9909,
-    "coverageMarker": 0.997,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 8,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
+  "pages": [
     {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 06, 1"
+      "page": 1,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": "**МИНИСТЕРСТВО ЗДРАВООХРАНЕНИЯ\nРОССИЙСКОЙ ФЕДЕРАЦИИ**\n(Минздрав России)\n\n**ПРИКАЗ**\n\n27.04.2021\n\n№ 404 Н\n\nМосква\n\n**Об утверждении Порядка проведения\nпрофилактического медицинского осмотра\nи диспансеризации определенных групп взрослого населения**",
+      "stats": {
+        "markerTokens": 172,
+        "visionTokens": 171,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9932,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 2,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 42,
+        "visionTokens": 42,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 3,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от 27.04.2021 № 4044"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 298,
+        "visionTokens": 296,
+        "coverageVision": 0.984,
+        "coverageMarker": 0.988,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 4,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 428,
+        "visionTokens": 423,
+        "coverageVision": 0.9917,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 5,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 322,
+        "visionTokens": 320,
+        "coverageVision": 0.9855,
+        "coverageMarker": 0.9927,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 6,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["4"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 308,
+        "visionTokens": 303,
+        "coverageVision": 0.9964,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 7,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["5"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 384,
+        "visionTokens": 379,
+        "coverageVision": 0.9909,
+        "coverageMarker": 0.997,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 8,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 06, 1"
+        }
+      ],
+      "furniture": ["6"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 346,
+        "visionTokens": 344,
+        "coverageVision": 0.9899,
+        "coverageMarker": 0.9933,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 9,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "dropped-span",
+          "detail": "Vision reads text that Marker lacks (at a paragraph start): «формирование комплекта документов, заполнение карты учета»"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: III"
+        },
+        {
+          "kind": "page-end-missing",
+          "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «7) формирование комплекта документов, заполнение карты учета»"
+        }
+      ],
+      "furniture": ["7"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 323,
+        "visionTokens": 327,
+        "coverageVision": 0.9793,
+        "coverageMarker": 0.9965,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 10,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 1"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "Vision has numbered lines 7, 13 that Marker lacks"
+        }
+      ],
+      "furniture": ["8"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 369,
+        "visionTokens": 367,
+        "coverageVision": 0.9906,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 11,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["9"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 300,
+        "visionTokens": 299,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 12,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["10"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 340,
+        "visionTokens": 339,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 13,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 18"
+        }
+      ],
+      "furniture": ["11"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 368,
+        "visionTokens": 364,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9936,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 14,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["12"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 342,
+        "visionTokens": 342,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 15,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "numbered-rows",
+          "detail": "Vision has numbered lines 16 that Marker lacks"
+        }
+      ],
+      "furniture": ["13"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 338,
+        "visionTokens": 337,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 16,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["14"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 355,
+        "visionTokens": 351,
+        "coverageVision": 0.987,
+        "coverageMarker": 0.9744,
+        "respaced": 4,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 17,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["15"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 353,
+        "visionTokens": 352,
+        "coverageVision": 0.99,
+        "coverageMarker": 0.9933,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 18,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 4; only in Marker: 27"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "Vision has numbered lines 16 that Marker lacks"
+        }
+      ],
+      "furniture": ["16"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 427,
+        "visionTokens": 426,
+        "coverageVision": 0.9917,
+        "coverageMarker": 0.9972,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 19,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 1, 11, 6; only in Marker: I, II"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "Vision has numbered lines 20 that Marker lacks"
+        }
+      ],
+      "furniture": ["17"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 415,
+        "visionTokens": 411,
+        "coverageVision": 0.9802,
+        "coverageMarker": 0.9943,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 20,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["18"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 330,
+        "visionTokens": 329,
+        "coverageVision": 0.9829,
+        "coverageMarker": 0.9795,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 21,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["19"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 100,
+        "visionTokens": 100,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 22,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 1; only in Marker: 18, 21, 26, 27, 29, 37, 41, 43, 46, 47, 48, 49, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 7% of Vision's tokens (e.g. объем, 1, профилактического, медицинского, осмотра, диспансеризации, этап)"
+        },
+        {
+          "kind": "coverage-marker",
+          "detail": "19% of Marker's tokens are not in Vision (e.g. 18, 64, 21, 26, 27, 29, 37, 41, 43, 46, 47, 48)"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": ["от 27.04.2021 № 4041"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 156,
+        "visionTokens": 139,
+        "coverageVision": 0.9339,
+        "coverageMarker": 0.8129,
+        "respaced": 0,
+        "tableRows": 9
+      }
+    },
+    {
+      "page": 23,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 7% of Vision's tokens (e.g. иных, прохожденин, врачомтерапевтом, критуль, нироввидуальное, профилактическо, болеваний, пальпация, руппы)"
+        },
+        {
+          "kind": "coverage-marker",
+          "detail": "12% of Marker's tokens are not in Vision (e.g. яных, прохождении, заболеваний, врачом, терапевтом, кабинета, крови, краткое, индивидуальное, профилактическое, консультирование, определение)"
+        }
+      ],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 177,
+        "visionTokens": 167,
+        "coverageVision": 0.9342,
+        "coverageMarker": 0.882,
+        "respaced": 1,
+        "tableRows": 9
+      }
+    },
+    {
+      "page": 24,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 14,
+        "visionTokens": 14,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 2
+      }
+    },
+    {
+      "page": 25,
+      "reading": "image-transcription",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "dropped-span",
+          "detail": "Vision reads text that Marker lacks (inside a paragraph): «старше 1 раз в год) Измерение внутриглазного давления (проводится при первом прохождении профилактического медицинского осмотра, далее в возрасте 40 лет и старше 1 раз в год) Объем диспансеризации (1-й этап) Осмотр фельдшером (акушеркой) ил»"
+        },
+        {
+          "kind": "garbled-span",
+          "detail": "the readings disagree on a passage: «Возраст Осмотр, исследование, мероприятие 18: 19 37 | 38 39 40|41|42|43/44|45 61 62 63 64 Опрос (анкетирование) асчет на основании антропометрии (измерение рост»"
+        },
+        {
+          "kind": "garbled-span",
+          "detail": "the readings disagree on a passage: «крови Определение уровня глюкозы в крови натощак Определение относительного сердечно-сосудистого риска Определение абсолютного сердечно-сосудистого риска Флюоро»"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 1×3, 19, 35, 37, 38, 39, 40×2, 41, 42, 43/44, 45, 61, 62, 63"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 81% of Vision's tokens (e.g. осмотр, определение, или, профилактического, медицинского, осмотра, на, измерение, крови, проводится, 1, врачом)"
+        },
+        {
+          "kind": "coverage-marker",
+          "detail": "31% of Marker's tokens are not in Vision (e.g. перечень, приемов, осмотров, консультаций, медицинскими, работниками, исследований, медицинских, вмешательств, проводимых, рамках, определенные)"
+        },
+        {
+          "kind": "page-end-missing",
+          "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «Общий анализ крови»"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 70,
+        "visionTokens": 230,
+        "coverageVision": 0.1905,
+        "coverageMarker": 0.6897,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 26,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 9"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 239,
+        "visionTokens": 232,
+        "coverageVision": 0.9617,
+        "coverageMarker": 0.9349,
+        "respaced": 0,
+        "tableRows": 6
+      }
+    },
+    {
+      "page": 27,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 1, 182, 183, 99; only in Marker: 71, 72, 76, 77, 82, 83"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 220,
+        "visionTokens": 222,
+        "coverageVision": 0.9458,
+        "coverageMarker": 0.9505,
+        "respaced": 0,
+        "tableRows": 13
+      }
+    },
+    {
+      "page": 28,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 100% of Vision's tokens (e.g. )"
+        },
+        {
+          "kind": "coverage-marker",
+          "detail": "100% of Marker's tokens are not in Vision (e.g. осмотр, этапа, диспансеризации, определения, группы, проводится, при, обращении, график, последующих, исследований, смещается)"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 74,
+        "visionTokens": 0,
+        "coverageVision": 0.0,
+        "coverageMarker": 0.0,
+        "respaced": 0,
+        "tableRows": 3
+      }
+    },
+    {
+      "page": 29,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 1, 9899, IV; only in Marker: 70, 74, 75, 76, 77, 98, 99"
+        }
+      ],
+      "furniture": ["8"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 221,
+        "visionTokens": 223,
+        "coverageVision": 0.9463,
+        "coverageMarker": 0.9557,
+        "respaced": 1,
+        "tableRows": 13
+      }
+    },
+    {
+      "page": 30,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 126,
+        "visionTokens": 124,
+        "coverageVision": 0.9558,
+        "coverageMarker": 0.9391,
+        "respaced": 0,
+        "tableRows": 5
+      }
+    },
+    {
+      "page": 31,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "annex-header-restored",
+          "detail": "Marker dropped the annex header; Vision's: «Приложение Nº 2  \nк порядку проведения профилактического  \nмедицинского осмотра и диспансеризации  \nопределенных групп взрослого населения,»"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 27.04.2021, 4044"
+        },
+        {
+          "kind": "page-end-missing",
+          "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «Д) осмотр на выявление визуальных и иных локализаций онкологических»"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 305,
+        "visionTokens": 319,
+        "coverageVision": 0.9667,
+        "coverageMarker": 0.9886,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 32,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 186,
+        "visionTokens": 186,
+        "coverageVision": 0.9937,
+        "coverageMarker": 0.9937,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 33,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 10, 27.04.2021, 40, 9; only in Marker: 1019"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": ["от 22.04.2021 № 4044"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 331,
+        "visionTokens": 326,
+        "coverageVision": 0.9755,
+        "coverageMarker": 0.9929,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 34,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 346,
+        "visionTokens": 346,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
     }
-   ],
-   "furniture": [
-    "6"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 346,
-    "visionTokens": 344,
-    "coverageVision": 0.9899,
-    "coverageMarker": 0.9933,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 9,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "dropped-span",
-     "detail": "Vision reads text that Marker lacks (at a paragraph start): «формирование комплекта документов, заполнение карты учета»"
-    },
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: III"
-    },
-    {
-     "kind": "page-end-missing",
-     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «7) формирование комплекта документов, заполнение карты учета»"
-    }
-   ],
-   "furniture": [
-    "7"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 323,
-    "visionTokens": 327,
-    "coverageVision": 0.9793,
-    "coverageMarker": 0.9965,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 10,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 1"
-    },
-    {
-     "kind": "numbered-rows",
-     "detail": "Vision has numbered lines 7, 13 that Marker lacks"
-    }
-   ],
-   "furniture": [
-    "8"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 369,
-    "visionTokens": 367,
-    "coverageVision": 0.9906,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 11,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "9"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 300,
-    "visionTokens": 299,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 12,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "10"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 340,
-    "visionTokens": 339,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 13,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 18"
-    }
-   ],
-   "furniture": [
-    "11"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 368,
-    "visionTokens": 364,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9936,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 14,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "12"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 342,
-    "visionTokens": 342,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 15,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "numbered-rows",
-     "detail": "Vision has numbered lines 16 that Marker lacks"
-    }
-   ],
-   "furniture": [
-    "13"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 338,
-    "visionTokens": 337,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 16,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "14"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 355,
-    "visionTokens": 351,
-    "coverageVision": 0.987,
-    "coverageMarker": 0.9744,
-    "respaced": 4,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 17,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "15"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 353,
-    "visionTokens": 352,
-    "coverageVision": 0.99,
-    "coverageMarker": 0.9933,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 18,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 4; only in Marker: 27"
-    },
-    {
-     "kind": "numbered-rows",
-     "detail": "Vision has numbered lines 16 that Marker lacks"
-    }
-   ],
-   "furniture": [
-    "16"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 427,
-    "visionTokens": 426,
-    "coverageVision": 0.9917,
-    "coverageMarker": 0.9972,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 19,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 1, 11, 6; only in Marker: I, II"
-    },
-    {
-     "kind": "numbered-rows",
-     "detail": "Vision has numbered lines 20 that Marker lacks"
-    }
-   ],
-   "furniture": [
-    "17"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 415,
-    "visionTokens": 411,
-    "coverageVision": 0.9802,
-    "coverageMarker": 0.9943,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 20,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "18"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 330,
-    "visionTokens": 329,
-    "coverageVision": 0.9829,
-    "coverageMarker": 0.9795,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 21,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "19"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 100,
-    "visionTokens": 100,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 22,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 1; only in Marker: 18, 21, 26, 27, 29, 37, 41, 43, 46, 47, 48, 49, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64"
-    },
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 7% of Vision's tokens (e.g. объем, 1, профилактического, медицинского, осмотра, диспансеризации, этап)"
-    },
-    {
-     "kind": "coverage-marker",
-     "detail": "19% of Marker's tokens are not in Vision (e.g. 18, 64, 21, 26, 27, 29, 37, 41, 43, 46, 47, 48)"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [
-    "от 27.04.2021 № 4041"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 156,
-    "visionTokens": 139,
-    "coverageVision": 0.9339,
-    "coverageMarker": 0.8129,
-    "respaced": 0,
-    "tableRows": 9
-   }
-  },
-  {
-   "page": 23,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 7% of Vision's tokens (e.g. иных, прохожденин, врачомтерапевтом, критуль, нироввидуальное, профилактическо, болеваний, пальпация, руппы)"
-    },
-    {
-     "kind": "coverage-marker",
-     "detail": "12% of Marker's tokens are not in Vision (e.g. яных, прохождении, заболеваний, врачом, терапевтом, кабинета, крови, краткое, индивидуальное, профилактическое, консультирование, определение)"
-    }
-   ],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 177,
-    "visionTokens": 167,
-    "coverageVision": 0.9342,
-    "coverageMarker": 0.882,
-    "respaced": 1,
-    "tableRows": 9
-   }
-  },
-  {
-   "page": 24,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 14,
-    "visionTokens": 14,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 2
-   }
-  },
-  {
-   "page": 25,
-   "reading": "image-transcription",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "dropped-span",
-     "detail": "Vision reads text that Marker lacks (inside a paragraph): «старше 1 раз в год) Измерение внутриглазного давления (проводится при первом прохождении профилактического медицинского осмотра, далее в возрасте 40 лет и старше 1 раз в год) Объем диспансеризации (1-й этап) Осмотр фельдшером (акушеркой) ил»"
-    },
-    {
-     "kind": "garbled-span",
-     "detail": "the readings disagree on a passage: «Возраст Осмотр, исследование, мероприятие 18: 19 37 | 38 39 40|41|42|43/44|45 61 62 63 64 Опрос (анкетирование) асчет на основании антропометрии (измерение рост»"
-    },
-    {
-     "kind": "garbled-span",
-     "detail": "the readings disagree on a passage: «крови Определение уровня глюкозы в крови натощак Определение относительного сердечно-сосудистого риска Определение абсолютного сердечно-сосудистого риска Флюоро»"
-    },
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 1×3, 19, 35, 37, 38, 39, 40×2, 41, 42, 43/44, 45, 61, 62, 63"
-    },
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 81% of Vision's tokens (e.g. осмотр, определение, или, профилактического, медицинского, осмотра, на, измерение, крови, проводится, 1, врачом)"
-    },
-    {
-     "kind": "coverage-marker",
-     "detail": "31% of Marker's tokens are not in Vision (e.g. перечень, приемов, осмотров, консультаций, медицинскими, работниками, исследований, медицинских, вмешательств, проводимых, рамках, определенные)"
-    },
-    {
-     "kind": "page-end-missing",
-     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «Общий анализ крови»"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 70,
-    "visionTokens": 230,
-    "coverageVision": 0.1905,
-    "coverageMarker": 0.6897,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 26,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 9"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 239,
-    "visionTokens": 232,
-    "coverageVision": 0.9617,
-    "coverageMarker": 0.9349,
-    "respaced": 0,
-    "tableRows": 6
-   }
-  },
-  {
-   "page": 27,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 1, 182, 183, 99; only in Marker: 71, 72, 76, 77, 82, 83"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 220,
-    "visionTokens": 222,
-    "coverageVision": 0.9458,
-    "coverageMarker": 0.9505,
-    "respaced": 0,
-    "tableRows": 13
-   }
-  },
-  {
-   "page": 28,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 100% of Vision's tokens (e.g. )"
-    },
-    {
-     "kind": "coverage-marker",
-     "detail": "100% of Marker's tokens are not in Vision (e.g. осмотр, этапа, диспансеризации, определения, группы, проводится, при, обращении, график, последующих, исследований, смещается)"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 74,
-    "visionTokens": 0,
-    "coverageVision": 0.0,
-    "coverageMarker": 0.0,
-    "respaced": 0,
-    "tableRows": 3
-   }
-  },
-  {
-   "page": 29,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 1, 9899, IV; only in Marker: 70, 74, 75, 76, 77, 98, 99"
-    }
-   ],
-   "furniture": [
-    "8"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 221,
-    "visionTokens": 223,
-    "coverageVision": 0.9463,
-    "coverageMarker": 0.9557,
-    "respaced": 1,
-    "tableRows": 13
-   }
-  },
-  {
-   "page": 30,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 126,
-    "visionTokens": 124,
-    "coverageVision": 0.9558,
-    "coverageMarker": 0.9391,
-    "respaced": 0,
-    "tableRows": 5
-   }
-  },
-  {
-   "page": 31,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "annex-header-restored",
-     "detail": "Marker dropped the annex header; Vision's: «Приложение Nº 2  \nк порядку проведения профилактического  \nмедицинского осмотра и диспансеризации  \nопределенных групп взрослого населения,»"
-    },
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 27.04.2021, 4044"
-    },
-    {
-     "kind": "page-end-missing",
-     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «Д) осмотр на выявление визуальных и иных локализаций онкологических»"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 305,
-    "visionTokens": 319,
-    "coverageVision": 0.9667,
-    "coverageMarker": 0.9886,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 32,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 186,
-    "visionTokens": 186,
-    "coverageVision": 0.9937,
-    "coverageMarker": 0.9937,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 33,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 10, 27.04.2021, 40, 9; only in Marker: 1019"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [
-    "от 22.04.2021 № 4044"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 331,
-    "visionTokens": 326,
-    "coverageVision": 0.9755,
-    "coverageMarker": 0.9929,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 34,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 346,
-    "visionTokens": 346,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  }
- ]
+  ]
 }

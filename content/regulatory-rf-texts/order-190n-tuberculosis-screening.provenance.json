@@ -1,230 +1,214 @@
 {
- "documentId": "regulatory.rf.minzdrav.190n-2025",
- "source": {
-  "file": "0001202505190006.pdf",
-  "sha256": "fd1d031f5f9f954cbb00c5b14f2779090ba36e8a38f4cb7a14e1600874553f97",
-  "bytes": 569241,
-  "pages": 9,
-  "officialUrl": "https://publication.pravo.gov.ru/document/0001202505190006"
- },
- "identityFromPortal": {
-  "number": "190н",
-  "date": "2025-04-11",
-  "name": "Об утверждении порядка и сроков проведения профилактических медицинских осмотров граждан в целях выявления туберкулеза",
-  "registrationNumber": "82216",
-  "registrationDate": "2025-05-16"
- },
- "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
- "review": {
-  "reviewer": "Claude (agent), against the page images; not a lawyer",
-  "reviewedAt": "2026-10-14",
-  "corrections": 1
- },
- "pages": [
-  {
-   "page": 1,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
+  "documentId": "regulatory.rf.minzdrav.190n-2025",
+  "source": {
+    "file": "0001202505190006.pdf",
+    "sha256": "fd1d031f5f9f954cbb00c5b14f2779090ba36e8a38f4cb7a14e1600874553f97",
+    "bytes": 569241,
+    "pages": 9,
+    "officialUrl": "https://publication.pravo.gov.ru/document/0001202505190006"
+  },
+  "identityFromPortal": {
+    "number": "190н",
+    "date": "2025-04-11",
+    "name": "Об утверждении порядка и сроков проведения профилактических медицинских осмотров граждан в целях выявления туберкулеза",
+    "registrationNumber": "82216",
+    "registrationDate": "2025-05-16"
+  },
+  "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
+  "review": {
+    "reviewer": "Claude (agent), against the page images; not a lawyer",
+    "reviewedAt": "2026-10-14",
+    "corrections": 1
+  },
+  "pages": [
     {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 183000"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": "## МИНИСТЕРСТВО ЗДРАВООХРАНЕНИЯ РОССИЙСКОЙ ФЕДЕРАЦИИ\n\n(МИНЗДРАВ РОССИИ)\n\n11 октября 2023 г.\n\n1904\n\nОб утверждении порядка и сроков проведения профилактических медицинских осмотров граждан в целях выявления туберкулеза",
-   "stats": {
-    "markerTokens": 180,
-    "visionTokens": 180,
-    "coverageVision": 0.9932,
-    "coverageMarker": 0.9932,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 2,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от Нач. с. 19.12.2025. № 1904"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 288,
-    "visionTokens": 288,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 3,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 337,
-    "visionTokens": 335,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 4,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [
-    "hyphen restored: медикосанитарную → медико-санитарную"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 354,
-    "visionTokens": 350,
-    "coverageVision": 0.9936,
-    "coverageMarker": 0.9873,
-    "respaced": 2,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 5,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 2023, 29, 73523"
-    }
-   ],
-   "furniture": [
-    "4"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 409,
-    "visionTokens": 400,
-    "coverageVision": 0.994,
-    "coverageMarker": 0.9822,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 6,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "dropped-span",
-     "detail": "Vision reads text that Marker lacks (at a paragraph start): «011 стреля 2025 т. Nº 190 н»"
+      "page": 1,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 183000"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": "## МИНИСТЕРСТВО ЗДРАВООХРАНЕНИЯ РОССИЙСКОЙ ФЕДЕРАЦИИ\n\n(МИНЗДРАВ РОССИИ)\n\n11 октября 2023 г.\n\n1904\n\nОб утверждении порядка и сроков проведения профилактических медицинских осмотров граждан в целях выявления туберкулеза",
+      "stats": {
+        "markerTokens": 180,
+        "visionTokens": 180,
+        "coverageVision": 0.9932,
+        "coverageMarker": 0.9932,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 011, 190, 2025; only in Marker: 100000, 40"
+      "page": 2,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от Нач. с. 19.12.2025. № 1904"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 288,
+        "visionTokens": 288,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 7% of Vision's tokens (e.g. 011, стреля, 2025, 190, индивив, дуальном)"
+      "page": 3,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 337,
+        "visionTokens": 335,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "coverage-marker",
-     "detail": "13% of Marker's tokens are not in Vision (e.g. российской, федерации, индивидуальном, общей, заболеваемости, туберкулезом, субъекте, 40, более, на, 100000, населения)"
+      "page": 4,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["3"],
+      "portalRewrites": ["hyphen restored: медикосанитарную → медико-санитарную"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 354,
+        "visionTokens": 350,
+        "coverageVision": 0.9936,
+        "coverageMarker": 0.9873,
+        "respaced": 2,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 5,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 2023, 29, 73523"
+        }
+      ],
+      "furniture": ["4"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 409,
+        "visionTokens": 400,
+        "coverageVision": 0.994,
+        "coverageMarker": 0.9822,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 6,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "dropped-span",
+          "detail": "Vision reads text that Marker lacks (at a paragraph start): «011 стреля 2025 т. Nº 190 н»"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 011, 190, 2025; only in Marker: 100000, 40"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 7% of Vision's tokens (e.g. 011, стреля, 2025, 190, индивив, дуальном)"
+        },
+        {
+          "kind": "coverage-marker",
+          "detail": "13% of Marker's tokens are not in Vision (e.g. российской, федерации, индивидуальном, общей, заболеваемости, туберкулезом, субъекте, 40, более, на, 100000, населения)"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": ["от Ноября 2025 г. № 1904"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 118,
+        "visionTokens": 105,
+        "coverageVision": 0.9318,
+        "coverageMarker": 0.8723,
+        "respaced": 0,
+        "tableRows": 7
+      }
+    },
+    {
+      "page": 7,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 110,
+        "visionTokens": 109,
+        "coverageVision": 0.9898,
+        "coverageMarker": 0.9798,
+        "respaced": 1,
+        "tableRows": 6
+      }
+    },
+    {
+      "page": 8,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 84,
+        "visionTokens": 84,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 9
+      }
+    },
+    {
+      "page": 9,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 102,
+        "visionTokens": 101,
+        "coverageVision": 0.9884,
+        "coverageMarker": 0.977,
+        "respaced": 1,
+        "tableRows": 8
+      }
     }
-   ],
-   "furniture": [],
-   "portalRewrites": [
-    "от Ноября 2025 г. № 1904"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 118,
-    "visionTokens": 105,
-    "coverageVision": 0.9318,
-    "coverageMarker": 0.8723,
-    "respaced": 0,
-    "tableRows": 7
-   }
-  },
-  {
-   "page": 7,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 110,
-    "visionTokens": 109,
-    "coverageVision": 0.9898,
-    "coverageMarker": 0.9798,
-    "respaced": 1,
-    "tableRows": 6
-   }
-  },
-  {
-   "page": 8,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 84,
-    "visionTokens": 84,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 9
-   }
-  },
-  {
-   "page": 9,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 102,
-    "visionTokens": 101,
-    "coverageVision": 0.9884,
-    "coverageMarker": 0.977,
-    "respaced": 1,
-    "tableRows": 8
-   }
-  }
- ]
+  ]
 }

@@ -1,1098 +1,1006 @@
 {
- "documentId": "regulatory.rf.minzdrav.1089n-2021",
- "source": {
-  "file": "0001202111300010.pdf",
-  "sha256": "ba4178bb05d39887b7390ea5208b53753fe3969bac54495c36535c84e490aae3",
-  "bytes": 3758348,
-  "pages": 48,
-  "officialUrl": "https://publication.pravo.gov.ru/Document/View/0001202111300010"
- },
- "identityFromPortal": {
-  "number": "1089н",
-  "date": "2021-11-23",
-  "name": "Об утверждении Условий и порядка формирования листков нетрудоспособности в форме электронного документа и выдачи листков нетрудоспособности в форме документа на бумажном носителе в случаях, установленных законодательством Российской Федерации",
-  "registrationNumber": "66067",
-  "registrationDate": "2021-11-29"
- },
- "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
- "review": {
-  "reviewer": "Claude (agent), against the page images; not a lawyer",
-  "reviewedAt": "2026-10-14",
-  "corrections": 10
- },
- "pages": [
-  {
-   "page": 1,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": "МИНИСТЕРСТВО ЗДРАВООХРАНЕНИЯ\nРОССИЙСКОЙ ФЕДЕРАЦИИ\n(Минздрав России)\n\n**ПРИКАЗ**\n\n23 ноября 2021\n\n№ 1089 н\n\nМосква\n\n**Об утверждении**\n\n**Условий и порядка формирования листков нетрудоспособности в форме электронного документа и выдачи листков нетрудоспособности в форме документа на бумажном носителе в случаях, установленных законодательством Российской Федерации**",
-   "stats": {
-    "markerTokens": 165,
-    "visionTokens": 166,
-    "coverageVision": 0.9931,
-    "coverageMarker": 0.9931,
-    "respaced": 1,
-    "tableRows": 0
-   }
+  "documentId": "regulatory.rf.minzdrav.1089n-2021",
+  "source": {
+    "file": "0001202111300010.pdf",
+    "sha256": "ba4178bb05d39887b7390ea5208b53753fe3969bac54495c36535c84e490aae3",
+    "bytes": 3758348,
+    "pages": 48,
+    "officialUrl": "https://publication.pravo.gov.ru/Document/View/0001202111300010"
   },
-  {
-   "page": 2,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 30,
-    "visionTokens": 30,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
+  "identityFromPortal": {
+    "number": "1089н",
+    "date": "2021-11-23",
+    "name": "Об утверждении Условий и порядка формирования листков нетрудоспособности в форме электронного документа и выдачи листков нетрудоспособности в форме документа на бумажном носителе в случаях, установленных законодательством Российской Федерации",
+    "registrationNumber": "66067",
+    "registrationDate": "2021-11-29"
   },
-  {
-   "page": 3,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от «23» Ноября 2021 г. № 1089 к"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 323,
-    "visionTokens": 322,
-    "coverageVision": 0.9852,
-    "coverageMarker": 0.9963,
-    "respaced": 0,
-    "tableRows": 0
-   }
+  "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
+  "review": {
+    "reviewer": "Claude (agent), against the page images; not a lawyer",
+    "reviewedAt": "2026-10-14",
+    "corrections": 10
   },
-  {
-   "page": 4,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 320,
-    "visionTokens": 318,
-    "coverageVision": 0.9863,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 5,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
+  "pages": [
     {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 1"
-    }
-   ],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 415,
-    "visionTokens": 409,
-    "coverageVision": 0.9831,
-    "coverageMarker": 0.9943,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 6,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 2"
-    }
-   ],
-   "furniture": [
-    "4"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 342,
-    "visionTokens": 342,
-    "coverageVision": 0.9932,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 7,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 4"
-    }
-   ],
-   "furniture": [
-    "5"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 425,
-    "visionTokens": 424,
-    "coverageVision": 0.9916,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 8,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "6"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 312,
-    "visionTokens": 312,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 9,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 6; only in Marker: 18, 2021, 3070, 48, 6724"
-    }
-   ],
-   "furniture": [
-    "7"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 298,
-    "visionTokens": 290,
-    "coverageVision": 0.9883,
-    "coverageMarker": 0.9731,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 10,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "8"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 287,
-    "visionTokens": 286,
-    "coverageVision": 0.9845,
-    "coverageMarker": 0.9922,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 11,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "9"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 306,
-    "visionTokens": 303,
-    "coverageVision": 0.9963,
-    "coverageMarker": 0.9889,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 12,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 95"
-    }
-   ],
-   "furniture": [
-    "10"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 288,
-    "visionTokens": 277,
-    "coverageVision": 0.9881,
-    "coverageMarker": 0.9689,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 13,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "11"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 303,
-    "visionTokens": 303,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 14,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "12"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 311,
-    "visionTokens": 310,
-    "coverageVision": 0.9963,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 15,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "dropped-span",
-     "detail": "Vision reads text that Marker lacks (at a paragraph start): «При этом в листке нетрудоспособности указываются родственная (семейная»"
+      "page": 1,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": "МИНИСТЕРСТВО ЗДРАВООХРАНЕНИЯ\nРОССИЙСКОЙ ФЕДЕРАЦИИ\n(Минздрав России)\n\n**ПРИКАЗ**\n\n23 ноября 2021\n\n№ 1089 н\n\nМосква\n\n**Об утверждении**\n\n**Условий и порядка формирования листков нетрудоспособности в форме электронного документа и выдачи листков нетрудоспособности в форме документа на бумажном носителе в случаях, установленных законодательством Российской Федерации**",
+      "stats": {
+        "markerTokens": 165,
+        "visionTokens": 166,
+        "coverageVision": 0.9931,
+        "coverageMarker": 0.9931,
+        "respaced": 1,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "repeated-content-missing",
-     "detail": "Vision has these words more often than Marker (dropped rows or lines?): дневного, нетрудоспособности, стационара, стационарных, условиях×2"
+      "page": 2,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 30,
+        "visionTokens": 30,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "page-end-missing",
-     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «При этом в листке нетрудоспособности указываются родственная (семейная)»"
-    }
-   ],
-   "furniture": [
-    "13"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 343,
-    "visionTokens": 356,
-    "coverageVision": 0.9619,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 16,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "14"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 338,
-    "visionTokens": 336,
-    "coverageVision": 0.9933,
-    "coverageMarker": 0.9933,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 17,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 1, 5"
-    }
-   ],
-   "furniture": [
-    "15"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 358,
-    "visionTokens": 356,
-    "coverageVision": 0.972,
-    "coverageMarker": 0.9968,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 18,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 3, 8, 9"
-    }
-   ],
-   "furniture": [
-    "16"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 350,
-    "visionTokens": 348,
-    "coverageVision": 0.9778,
-    "coverageMarker": 0.9968,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 19,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "17"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 322,
-    "visionTokens": 322,
-    "coverageVision": 0.9895,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 20,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "18"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 374,
-    "visionTokens": 374,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 21,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "19"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 287,
-    "visionTokens": 287,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 22,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "20"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 260,
-    "visionTokens": 258,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 23,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "21"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 268,
-    "visionTokens": 270,
-    "coverageVision": 0.9875,
-    "coverageMarker": 0.9916,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 24,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "22"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 240,
-    "visionTokens": 240,
-    "coverageVision": 0.9907,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 25,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "23"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 275,
-    "visionTokens": 274,
-    "coverageVision": 0.996,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 26,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "24"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 299,
-    "visionTokens": 299,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 27,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "25"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 294,
-    "visionTokens": 294,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 28,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "26"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 315,
-    "visionTokens": 315,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 29,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "27"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 284,
-    "visionTokens": 285,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 30,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "28"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 312,
-    "visionTokens": 313,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 31,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "dropped-span",
-     "detail": "Vision reads text that Marker lacks (at a paragraph start): «При направлении лиц, пострадавших в связи с тяжелым несчастным случаем»"
+      "page": 3,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от «23» Ноября 2021 г. № 1089 к"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 323,
+        "visionTokens": 322,
+        "coverageVision": 0.9852,
+        "coverageMarker": 0.9963,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "page-end-missing",
-     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «При направлении лиц, пострадавших в связи с тяжелым несчастным случаем»"
-    }
-   ],
-   "furniture": [
-    "29"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 324,
-    "visionTokens": 334,
-    "coverageVision": 0.9693,
-    "coverageMarker": 0.9965,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 32,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 0, 00×2, 0000"
-    }
-   ],
-   "furniture": [
-    "30"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 309,
-    "visionTokens": 314,
-    "coverageVision": 0.9851,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 33,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 00×3, 0000"
-    }
-   ],
-   "furniture": [
-    "31"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 259,
-    "visionTokens": 265,
-    "coverageVision": 0.9744,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 34,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "32"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 287,
-    "visionTokens": 285,
-    "coverageVision": 0.9963,
-    "coverageMarker": 0.9888,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 35,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 00×2, 000, 00000000, 000000000000×2"
-    }
-   ],
-   "furniture": [
-    "33"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 293,
-    "visionTokens": 302,
-    "coverageVision": 0.9771,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 36,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "34"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 269,
-    "visionTokens": 270,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 37,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "35"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 254,
-    "visionTokens": 252,
-    "coverageVision": 0.9955,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 38,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "36"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 304,
-    "visionTokens": 305,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9963,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 39,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "page-end-missing",
-     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «В строке листка нетрудоспособности «Находился в стационаре»»"
-    }
-   ],
-   "furniture": [
-    "37"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 290,
-    "visionTokens": 297,
-    "coverageVision": 0.982,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 40,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "38"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 307,
-    "visionTokens": 305,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9963,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 41,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "39"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 296,
-    "visionTokens": 295,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 42,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "40"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 327,
-    "visionTokens": 329,
-    "coverageVision": 0.9966,
-    "coverageMarker": 0.9966,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 43,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "41"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 326,
-    "visionTokens": 326,
-    "coverageVision": 0.9965,
-    "coverageMarker": 0.9965,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 44,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "dropped-span",
-     "detail": "Vision reads text that Marker lacks (at a paragraph start): «33 - при изменении группы инвалидности; 34 - в случае смерти; 35 - в случае отказа от проведения медико-социальной экспертизы»"
+      "page": 4,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 320,
+        "visionTokens": 318,
+        "coverageVision": 0.9863,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 0, 00×2, 0000, 33, 34, 35"
+      "page": 5,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 1"
+        }
+      ],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 415,
+        "visionTokens": 409,
+        "coverageVision": 0.9831,
+        "coverageMarker": 0.9943,
+        "respaced": 1,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 7% of Vision's tokens (e.g. случае, 00, проведения, от, при, 0000, 0, инвалидности, 33, изменении, группы, 34)"
+      "page": 6,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 2"
+        }
+      ],
+      "furniture": ["4"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 342,
+        "visionTokens": 342,
+        "coverageVision": 0.9932,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "numbered-rows",
-     "detail": "Vision has numbered lines 33, 34, 35 that Marker lacks"
+      "page": 7,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 4"
+        }
+      ],
+      "furniture": ["5"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 425,
+        "visionTokens": 424,
+        "coverageVision": 0.9916,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "page-end-missing",
-     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «35 - в случае отказа от проведения медико-социальной экспертизы;»"
-    }
-   ],
-   "furniture": [
-    "42"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 296,
-    "visionTokens": 318,
-    "coverageVision": 0.9265,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 45,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 00×2, 0000"
-    }
-   ],
-   "furniture": [
-    "43"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 287,
-    "visionTokens": 292,
-    "coverageVision": 0.9847,
-    "coverageMarker": 0.9923,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 46,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "44"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 323,
-    "visionTokens": 323,
-    "coverageVision": 0.9894,
-    "coverageMarker": 0.9964,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 47,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 0×4, 00×8, 000, 0000×3, 337"
+      "page": 8,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["6"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 312,
+        "visionTokens": 312,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 7% of Vision's tokens (e.g. 00, 0, 0000, 38, 337, 000, 37, веломости, съезла)"
-    }
-   ],
-   "furniture": [
-    "45"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 355,
-    "visionTokens": 374,
-    "coverageVision": 0.9319,
-    "coverageMarker": 0.9869,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 48,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
+      "page": 9,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 6; only in Marker: 18, 2021, 3070, 48, 6724"
+        }
+      ],
+      "furniture": ["7"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 298,
+        "visionTokens": 290,
+        "coverageVision": 0.9883,
+        "coverageMarker": 0.9731,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
     {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 255, 339"
+      "page": 10,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["8"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 287,
+        "visionTokens": 286,
+        "coverageVision": 0.9845,
+        "coverageMarker": 0.9922,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 11,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["9"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 306,
+        "visionTokens": 303,
+        "coverageVision": 0.9963,
+        "coverageMarker": 0.9889,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 12,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 95"
+        }
+      ],
+      "furniture": ["10"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 288,
+        "visionTokens": 277,
+        "coverageVision": 0.9881,
+        "coverageMarker": 0.9689,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 13,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["11"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 303,
+        "visionTokens": 303,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 14,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["12"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 311,
+        "visionTokens": 310,
+        "coverageVision": 0.9963,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 15,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "dropped-span",
+          "detail": "Vision reads text that Marker lacks (at a paragraph start): «При этом в листке нетрудоспособности указываются родственная (семейная»"
+        },
+        {
+          "kind": "repeated-content-missing",
+          "detail": "Vision has these words more often than Marker (dropped rows or lines?): дневного, нетрудоспособности, стационара, стационарных, условиях×2"
+        },
+        {
+          "kind": "page-end-missing",
+          "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «При этом в листке нетрудоспособности указываются родственная (семейная)»"
+        }
+      ],
+      "furniture": ["13"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 343,
+        "visionTokens": 356,
+        "coverageVision": 0.9619,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 16,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["14"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 338,
+        "visionTokens": 336,
+        "coverageVision": 0.9933,
+        "coverageMarker": 0.9933,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 17,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 1, 5"
+        }
+      ],
+      "furniture": ["15"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 358,
+        "visionTokens": 356,
+        "coverageVision": 0.972,
+        "coverageMarker": 0.9968,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 18,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 3, 8, 9"
+        }
+      ],
+      "furniture": ["16"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 350,
+        "visionTokens": 348,
+        "coverageVision": 0.9778,
+        "coverageMarker": 0.9968,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 19,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["17"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 322,
+        "visionTokens": 322,
+        "coverageVision": 0.9895,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 20,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["18"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 374,
+        "visionTokens": 374,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 21,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["19"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 287,
+        "visionTokens": 287,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 22,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["20"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 260,
+        "visionTokens": 258,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 23,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["21"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 268,
+        "visionTokens": 270,
+        "coverageVision": 0.9875,
+        "coverageMarker": 0.9916,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 24,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["22"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 240,
+        "visionTokens": 240,
+        "coverageVision": 0.9907,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 25,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["23"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 275,
+        "visionTokens": 274,
+        "coverageVision": 0.996,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 26,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["24"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 299,
+        "visionTokens": 299,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 27,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["25"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 294,
+        "visionTokens": 294,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 28,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["26"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 315,
+        "visionTokens": 315,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 29,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["27"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 284,
+        "visionTokens": 285,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 30,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["28"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 312,
+        "visionTokens": 313,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 31,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "dropped-span",
+          "detail": "Vision reads text that Marker lacks (at a paragraph start): «При направлении лиц, пострадавших в связи с тяжелым несчастным случаем»"
+        },
+        {
+          "kind": "page-end-missing",
+          "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «При направлении лиц, пострадавших в связи с тяжелым несчастным случаем»"
+        }
+      ],
+      "furniture": ["29"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 324,
+        "visionTokens": 334,
+        "coverageVision": 0.9693,
+        "coverageMarker": 0.9965,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 32,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 0, 00×2, 0000"
+        }
+      ],
+      "furniture": ["30"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 309,
+        "visionTokens": 314,
+        "coverageVision": 0.9851,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 33,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 00×3, 0000"
+        }
+      ],
+      "furniture": ["31"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 259,
+        "visionTokens": 265,
+        "coverageVision": 0.9744,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 34,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["32"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 287,
+        "visionTokens": 285,
+        "coverageVision": 0.9963,
+        "coverageMarker": 0.9888,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 35,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 00×2, 000, 00000000, 000000000000×2"
+        }
+      ],
+      "furniture": ["33"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 293,
+        "visionTokens": 302,
+        "coverageVision": 0.9771,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 36,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["34"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 269,
+        "visionTokens": 270,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 37,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["35"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 254,
+        "visionTokens": 252,
+        "coverageVision": 0.9955,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 38,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["36"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 304,
+        "visionTokens": 305,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9963,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 39,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "page-end-missing",
+          "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «В строке листка нетрудоспособности «Находился в стационаре»»"
+        }
+      ],
+      "furniture": ["37"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 290,
+        "visionTokens": 297,
+        "coverageVision": 0.982,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 40,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["38"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 307,
+        "visionTokens": 305,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9963,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 41,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["39"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 296,
+        "visionTokens": 295,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 42,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["40"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 327,
+        "visionTokens": 329,
+        "coverageVision": 0.9966,
+        "coverageMarker": 0.9966,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 43,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["41"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 326,
+        "visionTokens": 326,
+        "coverageVision": 0.9965,
+        "coverageMarker": 0.9965,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 44,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "dropped-span",
+          "detail": "Vision reads text that Marker lacks (at a paragraph start): «33 - при изменении группы инвалидности; 34 - в случае смерти; 35 - в случае отказа от проведения медико-социальной экспертизы»"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 0, 00×2, 0000, 33, 34, 35"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 7% of Vision's tokens (e.g. случае, 00, проведения, от, при, 0000, 0, инвалидности, 33, изменении, группы, 34)"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "Vision has numbered lines 33, 34, 35 that Marker lacks"
+        },
+        {
+          "kind": "page-end-missing",
+          "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «35 - в случае отказа от проведения медико-социальной экспертизы;»"
+        }
+      ],
+      "furniture": ["42"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 296,
+        "visionTokens": 318,
+        "coverageVision": 0.9265,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 45,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 00×2, 0000"
+        }
+      ],
+      "furniture": ["43"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 287,
+        "visionTokens": 292,
+        "coverageVision": 0.9847,
+        "coverageMarker": 0.9923,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 46,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["44"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 323,
+        "visionTokens": 323,
+        "coverageVision": 0.9894,
+        "coverageMarker": 0.9964,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 47,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 0×4, 00×8, 000, 0000×3, 337"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 7% of Vision's tokens (e.g. 00, 0, 0000, 38, 337, 000, 37, веломости, съезла)"
+        }
+      ],
+      "furniture": ["45"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 355,
+        "visionTokens": 374,
+        "coverageVision": 0.9319,
+        "coverageMarker": 0.9869,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 48,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 255, 339"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 221,
+        "visionTokens": 223,
+        "coverageVision": 0.9845,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
     }
-   ],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 221,
-    "visionTokens": 223,
-    "coverageVision": 0.9845,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  }
- ]
+  ]
 }

@@ -1,3459 +1,3204 @@
 {
- "documentId": "regulatory.rf.minzdrav.120n-2026",
- "source": {
-  "file": "0001202603260014.pdf",
-  "sha256": "fa4d983a69ba28ac29b437c7ee018d76464d9944dc21193099657f6ab353fe8e",
-  "bytes": 5407318,
-  "pages": 120,
-  "officialUrl": "https://publication.pravo.gov.ru/document/0001202603260014"
- },
- "identityFromPortal": {
-  "number": "120н",
-  "date": "2026-02-20",
-  "name": "Об утверждении Порядка оказания медицинской помощи по профилю «педиатрия",
-  "registrationNumber": "85708",
-  "registrationDate": "2026-03-25"
- },
- "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
- "review": {
-  "reviewer": "Claude (agent), against the page images; not a lawyer",
-  "reviewedAt": "2026-10-14",
-  "corrections": 48
- },
- "pages": [
-  {
-   "page": 1,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": "МИНИСТЕРСТВО ЗДРАВООХРАНЕНИЯ\nРОССИЙСКОЙ ФЕДЕРАЦИИ\n(МИНЗДРАВ РОССИИ)\n\n**ПРИКАЗ**\n\n20 февраля 2026\n\n№ 1204\n\n**Об утверждении Порядка\nоказания медицинской помощи по профилю «педиатрия»**",
-   "stats": {
-    "markerTokens": 148,
-    "visionTokens": 148,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 2,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "dropped-span",
-     "detail": "Vision reads text that Marker lacks (at a paragraph start): «ОІ «20 » феврами 2026 г. Nº_ 140 м»"
-    },
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 140, 20, 2026"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [
-    "от «20» февраля 20 26 г. № 1201"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 238,
-    "visionTokens": 239,
-    "coverageVision": 0.976,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 3,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 23; only in Marker: 236"
-    }
-   ],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 396,
-    "visionTokens": 391,
-    "coverageVision": 0.988,
-    "coverageMarker": 0.994,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 4,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 359,
-    "visionTokens": 355,
-    "coverageVision": 0.9834,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 5,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 1, 91; only in Marker: 911"
-    }
-   ],
-   "furniture": [
-    "4"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 301,
-    "visionTokens": 298,
-    "coverageVision": 0.9767,
-    "coverageMarker": 0.9882,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 6,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 30; only in Marker: 306"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [
-    "от «20» февраля 2026 г. № 1204"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 284,
-    "visionTokens": 278,
-    "coverageVision": 0.9831,
-    "coverageMarker": 0.9915,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 7,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 298,
-    "visionTokens": 294,
-    "coverageVision": 0.9849,
-    "coverageMarker": 0.9924,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 8,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 267,
-    "visionTokens": 265,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 9,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от «20» греблашо 2028 г. № 1204"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 65,
-    "visionTokens": 65,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 3
-   }
-  },
-  {
-   "page": 10,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от «ДО» *здравоохранение* 20 дек. г. № 1204"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 145,
-    "visionTokens": 145,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 10
-   }
-  },
-  {
-   "page": 11,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 2, column 3: Marker has no such cell; Vision reads «9/6 |»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «157600» is in no ruled cell"
-    }
-   ],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 165,
-    "visionTokens": 165,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 15
-   }
-  },
-  {
-   "page": 12,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 4, column 3: Marker has no such cell; Vision reads «| ×4700»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «184200» is in no ruled cell"
-    }
-   ],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 151,
-    "visionTokens": 151,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 14
-   }
-  },
-  {
-   "page": 13,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 131980, 152690, 152700, 209360, 292620; only in Marker: 83136"
-    },
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 13% of Vision's tokens (e.g. очиститель, воздуха, фильтрующий, высокоэффективный, передвижной, указанных, позиций, облучатель, 131980, ультрафиолетовый, бактерицидный, 152690)"
-    }
-   ],
-   "furniture": [
-    "4"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 259,
-    "visionTokens": 288,
-    "coverageVision": 0.8685,
-    "coverageMarker": 0.982,
-    "respaced": 0,
-    "tableRows": 17
-   }
-  },
-  {
-   "page": 14,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от «28» gradyamy 2026 г. № 11001"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 254,
-    "visionTokens": 251,
-    "coverageVision": 0.9955,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 15,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 286,
-    "visionTokens": 281,
-    "coverageVision": 0.992,
-    "coverageMarker": 0.992,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 16,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 321,
-    "visionTokens": 314,
-    "coverageVision": 0.9814,
-    "coverageMarker": 0.9888,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 17,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "repeated-content-missing",
-     "detail": "Vision has these words more often than Marker (dropped rows or lines?): кабинет×2, отделение×2"
-    },
-    {
-     "kind": "page-end-missing",
-     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «кабинет (отделение) лечебной физкультуры,»"
-    }
-   ],
-   "furniture": [
-    "4"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 203,
-    "visionTokens": 208,
-    "coverageVision": 0.963,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 18,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "5"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 263,
-    "visionTokens": 262,
-    "coverageVision": 0.9955,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 19,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 1"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [
-    "от «*20*» *организация* 2026 г. № *180"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 133,
-    "visionTokens": 132,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9918,
-    "respaced": 0,
-    "tableRows": 5
-   }
-  },
-  {
-   "page": 20,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 5"
-    }
-   ],
-   "furniture": [
-    "2",
-    "5"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 173,
-    "visionTokens": 172,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9942,
-    "respaced": 0,
-    "tableRows": 13
-   }
-  },
-  {
-   "page": 21,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 1×2; only in Marker: 18"
-    },
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 7% of Vision's tokens (e.g. 1, должности, должностей, должность, врач, наименование, количество, заведующий, дневным, стационаром, педиатр)"
-    },
-    {
-     "kind": "numbered-rows",
-     "detail": "table numbering skips 2, 3, 4, 5, 6, 7, 8, 9, 10, 11"
-    },
-    {
-     "kind": "numbered-rows",
-     "detail": "Vision has numbered lines 6 that Marker lacks"
-    }
-   ],
-   "furniture": [
-    "3",
-    "18"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 160,
-    "visionTokens": 174,
-    "coverageVision": 0.9277,
-    "coverageMarker": 0.9935,
-    "respaced": 0,
-    "tableRows": 13
-   }
-  },
-  {
-   "page": 22,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 2"
-    }
-   ],
-   "furniture": [
-    "4",
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 50,
-    "visionTokens": 49,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.98,
-    "respaced": 0,
-    "tableRows": 4
-   }
-  },
-  {
-   "page": 23,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от «20» февруарь 20 дек. № 1204"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 176,
-    "visionTokens": 177,
-    "coverageVision": 0.9934,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 8
-   }
-  },
-  {
-   "page": 24,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 1,2,3×6"
-    },
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 33% of Vision's tokens (e.g. 1,2,3, рабочих, мест, по, числу, шкаф, для, хранения, медицинских, принтер, копировальный, аппарат)"
-    }
-   ],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 207,
-    "visionTokens": 307,
-    "coverageVision": 0.6679,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 11
-   }
-  },
-  {
-   "page": 25,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 13, column 1: Marker has no such cell; Vision reads «5.»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 13, column 3: Marker has no such cell; Vision reads «1,2,3»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 13, column 6: Marker has no such cell; Vision reads «1»"
-    }
-   ],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 145,
-    "visionTokens": 145,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 15
-   }
-  },
-  {
-   "page": 26,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 1, column 4: Marker has no such cell; Vision reads «-»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 10, column 4: Marker has no such cell; Vision reads «. 499x1»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «149980» is in no ruled cell"
-    }
-   ],
-   "furniture": [
-    "4"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 120,
-    "visionTokens": 120,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 12
-   }
-  },
-  {
-   "page": 27,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 1, column 4: Marker has no such cell; Vision reads «-»"
-    }
-   ],
-   "furniture": [
-    "5"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 100,
-    "visionTokens": 100,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 9
-   }
-  },
-  {
-   "page": 28,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 1×8, 1,2,3×10, 2"
-    },
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 38% of Vision's tokens (e.g. 1,2,3, 1, для, медицинской, автоматизированное, рабочее, место, оснащенное, персональным, компьютером, выходом, информационно)"
-    }
-   ],
-   "furniture": [
-    "6",
-    "1"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 187,
-    "visionTokens": 305,
-    "coverageVision": 0.6185,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 15
-   }
-  },
-  {
-   "page": 29,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 1,2; only in Marker: 1×2, 2"
-    },
-    {
-     "kind": "numbered-rows",
-     "detail": "table numbering skips 3, 4, 5, 6, 7, 8, 9, 10"
-    }
-   ],
-   "furniture": [
-    "7",
-    "1"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 139,
-    "visionTokens": 136,
-    "coverageVision": 0.9918,
-    "coverageMarker": 0.9758,
-    "respaced": 0,
-    "tableRows": 10
-   }
-  },
-  {
-   "page": 30,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "8"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 118,
-    "visionTokens": 118,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 11
-   }
-  },
-  {
-   "page": 31,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "9"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 94,
-    "visionTokens": 94,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 12
-   }
-  },
-  {
-   "page": 32,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 2, column 6: Marker has no such cell; Vision reads «1»"
-    }
-   ],
-   "furniture": [
-    "10"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 92,
-    "visionTokens": 92,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 8
-   }
-  },
-  {
-   "page": 33,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 1, column 4: Marker has no such cell; Vision reads «-»"
-    },
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 2"
-    }
-   ],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 129,
-    "visionTokens": 128,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9918,
-    "respaced": 0,
-    "tableRows": 14
-   }
-  },
-  {
-   "page": 34,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 7, column 2: Marker has no such cell; Vision reads «1 люкометр портативный с расходными материалами (картриджами)»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 7, column 3: Marker has no such cell; Vision reads «2,3»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 7, column 4: Marker has no such cell; Vision reads «06900€»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 7, column 5: Marker has no such cell; Vision reads «Глюкометр для индивидуального использования/ использования у постели больного ИВД, питание от батареи»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 7, column 6: Marker has no such cell; Vision reads «1»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «Глюкометр портативный с расходными материалами (картриджами)» is in no ruled cell"
-    }
-   ],
-   "furniture": [
-    "12"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 106,
-    "visionTokens": 106,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 10
-   }
-  },
-  {
-   "page": 35,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 13, column 4: Marker has no such cell; Vision reads «Ix6oT|»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «149980» is in no ruled cell"
-    }
-   ],
-   "furniture": [
-    "13"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 144,
-    "visionTokens": 144,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 14
-   }
-  },
-  {
-   "page": 36,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "14"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 133,
-    "visionTokens": 128,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9744,
-    "respaced": 0,
-    "tableRows": 13
-   }
-  },
-  {
-   "page": 37,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 1,2,3×3, 233010; only in Marker: 1×2, 2×2, 3×2"
-    },
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 8% of Vision's tokens (e.g. 1,2,3, стол, для, 233010, пеленальный, младенцев)"
-    },
-    {
-     "kind": "numbered-rows",
-     "detail": "Vision has numbered lines 2 that Marker lacks"
-    }
-   ],
-   "furniture": [
-    "15",
-    "1"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 112,
-    "visionTokens": 112,
-    "coverageVision": 0.9223,
-    "coverageMarker": 0.9406,
-    "respaced": 0,
-    "tableRows": 12
-   }
-  },
-  {
-   "page": 38,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 5, column 1: Marker has no such cell; Vision reads «6.»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 5, column 2: Marker has no such cell; Vision reads «Электронные весы для детей до 1 года»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 5, column 3: Marker has no such cell; Vision reads «1,2,3»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 10, column 6: Marker has no such cell; Vision reads «1 на врача»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 12, column 6: Marker has no such cell; Vision reads «1»"
-    }
-   ],
-   "furniture": [
-    "16",
-    "4."
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 145,
-    "visionTokens": 144,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 12
-   }
-  },
-  {
-   "page": 39,
-   "reading": "image-transcription",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 1, column 2: Marker has no such cell; Vision reads «артериального давления автоматический, портативный, с манжетой на плечо/запястье Аппарат для измерения артериального дав»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 6, column 3: Marker has no such cell; Vision reads «1,2,3»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 7, column 5: Marker has no such cell; Vision reads «Термометр инфракрасный для измерения температуры кожный тела пациента, не менее 3, кожный 1 Термометр бесконтакт-электро»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «артериального давления автоматический, портативный, с манжетой на плечо/запястье» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «Термометр медицинский» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «Термометр электронный для периодического измерения температуры тела пациента» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «Термометр» is in no ruled cell"
-    },
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 7% of Vision's tokens (e.g. для, измерения, термометр, инфракрасный, температуры, тела, пациента, кожный, бесконтактэлектронный)"
-    }
-   ],
-   "furniture": [
-    "17"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 139,
-    "visionTokens": 146,
-    "coverageVision": 0.9333,
-    "coverageMarker": 0.9844,
-    "respaced": 1,
-    "tableRows": 9
-   }
-  },
-  {
-   "page": 40,
-   "reading": "image-transcription",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 1,2,3, 347590, 375930; only in Marker: 2, 3"
-    },
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 8% of Vision's tokens (e.g. 375930, 347590, уль, трафиолетовый, обеззараживаналичие, ния, 1,2,3)"
-    },
-    {
-     "kind": "coverage-marker",
-     "detail": "11% of Marker's tokens are not in Vision (e.g. очиститель, воздуха, ультрафиолетовый, наличие, обеззараживания, 2, 3, фильтрующий, высокоэффективный, стационарный)"
-    }
-   ],
-   "furniture": [
-    "18"
-   ],
-   "portalRewrites": [
-    "hyphen restored: электростатическим → электро-статическим"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 93,
-    "visionTokens": 89,
-    "coverageVision": 0.9167,
-    "coverageMarker": 0.8851,
-    "respaced": 0,
-    "tableRows": 11
-   }
-  },
-  {
-   "page": 41,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "page-end-missing",
-     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «Медицинские изделия»"
-    }
-   ],
-   "furniture": [
-    "19"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 213,
-    "visionTokens": 215,
-    "coverageVision": 0.9895,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 16
-   }
-  },
-  {
-   "page": 42,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 10, column 3: Marker has no such cell; Vision reads «233010 1,2,3 303430»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «Пеленальный стол» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «1, 2, 3» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «303430» is in no ruled cell"
-    }
-   ],
-   "furniture": [
-    "20"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 124,
-    "visionTokens": 124,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 10
-   }
-  },
-  {
-   "page": 43,
-   "reading": "image-transcription",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 3, column 1: Marker has no such cell; Vision reads «3. -»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 3, column 2: Marker has no such cell; Vision reads «Мелицинский»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 6, column 1: Marker has no such cell; Vision reads «(НСООХОДИМО наличие ОДНОЙ ИЗ указанных позиций)»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 15, column 6: Marker has no such cell; Vision reads «З кожных, 1»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 17, column 6: Marker has no such cell; Vision reads «ный»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «3. (необходимо наличие одной из указанных позиций)» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «3 кожных, 1 бесконтактный» is in no ruled cell"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 128,
-    "visionTokens": 128,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 13
-   }
-  },
-  {
-   "page": 44,
-   "reading": "image-transcription",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 1, column 4: Marker has no such cell; Vision reads «-»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 3, column 6: Marker has no such cell; Vision reads «1»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «Аппарат для измерения артериального давления анероидный механический» is in no ruled cell"
-    },
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 1"
-    }
-   ],
-   "furniture": [
-    "22",
-    "1"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 98,
-    "visionTokens": 97,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.989,
-    "respaced": 0,
-    "tableRows": 8
-   }
-  },
-  {
-   "page": 45,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 5, column 6: Marker has no such cell; Vision reads «2»"
-    },
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 2"
-    }
-   ],
-   "furniture": [
-    "23",
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 120,
-    "visionTokens": 119,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9907,
-    "respaced": 0,
-    "tableRows": 10
-   }
-  },
-  {
-   "page": 46,
-   "reading": "image-transcription",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 1, column 2: Marker has no such cell; Vision reads «.-»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 10, column 1: Marker has no such cell; Vision reads «11. (manhunTer»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 10, column 2: Marker has no such cell; Vision reads «Установка для»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 10, column 3: Marker has no such cell; Vision reads «1,2, 3»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 10, column 4: Marker has no such cell; Vision reads «131980»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 10, column 5: Marker has no such cell; Vision reads «Облучатель уль-трафиолетовый бактерицидный»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 10, column 6: Marker has no such cell; Vision reads «1»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 11, column 4: Marker has no such cell; Vision reads «347590»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 12, column 1: Marker has no such cell; Vision reads «наличие одной из указанных позиций)»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «11. (необходимо наличие одной из указанных позиций)» is in no ruled cell"
-    }
-   ],
-   "furniture": [
-    "24"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 92,
-    "visionTokens": 91,
-    "coverageVision": 0.9882,
-    "coverageMarker": 0.9767,
-    "respaced": 1,
-    "tableRows": 13
-   }
-  },
-  {
-   "page": 47,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "dropped-span",
-     "detail": "Vision reads text that Marker lacks (at a paragraph start): «4.1. Стандарт оснащения процедурного кабинета (процедурной»"
-    },
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 1×6, 1,2,3×8, 1.2,5, 2, 4.1"
-    },
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 43% of Vision's tokens (e.g. 1,2,3, 1, для, по, числу, рабочих, мест, оснащения, медицинской, шкаф, хранения, на)"
-    },
-    {
-     "kind": "page-end-missing",
-     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «4.1. Стандарт оснащения процедурного кабинета (процедурной)»"
-    }
-   ],
-   "furniture": [
-    "25"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 176,
-    "visionTokens": 302,
-    "coverageVision": 0.5741,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 14
-   }
-  },
-  {
-   "page": 48,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 9, column 2: Marker has no such cell; Vision reads «Ингалятор 127540 ультразвуковой Аппарат Небулайзер 2,3 213220 для ингаляции настольный, без подогрева Небулайзер 213210 »"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 10, column 4: Marker has no such cell; Vision reads «Небулайзер 213220 настольный, без подогрева»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «Аппарат для ингаляции» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «2, 3» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «213220» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «Небулайзер настольный, без подогрева» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «213210» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «Небулайзер настольный, с подогревом» is in no ruled cell"
-    }
-   ],
-   "furniture": [
-    "26"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 139,
-    "visionTokens": 139,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 10
-   }
-  },
-  {
-   "page": 49,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 1, column 2: Marker has no such cell; Vision reads «-»"
-    }
-   ],
-   "furniture": [
-    "27"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 108,
-    "visionTokens": 108,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 10
-   }
-  },
-  {
-   "page": 50,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "28"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 109,
-    "visionTokens": 109,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 11
-   }
-  },
-  {
-   "page": 51,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "29"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 96,
-    "visionTokens": 96,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 9
-   }
-  },
-  {
-   "page": 52,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 10, column 3: Marker has no such cell; Vision reads «2,3»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 10, column 4: Marker has no such cell; Vision reads «334300»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 10, column 5: Marker has no such cell; Vision reads «Контейнер для транспортировки образцов, термоизолиро-ванный, многоразового использования»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 10, column 6: Marker has no such cell; Vision reads «2»"
-    }
-   ],
-   "furniture": [
-    "30"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 112,
-    "visionTokens": 112,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 13
-   }
-  },
-  {
-   "page": 53,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 2, column 6: Marker has no such cell; Vision reads «1»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 9, column 4: Marker has no such cell; Vision reads «Система мониторинга множественных 345180 аналитов клинической химии ИВД, ДЛЯ использования»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «Глюкометр портативный с расходными материалами (картриджами)» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «345180» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «Система мониторинга множественных аналитов клинической химии ИВД, для использования» is in no ruled cell"
-    }
-   ],
-   "furniture": [
-    "31"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 96,
-    "visionTokens": 96,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 9
-   }
-  },
-  {
-   "page": 54,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 16, column 1: Marker has no such cell; Vision reads «18. \".....unyuum)»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 16, column 2: Marker has no such cell; Vision reads «Установка для»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 19, column 1: Marker has no such cell; Vision reads «наличие одной из указанных позиций)»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «18. (необходимо наличие одной из указанных позиций)» is in no ruled cell"
-    }
-   ],
-   "furniture": [
-    "32"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 146,
-    "visionTokens": 146,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 16
-   }
-  },
-  {
-   "page": 55,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 1,2, 1.2, 1.2.3×2, 116920, 116940, 116990; only in Marker: 1×4, 181730, 2×4, 3×2"
-    },
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 16% of Vision's tokens (e.g. кушетка, стол, массажный, 1.2.3, электропитания, 1.2, 1,2, без, 116920, портативный, безр, 116940)"
-    }
-   ],
-   "furniture": [
-    "33"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 168,
-    "visionTokens": 181,
-    "coverageVision": 0.8385,
-    "coverageMarker": 0.906,
-    "respaced": 0,
-    "tableRows": 14
-   }
-  },
-  {
-   "page": 56,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 1, column 4: Marker has no such cell; Vision reads «-»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 7, column 4: Marker has no such cell; Vision reads «146060»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 9, column 4: Marker has no such cell; Vision reads «285020»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 10, column 4: Marker has no such cell; Vision reads «335360»"
-    }
-   ],
-   "furniture": [
-    "34"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 129,
-    "visionTokens": 129,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 10
-   }
-  },
-  {
-   "page": 57,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "35"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 99,
-    "visionTokens": 99,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 10
-   }
-  },
-  {
-   "page": 58,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 1"
-    }
-   ],
-   "furniture": [
-    "36",
-    "1"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 132,
-    "visionTokens": 131,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9921,
-    "respaced": 0,
-    "tableRows": 13
-   }
-  },
-  {
-   "page": 59,
-   "reading": "image-transcription",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 1, column 3: Marker has no such cell; Vision reads «125510 326010 182610 191320»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 8, column 4: Marker has no such cell; Vision reads «181480»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 8, column 5: Marker has no such cell; Vision reads «Система физиоте-рапевтическая чрескожной электрической нейромиости-муляции»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 14, column 5: Marker has no such cell; Vision reads «Небулайзер настольный, без 1 подогрева»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 15, column 1: Marker has no such cell; Vision reads «18. Ванна бальнео-Ванна для 1 (необходимо логическая 2,3 250020 гидротерапии»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «181070» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «Небулайзер настольный, без подогрева» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «18. (необходимо» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «Ванна бальнеологическая» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «250020» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «Ванна для гидротерапии» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «1» is in no ruled cell"
-    }
-   ],
-   "furniture": [
-    "37"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 126,
-    "visionTokens": 124,
-    "coverageVision": 0.9829,
-    "coverageMarker": 0.9664,
-    "respaced": 2,
-    "tableRows": 11
-   }
-  },
-  {
-   "page": 60,
-   "reading": "image-transcription",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 1"
-    }
-   ],
-   "furniture": [
-    "38",
-    "1"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 138,
-    "visionTokens": 137,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9922,
-    "respaced": 0,
-    "tableRows": 12
-   }
-  },
-  {
-   "page": 61,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 6, column 2: Marker has no such cell; Vision reads «1 алокамера»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «Галокамера» is in no ruled cell"
-    }
-   ],
-   "furniture": [
-    "39"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 135,
-    "visionTokens": 135,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 11
-   }
-  },
-  {
-   "page": 62,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 89,
-    "visionTokens": 89,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 8
-   }
-  },
-  {
-   "page": 63,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 14, column 1: Marker has no such cell; Vision reads «34. (нелбуллимо»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 14, column 2: Marker has no such cell; Vision reads «Установка для прегаапажива-»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 16, column 1: Marker has no such cell; Vision reads «наличие одной из указанных позиций)»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «34. (необходимо наличие одной из указанных позиций)» is in no ruled cell"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 128,
-    "visionTokens": 128,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 14
-   }
-  },
-  {
-   "page": 64,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "42"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 224,
-    "visionTokens": 224,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 18
-   }
-  },
-  {
-   "page": 65,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "43"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 142,
-    "visionTokens": 142,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 10
-   }
-  },
-  {
-   "page": 66,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 5, column 6: Marker has no such cell; Vision reads «1»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 11, column 3: Marker has no such cell; Vision reads «2,3»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 11, column 4: Marker has no such cell; Vision reads «261950»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 11, column 6: Marker has no such cell; Vision reads «1»"
-    },
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 1×2"
-    },
-    {
-     "kind": "numbered-rows",
-     "detail": "table numbering skips 2"
-    }
-   ],
-   "furniture": [
-    "44",
-    "1",
-    "1"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 110,
-    "visionTokens": 108,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9808,
-    "respaced": 0,
-    "tableRows": 11
-   }
-  },
-  {
-   "page": 67,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "45"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 95,
-    "visionTokens": 97,
-    "coverageVision": 0.9425,
-    "coverageMarker": 0.9535,
-    "respaced": 0,
-    "tableRows": 10
-   }
-  },
-  {
-   "page": 68,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "46",
-    "1."
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 275,
-    "visionTokens": 276,
-    "coverageVision": 0.9917,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 20
-   }
-  },
-  {
-   "page": 69,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "47"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 116,
-    "visionTokens": 111,
-    "coverageVision": 0.9604,
-    "coverageMarker": 0.9151,
-    "respaced": 0,
-    "tableRows": 12
-   }
-  },
-  {
-   "page": 70,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 68; only in Marker: 10, 686"
-    }
-   ],
-   "furniture": [
-    "48",
-    "1."
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 239,
-    "visionTokens": 238,
-    "coverageVision": 0.9854,
-    "coverageMarker": 0.9902,
-    "respaced": 0,
-    "tableRows": 11
-   }
-  },
-  {
-   "page": 71,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от «20» *февраля 20 26 г. № 1204"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 251,
-    "visionTokens": 251,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 72,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 352,
-    "visionTokens": 350,
-    "coverageVision": 0.9967,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 73,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 98,
-    "visionTokens": 97,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 74,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 1204, 20, 20/16"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 280,
-    "visionTokens": 274,
-    "coverageVision": 0.9959,
-    "coverageMarker": 0.9677,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 75,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 222,
-    "visionTokens": 222,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 76,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 259,
-    "visionTokens": 258,
-    "coverageVision": 0.9955,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 77,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "4"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 234,
-    "visionTokens": 234,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 78,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 1, column 1: Marker has no such cell; Vision reads «Nº Ц/II»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «№ п/п» is in no ruled cell"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [
-    "от «20» *февраля 2026* г. № 1204"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 171,
-    "visionTokens": 171,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 10
-   }
-  },
-  {
-   "page": 79,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 1100, 20×2, 26"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 133,
-    "visionTokens": 133,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9496,
-    "respaced": 0,
-    "tableRows": 7
-   }
-  },
-  {
-   "page": 80,
-   "reading": "image-transcription",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 1, column 1: Marker has no such cell; Vision reads «электропитания, непортативный Кресло для осмотра/ терапевтических 259880 процедур общего назначения, с электропитанием»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 15, column 1: Marker has no such cell; Vision reads «8. (необходимо наличие Стетофонен-1,2,3 одной из доскоп указанных позиций)»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 15, column 5: Marker has no such cell; Vision reads «Стетоскоп неавтоматизиро-ванный 1 на врача Стетоскоп электронный»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «электропитания, непортативный» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «259880» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «Кресло для осмотра/ терапевтических процедур общего назначения, с электропитанием» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «8. (необходимо наличие одной из указанных позиций)» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «Стетофонен-доскоп» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «1, 2, 3» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «1 на врача» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «Стетоскоп электронный» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «9.» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «Тонометр медицинский» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «1, 2, 3» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «239410» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «Аппарат для измерения» is in no ruled cell"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «1 на врача» is in no ruled cell"
-    },
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 1, 1,2,3, 239410"
-    },
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 8% of Vision's tokens (e.g. для, 1, медицинский, 1,2,3, стетоскоп, неавтоматизиро, ванный, на, врача, тонометр, 239410, аппарат)"
-    }
-   ],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 150,
-    "visionTokens": 164,
-    "coverageVision": 0.9156,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 14
-   }
-  },
-  {
-   "page": 81,
-   "reading": "image-transcription",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «с набором манжет по возрасту» is in no ruled cell"
-    }
-   ],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 78,
-    "visionTokens": 78,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 7
-   }
-  },
-  {
-   "page": 82,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 3, column 6: Marker has no such cell; Vision reads «З кожных, 1 бесконтакт-НЫЙ»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «3 кожных,⏎1 бесконтакт-ный» is in no ruled cell"
-    }
-   ],
-   "furniture": [
-    "4"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 156,
-    "visionTokens": 156,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 12
-   }
-  },
-  {
-   "page": 83,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "5"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 73,
-    "visionTokens": 73,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 8
-   }
-  },
-  {
-   "page": 84,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 6, column 1: Marker has no such cell; Vision reads «15.»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 6, column 2: Marker has no such cell; Vision reads «Отоскоп»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 6, column 3: Marker has no such cell; Vision reads «1,2,3»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 8, column 6: Marker has no such cell; Vision reads «1»"
-    }
-   ],
-   "furniture": [
-    "6"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 96,
-    "visionTokens": 96,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 11
-   }
-  },
-  {
-   "page": 85,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 1"
-    }
-   ],
-   "furniture": [
-    "7",
-    "1"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 201,
-    "visionTokens": 200,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9943,
-    "respaced": 0,
-    "tableRows": 15
-   }
-  },
-  {
-   "page": 86,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 1,2,3; only in Marker: 1, 2, 3"
-    },
-    {
-     "kind": "numbered-rows",
-     "detail": "table numbering skips 3, 4, 5, 6, 7, 8, 9, 10"
-    }
-   ],
-   "furniture": [
-    "8",
-    "11."
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 156,
-    "visionTokens": 152,
-    "coverageVision": 0.9927,
-    "coverageMarker": 0.9784,
-    "respaced": 0,
-    "tableRows": 12
-   }
-  },
-  {
-   "page": 87,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "9"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 116,
-    "visionTokens": 116,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 11
-   }
-  },
-  {
-   "page": 88,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 7, column 6: Marker has no such cell; Vision reads «2»"
-    }
-   ],
-   "furniture": [
-    "10"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 97,
-    "visionTokens": 97,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 11
-   }
-  },
-  {
-   "page": 89,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "11"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 93,
-    "visionTokens": 93,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 7
-   }
-  },
-  {
-   "page": 90,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 1, column 4: Marker has no such cell; Vision reads «-»"
-    }
-   ],
-   "furniture": [
-    "12"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 133,
-    "visionTokens": 133,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 15
-   }
-  },
-  {
-   "page": 91,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 1, column 1: Marker has no such cell; Vision reads «-»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 4, column 6: Marker has no such cell; Vision reads «1»"
-    }
-   ],
-   "furniture": [
-    "13"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 103,
-    "visionTokens": 103,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 10
-   }
-  },
-  {
-   "page": 92,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "14"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 155,
-    "visionTokens": 155,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 15
-   }
-  },
-  {
-   "page": 93,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 10, 17, 2014×2, 2020×2, 2025, 24, 25, 35201, 557, 59225, 686, 7"
-    },
-    {
-     "kind": "coverage-marker",
-     "detail": "22% of Marker's tokens are not in Vision (e.g. российской, федерации, от, зарегистрирован, министерством, юстиции, регистрационный, 2014, 2020, здравоохранения, июня, номенклатурной)"
-    }
-   ],
-   "furniture": [
-    "15"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 195,
-    "visionTokens": 150,
-    "coverageVision": 0.9924,
-    "coverageMarker": 0.7751,
-    "respaced": 0,
-    "tableRows": 11
-   }
-  },
-  {
-   "page": 94,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от «2017» организация 20.12 г. № 1404"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 270,
-    "visionTokens": 266,
-    "coverageVision": 0.9871,
-    "coverageMarker": 0.9957,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 95,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 249,
-    "visionTokens": 248,
-    "coverageVision": 0.9953,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 96,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [
-    "hyphen restored: медикосоциальную → медико-социальную"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 129,
-    "visionTokens": 127,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 97,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 7, column 1: Marker has no such cell; Vision reads «9»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «6» is in no ruled cell"
-    },
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 14"
-    },
-    {
-     "kind": "numbered-rows",
-     "detail": "table numbering skips 6, 7, 8"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [
-    "от «*ДВ*» *фрейденью 20.2.26 г. № 120"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 150,
-    "visionTokens": 149,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9926,
-    "respaced": 0,
-    "tableRows": 7
-   }
-  },
-  {
-   "page": 98,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 7"
-    }
-   ],
-   "furniture": [
-    "7"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 18,
-    "visionTokens": 17,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9444,
-    "respaced": 0,
-    "tableRows": 2
-   }
-  },
-  {
-   "page": 99,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 8, column 3: Marker has no such cell; Vision reads «178810»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 8, column 4: Marker has no such cell; Vision reads «Кровать педиатрическая»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 10, column 3: Marker has no such cell; Vision reads «247980»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 10, column 4: Marker has no such cell; Vision reads «Кроватка неонатальная»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 12, column 5: Marker has no such cell; Vision reads «2»"
-    },
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 2"
-    }
-   ],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [
-    "от «26» февраля 2016 г. № 1404"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 158,
-    "visionTokens": 157,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9926,
-    "respaced": 0,
-    "tableRows": 11
-   }
-  },
-  {
-   "page": 100,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 110,
-    "visionTokens": 110,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 11
-   }
-  },
-  {
-   "page": 101,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 13, column 5: Marker has no such cell; Vision reads «не менее 10% коечного фонда отделения»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 21, column 4: Marker has no such cell; Vision reads «Концентратор кислорода стационарный»"
-    }
-   ],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 189,
-    "visionTokens": 189,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 20
-   }
-  },
-  {
-   "page": 102,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 9, column 5: Marker has no such cell; Vision reads «поСт»"
-    }
-   ],
-   "furniture": [
-    "4"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 178,
-    "visionTokens": 178,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 14
-   }
-  },
-  {
-   "page": 103,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 4, column 3: Marker has no such cell; Vision reads «127540»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 4, column 4: Marker has no such cell; Vision reads «Ингалятор ультразвуковой»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 4, column 5: Marker has no such cell; Vision reads «1 на 10 коек»"
-    },
-    {
-     "kind": "cell-unread",
-     "detail": "row 18, column 2 holds ink that neither reading gave"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «Стетофонендоскоп» is in no ruled cell"
-    }
-   ],
-   "furniture": [
-    "5"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 151,
-    "visionTokens": 151,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 17
-   }
-  },
-  {
-   "page": 104,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 1×2"
-    },
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 30% of Vision's tokens (e.g. рабочее, место, автоматизированное, оснащенное, персональным, компьютером, выходом, информационно, телекоммуникационную, сеть, интернет, источником)"
-    },
-    {
-     "kind": "numbered-rows",
-     "detail": "table numbering skips 4, 5, 6, 7, 8, 9, 10, 11, 12, 13"
-    }
-   ],
-   "furniture": [
-    "6",
-    "1"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 167,
-    "visionTokens": 242,
-    "coverageVision": 0.7005,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 14
-   }
-  },
-  {
-   "page": 105,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 1"
-    },
-    {
-     "kind": "numbered-rows",
-     "detail": "table numbering skips 2, 3"
-    },
-    {
-     "kind": "numbered-rows",
-     "detail": "Vision has numbered lines 2 that Marker lacks"
-    }
-   ],
-   "furniture": [
-    "7",
-    "4.",
-    "1"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 247,
-    "visionTokens": 245,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9953,
-    "respaced": 0,
-    "tableRows": 22
-   }
-  },
-  {
-   "page": 106,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 8, column 3: Marker has no such cell; Vision reads «1234(»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 8, column 5: Marker has no such cell; Vision reads «1»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «127540» is in no ruled cell"
-    }
-   ],
-   "furniture": [
-    "8"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 146,
-    "visionTokens": 146,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 15
-   }
-  },
-  {
-   "page": 107,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 130,
-    "visionTokens": 130,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 15
-   }
-  },
-  {
-   "page": 108,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 1, column 1: Marker has no such cell; Vision reads «-»"
-    }
-   ],
-   "furniture": [
-    "10"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 146,
-    "visionTokens": 146,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 13
-   }
-  },
-  {
-   "page": 109,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 2, column 2: Marker has no such cell; Vision reads «Стол»"
-    },
-    {
-     "kind": "cell-vision-only",
-     "detail": "row 5, column 2: Marker has no such cell; Vision reads «малкиулациипиви»"
-    },
-    {
-     "kind": "cell-marker-only",
-     "detail": "Marker's cell «Стол манипуляционный» is in no ruled cell"
-    }
-   ],
-   "furniture": [
-    "11"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 142,
-    "visionTokens": 142,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 14
-   }
-  },
-  {
-   "page": 110,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "12"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 157,
-    "visionTokens": 157,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 18
-   }
-  },
-  {
-   "page": 111,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 2023; only in Marker: 2025"
-    },
-    {
-     "kind": "numbered-rows",
-     "detail": "table numbering skips 6, 7, 8, 9, 10, 11, 12, 13, 14, 15"
-    }
-   ],
-   "furniture": [
-    "13",
-    "18."
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 227,
-    "visionTokens": 226,
-    "coverageVision": 0.9949,
-    "coverageMarker": 0.9949,
-    "respaced": 0,
-    "tableRows": 15
-   }
-  },
-  {
-   "page": 112,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 4904; only in Marker: 49047, 5"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [
-    "от «20» gperfame 2026 г. № 11001"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 250,
-    "visionTokens": 246,
-    "coverageVision": 0.9907,
-    "coverageMarker": 0.9907,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 113,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "dropped-span",
-     "detail": "Vision reads text that Marker lacks (at a paragraph start): «помещения (палаты) для размещения детей на 5 коек, кабинет для медицинских работников, туалет для детей и их родителей (законных представителей»"
-    },
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 5"
-    },
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 9% of Vision's tokens (e.g. для, детей, на, кд, кабинет, медицинских, помещения, палаты, размещения, 5, коек, работников)"
-    },
-    {
-     "kind": "page-end-missing",
-     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «туалет для детей и их родителей (законных представителей),»"
-    }
-   ],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 225,
-    "visionTokens": 244,
-    "coverageVision": 0.9099,
-    "coverageMarker": 0.9951,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 114,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "dropped-span",
-     "detail": "Vision reads text that Marker lacks (at a paragraph start): «комнаты для кормления грудных детей и детей раннего возраста»"
-    },
-    {
-     "kind": "page-end-missing",
-     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «комнаты для кормления грудных детей и детей раннего возраста.»"
-    }
-   ],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 210,
-    "visionTokens": 219,
-    "coverageVision": 0.959,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 115,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от «20» средино 20.06 г. № 1104"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 116,
-    "visionTokens": 116,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 6
-   }
-  },
-  {
-   "page": 116,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 1"
-    }
-   ],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 139,
-    "visionTokens": 138,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9923,
-    "respaced": 0,
-    "tableRows": 9
-   }
-  },
-  {
-   "page": 117,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 3"
-    }
-   ],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 157,
-    "visionTokens": 156,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9931,
-    "respaced": 0,
-    "tableRows": 13
-   }
-  },
-  {
-   "page": 118,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "4"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 159,
-    "visionTokens": 159,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 19
-   }
-  },
-  {
-   "page": 119,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 14"
-    },
-    {
-     "kind": "numbered-rows",
-     "detail": "table numbering skips 5, 6, 7, 8, 9, 10, 11, 12, 13"
-    }
-   ],
-   "furniture": [
-    "5",
-    "14"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 165,
-    "visionTokens": 164,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9932,
-    "respaced": 0,
-    "tableRows": 18
-   }
-  },
-  {
-   "page": 120,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 2"
-    }
-   ],
-   "furniture": [
-    "6",
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 38,
-    "visionTokens": 37,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9722,
-    "respaced": 0,
-    "tableRows": 4
-   }
-  }
- ]
+  "documentId": "regulatory.rf.minzdrav.120n-2026",
+  "source": {
+    "file": "0001202603260014.pdf",
+    "sha256": "fa4d983a69ba28ac29b437c7ee018d76464d9944dc21193099657f6ab353fe8e",
+    "bytes": 5407318,
+    "pages": 120,
+    "officialUrl": "https://publication.pravo.gov.ru/document/0001202603260014"
+  },
+  "identityFromPortal": {
+    "number": "120н",
+    "date": "2026-02-20",
+    "name": "Об утверждении Порядка оказания медицинской помощи по профилю «педиатрия",
+    "registrationNumber": "85708",
+    "registrationDate": "2026-03-25"
+  },
+  "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
+  "review": {
+    "reviewer": "Claude (agent), against the page images; not a lawyer",
+    "reviewedAt": "2026-10-14",
+    "corrections": 48
+  },
+  "pages": [
+    {
+      "page": 1,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": "МИНИСТЕРСТВО ЗДРАВООХРАНЕНИЯ\nРОССИЙСКОЙ ФЕДЕРАЦИИ\n(МИНЗДРАВ РОССИИ)\n\n**ПРИКАЗ**\n\n20 февраля 2026\n\n№ 1204\n\n**Об утверждении Порядка\nоказания медицинской помощи по профилю «педиатрия»**",
+      "stats": {
+        "markerTokens": 148,
+        "visionTokens": 148,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 2,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "dropped-span",
+          "detail": "Vision reads text that Marker lacks (at a paragraph start): «ОІ «20 » феврами 2026 г. Nº_ 140 м»"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 140, 20, 2026"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": ["от «20» февраля 20 26 г. № 1201"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 238,
+        "visionTokens": 239,
+        "coverageVision": 0.976,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 3,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 23; only in Marker: 236"
+        }
+      ],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 396,
+        "visionTokens": 391,
+        "coverageVision": 0.988,
+        "coverageMarker": 0.994,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 4,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 359,
+        "visionTokens": 355,
+        "coverageVision": 0.9834,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 5,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 1, 91; only in Marker: 911"
+        }
+      ],
+      "furniture": ["4"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 301,
+        "visionTokens": 298,
+        "coverageVision": 0.9767,
+        "coverageMarker": 0.9882,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 6,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 30; only in Marker: 306"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": ["от «20» февраля 2026 г. № 1204"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 284,
+        "visionTokens": 278,
+        "coverageVision": 0.9831,
+        "coverageMarker": 0.9915,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 7,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 298,
+        "visionTokens": 294,
+        "coverageVision": 0.9849,
+        "coverageMarker": 0.9924,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 8,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 267,
+        "visionTokens": 265,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 9,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от «20» греблашо 2028 г. № 1204"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 65,
+        "visionTokens": 65,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 3
+      }
+    },
+    {
+      "page": 10,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от «ДО» *здравоохранение* 20 дек. г. № 1204"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 145,
+        "visionTokens": 145,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 10
+      }
+    },
+    {
+      "page": 11,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 2, column 3: Marker has no such cell; Vision reads «9/6 |»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «157600» is in no ruled cell"
+        }
+      ],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 165,
+        "visionTokens": 165,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 15
+      }
+    },
+    {
+      "page": 12,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 4, column 3: Marker has no such cell; Vision reads «| ×4700»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «184200» is in no ruled cell"
+        }
+      ],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 151,
+        "visionTokens": 151,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 14
+      }
+    },
+    {
+      "page": 13,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 131980, 152690, 152700, 209360, 292620; only in Marker: 83136"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 13% of Vision's tokens (e.g. очиститель, воздуха, фильтрующий, высокоэффективный, передвижной, указанных, позиций, облучатель, 131980, ультрафиолетовый, бактерицидный, 152690)"
+        }
+      ],
+      "furniture": ["4"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 259,
+        "visionTokens": 288,
+        "coverageVision": 0.8685,
+        "coverageMarker": 0.982,
+        "respaced": 0,
+        "tableRows": 17
+      }
+    },
+    {
+      "page": 14,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от «28» gradyamy 2026 г. № 11001"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 254,
+        "visionTokens": 251,
+        "coverageVision": 0.9955,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 15,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 286,
+        "visionTokens": 281,
+        "coverageVision": 0.992,
+        "coverageMarker": 0.992,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 16,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 321,
+        "visionTokens": 314,
+        "coverageVision": 0.9814,
+        "coverageMarker": 0.9888,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 17,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "repeated-content-missing",
+          "detail": "Vision has these words more often than Marker (dropped rows or lines?): кабинет×2, отделение×2"
+        },
+        {
+          "kind": "page-end-missing",
+          "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «кабинет (отделение) лечебной физкультуры,»"
+        }
+      ],
+      "furniture": ["4"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 203,
+        "visionTokens": 208,
+        "coverageVision": 0.963,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 18,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["5"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 263,
+        "visionTokens": 262,
+        "coverageVision": 0.9955,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 19,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 1"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": ["от «*20*» *организация* 2026 г. № *180"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 133,
+        "visionTokens": 132,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9918,
+        "respaced": 0,
+        "tableRows": 5
+      }
+    },
+    {
+      "page": 20,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 5"
+        }
+      ],
+      "furniture": ["2", "5"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 173,
+        "visionTokens": 172,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9942,
+        "respaced": 0,
+        "tableRows": 13
+      }
+    },
+    {
+      "page": 21,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 1×2; only in Marker: 18"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 7% of Vision's tokens (e.g. 1, должности, должностей, должность, врач, наименование, количество, заведующий, дневным, стационаром, педиатр)"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "table numbering skips 2, 3, 4, 5, 6, 7, 8, 9, 10, 11"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "Vision has numbered lines 6 that Marker lacks"
+        }
+      ],
+      "furniture": ["3", "18"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 160,
+        "visionTokens": 174,
+        "coverageVision": 0.9277,
+        "coverageMarker": 0.9935,
+        "respaced": 0,
+        "tableRows": 13
+      }
+    },
+    {
+      "page": 22,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 2"
+        }
+      ],
+      "furniture": ["4", "2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 50,
+        "visionTokens": 49,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.98,
+        "respaced": 0,
+        "tableRows": 4
+      }
+    },
+    {
+      "page": 23,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от «20» февруарь 20 дек. № 1204"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 176,
+        "visionTokens": 177,
+        "coverageVision": 0.9934,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 8
+      }
+    },
+    {
+      "page": 24,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 1,2,3×6"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 33% of Vision's tokens (e.g. 1,2,3, рабочих, мест, по, числу, шкаф, для, хранения, медицинских, принтер, копировальный, аппарат)"
+        }
+      ],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 207,
+        "visionTokens": 307,
+        "coverageVision": 0.6679,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 11
+      }
+    },
+    {
+      "page": 25,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 13, column 1: Marker has no such cell; Vision reads «5.»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 13, column 3: Marker has no such cell; Vision reads «1,2,3»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 13, column 6: Marker has no such cell; Vision reads «1»"
+        }
+      ],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 145,
+        "visionTokens": 145,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 15
+      }
+    },
+    {
+      "page": 26,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 1, column 4: Marker has no such cell; Vision reads «-»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 10, column 4: Marker has no such cell; Vision reads «. 499x1»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «149980» is in no ruled cell"
+        }
+      ],
+      "furniture": ["4"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 120,
+        "visionTokens": 120,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 12
+      }
+    },
+    {
+      "page": 27,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 1, column 4: Marker has no such cell; Vision reads «-»"
+        }
+      ],
+      "furniture": ["5"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 100,
+        "visionTokens": 100,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 9
+      }
+    },
+    {
+      "page": 28,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 1×8, 1,2,3×10, 2"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 38% of Vision's tokens (e.g. 1,2,3, 1, для, медицинской, автоматизированное, рабочее, место, оснащенное, персональным, компьютером, выходом, информационно)"
+        }
+      ],
+      "furniture": ["6", "1"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 187,
+        "visionTokens": 305,
+        "coverageVision": 0.6185,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 15
+      }
+    },
+    {
+      "page": 29,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 1,2; only in Marker: 1×2, 2"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "table numbering skips 3, 4, 5, 6, 7, 8, 9, 10"
+        }
+      ],
+      "furniture": ["7", "1"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 139,
+        "visionTokens": 136,
+        "coverageVision": 0.9918,
+        "coverageMarker": 0.9758,
+        "respaced": 0,
+        "tableRows": 10
+      }
+    },
+    {
+      "page": 30,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["8"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 118,
+        "visionTokens": 118,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 11
+      }
+    },
+    {
+      "page": 31,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["9"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 94,
+        "visionTokens": 94,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 12
+      }
+    },
+    {
+      "page": 32,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 2, column 6: Marker has no such cell; Vision reads «1»"
+        }
+      ],
+      "furniture": ["10"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 92,
+        "visionTokens": 92,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 8
+      }
+    },
+    {
+      "page": 33,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 1, column 4: Marker has no such cell; Vision reads «-»"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 2"
+        }
+      ],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 129,
+        "visionTokens": 128,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9918,
+        "respaced": 0,
+        "tableRows": 14
+      }
+    },
+    {
+      "page": 34,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 7, column 2: Marker has no such cell; Vision reads «1 люкометр портативный с расходными материалами (картриджами)»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 7, column 3: Marker has no such cell; Vision reads «2,3»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 7, column 4: Marker has no such cell; Vision reads «06900€»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 7, column 5: Marker has no such cell; Vision reads «Глюкометр для индивидуального использования/ использования у постели больного ИВД, питание от батареи»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 7, column 6: Marker has no such cell; Vision reads «1»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «Глюкометр портативный с расходными материалами (картриджами)» is in no ruled cell"
+        }
+      ],
+      "furniture": ["12"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 106,
+        "visionTokens": 106,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 10
+      }
+    },
+    {
+      "page": 35,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 13, column 4: Marker has no such cell; Vision reads «Ix6oT|»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «149980» is in no ruled cell"
+        }
+      ],
+      "furniture": ["13"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 144,
+        "visionTokens": 144,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 14
+      }
+    },
+    {
+      "page": 36,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["14"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 133,
+        "visionTokens": 128,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9744,
+        "respaced": 0,
+        "tableRows": 13
+      }
+    },
+    {
+      "page": 37,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 1,2,3×3, 233010; only in Marker: 1×2, 2×2, 3×2"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 8% of Vision's tokens (e.g. 1,2,3, стол, для, 233010, пеленальный, младенцев)"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "Vision has numbered lines 2 that Marker lacks"
+        }
+      ],
+      "furniture": ["15", "1"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 112,
+        "visionTokens": 112,
+        "coverageVision": 0.9223,
+        "coverageMarker": 0.9406,
+        "respaced": 0,
+        "tableRows": 12
+      }
+    },
+    {
+      "page": 38,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 5, column 1: Marker has no such cell; Vision reads «6.»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 5, column 2: Marker has no such cell; Vision reads «Электронные весы для детей до 1 года»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 5, column 3: Marker has no such cell; Vision reads «1,2,3»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 10, column 6: Marker has no such cell; Vision reads «1 на врача»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 12, column 6: Marker has no such cell; Vision reads «1»"
+        }
+      ],
+      "furniture": ["16", "4."],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 145,
+        "visionTokens": 144,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 12
+      }
+    },
+    {
+      "page": 39,
+      "reading": "image-transcription",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 1, column 2: Marker has no such cell; Vision reads «артериального давления автоматический, портативный, с манжетой на плечо/запястье Аппарат для измерения артериального дав»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 6, column 3: Marker has no such cell; Vision reads «1,2,3»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 7, column 5: Marker has no such cell; Vision reads «Термометр инфракрасный для измерения температуры кожный тела пациента, не менее 3, кожный 1 Термометр бесконтакт-электро»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «артериального давления автоматический, портативный, с манжетой на плечо/запястье» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «Термометр медицинский» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «Термометр электронный для периодического измерения температуры тела пациента» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «Термометр» is in no ruled cell"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 7% of Vision's tokens (e.g. для, измерения, термометр, инфракрасный, температуры, тела, пациента, кожный, бесконтактэлектронный)"
+        }
+      ],
+      "furniture": ["17"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 139,
+        "visionTokens": 146,
+        "coverageVision": 0.9333,
+        "coverageMarker": 0.9844,
+        "respaced": 1,
+        "tableRows": 9
+      }
+    },
+    {
+      "page": 40,
+      "reading": "image-transcription",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 1,2,3, 347590, 375930; only in Marker: 2, 3"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 8% of Vision's tokens (e.g. 375930, 347590, уль, трафиолетовый, обеззараживаналичие, ния, 1,2,3)"
+        },
+        {
+          "kind": "coverage-marker",
+          "detail": "11% of Marker's tokens are not in Vision (e.g. очиститель, воздуха, ультрафиолетовый, наличие, обеззараживания, 2, 3, фильтрующий, высокоэффективный, стационарный)"
+        }
+      ],
+      "furniture": ["18"],
+      "portalRewrites": ["hyphen restored: электростатическим → электро-статическим"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 93,
+        "visionTokens": 89,
+        "coverageVision": 0.9167,
+        "coverageMarker": 0.8851,
+        "respaced": 0,
+        "tableRows": 11
+      }
+    },
+    {
+      "page": 41,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "page-end-missing",
+          "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «Медицинские изделия»"
+        }
+      ],
+      "furniture": ["19"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 213,
+        "visionTokens": 215,
+        "coverageVision": 0.9895,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 16
+      }
+    },
+    {
+      "page": 42,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 10, column 3: Marker has no such cell; Vision reads «233010 1,2,3 303430»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «Пеленальный стол» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «1, 2, 3» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «303430» is in no ruled cell"
+        }
+      ],
+      "furniture": ["20"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 124,
+        "visionTokens": 124,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 10
+      }
+    },
+    {
+      "page": 43,
+      "reading": "image-transcription",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 3, column 1: Marker has no such cell; Vision reads «3. -»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 3, column 2: Marker has no such cell; Vision reads «Мелицинский»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 6, column 1: Marker has no such cell; Vision reads «(НСООХОДИМО наличие ОДНОЙ ИЗ указанных позиций)»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 15, column 6: Marker has no such cell; Vision reads «З кожных, 1»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 17, column 6: Marker has no such cell; Vision reads «ный»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «3. (необходимо наличие одной из указанных позиций)» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «3 кожных, 1 бесконтактный» is in no ruled cell"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 128,
+        "visionTokens": 128,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 13
+      }
+    },
+    {
+      "page": 44,
+      "reading": "image-transcription",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 1, column 4: Marker has no such cell; Vision reads «-»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 3, column 6: Marker has no such cell; Vision reads «1»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «Аппарат для измерения артериального давления анероидный механический» is in no ruled cell"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 1"
+        }
+      ],
+      "furniture": ["22", "1"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 98,
+        "visionTokens": 97,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.989,
+        "respaced": 0,
+        "tableRows": 8
+      }
+    },
+    {
+      "page": 45,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 5, column 6: Marker has no such cell; Vision reads «2»"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 2"
+        }
+      ],
+      "furniture": ["23", "2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 120,
+        "visionTokens": 119,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9907,
+        "respaced": 0,
+        "tableRows": 10
+      }
+    },
+    {
+      "page": 46,
+      "reading": "image-transcription",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 1, column 2: Marker has no such cell; Vision reads «.-»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 10, column 1: Marker has no such cell; Vision reads «11. (manhunTer»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 10, column 2: Marker has no such cell; Vision reads «Установка для»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 10, column 3: Marker has no such cell; Vision reads «1,2, 3»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 10, column 4: Marker has no such cell; Vision reads «131980»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 10, column 5: Marker has no such cell; Vision reads «Облучатель уль-трафиолетовый бактерицидный»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 10, column 6: Marker has no such cell; Vision reads «1»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 11, column 4: Marker has no such cell; Vision reads «347590»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 12, column 1: Marker has no such cell; Vision reads «наличие одной из указанных позиций)»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «11. (необходимо наличие одной из указанных позиций)» is in no ruled cell"
+        }
+      ],
+      "furniture": ["24"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 92,
+        "visionTokens": 91,
+        "coverageVision": 0.9882,
+        "coverageMarker": 0.9767,
+        "respaced": 1,
+        "tableRows": 13
+      }
+    },
+    {
+      "page": 47,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "dropped-span",
+          "detail": "Vision reads text that Marker lacks (at a paragraph start): «4.1. Стандарт оснащения процедурного кабинета (процедурной»"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 1×6, 1,2,3×8, 1.2,5, 2, 4.1"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 43% of Vision's tokens (e.g. 1,2,3, 1, для, по, числу, рабочих, мест, оснащения, медицинской, шкаф, хранения, на)"
+        },
+        {
+          "kind": "page-end-missing",
+          "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «4.1. Стандарт оснащения процедурного кабинета (процедурной)»"
+        }
+      ],
+      "furniture": ["25"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 176,
+        "visionTokens": 302,
+        "coverageVision": 0.5741,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 14
+      }
+    },
+    {
+      "page": 48,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 9, column 2: Marker has no such cell; Vision reads «Ингалятор 127540 ультразвуковой Аппарат Небулайзер 2,3 213220 для ингаляции настольный, без подогрева Небулайзер 213210 »"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 10, column 4: Marker has no such cell; Vision reads «Небулайзер 213220 настольный, без подогрева»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «Аппарат для ингаляции» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «2, 3» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «213220» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «Небулайзер настольный, без подогрева» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «213210» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «Небулайзер настольный, с подогревом» is in no ruled cell"
+        }
+      ],
+      "furniture": ["26"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 139,
+        "visionTokens": 139,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 10
+      }
+    },
+    {
+      "page": 49,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 1, column 2: Marker has no such cell; Vision reads «-»"
+        }
+      ],
+      "furniture": ["27"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 108,
+        "visionTokens": 108,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 10
+      }
+    },
+    {
+      "page": 50,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["28"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 109,
+        "visionTokens": 109,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 11
+      }
+    },
+    {
+      "page": 51,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["29"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 96,
+        "visionTokens": 96,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 9
+      }
+    },
+    {
+      "page": 52,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 10, column 3: Marker has no such cell; Vision reads «2,3»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 10, column 4: Marker has no such cell; Vision reads «334300»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 10, column 5: Marker has no such cell; Vision reads «Контейнер для транспортировки образцов, термоизолиро-ванный, многоразового использования»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 10, column 6: Marker has no such cell; Vision reads «2»"
+        }
+      ],
+      "furniture": ["30"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 112,
+        "visionTokens": 112,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 13
+      }
+    },
+    {
+      "page": 53,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 2, column 6: Marker has no such cell; Vision reads «1»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 9, column 4: Marker has no such cell; Vision reads «Система мониторинга множественных 345180 аналитов клинической химии ИВД, ДЛЯ использования»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «Глюкометр портативный с расходными материалами (картриджами)» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «345180» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «Система мониторинга множественных аналитов клинической химии ИВД, для использования» is in no ruled cell"
+        }
+      ],
+      "furniture": ["31"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 96,
+        "visionTokens": 96,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 9
+      }
+    },
+    {
+      "page": 54,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 16, column 1: Marker has no such cell; Vision reads «18. \".....unyuum)»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 16, column 2: Marker has no such cell; Vision reads «Установка для»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 19, column 1: Marker has no such cell; Vision reads «наличие одной из указанных позиций)»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «18. (необходимо наличие одной из указанных позиций)» is in no ruled cell"
+        }
+      ],
+      "furniture": ["32"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 146,
+        "visionTokens": 146,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 16
+      }
+    },
+    {
+      "page": 55,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 1,2, 1.2, 1.2.3×2, 116920, 116940, 116990; only in Marker: 1×4, 181730, 2×4, 3×2"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 16% of Vision's tokens (e.g. кушетка, стол, массажный, 1.2.3, электропитания, 1.2, 1,2, без, 116920, портативный, безр, 116940)"
+        }
+      ],
+      "furniture": ["33"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 168,
+        "visionTokens": 181,
+        "coverageVision": 0.8385,
+        "coverageMarker": 0.906,
+        "respaced": 0,
+        "tableRows": 14
+      }
+    },
+    {
+      "page": 56,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 1, column 4: Marker has no such cell; Vision reads «-»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 7, column 4: Marker has no such cell; Vision reads «146060»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 9, column 4: Marker has no such cell; Vision reads «285020»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 10, column 4: Marker has no such cell; Vision reads «335360»"
+        }
+      ],
+      "furniture": ["34"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 129,
+        "visionTokens": 129,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 10
+      }
+    },
+    {
+      "page": 57,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["35"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 99,
+        "visionTokens": 99,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 10
+      }
+    },
+    {
+      "page": 58,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 1"
+        }
+      ],
+      "furniture": ["36", "1"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 132,
+        "visionTokens": 131,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9921,
+        "respaced": 0,
+        "tableRows": 13
+      }
+    },
+    {
+      "page": 59,
+      "reading": "image-transcription",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 1, column 3: Marker has no such cell; Vision reads «125510 326010 182610 191320»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 8, column 4: Marker has no such cell; Vision reads «181480»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 8, column 5: Marker has no such cell; Vision reads «Система физиоте-рапевтическая чрескожной электрической нейромиости-муляции»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 14, column 5: Marker has no such cell; Vision reads «Небулайзер настольный, без 1 подогрева»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 15, column 1: Marker has no such cell; Vision reads «18. Ванна бальнео-Ванна для 1 (необходимо логическая 2,3 250020 гидротерапии»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «181070» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «Небулайзер настольный, без подогрева» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «18. (необходимо» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «Ванна бальнеологическая» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «250020» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «Ванна для гидротерапии» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «1» is in no ruled cell"
+        }
+      ],
+      "furniture": ["37"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 126,
+        "visionTokens": 124,
+        "coverageVision": 0.9829,
+        "coverageMarker": 0.9664,
+        "respaced": 2,
+        "tableRows": 11
+      }
+    },
+    {
+      "page": 60,
+      "reading": "image-transcription",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 1"
+        }
+      ],
+      "furniture": ["38", "1"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 138,
+        "visionTokens": 137,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9922,
+        "respaced": 0,
+        "tableRows": 12
+      }
+    },
+    {
+      "page": 61,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 6, column 2: Marker has no such cell; Vision reads «1 алокамера»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «Галокамера» is in no ruled cell"
+        }
+      ],
+      "furniture": ["39"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 135,
+        "visionTokens": 135,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 11
+      }
+    },
+    {
+      "page": 62,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 89,
+        "visionTokens": 89,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 8
+      }
+    },
+    {
+      "page": 63,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 14, column 1: Marker has no such cell; Vision reads «34. (нелбуллимо»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 14, column 2: Marker has no such cell; Vision reads «Установка для прегаапажива-»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 16, column 1: Marker has no such cell; Vision reads «наличие одной из указанных позиций)»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «34. (необходимо наличие одной из указанных позиций)» is in no ruled cell"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 128,
+        "visionTokens": 128,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 14
+      }
+    },
+    {
+      "page": 64,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["42"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 224,
+        "visionTokens": 224,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 18
+      }
+    },
+    {
+      "page": 65,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["43"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 142,
+        "visionTokens": 142,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 10
+      }
+    },
+    {
+      "page": 66,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 5, column 6: Marker has no such cell; Vision reads «1»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 11, column 3: Marker has no such cell; Vision reads «2,3»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 11, column 4: Marker has no such cell; Vision reads «261950»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 11, column 6: Marker has no such cell; Vision reads «1»"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 1×2"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "table numbering skips 2"
+        }
+      ],
+      "furniture": ["44", "1", "1"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 110,
+        "visionTokens": 108,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9808,
+        "respaced": 0,
+        "tableRows": 11
+      }
+    },
+    {
+      "page": 67,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["45"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 95,
+        "visionTokens": 97,
+        "coverageVision": 0.9425,
+        "coverageMarker": 0.9535,
+        "respaced": 0,
+        "tableRows": 10
+      }
+    },
+    {
+      "page": 68,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["46", "1."],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 275,
+        "visionTokens": 276,
+        "coverageVision": 0.9917,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 20
+      }
+    },
+    {
+      "page": 69,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["47"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 116,
+        "visionTokens": 111,
+        "coverageVision": 0.9604,
+        "coverageMarker": 0.9151,
+        "respaced": 0,
+        "tableRows": 12
+      }
+    },
+    {
+      "page": 70,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 68; only in Marker: 10, 686"
+        }
+      ],
+      "furniture": ["48", "1."],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 239,
+        "visionTokens": 238,
+        "coverageVision": 0.9854,
+        "coverageMarker": 0.9902,
+        "respaced": 0,
+        "tableRows": 11
+      }
+    },
+    {
+      "page": 71,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от «20» *февраля 20 26 г. № 1204"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 251,
+        "visionTokens": 251,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 72,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 352,
+        "visionTokens": 350,
+        "coverageVision": 0.9967,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 73,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 98,
+        "visionTokens": 97,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 74,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 1204, 20, 20/16"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 280,
+        "visionTokens": 274,
+        "coverageVision": 0.9959,
+        "coverageMarker": 0.9677,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 75,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 222,
+        "visionTokens": 222,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 76,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 259,
+        "visionTokens": 258,
+        "coverageVision": 0.9955,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 77,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["4"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 234,
+        "visionTokens": 234,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 78,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 1, column 1: Marker has no such cell; Vision reads «Nº Ц/II»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «№ п/п» is in no ruled cell"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": ["от «20» *февраля 2026* г. № 1204"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 171,
+        "visionTokens": 171,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 10
+      }
+    },
+    {
+      "page": 79,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 1100, 20×2, 26"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 133,
+        "visionTokens": 133,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9496,
+        "respaced": 0,
+        "tableRows": 7
+      }
+    },
+    {
+      "page": 80,
+      "reading": "image-transcription",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 1, column 1: Marker has no such cell; Vision reads «электропитания, непортативный Кресло для осмотра/ терапевтических 259880 процедур общего назначения, с электропитанием»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 15, column 1: Marker has no such cell; Vision reads «8. (необходимо наличие Стетофонен-1,2,3 одной из доскоп указанных позиций)»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 15, column 5: Marker has no such cell; Vision reads «Стетоскоп неавтоматизиро-ванный 1 на врача Стетоскоп электронный»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «электропитания, непортативный» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «259880» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «Кресло для осмотра/ терапевтических процедур общего назначения, с электропитанием» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «8. (необходимо наличие одной из указанных позиций)» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «Стетофонен-доскоп» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «1, 2, 3» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «1 на врача» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «Стетоскоп электронный» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «9.» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «Тонометр медицинский» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «1, 2, 3» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «239410» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «Аппарат для измерения» is in no ruled cell"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «1 на врача» is in no ruled cell"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 1, 1,2,3, 239410"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 8% of Vision's tokens (e.g. для, 1, медицинский, 1,2,3, стетоскоп, неавтоматизиро, ванный, на, врача, тонометр, 239410, аппарат)"
+        }
+      ],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 150,
+        "visionTokens": 164,
+        "coverageVision": 0.9156,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 14
+      }
+    },
+    {
+      "page": 81,
+      "reading": "image-transcription",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «с набором манжет по возрасту» is in no ruled cell"
+        }
+      ],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 78,
+        "visionTokens": 78,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 7
+      }
+    },
+    {
+      "page": 82,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 3, column 6: Marker has no such cell; Vision reads «З кожных, 1 бесконтакт-НЫЙ»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «3 кожных,⏎1 бесконтакт-ный» is in no ruled cell"
+        }
+      ],
+      "furniture": ["4"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 156,
+        "visionTokens": 156,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 12
+      }
+    },
+    {
+      "page": 83,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["5"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 73,
+        "visionTokens": 73,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 8
+      }
+    },
+    {
+      "page": 84,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 6, column 1: Marker has no such cell; Vision reads «15.»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 6, column 2: Marker has no such cell; Vision reads «Отоскоп»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 6, column 3: Marker has no such cell; Vision reads «1,2,3»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 8, column 6: Marker has no such cell; Vision reads «1»"
+        }
+      ],
+      "furniture": ["6"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 96,
+        "visionTokens": 96,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 11
+      }
+    },
+    {
+      "page": 85,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 1"
+        }
+      ],
+      "furniture": ["7", "1"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 201,
+        "visionTokens": 200,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9943,
+        "respaced": 0,
+        "tableRows": 15
+      }
+    },
+    {
+      "page": 86,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 1,2,3; only in Marker: 1, 2, 3"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "table numbering skips 3, 4, 5, 6, 7, 8, 9, 10"
+        }
+      ],
+      "furniture": ["8", "11."],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 156,
+        "visionTokens": 152,
+        "coverageVision": 0.9927,
+        "coverageMarker": 0.9784,
+        "respaced": 0,
+        "tableRows": 12
+      }
+    },
+    {
+      "page": 87,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["9"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 116,
+        "visionTokens": 116,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 11
+      }
+    },
+    {
+      "page": 88,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 7, column 6: Marker has no such cell; Vision reads «2»"
+        }
+      ],
+      "furniture": ["10"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 97,
+        "visionTokens": 97,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 11
+      }
+    },
+    {
+      "page": 89,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["11"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 93,
+        "visionTokens": 93,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 7
+      }
+    },
+    {
+      "page": 90,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 1, column 4: Marker has no such cell; Vision reads «-»"
+        }
+      ],
+      "furniture": ["12"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 133,
+        "visionTokens": 133,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 15
+      }
+    },
+    {
+      "page": 91,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 1, column 1: Marker has no such cell; Vision reads «-»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 4, column 6: Marker has no such cell; Vision reads «1»"
+        }
+      ],
+      "furniture": ["13"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 103,
+        "visionTokens": 103,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 10
+      }
+    },
+    {
+      "page": 92,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["14"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 155,
+        "visionTokens": 155,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 15
+      }
+    },
+    {
+      "page": 93,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 10, 17, 2014×2, 2020×2, 2025, 24, 25, 35201, 557, 59225, 686, 7"
+        },
+        {
+          "kind": "coverage-marker",
+          "detail": "22% of Marker's tokens are not in Vision (e.g. российской, федерации, от, зарегистрирован, министерством, юстиции, регистрационный, 2014, 2020, здравоохранения, июня, номенклатурной)"
+        }
+      ],
+      "furniture": ["15"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 195,
+        "visionTokens": 150,
+        "coverageVision": 0.9924,
+        "coverageMarker": 0.7751,
+        "respaced": 0,
+        "tableRows": 11
+      }
+    },
+    {
+      "page": 94,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от «2017» организация 20.12 г. № 1404"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 270,
+        "visionTokens": 266,
+        "coverageVision": 0.9871,
+        "coverageMarker": 0.9957,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 95,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 249,
+        "visionTokens": 248,
+        "coverageVision": 0.9953,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 96,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["3"],
+      "portalRewrites": ["hyphen restored: медикосоциальную → медико-социальную"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 129,
+        "visionTokens": 127,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 97,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 7, column 1: Marker has no such cell; Vision reads «9»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «6» is in no ruled cell"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 14"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "table numbering skips 6, 7, 8"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": ["от «*ДВ*» *фрейденью 20.2.26 г. № 120"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 150,
+        "visionTokens": 149,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9926,
+        "respaced": 0,
+        "tableRows": 7
+      }
+    },
+    {
+      "page": 98,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 7"
+        }
+      ],
+      "furniture": ["7"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 18,
+        "visionTokens": 17,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9444,
+        "respaced": 0,
+        "tableRows": 2
+      }
+    },
+    {
+      "page": 99,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 8, column 3: Marker has no such cell; Vision reads «178810»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 8, column 4: Marker has no such cell; Vision reads «Кровать педиатрическая»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 10, column 3: Marker has no such cell; Vision reads «247980»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 10, column 4: Marker has no such cell; Vision reads «Кроватка неонатальная»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 12, column 5: Marker has no such cell; Vision reads «2»"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 2"
+        }
+      ],
+      "furniture": ["2"],
+      "portalRewrites": ["от «26» февраля 2016 г. № 1404"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 158,
+        "visionTokens": 157,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9926,
+        "respaced": 0,
+        "tableRows": 11
+      }
+    },
+    {
+      "page": 100,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 110,
+        "visionTokens": 110,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 11
+      }
+    },
+    {
+      "page": 101,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 13, column 5: Marker has no such cell; Vision reads «не менее 10% коечного фонда отделения»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 21, column 4: Marker has no such cell; Vision reads «Концентратор кислорода стационарный»"
+        }
+      ],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 189,
+        "visionTokens": 189,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 20
+      }
+    },
+    {
+      "page": 102,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 9, column 5: Marker has no such cell; Vision reads «поСт»"
+        }
+      ],
+      "furniture": ["4"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 178,
+        "visionTokens": 178,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 14
+      }
+    },
+    {
+      "page": 103,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 4, column 3: Marker has no such cell; Vision reads «127540»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 4, column 4: Marker has no such cell; Vision reads «Ингалятор ультразвуковой»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 4, column 5: Marker has no such cell; Vision reads «1 на 10 коек»"
+        },
+        {
+          "kind": "cell-unread",
+          "detail": "row 18, column 2 holds ink that neither reading gave"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «Стетофонендоскоп» is in no ruled cell"
+        }
+      ],
+      "furniture": ["5"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 151,
+        "visionTokens": 151,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 17
+      }
+    },
+    {
+      "page": 104,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 1×2"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 30% of Vision's tokens (e.g. рабочее, место, автоматизированное, оснащенное, персональным, компьютером, выходом, информационно, телекоммуникационную, сеть, интернет, источником)"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "table numbering skips 4, 5, 6, 7, 8, 9, 10, 11, 12, 13"
+        }
+      ],
+      "furniture": ["6", "1"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 167,
+        "visionTokens": 242,
+        "coverageVision": 0.7005,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 14
+      }
+    },
+    {
+      "page": 105,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 1"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "table numbering skips 2, 3"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "Vision has numbered lines 2 that Marker lacks"
+        }
+      ],
+      "furniture": ["7", "4.", "1"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 247,
+        "visionTokens": 245,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9953,
+        "respaced": 0,
+        "tableRows": 22
+      }
+    },
+    {
+      "page": 106,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 8, column 3: Marker has no such cell; Vision reads «1234(»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 8, column 5: Marker has no such cell; Vision reads «1»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «127540» is in no ruled cell"
+        }
+      ],
+      "furniture": ["8"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 146,
+        "visionTokens": 146,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 15
+      }
+    },
+    {
+      "page": 107,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 130,
+        "visionTokens": 130,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 15
+      }
+    },
+    {
+      "page": 108,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 1, column 1: Marker has no such cell; Vision reads «-»"
+        }
+      ],
+      "furniture": ["10"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 146,
+        "visionTokens": 146,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 13
+      }
+    },
+    {
+      "page": 109,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 2, column 2: Marker has no such cell; Vision reads «Стол»"
+        },
+        {
+          "kind": "cell-vision-only",
+          "detail": "row 5, column 2: Marker has no such cell; Vision reads «малкиулациипиви»"
+        },
+        {
+          "kind": "cell-marker-only",
+          "detail": "Marker's cell «Стол манипуляционный» is in no ruled cell"
+        }
+      ],
+      "furniture": ["11"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 142,
+        "visionTokens": 142,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 14
+      }
+    },
+    {
+      "page": 110,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["12"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 157,
+        "visionTokens": 157,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 18
+      }
+    },
+    {
+      "page": 111,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 2023; only in Marker: 2025"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "table numbering skips 6, 7, 8, 9, 10, 11, 12, 13, 14, 15"
+        }
+      ],
+      "furniture": ["13", "18."],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 227,
+        "visionTokens": 226,
+        "coverageVision": 0.9949,
+        "coverageMarker": 0.9949,
+        "respaced": 0,
+        "tableRows": 15
+      }
+    },
+    {
+      "page": 112,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 4904; only in Marker: 49047, 5"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": ["от «20» gperfame 2026 г. № 11001"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 250,
+        "visionTokens": 246,
+        "coverageVision": 0.9907,
+        "coverageMarker": 0.9907,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 113,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "dropped-span",
+          "detail": "Vision reads text that Marker lacks (at a paragraph start): «помещения (палаты) для размещения детей на 5 коек, кабинет для медицинских работников, туалет для детей и их родителей (законных представителей»"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 5"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 9% of Vision's tokens (e.g. для, детей, на, кд, кабинет, медицинских, помещения, палаты, размещения, 5, коек, работников)"
+        },
+        {
+          "kind": "page-end-missing",
+          "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «туалет для детей и их родителей (законных представителей),»"
+        }
+      ],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 225,
+        "visionTokens": 244,
+        "coverageVision": 0.9099,
+        "coverageMarker": 0.9951,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 114,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "dropped-span",
+          "detail": "Vision reads text that Marker lacks (at a paragraph start): «комнаты для кормления грудных детей и детей раннего возраста»"
+        },
+        {
+          "kind": "page-end-missing",
+          "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «комнаты для кормления грудных детей и детей раннего возраста.»"
+        }
+      ],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 210,
+        "visionTokens": 219,
+        "coverageVision": 0.959,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 115,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от «20» средино 20.06 г. № 1104"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 116,
+        "visionTokens": 116,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 6
+      }
+    },
+    {
+      "page": 116,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 1"
+        }
+      ],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 139,
+        "visionTokens": 138,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9923,
+        "respaced": 0,
+        "tableRows": 9
+      }
+    },
+    {
+      "page": 117,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 3"
+        }
+      ],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 157,
+        "visionTokens": 156,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9931,
+        "respaced": 0,
+        "tableRows": 13
+      }
+    },
+    {
+      "page": 118,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["4"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 159,
+        "visionTokens": 159,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 19
+      }
+    },
+    {
+      "page": 119,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 14"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "table numbering skips 5, 6, 7, 8, 9, 10, 11, 12, 13"
+        }
+      ],
+      "furniture": ["5", "14"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 165,
+        "visionTokens": 164,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9932,
+        "respaced": 0,
+        "tableRows": 18
+      }
+    },
+    {
+      "page": 120,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 2"
+        }
+      ],
+      "furniture": ["6", "2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 38,
+        "visionTokens": 37,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9722,
+        "respaced": 0,
+        "tableRows": 4
+      }
+    }
+  ]
 }

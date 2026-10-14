@@ -1,33 +1,33 @@
 {
- "documentId": "regulatory.rf.federal-law.323-fz-2011",
- "source": {
-  "file": "rg-323fz.html",
-  "sha256": "e980af1b3496d13f9db22517eb4b6525163bcac77e1caa43d8059becb3a3fcf7",
-  "bytes": 1071918,
-  "pages": null,
-  "officialUrl": "https://publication.pravo.gov.ru/Document/View/0001201111220007"
- },
- "identityFromPortal": {
-  "number": "323-ФЗ",
-  "date": "2011-11-21",
-  "name": "Об основах охраны здоровья граждан в Российской Федерации",
-  "registrationNumber": null,
-  "registrationDate": null
- },
- "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
- "review": {
-  "reviewer": "",
-  "reviewedAt": "",
-  "corrections": 0
- },
- "pages": [
-  {
-   "page": null,
-   "reading": "text-source",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "headerRemoved": null
-  }
- ]
+  "documentId": "regulatory.rf.federal-law.323-fz-2011",
+  "source": {
+    "file": "rg-323fz.html",
+    "sha256": "e980af1b3496d13f9db22517eb4b6525163bcac77e1caa43d8059becb3a3fcf7",
+    "bytes": 1071918,
+    "pages": null,
+    "officialUrl": "https://publication.pravo.gov.ru/Document/View/0001201111220007"
+  },
+  "identityFromPortal": {
+    "number": "323-ФЗ",
+    "date": "2011-11-21",
+    "name": "Об основах охраны здоровья граждан в Российской Федерации",
+    "registrationNumber": null,
+    "registrationDate": null
+  },
+  "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
+  "review": {
+    "reviewer": "",
+    "reviewedAt": "",
+    "corrections": 0
+  },
+  "pages": [
+    {
+      "page": null,
+      "reading": "text-source",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "headerRemoved": null
+    }
+  ]
 }

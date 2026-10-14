@@ -1,152 +1,142 @@
 {
- "documentId": "regulatory.rf.minzdrav.220n-2024",
- "source": {
-  "file": "0001202405310015.pdf",
-  "sha256": "11012b0f0000e222dba0685633404c4aba91d33cd1bb5b081b955a0c91d1c731",
-  "bytes": 366032,
-  "pages": 6,
-  "officialUrl": "https://publication.pravo.gov.ru/document/0001202405310015"
- },
- "identityFromPortal": {
-  "number": "220н",
-  "date": "2024-05-03",
-  "name": "Об утверждении Порядка оказания первой помощи",
-  "registrationNumber": "78363",
-  "registrationDate": "2024-05-31"
- },
- "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
- "review": {
-  "reviewer": "Claude (agent), against the page images; not a lawyer",
-  "reviewedAt": "2026-10-14",
-  "corrections": 1
- },
- "pages": [
-  {
-   "page": 1,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": "**МИНИСТЕРСТВО ЗДРАВООХРАНЕНИЯ\nРОССИЙСКОЙ ФЕДЕРАЦИИ**\n\n(МИНЗДРАВ РОССИИ)\n\n| ПРИКАЗ | |\n|-----------------------------------------------------|--------|\n| 3 мая 2024 г. | № 220Н |\n| МИНИСТЕРСТВО ЮСТИЦИИ РОССИЙСКОЙ ФЕДЕРАЦИИ⏎Москва | |\n| ЗАРЕГИСТРИРОВАНО | |\n| Регистрационный № 48363 | |\n| от \"31\" мая 2024 г. | |\n\n**Об утверждении Порядка оказания первой помощи**",
-   "stats": {
-    "markerTokens": 176,
-    "visionTokens": 176,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
+  "documentId": "regulatory.rf.minzdrav.220n-2024",
+  "source": {
+    "file": "0001202405310015.pdf",
+    "sha256": "11012b0f0000e222dba0685633404c4aba91d33cd1bb5b081b955a0c91d1c731",
+    "bytes": 366032,
+    "pages": 6,
+    "officialUrl": "https://publication.pravo.gov.ru/document/0001202405310015"
   },
-  {
-   "page": 2,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от «3» *мад* 2024 г. № 220"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 321,
-    "visionTokens": 319,
-    "coverageVision": 0.9926,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
+  "identityFromPortal": {
+    "number": "220н",
+    "date": "2024-05-03",
+    "name": "Об утверждении Порядка оказания первой помощи",
+    "registrationNumber": "78363",
+    "registrationDate": "2024-05-31"
   },
-  {
-   "page": 3,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от « 3 » июля 2024 г. № 2204"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 89,
-    "visionTokens": 89,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
+  "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
+  "review": {
+    "reviewer": "Claude (agent), against the page images; not a lawyer",
+    "reviewedAt": "2026-10-14",
+    "corrections": 1
   },
-  {
-   "page": 4,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от « 3 » леда 2024 г. № 220 м"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 229,
-    "visionTokens": 229,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 5,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
+  "pages": [
     {
-     "kind": "repeated-content-missing",
-     "detail": "Vision has these words more often than Marker (dropped rows or lines?): осмотра×2, проведение×2"
+      "page": 1,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": "**МИНИСТЕРСТВО ЗДРАВООХРАНЕНИЯ\nРОССИЙСКОЙ ФЕДЕРАЦИИ**\n\n(МИНЗДРАВ РОССИИ)\n\n| ПРИКАЗ | |\n|-----------------------------------------------------|--------|\n| 3 мая 2024 г. | № 220Н |\n| МИНИСТЕРСТВО ЮСТИЦИИ РОССИЙСКОЙ ФЕДЕРАЦИИ⏎Москва | |\n| ЗАРЕГИСТРИРОВАНО | |\n| Регистрационный № 48363 | |\n| от \"31\" мая 2024 г. | |\n\n**Об утверждении Порядка оказания первой помощи**",
+      "stats": {
+        "markerTokens": 176,
+        "visionTokens": 176,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "page-end-missing",
-     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «проведение осмотра груди;»"
+      "page": 2,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от «3» *мад* 2024 г. № 220"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 321,
+        "visionTokens": 319,
+        "coverageVision": 0.9926,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 3,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от « 3 » июля 2024 г. № 2204"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 89,
+        "visionTokens": 89,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 4,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от « 3 » леда 2024 г. № 220 м"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 229,
+        "visionTokens": 229,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 5,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "repeated-content-missing",
+          "detail": "Vision has these words more often than Marker (dropped rows or lines?): осмотра×2, проведение×2"
+        },
+        {
+          "kind": "page-end-missing",
+          "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «проведение осмотра груди;»"
+        }
+      ],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 245,
+        "visionTokens": 251,
+        "coverageVision": 0.9735,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 6,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 261,
+        "visionTokens": 260,
+        "coverageVision": 0.9958,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
     }
-   ],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 245,
-    "visionTokens": 251,
-    "coverageVision": 0.9735,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 6,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 261,
-    "visionTokens": 260,
-    "coverageVision": 0.9958,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  }
- ]
+  ]
 }

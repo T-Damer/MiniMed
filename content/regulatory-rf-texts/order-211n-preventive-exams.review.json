@@ -2,11 +2,7 @@
   "documentId": "regulatory.rf.minzdrav.211n-2025",
   "reviewer": "Claude (agent), against the page images; not a lawyer",
   "reviewedAt": "2026-10-14",
-  "keepMarker": [
-    12,
-    13,
-    36
-  ],
+  "keepMarker": [12, 13, 36],
   "verdicts": {
     "2": "image read: items of the amending acts, item 3 and the signature match (the one digit Vision lacks is the page number)",
     "3": "image read: annex 1 header restored in full (fixed); items 1-6 match, including «статьи 53⁴» (article 53 with the superscript 4) and the laws № 3-ФЗ, № 77-ФЗ, № 323-ФЗ",

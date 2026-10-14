@@ -14,10 +14,42 @@ covers:
 - a status crosswalk for the pediatric study list and its medical-form identifiers.
 
 Cards retain official publication and registration metadata where available, effective dates,
-status, replacement links, and stable anchors. A card is a source-linked paraphrase of the act
-(`contentMode: source_linked_paraphrase`), not a copy of its text: the official publication stays the
-source for tables, forms and appendices, and every card ends with a section «Источник и редакция»
-(number, date, Minjust registration, edition, validity, link) as plain text at the bottom.
+status, replacement links, and stable anchors. Since 2026.10.14 a card is the **full text of the act**
+(`contentMode: source_text`; original publication, amending orders are named in the edition line but not
+merged): headings, numbered items, tables as reader tables and the appendices, each paragraph with the PDF page
+it came from. The short card description is the old summary; every card ends with a section «Источник и
+редакция» (number, date, Minjust registration, edition, validity, link) as plain text at the bottom.
+2026.10.13 (below) was the paraphrase release.
+
+## Full texts (LEGAL1, 2026.10.14)
+
+Pipeline (`tools/ingest`, `medbase-legal-texts`; every input outside the repository is read by absolute path):
+
+1. `sources` records the official file of each act (publication.pravo.gov.ru, minzdrav.gov.ru, pravo.gov.ru IPS,
+   rg.ru) with its SHA-256. Number, date and title of an act always come from the portal record, never from OCR.
+2. Scans are converted page by page with Marker 2.0.0 (Surya, `scripts/marker_pages_run.py`, detached, resumable,
+   one page at a time); the second reading is macOS Vision. Text-layer PDFs (366n, 521n) use the PyMuPDF layer,
+   docx and HTML sources need no reconciliation.
+3. `reconcile` (`legal_reconcile.py`) compares the two readings of every page: numbers, dates, codes, Roman
+   numerals and order numbers must agree; token coverage, loops (a clause repeated), dropped spans, dropped table
+   rows, a dropped last line (`page_end_missing`) and thousand groups are checked. A page that disagrees is
+   flagged; Vision's reading of the disputed number is kept and marked.
+4. Ruled tables are read cell by cell (`legal_cells.py`, `medbase-legal-texts cells`): the page is de-skewed, the
+   ruling found, each cell cropped and read by Vision alone and compared with Marker's cell; the table is rebuilt on
+   the ruled grid. A page whose grid does not agree with Marker is kept as Marker read it.
+   Acts whose label column Marker loses (206н, 707н) are read with the labels painted out and the labels put back by
+   order (`legal_unlabel.py`).
+5. Every flagged page is read against its page image by a person or an agent, and only what the image shows is
+   fixed. Each fix is a record in `content/regulatory-rf-texts/<act>.review.json` (`find`, `replace`, `why`; `find`
+   occurs exactly once), each reviewed page has a verdict, `keepMarker` lists pages where Marker's text is kept whole.
+   `assemble --strict` refuses a flagged page without a verdict. Provenance per page (page number, source checksum,
+   reading, confidence, flags, review marks) is in `<act>.provenance.json`.
+6. `assemble` writes the card (`content/regulatory-rf-pilot/*.md`); the pack builds, lints and is checked by
+   `tools/ingest/tests/test_legal_texts_pack.py` (every page 1..N has provenance and a source span, flagged pages
+   have a verdict, tables are rectangular, no empty section, `AWAITING_FULL_TEXT` is empty).
+
+Limits: the review was done by an agent against the images, not by a lawyer or a clinician; amending orders are not
+merged into the text (the edition line says so); a speck in a scan can still survive in an empty cell.
 
 ## Current-edition rule
 

@@ -1,130 +1,124 @@
 {
- "documentId": "regulatory.rf.minzdrav.625n-2016",
- "source": {
-  "file": "0001201702210016.pdf",
-  "sha256": "746225a1f01307f0e8a0cd3f85b5789bf1750693e65c4c56e4174fdac9ac8daf",
-  "bytes": 270539,
-  "pages": 4,
-  "officialUrl": "https://publication.pravo.gov.ru/Document/View/0001201702210016"
- },
- "identityFromPortal": {
-  "number": "625н",
-  "date": "2016-08-23",
-  "name": "Об утверждении Порядка проведения экспертизы временной нетрудоспособности",
-  "registrationNumber": "45704",
-  "registrationDate": "2017-02-20"
- },
- "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
- "review": {
-  "reviewer": "Claude (agent), against the page images; not a lawyer",
-  "reviewedAt": "2026-10-14",
-  "corrections": 1
- },
- "pages": [
-  {
-   "page": 1,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
+  "documentId": "regulatory.rf.minzdrav.625n-2016",
+  "source": {
+    "file": "0001201702210016.pdf",
+    "sha256": "746225a1f01307f0e8a0cd3f85b5789bf1750693e65c4c56e4174fdac9ac8daf",
+    "bytes": 270539,
+    "pages": 4,
+    "officialUrl": "https://publication.pravo.gov.ru/Document/View/0001201702210016"
+  },
+  "identityFromPortal": {
+    "number": "625н",
+    "date": "2016-08-23",
+    "name": "Об утверждении Порядка проведения экспертизы временной нетрудоспособности",
+    "registrationNumber": "45704",
+    "registrationDate": "2017-02-20"
+  },
+  "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
+  "review": {
+    "reviewer": "Claude (agent), against the page images; not a lawyer",
+    "reviewedAt": "2026-10-14",
+    "corrections": 1
+  },
+  "pages": [
     {
-     "kind": "dropped-span",
-     "detail": "Vision reads text that Marker lacks (at a paragraph start): «УПРАВЛЕНИЯ ЕЛАМИ И КАДРОВ 102 25 авгусите 2016»"
+      "page": 1,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "dropped-span",
+          "detail": "Vision reads text that Marker lacks (at a paragraph start): «УПРАВЛЕНИЯ ЕЛАМИ И КАДРОВ 102 25 авгусите 2016»"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 102, 25, 5:2.84; only in Marker: 5.2.84"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 8% of Vision's tokens (e.g. 5:2.84, lukgurok, верна, департамент, бого, управления, елами, кадров, 102, 25, авгусите)"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": "**МИНИСТЕРСТВО ЗДРАВООХРАНЕНИЯ\nРОССИЙСКОЙ ФЕДЕРАЦИИ**\n\n(МИНЗДРАВ РОССИИ)\n\n23 августа 2016 г.\n\n№ 6254\n\n**Об утверждении**\n\n**Порядка проведения экспертизы временной нетрудоспособности**",
+      "stats": {
+        "markerTokens": 140,
+        "visionTokens": 146,
+        "coverageVision": 0.9185,
+        "coverageMarker": 0.9612,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 102, 25, 5:2.84; only in Marker: 5.2.84"
+      "page": 2,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от «23» августа 2016 г. № 6254"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 257,
+        "visionTokens": 254,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 8% of Vision's tokens (e.g. 5:2.84, lukgurok, верна, департамент, бого, управления, елами, кадров, 102, 25, авгусите)"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": "**МИНИСТЕРСТВО ЗДРАВООХРАНЕНИЯ\nРОССИЙСКОЙ ФЕДЕРАЦИИ**\n\n(МИНЗДРАВ РОССИИ)\n\n23 августа 2016 г.\n\n№ 6254\n\n**Об утверждении**\n\n**Порядка проведения экспертизы временной нетрудоспособности**",
-   "stats": {
-    "markerTokens": 140,
-    "visionTokens": 146,
-    "coverageVision": 0.9185,
-    "coverageMarker": 0.9612,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 2,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от «23» августа 2016 г. № 6254"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 257,
-    "visionTokens": 254,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 3,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 2014, 33147"
-    }
-   ],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 314,
-    "visionTokens": 309,
-    "coverageVision": 0.9962,
-    "coverageMarker": 0.9887,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 4,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 30714"
+      "page": 3,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 2014, 33147"
+        }
+      ],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 314,
+        "visionTokens": 309,
+        "coverageVision": 0.9962,
+        "coverageMarker": 0.9887,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "page-end-missing",
-     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «* Заретистрирова Министерством ослиции Российской Федерации 10 люня 2011 г., регистрационный Nº 21026.»"
+      "page": 4,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 30714"
+        },
+        {
+          "kind": "page-end-missing",
+          "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «* Заретистрирова Министерством ослиции Российской Федерации 10 люня 2011 г., регистрационный Nº 21026.»"
+        }
+      ],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 226,
+        "visionTokens": 222,
+        "coverageVision": 0.9783,
+        "coverageMarker": 0.9783,
+        "respaced": 0,
+        "tableRows": 0
+      }
     }
-   ],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 226,
-    "visionTokens": 222,
-    "coverageVision": 0.9783,
-    "coverageMarker": 0.9783,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  }
- ]
+  ]
 }

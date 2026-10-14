@@ -627,7 +627,5 @@
       "why": "The education variant of the position above is in the education column in the image; Marker put it in the specialty column."
     }
   ],
-  "keepMarker": [
-    65
-  ]
+  "keepMarker": [65]
 }

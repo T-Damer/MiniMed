@@ -1,458 +1,428 @@
 {
- "documentId": "regulatory.rf.mintrud.306n-2017-district-pediatrician",
- "source": {
-  "file": "0001201704180027.pdf",
-  "sha256": "d17c53bec98a6149b4e5e18a4ad752394c08e4d31ed99197d15ef4f9472931ef",
-  "bytes": 1509052,
-  "pages": 18,
-  "officialUrl": "https://publication.pravo.gov.ru/document/0001201704180027"
- },
- "identityFromPortal": {
-  "number": "306н",
-  "date": "2017-03-27",
-  "name": "Об утверждении профессионального стандарта \"Врач-педиатр участковый",
-  "registrationNumber": "46397",
-  "registrationDate": "2017-04-17"
- },
- "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
- "review": {
-  "reviewer": "Claude (agent), against the page images; not a lawyer",
-  "reviewedAt": "2026-10-14",
-  "corrections": 4
- },
- "pages": [
-  {
-   "page": 1,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
+  "documentId": "regulatory.rf.mintrud.306n-2017-district-pediatrician",
+  "source": {
+    "file": "0001201704180027.pdf",
+    "sha256": "d17c53bec98a6149b4e5e18a4ad752394c08e4d31ed99197d15ef4f9472931ef",
+    "bytes": 1509052,
+    "pages": 18,
+    "officialUrl": "https://publication.pravo.gov.ru/document/0001201704180027"
+  },
+  "identityFromPortal": {
+    "number": "306н",
+    "date": "2017-03-27",
+    "name": "Об утверждении профессионального стандарта \"Врач-педиатр участковый",
+    "registrationNumber": "46397",
+    "registrationDate": "2017-04-17"
+  },
+  "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
+  "review": {
+    "reviewer": "Claude (agent), against the page images; not a lawyer",
+    "reviewedAt": "2026-10-14",
+    "corrections": 4
+  },
+  "pages": [
     {
-     "kind": "dropped-span",
-     "detail": "Vision reads text that Marker lacks (at a paragraph start): «М.А. Топилин КОПИЯ ВЕРНА Консультант общою огдо Департамента KUNALSY: управления делами 2 О.А. Нефедова: У 22.03»"
+      "page": 1,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "dropped-span",
+          "detail": "Vision reads text that Marker lacks (at a paragraph start): «М.А. Топилин КОПИЯ ВЕРНА Консультант общою огдо Департамента KUNALSY: управления делами 2 О.А. Нефедова: У 22.03»"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 2, 22.03; only in Marker: 400"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 23% of Vision's tokens (e.g. зазит, росрайской, федераци, рт, оня, трн, топилин, копия, верна, консультант, общою, огдо)"
+        },
+        {
+          "kind": "coverage-marker",
+          "detail": "17% of Marker's tokens are not in Vision (e.g. российской, федерации, от, признать, утратившим, силу, приказ, министерства, труда, защиты, июня, 400)"
+        }
+      ],
+      "furniture": ["_2012"],
+      "portalRewrites": [],
+      "headerRemoved": "МИНИСТЕРСТВО ТРУДА И СОЦИАЛЬНОЙ ЗАЩИТЫ\nРОССИЙСКОЙ ФЕДЕРАЦИИ\n(Минтруд России)\n\n**ПРИКАЗ**\n\n*27 июрга 2017 г.*\n\n№ 306H\n\nМосква\n\n**Об утверждении профессионального стандарта\n«Врач-педиатр участковый»**",
+      "stats": {
+        "markerTokens": 85,
+        "visionTokens": 93,
+        "coverageVision": 0.7654,
+        "coverageMarker": 0.8267,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 2, 22.03; only in Marker: 400"
+      "page": 2,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "dropped-span",
+          "detail": "Vision reads text that Marker lacks (at a paragraph start): «УТВЕРЖДЕН приказом Министерства труда и социальной защиты Российской Федерации»"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: II; only in Marker: 3"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 8% of Vision's tokens (e.g. утвержден, приказом, министерства, труда, социальной, защиты, российской, федерации, rom:ii)"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 117,
+        "visionTokens": 130,
+        "coverageVision": 0.9189,
+        "coverageMarker": 0.9903,
+        "respaced": 0,
+        "tableRows": 12
+      }
     },
     {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 23% of Vision's tokens (e.g. зазит, росрайской, федераци, рт, оня, трн, топилин, копия, верна, консультант, общою, огдо)"
+      "page": 3,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 7"
+        }
+      ],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 114,
+        "visionTokens": 112,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9895,
+        "respaced": 0,
+        "tableRows": 7
+      }
     },
     {
-     "kind": "coverage-marker",
-     "detail": "17% of Marker's tokens are not in Vision (e.g. российской, федерации, от, признать, утратившим, силу, приказ, министерства, труда, защиты, июня, 400)"
-    }
-   ],
-   "furniture": [
-    "_2012"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": "МИНИСТЕРСТВО ТРУДА И СОЦИАЛЬНОЙ ЗАЩИТЫ\nРОССИЙСКОЙ ФЕДЕРАЦИИ\n(Минтруд России)\n\n**ПРИКАЗ**\n\n*27 июрга 2017 г.*\n\n№ 306H\n\nМосква\n\n**Об утверждении профессионального стандарта\n«Врач-педиатр участковый»**",
-   "stats": {
-    "markerTokens": 85,
-    "visionTokens": 93,
-    "coverageVision": 0.7654,
-    "coverageMarker": 0.8267,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 2,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "dropped-span",
-     "detail": "Vision reads text that Marker lacks (at a paragraph start): «УТВЕРЖДЕН приказом Министерства труда и социальной защиты Российской Федерации»"
+      "page": 4,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 233,
+        "visionTokens": 227,
+        "coverageVision": 0.9901,
+        "coverageMarker": 0.9901,
+        "respaced": 0,
+        "tableRows": 7
+      }
     },
     {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: II; only in Marker: 3"
+      "page": 5,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["4"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 249,
+        "visionTokens": 244,
+        "coverageVision": 0.9952,
+        "coverageMarker": 0.9904,
+        "respaced": 0,
+        "tableRows": 10
+      }
     },
     {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 8% of Vision's tokens (e.g. утвержден, приказом, министерства, труда, социальной, защиты, российской, федерации, rom:ii)"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 117,
-    "visionTokens": 130,
-    "coverageVision": 0.9189,
-    "coverageMarker": 0.9903,
-    "respaced": 0,
-    "tableRows": 12
-   }
-  },
-  {
-   "page": 3,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 7"
-    }
-   ],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 114,
-    "visionTokens": 112,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9895,
-    "respaced": 0,
-    "tableRows": 7
-   }
-  },
-  {
-   "page": 4,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 233,
-    "visionTokens": 227,
-    "coverageVision": 0.9901,
-    "coverageMarker": 0.9901,
-    "respaced": 0,
-    "tableRows": 7
-   }
-  },
-  {
-   "page": 5,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "4"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 249,
-    "visionTokens": 244,
-    "coverageVision": 0.9952,
-    "coverageMarker": 0.9904,
-    "respaced": 0,
-    "tableRows": 10
-   }
-  },
-  {
-   "page": 6,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 5"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 319,
-    "visionTokens": 317,
-    "coverageVision": 0.989,
-    "coverageMarker": 0.989,
-    "respaced": 0,
-    "tableRows": 7
-   }
-  },
-  {
-   "page": 7,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "6"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 352,
-    "visionTokens": 349,
-    "coverageVision": 0.9931,
-    "coverageMarker": 0.9828,
-    "respaced": 0,
-    "tableRows": 18
-   }
-  },
-  {
-   "page": 8,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 7"
-    }
-   ],
-   "furniture": [
-    "7"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 263,
-    "visionTokens": 256,
-    "coverageVision": 0.9956,
-    "coverageMarker": 0.9869,
-    "respaced": 1,
-    "tableRows": 20
-   }
-  },
-  {
-   "page": 9,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "8"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 299,
-    "visionTokens": 298,
-    "coverageVision": 0.996,
-    "coverageMarker": 0.9921,
-    "respaced": 1,
-    "tableRows": 2
-   }
-  },
-  {
-   "page": 10,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "9"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 272,
-    "visionTokens": 271,
-    "coverageVision": 0.9914,
-    "coverageMarker": 0.9914,
-    "respaced": 0,
-    "tableRows": 5
-   }
-  },
-  {
-   "page": 11,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "coverage-marker",
-     "detail": "12% of Marker's tokens are not in Vision (e.g. детей, мероприятий, длительно, часто, болеющих, хроническими, заболеваниями, их, жизнедеятельности, службу, ранней, помощи)"
-    }
-   ],
-   "furniture": [
-    "10"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 325,
-    "visionTokens": 286,
-    "coverageVision": 0.9957,
-    "coverageMarker": 0.875,
-    "respaced": 0,
-    "tableRows": 17
-   }
-  },
-  {
-   "page": 12,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "11"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 337,
-    "visionTokens": 322,
-    "coverageVision": 0.996,
-    "coverageMarker": 0.9509,
-    "respaced": 0,
-    "tableRows": 13
-   }
-  },
-  {
-   "page": 13,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 7"
-    }
-   ],
-   "furniture": [
-    "12"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 273,
-    "visionTokens": 265,
-    "coverageVision": 0.9912,
-    "coverageMarker": 0.9655,
-    "respaced": 0,
-    "tableRows": 19
-   }
-  },
-  {
-   "page": 14,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "13"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 358,
-    "visionTokens": 356,
-    "coverageVision": 0.9966,
-    "coverageMarker": 0.9898,
-    "respaced": 0,
-    "tableRows": 2
-   }
-  },
-  {
-   "page": 15,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 7"
-    }
-   ],
-   "furniture": [
-    "14"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 303,
-    "visionTokens": 300,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9844,
-    "respaced": 0,
-    "tableRows": 14
-   }
-  },
-  {
-   "page": 16,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 15"
+      "page": 6,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 5"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 319,
+        "visionTokens": 317,
+        "coverageVision": 0.989,
+        "coverageMarker": 0.989,
+        "respaced": 0,
+        "tableRows": 7
+      }
     },
     {
-     "kind": "repeated-content-missing",
-     "detail": "Vision has these words more often than Marker (dropped rows or lines?): данных, детей, законных, обработку, персональных, получения, правила, представителей, родителей, согласия, старше"
-    }
-   ],
-   "furniture": [
-    "15"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 286,
-    "visionTokens": 299,
-    "coverageVision": 0.948,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 23
-   }
-  },
-  {
-   "page": 17,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
+      "page": 7,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["6"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 352,
+        "visionTokens": 349,
+        "coverageVision": 0.9931,
+        "coverageMarker": 0.9828,
+        "respaced": 0,
+        "tableRows": 18
+      }
+    },
     {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 16; only in Marker: 1"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 338,
-    "visionTokens": 331,
-    "coverageVision": 0.9933,
-    "coverageMarker": 0.9769,
-    "respaced": 0,
-    "tableRows": 13
-   }
-  },
-  {
-   "page": 18,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
+      "page": 8,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 7"
+        }
+      ],
+      "furniture": ["7"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 263,
+        "visionTokens": 256,
+        "coverageVision": 0.9956,
+        "coverageMarker": 0.9869,
+        "respaced": 1,
+        "tableRows": 20
+      }
+    },
     {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 41389"
+      "page": 9,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["8"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 299,
+        "visionTokens": 298,
+        "coverageVision": 0.996,
+        "coverageMarker": 0.9921,
+        "respaced": 1,
+        "tableRows": 2
+      }
+    },
+    {
+      "page": 10,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["9"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 272,
+        "visionTokens": 271,
+        "coverageVision": 0.9914,
+        "coverageMarker": 0.9914,
+        "respaced": 0,
+        "tableRows": 5
+      }
+    },
+    {
+      "page": 11,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "coverage-marker",
+          "detail": "12% of Marker's tokens are not in Vision (e.g. детей, мероприятий, длительно, часто, болеющих, хроническими, заболеваниями, их, жизнедеятельности, службу, ранней, помощи)"
+        }
+      ],
+      "furniture": ["10"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 325,
+        "visionTokens": 286,
+        "coverageVision": 0.9957,
+        "coverageMarker": 0.875,
+        "respaced": 0,
+        "tableRows": 17
+      }
+    },
+    {
+      "page": 12,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["11"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 337,
+        "visionTokens": 322,
+        "coverageVision": 0.996,
+        "coverageMarker": 0.9509,
+        "respaced": 0,
+        "tableRows": 13
+      }
+    },
+    {
+      "page": 13,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 7"
+        }
+      ],
+      "furniture": ["12"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 273,
+        "visionTokens": 265,
+        "coverageVision": 0.9912,
+        "coverageMarker": 0.9655,
+        "respaced": 0,
+        "tableRows": 19
+      }
+    },
+    {
+      "page": 14,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["13"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 358,
+        "visionTokens": 356,
+        "coverageVision": 0.9966,
+        "coverageMarker": 0.9898,
+        "respaced": 0,
+        "tableRows": 2
+      }
+    },
+    {
+      "page": 15,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 7"
+        }
+      ],
+      "furniture": ["14"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 303,
+        "visionTokens": 300,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9844,
+        "respaced": 0,
+        "tableRows": 14
+      }
+    },
+    {
+      "page": 16,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 15"
+        },
+        {
+          "kind": "repeated-content-missing",
+          "detail": "Vision has these words more often than Marker (dropped rows or lines?): данных, детей, законных, обработку, персональных, получения, правила, представителей, родителей, согласия, старше"
+        }
+      ],
+      "furniture": ["15"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 286,
+        "visionTokens": 299,
+        "coverageVision": 0.948,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 23
+      }
+    },
+    {
+      "page": 17,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 16; only in Marker: 1"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 338,
+        "visionTokens": 331,
+        "coverageVision": 0.9933,
+        "coverageMarker": 0.9769,
+        "respaced": 0,
+        "tableRows": 13
+      }
+    },
+    {
+      "page": 18,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 41389"
+        }
+      ],
+      "furniture": ["17"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 342,
+        "visionTokens": 338,
+        "coverageVision": 0.9795,
+        "coverageMarker": 0.9896,
+        "respaced": 0,
+        "tableRows": 0
+      }
     }
-   ],
-   "furniture": [
-    "17"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 342,
-    "visionTokens": 338,
-    "coverageVision": 0.9795,
-    "coverageMarker": 0.9896,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  }
- ]
+  ]
 }

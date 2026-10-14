@@ -1,1186 +1,1075 @@
 {
- "documentId": "regulatory.rf.minzdrav.583n-2024",
- "source": {
-  "file": "0001202411200017.pdf",
-  "sha256": "f4c17ec0eaecae23f516b0d3549db7cdb2785fbf8c9d2926ce38e4e685d061c6",
-  "bytes": 2503855,
-  "pages": 51,
-  "officialUrl": "https://publication.pravo.gov.ru/document/0001202411200017"
- },
- "identityFromPortal": {
-  "number": "583н",
-  "date": "2024-10-29",
-  "name": "Об утверждении Порядка оказания медицинской помощи по профилю «детская эндокринология",
-  "registrationNumber": "80242",
-  "registrationDate": "2024-11-20"
- },
- "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
- "review": {
-  "reviewer": "Claude (agent), against the page images; not a lawyer",
-  "reviewedAt": "2026-10-14",
-  "corrections": 7
- },
- "pages": [
-  {
-   "page": 1,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": "МИНИСТЕРСТВО ЗДРАВООХРАНЕНИЯ\nРОССИЙСКОЙ ФЕДЕРАЦИИ\n(МИНЗДРАВ РОССИИ)\n\nПРИКАЗ\n\n29 октября 2024 г.\n\n№ 5834\n\n**Об утверждении Порядка оказания медицинской помощи\nпо профилю «детская эндокринология»**",
-   "stats": {
-    "markerTokens": 175,
-    "visionTokens": 175,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
+  "documentId": "regulatory.rf.minzdrav.583n-2024",
+  "source": {
+    "file": "0001202411200017.pdf",
+    "sha256": "f4c17ec0eaecae23f516b0d3549db7cdb2785fbf8c9d2926ce38e4e685d061c6",
+    "bytes": 2503855,
+    "pages": 51,
+    "officialUrl": "https://publication.pravo.gov.ru/document/0001202411200017"
   },
-  {
-   "page": 2,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
+  "identityFromPortal": {
+    "number": "583н",
+    "date": "2024-10-29",
+    "name": "Об утверждении Порядка оказания медицинской помощи по профилю «детская эндокринология",
+    "registrationNumber": "80242",
+    "registrationDate": "2024-11-20"
+  },
+  "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
+  "review": {
+    "reviewer": "Claude (agent), against the page images; not a lawyer",
+    "reviewedAt": "2026-10-14",
+    "corrections": 7
+  },
+  "pages": [
     {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 7% of Vision's tokens (e.g. мурашко, thin)"
-    }
-   ],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 32,
-    "visionTokens": 36,
-    "coverageVision": 0.9259,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 3,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от « 29 октября 2024 г. № 5834"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 205,
-    "visionTokens": 205,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 4,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 282,
-    "visionTokens": 280,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 5,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 367,
-    "visionTokens": 364,
-    "coverageVision": 0.9905,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 6,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "4"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 313,
-    "visionTokens": 313,
-    "coverageVision": 0.989,
-    "coverageMarker": 0.9963,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 7,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "5"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 316,
-    "visionTokens": 315,
-    "coverageVision": 0.9924,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 8,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: I"
+      "page": 1,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": "МИНИСТЕРСТВО ЗДРАВООХРАНЕНИЯ\nРОССИЙСКОЙ ФЕДЕРАЦИИ\n(МИНЗДРАВ РОССИИ)\n\nПРИКАЗ\n\n29 октября 2024 г.\n\n№ 5834\n\n**Об утверждении Порядка оказания медицинской помощи\nпо профилю «детская эндокринология»**",
+      "stats": {
+        "markerTokens": 175,
+        "visionTokens": 175,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "numbered-rows",
-     "detail": "Vision has numbered lines 18 that Marker lacks"
-    }
-   ],
-   "furniture": [
-    "6"
-   ],
-   "portalRewrites": [
-    "hyphen restored: медикосанитарную → медико-санитарную"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 351,
-    "visionTokens": 346,
-    "coverageVision": 0.9864,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 9,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "7"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 84,
-    "visionTokens": 83,
-    "coverageVision": 0.9863,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 10,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от «29 октября 2024 г. № 583Н"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 239,
-    "visionTokens": 236,
-    "coverageVision": 0.9951,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 11,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 267,
-    "visionTokens": 267,
-    "coverageVision": 0.9867,
-    "coverageMarker": 0.9955,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 12,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 57,
-    "visionTokens": 56,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 13,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от «29» остайка 2024 г. № 583К"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 60,
-    "visionTokens": 59,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 3
-   }
-  },
-  {
-   "page": 14,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 1×3"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [
-    "от «29 октября 2024 г. № 583Н"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 179,
-    "visionTokens": 169,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.9608,
-    "respaced": 0,
-    "tableRows": 15
-   }
-  },
-  {
-   "page": 15,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 177,
-    "visionTokens": 166,
-    "coverageVision": 0.9803,
-    "coverageMarker": 0.9255,
-    "respaced": 0,
-    "tableRows": 18
-   }
-  },
-  {
-   "page": 16,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 300680, 300690; only in Marker: 300680/300690"
-    }
-   ],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 147,
-    "visionTokens": 148,
-    "coverageVision": 0.947,
-    "coverageMarker": 0.9542,
-    "respaced": 0,
-    "tableRows": 10
-   }
-  },
-  {
-   "page": 17,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 1"
-    }
-   ],
-   "furniture": [
-    "4"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 80,
-    "visionTokens": 75,
-    "coverageVision": 0.9846,
-    "coverageMarker": 0.9697,
-    "respaced": 0,
-    "tableRows": 4
-   }
-  },
-  {
-   "page": 18,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от « 29 октября 2024 г. № 5834"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 238,
-    "visionTokens": 236,
-    "coverageVision": 0.9809,
-    "coverageMarker": 0.9951,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 19,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 248,
-    "visionTokens": 247,
-    "coverageVision": 0.9954,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 20,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 252,
-    "visionTokens": 252,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 21,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "4"
-   ],
-   "portalRewrites": [
-    "hyphen restored: медикосоциальную → медико-социальную"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 191,
-    "visionTokens": 193,
-    "coverageVision": 0.9877,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 22,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от «29» октября 2024 г. № 583К"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 144,
-    "visionTokens": 142,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 11
-   }
-  },
-  {
-   "page": 23,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от «29 октября 2024 г. № 583 Н"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 169,
-    "visionTokens": 164,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 12
-   }
-  },
-  {
-   "page": 24,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 221,
-    "visionTokens": 220,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 16
-   }
-  },
-  {
-   "page": 25,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 1, 300680, 300690; only in Marker: 300680/300690"
+      "page": 2,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 7% of Vision's tokens (e.g. мурашко, thin)"
+        }
+      ],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 32,
+        "visionTokens": 36,
+        "coverageVision": 0.9259,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "coverage-marker",
-     "detail": "17% of Marker's tokens are not in Vision (e.g. 300680/300690, hba, жидкости, автоматизированное, рабочее, место, врача, детского, эндокринолога, оснащенное, персональным, компьютером)"
+      "page": 3,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от « 29 октября 2024 г. № 5834"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 205,
+        "visionTokens": 205,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "numbered-rows",
-     "detail": "table numbering skips 2, 3, 4, 5, 6, 7, 8, 9, 10, 11"
-    }
-   ],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 147,
-    "visionTokens": 127,
-    "coverageVision": 0.9558,
-    "coverageMarker": 0.8308,
-    "respaced": 1,
-    "tableRows": 8
-   }
-  },
-  {
-   "page": 26,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "4",
-    "2."
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 78,
-    "visionTokens": 76,
-    "coverageVision": 0.9701,
-    "coverageMarker": 0.9848,
-    "respaced": 0,
-    "tableRows": 3
-   }
-  },
-  {
-   "page": 27,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от « 29 октября 2024 г. № 583 г"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 249,
-    "visionTokens": 245,
-    "coverageVision": 0.9953,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 28,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [
-    "hyphen restored: медикосоциальную → медико-социальную"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 260,
-    "visionTokens": 258,
-    "coverageVision": 0.9953,
-    "coverageMarker": 0.9953,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 29,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 228,
-    "visionTokens": 228,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 30,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от «29 октября 2024 г. № 5836"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 162,
-    "visionTokens": 157,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 12
-   }
-  },
-  {
-   "page": 31,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 52,
-    "visionTokens": 52,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 4
-   }
-  },
-  {
-   "page": 32,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 1"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [
-    "от «29» октября 2024 г. № 5834"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 196,
-    "visionTokens": 189,
-    "coverageVision": 0.9817,
-    "coverageMarker": 0.9641,
-    "respaced": 0,
-    "tableRows": 15
-   }
-  },
-  {
-   "page": 33,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 1, 2"
+      "page": 4,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 282,
+        "visionTokens": 280,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 7% of Vision's tokens (e.g. для, измерения, термометр, температуры, тела, пациента, по, числу, коек, саталка, лектропитанием)"
-    }
-   ],
-   "furniture": [
-    "2",
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 168,
-    "visionTokens": 174,
-    "coverageVision": 0.9317,
-    "coverageMarker": 0.9677,
-    "respaced": 0,
-    "tableRows": 19
-   }
-  },
-  {
-   "page": 34,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 206,
-    "visionTokens": 202,
-    "coverageVision": 0.9944,
-    "coverageMarker": 0.9725,
-    "respaced": 0,
-    "tableRows": 18
-   }
-  },
-  {
-   "page": 35,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 1, 287890, 300680, 300690, 5; only in Marker: 300680/300690"
+      "page": 5,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 367,
+        "visionTokens": 364,
+        "coverageVision": 0.9905,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 15% of Vision's tokens (e.g. на, 1, рабочий, день, 300680, 300690, 287890, не, менее, при, оснащении, изделием)"
+      "page": 6,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["4"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 313,
+        "visionTokens": 313,
+        "coverageVision": 0.989,
+        "coverageMarker": 0.9963,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "numbered-rows",
-     "detail": "table numbering skips 31"
+      "page": 7,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["5"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 316,
+        "visionTokens": 315,
+        "coverageVision": 0.9924,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "numbered-rows",
-     "detail": "Vision has numbered lines 31 that Marker lacks"
-    }
-   ],
-   "furniture": [
-    "4"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 142,
-    "visionTokens": 161,
-    "coverageVision": 0.8531,
-    "coverageMarker": 0.976,
-    "respaced": 0,
-    "tableRows": 8
-   }
-  },
-  {
-   "page": 36,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "numbered-rows",
-     "detail": "table numbering skips 5, 6, 7, 8, 9, 10, 11, 12, 13, 14"
-    }
-   ],
-   "furniture": [
-    "5"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 163,
-    "visionTokens": 162,
-    "coverageVision": 0.9858,
-    "coverageMarker": 0.9929,
-    "respaced": 0,
-    "tableRows": 8
-   }
-  },
-  {
-   "page": 37,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от «29» осмабра 2024 г. № 5834"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 263,
-    "visionTokens": 257,
-    "coverageVision": 0.9954,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 38,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "dropped-span",
-     "detail": "Vision reads text that Marker lacks (at a paragraph start): «представление отчетности в соответствии с пунктом 11 части 1 статьи 79»"
+      "page": 8,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: I"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "Vision has numbered lines 18 that Marker lacks"
+        }
+      ],
+      "furniture": ["6"],
+      "portalRewrites": ["hyphen restored: медикосанитарную → медико-санитарную"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 351,
+        "visionTokens": 346,
+        "coverageVision": 0.9864,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 1, 11, 79"
+      "page": 9,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["7"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 84,
+        "visionTokens": 83,
+        "coverageVision": 0.9863,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "page-end-missing",
-     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «представление отчетности в соответствии с пунктом 11 части 1 статьи 79»"
-    }
-   ],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 241,
-    "visionTokens": 249,
-    "coverageVision": 0.9502,
-    "coverageMarker": 0.9906,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 39,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 17,
-    "visionTokens": 17,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 40,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от «29 октября 2024 г. № 5834"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 77,
-    "visionTokens": 76,
-    "coverageVision": 0.9836,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 3
-   }
-  },
-  {
-   "page": 41,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от «29 октября 2024 г. № 5834"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 176,
-    "visionTokens": 169,
-    "coverageVision": 0.9932,
-    "coverageMarker": 0.9932,
-    "respaced": 0,
-    "tableRows": 11
-   }
-  },
-  {
-   "page": 42,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 190,
-    "visionTokens": 186,
-    "coverageVision": 0.9877,
-    "coverageMarker": 0.9938,
-    "respaced": 0,
-    "tableRows": 15
-   }
-  },
-  {
-   "page": 43,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от «29 сентября 2024 г. № 583К"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 236,
-    "visionTokens": 229,
-    "coverageVision": 0.9901,
-    "coverageMarker": 0.9901,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 44,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "page-end-missing",
-     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «санитарную комнату.»"
-    }
-   ],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 223,
-    "visionTokens": 224,
-    "coverageVision": 0.9844,
-    "coverageMarker": 0.9947,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 45,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 112,
-    "visionTokens": 112,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 46,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от «29 октября 2024 г. № 583к"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 105,
-    "visionTokens": 104,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 6
-   }
-  },
-  {
-   "page": 47,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 1"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [
-    "от «29 октября 2024 г. № 583К"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 188,
-    "visionTokens": 179,
-    "coverageVision": 0.9873,
-    "coverageMarker": 0.963,
-    "respaced": 0,
-    "tableRows": 15
-   }
-  },
-  {
-   "page": 48,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 1"
+      "page": 10,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от «29 октября 2024 г. № 583Н"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 239,
+        "visionTokens": 236,
+        "coverageVision": 0.9951,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "coverage-marker",
-     "detail": "33% of Marker's tokens are not in Vision (e.g. для, измерения, артериального, давления, электронный, термометр, температуры, тела, пациента, транспортировки, аппарат, портативный)"
-    }
-   ],
-   "furniture": [
-    "2",
-    "1"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 179,
-    "visionTokens": 122,
-    "coverageVision": 1.0,
-    "coverageMarker": 0.6727,
-    "respaced": 0,
-    "tableRows": 19
-   }
-  },
-  {
-   "page": 49,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 2"
-    }
-   ],
-   "furniture": [
-    "3",
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 200,
-    "visionTokens": 196,
-    "coverageVision": 0.9887,
-    "coverageMarker": 0.9722,
-    "respaced": 0,
-    "tableRows": 19
-   }
-  },
-  {
-   "page": 50,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 6"
+      "page": 11,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 267,
+        "visionTokens": 267,
+        "coverageVision": 0.9867,
+        "coverageMarker": 0.9955,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 7% of Vision's tokens (e.g. номенклатурной, классификации, медицинским, 6, медицинсанализатору, no, врачейспециалистов)"
+      "page": 12,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 57,
+        "visionTokens": 56,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "coverage-marker",
-     "detail": "11% of Marker's tokens are not in Vision (e.g. медицинс, номен, клатурной, классифи, кации, анализатору, ким, hba, врачей, специалистов)"
+      "page": 13,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от «29» остайка 2024 г. № 583К"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 60,
+        "visionTokens": 59,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 3
+      }
     },
     {
-     "kind": "numbered-rows",
-     "detail": "table numbering skips 2, 3, 4, 5, 6, 7, 8, 9, 10, 11"
+      "page": 14,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 1×3"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": ["от «29 октября 2024 г. № 583Н"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 179,
+        "visionTokens": 169,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.9608,
+        "respaced": 0,
+        "tableRows": 15
+      }
+    },
+    {
+      "page": 15,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 177,
+        "visionTokens": 166,
+        "coverageVision": 0.9803,
+        "coverageMarker": 0.9255,
+        "respaced": 0,
+        "tableRows": 18
+      }
+    },
+    {
+      "page": 16,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 300680, 300690; only in Marker: 300680/300690"
+        }
+      ],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 147,
+        "visionTokens": 148,
+        "coverageVision": 0.947,
+        "coverageMarker": 0.9542,
+        "respaced": 0,
+        "tableRows": 10
+      }
+    },
+    {
+      "page": 17,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 1"
+        }
+      ],
+      "furniture": ["4"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 80,
+        "visionTokens": 75,
+        "coverageVision": 0.9846,
+        "coverageMarker": 0.9697,
+        "respaced": 0,
+        "tableRows": 4
+      }
+    },
+    {
+      "page": 18,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от « 29 октября 2024 г. № 5834"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 238,
+        "visionTokens": 236,
+        "coverageVision": 0.9809,
+        "coverageMarker": 0.9951,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 19,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 248,
+        "visionTokens": 247,
+        "coverageVision": 0.9954,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 20,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 252,
+        "visionTokens": 252,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 21,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["4"],
+      "portalRewrites": ["hyphen restored: медикосоциальную → медико-социальную"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 191,
+        "visionTokens": 193,
+        "coverageVision": 0.9877,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 22,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от «29» октября 2024 г. № 583К"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 144,
+        "visionTokens": 142,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 11
+      }
+    },
+    {
+      "page": 23,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от «29 октября 2024 г. № 583 Н"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 169,
+        "visionTokens": 164,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 12
+      }
+    },
+    {
+      "page": 24,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 221,
+        "visionTokens": 220,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 16
+      }
+    },
+    {
+      "page": 25,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 1, 300680, 300690; only in Marker: 300680/300690"
+        },
+        {
+          "kind": "coverage-marker",
+          "detail": "17% of Marker's tokens are not in Vision (e.g. 300680/300690, hba, жидкости, автоматизированное, рабочее, место, врача, детского, эндокринолога, оснащенное, персональным, компьютером)"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "table numbering skips 2, 3, 4, 5, 6, 7, 8, 9, 10, 11"
+        }
+      ],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 147,
+        "visionTokens": 127,
+        "coverageVision": 0.9558,
+        "coverageMarker": 0.8308,
+        "respaced": 1,
+        "tableRows": 8
+      }
+    },
+    {
+      "page": 26,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["4", "2."],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 78,
+        "visionTokens": 76,
+        "coverageVision": 0.9701,
+        "coverageMarker": 0.9848,
+        "respaced": 0,
+        "tableRows": 3
+      }
+    },
+    {
+      "page": 27,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от « 29 октября 2024 г. № 583 г"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 249,
+        "visionTokens": 245,
+        "coverageVision": 0.9953,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 28,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": ["hyphen restored: медикосоциальную → медико-социальную"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 260,
+        "visionTokens": 258,
+        "coverageVision": 0.9953,
+        "coverageMarker": 0.9953,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 29,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 228,
+        "visionTokens": 228,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 30,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от «29 октября 2024 г. № 5836"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 162,
+        "visionTokens": 157,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 12
+      }
+    },
+    {
+      "page": 31,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 52,
+        "visionTokens": 52,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 4
+      }
+    },
+    {
+      "page": 32,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 1"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": ["от «29» октября 2024 г. № 5834"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 196,
+        "visionTokens": 189,
+        "coverageVision": 0.9817,
+        "coverageMarker": 0.9641,
+        "respaced": 0,
+        "tableRows": 15
+      }
+    },
+    {
+      "page": 33,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 1, 2"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 7% of Vision's tokens (e.g. для, измерения, термометр, температуры, тела, пациента, по, числу, коек, саталка, лектропитанием)"
+        }
+      ],
+      "furniture": ["2", "2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 168,
+        "visionTokens": 174,
+        "coverageVision": 0.9317,
+        "coverageMarker": 0.9677,
+        "respaced": 0,
+        "tableRows": 19
+      }
+    },
+    {
+      "page": 34,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 206,
+        "visionTokens": 202,
+        "coverageVision": 0.9944,
+        "coverageMarker": 0.9725,
+        "respaced": 0,
+        "tableRows": 18
+      }
+    },
+    {
+      "page": 35,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 1, 287890, 300680, 300690, 5; only in Marker: 300680/300690"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 15% of Vision's tokens (e.g. на, 1, рабочий, день, 300680, 300690, 287890, не, менее, при, оснащении, изделием)"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "table numbering skips 31"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "Vision has numbered lines 31 that Marker lacks"
+        }
+      ],
+      "furniture": ["4"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 142,
+        "visionTokens": 161,
+        "coverageVision": 0.8531,
+        "coverageMarker": 0.976,
+        "respaced": 0,
+        "tableRows": 8
+      }
+    },
+    {
+      "page": 36,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "numbered-rows",
+          "detail": "table numbering skips 5, 6, 7, 8, 9, 10, 11, 12, 13, 14"
+        }
+      ],
+      "furniture": ["5"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 163,
+        "visionTokens": 162,
+        "coverageVision": 0.9858,
+        "coverageMarker": 0.9929,
+        "respaced": 0,
+        "tableRows": 8
+      }
+    },
+    {
+      "page": 37,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от «29» осмабра 2024 г. № 5834"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 263,
+        "visionTokens": 257,
+        "coverageVision": 0.9954,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 38,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "dropped-span",
+          "detail": "Vision reads text that Marker lacks (at a paragraph start): «представление отчетности в соответствии с пунктом 11 части 1 статьи 79»"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 1, 11, 79"
+        },
+        {
+          "kind": "page-end-missing",
+          "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «представление отчетности в соответствии с пунктом 11 части 1 статьи 79»"
+        }
+      ],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 241,
+        "visionTokens": 249,
+        "coverageVision": 0.9502,
+        "coverageMarker": 0.9906,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 39,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 17,
+        "visionTokens": 17,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 40,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от «29 октября 2024 г. № 5834"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 77,
+        "visionTokens": 76,
+        "coverageVision": 0.9836,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 3
+      }
+    },
+    {
+      "page": 41,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от «29 октября 2024 г. № 5834"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 176,
+        "visionTokens": 169,
+        "coverageVision": 0.9932,
+        "coverageMarker": 0.9932,
+        "respaced": 0,
+        "tableRows": 11
+      }
+    },
+    {
+      "page": 42,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 190,
+        "visionTokens": 186,
+        "coverageVision": 0.9877,
+        "coverageMarker": 0.9938,
+        "respaced": 0,
+        "tableRows": 15
+      }
+    },
+    {
+      "page": 43,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от «29 сентября 2024 г. № 583К"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 236,
+        "visionTokens": 229,
+        "coverageVision": 0.9901,
+        "coverageMarker": 0.9901,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 44,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "page-end-missing",
+          "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «санитарную комнату.»"
+        }
+      ],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 223,
+        "visionTokens": 224,
+        "coverageVision": 0.9844,
+        "coverageMarker": 0.9947,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 45,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 112,
+        "visionTokens": 112,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 46,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от «29 октября 2024 г. № 583к"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 105,
+        "visionTokens": 104,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 6
+      }
+    },
+    {
+      "page": 47,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 1"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": ["от «29 октября 2024 г. № 583К"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 188,
+        "visionTokens": 179,
+        "coverageVision": 0.9873,
+        "coverageMarker": 0.963,
+        "respaced": 0,
+        "tableRows": 15
+      }
+    },
+    {
+      "page": 48,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 1"
+        },
+        {
+          "kind": "coverage-marker",
+          "detail": "33% of Marker's tokens are not in Vision (e.g. для, измерения, артериального, давления, электронный, термометр, температуры, тела, пациента, транспортировки, аппарат, портативный)"
+        }
+      ],
+      "furniture": ["2", "1"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 179,
+        "visionTokens": 122,
+        "coverageVision": 1.0,
+        "coverageMarker": 0.6727,
+        "respaced": 0,
+        "tableRows": 19
+      }
+    },
+    {
+      "page": 49,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 2"
+        }
+      ],
+      "furniture": ["3", "2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 200,
+        "visionTokens": 196,
+        "coverageVision": 0.9887,
+        "coverageMarker": 0.9722,
+        "respaced": 0,
+        "tableRows": 19
+      }
+    },
+    {
+      "page": 50,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 6"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 7% of Vision's tokens (e.g. номенклатурной, классификации, медицинским, 6, медицинсанализатору, no, врачейспециалистов)"
+        },
+        {
+          "kind": "coverage-marker",
+          "detail": "11% of Marker's tokens are not in Vision (e.g. медицинс, номен, клатурной, классифи, кации, анализатору, ким, hba, врачей, специалистов)"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "table numbering skips 2, 3, 4, 5, 6, 7, 8, 9, 10, 11"
+        }
+      ],
+      "furniture": ["4"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 156,
+        "visionTokens": 151,
+        "coverageVision": 0.9313,
+        "coverageMarker": 0.8905,
+        "respaced": 3,
+        "tableRows": 7
+      }
+    },
+    {
+      "page": 51,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["5", "2."],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 55,
+        "visionTokens": 50,
+        "coverageVision": 0.9778,
+        "coverageMarker": 0.9362,
+        "respaced": 0,
+        "tableRows": 2
+      }
     }
-   ],
-   "furniture": [
-    "4"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 156,
-    "visionTokens": 151,
-    "coverageVision": 0.9313,
-    "coverageMarker": 0.8905,
-    "respaced": 3,
-    "tableRows": 7
-   }
-  },
-  {
-   "page": 51,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "5",
-    "2."
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 55,
-    "visionTokens": 50,
-    "coverageVision": 0.9778,
-    "coverageMarker": 0.9362,
-    "respaced": 0,
-    "tableRows": 2
-   }
-  }
- ]
+  ]
 }

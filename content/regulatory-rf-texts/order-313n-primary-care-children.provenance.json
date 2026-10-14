@@ -1,832 +1,769 @@
 {
- "documentId": "regulatory.rf.minzdrav.313n-2025",
- "source": {
-  "file": "0001202506020071.pdf",
-  "sha256": "7c36c8aecfee80abd394765e3387fefb95349a9c3d38d4f8288eda97a9b9c9f7",
-  "bytes": 1555987,
-  "pages": 31,
-  "officialUrl": "https://publication.pravo.gov.ru/document/0001202506020071"
- },
- "identityFromPortal": {
-  "number": "313н",
-  "date": "2025-05-27",
-  "name": "Об утверждении Положения об организации оказания первичной медико-санитарной помощи детям",
-  "registrationNumber": "82503",
-  "registrationDate": "2025-06-02"
- },
- "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
- "review": {
-  "reviewer": "Claude (agent), against the page images; not a lawyer",
-  "reviewedAt": "2026-10-14",
-  "corrections": 7
- },
- "pages": [
-  {
-   "page": 1,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": "МИНИСТЕРСТВО ЗДРАВООХРАНЕНИЯ\nРОССИЙСКОЙ ФЕДЕРАЦИИ\n(МИНЗДРАВ РОССИИ)\n\n27 июня 2025\n\n№ 3134\n\n**Об утверждении Положения\nоб организации оказания первичной медико-санитарной помощи детям**",
-   "stats": {
-    "markerTokens": 121,
-    "visionTokens": 121,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
+  "documentId": "regulatory.rf.minzdrav.313n-2025",
+  "source": {
+    "file": "0001202506020071.pdf",
+    "sha256": "7c36c8aecfee80abd394765e3387fefb95349a9c3d38d4f8288eda97a9b9c9f7",
+    "bytes": 1555987,
+    "pages": 31,
+    "officialUrl": "https://publication.pravo.gov.ru/document/0001202506020071"
   },
-  {
-   "page": 2,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от «27» 1448 20 25 г. № 3131"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 259,
-    "visionTokens": 257,
-    "coverageVision": 0.9955,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
+  "identityFromPortal": {
+    "number": "313н",
+    "date": "2025-05-27",
+    "name": "Об утверждении Положения об организации оказания первичной медико-санитарной помощи детям",
+    "registrationNumber": "82503",
+    "registrationDate": "2025-06-02"
   },
-  {
-   "page": 3,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 290,
-    "visionTokens": 290,
-    "coverageVision": 0.9919,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
+  "reader": "Marker 2.0.0 (fast) reconciled page by page with macOS Vision OCR (1800 px)",
+  "review": {
+    "reviewer": "Claude (agent), against the page images; not a lawyer",
+    "reviewedAt": "2026-10-14",
+    "corrections": 7
   },
-  {
-   "page": 4,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 278,
-    "visionTokens": 278,
-    "coverageVision": 0.9917,
-    "coverageMarker": 0.9835,
-    "respaced": 2,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 5,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "4"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 280,
-    "visionTokens": 278,
-    "coverageVision": 0.9919,
-    "coverageMarker": 0.996,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 6,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "5"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 301,
-    "visionTokens": 301,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 7,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "6"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 23,
-    "visionTokens": 22,
-    "coverageVision": 0.95,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 8,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от *[Signature]* 2025 г. № *3134"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 261,
-    "visionTokens": 258,
-    "coverageVision": 0.9954,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 9,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 271,
-    "visionTokens": 272,
-    "coverageVision": 0.9956,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 10,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 204,
-    "visionTokens": 201,
-    "coverageVision": 0.9938,
-    "coverageMarker": 0.9877,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 11,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "4"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 235,
-    "visionTokens": 232,
-    "coverageVision": 0.9949,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 12,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "5"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 53,
-    "visionTokens": 52,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 13,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
+  "pages": [
     {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 1,2,3×3; only in Marker: 1×4, 2×3, 3×3"
+      "page": 1,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": "МИНИСТЕРСТВО ЗДРАВООХРАНЕНИЯ\nРОССИЙСКОЙ ФЕДЕРАЦИИ\n(МИНЗДРАВ РОССИИ)\n\n27 июня 2025\n\n№ 3134\n\n**Об утверждении Положения\nоб организации оказания первичной медико-санитарной помощи детям**",
+      "stats": {
+        "markerTokens": 121,
+        "visionTokens": 121,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 12% of Vision's tokens (e.g. 1,2,3, оборудованн, ванащения, едицинского, издели, вид, гребуемо, оличеств, классификанной, лектропитания, непортативны, бе)"
+      "page": 2,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от «27» 1448 20 25 г. № 3131"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 259,
+        "visionTokens": 257,
+        "coverageVision": 0.9955,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
     },
     {
-     "kind": "coverage-marker",
-     "detail": "24% of Marker's tokens are not in Vision (e.g. 1, 2, 3, вида, изделия, номенклатурной, классификацией, оснащения, наименование, оборудования, код, медицинского)"
+      "page": 3,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 290,
+        "visionTokens": 290,
+        "coverageVision": 0.9919,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 4,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 278,
+        "visionTokens": 278,
+        "coverageVision": 0.9917,
+        "coverageMarker": 0.9835,
+        "respaced": 2,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 5,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["4"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 280,
+        "visionTokens": 278,
+        "coverageVision": 0.9919,
+        "coverageMarker": 0.996,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 6,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["5"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 301,
+        "visionTokens": 301,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 7,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["6"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 23,
+        "visionTokens": 22,
+        "coverageVision": 0.95,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 8,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от *[Signature]* 2025 г. № *3134"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 261,
+        "visionTokens": 258,
+        "coverageVision": 0.9954,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 9,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 271,
+        "visionTokens": 272,
+        "coverageVision": 0.9956,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 10,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 204,
+        "visionTokens": 201,
+        "coverageVision": 0.9938,
+        "coverageMarker": 0.9877,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 11,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["4"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 235,
+        "visionTokens": 232,
+        "coverageVision": 0.9949,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 12,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["5"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 53,
+        "visionTokens": 52,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 13,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 1,2,3×3; only in Marker: 1×4, 2×3, 3×3"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 12% of Vision's tokens (e.g. 1,2,3, оборудованн, ванащения, едицинского, издели, вид, гребуемо, оличеств, классификанной, лектропитания, непортативны, бе)"
+        },
+        {
+          "kind": "coverage-marker",
+          "detail": "24% of Marker's tokens are not in Vision (e.g. 1, 2, 3, вида, изделия, номенклатурной, классификацией, оснащения, наименование, оборудования, код, медицинского)"
+        }
+      ],
+      "furniture": ["1"],
+      "portalRewrites": ["от «дт мме 2025 г. № 3131"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 161,
+        "visionTokens": 137,
+        "coverageVision": 0.8824,
+        "coverageMarker": 0.7554,
+        "respaced": 0,
+        "tableRows": 11
+      }
+    },
+    {
+      "page": 14,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "dropped-span",
+          "detail": "Vision reads text that Marker lacks (inside a paragraph): «пашента, умнон кожній 2. Тонометр 2,3 239410 Апарат для»"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 1,2,3×2, 2,3×2; only in Marker: 1×3, 2×4, 3×4"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 11% of Vision's tokens (e.g. 1,2,3, 2,3, ne, требу, мо, обор, ованно, номенклатурно, ассификаци, гермометр, пашента, умнон)"
+        },
+        {
+          "kind": "coverage-marker",
+          "detail": "22% of Marker's tokens are not in Vision (e.g. 2, 3, 1, сеть, номенклатурной, классификацией, измерения, наименование, оборудования, требуемое, штук, информационно)"
+        }
+      ],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 238,
+        "visionTokens": 204,
+        "coverageVision": 0.8913,
+        "coverageMarker": 0.7773,
+        "respaced": 0,
+        "tableRows": 12
+      }
+    },
+    {
+      "page": 15,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 2,3×5; only in Marker: 1, 2×6, 3×6"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 13% of Vision's tokens (e.g. 2,3, втоматический, портативны, запясть, артериальног, тол, пеленальны, ля, младенце, масажный, питнием, роцедур)"
+        },
+        {
+          "kind": "coverage-marker",
+          "detail": "19% of Marker's tokens are not in Vision (e.g. 2, 3, для, процедур, автоматический, портативный, запястье, артериального, 1, пеленальный, стол, младенцев)"
+        }
+      ],
+      "furniture": ["3", "1"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 176,
+        "visionTokens": 163,
+        "coverageVision": 0.8675,
+        "coverageMarker": 0.8137,
+        "respaced": 0,
+        "tableRows": 18
+      }
+    },
+    {
+      "page": 16,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 1,2, 2,3×6; only in Marker: 1×4, 2×8, 3×7"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 7% of Vision's tokens (e.g. 2,3, зонц, маточны, вагинально, зеркалаподъемники, 1,2)"
+        },
+        {
+          "kind": "coverage-marker",
+          "detail": "14% of Marker's tokens are not in Vision (e.g. 2, 3, 1, зонд, маточный, использования, зеркала, подъемники, вагинальное)"
+        }
+      ],
+      "furniture": ["4", "9."],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 197,
+        "visionTokens": 181,
+        "coverageVision": 0.9325,
+        "coverageMarker": 0.8588,
+        "respaced": 1,
+        "tableRows": 19
+      }
+    },
+    {
+      "page": 17,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 2,3×3; only in Marker: 1, 2×3, 3×3"
+        },
+        {
+          "kind": "coverage-marker",
+          "detail": "12% of Marker's tokens are not in Vision (e.g. 2, 3, требуемое, количество, штук, 1, наименование, медицинской, организации, безопасности, систем, вида)"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "table numbering skips 3, 4, 5, 6, 7, 8, 9, 10, 11, 12"
+        }
+      ],
+      "furniture": ["5", "21."],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 236,
+        "visionTokens": 220,
+        "coverageVision": 0.9424,
+        "coverageMarker": 0.8824,
+        "respaced": 0,
+        "tableRows": 15
+      }
+    },
+    {
+      "page": 18,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 2,3×6; only in Marker: 2×6, 3×6"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 8% of Vision's tokens (e.g. 2,3, нероидный, механически, давлени, озраста, подростковог, ребуем, органаной, личество, ша)"
+        },
+        {
+          "kind": "coverage-marker",
+          "detail": "11% of Marker's tokens are not in Vision (e.g. 2, 3, давления, подросткового, возраста, анероидный, механический, медицинской, организации, требуемое, количество, штук)"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "table numbering skips 3, 4"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "Vision has numbered lines 3, 4 that Marker lacks"
+        }
+      ],
+      "furniture": ["6"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 218,
+        "visionTokens": 210,
+        "coverageVision": 0.9198,
+        "coverageMarker": 0.8866,
+        "respaced": 0,
+        "tableRows": 17
+      }
+    },
+    {
+      "page": 19,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 2,3×3; only in Marker: 1×2, 2×3, 3×3"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 11% of Vision's tokens (e.g. 2,3, змерения, тел, бораниям, беловасности, оборудованно, снашения, классификацис, гермометр, дл, сациента, галли)"
+        },
+        {
+          "kind": "coverage-marker",
+          "detail": "27% of Marker's tokens are not in Vision (e.g. измерения, 2, 3, для, артериального, давления, взаимодействие, 1, тела, аппарат, портативный, электрический)"
+        }
+      ],
+      "furniture": ["7"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 233,
+        "visionTokens": 193,
+        "coverageVision": 0.8947,
+        "coverageMarker": 0.7321,
+        "respaced": 0,
+        "tableRows": 13
+      }
+    },
+    {
+      "page": 20,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 124550, 2,3×8; only in Marker: 2×7, 3×7"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 11% of Vision's tokens (e.g. 2,3, арперально, ариения, сетк, 124550, стетоскоп, неавтоматизированный, оличество, шту, гребуемо, оранинской)"
+        },
+        {
+          "kind": "coverage-marker",
+          "detail": "15% of Marker's tokens are not in Vision (e.g. 2, 3, для, артериального, давления, определением, аритмии, сети, кресло, медицинской, организации, требуемое)"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "table numbering skips 2, 4"
+        },
+        {
+          "kind": "numbered-rows",
+          "detail": "Vision has numbered lines 4 that Marker lacks"
+        }
+      ],
+      "furniture": ["8", "1"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 186,
+        "visionTokens": 177,
+        "coverageVision": 0.8889,
+        "coverageMarker": 0.8471,
+        "respaced": 0,
+        "tableRows": 21
+      }
+    },
+    {
+      "page": 21,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "dropped-span",
+          "detail": "Vision reads text that Marker lacks (inside a paragraph): «едицинского издел Требуемос в соответстви с номенклатурной»"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 2,3×11; only in Marker: 1, 2×11, 3×11"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 11% of Vision's tokens (e.g. 2,3, пi, iаименование, ви, едицинского, издел, требуемос, соответстви, классификаной, no, шту)"
+        },
+        {
+          "kind": "coverage-marker",
+          "detail": "18% of Marker's tokens are not in Vision (e.g. 2, 3, штук, систем, которыми, необходимо, обеспечить, 1, наименование, вида, медицинского, изделия)"
+        }
+      ],
+      "furniture": ["9", "1"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 247,
+        "visionTokens": 228,
+        "coverageVision": 0.8889,
+        "coverageMarker": 0.8195,
+        "respaced": 0,
+        "tableRows": 14
+      }
+    },
+    {
+      "page": 22,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 2,3×6; only in Marker: 1×2, 2×6, 3×6"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 12% of Vision's tokens (e.g. 2,3, гребуемс, оличеста)"
+        },
+        {
+          "kind": "coverage-marker",
+          "detail": "27% of Marker's tokens are not in Vision (e.g. 2, 3, 1, медицинской, организации, требуемое, количество, штук, соответствующий, информационных, взаимодействие)"
+        }
+      ],
+      "furniture": ["10"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 97,
+        "visionTokens": 83,
+        "coverageVision": 0.8806,
+        "coverageMarker": 0.7284,
+        "respaced": 0,
+        "tableRows": 7
+      }
+    },
+    {
+      "page": 23,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от «И» MARK 2025 г. № 3131"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 279,
+        "visionTokens": 275,
+        "coverageVision": 0.9913,
+        "coverageMarker": 0.9913,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 24,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 56,
+        "visionTokens": 56,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 25,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "dropped-span",
+          "detail": "Vision reads text that Marker lacks (at a paragraph start): «ОІ « 27» мая 2025 г. № 213н»"
+        },
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 2025, 213, 27, 30; only in Marker: 306"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": ["от «27 мая 2025 г. № 313H"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 244,
+        "visionTokens": 240,
+        "coverageVision": 0.9579,
+        "coverageMarker": 0.9951,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 26,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 246,
+        "visionTokens": 244,
+        "coverageVision": 0.995,
+        "coverageMarker": 0.99,
+        "respaced": 1,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 27,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 2×2; only in Marker: 114, 5.2.12, 608"
+        },
+        {
+          "kind": "coverage-vision",
+          "detail": "Marker lacks 7% of Vision's tokens (e.g. 2, 3, поду, зат, ов, стиции, нюля)"
+        },
+        {
+          "kind": "page-end-missing",
+          "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «* Поду (зат 5-2 2 пункта Положения Ов стиции Российской Федерации 28 нюля 2020 г., регистрационный Nº 59083).»"
+        }
+      ],
+      "furniture": ["3"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 147,
+        "visionTokens": 141,
+        "coverageVision": 0.9344,
+        "coverageMarker": 0.9344,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 28,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Marker: 2025, 27, 3311"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 252,
+        "visionTokens": 250,
+        "coverageVision": 0.9952,
+        "coverageMarker": 0.9765,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 29,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": ["2"],
+      "portalRewrites": [],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 174,
+        "visionTokens": 174,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 0
+      }
+    },
+    {
+      "page": 30,
+      "reading": "marker",
+      "status": "pass",
+      "confidence": "high",
+      "flags": [],
+      "furniture": [],
+      "portalRewrites": ["от «27» МАР 2025 г. № 3137"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 68,
+        "visionTokens": 68,
+        "coverageVision": 1.0,
+        "coverageMarker": 1.0,
+        "respaced": 0,
+        "tableRows": 3
+      }
+    },
+    {
+      "page": 31,
+      "reading": "marker",
+      "status": "reviewed",
+      "confidence": "high",
+      "flags": [
+        {
+          "kind": "number-mismatch",
+          "detail": "only in Vision: 1,2,3×2; only in Marker: 1×2, 2×2, 3×2"
+        }
+      ],
+      "furniture": [],
+      "portalRewrites": ["от «2Р» МАР 2025 г. № 3131"],
+      "headerRemoved": null,
+      "stats": {
+        "markerTokens": 147,
+        "visionTokens": 135,
+        "coverageVision": 0.9739,
+        "coverageMarker": 0.918,
+        "respaced": 0,
+        "tableRows": 3
+      }
     }
-   ],
-   "furniture": [
-    "1"
-   ],
-   "portalRewrites": [
-    "от «дт мме 2025 г. № 3131"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 161,
-    "visionTokens": 137,
-    "coverageVision": 0.8824,
-    "coverageMarker": 0.7554,
-    "respaced": 0,
-    "tableRows": 11
-   }
-  },
-  {
-   "page": 14,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "dropped-span",
-     "detail": "Vision reads text that Marker lacks (inside a paragraph): «пашента, умнон кожній 2. Тонометр 2,3 239410 Апарат для»"
-    },
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 1,2,3×2, 2,3×2; only in Marker: 1×3, 2×4, 3×4"
-    },
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 11% of Vision's tokens (e.g. 1,2,3, 2,3, ne, требу, мо, обор, ованно, номенклатурно, ассификаци, гермометр, пашента, умнон)"
-    },
-    {
-     "kind": "coverage-marker",
-     "detail": "22% of Marker's tokens are not in Vision (e.g. 2, 3, 1, сеть, номенклатурной, классификацией, измерения, наименование, оборудования, требуемое, штук, информационно)"
-    }
-   ],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 238,
-    "visionTokens": 204,
-    "coverageVision": 0.8913,
-    "coverageMarker": 0.7773,
-    "respaced": 0,
-    "tableRows": 12
-   }
-  },
-  {
-   "page": 15,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 2,3×5; only in Marker: 1, 2×6, 3×6"
-    },
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 13% of Vision's tokens (e.g. 2,3, втоматический, портативны, запясть, артериальног, тол, пеленальны, ля, младенце, масажный, питнием, роцедур)"
-    },
-    {
-     "kind": "coverage-marker",
-     "detail": "19% of Marker's tokens are not in Vision (e.g. 2, 3, для, процедур, автоматический, портативный, запястье, артериального, 1, пеленальный, стол, младенцев)"
-    }
-   ],
-   "furniture": [
-    "3",
-    "1"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 176,
-    "visionTokens": 163,
-    "coverageVision": 0.8675,
-    "coverageMarker": 0.8137,
-    "respaced": 0,
-    "tableRows": 18
-   }
-  },
-  {
-   "page": 16,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 1,2, 2,3×6; only in Marker: 1×4, 2×8, 3×7"
-    },
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 7% of Vision's tokens (e.g. 2,3, зонц, маточны, вагинально, зеркалаподъемники, 1,2)"
-    },
-    {
-     "kind": "coverage-marker",
-     "detail": "14% of Marker's tokens are not in Vision (e.g. 2, 3, 1, зонд, маточный, использования, зеркала, подъемники, вагинальное)"
-    }
-   ],
-   "furniture": [
-    "4",
-    "9."
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 197,
-    "visionTokens": 181,
-    "coverageVision": 0.9325,
-    "coverageMarker": 0.8588,
-    "respaced": 1,
-    "tableRows": 19
-   }
-  },
-  {
-   "page": 17,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 2,3×3; only in Marker: 1, 2×3, 3×3"
-    },
-    {
-     "kind": "coverage-marker",
-     "detail": "12% of Marker's tokens are not in Vision (e.g. 2, 3, требуемое, количество, штук, 1, наименование, медицинской, организации, безопасности, систем, вида)"
-    },
-    {
-     "kind": "numbered-rows",
-     "detail": "table numbering skips 3, 4, 5, 6, 7, 8, 9, 10, 11, 12"
-    }
-   ],
-   "furniture": [
-    "5",
-    "21."
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 236,
-    "visionTokens": 220,
-    "coverageVision": 0.9424,
-    "coverageMarker": 0.8824,
-    "respaced": 0,
-    "tableRows": 15
-   }
-  },
-  {
-   "page": 18,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 2,3×6; only in Marker: 2×6, 3×6"
-    },
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 8% of Vision's tokens (e.g. 2,3, нероидный, механически, давлени, озраста, подростковог, ребуем, органаной, личество, ша)"
-    },
-    {
-     "kind": "coverage-marker",
-     "detail": "11% of Marker's tokens are not in Vision (e.g. 2, 3, давления, подросткового, возраста, анероидный, механический, медицинской, организации, требуемое, количество, штук)"
-    },
-    {
-     "kind": "numbered-rows",
-     "detail": "table numbering skips 3, 4"
-    },
-    {
-     "kind": "numbered-rows",
-     "detail": "Vision has numbered lines 3, 4 that Marker lacks"
-    }
-   ],
-   "furniture": [
-    "6"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 218,
-    "visionTokens": 210,
-    "coverageVision": 0.9198,
-    "coverageMarker": 0.8866,
-    "respaced": 0,
-    "tableRows": 17
-   }
-  },
-  {
-   "page": 19,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 2,3×3; only in Marker: 1×2, 2×3, 3×3"
-    },
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 11% of Vision's tokens (e.g. 2,3, змерения, тел, бораниям, беловасности, оборудованно, снашения, классификацис, гермометр, дл, сациента, галли)"
-    },
-    {
-     "kind": "coverage-marker",
-     "detail": "27% of Marker's tokens are not in Vision (e.g. измерения, 2, 3, для, артериального, давления, взаимодействие, 1, тела, аппарат, портативный, электрический)"
-    }
-   ],
-   "furniture": [
-    "7"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 233,
-    "visionTokens": 193,
-    "coverageVision": 0.8947,
-    "coverageMarker": 0.7321,
-    "respaced": 0,
-    "tableRows": 13
-   }
-  },
-  {
-   "page": 20,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 124550, 2,3×8; only in Marker: 2×7, 3×7"
-    },
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 11% of Vision's tokens (e.g. 2,3, арперально, ариения, сетк, 124550, стетоскоп, неавтоматизированный, оличество, шту, гребуемо, оранинской)"
-    },
-    {
-     "kind": "coverage-marker",
-     "detail": "15% of Marker's tokens are not in Vision (e.g. 2, 3, для, артериального, давления, определением, аритмии, сети, кресло, медицинской, организации, требуемое)"
-    },
-    {
-     "kind": "numbered-rows",
-     "detail": "table numbering skips 2, 4"
-    },
-    {
-     "kind": "numbered-rows",
-     "detail": "Vision has numbered lines 4 that Marker lacks"
-    }
-   ],
-   "furniture": [
-    "8",
-    "1"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 186,
-    "visionTokens": 177,
-    "coverageVision": 0.8889,
-    "coverageMarker": 0.8471,
-    "respaced": 0,
-    "tableRows": 21
-   }
-  },
-  {
-   "page": 21,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "dropped-span",
-     "detail": "Vision reads text that Marker lacks (inside a paragraph): «едицинского издел Требуемос в соответстви с номенклатурной»"
-    },
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 2,3×11; only in Marker: 1, 2×11, 3×11"
-    },
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 11% of Vision's tokens (e.g. 2,3, пi, iаименование, ви, едицинского, издел, требуемос, соответстви, классификаной, no, шту)"
-    },
-    {
-     "kind": "coverage-marker",
-     "detail": "18% of Marker's tokens are not in Vision (e.g. 2, 3, штук, систем, которыми, необходимо, обеспечить, 1, наименование, вида, медицинского, изделия)"
-    }
-   ],
-   "furniture": [
-    "9",
-    "1"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 247,
-    "visionTokens": 228,
-    "coverageVision": 0.8889,
-    "coverageMarker": 0.8195,
-    "respaced": 0,
-    "tableRows": 14
-   }
-  },
-  {
-   "page": 22,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 2,3×6; only in Marker: 1×2, 2×6, 3×6"
-    },
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 12% of Vision's tokens (e.g. 2,3, гребуемс, оличеста)"
-    },
-    {
-     "kind": "coverage-marker",
-     "detail": "27% of Marker's tokens are not in Vision (e.g. 2, 3, 1, медицинской, организации, требуемое, количество, штук, соответствующий, информационных, взаимодействие)"
-    }
-   ],
-   "furniture": [
-    "10"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 97,
-    "visionTokens": 83,
-    "coverageVision": 0.8806,
-    "coverageMarker": 0.7284,
-    "respaced": 0,
-    "tableRows": 7
-   }
-  },
-  {
-   "page": 23,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от «И» MARK 2025 г. № 3131"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 279,
-    "visionTokens": 275,
-    "coverageVision": 0.9913,
-    "coverageMarker": 0.9913,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 24,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 56,
-    "visionTokens": 56,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 25,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "dropped-span",
-     "detail": "Vision reads text that Marker lacks (at a paragraph start): «ОІ « 27» мая 2025 г. № 213н»"
-    },
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 2025, 213, 27, 30; only in Marker: 306"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [
-    "от «27 мая 2025 г. № 313H"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 244,
-    "visionTokens": 240,
-    "coverageVision": 0.9579,
-    "coverageMarker": 0.9951,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 26,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 246,
-    "visionTokens": 244,
-    "coverageVision": 0.995,
-    "coverageMarker": 0.99,
-    "respaced": 1,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 27,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 2×2; only in Marker: 114, 5.2.12, 608"
-    },
-    {
-     "kind": "coverage-vision",
-     "detail": "Marker lacks 7% of Vision's tokens (e.g. 2, 3, поду, зат, ов, стиции, нюля)"
-    },
-    {
-     "kind": "page-end-missing",
-     "detail": "Vision's last line is not at the end of Marker's page (a dropped last line?): «* Поду (зат 5-2 2 пункта Положения Ов стиции Российской Федерации 28 нюля 2020 г., регистрационный Nº 59083).»"
-    }
-   ],
-   "furniture": [
-    "3"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 147,
-    "visionTokens": 141,
-    "coverageVision": 0.9344,
-    "coverageMarker": 0.9344,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 28,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Marker: 2025, 27, 3311"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 252,
-    "visionTokens": 250,
-    "coverageVision": 0.9952,
-    "coverageMarker": 0.9765,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 29,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [
-    "2"
-   ],
-   "portalRewrites": [],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 174,
-    "visionTokens": 174,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 0
-   }
-  },
-  {
-   "page": 30,
-   "reading": "marker",
-   "status": "pass",
-   "confidence": "high",
-   "flags": [],
-   "furniture": [],
-   "portalRewrites": [
-    "от «27» МАР 2025 г. № 3137"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 68,
-    "visionTokens": 68,
-    "coverageVision": 1.0,
-    "coverageMarker": 1.0,
-    "respaced": 0,
-    "tableRows": 3
-   }
-  },
-  {
-   "page": 31,
-   "reading": "marker",
-   "status": "reviewed",
-   "confidence": "high",
-   "flags": [
-    {
-     "kind": "number-mismatch",
-     "detail": "only in Vision: 1,2,3×2; only in Marker: 1×2, 2×2, 3×2"
-    }
-   ],
-   "furniture": [],
-   "portalRewrites": [
-    "от «2Р» МАР 2025 г. № 3131"
-   ],
-   "headerRemoved": null,
-   "stats": {
-    "markerTokens": 147,
-    "visionTokens": 135,
-    "coverageVision": 0.9739,
-    "coverageMarker": 0.918,
-    "respaced": 0,
-    "tableRows": 3
-   }
-  }
- ]
+  ]
 }
