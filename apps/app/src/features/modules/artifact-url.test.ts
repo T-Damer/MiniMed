@@ -153,6 +153,23 @@ describe('resolveContentModuleArtifactUrl', () => {
     );
   });
 
+  it('serves the zstd regulatory module from its dataset branch and older gzip releases from main', () => {
+    expect(
+      resolveContentModuleArtifactUrl(
+        'https://github.com/T-Damer/MiniMed/releases/download/regulatory-2026.10.14-r2/minimed.regulatory.pediatrics.2026.10.14-r2.db.zst',
+      ),
+    ).toBe(
+      'https://raw.githubusercontent.com/T-Damer/MiniMed/datasets/regulatory-2026.10.14-r2/modules/minimed.regulatory.pediatrics.2026.10.14-r2.db.zst',
+    );
+    expect(
+      resolveContentModuleArtifactUrl(
+        'https://github.com/T-Damer/MiniMed/releases/download/regulatory-2026.10.14/minimed.regulatory.pediatrics.2026.10.14.db.gz',
+      ),
+    ).toBe(
+      'https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed.regulatory.pediatrics.2026.10.14.db.gz',
+    );
+  });
+
   it('serves the ГРЛС instruction and Allmed modules from their dataset branches', () => {
     expect(
       resolveContentModuleArtifactUrl(

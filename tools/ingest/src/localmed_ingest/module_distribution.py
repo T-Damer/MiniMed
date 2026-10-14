@@ -12,7 +12,10 @@ import gzip
 import hashlib
 import json
 import re
+import shutil
 import sqlite3
+import subprocess
+import tempfile
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from pathlib import Path
@@ -238,6 +241,49 @@ def write_gzip_artifact(database: Path, archive: Path) -> tuple[str, int, str, i
     return sha256_file(archive), archive.stat().st_size, decoded_sha256, decoded_size
 
 
+# Frames of at most 64 MiB of decoded data, each made by `zstd -19 --long=26` from a file (so every
+# frame declares its content size): the app decodes them one by one (docs/RELEASES.md «zstd»).
+ZSTD_FRAME_CONTENT_BYTES = 64 * 1024 * 1024
+ZSTD_ARGS = ("-19", "--long=26", "-T0", "-q", "-f")
+
+
+def write_zstd_artifact(database: Path, archive: Path) -> tuple[str, int, str, int]:
+    """Framed zstd transport, verified by decoding the whole archive with the zstd CLI."""
+    executable = shutil.which("zstd")
+    if executable is None:
+        raise ValueError("The zstd command-line tool is required for a zstd module transport")
+    decoded_sha256 = sha256_file(database)
+    decoded_size = database.stat().st_size
+    with (
+        tempfile.TemporaryDirectory(prefix="minimed-zstd-") as scratch,
+        database.open("rb") as source,
+        archive.open("xb") as target,
+    ):
+        while block := source.read(ZSTD_FRAME_CONTENT_BYTES):
+            part = Path(scratch) / "frame"
+            part.write_bytes(block)
+            subprocess.run(
+                [executable, *ZSTD_ARGS, "-o", str(part) + ".zst", str(part)], check=True
+            )
+            target.write(Path(str(part) + ".zst").read_bytes())
+            part.unlink()
+            Path(str(part) + ".zst").unlink()
+    digest = hashlib.sha256()
+    decoded_bytes = 0
+    with subprocess.Popen(
+        [executable, "-d", "-c", "--long=26", str(archive)], stdout=subprocess.PIPE
+    ) as decoder:
+        assert decoder.stdout is not None
+        while block := decoder.stdout.read(1024 * 1024):
+            decoded_bytes += len(block)
+            digest.update(block)
+    if decoder.returncode != 0 or decoded_bytes != decoded_size:
+        raise ValueError("Zstd archive does not reconstruct the validated SQLite")
+    if "sha256:" + digest.hexdigest() != decoded_sha256:
+        raise ValueError("Zstd archive does not reconstruct the exact validated SQLite")
+    return sha256_file(archive), archive.stat().st_size, decoded_sha256, decoded_size
+
+
 def source_set_digest(documents: list[dict[str, object]]) -> str:
     # Same digest convention as other membership modules: identity fields only, no titles.
     canonical = json.dumps(
@@ -277,6 +323,8 @@ class ModuleDescriptor:
     populations: tuple[str, ...] = ()
     release_state: str = "preview"
     dependencies: tuple[dict[str, object], ...] = ()
+    # `zstd` publishes framed `.db.zst` (the app needs 0.6.45 or newer), `gzip` the older `.db.gz`.
+    transport: str = "gzip"
 
 
 def package_module(
@@ -298,8 +346,11 @@ def package_module(
         raise ValueError("minAppVersion must look like 0.6.44")
     if core_database is not None and not pointer_prefixes:
         raise ValueError("Pointer verification needs the target document prefixes")
-    file_name = f"{descriptor.file_stem}.{version}.db.gz"
-    stem = file_name.removesuffix(".db.gz")
+    if descriptor.transport not in ("gzip", "zstd"):
+        raise ValueError("transport must be gzip or zstd")
+    suffix = ".db.zst" if descriptor.transport == "zstd" else ".db.gz"
+    file_name = f"{descriptor.file_stem}.{version}{suffix}"
+    stem = file_name.removesuffix(suffix)
     artifact_id = f"{descriptor.module_id}-index-{version}"
     pointer_report = (
         verify_pointer_membership(core_database, membership, target_prefixes=pointer_prefixes)
@@ -315,9 +366,8 @@ def package_module(
         raise ValueError(f"Core pointers do not resolve exactly; see {failure}")
 
     archive = output_dir / file_name
-    archive_sha256, archive_size, decoded_sha256, decoded_size = write_gzip_artifact(
-        database, archive
-    )
+    write_archive = write_zstd_artifact if descriptor.transport == "zstd" else write_gzip_artifact
+    archive_sha256, archive_size, decoded_sha256, decoded_size = write_archive(database, archive)
     documents = membership.documents
     source_set = source_set_digest(documents)
     entry: dict[str, object] = {
@@ -363,7 +413,7 @@ def package_module(
                 "url": f"{RELEASE_BASE_URL}/{descriptor.release_tag}/{file_name}",
                 "sha256": archive_sha256,
                 "sizeBytes": archive_size,
-                "compression": "gzip",
+                "compression": descriptor.transport,
                 "decodedSha256": decoded_sha256,
                 "decodedSizeBytes": decoded_size,
                 "sourceSetDigest": source_set,

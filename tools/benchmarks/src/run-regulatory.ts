@@ -14,6 +14,9 @@ type RegulatoryMetadata = Readonly<Record<string, unknown>> & {
   readonly documentNumber?: unknown;
   readonly officialPublicationNumber?: unknown;
   readonly contentMode?: unknown;
+  readonly fullTextContentMode?: unknown;
+  readonly targetDocumentId?: unknown;
+  readonly primaryModuleId?: unknown;
   readonly supersededByDocumentId?: unknown;
 };
 
@@ -35,9 +38,17 @@ interface RegulatoryQuery {
   readonly category: string;
 }
 
+/**
+ * The bundled pack holds a light module-pointer card for the acts whose full text is the downloadable
+ * module (docs/REGULATORY_PACK.md). A query for such an act is judged on finding the card, not on a
+ * section of text the card does not have.
+ */
+const INDEX_RECALL_AT_5_MINIMUM = 0.9;
+
 interface RegulatoryRow {
   readonly id: string;
   readonly category: string;
+  readonly indexOnly: boolean;
   readonly rank: number | null;
   readonly hitAt1: boolean;
   readonly hitAt2: boolean;
@@ -195,6 +206,11 @@ const documentsById = new Map(
 
 const rows: RegulatoryRow[] = [];
 for (const fixture of queries) {
+  const expectedSummary = documentsById.get(fixture.expectedDocumentId);
+  if (!expectedSummary)
+    throw new Error(`${fixture.id}: ${fixture.expectedDocumentId} is not in the pack`);
+  const indexOnly =
+    (expectedSummary.metadata as RegulatoryMetadata | undefined)?.contentMode === 'module-pointer';
   const response = await core.search({
     query: fixture.query,
     mode: 'hybrid',
@@ -215,9 +231,11 @@ for (const fixture of queries) {
   const expectedGroup = rankedGroups.find(
     (group) => group.documentId === fixture.expectedDocumentId,
   );
-  const matched = expectedGroup?.results.find((result) =>
-    anchorMatches(result.anchor, fixture.expectedAnchorPrefix),
-  );
+  const matched = indexOnly
+    ? undefined
+    : expectedGroup?.results.find((result) =>
+        anchorMatches(result.anchor, fixture.expectedAnchorPrefix),
+      );
   const sectionTypeMatched = matched?.sectionType === fixture.expectedSectionType;
 
   let contextResolved = false;
@@ -252,7 +270,12 @@ for (const fixture of queries) {
     metadata.jurisdiction === 'RU' &&
     metadata.documentNumber === fixture.expectedDocumentNumber &&
     (metadata.officialPublicationNumber ?? '') === fixture.expectedPublicationNumber &&
-    metadata.contentMode === 'source_text' &&
+    (indexOnly
+      ? metadata.contentMode === 'module-pointer' &&
+        metadata.fullTextContentMode === 'source_text' &&
+        metadata.targetDocumentId === fixture.expectedDocumentId &&
+        typeof metadata.primaryModuleId === 'string'
+      : metadata.contentMode === 'source_text') &&
     ageGroupsValid &&
     audienceLabelValid &&
     (fixture.expectedSupersededBy === undefined ||
@@ -262,12 +285,14 @@ for (const fixture of queries) {
   rows.push({
     id: fixture.id,
     category: fixture.category,
+    indexOnly,
     rank: rank ?? null,
     hitAt1: rank === 1,
     hitAt2: rank !== undefined && rank <= 2,
     hitAt5: rank !== undefined,
     requiredRankPassed: rank !== undefined && rank <= requiredRank,
-    sectionRequired: fixture.requireSection !== false && fixture.category !== 'versioning',
+    sectionRequired:
+      !indexOnly && fixture.requireSection !== false && fixture.category !== 'versioning',
     sectionHit: matched !== undefined,
     sectionTypeMatched,
     contextResolved,
@@ -281,17 +306,29 @@ for (const fixture of queries) {
 }
 await core.close();
 
+// A topical query for an act that is only a card in this pack (its text is in the module) cannot be
+// held to the full-text thresholds; it has its own recall below. A number lookup always is.
+const isIndexTopical = (row: RegulatoryRow): boolean =>
+  row.indexOnly && row.category !== 'number-lookup';
+const indexTopicalRows = rows.filter(isIndexTopical);
+const gatedRows = rows.filter((row) => !isIndexTopical(row));
 const sectionRows = rows.filter((row) => row.sectionRequired);
-const top1Rows = rows.filter((row) => top1QueryIds.has(row.id));
+const top1Rows = gatedRows.filter((row) => top1QueryIds.has(row.id));
 const report = {
   generatedAt: new Date().toISOString(),
   corpus: initialized.value.contentPackIds[0] ?? 'unknown',
+  tier: rows.some((row) => row.indexOnly) ? 'bundled-index' : 'full-text',
   queryCount: rows.length,
-  recallAt1: mean(rows.map((row) => Number(row.hitAt1))),
-  recallAt2: mean(rows.map((row) => Number(row.hitAt2))),
-  recallAt5: mean(rows.map((row) => Number(row.hitAt5))),
-  mrrAt5: mean(rows.map((row) => row.reciprocalRank)),
-  requiredRankRate: mean(rows.map((row) => Number(row.requiredRankPassed))),
+  gatedQueryCount: gatedRows.length,
+  indexTopicalQueryCount: indexTopicalRows.length,
+  indexTopicalRecallAt5: indexTopicalRows.length
+    ? mean(indexTopicalRows.map((row) => Number(row.hitAt5)))
+    : null,
+  recallAt1: mean(gatedRows.map((row) => Number(row.hitAt1))),
+  recallAt2: mean(gatedRows.map((row) => Number(row.hitAt2))),
+  recallAt5: mean(gatedRows.map((row) => Number(row.hitAt5))),
+  mrrAt5: mean(gatedRows.map((row) => row.reciprocalRank)),
+  requiredRankRate: mean(gatedRows.map((row) => Number(row.requiredRankPassed))),
   requiredTop1Rate: mean(top1Rows.map((row) => Number(row.hitAt1))),
   sectionRecall: mean(sectionRows.map((row) => Number(row.sectionHit))),
   sectionTypeRate: mean(sectionRows.map((row) => Number(row.sectionTypeMatched))),
@@ -335,6 +372,14 @@ const failures: string[] = [];
 if (report.recallAt1 < 0.85) failures.push(`Recall@1 ${report.recallAt1.toFixed(3)} < 0.850`);
 if (report.recallAt2 < 1) failures.push(`Recall@2 ${report.recallAt2.toFixed(3)} < 1.000`);
 if (report.recallAt5 < 1) failures.push(`Recall@5 ${report.recallAt5.toFixed(3)} < 1.000`);
+if (
+  report.indexTopicalRecallAt5 !== null &&
+  report.indexTopicalRecallAt5 < INDEX_RECALL_AT_5_MINIMUM
+) {
+  failures.push(
+    `card recall@5 for topical queries ${report.indexTopicalRecallAt5.toFixed(3)} < ${INDEX_RECALL_AT_5_MINIMUM.toFixed(3)}`,
+  );
+}
 if (report.requiredRankRate < 1) {
   failures.push(`required rank rate ${report.requiredRankRate.toFixed(3)} < 1.000`);
 }

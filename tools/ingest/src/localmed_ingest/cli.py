@@ -68,6 +68,7 @@ from .module_search_compaction import MIGRATION_ID, migrate_module_search
 from .pdf_import import import_pdf
 from .publication import PublicationDecision
 from .regulatory_distribution import package_regulatory_module
+from .regulatory_light import write_light_sources
 from .rls_mkb import RLS_MKB_DETAIL_URL, RLS_MKB_INDEX_URL, scrape_rls_mkb
 from .rls_mkb_distribution import package_rls_mkb_modules
 from .rls_mkb_modules import split_rls_mkb_workspace
@@ -544,12 +545,38 @@ def package_regulatory_command(
     output: Annotated[Path, typer.Option("--output", file_okay=False)],
     version: Annotated[str, typer.Option("--version")],
     min_app_version: Annotated[str, typer.Option("--min-app-version")],
+    transport: Annotated[str, typer.Option("--transport")] = "zstd",
 ) -> None:
-    """Gzip the verified regulatory pack and write its catalog entry (refuses incomplete acts)."""
+    """Package the verified regulatory pack (zstd by default) and write its catalog entry."""
     report = package_regulatory_module(
-        database, output, version=version, min_app_version=min_app_version
+        database, output, version=version, min_app_version=min_app_version, transport=transport
     )
     typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+
+
+@app.command("prepare-regulatory-light")
+def prepare_regulatory_light_command(
+    directory: Annotated[Path, typer.Option("--input", exists=True, file_okay=False)],
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+) -> None:
+    """Write the bundled regulatory sources: 323-FZ in full text, a module-pointer card per act."""
+    cards = write_light_sources(directory, output)
+    typer.echo(
+        json.dumps(
+            [
+                {
+                    "documentId": card.document_id,
+                    "fullText": card.full_text,
+                    "outlineEntries": card.outline_entries,
+                    "fullChars": card.full_chars,
+                    "cardChars": card.card_chars,
+                }
+                for card in cards
+            ],
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
 
 
 @app.command("prepare-feeding")

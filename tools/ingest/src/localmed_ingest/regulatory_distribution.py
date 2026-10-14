@@ -112,6 +112,7 @@ def package_regulatory_module(
     *,
     version: str,
     min_app_version: str,
+    transport: str = "zstd",
 ) -> dict[str, object]:
     failures: list[str] = []
     acts = 0
@@ -155,6 +156,7 @@ def package_regulatory_module(
             dependencies=(
                 {"moduleId": "minimed.core.ru", "versionRange": "^1.0.0", "required": True},
             ),
+            transport=transport,
         ),
         version=version,
         min_app_version=min_app_version,

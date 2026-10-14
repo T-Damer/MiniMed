@@ -16,6 +16,10 @@ const MEDICATION_MIRROR_FILE = /^minimed\.(?:medications\.|reference\.ddinter-)/
 const PACKAGING_IMAGES_MIRROR_TAG_PREFIX = 'allmed-images-';
 const PACKAGING_IMAGES_MIRROR_FILE_PREFIX = 'minimed.medications.packaging-images.ru.';
 
+/** The regulatory full-text module: tag `regulatory-<version>`, file `minimed.regulatory.pediatrics.<version>.db.zst`. */
+const REGULATORY_MIRROR_TAG_PREFIX = 'regulatory-';
+const REGULATORY_MIRROR_FILE_PREFIX = 'minimed.regulatory.';
+
 const RAW_GITHUB_MODULE_BASE =
   'https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules';
 export function usesLocalModuleArtifacts(): boolean {
@@ -81,6 +85,15 @@ export function resolveContentModuleArtifactUrl(url: string): string {
       ) {
         // Compressed modules are small enough for plain git blobs on the mirror branch; raw
         // serves them with browser CORS and without LFS bandwidth quota.
+        return `https://raw.githubusercontent.com/${owner}/${repo}/datasets/${releaseTag}/modules/${fileName}`;
+      }
+      if (
+        releaseTag.startsWith(REGULATORY_MIRROR_TAG_PREFIX) &&
+        fileName.startsWith(REGULATORY_MIRROR_FILE_PREFIX) &&
+        fileName.endsWith('.db.zst')
+      ) {
+        // The regulatory full-text module (about 3 MB compressed): a plain git blob on its
+        // dataset branch. Earlier gzip releases keep resolving to the committed main copy below.
         return `https://raw.githubusercontent.com/${owner}/${repo}/datasets/${releaseTag}/modules/${fileName}`;
       }
       if (

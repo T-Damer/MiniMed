@@ -2,7 +2,7 @@
 # Adds repacked `.db.zst` module indexes to a dataset mirror branch WITHOUT touching what is there
 # (older app versions keep reading the `.db` files). Run it only after the owner agreed to publish.
 #
-#   scripts/publish-module-zstd-mirror.sh --family esklp|clinical|packaging-images --tag <release tag> \
+#   scripts/publish-module-zstd-mirror.sh --family esklp|clinical|packaging-images|regulatory --tag <release tag> \
 #     --source-dir <repack out dir> [--create] [--dry-run]
 #
 # `--create` starts the branch `datasets/<tag>` (an orphan commit with a README) when it does not
@@ -11,6 +11,7 @@
 #
 # Layout on the branch `datasets/<tag>` (what artifact-url.ts resolves):
 #   esklp:    modules/<file>.db.zst
+#   regulatory: modules/<file>.db.zst (tag regulatory-<version>; the full-text module of the acts)
 #   clinical: apps/app/public/content/clinical/<file>.db.zst
 #   packaging-images: modules/minimed.medications.packaging-images.ru.{db,source-assets-<x>.zip}
 #     (the Allmed photo pack: an index and 16 ZIP shards of 15-22 MB each; the pack builder's
@@ -41,7 +42,8 @@ case "$FAMILY" in
   esklp) TARGET="modules" ;;
   clinical) TARGET="apps/app/public/content/clinical" ;;
   packaging-images) TARGET="modules" ;;
-  *) echo "family must be esklp, clinical or packaging-images" >&2; exit 2 ;;
+  regulatory) TARGET="modules" ;;
+  *) echo "family must be esklp, clinical, packaging-images or regulatory" >&2; exit 2 ;;
 esac
 
 if [[ "$FAMILY" == "packaging-images" ]]; then
@@ -64,7 +66,7 @@ elif [[ "$CREATE" -eq 1 ]]; then
   git -C "$WORKDIR" init -q
   git -C "$WORKDIR" checkout -q -b "$BRANCH"
   git -C "$WORKDIR" remote add origin "$REMOTE"
-  printf '# Clinical recommendation modules\n\nImmutable zstd-framed SQLite modules for %s.\nBrowser downloads use raw.githubusercontent.com (CORS + CORP).\nBranch: %s\n' "$TAG" "$BRANCH" >"$WORKDIR/README.md"
+  printf '# Module datasets\n\nImmutable zstd-framed SQLite modules for %s.\nBrowser downloads use raw.githubusercontent.com (CORS + CORP).\nBranch: %s\n' "$TAG" "$BRANCH" >"$WORKDIR/README.md"
   git -C "$WORKDIR" add README.md
 else
   echo "branch ${BRANCH} does not exist; pass --create to start it" >&2
