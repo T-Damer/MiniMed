@@ -9,6 +9,7 @@ import { SelectField } from '@/components/SelectField';
 import { SheetPopover } from '@/components/SheetPopover';
 import { TextArea } from '@/components/TextArea';
 import { TextField } from '@/components/TextField';
+import { plainFieldLabel } from '@/features/forms/form-field-labels';
 import { type FormValue, listValue, textValue } from '@/features/forms/form-values';
 import {
   fieldHasRule,
@@ -79,7 +80,9 @@ function FieldLabel(props: {
 }): JSX.Element {
   return (
     <span class="form-field__label">
-      <span class="form-field__label-text">{props.field.label}</span>
+      <span class="form-field__label-text" title={props.field.label}>
+        {plainFieldLabel(props.field.label)}
+      </span>
       <Show when={props.field.required}>
         <span class="form-field__required" aria-hidden="true">
           *
@@ -141,7 +144,7 @@ function Control(props: FormFieldControlProps): JSX.Element {
           <span class="form-field__date-label">{label()}</span>
           <NativeDateTimeField
             type="date"
-            label={field().label}
+            label={plainFieldLabel(field().label)}
             placeholder="дд.мм.гггг"
             value={textValue(props.value)}
             class="form-field__date-wrapper"

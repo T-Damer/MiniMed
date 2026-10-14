@@ -241,6 +241,29 @@ export function buildScoreScaleSpec(
   return { ...base, activeBand, ...(text ? { text } : {}) };
 }
 
+/**
+ * Ordinal classes (`equal` layout: NYHA I–IV, PSI I–V): the class name is the result itself, so it is
+ * written instead of «3 класс» and no second pill repeats it. Undefined for any other scale.
+ */
+export function scoreScaleClassName(
+  scale: Pick<ScoreScaleSpec, 'layout' | 'bands' | 'activeBand'>,
+): string | undefined {
+  if (scale.layout !== 'equal' || scale.activeBand === undefined) return undefined;
+  return scale.bands[scale.activeBand]?.label;
+}
+
+/**
+ * Whether cut-points are written on the track. They are written once: the legend carries them when
+ * it is drawn, so the track shows them only for a gauge without bands or when the band names sit
+ * inside the segments. Classes have no cut-points in numbers.
+ */
+export function scoreScaleTicksVisible(
+  scale: Pick<ScoreScaleSpec, 'layout' | 'bands'>,
+  geometry: Pick<ScoreScaleGeometry, 'labelsFitInside'>,
+): boolean {
+  return scale.layout !== 'equal' && (scale.bands.length === 0 || geometry.labelsFitInside);
+}
+
 /** Text for assistive technology and the print sheet: «7 баллов — Средний риск». */
 export function scoreScaleSummary(scale: ScoreScaleSpec): string {
   const value = `${new Intl.NumberFormat('ru-RU', { maximumFractionDigits: scale.precision }).format(scale.value)}${scale.unit ? ` ${scale.unit}` : ''}`;

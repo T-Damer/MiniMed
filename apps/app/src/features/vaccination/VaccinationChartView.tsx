@@ -1,4 +1,4 @@
-import { createEffect, For, type JSX, on, Show } from 'solid-js';
+import { createEffect, createSignal, For, type JSX, on, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { useLongClick } from '@/components/use-long-click';
@@ -98,6 +98,22 @@ export function VaccinationChartView(props: {
   readonly onOpenGroup: (itemId: string) => void;
 }): JSX.Element {
   let scroller: HTMLDivElement | undefined;
+  // The chart is wider than a phone: edge fades and an arrow say that there is more to each side.
+  const [moreBefore, setMoreBefore] = createSignal(false);
+  const [moreAfter, setMoreAfter] = createSignal(false);
+  const updateEdges = (): void => {
+    if (!scroller) return;
+    const maximum = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+    setMoreBefore(scroller.scrollLeft > 2);
+    setMoreAfter(scroller.scrollLeft < maximum - 2);
+  };
+  onMount(() => {
+    updateEdges();
+    if (!scroller || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(updateEdges);
+    observer.observe(scroller);
+    onCleanup(() => observer.disconnect());
+  });
   const columns = (): number => props.chart.columns.length;
   const statusOf = (itemId: string): DoseStatus => props.child.doses.get(itemId)?.status ?? 'later';
   const currentColumn = (columnId: string): boolean =>
@@ -133,7 +149,7 @@ export function VaccinationChartView(props: {
 
   return (
     <div class="vax-chart">
-      <div class="vax-chart__scroller" ref={scroller}>
+      <div class="vax-chart__scroller" ref={scroller} onScroll={updateEdges}>
         <div
           class="vax-chart__plane"
           style={{
@@ -270,6 +286,20 @@ export function VaccinationChartView(props: {
           </Show>
         </div>
       </div>
+      <span
+        class="vax-chart__fade vax-chart__fade--start"
+        classList={{ 'vax-chart__fade--visible': moreBefore() }}
+        aria-hidden="true"
+      >
+        <AppGlyph name="caret-left" class="vax-chart__fade-icon" />
+      </span>
+      <span
+        class="vax-chart__fade vax-chart__fade--end"
+        classList={{ 'vax-chart__fade--visible': moreAfter() }}
+        aria-hidden="true"
+      >
+        <AppGlyph name="caret-right" class="vax-chart__fade-icon" />
+      </span>
     </div>
   );
 }

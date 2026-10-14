@@ -16,6 +16,11 @@ export function sameDrugName(first: string, second: string): boolean {
   return nameKey(first) === nameKey(second);
 }
 
+/** A combination name may wrap after each «+» instead of in the middle of a word. */
+export function breakableDrugName(name: string): string {
+  return name.replaceAll('+', '+\u200b');
+}
+
 /** «Продукт · Вещество», or the one name when both are the same. */
 export function joinProductAndSubstance(product: string | null, substance: string): string {
   if (!product || sameDrugName(product, substance)) return substance;

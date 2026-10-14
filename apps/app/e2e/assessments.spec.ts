@@ -117,10 +117,33 @@ test('completes a psychology questionnaire and writes the result to a patient no
   }
 
   await expect(page.getByText('Заполнено 24 из 24')).toBeVisible();
+  // Points are a small tag at the right of an option, not a backdrop numeral behind its label.
+  const option = page.locator('.assessment-response-options__option').first();
+  const points = option.locator('.assessment-response-options__value');
+  expect(
+    await points.evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize)),
+  ).toBeLessThan(20);
+  expect(await option.evaluate((element) => getComputedStyle(element).textAlign)).toBe('left');
+  const optionBox = await option.boundingBox();
+  const pointsBox = await points.boundingBox();
+  const textBox = await option.locator('.assessment-response-options__text').boundingBox();
+  if (!optionBox || !pointsBox || !textBox) throw new Error('option parts have no box');
+  expect(pointsBox.x).toBeGreaterThan(textBox.x + textBox.width - 1);
+  expect(pointsBox.x + pointsBox.width).toBeLessThanOrEqual(optionBox.x + optionBox.width);
   await expect(page.getByTestId('assessment-submit')).toBeEnabled();
   await page.getByTestId('assessment-submit').click();
 
   await expect(page.locator('.assessment-score-list')).toBeVisible();
+  // A schema that declares no evaluation rules shows its score alone: no pipeline note.
+  await expect(page.locator('.assessment-result-evaluation')).toHaveCount(0);
+  await expect(page.getByText(/декларативные правила|Оценка недоступна/u)).toHaveCount(0);
+  // The result actions are icon buttons with names; deleting is the quiet one.
+  const actions = page.locator('.assessment-result-actions');
+  await expect(actions.getByRole('button', { name: 'Поделиться' })).toHaveClass(/ui-button--icon/u);
+  await expect(actions.getByRole('button', { name: 'Записать' })).toHaveClass(/ui-button--icon/u);
+  await expect(actions.getByRole('button', { name: 'Удалить' })).toHaveClass(
+    /assessment-result-actions__delete/u,
+  );
   await page.getByTestId('assessment-save-note').click();
   await page.locator('.assessment-note-panel__input').fill('Тестовый пациент');
   await page.getByRole('button', { name: 'Сохранить', exact: true }).click();

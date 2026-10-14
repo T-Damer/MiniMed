@@ -154,6 +154,25 @@ test('the unit converter shows Russian units and no patient row', async ({ page 
   await page.getByTestId('calculator-submit').click();
   await expect(page.getByTestId('calculator-result')).toContainText('мг');
   await expect(page.getByTestId('calculator-result')).not.toContainText('mg');
+  // The result reads as «2 кг → 2 000 000 мг», not as the raw parameters of the form.
+  const converted = page.getByTestId('calculator-result').locator('.calculator-output-list');
+  await expect(converted).toContainText('Исходное значение');
+  await expect(converted).toContainText(/2\s000\s000\sмг/u);
+  await expect(page.getByTestId('calculator-result')).not.toContainText('Величина Масса');
+  // The result actions are icon buttons with names; deleting is the quiet one.
+  const resultActions = page.locator('.calculator-result-actions');
+  await expect(resultActions.getByRole('button', { name: 'Распечатать' })).toHaveClass(
+    /ui-button--icon/u,
+  );
+  await expect(resultActions.getByRole('button', { name: 'Записать' })).toHaveClass(
+    /ui-button--icon/u,
+  );
+  // «?» opens the tool's information (what it converts, its source in Russian).
+  await page.getByRole('button', { name: 'Информация' }).click();
+  await expect(page.getByRole('dialog', { name: 'Информация' })).toContainText(
+    'Международная система единиц',
+  );
+  await page.keyboard.press('Escape');
 
   // Another quantity offers its own units and starts from its first pair.
   await page.getByLabel('Величина').selectOption('volume');

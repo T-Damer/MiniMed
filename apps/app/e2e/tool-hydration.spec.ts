@@ -20,6 +20,9 @@ for (const available of [true, false]) {
     const required = page.locator('.calculator-pack-required');
     const download = required.getByRole('button', { name: /^Скачать(?: · [^·]+)?$/u });
     await expect(download).toBeVisible();
+    // The page has the standard header row: a back arrow and the title, then the offer.
+    await expect(required.getByRole('button', { name: 'К разделам калькуляторов' })).toBeVisible();
+    await expect(required.getByRole('heading', { level: 3 })).toContainText('Mosteller');
     await expect(page.getByRole('heading', { name: 'Подключаем калькулятор' })).toHaveCount(0);
     expect(requests).toEqual([]);
 

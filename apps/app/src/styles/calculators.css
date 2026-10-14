@@ -405,6 +405,7 @@ html.calculator-route-open body {
   display: grid;
   justify-items: start;
   gap: 0.75rem;
+  padding: clamp(0.875rem, 2.5vw, 1.25rem);
 }
 
 .calculator-card {

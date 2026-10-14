@@ -1,5 +1,6 @@
 import {
   type ScoreScaleSpec,
+  scoreScaleClassName,
   scoreScaleGeometry,
   scoreScaleSummary,
 } from '@/features/calculators/score-scale';
@@ -56,7 +57,8 @@ export function scoreScalePrintHtml(
   options: { readonly text?: boolean } = {},
 ): string {
   const geometry = scoreScaleGeometry(spec);
-  const value = scoreScaleSummary(spec);
+  // An ordinal class is written once, by its name; the legend below carries every cut-point.
+  const value = scoreScaleClassName(spec) ?? scoreScaleSummary(spec);
   const segments = geometry.segments
     .map(
       (segment) =>
@@ -82,7 +84,7 @@ export function scoreScalePrintHtml(
   return `<figure class="score-scale">
 <div class="score-scale__head">${spec.label ? `<span class="score-scale__label">${escapeHtml(spec.label)}</span>` : ''}<strong class="score-scale__value">${escapeHtml(value)}</strong></div>
 <div class="score-scale__track">${segments}<span class="score-scale__marker" style="left:${geometry.markerPercent}%"></span></div>
-${spec.layout === 'equal' ? '' : `<div class="score-scale__ticks">${ticks}</div>`}
+${spec.layout === 'equal' || spec.bands.length > 0 ? '' : `<div class="score-scale__ticks">${ticks}</div>`}
 ${legend}
 ${spec.text && options.text !== false ? `<p class="score-scale__text">${escapeHtml(spec.text)}</p>` : ''}
 </figure>`;

@@ -7,8 +7,10 @@ import {
   type ScoreScaleSpec,
   scaledValueIds,
   scoreScaleBandIndexForValue,
+  scoreScaleClassName,
   scoreScaleGeometry,
   scoreScaleSummary,
+  scoreScaleTicksVisible,
   warningsBesideScales,
 } from '@/features/calculators/score-scale';
 import { scoreScalePrintHtml } from '@/features/calculators/score-scale-print';
@@ -224,5 +226,46 @@ describe('score scale print block', () => {
     expect(html).toContain('Средний');
     expect(html).toContain('&lt;b&gt;полосы');
     expect(scoreScalePrintHtml(spec({ text: 'скрыт' }), { text: false })).not.toContain('скрыт');
+  });
+});
+
+describe('how a scale names its result and where it writes the cut-points', () => {
+  const classes = spec({
+    layout: 'equal',
+    minimum: 1,
+    maximum: 3,
+    step: 1,
+    value: 3,
+    unit: 'класс',
+    bands: [
+      { from: 1, label: 'Класс I', attentionLevel: 'none' },
+      { from: 2, label: 'Класс II', attentionLevel: 'low' },
+      { from: 3, label: 'Класс III', attentionLevel: 'moderate' },
+    ],
+    activeBand: 2,
+  });
+
+  it('writes an ordinal class as its class name, never as «3 класс» beside «Класс III»', () => {
+    expect(scoreScaleClassName(classes)).toBe('Класс III');
+    expect(scoreScaleClassName(spec())).toBeUndefined();
+    expect(scoreScaleClassName({ ...classes, activeBand: undefined })).toBeUndefined();
+  });
+
+  it('writes the cut-points once: in the legend, or on the track when no legend is drawn', () => {
+    const wide = spec();
+    const legend = scoreScaleGeometry(
+      spec({
+        bands: [
+          { from: 0, label: 'Очень длинное название полосы' },
+          { from: 5, label: 'Ещё одно длинное название' },
+        ],
+      }),
+    );
+    expect(legend.labelsFitInside).toBe(false);
+    expect(scoreScaleTicksVisible(wide, legend)).toBe(false);
+    expect(scoreScaleTicksVisible(wide, { labelsFitInside: true })).toBe(true);
+    expect(scoreScaleTicksVisible(spec({ bands: [], activeBand: undefined }), legend)).toBe(true);
+    // Classes have no cut-points in numbers.
+    expect(scoreScaleTicksVisible(classes, { labelsFitInside: true })).toBe(false);
   });
 });

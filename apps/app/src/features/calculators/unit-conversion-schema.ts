@@ -32,7 +32,7 @@ export const UNIT_CONVERSION_SCHEMA: CalculatorSchema = CalculatorSchemaSchema.p
   title: 'Преобразование единиц',
   shortTitle: 'Единицы',
   aliases: ['конвертер единиц', 'мг в мл', 'кг в граммы', 'мкг мг'],
-  summary: 'Масса, длина и объём с явным промежуточным значением в базовой единице.',
+  summary: 'Масса, длина, объём: перевод между кг, г, мг, мкг; м, см, мм; л, мл.',
   ageScope: anyAgeScope('Определение: «Любой пользователь; не является клинической формулой».'),
   category: 'unit-conversion',
   clinical: false,
@@ -78,6 +78,7 @@ export const UNIT_CONVERSION_SCHEMA: CalculatorSchema = CalculatorSchemaSchema.p
       unitFromInput: 'sourceUnit',
       expression: 'amount',
       displayPrecision: 8,
+      isOutput: true,
     },
     {
       id: 'base',
@@ -102,9 +103,9 @@ export const UNIT_CONVERSION_SCHEMA: CalculatorSchema = CalculatorSchemaSchema.p
   },
   sources: [
     {
-      title: 'The International System of Units (SI Brochure)',
-      publisher: 'BIPM',
-      version: '9th edition',
+      title: 'Международная система единиц (SI), брошюра BIPM',
+      publisher: 'Международное бюро мер и весов (BIPM)',
+      version: '9-е издание',
       url: 'https://www.bipm.org/en/publications/si-brochure',
       reviewedAt: '2026-10-09',
     },

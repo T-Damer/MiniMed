@@ -90,6 +90,19 @@ export function initialCalculatorSchemaValues(schema: CalculatorSchema): Record<
   return defaults;
 }
 
+const INPUT_NUMBER_FORMAT = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 6 });
+const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/u;
+
+/** A typed number with the decimal comma and a date as dd.mm.yyyy; anything else as entered. */
+function readableInputValue(kind: string, raw: string | number): string {
+  const text = String(raw);
+  if (kind === 'number' && text.trim() !== '' && Number.isFinite(Number(text))) {
+    return INPUT_NUMBER_FORMAT.format(Number(text));
+  }
+  const date = kind === 'date' ? ISO_DATE.exec(text) : null;
+  return date ? `${date[3]}.${date[2]}.${date[1]}` : text;
+}
+
 export interface CalculatorInputFact {
   readonly label: string;
   /** Absent for a marked yes/no answer: the label alone says it. */
@@ -122,8 +135,8 @@ export function calculatorInputFacts(
       if (String(raw) !== '0') facts.push({ label: input.label });
       continue;
     }
-    const value = `${optionLabel ?? raw}${input.unit ? ` ${input.unit}` : ''}`;
-    facts.push({ label: input.label, value });
+    const shown = optionLabel ?? readableInputValue(input.kind, raw);
+    facts.push({ label: input.label, value: `${shown}${input.unit ? ` ${input.unit}` : ''}` });
   }
   return facts;
 }

@@ -24,6 +24,7 @@ import { Page } from '@/components/Page';
 import { PatientAvatar } from '@/components/PatientAvatar';
 import { PatientAvatarPicker } from '@/components/PatientAvatarPicker';
 import { PatientVaultUnlock } from '@/components/PatientVaultUnlock';
+import { patientRowSummary } from '@/components/patient-picker-summary';
 import { SearchField } from '@/components/SearchField';
 import { SelectField } from '@/components/SelectField';
 import { useStickySurface } from '@/components/sticky-surface';
@@ -88,6 +89,11 @@ export interface PatientWorkspaceProps {
   readonly route: PatientRoute;
   readonly onNavigate: (path: string) => void;
   readonly backLabel?: string;
+}
+
+/** Today as `YYYY-MM-DD`: the day an age is counted to. */
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10);
 }
 
 function formatDate(value: string): string {
@@ -831,9 +837,7 @@ function PatientList(props: {
                 />
                 <strong class="patient-workspace__patient-name">{profile.displayName}</strong>
                 <small class="patient-workspace__patient-meta">
-                  {profile.birthDate
-                    ? `рожд. ${formatDate(profile.birthDate)}`
-                    : 'Дата рождения не указана'}
+                  {patientRowSummary(profile.birthDate, todayIso()) ?? 'Дата рождения не указана'}
                   {patientSexLabel(profile.biologicalSex)
                     ? ` · ${patientSexLabel(profile.biologicalSex)}`
                     : ''}
@@ -1055,9 +1059,7 @@ function PatientDetail(props: {
           </div>
         }
         description={[
-          props.profile.birthDate
-            ? formatDate(props.profile.birthDate)
-            : 'Дата рождения не указана',
+          patientRowSummary(props.profile.birthDate, todayIso()) ?? 'Дата рождения не указана',
           patientSexLabel(props.profile.biologicalSex),
         ]
           .filter(Boolean)

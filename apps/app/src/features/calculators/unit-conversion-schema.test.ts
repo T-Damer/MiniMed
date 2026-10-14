@@ -21,6 +21,14 @@ function optionValue(inputId: string, label: string, quantity: string): string {
   return String(option.value);
 }
 
+/** The converted value and its unit: the stored result also carries the source value (both are shown). */
+function convertedOf(stored: ReturnType<typeof toStoredCalculationResult>) {
+  if (!('values' in stored)) throw new Error('The converter stores both values');
+  const converted = stored.values.find((item) => item.id === 'converted');
+  if (!converted) throw new Error('No converted value');
+  return converted;
+}
+
 function convert(quantity: string, amount: string, from: string, to: string) {
   const result = evaluateCalculatorSchema(schema, {
     quantity,
@@ -43,7 +51,18 @@ describe('the built-in unit converter', () => {
   it('converts mass through the base unit and writes the units in Cyrillic', () => {
     const result = convert('mass', '1', 'кг', 'мг');
     const stored = toStoredCalculationResult(result);
-    expect(stored).toMatchObject({ ok: true, value: 1_000_000, unit: 'мг', displayPrecision: 8 });
+    expect(convertedOf(stored)).toMatchObject({
+      value: 1_000_000,
+      unit: 'мг',
+      displayPrecision: 8,
+    });
+    // The line shown under the heading: «Исходное значение 1 кг», «Результат 1 000 000 мг».
+    expect(
+      'values' in stored && stored.values.map((item) => [item.label, item.value, item.unit]),
+    ).toEqual([
+      ['Исходное значение', 1, 'кг'],
+      ['Результат', 1_000_000, 'мг'],
+    ]);
     expect(result.trace.map((step) => [step.label, step.value, step.unit])).toEqual([
       ['Исходное значение', 1, 'кг'],
       ['В базовой единице', 1, 'базовых ед.'],
@@ -52,17 +71,21 @@ describe('the built-in unit converter', () => {
   });
 
   it('converts length and volume without hidden rounding', () => {
-    expect(toStoredCalculationResult(convert('length', '172', 'см', 'м'))).toMatchObject({
+    expect(
+      convertedOf(toStoredCalculationResult(convert('length', '172', 'см', 'м'))),
+    ).toMatchObject({
       value: 1.72,
       unit: 'м',
     });
-    expect(toStoredCalculationResult(convert('volume', '2.5', 'мл', 'л'))).toMatchObject({
+    expect(
+      convertedOf(toStoredCalculationResult(convert('volume', '2.5', 'мл', 'л'))),
+    ).toMatchObject({
       value: 0.0025,
       unit: 'л',
     });
-    const micrograms = toStoredCalculationResult(convert('mass', '250', 'мкг', 'мг'));
+    const micrograms = convertedOf(toStoredCalculationResult(convert('mass', '250', 'мкг', 'мг')));
     expect(micrograms).toMatchObject({ unit: 'мг' });
-    expect('value' in micrograms && micrograms.value).toBeCloseTo(0.25, 12);
+    expect(micrograms.value).toBeCloseTo(0.25, 12);
   });
 
   it('rejects a negative amount', () => {
@@ -104,7 +127,7 @@ describe('quantity-grouped unit selects', () => {
     const values = initialCalculatorSchemaValues(schema);
     expect(values['quantity']).toBe('mass');
     const result = evaluateCalculatorSchema(schema, { ...values, amount: '5' });
-    expect(result.ok && toStoredCalculationResult(result)).toMatchObject({
+    expect(result.ok && convertedOf(toStoredCalculationResult(result))).toMatchObject({
       value: 5000,
       unit: 'г',
     });
@@ -116,7 +139,7 @@ describe('quantity-grouped unit selects', () => {
     expect(next['quantity']).toBe('volume');
     expect(next['amount']).toBe('2');
     const result = evaluateCalculatorSchema(schema, next);
-    expect(result.ok && toStoredCalculationResult(result)).toMatchObject({
+    expect(result.ok && convertedOf(toStoredCalculationResult(result))).toMatchObject({
       value: 2000,
       unit: 'мл',
     });

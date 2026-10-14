@@ -4890,6 +4890,55 @@ pager in the bar and not floating, damaged and unknown links), `reader-navigatio
 pager's new place; the clinical fixture reads the release copies from the main checkout. Not covered: a physical
 device; the instruction text's first-screen assertion lives with the drug screen (DRUG-UI1).
 
+## Tool screens polish — 2026-10-14 (STATE VIS2, QA pass «qa-haiku-2026-10-14»)
+
+Calculators, assessments, comparison, interactions, «Назначение», ATC tree, converter, forms
+(`docs/research/qa-haiku-2026-10-14.md`, items tagged VIS2/RX):
+
+- **No pipeline notes.** An assessment result shows an evaluation only when the tool schema declared one
+  (`evaluationNotice`, `assessments/assessment-evaluation-notice.ts`): a verdict, a context the reader can
+  still supply, or a declared «not applicable» reason. An `unavailable` evaluation says nothing (18 shipped
+  assessments, e.g. PUCAI, Silverman, GCS) — the score and its declared interpretation stand alone; the manual
+  result no longer carries «Оценка недоступна». The disclaimer sits behind the header «?».
+  Tools without `interpretations` (65 calculators, 5 assessments) and with `evaluation: unavailable` (55
+  calculators, 18 assessments) are listed by `bun scripts/audit-tool-interpretations.ts` (reads
+  `content/tool-modules/*.json`). Fixing them is a content task (new module versions), not UI.
+- **Result actions** of calculators and assessments are icon buttons with names («Распечатать», «Поделиться»,
+  «Записать»); «Удалить» is a quiet, danger-tinted icon apart from the others. The calculator header has a «?»
+  («Информация»: summary, population, limits, sources) instead of a one-item action menu.
+- **Questionnaire options** are one row each: the label left, the points a small right-aligned tag (no 44 px
+  ghost numeral behind the label); the disclaimer left the submit panel (it is in «Информация»).
+- **Score scales:** an ordinal-class scale (`layout: equal`: NYHA, PSI) writes the class name as its result
+  instead of «3 класс» beside «Класс III»; cut-points are written once — in the legend, or on the track only
+  when no legend is drawn (`scoreScaleClassName`, `scoreScaleTicksVisible`). Input echo is label/value chips
+  (`calculatorInputFacts`; numbers with a decimal comma, dates dd.mm.yyyy); many outputs are one line each.
+  Quantities: `calculator-quantity.ts` writes 39,98 мес as «3 года 4 мес» (from 24 months), a z-score without
+  the unit «SD», «BMI» as «ИМТ». The «Авто по возрасту» option and «Fenton» are module content (not changed here).
+- **Unit converter** (bundled schema): both values are result lines («Исходное значение 2,5 кг» / «Результат
+  2 500 г»), the input echo is skipped for non-clinical tools, summary and BIPM source in Russian, «?» help.
+- **Pre-download calculator page** has the standard header row (back arrow, title, section) with the download
+  offer below; no text back button.
+- **Comparison picker** no longer overflows the viewport (grid column `minmax(0, 1fr)`, names wrap at «+»);
+  «Это инструкция одного из препаратов…» is said once in the «?» (comparison, interactions and their print),
+  not per drug; ATC tree explainer is behind the header «?».
+- **Interaction checker:** one drug name (`drug-label.ts`: product equal to substance is written once); the pair
+  line reads «В инструкциях N предложений об этом сочетании» and, while the instructions are not installed, adds
+  «— они появятся после скачивания инструкций»; names are never declined («— упоминание: «Симвастатин»»).
+- **«Назначение»:** placeholders are muted hints («лет, мес», «кг», a card value with «из карточки пациента»),
+  no example values; «Ребёнок / Взрослый» is one segmented control, pregnancy/feeding an even two-column row.
+  With computed doses off, quoted dose sentences are ordered by how surely the patient fits them (the band of the
+  patient's weight/age before the adult band), and a sentence the patient surely fits is marked «Подходит
+  пациенту по массе/возрасту» (`quotedMarks`, `PopulationMatch.matched`); nothing is computed. The «Рецепт» sheet
+  keeps copy/share/print in view (dimmed) and says what is missing (`recipe-missing.ts`: drug, form, strength,
+  instruction).
+- **Patient card** shows the age beside the birth date (`patientRowSummary`); form fields show plain labels
+  (`form-field-labels.ts`: «ФИО пациента», «Полис ОМС», «Код МКБ»…) while the official wording stays the tooltip
+  and the printed form is unchanged; the vaccination grid shows edge fades with an arrow when it continues
+  sideways.
+
+Not done / left: `DrugRecipeButton` (drug screen) still words its empty recipe sheet in the old way (DRUG-UI1's
+file); the `CHA2DS2-VASc` «Ничего не найдено» before its module is downloaded is the search card's offer (DL1/SRCH1).
+
 ## Known limits
 
 

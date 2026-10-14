@@ -28,7 +28,7 @@ import type { PrintPair } from '@/features/drug-interactions/interaction-print';
 import { type PairView, printPairs } from '@/features/drug-interactions/interaction-view';
 import { AtcMatchBadge } from '@/features/medications/AtcMatchBadge';
 import { loadAtcNames } from '@/features/medications/atc-names';
-import { joinProductAndSubstance } from '@/features/medications/drug-label';
+import { breakableDrugName, joinProductAndSubstance } from '@/features/medications/drug-label';
 import { displayDrugName } from '@/features/medications/drug-screen';
 import { notesDrugComparisonPath } from '@/features/notes/notes-routing';
 import { PrintManager } from '@/features/printing/print-manager';
@@ -426,7 +426,9 @@ export function DrugComparisonWorkspace(props: {
                     }}
                   >
                     <AppGlyph name={hasDrug(drug) ? 'check' : 'plus'} />
-                    <span class="drug-comparison__candidate-name">{drug.label}</span>
+                    <span class="drug-comparison__candidate-name">
+                      {breakableDrugName(drug.label)}
+                    </span>
                     <Show when={drug.atc}>{(match) => <AtcMatchBadge match={match()} />}</Show>
                   </button>
                 </li>

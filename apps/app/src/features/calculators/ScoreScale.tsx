@@ -4,8 +4,10 @@ import { formatCalculatorQuantity } from '@/features/calculators/calculator-quan
 import {
   formatScaleNumber,
   type ScoreScaleSpec,
+  scoreScaleClassName,
   scoreScaleGeometry,
   scoreScaleSummary,
+  scoreScaleTicksVisible,
 } from '@/features/calculators/score-scale';
 
 function formatValue(spec: ScoreScaleSpec): string {
@@ -29,11 +31,8 @@ export function ScoreScale(props: {
     props.spec.activeBand === undefined
       ? undefined
       : props.spec.bands[props.spec.activeBand]?.label;
-  /** Ordinal classes (`equal` layout): the class name is the result, so it replaces «3 класс». */
-  const ordinal = (): boolean => props.spec.layout === 'equal' && activeLabel() !== undefined;
-  /** Cut-points are written once: in the legend, or on the track when no legend is drawn. */
-  const showTicks = (): boolean =>
-    props.spec.layout !== 'equal' && (props.spec.bands.length === 0 || geometry().labelsFitInside);
+  const className = (): string | undefined => scoreScaleClassName(props.spec);
+  const showTicks = (): boolean => scoreScaleTicksVisible(props.spec, geometry());
   const activeLevel = (): string =>
     (props.spec.activeBand === undefined
       ? undefined
@@ -55,10 +54,8 @@ export function ScoreScale(props: {
         <Show when={props.spec.label}>
           {(label) => <span class="score-scale__label">{label()}</span>}
         </Show>
-        <strong class="score-scale__value">
-          {ordinal() ? activeLabel() : formatValue(props.spec)}
-        </strong>
-        <Show when={!geometry().labelsFitInside && !ordinal()}>
+        <strong class="score-scale__value">{className() ?? formatValue(props.spec)}</strong>
+        <Show when={!geometry().labelsFitInside && className() === undefined}>
           <Show when={activeLabel()}>
             {(label) => (
               <span class={`score-scale__band score-scale__band--${activeLevel()}`}>{label()}</span>

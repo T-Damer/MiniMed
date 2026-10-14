@@ -221,11 +221,47 @@
   --vax-label: 6.6rem;
   --vax-col: 2.75rem;
   --vax-row: 2.6rem;
+  position: relative;
   overflow: hidden;
   border: 1px solid var(--theme-border);
   border-radius: 0.4375rem;
   background: var(--theme-surface-raised);
   box-shadow: 0 0.1rem 0.4rem rgb(34 31 25 / 8%);
+}
+
+/* A scroll cue at the edge the chart continues past: a soft fade with a small arrow. */
+.vax-chart__fade {
+  position: absolute;
+  inset-block: 0;
+  z-index: var(--z-raised, 1);
+  display: flex;
+  align-items: center;
+  width: 1.75rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--motion-fast, 120ms) var(--motion-ease, ease);
+}
+
+.vax-chart__fade--visible {
+  opacity: 1;
+}
+
+.vax-chart__fade--start {
+  inset-inline-start: var(--vax-label);
+  justify-content: flex-start;
+  background: linear-gradient(to right, var(--theme-surface-raised) 15%, transparent);
+}
+
+.vax-chart__fade--end {
+  inset-inline-end: 0;
+  justify-content: flex-end;
+  background: linear-gradient(to left, var(--theme-surface-raised) 15%, transparent);
+}
+
+.vax-chart__fade-icon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--theme-text-muted);
 }
 
 .vax-chart__scroller {

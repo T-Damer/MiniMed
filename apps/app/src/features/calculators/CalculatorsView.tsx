@@ -11,7 +11,6 @@ import {
   Show,
 } from 'solid-js';
 import { toast } from 'solid-sonner';
-import { AppContextMenu, requestContextMenu } from '@/components/AppContextMenu';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
@@ -26,7 +25,6 @@ import { SearchField } from '@/components/SearchField';
 import { Heading } from '@/components/Text';
 import { CalculatorChart } from '@/features/calculators/CalculatorChart';
 import {
-  CalculatorInfoDialog,
   CalculatorSourcesBody,
   calculatorSourcesFootnote,
 } from '@/features/calculators/CalculatorInfo';
@@ -1000,14 +998,19 @@ function InputFacts(props: {
   const facts = (): readonly CalculatorInputFact[] => {
     const schema = getCalculatorSchema(props.definition.id);
     const inputs = props.record.normalizedInputs;
-    return schema && inputs ? calculatorInputFacts(schema, inputs) : [];
+    // A converter's own result lines («Исходное значение 2,5 кг», «Результат 2 500 г») already say it.
+    return schema?.clinical && inputs ? calculatorInputFacts(schema, inputs) : [];
   };
   return (
     <Show
       when={facts().length > 0}
       fallback={
-        <Show when={props.record.inputSummary.trim()}>
-          {(summary) => <p class="calculator-input-facts__summary">{summary()}</p>}
+        <Show
+          when={
+            props.record.inputSummary.trim() && getCalculatorSchema(props.definition.id)?.clinical
+          }
+        >
+          <p class="calculator-input-facts__summary">{props.record.inputSummary}</p>
         </Show>
       }
     >
@@ -1448,7 +1451,6 @@ export function CalculatorsView(): JSX.Element {
     loadCalculationHistory(),
   );
   const [activeRecord, setActiveRecord] = createSignal<CalculationRecord>();
-  const [infoOpen, setInfoOpen] = createSignal(false);
   const [pendingDeletion, setPendingDeletion] = createSignal<{
     readonly kind: 'section' | 'record';
     readonly id: string;
@@ -1994,6 +1996,7 @@ export function CalculatorsView(): JSX.Element {
                               </p>
                               <Button
                                 class="calculator-pack-required__download"
+                                variant="primary"
                                 icon={<AppGlyph name="download" />}
                                 onClick={() => installSection(definition().category)}
                               >
@@ -2052,6 +2055,13 @@ export function CalculatorsView(): JSX.Element {
                       </Heading>
                     }
                     description={definition().summary}
+                    helpTitle="Информация"
+                    help={
+                      <>
+                        <p>{definition().summary}</p>
+                        <CalculatorSourcesBody definition={definition()} />
+                      </>
+                    }
                     actions={
                       <div class="calculator-subpage-actions">
                         <Show when={definition().category === 'custom'}>
@@ -2068,29 +2078,6 @@ export function CalculatorsView(): JSX.Element {
                             }}
                           />
                         </Show>
-                        <AppContextMenu
-                          actions={[
-                            {
-                              id: 'info',
-                              label: 'Информация',
-                              icon: 'info',
-                              onSelect: () => setInfoOpen(true),
-                            },
-                          ]}
-                          hideButton
-                          class="calculator-subpage-menu"
-                        >
-                          <Button
-                            type="button"
-                            variant="icon"
-                            class="calculator-subpage-menu-button"
-                            data-testid="calculator-menu"
-                            aria-label="Действия"
-                            title="Действия"
-                            onClick={requestContextMenu}
-                            icon={<AppGlyph name="menu" />}
-                          />
-                        </AppContextMenu>
                       </div>
                     }
                   />
@@ -2120,11 +2107,6 @@ export function CalculatorsView(): JSX.Element {
                   <Show when={calculatorSourcesFootnote(definition())}>
                     {(note) => <p class="calculator-footnote">{note()}</p>}
                   </Show>
-                  <CalculatorInfoDialog
-                    definition={definition()}
-                    open={infoOpen()}
-                    onClose={() => setInfoOpen(false)}
-                  />
                 </div>
               </Show>
             )}

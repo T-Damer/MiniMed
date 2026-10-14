@@ -42,8 +42,7 @@ test('draws a banded score scale for a class result and keeps the licence out of
   await expect(page.locator('.calculator-footnote')).toContainText('Источники:');
   // The «Расчёт сохранён» toast sits under the route header over the menu; let it go first.
   await expect(page.locator('[data-sonner-toast]')).toHaveCount(0);
-  await page.getByTestId('calculator-menu').click();
-  await page.getByRole('menuitem', { name: 'Информация' }).click();
+  await page.getByRole('button', { name: 'Информация' }).click();
   await expect(page.getByRole('dialog', { name: 'Информация' })).toBeVisible();
 });
 

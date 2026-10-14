@@ -188,8 +188,7 @@ test('builds a calculator, runs it, prints it, edits it, copies it, moves its in
   );
   // The source has no address: it is plain text in «Информация», not a link to this very page.
   await expect(page.locator('.calculator-footnote')).toContainText('Авторский калькулятор');
-  await page.getByTestId('calculator-menu').click();
-  await page.getByRole('menuitem', { name: 'Информация' }).click();
+  await page.getByRole('button', { name: 'Информация' }).click();
   const info = page.getByRole('dialog', { name: 'Информация' });
   await expect(info.locator('.calculator-source-reference__title')).toHaveText(
     'Авторский калькулятор',
