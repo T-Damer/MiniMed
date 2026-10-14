@@ -534,6 +534,38 @@ def test_shipped_structure_of_vermox_before_and_after(tmp_path: Path) -> None:
     )
 
 
+def test_the_text_after_a_cut_contents_list_is_its_own_chunk(tmp_path: Path) -> None:
+    # Декарис: the list is cut out of a block that goes on with «1. Что из себя …»; the reader
+    # numbers consecutive «N. …» lines of one chunk as one list, so the text must not share it.
+    source = source_of(
+        blocks_of(
+            ("paragraph", RUMIKOZ_BLOCK),
+            (
+                "paragraph",
+                "Сообщите врачу. 2. О чем следует знать перед приемом препарата Румикоз®",
+            ),
+            ("heading", "3. Прием препарата Румикоз®", True),
+            ("heading", "4. Возможные нежелательные реакции", True),
+            ("heading", "5. Хранение препарата Румикоз®", True),
+        )
+    )
+    document = parse_markdown_document(
+        write_document(tmp_path, render_body(source, source_id="r", contents_lists=True)),
+        "2026-10-15T00:00:00Z",
+    )
+    chunks = [chunk.original_text for section in document.sections for chunk in section.chunks]
+    holder = next(text for text in chunks if "6. Содержимое упаковки и прочие сведения." in text)
+    assert holder.rstrip().endswith("6. Содержимое упаковки и прочие сведения.")
+    assert not any(
+        text.startswith(
+            "1. Что из себя представляет препарат Румикоз®, и для чего его применяют Пре"
+        )
+        and "6. Содержимое" in text
+        for text in chunks
+    )
+    assert any(text.startswith("1. Что из себя представляет препарат Румикоз®") for text in chunks)
+
+
 def test_numbering_prefix_stays_with_the_heading_text_it_numbers() -> None:
     text = "Хранить в защищенном месте. 5. Хранение препарата Вермокс. Не замораживать."
     boundaries = find_grls_section_boundaries(text)
@@ -611,3 +643,32 @@ def test_an_edited_body_is_refused() -> None:
     markdown = front_matter() + render_body(source, source_id="v") + "\nИзменено вручную.\n"
     with pytest.raises(BodyNotReproducedError):
         rerender_contents("v", markdown, source)
+
+
+def test_manufacturer_workspace_gets_a_prepared_contents_directory_that_wins(
+    tmp_path: Path,
+) -> None:
+    from localmed_ingest.manufacturer_contents import rerender_manufacturer
+    from localmed_ingest.manufacturer_instruction_modules import CONTENTS_DIR, PREPARED_DIRS
+
+    assert PREPARED_DIRS[0] == CONTENTS_DIR
+    with_list = source_of(blocks_of(*VERMOX))
+    without = source_of(blocks_of(("paragraph", "Просто текст без содержания.")))
+    prepared = tmp_path / "prepared-pdf"
+    (prepared / ".localmed" / "extractions").mkdir(parents=True)
+    for name, extracted in (
+        ("drug.rf.m1.a.instruction", with_list),
+        ("drug.rf.m1.b.instruction", without),
+    ):
+        (prepared / f"{name}.md").write_text(
+            front_matter() + render_body(extracted, source_id=name), encoding="utf-8"
+        )
+        (prepared / ".localmed" / "extractions" / f"{name}.json").write_text(
+            extracted.model_dump_json(by_alias=True), encoding="utf-8"
+        )
+    report = rerender_manufacturer(tmp_path)
+    assert report["documentIds"] == ["drug.rf.m1.a.instruction"]
+    assert report["notReproduced"] == []
+    rewritten = tmp_path / CONTENTS_DIR / "drug.rf.m1.a.instruction.md"
+    assert '"role":"contents"' in rewritten.read_text(encoding="utf-8")
+    assert not (tmp_path / CONTENTS_DIR / "drug.rf.m1.b.instruction.md").exists()

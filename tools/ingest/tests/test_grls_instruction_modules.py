@@ -239,3 +239,32 @@ def test_overlay_quality_reaches_the_document_metadata_and_an_amendment_title() 
     assert metadata["ocrTool"] == "macos-vision"
     assert metadata["ocrUncertainNumbers"] == 2
     assert front["title"] == "РАМИПРИЛ: лист изменений к инструкции"
+
+
+def test_contents_overlay_replaces_workspace_and_digest_but_keeps_the_ocr_columns() -> None:
+    from localmed_ingest.grls_contents_lists import apply_overlay as apply_contents_overlay
+
+    rows = apply_overlay([manifest_row("sha256:aaa")], {"sha256:aaa": OVERLAY_ROW})
+    contents = {
+        "sourceId": "drug.rf.0001093e970339aa31f2.instruction",
+        "workspace": "../../data/intermediate/grls-contents-lists",
+        "textSha256": "sha256:contents",
+        "contentsLists": [{"header": "p1-b12", "blocks": ["p1-b13", "p1-b14"], "entries": 6}],
+    }
+    merged = apply_contents_overlay(rows, {str(contents["sourceId"]): contents})
+    assert merged[0]["workspace"] == "../../data/intermediate/grls-contents-lists"
+    assert merged[0]["textSha256"] == "sha256:contents"
+    assert merged[0]["documentKind"] == "amendment"  # the OCR1 columns stay
+    assert merged[0]["ocrOverlay"]["ocrQuality"] == "fair"
+    planned = PlannedInstruction(
+        document_id="drug.rf.0001093e970339aa31f2.instruction",
+        path=Path("unused.md"),
+        group="cardiovascular",
+        group_basis="esklp-registration",
+        registration_numbers=("ЛП-008472",),
+        newest=merged[0],
+    )
+    front, body = split_front_matter(augmented_markdown(instruction_markdown(), planned))
+    assert body == BODY
+    assert front["metadata"]["contentsLists"] == contents["contentsLists"]
+    assert front["metadata"]["textSha256"] == "sha256:contents"

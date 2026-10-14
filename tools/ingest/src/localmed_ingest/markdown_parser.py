@@ -301,6 +301,15 @@ def chunk_paragraphs(
 
     for paragraph in paragraphs:
         paragraph_size = len(paragraph.text)
+        if (
+            current
+            and current[-1].metadata.get(CONTENTS_FLAG)
+            and not paragraph.metadata.get(CONTENTS_FLAG)
+        ):
+            # The text after a contents list is its own chunk: the reader numbers consecutive
+            # «1. …» lines of one chunk as one list, and that text often opens with the first
+            # section's own «1. Что из себя …».
+            flush()
         if "renderBlock" in paragraph.metadata:
             flush()
             chunks.append(

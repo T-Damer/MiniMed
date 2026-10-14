@@ -1,6 +1,6 @@
 # Current state
 
-> Updated: 14 October 2026
+> Updated: 15 October 2026
 > Released version: `0.6.47` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
@@ -19,6 +19,52 @@ Detailed history, moved verbatim on 2026-09-24:
   baseline and runtime benchmark up to the 0.6.39 release.
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
+
+## Leaflet table of contents as one list — 2026-10-15 (STATE LEAF1)
+
+DRUG-UI2 (2026-10-14) found that «Вермокс» opened with a lone heading «Прием препарата», «4. Возможные нежелательные реакции.»,
+a lone «5.» and «6.» before «1. Что из себя представляет …». Measured and fixed in the preparer; method, shapes and the numbers
+per module: [research/ocr-quality-2026-10-14.md](research/ocr-quality-2026-10-14.md) §7.
+
+- **Cause** (not what DRUG-UI2 suspected: the text layer keeps every entry in one block). The generic PDF heading rule made
+  «4. Возможные нежелательные реакции.» a heading (a block that *ends in* a heading phrase); the instruction re-segmenter then
+  cut «3. Прием препарата Вермокс.» and «5. Хранение препарата Вермокс.» at the standard phrase and left the numbering
+  prefix behind as a one-token chunk.
+- **Measured**: **3 787 of 8 947** ГРЛС instruction documents (3 782 of the 3 818 leaflets; 3 588 text layer, 199 OCR) and **91 of 272**
+  manufacturer-site documents hold a contents list; all of them were damaged (2 588 with an entry made a heading, 3 765 cut at
+  a heading phrase). Lone list-number chunks in the shipped modules: **5 683 chunks in 2 800 documents → 24 in 24** (the 24 are step
+  labels, table cells and a footer inside PDF blocks); manufacturer 138 chunks in 74 documents → 0.
+- **Fix at the cause** (`tools/ingest`): `leaflet_contents.py` recognises the list in the extracted blocks; `source_registry.render_body(contents_lists=True)`
+  (for `official_drug_instruction`) writes it as one list block with a `"role":"contents"` marker listing every block it covers
+  (what the extraction put before or after it in the same block stays an ordinary block with its `offset`); `markdown_parser`
+  keeps such a paragraph whole (one entry per line, the text after it a chunk of its own, chunk metadata `contentsList`) and
+  `grls_instruction_sections` keeps a numbering prefix with the heading it numbers. The original text is unchanged: every
+  changed document keeps all its characters (checked on the 3 787 + 91) and the list stays a compact numbered list in the reader.
+  A genuine numbered heading, a numbered list of steps, a list whose titles do not come back, a numbering with a gap are not
+  taken for contents (`tests/test_leaflet_contents.py`, excerpts of real documents).
+- **Delivery**: `scripts/grls_contents_lists.py plan|apply|manufacturer`. All 8 947 stored bodies re-render to the stored Markdown
+  byte for byte, so only the documents with a list are re-rendered (front matter verbatim) into
+  `data/intermediate/grls-contents-lists` (262 MB) with the overlay `data/build/grls-contents-lists.jsonl` that
+  `read_manifest_rows` joins after the OCR1 overlay (workspace and `textSha256`; `contentsLists` goes to the document
+  metadata); the manufacturer workspace gets `prepared-contents` (7 MB, first in `PREPARED_DIRS`). The old workspaces, the
+  manifest and the PDFs are untouched.
+- **Modules republished** (versions `grls-2026.10.15.kd1`, `manufacturer-2026.10.15`): 15 ГРЛС modules → `datasets/grls-instructions-2026.10.15-36a501e7f136-kd1`, 222.5 MB download / 1 306.3 MB installed (was 224.9 / 1 328.7), largest blob 38.8 MB, 8 946 documents (the OCR-noise heading still fails the builder's guard), sections 210 052 → 197 336, chunks 239 720 → 229 370; the manufacturer-site module (271 documents) → `datasets/manufacturer-instructions-2026.10.15-4054ceb93a8a`, 7.2 MB / 45.2 MB, sections 5 691 → 5 405, chunks 7 158 → 6 946. Additive new mirror branches, nothing published earlier touched; all 16 URLs return the catalog's bytes with CORS (`verify-module-artifact.ts --url` per module); catalog `publishedAt` 2026-10-14T23:45Z; `minAppVersion` stays 0.6.48. Local copies: `output/module-zstd-grls-leaf1-2026-10-15`, `output/module-zstd-manufacturer-leaf1-2026-10-15` (the OCR1 copies stay as the rollback ones). Documents changed
+  3 865 of 8 946 (the 3 787 with a list and 78 whose numbering prefix moved from the end of one chunk to the start of the next; 5 081 identical); manufacturer 109 of 271 (91 + 18); unchanged documents are identical row for row (sections, chunks and `documents` hashes), the KD1 vectors of the
+  9 419 chunks present in both releases are byte-identical (`embed_modules.py --reuse-from` copies them; 27 chunks of the numbering-prefix
+  change were encoded again), `compare_instruction_modules.py` is the report.
+- **Dependent data rebuilt** from the shipped modules (they record the module versions and checksums): interaction, safety,
+  comparison and dose-rule indexes (byte-reproducible: a second run gives the same bytes) and the substance fallback
+  (identical, 12 185 registrations with text). Dose values are unchanged in every document (only section references and
+  character offsets moved, 5 documents without any dose rule dropped out of the dose index); comparison index: the module record
+  and 24 `y` values.
+- **Rendering** (Chromium, 375×812, e2e `drug-leaflet-contents.spec.ts`, local module bytes): Вермокс opens with the intro and one
+  numbered list of six entries, then «1. Что из себя представляет …» as the first section; the same for Гелмодол-ВМ,
+  Празиквантел МИРФАРМ, Декарис (list cut out of a long block); Немозол, Пирантел, Албендазол-Алиум are national-format
+  instructions without a list.
+- **Not done / not tested**: 21 documents that mention «Содержание листка» in a shape the recogniser does not know are
+  unchanged; lone numbers inside PDF blocks (20 documents) are left; the other 14 modules were checked on the database, not in the
+  app (only the antiparasitic group was installed in the browser); Android/WebView and a physical device were not run; the
+  Allmed instruction module (HTML source) has no such list.
 
 ## Readability: contrast, chrome, typography, strips — 2026-10-14 (STATE VIS1)
 
@@ -102,7 +148,7 @@ instruction now starts at y = 421 px at 375×812 (was 497) and 416 px at 768×10
   holds the leaflet's own table of contents («Содержание листка-вкладыша»): the PDF text layer puts a list number («3. », «5. », «6. ») in
   a block apart from its text, and the preparer turned the tail of that list («Прием препарата Вермокс.», «4. …», «Хранение
   препарата Вермокс.», «Содержимое упаковки…») into headings with one-line chunks placed before «1. Что из себя представляет…». Open for
-  the preparer (not fixed here, generated packs are not hand-edited): keep the table of contents as one block and re-join numbers with their text.
+  the preparer; fixed at the cause by LEAF1 (the section «Leaflet table of contents as one list» above): the contents stay one list.
 - Not changed: the other readers, stored module text.
 
 ## Drug screen: the text on the first screen — 2026-10-14 (STATE DRUG-UI1)

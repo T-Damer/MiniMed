@@ -164,7 +164,7 @@ describe('catalog.preview.json', () => {
         compression: 'zstd',
         url: expect.stringMatching(
           new RegExp(
-            `^https://github.com/T-Damer/MiniMed/releases/download/grls-instructions-2026\\.10\\.14-[0-9a-f]{12}-kd1/${module.id.replaceAll('.', '\\.')}\\.db\\.zst$`,
+            `^https://github.com/T-Damer/MiniMed/releases/download/grls-instructions-2026\\.10\\.15-[0-9a-f]{12}-kd1/${module.id.replaceAll('.', '\\.')}\\.db\\.zst$`,
             'u',
           ),
         ),
@@ -214,7 +214,7 @@ describe('catalog.preview.json', () => {
       (entry) => entry.id === 'minimed.medications.instructions.manufacturer-site.ru',
     );
     expect(module).toMatchObject({
-      version: 'manufacturer-2026.10.14',
+      version: 'manufacturer-2026.10.15',
       kind: 'medication',
       // Not `grls-instructions`: the sections feature maps that collection to the per-ATC groups.
       collection: 'manufacturer-instructions',
@@ -234,7 +234,7 @@ describe('catalog.preview.json', () => {
       kind: 'index',
       compression: 'zstd',
       url: expect.stringMatching(
-        /^https:\/\/github\.com\/T-Damer\/MiniMed\/releases\/download\/manufacturer-instructions-2026\.10\.14-[0-9a-f]{12}\/minimed\.medications\.instructions\.manufacturer-site\.ru\.db\.zst$/u,
+        /^https:\/\/github\.com\/T-Damer\/MiniMed\/releases\/download\/manufacturer-instructions-2026\.10\.15-[0-9a-f]{12}\/minimed\.medications\.instructions\.manufacturer-site\.ru\.db\.zst$/u,
       ),
     });
     expect(module?.sizes.downloadBytes).toBe(module?.artifacts[0]?.sizeBytes);

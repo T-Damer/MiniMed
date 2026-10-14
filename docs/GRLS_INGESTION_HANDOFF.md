@@ -262,6 +262,19 @@ collector's workspaces are not modified. `read_manifest_rows` of the module buil
 reviewed document. New OCR documents the collector delivers are cleaned by running the same two scripts (the cache
 step takes `--checksums`).
 
+## Leaflet contents lists (LEAF1, 2026-10-15)
+
+The table of contents of a patient leaflet («Содержание листка-вкладыша») is kept as one list. The recogniser
+(`tools/ingest/src/localmed_ingest/leaflet_contents.py`) reads the extraction JSON that sits next to every prepared
+Markdown; `render_body(..., contents_lists=True)` writes the list as one block (source marker `"role":"contents"`
+with the ids of every block it covers) and `tools/ingest/scripts/grls_contents_lists.py plan|apply|manufacturer`
+re-renders only the bodies of the documents that have one into a new workspace
+(`data/intermediate/grls-contents-lists`, front matter byte for byte) plus the overlay
+`data/build/grls-contents-lists.jsonl` (new workspace and `textSha256` per document id, the recognised lists).
+`read_manifest_rows` joins it after the OCR1 overlay. A new collector delivery needs `apply` again before
+`build_grls_instruction_modules.py` (the manufacturer workspace: `manufacturer`, which writes `prepared-contents`).
+Measurements and the modules rebuilt from it: `CURRENT_STATE.md` «LEAF1».
+
 ## Next action
 
 Continue the repaired current-site resolver in bounded eight-worker batches. Use

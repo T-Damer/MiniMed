@@ -38,6 +38,12 @@ student's ONNX export (`apps/app/src/features/semantic/e5-model.ts`).
     uv run tools/ingest/scripts/embed_modules.py --projection $P --family clinical \\
       --from-dir data/build/<build>/compacted --out data/build/<build>/kd1/decoded
 
+    # A release that changed few documents: copy the vectors of chunks whose id and passage text
+    # are unchanged from the previous release's decoded databases (byte for byte), encode the rest.
+    uv run tools/ingest/scripts/embed_modules.py --projection $P --family medications \\
+      --from-dir data/build/<build>/compacted --reuse-from data/build/<build>/old-decoded \\
+      --out data/build/<build>/kd1/decoded
+
 Encoding runs in shards saved as they finish (`--out/../shards-<family>`), so a stopped run resumes.
 """
 
@@ -233,7 +239,35 @@ def encode(texts: list[str], shards: Path) -> np.ndarray:
     return np.concatenate([np.load(p) for p in sorted(shards.glob("*.npy"))])
 
 
-def write_vectors(path: Path, chunk_ids: list[str], vectors: np.ndarray) -> None:
+def vector_item(chunk_id: str, vector: np.ndarray) -> tuple[str, bytes, float]:
+    return (
+        chunk_id,
+        vector.tobytes(),
+        math.sqrt(float(np.dot(vector.astype(np.int32), vector.astype(np.int32)))),
+    )
+
+
+def reusable_vectors(previous: Path, chunk_filter: str) -> dict[str, tuple[str, bytes, float]]:
+    """chunk id -> (passage, vector, norm) of the previous release's KD1 vectors of a module."""
+    db = sqlite3.connect(f"file:{previous}?mode=ro", uri=True)
+    try:
+        stored = {
+            chunk_id: (bytes(vector), float(norm))
+            for chunk_id, vector, norm in db.execute(
+                "SELECT chunk_id, vector, vector_norm FROM chunk_embeddings WHERE profile_id = ?",
+                (PROFILE["id"],),
+            )
+        }
+    finally:
+        db.close()
+    return {
+        chunk_id: (passage, *stored[chunk_id])
+        for chunk_id, passage in passages(previous, chunk_filter)
+        if chunk_id in stored
+    }
+
+
+def write_vectors(path: Path, items: list[tuple[str, bytes, float]]) -> None:
     db = sqlite3.connect(path)
     db.execute("PRAGMA foreign_keys = ON")
     with db:
@@ -259,15 +293,7 @@ def write_vectors(path: Path, chunk_ids: list[str], vectors: np.ndarray) -> None
         db.executemany(
             "INSERT INTO chunk_embeddings(profile_id, chunk_id, vector, vector_norm)"
             " VALUES (?, ?, ?, ?)",
-            (
-                (
-                    PROFILE["id"],
-                    chunk_id,
-                    vector.tobytes(),
-                    math.sqrt(float(np.dot(vector.astype(np.int32), vector.astype(np.int32)))),
-                )
-                for chunk_id, vector in zip(chunk_ids, vectors, strict=True)
-            ),
+            ((PROFILE["id"], chunk_id, vector, norm) for chunk_id, vector, norm in items),
         )
     db.execute("VACUUM")
     integrity = db.execute("PRAGMA integrity_check").fetchone()[0]
@@ -287,6 +313,14 @@ def main() -> None:
     )
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--projection", type=Path, required=True)
+    parser.add_argument(
+        "--reuse-from",
+        type=Path,
+        help=(
+            "decoded databases of the previous release (same file names): the vector of a chunk"
+            " whose id and passage text are unchanged is copied byte for byte, not encoded again"
+        ),
+    )
     args = parser.parse_args()
     projection = load_projection(args.projection)
     if args.from_dir is None and not args.source:
@@ -308,29 +342,71 @@ def main() -> None:
         print(f"decoded: {len(databases)} modules → {args.out}", flush=True)
 
     per_module = [passages(path, family["chunks"]) for path in databases]
-    texts = [text for rows in per_module for _, text in rows]
-    vectors = quantize(
-        project(encode(texts, args.out.parent / f"shards-{args.family}"), projection)
+    kept: list[dict[str, tuple[bytes, float]]] = []
+    for path, rows in zip(databases, per_module, strict=True):
+        previous = args.reuse_from / path.name if args.reuse_from is not None else None
+        old = (
+            reusable_vectors(previous, family["chunks"]) if previous and previous.is_file() else {}
+        )
+        kept.append(
+            {
+                chunk_id: (old[chunk_id][1], old[chunk_id][2])
+                for chunk_id, text in rows
+                if chunk_id in old and old[chunk_id][0] == text
+            }
+        )
+    texts = [
+        text
+        for rows, same in zip(per_module, kept, strict=True)
+        for id_, text in rows
+        if id_ not in same
+    ]
+    vectors = (
+        quantize(project(encode(texts, args.out.parent / f"shards-{args.family}"), projection))
+        if texts
+        else np.zeros((0, PROFILE["dimensions"]), dtype=np.int8)
     )
     if len(vectors) != len(texts):
         raise SystemExit(f"{len(vectors)} vectors for {len(texts)} passages: remove stale shards")
 
     offset = 0
+    reused = 0
     report = []
-    for path, rows in zip(databases, per_module, strict=True):
-        write_vectors(
-            path, [chunk_id for chunk_id, _ in rows], vectors[offset : offset + len(rows)]
+    for path, rows, same in zip(databases, per_module, kept, strict=True):
+        items: list[tuple[str, bytes, float]] = []
+        for chunk_id, _text in rows:
+            if chunk_id in same:
+                items.append((chunk_id, *same[chunk_id]))
+                reused += 1
+            else:
+                items.append(vector_item(chunk_id, vectors[offset]))
+                offset += 1
+        write_vectors(path, items)
+        report.append(
+            {
+                "file": path.name,
+                "chunks": len(rows),
+                "reused": len(same),
+                "bytes": path.stat().st_size,
+            }
         )
-        offset += len(rows)
-        report.append({"file": path.name, "chunks": len(rows), "bytes": path.stat().st_size})
     (args.out.parent / f"embed-report-{args.family}.json").write_text(
         json.dumps(
-            {"profile": PROFILE, "modules": len(report), "chunks": offset, "files": report},
+            {
+                "profile": PROFILE,
+                "modules": len(report),
+                "chunks": offset + reused,
+                "encoded": offset,
+                "reused": reused,
+                "files": report,
+            },
             ensure_ascii=False,
             indent=1,
         )
     )
-    print(f"embedded: {offset} chunks in {len(report)} modules", flush=True)
+    print(
+        f"embedded: {offset} chunks encoded, {reused} reused, in {len(report)} modules", flush=True
+    )
 
 
 if __name__ == "__main__":

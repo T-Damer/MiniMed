@@ -81,7 +81,8 @@ has its own store tests (`*-store.test.ts`); it is not shipped data.
 2. ~~**Drug indexes were built on the `…e5` instruction modules, the catalog ships `…kd1`.**~~ Fixed 2026-10-14 (OCR1): the
    instruction modules were republished (`grls-2026.10.14.kd1`, cleaned OCR text) and the interaction, safety,
    comparison and dose-rule indexes and the substance fallback were rebuilt from the shipped modules; the test no
-   longer carries `.fails`.
+   longer carries `.fails`. Rebuilt the same way after LEAF1 (`grls-2026.10.15.kd1`, leaflet contents lists): the
+   record of module versions and checksums in each index is what the test compares.
 3. ~~**Landing snapshots are older than their sources.**~~ Fixed 2026-10-14 (QA1): `calculator.json` and
    `questionnaire.json` are copies of the authored definitions again (`ageScope`, no `audience`); the test no
    longer carries `.fails`.

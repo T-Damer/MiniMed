@@ -59,7 +59,8 @@ describe('drug instruction indexes (interactions, safety, comparison)', () => {
     }
   });
 
-  // Fixed 2026-10-14 (OCR1, docs/DATA_TESTS.md): the indexes are rebuilt from the shipped `grls-2026.10.14.kd1` modules.
+  // Fixed 2026-10-14 (OCR1, docs/DATA_TESTS.md): the indexes are rebuilt from the shipped instruction modules
+  // (`grls-2026.10.15.kd1` since LEAF1: rebuild all four after every module republish).
   it('record the exact module versions and checksums the catalog ships', () => {
     for (const index of Object.values(indexes)) {
       for (const basis of index.basis.modules) {

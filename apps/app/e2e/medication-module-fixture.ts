@@ -18,9 +18,9 @@ export const MEDICATION_MODULE_ID = 'minimed.medications.antiparasitic.ru';
 const PUBLISHED_DIRECTORY = 'output/module-zstd-2026-10-01/esklp-compacted';
 const POINTER = 'core.catalog.pointer.medication.esklp.mnn.албендазол-062d3e89c1c0b8dd';
 export const INSTRUCTION_MODULE_ID = 'minimed.medications.instructions.antiparasitic.ru';
-// The ГРЛС instruction modules as republished by OCR1 (2026-10-14); the catalog pins their hashes.
+// The ГРЛС instruction modules as republished by LEAF1 (2026-10-15); the catalog pins their hashes.
 const INSTRUCTION_DIRECTORY =
-  'output/module-zstd-grls-ocr1-kd1-2026-10-14/grls-instructions-2026.10.14-15ce0cf79f45-kd1';
+  'output/module-zstd-grls-leaf1-2026-10-15/grls-instructions-2026.10.15-36a501e7f136-kd1';
 
 const documentRoute = (id: string) =>
   `${E2E_ASSET_ORIGIN}/#/modules/documents/d/${Buffer.from(id).toString('base64url')}`;

@@ -792,12 +792,11 @@
       "class": "RELEASED",
       "producer": "STATE OCR1: build_grls_instruction_modules.py build -> medbase compact-module-search -> package-instruction-modules.ts (lexical stage) -> embed_modules.py --family medications --from-dir -> reframe-modules.ts --marker kd1",
       "consumers": [
-        "catalog.preview.json minimed.medications.instructions.<group>.ru (15 modules, version grls-2026.10.14.kd1)",
-        "scripts/build-drug-interactions.ts, build-medication-safety.ts, build-drug-comparison.ts, build-dose-rules.ts (MODULE_DIRECTORIES)"
+        "rollback copy (the catalog now lists grls-2026.10.15.kd1, output/module-zstd-grls-leaf1-2026-10-15)"
       ],
       "release": "branch datasets/grls-instructions-2026.10.14-15ce0cf79f45-kd1 (15 .db.zst)",
       "rebuild": "gh/git checkout of the branch; or the commands above over data/intermediate/grls-ocr-cleaned",
-      "note": "Local copy of the released OCR1 instruction modules (224.9 MB); the earlier copy of the 2026-10-05 release stays under data/build/grls-instruction-modules/zst. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
+      "note": "Local copy of the released OCR1 instruction modules (224.9 MB); the earlier copy of the 2026-10-05 release stays under data/build/grls-instruction-modules/zst. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2). Superseded by output/module-zstd-grls-leaf1-2026-10-15 (LEAF1, 2026-10-15); kept as the rollback copy.",
       "bytes": 224889019,
       "modified": "2026-10-14"
     },
@@ -806,11 +805,11 @@
       "class": "REBUILDABLE",
       "producer": "STATE OCR1 / M1: build_manufacturer_instruction_module.py registry, medbase prepare (PDF, text), grls_ocr_requality.py manufacturer (prepared-pdf-ocr1)",
       "consumers": [
-        "tools/ingest/scripts/build_manufacturer_instruction_module.py build (prepared-pdf-ocr1 first)"
+        "tools/ingest/scripts/build_manufacturer_instruction_module.py build (prepared-contents first, then prepared-pdf-ocr1, prepared-pdf, prepared-text)"
       ],
       "rebuild": "build_manufacturer_instruction_module.py registry, the two medbase prepare commands it prints, grls_ocr_vision_cache.py --manufacturer, grls_ocr_requality.py manufacturer (minutes)",
-      "note": "Prepared Markdown of the 272 holder-site documents; the 16 scans are re-prepared in prepared-pdf-ocr1.",
-      "bytes": 79546903,
+      "note": "Prepared Markdown of the 272 holder-site documents; the 16 scans are re-prepared in prepared-pdf-ocr1. LEAF1: prepared-contents holds the 91 documents whose leaflet contents list was re-rendered (grls_contents_lists.py manufacturer).",
+      "bytes": 86637244,
       "modified": "2026-10-14"
     },
     {
@@ -879,6 +878,32 @@
       "rebuild": "bun run content:build:regulatory; uv run --project tools/ingest medbase package-regulatory --database data/build/rf-regulatory-pilot.db --output output/module-zstd-regulatory-2026-10-14-r2 --version 2026.10.14-r2 --min-app-version 0.6.60 (the zstd archive is reproducible only by its checksum: re-download it from the branch)",
       "note": "Recorded by hand although 3.3 MB is below the 50 MiB threshold: the one local copy of the published regulatory full-text module (file, catalog entry, package report). The decoded SQLite equals the 2026.10.14 gzip release (sha256 03939d84…).",
       "bytes": 3262281,
+      "modified": "2026-10-14"
+    },
+    {
+      "path": "data/intermediate/grls-contents-lists",
+      "class": "REBUILDABLE",
+      "producer": "STATE LEAF1: tools/ingest/scripts/grls_contents_lists.py apply (re-renders the body of every prepared leaflet with a contents list from its stored extraction JSON; overlay data/build/grls-contents-lists.jsonl)",
+      "consumers": [
+        "tools/ingest/scripts/build_grls_instruction_modules.py via data/build/grls-contents-lists.jsonl (overlay workspace column, joined after the OCR1 overlay)"
+      ],
+      "rebuild": "uv run python scripts/grls_contents_lists.py apply --out ../../data/intermediate/grls-contents-lists --overlay ../../data/build/grls-contents-lists.jsonl (about 1 minute; MINIMED_DATA_ROOT from a worktree); the extraction JSON in the old workspaces is the input",
+      "note": "3 787 re-rendered GRLS leaflets (Markdown only; the extraction stays in grls-full-final / grls-ocr-cleaned), the current build input of the 15 ГРЛС instruction modules for those documents.",
+      "bytes": 267339261,
+      "modified": "2026-10-14"
+    },
+    {
+      "path": "output/module-zstd-grls-leaf1-2026-10-15",
+      "class": "RELEASED",
+      "producer": "STATE LEAF1: build_grls_instruction_modules.py build -> medbase compact-module-search -> package-instruction-modules.ts (lexical stage) -> embed_modules.py --family medications --from-dir --reuse-from -> reframe-modules.ts --marker kd1",
+      "consumers": [
+        "catalog.preview.json minimed.medications.instructions.<group>.ru (15 modules, version grls-2026.10.15.kd1)",
+        "scripts/build-drug-interactions.ts, build-medication-safety.ts, build-drug-comparison.ts, build-dose-rules.ts (MODULE_DIRECTORIES), apps/app/e2e/medication-module-fixture.ts"
+      ],
+      "release": "branch datasets/grls-instructions-2026.10.15-36a501e7f136-kd1 (15 .db.zst)",
+      "rebuild": "gh/git checkout of the branch; or the commands above over data/intermediate/grls-contents-lists and the old workspaces",
+      "note": "Local copy of the LEAF1 instruction modules (222.5 MB); the OCR1 copy output/module-zstd-grls-ocr1-kd1-2026-10-14 stays as the rollback one. The first-pass branch datasets/grls-instructions-2026.10.15-8e814530e861-kd1 on the mirror is unreferenced (the text after a cut contents list shared a chunk with it; fixed before this release).",
+      "bytes": 222521672,
       "modified": "2026-10-14"
     }
   ]
