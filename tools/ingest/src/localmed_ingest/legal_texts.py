@@ -335,15 +335,15 @@ def _without_stray_empty_rows(rows: list[list[str]]) -> list[list[str]]:
 def _continues_row(previous: list[str], row: list[str]) -> tuple[int, int] | None:
     """(column of the row's text, column of the previous row to append it to) for a row cut by a page break.
 
-    The cut leaves one filled cell on the new page (lower-case start; the grid may place it in the first column
-    when the cell spans) and the text belongs to the previous row's longest open cell (no closing punctuation).
+    The cut leaves one filled cell on the new page (lower-case or quoted start; the grid may place it in the first
+    column when the cell spans) and the text belongs to the previous row's longest open cell (no closing punctuation).
     """
     filled = [i for i, cell in enumerate(row) if cell]
     if len(filled) != 1 or len(previous) != len(row):
         return None
     text = row[filled[0]]
     open_cells = [i for i, cell in enumerate(previous) if len(cell) > 3 and not cell[:1].isdigit()]
-    if not text[:1].islower() or not open_cells:
+    if not (text[:1].islower() or text[:1] == "«") or not open_cells:
         return None
     target = max(open_cells, key=lambda i: len(previous[i]))
     if re.search(r"[.;:!?»)]$", previous[target].rstrip()):
