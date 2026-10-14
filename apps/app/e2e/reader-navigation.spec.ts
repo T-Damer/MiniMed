@@ -56,25 +56,24 @@ test('a pointer that becomes its document takes its history entry and leaves one
   expect(new URL(page.url()).hash).not.toContain('/modules/documents/d/');
 });
 
-test('the reader shows its page in a bottom-left bubble, jumps from it in place and lists pages in the contents', async ({
+test('the reader shows its page on the section-path bar, jumps from it in place and lists pages in the contents', async ({
   page,
 }) => {
   test.setTimeout(240_000);
   await openClinicalReader(page);
 
   const summary = page.locator('[data-reader-page-bubble="summary"]');
-  await expect(summary).toBeVisible();
+  await expect(summary).toBeAttached();
   await expect(summary).toHaveAttribute('aria-label', /^Страница 1 из \d+/u);
   const total = Number.parseInt(
     ((await summary.getAttribute('aria-label')) ?? '').match(/из (\d+)/u)?.[1] ?? '',
     10,
   );
   expect(total).toBeGreaterThan(8);
-  // A small bubble in the bottom-left corner, not a bar across the page and not in the header.
-  const box = await summary.boundingBox();
-  expect(box?.x ?? 999).toBeLessThan(40);
-  expect((box?.y ?? 0) + (box?.height ?? 0)).toBeGreaterThan(PHONE.height * 0.8);
-  expect(box?.width ?? 999).toBeLessThan(140);
+  // Page 1 of the text needs no counter: nothing is shown at the top, and nothing floats over the
+  // text — the counter lives in the opaque section-path bar, not in a bottom corner or the header.
+  await expect(summary).toBeHidden();
+  await expect(page.locator('[data-reader-page-dock]')).toHaveCount(0);
   await expect(page.locator('.document-page__chrome [data-reader-page-bubble]')).toHaveCount(0);
 
   // Reading on moves the page, and the digits roll.
@@ -99,6 +98,13 @@ test('the reader shows its page in a bottom-left bubble, jumps from it in place 
   expect(
     await page.evaluate(() => (window as unknown as { __rolled: number }).__rolled),
   ).toBeGreaterThan(0);
+  // Reading on, the small chip stands at the right end of the section-path bar, at the top edge.
+  await expect(summary).toBeVisible();
+  const box = await summary.boundingBox();
+  expect(box?.y ?? 999).toBeLessThan(120);
+  expect((box?.x ?? 0) + (box?.width ?? 0)).toBeGreaterThan(PHONE.width * 0.8);
+  expect(box?.width ?? 999).toBeLessThan(140);
+  await expect(page.locator('.reader-section-path__line [data-reader-page-bubble]')).toHaveCount(1);
 
   // The contents list names the page of every heading, at the right end of its row.
   await page.getByRole('button', { name: 'Открыть оглавление' }).click();
