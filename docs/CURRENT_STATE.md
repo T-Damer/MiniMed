@@ -4837,8 +4837,15 @@ Review: [research/atc-index-review-2026-10-14.md](research/atc-index-review-2026
 - **Tests.** `atc-codes.test.ts` (selection, flags, consensus, exceptions, file validation), `atc-index.data.test.ts` (class codes valid in the
   НСИ dictionary, every judged membership shipped or excluded as the review says and each exclusion declared, suppressed sentences no longer name
   the class, none of the 215 ignored conflict/unconfirmed candidate codes in the index, the 13 consensus codes present, SAFE1 without ATC).
-- **For the owner** (in the review note): the R05 class word covers 78 non-antitussive cards (alias to `R05D`/`R05F` would fix it; not applied,
-  it changes existing hits), two older topical interferon cards in `L03AB`, admit or keep out flax seed.
+- **Owner decisions 2026-10-14 (STATE ATC4b)**, recorded in the review note and `ownerDecisions` of its JSON; index rebuilt (2 100 458 → 2 101 607 bytes; the build before the change
+  reproduced the committed file byte for byte). (1) The class word «противокашлевые» is an alias in `class-phrases.ts` for `R05D` + `R05F` (R05F combinations contain a suppressant by
+  definition) instead of the derived whole of R05: **78 cards (expectorants, mucolytics, `R05X` cold remedies) lose it** (7 111 card-document / 7 699 card-sentence pairs), **15 suppressant
+  cards keep it and gain** 244 / 304 pairs (suppressant warnings from expectorant instructions were dropped as «own class» before); the two R05 memberships of the first review are
+  withdrawn. Residual: 3 dextromethorphan cold remedies coded `R05X` lose the antitussive sentences (no per-card extra-code mechanism exists). (2) The two older topical interferon cards stay in
+  `L03AB`: Генферон (benzocaine, vaginal/rectal suppositories) states no absorption and indicates acute bronchitis, cystitis, endometritis with systemic interferon reactions; Генферон лайт has
+  no instruction in the product. (3) Flax seed `A06AC05` admitted (exception removed): +97 documents / +133 sentences on that card. Shipped memberships 17 → 16. Other class words as broad
+  as R05 (`J01F` macrolide/lincosamide, alias «цитостатики» → all `L01`, `A07`, `N06B`, `R01A`/`S01G`, `B05`, `N02`, `N05C`) are listed in the review, not changed.
+  Tests: `atc-index.data.test.ts` (R05 mapping covers `R05D`/`R05F`, not `R05C`; interferon exceptions; flax in `A06AC`), `class-phrases.test.ts` (alias narrows a derived word).
 - **Not done / not tested.** No clinician has signed the review (AI reviewer, product instruction texts as evidence); hits that did not change were
   not re-audited; the app was not run with the new asset in a browser (unit and data tests only); no release was made.
 

@@ -1,16 +1,10 @@
 {
-  "$comment": "ATC codes the interaction index must not carry for a card, decided by the medical review in docs/research/atc-index-review-2026-10-14.json (its «decisions» list holds the card and code of every entry, with the evidence). Applied at build time by selectAtcCodes; the index never holds them, nothing in the app branches on a drug id.",
+  "$comment": "ATC codes the interaction index must not carry for a card, decided by the medical review in docs/research/atc-index-review-2026-10-14.json (its «decisions» list holds the card and code of every entry, with the evidence). Applied at build time by selectAtcCodes; the index never holds them, nothing in the app branches on a drug id. The льна посевного семена / A06AC05 entry was removed by the owner on 2026-10-14 (see «ownerDecisions» in the review).",
   "exceptions": [
     {
       "card": "esklp.mnn.интерферон-альфа-2b-лоратадин",
       "code": "L03AB",
       "reason": "Intranasal ointment: its own instruction states that the plasma concentration of the active substances is below the detection limit and has no clinical significance, so the systemic interferon class sentences («терапия интерфероном», CYP450, гепатит C) do not apply.",
-      "review": "docs/research/atc-index-review-2026-10-14.json"
-    },
-    {
-      "card": "esklp.mnn.льна-посевного-семена",
-      "code": "A06AC05",
-      "reason": "Unsure and not explicit: the code rests only on the НСИ dictionary, the registered group is «обволакивающее средство растительного происхождения»; left out of the «слабительные средства» class until the owner decides.",
       "review": "docs/research/atc-index-review-2026-10-14.json"
     }
   ]

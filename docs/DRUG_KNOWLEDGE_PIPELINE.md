@@ -347,6 +347,10 @@ bun scripts/build-drug-interactions.ts --out /tmp/new.json                      
 bun scripts/diff-interaction-atc.ts --old /tmp/old.json --new /tmp/new.json --esklp-dir <decoded new modules> --out review-input.json
 ```
 
+A class word that is too broad is narrowed in `CLASS_ALIASES` (`apps/app/src/features/drug-interactions/class-phrases.ts`), not in the code data: an alias replaces the phrase derived from the
+НСИ group names (the owner's 2026-10-14 decision narrowed «противокашлевые» from the whole of `R05` to `R05D` + `R05F`; the other broad words are listed in the review note). The build
+refuses an alias code that is not in the НСИ dictionary.
+
 Judge every changed class membership against the product's own instruction (docs/research/atc-index-review-*.md has the method), declare
 the wrong ones as exceptions, rebuild, and update the review JSON that `atc-index.data.test.ts` reads. The index is an app asset
 (committed, ships with the app release); there is no mirror tag for it.

@@ -6,6 +6,9 @@ code, its sources, the class rule and its basis, the reader counts and quotes) a
 selection ignored). Reviewer: AI against the product's own instruction texts; no clinician has signed it off. Owner's
 brief: the data is 90–99 % right, so the review covers only what the completed codes **change**.
 
+> **Status 2026-10-14 (later):** the owner decided the open points; the text below is the review as written, the changes are in «Owner decisions 2026-10-14» at the end:
+> R05 memberships withdrawn (the class word narrowed), flax seed admitted, the two interferon cards kept. Shipped memberships: 17 → 16.
+
 ## Where ATC codes are used
 
 | Index | Uses ATC? | How |
@@ -89,12 +92,91 @@ sentence from the sacubitril/valsartan side (the reverse direction is unchanged)
 
 ## For the owner
 
-1. **R05 rule breadth** (pre-existing, 78 expectorant/mucolytic cards): map the alias «противокашлевые» to `R05D` and `R05F` instead of the whole of R05. It would remove false
-   «do not combine with antitussives» hits between expectorants; not applied because it changes existing hits beyond what the new codes change.
-2. **Other topical interferon cards in `L03AB`** (existing, not changed by the fill): «бензокаин + интерферон альфа-2b + таурин» (gel/ointment) and «интерферон альфа-2b + таурин»
-   are the same kind as the excluded nasal ointment; check their instructions for absorption statements and, if the same, add exceptions.
-3. **Льна семена** `A06AC05`: admit or keep out.
+All four points were decided on 2026-10-14; see «Owner decisions 2026-10-14» below.
+
+1. **R05 rule breadth** (78 expectorant/mucolytic/cold-remedy cards): decided, the class word is narrowed to `R05D` + `R05F` (OD1).
+2. **Other topical interferon cards in `L03AB`**: decided, kept: the instruction of one shows systemic use, the other has no instruction in the product (OD2).
+3. **Льна семена** `A06AC05`: decided, admitted (OD3).
 4. The 8 card codes that the НСИ dictionary does not know at level 4 (`L01XE`, `V03AA`, `J01DA06`, …, registry values) are unchanged and match no class.
 
 Not reviewed: hits that did not change; the reader-sentence quality of the class phrases in general (INT1's own hand check, 96 % targets right);
 by a clinician.
+
+## Owner decisions 2026-10-14
+
+Machine-readable: `ownerDecisions` in [the JSON record](atc-index-review-2026-10-14.json) (OD1–OD3, per-drug lists, quotes). The index was
+rebuilt (`bun scripts/build-drug-interactions.ts`; the build before the change reproduced the committed file byte for byte); 2 100 458 → 2 101 607 bytes. Counts
+below are **pairs** the class rules make visible: (card, instruction sentence or document of another drug), before against after, the three
+decisions together on the committed index. In the top-200 drug pairs the share with a mention moved 2 530 → 2 520 of 19 900.
+
+| Decision | Cards | Pairs lost (document / sentence) | Pairs gained (document / sentence) |
+| --- | ---: | ---: | ---: |
+| OD1 «противокашлевые» → `R05D` + `R05F` | 78 lose, 15 keep | 7 111 / 7 699 | 244 / 304 |
+| OD2 two interferon cards | 0 changed | 0 | 0 |
+| OD3 flax seed in `A06AC05` | 1 gains | 0 | 97 / 133 |
+
+### OD1. «Противокашлевые» narrowed to the cough suppressants
+
+The derived class word stood for the whole of R05 (`Противокашлевые препараты и средства для лечения простудных заболеваний`). It is now an alias
+in `class-phrases.ts` (`CLASS_ALIASES`) for `R05D` and `R05F`, with the basis recorded in the alias.
+
+- **R05F is in.** Its НСИ name is «Комбинированные препараты противокашлевых и отхаркивающих средств» (`R05FA` opium derivatives + expectorants,
+  `R05FB` other suppressants + expectorants): every member contains a suppressant by the definition of the group, and the warnings the word is
+  used for («не применять с противокашлевыми … скопление мокроты») follow the suppressant, not the combination partner. The group already stands behind
+  the class word «отхаркивающие», so a combination is read as both. All 5 R05F cards in the index name codeine, butamirate or dextromethorphan.
+- **Out:** `R05C` (expectorants and mucolytics) and `R05X` (other cold remedies: paracetamol/decongestant powders, camphor/menthol rubs).
+- **78 cards lose the class** (each loses 81–93 documents / 86–100 sentences): 52 coded `R05C` (one also `R05X`) and 26 coded only `R05X`. By code: `R05CB` mucolytics 8 (acetylcysteine,
+  ambroxol, bromhexine, carbocisteine, dornase alfa, erdosteine, mannitol), `R05CA` expectorants 37 (guaifenesin, marshmallow, thyme, plantain, liquorice, ivy, primrose, adhatoda, ammonia/anise and
+  ammonium chloride mixtures, other herbal combinations), `R05C` bare 7 (ambroxol and bromhexine combinations, myrtol, an anise/plantain herbal tea), `R05X` cold remedies 26 (paracetamol/ascorbic acid/
+  decongestant powders, camphor/menthol/essential-oil rubs, pelargonium, elder-flower herbal mixture, bromhexine and diphenhydramine combinations, 3 dextromethorphan combinations, see below).
+  The full list with the figures of each card is `ownerDecisions[0].effect.lostByDrug`.
+- **15 cards keep it and gain 14–17 documents each:** `R05D` 10 (butamirate, levodropropizine, prenoxdiazine, glaucine + ephedrine ×2, dextromethorphan + guaifenesin + racementhol,
+  Iceland moss ×2, two antibody-based preparations), `R05F` 5 (codeine ×3, butamirate + guaifenesin, dextromethorphan + terpin hydrate + levomenthol). The gain is the
+  suppressant warnings that expectorant instructions carry (bromhexine, ambroxol: «не назначают одновременно с противокашлевыми средствами»): they were dropped as
+  «own class» while R05 meant every expectorant, and now reach the suppressants they are about.
+- The two first-review memberships in `R05` (H01 cough mixture, H18 liquorice extract, both `R05CA`) no longer exist: withdrawn; their `R05C` memberships (H02, H19) stay.
+- **Residual risk (owner to decide).** Three dextromethorphan cold remedies are coded `R05X` (dextromethorphan + paracetamol + pseudoephedrine, the same with ascorbic acid, dextromethorphan +
+  phenylephrine + chlorphenamine) and lose the antitussive class sentences with the rest of `R05X`; a fourth (dextromethorphan + paracetamol + phenylephrine + chlorphenamine, `N02BE71`) never had
+  them. Their substance rules still find the substance. A declared per-card extra-code list would bring them back; none exists today.
+
+### OD2. Two topical interferon cards: kept
+
+The condition was that the product's own instruction shows a topical product with negligible systemic absorption, like the excluded nasal ointment.
+
+- **бензокаин + интерферон альфа-2b + таурин = Генферон**, *vaginal and rectal suppositories* (the first review wrote gel/ointment; that was wrong). Instruction
+  `drug.rf.15a7cbb6003585558ca4.instruction` (ГРЛС leaflet). It states **no** plasma level or absorption (no «концентрация», «плазма», «всасывание», «системный», «фармакокинетика»).
+  It indicates uses beyond the site of application — «для лечения острого бронхита в составе комплексной терапии», «хронического рецидивирующего цистита», «хронического эндометрита» — with
+  «По 1 суппозиторию (1 000 000 МЕ) ректально 2 раза в сутки в течение 5 дней» for bronchitis, and lists the reactions of the systemic drug: «явления, возникающие при применении всех
+  видов интерферона альфа-2b, такие как озноб, повышение температуры, … лейкопения … тромбоцитопения». Systemic indication and systemic effects: kept in `L03AB`.
+- **интерферон альфа-2b + таурин = Генферон лайт**: nasal spray, nasal drops and vaginal/rectal suppositories (registrations ЛП-№(007682)-(РГ-RU), ЛП-№(007484)-(РГ-RU), ЛП-002309,
+  ЛП-№(008492)-(РГ-RU)). **No instruction of this product is in the product** (15 ГРЛС instruction modules + the holder-site module, searched by trade name, substances and the four numbers),
+  so there is no text that could support a block, and one card-level exception could not be right for both a nasal spray and a rectal suppository. Kept.
+- Result: `atc-code-exceptions.json` keeps its single entry (interferon + loratadine). A follow-up for later: the card «интерферон-альфа-2b» joins systemic injections (Альтевир, Лайфферон) and
+  topical forms (Виферон gel/ointment, Гриппферон, Инфагель); a card-level exception cannot separate them.
+
+### OD3. Flax seed admitted
+
+The exception for `льна посевного семена` / `A06AC05` was removed; the owner decision is the basis (the code rests on the НСИ dictionary alone; the instruction names a mild laxative
+action). The card is hit by the class «Слабительные средства» (`A06`): **+97 documents / +133 sentences** on that one card, all the stimulant-laxative and laxative sentences the first
+review had read for H13 (hypokalaemia, QT, laxatives as drugs).
+
+### Other class words that look as broad as R05 (listed, not changed)
+
+Same pattern — a word that names one part of a group, resolved to the whole group, by the derived НСИ names or by an alias. Cards = cards of the index under the code, readers = documents
+that name the class.
+
+| Word → code | Cards / readers | Why it looks too broad |
+| --- | ---: | --- |
+| «макролиды», «линкозамиды», «стрептограмины» → `J01F` | 9 / 153 | all three words stand for the group of 7 macrolides + 2 lincosamides: a «macrolide» warning is shown for clindamycin and lincomycin and the reverse (narrow to `J01FA`, `J01FF`, `J01FG`) |
+| alias «цитостатики» → `L01` | 183 / 178 | all antineoplastic agents, including ≈ 49 protein-kinase inhibitors and ≈ 39 monoclonal antibodies that are not cytostatics in the strict sense (the derived «противоопухолевые» → `L01` is right) |
+| «противодиарейные» → `A07` | 40 / 15 | group name is a list; 16 live probiotics, 9 adsorbents, mesalazine, oral antibiotics are not antidiarrhoeals in the sense of a warning (narrow to `A07D`, `A07F`, `A07X`) |
+| «психостимуляторы» → `N06B` | 32 / 30 | 28 of the 32 cards are `N06BX` nootropics (piracetam and others), not stimulants |
+| «деконгестанты» → `R01A`; → `S01G` | 35 / 15; 10 / 27 | `R01A` holds nasal corticosteroids (8) and antiallergics (3), `S01G` ophthalmic antiallergics (6) |
+| «кровезаменители» → `B05` | 61 / 14 | electrolyte, parenteral-nutrition and dialysis solutions are not blood substitutes |
+| «анальгетики» → `N02` | 89 / 84 | includes 12 migraine drugs (ergot alkaloids, triptans, CGRP antagonists) |
+| «снотворные» → `N05C` | 42 / 307 | 30 of the 42 are `N05CM` (valerian and other herbal sedatives); hypnotic warnings are shown for them (already seen in the first review, the herbal drops) |
+
+Under-inclusive rather than over-broad (a warning is missed, not shown wrongly): alias «гипотензивные», «антигипертензивные» → `C02` only (18 cards; diuretics, beta-blockers, ACE inhibitors, calcium-channel
+blockers are not in it, though an instruction that says «гипотензивные средства» means them).
+
+None of these were changed: the owner decision covers R05 only.

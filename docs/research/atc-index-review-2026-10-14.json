@@ -28,9 +28,11 @@
       }
     },
     "shipped": {
-      "classMemberships": 17,
-      "excludedByException": 3
-    }
+      "classMemberships": 16,
+      "excludedByException": 2,
+      "withdrawnByOwnerDecision": 2
+    },
+    "note": "verdicts are the original ATC4 review; the shipped counts follow the owner decisions of 2026-10-14 (ownerDecisions)"
   },
   "decisions": [
     {
@@ -83,8 +85,9 @@
         ]
       },
       "verdict": "unsure",
-      "action": "ship",
-      "reason": "Same as the cough mixture: the instruction prints R05CA, expectorant; the antitussive sentences of R05 readers are about antitussives. Rule breadth, source explicit, shipped."
+      "action": "withdrawn",
+      "reason": "Same as the cough mixture: the instruction prints R05CA, expectorant; the antitussive sentences of R05 readers are about antitussives. Rule breadth, source explicit, shipped. Withdrawn by owner decision OD1 (2026-10-14): the class word «противокашлевые» no longer stands for the whole of R05, so this card (R05C expectorant) is not a member of any class named by it.",
+      "ownerDecision": "OD1"
     },
     {
       "id": "H02",
@@ -750,8 +753,9 @@
         ]
       },
       "verdict": "unsure",
-      "action": "exclude",
-      "reason": "The code (A06AC05) is from the НСИ dictionary only; the registered group is «обволакивающее средство растительного происхождения» and the instruction mentions a mild laxative action as a secondary effect. The reader sentences concern stimulant laxatives (hypokalaemia, QT) or laxatives as drugs. Not explicit: left out and listed for the owner."
+      "action": "ship",
+      "reason": "The code (A06AC05) is from the НСИ dictionary only; the registered group is «обволакивающее средство растительного происхождения» and the instruction mentions a mild laxative action as a secondary effect. The reader sentences concern stimulant laxatives (hypokalaemia, QT) or laxatives as drugs. Not explicit: left out and listed for the owner. Admitted by owner decision OD3 (2026-10-14).",
+      "ownerDecision": "OD3"
     },
     {
       "id": "H14",
@@ -1034,8 +1038,9 @@
         ]
       },
       "verdict": "unsure",
-      "action": "ship",
-      "reason": "Same as the cough mixture: the instruction prints R05CA, expectorant; the antitussive sentences of R05 readers are about antitussives. Rule breadth, source explicit, shipped."
+      "action": "withdrawn",
+      "reason": "Same as the cough mixture: the instruction prints R05CA, expectorant; the antitussive sentences of R05 readers are about antitussives. Rule breadth, source explicit, shipped. Withdrawn by owner decision OD1 (2026-10-14): the class word «противокашлевые» no longer stands for the whole of R05, so this card (R05C expectorant) is not a member of any class named by it.",
+      "ownerDecision": "OD1"
     },
     {
       "id": "H19",
@@ -1274,6 +1279,1133 @@
       "verdict": "plausible",
       "action": "ship",
       "reason": "Own-class rule as for every ARB label already in the index: a contraindication or warning of sacubitril/valsartan that names ACE inhibitors or ARBs no longer counts for the «ARB combination» group because the drug now belongs to C09D itself. The sentence stays for the single-ARB group (C09C) and in the interaction section nothing is suppressed. Design limit: another ARB combination loses this one sentence from the sacubitril/valsartan side."
+    }
+  ],
+  "ownerDecisions": [
+    {
+      "id": "OD1",
+      "decision": "Narrow the class word «противокашлевые» to the cough-suppressant subgroups of R05.",
+      "owner": "owner decision 2026-10-14",
+      "change": {
+        "file": "apps/app/src/features/drug-interactions/class-phrases.ts",
+        "alias": {
+          "text": "противокашлевые",
+          "codes": [
+            "R05D",
+            "R05F"
+          ]
+        },
+        "before": "derived from the НСИ name of R05 («Противокашлевые препараты и средства для лечения простудных заболеваний»): the whole of R05"
+      },
+      "reasoning": {
+        "R05D": "НСИ R05D «Противокашлевые препараты, кроме комбинаций с отхаркивающими средствами»: cough suppressants (R05DA opium alkaloids and derivatives, R05DB other suppressants).",
+        "R05F": "Included. НСИ R05F «Комбинированные препараты противокашлевых и отхаркивающих средств» (R05FA opium derivatives + expectorants, R05FB other suppressants + expectorants): by the definition of the group every member contains a suppressant, which is what the warnings «не применять с противокашлевыми» are about (sputum retention); the group already stands behind the class word «отхаркивающие», so a combination is both. All 5 R05F cards in the index name the suppressant (codeine, butamirate, dextromethorphan).",
+        "excluded": "R05C expectorants and mucolytics (ambroxol, bromhexine, acetylcysteine, herbal expectorants) and R05X «Другие препараты для лечения простудных заболеваний» (paracetamol/decongestant cold remedies, camphor/menthol rubs): no suppressant by definition."
+      },
+      "effect": {
+        "cardsLosingTheClass": 78,
+        "cardsKeepingTheClass": 15,
+        "lostPairs": {
+          "cardDocument": 7111,
+          "cardSentence": 7699
+        },
+        "gainedPairs": {
+          "cardDocument": 244,
+          "cardSentence": 304
+        },
+        "whyGained": "The instructions of expectorants and mucolytics are no longer «own class»: their warnings about cough suppressants («бромгексин не назначают одновременно с противокашлевыми средствами … скопление мокроты») were dropped at build time as the drug describing itself; now they are shown for the suppressants, which is the pair they are about.",
+        "definition": "pair = (card, instruction sentence or document of ANOTHER drug) that the class rule makes visible for the card; counted on the committed index before and after, the three decisions apart",
+        "lostByDrug": [
+          {
+            "card": "esklp.mnn.амброксол-гвайфенезин-левосальбутамол",
+            "name": "АМБРОКСОЛ+ГВАЙФЕНЕЗИН+ЛЕВОСАЛЬБУТАМОЛ",
+            "atc": [
+              "R05C"
+            ],
+            "documentsLost": 93,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.амброксол-гвайфенезин-сальбутамол",
+            "name": "АМБРОКСОЛ+ГВАЙФЕНЕЗИН+САЛЬБУТАМОЛ",
+            "atc": [
+              "R05C"
+            ],
+            "documentsLost": 92,
+            "sentencesLost": 99,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.амброксол-натрия-гидрокарбонат-натрия-глицирризинат-термопсиса-ланцетного-травы-экстракт",
+            "name": "АМБРОКСОЛ+НАТРИЯ ГИДРОКАРБОНАТ+НАТРИЯ ГЛИЦИРРИЗИНАТ+ТЕРМОПСИСА ЛАНЦЕТНОГО ТРАВЫ ЭКСТРАКТ",
+            "atc": [
+              "R05C"
+            ],
+            "documentsLost": 93,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.аниса-обыкновенного-плоды-багульника-болотного-побеги-подорожника-большого-листья-солодки-корни-фиалки-трава-чабреца-трава-шалфея-листья",
+            "name": "АНИСА ОБЫКНОВЕННОГО ПЛОДЫ+БАГУЛЬНИКА БОЛОТНОГО ПОБЕГИ+ПОДОРОЖНИКА БОЛЬШОГО ЛИСТЬЯ+СОЛОДКИ КОРНИ+ФИАЛКИ ТРАВА+ЧАБРЕЦА ТРАВА+ШАЛФЕЯ ЛИСТЬЯ",
+            "atc": [
+              "R05C"
+            ],
+            "documentsLost": 93,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.бромгексин-гвайфенезин-сальбутамол",
+            "name": "БРОМГЕКСИН+ГВАЙФЕНЕЗИН+САЛЬБУТАМОЛ",
+            "atc": [
+              "R05C"
+            ],
+            "documentsLost": 90,
+            "sentencesLost": 97,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.бромгексин-гвайфенезин-сальбутамол-левоментол",
+            "name": "БРОМГЕКСИН+ГВАЙФЕНЕЗИН+САЛЬБУТАМОЛ+ЛЕВОМЕНТОЛ",
+            "atc": [
+              "R05C"
+            ],
+            "documentsLost": 92,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.миртол",
+            "name": "МИРТОЛ",
+            "atc": [
+              "R05C"
+            ],
+            "documentsLost": 93,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.адатоды-сосудистой-листьев-экстракт-альпинии-галанги-корневищ-экстракт-иссопа-лекарственного-листьев-экстракт-перца-длинного-плодов-и-корней-экстракт-солодки-голой-корней-экстракт-фиалки-душистой-цветков-экстракт",
+            "name": "АДАТОДЫ СОСУДИСТОЙ ЛИСТЬЕВ ЭКСТРАКТ+АЛЬПИНИИ ГАЛАНГИ КОРНЕВИЩ ЭКСТРАКТ+ИССОПА ЛЕКАРСТВЕННОГО ЛИСТЬЕВ ЭКСТРАКТ+ПЕРЦА ДЛИННОГО ПЛОДОВ И КОРНЕЙ ЭКСТРАКТ+СОЛОДКИ ГОЛОЙ КОРНЕЙ ЭКСТРАКТ+ФИАЛКИ ДУШИСТОЙ ЦВЕТКОВ ЭКСТРАКТ",
+            "atc": [
+              "R05CA"
+            ],
+            "documentsLost": 93,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.адатоды-сосудистой-листьев-экстракт-альпинии-галанги-листьев-экстракт-базилика-священного-листьев-экстракт-мяты-полевой-листьев-экстракт-перца-длинного-плодов-экстракт-солодки-голой-корней-и-корневищ-экстракт",
+            "name": "АДАТОДЫ СОСУДИСТОЙ ЛИСТЬЕВ ЭКСТРАКТ+АЛЬПИНИИ ГАЛАНГИ ЛИСТЬЕВ ЭКСТРАКТ+БАЗИЛИКА СВЯЩЕННОГО ЛИСТЬЕВ ЭКСТРАКТ+МЯТЫ ПОЛЕВОЙ ЛИСТЬЕВ ЭКСТРАКТ+ПЕРЦА ДЛИННОГО ПЛОДОВ ЭКСТРАКТ+СОЛОДКИ ГОЛОЙ КОРНЕЙ И КОРНЕВИЩ ЭКСТРАКТ",
+            "atc": [
+              "R05CA"
+            ],
+            "documentsLost": 93,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.алтея-лекарственного-травы-экстракт",
+            "name": "АЛТЕЯ ЛЕКАРСТВЕННОГО ТРАВЫ ЭКСТРАКТ",
+            "atc": [
+              "R05CA"
+            ],
+            "documentsLost": 90,
+            "sentencesLost": 97,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.аниса-масло-тимьяна-экстракт-жидкий",
+            "name": "АНИСА МАСЛО+ТИМЬЯНА ЭКСТРАКТ ЖИДКИЙ",
+            "atc": [
+              "R05CA"
+            ],
+            "documentsLost": 93,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.первоцвета-корней-экстракт-тимьяна-обыкновенного-травы-экстракт",
+            "name": "ПЕРВОЦВЕТА КОРНЕЙ ЭКСТРАКТ+ТИМЬЯНА ОБЫКНОВЕННОГО ТРАВЫ ЭКСТРАКТ",
+            "atc": [
+              "R05CA"
+            ],
+            "documentsLost": 93,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.подорожника-большого-листья",
+            "name": "ПОДОРОЖНИКА БОЛЬШОГО ЛИСТЬЯ",
+            "atc": [
+              "R05CA"
+            ],
+            "documentsLost": 91,
+            "sentencesLost": 98,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.подорожника-ланцетовидного-листьев-экстракт",
+            "name": "ПОДОРОЖНИКА ЛАНЦЕТОВИДНОГО ЛИСТЬЕВ ЭКСТРАКТ",
+            "atc": [
+              "R05CA"
+            ],
+            "documentsLost": 93,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.солодки-корней-экстракт",
+            "name": "СОЛОДКИ КОРНЕЙ ЭКСТРАКТ",
+            "atc": [
+              "R05CA"
+            ],
+            "documentsLost": 90,
+            "sentencesLost": 97,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.тимьяна-ползучего-травы-экстракт-калия-бромид",
+            "name": "ТИМЬЯНА ПОЛЗУЧЕГО ТРАВЫ ЭКСТРАКТ+КАЛИЯ БРОМИД",
+            "atc": [
+              "R05CA"
+            ],
+            "documentsLost": 90,
+            "sentencesLost": 97,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.тимьяна-травы-экстракт",
+            "name": "ТИМЬЯНА ТРАВЫ ЭКСТРАКТ",
+            "atc": [
+              "R05CA"
+            ],
+            "documentsLost": 92,
+            "sentencesLost": 99,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.гвайфенезин",
+            "name": "ГВАЙФЕНЕЗИН",
+            "atc": [
+              "R05CA03"
+            ],
+            "documentsLost": 93,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.алтея-лекарственного-корней-экстракт",
+            "name": "АЛТЕЯ ЛЕКАРСТВЕННОГО КОРНЕЙ ЭКСТРАКТ",
+            "atc": [
+              "R05CA05"
+            ],
+            "documentsLost": 90,
+            "sentencesLost": 97,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.абруса-молитвенного-семян-экстракт-адатоды-сосудистой-листьев-экстракт-акации-катеху-коры-экстракт-альпинии-лекарственной-корневищ-экстракт-базилика-священного-листьев-корней-и-семян-экстракт-имбиря-лекарственного-корневищ-экстракт-куркумы-длинной-корневищ-экстракт-левоментол-перца-длинного-плодов-экстракт-перца-черного-плодов-экстракт-солодки-голой-корней-экстракт-терминалии-беллерики-плодов-экстракт-терминалии-чебулы-плодов-экстракт-фенхеля-обыкновенного-плодов-экстракт-эмблики-лекарственной-плодов-экстракт",
+            "name": "АБРУСА МОЛИТВЕННОГО СЕМЯН ЭКСТРАКТ+АДАТОДЫ СОСУДИСТОЙ ЛИСТЬЕВ ЭКСТРАКТ+АКАЦИИ КАТЕХУ КОРЫ ЭКСТРАКТ+АЛЬПИНИИ ЛЕКАРСТВЕННОЙ КОРНЕВИЩ ЭКСТРАКТ+БАЗИЛИКА СВЯЩЕННОГО ЛИСТЬЕВ, КОРНЕЙ И СЕМЯН ЭКСТРАКТ+ИМБИРЯ ЛЕКАРСТВЕННОГО КОРНЕВИЩ ЭКСТРАКТ+КУРКУМЫ ДЛИННОЙ КОРНЕВИЩ ЭКСТРАКТ+ЛЕВОМЕНТОЛ+ПЕРЦА ДЛИННОГО ПЛОДОВ ЭКСТРАКТ+ПЕРЦА ЧЕРНОГО ПЛОДОВ ЭКСТРАКТ+СОЛОДКИ ГОЛОЙ КОРНЕЙ ЭКСТРАКТ+ТЕРМИНАЛИИ БЕЛЛЕРИКИ ПЛОДОВ ЭКСТРАКТ+ТЕРМИНАЛИИ ЧЕБУЛЫ ПЛОДОВ ЭКСТРАКТ+ФЕНХЕЛЯ ОБЫКНОВЕННОГО ПЛОДОВ ЭКСТРАКТ+ЭМБЛИКИ ЛЕКАРСТВЕННОЙ ПЛОДОВ ЭКСТРАКТ",
+            "atc": [
+              "R05CA10",
+              "R05X"
+            ],
+            "documentsLost": 92,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.адатоды-сосудистой-листьев-экстракт-алоэ-барбадосского-экстракт-базилика-священного-экстракт-девясила-кистецветного-корней-экстракт-имбиря-лекарственного-корневищ-экстракт-куркумы-корневищ-экстракт-левоментол-паслена-индийского-экстракт-перца-кубебы-плодов-экстракт-солодки-голой-корней-экстракт-терминалии-беллерики-экстракт",
+            "name": "АДАТОДЫ СОСУДИСТОЙ ЛИСТЬЕВ ЭКСТРАКТ+АЛОЭ БАРБАДОССКОГО ЭКСТРАКТ+БАЗИЛИКА СВЯЩЕННОГО ЭКСТРАКТ+ДЕВЯСИЛА КИСТЕЦВЕТНОГО КОРНЕЙ ЭКСТРАКТ+ИМБИРЯ ЛЕКАРСТВЕННОГО КОРНЕВИЩ ЭКСТРАКТ+КУРКУМЫ КОРНЕВИЩ ЭКСТРАКТ+ЛЕВОМЕНТОЛ+ПАСЛЕНА ИНДИЙСКОГО ЭКСТРАКТ+ПЕРЦА КУБЕБЫ ПЛОДОВ ЭКСТРАКТ+СОЛОДКИ ГОЛОЙ КОРНЕЙ ЭКСТРАКТ+ТЕРМИНАЛИИ БЕЛЛЕРИКИ ЭКСТРАКТ",
+            "atc": [
+              "R05CA10"
+            ],
+            "documentsLost": 91,
+            "sentencesLost": 99,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.алтея-корней-экстракт-солодки-корней-экстракт-натрия-гидрокарбонат",
+            "name": "АЛТЕЯ КОРНЕЙ ЭКСТРАКТ+СОЛОДКИ КОРНЕЙ ЭКСТРАКТ+НАТРИЯ ГИДРОКАРБОНАТ",
+            "atc": [
+              "R05CA10"
+            ],
+            "documentsLost": 92,
+            "sentencesLost": 99,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.алтея-лекарственного-корней-экстракт-аммония-хлорид-натрия-бензоат-натрия-гидрокарбонат-солодки-корней-экстракт",
+            "name": "АЛТЕЯ ЛЕКАРСТВЕННОГО КОРНЕЙ ЭКСТРАКТ+АММОНИЯ ХЛОРИД+НАТРИЯ БЕНЗОАТ+НАТРИЯ ГИДРОКАРБОНАТ+СОЛОДКИ КОРНЕЙ ЭКСТРАКТ",
+            "atc": [
+              "R05CA10"
+            ],
+            "documentsLost": 90,
+            "sentencesLost": 97,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.алтея-лекарственного-корней-экстракт-натрия-гидрокарбонат-солодки-корней-экстракт",
+            "name": "АЛТЕЯ ЛЕКАРСТВЕННОГО КОРНЕЙ ЭКСТРАКТ+НАТРИЯ ГИДРОКАРБОНАТ+СОЛОДКИ КОРНЕЙ ЭКСТРАКТ",
+            "atc": [
+              "R05CA10"
+            ],
+            "documentsLost": 93,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.амброксол-натрия-глицирризинат-тимьяна-ползучего-травы-экстракт",
+            "name": "АМБРОКСОЛ+НАТРИЯ ГЛИЦИРРИЗИНАТ+ТИМЬЯНА ПОЛЗУЧЕГО ТРАВЫ ЭКСТРАКТ",
+            "atc": [
+              "R05CA10"
+            ],
+            "documentsLost": 93,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.аммиак-аниса-обыкновенного-плодов-масло",
+            "name": "АММИАК+АНИСА ОБЫКНОВЕННОГО ПЛОДОВ МАСЛО",
+            "atc": [
+              "R05CA10"
+            ],
+            "documentsLost": 93,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.аммиак-аниса-обыкновенного-семян-масло-солодки-корней-экстракт",
+            "name": "АММИАК+АНИСА ОБЫКНОВЕННОГО СЕМЯН МАСЛО+СОЛОДКИ КОРНЕЙ ЭКСТРАКТ",
+            "atc": [
+              "R05CA10"
+            ],
+            "documentsLost": 92,
+            "sentencesLost": 99,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.аммиак-аниса-плодов-масло",
+            "name": "АММИАК+АНИСА ПЛОДОВ МАСЛО",
+            "atc": [
+              "R05CA10"
+            ],
+            "documentsLost": 92,
+            "sentencesLost": 99,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.аммиак-аниса-плодов-масло-солодки-корней-экстракт",
+            "name": "АММИАК+АНИСА ПЛОДОВ МАСЛО+СОЛОДКИ КОРНЕЙ ЭКСТРАКТ",
+            "atc": [
+              "R05CA10"
+            ],
+            "documentsLost": 90,
+            "sentencesLost": 97,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.аммиак-солодки-корней-экстракт",
+            "name": "АММИАК+СОЛОДКИ КОРНЕЙ ЭКСТРАКТ",
+            "atc": [
+              "R05CA10"
+            ],
+            "documentsLost": 92,
+            "sentencesLost": 99,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.аммония-хлорид-калия-бромид-натрия-бензоат-солодки-корней-экстракт-густой-термопсиса-ланцетного-травы-экстракт",
+            "name": "АММОНИЯ ХЛОРИД+КАЛИЯ БРОМИД+НАТРИЯ БЕНЗОАТ+СОЛОДКИ КОРНЕЙ ЭКСТРАКТ ГУСТОЙ+ТЕРМОПСИСА ЛАНЦЕТНОГО ТРАВЫ ЭКСТРАКТ",
+            "atc": [
+              "R05CA10"
+            ],
+            "documentsLost": 91,
+            "sentencesLost": 98,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.аммония-хлорид-натрия-бензоат-натрия-гидрокарбонат-солодки-корней-экстракт-термопсиса-ланцетного-травы-экстракт",
+            "name": "АММОНИЯ ХЛОРИД+НАТРИЯ БЕНЗОАТ+НАТРИЯ ГИДРОКАРБОНАТ+СОЛОДКИ КОРНЕЙ ЭКСТРАКТ+ТЕРМОПСИСА ЛАНЦЕТНОГО ТРАВЫ ЭКСТРАКТ",
+            "atc": [
+              "R05CA10"
+            ],
+            "documentsLost": 92,
+            "sentencesLost": 99,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.аскорбиновая-кислота-мальвы-цветков-экстракт-подорожника-ланцетовидного-листьев-экстракт",
+            "name": "АСКОРБИНОВАЯ КИСЛОТА+МАЛЬВЫ ЦВЕТКОВ ЭКСТРАКТ+ПОДОРОЖНИКА ЛАНЦЕТОВИДНОГО ЛИСТЬЕВ ЭКСТРАКТ",
+            "atc": [
+              "R05CA10"
+            ],
+            "documentsLost": 91,
+            "sentencesLost": 98,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.имбиря-лекарственного-корневищ-экстракт-солодки-голой-корней-экстракт-эмблики-лекарственной-плодов-экстракт-левоментол",
+            "name": "ИМБИРЯ ЛЕКАРСТВЕННОГО КОРНЕВИЩ ЭКСТРАКТ+СОЛОДКИ ГОЛОЙ КОРНЕЙ ЭКСТРАКТ+ЭМБЛИКИ ЛЕКАРСТВЕННОЙ ПЛОДОВ ЭКСТРАКТ+ЛЕВОМЕНТОЛ",
+            "atc": [
+              "R05CA10"
+            ],
+            "documentsLost": 92,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.камфора-сосны-обыкновенной-хвои-масло-эвкалипта-прутовидного-листьев-масло",
+            "name": "КАМФОРА+СОСНЫ ОБЫКНОВЕННОЙ ХВОИ МАСЛО+ЭВКАЛИПТА ПРУТОВИДНОГО ЛИСТЬЕВ МАСЛО",
+            "atc": [
+              "R05CA10"
+            ],
+            "documentsLost": 93,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.левоментол-мяты-перечной-листьев-масло-эвкалиптовое-масло",
+            "name": "ЛЕВОМЕНТОЛ+МЯТЫ ПЕРЕЧНОЙ ЛИСТЬЕВ МАСЛО+ЭВКАЛИПТОВОЕ МАСЛО",
+            "atc": [
+              "R05CA10"
+            ],
+            "documentsLost": 92,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.натрия-гидрокарбонат-солодки-корней-экстракт-термопсиса-ланцетного-травы-экстракт",
+            "name": "НАТРИЯ ГИДРОКАРБОНАТ+СОЛОДКИ КОРНЕЙ ЭКСТРАКТ+ТЕРМОПСИСА ЛАНЦЕТНОГО ТРАВЫ ЭКСТРАКТ",
+            "atc": [
+              "R05CA10"
+            ],
+            "documentsLost": 92,
+            "sentencesLost": 99,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.первоцвета-весеннего-корней-экстракт-тимьяна-обыкновенного-травы-экстракт",
+            "name": "ПЕРВОЦВЕТА ВЕСЕННЕГО КОРНЕЙ ЭКСТРАКТ+ТИМЬЯНА ОБЫКНОВЕННОГО ТРАВЫ ЭКСТРАКТ",
+            "atc": [
+              "R05CA10"
+            ],
+            "documentsLost": 92,
+            "sentencesLost": 99,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.плюща-обыкновенного-листьев-экстракт-тимьяна-травы-экстракт",
+            "name": "ПЛЮЩА ОБЫКНОВЕННОГО ЛИСТЬЕВ ЭКСТРАКТ+ТИМЬЯНА ТРАВЫ ЭКСТРАКТ",
+            "atc": [
+              "R05CA10"
+            ],
+            "documentsLost": 93,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.подорожника-экстракт-жидкий-тимьяна-экстракт-жидкий",
+            "name": "ПОДОРОЖНИКА ЭКСТРАКТ ЖИДКИЙ+ТИМЬЯНА ЭКСТРАКТ ЖИДКИЙ",
+            "atc": [
+              "R05CA10"
+            ],
+            "documentsLost": 93,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.сосны-обыкновенной-хвои-масло-эвкалипта-листьев-масло",
+            "name": "СОСНЫ ОБЫКНОВЕННОЙ ХВОИ МАСЛО+ЭВКАЛИПТА ЛИСТЬЕВ МАСЛО",
+            "atc": [
+              "R05CA10"
+            ],
+            "documentsLost": 93,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.термопсиса-ланцетного-трава-натрия-гидрокарбонат",
+            "name": "ТЕРМОПСИСА ЛАНЦЕТНОГО ТРАВА+НАТРИЯ ГИДРОКАРБОНАТ",
+            "atc": [
+              "R05CA10"
+            ],
+            "documentsLost": 90,
+            "sentencesLost": 97,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.тимьяна-обыкновенного-травы-экстракт",
+            "name": "ТИМЬЯНА ОБЫКНОВЕННОГО ТРАВЫ ЭКСТРАКТ",
+            "atc": [
+              "R05CA10"
+            ],
+            "documentsLost": 93,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.плюща-обыкновенного-листьев-экстракт",
+            "name": "ПЛЮЩА ОБЫКНОВЕННОГО ЛИСТЬЕВ ЭКСТРАКТ",
+            "atc": [
+              "R05CA12"
+            ],
+            "documentsLost": 92,
+            "sentencesLost": 99,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.ацетилцистеин",
+            "name": "АЦЕТИЛЦИСТЕИН",
+            "atc": [
+              "R05CB01"
+            ],
+            "documentsLost": 89,
+            "sentencesLost": 96,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.бромгексин",
+            "name": "БРОМГЕКСИН",
+            "atc": [
+              "R05CB02"
+            ],
+            "documentsLost": 90,
+            "sentencesLost": 97,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.карбоцистеин",
+            "name": "КАРБОЦИСТЕИН",
+            "atc": [
+              "R05CB03"
+            ],
+            "documentsLost": 92,
+            "sentencesLost": 99,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.амброксол",
+            "name": "АМБРОКСОЛ",
+            "atc": [
+              "R05CB06"
+            ],
+            "documentsLost": 90,
+            "sentencesLost": 97,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.бромгексин-гвайфенезин-сальбутамол-рацементол",
+            "name": "БРОМГЕКСИН+ГВАЙФЕНЕЗИН+САЛЬБУТАМОЛ+РАЦЕМЕНТОЛ",
+            "atc": [
+              "R05CB10"
+            ],
+            "documentsLost": 93,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.дорназа-альфа",
+            "name": "ДОРНАЗА АЛЬФА",
+            "atc": [
+              "R05CB13"
+            ],
+            "documentsLost": 93,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.эрдостеин",
+            "name": "ЭРДОСТЕИН",
+            "atc": [
+              "R05CB15"
+            ],
+            "documentsLost": 93,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.маннитол",
+            "name": "МАННИТОЛ",
+            "atc": [
+              "R05CB16"
+            ],
+            "documentsLost": 92,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.аммония-хлорид-дифенгидрамина-гидрохлорид-левоментол-натрия-цитрат",
+            "name": "АММОНИЯ ХЛОРИД+ДИФЕНГИДРАМИНА ГИДРОХЛОРИД+ЛЕВОМЕНТОЛ+НАТРИЯ ЦИТРАТ",
+            "atc": [
+              "R05X"
+            ],
+            "documentsLost": 92,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.аскорбиновая-кислота-ацетилсалициловая-кислота-рутозид-дифенгидрамин-кальция-глюконат-метамизол-натрия-набор",
+            "name": "АСКОРБИНОВАЯ КИСЛОТА+АЦЕТИЛСАЛИЦИЛОВАЯ КИСЛОТА+РУТОЗИД; ДИФЕНГИДРАМИН+КАЛЬЦИЯ ГЛЮКОНАТ+МЕТАМИЗОЛ НАТРИЯ [НАБОР]",
+            "atc": [
+              "R05X"
+            ],
+            "documentsLost": 89,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.аскорбиновая-кислота-кальция-глюконат-кофеин-парацетамол-рутозид",
+            "name": "АСКОРБИНОВАЯ КИСЛОТА+КАЛЬЦИЯ ГЛЮКОНАТ+КОФЕИН+ПАРАЦЕТАМОЛ+РУТОЗИД",
+            "atc": [
+              "R05X"
+            ],
+            "documentsLost": 88,
+            "sentencesLost": 98,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.аскорбиновая-кислота-кальция-глюконат-лоратадин-парацетамол-римантадин-рутозид",
+            "name": "АСКОРБИНОВАЯ КИСЛОТА+КАЛЬЦИЯ ГЛЮКОНАТ+ЛОРАТАДИН+ПАРАЦЕТАМОЛ+РИМАНТАДИН+РУТОЗИД",
+            "atc": [
+              "R05X"
+            ],
+            "documentsLost": 88,
+            "sentencesLost": 98,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.аскорбиновая-кислота-кальция-карбонат-лоратадин-парацетамол-римантадин-рутозид",
+            "name": "АСКОРБИНОВАЯ КИСЛОТА+КАЛЬЦИЯ КАРБОНАТ+ЛОРАТАДИН+ПАРАЦЕТАМОЛ+РИМАНТАДИН+РУТОЗИД",
+            "atc": [
+              "R05X"
+            ],
+            "documentsLost": 88,
+            "sentencesLost": 98,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.аскорбиновая-кислота-парацетамол-рутозид-фенилэфрин-янтарная-кислота",
+            "name": "АСКОРБИНОВАЯ КИСЛОТА+ПАРАЦЕТАМОЛ+РУТОЗИД+ФЕНИЛЭФРИН+ЯНТАРНАЯ КИСЛОТА",
+            "atc": [
+              "R05X"
+            ],
+            "documentsLost": 88,
+            "sentencesLost": 98,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.ацетилсалициловая-кислота-фенилэфрин-хлорфенамин",
+            "name": "АЦЕТИЛСАЛИЦИЛОВАЯ КИСЛОТА+ФЕНИЛЭФРИН+ХЛОРФЕНАМИН",
+            "atc": [
+              "R05X"
+            ],
+            "documentsLost": 89,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.бромгексина-гидрохлорид-кальция-глюконат-парацетамол-рутозид-аскорбиновая-кислота",
+            "name": "БРОМГЕКСИНА ГИДРОХЛОРИД+КАЛЬЦИЯ ГЛЮКОНАТ+ПАРАЦЕТАМОЛ+РУТОЗИД+АСКОРБИНОВАЯ КИСЛОТА",
+            "atc": [
+              "R05X"
+            ],
+            "documentsLost": 84,
+            "sentencesLost": 98,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.бузины-черной-цветки-вербены-трава-горечавки-корни-первоцвета-цветки-щавеля-трава",
+            "name": "БУЗИНЫ ЧЕРНОЙ ЦВЕТКИ+ВЕРБЕНЫ ТРАВА+ГОРЕЧАВКИ КОРНИ+ПЕРВОЦВЕТА ЦВЕТКИ+ЩАВЕЛЯ ТРАВА",
+            "atc": [
+              "R05X"
+            ],
+            "documentsLost": 93,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.гвоздики-душистой-бутонов-масло-камфора-коричника-китайского-коры-масло-мяты-перечной-листьев-масло-эвкалипта-листьев-масло-левоментол",
+            "name": "ГВОЗДИКИ ДУШИСТОЙ БУТОНОВ МАСЛО+КАМФОРА+КОРИЧНИКА КИТАЙСКОГО КОРЫ МАСЛО+МЯТЫ ПЕРЕЧНОЙ ЛИСТЬЕВ МАСЛО+ЭВКАЛИПТА ЛИСТЬЕВ МАСЛО+[ЛЕВОМЕНТОЛ]",
+            "atc": [
+              "R05X"
+            ],
+            "documentsLost": 93,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.гвоздики-цветков-масло-камфора-коричника-китайского-коры-масло-мяты-перечной-листьев-масло-эвкалипта-листьев-масло-левоментол",
+            "name": "ГВОЗДИКИ ЦВЕТКОВ МАСЛО+КАМФОРА+КОРИЧНИКА КИТАЙСКОГО КОРЫ МАСЛО+МЯТЫ ПЕРЕЧНОЙ ЛИСТЬЕВ МАСЛО+ЭВКАЛИПТА ЛИСТЬЕВ МАСЛО+ЛЕВОМЕНТОЛ",
+            "atc": [
+              "R05X"
+            ],
+            "documentsLost": 92,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.гвоздики-цветков-масло-камфора-левоментол-терпентинное-масло-эвкалиптовое-масло",
+            "name": "ГВОЗДИКИ ЦВЕТКОВ МАСЛО+КАМФОРА+ЛЕВОМЕНТОЛ+ТЕРПЕНТИННОЕ МАСЛО+ЭВКАЛИПТОВОЕ МАСЛО",
+            "atc": [
+              "R05X"
+            ],
+            "documentsLost": 92,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.декстрометорфан-парацетамол-псевдоэфедрин",
+            "name": "ДЕКСТРОМЕТОРФАН+ПАРАЦЕТАМОЛ+ПСЕВДОЭФЕДРИН",
+            "atc": [
+              "R05X"
+            ],
+            "documentsLost": 81,
+            "sentencesLost": 86,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.декстрометорфан-парацетамол-псевдоэфедрин-аскорбиновая-кислота",
+            "name": "ДЕКСТРОМЕТОРФАН+ПАРАЦЕТАМОЛ+ПСЕВДОЭФЕДРИН+АСКОРБИНОВАЯ КИСЛОТА",
+            "atc": [
+              "R05X"
+            ],
+            "documentsLost": 81,
+            "sentencesLost": 86,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.декстрометорфан-фенилэфрин-хлорфенамин",
+            "name": "ДЕКСТРОМЕТОРФАН+ФЕНИЛЭФРИН+ХЛОРФЕНАМИН",
+            "atc": [
+              "R05X"
+            ],
+            "documentsLost": 86,
+            "sentencesLost": 93,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.дифенгидрамин-кальция-глюконат-парацетамол-рутозид-аскорбиновая-кислота",
+            "name": "ДИФЕНГИДРАМИН+КАЛЬЦИЯ ГЛЮКОНАТ+ПАРАЦЕТАМОЛ+РУТОЗИД+АСКОРБИНОВАЯ КИСЛОТА",
+            "atc": [
+              "R05X"
+            ],
+            "documentsLost": 88,
+            "sentencesLost": 98,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.камфора-левоментол-метилсалицилат",
+            "name": "КАМФОРА+ЛЕВОМЕНТОЛ+МЕТИЛСАЛИЦИЛАТ",
+            "atc": [
+              "R05X"
+            ],
+            "documentsLost": 92,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.камфора-левоментол-ореха-мускатного-масло-скипидар-живичный-тимол-эвкалиптовое-масло",
+            "name": "КАМФОРА+ЛЕВОМЕНТОЛ+ОРЕХА МУСКАТНОГО МАСЛО+СКИПИДАР ЖИВИЧНЫЙ+ТИМОЛ+ЭВКАЛИПТОВОЕ МАСЛО",
+            "atc": [
+              "R05X"
+            ],
+            "documentsLost": 92,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.камфора-левоментол-ореха-мускатного-масло-скипидарное-масло-тимол-эвкалиптовое-масло",
+            "name": "КАМФОРА+ЛЕВОМЕНТОЛ+ОРЕХА МУСКАТНОГО МАСЛО+СКИПИДАРНОЕ МАСЛО+ТИМОЛ+ЭВКАЛИПТОВОЕ МАСЛО",
+            "atc": [
+              "R05X"
+            ],
+            "documentsLost": 92,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.камфора-левоментол-скипидар-живичный-эвкалипта-прутовидного-листьев-масло",
+            "name": "КАМФОРА+ЛЕВОМЕНТОЛ+СКИПИДАР ЖИВИЧНЫЙ+ЭВКАЛИПТА ПРУТОВИДНОГО ЛИСТЬЕВ МАСЛО",
+            "atc": [
+              "R05X"
+            ],
+            "documentsLost": 92,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.камфора-ментол-терпентиновое-масло-тимол-эвкалиптовое-масло",
+            "name": "КАМФОРА+МЕНТОЛ+ТЕРПЕНТИНОВОЕ МАСЛО+ТИМОЛ+ЭВКАЛИПТОВОЕ МАСЛО",
+            "atc": [
+              "R05X"
+            ],
+            "documentsLost": 93,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-хлорфенамин",
+            "name": "КОФЕИН+ПАРАЦЕТАМОЛ+ФЕНИЛЭФРИН+ХЛОРФЕНАМИН",
+            "atc": [
+              "R05X"
+            ],
+            "documentsLost": 88,
+            "sentencesLost": 98,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.парацетамол-аскорбиновая-кислота-кальция-глюконат-лоратадин-римантадин-рутозид",
+            "name": "ПАРАЦЕТАМОЛ; АСКОРБИНОВАЯ КИСЛОТА+КАЛЬЦИЯ ГЛЮКОНАТ+ЛОРАТАДИН+РИМАНТАДИН+РУТОЗИД",
+            "atc": [
+              "R05X"
+            ],
+            "documentsLost": 93,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.пеларгонии-сидовидной-корней-экстракт",
+            "name": "ПЕЛАРГОНИИ СИДОВИДНОЙ КОРНЕЙ ЭКСТРАКТ",
+            "atc": [
+              "R05X"
+            ],
+            "documentsLost": 93,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.перуанский-бальзам-розмариновое-масло-эвкалипта-прутовидного-листьев-масло",
+            "name": "ПЕРУАНСКИЙ БАЛЬЗАМ+РОЗМАРИНОВОЕ МАСЛО+ЭВКАЛИПТА ПРУТОВИДНОГО ЛИСТЬЕВ МАСЛО",
+            "atc": [
+              "R05X"
+            ],
+            "documentsLost": 93,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          },
+          {
+            "card": "esklp.mnn.подорожника-ланцетовидного-листьев-экстракт-тимьяна-обыкновенного-травы-экстракт-тимьяна-ползучего-травы-экстракт",
+            "name": "ПОДОРОЖНИКА ЛАНЦЕТОВИДНОГО ЛИСТЬЕВ ЭКСТРАКТ+ТИМЬЯНА ОБЫКНОВЕННОГО ТРАВЫ ЭКСТРАКТ+ТИМЬЯНА ПОЛЗУЧЕГО ТРАВЫ ЭКСТРАКТ",
+            "atc": [
+              "R05X"
+            ],
+            "documentsLost": 93,
+            "sentencesLost": 100,
+            "documentsGained": 0,
+            "sentencesGained": 0
+          }
+        ],
+        "keptByDrug": [
+          {
+            "card": "esklp.mnn.гвайфенезин-декстрометорфана-гидробромид-рацементол",
+            "name": "ГВАЙФЕНЕЗИН+ДЕКСТРОМЕТОРФАНА ГИДРОБРОМИД+РАЦЕМЕНТОЛ",
+            "atc": [
+              "R05DA20"
+            ],
+            "documentsLost": 0,
+            "sentencesLost": 0,
+            "documentsGained": 17,
+            "sentencesGained": 21
+          },
+          {
+            "card": "esklp.mnn.n--2--1h-имидазол-4-ил--этил--6-оксо-дельта-лактам",
+            "name": "N-[2-(1H-ИМИДАЗОЛ-4-ИЛ)-ЭТИЛ]-6-ОКСО-ДЕЛЬТА-ЛАКТАМ",
+            "atc": [
+              "R05DB"
+            ],
+            "documentsLost": 0,
+            "sentencesLost": 0,
+            "documentsGained": 17,
+            "sentencesGained": 21
+          },
+          {
+            "card": "esklp.mnn.антитела-к-брадикинину-антитела-к-гистамину-антитела-к-морфину",
+            "name": "АНТИТЕЛА К БРАДИКИНИНУ+АНТИТЕЛА К ГИСТАМИНУ+АНТИТЕЛА К МОРФИНУ",
+            "atc": [
+              "R05DB"
+            ],
+            "documentsLost": 0,
+            "sentencesLost": 0,
+            "documentsGained": 17,
+            "sentencesGained": 21
+          },
+          {
+            "card": "esklp.mnn.мха-исландского-экстракт",
+            "name": "МХА ИСЛАНДСКОГО ЭКСТРАКТ",
+            "atc": [
+              "R05DB"
+            ],
+            "documentsLost": 0,
+            "sentencesLost": 0,
+            "documentsGained": 17,
+            "sentencesGained": 21
+          },
+          {
+            "card": "esklp.mnn.сухой-экстракт-исландского-мха",
+            "name": "СУХОЙ ЭКСТРАКТ ИСЛАНДСКОГО МХА",
+            "atc": [
+              "R05DB"
+            ],
+            "documentsLost": 0,
+            "sentencesLost": 0,
+            "documentsGained": 17,
+            "sentencesGained": 21
+          },
+          {
+            "card": "esklp.mnn.бутамират",
+            "name": "БУТАМИРАТ",
+            "atc": [
+              "R05DB13"
+            ],
+            "documentsLost": 0,
+            "sentencesLost": 0,
+            "documentsGained": 16,
+            "sentencesGained": 20
+          },
+          {
+            "card": "esklp.mnn.преноксдиазин",
+            "name": "ПРЕНОКСДИАЗИН",
+            "atc": [
+              "R05DB18"
+            ],
+            "documentsLost": 0,
+            "sentencesLost": 0,
+            "documentsGained": 17,
+            "sentencesGained": 21
+          },
+          {
+            "card": "esklp.mnn.глауцин-эфедрин",
+            "name": "ГЛАУЦИН+ЭФЕДРИН",
+            "atc": [
+              "R05DB20"
+            ],
+            "documentsLost": 0,
+            "sentencesLost": 0,
+            "documentsGained": 17,
+            "sentencesGained": 21
+          },
+          {
+            "card": "esklp.mnn.глауцин-эфедрин-базилика-обыкновенного-масло",
+            "name": "ГЛАУЦИН+ЭФЕДРИН+БАЗИЛИКА ОБЫКНОВЕННОГО МАСЛО",
+            "atc": [
+              "R05DB20"
+            ],
+            "documentsLost": 0,
+            "sentencesLost": 0,
+            "documentsGained": 17,
+            "sentencesGained": 21
+          },
+          {
+            "card": "esklp.mnn.леводропропизин",
+            "name": "ЛЕВОДРОПРОПИЗИН",
+            "atc": [
+              "R05DB27"
+            ],
+            "documentsLost": 0,
+            "sentencesLost": 0,
+            "documentsGained": 17,
+            "sentencesGained": 21
+          },
+          {
+            "card": "esklp.mnn.кодеин-солодки-корней-экстракт-термопсиса-ланцетного-травы-экстракт-тимьяна-ползучего-травы-экстракт",
+            "name": "КОДЕИН+СОЛОДКИ КОРНЕЙ ЭКСТРАКТ+ТЕРМОПСИСА ЛАНЦЕТНОГО ТРАВЫ ЭКСТРАКТ+ТИМЬЯНА ПОЛЗУЧЕГО ТРАВЫ ЭКСТРАКТ",
+            "atc": [
+              "R05FA"
+            ],
+            "documentsLost": 0,
+            "sentencesLost": 0,
+            "documentsGained": 14,
+            "sentencesGained": 18
+          },
+          {
+            "card": "esklp.mnn.кодеин-натрия-гидрокарбонат-солодки-корни-термопсиса-трава",
+            "name": "КОДЕИН+НАТРИЯ ГИДРОКАРБОНАТ+СОЛОДКИ КОРНИ+ТЕРМОПСИСА ТРАВА",
+            "atc": [
+              "R05FA02"
+            ],
+            "documentsLost": 0,
+            "sentencesLost": 0,
+            "documentsGained": 14,
+            "sentencesGained": 18
+          },
+          {
+            "card": "esklp.mnn.кодеин-натрия-гидрокарбонат-терпингидрат",
+            "name": "КОДЕИН+НАТРИЯ ГИДРОКАРБОНАТ+ТЕРПИНГИДРАТ",
+            "atc": [
+              "R05FA02"
+            ],
+            "documentsLost": 0,
+            "sentencesLost": 0,
+            "documentsGained": 14,
+            "sentencesGained": 18
+          },
+          {
+            "card": "esklp.mnn.бутамират-гвайфенезин",
+            "name": "БУТАМИРАТ+ГВАЙФЕНЕЗИН",
+            "atc": [
+              "R05FB02"
+            ],
+            "documentsLost": 0,
+            "sentencesLost": 0,
+            "documentsGained": 16,
+            "sentencesGained": 20
+          },
+          {
+            "card": "esklp.mnn.декстрометорфан-терпингидрат-левоментол",
+            "name": "ДЕКСТРОМЕТОРФАН+ТЕРПИНГИДРАТ+ЛЕВОМЕНТОЛ",
+            "atc": [
+              "R05FB02"
+            ],
+            "documentsLost": 0,
+            "sentencesLost": 0,
+            "documentsGained": 17,
+            "sentencesGained": 21
+          }
+        ]
+      },
+      "supersedes": [
+        "H01",
+        "H18"
+      ],
+      "residualRisk": [
+        "Cough suppressants coded outside R05D/R05F lose the antitussive class sentences: 3 dextromethorphan cold remedies coded R05X (декстрометорфан+парацетамол+псевдоэфедрин, the same with ascorbic acid, декстрометорфан+фенилэфрин+хлорфенамин) and the dextromethorphan combination coded N02BE71. Their substance is still found by the substance rules. The data holds no per-card extra-class mechanism; add one (declared, reviewed) if the owner wants these four back.",
+        "Codeine in analgesic combinations (N02A/N02B codes) was never in R05 and stays outside."
+      ]
+    },
+    {
+      "id": "OD2",
+      "decision": "Block the two older topical interferon cards in L03AB only if each product’s own instruction supports it.",
+      "owner": "owner decision 2026-10-14",
+      "outcome": "kept: no exception added",
+      "cards": [
+        {
+          "card": "esklp.mnn.бензокаин-интерферон-альфа-2b-таурин",
+          "product": "ГЕНФЕРОН®, суппозитории вагинальные и ректальные (the earlier review called the forms gel/ointment; they are suppositories)",
+          "instruction": "drug.rf.15a7cbb6003585558ca4.instruction (ГРЛС leaflet, module antineoplastic-immunomodulating)",
+          "finding": "The instruction does not support a topical-only reading. It states no plasma level or absorption at all (searched: концентрац, плазм, всасыван, абсорб, системн, фармакокинет), indicates systemic-type uses by the rectal route, and lists the systemic reactions of interferon alfa-2b.",
+          "quotes": [
+            {
+              "section": "Показания к применению",
+              "text": "«для лечения острого бронхита в составе комплексной терапии»; «хронического рецидивирующего цистита»; «хронического эндометрита»"
+            },
+            {
+              "section": "3. Применение препарата ГЕНФЕРОН®",
+              "text": "«В составе комплексной терапии острого бронхита у взрослых. По 1 суппозиторию (1 000 000 МЕ) ректально 2 раза в сутки в течение 5 дней.»"
+            },
+            {
+              "section": "4. Возможные нежелательные реакции",
+              "text": "«Могут наблюдаться явления, возникающие при применении всех видов интерферона альфа-2b, такие как озноб, повышение температуры, … снижение количества лейкоцитов (лейкопения) и тромбоцитов (тромбоцитопения) в крови»"
+            }
+          ],
+          "contrast": "the excluded interferon+loratadine nasal ointment states a plasma concentration below the detection limit without clinical significance; Генферон states nothing of the kind"
+        },
+        {
+          "card": "esklp.mnn.интерферон-альфа-2b-таурин",
+          "product": "Генферон лайт: nasal spray, vaginal and rectal suppositories, nasal drops (registrations ЛП-№(007682)-(РГ-RU), ЛП-№(007484)-(РГ-RU), ЛП-002309, ЛП-№(008492)-(РГ-RU))",
+          "instruction": "none: no instruction of this product is in the 15 ГРЛС instruction modules or the holder-site module (searched by trade name, active substances and the four registration numbers)",
+          "finding": "No instruction text exists in the product to support a block, and the card mixes a nasal spray, drops and suppositories, so one card-level exception could not be right for every form. Kept.",
+          "quotes": []
+        }
+      ],
+      "result": "atc-code-exceptions.json keeps one exception (interferon+loratadine). Both cards keep L03AB05 and the «Интерфероны» class; nothing in the index changed for them.",
+      "followUp": "The card «интерферон-альфа-2b» (L03AB05) joins systemic injections (Альтевир, Лайфферон) and topical forms (Виферон gel/ointment, Гриппферон spray, Инфагель); a card-level exception cannot tell them apart. Not changed."
+    },
+    {
+      "id": "OD3",
+      "decision": "Admit льна посевного семена (A06AC05) to the laxative class.",
+      "owner": "owner decision 2026-10-14",
+      "change": "the exception for esklp.mnn.льна-посевного-семена / A06AC05 was removed from data/atc-code-exceptions.json; the basis of the membership is the owner decision (the code rests on the НСИ dictionary only; the instruction names a mild laxative action)",
+      "effect": {
+        "cards": 1,
+        "gainedPairs": {
+          "cardDocument": 97,
+          "cardSentence": 133
+        }
+      },
+      "supersedes": [
+        "H13"
+      ]
     }
   ]
 }

@@ -80,6 +80,28 @@ describe('deriveClassPhrases', () => {
     expect(report.containerWords).toContain('препарат');
   });
 
+  it('lets an alias narrow a class word that the group name would stand for as a whole', () => {
+    // «Противокашлевые препараты и средства для лечения простудных заболеваний» is R05 as a whole,
+    // expectorants (R05C) included; the alias keeps the word on the suppressant subgroups.
+    const names = {
+      ...ATC,
+      R05: 'Противокашлевые препараты и средства для лечения простудных заболеваний',
+      R05C: 'Отхаркивающие препараты, кроме комбинаций с противокашлевыми средствами',
+      R05D: 'Противокашлевые препараты, кроме комбинаций с отхаркивающими средствами',
+      R05F: 'Комбинированные препараты противокашлевых и отхаркивающих средств',
+    };
+    const find = (aliases: readonly ClassAlias[]): readonly string[] => {
+      const derived = deriveClassPhrases(names, aliases);
+      const antitussive = derived.phrases.filter((phrase) => phrase.stems.includes('противокашл'));
+      return antitussive.flatMap((phrase) => phrase.codes).toSorted();
+    };
+    expect(find([])).toEqual(['R05']);
+    expect(find([{ text: 'противокашлевые', codes: ['R05D', 'R05F'], basis: 'test' }])).toEqual([
+      'R05D',
+      'R05F',
+    ]);
+  });
+
   it('refuses an alias that points at a code the dictionary does not have', () => {
     const bad: readonly ClassAlias[] = [{ text: 'нечто', codes: ['Z99'], basis: 'test' }];
     expect(() => deriveClassPhrases(ATC, bad)).toThrow(/Z99/u);

@@ -8,6 +8,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { parseAtcCodeExceptions } from './atc-codes';
+import { CLASS_ALIASES, classPatterns, deriveClassPhrases } from './class-phrases';
 import {
   createInteractionIndex,
   drugTargetSet,
@@ -39,7 +40,8 @@ interface Decision {
   readonly code: string;
   readonly codeSources: readonly string[];
   readonly verdict: 'plausible' | 'unsure' | 'wrong';
-  readonly action: 'ship' | 'exclude';
+  readonly action: 'ship' | 'exclude' | 'withdrawn';
+  readonly ownerDecision?: string;
   readonly reason: string;
   readonly evidence: { readonly pharmacology: string | null; readonly readerSentences: unknown[] };
 }
@@ -51,14 +53,37 @@ interface Suppression {
   readonly verdict: string;
   readonly action: string;
 }
+interface OwnerDecision {
+  readonly id: string;
+  readonly owner: string;
+  readonly supersedes?: readonly string[];
+  readonly outcome?: string;
+  readonly cards?: readonly {
+    readonly card: string;
+    readonly instruction: string;
+    readonly quotes: readonly { readonly section: string; readonly text: string }[];
+  }[];
+  readonly effect?: {
+    readonly cardsLosingTheClass?: number;
+    readonly cardsKeepingTheClass?: number;
+    readonly lostByDrug?: readonly { readonly card: string; readonly atc: readonly string[] }[];
+    readonly keptByDrug?: readonly { readonly card: string; readonly atc: readonly string[] }[];
+    readonly gainedPairs?: { readonly cardDocument: number };
+  };
+}
 const review = read('docs/research/atc-index-review-2026-10-14.json') as {
   totals: {
     classMembershipsGained: number;
     verdicts: Record<string, Record<string, number>>;
-    shipped: { classMemberships: number; excludedByException: number };
+    shipped: {
+      classMemberships: number;
+      excludedByException: number;
+      withdrawnByOwnerDecision: number;
+    };
   };
   decisions: readonly Decision[];
   suppressions: readonly Suppression[];
+  ownerDecisions: readonly OwnerDecision[];
 };
 const audit = read('docs/research/atc-index-selection-audit-2026-10-14.json') as {
   flaggedNodes: Record<string, number>;
@@ -110,6 +135,9 @@ describe('the ATC4 review of the changed class memberships', () => {
     );
     expect(review.totals.shipped.excludedByException).toBe(
       review.decisions.filter((item) => item.action === 'exclude').length,
+    );
+    expect(review.totals.shipped.withdrawnByOwnerDecision).toBe(
+      review.decisions.filter((item) => item.action === 'withdrawn').length,
     );
   });
 
@@ -217,5 +245,138 @@ describe('the medication-safety index', () => {
       'utf8',
     );
     expect(source).not.toMatch(/\batc/iu);
+  });
+});
+
+describe('the owner decisions of 2026-10-14 on the ATC review', () => {
+  const targetsOfCard = (slug: string): ReadonlySet<string> => {
+    const card = cardIndex(`esklp.mnn.${slug}`);
+    expect(card, slug).toBeGreaterThanOrEqual(0);
+    return new Set([...drugTargetSet(index, card)].map((target) => asset.targets[target] ?? ''));
+  };
+
+  describe('«противокашлевые» stands for the cough suppressants, not the whole of R05', () => {
+    const { phrases } = deriveClassPhrases(atcNames, CLASS_ALIASES);
+    const antitussive = phrases.filter((phrase) => phrase.stems.includes('противокашл'));
+
+    it('maps the class word to R05D and R05F only, from the alias table', () => {
+      expect(antitussive).toHaveLength(1);
+      expect(antitussive[0]?.origin).toBe('alias');
+      expect([...(antitussive[0]?.codes ?? [])].toSorted()).toEqual(['R05D', 'R05F']);
+      const covered = (code: string): boolean =>
+        classPatterns(antitussive).some((pattern) => code.startsWith(pattern.target.slice(2)));
+      // suppressants and their combinations are covered …
+      for (const code of ['R05DA04', 'R05DB13', 'R05FA02', 'R05FB02']) {
+        expect(covered(code), code).toBe(true);
+      }
+      // … expectorants, mucolytics and other cold remedies are not
+      for (const code of ['R05CA10', 'R05CB06', 'R05CB01', 'R05X']) {
+        expect(covered(code), code).toBe(false);
+      }
+    });
+
+    it('keeps the whole-R05 target out of the index and the suppressant targets in it', () => {
+      expect(asset.targets).not.toContain('c:R05');
+      expect(asset.targets).toContain('c:R05D');
+      expect(asset.targets).toContain('c:R05F');
+    });
+
+    it('hits suppressants and suppressant combinations, not expectorants or mucolytics', () => {
+      for (const slug of [
+        'бутамират',
+        'леводропропизин',
+        'кодеин-натрия-гидрокарбонат-терпингидрат',
+      ]) {
+        const targets = targetsOfCard(slug);
+        expect(targets.has('c:R05D') || targets.has('c:R05F'), slug).toBe(true);
+      }
+      for (const slug of ['амброксол', 'бромгексин', 'ацетилцистеин', 'гвайфенезин']) {
+        const targets = targetsOfCard(slug);
+        expect(targets.has('c:R05D'), slug).toBe(false);
+        expect(targets.has('c:R05F'), slug).toBe(false);
+        // the expectorant class word still reaches them
+        expect(targets.has('c:R05C'), slug).toBe(true);
+      }
+    });
+
+    it('records the cards that lost and kept the class, from the committed index', () => {
+      const decision = review.ownerDecisions.find((item) => item.id === 'OD1');
+      expect(decision?.owner).toContain('2026-10-14');
+      expect(decision?.effect?.cardsLosingTheClass).toBe(78);
+      expect(decision?.effect?.cardsKeepingTheClass).toBe(15);
+      expect(decision?.effect?.lostByDrug).toHaveLength(78);
+      expect(decision?.effect?.keptByDrug).toHaveLength(15);
+      for (const lost of decision?.effect?.lostByDrug ?? []) {
+        expect(
+          lost.atc.some((code) => /^R05[CX]/u.test(code)),
+          lost.card,
+        ).toBe(true);
+        expect(
+          lost.atc.some((code) => /^R05[DF]/u.test(code)),
+          lost.card,
+        ).toBe(false);
+      }
+      for (const kept of decision?.effect?.keptByDrug ?? []) {
+        expect(
+          kept.atc.some((code) => /^R05[DF]/u.test(code)),
+          kept.card,
+        ).toBe(true);
+      }
+    });
+
+    it('withdrew the two R05 memberships of the first review, which the class word no longer gives', () => {
+      const withdrawn = review.decisions.filter((item) => item.action === 'withdrawn');
+      expect(withdrawn.map((item) => item.id).toSorted()).toEqual(['H01', 'H18']);
+      for (const decision of withdrawn) {
+        expect(decision.ownerDecision).toBe('OD1');
+        expect(decision.class.code).toBe('R05');
+        expect(targetsOfCard(decision.card.replace(/^esklp\.mnn\./u, '')).has('c:R05')).toBe(false);
+      }
+    });
+  });
+
+  describe('the two older topical interferon cards stay in L03AB', () => {
+    const cards = ['бензокаин-интерферон-альфа-2b-таурин', 'интерферон-альфа-2b-таурин'];
+
+    it('are not excepted, because their evidence does not show a topical-only product', () => {
+      expect(exceptions.map((item) => item.card)).toEqual([
+        'esklp.mnn.интерферон-альфа-2b-лоратадин',
+      ]);
+      for (const slug of cards) {
+        expect(asset.cards[cardIndex(`esklp.mnn.${slug}`)]?.[1], slug).toContain('L03AB05');
+        expect(targetsOfCard(slug).has('c:L03AB'), slug).toBe(true);
+      }
+    });
+
+    it('records the evidence it was decided on', () => {
+      const decision = review.ownerDecisions.find((item) => item.id === 'OD2');
+      expect(decision?.outcome).toMatch(/^kept/u);
+      expect((decision?.cards ?? []).map((item) => item.card)).toEqual(
+        cards.map((slug) => `esklp.mnn.${slug}`),
+      );
+      const [withInstruction, withoutInstruction] = decision?.cards ?? [];
+      expect(withInstruction?.instruction).toContain('drug.rf.15a7cbb6003585558ca4.instruction');
+      expect(withInstruction?.quotes.length).toBeGreaterThanOrEqual(3);
+      expect(withoutInstruction?.quotes).toHaveLength(0);
+      expect(withoutInstruction?.instruction).toMatch(/^none/u);
+    });
+  });
+
+  describe('льна посевного семена belongs to the laxative class', () => {
+    it('carries A06AC05 and is hit by the class «Слабительные средства»', () => {
+      expect(asset.cards[cardIndex('esklp.mnn.льна-посевного-семена')]?.[1]).toContain('A06AC05');
+      expect(targetsOfCard('льна-посевного-семена').has('c:A06')).toBe(true);
+    });
+
+    it('has no exception left and is a shipped membership with the owner as its basis', () => {
+      expect(exceptions.map((item) => item.card)).not.toContain('esklp.mnn.льна-посевного-семена');
+      const decision = review.decisions.find(
+        (item) => item.card === 'esklp.mnn.льна-посевного-семена',
+      );
+      expect(decision?.action).toBe('ship');
+      expect(decision?.ownerDecision).toBe('OD3');
+      const gained = review.ownerDecisions.find((item) => item.id === 'OD3')?.effect?.gainedPairs;
+      expect(gained?.cardDocument).toBeGreaterThan(90);
+    });
   });
 });

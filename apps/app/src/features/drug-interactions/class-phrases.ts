@@ -121,6 +121,17 @@ export const CLASS_ALIASES: readonly ClassAlias[] = [
     basis: `${BASIS_NSI} C02 «Антигипертензивные средства»`,
   },
   { text: 'цитостатики', codes: ['L01'], basis: `${BASIS_NSI} L01 «Противоопухолевые препараты»` },
+  {
+    // The derived phrase would stand for the whole of R05 («Противокашлевые препараты и средства
+    // для лечения простудных заболеваний»), expectorants and mucolytics (R05C) included, so a
+    // warning about cough suppressants («не применять с противокашлевыми средствами») would be
+    // shown for ambroxol. R05F combines a suppressant with an expectorant, so it carries the
+    // suppressant; R05C and R05X do not. Owner decision 2026-10-14
+    // (docs/research/atc-index-review-2026-10-14.md, «Owner decisions»).
+    text: 'противокашлевые',
+    codes: ['R05D', 'R05F'],
+    basis: `${BASIS_NSI} R05D «Противокашлевые препараты, кроме комбинаций с отхаркивающими средствами» и R05F «Комбинированные препараты противокашлевых и отхаркивающих средств»; не вся R05`,
+  },
   { text: 'наркотические анальгетики', codes: ['N02A'], basis: `${BASIS_NSI} N02A «Опиоиды»` },
   { text: 'опиоидные анальгетики', codes: ['N02A'], basis: `${BASIS_NSI} N02A «Опиоиды»` },
   {
