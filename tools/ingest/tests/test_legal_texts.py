@@ -357,3 +357,34 @@ def test_card_keeps_status_and_footer_and_replaces_the_paraphrase() -> None:
         card, "# Приказ № 366н\n\nТекст приказа.\n", pages=35, amended=True, extra={"textPages": 35}
     )
     assert again.count("textPages") == 1
+
+
+def test_a_labelled_row_cut_by_the_page_break_runs_on_into_the_quoted_names_and_hyphen_wraps() -> (
+    None
+):
+    first = parse_blocks("Высшее образование – специалитет по специальности", 1)
+    second = parse_blocks("«Лечебное дело», «Педиатрия»\n\nи ещё одна", 2)
+    # a quoted name continues a paragraph that stops at a word, but only in acts with labelled rows
+    assert len(merge_pages([first, second], labelled_rows=True)) == 2
+    joined = merge_pages(
+        [
+            parse_blocks("Подготовка по специальности «Санитарно-", 1),
+            parse_blocks("гигиенические» или", 2),
+        ]
+    )
+    assert joined[0].text == "Подготовка по специальности «Санитарно-гигиенические» или"
+    plain = merge_pages(
+        [
+            parse_blocks("Высшее образование – специалитет по специальности", 1),
+            parse_blocks("«Лечебное дело»", 2),
+        ]
+    )
+    assert len(plain) == 2  # a list item starting with a quote is not glued on in other acts
+    closed = merge_pages(
+        [
+            parse_blocks("Высшее образование – специалитет «Клиническая психология»)»", 1),
+            parse_blocks("и дополнительное образование", 2),
+        ],
+        labelled_rows=True,
+    )
+    assert len(closed) == 1

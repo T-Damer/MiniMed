@@ -120,3 +120,24 @@ def row_labels(paragraphs: list[str]) -> list[str] | None:
     labels += [ROW_EXTRA] * (len(paragraphs) - 1 - start)
     labels.append(ROW_POSITIONS)
     return labels
+
+
+def job_row_labels(paragraphs: list[str]) -> list[str | None] | None:
+    """Row labels of a «Должность «X»» block (a position of a specialist without a medical degree).
+
+    The block has a level row, an additional-education row and, often, a printed row «Иные должности» that
+    carries its own label (it is not painted: its first word is not one of the three labels). The paragraph
+    that opens with «Иные должности» gets no label here (None); the others are labelled as in `row_labels`.
+    """
+    own = paragraphs and paragraphs[-1].startswith("Иные должности")
+    body = paragraphs[:-1] if own else paragraphs
+    if len(body) < 2:
+        return None
+    start = next((i for i, text in enumerate(body) if i > 0 and EXTRA_START.match(text)), None)
+    if start is None:
+        return None
+    labels: list[str | None] = [ROW_LEVEL] * start
+    labels += [ROW_EXTRA] * (len(body) - start)
+    if own:
+        labels.append(None)
+    return labels

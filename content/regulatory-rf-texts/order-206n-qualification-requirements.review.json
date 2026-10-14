@@ -1,0 +1,87 @@
+{
+  "documentId": "regulatory.rf.minzdrav.206n-2023-qualification",
+  "reviewer": "Claude (agent), against the page images; not a lawyer",
+  "reviewedAt": "2026-10-14",
+  "verdicts": {
+    "1": "image read: the number in «№ 608» (the Government decree on the Ministry) is as printed, Vision's «600» is a misreading; the handwritten date and number and the registration stamp are the portal's data, not text of the order",
+    "6": "image read: the text matches; the digit Vision adds is the page number printed at the top («5»)",
+    "9": "image read: the text matches; the «I» only Vision has is a speck of the scan",
+    "22": "image read: the text matches; the «5» only Marker has is the printed «не реже одного раза в 5 лет», which Vision did not read",
+    "26": "image read: the text matches; the «I» only Vision has is a speck of the scan",
+    "27": "image read: the text matches; the last line (the start of the row of «Остеопатия») was restored",
+    "31": "image read: the text matches; the «5» only Marker has is the printed «не реже одного раза в 5 лет», which Vision did not read",
+    "35": "image read: the text matches; the «5» only Marker has is the printed «не реже одного раза в 5 лет», which Vision did not read",
+    "38": "image read: the text matches; the last line of the page was restored",
+    "42": "image read: the text matches; the last line of the page was restored",
+    "49": "image read: the text matches; the «5» only Marker has is the printed «не реже одного раза в 5 лет», which Vision did not read",
+    "51": "image read: the text matches; the last line of the page was restored",
+    "54": "image read: the text matches; the «5» only Marker has is the printed «не реже одного раза в 5 лет», which Vision did not read",
+    "58": "image read (section II, the first page): headings, the rows of «Биолог», «Зоолог» and the start of «Инструктор – методист» match; the last line was restored",
+    "63": "image read: the text matches; the «5» only Marker has is the printed «не реже одного раза в 5 лет», which Vision did not read"
+  },
+  "corrections": [
+    {
+      "page": 27,
+      "kind": "dropped-line",
+      "find": "#### Специальность «Остеопатия»",
+      "replace": "#### Специальность «Остеопатия»\n\nВысшее образование – специалитет по специальности",
+      "why": "The last line of the page («Высшее образование – специалитет по специальности») is in the image; Marker dropped it. It starts the row «Уровень профессионального образования», which the next page continues."
+    },
+    {
+      "page": 28,
+      "kind": "dropped-line",
+      "find": "Специальность «Оториноларингология»",
+      "replace": "Специальность «Оториноларингология»\n\nВысшее образование – специалитет по одной",
+      "why": "The last line of the page («Высшее образование – специалитет по одной») is in the image; Marker dropped it. It starts the row «Уровень профессионального образования», which the next page continues."
+    },
+    {
+      "page": 38,
+      "kind": "dropped-line",
+      "find": "Высшее образование – специалитет по специальности «Медико-профилактическое дело»",
+      "replace": "Высшее образование – специалитет по специальности «Медико-профилактическое дело»\n\nПодготовка в ординатуре по специальности «Санитарно-",
+      "why": "The last line of the page («Подготовка в ординатуре по специальности «Санитарно-») is in the image; Marker dropped it. It starts the row «Уровень профессионального образования», which the next page continues."
+    },
+    {
+      "page": 42,
+      "kind": "dropped-line",
+      "find": "#### Специальность «Стоматология ортопедическая»\n\nВысшее образование – специалитет по специальности «Стоматология»",
+      "replace": "#### Специальность «Стоматология ортопедическая»\n\nВысшее образование – специалитет по специальности «Стоматология»\n\nПодготовка в интернатуре/ординатуре по специальности",
+      "why": "The last line of the page («Подготовка в интернатуре/ординатуре по специальности») is in the image; Marker dropped it. It starts the row «Уровень профессионального образования», which the next page continues."
+    },
+    {
+      "page": 51,
+      "kind": "dropped-line",
+      "find": "Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия», «Остеопатия»",
+      "replace": "Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Педиатрия», «Остеопатия»\n\nПодготовка в ординатуре по специальности «Физиотерапия»,",
+      "why": "The last line of the page («Подготовка в ординатуре по специальности «Физиотерапия»,») is in the image; Marker dropped it. It starts the row «Уровень профессионального образования», which the next page continues."
+    },
+    {
+      "page": 52,
+      "kind": "dropped-line",
+      "find": "Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Остеопатия», «Педиатрия»",
+      "replace": "Высшее образование – специалитет по одной из специальностей: «Лечебное дело», «Остеопатия», «Педиатрия»\n\nПодготовка в ординатуре по специальности «Физическая",
+      "why": "The last line of the page («Подготовка в ординатуре по специальности «Физическая») is in the image; Marker dropped it. It starts the row «Уровень профессионального образования», which the next page continues."
+    },
+    {
+      "page": 58,
+      "kind": "dropped-line",
+      "find": "**Должность «Инструктор – методист по лечебной физкультуре»**",
+      "replace": "**Должность «Инструктор – методист по лечебной физкультуре»**\n\nВысшее образование по одной из специальностей или",
+      "why": "The last line of the page («Высшее образование по одной из специальностей или») is in the image; Marker dropped it. It starts the row «Уровень профессионального образования», which the next page continues."
+    },
+    {
+      "page": 52,
+      "kind": "word",
+      "find": "«Анестезиология- реаниматология»",
+      "replace": "«Анестезиология-реаниматология»",
+      "why": "A hyphenated word wrapped at the end of a printed line («Анестезиология-» / «реаниматология») was read with a space."
+    },
+    {
+      "page": 62,
+      "kind": "typo-in-source",
+      "find": "организации – врач-лаборант (для лиц, принятых на должность до 1 октября 1999 г.)",
+      "replace": "организации – врач-лаборант) (для лиц, принятых на должность до 1 октября 1999 г.)",
+      "why": "The printed order has «врач-лаборант)» with a closing parenthesis that opens nowhere; the text keeps it as printed."
+    }
+  ]
+}

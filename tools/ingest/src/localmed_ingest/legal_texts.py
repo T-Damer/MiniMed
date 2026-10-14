@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from itertools import pairwise
 from pathlib import Path
@@ -224,7 +225,18 @@ def _ends_open(text: str) -> bool:
     return not _TERMINAL.search(text.rstrip())
 
 
-def merge_pages(pages: list[list[Block]]) -> list[Block]:
+def _runs_on(tail: str, head: str, *, quoted: bool) -> bool:
+    """Whether a paragraph starting `head` goes on from the unfinished paragraph `tail` of the previous page.
+
+    A lowercase start always continues it; a quoted name («Лечебное дело», …) continues a paragraph that
+    stops at a word («… по специальности»), not one that is itself a quoted heading line.
+    """
+    return head[:1].islower() or (
+        quoted and head[:1] == "«" and bool(re.search(r"[а-яё]$", tail.rstrip(), re.IGNORECASE))
+    )
+
+
+def merge_pages(pages: list[list[Block]], *, labelled_rows: bool = False) -> list[Block]:
     """Join paragraphs and tables that run across a page break; footnotes stay at their page's end."""
     merged: list[Block] = []
     carried_footnotes: list[Block] = []
@@ -238,10 +250,16 @@ def merge_pages(pages: list[list[Block]]) -> list[Block]:
             if (
                 head.kind == "paragraph"
                 and body_tail.kind == "paragraph"
-                and _ends_open(body_tail.text)
-                and head.text[:1].islower()
+                and (
+                    (
+                        _ends_open(body_tail.text)
+                        and _runs_on(body_tail.text, head.text, quoted=labelled_rows)
+                    )
+                    or (labelled_rows and head.text.startswith("и "))
+                )
             ):
-                body_tail.text = f"{body_tail.text} {head.text}"
+                glue = "" if body_tail.text.endswith("-") else " "
+                body_tail.text = f"{body_tail.text}{glue}{head.text}"
                 body_tail.end_page = head.page
                 merged.extend(footnotes_before)
                 carried_footnotes = []
@@ -727,7 +745,33 @@ def rejoin_wrapped_words(blocks: list[Block]) -> int:
     return joined_count
 
 
-_SPECIALTY_LINE: Final = re.compile(r"^(?:#{1,6}\s*)?\*{0,2}(Специальность\s+«.+?»)\*{0,2}\s*$")
+_SPECIALTY_LINE: Final = re.compile(
+    r"^(?:#{1,6}\s*)?\*{0,2}((?:Специальность|Должность)\s+«.+?»)\*{0,2}\s*$"
+)
+
+
+OWN_ROW_LABEL: Final = "Иные должности"
+_OPEN_HEADING: Final = re.compile(r"^(?:#{1,6}\s*)?\*{0,2}(?:Специальность|Должность)\s+«[^»]*$")
+
+
+def _join_split_headings(text: str) -> str:
+    """A «Должность «X (…)»» heading printed on two lines is one line again."""
+    lines = text.split("\n")
+    output: list[str] = []
+    index = 0
+    while index < len(lines):
+        line = lines[index]
+        if (
+            _OPEN_HEADING.match(line.strip())
+            and index + 1 < len(lines)
+            and lines[index + 1].strip()
+        ):
+            output.append(f"{line.strip()} {lines[index + 1].strip()}")
+            index += 2
+            continue
+        output.append(line)
+        index += 1
+    return "\n".join(output)
 
 
 def label_rows_markdown(text: str, labels: tuple[str, ...]) -> str:
@@ -739,7 +783,9 @@ def label_rows_markdown(text: str, labels: tuple[str, ...]) -> str:
     too: the beginning on one page («Уровень») is completed to the label, which the act prints as one cell; the
     end on the next («профессионального образования») is dropped and its text continues the paragraph above.
     """
+    labels = (*labels, OWN_ROW_LABEL)
     lowered = [label.lower() for label in labels]
+    text = _join_split_headings(text)
 
     def label_of(candidate: str, *, partial: bool) -> tuple[str, str] | None:
         """(label, 'whole' | 'head' | 'tail') for a cell that is a label or, with `partial`, a part of one."""
@@ -812,23 +858,27 @@ def label_specialty_rows(blocks: list[Block]) -> list[str]:
     """Put the row labels back on a requirements act read without its label column (`legal_unlabel`).
 
     Under each «Специальность «X»» heading the paragraphs are the three rows of the table in order; the label of
-    each paragraph comes from `row_labels`. A block that does not fit the pattern is left as it is and named in
-    the result, so that the review sees it.
+    each paragraph comes from `row_labels`. A «Должность «X»» block (a position of a specialist without a
+    medical degree) has two labelled rows and a printed «Иные должности» row (`job_row_labels`). A block that
+    does not fit the pattern is left as it is and named in the result, so that the review sees it.
     """
-    from .legal_unlabel import row_labels
+    from .legal_unlabel import job_row_labels, row_labels
+
+    def opens_block(block: Block) -> bool:
+        return block.kind == "heading" and block.text.startswith(("Специальность «", "Должность «"))
 
     unfit: list[str] = []
     index = 0
     while index < len(blocks):
         block = blocks[index]
-        if block.kind != "heading" or not block.text.startswith("Специальность «"):
+        if not opens_block(block):
             index += 1
             continue
         end = index + 1
         while end < len(blocks) and (
             blocks[end].kind != "heading"
             or (
-                not blocks[end].text.startswith("Специальность «")
+                not opens_block(blocks[end])
                 and blocks[end].level >= 3
                 and _REQUIREMENT_TEXT.match(blocks[end].text)
             )
@@ -838,6 +888,8 @@ def label_specialty_rows(blocks: list[Block]) -> list[str]:
             ):  # a requirement Marker set as a heading is a paragraph
                 blocks[end].kind = "paragraph"
             end += 1
+        if block.level < 3:
+            block.level = 3
         members = [
             blocks[i]
             for i in range(index + 1, end)
@@ -846,13 +898,16 @@ def label_specialty_rows(blocks: list[Block]) -> list[str]:
         if any(m.text.startswith(("Уровень профессионального", "Должности.")) for m in members):
             index = end
             continue  # a block that kept its printed labels
-        labels = row_labels([m.text for m in members])
+        texts = [m.text for m in members]
+        labels: Sequence[str | None] | None = (
+            job_row_labels(texts) if block.text.startswith("Должность «") else row_labels(texts)
+        )
         if labels is None:
             unfit.append(block.text)
         else:
-            previous = ""
+            previous: str | None = ""
             for member, label in zip(members, labels, strict=True):
-                if label != previous:
+                if label is not None and label != previous:
                     member.text = f"{label}. {member.text}"
                 previous = label
         index = end
@@ -878,7 +933,7 @@ def build_act_text(
             ]
             pending_pages.append(result.page)
         pages.append(blocks)
-    blocks = structure(merge_pages(pages), identity)
+    blocks = structure(merge_pages(pages, labelled_rows=bool(label_rows)), identity)
     unfit_blocks = label_specialty_rows(blocks) if label_rows else []
     rejoin_wrapped_words(blocks)
     body = render_blocks(blocks)
