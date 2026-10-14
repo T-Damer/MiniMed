@@ -199,12 +199,12 @@ const AMOUNT = new RegExp(
 );
 
 const PER_KG =
-  /^(?:\s*\/\s*(?:1\s*)?кг|\s+на\s+(?:(?:1|каждый|каждого|один|единицу)\s+)?(?:кг|килограмм\p{L}*)|\s*\/\s*килограмм)(?:\s+(?:массы\s+тела|веса(?:\s+тела)?|тела|веса))?/u;
+  /^(?:\s*\/\s*(?:1\s*)?кг|\s+\p{L}+\s*\/\s*(?:1\s*)?кг|\s+(?:[\p{L}\d%.,-]+\s+){0,3}?на\s+(?:(?:1|каждый|каждого|один|единицу)\s+)?(?:кг|килограмм\p{L}*)|\s*\/\s*килограмм)(?:\s+(?:массы\s+(?:\p{L}+\s+)?тела|веса(?:\s+тела)?|тела|веса))?/u;
 /** «на … кг» that PER_KG did not understand: the amount is per kilogram in some other wording. */
 const PER_KG_UNREAD =
   /^(?:\s+на\s+(?:[\p{L}\d]+\s+){0,2}?(?:кг|килограмм)|\s*,?\s*(?:из|в)\s+расчете\s+на|\s*\/\s*м(?![\p{L}\d²]))/u;
 const PER_M2 =
-  /^(?:\s*\/\s*(?:кв\.?\s*м|м\s?[2²])|\s+на\s+(?:1\s*)?(?:кв\.?\s*м|м\s?[2²])(?:\s+(?:поверхности\s+тела))?)/u;
+  /^(?:\s*\/\s*(?:кв\.?\s*м|м\s?[2²])|\s+на\s+(?:(?:1|каждый)\s+)?(?:кв\.?\s*м|квадратн\p{L}*\s+метр\p{L}*|м\s?[2²])(?:\s+(?:поверхности\s+(?:Вашего\s+)?тела))?)/u;
 const TIME_SUFFIX =
   /^(?:\s*\/\s*(?<t>сут\p{L}*|день|дн|ч(?![\p{L}\d])|час\p{L}*|мин\p{L}*)|\s+(?:в|за)\s+(?<t2>сутки|сут(?![\p{L}\d])|день|час|минуту|мин(?![\p{L}\d])))/u;
 const CONCENTRATION =
@@ -338,11 +338,11 @@ const TIMES_PER = new RegExp(
   'gu',
 );
 const TIMES_WORD = new RegExp(
-  `(?<![\\p{L}\\d])(?<w>однократно|двукратно|трехкратно|четырехкратно|(?<k>${NUMBER_SOURCE})-?кратн\\p{L}*)(?![\\p{L}\\d])`,
+  `(?<![\\p{L}\\d])(?<w>однократно(?=\\s+(?:(?:в|за)\\s+(?:сутки|день|сут(?![\\p{L}\\d]))|перед\\s+сном|утром|вечером|на\\s+ночь))|двукратно|трехкратно|четырехкратно|(?<k>${NUMBER_SOURCE})-?кратн\\p{L}*(?=\\s+(?:прием|введени|в\\s+(?:сутки|день)|ежедневн)))(?![\\p{L}\\d])`,
   'gu',
 );
 const EVERY_HOURS = new RegExp(
-  `(?<![\\p{L}\\d])(?:кажд\\p{L}*|через)\\s+(?:(?<h1>${NUMBER_SOURCE})(?:\\s*-\\s*(?<h2>${NUMBER_SOURCE}))?\\s*(?:-?\\s*х\\s+)?(?<hu>час\\p{L}*|ч(?![\\p{L}\\d])\\.?)|(?<one>день|сутки|неделю|месяц))`,
+  `(?<![\\p{L}\\d])(?:кажд\\p{L}*|через)\\s+(?:(?<h1>${NUMBER_SOURCE})(?:\\s*-\\s*(?<h2>${NUMBER_SOURCE}))?\\s*(?:-?\\s*х\\s+)?(?<hu>час\\p{L}*|ч(?![\\p{L}\\d])\\.?|недел\\p{L}*|месяц\\p{L}*|дн\\p{L}*)(?!\\s+(?:после|от|с\\s+момента|до|перед|посл))|(?<one>день|сутки|неделю|месяц))`,
   'gu',
 );
 const IN_INTAKES = new RegExp(
@@ -382,7 +382,7 @@ export function findFrequencies(text: string): readonly FrequencyMatch[] {
       lo,
       hi,
       period,
-      upTo: groups['pre'] !== undefined && groups['f2'] === undefined ? true : false,
+      upTo: groups['pre'] !== undefined,
     });
   }
   for (const match of text.matchAll(EVERY_HOURS)) {
@@ -411,6 +411,10 @@ export function findFrequencies(text: string): readonly FrequencyMatch[] {
     if (/^(?:час|ч)/u.test(unit)) {
       // Every 6–8 hours is 3–4 intakes a day.
       add({ start, end, lo: 24 / second, hi: 24 / first, period: 1, upTo: false });
+    } else if (first === second && Number.isInteger(first) && !/^через/u.test(match[0])) {
+      // «каждые 2 недели»: one intake per 14 days.
+      const days = /^недел/u.test(unit) ? 7 : /^месяц/u.test(unit) ? 30 : 1;
+      add({ start, end, lo: 1, hi: 1, period: first * days, upTo: false });
     }
   }
   for (const match of text.matchAll(IN_INTAKES)) {
@@ -421,6 +425,8 @@ export function findFrequencies(text: string): readonly FrequencyMatch[] {
     const lo = numberValue(groups['f1'] ?? '');
     const hi = groups['f2'] === undefined ? lo : numberValue(groups['f2']);
     if (lo === null || hi === null || hi < lo) continue;
+    // «на одно введение», «в 1 прием»: one administration, not a frequency.
+    if (lo === 1 && hi === 1) continue;
     add({ start, end, lo, hi, period: 1, upTo: false });
   }
   for (const match of text.matchAll(TIMES_WORD)) {
@@ -470,7 +476,7 @@ const DAYS_PER_UNIT: Readonly<Record<string, number>> = {
 };
 
 const DURATION_CUE =
-  '(?:в\\s+течение|на\\s+протяжении|на\\s+срок|курс\\p{L}*(?:\\s+(?:лечения|терапии|приема))?|длительност\\p{L}*(?:\\s+(?:курса|лечения|терапии|приема))*|продолжительност\\p{L}*(?:\\s+(?:курса|лечения|терапии|приема))*|(?:лечение|терапия|прием)\\s+продолжа\\p{L}+|(?:составляет|составляют)|не\\s+более|не\\s+дольше|не\\s+свыше)';
+  '(?:в\\s+течение|на\\s+протяжении|на\\s+срок|курс\\p{L}*(?:\\s+(?:лечения|терапии|приема))?|длительност\\p{L}*(?:\\s+(?:курса|лечения|терапии|приема))*|продолжительност\\p{L}*(?:\\s+(?:курса|лечения|терапии|приема))*|(?:лечение|терапия|прием)\\s+продолжа\\p{L}+|(?:составляет|составляют)|не\\s+(?:должн\\p{L}*\\s+)?превышать|не\\s+более|не\\s+дольше|не\\s+свыше)';
 const DURATION = new RegExp(
   `(?<![\\p{L}\\d])(?<cue>${DURATION_CUE})[^.;\\d]{0,28}?(?<![\\p{L}\\d.,])(?<d1>${NUMBER_SOURCE})(?:\\s*-\\s*(?<d2>${NUMBER_SOURCE}))?(?:\\s*-?\\s*(?:х|ти|ми|и))?\\s*(?<u>дн\\p{L}*|сут\\p{L}*|недел\\p{L}*|нед(?![\\p{L}\\d])\\.?|месяц\\p{L}*|мес(?![\\p{L}\\d])\\.?|год(?:а|ов)?(?![\\p{L}\\d]))`,
   'gu',
@@ -488,6 +494,14 @@ export function findDurations(text: string): readonly DurationMatch[] {
     if (first === null || second === null || key === undefined || second < first) continue;
     const factor = DAYS_PER_UNIT[key] ?? 1;
     const cue = groups['cue'] ?? '';
+    // «в течение первых 3 недель курса» is a stage of the course, not its length.
+    if (
+      /(?:^|\s)перв\p{L}*(?:\s|$)/u.test(
+        match[0].slice(cue.length, match[0].indexOf(groups['d1'] ?? '', cue.length)),
+      )
+    ) {
+      continue;
+    }
     const bare = cue === 'составляет' || cue === 'составляют';
     // «составляет 5 дней» is a duration only next to a treatment word.
     if (
@@ -503,7 +517,13 @@ export function findDurations(text: string): readonly DurationMatch[] {
       lo: first * factor,
       hi: second * factor,
       atMost:
-        /^(?:не\s+более|не\s+дольше|не\s+свыше)$/u.test(cue.trim()) ||
+        /максимальн\p{L}*\s*$/u.test(text.slice(Math.max(0, match.index - 20), match.index)) ||
+        /^(?:не\s+(?:должн\p{L}*\s+)?превышать|не\s+более|не\s+дольше|не\s+свыше)$/u.test(
+          cue.trim(),
+        ) ||
+        /(?:^|\s)не\s+(?:должн\p{L}*\s+)?(?:превышать|более|дольше|свыше)(?:\s|$)/u.test(
+          match[0].slice(cue.length, match[0].indexOf(groups['d1'] ?? '', cue.length)),
+        ) ||
         /(?:^|\s)до\s*$/u.test(
           match[0].slice(cue.length, match[0].indexOf(groups['d1'] ?? '', cue.length)),
         ),

@@ -20,21 +20,23 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
-## Dose semantics, prescription tool and the dose card in search — 2026-10-14 (STATE RX1)
+## Dose semantics, prescription tool and the dose card in search — 2026-10-14 (STATE RX1, RX2)
 
 Owner 2026-10-13: «semantics on drugs … select a drug, patient age/weight/state, a duration, a form → a printable prescription,
 more drugs, a recipe in a modal». Decision: [ADR-0025](adr/0025-dose-rule-index-and-prescription-draft.md); numbers, audit and
 limits: [research/dose-rules-2026-10-14.md](research/dose-rules-2026-10-14.md).
 
 - **Dose-rule index** (`scripts/build-dose-rules.ts`, `bun run content:dose-rules`; asset `features/prescription/data/dose-rules-index.json`,
-  3.1 MB / 725 kB gzip, lazy; offsets + section checksums, no instruction text): deterministic pattern parser over «Способ применения и
-  дозы» of 9 216 official instructions. **ЖНВЛП: 666 of 905 cards have ≥ 1 dose rule** (770 have an instruction in the modules), 653 an
-  adult and 296 a child rule, 249 a cap, 391 a course length; 22 306 dose, 3 999 cap, 6 110 course rules. Population (age bounds with the
+  3.2 MB / 738 kB gzip, lazy; offsets + section checksums + the gate shape `gc`, no instruction text): deterministic pattern parser over
+  «Способ применения и дозы» of 9 216 official instructions. **ЖНВЛП: 668 of 905 cards have ≥ 1 parsed dose rule** (770 have an
+  instruction in the modules), 654 an adult and 299 a child rule, 249 a cap, 387 a course length; 22 344 dose, 4 009 cap, 5 932 course
+  rules. **Only the rules the confidence gate passes produce numbers** (RX2 below): 275 cards. Population (age bounds with the
   upper bound exclusive, weight, group words), per-kg / per-m² doses, frequency, route, form words; renal / hepatic / dialysis rules and
   sentences without a population are quoted only. Unparsed sentences are not rules (the section is shown).
 - **«Назначение»** (route `#/notes/prescription`, tool `minimed.app.prescription`, also in the search tools): compact patient row (age,
   weight, pregnancy, lactation; from the patient card), the app's drug search, form and strength from the registry, the dose sentences that
-  fit the patient each quoted with «Открыть в инструкции», computed single dose / frequency / daily dose / units per intake (a half tablet
+  fit the patient and pass the confidence gate (the chosen one quoted with «Открыть в инструкции», every other sentence in one «Ещё N
+  фрагментов из инструкции» disclosure grouped by section), computed single dose / frequency / daily dose / units per intake (a half tablet
   only when the instruction allows division), course chips 3/5/7/10/14 + custom, quantity and packages, neutral cap comparison,
   SAFE1 quotes for the patient state, several drugs with the INT1 check, editable Rp / signa (Latin when Allmed has the name), a blank
   107-1/у (148-1/у-88 by choice) as a live thumbnail, the «Рецепт» modal (copy / share / print), autosaved drafts, «Сохранить» writes
@@ -42,10 +44,24 @@ limits: [research/dose-rules-2026-10-14.md](research/dose-rules-2026-10-14.md).
   instruction is offered in place with its size.
 - **Search card** («амоксициллин ребенок 20 кг», «парацетамол 15 кг», …) above the results of «Все источники» and «Препараты»;
   deterministic `parseDoseQuery`; additive: no search or ranking code changed. **Benchmark** `bun run benchmark:dose` (needs
-  `DOSE_DECODED_DIR`): 134 cases, exact 134, wrong 0, missing 0 (partly tuned on; see the research note). `benchmark:all` within tolerance.
+  `DOSE_DECODED_DIR`): 134 cases; after RX2 **exact 83, missing 51 (no number, the sentence is quoted), wrong 0** (before the gate:
+  exact 134, but 38 % of random rules were wrong, see below). `benchmark:all` within tolerance.
   `benchmark:real:release` cannot run in a worktree (no baseline for the mounted packs); search code is unchanged.
-- **Precision** of a random parsed rule is about 90 % before the last fixes (two fresh batches of 50: 40 and 41 correct), now of the
-  order of 5–10 % defects concentrated in table-like sentences. Not a clinical review.
+- **Precision (RX2, replaces the RX1 estimate of 5–10 %).** A blind random sample of 200 ЖНВЛП rules, each judged by hand against its
+  sentence (`tools/benchmarks/dose-rule-precision.json`, `bun run benchmark:dose-precision`): the RX1 parser was **wrong in some field in
+  77/200 = 38.5 % (95 % CI 31.7–45.6 %)**, in a dose-relevant field in 70/200 = 35.0 % (28.4–42.0 %). The confidence gate
+  (`features/prescription/dose-gate.ts`) lets only sentence shapes that measured 0 wrong on a separate development sample produce numbers:
+  of the 200, 36 still compute and **0 of 36 are wrong (CI 0–9.7 %)**; 82 % of the rules are now quoted without numbers. **Coverage: 275 of
+  905 ЖНВЛП cards (30.4 %; 35.7 % of the 770 with an instruction) still get a computed dose** (245 adult, 68 child, 101 with a cap, 45
+  with a course length). The gate is tuned on its development sample; on unseen rules of seen documents its first measurement (68 rules)
+  still found 4 dose-relevant defects (5.9 %), fixed at their cause afterwards but not re-measured out of sample. Not a clinical review;
+  see the research note §2 for the protocol and the caveats.
+- **Result page (RX2).** At 375 px one drug is about 1 000–1 200 px tall (was ~4 100): the chosen sentence with its quote, the intake
+  and course, the cap line, one «Ещё N фрагментов» disclosure (other rules to pick, quoted-only sentences, conditions, ceilings, by
+  section), one «Цитаты из инструкции» disclosure for the patient-state quotes with a few calculated lines in view.
+- **Next (dose):** judge more rules per gate family and keep growing coverage family by family (age-or-weight children's sentences such
+  as amoxicillin's, headings with an age range, «при N» indication-specific sentences first in the order); a fresh out-of-sample
+  sample after each parser change.
 - **Not tested:** Android / native, physical devices, a real printer, a clinician's review, any other instruction group than the
   anti-infectives (e2e) and antiparasitics; instruction modules downloaded by the end user (the e2e serves the local release copies).
 

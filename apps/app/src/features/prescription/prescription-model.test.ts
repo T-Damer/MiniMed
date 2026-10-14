@@ -22,6 +22,7 @@ function rule(partial: Partial<DoseRule>): DoseRule {
 function resolved(partial: Partial<DoseRule>, quote: string): ResolvedRule {
   return {
     rule: rule(partial),
+    computable: true,
     quote,
     context: null,
     sectionTitle: 'Способ применения и дозы',

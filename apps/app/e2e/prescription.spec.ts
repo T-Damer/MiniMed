@@ -1,4 +1,4 @@
-import { expect, type Page, test } from '@playwright/test';
+import { expect, type Locator, type Page, test } from '@playwright/test';
 import {
   installMedicationModule,
   routeInstructionModule,
@@ -6,13 +6,26 @@ import {
 } from './medication-module-fixture';
 import { E2E_ASSET_ORIGIN, mountBuiltApp, waitForSearchEditable } from './mount-built-app';
 
-// RX1: «Назначение». A 20 kg child and amoxicillin: the instruction group «Противоинфекционные» is
-// installed through the tool's own download offer (the local release copy, see docs/data-ledger.json;
-// the test is skipped when the copy is absent), then the dose sentences of the instruction are
-// quoted, the intake is computed from them, a second drug brings the interaction check, and the
-// «Рецепт» modal and the blank 107-1/у carry the text. Screenshots: RX1_SHOTS=<directory>.
+// RX1/RX2: «Назначение». A 20 kg child: the instruction group «Противоинфекционные» is installed
+// through the tool's own download offer (the local release copy, see docs/data-ledger.json; the test
+// is skipped when the copy is absent). Metronidazole has a dose sentence the confidence gate lets
+// compute (a dose per kilogram): the sentence is quoted, the intake and the course are computed, the
+// other sentences sit in one «Ещё N фрагментов» fold, and the «Рецепт» modal carries the text.
+// Amoxicillin's children's sentences are age-or-weight tables: they are only quoted, with a link into
+// the instruction, and no number is computed. Screenshots: RX1_SHOTS=<directory>.
 const SHOTS = process.env['RX1_SHOTS'];
 const INSTRUCTION_MODULE = 'minimed.medications.instructions.antiinfectives.ru';
+
+/** Picks the first form that matches and the first strength, when the registry offers a choice. */
+async function pickProduct(item: Locator, form: RegExp): Promise<void> {
+  const forms = item.getByRole('group', { name: 'Лекарственная форма' }).getByRole('button');
+  if ((await forms.count()) > 0) {
+    const match = forms.filter({ hasText: form });
+    await ((await match.count()) > 0 ? match : forms).first().click();
+  }
+  const strengths = item.getByRole('group', { name: 'Дозировка' }).getByRole('button');
+  if ((await strengths.count()) > 0) await strengths.first().click();
+}
 
 async function shoot(page: Page, name: string): Promise<void> {
   if (!SHOTS) return;
@@ -23,10 +36,10 @@ async function shoot(page: Page, name: string): Promise<void> {
   await page.emulateMedia({ colorScheme: 'light' });
 }
 
-test('a 20 kg child and amoxicillin: dose sentence, computed intake, recipe and blank', async ({
+test('a 20 kg child: amoxicillin is only quoted, metronidazole is computed, the rest sits in one fold', async ({
   page,
 }) => {
-  test.setTimeout(300_000);
+  test.setTimeout(420_000);
   await routeInstructionModule(page, INSTRUCTION_MODULE);
   await page.setViewportSize({ width: 375, height: 812 });
   await mountBuiltApp(page, {
@@ -44,8 +57,7 @@ test('a 20 kg child and amoxicillin: dose sentence, computed intake, recipe and 
   await expect(page.getByTestId('prescription-weight')).toHaveValue('20');
 
   // Several dosage forms: nothing is preselected, the doctor picks the form and the strength.
-  await item.getByRole('button', { name: /^таблетки диспергируемые$/u }).click();
-  await item.getByRole('button', { name: /^250 мг$/u }).click();
+  await pickProduct(item, /^таблетки диспергируемые$/u);
 
   // The instruction is not installed yet: the offer names its group and its size.
   await expect(page.getByTestId('prescription-not-installed')).toBeVisible({ timeout: 90_000 });
@@ -54,14 +66,43 @@ test('a 20 kg child and amoxicillin: dose sentence, computed intake, recipe and 
   await shoot(page, 'not-installed');
   await offer.click({ force: true });
 
-  // After the download: the rules that fit a 6-year-old of 20 kg, each with its quoted sentence.
-  await expect(page.getByTestId('prescription-rules')).toBeVisible({ timeout: 240_000 });
+  // After the download: the children's sentences of amoxicillin are tables by age or weight, which
+  // the confidence gate never turns into numbers. The sentence is quoted with a link, nothing is
+  // computed, and no «рассчитано» row appears.
+  const none = page.getByTestId('prescription-no-rule');
+  await expect(none).toBeVisible({ timeout: 240_000 });
   await expect(page.getByTestId('prescription-source')).toContainText('ГРЛС');
-  const quote = page.getByTestId('prescription-quote').first();
-  await expect(quote).toContainText(/мг/u);
+  await expect(none.getByTestId('prescription-quote').first()).toContainText(/мг/u);
+  await expect(none.getByRole('link', { name: 'Открыть в инструкции' }).first()).toBeVisible();
+  await expect(page.getByTestId('prescription-result')).toHaveCount(0);
+  await shoot(page, 'quoted-only');
+
+  // Metronidazole: a dose per kilogram stated with its own population is computed.
+  await page.goto(`${E2E_ASSET_ORIGIN}/#/notes/prescription?c=метронидазол&age=2200&w=20`);
+  await page.reload();
+  const metronidazole = page.getByTestId('prescription-item').filter({ hasText: 'Метронидазол' });
+  await expect(metronidazole).toContainText('Метронидазол', { timeout: 90_000 });
+  await pickProduct(metronidazole, /таблетки/u);
+  await expect(page.getByTestId('prescription-rules')).toBeVisible({ timeout: 120_000 });
+  await expect(page.getByTestId('prescription-quote').first()).toContainText(/мг/u);
   await expect(page.getByTestId('prescription-result')).toContainText('На приём');
   await expect(page.getByTestId('prescription-result')).toContainText('Приёмов');
+
+  // The other sentences of the instruction are one disclosure, grouped by section; the answer stays
+  // the single chosen sentence.
+  const fold = metronidazole.getByRole('button', {
+    name: /^Ещё \d+ (?:фрагмент|фрагмента|фрагментов) из инструкции/u,
+  });
+  await expect(fold).toBeVisible();
+  await expect(
+    page.getByTestId('prescription-rules').getByTestId('prescription-quote'),
+  ).toHaveCount(1);
   await shoot(page, 'rules');
+  await fold.click();
+  await expect(page.getByTestId('prescription-fragments')).toBeVisible();
+  await expect(page.getByTestId('prescription-fragment-group').first()).toBeVisible();
+  await shoot(page, 'fold-open');
+  await fold.click();
 
   // The course: the packages follow.
   await page.getByTestId('prescription-days-7').click();
@@ -95,7 +136,7 @@ test('a drug that has no installed instruction shows no dose of its own', async 
   await expect(page.getByTestId('prescription-result')).toHaveCount(0);
 });
 
-test('the search card answers «амоксициллин ребенок 20 кг», opens the instruction and its recipe icon', async ({
+test('the search card answers «метронидазол 6 лет 20 кг», opens the instruction and its recipe icon', async ({
   page,
 }) => {
   test.setTimeout(300_000);
@@ -108,7 +149,7 @@ test('the search card answers «амоксициллин ребенок 20 кг�
     },
   });
   await waitForSearchEditable(page);
-  await page.getByTestId('search-input').fill('амоксициллин ребенок 20 кг');
+  await page.getByTestId('search-input').fill('метронидазол 6 лет 20 кг');
   await page.getByTestId('search-submit').click();
 
   const card = page.getByTestId('dose-card');
@@ -117,8 +158,7 @@ test('the search card answers «амоксициллин ребенок 20 кг�
   await expect(page.getByTestId('search-results')).toBeVisible();
 
   // The instruction is not installed: the card offers it in place, with its size.
-  await card.getByRole('button', { name: /^таблетки диспергируемые$/u }).click();
-  await card.getByRole('button', { name: /^250 мг$/u }).click();
+  await pickProduct(card, /таблетки/u);
   const offer = card.locator('.safety-card__offer-button');
   await expect(offer).toContainText(/Скачать инструкции группы .* · \d/u, { timeout: 90_000 });
   await shoot(page, 'search-card-offer');
@@ -131,7 +171,8 @@ test('the search card answers «амоксициллин ребенок 20 кг�
   await expect(card.getByTestId('prescription-result')).toContainText('На приём');
   await shoot(page, 'search-card');
 
-  // The recipe icon of the card.
+  // The recipe icon of the card: the text needs a form and a strength.
+  await pickProduct(card, /таблетки/u);
   await card.getByTestId('dose-card-recipe').click();
   await expect(page.getByTestId('recipe-text')).toContainText('Rp.:');
   await shoot(page, 'search-card-recipe');

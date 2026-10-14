@@ -113,6 +113,7 @@ const ruleSchema = z
     rt: z.number().int().min(0).optional(),
     fm: z.number().int().min(0).optional(),
     ro: z.number().int().min(0).max(4).optional(),
+    gc: z.number().int().min(0).optional(),
   })
   .strict();
 
@@ -130,6 +131,8 @@ const ruleSchema = z
  * - Pieces: `q0`,`q1` counted pieces per intake, `qu` index into `PIECE_KINDS`, `pm` mg in one piece.
  * - Frequency: `f0`,`f1` intakes per `fp` days (default 1). Duration: `t0`,`t1` days, `tm` upper bound.
  * - `rt` route bits, `fm` dosage-form bits named, `ro` role of the dose in the course.
+ * - `gc` the shape the confidence gate gave the rule (an index into `DOSE_SHAPES` of the app's `dose-gate.ts`;
+ *   absent = 0 = not classified); only shapes measured correct may produce computed numbers.
  */
 export type DoseRule = z.infer<typeof ruleSchema>;
 

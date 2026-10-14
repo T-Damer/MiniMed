@@ -158,7 +158,7 @@ export function createDoseBuilder(input: { readonly cards: readonly DoseBuildCar
             title: section.title,
             chunks: section.chunks(),
           })),
-          { subject: [document.inn, document.tradeName] },
+          { subject: [document.inn, document.tradeName], dosageForm: document.dosageForm },
         );
         counters.clauses += extracted.stats.clauses;
         counters.skippedAmounts += extracted.stats.skippedAmounts;

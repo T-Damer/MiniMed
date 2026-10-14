@@ -157,25 +157,9 @@
   font-size: 0.8rem;
 }
 
-.prescription__rules {
-  display: grid;
-  gap: 0.45rem;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-.prescription__legend {
-  padding: 0;
-  margin-bottom: 0.3rem;
-  color: var(--theme-text-muted);
-  font-size: 0.78rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
 .prescription__rule {
+  min-width: 0;
+  margin: 0;
   display: grid;
   gap: 0.35rem;
   padding: 0.45rem 0.55rem;
@@ -191,20 +175,12 @@
   background: var(--theme-accent-soft);
 }
 
-.prescription__rule-button {
+.prescription__rule-head {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  width: 100%;
   min-height: 2.2rem;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--theme-text);
-  font: inherit;
   font-weight: 600;
-  text-align: left;
-  cursor: pointer;
 }
 
 .prescription__rule-summary {
@@ -308,11 +284,6 @@
   font-weight: 400;
 }
 
-.prescription__cap {
-  display: grid;
-  gap: 0.35rem;
-}
-
 .prescription__cap-line {
   display: flex;
   align-items: flex-start;
@@ -321,9 +292,10 @@
   font-size: 0.88rem;
 }
 
-.prescription__cap--over {
-  padding: 0.45rem 0.55rem;
-  border: var(--theme-border-hairline, 1px) solid var(--theme-warning, var(--theme-border-strong, var(--theme-border)));
+.prescription__cap-line--over {
+  padding: 0.4rem 0.55rem;
+  border: var(--theme-border-hairline, 1px) solid
+    var(--theme-warning, var(--theme-border-strong, var(--theme-border)));
   border-radius: var(--theme-radius-control);
 }
 
@@ -506,4 +478,69 @@
 .drug-recipe__icon {
   width: 1.25rem;
   height: 1.25rem;
+}
+
+.prescription__fragment-list {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.prescription__fragment-group {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.prescription__fragment-section {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.prescription__fragment {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.prescription__fragment-pick {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 2.2rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--theme-text);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: transform var(--motion-fast, 120ms) var(--motion-ease, ease);
+}
+
+.prescription__fragment-pick:active {
+  transform: scale(0.98);
+}
+
+.prescription__safety-list {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.prescription__safety-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15rem 0.6rem;
+}
+
+.prescription__safety-line {
+  color: var(--theme-text-muted);
+  font-size: 0.82rem;
 }

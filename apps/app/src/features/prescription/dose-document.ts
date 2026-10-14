@@ -20,10 +20,16 @@ import {
   type InstructionSourceInfo,
   instructionSourceInfo,
 } from '@/features/medications/instruction-source';
+import { mayCompute } from './dose-gate';
 import { extractDoseRules } from './dose-parse';
 
 export interface ResolvedRule {
   readonly rule: DoseRule;
+  /**
+   * The confidence gate lets this rule produce numbers (its sentence has a shape that measured
+   * correct). A rule that is not computable is only quoted, with a link to the instruction.
+   */
+  readonly computable: boolean;
   /** The sentence as printed (whitespace collapsed), never rewritten. */
   readonly quote: string;
   /** The heading or earlier sentence the population or condition was taken from. */
@@ -127,7 +133,10 @@ export function resolveInstruction(
         title: section.title,
         chunks: orderedChunks(section),
       })),
-      { subject: [textOf(document.metadata['inn']), textOf(document.metadata['tradeName'])] },
+      {
+        subject: [textOf(document.metadata['inn']), textOf(document.metadata['tradeName'])],
+        dosageForm: textOf(document.metadata['dosageForm']),
+      },
     );
     sectionIds = extracted.sections.map((section) => section.id);
     rules = extracted.rules;
@@ -161,6 +170,7 @@ export function resolveInstruction(
     }
     resolved.push({
       rule,
+      computable: mayCompute(rule),
       quote: collapse(read.text.slice(rule.a, rule.b)),
       context: rule.h ? collapse(read.text.slice(rule.h[0], rule.h[1])) : null,
       sectionTitle: id === undefined ? '' : (sections.get(id)?.title ?? ''),

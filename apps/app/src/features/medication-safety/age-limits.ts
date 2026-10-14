@@ -136,6 +136,8 @@ const UNIT_SOURCE = UNIT_PATTERNS.map((unit) => `(?<${unit.kind}>${unit.source})
 const AMOUNT_SOURCE = `(?<n>${NUMBER_SOURCE})\\s*(?:${UNIT_SOURCE})${NOT_LETTER_AFTER}`;
 
 const BELOW_OPERATORS = [
+  'не\\s+более',
+  'не\\s+больше',
   'до\\s+достижения(?:\\s+возраста)?',
   'не\\s+достигш\\p{L}*(?:\\s+возраста)?',
   'не\\s+достигл\\p{L}*(?:\\s+возраста)?',
@@ -150,6 +152,7 @@ const BELOW_OPERATORS = [
 ];
 const FROM_OPERATORS = [
   'не\\s+менее',
+  'не\\s+меньше',
   'не\\s+младше',
   'не\\s+моложе',
   'старше',

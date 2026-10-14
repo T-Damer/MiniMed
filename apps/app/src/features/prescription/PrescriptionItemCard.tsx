@@ -6,17 +6,12 @@ import { Button } from '@/components/Button';
 import { ChoiceChip, ChoiceChipList } from '@/components/ChoiceChip';
 import { Disclosure } from '@/components/Disclosure';
 import { TextArea } from '@/components/TextArea';
-import { QuoteBlock } from '@/features/medication-safety/SafetyBlocks';
 import { SafetyDownloadOffer } from '@/features/medication-safety/SafetyDownloadOffer';
-import {
-  CARD_NOTICE,
-  NOTHING_SAID_TEXT,
-  sourceLine,
-} from '@/features/medication-safety/safety-view';
+import { sourceLine } from '@/features/medication-safety/safety-view';
 import { displayDrugName } from '@/features/medications/drug-screen';
 import { buildOfficialDocumentHash } from '@/state/document-route';
-import type { ResolvedRule } from './dose-document';
 import { assumedGroup } from './dose-population';
+import { FragmentsDisclosure, RuleQuote, SafetySummary } from './PrescriptionFragments';
 import {
   type ItemAnalysis,
   intakeRows,
@@ -24,40 +19,16 @@ import {
   quantityText,
   type RuleOption,
 } from './prescription-model';
-import { ageText, type PatientStateFacts, safetyViewsFor } from './prescription-safety';
+import { type PatientStateFacts, safetyViewsFor } from './prescription-safety';
 import { amountText, decimalText } from './prescription-text';
 import '@/styles/prescription.css';
 
 const COURSE_DAYS: readonly number[] = [3, 5, 7, 10, 14];
 
-function RuleQuote(props: {
-  readonly documentId: string;
-  readonly resolved: ResolvedRule;
-}): JSX.Element {
-  return (
-    <blockquote class="prescription__quote" data-testid="prescription-quote">
-      <Show when={props.resolved.context}>
-        {(context) => <p class="prescription__quote-context">{context()}</p>}
-      </Show>
-      <p class="prescription__quote-text">{props.resolved.quote}</p>
-      <p class="prescription__quote-source">
-        {props.resolved.sectionTitle}
-        <Show when={props.resolved.anchor}>
-          {(anchor) => (
-            <>
-              {' · '}
-              <a
-                class="prescription__link"
-                href={buildOfficialDocumentHash(props.documentId, anchor())}
-              >
-                Открыть в инструкции
-              </a>
-            </>
-          )}
-        </Show>
-      </p>
-    </blockquote>
-  );
+/** «возраст», «вес» or «возраст и вес»: what the rules waiting for a number ask for. */
+function missingData(pending: readonly RuleOption[]): string {
+  const missing = new Set(pending.flatMap((option) => option.match.missing));
+  return [...missing].map((what) => (what === 'age' ? 'возраст' : 'вес')).join(' и ');
 }
 
 function optionNote(option: RuleOption): string | null {
@@ -134,8 +105,9 @@ export function PrescriptionItemCard(props: {
       ? null
       : { low: duration.t0, high: duration.t1 ?? duration.t0, max: duration.tm === 1 };
   };
-  const unitLabel = (unit: Parameters<typeof amountText>[1]): string => unit;
-  void unitLabel;
+  const pickRule = (key: string): void => {
+    props.onChange({ ruleKey: key, position: null, intakesPerDay: null, singleOverride: null });
+  };
 
   return (
     <article class="prescription__item paper-card" data-testid="prescription-item">
@@ -261,359 +233,322 @@ export function PrescriptionItemCard(props: {
             </Show>
 
             <Show
-              when={analysis().options.length > 0}
+              when={analysis().chosen}
               fallback={
                 <div class="prescription__none" data-testid="prescription-no-rule">
                   <p class="prescription__status">
-                    В инструкции нет дозы для этого пациента, которую можно рассчитать. Раздел ниже
-                    показан как напечатан.
+                    {analysis().quoted.length > 0
+                      ? 'Число по инструкции не посчитано: предложение приведено как напечатано.'
+                      : 'В инструкции нет дозы для этого пациента, которую можно рассчитать.'}
                   </p>
-                  <For each={analysis().pending}>
-                    {(option) => (
-                      <p class="prescription__note">
-                        {option.summary}: нужен{' '}
-                        {option.match.missing
-                          .map((what) => (what === 'age' ? 'возраст' : 'вес'))
-                          .join(' и ')}
-                      </p>
-                    )}
-                  </For>
-                  <For each={instruction().sections}>
-                    {(section) => (
-                      <Disclosure variant="inline" title={section.title}>
-                        <p class="prescription__section-text">{section.text}</p>
-                        <Show when={section.cut}>
-                          <p class="prescription__note">
-                            Раздел длиннее: откройте инструкцию целиком.
-                          </p>
-                        </Show>
-                        <a
-                          class="prescription__link"
-                          href={buildOfficialDocumentHash(instruction().documentId, section.anchor)}
-                        >
-                          Открыть в инструкции
-                        </a>
-                      </Disclosure>
-                    )}
-                  </For>
+                  <Show when={analysis().quoted[0]}>
+                    {(lead) => <RuleQuote documentId={documentId()} resolved={lead()} />}
+                  </Show>
+                  <Show when={analysis().pending.length > 0}>
+                    <p class="prescription__note" data-testid="prescription-pending">
+                      {`Чтобы рассчитать, нужен ${missingData(analysis().pending)}.`}
+                    </p>
+                  </Show>
+                  <Show
+                    when={
+                      analysis().quoted.length === 0 &&
+                      analysis().restricted.length === 0 &&
+                      analysis().pending.length === 0
+                    }
+                  >
+                    <For each={instruction().sections}>
+                      {(section) => (
+                        <Disclosure variant="inline" title={section.title}>
+                          <p class="prescription__section-text">{section.text}</p>
+                          <Show when={section.cut}>
+                            <p class="prescription__note">
+                              Раздел длиннее: откройте инструкцию целиком.
+                            </p>
+                          </Show>
+                          <a
+                            class="prescription__link"
+                            href={buildOfficialDocumentHash(
+                              instruction().documentId,
+                              section.anchor,
+                            )}
+                          >
+                            Открыть в инструкции
+                          </a>
+                        </Disclosure>
+                      )}
+                    </For>
+                  </Show>
+                  <FragmentsDisclosure
+                    analysis={analysis()}
+                    documentId={documentId()}
+                    open={props.expandRestricted === true && analysis().restricted.length > 0}
+                    onPick={pickRule}
+                  />
                 </div>
               }
             >
-              <fieldset class="prescription__rules" data-testid="prescription-rules">
-                <legend class="prescription__legend">Дозы из инструкции</legend>
-                <For each={analysis().options}>
-                  {(option) => {
-                    const selected = (): boolean => analysis().chosen?.key === option.key;
-                    return (
-                      <div
-                        class="prescription__rule"
-                        classList={{ 'prescription__rule--selected': selected() }}
-                        data-testid="prescription-rule"
-                      >
-                        <button
-                          type="button"
-                          class="prescription__rule-button"
-                          aria-pressed={selected()}
-                          onClick={() =>
-                            props.onChange({
-                              ruleKey: option.key,
-                              position: null,
-                              intakesPerDay: null,
-                              singleOverride: null,
-                            })
-                          }
-                        >
-                          <AppGlyph name={selected() ? 'check' : 'circle'} />
-                          <span class="prescription__rule-summary">
-                            {option.summary}
-                            <Show when={populationText(option.resolved.rule)}>
-                              {(who) => <span class="prescription__rule-who">{who()}</span>}
-                            </Show>
-                          </span>
-                        </button>
-                        <Show when={optionNote(option)}>
-                          {(note) => <p class="prescription__note">{note()}</p>}
+              {(chosen) => (
+                <>
+                  <fieldset
+                    class="prescription__rule prescription__rule--selected"
+                    aria-label="Доза из инструкции"
+                    data-testid="prescription-rules"
+                  >
+                    <div class="prescription__rule-head" data-testid="prescription-rule">
+                      <AppGlyph name="check" />
+                      <span class="prescription__rule-summary">
+                        {chosen().summary}
+                        <Show when={populationText(chosen().resolved.rule)}>
+                          {(who) => <span class="prescription__rule-who">{who()}</span>}
                         </Show>
-                        <Show when={selected()}>
-                          <RuleQuote documentId={documentId()} resolved={option.resolved} />
-                        </Show>
-                      </div>
-                    );
-                  }}
-                </For>
-              </fieldset>
-
-              <Show when={plan()?.status === 'needs-weight'}>
-                <p class="prescription__status" data-testid="prescription-needs-weight">
-                  Доза в инструкции на килограмм массы тела: введите массу пациента.
-                </p>
-              </Show>
-              <Show when={plan()?.status === 'needs-bsa'}>
-                <p class="prescription__status">
-                  Доза в инструкции на площадь поверхности тела: введите рост и массу пациента.
-                </p>
-              </Show>
-              <Show when={plan()?.status === 'needs-intakes'}>
-                <p class="prescription__status">
-                  В предложении указана суточная доза без числа приёмов: выберите число приёмов.
-                </p>
-              </Show>
-
-              <Show when={hasRange()}>
-                <ChoiceChipList
-                  label="Разовая доза в пределах предложения"
-                  class="prescription__chips"
-                >
-                  <ChoiceChip
-                    compact
-                    accent={
-                      (props.item.position ??
-                        (analysis().chosen?.resolved.rule.up ? 'max' : 'min')) === 'min'
-                    }
-                    aria-pressed={
-                      (props.item.position ??
-                        (analysis().chosen?.resolved.rule.up ? 'max' : 'min')) === 'min'
-                    }
-                    onClick={() => props.onChange({ position: 'min', singleOverride: null })}
-                  >
-                    {`от ${amountText(plan()?.singleMin ?? 0, plan()?.unit ?? 'mg')}`}
-                  </ChoiceChip>
-                  <ChoiceChip
-                    compact
-                    accent={
-                      (props.item.position ??
-                        (analysis().chosen?.resolved.rule.up ? 'max' : 'min')) === 'max'
-                    }
-                    aria-pressed={
-                      (props.item.position ??
-                        (analysis().chosen?.resolved.rule.up ? 'max' : 'min')) === 'max'
-                    }
-                    onClick={() => props.onChange({ position: 'max', singleOverride: null })}
-                  >
-                    {`до ${amountText(plan()?.singleMax ?? 0, plan()?.unit ?? 'mg')}`}
-                  </ChoiceChip>
-                </ChoiceChipList>
-              </Show>
-              <Show when={intakeChoices().length > 0}>
-                <ChoiceChipList label="Приёмов в день" class="prescription__chips">
-                  <For each={intakeChoices()}>
-                    {(count) => (
-                      <ChoiceChip
-                        compact
-                        accent={plan()?.intakes === count}
-                        aria-pressed={plan()?.intakes === count}
-                        onClick={() => props.onChange({ intakesPerDay: count })}
-                      >
-                        {`${count} раз${count > 1 && count < 5 ? 'а' : ''} в день`}
-                      </ChoiceChip>
-                    )}
-                  </For>
-                </ChoiceChipList>
-              </Show>
-
-              <Show when={plan()?.status === 'ok'}>
-                <ChoiceChipList label="Курс, дней" class="prescription__chips">
-                  <For each={COURSE_DAYS}>
-                    {(days) => (
-                      <ChoiceChip
-                        compact
-                        accent={analysis().days === days}
-                        aria-pressed={analysis().days === days}
-                        data-testid={`prescription-days-${days}`}
-                        onClick={() => props.onChange({ days })}
-                      >
-                        {`${days} дн.`}
-                      </ChoiceChip>
-                    )}
-                  </For>
-                  <Show when={instructionHint()}>
-                    {(hint) => (
-                      <ChoiceChip
-                        compact
-                        accent={analysis().days === hint().low && !COURSE_DAYS.includes(hint().low)}
-                        onClick={() => props.onChange({ days: hint().low })}
-                      >
-                        {`по инструкции: ${hint().max ? 'не более ' : ''}${
-                          hint().low === hint().high
-                            ? decimalText(hint().low)
-                            : `${decimalText(hint().low)}–${decimalText(hint().high)}`
-                        } дн.`}
-                      </ChoiceChip>
-                    )}
-                  </Show>
-                  <label class="prescription__custom-days">
-                    <span class="sr-only">Своё число дней</span>
-                    <input
-                      class="prescription__days-input"
-                      type="number"
-                      min="1"
-                      max="365"
-                      inputmode="numeric"
-                      placeholder="дней"
-                      value={customDays()}
-                      onInput={(event) => {
-                        setCustomDays(event.currentTarget.value);
-                        const days = Number(event.currentTarget.value);
-                        if (Number.isInteger(days) && days > 0 && days <= 365)
-                          props.onChange({ days });
-                      }}
-                    />
-                  </label>
-                </ChoiceChipList>
-              </Show>
-
-              <Show when={plan()?.notes.includes('pieces-without-strength')}>
-                <p class="prescription__note" data-testid="prescription-pieces-note">
-                  В предложении названо число единиц без дозировки: проверьте, что выбрана та
-                  дозировка, о которой говорит инструкция.
-                </p>
-              </Show>
-              <Show when={rows().length > 0}>
-                <dl class="prescription__result" data-testid="prescription-result">
-                  <For each={rows()}>
-                    {(row) => (
-                      <div class="prescription__result-row">
-                        <dt class="prescription__result-label">{row.label}</dt>
-                        <dd class="prescription__result-value">
-                          {row.value}
-                          <Show when={row.note}>
-                            {(note) => <span class="prescription__result-note">{note()}</span>}
-                          </Show>
-                        </dd>
-                      </div>
-                    )}
-                  </For>
-                  <Show when={quantity()}>
-                    {(text) => (
-                      <div class="prescription__result-row">
-                        <dt class="prescription__result-label">На курс</dt>
-                        <dd class="prescription__result-value" data-testid="prescription-quantity">
-                          {text()}
-                        </dd>
-                      </div>
-                    )}
-                  </Show>
-                </dl>
-                <Show when={(analysis().quantity?.options.length ?? 0) > 1}>
-                  <ChoiceChipList label="Упаковка" class="prescription__chips">
-                    <For each={analysis().quantity?.options ?? []}>
-                      {(option) => (
-                        <ChoiceChip
-                          compact
-                          accent={option.size === analysis().packSize}
-                          aria-pressed={option.size === analysis().packSize}
-                          onClick={() => props.onChange({ packSize: option.size })}
-                        >
-                          {`${option.packages} × ${decimalText(option.size)}`}
-                        </ChoiceChip>
-                      )}
-                    </For>
-                  </ChoiceChipList>
-                </Show>
-              </Show>
-
-              <For each={analysis().caps}>
-                {(cap) => (
-                  <div
-                    class="prescription__cap"
-                    classList={{ 'prescription__cap--over': cap.check.exceeded }}
-                    data-testid="prescription-cap"
-                    data-exceeded={cap.check.exceeded}
-                  >
-                    <p class="prescription__cap-line">
-                      <AppGlyph name={cap.check.exceeded ? 'info' : 'check'} />
-                      <span>
-                        {`В инструкции ${
-                          cap.check.scope === 'single'
-                            ? 'максимальная разовая доза'
-                            : cap.check.scope === 'course'
-                              ? 'предел на курс'
-                              : 'максимальная суточная доза'
-                        } — ${amountText(cap.check.limit, cap.check.unit)}. Рассчитано: ${amountText(cap.check.actual, cap.check.unit)}${cap.check.exceeded ? ' — больше указанного предела' : ''}.`}
                       </span>
-                    </p>
-                    <RuleQuote documentId={documentId()} resolved={cap.resolved} />
-                  </div>
-                )}
-              </For>
-
-              <Show when={analysis().restricted.length > 0}>
-                <Disclosure
-                  variant="inline"
-                  defaultOpen={props.expandRestricted === true}
-                  title="Коррекция дозы и особые группы"
-                  meta={<span>{analysis().restricted.length}</span>}
-                >
-                  <For each={analysis().restricted}>
-                    {(resolved) => <RuleQuote documentId={documentId()} resolved={resolved} />}
-                  </For>
-                </Disclosure>
-              </Show>
-
-              <Show when={plan()?.status === 'ok'}>
-                <Disclosure variant="inline" title="Текст рецепта">
-                  <div class="prescription__edit">
-                    <TextArea
-                      label="Rp."
-                      rows={2}
-                      value={analysis().rp}
-                      onInput={(event) => props.onChange({ rp: event.currentTarget.value })}
-                    />
-                    <TextArea
-                      label="Способ применения"
-                      rows={2}
-                      value={analysis().signa}
-                      onInput={(event) => props.onChange({ signa: event.currentTarget.value })}
-                    />
-                    <Show when={props.item.rp !== null || props.item.signa !== null}>
-                      <Button
-                        type="button"
-                        variant="quiet"
-                        onClick={() => props.onChange({ rp: null, signa: null })}
-                      >
-                        Вернуть расчётный текст
-                      </Button>
+                    </div>
+                    <Show when={optionNote(chosen())}>
+                      {(note) => <p class="prescription__note">{note()}</p>}
                     </Show>
-                  </div>
-                </Disclosure>
-              </Show>
+                    <RuleQuote documentId={documentId()} resolved={chosen().resolved} />
+                  </fieldset>
+
+                  <Show when={plan()?.status === 'needs-weight'}>
+                    <p class="prescription__status" data-testid="prescription-needs-weight">
+                      Доза в инструкции на килограмм массы тела: введите массу пациента.
+                    </p>
+                  </Show>
+                  <Show when={plan()?.status === 'needs-bsa'}>
+                    <p class="prescription__status">
+                      Доза в инструкции на площадь поверхности тела: введите рост и массу пациента.
+                    </p>
+                  </Show>
+                  <Show when={plan()?.status === 'needs-intakes'}>
+                    <p class="prescription__status">
+                      В предложении указана суточная доза без числа приёмов: выберите число приёмов.
+                    </p>
+                  </Show>
+
+                  <Show when={hasRange()}>
+                    <ChoiceChipList
+                      label="Разовая доза в пределах предложения"
+                      class="prescription__chips"
+                    >
+                      <ChoiceChip
+                        compact
+                        accent={
+                          (props.item.position ??
+                            (analysis().chosen?.resolved.rule.up ? 'max' : 'min')) === 'min'
+                        }
+                        aria-pressed={
+                          (props.item.position ??
+                            (analysis().chosen?.resolved.rule.up ? 'max' : 'min')) === 'min'
+                        }
+                        onClick={() => props.onChange({ position: 'min', singleOverride: null })}
+                      >
+                        {`от ${amountText(plan()?.singleMin ?? 0, plan()?.unit ?? 'mg')}`}
+                      </ChoiceChip>
+                      <ChoiceChip
+                        compact
+                        accent={
+                          (props.item.position ??
+                            (analysis().chosen?.resolved.rule.up ? 'max' : 'min')) === 'max'
+                        }
+                        aria-pressed={
+                          (props.item.position ??
+                            (analysis().chosen?.resolved.rule.up ? 'max' : 'min')) === 'max'
+                        }
+                        onClick={() => props.onChange({ position: 'max', singleOverride: null })}
+                      >
+                        {`до ${amountText(plan()?.singleMax ?? 0, plan()?.unit ?? 'mg')}`}
+                      </ChoiceChip>
+                    </ChoiceChipList>
+                  </Show>
+                  <Show when={intakeChoices().length > 0}>
+                    <ChoiceChipList label="Приёмов в день" class="prescription__chips">
+                      <For each={intakeChoices()}>
+                        {(count) => (
+                          <ChoiceChip
+                            compact
+                            accent={plan()?.intakes === count}
+                            aria-pressed={plan()?.intakes === count}
+                            onClick={() => props.onChange({ intakesPerDay: count })}
+                          >
+                            {`${count} раз${count > 1 && count < 5 ? 'а' : ''} в день`}
+                          </ChoiceChip>
+                        )}
+                      </For>
+                    </ChoiceChipList>
+                  </Show>
+
+                  <Show when={plan()?.status === 'ok'}>
+                    <ChoiceChipList label="Курс, дней" class="prescription__chips">
+                      <For each={COURSE_DAYS}>
+                        {(days) => (
+                          <ChoiceChip
+                            compact
+                            accent={analysis().days === days}
+                            aria-pressed={analysis().days === days}
+                            data-testid={`prescription-days-${days}`}
+                            onClick={() => props.onChange({ days })}
+                          >
+                            {`${days} дн.`}
+                          </ChoiceChip>
+                        )}
+                      </For>
+                      <Show when={instructionHint()}>
+                        {(hint) => (
+                          <ChoiceChip
+                            compact
+                            accent={
+                              analysis().days === hint().low && !COURSE_DAYS.includes(hint().low)
+                            }
+                            onClick={() => props.onChange({ days: hint().low })}
+                          >
+                            {`по инструкции: ${hint().max ? 'не более ' : ''}${
+                              hint().low === hint().high
+                                ? decimalText(hint().low)
+                                : `${decimalText(hint().low)}–${decimalText(hint().high)}`
+                            } дн.`}
+                          </ChoiceChip>
+                        )}
+                      </Show>
+                      <label class="prescription__custom-days">
+                        <span class="sr-only">Своё число дней</span>
+                        <input
+                          class="prescription__days-input"
+                          type="number"
+                          min="1"
+                          max="365"
+                          inputmode="numeric"
+                          placeholder="дней"
+                          value={customDays()}
+                          onInput={(event) => {
+                            setCustomDays(event.currentTarget.value);
+                            const days = Number(event.currentTarget.value);
+                            if (Number.isInteger(days) && days > 0 && days <= 365)
+                              props.onChange({ days });
+                          }}
+                        />
+                      </label>
+                    </ChoiceChipList>
+                  </Show>
+
+                  <Show when={plan()?.notes.includes('pieces-without-strength')}>
+                    <p class="prescription__note" data-testid="prescription-pieces-note">
+                      В предложении названо число единиц без дозировки: проверьте, что выбрана та
+                      дозировка, о которой говорит инструкция.
+                    </p>
+                  </Show>
+                  <Show when={rows().length > 0}>
+                    <dl class="prescription__result" data-testid="prescription-result">
+                      <For each={rows()}>
+                        {(row) => (
+                          <div class="prescription__result-row">
+                            <dt class="prescription__result-label">{row.label}</dt>
+                            <dd class="prescription__result-value">
+                              {row.value}
+                              <Show when={row.note}>
+                                {(note) => <span class="prescription__result-note">{note()}</span>}
+                              </Show>
+                            </dd>
+                          </div>
+                        )}
+                      </For>
+                      <Show when={quantity()}>
+                        {(text) => (
+                          <div class="prescription__result-row">
+                            <dt class="prescription__result-label">На курс</dt>
+                            <dd
+                              class="prescription__result-value"
+                              data-testid="prescription-quantity"
+                            >
+                              {text()}
+                            </dd>
+                          </div>
+                        )}
+                      </Show>
+                    </dl>
+                    <Show when={(analysis().quantity?.options.length ?? 0) > 1}>
+                      <ChoiceChipList label="Упаковка" class="prescription__chips">
+                        <For each={analysis().quantity?.options ?? []}>
+                          {(option) => (
+                            <ChoiceChip
+                              compact
+                              accent={option.size === analysis().packSize}
+                              aria-pressed={option.size === analysis().packSize}
+                              onClick={() => props.onChange({ packSize: option.size })}
+                            >
+                              {`${option.packages} × ${decimalText(option.size)}`}
+                            </ChoiceChip>
+                          )}
+                        </For>
+                      </ChoiceChipList>
+                    </Show>
+                  </Show>
+
+                  <For each={analysis().caps}>
+                    {(cap) => (
+                      <p
+                        class="prescription__cap-line"
+                        classList={{ 'prescription__cap-line--over': cap.check.exceeded }}
+                        data-testid="prescription-cap"
+                        data-exceeded={cap.check.exceeded}
+                      >
+                        <AppGlyph name={cap.check.exceeded ? 'info' : 'check'} />
+                        <span>
+                          {`В инструкции ${
+                            cap.check.scope === 'single'
+                              ? 'максимальная разовая доза'
+                              : cap.check.scope === 'course'
+                                ? 'предел на курс'
+                                : 'максимальная суточная доза'
+                          } — ${amountText(cap.check.limit, cap.check.unit)}. Рассчитано: ${amountText(cap.check.actual, cap.check.unit)}${cap.check.exceeded ? ' — больше указанного предела' : ''}.`}
+                        </span>
+                      </p>
+                    )}
+                  </For>
+
+                  <FragmentsDisclosure
+                    analysis={analysis()}
+                    documentId={documentId()}
+                    open={props.expandRestricted === true && analysis().restricted.length > 0}
+                    onPick={pickRule}
+                  />
+
+                  <Show when={plan()?.status === 'ok'}>
+                    <Disclosure variant="inline" title="Текст рецепта">
+                      <div class="prescription__edit">
+                        <TextArea
+                          label="Rp."
+                          rows={2}
+                          value={analysis().rp}
+                          onInput={(event) => props.onChange({ rp: event.currentTarget.value })}
+                        />
+                        <TextArea
+                          label="Способ применения"
+                          rows={2}
+                          value={analysis().signa}
+                          onInput={(event) => props.onChange({ signa: event.currentTarget.value })}
+                        />
+                        <Show when={props.item.rp !== null || props.item.signa !== null}>
+                          <Button
+                            type="button"
+                            variant="quiet"
+                            onClick={() => props.onChange({ rp: null, signa: null })}
+                          >
+                            Вернуть расчётный текст
+                          </Button>
+                        </Show>
+                      </div>
+                    </Disclosure>
+                  </Show>
+                </>
+              )}
             </Show>
 
             <Show when={!props.hideSafety && safety().length > 0}>
-              <section class="prescription__safety" data-testid="prescription-safety">
-                <h4 class="prescription__safety-title">
-                  Из инструкции о состоянии пациента
-                  <Show when={props.facts.ageDays !== undefined}>
-                    {' · '}
-                    {ageText(props.facts.ageDays ?? 0)}
-                  </Show>
-                </h4>
-                <p class="prescription__note">{CARD_NOTICE}</p>
-                <For each={safety()}>
-                  {(view) => (
-                    <div class="prescription__safety-view" data-intent={view.intent}>
-                      <h5 class="prescription__safety-intent">{view.title}</h5>
-                      <Show when={view.nothingSaid}>
-                        <p class="prescription__note">{NOTHING_SAID_TEXT}</p>
-                      </Show>
-                      <For each={view.ageSummary}>
-                        {(line) => (
-                          <p class="prescription__note" data-relation={line.relation}>
-                            {line.text} («{line.words}», {line.sectionLabel})
-                          </p>
-                        )}
-                      </For>
-                      <For each={view.groups}>
-                        {(group) => (
-                          <For each={group.quotes}>
-                            {(quote) => <QuoteBlock documentId={documentId()} quote={quote} />}
-                          </For>
-                        )}
-                      </For>
-                    </div>
-                  )}
-                </For>
-              </section>
+              <SafetySummary
+                views={safety()}
+                documentId={documentId()}
+                ageDays={props.facts.ageDays}
+              />
             </Show>
           </>
         )}

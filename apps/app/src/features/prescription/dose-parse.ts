@@ -47,6 +47,7 @@ import {
 } from '@/features/drug-interactions/interaction-text';
 import { extractAmountLimits, normalizeForLimits } from '@/features/medication-safety/age-limits';
 import { detectDosageForms } from '@/features/medication-safety/dosage-forms';
+import { classifyRule, type PopulationSource, shapeIndex } from './dose-gate';
 import {
   type AmountMatch,
   findAmounts,
@@ -151,9 +152,10 @@ const DILUENT_AFTER =
 
 const CAP_PHRASE =
   /(?<![\p{L}\d])(?:(?:максимальн\p{L}*|предельн\p{L}*|высш\p{L}*)\s+(?:(?<scope>разов\p{L}*|суточн\p{L}*|дневн\p{L}*|курсов\p{L}*|однократн\p{L}*)\s+)?(?:доз\p{L}*|количеств\p{L}*)?|не\s+(?:более|боле|превышать|превышает|превышающ\p{L}*)|не\s+(?:должн\p{L}*|следует)\s+превышать|не\s+больше|не\s+выше|превышать)/gu;
-const DAILY_AFTER = /^\s*(?:\(?\s*)?(?:в\s+сутки|в\s+день|за\s+сутки|за\s+день|\/\s*сут)/u;
+const DAILY_AFTER =
+  /^\s*(?:\(?\s*)?(?:однократно\s+)?(?:в\s+сутки|в\s+день|за\s+сутки|за\s+день|\/\s*сут)/u;
 const SINGLE_AFTER =
-  /^\s*(?:за\s+(?:один\s+)?(?:прием|раз)|на\s+(?:один\s+)?прием|однократно|за\s+одно)/u;
+  /^\s*(?:за\s+(?:один\s+)?(?:прием|раз)|на\s+(?:один\s+)?прием|однократно(?!\s+(?:в|за)\s+(?:сутки|день))|за\s+одно)/u;
 
 const RENAL =
   /(?:(?<![\p{L}])почечн\p{L}*|функци\p{L}*\s+почек|клиренс\p{L}*\s+креатинин|скф|(?<![\p{L}])кк(?![\p{L}])|креатинин\p{L}*)/u;
@@ -167,7 +169,11 @@ const ROUTES: readonly { readonly bit: number; readonly pattern: RegExp }[] = [
   { bit: ROUTE_IM, pattern: /внутримышечн|(?<![\p{L}])в\s*\/\s*м(?![\p{L}])/u },
   { bit: ROUTE_SC, pattern: /подкожн|(?<![\p{L}])п\s*\/\s*к(?![\p{L}])/u },
   { bit: ROUTE_INHALED, pattern: /ингаляц|вдыхани|небулайзер/u },
-  { bit: ROUTE_TOPICAL, pattern: /наружн|местно|накожн|наносят|наносить|втира/u },
+  {
+    bit: ROUTE_TOPICAL,
+    pattern:
+      /наружн|(?<![\p{L}])местно(?![\p{L}])|местного\s+применения|накожн|наносят|наносить|втира/u,
+  },
   { bit: ROUTE_RECTAL, pattern: /ректальн|в\s+прямую\s+кишку/u },
   { bit: ROUTE_SUBLINGUAL, pattern: /сублингвальн|под\s+язык/u },
   {
@@ -182,10 +188,15 @@ const ROLE_PATTERNS: readonly { readonly role: number; readonly pattern: RegExp 
   { role: ROLE_LOADING, pattern: /нагрузочн|ударн/u },
   {
     role: ROLE_INITIAL,
-    pattern: /начальн|первоначальн|стартов|начина\p{L}+|в\s+первый\s+день|первые\s+\d+\s+дн/u,
+    pattern:
+      /начальн|первоначальн|стартов|начина(?:ют|ть|йте|ется|ют)(?![\p{L}])|в\s+первый\s+день|первые\s+\d+\s+дн|перв(?:ая|ую|ой)\s+доз/u,
   },
   { role: ROLE_MAINTENANCE, pattern: /поддерживающ|поддержани/u },
-  { role: ROLE_SINGLE, pattern: /однократно|разовая\s+доза\s+составляет\s+\d+\s+(?:мг|г)\s*$/u },
+  {
+    role: ROLE_SINGLE,
+    pattern:
+      /однократн(?:ая|ой|ую|ое)\s+(?:доз|инъекци|введени|прием|приём)|в\s+виде\s+однократн|однократно\s+(?:вводят|вводится|вводить|ввести|введение|принять|принимают)|разовая\s+доза\s+составляет\s+\d+\s+(?:мг|г)\s*$/u,
+  },
 ];
 
 const DIVISIBLE =
@@ -316,7 +327,18 @@ function groupBitsOf(text: string): number {
     : groups & ~GROUP_ADULT;
 }
 
-function populationOf(text: string, raw: string): Population | null {
+/**
+ * «(соответствует дозе для взрослых пациентов)» is a remark on what an amount equals, often a table
+ * cell that ended up in the sentence next to it: its population words say nothing about the dose of
+ * the sentence. Same length, so offsets stay valid.
+ */
+export function maskEquivalenceRemarks(text: string): string {
+  return text.replace(/\(\s*соответствует[^)]*\)/gu, (match) => ' '.repeat(match.length));
+}
+
+function populationOf(textWithRemarks: string, rawWithRemarks: string): Population | null {
+  const text = maskEquivalenceRemarks(textWithRemarks);
+  const raw = maskEquivalenceRemarks(rawWithRemarks);
   const groups = groupBitsOf(text);
   if (groups === 0 && !/\d/u.test(text)) return null;
   const limits = [...extractAmountLimits(raw), ...weightOrMoreLimits(text)];
@@ -673,14 +695,15 @@ function doseOf(
               1e-6 * Math.max(1, amount.lo),
         )
       : undefined;
-  const frequency = frequencies[frequencyIndex];
+  // «до 3 раз в сутки» is a ceiling on the frequency, not a frequency: left for the doctor to choose.
+  const rawFrequency = frequencies[frequencyIndex];
   const before = text.slice(Math.max(0, main.start - 60), main.start);
   // «суточная доза [ампициллина | для взрослых] составляет 25–50 мг»: a short qualifier between the
   // words and the amount keeps the daily meaning unless it speaks of splitting into intakes.
   const dailyGap = /суточн\p{L}*\s+доз\p{L}*([^.;]{0,45})$/u.exec(before)?.[1];
   const dailyWord =
     (dailyGap !== undefined &&
-      !/(?:^|[^\p{L}])(?:по|на|дел\p{L}*|раздел\p{L}*|прием\p{L}*|приём\p{L}*|разов\p{L}*|увелич\p{L}*|повыш\p{L}*|довод\p{L}*|довест\p{L}*|снижа\p{L}*|уменьш\p{L}*)(?![\p{L}])|\d/u.test(
+      !/(?:^|[^\p{L}])(?:по|на|дел\p{L}*|раздел\p{L}*|разов\p{L}*|увелич\p{L}*|повыш\p{L}*|довод\p{L}*|довест\p{L}*|снижа\p{L}*|уменьш\p{L}*)(?![\p{L}])|\d/u.test(
         dailyGap,
       )) ||
     /доз\p{L}*\s+в\s+сутки\s*(?:составляет\s*)?[-–—:]?\s*$|в\s+суточной\s+дозе\s*$/u.test(before);
@@ -705,15 +728,40 @@ function doseOf(
     const total = innerMass.lo * innerPieces * innerFrequency.lo;
     return Math.abs(total - main.lo) <= 1e-6 * Math.max(1, main.lo);
   })();
+  // «400 мг/сутки (2 таблетки утром, 2 таблетки вечером)»: the pieces in parentheses are the day's, in parts.
+  const piecesInParts = ((): boolean => {
+    if (main.unit === 'piece') return false;
+    const rest = text.slice(main.end);
+    const open = /^\s*\(/u.exec(rest);
+    if (!open) return false;
+    const close = rest.indexOf(')', open[0].length);
+    const inside = rest.slice(open[0].length, close < 0 ? undefined : close);
+    return findAmounts(inside).filter((item) => item.unit === 'piece').length >= 2;
+  })();
   // «в сутки в 3 приема», «суточная доза, разделенная на 3 приема»: every amount of the clause is the day's.
   const dividedDaily =
     /(?:сутки|сут\.?|день)\s+(?:в|на|за)\s+\d(?:\s*-\s*\d)?\s+(?:прием|введени)|разделе\p{L}*\s+на\s+\d(?:\s*-\s*\d)?\s+(?:прием|введени)/u.test(
       text,
     ) && main.per !== 2;
+  // «10 мг/кг в 2–3 приема»: an amount shared out over intakes is a day's amount (unless «по» says each).
+  const sharedOut =
+    /(?:^|[^\p{L}])в\s+\d(?:\s*-\s*\d)?\s+прием/u.test(text.slice(main.end, main.end + 60)) &&
+    !/(?:^|[^\p{L}])по\s*$/u.test(text.slice(Math.max(0, main.start - 6), main.start)) &&
+    main.per !== 2;
   let basis: 0 | 1 =
-    main.daily || dailyWord || splitInside || dividedDaily || (perPiece && mainMass.amount.daily)
+    main.daily ||
+    dailyWord ||
+    splitInside ||
+    dividedDaily ||
+    sharedOut ||
+    (perPiece && mainMass.amount.daily)
       ? 1
       : 0;
+  // A day's amount with an interval of weeks («… до 40 мг в сутки, оценивать каждые 4 недели») has no frequency.
+  const frequency =
+    rawFrequency?.upTo || (basis === 1 && (rawFrequency?.period ?? 1) > 1)
+      ? undefined
+      : rawFrequency;
   let q0: number | undefined;
   let q1: number | undefined;
   let qu: number | undefined;
@@ -765,7 +813,13 @@ function doseOf(
     pk = 0;
   } else {
     // Mass first: pieces in parentheses are the same dose in tablets.
-    if (mainPieces && main.per === 0 && mainPieces.amount.inParentheses && !splitInside) {
+    if (
+      mainPieces &&
+      main.per === 0 &&
+      mainPieces.amount.inParentheses &&
+      !splitInside &&
+      !piecesInParts
+    ) {
       q0 = mainPieces.amount.lo;
       q1 = mainPieces.amount.hi ?? undefined;
       qu = mainPieces.amount.piece ? pieceKindIndex(mainPieces.amount.piece) : undefined;
@@ -822,7 +876,7 @@ function doseOf(
     ...(q0 === undefined ? {} : { q0 }),
     ...(q1 === undefined ? {} : { q1 }),
     ...(qu === undefined ? {} : { qu }),
-    ...(pm === undefined ? {} : { pm: Math.round(pm * 1000) / 1000 }),
+    ...(pm === undefined ? {} : { pm: round6(pm) }),
     ...(f0 === undefined ? {} : { f0 }),
     ...(f1 === undefined ? {} : { f1 }),
     ...(fp === undefined ? {} : { fp }),
@@ -834,11 +888,16 @@ function round3(value: number): number {
   return Math.round(value * 1000) / 1000;
 }
 
+/** Amounts in mg keep six decimals: 1,6 мкг is 0.0016 mg, not 0.002. */
+function round6(value: number): number {
+  return Math.round(value * 1_000_000) / 1_000_000;
+}
+
 function roundRule<T extends Omit<DoseRule, 's' | 'a' | 'b'>>(rule: T): T {
   const copy: Record<string, unknown> = { ...rule };
   for (const key of ['d0', 'd1', 'q0', 'q1', 'f0', 'f1', 't0', 't1']) {
     const value = copy[key];
-    if (typeof value === 'number') copy[key] = round3(value);
+    if (typeof value === 'number') copy[key] = key.startsWith('d') ? round6(value) : round3(value);
   }
   return copy as unknown as T;
 }
@@ -854,6 +913,12 @@ interface SectionState {
   seenDose: boolean;
   /** Stems of the words that name the document's own drug. */
   subject: readonly string[];
+  /** The title of the section being read («В зависимости от массы тела ребенка …»), for the gate. */
+  sectionTitle: string;
+  /** The dosage form the document's metadata states, for the unit check of the gate. */
+  dosageForm: string | null;
+  /** The document's drug is a combination of several substances (its name has several words). */
+  combination: boolean;
   /** The last clause that named a population itself: the clauses after it without one inherit it. */
   sticky?: { readonly population: Population; readonly start: number; readonly end: number };
 }
@@ -895,20 +960,13 @@ function isTableOfLimits(limits: ReturnType<typeof extractAmountLimits>): boolea
   return false;
 }
 
-function hasNumericBounds(population: Population): boolean {
-  return (
-    population.p0 !== undefined ||
-    population.p1 !== undefined ||
-    population.w0 !== undefined ||
-    population.w1 !== undefined
-  );
-}
-
 /** What a clause takes from the lines and clauses before it. */
 interface Inherited {
   readonly population: Population | null;
   readonly cond: number;
   readonly span: [number, number] | null;
+  /** Where the population came from, for the gate. */
+  readonly source: PopulationSource;
 }
 
 const STICKY_SPAN_LIMIT = 220;
@@ -949,11 +1007,12 @@ function inheritedBy(
           number,
           number,
         ],
+        source: 'sticky',
       };
     }
   }
-  if (own !== null) return { population: own, cond: headingCond, span: null };
-  if (ownCond !== 0) return { population: null, cond: headingCond, span: null };
+  if (own !== null) return { population: own, cond: headingCond, span: null, source: 'own' };
+  if (ownCond !== 0) return { population: null, cond: headingCond, span: null, source: 'none' };
   const sticky =
     state.sticky &&
     state.sticky.start < clause.start &&
@@ -968,6 +1027,7 @@ function inheritedBy(
         number,
         number,
       ],
+      source: 'sticky',
     };
   }
   if (heading && clause.start - heading.end <= HEADING_DISTANCE) {
@@ -975,9 +1035,10 @@ function inheritedBy(
       population: heading.population,
       cond: headingCond,
       span: [heading.start, heading.end] as [number, number],
+      source: 'heading',
     };
   }
-  return { population: null, cond: 0, span: null };
+  return { population: null, cond: 0, span: null, source: 'none' };
 }
 
 function contextOf(
@@ -997,6 +1058,29 @@ function contextOf(
   };
 }
 
+/**
+ * A short clause with no verb that follows a line «Таблица N …» is a row of that table flattened to
+ * text: the cells that said who it is for (a clearance band, a weight row) are lines of their own,
+ * so the row alone must not be read as a dose.
+ */
+export function inTableContext(norm: string, clauseStart: number, text: string): boolean {
+  if (
+    text.length > 320 ||
+    /(?:назнач|принима|рекоменд|вводят|вводить|применя|следует|необходим|должн)\p{L}*/u.test(text)
+  ) {
+    return false;
+  }
+  const before = norm.slice(Math.max(0, clauseStart - 3000), clauseStart);
+  const captions = [...before.matchAll(/(?:^|\s)таблица\s+\d+/gu)];
+  const caption = captions[captions.length - 1];
+  if (!caption) return false;
+  const between = before.slice(caption.index + caption[0].length);
+  return !/\p{L}[.!?]\s+\p{L}{3,}\s+\p{L}{3,}\s+\p{L}{3,}/u.test(between);
+}
+
+/** «30–50 750 мг …», «>50 1,5 г …»: a band cell of a table in front of the dose of its row. */
+const BAND_CELL = /^(?:[>≥<≤]\s*\d|\d+(?:[.,]\d+)?\s*-\s*\d+(?:[.,]\d+)?\s+\d)/u;
+
 function readClause(
   norm: string,
   clause: TextSpan,
@@ -1008,7 +1092,29 @@ function readClause(
   const ownCond = conditionBits(text);
   const inherited = inheritedBy(own, ownCond, clause, heading, state);
   let tableLike = false;
-  const finish = (result: ClauseResult): ClauseResult => {
+  const finish = (read: ClauseResult): ClauseResult => {
+    const context =
+      inherited.span === null ? null : norm.slice(inherited.span[0], inherited.span[1]);
+    const result: ClauseResult = {
+      ...read,
+      rules: read.rules.map((rule) => {
+        const shape = classifyRule({
+          rule,
+          clause: text,
+          before: norm.slice(Math.max(0, clause.start - 500), clause.start),
+          source: inherited.source,
+          contextText: context,
+          between: inherited.span === null ? '' : norm.slice(inherited.span[1], clause.start),
+          dosageForm: state.dosageForm,
+          subject: state.subject,
+          combination: state.combination,
+          sectionTitle: state.sectionTitle,
+          after: norm.slice(clause.end, clause.end + 80),
+        });
+        const code = shapeIndex(shape);
+        return code === 0 ? rule : { ...rule, gc: code };
+      }),
+    };
     if (
       own !== null &&
       !tableLike &&
@@ -1032,6 +1138,8 @@ function readClause(
   // A flattened table: comparison signs next to numbers («> 33 кг − ≤ 50 кг»), or two age limits.
   const limits = extractAmountLimits(text);
   if (
+    BAND_CELL.test(text) ||
+    inTableContext(norm, clause.start, text) ||
     /[≤≥<>]\s*\d/u.test(text) ||
     /\*\*/u.test(text) ||
     /(?:^|\s)таблиц\p{L}*\s+\d|^таблиц/u.test(text) ||
@@ -1051,8 +1159,16 @@ function readClause(
   });
   const negative = NEGATIVE.test(text);
   const cond = ownCond | inherited.cond;
-  const routeBits = bitsOf(ROUTES, text);
-  const forms = detectDosageForms(text);
+  // «перевести Вас на прием внутрь» names the next step, not the route of this dose; «после окончания
+  // внутривенной терапии», «после внутривенного применения» name the earlier therapy.
+  const routeText = text
+    .replace(/(?:перевест\p{L}*|переход\p{L}*\s+на|переводить)[^.;]{0,60}/gu, ' ')
+    .replace(
+      /(?:после|перед|вслед\s+за)\s+(?:\p{L}+\s+){0,2}?(?:внутривенн|внутримышечн|подкожн|парентеральн)\p{L}*/gu,
+      ' ',
+    );
+  const routeBits = bitsOf(ROUTES, routeText);
+  const forms = detectDosageForms(routeText);
 
   // The frequency to read: the first one after the first amount, else the first.
   const firstAmount = amounts.find((_, index) => !skip.has(index));
@@ -1103,7 +1219,9 @@ function readClause(
       /(?:увелич|повыш|уменьш|снизи|снижа)\p{L}*\s+(?:[\p{L}]+\s+){0,3}на\s+\d/u.test(text) ||
       (MODIFIER.test(text) && frequency === undefined && dose.rule.bs !== 1);
     if (certain && !modification) {
-      const role = roleOf(text);
+      // A dose with a frequency («однократная доза ... каждые 4 недели») is repeated, not a one-off.
+      const found = roleOf(text);
+      const role = found === ROLE_SINGLE && dose.rule.f0 !== undefined ? undefined : found;
       out.push(
         roundRule({
           ...dose.rule,
@@ -1231,7 +1349,10 @@ export function joinHyphenation(canonical: string): Joined {
 
 export function extractDoseRules(
   sections: readonly DoseSectionInput[],
-  options: { readonly subject?: readonly (string | null | undefined)[] } = {},
+  options: {
+    readonly subject?: readonly (string | null | undefined)[];
+    readonly dosageForm?: string | null;
+  } = {},
 ): ExtractedDoseRules {
   const stems = subjectStems(options.subject ?? []);
   const kept: { id: string; checksum: string }[] = [];
@@ -1258,12 +1379,34 @@ export function extractDoseRules(
       end: joined.fromCanonical[span.end] ?? norm.length,
     });
     const headings = headingsOf(lineSpans(canonical).map(toJoined), norm, joined.cased);
-    // Routes named before the first amount of the section («Внутрь.», «Для приема внутрь»).
+    // Routes named on plain lines before the first amount of the section («Внутрь.», «Для приема
+    // внутрь»): a route word inside a sentence of prose («ингаляционные анестетики») is no lead.
     const firstAmount = findAmounts(norm.slice(0, 1500))[0];
+    const leadEnd = joined.toCanonical[firstAmount?.start ?? 300] ?? 300;
+    const leadLines = canonical
+      .slice(0, leadEnd)
+      .split('\n')
+      .map((line) => line.trim())
+      .map((line) => normalizeForLimits(line))
+      .filter(
+        (line) =>
+          line.length <= 70 &&
+          /^(?:для\s+)?(?:приема\s+)?(?:внутрь|перорально|внутривенно|в\/в|внутримышечно|в\/м|подкожно|наружно|местно|ингаляционно|ректально|вагинально|интравагинально|интраназально|сублингвально|под\s+язык|в\s+конъюнктивальн)/u.test(
+            line,
+          ),
+      );
     const state: SectionState = {
-      leadRoute: bitsOf(ROUTES, norm.slice(0, firstAmount?.start ?? 300)),
+      leadRoute: bitsOf(ROUTES, leadLines.join(' ')),
       seenDose: false,
+      sectionTitle: normalizeForLimits(section.title),
       subject: stems,
+      dosageForm: options.dosageForm ?? null,
+      combination:
+        new Set(
+          (normalizeForLimits(options.subject?.[0] ?? '').match(/[\p{L}]{5,}/gu) ?? []).map(
+            (word) => word.slice(0, 5),
+          ),
+        ).size >= 2,
     };
     const sectionRules: DoseRule[] = [];
     const back = (offset: number): number => joined.toCanonical[offset] ?? canonical.length;

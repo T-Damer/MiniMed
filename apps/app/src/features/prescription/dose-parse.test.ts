@@ -58,7 +58,9 @@ describe('dose rules from real instruction sentences', () => {
       'Дети от 6 до 12 лет\nПо 200 мг (по 1 таблетке) до 3-4 раз в день; ибупрофен можно принимать только в случае массы тела ребенка более 20 кг.',
     );
     const [dose] = parsed.doses;
-    expect(dose).toMatchObject({ d0: 200, f0: 3, f1: 4, pm: 200, w0: 200 });
+    // «до 3-4 раз в день» is a ceiling on the frequency, not a frequency: left for the doctor to choose.
+    expect(dose).toMatchObject({ d0: 200, pm: 200, w0: 200 });
+    expect(dose?.f0).toBeUndefined();
     expect(dose?.p0).toBe(Math.round(6 * YEAR));
     expect(dose?.p1).toBe(Math.round(12 * YEAR));
     expect((dose?.g ?? 0) & GROUP_CHILD).toBe(GROUP_CHILD);

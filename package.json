@@ -163,6 +163,7 @@
     "content:medication-safety": "bun scripts/build-medication-safety.ts",
     "content:dose-rules": "bun scripts/build-dose-rules.ts",
     "benchmark:dose": "bun tools/benchmarks/src/run-dose-queries.ts",
+    "benchmark:dose-precision": "bun tools/benchmarks/src/run-dose-precision.ts",
     "benchmark:safe1": "bun tools/benchmarks/src/run-safe1-queries.ts",
     "benchmark:cmp1": "bun tools/benchmarks/src/run-cmp1-queries.ts",
     "benchmark:source-names": "bun tools/benchmarks/src/run-source-names.ts --check",

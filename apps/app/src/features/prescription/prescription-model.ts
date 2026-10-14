@@ -293,6 +293,11 @@ export interface ItemAnalysis {
   readonly pending: readonly RuleOption[];
   /** Dose sentences quoted only: conditions, or a population the sentence does not name. */
   readonly restricted: readonly ResolvedRule[];
+  /**
+   * Sentences the confidence gate keeps from producing numbers (tables, stages, alternatives,
+   * borrowed populations …) that may be about this patient: quoted with a link, never computed.
+   */
+  readonly quoted: readonly ResolvedRule[];
   readonly chosen: RuleOption | null;
   readonly plan: IntakePlan | null;
   readonly caps: readonly CapView[];
@@ -391,11 +396,14 @@ function classify(instruction: ResolvedInstruction, patient: PatientFacts): read
   }));
 }
 
-/** Doses that can be computed for the patient: the population fits and no condition restricts them. */
+/** Doses that can be computed for the patient: the gate allows the rule, the population fits and no condition restricts it. */
 function computable(entries: readonly Classified[]): readonly Classified[] {
   return entries.filter(
     ({ resolved, match }) =>
-      resolved.rule.k === RULE_DOSE && match.fit === 'yes' && !match.conditional,
+      resolved.computable &&
+      resolved.rule.k === RULE_DOSE &&
+      match.fit === 'yes' &&
+      !match.conditional,
   );
 }
 
@@ -414,6 +422,7 @@ export function analyzeItem(item: PrescriptionItem, inputs: ItemInputs): ItemAna
     options: [] as readonly RuleOption[],
     pending: [] as readonly RuleOption[],
     restricted: [] as readonly ResolvedRule[],
+    quoted: [] as readonly ResolvedRule[],
     chosen: null,
     plan: null,
     caps: [] as readonly CapView[],
@@ -472,11 +481,31 @@ export function analyzeItem(item: PrescriptionItem, inputs: ItemInputs): ItemAna
   const options: RuleOption[] = [];
   const pending: RuleOption[] = [];
   const restricted: ResolvedRule[] = [];
+  const quoted: ResolvedRule[] = [];
+  const quotedSeen = new Set<string>();
+  // The sentence that names the patient's group and states a dose comes first.
+  const quotedRank = new Map<ResolvedRule, number>();
   const durations: ResolvedRule[] = [];
   const doseRules = instruction.rules.map((resolved) => resolved.rule);
   instruction.rules.forEach((resolved, position) => {
     const rule = resolved.rule;
     const match = matchPopulation(rule, patient);
+    if (!resolved.computable) {
+      // Not trusted for numbers: a sentence that may be about this patient is quoted, nothing more.
+      if (
+        !match.conditional &&
+        (match.fit !== 'no' || match.unstated) &&
+        !quotedSeen.has(resolved.quote)
+      ) {
+        quotedSeen.add(resolved.quote);
+        quoted.push(resolved);
+        quotedRank.set(
+          resolved,
+          Number(match.unstated) * 4 + (rule.k === RULE_DOSE ? 0 : rule.k === RULE_CAP ? 1 : 2),
+        );
+      }
+      return;
+    }
     if (rule.k === RULE_DURATION) {
       if (match.fit === 'yes' && !match.conditional) durations.push(resolved);
       return;
@@ -507,6 +536,7 @@ export function analyzeItem(item: PrescriptionItem, inputs: ItemInputs): ItemAna
     if (match.fit === 'yes') options.push(option);
     else pending.push(option);
   });
+  quoted.sort((a, b) => (quotedRank.get(a) ?? 0) - (quotedRank.get(b) ?? 0));
   // Rules that name a population before those that name none; narrower populations first.
   options.sort(
     (a, b) =>
@@ -582,6 +612,7 @@ export function analyzeItem(item: PrescriptionItem, inputs: ItemInputs): ItemAna
     options,
     pending,
     restricted,
+    quoted,
     chosen,
     plan,
     caps,

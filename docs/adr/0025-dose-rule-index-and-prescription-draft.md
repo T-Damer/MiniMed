@@ -1,6 +1,6 @@
 # ADR-0025: Dose-rule index and prescription draft
 
-- Status: accepted; implemented in the prescription tool and the search card (RX1).
+- Status: accepted; implemented in the prescription tool and the search card (RX1); amended by the confidence gate (RX2, decision 7).
 - Decision: project owner, 2026-10-13 («About drugs — we need semantics on them … make a prescription»).
 - Related: [REFERENCE_SOURCE_POLICY.md](../REFERENCE_SOURCE_POLICY.md), [ADR-0023](0023-same-substance-instruction-fallback.md),
   [research/dose-rules-2026-10-14.md](../research/dose-rules-2026-10-14.md).
@@ -36,6 +36,16 @@ text, provenance is exact, no verdict is worded by the app, and everything works
    148-1/у-88 (one name), plus a «Рецепт» text (copy / share / print). The registry holds no controlled-substance flag, so the
    choice of the blank is the doctor's.
 6. **The search card** (`DoseCard`) is additive: it never changes ranking and every exact-name gate is untouched.
+7. **Confidence gate (RX2, owner 2026-10-14: «a wrong computed dose is unacceptable; a missing one is fine»).** A random sample of
+   200 rules measured the RX1 parser at 38.5 % wrong in some field. Every rule now carries a **shape** (`gc`, stamped at build time
+   by `classifyRule` in `dose-gate.ts`) made of its evidence: where the population comes from (own clause, a plain heading line, none),
+   absolute / per kg / per m², frequency stated or not, cap or duration kind, and a list of rejections (tables, stages and titration,
+   alternatives, borrowed populations, sex / pregnancy, other-drug doses, typos, derived piece strengths …). **Only shapes whose family
+   has ≥ 9 hand-judged rules on a development sample, none wrong (`GATE_ALLOWED`, `GATE_MIN_JUDGED`), produce numbers**; every other
+   sentence that may be about the patient is shown quoted, with «Открыть в инструкции», and computes nothing (`ItemAnalysis.quoted`).
+   The development sample is separate from the blind precision set (never tuned on) and the gate's own figures are reported with
+   binomial confidence intervals by `bun run benchmark:dose-precision`. Raising coverage means judging more rules of a family, not
+   loosening a cue. DEV format policy applies: the index gained `gc`; old indexes are rebuilt.
 
 ## Consequences
 
