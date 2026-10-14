@@ -36,7 +36,7 @@ async function expectBookmarkBeforeTitle(page: Page): Promise<void> {
 }
 
 for (const width of [375, 1280]) {
-  test(`a medication card's header menu prints and saves; the bookmark leads the title at ${width}px`, async ({
+  test(`a medication card's header menu prints and saves; the bookmark sits on the title row at ${width}px`, async ({
     page,
   }, testInfo) => {
     test.setTimeout(180_000);
@@ -47,27 +47,25 @@ for (const width of [375, 1280]) {
     await installMedicationModule(page);
     const title = await openFirstMedicationCard(page);
 
-    // The drug screen has its own header: the bookmark sits in it, ahead of the title.
+    // The drug screen has its own header: the bookmark and the recipe sit on the title row.
     const header = page.locator('.drug-header');
     const bookmark = header.getByRole('button', { name: /^Сохранить «/u });
     const heading = header.getByRole('heading', { level: 1 });
     await expect(bookmark).toBeVisible();
     await expect(heading).toHaveText(title);
-    expect(
-      await bookmark.evaluate(
-        (mark, target) =>
-          Boolean(
-            target && mark.compareDocumentPosition(target) & Node.DOCUMENT_POSITION_FOLLOWING,
-          ),
-        await heading.elementHandle(),
-      ),
-    ).toBe(true);
+    // Borderless icon on the title row, after the title (the recipe icon sits beside it).
+    const [mark, headingBox] = await Promise.all([bookmark.boundingBox(), heading.boundingBox()]);
+    if (!mark || !headingBox) throw new Error('Drug header geometry is unavailable.');
+    expect(mark.x).toBeGreaterThanOrEqual(headingBox.x);
+    expect(mark.y).toBeLessThan(headingBox.y + headingBox.height);
     // Nothing is left of the old lonely bookmark under the card.
     await expect(page.locator('.document-overlay-paper__actions .item-bookmark')).toHaveCount(0);
     await page.screenshot({ path: testInfo.outputPath(`reader-${width}.png`) });
 
     const menuButton = page.getByRole('button', { name: 'Меню действий' });
     await menuButton.click();
+    // The drug's own actions come with print in the same menu.
+    await expect(page.getByRole('menuitem', { name: 'Поделиться' })).toBeVisible();
     await page.getByRole('menuitem', { name: 'Печать' }).click();
     await expect
       .poll(() => page.evaluate(() => (window as unknown as { __printed: number }).__printed))
@@ -75,6 +73,14 @@ for (const width of [375, 1280]) {
 
     // Reopen from the keyboard: a pointer click during the menu's closing animation is absorbed.
     await expect(page.getByRole('menuitem', { name: 'Печать' })).toHaveCount(0);
+    // The page may still settle its scroll position after opening; a scroll closes an open menu.
+    let settled = -1;
+    await expect(async () => {
+      const now = await page.evaluate(() => window.scrollY);
+      const stable = now === settled;
+      settled = now;
+      expect(stable).toBe(true);
+    }).toPass({ intervals: [600], timeout: 15_000 });
     await menuButton.focus();
     await page.keyboard.press('Enter');
     await page.getByRole('menuitem', { name: 'Сохранить в коллекцию' }).click();

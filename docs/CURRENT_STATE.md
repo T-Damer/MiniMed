@@ -78,6 +78,33 @@ VIS1) and the coordinator's scrollbar decision. Screens: search home and results
   need downloaded modules (calculator results, assessment forms, comparison, ATC tree) are covered by the token tests
   and the shared rules, not by the in-page audit; their own owners (VIS2, DRUG-UI1, DOC-UI1) check them.
 
+## Drug screen: plain text links, no bubbles — 2026-10-14 (STATE DRUG-UI2)
+
+Owner 2026-10-14 (screenshot of «Вермокс», 375×812): «too many bubble buttons». The first paragraph of the
+instruction now starts at y = 419 px at 375×812 (was 497) and 414 px at 768×1024 (was 479); e2e
+`drug-screen-first-screen.spec.ts` asserts the layout and that nothing on top is a bordered pill.
+
+- **Text links, not chips** (`.drug-link`): «Мебендазол · Антигельминтное средство · P02CA01» and
+  «Аналоги: Вермокс (Венгрия), Вормин (Индия), Гельмедазол (Россия), ещё 2» are two lines of accent-coloured text that wrap like
+  prose; underline on hover and focus; the country is small muted text; «ещё N» opens the rest in place
+  (fade-in) and turns into «свернуть». Separators stay on the line of the link before them (a real space is the only
+  break). Each link is a 44 px hit area made of block padding cancelled by a negative margin, so the lines stay tight. The
+  ATC code keeps its behaviour (opens the code sheet); a two-code drug adds a quiet «в реестре L03AX» link.
+- **Header tools**: only the bookmark and the recipe stay beside the title, borderless icons (40 px hit areas,
+  `--item-bookmark-border-width` / `--item-bookmark-background` custom properties on `ItemBookmarkMenu`).
+  «Сравнить с…» (`data-testid="drug-compare-link"`) and «Поделиться» are items of the reader header's «⋯» menu
+  (`ReaderActionsMenu`, passed as data; `AppContextMenuAction` gained an optional `testId`).
+- **«Беременность, ГВ, дети»** is a quiet disclosure row (title, bare chevron), not a bordered card
+  (`--ui-disclosure-chevron-fill*` variables on `Disclosure`).
+- **Вермокс instruction body.** The oddities (a lone «Прием препарата» heading, «4. Возможные нежелательные реакции.»
+  with empty sections, lone «5.» and «6.») are in the stored module text, not rendering: document
+  `drug.rf.7687a385d1076d10a7d7.instruction` (module `minimed.medications.instructions.antiparasitic.ru`, ГРЛС leaflet ЛП-№(002347)-(РГ-RU), 7 pages)
+  holds the leaflet's own table of contents («Содержание листка-вкладыша»): the PDF text layer puts a list number («3. », «5. », «6. ») in
+  a block apart from its text, and the preparer turned the tail of that list («Прием препарата Вермокс.», «4. …», «Хранение
+  препарата Вермокс.», «Содержимое упаковки…») into headings with one-line chunks placed before «1. Что из себя представляет…». Open for
+  the preparer (not fixed here, generated packs are not hand-edited): keep the table of contents as one block and re-join numbers with their text.
+- Not changed: the other readers, stored module text.
+
 ## Drug screen: the text on the first screen — 2026-10-14 (STATE DRUG-UI1)
 
 Owner 2026-10-14: opening a drug, the instruction text must start on the first screen, everything
@@ -85,8 +112,7 @@ above it small and calm. Measured on «Вермокс» with the ГРЛС instru
 `drug-screen-first-screen.spec.ts`): the first body paragraph sat at y = 1 169 px (375×812) and
 1 540 px (768×1024); now 497 px and 479 px, above the bottom navigation.
 
-- **Header** is flat: the name, the round tools on the same row (bookmark, recipe, compare — an icon
-  with `data-testid="drug-compare-link"` — and share) and one line of Latin name, country, form and
+- **Header** is flat: the name, the tools on the same row (bookmark, recipe; compare and share moved to the «⋯» menu by DRUG-UI2) and one line of Latin name, country, form and
   manufacturer. The kicker is kept only on the substance card; a packaging photo still tints the
   band, but no longer forces a tall header.
 - **Quick links** are two small chip rows: substance · pharmacological group · ATC code, and

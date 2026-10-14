@@ -216,15 +216,19 @@
   font-weight: 650;
 }
 
+/* A quiet row, not a card: the title and a bare chevron, no border or fill. */
 .safety-block {
   display: grid;
-  margin: 0 0 0.5rem;
-  padding: 0 0.75rem;
+  margin: 0 0 0.25rem;
 }
 
 .safety-block__disclosure {
-  --ui-disclosure-header-height: 2.25rem;
+  --ui-disclosure-header-height: 2.75rem;
   --ui-disclosure-header-padding: 0.25rem 0.5rem;
+  --ui-disclosure-title-size: 0.875rem;
+  --ui-disclosure-title-weight: 500;
+  --ui-disclosure-chevron-fill: transparent;
+  --ui-disclosure-chevron-fill-open: transparent;
 }
 
 .safety-block__body {

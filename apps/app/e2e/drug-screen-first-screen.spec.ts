@@ -78,6 +78,36 @@ for (const viewport of VIEWPORTS) {
     );
     // The first paragraph is visible above the bottom navigation without scrolling.
     expect(paragraph).toBeLessThan(bottom - 24);
+    // Plain text links and borderless tools: nothing on the top of the page is a bordered pill.
+    const links = await page.locator('.drug-link').evaluateAll((nodes) =>
+      nodes.map((node) => {
+        const style = getComputedStyle(node);
+        return {
+          border: style.borderTopWidth,
+          background: style.backgroundColor,
+          height: node.getBoundingClientRect().height,
+        };
+      }),
+    );
+    expect(links.length).toBeGreaterThan(0);
+    for (const link of links) {
+      expect(link.border).toBe('0px');
+      expect(link.background).toBe('rgba(0, 0, 0, 0)');
+      // The hit area is at least 44 px tall although the text line is not.
+      expect(link.height).toBeGreaterThanOrEqual(43);
+    }
+    for (const selector of ['.drug-header__bookmark', '.drug-recipe__button']) {
+      const border = await page
+        .locator(selector)
+        .evaluate((node) => getComputedStyle(node).borderTopWidth);
+      expect(border).toBe('0px');
+    }
+    // Compare and share are items of the «⋯» menu, not buttons beside the title.
+    await expect(page.locator('.drug-header__tool')).toHaveCount(0);
+    await page.getByRole('button', { name: 'Меню действий' }).click();
+    await expect(page.getByTestId('drug-compare-link')).toBeVisible();
+    await expect(page.getByRole('menuitem', { name: 'Поделиться' })).toBeVisible();
+    await page.keyboard.press('Escape');
     // The header is one compact block: title, tools and the chip rows end well above the text.
     const title = await page.locator('.drug-header__title').boundingBox();
     expect(title?.y ?? 999).toBeLessThan(160);

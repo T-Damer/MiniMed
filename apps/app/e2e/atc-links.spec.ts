@@ -22,7 +22,7 @@ test('the ATC chip opens the code level by level and each level opens its group'
   });
   await installMedicationModule(page);
 
-  const chip = page.locator('.drug-chip--code').first();
+  const chip = page.locator('.drug-link--code').first();
   await expect(chip).toBeVisible({ timeout: 60_000 });
   const code = ((await chip.textContent()) ?? '').trim().split(/\s/u)[0] ?? '';
   expect(code).toMatch(/^[A-Z]\d{2}[A-Z]{2}\d{2}$/u);

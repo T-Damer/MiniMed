@@ -1,23 +1,21 @@
 import { createEffect, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
 
-import { AppGlyph } from '@/components/AppGlyph';
 import { ItemBookmarkMenu } from '@/features/collections/ItemBookmarkMenu';
 import type { ReaderBookmark } from '@/features/collections/ReaderItemActions';
-import type { DrugCompareLink, DrugHeaderModel } from '@/features/medications/drug-screen';
+import type { DrugHeaderModel } from '@/features/medications/drug-screen';
 import {
   type ResolvedMedicationPackagingImage,
   resolveMedicationPackagingImage,
 } from '@/features/medications/medication-packaging-images';
 import { PackagingImageSource } from '@/features/medications/PackagingImageSource';
-import { notesDrugComparisonPath } from '@/features/notes/notes-routing';
 import type { ItemRefInput } from '@/state/item-collections';
 
 import '@/features/medications/drug-screen.css';
 
 /**
- * The top of a drug document, as small as it can be: the name with its country, the round tools
- * (bookmark, recipe, compare, share) on the same row, and one line of form, strength and
- * manufacturer. A packaging photo, when the installed set has one, shows dimmed behind the text.
+ * The top of a drug document, as small as it can be: the name, the two borderless tools (bookmark,
+ * recipe) on the same row, and one line of country, form, strength and manufacturer. Compare and
+ * share are items of the reader header's «⋯» menu. A packaging photo, when the installed set has one, shows dimmed behind the text.
  */
 export function DrugScreenHeader(props: {
   readonly header: DrugHeaderModel;
@@ -25,11 +23,8 @@ export function DrugScreenHeader(props: {
   readonly title: JSX.Element;
   readonly bookmarkItem: ItemRefInput;
   readonly bookmark: ReaderBookmark;
-  readonly onShare: () => void;
-  /** Where «compare with…» starts from; none when the drug has no ЕСКЛП card. */
-  readonly compare?: DrugCompareLink | null | undefined;
-  /** Extra round tools before the compare and share buttons (the recipe icon). */
-  readonly toolsBefore?: JSX.Element;
+  /** Extra borderless tools after the bookmark (the recipe icon). */
+  readonly tools?: JSX.Element;
 }): JSX.Element {
   const [image, setImage] = createSignal<ResolvedMedicationPackagingImage | null>(null);
 
@@ -83,32 +78,7 @@ export function DrugScreenHeader(props: {
               open={props.bookmark.open()}
               onOpenChange={props.bookmark.setOpen}
             />
-            {props.toolsBefore}
-            <Show when={props.compare}>
-              {(compare) => (
-                <a
-                  class="drug-header__tool"
-                  href={notesDrugComparisonPath(
-                    [],
-                    [compare().product ? `${compare().slug}|${compare().product}` : compare().slug],
-                  )}
-                  aria-label={`Сравнить с другим препаратом: ${props.header.title}`}
-                  title="Сравнить с…"
-                  data-testid="drug-compare-link"
-                >
-                  <AppGlyph name="text-columns" class="drug-header__tool-icon" />
-                </a>
-              )}
-            </Show>
-            <button
-              type="button"
-              class="drug-header__tool"
-              aria-label={`Поделиться: ${props.header.title}`}
-              title="Поделиться"
-              onClick={props.onShare}
-            >
-              <AppGlyph name="share" class="drug-header__tool-icon" />
-            </button>
+            {props.tools}
           </div>
         </div>
         <Show when={props.header.latinName || props.header.country || props.header.meta.length > 0}>

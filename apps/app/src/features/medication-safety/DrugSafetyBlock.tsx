@@ -39,7 +39,7 @@ export function DrugSafetyBlock(props: { readonly document: MedicalDocument }): 
   const hasAnything = () => views().some((view) => view.groups.length > 0);
   return (
     <Show when={hasAnything()}>
-      <section class="safety-block paper-card" data-testid="drug-safety-block">
+      <section class="safety-block" data-testid="drug-safety-block">
         <Disclosure
           variant="inline"
           class="safety-block__disclosure"

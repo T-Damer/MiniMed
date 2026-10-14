@@ -133,7 +133,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: var(--theme-surface-muted);
+  background: var(--ui-disclosure-chevron-fill, var(--theme-surface-muted));
   color: var(--theme-text-muted);
   transition:
     transform var(--ui-disclosure-duration) var(--ui-disclosure-ease),
@@ -143,7 +143,7 @@
 
 .ui-disclosure__chevron--open {
   transform: rotate(180deg);
-  background: var(--theme-accent-soft);
+  background: var(--ui-disclosure-chevron-fill-open, var(--theme-accent-soft));
   color: var(--theme-accent);
 }
 

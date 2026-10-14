@@ -36,7 +36,7 @@ test('a drug without an official text offers the group instructions, then shows 
     await expect(page.locator('.drug-header__title')).toBeVisible({ timeout: 1_000 });
   }).toPass({ timeout: 90_000 });
 
-  const chip = page.locator('button.drug-chip').filter({ hasText: 'Мефлохин' }).first();
+  const chip = page.locator('button.drug-link').filter({ hasText: 'Мефлохин' }).first();
   await expect(async () => {
     await chip.click({ force: true, timeout: 2_000 });
     await expect(page.getByRole('radio', { name: 'Инструкция' })).toBeAttached({ timeout: 1_000 });

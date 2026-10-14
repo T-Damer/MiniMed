@@ -5,10 +5,10 @@
   height: var(--item-bookmark-size, 2.5rem);
   flex: none;
   place-items: center;
-  border: 1px solid var(--theme-border);
+  border: var(--item-bookmark-border-width, 1px) solid var(--theme-border);
   border-radius: var(--theme-radius-control);
   color: var(--theme-text-muted);
-  background: var(--theme-surface-raised);
+  background: var(--item-bookmark-background, var(--theme-surface-raised));
   cursor: pointer;
 }
 

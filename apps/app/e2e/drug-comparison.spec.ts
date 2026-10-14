@@ -168,9 +168,13 @@ test('a drug card offers «Сравнить с…»', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await mountBuiltApp(page, { skipLargeCompanionPacks: true, localStorage: PREFERENCES });
   await installMedicationModule(page);
+  // The compare action is an item of the header's «⋯» menu, not a button on the title row.
+  const menu = page.getByRole('button', { name: 'Меню действий' });
+  await expect(menu).toBeVisible({ timeout: 60_000 });
+  await menu.click();
   const link = page.getByTestId('drug-compare-link');
-  await expect(link).toBeVisible({ timeout: 60_000 });
-  await expect(link).toHaveAttribute('href', /#\/notes\/drug-comparison\?c=/u);
+  await expect(link).toBeVisible();
+  await expect(link).toContainText('Сравнить с');
   await shoot(page, 'drug-card', false);
   await link.click();
   await expect(page.getByTestId('comparison-item')).toHaveCount(1, { timeout: 60_000 });

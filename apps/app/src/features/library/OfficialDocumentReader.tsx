@@ -17,6 +17,7 @@ import {
 } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { toast } from 'solid-sonner';
+import type { AppContextMenuAction } from '@/components/AppContextMenu';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { Disclosure } from '@/components/Disclosure';
@@ -142,6 +143,7 @@ import {
   type ModulePointerResolution,
   parseModulePointerMetadata,
 } from '@/features/modules/module-pointer-install';
+import { notesDrugComparisonPath } from '@/features/notes/notes-routing';
 import { DrugRecipeButton } from '@/features/prescription/DrugRecipeButton';
 import { ReaderSelectionLookup } from '@/features/reader-dictionary/ReaderSelectionLookup';
 import { noteRecommendationOpened } from '@/features/reference/doctor-profile-feeds';
@@ -1137,6 +1139,39 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
       });
   };
 
+  // A drug card's own actions live in the header's «⋯» menu next to print; the bookmark and the
+  // recipe stay on the title row.
+  const drugMenuActions = (): readonly AppContextMenuAction[] => {
+    const screen = drugScreen();
+    if (!screen) return [];
+    const compare = screen.links.compare;
+    return [
+      ...(compare
+        ? [
+            {
+              id: 'drug-compare',
+              label: 'Сравнить с…',
+              icon: 'text-columns' as const,
+              testId: 'drug-compare-link',
+              onSelect: () =>
+                props.onNavigate(
+                  notesDrugComparisonPath(
+                    [],
+                    [compare.product ? `${compare.slug}|${compare.product}` : compare.slug],
+                  ),
+                ),
+            },
+          ]
+        : []),
+      {
+        id: 'drug-share',
+        label: 'Поделиться',
+        icon: 'share' as const,
+        onSelect: () => shareDrug(screen.header),
+      },
+    ];
+  };
+
   const pageTitle = (): string =>
     props.document
       ? displayDocumentTitle(props.document)
@@ -1192,6 +1227,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
               <ReaderActionsMenu
                 bookmark={bookmark}
                 actions={[
+                  ...drugMenuActions(),
                   {
                     id: 'print',
                     label: 'Печать',
@@ -1515,9 +1551,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                         header={screen().header}
                         bookmarkItem={bookmarkItem(documentValue())}
                         bookmark={bookmark}
-                        onShare={() => shareDrug(screen().header)}
-                        compare={screen().links.compare}
-                        toolsBefore={
+                        tools={
                           <DrugRecipeButton core={props.core} documentId={documentValue().id} />
                         }
                         title={

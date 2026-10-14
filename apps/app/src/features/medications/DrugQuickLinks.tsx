@@ -1,6 +1,5 @@
-import { createSignal, createUniqueId, For, type JSX, Show } from 'solid-js';
+import { createSignal, For, type JSX, Show } from 'solid-js';
 
-import { AppGlyph } from '@/components/AppGlyph';
 import { AtcCodeSheet, type AtcSheetFocus } from '@/features/medications/AtcCodeSheet';
 import {
   DRUG_ACCORDION_VISIBLE,
@@ -16,13 +15,13 @@ import { pluralRu } from '@/i18n/labels';
 
 import '@/features/medications/drug-screen.css';
 
-/** Meta chips (substance, group, ATC code) shown before «ещё N»; a longer row is folded. */
-export const DRUG_CHIP_LIMIT = 4;
+/** Links of a line (substance, group, ATC code, analogues) shown before «ещё N»; a longer line is folded. */
+export const DRUG_LINK_LIMIT = 3;
 
 /**
- * The code of a drug as one control: the code, and — beside an agreed code the registry holds only
- * as a group stub — the registry's own value in the same pill. Each part opens the code sheet on its
- * own ladder, so the tapped code is the one the sheet highlights.
+ * The code of a drug as plain text links: the code, and — beside an agreed code the registry holds
+ * only as a group stub — the registry's own value as a quieter link. Each opens the code sheet on
+ * its own ladder, so the tapped code is the one the sheet highlights.
  */
 export function DrugAtcChip(props: {
   readonly code: DrugAtcCode;
@@ -30,10 +29,10 @@ export function DrugAtcChip(props: {
 }): JSX.Element {
   const label = () => drugAtcCodeLabel(props.code);
   return (
-    <span class="drug-code" classList={{ 'drug-code--split': label().registryCode !== null }}>
+    <span class="drug-code">
       <button
         type="button"
-        class="drug-chip drug-chip--code drug-code__main"
+        class="drug-link drug-link--code drug-code__main"
         aria-haspopup="dialog"
         aria-label={label().ariaLabel}
         onClick={() => props.onOpen(props.code, 'main')}
@@ -44,12 +43,12 @@ export function DrugAtcChip(props: {
         {(registry) => (
           <button
             type="button"
-            class="drug-code__registry"
+            class="drug-link drug-link--quiet drug-code__registry"
             aria-haspopup="dialog"
             aria-label={`Код АТХ ${registry()} в реестре: пояснить по уровням`}
             onClick={() => props.onOpen(props.code, 'registry')}
           >
-            <span class="drug-code__registry-text">в реестре</span>
+            <span class="drug-code__registry-text">в реестре</span>{' '}
             <span class="drug-code__registry-code">{registry()}</span>
           </button>
         )}
@@ -59,80 +58,78 @@ export function DrugAtcChip(props: {
 }
 
 /**
- * A wrapped row of small chips. Past `limit` the rest is folded: «ещё N» ends the row and the
- * remainder opens under it like the app's other disclosures (a 0fr → 1fr grid track).
+ * One line of plain text links, separated by «·» or commas, that wraps like text. Past `limit` the
+ * rest is folded: «ещё N» ends the line and opens the remainder in place, fading in.
  */
-function FoldedChips<T>(props: {
+function FoldedLinks<T>(props: {
   readonly items: readonly T[];
   readonly limit: number;
-  /** A short word that leads the first line of chips («Аналоги»). */
+  readonly separator: 'dot' | 'comma';
+  /** A short word that leads the line («Аналоги»). */
   readonly lead?: string;
   readonly children: (item: T) => JSX.Element;
 }): JSX.Element {
   const [expanded, setExpanded] = createSignal(false);
-  const panelId = createUniqueId();
   const folded = (): boolean => props.items.length > props.limit + 1;
-  const head = (): readonly T[] => (folded() ? props.items.slice(0, props.limit) : props.items);
-  const rest = (): readonly T[] => (folded() ? props.items.slice(props.limit) : []);
+  const visible = (): readonly T[] =>
+    folded() && !expanded() ? props.items.slice(0, props.limit) : props.items;
+  const hiddenCount = (): number => props.items.length - props.limit;
+  const separator = (): JSX.Element => (
+    <span
+      class="drug-links__sep"
+      classList={{ 'drug-links__sep--comma': props.separator === 'comma' }}
+      aria-hidden="true"
+    >
+      {props.separator === 'comma' ? ',' : '·'}
+    </span>
+  );
   return (
-    <>
+    <div class="drug-links__line">
+      <Show when={props.lead}>{(lead) => <span class="drug-links__lead">{lead()}:</span>}</Show>
       <ul class="drug-links__list">
-        <Show when={props.lead}>{(lead) => <li class="drug-links__lead">{lead()}</li>}</Show>
-        <For each={head()}>
-          {(item) => <li class="drug-links__item">{props.children(item)}</li>}
+        <For each={visible()}>
+          {(item, index) => (
+            <>
+              <li
+                class="drug-links__item"
+                classList={{ 'drug-links__item--revealed': folded() && index() >= props.limit }}
+              >
+                {props.children(item)}
+                <Show when={folded() || index() < visible().length - 1}>{separator()}</Show>
+              </li>
+              {/* A real space between items: the only place a line may break. */}{' '}
+            </>
+          )}
         </For>
         <Show when={folded()}>
           <li class="drug-links__item">
             <button
               type="button"
-              class="drug-links__toggle"
+              class="drug-link drug-link--toggle"
               aria-expanded={expanded()}
-              aria-controls={panelId}
               aria-label={
                 expanded()
                   ? 'Свернуть список'
-                  : `Показать ещё ${String(rest().length)} ${pluralRu(rest().length, 'вариант', 'варианта', 'вариантов')}`
+                  : `Показать ещё ${String(hiddenCount())} ${pluralRu(hiddenCount(), 'вариант', 'варианта', 'вариантов')}`
               }
               onClick={() => setExpanded((value) => !value)}
             >
-              <span class="drug-links__toggle-label">
-                {expanded() ? 'свернуть' : `ещё ${String(rest().length)}`}
-              </span>
-              <AppGlyph
-                name="caret-down"
-                class={`drug-links__toggle-icon${expanded() ? ' drug-links__toggle-icon--open' : ''}`}
-              />
+              {expanded() ? 'свернуть' : `ещё ${String(hiddenCount())}`}
             </button>
           </li>
         </Show>
       </ul>
-      <Show when={folded()}>
-        <div
-          class="drug-links__more"
-          classList={{ 'drug-links__more--open': expanded() }}
-          id={panelId}
-          inert={!expanded()}
-        >
-          <div class="drug-links__more-inner">
-            <ul class="drug-links__list drug-links__list--rest">
-              <For each={rest()}>
-                {(item) => <li class="drug-links__item">{props.children(item)}</li>}
-              </For>
-            </ul>
-          </div>
-        </div>
-      </Show>
-    </>
+    </div>
   );
 }
 
-type MetaChip =
+type MetaLink =
   | { readonly kind: 'substance'; readonly link: DrugSubstanceLink }
   | { readonly kind: 'group'; readonly link: DrugGroupLink }
   | { readonly kind: 'atc'; readonly code: DrugAtcCode };
 
-/** The substance, the groups and the ATC codes as one list of chips, in that order. */
-function metaChips(links: DrugQuickLinksModel): readonly MetaChip[] {
+/** The substance, the groups and the ATC codes as one list of links, in that order. */
+function metaLinks(links: DrugQuickLinksModel): readonly MetaLink[] {
   return [
     ...(links.substance ? [{ kind: 'substance' as const, link: links.substance }] : []),
     ...links.groups.map((link) => ({ kind: 'group' as const, link })),
@@ -141,9 +138,9 @@ function metaChips(links: DrugQuickLinksModel): readonly MetaChip[] {
 }
 
 /**
- * Right under the header, in two small rows: what the drug is (active substance, pharmacological
- * group, ATC code) and its other trade names with their manufacturing country. Only what the data
- * supports is drawn; the comparison starts from the header's own icon.
+ * Right under the header, in two lines of plain text links: what the drug is (active substance,
+ * pharmacological group, ATC code) and its other trade names with their manufacturing country.
+ * Only what the data supports is drawn; the comparison starts from the header's «⋯» menu.
  */
 export function DrugQuickLinks(props: {
   readonly links: DrugQuickLinksModel;
@@ -159,83 +156,82 @@ export function DrugQuickLinks(props: {
     setAtcFocus(focus);
     setAtcOpen(true);
   };
-  const chips = (): readonly MetaChip[] => metaChips(props.links);
-  const empty = (): boolean => chips().length === 0 && props.links.related.length === 0;
+  const metas = (): readonly MetaLink[] => metaLinks(props.links);
+  const empty = (): boolean => metas().length === 0 && props.links.related.length === 0;
   const relatedLimit = (): number =>
-    props.links.relatedAccordion ? DRUG_ACCORDION_VISIBLE : DRUG_CHIP_LIMIT;
+    props.links.relatedAccordion ? DRUG_ACCORDION_VISIBLE : DRUG_LINK_LIMIT;
 
   return (
     <Show when={!empty()}>
       <nav class="drug-links" aria-label="Связанные сведения о препарате">
-        <Show when={chips().length > 0}>
+        <Show when={metas().length > 0}>
           <section class="drug-links__group" aria-label="Вещество, группа и код АТХ">
-            <FoldedChips items={chips()} limit={DRUG_CHIP_LIMIT}>
-              {(chip: MetaChip) => (
+            <FoldedLinks items={metas()} limit={DRUG_LINK_LIMIT} separator="dot">
+              {(entry: MetaLink) => (
                 <>
-                  <Show when={chip.kind === 'substance' ? chip : undefined}>
-                    {(entry) => (
+                  <Show when={entry.kind === 'substance' ? entry : undefined}>
+                    {(substance) => (
                       <button
                         type="button"
-                        class="drug-chip drug-chip--accent"
+                        class="drug-link drug-link--substance"
                         title="Действующее вещество"
-                        aria-label={`Действующее вещество: ${entry().link.label}`}
-                        onClick={() => props.onOpenSubstance(entry().link)}
+                        aria-label={`Действующее вещество: ${substance().link.label}`}
+                        onClick={() => props.onOpenSubstance(substance().link)}
                       >
-                        {entry().link.label}
+                        {substance().link.label}
                       </button>
                     )}
                   </Show>
-                  <Show when={chip.kind === 'group' ? chip : undefined}>
-                    {(entry) => (
+                  <Show when={entry.kind === 'group' ? entry : undefined}>
+                    {(group) => (
                       <button
                         type="button"
-                        class="drug-chip"
-                        title={entry().link.title}
-                        aria-label={`Препараты группы: ${entry().link.label}`}
-                        onClick={() => props.onOpenGroup(entry().link)}
+                        class="drug-link"
+                        title={group().link.title}
+                        aria-label={`Препараты группы: ${group().link.label}`}
+                        onClick={() => props.onOpenGroup(group().link)}
                       >
-                        {entry().link.label}
+                        {group().link.label}
                       </button>
                     )}
                   </Show>
-                  <Show when={chip.kind === 'atc' ? chip : undefined}>
-                    {(entry) => <DrugAtcChip code={entry().code} onOpen={openAtc} />}
+                  <Show when={entry.kind === 'atc' ? entry : undefined}>
+                    {(code) => <DrugAtcChip code={code().code} onOpen={openAtc} />}
                   </Show>
                 </>
               )}
-            </FoldedChips>
+            </FoldedLinks>
           </section>
         </Show>
         <Show when={props.links.related.length > 0}>
           <section class="drug-links__group" aria-label={props.links.relatedTitle}>
-            <FoldedChips
+            <FoldedLinks
               items={props.links.related}
               limit={relatedLimit()}
+              separator="comma"
               lead={props.links.relatedLabel}
             >
               {(item: DrugRelatedProduct) => (
                 <button
                   type="button"
-                  class="drug-chip"
+                  class="drug-link"
                   aria-label={`Открыть: ${item.label}`}
                   onClick={() => props.onSelectProduct(item.product)}
                 >
-                  <span class="drug-chip__text">
-                    {item.name}
-                    <Show when={item.country}>
-                      {(country) => (
-                        <>
-                          {' '}
-                          <span class="drug-chip__country" title={item.countryTitle}>
-                            ({country()})
-                          </span>
-                        </>
-                      )}
-                    </Show>
-                  </span>
+                  {item.name}
+                  <Show when={item.country}>
+                    {(country) => (
+                      <>
+                        {' '}
+                        <span class="drug-link__country" title={item.countryTitle}>
+                          ({country()})
+                        </span>
+                      </>
+                    )}
+                  </Show>
                 </button>
               )}
-            </FoldedChips>
+            </FoldedLinks>
           </section>
         </Show>
       </nav>

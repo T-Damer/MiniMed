@@ -39,15 +39,17 @@ export function DrugIndexAtc(props: { readonly slug: string }): JSX.Element {
   return (
     <Show when={(codes() ?? []).length > 0}>
       <nav class="drug-links" aria-label="Код АТХ" data-testid="drug-index-atc">
-        <ul class="drug-links__list">
-          <For each={codes() ?? []}>
-            {(code) => (
-              <li class="drug-links__item">
-                <DrugAtcChip code={code} onOpen={openSheet} />
-              </li>
-            )}
-          </For>
-        </ul>
+        <div class="drug-links__line">
+          <ul class="drug-links__list">
+            <For each={codes() ?? []}>
+              {(code) => (
+                <li class="drug-links__item">
+                  <DrugAtcChip code={code} onOpen={openSheet} />
+                </li>
+              )}
+            </For>
+          </ul>
+        </div>
       </nav>
       <AtcCodeSheet code={atc()} focus={focus()} open={open()} onClose={() => setOpen(false)} />
     </Show>

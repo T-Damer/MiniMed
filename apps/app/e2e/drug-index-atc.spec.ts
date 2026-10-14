@@ -27,7 +27,7 @@ test('the code of a drug without its module shows from the index and the sheet f
   await expect(atc).toBeVisible({ timeout: 60_000 });
   // One control: the agreed code with the registry's stub beside it, not a second chip.
   await expect(atc.locator('.drug-code')).toHaveCount(1);
-  await expect(atc.locator('.drug-chip--code')).toHaveText('J05AX13');
+  await expect(atc.locator('.drug-link--code')).toHaveText('J05AX13');
   await expect(atc.locator('.drug-code__registry')).toContainText('L03AX');
 
   // The registry part opens the sheet on its own ladder.
@@ -39,7 +39,7 @@ test('the code of a drug without its module shows from the index and the sheet f
   await page.keyboard.press('Escape');
 
   // The main part highlights the main ladder.
-  await atc.locator('.drug-chip--code').click();
+  await atc.locator('.drug-link--code').click();
   await expect(page.getByTestId('atc-ladder-main')).toHaveAttribute('data-focus', 'true');
   await expect(page.getByRole('dialog')).toContainText('Код АТХ J05AX13');
 });

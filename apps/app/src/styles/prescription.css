@@ -466,12 +466,20 @@
   height: var(--drug-tool-size, 2.5rem);
   flex: none;
   place-items: center;
-  border: 1px solid var(--theme-border);
+  border: 0;
   border-radius: var(--theme-radius-control);
-  background: color-mix(in srgb, var(--theme-surface-raised) 88%, transparent);
+  background: transparent;
   color: var(--theme-text-muted);
   cursor: pointer;
-  transition: transform var(--motion-fast, 120ms) var(--motion-ease, ease);
+  transition:
+    background-color var(--theme-motion-control),
+    transform var(--motion-fast, 120ms) var(--motion-ease, ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .drug-recipe__button:hover {
+    background: var(--theme-accent-soft);
+  }
 }
 
 .drug-recipe__button:active {

@@ -18,6 +18,8 @@ export interface AppContextMenuAction {
   readonly iconClass?: string;
   readonly danger?: boolean;
   readonly disabled?: boolean;
+  /** Stable hook for tests and automation; rendered as `data-testid` on the item. */
+  readonly testId?: string;
   readonly children?: readonly AppContextMenuAction[];
   readonly onSelect?: () => void;
 }
@@ -107,6 +109,7 @@ function MenuItem(props: { readonly action: AppContextMenuAction }): JSX.Element
           class="app-context-menu__item"
           classList={{ 'app-context-menu__item--danger': Boolean(props.action.danger) }}
           disabled={props.action.disabled ?? false}
+          data-testid={props.action.testId}
           onSelect={() => props.action.onSelect?.()}
         >
           <AppGlyph
