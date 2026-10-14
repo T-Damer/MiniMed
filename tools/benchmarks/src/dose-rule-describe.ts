@@ -1,5 +1,5 @@
 // RX2: a decoded one-line reading of a dose rule for the reviewer (the rule JSON stays authoritative).
-import type { DoseRule } from '@localmed/contracts';
+import { type DoseRule, PIECE_KINDS } from '@localmed/contracts';
 
 const ROUTE_NAMES: readonly [number, string][] = [
   [1, 'oral'],
@@ -28,18 +28,7 @@ const COND_NAMES: readonly [number, string][] = [
 ];
 const ROLE_NAMES = ['', 'initial', 'maintenance', 'loading', 'single'];
 const UNIT_NAMES = ['mg', 'ml', 'IU', 'U', 'mmol', 'drop', 'dose', 'piece'];
-const PIECE_NAMES = [
-  'tablet',
-  'capsule',
-  'suppository',
-  'sachet',
-  'ampoule',
-  'lozenge',
-  'patch',
-  'measure',
-  'spoon',
-  'other',
-];
+const PIECE_NAMES: readonly string[] = PIECE_KINDS;
 
 function bitNames(value: number | undefined, names: readonly [number, string][]): string {
   return names

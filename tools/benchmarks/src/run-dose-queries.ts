@@ -24,6 +24,7 @@ import {
 import { parseDoseQuery } from '../../../apps/app/src/features/prescription/dose-query';
 import {
   type ItemAnalysis,
+  indicationLabel,
   intakeRows,
   quantityText,
 } from '../../../apps/app/src/features/prescription/prescription-model';
@@ -49,6 +50,11 @@ interface Accepted {
   readonly daily?: number;
   /** The sentence is read but a number is still needed before anything can be computed. */
   readonly needs?: 'weight' | 'intakes';
+  /**
+   * The sentence is one indication or regimen of several (RX4): it is accepted as the first answer only
+   * while the screen marks it so (an indication beside the number), never as the general dose.
+   */
+  readonly bound?: true;
 }
 
 interface DoseCase {
@@ -132,8 +138,9 @@ function describe(analysis: ItemAnalysis): string[] {
     `state=${analysis.state} options=${options.length} pending=${analysis.pending.length} restricted=${analysis.restricted.length} doc=${analysis.documentId ?? '-'}`,
   );
   options.slice(0, 3).forEach((option, position) => {
+    const why = indicationLabel(option);
     lines.push(
-      `  ${position === 0 ? '>' : ' '} ${option.summary} [${option.match.unstated ? 'unstated' : 'stated'}]`,
+      `  ${position === 0 ? '>' : ' '} ${option.summary} [${option.match.unstated ? 'unstated' : 'stated'}]${why === null ? '' : ` {bound: ${why.slice(0, 60)}}`}`,
     );
     lines.push(`      Q: ${collapse(option.resolved.quote).slice(0, 260)}`);
     if (position === 0) lines.push(`      rule: ${JSON.stringify(option.resolved.rule)}`);
@@ -208,6 +215,7 @@ for (const item of cases) {
       const quote = collapse(chosen.resolved.quote);
       const matching = item.accept.filter((accepted) => {
         if (!quote.includes(accepted.quote) || numbers === null) return false;
+        if (accepted.bound === true && !chosen.bound) return false;
         if (accepted.needs === 'weight') return numbers.status === 'needs-weight';
         if (accepted.needs === 'intakes') {
           return numbers.status === 'needs-intakes' && near(accepted.daily, numbers.daily);

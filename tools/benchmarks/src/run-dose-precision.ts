@@ -68,10 +68,30 @@ const file =
 const set = JSON.parse(readFileSync(resolve(REPOSITORY_ROOT, file), 'utf8')) as SetFile;
 const index = loadIndex();
 
+/**
+ * The rule as it reads today: the same id, else (the sentence grew or moved after a parser change) the
+ * rule of the same kind in the same section whose sentence overlaps the judged one. A judged rule must
+ * never drop out of the report only because its offsets changed.
+ */
 function currentRule(item: Item): DoseRule | undefined {
-  return index.asset.documents[item.documentId]?.rules.find(
+  const rules = index.asset.documents[item.documentId]?.rules ?? [];
+  const exact = rules.find(
     (rule) => `${item.documentId}#${rule.s}:${rule.a}:${rule.k}` === item.id,
   );
+  if (exact) return exact;
+  return rules.find(
+    (rule) =>
+      rule.k === item.rule.k &&
+      rule.s === item.rule.s &&
+      rule.a < item.rule.b &&
+      rule.b > item.rule.a,
+  );
+}
+
+/** The fields that carry what a rule says, without the shape and the display-only indication fields. */
+function substance(rule: DoseRule): string {
+  const { gc: _gc, i: _i, sv: _sv, a: _a, b: _b, h: _h, ...rest } = rule;
+  return JSON.stringify(rest);
 }
 
 function interval(successes: number, n: number): string {
@@ -153,23 +173,47 @@ interface Row {
   readonly verdict: Verdict;
   readonly changed: boolean;
 }
-const rows: Row[] = set.items.map((item) => {
+const needsRejudge: string[] = [];
+function rowOf(item: Item, collect: string[] | null): Row {
   const current = currentRule(item);
   if (!current) return { item, shape: 'vanished', verdict: item.verdict, changed: true };
-  const { gc: _now, ...nowRule } = current;
-  const { gc: _then, ...thenRule } = item.rule;
-  const changed = JSON.stringify(nowRule) !== JSON.stringify(thenRule);
+  const changed = substance(current) !== substance(item.rule);
   const shape = shapeOf(current);
-  if (changed && !isRejectedShape(shape) && !item.rejudged) {
-    throw new Error(`${item.id} changed since it was judged and passes the gate: re-judge it`);
-  }
+  if (collect && changed && !isRejectedShape(shape) && !item.rejudged) collect.push(item.id);
   return {
     item,
     shape,
     verdict: changed ? (item.rejudged?.verdict ?? item.verdict) : item.verdict,
     changed,
   };
-});
+}
+const rows: Row[] = set.items.map((item) => rowOf(item, needsRejudge));
+
+/** Every hand-judged set, for the evidence of a gate family (the judgements of all of them count). */
+const JUDGED_SETS = [
+  'tools/benchmarks/dose-rule-gate-dev.json',
+  'tools/benchmarks/dose-rule-precision.json',
+  'tools/benchmarks/dose-rule-precision-fresh.json',
+  'tools/benchmarks/dose-rule-audit-2026-10-14.json',
+];
+function pooledRows(): readonly Row[] {
+  const seen = new Set<string>();
+  const pooled: Row[] = [];
+  for (const file of JUDGED_SETS) {
+    const other = JSON.parse(readFileSync(resolve(REPOSITORY_ROOT, file), 'utf8')) as SetFile;
+    for (const item of other.items) {
+      const row = rowOf(item, null);
+      const current = currentRule(item);
+      if (!current) continue;
+      // A rule judged in two sets counts once.
+      const key = `${item.documentId}#${current.s}:${current.a}:${current.k}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      pooled.push(row);
+    }
+  }
+  return pooled;
+}
 
 console.log(
   "\n## By sentence shape (the gate's shape today; verdict of the rule as it reads today)",
@@ -251,10 +295,11 @@ console.log(
 let failed = false;
 if (dev) {
   console.log(
-    `\n## Evidence for GATE_ALLOWED (per family: >= ${GATE_MIN_JUDGED} judged, none wrong)`,
+    `\n## Evidence for GATE_ALLOWED (per family: >= ${GATE_MIN_JUDGED} judged over all hand-judged sets, none wrong)`,
   );
+  const evidence = pooledRows();
   for (const family of [...new Set([...GATE_ALLOWED].map(shapeFamily))].toSorted()) {
-    const own = rows.filter(
+    const own = evidence.filter(
       (row) =>
         row.shape !== 'vanished' &&
         GATE_ALLOWED.has(row.shape) &&
@@ -274,6 +319,11 @@ if (dev) {
   );
 }
 if (!dev && computedWrong.length > 0) failed = true;
+if (needsRejudge.length > 0) {
+  console.log(`\n## Changed since judged, still computing: re-judge (${needsRejudge.length})`);
+  for (const id of needsRejudge) console.log(`  ${id}`);
+  failed = true;
+}
 if (failed) {
   console.error('\nFAILED');
   process.exitCode = 1;

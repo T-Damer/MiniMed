@@ -14,6 +14,7 @@ import { assumedGroup } from './dose-population';
 import { FragmentsDisclosure, RuleQuote, SafetySummary } from './PrescriptionFragments';
 import {
   type ItemAnalysis,
+  indicationLabel,
   intakeRows,
   populationText,
   quantityText,
@@ -38,6 +39,41 @@ function optionNote(option: RuleOption): string | null {
     return 'Группа взята из заголовка выше предложения';
   }
   return null;
+}
+
+/** The editable Rp. and sign lines; with computed doses off they are the doctor's own text. */
+function RecipeTextEditor(props: {
+  readonly item: PrescriptionItem;
+  readonly analysis: ItemAnalysis;
+  readonly onChange: (patch: Partial<PrescriptionItem>) => void;
+}): JSX.Element {
+  return (
+    <Disclosure variant="inline" title="Текст рецепта">
+      <div class="prescription__edit">
+        <TextArea
+          label="Rp."
+          rows={2}
+          value={props.analysis.rp}
+          onInput={(event) => props.onChange({ rp: event.currentTarget.value })}
+        />
+        <TextArea
+          label="Способ применения"
+          rows={2}
+          value={props.analysis.signa}
+          onInput={(event) => props.onChange({ signa: event.currentTarget.value })}
+        />
+        <Show when={props.item.rp !== null || props.item.signa !== null}>
+          <Button
+            type="button"
+            variant="quiet"
+            onClick={() => props.onChange({ rp: null, signa: null })}
+          >
+            Вернуть расчётный текст
+          </Button>
+        </Show>
+      </div>
+    </Disclosure>
+  );
 }
 
 /**
@@ -237,9 +273,11 @@ export function PrescriptionItemCard(props: {
               fallback={
                 <div class="prescription__none" data-testid="prescription-no-rule">
                   <p class="prescription__status">
-                    {analysis().quoted.length > 0
-                      ? 'Число по инструкции не посчитано: предложение приведено как напечатано.'
-                      : 'В инструкции нет дозы для этого пациента, которую можно рассчитать.'}
+                    {analysis().numbersOff
+                      ? 'Расчёт доз в этой версии выключен: предложения приведены как напечатано.'
+                      : analysis().quoted.length > 0
+                        ? 'Число по инструкции не посчитано: предложение приведено как напечатано.'
+                        : 'В инструкции нет дозы для этого пациента, которую можно рассчитать.'}
                   </p>
                   <Show when={analysis().quoted[0]}>
                     {(lead) => <RuleQuote documentId={documentId()} resolved={lead()} />}
@@ -284,6 +322,13 @@ export function PrescriptionItemCard(props: {
                     open={props.expandRestricted === true && analysis().restricted.length > 0}
                     onPick={pickRule}
                   />
+                  <Show when={analysis().numbersOff && analysis().form !== null}>
+                    <RecipeTextEditor
+                      item={props.item}
+                      analysis={analysis()}
+                      onChange={props.onChange}
+                    />
+                  </Show>
                 </div>
               }
             >
@@ -301,6 +346,16 @@ export function PrescriptionItemCard(props: {
                         <Show when={populationText(chosen().resolved.rule)}>
                           {(who) => <span class="prescription__rule-who">{who()}</span>}
                         </Show>
+                        <Show when={indicationLabel(chosen())}>
+                          {(why) => (
+                            <span
+                              class="prescription__rule-indication"
+                              data-testid="prescription-indication"
+                            >
+                              {why()}
+                            </span>
+                          )}
+                        </Show>
                       </span>
                     </div>
                     <Show when={optionNote(chosen())}>
@@ -317,6 +372,12 @@ export function PrescriptionItemCard(props: {
                   <Show when={plan()?.status === 'needs-bsa'}>
                     <p class="prescription__status">
                       Доза в инструкции на площадь поверхности тела: введите рост и массу пациента.
+                    </p>
+                  </Show>
+                  <Show when={plan()?.status === 'strength-mismatch'}>
+                    <p class="prescription__status" data-testid="prescription-strength-mismatch">
+                      В предложении количество дано для другой дозировки: выберите дозировку из
+                      инструкции или ориентируйтесь на приведённое предложение.
                     </p>
                   </Show>
                   <Show when={plan()?.status === 'needs-intakes'}>
@@ -430,6 +491,12 @@ export function PrescriptionItemCard(props: {
                     </ChoiceChipList>
                   </Show>
 
+                  <Show when={plan()?.notes.includes('rounding-refused')}>
+                    <p class="prescription__note" data-testid="prescription-rounding-refused">
+                      Выбранная дозировка не позволяет отмерить расчётную дозу точно: число
+                      таблеток, миллилитров или флаконов не указано.
+                    </p>
+                  </Show>
                   <Show when={plan()?.notes.includes('pieces-without-strength')}>
                     <p class="prescription__note" data-testid="prescription-pieces-note">
                       В предложении названо число единиц без дозировки: проверьте, что выбрана та
@@ -512,32 +579,12 @@ export function PrescriptionItemCard(props: {
                     onPick={pickRule}
                   />
 
-                  <Show when={plan()?.status === 'ok'}>
-                    <Disclosure variant="inline" title="Текст рецепта">
-                      <div class="prescription__edit">
-                        <TextArea
-                          label="Rp."
-                          rows={2}
-                          value={analysis().rp}
-                          onInput={(event) => props.onChange({ rp: event.currentTarget.value })}
-                        />
-                        <TextArea
-                          label="Способ применения"
-                          rows={2}
-                          value={analysis().signa}
-                          onInput={(event) => props.onChange({ signa: event.currentTarget.value })}
-                        />
-                        <Show when={props.item.rp !== null || props.item.signa !== null}>
-                          <Button
-                            type="button"
-                            variant="quiet"
-                            onClick={() => props.onChange({ rp: null, signa: null })}
-                          >
-                            Вернуть расчётный текст
-                          </Button>
-                        </Show>
-                      </div>
-                    </Disclosure>
+                  <Show when={plan()?.status === 'ok' || plan()?.status === 'strength-mismatch'}>
+                    <RecipeTextEditor
+                      item={props.item}
+                      analysis={analysis()}
+                      onChange={props.onChange}
+                    />
                   </Show>
                 </>
               )}

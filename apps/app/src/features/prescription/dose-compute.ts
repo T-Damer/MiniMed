@@ -5,7 +5,14 @@
  * or a strength it cannot read is reported as `status`, and every figure comes from the rule's own
  * numbers, the patient's data or the registry row.
  */
-import { DOSE_UNITS, type DoseRule, type DoseUnit, type PackUnit } from '@localmed/contracts';
+import {
+  DOSE_UNITS,
+  type DoseRule,
+  type DoseUnit,
+  type PackUnit,
+  PIECE_KINDS,
+  type PieceKind,
+} from '@localmed/contracts';
 
 import { matchPopulation, type PatientFacts } from './dose-population';
 import { formKind, isTablet, parseStrength } from './product-strength';
@@ -19,12 +26,28 @@ export interface ProductChoice {
   readonly packUnit: PackUnit;
 }
 
-export type PlanStatus = 'ok' | 'needs-weight' | 'needs-bsa' | 'needs-intakes' | 'unsupported';
+export type PlanStatus =
+  | 'ok'
+  | 'needs-weight'
+  | 'needs-bsa'
+  | 'needs-intakes'
+  | 'unsupported'
+  /** The instruction counts pieces or millilitres of its own product; the chosen strength is another. */
+  | 'strength-mismatch';
+
+/**
+ * Rounding a dose to what the product offers (whole or half tablets, steps of a millilitre) may move
+ * it by this many percent at most. Beyond it no count of pieces or millilitres is shown: the dose
+ * stays a mass and the instruction's sentence stays next to it.
+ */
+export const ROUNDING_TOLERANCE_PERCENT = 10;
 
 export interface UnitsPlan {
   /** Pieces, millilitres, drops or doses per intake after rounding to what the product allows. */
   readonly count: number;
   readonly kind: 'piece' | 'ml' | 'drop' | 'dose';
+  /** What a counted piece is when the instruction names it (a spoon, an ampoule); the dosage form's own piece otherwise. */
+  readonly piece: PieceKind | null;
   readonly step: number;
   /** Amount of the substance in that many units, when the strength is known. */
   readonly amount: number | null;
@@ -52,6 +75,8 @@ export interface IntakePlan {
   /** Single dose actually taken after rounding (`units.amount`) or the chosen dose. */
   readonly actualSingle: number | null;
   readonly actualDaily: number | null;
+  /** The nearest amount the product offers when it was too far from the dose to be used (see `ROUNDING_TOLERANCE_PERCENT`). */
+  readonly refusedRounding: { readonly amount: number; readonly deviationPercent: number } | null;
   readonly notes: readonly string[];
 }
 
@@ -67,6 +92,12 @@ export interface IntakeInput {
   readonly intakesPerDay?: number;
   /** Single dose chosen by the doctor, in the rule's unit. */
   readonly singleOverride?: number;
+  /**
+   * The chosen product is one of the instruction's own (its registrations carry this form and
+   * strength): the counts the instruction prints are valid for it. `false`: another strength, the
+   * counts are not; `null`/absent: no product chosen or not known.
+   */
+  readonly productTied?: boolean | null;
 }
 
 export function unitOfRule(rule: DoseRule): DoseUnit {
@@ -88,6 +119,16 @@ function clean(value: number): number {
 
 const SAME_STRENGTH_TOLERANCE = 0.01;
 
+type Rounded =
+  | { readonly kind: 'units'; readonly units: UnitsPlan }
+  | { readonly kind: 'none' }
+  | { readonly kind: 'refused'; readonly amount: number; readonly deviationPercent: number }
+  | { readonly kind: 'mismatch' };
+
+function pieceKindOf(rule: DoseRule): PieceKind | null {
+  return rule.qu === undefined ? null : (PIECE_KINDS[rule.qu] ?? null);
+}
+
 function roundToProduct(
   single: number,
   unit: DoseUnit,
@@ -95,78 +136,107 @@ function roundToProduct(
   product: ProductChoice | null,
   divisible: boolean,
   position: 'min' | 'max',
-): UnitsPlan | null {
+  tied: boolean | null,
+): Rounded {
   const strength = product ? parseStrength(product.strength) : null;
   const kind = product ? formKind(product.form) : 'other';
+  const piece = pieceKindOf(rule);
+  // A count the instruction prints («по 2 таблетки», «5 мл», «20 капель») is a count of the product the
+  // instruction is written for. On another strength only a dose in mass survives (recomputed below).
+  const otherStrength = product !== null && tied === false;
+  const own = (units: UnitsPlan): Rounded => ({ kind: 'units', units });
   // The instruction counts pieces («по 1–2 таблетки») and its piece is the product's piece.
   if (rule.q0 !== undefined) {
     const wanted = position === 'max' && rule.q1 !== undefined ? rule.q1 : rule.q0;
     const sameStrength =
       strength?.kind === 'solid' && rule.pm !== undefined
         ? Math.abs(strength.amount - rule.pm) <= SAME_STRENGTH_TOLERANCE * rule.pm
-        : rule.pm === undefined && strength?.kind === 'solid';
-    if (rule.pm === undefined || sameStrength || strength === null) {
+        : false;
+    const recompute = rule.pm !== undefined && strength !== null && !sameStrength;
+    if (!recompute) {
+      if (!sameStrength && otherStrength) return { kind: 'mismatch' };
       const amount = strength?.kind === 'solid' ? wanted * strength.amount : null;
-      return {
+      return own({
         count: clean(wanted),
         kind: unit === 'drop' ? 'drop' : 'piece',
+        piece,
         step: 1,
         amount: amount === null ? null : clean(amount),
         deviationPercent:
           amount === null || single <= 0 ? null : clean(((amount - single) / single) * 100),
         fromInstruction: true,
-      };
+      });
     }
   }
   if (unit === 'piece') {
+    if (otherStrength) return { kind: 'mismatch' };
     const wanted = single;
     const amount = strength?.kind === 'solid' ? wanted * strength.amount : null;
-    return {
+    return own({
       count: clean(wanted),
       kind: 'piece',
+      piece,
       step: 1,
       amount: amount === null ? null : clean(amount),
       deviationPercent: null,
       fromInstruction: true,
-    };
+    });
   }
   if (unit === 'drop' || unit === 'dose') {
-    return {
+    if (otherStrength) return { kind: 'mismatch' };
+    return own({
       count: clean(single),
       kind: unit,
+      piece: null,
       step: 1,
       amount: null,
       deviationPercent: null,
       fromInstruction: true,
-    };
+    });
   }
-  if (!strength || strength.unit !== unit) return null;
+  if (!strength || strength.unit !== unit) {
+    // A volume the instruction prints («по 5 мл») is a volume of its own product's concentration.
+    if (unit === 'ml' && otherStrength) return { kind: 'mismatch' };
+    return { kind: 'none' };
+  }
+  const refuse = (amount: number): Rounded | null => {
+    const deviation = single > 0 ? ((amount - single) / single) * 100 : 0;
+    return Math.abs(deviation) > ROUNDING_TOLERANCE_PERCENT
+      ? { kind: 'refused', amount: clean(amount), deviationPercent: clean(deviation) }
+      : null;
+  };
   if (strength.kind === 'liquid') {
     const ml = single / strength.perMl;
     const step = ml >= 2 ? 0.5 : 0.1;
     const count = Math.max(step, roundTo(ml, step));
     const amount = count * strength.perMl;
-    return {
+    const refused = refuse(amount);
+    if (refused) return refused;
+    return own({
       count: clean(count),
       kind: 'ml',
+      piece: null,
       step,
       amount: clean(amount),
       deviationPercent: single > 0 ? clean(((amount - single) / single) * 100) : null,
       fromInstruction: false,
-    };
+    });
   }
   const halves = divisible && isTablet(product?.form ?? '') && kind === 'solid';
   const step = halves ? 0.5 : 1;
   const count = Math.max(step, roundTo(single / strength.amount, step));
   const amount = count * strength.amount;
-  return {
+  const refused = refuse(amount);
+  if (refused) return refused;
+  return own({
     count: clean(count),
     kind: 'piece',
+    piece: null,
     step,
     amount: clean(amount),
     deviationPercent: single > 0 ? clean(((amount - single) / single) * 100) : null,
     fromInstruction: false,
-  };
+  });
 }
 
 const EMPTY_PLAN: Omit<IntakePlan, 'status' | 'unit'> = {
@@ -180,6 +250,7 @@ const EMPTY_PLAN: Omit<IntakePlan, 'status' | 'unit'> = {
   units: null,
   actualSingle: null,
   actualDaily: null,
+  refusedRounding: null,
   notes: [],
 };
 
@@ -233,11 +304,22 @@ export function planIntake(input: IntakeInput): IntakePlan {
   const perIntakeMin = daily && intakes ? low / (intakesMax ?? intakes) : low;
   const perIntakeMax = daily && intakes ? high / (intakesMin ?? intakes) : high;
   const single = daily && intakes ? chosenTotal / intakes : chosenTotal;
-  const units = roundToProduct(single, unit, rule, product, input.divisible, position);
+  const rounded = roundToProduct(
+    single,
+    unit,
+    rule,
+    product,
+    input.divisible,
+    position,
+    input.productTied ?? null,
+  );
+  if (rounded.kind === 'mismatch') return fail('strength-mismatch');
+  const units = rounded.kind === 'units' ? rounded.units : null;
   const actualSingle = units?.amount ?? single;
   const perDay = intakes === null ? null : intakes;
   const notes: string[] = [];
   if (rule.q0 !== undefined && rule.pm === undefined) notes.push('pieces-without-strength');
+  if (rounded.kind === 'refused') notes.push('rounding-refused');
   return {
     status: 'ok',
     unit,
@@ -251,6 +333,10 @@ export function planIntake(input: IntakeInput): IntakePlan {
     units,
     actualSingle: clean(actualSingle),
     actualDaily: perDay === null ? null : clean(actualSingle * perDay),
+    refusedRounding:
+      rounded.kind === 'refused'
+        ? { amount: rounded.amount, deviationPercent: rounded.deviationPercent }
+        : null,
     notes,
   };
 }
@@ -274,10 +360,13 @@ export function checkCaps(
   plan: IntakePlan,
   patient: PatientFacts,
   days: number | null,
+  /** Only a cap the confidence gate lets compute may be compared; a rejected cap is quoted, not compared. */
+  trusted: (rule: DoseRule, ruleIndex: number) => boolean = () => true,
 ): readonly CapCheck[] {
   const checks: CapCheck[] = [];
   rules.forEach((rule, ruleIndex) => {
-    if (rule.k !== 1 || rule.d1 === undefined) return;
+    if (rule.k !== 1 || rule.d1 === undefined || rule.d0 !== undefined) return;
+    if (!trusted(rule, ruleIndex)) return;
     if (matchPopulation(rule, patient).fit !== 'yes') return;
     if (matchPopulation(rule, patient).conditional) return;
     const unit = unitOfRule(rule);

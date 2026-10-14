@@ -119,21 +119,25 @@ const SPECS: readonly UnitSpec[] = [
     piece: 'sachet',
     source: 'саше|пакетик\\p{L}*|пакет(?:а|ов)?(?![\\p{L}\\d])',
   },
-  { unit: 'piece', factor: 1, piece: 'ampoule', source: 'ампул\\p{L}*|флакон\\p{L}*' },
+  { unit: 'piece', factor: 1, piece: 'ampoule', source: 'ампул\\p{L}*' },
+  { unit: 'piece', factor: 1, piece: 'vial', source: 'флакон\\p{L}*' },
   { unit: 'piece', factor: 1, piece: 'patch', source: 'пластыр\\p{L}*' },
+  { unit: 'piece', factor: 1, piece: 'measure', source: 'мерн\\p{L}*\\s+ложк\\p{L}*' },
+  { unit: 'piece', factor: 1, piece: 'cap', source: 'мерн\\p{L}*\\s+колпач\\p{L}*' },
+  { unit: 'piece', factor: 1, piece: 'cup', source: 'мерн\\p{L}*\\s+стакан\\p{L}*' },
   {
     unit: 'piece',
     factor: 1,
-    piece: 'measure',
-    source: 'мерн\\p{L}*\\s+(?:ложк\\p{L}*|колпач\\p{L}*|стакан\\p{L}*)',
+    piece: 'teaspoon',
+    source: 'чайн\\p{L}*\\s+ложк\\p{L}*|ч\\.\\s?л\\.',
   },
   {
     unit: 'piece',
     factor: 1,
-    piece: 'spoon',
-    source:
-      '(?:чайн\\p{L}*|столов\\p{L}*|десертн\\p{L}*)\\s+ложк\\p{L}*|ч\\.\\s?л\\.|ст\\.\\s?л\\.',
+    piece: 'tablespoon',
+    source: 'столов\\p{L}*\\s+ложк\\p{L}*|ст\\.\\s?л\\.',
   },
+  { unit: 'piece', factor: 1, piece: 'dessertspoon', source: 'десертн\\p{L}*\\s+ложк\\p{L}*' },
 ];
 
 export const UNIT_SOURCE = SPECS.map((spec, index) => `(?<u${index}>${spec.source})`).join('|');

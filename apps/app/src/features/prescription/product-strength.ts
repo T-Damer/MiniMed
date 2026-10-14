@@ -4,7 +4,7 @@
  * arithmetic cannot use is `null`: the screen then lets the doctor pick the number of pieces
  * from the instruction's own words and computes no mass.
  */
-import type { DoseUnit } from '@localmed/contracts';
+import type { DoseUnit, PieceKind } from '@localmed/contracts';
 
 export interface SolidStrength {
   readonly kind: 'solid';
@@ -103,82 +103,73 @@ export function isTablet(form: string): boolean {
   return /^(?:таблетки|драже)/u.test(form.toLocaleLowerCase('ru-RU').trim());
 }
 
-/** The piece word of a dosage form, in the forms the sign text needs. */
+/** The piece word of a dosage form or of a counted measure, in the forms the sign text needs. */
 export interface PieceWords {
+  /** Nominative singular, for the count «1»: «таблетка». */
+  readonly nominative: string;
   /** Dative singular, after «по 1»: «таблетке». */
   readonly dative: string;
-  readonly one: string;
+  /** After 2–4: «таблетки». */
   readonly few: string;
+  /** Genitive singular, after a fraction («1/2 таблетки»). */
+  readonly genitive: string;
+  /** After 5 and more: «таблеток». */
   readonly many: string;
-  readonly latin: string;
-  readonly latinFull: string;
 }
 
 const PIECES: readonly { readonly pattern: RegExp; readonly words: PieceWords }[] = [
   {
     pattern: /^(?:таблетки|драже)/u,
     words: {
+      nominative: 'таблетка',
+      genitive: 'таблетки',
       dative: 'таблетке',
-      one: 'таблетку',
       few: 'таблетки',
       many: 'таблеток',
-      latin: 'Tab.',
-      latinFull: 'Tabulettas',
     },
   },
   {
     pattern: /^капсулы/u,
     words: {
+      nominative: 'капсула',
+      genitive: 'капсулы',
       dative: 'капсуле',
-      one: 'капсулу',
       few: 'капсулы',
       many: 'капсул',
-      latin: 'Caps.',
-      latinFull: 'Capsulas',
     },
   },
   {
     pattern: /^(?:суппозитории|свечи)/u,
     words: {
+      nominative: 'суппозиторий',
+      genitive: 'суппозитория',
       dative: 'суппозиторию',
-      one: 'суппозиторий',
       few: 'суппозитория',
       many: 'суппозиториев',
-      latin: 'Supp.',
-      latinFull: 'Suppositoria',
     },
   },
   {
     pattern: /^(?:пастилки|леденцы)/u,
     words: {
+      nominative: 'пастилка',
+      genitive: 'пастилки',
       dative: 'пастилке',
-      one: 'пастилку',
       few: 'пастилки',
       many: 'пастилок',
-      latin: 'Past.',
-      latinFull: 'Pastillas',
     },
   },
   {
     pattern: /^саше/u,
-    words: {
-      dative: 'саше',
-      one: 'саше',
-      few: 'саше',
-      many: 'саше',
-      latin: 'Pulv.',
-      latinFull: 'Pulveres',
-    },
+    words: { nominative: 'саше', genitive: 'саше', dative: 'саше', few: 'саше', many: 'саше' },
   },
   {
     pattern: /^(?:лиофилизат|порошок).*(?:введени|инъекц|инфуз)/u,
     words: {
+      nominative: 'флакон',
+      genitive: 'флакона',
       dative: 'флакону',
-      one: 'флакон',
       few: 'флакона',
       many: 'флаконов',
-      latin: 'Pulv.',
-      latinFull: 'Pulveris',
     },
   },
 ];
@@ -186,4 +177,107 @@ const PIECES: readonly { readonly pattern: RegExp; readonly words: PieceWords }[
 export function pieceWords(form: string): PieceWords | null {
   const clean = form.toLocaleLowerCase('ru-RU').trim();
   return PIECES.find((spec) => spec.pattern.test(clean))?.words ?? null;
+}
+
+/**
+ * The words for what the instruction itself counts («по 1 чайной ложке», «по 1 ампуле»): the instruction's
+ * own unit wins over the piece word of the dosage form, so a syrup is never «1 шт.».
+ */
+const KIND_WORDS: Readonly<Partial<Record<PieceKind, PieceWords>>> = {
+  tablet: {
+    nominative: 'таблетка',
+    genitive: 'таблетки',
+    dative: 'таблетке',
+    few: 'таблетки',
+    many: 'таблеток',
+  },
+  capsule: {
+    nominative: 'капсула',
+    genitive: 'капсулы',
+    dative: 'капсуле',
+    few: 'капсулы',
+    many: 'капсул',
+  },
+  suppository: {
+    nominative: 'суппозиторий',
+    genitive: 'суппозитория',
+    dative: 'суппозиторию',
+    few: 'суппозитория',
+    many: 'суппозиториев',
+  },
+  sachet: { nominative: 'саше', genitive: 'саше', dative: 'саше', few: 'саше', many: 'саше' },
+  ampoule: {
+    nominative: 'ампула',
+    genitive: 'ампулы',
+    dative: 'ампуле',
+    few: 'ампулы',
+    many: 'ампул',
+  },
+  vial: {
+    nominative: 'флакон',
+    genitive: 'флакона',
+    dative: 'флакону',
+    few: 'флакона',
+    many: 'флаконов',
+  },
+  lozenge: {
+    nominative: 'пастилка',
+    genitive: 'пастилки',
+    dative: 'пастилке',
+    few: 'пастилки',
+    many: 'пастилок',
+  },
+  patch: {
+    nominative: 'пластырь',
+    genitive: 'пластыря',
+    dative: 'пластырю',
+    few: 'пластыря',
+    many: 'пластырей',
+  },
+  measure: {
+    nominative: 'мерная ложка',
+    genitive: 'мерной ложки',
+    dative: 'мерной ложке',
+    few: 'мерные ложки',
+    many: 'мерных ложек',
+  },
+  teaspoon: {
+    nominative: 'чайная ложка',
+    genitive: 'чайной ложки',
+    dative: 'чайной ложке',
+    few: 'чайные ложки',
+    many: 'чайных ложек',
+  },
+  tablespoon: {
+    nominative: 'столовая ложка',
+    genitive: 'столовой ложки',
+    dative: 'столовой ложке',
+    few: 'столовые ложки',
+    many: 'столовых ложек',
+  },
+  dessertspoon: {
+    nominative: 'десертная ложка',
+    genitive: 'десертной ложки',
+    dative: 'десертной ложке',
+    few: 'десертные ложки',
+    many: 'десертных ложек',
+  },
+  cap: {
+    nominative: 'мерный колпачок',
+    genitive: 'мерного колпачка',
+    dative: 'мерному колпачку',
+    few: 'мерных колпачка',
+    many: 'мерных колпачков',
+  },
+  cup: {
+    nominative: 'мерный стакан',
+    genitive: 'мерного стакана',
+    dative: 'мерному стакану',
+    few: 'мерных стакана',
+    many: 'мерных стаканов',
+  },
+};
+
+export function pieceWordsOfKind(kind: PieceKind | null | undefined): PieceWords | null {
+  return kind ? (KIND_WORDS[kind] ?? null) : null;
 }

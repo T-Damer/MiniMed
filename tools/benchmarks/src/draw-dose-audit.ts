@@ -240,6 +240,10 @@ function resolvedRules(documentId: string): ResolvedRule[] {
       computable: mayCompute(rule),
       quote: section.text.slice(rule.a, rule.b).replace(/\s+/gu, ' ').trim(),
       context: null,
+      indication: rule.i
+        ? section.text.slice(rule.i[0], rule.i[1]).replace(/\s+/gu, ' ').trim()
+        : null,
+      severalRegimens: rule.sv === 1,
       sectionTitle: section.title,
       anchor: null,
     };

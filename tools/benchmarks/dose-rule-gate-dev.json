@@ -4934,7 +4934,20 @@
       "verdict": "correct",
       "doseRelevantWrong": false,
       "reason": "ok",
-      "shape": "duration.heading"
+      "shape": "duration.heading",
+      "rejudged": {
+        "rule": {
+          "k": 2,
+          "s": 0,
+          "a": 987,
+          "b": 1029,
+          "t0": 10,
+          "t1": 14,
+          "gc": 40
+        },
+        "verdict": "correct",
+        "reason": "re-judged on the OCR1 text (RX4 rebase onto the republished modules): the sentence and its numbers are read as before; the heading line above it is no longer a line of its own, so the rule names no population and is computed for adults only"
+      }
     },
     {
       "id": "drug.rf.2098d1841a830eb67612.instruction#1:0:0",
@@ -11972,7 +11985,20 @@
       "verdict": "correct",
       "doseRelevantWrong": false,
       "reason": "ok",
-      "shape": "duration.heading"
+      "shape": "duration.heading",
+      "rejudged": {
+        "rule": {
+          "k": 2,
+          "s": 0,
+          "a": 577,
+          "b": 602,
+          "t0": 7,
+          "t1": 14,
+          "gc": 40
+        },
+        "verdict": "correct",
+        "reason": "re-judged on the OCR1 text (RX4 rebase onto the republished modules): the sentence and its numbers are read as before; the heading line above it is no longer a line of its own, so the rule names no population and is computed for adults only"
+      }
     },
     {
       "id": "drug.rf.m1.2da7e731c36e432f04cf.instruction#1:1544:2",
@@ -12121,7 +12147,20 @@
       "verdict": "correct",
       "doseRelevantWrong": false,
       "reason": "ok",
-      "shape": "duration.heading"
+      "shape": "duration.heading",
+      "rejudged": {
+        "rule": {
+          "k": 2,
+          "s": 0,
+          "a": 492,
+          "b": 548,
+          "t0": 90,
+          "t1": 120,
+          "gc": 40
+        },
+        "verdict": "correct",
+        "reason": "re-judged on the OCR1 text (RX4 rebase onto the republished modules): the sentence and its numbers are read as before; the heading line above it is no longer a line of its own, so the rule names no population and is computed for adults only"
+      }
     },
     {
       "id": "drug.rf.0ae3f3b98b298aa04963.instruction#1:1407:0",

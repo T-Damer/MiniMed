@@ -20,7 +20,7 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
-## Dose semantics, prescription tool and the dose card in search — 2026-10-14 (STATE RX1, RX2)
+## Dose semantics, prescription tool and the dose card in search — 2026-10-14 (STATE RX1, RX2, RX3, RX4)
 
 Owner 2026-10-13: «semantics on drugs … select a drug, patient age/weight/state, a duration, a form → a printable prescription,
 more drugs, a recipe in a modal». Decision: [ADR-0025](adr/0025-dose-rule-index-and-prescription-draft.md); numbers, audit and
@@ -64,13 +64,32 @@ limits: [research/dose-rules-2026-10-14.md](research/dose-rules-2026-10-14.md).
   its upper end, «суточные дозы» read as per-day for «N таблетки M раз в сутки». Also: 21 % of the sentences are one indication of several;
   the signa prints «Внутрь» for rectal / vaginal / sublingual forms and «1 шт.» for a spoon, rounding to a registry strength has no ceiling
   (+100 … +300 %), and `analyzeItem` passes every cap, rejected shapes included, to `checkCaps` (167 of 881 documents with a computing dose
-  rule). Recommendation: do not ship computed doses as they are; fix the causes and re-audit on a new sample (research note §2).
+  rule). Recommendation: do not ship computed doses as they are; fix the causes and re-audit on a new sample (research note §2) — the
+  causes are fixed by RX4 below, the new sample has not been drawn.
+- **Fixes after the audit and a release switch (RX4, 2026-10-14).** All nine RX3 findings fixed at their cause (ADR-0025 decisions 8–9, research
+  note §2 «Fixes after the audit»): a weight / age on the line after the sentence is joined to it (or the sentence is rejected), a group-only
+  clause is read within the bounds of its heading, co-medication conditions («если … не принимает вальпроат») reject, a range cap keeps both ends and is
+  rejected, a day's total of pieces smaller than the intakes is rejected, **only gate-passing caps are compared**, the route of the sign comes from
+  the dosage form and a spoon / ampoule / vial is named as the instruction names it, **rounding to a registry strength moves a dose by ≤ 10 %**
+  (else the dose stays a mass, no count, no quantity), the **counts an instruction prints are tied to the registry rows of its own registrations**
+  (index field `ps`; another strength: a mass rule is recomputed, otherwise no count), and a sentence **bound to an indication** («при амебиазе»,
+  «Для лечения», one of several regimens: 460 of 1 425 computing dose rules) shows the indication beside the number while the general sentence
+  comes first. Results on the current (OCR1-republished) modules, rules the gate lets compute / wrong in some field: blind 33 / 0, development 178 / 0,
+  fresh 144 / 0 (all unchanged by the fixes), audit **115 / 4 → 111 / 0** (not independent any more: the four causes are fixed, not a new
+  measurement; on the modules of the audit itself 120 / 4 → 116 / 0), `benchmark:dose` exact 82 / missing 52 / wrong 0 (six first answers re-read and
+  accepted, three of them only while the screen marks them as one regimen of several). Coverage: 280 of 905 ЖНВЛП cards (30.9 %) unchanged (adult 251, child 68,
+  cap 99, course 46), computing rules 1 434 / 331 / 292 → 1 425 / 328 / 292 (dose / cap / course); 218 of those cards keep a general (not indication-bound) dose
+  sentence. On the 184 screens of the audit's computing rules 19 show no count (another strength than the instruction's) and 18 show the dose without a count
+  (rounding beyond 10 %). **Release switch:** `features/prescription/data/prescription-settings.json` `{"computedDoses": true}` (default ON) turns every
+  computed number off at once — sentences stay quoted, the registry choices, the blank, the Rp / signa text and the «Рецепт» modal stay; a release ships
+  with `false` if the next audit fails. A fresh audit (≥ 150 rules from untouched documents) is the next step; it has not been run.
 - **Result page (RX2).** At 375 px one drug is about 1 000–1 200 px tall (was ~4 100): the chosen sentence with its quote, the intake
   and course, the cap line, one «Ещё N фрагментов» disclosure (other rules to pick, quoted-only sentences, conditions, ceilings, by
   section), one «Цитаты из инструкции» disclosure for the patient-state quotes with a few calculated lines in view.
-- **Next (dose):** judge more rules per gate family and keep growing coverage family by family (age-or-weight children's sentences such
-  as amoxicillin's, headings with an age range, «при N» indication-specific sentences first in the order); a fresh out-of-sample
-  sample after each parser change.
+- **Next (dose):** a fresh out-of-sample audit of ≥ 150 gate-passing rules from untouched documents (a release ships the numbers only if it
+  finds none wrong, else with `computedDoses: false`); then judge more rules per gate family and keep growing coverage family by family
+  (age-or-weight children's sentences such as amoxicillin's, headings with an age range such as «от 6 до 12 лет», a heading line that is
+  a plain noun phrase as the indication); a fresh out-of-sample sample after each parser change.
 - **Not tested:** Android / native, physical devices, a real printer, a clinician's review, any other instruction group than the
   anti-infectives (e2e) and antiparasitics; instruction modules downloaded by the end user (the e2e serves the local release copies).
 

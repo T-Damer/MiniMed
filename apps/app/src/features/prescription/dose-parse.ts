@@ -47,7 +47,14 @@ import {
 } from '@/features/drug-interactions/interaction-text';
 import { extractAmountLimits, normalizeForLimits } from '@/features/medication-safety/age-limits';
 import { detectDosageForms } from '@/features/medication-safety/dosage-forms';
-import { classifyRule, type PopulationSource, shapeIndex } from './dose-gate';
+import {
+  classifyRule,
+  GATE_ALLOWED,
+  isRejectedShape,
+  type PopulationSource,
+  shapeIndex,
+  shapeOf,
+} from './dose-gate';
 import {
   type AmountMatch,
   findAmounts,
@@ -175,7 +182,7 @@ const ROUTES: readonly { readonly bit: number; readonly pattern: RegExp }[] = [
       /наружн|(?<![\p{L}])местно(?![\p{L}])|местного\s+применения|накожн|наносят|наносить|втира/u,
   },
   { bit: ROUTE_RECTAL, pattern: /ректальн|в\s+прямую\s+кишку/u },
-  { bit: ROUTE_SUBLINGUAL, pattern: /сублингвальн|под\s+язык/u },
+  { bit: ROUTE_SUBLINGUAL, pattern: /сублингвальн|подъязычн|под\s+язык/u },
   {
     bit: ROUTE_EYE_EAR_NOSE,
     pattern:
@@ -213,6 +220,8 @@ function bitsOf(
 
 /** Population words and limits of a clause, in the form the rule stores. */
 interface Population {
+  /** An age or a weight bound was printed in the text (not just implied by a group word). */
+  readonly explicit?: true;
   readonly or?: 1;
   readonly p0?: number;
   readonly p1?: number;
@@ -348,6 +357,7 @@ function populationOf(textWithRemarks: string, rawWithRemarks: string): Populati
   let p1: number | undefined;
   let w0: number | undefined;
   let w1: number | undefined;
+  const printedBounds = limits.length > 0 || adults.length > 0;
   for (const limit of adults) {
     if (limit.lower !== null) p0 = p0 === undefined ? limit.lower : Math.max(p0, limit.lower);
     if (limit.upper !== null) p1 = p1 === undefined ? limit.upper : Math.min(p1, limit.upper);
@@ -379,6 +389,7 @@ function populationOf(textWithRemarks: string, rawWithRemarks: string): Populati
   const hasWeight = w0 !== undefined || w1 !== undefined;
   const alternative = hasAge && hasWeight && /и\/или|или\s+(?:с\s+)?(?:масс|вес)/u.test(text);
   return {
+    ...(printedBounds ? { explicit: true as const } : {}),
     ...(alternative ? { or: 1 as const } : {}),
     ...(p0 === undefined ? {} : { p0 }),
     ...(p1 === undefined ? {} : { p1 }),
@@ -604,14 +615,16 @@ function capsOf(text: string, amounts: readonly AmountMatch[]): readonly CapRead
         scope = 0;
     }
     if (scope === null) continue;
-    const value = amount.hi ?? amount.lo;
+    // A cap named as a range («от 50 до 70 мл») keeps both ends: the gate rejects it, nobody takes its
+    // permissive end for the cap.
     caps.push({
       amountIndex,
       phraseStart: phrase.index,
       rule: {
         k: RULE_CAP,
         u: unitIndex(amount.unit),
-        d1: value,
+        ...(amount.hi === null ? {} : { d0: amount.lo }),
+        d1: amount.hi ?? amount.lo,
         ...(amount.per === 0 ? {} : { pk: amount.per }),
         bs: scope,
         ...(amount.piece ? { qu: pieceKindIndex(amount.piece) } : {}),
@@ -921,6 +934,14 @@ interface SectionState {
   combination: boolean;
   /** The last clause that named a population itself: the clauses after it without one inherit it. */
   sticky?: { readonly population: Population; readonly start: number; readonly end: number };
+  /** The non-empty lines of the section (joined-text offsets), for the heading an indication stands in. */
+  lines: readonly TextSpan[];
+  /** The joined text with the letters as printed, to tell a heading (capital first) from a chunk of prose. */
+  cased: string;
+  /** A line after the sentence being read qualifies it but could not be attached (see `attachQualifierLines`). */
+  qualifierFollows: boolean;
+  /** The indication of the last clause that had one: the list items right after it («…; для детей …») share it. */
+  lastIndication?: { readonly range: [number, number]; readonly end: number };
 }
 
 /**
@@ -969,6 +990,34 @@ interface Inherited {
   readonly source: PopulationSource;
 }
 
+/**
+ * The population of a group word under a heading that bounds age and weight: the group of the clause
+ * («ребенок», «Взрослые») within the bounds of the heading, so «Взрослые:» under «Взрослые и дети
+ * старше 12 лет массой тела более 50 кг» stays adults (not 12 years) and takes the weight.
+ */
+function narrowedBy(own: Population, heading: Population): Population {
+  const lower = (left: number | undefined, right: number | undefined): number | undefined =>
+    left === undefined ? right : right === undefined ? left : Math.max(left, right);
+  const upper = (left: number | undefined, right: number | undefined): number | undefined =>
+    left === undefined ? right : right === undefined ? left : Math.min(left, right);
+  const p0 = lower(heading.p0, own.p0);
+  const p1 = upper(heading.p1, own.p1);
+  return {
+    explicit: true,
+    ...(heading.or ? { or: heading.or } : {}),
+    ...(p0 === undefined ? {} : { p0 }),
+    ...(p1 === undefined ? {} : { p1 }),
+    ...(heading.w0 === undefined ? {} : { w0: heading.w0 }),
+    ...(heading.w1 === undefined ? {} : { w1: heading.w1 }),
+    g: own.g,
+  };
+}
+
+/** True when a population carries a number of its own: an age or a weight bound the text prints. */
+function hasBounds(population: Population): boolean {
+  return population.explicit === true;
+}
+
 const STICKY_SPAN_LIMIT = 220;
 /** A population carries on for this many characters after the sentence or heading that set it. */
 const STICKY_DISTANCE = 900;
@@ -1011,7 +1060,28 @@ function inheritedBy(
       };
     }
   }
-  if (own !== null) return { population: own, cond: headingCond, span: null, source: 'own' };
+  if (own !== null) {
+    // «Если ребенок не принимает …» under «Дети 4 лет и старше с массой тела менее 30 кг»: a group word
+    // with no number of its own takes the bounds of the heading it stands under, never the whole group.
+    const bounded = heading?.population ?? null;
+    if (
+      !hasBounds(own) &&
+      bounded !== null &&
+      hasBounds(bounded) &&
+      (own.g & bounded.g) !== 0 &&
+      heading !== undefined &&
+      clause.start - heading.end <= HEADING_DISTANCE &&
+      !(state.sticky && state.sticky.start > heading.start && hasBounds(state.sticky.population))
+    ) {
+      return {
+        population: narrowedBy(own, bounded),
+        cond: headingCond,
+        span: [heading.start, heading.end] as [number, number],
+        source: 'heading',
+      };
+    }
+    return { population: own, cond: headingCond, span: null, source: 'own' };
+  }
   if (ownCond !== 0) return { population: null, cond: headingCond, span: null, source: 'none' };
   const sticky =
     state.sticky &&
@@ -1081,6 +1151,152 @@ export function inTableContext(norm: string, clauseStart: number, text: string):
 /** «30–50 750 мг …», «>50 1,5 г …»: a band cell of a table in front of the dose of its row. */
 const BAND_CELL = /^(?:[>≥<≤]\s*\d|\d+(?:[.,]\d+)?\s*-\s*\d+(?:[.,]\d+)?\s+\d)/u;
 
+/* ------------------------------------------------------------------------------------------ */
+/* Indications                                                                                    */
+/* ------------------------------------------------------------------------------------------ */
+
+const INDICATION_LEAD =
+  /(?<![\p{L}\d])(?:для\s+(?:лечения|профилактики|терапии|купирования|предупреждения|устранения)|в\s+(?:лечении|профилактике|терапии)|с\s+целью\s+(?:лечения|профилактики|терапии|купирования)|у\s+(?:больных|пациентов)\s+с|при)(?![\p{L}\d])([^,.;:()\d]{0,60})/gu;
+/** «при» followed by one of these is a circumstance of taking the drug, not an indication. */
+const NOT_AN_INDICATION =
+  /^\s*(?:внутримышечн|внутривенн|подкожн|ректальн|вагинальн|прием|приём|введени|применени|использовани|необходимост|наличи|отсутстви|услови|нарушени|недостаточност|почечн|печеночн|диализ|гемодиализ|комнатн|температур|помощ|одновременн|совместн|длительн|повторн|первом|первых|этом|таком|данн|тяжел|средн|легк|выраженн|умеренн|любом|каждом|хранени|появлени|возникновени|достижени|увеличени|снижени|отмен|переход|перевод|смен|назначени|рецидив|беремен|лактац|кормлен|курсов|пропуск|превышени|передозировк|клиренс|скф|массе|весе|возрасте|росте|лечени|терапи|еде|желани|стабильн|хорошей|плохой|непереносим)/u;
+/** Where an indication phrase stops: the population or the verb of the dose sentence follows. */
+const INDICATION_END =
+  /\s+(?:(?:у|для)\s+)?(?:дет|взросл|подрост|пациент|больн|ребен|лиц|женщин|мужчин|пожил|новорожд|младенц|назнач|примен|принима|вводя|следует|рекоменд|препарат|суппозитор|таблетк|капсул|капл|закапыва|по\s|в\s+дозе|в\s+возрасте|старше|младше).*$|\s+\p{L}+(?:ют|ут|ят|ает|яет|ует|ить|ать|ять|еть|ется|ются)(?![\p{L}]).*$/u;
+/** A heading line that names what the doses below are for. */
+const INDICATION_HEADING =
+  /^(?:для\s+)?(?:лечени|профилактик|терапи|купировани|предупреждени|устранени)\p{L}*|^при\s+\p{L}{3,}|^показани\p{L}*/u;
+
+function trimIndication(text: string, from: number, to: number): [number, number] | null {
+  let start = from;
+  let end = to;
+  while (start < end && /[\s,;:.\-—–]/u.test(text.charAt(start))) start += 1;
+  while (end > start && /[\s,;:.\-—–(]/u.test(text.charAt(end - 1))) end -= 1;
+  if (end - start < 4) return null;
+  if (end - start > 80) {
+    const cut = text.lastIndexOf(' ', start + 80);
+    end = cut > start + 20 ? cut : start + 80;
+  }
+  return [start, end];
+}
+
+/**
+ * The text the doses of a clause are bound to: an indication phrase in the clause itself
+ * («при амебиазе …», «для лечения …») or the heading line before it («Для лечения:»). The range is in
+ * the joined text. A rule that has one is not the instruction's general dose.
+ */
+function indicationOf(
+  norm: string,
+  clause: TextSpan,
+  text: string,
+  state: SectionState,
+): [number, number] | null {
+  for (const match of text.matchAll(INDICATION_LEAD)) {
+    const raw = match[1] ?? '';
+    const lead = match[0].slice(0, match[0].length - raw.length);
+    // The phrase ends where the patient or the way of taking begins («… у детей …», «… применять …»).
+    const complement = raw.replace(INDICATION_END, '');
+    if (
+      lead.trim() === 'при' &&
+      (complement.trim().length < 3 || NOT_AN_INDICATION.test(complement))
+    ) {
+      continue;
+    }
+    const found = trimIndication(
+      norm,
+      clause.start + match.index,
+      clause.start + match.index + lead.length + complement.length,
+    );
+    if (found) return remember(state, found, clause);
+  }
+  const heading = headingIndicationBefore(norm, state.cased, clause.start, state.lines);
+  if (heading) return remember(state, heading, clause);
+  // «Для лечения: … 2 мл…; для детей … 4 мл…»: the items of one list stand under one indication.
+  const last = state.lastIndication;
+  if (last && /^[\s;,]*$/u.test(norm.slice(last.end, clause.start))) {
+    return remember(state, last.range, clause);
+  }
+  return null;
+}
+
+function remember(
+  state: SectionState,
+  range: [number, number],
+  clause: TextSpan,
+): [number, number] {
+  state.lastIndication = { range, end: clause.end };
+  return range;
+}
+
+/** A line that begins with a capital letter is a heading or a sentence, not the tail of a chunked one. */
+function startsLikeHeading(cased: string, line: TextSpan): boolean {
+  return /\p{Lu}/u.test(cased.charAt(line.start));
+}
+
+/** The line that holds `offset`, or the first line after it. */
+function lineIndexAt(lines: readonly TextSpan[], offset: number): number {
+  const at = lines.findIndex((line) => line.end > offset);
+  return at < 0 ? lines.length : at;
+}
+
+/** The nearest line before `offset` that names an indication, looking back over at most three lines. */
+function headingIndicationBefore(
+  norm: string,
+  cased: string,
+  offset: number,
+  lines: readonly TextSpan[],
+): [number, number] | null {
+  const at = lineIndexAt(lines, offset);
+  for (let back = 1; back <= 3; back += 1) {
+    const line = lines[at - back];
+    if (!line) break;
+    const text = norm.slice(line.start, line.end).trim();
+    if (text === '') continue;
+    if (/[.!?]$/u.test(text) || text.length > 100) break;
+    if (
+      INDICATION_HEADING.test(text) &&
+      findAmounts(text).length === 0 &&
+      startsLikeHeading(cased, line)
+    ) {
+      return trimIndication(norm, line.start, line.end);
+    }
+    if (HEADING_START.test(text)) continue;
+    break;
+  }
+  return null;
+}
+
+/** The nearest short line without a full stop before `offset` (any heading), for rules of several regimens. */
+function plainHeadingBefore(
+  norm: string,
+  cased: string,
+  offset: number,
+  lines: readonly TextSpan[],
+): [number, number] | null {
+  const at = lineIndexAt(lines, offset);
+  for (let back = 1; back <= 3; back += 1) {
+    const line = lines[at - back];
+    if (!line) break;
+    const text = norm.slice(line.start, line.end).trim();
+    if (text === '') continue;
+    if (/[.!?]$/u.test(text) || text.length > 100 || text.length < 4) break;
+    if (HEADING_START.test(text) || findAmounts(text).length > 0) continue;
+    if (/^(?:рекомендуем|способ|режим|путь|продолжительн|длительн|дозиров)/u.test(text)) break;
+    // A heading names a disease or a state: a capital, no figures or brackets, no word of dosing.
+    if (
+      !startsLikeHeading(cased, line) ||
+      /[\d()]/u.test(text) ||
+      /(?:^|[^\p{L}])(?:доз\p{L}*|принима\p{L}*|назнач\p{L}*|примен\p{L}*|составля\p{L}*|зависит|рекоменд\p{L}*)(?![\p{L}])/u.test(
+        text,
+      )
+    ) {
+      break;
+    }
+    return trimIndication(norm, line.start, line.end);
+  }
+  return null;
+}
+
 function readClause(
   norm: string,
   clause: TextSpan,
@@ -1110,9 +1326,15 @@ function readClause(
           combination: state.combination,
           sectionTitle: state.sectionTitle,
           after: norm.slice(clause.end, clause.end + 80),
+          qualifierFollows: state.qualifierFollows,
         });
         const code = shapeIndex(shape);
-        return code === 0 ? rule : { ...rule, gc: code };
+        const indication = isRejectedShape(shape) ? null : indicationOf(norm, clause, text, state);
+        return {
+          ...rule,
+          ...(code === 0 ? {} : { gc: code }),
+          ...(indication === null ? {} : { i: indication }),
+        };
       }),
     };
     if (
@@ -1298,6 +1520,147 @@ function mergeAbbreviations(canonical: string, spans: readonly TextSpan[]): read
   return merged;
 }
 
+/** A line that qualifies the sentence before it: «(масса тела 13-20 кг)», «(до 18 лет), масса тела ≥41 кг». */
+const QUALIFIER_LINE_START =
+  /^(?:\(|масс[аыуе]\s+тела|вес(?:ом)?(?![\p{L}])|массой|при\s+масс|в\s+возрасте|возраст|старше|младше|моложе|от\s+\d|до\s+\d|с\s+масс)/u;
+/** A number with an age or weight unit: a bound the qualifier prints (a bare «Масса тела» is a table header). */
+const QUALIFIER_BOUND =
+  /\d+(?:[.,]\d+)?\s*(?:-\s*\d+(?:[.,]\d+)?\s*)?(?:-?(?:х|ти|ми)\s+)?(?:лет|года|год|месяц\p{L}*|мес\.?|кг)(?![\p{L}])/u;
+
+interface SentenceRead {
+  readonly span: TextSpan;
+  /** A qualifier follows the sentence but cannot be attached to it alone: no number from it is trusted. */
+  readonly qualifierFollows: boolean;
+}
+
+/**
+ * A weight or an age printed on the line after the sentence («Разовая доза – 2 таблетки.» / «(масса тела
+ * 21-30 кг)») belongs to the sentence: it is joined to it, so the population is read from both and the
+ * quote shows both. When the qualifier cannot be told from the heading of the next sentence (that one
+ * has a dose of its own), the sentence is read but marked, and the gate rejects it.
+ */
+export function attachQualifierLines(
+  canonical: string,
+  spans: readonly TextSpan[],
+): readonly SentenceRead[] {
+  const folded = normalizeForLimits(canonical);
+  const list = spans.map((span): TextSpan => ({ ...span }));
+  const out: SentenceRead[] = [];
+  for (let index = 0; index < list.length; index += 1) {
+    const current = list[index] as TextSpan;
+    const next = list[index + 1];
+    const endsSentence = /[.!?]$/u.test(canonical.slice(current.start, current.end).trimEnd());
+    const qualifier = endsSentence && next ? qualifierEnd(canonical, folded, next) : null;
+    if (!next || qualifier === null) {
+      out.push({ span: current, qualifierFollows: false });
+      continue;
+    }
+    let restStart = qualifier;
+    while (restStart < next.end && /\s/u.test(canonical.charAt(restStart))) restStart += 1;
+    const rest = folded.slice(restStart, next.end);
+    if (findAmounts(rest).length > 0) {
+      // «… 1 таблетка. (старше 6 лет) По 2 таблетки …»: the bracket may head the next sentence.
+      out.push({ span: current, qualifierFollows: true });
+      continue;
+    }
+    out.push({ span: { start: current.start, end: qualifier }, qualifierFollows: false });
+    if (restStart >= next.end) list.splice(index + 1, 1);
+    else list[index + 1] = { start: restStart, end: next.end };
+  }
+  return out;
+}
+
+/** Where the qualifier at the start of `span` ends (canonical offset), or null when there is none. */
+function qualifierEnd(canonical: string, folded: string, span: TextSpan): number | null {
+  const text = folded.slice(span.start, span.end);
+  if (!QUALIFIER_LINE_START.test(text)) return null;
+  // A capital letter starts a heading or a sentence of its own («От 3 до 18 лет», «Масса тела»); only a
+  // bracket or a lower-case continuation qualifies the sentence before it.
+  if (/\p{Lu}/u.test(canonical.charAt(span.start))) return null;
+  const newline = canonical.indexOf('\n', span.start);
+  const lineEnd = newline < 0 || newline > span.end ? span.end : newline;
+  let end = lineEnd;
+  if (text.startsWith('(')) {
+    const close = text.indexOf(')');
+    if (close < 0) return null;
+    end = span.start + close + 1;
+    // «(до 18 лет), масса тела ≥41 кг»: the rest of the line continues the qualifier.
+    if (/^\s*[,;]/u.test(folded.slice(end, lineEnd))) end = lineEnd;
+  } else if (lineEnd - span.start > 120) return null;
+  const qualifier = folded.slice(span.start, end);
+  if (!QUALIFIER_BOUND.test(qualifier)) return null;
+  if (findAmounts(qualifier).length > 0) return null;
+  return end;
+}
+
+/** The part of a rule that says who it is for and what it asks, to tell regimens of one population apart. */
+function populationKey(rule: DoseRule): string {
+  return [rule.p0, rule.p1, rule.w0, rule.w1, rule.g, rule.or, rule.c, rule.rt, rule.fm].join('|');
+}
+
+/** Where the dose statement begins inside a sentence that opens with the name of a disease. */
+const DOSE_STATEMENT =
+  /(?:^|\s)(?:(?:Средн|Обычн|Рекомендуем|Суточн|Разов|Начальн|Поддерживающ|Максимальн|Терапевтическ)\p{L}*\s+доз|Доз[аыуе]?(?![\p{L}])|Дозировк|Взросл|Дет(?:ям|ей|и)(?![\p{L}])|Подрост|По\s+\d|Применя|Назнача|Препарат)/u;
+
+/**
+ * «Синдром алкогольной абстиненции Средняя доза составляет 200 мг …»: the words before the dose
+ * statement, when they read as the name of a state (a capital, a few lower-case words, no figures).
+ */
+function leadPhrase(cased: string, start: number, end: number): [number, number] | null {
+  const text = cased.slice(start, end);
+  if (!/^\p{Lu}/u.test(text)) return null;
+  const stop = DOSE_STATEMENT.exec(text);
+  if (!stop || stop.index < 6) return null;
+  const phrase = text.slice(0, stop.index).trim();
+  const words = phrase.split(/\s+/u);
+  if (
+    words.length < 1 ||
+    words.length > 8 ||
+    /[\d()«»:;]/u.test(phrase) ||
+    words
+      .slice(1)
+      .some((word) => /^\p{Lu}{2,}\p{Ll}/u.test(word) || /(?:ет|ют|ут|ят|ть|ся)$/u.test(word))
+  ) {
+    return null;
+  }
+  return [start, start + phrase.length];
+}
+
+/**
+ * Two or more doses the gate lets compute for one population, with different amounts, are regimens
+ * of different indications (or forms of the disease): none is the instruction's general dose. Each
+ * is marked `sv`, and gets the heading line before it as its indication when it has none.
+ */
+function markSeveralRegimens(
+  norm: string,
+  cased: string,
+  lines: readonly TextSpan[],
+  rules: readonly DoseRule[],
+): readonly DoseRule[] {
+  const groups = new Map<string, DoseRule[]>();
+  for (const rule of rules) {
+    if (rule.k !== RULE_DOSE || !GATE_ALLOWED.has(shapeOf(rule))) continue;
+    const key = populationKey(rule);
+    const list = groups.get(key);
+    if (list) list.push(rule);
+    else groups.set(key, [rule]);
+  }
+  const several = new Set<DoseRule>();
+  for (const list of groups.values()) {
+    const amounts = new Set(
+      list.map((rule) => [rule.u, rule.d0, rule.d1, rule.pk, rule.bs, rule.f0, rule.f1].join('|')),
+    );
+    if (list.length >= 2 && amounts.size >= 2) for (const rule of list) several.add(rule);
+  }
+  if (several.size === 0) return rules;
+  return rules.map((rule) => {
+    if (!several.has(rule)) return rule;
+    const found =
+      rule.i ?? plainHeadingBefore(norm, cased, rule.a, lines) ?? leadPhrase(cased, rule.a, rule.b);
+    return { ...rule, sv: 1 as const, ...(found ? { i: found } : {}) };
+  });
+}
+
 interface Joined {
   readonly text: string;
   /** The same text with the letters as printed (the normal form is lower case). */
@@ -1407,24 +1770,36 @@ export function extractDoseRules(
             (word) => word.slice(0, 5),
           ),
         ).size >= 2,
+      lines: lineSpans(canonical)
+        .map(toJoined)
+        .filter((span) => span.end > span.start),
+      cased: joined.cased,
+      qualifierFollows: false,
     };
-    const sectionRules: DoseRule[] = [];
+    const readRules: DoseRule[] = [];
     const back = (offset: number): number => joined.toCanonical[offset] ?? canonical.length;
-    for (const original of mergeAbbreviations(canonical, splitSentenceSpans(canonical))) {
-      for (const clause of clausesOf(norm, toJoined(original))) {
+    const sentences = attachQualifierLines(
+      canonical,
+      mergeAbbreviations(canonical, splitSentenceSpans(canonical)),
+    );
+    for (const sentence of sentences) {
+      state.qualifierFollows = sentence.qualifierFollows;
+      for (const clause of clausesOf(norm, toJoined(sentence.span))) {
         clauses += 1;
         const result = readClause(norm, clause, headingAt(headings, clause.start), state);
         if (result.hadAmount && result.rules.length === 0) skippedAmounts += 1;
-        for (const rule of result.rules) {
-          sectionRules.push({
-            ...rule,
-            a: back(rule.a),
-            b: back(rule.b),
-            ...(rule.h ? { h: [back(rule.h[0]), back(rule.h[1])] as const } : {}),
-          });
-        }
+        readRules.push(...result.rules);
       }
     }
+    const sectionRules = markSeveralRegimens(norm, state.cased, state.lines, readRules).map(
+      (rule): DoseRule => ({
+        ...rule,
+        a: back(rule.a),
+        b: back(rule.b),
+        ...(rule.h ? { h: [back(rule.h[0]), back(rule.h[1])] as const } : {}),
+        ...(rule.i ? { i: [back(rule.i[0]), back(rule.i[1])] as const } : {}),
+      }),
+    );
     const index = kept.length;
     kept.push({ id: section.id, checksum: sectionChecksum(canonical) });
     for (const rule of sectionRules) rules.push({ ...rule, s: index });

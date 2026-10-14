@@ -34,11 +34,13 @@ import {
   type ProductChoice,
   planIntake,
   planQuantity,
+  ROUNDING_TOLERANCE_PERCENT,
   type UnitsPlan,
 } from './dose-compute';
 import type { ResolvedInstruction, ResolvedRule } from './dose-document';
 import { type DoseIndex, documentsForForm, formClassOf } from './dose-index';
 import { matchPopulation, type PatientFacts, type PopulationMatch } from './dose-population';
+import { PRESCRIPTION_SETTINGS, type PrescriptionSettings } from './prescription-settings';
 import {
   amountText,
   countText,
@@ -47,7 +49,7 @@ import {
   rpLine,
   signaText,
 } from './prescription-text';
-import { parseStrength, pieceWords } from './product-strength';
+import { parseStrength, pieceWords, pieceWordsOfKind } from './product-strength';
 
 export type { PrescriptionItem };
 
@@ -253,6 +255,13 @@ export function populationText(rule: DoseRule): string | null {
 export interface RuleOption {
   readonly key: string;
   readonly resolved: ResolvedRule;
+  /**
+   * What the sentence is for («при амебиазе», «Для лечения»): the instruction states several regimens
+   * and this is one of them, never its general dose. Null for a general sentence.
+   */
+  readonly indication: string | null;
+  /** The sentence is bound to an indication or is one of several regimens of the population. */
+  readonly bound: boolean;
   /** Position in the instruction's list of rules. */
   readonly position: number;
   readonly match: PopulationMatch;
@@ -266,6 +275,8 @@ export type InstructionState = 'loading' | 'missing' | ResolvedInstruction;
 export interface ItemInputs {
   readonly index: DoseIndex;
   readonly patient: PatientFacts;
+  /** Release settings; the shipped ones when absent. */
+  readonly settings?: PrescriptionSettings;
   /** The state of an instruction; undefined until its reading was asked for. */
   readonly instructionOf: (documentId: string) => InstructionState | undefined;
 }
@@ -278,6 +289,8 @@ export interface CapView {
 }
 
 export interface ItemAnalysis {
+  /** Computed doses are switched off by the release settings: every dose sentence is quoted, none computed. */
+  readonly numbersOff: boolean;
   readonly card: DoseRuleCard | undefined;
   readonly forms: readonly RegistryForm[];
   readonly form: string | null;
@@ -311,6 +324,16 @@ export interface ItemAnalysis {
   readonly divisible: boolean;
   /** The instruction the rules were read from, once it is installed and read. */
   readonly instruction: ResolvedInstruction | null;
+}
+
+/**
+ * What to print beside the numbers of a regimen that is not the instruction's general dose: the
+ * indication the sentence is bound to («при амебиазе»), else a plain statement that it is one of
+ * several. Null for a general sentence.
+ */
+export function indicationLabel(option: Pick<RuleOption, 'indication' | 'bound'>): string | null {
+  if (option.indication !== null) return option.indication;
+  return option.bound ? 'один из режимов в инструкции' : null;
 }
 
 /** Rules that recommend a dose come before loading doses and ceilings. */
@@ -397,9 +420,10 @@ function classify(instruction: ResolvedInstruction, patient: PatientFacts): read
 }
 
 /** Doses that can be computed for the patient: the gate allows the rule, the population fits and no condition restricts it. */
-function computable(entries: readonly Classified[]): readonly Classified[] {
+function computable(entries: readonly Classified[], enabled: boolean): readonly Classified[] {
   return entries.filter(
     ({ resolved, match }) =>
+      enabled &&
       resolved.computable &&
       resolved.rule.k === RULE_DOSE &&
       match.fit === 'yes' &&
@@ -407,11 +431,73 @@ function computable(entries: readonly Classified[]): readonly Classified[] {
   );
 }
 
+/** One substance of a strength in a comparable form: «0.05 %» and «0.5 мг/мл» are the same concentration. */
+function strengthPart(part: string): string {
+  const text = part.toLocaleLowerCase('ru-RU').replace(/\s+/gu, ' ').trim();
+  const parsed = parseStrength(text);
+  if (parsed?.kind === 'solid') return `${parsed.unit}:${parsed.amount}`;
+  if (parsed?.kind === 'liquid') return `${parsed.unit}/ml:${Math.round(parsed.perMl * 1e6) / 1e6}`;
+  const percent = /^(\d+(?:[.,]\d+)?)\s*%$/u.exec(text);
+  if (percent)
+    return `mg/ml:${Math.round(Number((percent[1] ?? '').replace(',', '.')) * 10 * 1e6) / 1e6}`;
+  return text;
+}
+
+/**
+ * Strengths compare by what they say, not by how the registry spells them: the parts of a combination
+ * may come in another order («50 мг+1000 МЕ» / «1000 МЕ+50 мг»), a percentage is a concentration.
+ */
+function sameStrengthText(left: string, right: string): boolean {
+  const key = (text: string): string => text.split('+').map(strengthPart).toSorted().join('+');
+  return key(left) === key(right);
+}
+
+/**
+ * The part of a dosage form's wording that decides what the product is: tablets, capsules and the like
+ * are one product whatever their coating («таблетки, покрытые оболочкой»); drops, solutions and sprays
+ * are told apart by the wording up to the first comma («капли глазные», «капли ушные»).
+ */
+function formTieKey(form: string): string {
+  const clean = form.toLocaleLowerCase('ru-RU').trim();
+  const head = formClassOf(clean);
+  return /^(?:таблетки|капсулы|драже|пастилки|леденцы)$/u.test(head)
+    ? head
+    : (clean.split(',')[0] ?? clean).trim();
+}
+
+/**
+ * Whether the chosen product is one of the instruction's own: the counts of pieces and millilitres an
+ * instruction prints are valid for the registry rows of its own registrations. An instruction matched
+ * to the card by its substance only has none; then the card's single strength of the form is the only
+ * one it can be about. `null`: no product chosen, nothing to compare.
+ */
+export function productTie(
+  index: DoseIndex,
+  documentId: string,
+  forms: readonly RegistryForm[],
+  form: string | null,
+  strength: string | null,
+): boolean | null {
+  if (form === null || strength === null) return null;
+  const own = index.asset.documents[documentId]?.ps;
+  if (own !== undefined && own.length > 0) {
+    return own.some(
+      ([formIndex, ownStrength]) =>
+        formTieKey(index.asset.forms[formIndex] ?? '') === formTieKey(form) &&
+        sameStrengthText(ownStrength, strength),
+    );
+  }
+  const strengths = forms.find((entry) => entry.form === form)?.strengths ?? [];
+  return strengths.length === 1;
+}
+
 export function analyzeItem(item: PrescriptionItem, inputs: ItemInputs): ItemAnalysis {
   const { index, patient } = inputs;
+  const enabled = (inputs.settings ?? PRESCRIPTION_SETTINGS).computedDoses;
   const { card, forms, form, strength, product, ids } = choicesOf(item, index);
   const documentChoices = ids.map((id) => ({ id, label: documentLabel(index, id) }));
   const base = {
+    numbersOff: !enabled,
     card,
     forms,
     form,
@@ -456,7 +542,7 @@ export function analyzeItem(item: PrescriptionItem, inputs: ItemInputs): ItemAna
       continue;
     }
     fallback ??= state;
-    if (forced || computable(classify(state, patient)).length > 0) {
+    if (forced || computable(classify(state, patient), enabled).length > 0) {
       selectedId = id;
       selected = state;
       break;
@@ -490,7 +576,7 @@ export function analyzeItem(item: PrescriptionItem, inputs: ItemInputs): ItemAna
   instruction.rules.forEach((resolved, position) => {
     const rule = resolved.rule;
     const match = matchPopulation(rule, patient);
-    if (!resolved.computable) {
+    if (!enabled || !resolved.computable) {
       // Not trusted for numbers: a sentence that may be about this patient is quoted, nothing more.
       if (
         !match.conditional &&
@@ -520,6 +606,7 @@ export function analyzeItem(item: PrescriptionItem, inputs: ItemInputs): ItemAna
       rule,
       patient,
       product,
+      productTied: productTie(index, instruction.documentId, forms, form, strength),
       divisible: instruction.divisible,
       ...(item.position ? { position: item.position } : {}),
       ...(item.intakesPerDay === null ? {} : { intakesPerDay: item.intakesPerDay }),
@@ -528,6 +615,8 @@ export function analyzeItem(item: PrescriptionItem, inputs: ItemInputs): ItemAna
     const option: RuleOption = {
       key: ruleKeyOf(rule),
       resolved,
+      indication: resolved.indication,
+      bound: resolved.indication !== null || resolved.severalRegimens,
       position,
       match,
       plan,
@@ -542,6 +631,8 @@ export function analyzeItem(item: PrescriptionItem, inputs: ItemInputs): ItemAna
     (a, b) =>
       Number(a.match.unstated) - Number(b.match.unstated) ||
       specificity(b.resolved.rule) - specificity(a.resolved.rule) ||
+      // The instruction's general dose before a regimen of one indication.
+      Number(a.bound) - Number(b.bound) ||
       completeness(b.resolved.rule) - completeness(a.resolved.rule) ||
       a.position - b.position,
   );
@@ -555,7 +646,10 @@ export function analyzeItem(item: PrescriptionItem, inputs: ItemInputs): ItemAna
       : SECTION_BY_DEFAULT_DAYS_UNKNOWN);
   const caps: CapView[] = [];
   if (plan?.status === 'ok') {
-    for (const check of checkCaps(doseRules, plan, patient, days)) {
+    // Only a cap the gate lets compute is compared; a rejected cap is quoted, not compared.
+    const trusted = (_rule: DoseRule, at: number): boolean =>
+      enabled && instruction.rules[at]?.computable === true;
+    for (const check of checkCaps(doseRules, plan, patient, days, trusted)) {
       const resolved = instruction.rules[check.ruleIndex];
       if (resolved && resolved.rule.k === RULE_CAP) caps.push({ check, resolved });
     }
@@ -649,22 +743,20 @@ export interface IntakeRow {
   readonly note?: string;
 }
 
-function unitNoun(count: number, kind: UnitsPlan['kind'], form: string | null): string {
+function unitNoun(
+  count: number,
+  kind: UnitsPlan['kind'],
+  form: string | null,
+  piece: UnitsPlan['piece'],
+): string {
   if (kind === 'ml') return 'мл';
   if (kind === 'drop') return pluralRu(Math.round(count), 'капля', 'капли', 'капель');
   if (kind === 'dose') return pluralRu(Math.round(count), 'доза', 'дозы', 'доз');
-  const words = form ? pieceWords(form) : null;
+  // What the instruction counts (a spoon, an ampoule) comes before the piece word of the dosage form.
+  const words = pieceWordsOfKind(piece) ?? (form ? pieceWords(form) : null);
   if (!words) return 'шт.';
-  if (!Number.isInteger(count)) return words.few;
-  const nominative: Record<string, string> = {
-    таблетке: 'таблетка',
-    капсуле: 'капсула',
-    суппозиторию: 'суппозиторий',
-    пастилке: 'пастилка',
-    саше: 'саше',
-    флакону: 'флакон',
-  };
-  return pluralRu(count, nominative[words.dative] ?? words.dative, words.few, words.many);
+  if (!Number.isInteger(count)) return words.genitive;
+  return pluralRu(count, words.nominative, words.few, words.many);
 }
 
 /** The computed intake as labelled rows for the screen; empty while the arithmetic is not possible. */
@@ -674,7 +766,7 @@ export function intakeRows(analysis: ItemAnalysis): readonly IntakeRow[] {
   const rows: IntakeRow[] = [];
   const massLike = plan.unit !== 'piece' && plan.unit !== 'drop' && plan.unit !== 'dose';
   if (plan.units) {
-    const count = `${countText(plan.units.count)} ${unitNoun(plan.units.count, plan.units.kind, analysis.form)}`;
+    const count = `${countText(plan.units.count)} ${unitNoun(plan.units.count, plan.units.kind, analysis.form, plan.units.piece)}`;
     const deviation = plan.units.deviationPercent;
     const rounded =
       !plan.units.fromInstruction && deviation !== null && Math.abs(deviation) >= 1
@@ -685,11 +777,23 @@ export function intakeRows(analysis: ItemAnalysis): readonly IntakeRow[] {
       value:
         massLike && plan.units.amount !== null
           ? `${count} · ${amountText(plan.units.amount, plan.unit)}`
-          : count,
+          : // «1 чайная ложка · 5 мл»: the instruction's own measure and its volume.
+            massLike && plan.unit === 'ml' && plan.units.fromInstruction
+            ? `${count} · ${amountText(plan.single, plan.unit)}`
+            : count,
       ...(rounded ? { note: rounded } : {}),
     });
   } else if (massLike) {
-    rows.push({ label: 'На приём', value: amountText(plan.single, plan.unit) });
+    const refused = plan.refusedRounding;
+    rows.push({
+      label: 'На приём',
+      value: amountText(plan.single, plan.unit),
+      ...(refused
+        ? {
+            note: `число единиц не указано: ближайшая доза выбранной дозировки ${amountText(refused.amount, plan.unit)} (${refused.deviationPercent > 0 ? '+' : '−'}${Math.abs(Math.round(refused.deviationPercent))} %) отличается от расчётной больше чем на ${ROUNDING_TOLERANCE_PERCENT} %`,
+          }
+        : {}),
+    });
   }
   if (plan.intakes !== null) {
     rows.push({ label: 'Приёмов', value: frequencyPhrase(plan.intakes, plan.periodDays) });

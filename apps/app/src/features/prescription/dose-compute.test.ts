@@ -8,6 +8,7 @@ import {
   type ProductChoice,
   planIntake,
   planQuantity,
+  ROUNDING_TOLERANCE_PERCENT,
 } from './dose-compute';
 import { ADULT_AGE_DAYS, matchPopulation } from './dose-population';
 
@@ -147,11 +148,6 @@ describe('the single dose', () => {
 
   it('rounds a mass to a whole tablet, or to a half when the instruction allows dividing', () => {
     const base = rule({ d0: 750, f0: 2 });
-    expect(planIntake(input({ rule: base, product: tablets500 })).units).toMatchObject({
-      count: 2,
-      amount: 1000,
-      deviationPercent: 33.333,
-    });
     expect(
       planIntake(input({ rule: base, product: tablets500, divisible: true })).units,
     ).toMatchObject({
@@ -159,6 +155,107 @@ describe('the single dose', () => {
       amount: 750,
       deviationPercent: 0,
     });
+    // 520 mg is 4 % off a whole 500 mg tablet: within the tolerance, shown with its deviation.
+    expect(
+      planIntake(input({ rule: rule({ d0: 520, f0: 2 }), product: tablets500 })).units,
+    ).toMatchObject({ count: 1, amount: 500, deviationPercent: -3.846 });
+  });
+
+  it('refuses a rounding beyond 10 % and shows the dose without a count (RX3 audit: +100 … +300 %)', () => {
+    // 750 mg on whole 500 mg tablets would be 2 tablets: +33 %.
+    const wholeOnly = planIntake(
+      input({ rule: rule({ d0: 750, f0: 2 }), product: tablets500, divisible: false }),
+    );
+    expect(wholeOnly.status).toBe('ok');
+    expect(wholeOnly.units).toBeNull();
+    expect(wholeOnly.single).toBe(750);
+    expect(wholeOnly.actualSingle).toBe(750);
+    expect(wholeOnly.refusedRounding).toEqual({ amount: 1000, deviationPercent: 33.333 });
+    expect(wholeOnly.notes).toContain('rounding-refused');
+    expect(ROUNDING_TOLERANCE_PERCENT).toBe(10);
+    // The audit's desloratadine child dose: 2.5 mg wanted, a 5 mg tablet is +100 %.
+    const desloratadine = planIntake(
+      input({
+        rule: rule({ d0: 2.5, f0: 1 }),
+        product: { ...tablets500, strength: '5 мг' },
+      }),
+    );
+    expect(desloratadine.units).toBeNull();
+    expect(desloratadine.refusedRounding?.deviationPercent).toBe(100);
+    // Trimebutine: 25 mg wanted on a 200 mg tablet is +700 % of a whole tablet.
+    const trimebutine = planIntake(
+      input({
+        rule: rule({ d0: 25, f0: 3 }),
+        product: { ...tablets500, strength: '200 мг' },
+        divisible: true,
+      }),
+    );
+    expect(trimebutine.units).toBeNull();
+    expect(trimebutine.refusedRounding?.deviationPercent).toBe(300);
+    // A suspension volume that cannot be measured to within the tolerance is refused too.
+    const tiny = planIntake(
+      input({
+        rule: rule({ d0: 3, f0: 1 }),
+        product: { ...suspension, strength: '1000 мг/мл' },
+      }),
+    );
+    expect(tiny.units).toBeNull();
+  });
+
+  it('ties the counts of the instruction to the strength of its own product (RX3 audit: 200+500 / 400+325 …)', () => {
+    // «по 2 таблетки» with no strength in the sentence: valid for the instruction's own strength only.
+    const pieces = rule({ u: 7, d0: 2, q0: 2, qu: 0, f0: 2 });
+    const own = planIntake(
+      input({
+        rule: pieces,
+        product: { ...tablets500, strength: '400 мг+325 мг' },
+        productTied: true,
+      }),
+    );
+    expect(own.units).toMatchObject({ kind: 'piece', count: 2, fromInstruction: true });
+    const other = planIntake(
+      input({
+        rule: pieces,
+        product: { ...tablets500, strength: '200 мг+500 мг' },
+        productTied: false,
+      }),
+    );
+    expect(other.status).toBe('strength-mismatch');
+    expect(other.units).toBeNull();
+    expect(other.single).toBeNull();
+    // No product chosen: nothing to tie, the instruction's own count is shown as before.
+    expect(planIntake(input({ rule: pieces })).units).toMatchObject({ count: 2 });
+  });
+
+  it('recomputes a count from milligrams for another strength, and drops it when the rule is in pieces or millilitres', () => {
+    // «по 1 таблетке (500 мг)»: the instruction states its strength.
+    const withStrength = rule({ d0: 500, q0: 1, qu: 0, pm: 500, f0: 3 });
+    const sameProduct = planIntake(
+      input({ rule: withStrength, product: tablets500, productTied: true }),
+    );
+    expect(sameProduct.units).toMatchObject({ count: 1, fromInstruction: true });
+    const other = planIntake(
+      input({
+        rule: withStrength,
+        product: { ...tablets500, strength: '250 мг' },
+        productTied: false,
+      }),
+    );
+    expect(other.status).toBe('ok');
+    expect(other.units).toMatchObject({ count: 2, amount: 500, fromInstruction: false });
+    // A volume printed by the instruction («по 5 мл») belongs to its own concentration.
+    const millilitres = rule({ u: ML, d0: 5, f0: 2 });
+    expect(
+      planIntake(input({ rule: millilitres, product: suspension, productTied: false })).status,
+    ).toBe('strength-mismatch');
+    expect(
+      planIntake(input({ rule: millilitres, product: suspension, productTied: true })).status,
+    ).toBe('ok');
+    // Drops count the same way.
+    const drops = rule({ u: 5, d0: 8, f0: 3 });
+    expect(planIntake(input({ rule: drops, product: suspension, productTied: false })).status).toBe(
+      'strength-mismatch',
+    );
   });
 
   it('refuses to read a combination strength as a mass', () => {
@@ -203,6 +300,16 @@ describe('caps of the instruction', () => {
     expect(ok[0]).toMatchObject({ scope: 'daily', limit: 4000, actual: 3000, exceeded: false });
     const over = planIntake(input({ rule: rule({ d0: 1500, f0: 3 }), product: tablets500 }));
     expect(checkCaps(caps, over, adult, null)[0]).toMatchObject({ actual: 4500, exceeded: true });
+  });
+  it('compares only the caps the gate trusts and never a range', () => {
+    const plan = planIntake(input({ rule: rule({ d0: 1500, f0: 3 }), product: tablets500 }));
+    const adult = { ageDays: ADULT_AGE_DAYS + 5 };
+    // The gate trusts no cap: nothing is compared (a rejected cap is quoted, not compared).
+    expect(checkCaps(caps, plan, adult, null, () => false)).toHaveLength(0);
+    expect(checkCaps(caps, plan, adult, null, (_, at) => at === 0)).toHaveLength(1);
+    // A cap written as a range («от 50 до 70 мл») keeps both ends and is no single cap.
+    const range = rule({ k: 1, u: ML, d0: 50, d1: 70, bs: 0 });
+    expect(checkCaps([range], plan, adult, null)).toHaveLength(0);
   });
   it('scales a cap per kilogram by the weight of a child', () => {
     const plan = planIntake(

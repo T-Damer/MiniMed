@@ -21,7 +21,13 @@ import {
 
 import { pluralRu } from '@/i18n/labels';
 import type { UnitsPlan } from './dose-compute';
-import { type FormKind, formKind, type PieceWords, pieceWords } from './product-strength';
+import {
+  type FormKind,
+  formKind,
+  type PieceWords,
+  pieceWords,
+  pieceWordsOfKind,
+} from './product-strength';
 
 /** «0,5», «1 1/2», «2,5»: a count as a person writes it on a prescription. */
 export function countText(value: number): string {
@@ -73,7 +79,43 @@ export function amountText(amount: number, unit: DoseUnit): string {
   return `${decimalText(amount)} ${UNIT_RU[unit]}`;
 }
 
-export function routeWord(routeBits: number, kind: FormKind): string | null {
+/**
+ * The route a dosage form says by its own wording («суппозитории ректальные», «таблетки подъязычные»,
+ * «капли глазные»), in the words of a prescription. The first pattern that fits wins; a form that does
+ * not say is not guessed.
+ */
+const FORM_ROUTES: readonly { readonly pattern: RegExp; readonly word: string }[] = [
+  { pattern: /вагинальн/u, word: 'Вагинально' },
+  { pattern: /ректальн/u, word: 'Ректально' },
+  { pattern: /сублингвальн|подъязычн/u, word: 'Под язык' },
+  { pattern: /для\s+рассасывани|^(?:пастилки|леденцы)/u, word: 'Рассасывать' },
+  { pattern: /внутрь|жевательн|шипучи|диспергируем|растворим/u, word: 'Внутрь' },
+  { pattern: /глазн/u, word: 'В конъюнктивальный мешок' },
+  { pattern: /ушн/u, word: 'В ухо' },
+  { pattern: /назальн|в\s+нос/u, word: 'В нос' },
+  { pattern: /ингаляц|небул/u, word: 'Ингаляционно' },
+  {
+    pattern: /наружн|мазь|крем|гель|линимент|паста|пластыр|лосьон|присыпк|трансдермальн/u,
+    word: 'Наружно',
+  },
+  { pattern: /^[^,]*внутривенн(?![^,]*(?:внутримышечн|подкожн))/u, word: 'Внутривенно' },
+  { pattern: /^[^,]*внутримышечн(?![^,]*(?:внутривенн|подкожн))/u, word: 'Внутримышечно' },
+  { pattern: /^[^,]*подкожн(?![^,]*(?:внутривенн|внутримышечн))/u, word: 'Подкожно' },
+];
+
+export function routeOfForm(form: string): string | null {
+  const clean = form.toLocaleLowerCase('ru-RU').trim();
+  return FORM_ROUTES.find((spec) => spec.pattern.test(clean))?.word ?? null;
+}
+
+/**
+ * The route word of the sign: what the dosage form says by its own wording, else what the sentence
+ * names, else «Внутрь» for a plain oral form. A suppository, a vaginal or sublingual tablet, a lozenge
+ * and drops are never «Внутрь» by default.
+ */
+export function routeWord(routeBits: number, kind: FormKind, form?: string): string | null {
+  const byForm = form === undefined ? null : routeOfForm(form);
+  if (byForm !== null) return byForm;
   if (kind === 'injection') {
     if ((routeBits & ROUTE_IV) !== 0) return 'Внутривенно';
     if ((routeBits & ROUTE_IM) !== 0) return 'Внутримышечно';
@@ -87,6 +129,10 @@ export function routeWord(routeBits: number, kind: FormKind): string | null {
   if ((routeBits & ROUTE_VAGINAL) !== 0) return 'Вагинально';
   if ((routeBits & ROUTE_TOPICAL) !== 0) return 'Наружно';
   if ((routeBits & (ROUTE_EYE_EAR_NOSE | ROUTE_IV | ROUTE_IM | ROUTE_SC)) !== 0) return null;
+  // A suppository the wording does not place is not «Внутрь»: the route is left to the doctor.
+  if (form !== undefined && /суппозитор|свеч|пессар/u.test(form.toLocaleLowerCase('ru-RU'))) {
+    return null;
+  }
   if (kind === 'solid' || kind === 'liquid' || kind === 'powder') return 'Внутрь';
   return null;
 }
@@ -100,19 +146,21 @@ function unitsPhrase(units: UnitsPlan, words: PieceWords | null, amount: string 
   if (units.kind === 'dose') {
     return `по ${countText(units.count)} ${pluralRu(Math.round(units.count), 'дозе', 'дозы', 'доз')}`;
   }
-  const word = words ?? {
-    dative: 'шт.',
-    one: 'шт.',
-    few: 'шт.',
-    many: 'шт.',
-    latin: '',
-    latinFull: '',
-  };
-  if (!Number.isInteger(units.count)) return `по ${countText(units.count)} ${word.few}${tail}`;
+  // What the instruction counts (a spoon, an ampoule) comes before the piece word of the dosage form.
+  const word = pieceWordsOfKind(units.piece) ?? words ?? PLAIN_PIECE;
+  if (!Number.isInteger(units.count)) return `по ${countText(units.count)} ${word.genitive}${tail}`;
   if (units.count === 1) return `по 1 ${word.dative}${tail}`;
   const noun = pluralRu(units.count, word.dative, word.few, word.many);
   return `по ${units.count} ${noun}${tail}`;
 }
+
+const PLAIN_PIECE: PieceWords = {
+  nominative: 'шт.',
+  genitive: 'шт.',
+  dative: 'шт.',
+  few: 'шт.',
+  many: 'шт.',
+};
 
 /** «3 раза в день», «1 раз в неделю», «через день». */
 export function frequencyPhrase(intakesPerDay: number, periodDays: number): string {
@@ -156,7 +204,7 @@ export interface SignaInput {
 export function signaText(input: SignaInput): string {
   const kind = formKind(input.form);
   const parts: string[] = [];
-  const route = routeWord(input.routeBits, kind);
+  const route = routeWord(input.routeBits, kind, input.form);
   if (route) parts.push(route);
   if (input.units) {
     const amount =

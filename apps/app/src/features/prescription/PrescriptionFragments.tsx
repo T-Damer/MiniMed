@@ -8,7 +8,7 @@ import { pluralRu } from '@/i18n/labels';
 import { buildOfficialDocumentHash } from '@/state/document-route';
 import type { ResolvedRule } from './dose-document';
 import { type FragmentGroup, foldedFragments, fragmentCount } from './prescription-fragments';
-import { type ItemAnalysis, populationText } from './prescription-model';
+import { type ItemAnalysis, indicationLabel, populationText } from './prescription-model';
 import { ageText } from './prescription-safety';
 import '@/styles/prescription.css';
 
@@ -71,6 +71,9 @@ function FragmentRows(props: {
                         {option().summary}
                         <Show when={populationText(option().resolved.rule)}>
                           {(who) => <span class="prescription__rule-who">{who()}</span>}
+                        </Show>
+                        <Show when={indicationLabel(option())}>
+                          {(why) => <span class="prescription__rule-indication">{why()}</span>}
                         </Show>
                       </span>
                     </button>

@@ -28,8 +28,13 @@ export const PIECE_KINDS = [
   'lozenge',
   'patch',
   'measure',
-  'spoon',
+  'teaspoon',
   'other',
+  'tablespoon',
+  'dessertspoon',
+  'cap',
+  'cup',
+  'vial',
 ] as const;
 export type PieceKind = (typeof PIECE_KINDS)[number];
 
@@ -77,6 +82,8 @@ const ruleSchema = z
     a: z.number().int().min(0),
     b: z.number().int().min(1),
     h: z.tuple([z.number().int().min(0), z.number().int().min(1)]).optional(),
+    i: z.tuple([z.number().int().min(0), z.number().int().min(1)]).optional(),
+    sv: z.literal(1).optional(),
     p0: finite.min(0).optional(),
     p1: finite.min(0).optional(),
     w0: finite.min(0).optional(),
@@ -124,6 +131,9 @@ const ruleSchema = z
  * - `k` kind (dose, cap, duration only); `s` section index in the document; `a`,`b` half-open range of the
  *   sentence in the canonical text of the section; `h` range of the heading line or earlier sentence the
  *   population or condition was taken from.
+ * - `i` range of the indication the sentence is bound to («при амебиазе», a heading «Для лечения»), `sv` the
+ *   sentence is one of several regimens of the same population in the document: either way it is not the
+ *   instruction's general dose and the screen shows the indication next to the number.
  * - Population as printed: `p0`,`p1` age bounds in days, `w0`,`w1` weight bounds in tenths of a kilogram
  *   (inclusive), `g` group bits, `or` (age and weight are alternatives), `c` condition bits.
  * - Amount: `u` index into `DOSE_UNITS`, `d0`,`d1` lower and upper end (per intake, or per day when
@@ -152,6 +162,12 @@ const documentSchema = z
     f: z.string().nullable(),
     /** The instruction says a tablet may be divided («можно разделить», «с риской»). */
     v: z.union([z.literal(0), z.literal(1)]),
+    /**
+     * The registry rows of the instruction's own registrations: `[dosage form index, strength]`. Counts of pieces
+     * and millilitres in the instruction are valid for these products only. Absent when the instruction
+     * was matched to the card by its substance, not by a registration number.
+     */
+    ps: z.array(z.tuple([z.number().int().min(0), z.string()])).optional(),
     /** `[section id without «section.», checksum of the canonical text]`. */
     sec: z.array(z.tuple([z.string().min(1), z.string().min(1)])),
     rules: z.array(ruleSchema),

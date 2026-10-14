@@ -1351,7 +1351,29 @@
       "verdict": "correct",
       "doseRelevantWrong": false,
       "reason": "ok",
-      "shape": "dose.none.abs.freq"
+      "shape": "dose.none.abs.freq",
+      "rejudged": {
+        "rule": {
+          "k": 0,
+          "u": 0,
+          "d0": 300,
+          "q0": 1,
+          "qu": 14,
+          "pm": 300,
+          "f0": 1,
+          "f1": 1,
+          "fp": 7,
+          "rt": 4,
+          "fm": 8,
+          "s": 0,
+          "a": 700,
+          "b": 828,
+          "gc": 33,
+          "i": [724, 769]
+        },
+        "verdict": "correct",
+        "reason": "re-judged after RX4: a vial (флакон) is told apart from an ampoule now; every number is read as before"
+      }
     },
     {
       "id": "drug.rf.c317e62bf1d4590bbb67.instruction#0:348:0",
@@ -4993,7 +5015,25 @@
       "verdict": "correct",
       "doseRelevantWrong": false,
       "reason": "ok",
-      "shape": "dose.local.kg.nofreq"
+      "shape": "dose.local.kg.nofreq",
+      "rejudged": {
+        "rule": {
+          "k": 0,
+          "u": 0,
+          "d0": 8,
+          "pk": 1,
+          "bs": 1,
+          "p0": 1461,
+          "p1": 2922,
+          "g": 2,
+          "s": 0,
+          "a": 482,
+          "b": 543,
+          "gc": 18
+        },
+        "verdict": "correct",
+        "reason": "re-judged on the OCR1 text: «Детям в возрасте от 4 до 8 лет назначают в дозе 8 мг/кг/сутки»: population and dose are read as before; the oral route taken from a line above is gone"
+      }
     },
     {
       "id": "drug.rf.834f5ad40c4f7ea3ce32.instruction#1:701:0",
@@ -6241,7 +6281,26 @@
       "verdict": "correct",
       "doseRelevantWrong": false,
       "reason": "ok",
-      "shape": "dose.local.abs.freq"
+      "shape": "dose.local.abs.freq",
+      "rejudged": {
+        "rule": {
+          "k": 0,
+          "u": 1,
+          "d0": 20,
+          "q0": 1.5,
+          "qu": 10,
+          "f0": 4,
+          "f1": 6,
+          "p0": 2557,
+          "p1": 4383,
+          "s": 0,
+          "a": 561,
+          "b": 638,
+          "gc": 15
+        },
+        "verdict": "correct",
+        "reason": "re-judged after RX4: the sentence and every number are read as before; only the piece kind changed (spoons are told apart now: столовая ложка), and the indication range was added"
+      }
     },
     {
       "id": "drug.rf.c35c0f524b8665f0605e.instruction#0:590:0",

@@ -155,6 +155,9 @@ const SPECIAL = new RegExp(
   `${WORD_START}(?:беремен\\p{L}*|лактац\\p{L}*|кормлен\\p{L}*|кормящ\\p{L}*|женщин\\p{L}*|мужчин\\p{L}*|мальчик\\p{L}*|девочк\\p{L}*|менопауз\\p{L}*|менструал\\p{L}*|цикл\\p{L}*|одновременно|в\\s+комбинации|совместно|в\\s+сочетании|вместе\\s+с|(?:в|на)\\s+кажд\\p{L}*\\s+(?:ноздр\\p{L}*|носов\\p{L}*\\s+ход|глаз|ух\\p{L}*)|в\\s+оба\\s+глаза|в\\s+оба\\s+уха|по\\s+схеме|схем\\p{L}*|при\\s+введении\\s+в|в\\s+(?:крупные|средние|мелкие)\\s+сустав\\p{L}*|сходн\\p{L}*|эквивалент\\p{L}*|обеспечива\\p{L}*|таков\\p{L}*|суммарн\\p{L}*|общая\\s+доза|курсов\\p{L}*\\s+доз\\p{L}*|означает|в\\s+сумме|содержащ\\p{L}*|полугоди\\p{L}*|в\\s+добавлени\\p{L}*|дополнительн\\p{L}*|также\\s+принима\\p{L}*|(?:в|на)\\s+кажд\\p{L}*\\s+(?!прием|раз|день|сутки|введени|кг|килограмм|кв|м2)\\p{L}+|переход\\p{L}*\\s+на|(?:при|в)\\s+перевод\\p{L}*|(?:со|с)\\s+\\d+(?:[.,]\\d+)?\\s*(?:мг|мкг|г)\\s+\\p{L}+|\\d\\s*(?:мг|мкг|г)\\s*\\+\\s*\\d)`,
   'u',
 );
+/** A condition on the patient's other drugs: «если ребенок не принимает вальпроат», «пациентам, принимающим …». */
+const CO_MEDICATION =
+  /(?<![\p{L}\d])(?:если|когда|в\s+случае)[^.;]{0,80}?(?:не\s+)?(?:принима|получа|использу|применя)(?:ет|ете|ют|ть|ется|ются|ешь)(?![\p{L}\d])(?!\s+(?:препарат|данн|его|ее|эту|эти|лекарств))|(?<![\p{L}\d])(?:пациент|больн|дет|ребен|лиц)\p{L}*,?\s+(?:не\s+)?(?:принимающ|получающ|использующ)\p{L}*/u;
 const ALTERNATIVE = new RegExp(
   `${WORD_START}(?:либо|и/или)${WORD_END}|\\d\\s*(?:мг|мл|г|мкг|ме|ед|таблет\\p{L}*|капсул\\p{L}*|капл\\p{L}*|доз\\p{L}*|пакет\\p{L}*|ложк\\p{L}*)\\s+(?:или|/)\\s+(?:по\\s+)?\\d`,
   'u',
@@ -163,6 +166,10 @@ const TABLE_CUES =
   /[≤≥<>±]|\*\*|(?:^|\s)таблиц\p{L}*\s+\d|мл\/мин|(?<![\p{L}\d])(?:кк|скф|clcr|сlcr)(?![\p{L}\d])|клиренс\p{L}*\s+креатинин|[-–—]\s*[-–—]|\?\s*\d|\d\s*\?/u;
 const NEGATION =
   /противопоказ|не\s+применя|не\s+рекомендуется|не\s+назнача|не\s+следует|осторожн|опыт|отсутству|не\s+установлен|не\s+изуч|недопустимо|нельзя|отмен\p{L}*|прекра[тщ]\p{L}*|непереносим\p{L}*|не\s+(?:делайте|превышайте|принимайте|вводите|применяйте)|оцени\p{L}*|риск\p{L}*|польз\p{L}*|превышайте|(?:больше|более)\s+(?:\d|одн\p{L}*|двух|трех)(?!\s*(?:-\s*\d+\s*)?(?:лет|года|кг|мес|недел|дн))/u;
+
+/** An amount range written with words: «от 50 до 70 мл», «50 до 70 мл». */
+const CAP_RANGE =
+  /\d+(?:[.,]\d+)?\s*(?:мкг|мг|г|мл|л|ме|ед|капл\p{L}*|таблет\p{L}*|капсул\p{L}*)?\s+до\s+\d+(?:[.,]\d+)?\s*(?:мкг|мг|г|мл|л|ме|ед|капл\p{L}*|таблет\p{L}*|капсул\p{L}*)(?![\p{L}\d])/u;
 
 const GROUP_WORDS = {
   adult: /(?<![\p{L}])взросл\p{L}*/u,
@@ -219,6 +226,16 @@ const FORM_CLASSES = {
   powder: /порошок|гранул/u,
 };
 
+/** Measures of a liquid or a powder: spoons, a measuring cap or cup. */
+export const SPOON_KINDS: ReadonlySet<string> = new Set([
+  'measure',
+  'teaspoon',
+  'tablespoon',
+  'dessertspoon',
+  'cap',
+  'cup',
+]);
+
 /** True when the rule's unit makes sense for the dosage form the document says it is. */
 export function unitFitsForm(rule: DoseRule, dosageForm: string | null): boolean {
   if (dosageForm === null) return true;
@@ -246,8 +263,8 @@ export function unitFitsForm(rule: DoseRule, dosageForm: string | null): boolean
     if (piece === 'lozenge') return /пастилк|леденц/u.test(form);
     if (piece === 'suppository') return /суппозитор|свеч/u.test(form);
     if (piece === 'sachet') return isPowder || isLiquidOral;
-    if (piece === 'ampoule') return isInjection;
-    if (piece === 'spoon' || piece === 'measure') return isLiquidOral || isPowder;
+    if (piece === 'ampoule' || piece === 'vial') return isInjection;
+    if (SPOON_KINDS.has(piece)) return isLiquidOral || isPowder;
     if (piece === 'patch') return isTopical;
     return false;
   }
@@ -279,6 +296,8 @@ export interface GateInput {
   readonly sectionTitle: string;
   /** Up to 80 characters of normal-form text right after the clause. */
   readonly after: string;
+  /** A qualifier of the population (an age, a weight) follows the sentence and could not be attached to it. */
+  readonly qualifierFollows?: boolean;
 }
 
 function spansOf(
@@ -419,6 +438,8 @@ export function classifyRule(input: GateInput): DoseShape {
     return 'rejected.other';
   }
   if ((rule.c ?? 0) & (COND_RENAL | COND_HEPATIC | COND_DIALYSIS)) return 'rejected.condition';
+  // «Дети старше 12 лет … 2 таблетки.» / «(до 18 лет), масса тела ≥41 кг»: the population goes on after the sentence.
+  if (input.qualifierFollows === true) return 'rejected.population';
   const remarkFree = clause.replace(/\(\s*соответствует[^)]*\)/gu, ' ');
   if (TABLE_CUES.test(clause) || NEGATION.test(remarkFree)) return 'rejected.table';
   // A fragment: starts inside a parenthesis, or is a muddle of Latin words and a few Russian ones.
@@ -434,6 +455,9 @@ export function classifyRule(input: GateInput): DoseShape {
   if (rule.k === RULE_DOSE) {
     if (QUALIFIER.test(clause) || rule.up === 1) return 'rejected.stage';
   }
+  // «Если ребенок не принимает вальпроат, то максимальная суточная доза …»: the number belongs to a patient
+  // on (or off) another drug, which the rule does not model, whatever kind of rule it is.
+  if (CO_MEDICATION.test(remarkFree)) return 'rejected.special';
   if (SPECIAL.test(remarkFree) || namesOtherSubstance(clause, input.subject, input.combination)) {
     return 'rejected.special';
   }
@@ -485,6 +509,12 @@ export function classifyRule(input: GateInput): DoseShape {
       Math.abs(rule.d0 - rule.pm * rule.q0) < 1e-6 * rule.d0
     ) {
       return 'rejected.basis';
+    }
+    // «Суточные дозы: 1–2 таблетки 2–3 раза в сутки»: a day's total of pieces smaller than the number of
+    // intakes cannot be taken; the amount is per intake and the lead-in made it a day's.
+    if (rule.k === RULE_DOSE && rule.bs === 1 && rule.f0 !== undefined && (rule.fp ?? 1) === 1) {
+      const pieces = rule.u === 7 ? rule.d0 : rule.q0;
+      if (pieces !== undefined && pieces < rule.f0 - 1e-9) return 'rejected.basis';
     }
     // «утром (однократно 50 мг) или утром и вечером (по 50 мг два раза)»: two regimens of one amount.
     const masses = amounts.filter((amount) => !amount.rate && amount.unit !== 'piece');
@@ -542,6 +572,9 @@ export function classifyRule(input: GateInput): DoseShape {
     if (/\d\s*-\s*\d/u.test(clause.replace(/\d+\s*-\s*\d+\s*(?:лет|года|мес)/gu, ''))) {
       return 'rejected.cap';
     }
+    // «от 50 до 70 мл», «от 1800 мг до 3200 мг»: a range written with words is a range too (a per-age list
+    // often follows it), never the upper end alone.
+    if (CAP_RANGE.test(clause)) return 'rejected.cap';
     if (
       !/(?:максимальн\p{L}*|предельн\p{L}*|высш\p{L}*|не\s+(?:более|превышать|должн\p{L}*\s+превышать)|превышать)/u.test(
         clause,

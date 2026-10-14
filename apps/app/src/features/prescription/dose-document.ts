@@ -34,6 +34,13 @@ export interface ResolvedRule {
   readonly quote: string;
   /** The heading or earlier sentence the population or condition was taken from. */
   readonly context: string | null;
+  /**
+   * What the sentence is for («при амебиазе», «Для лечения»): the instruction states more than one
+   * regimen and this one is not its general dose. Null when the sentence names none.
+   */
+  readonly indication: string | null;
+  /** The sentence is one of several regimens of the same population in the instruction. */
+  readonly severalRegimens: boolean;
   readonly sectionTitle: string;
   /** Anchor of the chunk the sentence starts in, to open the instruction there. */
   readonly anchor: string | null;
@@ -173,6 +180,8 @@ export function resolveInstruction(
       computable: mayCompute(rule),
       quote: collapse(read.text.slice(rule.a, rule.b)),
       context: rule.h ? collapse(read.text.slice(rule.h[0], rule.h[1])) : null,
+      indication: rule.i ? collapse(read.text.slice(rule.i[0], rule.i[1])) : null,
+      severalRegimens: rule.sv === 1,
       sectionTitle: id === undefined ? '' : (sections.get(id)?.title ?? ''),
       anchor: read.chunks[chunkAt]?.anchor ?? null,
     });

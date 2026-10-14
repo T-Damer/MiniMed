@@ -50,6 +50,8 @@ export interface DoseBuildRow {
   readonly strength: string;
   readonly unit: PackUnit;
   readonly packs: readonly number[];
+  /** Normalised registration numbers of the registry positions that make up the row (not stored in the index). */
+  readonly registrations: readonly string[];
 }
 
 export interface DoseBuildCard extends InteractionCard {
@@ -102,6 +104,8 @@ export function createDoseBuilder(input: { readonly cards: readonly DoseBuildCar
   interface Raw {
     readonly id: string;
     readonly document: DoseRuleIndexAsset['documents'][string];
+    /** The registry rows (dosage form, strength) of the instruction's own registrations. */
+    readonly productRows: readonly { readonly form: string; readonly strength: string }[];
   }
   const moduleIds: string[] = [];
   const moduleBasis: { id: string; version: string; sha256: string }[] = [];
@@ -163,8 +167,23 @@ export function createDoseBuilder(input: { readonly cards: readonly DoseBuildCar
         counters.clauses += extracted.stats.clauses;
         counters.skippedAmounts += extracted.stats.skippedAmounts;
         const kind = INSTRUCTION_KINDS.indexOf(document.kind as (typeof INSTRUCTION_KINDS)[number]);
+        // Counts of pieces and millilitres in the instruction are valid for the registry rows of its own
+        // registrations only; an instruction matched to the card by its substance has none.
+        const own = new Set(document.registrationKeys);
+        const productRows: { form: string; strength: string }[] = [];
+        for (const cardIndex of cardIndexes) {
+          for (const row of input.cards[cardIndex]?.rows ?? []) {
+            if (!row.registrations.some((key) => own.has(key))) continue;
+            if (
+              !productRows.some((item) => item.form === row.form && item.strength === row.strength)
+            ) {
+              productRows.push({ form: row.form, strength: row.strength });
+            }
+          }
+        }
         raw.push({
           id: document.id,
+          productRows,
           document: {
             c: [...cardIndexes],
             m: moduleIndex,
@@ -220,7 +239,6 @@ export function createDoseBuilder(input: { readonly cards: readonly DoseBuildCar
       }
       raw = raw.filter((item) => kept.has(item.id)).toSorted((a, b) => a.id.localeCompare(b.id));
       const documents: DoseRuleIndexAsset['documents'] = {};
-      for (const item of raw) documents[item.id] = item.document;
 
       const forms: string[] = [];
       const formIndex = new Map<string, number>();
@@ -232,6 +250,18 @@ export function createDoseBuilder(input: { readonly cards: readonly DoseBuildCar
         forms.push(key);
         return forms.length - 1;
       };
+      for (const item of raw) {
+        documents[item.id] = {
+          ...item.document,
+          ...(item.productRows.length === 0
+            ? {}
+            : {
+                ps: item.productRows.map(
+                  (row) => [indexOfForm(row.form), row.strength] as [number, string],
+                ),
+              }),
+        };
+      }
       const unitOrder: readonly PackUnit[] = ['piece', 'ml', 'g', 'other'];
       const cards = input.cards.map((card) => ({
         s: card.id.replace(/^esklp\.mnn\./u, ''),

@@ -10,6 +10,8 @@ function resolved(quote: string, sectionTitle: string): ResolvedRule {
     computable: true,
     quote,
     context: null,
+    indication: null,
+    severalRegimens: false,
     sectionTitle,
     anchor: null,
   };
@@ -19,6 +21,8 @@ function option(key: string, quote: string, sectionTitle = 'Способ при�
   return {
     key,
     resolved: resolved(quote, sectionTitle),
+    indication: null,
+    bound: false,
     position: 0,
     match: { fit: 'yes', missing: [] } as unknown as RuleOption['match'],
     plan: {} as RuleOption['plan'],

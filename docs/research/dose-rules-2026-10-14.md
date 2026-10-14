@@ -110,10 +110,56 @@ takes tablet or millilitre counts of the instruction's own product for every reg
 every rule of the instruction to `checkCaps`, so caps of rejected shapes are compared and shown (887 of 1 223 cap rules are rejected shapes;
 167 of the 881 documents with a computing dose rule hold one): the audit's Temalgin page shows an adolescent cap (2 tablets, shape
 `rejected.context`, population «Взрослые» carried over from a heading 1 300 characters up) next to the adult cap.
-Recommendation: do not ship computed doses as they are. A narrower gate cannot reach zero by shape: the four wrong rules sit in the core
+Recommendation (answered by the RX4 fixes below): do not ship computed doses as they are. A narrower gate cannot reach zero by shape: the four wrong rules sit in the core
 shapes `dose.local.abs.*` and `cap.local`; dropping `cap.local` numbers (2/8 wrong) helps only caps. Fix the four causes, gate the cap
 comparison, make the signa route and the spoon / ampoule words come from the dosage form, refuse a rounding beyond a small tolerance and
 tie piece / ml counts to the strength of the instruction's product; then draw a new sample of at least 150 rules from untouched documents.
+
+**Fixes after the audit (RX4, 2026-10-14).** Every finding of RX3 was fixed at its cause (ADR-0025, decisions 8–9); each has a unit test
+with the audit's own sentence (`dose-gate.test.ts`, `dose-compute.test.ts`, `prescription-text.test.ts`, `prescription-model.test.ts`).
+
+| # | Finding | Fix |
+|---|---|---|
+| 1 | weight / age on the line after the sentence (ibuprofen + paracetamol) | `attachQualifierLines` (`dose-parse.ts`) joins a following bracket or lower-case continuation that prints an age or weight bound to the sentence (the quote shows it; the shared `splitSentenceSpans` is untouched); a bracket that may head the next sentence rejects the sentence (`qualifierFollows`, `rejected.population`). In the 6 124 dosage sections of the indexed documents it joins 4 sentences (the audit's) and rejects none; a capital-letter line («От 3 до 18 лет», «Масса тела») is a heading and is never joined |
+| 2 | population read from «ребенок» under the heading «Дети 4 лет и старше с массой тела менее 30 кг»; co-medication condition (rufinamide cap) | a group-only clause is read within the printed bounds of the heading above it (`narrowedBy` in `inheritedBy`: the clause's group, the heading's age and weight; «Взрослые:» under «Взрослые и дети старше 12 лет массой тела более 50 кг» stays 18 years and gets 50 kg), and the gate then asks for a plain heading; `CO_MEDICATION` («если … не принимает/принимает …», «пациентам, принимающим …») rejects any rule kind (`rejected.special`) |
+| 3 | cap range «от 50 до 70 мл» + per-age list taken as 70 ml (povidone) | `capsOf` keeps both ends (`d0`, `d1`), the gate rejects a cap with `d0`, and `CAP_RANGE` (words «от N до M») joins the dash test (`rejected.cap`); rufinamide's «от 1800 мг до 3200 мг» (a cap at the permissive end) is rejected the same way |
+| 4 | «суточные дозы: 1–2 таблетки 2–3 раза в сутки» read per day | a day's total of pieces smaller than the lower number of intakes is rejected (`rejected.basis`) |
+| 5 | the gate bypassed for caps | `checkCaps(…, trusted)`: only `ResolvedRule.computable` caps are compared, a rejected cap is quoted (`quoted`); range caps are never compared |
+| 6 | route «Внутрь» for rectal / vaginal / sublingual, «Наружно» for a lozenge; «1 шт.» for a spoon | `routeOfForm` reads the route from the dosage form's own wording (a suppository the wording does not place gets none; a lozenge «Рассасывать»); `подъязычно` is a sublingual route; `PIECE_KINDS` tell teaspoon, tablespoon, dessertspoon, measuring spoon / cap / cup, ampoule and vial apart and the sign names what the instruction counts («1 столовая ложка», «1/2 чайной ложки (2,5 мл)») |
+| 7 | rounding +100 … +300 % | `ROUNDING_TOLERANCE_PERCENT` = 10: beyond it the dose stays a mass («2,5 мг»), no count of pieces or millilitres, no quantity, the nearest dose and its deviation are named on screen; within the tolerance the deviation (≥ 1 %) is printed |
+| 8 | one count for every registry strength | index field `ps` = the registry rows of the instruction's own registrations; `productTie` (strengths compared by what they say) decides; another strength: a mass rule is recomputed, a rule in pieces / ml / drops gives `strength-mismatch` (no count) |
+| 9 | indication-bound sentences (21 %) | `i` (range of «при амебиазе» / «Для лечения» / the heading / the name of the state that opens the sentence) and `sv` (one of several regimens of the population) in the index; the screen prints the indication beside the number, and the general sentence comes first (`RuleOption.bound`) |
+
+**Numbers before / after.** `bun run benchmark:dose-precision [--dev | --file=…]`: the rules the gate lets compute, and how many of those are wrong in some
+field. Between the audit and these fixes the instruction modules were republished (OCR1, 2026-10-14: re-prepared OCR texts), which moves offsets and
+removes some judged rules (a judged rule whose sentence no longer yields a rule does not compute), so the table gives both bases.
+
+| Set (judged) | Modules of the audit: RX3 gate | After RX4 | Current modules (OCR1): RX3 gate | After RX4 |
+|---|---|---|---|---|
+| Blind (200) | 36 compute, 0 wrong | 36, 0 | 33, 0 | **33, 0** (CI 0–10.6 %) |
+| Development (309) | 186, 0 | 186, 0 | 178, 0 | **178, 0** (0–2.1 %) |
+| Fresh draws (182) | 156, 0 | 156, 0 | 144, 0 | **144, 0** (0–2.5 %) |
+| **Audit (120)** | 120, **4 wrong (3.3 %, CI 0.9–8.3 %)** | 116, **0** (0–3.1 %) | 115, **4 (3.5 %, 1.0–8.7 %)** | 111, **0** (0–3.3 %) |
+| `benchmark:dose` (134 cases) | exact 83, missing 51, wrong 0 | 83 / 51 / 0 | exact 80, missing 51, wrong 3 (OCR1 changed the first sentence of кларитромицин ×2, карбамазепин; run with the RX4 app code on the index of the RX3 parser) | **82 / 52 / 0** |
+
+The audit file is **no longer an independent measure**: its four wrong rules were fixed, so 0 wrong there proves only that the four causes are gone;
+the rules that changed and still compute were re-judged by hand (on the old modules three spoon kinds, a vial, a sublingual route; on the OCR1 modules a
+cap route, a lost route line and three course lengths whose heading line is no longer a line of its own): all correct. The gate's family evidence now
+pools every hand-judged set (`GATE_MIN_JUDGED` = 9 per family over the development, blind, fresh and audit sets; none wrong): `cap.heading` has 20 (it fell
+to 8 in the development sample alone when the rufinamide-like cap left it). `benchmark:dose` after OCR1 and RX4: six first answers were read against
+their sentences and accepted — clarithromycin ×2 (the general adult sentence), carbamazepine (alcohol withdrawal, accepted only while the screen names the
+indication) and ceftriaxone ×3 (both sentences of the top instruction are regimens of one indication; accepted only while marked); fluconazole 6 y 20 kg
+moved from exact to missing: its sentence («у детей больных СПИДом …») sits under a heading «Дети от 3 лет …», so it now stands under that heading's bound
+and is rejected as context instead of being offered to a 1-year-old.
+
+**Coverage (current modules, index).** ЖНВЛП cards with a computing dose rule: **280 of 905 (30.9 %; 36.4 % of the 770 with an instruction) → 280, unchanged**
+(adult 251, child 68, cap 99, course 46 — also unchanged); gate-passing rules 1 434 / 331 / 292 → 1 425 / 328 / 292 (dose / cap / course). 460 of the 1 425
+computing dose rules (32 %) are bound to an indication (292 name it, 168 more are only «one of several regimens»): only 218 ЖНВЛП cards (626 cards in
+all) keep a **general** dose sentence, the other 62 ЖНВЛП cards show their dose with its indication. On the screens of the audit's computing rules (184 screens:
+every registry strength of the instruction's form, up to five per rule): 19 show no count because the strength is not the instruction's, 18 show the dose
+without a count because the rounding would exceed 10 %, none prints «шт.» for a spoon or «Внутрь» for a suppository or a lozenge.
+Not measured: a new independent sample. **Recommendation: draw a fresh audit of at least 150 gate-passing rules from untouched documents before a release
+ships the numbers; if it finds a wrong rule, ship with `computedDoses: false`** (a release setting, ADR-0025 decision 9).
 
 Known limits (unchanged): sentences about other drugs in combination regimens are filtered heuristically; ЕСКЛП has no suspension form
 for amoxicillin so the suspension strengths come from the instruction text; when Allmed has no Latin name the Rp line is Russian in the

@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import type { DoseRule } from '@localmed/contracts';
-import { RULE_CAP, RULE_DOSE, RULE_DURATION } from '@localmed/contracts';
+import { PIECE_KINDS, RULE_CAP, RULE_DOSE, RULE_DURATION } from '@localmed/contracts';
 import { describe, expect, it } from 'vitest';
 
 import { canonicalSectionText } from '@/features/drug-interactions/interaction-text';
@@ -284,5 +284,204 @@ describe('fixes at the cause (RX2)', () => {
     const prose =
       'Препарат применяют при местнораспространенном раке, ингаляционные анестетики не нужны.\nВзрослым по 100 мг 2 раза в сутки.';
     expect(parse(prose).doses[0]?.rt).toBeUndefined();
+  });
+});
+
+describe('the four wrong rules of the RX3 audit, with the audit’s own sentences', () => {
+  const IBUPROFEN = [
+    'Рекомендуемая доза',
+    'Минимальный интервал времени между приемами препарата – 6 ч.',
+    'Разовые и суточные дозы, а также кратность приема зависят от возраста и веса ребенка:',
+    'Дети в возрасте 6-9 лет',
+    'Разовая доза – 1 таблетка.',
+    '(масса тела 21-30 кг)',
+    'Применяется до четырех раз в сутки.',
+    'Максимальная суточная доза – 4 таблетки.',
+    'Дети в возрасте старше 12 лет',
+    'Разовая доза – 2 таблетки.',
+    '(до 18 лет), масса тела ≥41 кг',
+    'Применяется до четырех раз в сутки.',
+    'Максимальная суточная доза – 8 таблеток.',
+  ].join('\n');
+
+  it('1. reads the weight on the line after the sentence, or does not compute (ibuprofen + paracetamol)', () => {
+    const parsed = parse(IBUPROFEN, {
+      dosageForm: 'таблетки диспергируемые',
+      subject: ['Ибупрофен + Парацетамол'],
+    });
+    // «старше 12 лет … 2 таблетки» + «(до 18 лет), масса тела ≥41 кг»: the qualifier is part of the sentence
+    // now, so the 12-year-old of 30 kg is not offered 2 tablets (no rule, or a rule that is only quoted).
+    const older = parsed.doses.filter((dose) => parsed.quote(dose).includes('старше 12'));
+    for (const dose of older) expect(mayCompute(dose)).toBe(false);
+    // «(масса тела 21-30 кг)» is joined to «Разовая доза – 1 таблетка.»: the quote carries it.
+    const middle = parsed.doses.find((dose) => parsed.quote(dose).includes('6-9 лет'));
+    expect(middle && parsed.quote(middle)).toContain('(масса тела 21-30 кг)');
+    expect(middle?.w0).toBe(210);
+    expect(middle?.w1).toBe(300);
+    // …and a 6-year-old of 12 kg is never offered the sentence of the 21–30 kg band.
+    expect(middle && mayCompute(middle)).toBe(false);
+  });
+
+  it('1. marks a sentence whose bracket may head the next one, and rejects it', () => {
+    const text =
+      'Взрослым – по 2 таблетки 3 раза в сутки.\n(старше 6 лет) По 1 таблетке 2 раза в сутки.';
+    const { doses } = parse(text);
+    expect(doses.length).toBeGreaterThan(0);
+    const first = doses.find((dose) => dose.d0 === 2);
+    expect(first && shapeOf(first)).toBe('rejected.population');
+  });
+
+  it('2. rejects the cap of a child who does not take another drug (rufinamide)', () => {
+    const text = [
+      'Дети в возрасте 4 лет и старше с массой тела менее 30 кг',
+      'Рекомендуемая начальная доза составляет 200 мг в день. Препарат принимают в двух равных дозах.',
+      'Максимальная суточная доза будет зависеть от того, принимает ли ребенок вальпроат. Если ребенок не принимает вальпроат, то максимальная суточная доза составляет 1000 мг ежедневно. Максимальная суточная доза при одновременном приеме вальпроата составляет 600 мг ежедневно.',
+    ].join('\n');
+    const { caps } = parse(text, { subject: ['Руфинамид'] });
+    expect(caps.length).toBeGreaterThan(0);
+    for (const cap of caps) {
+      expect(mayCompute(cap), JSON.stringify(cap)).toBe(false);
+      expect(shapeOf(cap)).toBe('rejected.special');
+    }
+  });
+
+  it('2. takes the bounds of the heading for a clause that names only the group', () => {
+    const { doses } = parse(
+      'Дети 6-12 лет\nРекомендуемая начальная доза составляет 100 мг в день.\nДетям назначают по 200 мг 2 раза в сутки.',
+    );
+    const dose = doses.find((item) => item.d0 === 200) as DoseRule;
+    // Without the heading the word «детям» would stand for every child under 18.
+    expect(dose.p0).toBe(Math.round(6 * 365.25));
+    expect(dose.p1).toBe(Math.round(12 * 365.25));
+    expect(dose.h).toBeDefined();
+    // The heading is a plain line with the bounds: the sentence is read under it, not as «any child».
+    expect(shapeOf(dose)).toBe('dose.heading.abs.freq');
+  });
+
+  it('2. keeps «Взрослые:» adults under a heading of adults and children, and takes the weight (ceftriaxone)', () => {
+    const text = [
+      'Взрослые и дети старше 12 лет массой тела более 50 кг',
+      'Обычная доза составляет 1–2 г цефтриаксона 1 раз в сутки.',
+      'Инфекция среднего уха',
+      'Взрослые: доза препарата составляет 1–2 г однократно только внутримышечно.',
+    ].join('\n');
+    const { doses } = parse(text, {
+      dosageForm: 'раствор для внутримышечного введения',
+      subject: ['Цефтриаксон'],
+    });
+    const adults = doses.find((dose) => dose.g === 1) as DoseRule;
+    // Not «12 years and more» (the heading’s bound) but adults (18 years) of at least 50 kg.
+    expect(adults.p0).toBe(Math.round(18 * 365.25));
+    expect(adults.w0).toBe(500);
+    expect(adults.h).toBeDefined();
+    expect(mayCompute(adults)).toBe(false);
+  });
+
+  it('3. keeps a range cap whole and rejects it (povidone, «от 50 до 70 мл» and a per-age list)', () => {
+    const text =
+      'Разовая доза для взрослых – от 200 до 500 мл; для детей от 5 до 10 мл/кг. Максимальная\nразовая доза для детей грудного возраста – от 50 до 70 мл»; в возрасте от 2 до 5 лет -\n100 мл; от 5 до 10 лет - 150 мл; от 10 до 15 лет - 200 мл.';
+    const { caps } = parse(text, { dosageForm: 'раствор для инфузий', subject: ['Повидон'] });
+    const infants = caps.find((cap) => cap.d1 === 70);
+    expect(infants).toBeDefined();
+    expect(infants?.d0).toBe(50);
+    expect(shapeOf(infants as DoseRule)).toBe('rejected.cap');
+    expect(mayCompute(infants as DoseRule)).toBe(false);
+    // The gate rejects a range cap even when the rule lost its lower end.
+    expect(
+      shapeOf(
+        parse('Максимальная разовая доза для детей – от 50 до 70 мл.', {
+          dosageForm: 'раствор для инфузий',
+        }).caps[0] as DoseRule,
+      ),
+    ).toBe('rejected.cap');
+  });
+
+  it('4. rejects a day’s total of pieces smaller than the intakes (metamizole + pitofenone + fenpiverinium)', () => {
+    const text = [
+      'Для приема внутрь.',
+      'Таблетки принимают после еды, не разжевывая, запивая водой.',
+      'Рекомендуемые суточные дозы:',
+      'Для взрослых: 1–2 таблетки 2–3 раза в сутки.',
+    ].join('\n');
+    const { doses } = parse(text, {
+      subject: ['Метамизол натрия+Питофенон+Фенпивериния бромид'],
+    });
+    const adults = doses.find((dose) => dose.d0 === 1 && dose.d1 === 2);
+    expect(adults).toBeDefined();
+    expect(shapeOf(adults as DoseRule)).toBe('rejected.basis');
+    expect(mayCompute(adults as DoseRule)).toBe(false);
+    // A real day’s total with enough pieces is still read as a day’s total.
+    const fine = parse('Суточная доза составляет 6 таблеток в 3 приема.').doses;
+    expect(fine[0] && shapeOf(fine[0])).not.toBe('rejected.basis');
+  });
+
+  it('keeps the unit for a spoon of a syrup, an ampoule and a vial apart', () => {
+    const spoon = parse('Взрослым – по 1 столовой ложке 3 раза в день.', {
+      dosageForm: 'сироп',
+    }).doses[0] as DoseRule;
+    expect(PIECE_KINDS[spoon.qu ?? 9]).toBe('tablespoon');
+    expect(mayCompute(spoon)).toBe(true);
+    const tea = parse('Детям от 2 до 3 лет – по 1/2 чайной ложки (2,5 мл) 2 раза в день.', {
+      dosageForm: 'сироп',
+    }).doses[0] as DoseRule;
+    expect(PIECE_KINDS[tea.qu ?? 9]).toBe('teaspoon');
+    expect(tea.d0).toBe(2.5);
+    const ampoule = parse('Взрослым – по 1 ампуле 1 раз в сутки.', {
+      dosageForm: 'раствор для внутримышечного введения',
+    }).doses[0] as DoseRule;
+    expect(PIECE_KINDS[ampoule.qu ?? 9]).toBe('ampoule');
+    const vial = parse('Взрослым – по 1 флакону 1 раз в сутки.', {
+      dosageForm: 'раствор для внутримышечного введения',
+    }).doses[0] as DoseRule;
+    expect(PIECE_KINDS[vial.qu ?? 9]).toBe('vial');
+  });
+});
+
+describe('the indication a sentence is bound to (RX3 audit: 21 % of the sentences)', () => {
+  const text = (rule: DoseRule, source: string): string | null => {
+    const canonical = canonicalSectionText(source.split('\n')).text;
+    return rule.i ? canonical.slice(rule.i[0], rule.i[1]).replace(/\s+/gu, ' ') : null;
+  };
+
+  it('names the indication of a phrase in the sentence (tinidazole: intestinal amoebiasis)', () => {
+    const source =
+      'При трихомониазе и лямблиозе дети принимают дозу из расчета 50–75 мг/кг массы тела в сутки. При кишечном амебиазе дети принимают дозу из расчета 50–60 мг/кг/сутки; курс лечения – 3 дня.';
+    const doses = parse(source, { subject: ['Тинидазол'] }).doses;
+    const amoebiasis = doses.find((dose) => dose.d1 === 60) as DoseRule;
+    expect(mayCompute(amoebiasis)).toBe(true);
+    expect(text(amoebiasis, source)).toBe('При кишечном амебиазе');
+  });
+
+  it('takes the heading «Для лечения» for every item of the list under it (Cytovir)', () => {
+    const source = [
+      'Рекомендуемая доза',
+      'Для лечения',
+      'Для детей в возрасте от 1 до 3 лет – по 2 мл сиропа 3 раза в день;',
+      'для детей в возрасте от 3 до 6 лет – по 4 мл 3 раза в день;',
+      'для детей в возрасте старше 10 лет – по 12 мл 3 раза в день.',
+    ].join('\n');
+    const { doses } = parse(source, { dosageForm: 'сироп', subject: ['Цитовир'] });
+    expect(doses).toHaveLength(3);
+    for (const dose of doses) expect(text(dose, source)).toBe('Для лечения');
+  });
+
+  it('names no indication for a plain statement', () => {
+    const { doses } = parse('Взрослые и дети старше 12 лет – по 250 мг 2 раза в сутки.');
+    expect(doses[0]?.i).toBeUndefined();
+    expect(doses[0]?.sv).toBeUndefined();
+  });
+
+  it('marks the regimens of one population that differ as several', () => {
+    const source = [
+      'Для профилактики',
+      'Взрослым по 100 мг 1 раз в сутки.',
+      'Для лечения',
+      'Взрослым по 200 мг 2 раза в сутки.',
+    ].join('\n');
+    const { doses } = parse(source);
+    expect(doses).toHaveLength(2);
+    for (const dose of doses) expect(dose.sv).toBe(1);
+    expect(text(doses[0] as DoseRule, source)).toBe('Для профилактики');
+    expect(text(doses[1] as DoseRule, source)).toBe('Для лечения');
   });
 });

@@ -482,9 +482,15 @@
         {
           "quote": "Инфекция среднего уха (острый средний отит) Взрослые: доза препарата составляет 1–2 г одно",
           "single": 1000
+        },
+        {
+          "quote": "Однократное внутримышечное введение 250 мг препарата Азарексон взрослым пациентам и",
+          "single": 250,
+          "bound": true
         }
       ],
-      "forbid": ["новорожденных детей"]
+      "forbid": ["новорожденных детей"],
+      "note": "RX4 rebase onto the OCR1 modules: the top ceftriaxone instruction no longer has the general sentence the gate lets compute; both sentences it offers are regimens of one indication (gonorrhea 250 mg, otitis media 1–2 g), so the screen marks the first «один из режимов в инструкции»; accepted only while marked (`bound`)"
     },
     {
       "id": "ctx-70kg-owner",
@@ -500,8 +506,14 @@
         {
           "quote": "Инфекция среднего уха (острый средний отит) Взрослые: доза препарата составляет 1–2 г одно",
           "single": 1000
+        },
+        {
+          "quote": "Однократное внутримышечное введение 250 мг препарата Азарексон взрослым пациентам и",
+          "single": 250,
+          "bound": true
         }
-      ]
+      ],
+      "note": "RX4 rebase onto the OCR1 modules: the top ceftriaxone instruction no longer has the general sentence the gate lets compute; both sentences it offers are regimens of one indication (gonorrhea 250 mg, otitis media 1–2 g), so the screen marks the first «один из режимов в инструкции»; accepted only while marked (`bound`)"
     },
     {
       "id": "ctx-45y-80kg",
@@ -517,8 +529,14 @@
         {
           "quote": "Инфекция среднего уха (острый средний отит) Взрослые: доза препарата составляет 1–2 г одно",
           "single": 1000
+        },
+        {
+          "quote": "Однократное внутримышечное введение 250 мг препарата Азарексон взрослым пациентам и",
+          "single": 250,
+          "bound": true
         }
-      ]
+      ],
+      "note": "RX4 rebase onto the OCR1 modules: the top ceftriaxone instruction no longer has the general sentence the gate lets compute; both sentences it offers are regimens of one indication (gonorrhea 250 mg, otitis media 1–2 g), so the screen marks the first «один из режимов в инструкции»; accepted only while marked (`bound`)"
     },
     {
       "id": "ctx-6y-20kg",
@@ -583,9 +601,16 @@
           "single": 250,
           "intakes": 2,
           "daily": 500
+        },
+        {
+          "quote": "Взрослым и детям старше 12 лет - по 250 мг кларитромицина 2 раза в день.",
+          "single": 250,
+          "intakes": 2,
+          "daily": 500
         }
       ],
-      "forbid": ["у детей составляет 7,5 мг/кг"]
+      "forbid": ["у детей составляет 7,5 мг/кг"],
+      "note": "RX4 rebase onto the OCR1 modules: the general adult sentence of the republished instruction is now the first one; read against the instruction and accepted"
     },
     {
       "id": "cla-40y-70kg",
@@ -597,8 +622,15 @@
           "single": 250,
           "intakes": 2,
           "daily": 500
+        },
+        {
+          "quote": "Взрослым и детям старше 12 лет - по 250 мг кларитромицина 2 раза в день.",
+          "single": 250,
+          "intakes": 2,
+          "daily": 500
         }
-      ]
+      ],
+      "note": "RX4 rebase onto the OCR1 modules: the general adult sentence of the republished instruction is now the first one; read against the instruction and accepted"
     },
     {
       "id": "cla-6y-20kg",
@@ -866,8 +898,15 @@
           "single": 10,
           "intakes": 1,
           "daily": 10
+        },
+        {
+          "quote": "Поддерживающая доза – 1 таблетка 20 мг 1 раз в сутки.",
+          "single": 20,
+          "intakes": 1,
+          "daily": 20
         }
-      ]
+      ],
+      "note": "RX4: the general maintenance sentence now comes before the sentences bound to an indication (mild hypertension); read against the instruction and accepted"
     },
     {
       "id": "ena-50y-80kg",
@@ -885,8 +924,15 @@
           "single": 10,
           "intakes": 1,
           "daily": 10
+        },
+        {
+          "quote": "Поддерживающая доза – 1 таблетка 20 мг 1 раз в сутки.",
+          "single": 20,
+          "intakes": 1,
+          "daily": 20
         }
-      ]
+      ],
+      "note": "RX4: the general maintenance sentence now comes before the sentences bound to an indication (mild hypertension); read against the instruction and accepted"
     },
     {
       "id": "cap-adult",
@@ -1382,8 +1428,16 @@
         {
           "quote": "Острые маниакальные состояния и поддерживающее лечение аффективных (биполярных) расстройст",
           "daily": 400
+        },
+        {
+          "quote": "Синдром алкогольной абстиненции Средняя доза составляет 200 мг 3 раза в сутки.",
+          "single": 200,
+          "intakes": 3,
+          "daily": 600,
+          "bound": true
         }
-      ]
+      ],
+      "note": "RX4 rebase onto the OCR1 modules: every dose sentence of the republished instruction is the regimen of one indication; the first is accepted only while the screen names the indication («Синдром алкогольной абстиненции»)"
     },
     {
       "id": "crb-6y-20kg",

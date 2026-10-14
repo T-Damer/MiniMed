@@ -73,3 +73,29 @@ export function parsePrescriptionDraft(text: string): PrescriptionDraft {
   if (!parsed.success) throw new Error('Черновик назначения повреждён.');
   return parsed.data;
 }
+
+/**
+ * The settings of the prescription tool and of the dose card in search (RX4). They are release data
+ * (`apps/app/src/features/prescription/data/prescription-settings.json`), not a user preference.
+ *
+ * - `computedDoses`: the numbers the tool works out from the dose sentences of an instruction (single
+ *   and daily dose for the patient, units per intake, caps compared, quantity and packages). `false`
+ *   ships the tool with the sentences quoted only: forms, the blank and the recipe text stay, nothing
+ *   is computed. A release turns it off when the independent audit of the computed doses fails.
+ */
+export const prescriptionSettingsSchema = z
+  .object({
+    computedDoses: z.boolean(),
+  })
+  .strict();
+
+export type PrescriptionSettings = z.infer<typeof prescriptionSettingsSchema>;
+
+/** Validates the shipped settings once; a malformed file is an error, never a silent «on». */
+export function parsePrescriptionSettings(value: unknown): PrescriptionSettings {
+  const parsed = prescriptionSettingsSchema.safeParse(value);
+  if (!parsed.success) {
+    throw new Error(`Prescription settings: ${parsed.error.issues[0]?.message ?? 'malformed'}`);
+  }
+  return parsed.data;
+}

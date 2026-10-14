@@ -150,7 +150,10 @@ function loadEsklpCards(): readonly DoseBuildCard[] {
       const metadata = JSON.parse(row.metadata_json) as Record<string, unknown>;
       const registrations = new Set<string>();
       const tradeCounts = new Map<string, number>();
-      const registry = new Map<string, { row: DoseBuildRow; packs: Set<number> }>();
+      const registry = new Map<
+        string,
+        { row: Omit<DoseBuildRow, 'registrations'>; packs: Set<number>; registrations: Set<string> }
+      >();
       let essential = false;
       const nodes = Array.isArray(metadata['smnnNodes']) ? metadata['smnnNodes'] : [];
       for (const node of nodes as readonly Record<string, unknown>[]) {
@@ -179,9 +182,12 @@ function loadEsklpCards(): readonly DoseBuildCard[] {
             entry = {
               row: { form: form.toLocaleLowerCase('ru-RU'), strength: clean, unit, packs: [] },
               packs: new Set(),
+              registrations: new Set(),
             };
             registry.set(key, entry);
           }
+          const registration = textOf(position['registrationNumber']);
+          if (registration) entry.registrations.add(normalizeRegistrationKey(registration));
           const count = position['unitCount'];
           if (typeof count === 'number' && count > 0) entry.packs.add(count);
         }
@@ -198,9 +204,10 @@ function loadEsklpCards(): readonly DoseBuildCard[] {
         ...card,
         registrationKeys: [...registrations].toSorted(),
         rows: [...registry.values()]
-          .map(({ row: item, packs }) => ({
+          .map(({ row: item, packs, registrations: keys }) => ({
             ...item,
             packs: [...packs].toSorted((a, b) => a - b).slice(0, MAX_PACKS_PER_ROW),
+            registrations: [...keys].toSorted(),
           }))
           .toSorted(
             (a, b) =>
