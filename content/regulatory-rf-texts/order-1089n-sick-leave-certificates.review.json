@@ -53,14 +53,14 @@
       "page": 32,
       "kind": "boxes",
       "find": "«с □□-□□-□□□»",
-      "replace": "«с □□-□□-□□□»",
+      "replace": "«с □□-□□-□□□□»",
       "why": "The date cell of the form is «□□-□□-□□□□» (four boxes for the year, counted from the ruling); Marker drew three."
     },
     {
       "page": 33,
       "kind": "boxes",
       "find": "«□□-□□-□□□»",
-      "replace": "«□□-□□-□□□»",
+      "replace": "«□□-□□-□□□□»",
       "why": "The date cell of the form is «□□-□□-□□□□» (four boxes for the year, counted from the ruling); Marker drew three."
     },
     {
