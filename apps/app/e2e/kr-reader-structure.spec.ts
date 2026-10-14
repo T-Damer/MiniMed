@@ -66,14 +66,22 @@ async function settleScroll(page: Page): Promise<void> {
 }
 
 async function scrollChunkTo(page: Page, index: number, top: number): Promise<void> {
-  await page.evaluate(
-    ({ index: chunk, top: target }) => {
-      const element = document.querySelectorAll('.document-text-chunk')[chunk];
-      const current = element?.getBoundingClientRect().top ?? 0;
-      window.scrollBy({ top: current - target, behavior: 'instant' });
-    },
-    { index, top },
-  );
+  // The reader mounts more sections while idle and the page above the chunk can grow, so scroll
+  // again until the chunk really sits at `top`.
+  await expect
+    .poll(async () => {
+      const offset = await page.evaluate(
+        ({ index: chunk, top: target }) => {
+          const element = document.querySelectorAll('.document-text-chunk')[chunk];
+          const current = element?.getBoundingClientRect().top ?? 0;
+          window.scrollBy({ top: current - target, behavior: 'instant' });
+          return Math.abs(current - target);
+        },
+        { index, top },
+      );
+      return offset < 4;
+    })
+    .toBe(true);
   await settleScroll(page);
 }
 
