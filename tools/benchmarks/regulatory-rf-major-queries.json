@@ -166,7 +166,7 @@
     "expectedDocumentNumber": "274н",
     "expectedPublicationNumber": "0001202505300033",
     "expectedSectionType": "other",
-    "expectedAnchorPrefix": "regulatory.rf.minzdrav.274n-2025-sanatorium-forms@274n-2025-05-13-reviewed-2026-07-31/форма-070-у-справка-для-получения-путевки",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.274n-2025-sanatorium-forms@274n-2025-05-13-reviewed-2026-07-31/приложение-no-6/порядок-ведения-учетной-формы-no-070-у-справка-для-получения-путевки-на-санаторн",
     "requireTop1": true,
     "category": "sanatorium-forms"
   },
@@ -178,7 +178,7 @@
     "expectedDocumentNumber": "274н",
     "expectedPublicationNumber": "0001202505300033",
     "expectedSectionType": "other",
-    "expectedAnchorPrefix": "regulatory.rf.minzdrav.274n-2025-sanatorium-forms@274n-2025-05-13-reviewed-2026-07-31/форма-076-у-санаторно-курортная-карта-ребенка",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.274n-2025-sanatorium-forms@274n-2025-05-13-reviewed-2026-07-31/приложение-no-9/санаторно-курортная-карта-для-детей-no",
     "expectedAgeGroups": ["children"],
     "requireTop1": true,
     "category": "sanatorium-forms"
@@ -191,7 +191,7 @@
     "expectedDocumentNumber": "274н",
     "expectedPublicationNumber": "0001202505300033",
     "expectedSectionType": "other",
-    "expectedAnchorPrefix": "regulatory.rf.minzdrav.274n-2025-sanatorium-forms@274n-2025-05-13-reviewed-2026-07-31/форма-072-у-санаторно-курортная-карта-взрослого",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.274n-2025-sanatorium-forms@274n-2025-05-13-reviewed-2026-07-31/приложение-no-7",
     "expectedAgeGroups": ["adults"],
     "requireTop1": true,
     "category": "sanatorium-forms"
@@ -322,7 +322,7 @@
     "expectedDocumentNumber": "120н",
     "expectedPublicationNumber": "0001202603260014",
     "expectedSectionType": "definition",
-    "expectedAnchorPrefix": "regulatory.rf.minzdrav.120n-2026@120n-2026-02-20-reviewed-2026-07-31/общая-информация",
+    "expectedAnchorPrefix": "regulatory.rf.minzdrav.120n-2026@120n-2026-02-20-reviewed-2026-07-31/приложение/порядок-оказания-медицинской-помощи-по-профилю-педиатрия",
     "expectedAgeGroups": ["children"],
     "expectedAudienceLabel": "Для детей",
     "requireTop1": true,

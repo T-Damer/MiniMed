@@ -68,13 +68,6 @@
       "find": "от «27» МАФ 2025 г. № 3311",
       "replace": "от 27 мая 2025 г. № 313н",
       "why": "The annex approval line has the date and number filled in by hand; Marker read the handwriting as «МАФ» and «3311». Date and number are the portal's."
-    },
-    {
-      "page": 8,
-      "kind": "stray",
-      "find": "от 27 мая 2025 г. № 313н*",
-      "replace": "от 27 мая 2025 г. № 313н",
-      "why": "A stray asterisk after the number of the order in the annex header; the date and number are the portal's (handwritten on the original)."
     }
   ]
 }

@@ -45,7 +45,7 @@
   },
   {
     "id": "regulatory.192n.specialist",
-    "query": "Что делать если в поликлинике нет специалиста для диспансерного наблюдения ребенка",
+    "query": "Что делать, если врач-специалист для диспансерного наблюдения несовершеннолетнего отсутствует в медицинской организации",
     "expectedDocumentId": "regulatory.rf.minzdrav.192n-2025",
     "expectedVersionId": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11",
     "expectedDocumentNumber": "192н",
@@ -194,7 +194,7 @@
   },
   {
     "id": "regulatory.157fz.school-restriction",
-    "query": "Могут ли временно отказать в приеме в школу или детский сад непривитому ребенку при угрозе эпидемии",
+    "query": "Отсутствие профилактических прививок: временный отказ в приеме граждан в образовательные и оздоровительные организации при угрозе эпидемий",
     "expectedDocumentId": "regulatory.rf.federal-law.157-fz-1998",
     "expectedVersionId": "regulatory.rf.federal-law.157-fz-1998@157-fz-1998-09-17-reviewed-2026-07-30",
     "expectedDocumentNumber": "157-ФЗ",
@@ -216,7 +216,7 @@
   },
   {
     "id": "regulatory.157fz.records",
-    "query": "Где учитываются сведения о прививках и отказах от вакцинации",
+    "query": "Государственное статистическое наблюдение в области иммунопрофилактики: какие сведения о профилактических прививках учитываются",
     "expectedDocumentId": "regulatory.rf.federal-law.157-fz-1998",
     "expectedVersionId": "regulatory.rf.federal-law.157-fz-1998@157-fz-1998-09-17-reviewed-2026-07-30",
     "expectedDocumentNumber": "157-ФЗ",

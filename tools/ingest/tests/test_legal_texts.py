@@ -388,3 +388,12 @@ def test_a_labelled_row_cut_by_the_page_break_runs_on_into_the_quoted_names_and_
         labelled_rows=True,
     )
     assert len(closed) == 1
+
+
+def test_an_empty_row_between_filled_rows_is_dropped_but_a_blank_form_stays() -> None:
+    from localmed_ingest.legal_texts import _without_stray_empty_rows
+
+    stray = [["№", "Name"], ["", ""], ["1.", "Стол"], ["", ""], ["2.", "Лампа"]]
+    assert _without_stray_empty_rows(stray) == [["№", "Name"], ["1.", "Стол"], ["2.", "Лампа"]]
+    form = [["№", "Name"], ["", ""], ["", ""]]
+    assert _without_stray_empty_rows(form) == form

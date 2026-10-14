@@ -295,7 +295,26 @@ def merge_pages(pages: list[list[Block]], *, labelled_rows: bool = False) -> lis
         else:
             merged.extend(tail)
     merged.extend(carried_footnotes)
+    for block in merged:
+        if block.kind == "table":
+            block.rows = _without_stray_empty_rows(block.rows)
     return merged
+
+
+def _without_stray_empty_rows(rows: list[list[str]]) -> list[list[str]]:
+    """Rows with no text between two rows that have text are an artefact of the reading (an edge or a speck of
+    the scan, a stripped separator); empty rows at the end of a table are a blank form and stay."""
+    kept: list[list[str]] = []
+    for index, row in enumerate(rows):
+        if (
+            not any(cell.strip() for cell in row)
+            and kept
+            and index + 1 < len(rows)
+            and any(cell.strip() for cell in rows[index + 1])
+        ):
+            continue
+        kept.append(row)
+    return kept
 
 
 def _continues_row(previous: list[str], row: list[str]) -> tuple[int, int] | None:

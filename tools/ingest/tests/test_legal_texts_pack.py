@@ -132,6 +132,36 @@ def test_review_logs_are_well_formed() -> None:
         assert path.name.removesuffix(".review.json") in {row["slug"] for row in SOURCES}
 
 
+def _render_tables(body: str) -> list[tuple[str, dict[str, Any]]]:
+    found: list[tuple[str, dict[str, Any]]] = []
+    for match in re.finditer(r"<!-- localmed:source (\{.*\}) -->", body):
+        source = json.loads(match.group(1))
+        block = source.get("renderBlock")
+        if block and block.get("kind") == "table":
+            found.append((f"page {source.get('page')}", block))
+    return found
+
+
+def test_tables_are_rectangular_and_have_no_empty_rows() -> None:
+    """The reader draws a `renderBlock` table as it is: a ragged or an empty row would show as a broken table."""
+    for row in _done():
+        _, body = _card(row)
+        for where, block in _render_tables(body):
+            rows = block["rows"]
+            assert rows and rows[0]["cells"] and all(c["header"] for c in rows[0]["cells"]), (
+                row["slug"],
+                where,
+                "no header row",
+            )
+            widths = {sum(cell["colSpan"] for cell in r["cells"]) for r in rows if r["cells"]}
+            assert len(widths) == 1, (row["slug"], where, f"ragged table, widths {sorted(widths)}")
+            filled = [any(cell["text"].strip() for cell in r["cells"]) for r in rows]
+            # empty rows at the end of a table are the blank lines of a printed form; one between filled rows is an artefact
+            last_filled = max(i for i, f in enumerate(filled) if f)
+            stray = [i + 1 for i, f in enumerate(filled) if not f and i < last_filled]
+            assert not stray, (row["slug"], where, f"empty rows {stray}")
+
+
 def test_the_pack_with_full_texts_builds_and_lints(tmp_path: Path) -> None:
     assert lint_content_pack(load_content_pack(PACK)) == []
     database = tmp_path / "regulatory.db"
