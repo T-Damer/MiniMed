@@ -37,15 +37,23 @@ import {
   importPatientVaultBackup,
   isPatientVaultUnlocked,
   lockPatientVault,
+  openPatientVaultText,
   PatientVaultError,
   patientVaultExists,
   patientVaultStorageMode,
   readPatientBlob,
   readPatientVault,
+  sealPatientVaultText,
   unlockPatientVault,
   updatePatientVault,
   writePatientVault,
 } from '@/state/patient-vault';
+import {
+  createVisitNoteSaver,
+  recoverVisitNotes,
+  saveVisitNote,
+  VISIT_NOTE_WRITE_AHEAD_KEY,
+} from '@/state/patient-visit-note';
 import coreClinical from '../../../../content/tool-modules/core-clinical.json';
 
 const nativeBridge = vi.hoisted(() => {
@@ -809,6 +817,159 @@ describe('browser device-key vault', () => {
       await Promise.all([enableEncryptedVault(), enableEncryptedVault()]);
       expect(isPatientVaultUnlocked()).toBe(true);
       expect(await patientVaultStorageMode()).toBe('browser-device-key');
+    });
+  });
+});
+
+describe('visit note autosave', () => {
+  let fakeDatabase: FakeVaultDatabase;
+  let storage: Map<string, string>;
+
+  const ahead = (): string => storage.get(VISIT_NOTE_WRITE_AHEAD_KEY) ?? '';
+  const until = async (condition: () => boolean): Promise<void> => {
+    for (let attempt = 0; attempt < 200 && !condition(); attempt += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    }
+    expect(condition()).toBe(true);
+  };
+  const saverFor = (patientId: string, delayMs = 20) =>
+    createVisitNoteSaver({
+      patientId,
+      episodeId: () => undefined,
+      onSnapshot: () => undefined,
+      onError: (cause) => {
+        throw cause;
+      },
+      delayMs,
+      newVisitDelayMs: delayMs,
+    });
+
+  beforeEach(() => {
+    fakeDatabase = installIndexedDbDouble();
+    storage = new Map();
+    const target = new EventTarget();
+    vi.stubGlobal('window', {
+      localStorage: {
+        getItem: (key: string) => storage.get(key) ?? null,
+        setItem: (key: string, value: string) => void storage.set(key, value),
+        removeItem: (key: string) => void storage.delete(key),
+      },
+      addEventListener: target.addEventListener.bind(target),
+      removeEventListener: target.removeEventListener.bind(target),
+      dispatchEvent: target.dispatchEvent.bind(target),
+    });
+    vi.stubGlobal('document', new EventTarget());
+    nativeBridge.native = false;
+    nativeBridge.available = false;
+    lockPatientVault();
+  });
+
+  afterEach(() => {
+    lockPatientVault();
+    vi.clearAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it('keeps the write-ahead copy sealed, then drops it once the vault holds the text', async () => {
+    await createPatientVault();
+    const { patientId } = await createPatientInVault({ displayName: 'Пациент' });
+    const saver = saverFor(patientId);
+
+    saver.edit('Кашель третий день');
+    await until(() => ahead() !== '');
+    expect(ahead()).toContain('ciphertext');
+    expect(ahead()).not.toContain('Кашель');
+
+    await expect(saver.flush()).resolves.toBe(true);
+    expect(ahead()).toBe('');
+    const stored = JSON.stringify(fakeDatabase.stores.get('vault')?.get('current'));
+    expect(stored).not.toContain('Кашель');
+    expect((await readPatientVault()).episodes).toMatchObject([
+      { text: 'Кашель третий день', status: 'open' },
+    ]);
+    saver.dispose();
+  });
+
+  it('applies the newest of several quick edits, in order', async () => {
+    await createPatientVault();
+    const { patientId } = await createPatientInVault({ displayName: 'Пациент' });
+    const saver = saverFor(patientId, 5);
+    saver.edit('а');
+    saver.edit('аб');
+    await new Promise((resolve) => setTimeout(resolve, 8));
+    saver.edit('абв');
+    await expect(saver.flush()).resolves.toBe(true);
+    const { episodes } = await readPatientVault();
+    expect(episodes).toHaveLength(1);
+    expect(episodes[0]?.text).toBe('абв');
+    saver.dispose();
+  });
+
+  it('recovers a note typed just before a reload from the write-ahead copy', async () => {
+    await createPatientVault();
+    const { patientId } = await createPatientInVault({ displayName: 'Пациент' });
+    // The durable save never starts: the page is reloaded inside the debounce window.
+    const saver = saverFor(patientId, 60_000);
+    saver.edit('Текст до перезагрузки');
+    await until(() => ahead() !== '');
+    saver.dispose();
+    lockPatientVault();
+    expect((await unlockPatientVault()).episodes).toHaveLength(0);
+
+    const recovered = await recoverVisitNotes();
+    expect(recovered?.episodes).toMatchObject([{ text: 'Текст до перезагрузки', status: 'open' }]);
+    expect(ahead()).toBe('');
+    await expect(recoverVisitNotes()).resolves.toBeUndefined();
+    expect((await readPatientVault()).episodes).toHaveLength(1);
+  });
+
+  it('leaves the copies of a card that is being edited to its own autosave', async () => {
+    await createPatientVault();
+    const { patientId } = await createPatientInVault({ displayName: 'Пациент' });
+    const saver = saverFor(patientId, 60_000);
+    saver.edit('Ещё печатается');
+    await until(() => ahead() !== '');
+    await expect(recoverVisitNotes()).resolves.toBeUndefined();
+    expect(ahead()).not.toBe('');
+    expect((await readPatientVault()).episodes).toHaveLength(0);
+    saver.dispose();
+    // Once the card is closed without saving, the copy is recovered like any other.
+    expect((await recoverVisitNotes())?.episodes).toMatchObject([{ text: 'Ещё печатается' }]);
+  });
+
+  it('writes a plain copy only when the vault itself is plain', async () => {
+    await createPatientVault({ allowUnencrypted: true });
+    const { patientId } = await createPatientInVault({ displayName: 'Пациент' });
+    const saver = saverFor(patientId, 60_000);
+    saver.edit('Открытый текст');
+    await until(() => ahead() !== '');
+    expect(ahead()).toContain('Открытый текст');
+    saver.dispose();
+  });
+
+  it('keeps one open visit when «Создать осмотр» runs twice at once', async () => {
+    await createPatientVault();
+    const { patientId } = await createPatientInVault({ displayName: 'Пациент' });
+    await Promise.all([
+      saveVisitNote({ patientId, text: 'Один', create: true }),
+      saveVisitNote({ patientId, text: 'Один', create: true }),
+    ]);
+    const { episodes } = await readPatientVault();
+    expect(episodes.filter((episode) => episode.status === 'open')).toHaveLength(1);
+    expect(episodes[0]?.text).toBe('Один');
+  });
+
+  it('seals and opens vault text, and refuses a copy sealed for another purpose', async () => {
+    await createPatientVault();
+    const sealed = await sealPatientVaultText('visit-note-ahead', 'a|new', 'Секрет');
+    expect(JSON.stringify(sealed)).not.toContain('Секрет');
+    await expect(openPatientVaultText('visit-note-ahead', 'a|new', sealed)).resolves.toBe('Секрет');
+    await expect(openPatientVaultText('visit-note-ahead', 'b|new', sealed)).rejects.toMatchObject({
+      code: 'integrity',
+    });
+    lockPatientVault();
+    await expect(sealPatientVaultText('visit-note-ahead', 'a|new', 'x')).rejects.toMatchObject({
+      code: 'locked',
     });
   });
 });

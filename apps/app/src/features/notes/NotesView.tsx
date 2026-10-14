@@ -53,6 +53,7 @@ import {
 } from '@/features/notes/NoteMarkdownEditor';
 import { NoteTemplatesCatalog } from '@/features/notes/NoteTemplatesCatalog';
 import { isNoteDrawingFile, isNoteDrawingMime } from '@/features/notes/note-drawing';
+import { flushNoteEditors } from '@/features/notes/note-editor-flush';
 import {
   notesFormsPath,
   notesNewPatientPath,
@@ -453,6 +454,8 @@ export function NotesView(props: {
   let recordTitleValue = '';
   const notesRoute = useNotesRoute({
     onHashChange: () => {
+      // The editor reports typed text after a short pause: ask for it before the note is saved.
+      flushNoteEditors();
       commitEditor();
       setEditingCardTitle(false);
       setReminderNoteId(null);
@@ -1227,6 +1230,9 @@ export function NotesView(props: {
     setNoteImages([]);
   });
 
+  // The draft follows every change. All the fields are read before the readiness check: effects
+  // run in no fixed order after a route change, and an effect that returned early would never
+  // subscribe to them, so nothing typed afterwards would reach the draft.
   createEffect(() => {
     const current = route();
     const noteId =
@@ -1235,16 +1241,15 @@ export function NotesView(props: {
         : current.kind === 'new-record'
           ? `new:${current.cardId}`
           : null;
-    if (!noteId || editorReadyKey !== noteId) return;
-    savePatientNoteDraft({
-      noteId,
+    const draft = {
       title: recordTitleDraft(),
       text: noteDraft(),
       categories: noteCategoriesDraftValue(),
       reminderDate: reminderDate(),
       reminderTime: reminderTime(),
-      savedAt: new Date().toISOString(),
-    });
+    };
+    if (!noteId || editorReadyKey !== noteId) return;
+    savePatientNoteDraft({ noteId, ...draft, savedAt: new Date().toISOString() });
   });
 
   return (

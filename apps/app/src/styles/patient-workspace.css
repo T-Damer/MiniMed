@@ -449,3 +449,77 @@
     animation: none;
   }
 }
+
+/* Visits: the title wraps, the status label and the icon buttons keep their size beside it. */
+.patient-workspace__episode-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.patient-workspace__episode {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.35rem 0.5rem 0.35rem 0.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.8rem;
+  transition: border-color var(--motion-fast) var(--motion-ease);
+}
+
+.patient-workspace__episode--active {
+  border-color: var(--theme-text-muted);
+}
+
+.patient-workspace__episode-head {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.patient-workspace__episode-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.patient-workspace__episode-status {
+  flex: none;
+  color: var(--theme-text-muted);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.patient-workspace__episode-status--open {
+  color: var(--theme-text);
+  font-weight: 600;
+}
+
+.patient-workspace__episode-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.patient-workspace__episode-action {
+  --ui-icon-button-size: 2.2rem;
+  flex: none;
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+
+.patient-workspace__episode-action:active {
+  transform: scale(0.96);
+}
+
+.patient-workspace__episode-text {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: var(--theme-text-muted);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}

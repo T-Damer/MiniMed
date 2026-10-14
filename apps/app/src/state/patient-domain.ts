@@ -649,6 +649,57 @@ export function closeClinicalEpisode(
   return { ...snapshot, episodes };
 }
 
+/**
+ * The visit that receives the note: the preferred one when it is open, otherwise the patient's
+ * newest open visit. A patient keeps one open visit; older data may hold several.
+ */
+export function openEpisodeOf(
+  snapshot: PatientVaultSnapshot,
+  patientId: string,
+  preferredId?: string,
+): ClinicalEpisode | undefined {
+  const open = snapshot.episodes.filter(
+    (episode) => episode.patientId === patientId && episode.status === 'open',
+  );
+  return (
+    open.find((episode) => episode.id === preferredId) ??
+    open.toSorted((left, right) => right.startedAt.localeCompare(left.startedAt))[0]
+  );
+}
+
+/**
+ * Stores the typed visit note. It lands in the preferred or newest open visit; with none open a
+ * visit is created, so a note typed before «Создать осмотр» is never left without a record. An
+ * empty note creates nothing unless `create` is set (the explicit «Создать осмотр»). The text is
+ * kept exactly as typed so the field can show it back unchanged.
+ */
+export function recordVisitNote(
+  snapshot: PatientVaultSnapshot,
+  input: {
+    readonly patientId: string;
+    readonly episodeId?: string;
+    readonly text: string;
+    readonly create?: boolean;
+    readonly at?: string;
+  },
+): { readonly snapshot: PatientVaultSnapshot; readonly episodeId?: string } {
+  const at = input.at ?? nowIso();
+  const target = openEpisodeOf(snapshot, input.patientId, input.episodeId);
+  if (target) {
+    if (target.text === input.text) return { snapshot, episodeId: target.id };
+    const episodes = snapshot.episodes.map((episode) =>
+      episode.id === target.id ? { ...episode, text: input.text, updatedAt: at } : episode,
+    );
+    return { snapshot: { ...snapshot, episodes }, episodeId: target.id };
+  }
+  if (!input.create && input.text.trim() === '') return { snapshot };
+  const episode: ClinicalEpisode = {
+    ...createClinicalEpisode({ patientId: input.patientId, startedAt: at }),
+    text: input.text,
+  };
+  return { snapshot: appendEpisode(snapshot, episode), episodeId: episode.id };
+}
+
 export function calculateAgeOnDate(
   birthDate: string,
   eventDate: string,

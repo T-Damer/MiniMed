@@ -18,10 +18,12 @@ import {
   normalizeIcd10Code,
   normalizePatientVaultSnapshot,
   normalizeSnils,
+  openEpisodeOf,
   PATIENT_ADDRESS_FIELDS,
   type PatientVaultSnapshot,
   patientBindingValue,
   patientContextSnapshot,
+  recordVisitNote,
   reviseManualObservation,
   selectPatientFromSnapshot,
   setEpisodeDiagnosis,
@@ -912,5 +914,67 @@ describe('setPatientBirthDate', () => {
     expect(() => setPatientBirthDate(snapshot, id, '2025-02-30')).toThrow();
     expect(() => setPatientBirthDate(snapshot, id, 'вчера')).toThrow();
     expect(() => setPatientBirthDate(snapshot, 'nobody', '2025-03-15')).toThrow(/не найден/u);
+  });
+});
+
+describe('visit note', () => {
+  const patientId = 'patient-note';
+  const base = (): PatientVaultSnapshot => ({
+    ...emptyPatientVaultSnapshot(),
+    profiles: [createPatientProfile({ id: patientId, displayName: 'Пациент' }).profile],
+  });
+
+  it('creates the open visit for a typed note and keeps the text exactly as typed', () => {
+    const first = recordVisitNote(base(), {
+      patientId,
+      text: 'Кашель  ',
+      at: '2026-10-14T10:00:00Z',
+    });
+    expect(first.snapshot.episodes).toMatchObject([
+      { id: first.episodeId, status: 'open', text: 'Кашель  ', startedAt: '2026-10-14T10:00:00Z' },
+    ]);
+    const second = recordVisitNote(first.snapshot, { patientId, text: 'Кашель третий день' });
+    expect(second.snapshot.episodes).toHaveLength(1);
+    expect(second.episodeId).toBe(first.episodeId);
+    expect(second.snapshot.episodes[0]?.text).toBe('Кашель третий день');
+  });
+
+  it('creates nothing for an empty note unless asked, and never a second open visit', () => {
+    expect(recordVisitNote(base(), { patientId, text: '   ' }).snapshot.episodes).toHaveLength(0);
+    const created = recordVisitNote(base(), { patientId, text: '', create: true });
+    expect(created.snapshot.episodes).toHaveLength(1);
+    const again = recordVisitNote(created.snapshot, { patientId, text: '', create: true });
+    expect(again.snapshot).toBe(created.snapshot);
+    expect(again.episodeId).toBe(created.episodeId);
+  });
+
+  it('writes into the preferred open visit, else the newest open one, never a closed one', () => {
+    let snapshot = base();
+    for (const [id, startedAt] of [
+      ['older', '2026-10-01T10:00:00Z'],
+      ['newer', '2026-10-02T10:00:00Z'],
+    ] as const) {
+      snapshot = appendEpisode(snapshot, createClinicalEpisode({ patientId, id, startedAt }));
+    }
+    expect(openEpisodeOf(snapshot, patientId)?.id).toBe('newer');
+    expect(openEpisodeOf(snapshot, patientId, 'older')?.id).toBe('older');
+    const picked = recordVisitNote(snapshot, { patientId, episodeId: 'older', text: 'в старый' });
+    expect(picked.snapshot.episodes.find((episode) => episode.id === 'older')?.text).toBe(
+      'в старый',
+    );
+    const closed = closeClinicalEpisode(picked.snapshot, 'newer');
+    const fallback = recordVisitNote(closed, {
+      patientId,
+      episodeId: 'newer',
+      text: 'не в закрытый',
+    });
+    expect(fallback.episodeId).toBe('older');
+    expect(fallback.snapshot.episodes.find((episode) => episode.id === 'newer')?.text).toBe('');
+  });
+
+  it('refuses an unknown patient', () => {
+    expect(() => recordVisitNote(base(), { patientId: 'nobody', text: 'текст' })).toThrow(
+      /неизвестному пациенту/u,
+    );
   });
 });

@@ -155,6 +155,46 @@ commands and limits: [REGULATORY_PACK.md](REGULATORY_PACK.md) «Bundled light pa
   (not changed here): `contentModuleCatalogFingerprint` ignores `compatibility`, so a remote catalog that only changes a
   module's `minAppVersion` is not applied by the running app until `catalogVersion`/artifacts change.
 
+## Typed note text is never lost — 2026-10-14 (STATE NOTE1)
+
+QA ([qa-haiku-2026-10-14](research/qa-haiku-2026-10-14.md) «Data safety») lost typed text twice. Causes and fixes:
+
+- **Plain note lost on reload (roots).** (1) `NotesView` wrote its localStorage draft from an effect that returned
+  before reading the draft signals when `editorReadyKey` was not set yet. Solid does not fix the order of two effects
+  that depend on the same route signal, so after a route change the draft effect could run first, subscribe to nothing
+  and never write again: the typed text never reached a draft (traced: `D/new-record` ran before `E/new-record`). It
+  now reads every field first and only then checks readiness. (2) The editor (Milkdown) reports its text through a
+  ~200 ms debounce, so a reload, a hidden tab or a back tap inside it saw the previous text. `note-editor-flush.ts`
+  flushes every open editor on `pagehide`, `beforeunload`, `freeze`, hidden `visibilitychange`, on the editor's
+  unmount and in `onHashChange` before the note is committed.
+- **Visit note lost (roots).** «Краткая запись осмотра» was only the text of a *new* visit: nothing was bound to an
+  open one, `episode.text` was stored but rendered nowhere (the QA1 change emptied the box after «Создать осмотр»), and
+  ✓ only picked the visit for tool recordings. Now the field is the note of the current open visit (picked, else the
+  newest open); every change is saved through `createVisitNoteSaver` (`state/patient-visit-note.ts`) after 350 ms,
+  ordered through the vault mutation queue, flushed on the same page events (`state/debounced-saver.ts`), when the
+  field loses focus, when another visit is picked, when a visit is closed and when the card is left. With no open
+  visit a typed note becomes one after 2.5 s (or at once on «Создать осмотр», hide, leave, reload recovery). Closed
+  visits show their note under the row.
+- **Write-ahead copy, encrypted.** Each keystroke also seals the text with the vault key (`sealPatientVaultText`, the
+  vault's AES-GCM scheme and AAD; plain only in a deliberately plain vault) into
+  `localStorage["minimed.patient-visit-note-ahead.v1"]` (opaque patient/visit ids + ciphertext). It is removed when
+  the newest text is in the vault; a copy left by a reload inside the debounce, or by a vault locked at that moment
+  (`pagehide` locks the vault synchronously), is applied by `recoverVisitNotes()` when `PatientWorkspace` reads or
+  unlocks the vault. Unreadable copies (vault replaced) are dropped with a console warning that carries no text.
+- **One open visit.** `recordVisitNote` (patient-domain) is the only writer of the note: it picks the open visit,
+  creates one only when none is open, and runs inside the vault mutation, so a double tap (or the autosave racing the
+  button) cannot make a second open visit. «Создать осмотр» is shown only while no visit is open; ✓ only when several
+  open visits exist (older data).
+- **Rows.** `.patient-workspace__episode*` had no CSS: the status text ran into the ✓/✕ icons. Row = head (title that
+  wraps, status label, icon buttons that keep their size) + the note preview.
+- **Not covered.** «Диагноз осмотра» / «Код МКБ-10» keep their explicit save button (validated fields, typed text
+  there is still lost on reload) and the manual measurement form is unchanged.
+- **Tests.** Unit: `debounced-saver.test.ts` (debounce, ordering, no overlap, failure retry, lifecycle flush),
+  `patient-domain.test.ts` (visit note rules), `patient-vault.test.ts` «visit note autosave» (sealed copy, recovery
+  after a simulated reload, plain vault, one open visit, seal/open). E2E `note-persistence.spec.ts`: plain note and
+  visit note reloaded 0.5/2/5/12 s after typing and at once, visit note kept after create and after a closed visit,
+  double «Создать осмотр», row layout at 375 px.
+
 ## Regulatory acts as full texts — 2026-10-14 (STATE LEGAL1)
 
 Owner 2026-10-14: «legal acts are just copies of documents — release them». The 30 cards of
@@ -448,8 +488,8 @@ and `…/minimed-qa-power/`). What changed, at the cause:
   long safety disclaimer; «Привет» does not return after «Пропустить обучение»; the bar keeps «Поиск» lit for
   interaction, comparison and vaccination tools; the vaccination orders left the subtitle; the reader opens a
   recommendation on its text, the abbreviation list moves behind the chapters; «Препараты» opens on names that
-  begin with a letter; «Препараты по группам АТХ» is a tool in «Все инструменты»; after «Создать осмотр» the
-  box empties and the episode actions are icon buttons.
+  begin with a letter; «Препараты по группам АТХ» is a tool in «Все инструменты»; the episode actions are icon
+  buttons (the box emptied after «Создать осмотр» then; NOTE1 keeps the note in it).
 - **Data.** `reference-report.json` regenerated from the checksum-matching `reference.db`; landing
   `calculator.json`/`questionnaire.json` are copies of the authored definitions; both `.fails` markers removed
   (`docs/DATA_TESTS.md`).

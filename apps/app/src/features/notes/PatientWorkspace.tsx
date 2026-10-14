@@ -40,14 +40,12 @@ import { patientMetricLabel, patientSexLabel } from '@/features/notes/patient-la
 import { openDocumentOverlay } from '@/state/document-navigation';
 import { saveBlobAsFile } from '@/state/native-share';
 import {
-  appendEpisode,
   appendEvent,
   buildDynamics,
   buildDynamicsGroups,
   type ClinicalEpisode,
   type CreatePatientProfileInput,
   closeClinicalEpisode,
-  createClinicalEpisode,
   createLaboratoryEvent,
   createManualMeasurementEvent,
   createMedicationEvent,
@@ -76,6 +74,7 @@ import {
   readPatientVault,
   updatePatientVault,
 } from '@/state/patient-vault';
+import { createVisitNoteSaver, recoverVisitNotes, saveVisitNote } from '@/state/patient-visit-note';
 import type { PatientAvatar as Avatar } from '@/state/patientAvatar';
 import '@/styles/patient-workspace.css';
 
@@ -871,8 +870,8 @@ function PatientDetail(props: {
   readonly onExport: (patientId: string) => void;
   readonly onDelete: (patientId: string) => void;
 }): JSX.Element {
-  const [episode, setEpisode] = createSignal<ClinicalEpisode>();
-  const [episodeText, setEpisodeText] = createSignal('');
+  // The visit the person picked (several open visits can exist in older data).
+  const [pickedEpisodeId, setPickedEpisodeId] = createSignal<string>();
   const [busy, setBusy] = createSignal(false);
   const [editingObservationId, setEditingObservationId] = createSignal<string>();
   const [revisionValue, setRevisionValue] = createSignal('');
@@ -886,31 +885,69 @@ function PatientDetail(props: {
       .filter((candidate) => candidate.patientId === props.profile.id)
       .toSorted((left, right) => right.startedAt.localeCompare(left.startedAt)),
   );
-  // `episode()` is a copy taken at selection time; the diagnosis must come from the live snapshot.
-  const selectedEpisode = createMemo(() =>
-    props.snapshot.episodes.find((candidate) => candidate.id === episode()?.id),
+  const openEpisodes = createMemo(() =>
+    episodes().filter((candidate) => candidate.status === 'open'),
   );
+  // Always read from the live snapshot: a visit is never a stale copy taken at selection time.
+  const episode = createMemo(
+    () => episodes().find((candidate) => candidate.id === pickedEpisodeId()) ?? openEpisodes()[0],
+  );
+  const selectedEpisode = episode;
   const activeEpisodeId = () => (episode()?.status === 'open' ? episode()?.id : undefined);
+  // The visit the note field is bound to: the open visit, picked or newest.
+  const noteEpisode = createMemo(() =>
+    episode()?.status === 'open' ? episode() : openEpisodes()[0],
+  );
+  const [noteText, setNoteText] = createSignal(noteEpisode()?.text ?? '');
+  const [notePending, setNotePending] = createSignal(false);
+  const noteSaver = createVisitNoteSaver({
+    patientId: props.profile.id,
+    episodeId: () => noteEpisode()?.id,
+    onSnapshot: (next) => props.onSnapshot(next),
+    onError: (cause) =>
+      toast(cause instanceof Error ? cause.message : 'Не удалось сохранить запись осмотра.'),
+    onPendingChange: setNotePending,
+  });
+  // Typed text is never replaced while it waits to be saved; otherwise the field follows the vault
+  // (another visit picked, a copy recovered after a reload).
+  createEffect(() => {
+    const stored = noteEpisode()?.text ?? '';
+    if (!notePending()) setNoteText(stored);
+  });
+  // Leaving the card saves what is typed; the write-ahead copy covers a closed page.
+  onCleanup(() => {
+    void noteSaver.flush();
+    noteSaver.dispose();
+  });
   createEffect(() => {
     const targetId = props.focusEpisodeId;
     if (!targetId) return;
     const target = episodes().find((candidate) => candidate.id === targetId);
     if (!target) return;
-    setEpisode(target);
+    setPickedEpisodeId(target.id);
     queueMicrotask(() => {
       document.getElementById(target.id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
   });
-  const saveEpisode = async (): Promise<void> => {
+  const pickEpisode = async (episodeId: string): Promise<void> => {
+    // The note typed so far belongs to the visit it was typed in.
+    await noteSaver.flush();
+    setPickedEpisodeId(episodeId);
+  };
+  /** «Создать осмотр»: one open visit per patient, so a second tap opens the existing one. */
+  const createEpisode = async (): Promise<void> => {
     if (busy()) return;
     setBusy(true);
     try {
-      const created = createClinicalEpisode({ patientId: props.profile.id, text: episodeText() });
-      const next = await updatePatientVault((snapshot) => appendEpisode(snapshot, created));
-      setEpisode(created);
-      // Saved: the note leaves the box and shows as the episode above.
-      setEpisodeText('');
+      await noteSaver.flush();
+      const next = await saveVisitNote({
+        patientId: props.profile.id,
+        ...(noteEpisode() ? { episodeId: (noteEpisode() as ClinicalEpisode).id } : {}),
+        text: noteText(),
+        create: true,
+      });
       props.onSnapshot(next);
+      setPickedEpisodeId(undefined);
     } catch (cause) {
       toast(cause instanceof Error ? cause.message : 'Не удалось создать осмотр.');
     } finally {
@@ -921,10 +958,12 @@ function PatientDetail(props: {
     if (busy()) return;
     setBusy(true);
     try {
+      // The closing must see the final note text.
+      await noteSaver.flush();
       const next = await updatePatientVault((snapshot) =>
         closeClinicalEpisode(snapshot, episodeId),
       );
-      if (episode()?.id === episodeId) setEpisode(undefined);
+      if (pickedEpisodeId() === episodeId) setPickedEpisodeId(undefined);
       props.onSnapshot(next);
     } catch (cause) {
       toast(cause instanceof Error ? cause.message : 'Не удалось закрыть осмотр.');
@@ -1077,31 +1116,47 @@ function PatientDetail(props: {
                     'patient-workspace__episode--active': episode()?.id === candidate.id,
                   }}
                 >
-                  <span class="patient-workspace__episode-title">
-                    {candidate.title} · {formatDate(candidate.startedAt)}
-                  </span>
-                  <span class="patient-workspace__episode-status">
-                    {candidate.status === 'open' ? 'Открыт' : 'Закрыт'}
-                  </span>
-                  <Show when={candidate.status === 'open'}>
-                    <Button
-                      type="button"
-                      variant="icon"
-                      aria-label="Выбрать для записи"
-                      title="Выбрать для записи"
-                      disabled={busy()}
-                      icon={<AppGlyph name="check" />}
-                      onClick={() => setEpisode(candidate)}
-                    />
-                    <Button
-                      type="button"
-                      variant="icon"
-                      aria-label="Закрыть"
-                      title="Закрыть осмотр"
-                      disabled={busy()}
-                      icon={<AppGlyph name="close" />}
-                      onClick={() => void closeEpisode(candidate.id)}
-                    />
+                  <div class="patient-workspace__episode-head">
+                    <span class="patient-workspace__episode-title">
+                      {candidate.title} · {formatDate(candidate.startedAt)}
+                    </span>
+                    <span
+                      class="patient-workspace__episode-status"
+                      classList={{
+                        'patient-workspace__episode-status--open': candidate.status === 'open',
+                      }}
+                    >
+                      {candidate.status === 'open' ? 'Открыт' : 'Закрыт'}
+                    </span>
+                    <Show when={candidate.status === 'open'}>
+                      <span class="patient-workspace__episode-actions">
+                        <Show when={openEpisodes().length > 1 && episode()?.id !== candidate.id}>
+                          <Button
+                            type="button"
+                            variant="icon"
+                            class="patient-workspace__episode-action"
+                            aria-label="Выбрать для записи"
+                            title="Выбрать для записи"
+                            disabled={busy()}
+                            icon={<AppGlyph name="check" />}
+                            onClick={() => void pickEpisode(candidate.id)}
+                          />
+                        </Show>
+                        <Button
+                          type="button"
+                          variant="icon"
+                          class="patient-workspace__episode-action"
+                          aria-label="Закрыть"
+                          title="Закрыть осмотр"
+                          disabled={busy()}
+                          icon={<AppGlyph name="close" />}
+                          onClick={() => void closeEpisode(candidate.id)}
+                        />
+                      </span>
+                    </Show>
+                  </div>
+                  <Show when={candidate.text.trim() && candidate.id !== noteEpisode()?.id}>
+                    <p class="patient-workspace__episode-text">{candidate.text}</p>
                   </Show>
                 </div>
               )}
@@ -1117,20 +1172,29 @@ function PatientDetail(props: {
           class="patient-workspace__field"
           label="Краткая запись осмотра"
           hideLabel
-          value={episodeText()}
-          onInput={(event) => setEpisodeText(event.currentTarget.value)}
+          value={noteText()}
+          onInput={(event) => {
+            setNoteText(event.currentTarget.value);
+            noteSaver.edit(event.currentTarget.value);
+          }}
+          onBlur={() => {
+            // With no visit yet, leaving the field must not swap the button away mid-tap.
+            if (noteEpisode()) void noteSaver.flush();
+          }}
           placeholder="Краткая запись осмотра"
           rows={3}
         />
         <div class="patient-workspace__actions">
-          <Button
-            type="button"
-            variant="primary"
-            disabled={busy()}
-            onClick={() => void saveEpisode()}
-          >
-            {busy() ? 'Сохраняем…' : 'Создать осмотр'}
-          </Button>
+          <Show when={!noteEpisode()}>
+            <Button
+              type="button"
+              variant="primary"
+              disabled={busy()}
+              onClick={() => void createEpisode()}
+            >
+              {busy() ? 'Сохраняем…' : 'Создать осмотр'}
+            </Button>
+          </Show>
           <Show when={episode()}>
             <small class="patient-workspace__event-text">
               Текущий осмотр {episode()?.status === 'open' ? 'открыт' : 'закрыт'}:{' '}
@@ -1564,6 +1628,14 @@ function DynamicsView(props: {
   );
 }
 
+/** Recovery must never hide the vault: a failure is shown and the vault is read as it is. */
+function recoverNotes(): Promise<PatientVaultSnapshot | undefined> {
+  return recoverVisitNotes().catch((cause: unknown) => {
+    toast(cause instanceof Error ? cause.message : 'Не удалось восстановить запись осмотра.');
+    return undefined;
+  });
+}
+
 export function PatientWorkspace(props: PatientWorkspaceProps): JSX.Element {
   const [snapshot, setSnapshot] = createSignal<PatientVaultSnapshot>();
   const [error, setError] = createSignal('');
@@ -1581,7 +1653,9 @@ export function PatientWorkspace(props: PatientWorkspaceProps): JSX.Element {
         acknowledgePatientVaultUiCleared();
         return;
       }
-      void readPatientVault()
+      // A note typed just before the last reload is applied first, then the vault is read.
+      void recoverNotes()
+        .then((recovered) => recovered ?? readPatientVault())
         .then((next) => {
           if (request === vaultReadRequest && isPatientVaultUnlocked()) setSnapshot(next);
         })
@@ -1609,6 +1683,10 @@ export function PatientWorkspace(props: PatientWorkspaceProps): JSX.Element {
     vaultReadRequest += 1;
     setSnapshot(next);
     setError('');
+    // Typed text kept aside by an earlier session joins the unlocked vault.
+    void recoverNotes().then((recovered) => {
+      if (recovered && isPatientVaultUnlocked()) setSnapshot(recovered);
+    });
   };
   const onSnapshot = (next: PatientVaultSnapshot): void => {
     setSnapshot(next);

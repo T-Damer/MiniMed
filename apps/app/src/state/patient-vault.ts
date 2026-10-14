@@ -867,6 +867,49 @@ export async function readPatientVault(): Promise<PatientVaultSnapshot> {
   }
 }
 
+/** A short text sealed with the vault's data key (or kept as is in a deliberately plain vault). */
+export type SealedPatientText =
+  | { readonly plain: string }
+  | { readonly iv: string; readonly aad: string; readonly ciphertext: string };
+
+const SEALED_TEXT_VERSION = PATIENT_VAULT_SCHEMA_VERSION;
+
+/**
+ * Seals text for storage outside the vault database (a write-ahead copy kept in localStorage until
+ * the vault write lands). Needs an open session; the same key and AAD scheme as vault records.
+ */
+export async function sealPatientVaultText(
+  type: string,
+  id: string,
+  text: string,
+): Promise<SealedPatientText> {
+  const current = session;
+  if (!current) throw new PatientVaultLockedError();
+  if (current.mode === 'unencrypted') return { plain: text };
+  return encryptBytes(current.key, utf8(text), type, id);
+}
+
+export async function openPatientVaultText(
+  type: string,
+  id: string,
+  sealed: SealedPatientText,
+): Promise<string> {
+  const current = session;
+  if (!current) throw new PatientVaultLockedError();
+  if ('plain' in sealed) {
+    if (current.mode !== 'unencrypted') {
+      throw new PatientVaultError('Неверная целостность записи.', 'integrity');
+    }
+    return sealed.plain;
+  }
+  if (current.mode === 'unencrypted') throw new PatientVaultLockedError();
+  const plain = await decryptBytes(
+    { ...sealed, type, id, version: SEALED_TEXT_VERSION },
+    current.key,
+  );
+  return new TextDecoder().decode(plain);
+}
+
 export async function writePatientVault(snapshot: PatientVaultSnapshot): Promise<void> {
   if (!session) throw new PatientVaultLockedError();
   try {

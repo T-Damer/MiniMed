@@ -33,6 +33,7 @@ import {
   type DrawingDocument,
   parseDrawingBlob,
 } from '@/features/notes/note-drawing';
+import { registerNoteEditorFlush } from '@/features/notes/note-editor-flush';
 import {
   findNoteLinkTargets,
   loadNoteLinkSources,
@@ -235,7 +236,18 @@ function WysiwygField(props: WysiwygFieldProps): JSX.Element {
     window.location.hash = href;
   };
 
+  // The editor reports its text after a short pause; this reports it now (reload, tab hidden,
+  // route change) so the draft written from it is never one pause behind.
+  const flush = (): void => {
+    const markdown = instanceRef.current?.getMarkdown();
+    // The serializer ends a document with a newline the stored text lacks: that alone is no change.
+    if (markdown !== undefined && markdown.trimEnd() !== props.latest().trimEnd()) {
+      props.onChange(markdown);
+    }
+  };
+
   onMount(() => {
+    onCleanup(registerNoteEditorFlush(flush));
     host.addEventListener('click', handleLinkClick);
     host.addEventListener('keydown', handleKeyDown, true);
     host.addEventListener('input', handleInput);
@@ -271,6 +283,7 @@ function WysiwygField(props: WysiwygFieldProps): JSX.Element {
       });
     onCleanup(() => {
       disposed = true;
+      flush();
       instanceRef.current?.destroy();
       props.onReady(null);
     });
