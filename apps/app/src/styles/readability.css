@@ -152,9 +152,9 @@ h6,
   text-wrap: balance;
 }
 
-/* Reading blocks stop at about 66 characters on wide screens; on a phone the column is narrower. */
+/* Reading blocks stop at about 66 characters on wide screens; on a phone the column is narrower. The
+   one-line page description under a title is not one: it keeps the full header width. */
 @media (min-width: 760px) {
-  .page__description,
   .calculator-footnote,
   .assessment-footnote,
   .atc-tree__intro,

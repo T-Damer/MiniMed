@@ -72,9 +72,11 @@ VIS1) and the coordinator's scrollbar decision. Screens: search home and results
   `HorizontalScroller` always did, the native strips (news sources, recent calculators, search suggestions,
   spreadsheet sheet tabs) now use `<ScrollStripArrows>` inside a `scroll-strip`. Wide content (tables,
   code, charts, PDF columns) keeps a thin scrollbar: it is content, not a strip.
-- **Not done / not tested.** Real devices and WebKit (Safari/iOS) were not run; the e2e ran against the Vite dev
-  server, not a release build. The inline `//` hints of calculator and assessment screens (VIS2) and the drug/document
-  screens (DRUG-UI1, DOC-UI1) were left to their owners except where a shared token or rule fixes them.
+- **Not done / not tested.** Real devices and WebKit (Safari/iOS) were not run. The e2e ran against the production
+  build served by `vite preview`; under parallel load the core sometimes fails to open in time (network error /
+  timeouts in `search-ui-revision`, `search-subgroup-kinds`, `ux8-search-header`), they pass alone. Tool screens that
+  need downloaded modules (calculator results, assessment forms, comparison, ATC tree) are covered by the token tests
+  and the shared rules, not by the in-page audit; their own owners (VIS2, DRUG-UI1, DOC-UI1) check them.
 
 ## Drug screen: the text on the first screen — 2026-10-14 (STATE DRUG-UI1)
 
