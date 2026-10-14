@@ -3137,8 +3137,7 @@ too. Measurements, defects, the engine comparison and what was rejected:
   2 480 and 3 300 px, with and without language correction, and Tesseract.js `rus`+`eng` all land within 0.03 of each
   other (word-trigram agreement with the native edition 0.746–0.757, released text 0.776), they agree on 95.5 % of the
   words. A different setting or a full second engine pass does not pay (Tesseract 5–10 s per page for 0.2 % of the
-  words). **Marker (Surya) was not run:** it needs a package and model weights downloaded, which needs the owner's
-  approval; to be compared on ~20 of the worst scans with batch size 1 once approved.
+  words). **Marker (Surya) was compared afterwards** (section «Marker evaluation» below).
 - **What was wrong** (measured on the released text, `scripts/grls_ocr_report.py`): 7 507 scan-stamp lines in the body
   («СООТВЕТСТВУЕТ ЭКСПЕРТНОМУ ОТЧЕТУ», «СОГЛАСОВАНО», «ЛП - 005351-021219»; 281 documents with the expert-report stamp
   as a *heading*), one paragraph per OCR line (median 38 characters, 74.6 % without closing punctuation), **730 of the
@@ -3216,7 +3215,7 @@ too. Measurements, defects, the engine comparison and what was rejected:
   (manifest/overlay integrity: provenance, digests, selection), `test_grls_ocr_siblings.py`, `test_grls_ocr_sibling_stage.py`,
   `test_grls_instruction_modules.py` (overlay join), TS `instruction-source.test.ts` (grade, labels, ranking),
   `catalog.preview.test.ts`.
-- **Not done / not tested:** Marker (above); truncated word endings («терапи») are not repaired (several lexicon
+- **Not done / not tested:** truncated word endings («терапи») are not repaired (several lexicon
   completions exist); tables stay text rows (`a | b`, flagged `table-candidate`); only ten pages were compared with the page
   image by eye — there is no page-level ground truth for the other 19 700; the OCR note of already installed modules
   changes only after the module update; Android/WebView and the on-device display of the new labels were not run; the
@@ -4563,6 +4562,23 @@ layer), consolidated editions of the federal laws, a clinician review of the par
   Whisper Base/Small, editable stored transcripts and word timestamps. Full-backup export/import,
   single-card handover and a rollback-safe whole-notebook wipe are implemented. Verified
   multi-speaker diarization still waits for a fully pinned browser WASM runtime.
+
+## Marker evaluation — 2026-10-14 (STATE MARKER1)
+
+Full report: `docs/research/marker-eval-2026-10-14.md`. Marker 2.0.0 (Surya-2 in llama.cpp/Metal, local, no keys) on 23 scanned ГРЛС
+documents (106 pages, the worst-graded by OCR1), 5 scanned legal acts (127 pages) and two pages of the Капитан textbook scan.
+
+- **Measured:** 22.9 s/page (17 on documents of ≥ 3 pages; 24 s on the legal acts; 67 s per two-page textbook spread), peak 14 GiB
+  resident for the whole process tree, never below 13.7 GiB free. Against the page images: OCR1 ≈ 64 wrong numbers in 10 documents (exponent
+  signs and superscripts, isotope mass numbers, dilution lines), Marker ≈ 50 in 5 documents plus one page with ≈ 3 000 invented numbers; word
+  errors 1.6 % vs 0.3 %. Marker keeps tables and Kazakh letters; it fails **silently** (a generation loop, a lost table, dropped lines, a cut
+  paragraph, handwritten «н» read as «4» in 4 of 4 act numbers).
+- **Decision:** adopted as an optional local build tool, not as the default OCR. Uses: (a) second reading of the 140 `low` ГРЛС scans (≈ 2 h), only
+  where a per-page cross-check against the Vision text passes; (b) full texts of the 30 legal acts (≈ 2 000 pages ≈ 13 h) with the header taken from
+  the portal API; (c) the Капитан feeding chapter (≈ 20 spreads ≈ 25 min; 0 wrong numbers in ≈ 60 table values). Command:
+  `data/build/marker-eval/venv/bin/python -I scripts/marker_convert.py <out> <pdf>[:<0-based pages>] …` (main checkout, private data stays there).
+- **Kept on disk:** `data/build/marker-eval/venv` (1.1 GiB) and `cache/` weights (1.8 GiB), recorded in `docs/data-ledger.json`; outputs, the sample PDFs
+  and the uv cache are deleted. **Not built yet:** the Marker-vs-Vision reconciliation step and the API-header step. Full sets were not run.
 
 ## Ordered next work toward 1.0
 

@@ -787,6 +787,26 @@
       "note": "Prepared Markdown of the 272 holder-site documents; the 16 scans are re-prepared in prepared-pdf-ocr1.",
       "bytes": 79546903,
       "modified": "2026-10-14"
+    },
+    {
+      "path": "data/build/marker-eval/venv",
+      "class": "REBUILDABLE",
+      "producer": "STATE MARKER1: uv venv (CPython 3.12) + marker-pdf 2.0.0 (surya-ocr 0.22.1, torch 2.14.1)",
+      "consumers": ["scripts/marker_convert.py"],
+      "rebuild": "uv venv --python 3.12 data/build/marker-eval/venv && uv pip install --python data/build/marker-eval/venv/bin/python marker-pdf==2.0.0 (about 1 GiB of wheels)",
+      "note": "Optional local build tool for scanned legal acts, textbook scans and the second reading of low-grade ГРЛС scans (docs/research/marker-eval-2026-10-14.md). Not used by the app or any pack.",
+      "bytes": 1147674624,
+      "modified": "2026-10-14"
+    },
+    {
+      "path": "data/build/marker-eval/cache",
+      "class": "REBUILDABLE",
+      "producer": "first run of scripts/marker_convert.py (HF_HOME and MODEL_CACHE_DIR inside the folder): Surya-2 GGUF + projector and layout model from Hugging Face, detection and OCR-error models from datalab",
+      "consumers": ["scripts/marker_convert.py"],
+      "rebuild": "run scripts/marker_convert.py on any PDF; it downloads about 1.76 GiB of weights (needs network and the Homebrew llama-server)",
+      "note": "Model weights of the Marker environment; delete together with the venv if Marker is dropped.",
+      "bytes": 1888485376,
+      "modified": "2026-10-14"
     }
   ]
 }

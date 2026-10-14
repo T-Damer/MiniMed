@@ -57,8 +57,7 @@ pass is 6–11 hours for 0.2 % of the words). Where the engines are *complementa
 whole phrases of a noisy scan while Tesseract reads them, and the other way round for look-alike letters. That is
 what the targeted second opinion (§4.5) uses.
 
-Not compared: Marker (Surya) — it needs a package and model weights downloaded, which needs the owner's approval; to
-be run on ~20 of the worst scans with batch size 1 once approved, with digits, doses and units scored first.
+Marker (Surya) was compared afterwards on the worst scans: see [marker-eval-2026-10-14.md](marker-eval-2026-10-14.md).
 
 ## 4. What was done (deterministic, every change recorded)
 
@@ -127,7 +126,7 @@ second engine. A page-level ground truth for the remaining pages does not exist.
 
 ## 6. Not done, and why
 
-- Marker/Surya: not run (download needs approval).
+- Marker/Surya: compared in [marker-eval-2026-10-14.md](marker-eval-2026-10-14.md) (better on superscripts, tables and Kazakh letters, but with silent losses; adopted only as a cross-checked second reading and for legal acts / textbook scans).
 - Truncated word endings («терапи», «ишемическо») are not repaired: several lexicon completions exist.
 - Tables are read as text rows (`a | b`) and flagged `table-candidate`; no cell structure.
 - Hand review of every page: the oseltamivir text (`content/grls-reviewed-ocr/`) is the model for the few documents a
