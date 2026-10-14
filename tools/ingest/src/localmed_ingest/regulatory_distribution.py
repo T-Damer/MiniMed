@@ -85,16 +85,18 @@ def check_act_metadata(
 
 
 def empty_sections(database: Path) -> list[str]:
-    """Sections without any text of their own or in a sub-section, per document (a pack with any is not publishable).
+    """Sections without any text of their own or in a sub-section, per document.
 
-    A heading that only introduces numbered sub-sections («III. Характеристика …» → 3.1, 3.2) is not empty.
+    A pack with any is not publishable. A heading that only introduces numbered sub-sections
+    («III. Характеристика …» → 3.1, 3.2) is not empty.
     """
     found: list[str] = []
     with sqlite3.connect(database.resolve().as_uri() + "?mode=ro", uri=True) as connection:
         rows = connection.execute(
             "WITH RECURSIVE tree(root, id) AS ("
             "SELECT id, id FROM sections "
-            "UNION ALL SELECT tree.root, s.id FROM sections s JOIN tree ON s.parent_section_id = tree.id) "
+            "UNION ALL SELECT tree.root, s.id FROM sections s "
+            "JOIN tree ON s.parent_section_id = tree.id) "
             "SELECT v.document_id, s.title FROM sections s "
             "JOIN document_versions v ON v.id = s.document_version_id "
             "WHERE NOT EXISTS (SELECT 1 FROM tree JOIN chunks c ON c.section_id = tree.id "

@@ -18,7 +18,8 @@ const textExtensions = new Set([
 ]);
 const patterns = [
   /AIza[0-9A-Za-z_-]{30,}/g,
-  /sk-[A-Za-z0-9_-]{24,}/g,
+  // Provider keys mix case and digits; a lowercase slug such as `sk-score2-coefficients-2022` is not one.
+  /\bsk-(?=[A-Za-z0-9_-]*[A-Z])(?=[A-Za-z0-9_-]*\d)[A-Za-z0-9_-]{24,}/g,
   /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/g,
   /(?:api[_-]?key|secret|token)\s*[:=]\s*["'][^"'\s]{16,}["']/giu,
 ];
