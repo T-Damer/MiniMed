@@ -54,6 +54,32 @@ export interface SecondaryClass {
 
 export type AtcClassRole = 'primary' | 'secondary';
 
+/** The product's own instruction says it: a verbatim quote the build checks against the instruction text. */
+export interface AtcQuoteEvidence {
+  readonly kind: 'quote';
+  /** The instruction document that says it. */
+  readonly document: string;
+  readonly section: string;
+  /** Verbatim text of that instruction; the build refuses an addition whose quote is not in it. */
+  readonly quote: string;
+}
+
+/**
+ * CLS3: the card has no instruction in the product to quote, so the class is the component's own
+ * ATC group (the reference classification of the substance, `R06AB04` → `R06AB`), nothing the
+ * product says. Secondary only. The build refuses it as soon as an instruction of the card is in the
+ * product: a quote then replaces it.
+ */
+export interface AtcComponentEvidence {
+  readonly kind: 'component-atc';
+  /** The component, as the card's name has it (equal to `via`). */
+  readonly component: string;
+  /** The component's own ATC code (level 5); the declared class is its group. */
+  readonly atcCode: string;
+}
+
+export type AtcAdditionEvidence = AtcQuoteEvidence | AtcComponentEvidence;
+
 /** A class a card is declared to belong to, on the evidence of the product's own instruction. */
 export interface AtcClassAddition {
   readonly card: string;
@@ -66,13 +92,7 @@ export interface AtcClassAddition {
   /** Secondary only: the classes' name in the view, singular. */
   readonly label?: string;
   readonly reason: string;
-  readonly evidence: {
-    /** The instruction document that says it. */
-    readonly document: string;
-    readonly section: string;
-    /** Verbatim text of that instruction; the build refuses an addition whose quote is not in it. */
-    readonly quote: string;
-  };
+  readonly evidence: AtcAdditionEvidence;
   /** The entry of the committed review (`docs/research/atc-index-review-*.json`) that decided it. */
   readonly review: string;
 }
@@ -224,6 +244,49 @@ export function parseAtcCodeExceptions(value: unknown): readonly AtcCodeExceptio
 const ATC_GROUP = /^[A-Z]\d{2}(?:[A-Z][A-Z]?)?$/u;
 const MIN_QUOTE_LENGTH = 20;
 
+function parseEvidence(
+  evidence: Record<string, unknown>,
+  where: string,
+  role: AtcClassRole,
+  classes: readonly string[],
+  via: unknown,
+): AtcAdditionEvidence {
+  const kind = evidence['kind'] ?? 'quote';
+  if (kind === 'component-atc') {
+    const { component, atcCode } = evidence;
+    if (role !== 'secondary') {
+      throw new Error(`${where}: a component ATC basis belongs to a secondary class`);
+    }
+    if (typeof component !== 'string' || component.trim() === '' || component !== via) {
+      throw new Error(
+        `${where}: the component ATC basis names the component that brings the class`,
+      );
+    }
+    if (
+      typeof atcCode !== 'string' ||
+      !ATC_SUBSTANCE.test(atcCode) ||
+      !classes.every((code) => atcCode.startsWith(code))
+    ) {
+      throw new Error(
+        `${where}: the component's ATC code (level 5) must lie in the declared group`,
+      );
+    }
+    return { kind: 'component-atc', component, atcCode };
+  }
+  if (kind !== 'quote') throw new Error(`${where}: unknown kind of evidence «${String(kind)}»`);
+  const { document, section, quote } = evidence;
+  if (typeof document !== 'string' || !document.endsWith('.instruction')) {
+    throw new Error(`${where}: the evidence names an instruction document`);
+  }
+  if (typeof section !== 'string' || section.trim() === '') {
+    throw new Error(`${where}: the evidence names the section`);
+  }
+  if (typeof quote !== 'string' || quote.trim().length < MIN_QUOTE_LENGTH) {
+    throw new Error(`${where}: the evidence quotes the instruction`);
+  }
+  return { kind: 'quote', document, section, quote };
+}
+
 /** The `addClasses` list of `data/atc-code-exceptions.json`, validated where it is read. */
 export function parseAtcClassAdditions(value: unknown): readonly AtcClassAddition[] {
   if (!isRecord(value)) throw new Error('atc-code-exceptions: not an object');
@@ -269,16 +332,6 @@ export function parseAtcClassAdditions(value: unknown): readonly AtcClassAdditio
       throw new Error(`${where}: a reason is required`);
     }
     if (!isRecord(evidence)) throw new Error(`${where}: the evidence is required`);
-    const { document, section, quote } = evidence;
-    if (typeof document !== 'string' || !document.endsWith('.instruction')) {
-      throw new Error(`${where}: the evidence names an instruction document`);
-    }
-    if (typeof section !== 'string' || section.trim() === '') {
-      throw new Error(`${where}: the evidence names the section`);
-    }
-    if (typeof quote !== 'string' || quote.trim().length < MIN_QUOTE_LENGTH) {
-      throw new Error(`${where}: the evidence quotes the instruction`);
-    }
     if (typeof review !== 'string' || review.trim() === '') {
       throw new Error(`${where}: the review entry is required`);
     }
@@ -290,7 +343,7 @@ export function parseAtcClassAdditions(value: unknown): readonly AtcClassAdditio
         ? { via: (via as string).trim(), label: (label as string).trim() }
         : {}),
       reason,
-      evidence: { document, section, quote },
+      evidence: parseEvidence(evidence, where, role, classes as readonly string[], via),
       review,
     };
   });
@@ -301,14 +354,26 @@ export function normalizeQuote(text: string): string {
   return text.replace(/\s+/gu, ' ').trim().toLowerCase();
 }
 
+/** The additions that quote an instruction (the rest rest on the component's own ATC group). */
+export function quotedAdditions(
+  additions: readonly AtcClassAddition[],
+): readonly (AtcClassAddition & { readonly evidence: AtcQuoteEvidence })[] {
+  return additions.filter(
+    (addition): addition is AtcClassAddition & { readonly evidence: AtcQuoteEvidence } =>
+      addition.evidence.kind === 'quote',
+  );
+}
+
 /**
  * Whether the evidence of an addition is in the instruction: a section whose title contains the
- * named one holds the quote (compared by `normalizeQuote`).
+ * named one holds the quote (compared by `normalizeQuote`). An addition on the component's own ATC
+ * group has no quote to hold (the build checks it differently).
  */
 export function additionEvidenceHolds(
   addition: AtcClassAddition,
   sections: readonly { readonly title: string; readonly text: string }[],
 ): boolean {
+  if (addition.evidence.kind !== 'quote') return false;
   const title = normalizeQuote(addition.evidence.section);
   const quote = normalizeQuote(addition.evidence.quote);
   return sections.some(

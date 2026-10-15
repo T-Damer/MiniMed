@@ -241,6 +241,25 @@ describe('searching drugs by ATC code (ATC5)', () => {
     expect(matches(response).map(([title]) => title)).toEqual(['АЛЕНДРОНОВАЯ КИСЛОТА']);
   });
 
+  it('keeps the group card back when the same letters are an МКБ-10 card', async () => {
+    const withClasses: DrugCodeDirectory = {
+      entries: async () => ENTRIES,
+      classOf: async (query) => {
+        const code = query.trim().toUpperCase();
+        return ['M05', 'J05'].includes(code)
+          ? { label: `Группа ${code}`, groups: [{ code, name: null }], code }
+          : null;
+      },
+    };
+    const core = createCore({ drugCodes: withClasses });
+    // M05 is also a diagnosis: the card leads and no drug-group card pushes it down.
+    const icd = await lookup('M05', { core });
+    expect(icd.drugClass).toBeUndefined();
+    expect(icd.groups[0]?.documentId).toBe('card.m05');
+    // J05 is no card of the corpus: the group card shows.
+    expect((await lookup('J05', { core })).drugClass?.label).toBe('Группа J05');
+  });
+
   it('is no code lookup for a name, a mixed query or a letter with one digit', async () => {
     for (const query of ['ацикловир', 'J05 ацикловир', 'ВИЧ', 'С3']) {
       const response = await lookup(query);

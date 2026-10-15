@@ -159,6 +159,7 @@ describe('the ATC codes an interaction card carries (ATC4)', () => {
         classes: ['R05D'],
         reason: 'the instruction says the dextromethorphan in it suppresses cough',
         evidence: {
+          kind: 'quote',
           document: 'drug.rf.x.instruction',
           section: 'Показания',
           quote: 'Декстрометорфан уменьшает кашель, вызванный раздражением горла.',
@@ -309,8 +310,42 @@ describe('the class additions file', () => {
   const parse = (item: unknown) => parseAtcClassAdditions({ addClasses: [item] });
 
   it('reads a valid list, and no list as no additions', () => {
-    expect(parse(valid)).toEqual([valid]);
+    // An evidence without a kind is a quote (the form of every earlier declaration).
+    expect(parse(valid)).toEqual([{ ...valid, evidence: { kind: 'quote', ...valid.evidence } }]);
     expect(parseAtcClassAdditions({ exceptions: [] })).toEqual([]);
+  });
+
+  describe('a class on the ATC group of the component (CLS3)', () => {
+    const secondary = {
+      card: 'esklp.mnn.a',
+      role: 'secondary',
+      classes: ['R06AB'],
+      via: 'хлорфенамин',
+      label: 'антигистаминное',
+      reason: 'the card has no instruction in the product to quote',
+      evidence: { kind: 'component-atc', component: 'хлорфенамин', atcCode: 'R06AB04' },
+      review: 'docs/research/x.json',
+    };
+
+    it('is read as it is written', () => {
+      expect(parse(secondary)[0]?.evidence).toEqual(secondary.evidence);
+    });
+
+    it('is refused for a primary class, another component, or a code outside the group', () => {
+      expect(() =>
+        parse({ ...secondary, role: 'primary', via: undefined, label: undefined }),
+      ).toThrow(/secondary/u);
+      expect(() =>
+        parse({ ...secondary, evidence: { ...secondary.evidence, component: 'фенирамин' } }),
+      ).toThrow(/component/u);
+      expect(() =>
+        parse({ ...secondary, evidence: { ...secondary.evidence, atcCode: 'R06AA04' } }),
+      ).toThrow(/ATC code/u);
+      expect(() =>
+        parse({ ...secondary, evidence: { ...secondary.evidence, atcCode: 'R06AB' } }),
+      ).toThrow(/ATC code/u);
+      expect(() => parse({ ...secondary, evidence: { kind: 'guess' } })).toThrow(/kind/u);
+    });
   });
 
   it('refuses an addition without the reasons, the evidence or a group code', () => {

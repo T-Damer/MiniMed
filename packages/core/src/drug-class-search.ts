@@ -4,7 +4,12 @@ import type {
   SearchResponse,
   SearchResultGroup,
 } from '@localmed/contracts';
-import { type AtcDirectoryEntry, lightStemRussian, matchAtcEntry } from '@localmed/search-lexical';
+import {
+  type AtcDirectoryEntry,
+  compareDrugsByUse,
+  lightStemRussian,
+  matchAtcEntry,
+} from '@localmed/search-lexical';
 
 import {
   atcResultGroups,
@@ -93,14 +98,10 @@ interface ClassDrug {
   readonly registryCode: string | null;
 }
 
-/** A combination («ВАЛСАРТАН+САКУБИТРИЛ») is listed after the single substances of the class. */
-function isCombination(entry: AtcDirectoryEntry): boolean {
-  return entry.name.includes('+');
-}
-
 /**
  * The drugs under the class's ATC groups, once each: the code a drug is found under is the first
- * group (in the class's own order) whose code it carries. Single substances before combinations,
+ * group (in the class's own order) whose code it carries. By common use (`compareDrugsByUse`):
+ * readable names before chemical ones, single substances before combinations («ВАЛСАРТАН+САКУБИТРИЛ»),
  * commoner before rarer (registrations), then by name.
  */
 export function drugsOfClass(
@@ -124,12 +125,8 @@ export function drugsOfClass(
     }
     counts.set(group.code, count);
   }
-  const drugs = [...byId.values()].toSorted(
-    (left, right) =>
-      Number(isCombination(left.entry)) - Number(isCombination(right.entry)) ||
-      (right.entry.weight ?? 0) - (left.entry.weight ?? 0) ||
-      left.entry.name.localeCompare(right.entry.name, 'ru') ||
-      left.entry.id.localeCompare(right.entry.id),
+  const drugs = [...byId.values()].toSorted((left, right) =>
+    compareDrugsByUse(left.entry, right.entry),
   );
   return { drugs, counts };
 }
@@ -150,6 +147,9 @@ export async function drugClassSearch(input: {
   if (!input.directory.classOf) return null;
   const match = await input.directory.classOf(input.query);
   if (!match || match.groups.length === 0) return null;
+  // A typed code that is also an МКБ-10 card («J05», «M05»): the card stays first and the code keeps
+  // its drug list (`withAtcGroups`); the class card would put a drug group above the diagnosis.
+  if (match.code !== undefined && input.index.exactIcdCardIds(input.query).length > 0) return null;
   const inPhrase = (match.rest?.length ?? 0) > 0;
   if (inPhrase && restNamesDrug(match.rest ?? [], await input.directory.entries())) return null;
   // Only drugs the corpus holds (a card, or the pointer to its module) count and are listed.

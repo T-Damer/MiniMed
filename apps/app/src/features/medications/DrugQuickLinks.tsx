@@ -1,6 +1,8 @@
-import { createSignal, For, type JSX, Show } from 'solid-js';
+import { createResource, createSignal, For, type JSX, Show } from 'solid-js';
 
 import { AtcCodeSheet, type AtcSheetFocus } from '@/features/medications/AtcCodeSheet';
+import { atcGroupName, atcGroupNameInline } from '@/features/medications/atc-group-name';
+import { loadAtcNames } from '@/features/medications/atc-names';
 import { DrugSecondaryClasses } from '@/features/medications/DrugSecondaryClasses';
 import {
   DRUG_ACCORDION_VISIBLE,
@@ -27,18 +29,39 @@ export const DRUG_LINK_LIMIT = 3;
 export function DrugAtcChip(props: {
   readonly code: DrugAtcCode;
   readonly onOpen: (code: DrugAtcCode, focus: AtcSheetFocus) => void;
+  /**
+   * Say what the code is called (QA 0.6.60: «N02BE51» alone says nothing): the НСИ name of its
+   * group, the level-4 group for a substance code. Off where the screen already names the group.
+   */
+  readonly named?: boolean;
 }): JSX.Element {
   const label = () => drugAtcCodeLabel(props.code);
+  const [names] = createResource(
+    () => props.named === true,
+    (wanted) =>
+      wanted
+        ? loadAtcNames().catch((cause: unknown) => {
+            console.error('Не удалось загрузить названия групп АТХ.', cause);
+            return undefined;
+          })
+        : undefined,
+  );
+  const groupName = (): string | null => {
+    const catalog = names();
+    const name = catalog ? atcGroupName(catalog.names, props.code.code) : null;
+    return name === null ? null : atcGroupNameInline(name);
+  };
   return (
     <span class="drug-code">
       <button
         type="button"
         class="drug-link drug-link--code drug-code__main"
         aria-haspopup="dialog"
-        aria-label={label().ariaLabel}
+        aria-label={`${label().ariaLabel}${groupName() ? ` (${groupName()})` : ''}`}
         onClick={() => props.onOpen(props.code, 'main')}
       >
-        {label().code}
+        <span class="drug-code__code">{label().code}</span>
+        <Show when={groupName()}>{(name) => <span class="drug-code__name"> · {name()}</span>}</Show>
       </button>
       <Show when={label().registryCode}>
         {(registry) => (
@@ -198,7 +221,13 @@ export function DrugQuickLinks(props: {
                     )}
                   </Show>
                   <Show when={entry.kind === 'atc' ? entry : undefined}>
-                    {(code) => <DrugAtcChip code={code().code} onOpen={openAtc} />}
+                    {(code) => (
+                      <DrugAtcChip
+                        code={code().code}
+                        onOpen={openAtc}
+                        named={props.links.groups.length === 0}
+                      />
+                    )}
                   </Show>
                 </>
               )}

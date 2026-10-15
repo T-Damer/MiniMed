@@ -52,6 +52,7 @@ import {
   sideHeading,
   sideNote,
   sideSourceLine,
+  sideSourceState,
   splitQuotes,
 } from './interaction-view';
 import { SeverityDownloadOffer } from './SeverityDownloadOffer';
@@ -204,8 +205,26 @@ function PairCard(props: {
           {pairTitle(props.view)}
         </Heading>
         <p class="drug-interactions__pair-status" data-testid="interaction-pair-status">
-          {pairStatusText(props.view)}
+          {pairStatusText(props.view, true)}
         </p>
+        <ul
+          class="drug-interactions__sources"
+          aria-label="Инструкции препаратов пары"
+          data-testid="interaction-sources"
+        >
+          <For each={props.view.sides}>
+            {(side) => (
+              <li
+                class="drug-interactions__source"
+                data-state={side.state}
+                data-testid="interaction-source"
+              >
+                <span class="drug-interactions__source-name">{side.from.label}</span>
+                <span class="drug-interactions__source-state">{sideSourceState(side)}</span>
+              </li>
+            )}
+          </For>
+        </ul>
         <Show
           when={props.view.severity}
           fallback={

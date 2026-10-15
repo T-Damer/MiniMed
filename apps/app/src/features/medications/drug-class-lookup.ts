@@ -9,6 +9,7 @@
  * беременности», «ингибиторы АПФ кашель»); see {@link classInQuery} for what counts.
  */
 import type { DrugClassMatch } from '@localmed/core';
+import { parseAtcQueries } from '@localmed/search-lexical';
 
 import {
   CLASS_ALIASES,
@@ -135,9 +136,31 @@ export function loadClassVocabulary(): Promise<ClassVocabulary> {
   return vocabulary;
 }
 
+/**
+ * The group a typed ATC code names (QA 0.6.60: «J05AX» showed no group card): level 2–4, the group's
+ * НСИ name as the class label, the code as its one group. A code the dictionary does not know (a
+ * substance code, a letter pair that is no group) names no class; the caller then lists the drugs only.
+ */
+export function classOfCode(
+  names: Readonly<Record<string, string>>,
+  query: string,
+): DrugClassMatch | null {
+  for (const read of parseAtcQueries(query)) {
+    const name = names[read.code];
+    if (read.level > 4 || name === undefined) continue;
+    return { label: capitalized(name), groups: [{ code: read.code, name: null }], code: read.code };
+  }
+  return null;
+}
+
 /** What `createMedicalCore({ drugCodes })` asks: the class a query names. */
 export async function classOfSearchQuery(query: string): Promise<DrugClassMatch | null> {
-  // No class word has a digit or more than a few words: such a query never loads the dictionary.
-  if (/\p{N}/u.test(query) || nameStems(query).length > MAX_CLASS_WORDS) return null;
+  // A class word has no digit and a class name only a few words: a code query reads the dictionary
+  // for its group name, any other such query never loads it.
+  if (/\p{N}/u.test(query)) {
+    if (parseAtcQueries(query).length === 0) return null;
+    return classOfCode((await loadAtcNames()).names, query);
+  }
+  if (nameStems(query).length > MAX_CLASS_WORDS) return null;
   return classOfQuery(await loadClassVocabulary(), query);
 }

@@ -46,6 +46,12 @@ export interface DrugClassMatch {
    * if none of these words names a drug.
    */
   readonly rest?: readonly string[];
+  /**
+   * The query is a typed ATC code (level 2–4, «J05AX»): the class is that group, its label the group's
+   * НСИ name. The main search then shows the group card in front of the group's drugs, unless the same
+   * letters and digits are an МКБ-10 card.
+   */
+  readonly code?: string;
 }
 
 /** Matched-branch label of a result found by its code. */

@@ -40,6 +40,27 @@ test('the main search lists the drugs of a typed ATC code with the code that mat
   expect(codes.length).toBeGreaterThan(1);
   for (const code of codes) expect(code).toMatch(/^J05AB/u);
 
+  // QA 0.6.60: a group code shows the group card first, then the group's drugs by common use with
+  // the readable names ahead of the chemical ones (the commonest single substances lead).
+  await input.fill('J05AX');
+  await page.getByTestId('search-submit').click();
+  const card = page.getByTestId('drug-class-card');
+  await expect(card).toBeVisible({ timeout: 60_000 });
+  await expect(card).toContainText('Другие противовирусные препараты');
+  await expect(card.getByTestId('drug-class-group').first()).toContainText('J05AX');
+  if (SHOTS) {
+    await page.waitForTimeout(1500);
+    await page.screenshot({ path: `${SHOTS}/main-search-group-code.png` });
+  }
+  const titles = await page.locator('.result-group-header__title').allTextContents();
+  expect(titles.length).toBeGreaterThan(3);
+  expect(titles[0] ?? '').toMatch(/тилорон|умифеновир|инозин|фавипиравир/iu);
+  const firstChemical = titles.findIndex((title) => /ДИОКСОТЕТРАГИДРО|ПЕРГИДРОАЗИН/iu.test(title));
+  const lastReadable = titles.findLastIndex((title) =>
+    /тилорон|умифеновир|фавипиравир|молнупиравир/iu.test(title),
+  );
+  if (firstChemical >= 0 && lastReadable >= 0) expect(lastReadable).toBeLessThan(firstChemical);
+
   // The same code typed with the Russian layout on says what it was read as.
   await input.fill('о05ах13');
   await page.getByTestId('search-submit').click();

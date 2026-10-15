@@ -20,6 +20,33 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Class lines, per-drug instruction state, ATC group card — 2026-10-15 (STATE CLS3, QA 0.6.60 items 13 and 12 «J05AX»)
+
+- **Why Колдакт had no «также:» line.** Not the screen: `secondary-classes.json` is read by the card slug the screen derives from the card id, and
+  a test (`secondary-classes.test.ts`) now checks every recorded slug against the comparison index and that every recorded card yields a line
+  naming all its classes and components. The card `парацетамол + фенилэфрин + хлорфенамин` (Колдакт Флю Плюс, ТераФлю Экстратаб, АнтиФлу) simply
+  had no entry: CLS2 declared a component class only on a quote from the card's own instruction, and the product holds no instruction of this card.
+  The same missing class kept «Колдакт + лизиноприл» from reaching lisinopril's sympathomimetic sentence.
+- **New basis for such cards.** `addClasses` evidence has a second kind, `component-atc` (the component and its own ATC code, secondary only):
+  24 entries on 18 cards with no instruction (phenylephrine 7, chlorphenamine 7, codeine 8, pseudoephedrine 1, paracetamol 1). The build refuses
+  one as soon as the card has an instruction (quote it then), when the component is not one of the card's, or when the class repeats the card's own code
+  (`verifyComponentBases`, `atc-codes.ts` `parseEvidence`). Record: `OD8` in `docs/research/atc-index-review-2026-10-14.{json,md}`. Колдакт + лизиноприл
+  0 → 1 sentence. **Цитрамон is deliberately left without a line:** its own class N02B is already an analgesic-antipyretic, so «также: анальгетик (через
+  парацетамол)» would repeat it, and its caffeine stays out (OD7).
+- **The primary code is named.** `DrugAtcChip` shows «N02BE51 · анилиды»: the НСИ name of the deepest known level 2–4 group (`atc-group-name.ts`), in the same
+  tap target, plain text face beside the mono code. Named on the screen of a drug whose module is not installed (first two codes) and on an installed drug
+  that has no pharmacological-group link; where the group link is shown the name stays off.
+- **Interaction checker.** Under each pair's status line a small list says per drug «инструкция установлена / не установлена / нет инструкции в источниках
+  приложения» (`sideSourceState`, `data-testid="interaction-source"`); every missing instruction is offered for download with its size (`pairOfferModules`
+  no longer needs an indexed sentence), and the status never reads as a plain «не найдено» while one is missing («проверено не полностью» / «По указателю
+  приложения упоминаний не найдено»; the print and share text name the drugs in the sentence). Class sentences of the installed side still appear through
+  secondary classes. Tests: `interaction-view.test.ts`, e2e `drug-interactions.spec.ts`.
+- **ATC group code in the main search.** A typed code of level 2–4 («J05AX») shows the group card first (`classOfCode` in `drug-class-lookup.ts`: the НСИ name as
+  label, the code as its one group; skipped when the letters and digits are also an МКБ-10 card, as for `M05`), then the group's drugs by common use
+  (`compareDrugsByUse` in `@localmed/search-lexical`: readable names before chemical ones — `looksLikeChemicalName`, a name heuristic — single substances before
+  combinations, more registrations first). A stub card no longer leads a group query; a substance code keeps the exact drug first. Tests: `atc-query.test.ts`,
+  `srch1.test.ts`, `atc-drug-search.test.ts`, `drug-class-lookup.test.ts`, e2e `atc-search.spec.ts`. Not measured on a phone.
+
 ## Result interpretations, part B — 2026-10-15 (STATE TOOLS-B)
 
 The other nine tool modules (gastroenterology, neonatology, neurology-rehab, obstetrics-gynecology, pediatrics,

@@ -35,6 +35,7 @@ import {
   additionEvidenceHolds,
   parseAtcClassAdditions,
   parseAtcCodeExceptions,
+  quotedAdditions,
   redundantSecondary,
   selectAtcCodesOfMetadata,
 } from '../apps/app/src/features/drug-interactions/atc-codes';
@@ -166,6 +167,7 @@ function verifyAdditionEvidence(
   additions: readonly AtcClassAddition[],
   verified: Set<string>,
 ): void {
+  const quoted = quotedAdditions(additions);
   const documentRow = database.query<{ current_version_id: string }, [string]>(
     'select current_version_id from documents where id = ?',
   );
@@ -175,7 +177,7 @@ function verifyAdditionEvidence(
   const chunkRows = database.query<{ original_text: string }, [string]>(
     'select original_text from chunks where section_id = ? order by order_index',
   );
-  for (const addition of additions) {
+  for (const addition of quoted) {
     const document = documentRow.get(addition.evidence.document);
     if (!document) continue;
     const sections = sectionRows.all(document.current_version_id).map((section) => ({
@@ -190,7 +192,7 @@ function verifyAdditionEvidence(
         `addClasses: the quote for ${addition.card} is not in the section «${addition.evidence.section}» of ${addition.evidence.document}`,
       );
     }
-    verified.add(addition.card);
+    verified.add(`${addition.card}|${addition.classes.join(',')}`);
   }
 }
 
@@ -321,6 +323,39 @@ function measureCoverage(
   };
 }
 
+/**
+ * CLS3: a class that rests on the component's own ATC group (no quote) is only for a card with no
+ * instruction in the product, and the component must be one of the card's components.
+ */
+function verifyComponentBases(
+  asset: Parameters<typeof createInteractionIndex>[0],
+  cards: readonly EsklpCardRow[],
+  additions: readonly AtcClassAddition[],
+): void {
+  const index = createInteractionIndex(asset);
+  for (const addition of additions) {
+    if (addition.evidence.kind !== 'component-atc') continue;
+    const { component } = addition.evidence;
+    const slug = addition.card.replace(/^esklp\.mnn\./u, '');
+    const position = index.cardBySlug.get(slug);
+    if (position === undefined) {
+      throw new Error(`addClasses: the card ${addition.card} is not in the index`);
+    }
+    if ((index.documentsOfCard.get(position) ?? []).length > 0) {
+      throw new Error(
+        `addClasses: ${addition.card} has an instruction in the product now; quote it instead of the component's ATC group`,
+      );
+    }
+    const row = cards.find((item) => item.card.id === addition.card);
+    const names = [...(row?.card.components ?? []), row?.card.name ?? '', slug].map((name) =>
+      name.toLocaleLowerCase('ru-RU'),
+    );
+    if (!names.some((name) => name.includes(component))) {
+      throw new Error(`addClasses: ${component} is not a component of ${addition.card}`);
+    }
+  }
+}
+
 function main(): void {
   const catalog = JSON.parse(readFileSync(CATALOG, 'utf8')) as {
     modules: readonly CatalogModule[];
@@ -411,14 +446,15 @@ function main(): void {
   } finally {
     rmSync(scratch, { recursive: true, force: true });
   }
-  for (const addition of additions) {
-    if (!verifiedAdditions.has(addition.card)) {
+  for (const addition of quotedAdditions(additions)) {
+    if (!verifiedAdditions.has(`${addition.card}|${addition.classes.join(',')}`)) {
       throw new Error(
         `addClasses: ${addition.evidence.document} (${addition.card}) is not in any instruction module`,
       );
     }
   }
   const { asset, report } = builder.finish();
+  verifyComponentBases(asset, cards, additions);
   const coverage = measureCoverage(asset, cards);
   mkdirSync(join(OUTPUT, '..'), { recursive: true });
   writeFileSync(OUTPUT, `${JSON.stringify(asset)}\n`);

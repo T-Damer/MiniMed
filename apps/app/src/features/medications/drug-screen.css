@@ -288,6 +288,12 @@
   display: inline;
 }
 
+/* «· анилиды»: the group's name in the text face beside the mono code, one tap target with it. */
+.drug-code__name {
+  font-family: var(--font-sans);
+  letter-spacing: 0;
+}
+
 .drug-code__registry-code {
   font-family: var(--font-mono);
   font-variant-numeric: lining-nums tabular-nums;

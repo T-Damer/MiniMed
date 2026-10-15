@@ -16,6 +16,8 @@ brief: the data is 90–99 % right, so the review covers only what the completed
 > cards regain the hypnotic and barbiturate sentences as a secondary class, and the two ATC4c additions became secondary too (OD6 at the end, «Owner decisions 2026-10-14, third part»).
 >
 > **Status 2026-10-15 (CLS2):** the component classes CLS1 listed are declared as secondary classes where the product's own instruction names the class (codeine, caffeine, phenylephrine, pseudoephedrine, paracetamol, chlorphenamine, and pheniramine): 45 entries on 28 cards (OD7 at the end, «Owner decisions 2026-10-14, fourth part»). A secondary class no longer counts as the card's own class when own-class mentions are suppressed.
+>
+> **Status 2026-10-15 (CLS3):** cards with no instruction in the product (Колдакт Флю Плюс, Колдфри, Терасил-Д …) got the same component classes on the component's own ATC group: 24 entries on 18 cards (OD8 at the end, «Owner decisions 2026-10-14, fifth part»). Цитрамон is left as it is (its own class is already an analgesic).
 
 ## Where ATC codes are used
 
@@ -445,3 +447,21 @@ the comparison tool has its own index.
 In the interaction checker, the prescription tool and the comparison a quote reached only through a secondary class carries the small italic «через кофеин (психостимулятор)» (CLS1). The drug screen, and the screen of
 a drug whose module is not installed, show one small plain line under the code: «также: психостимулятор (через кофеин); деконгестант (через фенилэфрин)». The line comes from `secondary-classes.json`, a lazy chunk
 of its own, so the 2.1 MB interaction index is not loaded for it. The ATC sheet is not changed: it explains one code, and a secondary class is not the card's code.
+
+## Owner decisions 2026-10-14, fifth part (CLS3, OD8)
+
+Machine-readable: `ownerDecisions` OD8 in [the JSON record](atc-index-review-2026-10-14.json). Raised by the QA pass before 0.6.60 (item 13): «также:» was shown for ТераФлю and Корвалол but not for Колдакт or Цитрамон.
+
+**Why they were missing.** The screen was right; the data was not there. CLS2 declared a component class only where the card's own instruction (a verbatim quote) calls the component the class. Колдакт Флю Плюс is the card
+`парацетамол + фенилэфрин + хлорфенамин` (also ТераФлю Экстратаб, АнтиФлу; 5 registrations) and the product holds **no instruction of it**, so nothing could be quoted and nothing was declared, while Колдакт Форс, РАНКОФ and
+Колдакт Бронхо (with instructions) have their lines. The same gap hid the class sentences from the interaction check: «Колдакт + лизиноприл» found nothing because the card had no decongestant class for lisinopril's
+«симпатомиметики» sentence to reach.
+
+**What was declared.** 24 entries on 18 cards that have no instruction in the product, for the components of CLS2 (phenylephrine 7, chlorphenamine 7, codeine 8, pseudoephedrine 1, paracetamol 1; see the record),
+on a second kind of basis, `evidence.kind = "component-atc"`: the group of the component's own ATC code (the reference classification of the substance, not a statement of the product's text). The build refuses such an
+entry as soon as an instruction of the card is in the product (a quote then replaces it), when the component is not one of the card's components, and when the card's own code already covers the class.
+Effect: «Колдакт + лизиноприл» 0 → 1 sentence (the card now meets the sympathomimetic sentence of lisinopril, marked «через фенилэфрин (деконгестант)»), codeine + morphine 0 → 6.
+
+**Not declared.** Цитрамон (aspirin + caffeine + paracetamol, N02BA71): its own class is already an analgesic-antipyretic (N02B, which the word «анальгетики» covers), so «также: анальгетик (через парацетамол)» would
+repeat the primary class, and caffeine stays out for the reason of OD7. Caffeine on cards without an instruction (nothing says whether it stimulates), eye drops with phenylephrine, a card coded N02BE* (paracetamol
+repeats its own code). The AI declared these; no clinician has signed them off.

@@ -1,5 +1,5 @@
 {
-  "$comment": "Declared corrections to the ATC codes the interaction index carries for a card, decided by the medical review in docs/research/atc-index-review-2026-10-14.json. «exceptions»: a code the card must NOT carry (card + code + reason + review). «addClasses»: a class the card belongs to for the class rules although its registry code puts it elsewhere (card + role + classes + reason + evidence quoted from the product's own instruction + review); the build refuses an addition whose quote is not in the instruction. «role»: `primary` replaces a wrong code (the class joins the card's codes); `secondary` is an additional class that one component brings (owner 2026-10-14: «one drug can have many classes»; Корвалол is a heart remedy first, the hypnotic class is secondary) — it stays apart from the codes, names the component (`via`) and the class (`label`, singular) the interaction view shows («через фенобарбитал (снотворное)»), and still matches class sentences. Both are applied at build time by selectAtcCodes; the index holds the result, nothing in the app branches on a drug id. The льна посевного семена / A06AC05 exception was removed by the owner on 2026-10-14 (see «ownerDecisions» in the review). CLS2 (2026-10-15) added secondary classes for the components codeine (opioid), caffeine (psychostimulant), phenylephrine and pseudoephedrine (decongestant), paracetamol (analgesic), chlorphenamine and pheniramine (antihistamine) of combination products whose own instruction names the class; every entry quotes that instruction (OD7 in the review).",
+  "$comment": "Declared corrections to the ATC codes the interaction index carries for a card, decided by the medical review in docs/research/atc-index-review-2026-10-14.json. «exceptions»: a code the card must NOT carry (card + code + reason + review). «addClasses»: a class the card belongs to for the class rules although its registry code puts it elsewhere (card + role + classes + reason + evidence quoted from the product's own instruction + review); the build refuses an addition whose quote is not in the instruction. «role»: `primary` replaces a wrong code (the class joins the card's codes); `secondary` is an additional class that one component brings (owner 2026-10-14: «one drug can have many classes»; Корвалол is a heart remedy first, the hypnotic class is secondary) — it stays apart from the codes, names the component (`via`) and the class (`label`, singular) the interaction view shows («через фенобарбитал (снотворное)»), and still matches class sentences. Both are applied at build time by selectAtcCodes; the index holds the result, nothing in the app branches on a drug id. The льна посевного семена / A06AC05 exception was removed by the owner on 2026-10-14 (see «ownerDecisions» in the review). CLS2 (2026-10-15) added secondary classes for the components codeine (opioid), caffeine (psychostimulant), phenylephrine and pseudoephedrine (decongestant), paracetamol (analgesic), chlorphenamine and pheniramine (antihistamine) of combination products whose own instruction names the class; every entry quotes that instruction (OD7 in the review). CLS3 (2026-10-15) added secondary classes with `evidence.kind = \"component-atc\"` (component + the component's own ATC code) for combination cards the product holds no instruction of, where no quote is possible; the build refuses such an entry as soon as an instruction of the card is in the product.",
   "exceptions": [
     {
       "card": "esklp.mnn.интерферон-альфа-2b-лоратадин",
@@ -838,6 +838,390 @@
         "document": "drug.rf.58db4c9619cbc1c1eca3.instruction",
         "section": "Взаимодействие с другими лекарственными средствами",
         "quote": "Ингибиторы моноаминоксидазы (МАО) нельзя принимать в сочетании с антигистаминными препаратами (например, хлорфенамина малеат)"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.ибупрофен-кодеин",
+      "role": "secondary",
+      "classes": [
+        "N02A"
+      ],
+      "via": "кодеин",
+      "label": "опиоид",
+      "reason": "Нурофен плюс: coded M01AE51; the product has no instruction of this card to quote. CLS3: the class is brought by one component (кодеин; its own ATC code N02AA59 / R05DA04, group N02A «Опиоиды»), so the card shows it as «также» and the sentences of other instructions that name the class apply to it; the registry code is not wrong. The basis is the component's reference classification, not a statement of an instruction; the build refuses it once an instruction of the card is in the product.",
+      "evidence": {
+        "kind": "component-atc",
+        "component": "кодеин",
+        "atcCode": "N02AA59"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.декстрометорфан-парацетамол-фенилэфрин-хлорфенамин",
+      "role": "secondary",
+      "classes": [
+        "R01BA"
+      ],
+      "via": "фенилэфрин",
+      "label": "деконгестант",
+      "reason": "Тофф плюс: coded N02BE71; the product has no instruction of this card to quote. CLS3: the class is brought by one component (фенилэфрин; its own ATC code R01BA03, group R01BA «Симпатомиметики»), so the card shows it as «также» and the sentences of other instructions that name the class apply to it; the registry code is not wrong. The basis is the component's reference classification, not a statement of an instruction; the build refuses it once an instruction of the card is in the product.",
+      "evidence": {
+        "kind": "component-atc",
+        "component": "фенилэфрин",
+        "atcCode": "R01BA03"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.декстрометорфан-парацетамол-фенилэфрин-хлорфенамин",
+      "role": "secondary",
+      "classes": [
+        "R06AB"
+      ],
+      "via": "хлорфенамин",
+      "label": "антигистаминное",
+      "reason": "Тофф плюс: coded N02BE71; the product has no instruction of this card to quote. CLS3: the class is brought by one component (хлорфенамин; its own ATC code R06AB04, group R06AB «Замещенные алкиламины»), so the card shows it as «также» and the sentences of other instructions that name the class apply to it; the registry code is not wrong. The basis is the component's reference classification, not a statement of an instruction; the build refuses it once an instruction of the card is in the product.",
+      "evidence": {
+        "kind": "component-atc",
+        "component": "хлорфенамин",
+        "atcCode": "R06AB04"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.дротаверин-кодеин-парацетамол",
+      "role": "secondary",
+      "classes": [
+        "N02A"
+      ],
+      "via": "кодеин",
+      "label": "опиоид",
+      "reason": "Юниспаз: coded N02BE71; the product has no instruction of this card to quote. CLS3: the class is brought by one component (кодеин; its own ATC code N02AA59 / R05DA04, group N02A «Опиоиды»), so the card shows it as «также» and the sentences of other instructions that name the class apply to it; the registry code is not wrong. The basis is the component's reference classification, not a statement of an instruction; the build refuses it once an instruction of the card is in the product.",
+      "evidence": {
+        "kind": "component-atc",
+        "component": "кодеин",
+        "atcCode": "N02AA59"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.дротаверина-гидрохлорид-кодеина-фосфата-полугидрат-парацетамол",
+      "role": "secondary",
+      "classes": [
+        "N02A"
+      ],
+      "via": "кодеин",
+      "label": "опиоид",
+      "reason": "Но-шпалгин: coded N02BE71; the product has no instruction of this card to quote. CLS3: the class is brought by one component (кодеин; its own ATC code N02AA59 / R05DA04, group N02A «Опиоиды»), so the card shows it as «также» and the sentences of other instructions that name the class apply to it; the registry code is not wrong. The basis is the component's reference classification, not a statement of an instruction; the build refuses it once an instruction of the card is in the product.",
+      "evidence": {
+        "kind": "component-atc",
+        "component": "кодеин",
+        "atcCode": "N02AA59"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.ибупрофен-кодеин-кофеин-метамизол-натрия-фенобарбитал",
+      "role": "secondary",
+      "classes": [
+        "N02A"
+      ],
+      "via": "кодеин",
+      "label": "опиоид",
+      "reason": "Пентабуфен: coded N02BB72; the product has no instruction of this card to quote. CLS3: the class is brought by one component (кодеин; its own ATC code N02AA59 / R05DA04, group N02A «Опиоиды»), so the card shows it as «также» and the sentences of other instructions that name the class apply to it; the registry code is not wrong. The basis is the component's reference classification, not a statement of an instruction; the build refuses it once an instruction of the card is in the product.",
+      "evidence": {
+        "kind": "component-atc",
+        "component": "кодеин",
+        "atcCode": "N02AA59"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.кодеин-кофеин-парацетамол-пропифеназон-фенобарбитал",
+      "role": "secondary",
+      "classes": [
+        "N02A"
+      ],
+      "via": "кодеин",
+      "label": "опиоид",
+      "reason": "Пенталгин Плюс, Пентанов Плюс: coded N02BE71; the product has no instruction of this card to quote. CLS3: the class is brought by one component (кодеин; its own ATC code N02AA59 / R05DA04, group N02A «Опиоиды»), so the card shows it as «также» and the sentences of other instructions that name the class apply to it; the registry code is not wrong. The basis is the component's reference classification, not a statement of an instruction; the build refuses it once an instruction of the card is in the product.",
+      "evidence": {
+        "kind": "component-atc",
+        "component": "кодеин",
+        "atcCode": "N02AA59"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.кофеин-парацетамол-терпингидрат-фенилэфрин-аскорбиновая-кислота",
+      "role": "secondary",
+      "classes": [
+        "R01BA"
+      ],
+      "via": "фенилэфрин",
+      "label": "деконгестант",
+      "reason": "Флюколдекс форте: coded N02BE51; the product has no instruction of this card to quote. CLS3: the class is brought by one component (фенилэфрин; its own ATC code R01BA03, group R01BA «Симпатомиметики»), so the card shows it as «также» and the sentences of other instructions that name the class apply to it; the registry code is not wrong. The basis is the component's reference classification, not a statement of an instruction; the build refuses it once an instruction of the card is in the product.",
+      "evidence": {
+        "kind": "component-atc",
+        "component": "фенилэфрин",
+        "atcCode": "R01BA03"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-хлорфенамин-парацетамол-фенилэфрин-хлорфенамин-набор",
+      "role": "secondary",
+      "classes": [
+        "R01BA"
+      ],
+      "via": "фенилэфрин",
+      "label": "деконгестант",
+      "reason": "Колдфри: coded N02BE71; the product has no instruction of this card to quote. CLS3: the class is brought by one component (фенилэфрин; its own ATC code R01BA03, group R01BA «Симпатомиметики»), so the card shows it as «также» and the sentences of other instructions that name the class apply to it; the registry code is not wrong. The basis is the component's reference classification, not a statement of an instruction; the build refuses it once an instruction of the card is in the product.",
+      "evidence": {
+        "kind": "component-atc",
+        "component": "фенилэфрин",
+        "atcCode": "R01BA03"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-хлорфенамин-парацетамол-фенилэфрин-хлорфенамин-набор",
+      "role": "secondary",
+      "classes": [
+        "R06AB"
+      ],
+      "via": "хлорфенамин",
+      "label": "антигистаминное",
+      "reason": "Колдфри: coded N02BE71; the product has no instruction of this card to quote. CLS3: the class is brought by one component (хлорфенамин; its own ATC code R06AB04, group R06AB «Замещенные алкиламины»), so the card shows it as «также» and the sentences of other instructions that name the class apply to it; the registry code is not wrong. The basis is the component's reference classification, not a statement of an instruction; the build refuses it once an instruction of the card is in the product.",
+      "evidence": {
+        "kind": "component-atc",
+        "component": "хлорфенамин",
+        "atcCode": "R06AB04"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.кофеин-парацетамол-хлорфенамин",
+      "role": "secondary",
+      "classes": [
+        "R06AB"
+      ],
+      "via": "хлорфенамин",
+      "label": "антигистаминное",
+      "reason": "Флюколдекс-Н, ФлюмиТабс: coded N02BE51; the product has no instruction of this card to quote. CLS3: the class is brought by one component (хлорфенамин; its own ATC code R06AB04, group R06AB «Замещенные алкиламины»), so the card shows it as «также» and the sentences of other instructions that name the class apply to it; the registry code is not wrong. The basis is the component's reference classification, not a statement of an instruction; the build refuses it once an instruction of the card is in the product.",
+      "evidence": {
+        "kind": "component-atc",
+        "component": "хлорфенамин",
+        "atcCode": "R06AB04"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.кофеин-парацетамол-хлорфенамин-аскорбиновая-кислота",
+      "role": "secondary",
+      "classes": [
+        "R06AB"
+      ],
+      "via": "хлорфенамин",
+      "label": "антигистаминное",
+      "reason": "Гриппостад С, Колдрекс Капс: coded N02BE51; the product has no instruction of this card to quote. CLS3: the class is brought by one component (хлорфенамин; its own ATC code R06AB04, group R06AB «Замещенные алкиламины»), so the card shows it as «также» and the sentences of other instructions that name the class apply to it; the registry code is not wrong. The basis is the component's reference classification, not a statement of an instruction; the build refuses it once an instruction of the card is in the product.",
+      "evidence": {
+        "kind": "component-atc",
+        "component": "хлорфенамин",
+        "atcCode": "R06AB04"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.парацетамол-фенилэфрин",
+      "role": "secondary",
+      "classes": [
+        "R01BA"
+      ],
+      "via": "фенилэфрин",
+      "label": "деконгестант",
+      "reason": "Лемсип Лимон, Лемсип Макс: coded N02BE51; the product has no instruction of this card to quote. CLS3: the class is brought by one component (фенилэфрин; its own ATC code R01BA03, group R01BA «Симпатомиметики»), so the card shows it as «также» and the sentences of other instructions that name the class apply to it; the registry code is not wrong. The basis is the component's reference classification, not a statement of an instruction; the build refuses it once an instruction of the card is in the product.",
+      "evidence": {
+        "kind": "component-atc",
+        "component": "фенилэфрин",
+        "atcCode": "R01BA03"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.парацетамол-фенилэфрин-хлорфенамин",
+      "role": "secondary",
+      "classes": [
+        "R01BA"
+      ],
+      "via": "фенилэфрин",
+      "label": "деконгестант",
+      "reason": "Колдакт Флю Плюс, ТераФлю Экстратаб, АнтиФлу: coded N02BE51; the product has no instruction of this card to quote. CLS3: the class is brought by one component (фенилэфрин; its own ATC code R01BA03, group R01BA «Симпатомиметики»), so the card shows it as «также» and the sentences of other instructions that name the class apply to it; the registry code is not wrong. The basis is the component's reference classification, not a statement of an instruction; the build refuses it once an instruction of the card is in the product.",
+      "evidence": {
+        "kind": "component-atc",
+        "component": "фенилэфрин",
+        "atcCode": "R01BA03"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.парацетамол-фенилэфрин-хлорфенамин",
+      "role": "secondary",
+      "classes": [
+        "R06AB"
+      ],
+      "via": "хлорфенамин",
+      "label": "антигистаминное",
+      "reason": "Колдакт Флю Плюс, ТераФлю Экстратаб, АнтиФлу: coded N02BE51; the product has no instruction of this card to quote. CLS3: the class is brought by one component (хлорфенамин; its own ATC code R06AB04, group R06AB «Замещенные алкиламины»), so the card shows it as «также» and the sentences of other instructions that name the class apply to it; the registry code is not wrong. The basis is the component's reference classification, not a statement of an instruction; the build refuses it once an instruction of the card is in the product.",
+      "evidence": {
+        "kind": "component-atc",
+        "component": "хлорфенамин",
+        "atcCode": "R06AB04"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.ацетилсалициловая-кислота-фенилэфрин-хлорфенамин",
+      "role": "secondary",
+      "classes": [
+        "R01BA"
+      ],
+      "via": "фенилэфрин",
+      "label": "деконгестант",
+      "reason": "Аспирин Комплекс: coded R05X; the product has no instruction of this card to quote. CLS3: the class is brought by one component (фенилэфрин; its own ATC code R01BA03, group R01BA «Симпатомиметики»), so the card shows it as «также» and the sentences of other instructions that name the class apply to it; the registry code is not wrong. The basis is the component's reference classification, not a statement of an instruction; the build refuses it once an instruction of the card is in the product.",
+      "evidence": {
+        "kind": "component-atc",
+        "component": "фенилэфрин",
+        "atcCode": "R01BA03"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.ацетилсалициловая-кислота-фенилэфрин-хлорфенамин",
+      "role": "secondary",
+      "classes": [
+        "R06AB"
+      ],
+      "via": "хлорфенамин",
+      "label": "антигистаминное",
+      "reason": "Аспирин Комплекс: coded R05X; the product has no instruction of this card to quote. CLS3: the class is brought by one component (хлорфенамин; its own ATC code R06AB04, group R06AB «Замещенные алкиламины»), so the card shows it as «также» and the sentences of other instructions that name the class apply to it; the registry code is not wrong. The basis is the component's reference classification, not a statement of an instruction; the build refuses it once an instruction of the card is in the product.",
+      "evidence": {
+        "kind": "component-atc",
+        "component": "хлорфенамин",
+        "atcCode": "R06AB04"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.декстрометорфан-парацетамол-псевдоэфедрин",
+      "role": "secondary",
+      "classes": [
+        "R01BA"
+      ],
+      "via": "псевдоэфедрин",
+      "label": "деконгестант",
+      "reason": "ГРИППЕКС: coded R05X; the product has no instruction of this card to quote. CLS3: the class is brought by one component (псевдоэфедрин; its own ATC code R01BA02, group R01BA «Симпатомиметики»), so the card shows it as «также» and the sentences of other instructions that name the class apply to it; the registry code is not wrong. The basis is the component's reference classification, not a statement of an instruction; the build refuses it once an instruction of the card is in the product.",
+      "evidence": {
+        "kind": "component-atc",
+        "component": "псевдоэфедрин",
+        "atcCode": "R01BA02"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.декстрометорфан-парацетамол-псевдоэфедрин",
+      "role": "secondary",
+      "classes": [
+        "N02BE"
+      ],
+      "via": "парацетамол",
+      "label": "анальгетик",
+      "reason": "ГРИППЕКС: coded R05X; the product has no instruction of this card to quote. CLS3: the class is brought by one component (парацетамол; its own ATC code N02BE01, group N02BE «Анилиды»), so the card shows it as «также» and the sentences of other instructions that name the class apply to it; the registry code is not wrong. The basis is the component's reference classification, not a statement of an instruction; the build refuses it once an instruction of the card is in the product.",
+      "evidence": {
+        "kind": "component-atc",
+        "component": "парацетамол",
+        "atcCode": "N02BE01"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.декстрометорфан-фенилэфрин-хлорфенамин",
+      "role": "secondary",
+      "classes": [
+        "R01BA"
+      ],
+      "via": "фенилэфрин",
+      "label": "деконгестант",
+      "reason": "Терасил-Д: coded R05X; the product has no instruction of this card to quote. CLS3: the class is brought by one component (фенилэфрин; its own ATC code R01BA03, group R01BA «Симпатомиметики»), so the card shows it as «также» and the sentences of other instructions that name the class apply to it; the registry code is not wrong. The basis is the component's reference classification, not a statement of an instruction; the build refuses it once an instruction of the card is in the product.",
+      "evidence": {
+        "kind": "component-atc",
+        "component": "фенилэфрин",
+        "atcCode": "R01BA03"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.декстрометорфан-фенилэфрин-хлорфенамин",
+      "role": "secondary",
+      "classes": [
+        "R06AB"
+      ],
+      "via": "хлорфенамин",
+      "label": "антигистаминное",
+      "reason": "Терасил-Д: coded R05X; the product has no instruction of this card to quote. CLS3: the class is brought by one component (хлорфенамин; its own ATC code R06AB04, group R06AB «Замещенные алкиламины»), so the card shows it as «также» and the sentences of other instructions that name the class apply to it; the registry code is not wrong. The basis is the component's reference classification, not a statement of an instruction; the build refuses it once an instruction of the card is in the product.",
+      "evidence": {
+        "kind": "component-atc",
+        "component": "хлорфенамин",
+        "atcCode": "R06AB04"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.кодеин-натрия-гидрокарбонат-солодки-корни-термопсиса-трава",
+      "role": "secondary",
+      "classes": [
+        "N02A"
+      ],
+      "via": "кодеин",
+      "label": "опиоид",
+      "reason": "Коделак, Коделанов: coded R05FA02; the product has no instruction of this card to quote. CLS3: the class is brought by one component (кодеин; its own ATC code N02AA59 / R05DA04, group N02A «Опиоиды»), so the card shows it as «также» and the sentences of other instructions that name the class apply to it; the registry code is not wrong. The basis is the component's reference classification, not a statement of an instruction; the build refuses it once an instruction of the card is in the product.",
+      "evidence": {
+        "kind": "component-atc",
+        "component": "кодеин",
+        "atcCode": "N02AA59"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.кодеин-натрия-гидрокарбонат-терпингидрат",
+      "role": "secondary",
+      "classes": [
+        "N02A"
+      ],
+      "via": "кодеин",
+      "label": "опиоид",
+      "reason": "Терпинкод: coded R05FA02; the product has no instruction of this card to quote. CLS3: the class is brought by one component (кодеин; its own ATC code N02AA59 / R05DA04, group N02A «Опиоиды»), so the card shows it as «также» and the sentences of other instructions that name the class apply to it; the registry code is not wrong. The basis is the component's reference classification, not a statement of an instruction; the build refuses it once an instruction of the card is in the product.",
+      "evidence": {
+        "kind": "component-atc",
+        "component": "кодеин",
+        "atcCode": "N02AA59"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.кодеин-солодки-корней-экстракт-термопсиса-ланцетного-травы-экстракт-тимьяна-ползучего-травы-экстракт",
+      "role": "secondary",
+      "classes": [
+        "N02A"
+      ],
+      "via": "кодеин",
+      "label": "опиоид",
+      "reason": "Коделак фито, Коделанов фито: coded R05FA; the product has no instruction of this card to quote. CLS3: the class is brought by one component (кодеин; its own ATC code N02AA59 / R05DA04, group N02A «Опиоиды»), so the card shows it as «также» and the sentences of other instructions that name the class apply to it; the registry code is not wrong. The basis is the component's reference classification, not a statement of an instruction; the build refuses it once an instruction of the card is in the product.",
+      "evidence": {
+        "kind": "component-atc",
+        "component": "кодеин",
+        "atcCode": "N02AA59"
       },
       "review": "docs/research/atc-index-review-2026-10-14.json"
     }

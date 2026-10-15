@@ -9,6 +9,8 @@ import { type DrugAtcCode, drugAtcCodesFromIndexCard } from '@/features/medicati
 import '@/features/medications/drug-screen.css';
 
 const MNN_ID_PREFIX = 'esklp.mnn.';
+/** Only the first codes are named: a long line of codes with a name each would not stay compact. */
+const NAMED_CODES = 2;
 
 /** The slug of an ЕСКЛП МНН card id (`esklp.mnn.умифеновир` → `умифеновир`); null for any other id. */
 export function esklpCardSlug(documentId: string): string | null {
@@ -43,9 +45,9 @@ export function DrugIndexAtc(props: { readonly slug: string }): JSX.Element {
         <div class="drug-links__line">
           <ul class="drug-links__list">
             <For each={codes() ?? []}>
-              {(code) => (
+              {(code, position) => (
                 <li class="drug-links__item">
-                  <DrugAtcChip code={code} onOpen={openSheet} />
+                  <DrugAtcChip code={code} onOpen={openSheet} named={position() < NAMED_CODES} />
                 </li>
               )}
             </For>

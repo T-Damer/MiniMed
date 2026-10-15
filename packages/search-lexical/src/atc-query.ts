@@ -200,9 +200,57 @@ export function matchAtcEntry<T extends AtcDirectoryEntry>(
   return best === undefined ? null : { entry, code: best, registryCode: null, exact };
 }
 
+/** A word of a name this long is a systematic (chemical) name, not an INN. */
+const CHEMICAL_WORD_LENGTH = 24;
+/** Shorter words with one of these nomenclature morphemes are chemical names too. */
+const CHEMICAL_MORPHEMES =
+  /ТЕТРАГИДРО|ПЕРГИДРО|ДИОКСО|ИЛЭТАН|ПИРАНОЗИЛ|ПЕНТАНДИОВ|ТРИФТОРМЕТИЛ|МЕТИЛИМИДАЗОЛ/u;
+const CHEMICAL_MORPHEME_WORD_LENGTH = 12;
+/** Locants, brackets and commas of a systematic name («1-[2-(1-МЕТИЛИМИДАЗОЛ-4-ИЛ)-ЭТИЛ]…»). */
+const CHEMICAL_SYMBOLS = /^[\d([]|^[A-Z]-|[A-Z]-[([]|\d,\d|\^|[)\]][-А-Я]|-\d+-/u;
+
 /**
- * The entries a typed code finds: the exact level first (a drug that carries the very code, a group
- * stub for a group query), then by name; at most `limit` of them.
+ * Whether a directory name reads as a chemical (IUPAC-style) name rather than an INN. The registry
+ * keeps a substance under its systematic name when it has none («ДИОКСОТЕТРАГИДРОКСИТЕТРАГИДРОНАФТАЛИН»,
+ * «1-[2-(1-МЕТИЛИМИДАЗОЛ-4-ИЛ)-ЭТИЛ]ПЕРГИДРОАЗИН-2,6-ДИОН»): such an entry is real but unreadable, so
+ * a list of a group's drugs puts it after the readable names. A heuristic over the name only — locants,
+ * brackets, a very long word, or a long word made of nomenclature morphemes — checked in tests
+ * against the names of the J05AX group.
+ */
+export function looksLikeChemicalName(name: string): boolean {
+  if (CHEMICAL_SYMBOLS.test(name)) return true;
+  return name
+    .toLocaleUpperCase('ru-RU')
+    .split(/[\s+]+/u)
+    .some(
+      (word) =>
+        word.length >= CHEMICAL_WORD_LENGTH ||
+        (word.length >= CHEMICAL_MORPHEME_WORD_LENGTH && CHEMICAL_MORPHEMES.test(word)),
+    );
+}
+
+/**
+ * How the drugs of a group are listed (SRCH1, QA 0.6.60): readable names before chemical ones, single
+ * substances before combinations, commoner (more registrations) before rarer, then by name.
+ */
+export function compareDrugsByUse(left: AtcDirectoryEntry, right: AtcDirectoryEntry): number {
+  return (
+    Number(looksLikeChemicalName(left.name)) - Number(looksLikeChemicalName(right.name)) ||
+    Number(left.name.includes('+')) - Number(right.name.includes('+')) ||
+    (right.weight ?? 0) - (left.weight ?? 0) ||
+    left.name.localeCompare(right.name, 'ru') ||
+    left.id.localeCompare(right.id)
+  );
+}
+
+/** A typed code of this length or more names a substance (level 5), not a group. */
+const SUBSTANCE_CODE_LENGTH = 6;
+
+/**
+ * The entries a typed code finds, at most `limit` of them. A substance code (`J05AX13`): the drugs
+ * that carry exactly it first, then by name. A group code (`J05AX`, `J05A`, `J05`): the group's drugs
+ * by common use (`compareDrugsByUse`); a card the registry coded only to the group is a stub, no more
+ * the group's own drug than the rest, so it takes no lead.
  */
 export function findAtcEntries<T extends AtcDirectoryEntry>(
   query: Pick<AtcQuery, 'code'>,
@@ -214,12 +262,14 @@ export function findAtcEntries<T extends AtcDirectoryEntry>(
     const match = matchAtcEntry(query, entry);
     if (match) matches.push(match);
   }
+  const substance = query.code.length >= SUBSTANCE_CODE_LENGTH;
   return matches
-    .toSorted(
-      (left, right) =>
-        Number(right.exact) - Number(left.exact) ||
-        left.entry.name.localeCompare(right.entry.name, 'ru') ||
-        left.entry.id.localeCompare(right.entry.id),
+    .toSorted((left, right) =>
+      substance
+        ? Number(right.exact) - Number(left.exact) ||
+          left.entry.name.localeCompare(right.entry.name, 'ru') ||
+          left.entry.id.localeCompare(right.entry.id)
+        : compareDrugsByUse(left.entry, right.entry),
     )
     .slice(0, limit);
 }

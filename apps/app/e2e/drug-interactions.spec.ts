@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test';
-import { routeInstructionModule } from './medication-module-fixture';
+import { INSTRUCTION_MODULE_ID, routeInstructionModule } from './medication-module-fixture';
 import { E2E_ASSET_ORIGIN, mountBuiltApp, waitForSearchEditable } from './mount-built-app';
 
 // INT1: a search over the sentences of the official instructions that name another drug. The
@@ -67,11 +67,17 @@ test('a search for two drugs opens the tool, offers the instruction and quotes i
   await expect(pair).toHaveCount(1);
   await expect(page.getByTestId('interaction-pair-status')).toContainText('об этом сочетании');
   await expect(page.getByTestId('interaction-side-status')).toHaveCount(0);
-  const offer = pair.locator('.drug-interactions__offer-button');
-  await expect(offer).toHaveCount(1, { timeout: 60_000 });
+  // QA 0.6.60: every missing instruction is offered, also the one the index has no sentence for.
+  await expect(pair.locator('.drug-interactions__offer-button')).toHaveCount(2, {
+    timeout: 60_000,
+  });
+  const offer = pair.locator(
+    `[data-module-id="${INSTRUCTION_MODULE_ID}"] .drug-interactions__offer-button`,
+  );
+  await expect(offer).toHaveCount(1);
   // A compact button; the group it downloads is the small line under it, once per module.
   await expect(offer).toContainText(/^Скачать · \d/u, { timeout: 60_000 });
-  await expect(pair.locator('.module-offer__subtitle')).toContainText('Инструкции группы');
+  await expect(pair.locator('.module-offer__subtitle').first()).toContainText('Инструкции группы');
   await shoot(page, 'not-installed');
   await offer.click({ force: true });
 
@@ -138,6 +144,39 @@ test('drugs named in the address make every pair', async ({ page }) => {
   for (const text of statuses) expect(text).not.toMatch(/безопасн/iu);
   await expect(page.getByTestId('interaction-summary')).toContainText('Пар: 6');
   await shoot(page, 'four-items');
+});
+
+// CLS3 (QA 0.6.60, item 13): «Колдакт + лизиноприл». The card of Колдакт has no instruction in the
+// sources, lisinopril's is not installed: the pair says which, offers the download of the missing one
+// with its size, and still finds the class sentence that reaches Колдакт through its components.
+test('a pair says per drug whether its instruction is installed and offers the missing one', async ({
+  page,
+}) => {
+  test.setTimeout(240_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mountBuiltApp(page, {
+    skipLargeCompanionPacks: true,
+    localStorage: {
+      'minimed.app-preferences.v1': JSON.stringify({ experimentalModulesEnabled: true }),
+    },
+  });
+  await page.goto(
+    `${E2E_ASSET_ORIGIN}/#/notes/drug-interactions?c=парацетамол-фенилэфрин-хлорфенамин&c=лизиноприл`,
+  );
+  const pair = page.getByTestId('interaction-pair');
+  await expect(pair).toHaveCount(1, { timeout: 60_000 });
+  const sources = pair.getByTestId('interaction-source');
+  await expect(sources).toHaveCount(2);
+  await expect(sources.nth(0)).toContainText('нет инструкции в источниках приложения');
+  await expect(sources.nth(1)).toContainText('инструкция не установлена');
+  const status = page.getByTestId('interaction-pair-status');
+  await expect(status).toContainText('появятся после скачивания');
+  await expect(status).not.toContainText(/безопасн/iu);
+  // The missing instruction is offered, with its size.
+  const offer = pair.locator('.drug-interactions__offer-button');
+  await expect(offer).toHaveCount(1, { timeout: 60_000 });
+  await expect(offer).toContainText(/^Скачать · \d/u);
+  await shoot(page, 'per-drug-sources');
 });
 
 test('the tool opens from an address and keeps the names that match no drug', async ({ page }) => {

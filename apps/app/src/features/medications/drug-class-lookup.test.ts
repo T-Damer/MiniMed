@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import atcNames from './atc-names.json';
-import { classOfQuery, classOfSearchQuery, createClassVocabulary } from './drug-class-lookup';
+import {
+  classOfCode,
+  classOfQuery,
+  classOfSearchQuery,
+  createClassVocabulary,
+} from './drug-class-lookup';
 
 // SRCH1 (owner decision 2026-10-14): the class words of the main search are the app's one class
 // vocabulary; every code of the search-only aliases is a group of the shipped НСИ dictionary.
@@ -89,5 +94,33 @@ describe('the class a query names', () => {
   it('does not even load the dictionary for a query with a digit or too many words', async () => {
     expect(await classOfSearchQuery('статины 20 мг')).toBeNull();
     expect(await classOfSearchQuery('а б в г д е ж')).toBeNull();
+  });
+});
+
+describe('the group a typed ATC code names (QA 0.6.60)', () => {
+  it('names the group of level 2 to 4 by its dictionary name', () => {
+    expect(classOfCode(atcNames.names, 'J05AX')).toEqual({
+      label: 'Другие противовирусные препараты',
+      groups: [{ code: 'J05AX', name: null }],
+      code: 'J05AX',
+    });
+    expect(classOfCode(atcNames.names, 'j05a')?.label).toBe(
+      'Противовирусные препараты прямого действия',
+    );
+    expect(classOfCode(atcNames.names, 'J05')?.code).toBe('J05');
+    // Typed on the Russian layout.
+    expect(classOfCode(atcNames.names, 'о05АХ')?.code).toBe('J05AX');
+  });
+
+  it('names no group for a substance code, a word or a code the dictionary lacks', () => {
+    expect(classOfCode(atcNames.names, 'J05AX13')).toBeNull();
+    expect(classOfCode(atcNames.names, 'макролиды')).toBeNull();
+    expect(classOfCode(atcNames.names, 'B12')).toBeNull();
+  });
+
+  it('answers the search lookup for a code and still ignores other digits', async () => {
+    expect((await classOfSearchQuery('J05AX'))?.label).toBe('Другие противовирусные препараты');
+    expect(await classOfSearchQuery('J05AX13')).toBeNull();
+    expect(await classOfSearchQuery('метформин 500')).toBeNull();
   });
 });

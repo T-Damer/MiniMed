@@ -156,14 +156,16 @@ export function hasReadableSide(side: SideView): boolean {
 }
 
 /**
- * The instruction modules a pair needs to quote its sentences: only sides the index has sentences
- * for, one download for a module two drugs share.
+ * The instruction modules a pair is missing: one download for each module that holds the instruction
+ * of one of its drugs (QA 0.6.60). Offered also when the index lists no sentence for the side: the
+ * index answers for it, but the doctor reads the instruction itself only once it is installed, and a
+ * pair must not read as checked while half of its sources are not on the device.
  */
 export function pairOfferModules(view: PairView): readonly string[] {
   return [
     ...new Set(
       view.sides.flatMap((side) =>
-        side.state === 'not-installed' && side.count > 0 && side.moduleId ? [side.moduleId] : [],
+        side.state === 'not-installed' && side.moduleId ? [side.moduleId] : [],
       ),
     ),
   ];
@@ -177,21 +179,63 @@ export function pairTitle(pair: Pick<PairView, 'a' | 'b'>): string {
   return `${pair.a.label} + ${pair.b.label}`;
 }
 
-/** The status line of a pair, as the screen and the print word it. */
-export function pairStatusText(view: PairView): string {
-  const names = view.sides
-    .filter((side) => side.state === 'no-instruction')
-    .map((side) => side.from.label);
-  const noInstruction =
-    names.length > 0 ? `; в источниках приложения нет инструкции: ${names.join(', ')}` : '';
+/** The drugs of the sides in a state, as «A, B». */
+function namesInState(view: PairView, state: SideState): string {
+  return view.sides
+    .filter((side) => side.state === state)
+    .map((side) => side.from.label)
+    .join(', ');
+}
+
+/**
+ * The status line of a pair. A pair whose instructions are not all there never reads as «nothing
+ * found»: a drug without an instruction in the sources is named as unchecked, one whose instruction is
+ * not installed says the index answered for it. `listed`: the screen lists the drugs' instruction
+ * states right under the line (`sideSourceState`), so the line only says that the check is partial;
+ * the print and the share text have no such list and name the drugs in the sentence.
+ */
+export function pairStatusText(view: PairView, listed = false): string {
+  const unchecked = namesInState(view, 'no-instruction');
+  const notInstalled = namesInState(view, 'not-installed');
   if (view.status === 'found') {
     const waiting = view.sides.some((side) => side.state === 'not-installed' && side.count > 0);
     const shown = view.sides.reduce((total, side) => total + side.quotes.length, 0);
     const base = `В инструкциях ${view.found} ${pluralSentence(view.found)} об этом сочетании`;
+    const noInstruction =
+      unchecked === '' || listed ? '' : `; в источниках приложения нет инструкции: ${unchecked}`;
     // The index knows the sentences before their instructions are installed: say when they appear.
     return `${base}${waiting && shown === 0 ? ' — они появятся после скачивания инструкций' : ''}${noInstruction}`;
   }
-  return `В инструкциях упоминаний не найдено${noInstruction}`;
+  if (unchecked !== '') {
+    return listed
+      ? 'В доступных инструкциях упоминаний не найдено; проверено не полностью'
+      : `В доступных инструкциях упоминаний не найдено; не проверено — в источниках приложения нет инструкции: ${unchecked}${notInstalled === '' ? '' : `; инструкция не установлена: ${notInstalled} (по указателю приложения упоминаний нет)`}`;
+  }
+  if (notInstalled !== '') {
+    return listed
+      ? 'По указателю приложения упоминаний не найдено'
+      : `По указателю приложения упоминаний не найдено; инструкция не установлена: ${notInstalled}`;
+  }
+  return 'В инструкциях упоминаний не найдено';
+}
+
+/**
+ * What the pair knows about one drug's instruction, for the small list under the status line
+ * (QA 0.6.60): installed, not installed (the download is offered), or not in the sources at all.
+ */
+export function sideSourceState(side: SideView): string {
+  switch (side.state) {
+    case 'ready':
+      return 'инструкция установлена';
+    case 'loading':
+      return 'читаем инструкцию…';
+    case 'not-installed':
+      return 'инструкция не установлена';
+    case 'no-instruction':
+      return 'нет инструкции в источниках приложения';
+    case 'substance':
+      return '';
+  }
 }
 
 function pluralSentence(count: number): string {

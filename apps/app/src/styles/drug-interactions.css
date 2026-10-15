@@ -273,6 +273,40 @@
   color: var(--theme-text);
 }
 
+/* Per drug of the pair: is its instruction installed, to be downloaded, or not in the sources at all. */
+.drug-interactions__sources {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0.2rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.drug-interactions__source {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.5rem;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.drug-interactions__source-name {
+  color: var(--theme-text);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.drug-interactions__source-state {
+  min-width: 0;
+}
+
+.drug-interactions__source[data-state="not-installed"] .drug-interactions__source-state,
+.drug-interactions__source[data-state="no-instruction"] .drug-interactions__source-state {
+  color: var(--theme-text);
+}
+
 .drug-interactions__side {
   display: grid;
   gap: 0.4rem;

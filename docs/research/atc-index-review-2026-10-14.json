@@ -8286,6 +8286,511 @@
         "comparing": "Not affected: the drug comparison has its own index with the ATC codes."
       },
       "ui": "The drug screen and the screen of a drug whose module is not installed show a small plain line «также: психостимулятор (через кофеин); деконгестант (через фенилэфрин)» under the code, read from `secondary-classes.json`. The ATC sheet explains one code and is not changed: a secondary class is not the card’s code."
+    },
+    {
+      "id": "OD8",
+      "decision": "CLS3 (QA 0.6.60, item 13): a combination card that the product holds no instruction of cannot quote one, so the secondary classes its components bring were missing: Колдакт Флю Плюс (парацетамол + фенилэфрин + хлорфенамин, 5 registrations) showed no «также:» line and the interaction check «Колдакт + лизиноприл» could not reach it through its decongestant and antihistamine components, while the same components on a card with an instruction (Колдакт Форс, РАНКОФ) did. The same component classes as CLS2 (codeine, phenylephrine, pseudoephedrine, paracetamol, chlorphenamine; pheniramine and caffeine have no such card) are now declared for those cards on the component's own ATC group instead of a quote.",
+      "owner": "QA 0.6.60 (2026-10-15); AI-declared, not signed off by a clinician",
+      "evidenceRule": "`evidence.kind = \"component-atc\"`: the card has no instruction in any module (the build refuses the entry as soon as one exists: quote it instead), the component is one of the card's components, the declared group is the group of the component's own ATC code (N02AA59 → N02A, R01BA03/R01BA02 → R01BA, N02BE01 → N02BE, R06AB04 → R06AB), the card's own codes do not already cover it. Nothing the product says is claimed: the line and the matching rest on the reference classification of the substance.",
+      "change": "24 entries on 18 cards in data/atc-code-exceptions.json (addClasses, review OD8); the interaction index and secondary-classes.json were rebuilt (bun scripts/build-drug-interactions.ts).",
+      "byComponent": {
+        "кодеин": 8,
+        "фенилэфрин": 7,
+        "хлорфенамин": 7,
+        "псевдоэфедрин": 1,
+        "парацетамол": 1
+      },
+      "additions": [
+        {
+          "card": "esklp.mnn.ибупрофен-кодеин",
+          "role": "secondary",
+          "classes": [
+            "N02A"
+          ],
+          "via": "кодеин",
+          "primaryCodes": [
+            "M01AE51"
+          ],
+          "products": "Нурофен плюс"
+        },
+        {
+          "card": "esklp.mnn.декстрометорфан-парацетамол-фенилэфрин-хлорфенамин",
+          "role": "secondary",
+          "classes": [
+            "R01BA"
+          ],
+          "via": "фенилэфрин",
+          "primaryCodes": [
+            "N02BE71"
+          ],
+          "products": "Тофф плюс"
+        },
+        {
+          "card": "esklp.mnn.декстрометорфан-парацетамол-фенилэфрин-хлорфенамин",
+          "role": "secondary",
+          "classes": [
+            "R06AB"
+          ],
+          "via": "хлорфенамин",
+          "primaryCodes": [
+            "N02BE71"
+          ],
+          "products": "Тофф плюс"
+        },
+        {
+          "card": "esklp.mnn.дротаверин-кодеин-парацетамол",
+          "role": "secondary",
+          "classes": [
+            "N02A"
+          ],
+          "via": "кодеин",
+          "primaryCodes": [
+            "N02BE71"
+          ],
+          "products": "Юниспаз"
+        },
+        {
+          "card": "esklp.mnn.дротаверина-гидрохлорид-кодеина-фосфата-полугидрат-парацетамол",
+          "role": "secondary",
+          "classes": [
+            "N02A"
+          ],
+          "via": "кодеин",
+          "primaryCodes": [
+            "N02BE71"
+          ],
+          "products": "Но-шпалгин"
+        },
+        {
+          "card": "esklp.mnn.ибупрофен-кодеин-кофеин-метамизол-натрия-фенобарбитал",
+          "role": "secondary",
+          "classes": [
+            "N02A"
+          ],
+          "via": "кодеин",
+          "primaryCodes": [
+            "N02BB72"
+          ],
+          "products": "Пентабуфен"
+        },
+        {
+          "card": "esklp.mnn.кодеин-кофеин-парацетамол-пропифеназон-фенобарбитал",
+          "role": "secondary",
+          "classes": [
+            "N02A"
+          ],
+          "via": "кодеин",
+          "primaryCodes": [
+            "N02BE71"
+          ],
+          "products": "Пенталгин Плюс, Пентанов Плюс"
+        },
+        {
+          "card": "esklp.mnn.кофеин-парацетамол-терпингидрат-фенилэфрин-аскорбиновая-кислота",
+          "role": "secondary",
+          "classes": [
+            "R01BA"
+          ],
+          "via": "фенилэфрин",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "products": "Флюколдекс форте"
+        },
+        {
+          "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-хлорфенамин-парацетамол-фенилэфрин-хлорфенамин-набор",
+          "role": "secondary",
+          "classes": [
+            "R01BA"
+          ],
+          "via": "фенилэфрин",
+          "primaryCodes": [
+            "N02BE71"
+          ],
+          "products": "Колдфри"
+        },
+        {
+          "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-хлорфенамин-парацетамол-фенилэфрин-хлорфенамин-набор",
+          "role": "secondary",
+          "classes": [
+            "R06AB"
+          ],
+          "via": "хлорфенамин",
+          "primaryCodes": [
+            "N02BE71"
+          ],
+          "products": "Колдфри"
+        },
+        {
+          "card": "esklp.mnn.кофеин-парацетамол-хлорфенамин",
+          "role": "secondary",
+          "classes": [
+            "R06AB"
+          ],
+          "via": "хлорфенамин",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "products": "Флюколдекс-Н, ФлюмиТабс"
+        },
+        {
+          "card": "esklp.mnn.кофеин-парацетамол-хлорфенамин-аскорбиновая-кислота",
+          "role": "secondary",
+          "classes": [
+            "R06AB"
+          ],
+          "via": "хлорфенамин",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "products": "Гриппостад С, Колдрекс Капс"
+        },
+        {
+          "card": "esklp.mnn.парацетамол-фенилэфрин",
+          "role": "secondary",
+          "classes": [
+            "R01BA"
+          ],
+          "via": "фенилэфрин",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "products": "Лемсип Лимон, Лемсип Макс"
+        },
+        {
+          "card": "esklp.mnn.парацетамол-фенилэфрин-хлорфенамин",
+          "role": "secondary",
+          "classes": [
+            "R01BA"
+          ],
+          "via": "фенилэфрин",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "products": "Колдакт Флю Плюс, ТераФлю Экстратаб, АнтиФлу"
+        },
+        {
+          "card": "esklp.mnn.парацетамол-фенилэфрин-хлорфенамин",
+          "role": "secondary",
+          "classes": [
+            "R06AB"
+          ],
+          "via": "хлорфенамин",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "products": "Колдакт Флю Плюс, ТераФлю Экстратаб, АнтиФлу"
+        },
+        {
+          "card": "esklp.mnn.ацетилсалициловая-кислота-фенилэфрин-хлорфенамин",
+          "role": "secondary",
+          "classes": [
+            "R01BA"
+          ],
+          "via": "фенилэфрин",
+          "primaryCodes": [
+            "R05X"
+          ],
+          "products": "Аспирин Комплекс"
+        },
+        {
+          "card": "esklp.mnn.ацетилсалициловая-кислота-фенилэфрин-хлорфенамин",
+          "role": "secondary",
+          "classes": [
+            "R06AB"
+          ],
+          "via": "хлорфенамин",
+          "primaryCodes": [
+            "R05X"
+          ],
+          "products": "Аспирин Комплекс"
+        },
+        {
+          "card": "esklp.mnn.декстрометорфан-парацетамол-псевдоэфедрин",
+          "role": "secondary",
+          "classes": [
+            "R01BA"
+          ],
+          "via": "псевдоэфедрин",
+          "primaryCodes": [
+            "R05X"
+          ],
+          "products": "ГРИППЕКС"
+        },
+        {
+          "card": "esklp.mnn.декстрометорфан-парацетамол-псевдоэфедрин",
+          "role": "secondary",
+          "classes": [
+            "N02BE"
+          ],
+          "via": "парацетамол",
+          "primaryCodes": [
+            "R05X"
+          ],
+          "products": "ГРИППЕКС"
+        },
+        {
+          "card": "esklp.mnn.декстрометорфан-фенилэфрин-хлорфенамин",
+          "role": "secondary",
+          "classes": [
+            "R01BA"
+          ],
+          "via": "фенилэфрин",
+          "primaryCodes": [
+            "R05X"
+          ],
+          "products": "Терасил-Д"
+        },
+        {
+          "card": "esklp.mnn.декстрометорфан-фенилэфрин-хлорфенамин",
+          "role": "secondary",
+          "classes": [
+            "R06AB"
+          ],
+          "via": "хлорфенамин",
+          "primaryCodes": [
+            "R05X"
+          ],
+          "products": "Терасил-Д"
+        },
+        {
+          "card": "esklp.mnn.кодеин-натрия-гидрокарбонат-солодки-корни-термопсиса-трава",
+          "role": "secondary",
+          "classes": [
+            "N02A"
+          ],
+          "via": "кодеин",
+          "primaryCodes": [
+            "R05FA02"
+          ],
+          "products": "Коделак, Коделанов"
+        },
+        {
+          "card": "esklp.mnn.кодеин-натрия-гидрокарбонат-терпингидрат",
+          "role": "secondary",
+          "classes": [
+            "N02A"
+          ],
+          "via": "кодеин",
+          "primaryCodes": [
+            "R05FA02"
+          ],
+          "products": "Терпинкод"
+        },
+        {
+          "card": "esklp.mnn.кодеин-солодки-корней-экстракт-термопсиса-ланцетного-травы-экстракт-тимьяна-ползучего-травы-экстракт",
+          "role": "secondary",
+          "classes": [
+            "N02A"
+          ],
+          "via": "кодеин",
+          "primaryCodes": [
+            "R05FA"
+          ],
+          "products": "Коделак фито, Коделанов фито"
+        }
+      ],
+      "notApplied": [
+        {
+          "card": "esklp.mnn.ацетилсалициловая-кислота-кофеин-парацетамол",
+          "component": "paracetamol",
+          "reason": "Цитрамон П and the rest of the family (N02BA71): the card has instructions (CLS2 judged them), and its own class is already an analgesic-antipyretic (N02B; the word «анальгетики» covers N02), so a line «также: анальгетик (через парацетамол)» would repeat the primary class. Caffeine stays out for the reason of OD7 (the instruction says that in this dose it has practically no stimulating effect)."
+        },
+        {
+          "card": "esklp.mnn.ацетилсалициловая-кислота-кофеин",
+          "component": "caffeine",
+          "reason": "no instruction to say whether the caffeine in it stimulates (CLS2 left it out where the instruction denies it); a class without a basis in the product is not declared for caffeine"
+        },
+        {
+          "card": "esklp.mnn.леримазолин-фенилэфрин",
+          "component": "phenylephrine",
+          "reason": "R01AB01: already a nasal decongestant by its own code"
+        },
+        {
+          "card": "esklp.mnn.тропикамид-фенилэфрин",
+          "component": "phenylephrine",
+          "reason": "eye drops (a mydriatic), not a nasal decongestant"
+        },
+        {
+          "card": "(cards coded N02BE*)",
+          "component": "paracetamol",
+          "reason": "the card's own code is the analgesic group N02BE, a secondary entry would repeat it (the build refuses such a declaration)"
+        }
+      ],
+      "userScenarios": {
+        "method": "checkPair over the interaction index before (HEAD) and after; sentences found in either direction",
+        "rows": [
+          {
+            "a": "парацетамол-фенилэфрин-хлорфенамин",
+            "b": "лизиноприл",
+            "before": 0,
+            "after": 1
+          },
+          {
+            "a": "парацетамол-фенилэфрин-хлорфенамин",
+            "b": "диазепам",
+            "before": 0,
+            "after": 1
+          },
+          {
+            "a": "парацетамол-фенилэфрин-хлорфенамин",
+            "b": "кетотифен",
+            "before": 0,
+            "after": 1
+          },
+          {
+            "a": "парацетамол-фенилэфрин-хлорфенамин",
+            "b": "амитриптилин",
+            "before": 1,
+            "after": 3
+          },
+          {
+            "a": "парацетамол-фенилэфрин-хлорфенамин",
+            "b": "морфин",
+            "before": 1,
+            "after": 2
+          },
+          {
+            "a": "парацетамол-фенилэфрин-хлорфенамин",
+            "b": "варфарин",
+            "before": 2,
+            "after": 2
+          },
+          {
+            "a": "парацетамол-фенилэфрин-хлорфенамин",
+            "b": "метопролол",
+            "before": 0,
+            "after": 0
+          },
+          {
+            "a": "парацетамол-фенилэфрин",
+            "b": "лизиноприл",
+            "before": 0,
+            "after": 1
+          },
+          {
+            "a": "парацетамол-фенилэфрин",
+            "b": "диазепам",
+            "before": 0,
+            "after": 0
+          },
+          {
+            "a": "парацетамол-фенилэфрин",
+            "b": "кетотифен",
+            "before": 0,
+            "after": 0
+          },
+          {
+            "a": "парацетамол-фенилэфрин",
+            "b": "амитриптилин",
+            "before": 1,
+            "after": 1
+          },
+          {
+            "a": "парацетамол-фенилэфрин",
+            "b": "морфин",
+            "before": 1,
+            "after": 1
+          },
+          {
+            "a": "парацетамол-фенилэфрин",
+            "b": "варфарин",
+            "before": 2,
+            "after": 2
+          },
+          {
+            "a": "парацетамол-фенилэфрин",
+            "b": "метопролол",
+            "before": 0,
+            "after": 0
+          },
+          {
+            "a": "ибупрофен-кодеин",
+            "b": "лизиноприл",
+            "before": 3,
+            "after": 3
+          },
+          {
+            "a": "ибупрофен-кодеин",
+            "b": "диазепам",
+            "before": 0,
+            "after": 1
+          },
+          {
+            "a": "ибупрофен-кодеин",
+            "b": "кетотифен",
+            "before": 0,
+            "after": 0
+          },
+          {
+            "a": "ибупрофен-кодеин",
+            "b": "амитриптилин",
+            "before": 0,
+            "after": 0
+          },
+          {
+            "a": "ибупрофен-кодеин",
+            "b": "морфин",
+            "before": 0,
+            "after": 6
+          },
+          {
+            "a": "ибупрофен-кодеин",
+            "b": "варфарин",
+            "before": 4,
+            "after": 5
+          },
+          {
+            "a": "ибупрофен-кодеин",
+            "b": "метопролол",
+            "before": 1,
+            "after": 1
+          },
+          {
+            "a": "кодеин-натрия-гидрокарбонат-терпингидрат",
+            "b": "лизиноприл",
+            "before": 0,
+            "after": 0
+          },
+          {
+            "a": "кодеин-натрия-гидрокарбонат-терпингидрат",
+            "b": "диазепам",
+            "before": 0,
+            "after": 1
+          },
+          {
+            "a": "кодеин-натрия-гидрокарбонат-терпингидрат",
+            "b": "кетотифен",
+            "before": 0,
+            "after": 0
+          },
+          {
+            "a": "кодеин-натрия-гидрокарбонат-терпингидрат",
+            "b": "амитриптилин",
+            "before": 0,
+            "after": 0
+          },
+          {
+            "a": "кодеин-натрия-гидрокарбонат-терпингидрат",
+            "b": "морфин",
+            "before": 0,
+            "after": 6
+          },
+          {
+            "a": "кодеин-натрия-гидрокарбонат-терпингидрат",
+            "b": "варфарин",
+            "before": 2,
+            "after": 3
+          },
+          {
+            "a": "кодеин-натрия-гидрокарбонат-терпингидрат",
+            "b": "метопролол",
+            "before": 0,
+            "after": 0
+          }
+        ]
+      },
+      "ui": "The drug screen shows the same plain «также: … (через …)» line for these cards as for the cards of CLS2 (it reads secondary-classes.json)."
     }
   ],
   "userPerspective": {

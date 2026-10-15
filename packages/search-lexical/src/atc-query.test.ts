@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   type AtcDirectoryEntry,
   atcCodeMatches,
+  compareDrugsByUse,
   findAtcEntries,
+  looksLikeChemicalName,
   matchAtcEntry,
   parseAtcQueries,
   parseAtcQuery,
@@ -128,7 +130,7 @@ describe('matching a code', () => {
     expect(atcCodeMatches({ code: 'J06' }, 'J05AX13')).toBe(false);
   });
 
-  it('finds the drugs of a group, the exact level first, then by name', () => {
+  it('finds the drugs of a group by name and flags the stub as the exact level', () => {
     const found = findAtcEntries({ code: 'J05AX' }, entries);
     expect(found.map((match) => match.entry.id)).toEqual(['d', 'c']);
     expect(found[0]?.exact).toBe(true);
@@ -190,5 +192,60 @@ describe('matching a code', () => {
   it('limits the result and finds nothing for a code no drug carries', () => {
     expect(findAtcEntries({ code: 'J05' }, entries, 2)).toHaveLength(2);
     expect(findAtcEntries({ code: 'B12' }, entries)).toEqual([]);
+  });
+});
+
+describe('listing a group (QA 0.6.60: «J05AX»)', () => {
+  const names = {
+    oxolin: 'ДИОКСОТЕТРАГИДРОКСИТЕТРАГИДРОНАФТАЛИН',
+    iupac: '1-[2-(1-МЕТИЛИМИДАЗОЛ-4-ИЛ)-ЭТИЛ]ПЕРГИДРОАЗИН-2,6-ДИОН',
+    ingavirin: 'ИМИДАЗОЛИЛЭТАНАМИД ПЕНТАНДИОВОЙ КИСЛОТЫ',
+    tilorone: 'ТИЛОРОН',
+    favipiravir: 'ФАВИПИРАВИР',
+    combination: 'ГРАЗОПРЕВИР+ЭЛБАСВИР',
+  };
+
+  it('reads systematic names as chemical and INNs as readable', () => {
+    expect(looksLikeChemicalName(names.oxolin)).toBe(true);
+    expect(looksLikeChemicalName(names.iupac)).toBe(true);
+    expect(looksLikeChemicalName(names.ingavirin)).toBe(true);
+    for (const readable of [
+      'ТИЛОРОН',
+      'ФАВИПИРАВИР',
+      'ГИДРОКСИХЛОРОХИН',
+      'ГИДРОХЛОРОТИАЗИД',
+      'АЦЕТИЛСАЛИЦИЛОВАЯ КИСЛОТА',
+      'ГРАЗОПРЕВИР+ЭЛБАСВИР',
+      'АМОКСИЦИЛЛИН+КЛАРИТРОМИЦИН+ЛАНСОПРАЗОЛ [НАБОР]',
+      'ВАКЦИНА ДЛЯ ПРОФИЛАКТИКИ COVID-19',
+    ]) {
+      expect(looksLikeChemicalName(readable), readable).toBe(false);
+    }
+  });
+
+  it('lists the commoner readable single substances first, chemical names and stubs after', () => {
+    const entries: AtcDirectoryEntry[] = [
+      { id: 'oxolin', name: names.oxolin, codes: ['J05AX'], weight: 34 },
+      { id: 'iupac', name: names.iupac, codes: ['J05AX'], weight: 3 },
+      { id: 'ingavirin', name: names.ingavirin, codes: ['J05AX'], weight: 6 },
+      { id: 'tilorone', name: names.tilorone, codes: ['J05AX19'], weight: 32 },
+      { id: 'favipiravir', name: names.favipiravir, codes: ['J05AX27'], weight: 23 },
+      { id: 'combination', name: names.combination, codes: ['J05AX'], weight: 3 },
+    ];
+    const ids = findAtcEntries({ code: 'J05AX' }, entries).map((match) => match.entry.id);
+    expect(ids).toEqual(['tilorone', 'favipiravir', 'combination', 'oxolin', 'ingavirin', 'iupac']);
+    // The order is the one the class card uses.
+    expect([...entries].toSorted(compareDrugsByUse).map((entry) => entry.id)).toEqual(ids);
+  });
+
+  it('keeps the exact drug first for a substance code', () => {
+    const entries: AtcDirectoryEntry[] = [
+      { id: 'a', name: 'Яя', codes: ['J05AX13'] },
+      { id: 'b', name: 'Аа', codes: ['J05AX131'] },
+    ];
+    expect(findAtcEntries({ code: 'J05AX13' }, entries).map((match) => match.entry.id)).toEqual([
+      'a',
+      'b',
+    ]);
   });
 });

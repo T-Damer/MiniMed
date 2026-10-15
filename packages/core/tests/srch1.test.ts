@@ -104,6 +104,10 @@ const SEED = ContentPackSeedSchema.parse({
     pointer('кларитромицин', 'КЛАРИТРОМИЦИН'),
     pointer('азитромицин-орнидазол', 'АЗИТРОМИЦИН+ОРНИДАЗОЛ'),
     pointer('амоксициллин', 'АМОКСИЦИЛЛИН'),
+    // A group of its own for the code query: an INN, a commoner chemical name, a rarer INN.
+    pointer('тилорон', 'ТИЛОРОН'),
+    pointer('диоксотетрагидроксинафталин', 'ДИОКСОТЕТРАГИДРОКСИТЕТРАГИДРОНАФТАЛИН'),
+    pointer('фавипиравир', 'ФАВИПИРАВИР'),
     fixtureDocument(
       'ref.macrolides-guideline',
       'Макролиды в лечении внебольничной пневмонии',
@@ -145,6 +149,14 @@ const ENTRIES: readonly AtcDirectoryEntry[] = [
   { id: 'esklp.mnn.амоксициллин', name: 'Амоксициллин', codes: ['J01CA04'], weight: 500 },
   // A card whose module the corpus holds nothing of is not listed.
   { id: 'esklp.mnn.без-модуля', name: 'Без модуля', codes: ['J01FA99'], weight: 1000 },
+  { id: 'esklp.mnn.тилорон', name: 'Тилорон', codes: ['J01FZ19'], weight: 32 },
+  {
+    id: 'esklp.mnn.диоксотетрагидроксинафталин',
+    name: 'ДИОКСОТЕТРАГИДРОКСИТЕТРАГИДРОНАФТАЛИН',
+    codes: ['J01FZ'],
+    weight: 34,
+  },
+  { id: 'esklp.mnn.фавипиравир', name: 'Фавипиравир', codes: ['J01FZ27'], weight: 23 },
 ];
 
 const HOMEOPATHIC = new Set(['esklp.mnn.ртуть-растворимая', 'esklp.mnn.ртуть-белладонна']);
@@ -155,6 +167,13 @@ const directory: DrugCodeDirectory = {
   // The application answers this from its class vocabulary; a class word inside a longer query
   // comes back with the other words as `rest` (SRCH2).
   classOf: async (query) => {
+    if (query.trim().toUpperCase() === 'J01FZ') {
+      return {
+        label: 'Другие антибактериальные препараты',
+        groups: [{ code: 'J01FZ', name: null }],
+        code: 'J01FZ',
+      };
+    }
     const [first, ...rest] = query.trim().toLowerCase().split(/\s+/u);
     if (!['макролиды', 'макролидов'].includes(first ?? '')) return null;
     return {
@@ -243,6 +262,29 @@ describe('a drug class named whole (item 12)', () => {
       core: createCore({ drugCodes: { entries: async () => ENTRIES } }),
     });
     expect(plain.drugClass).toBeUndefined();
+  });
+});
+
+describe('an ATC group code typed whole (QA 0.6.60, «J05AX»)', () => {
+  it('shows the group card first, then its drugs by common use with the chemical name last', async () => {
+    const response = await lookup('J01FZ');
+    expect(response.drugClass).toEqual({
+      label: 'Другие антибактериальные препараты',
+      groups: [{ code: 'J01FZ', name: null, drugCount: 3 }],
+      drugCount: 3,
+      listed: 3,
+    });
+    expect(titles(response).slice(0, 3)).toEqual([
+      'ТИЛОРОН',
+      'ФАВИПИРАВИР',
+      'ДИОКСОТЕТРАГИДРОКСИТЕТРАГИДРОНАФТАЛИН',
+    ]);
+    expect(response.groups[2]?.atcMatch?.code).toBe('J01FZ');
+  });
+
+  it('shows no group card for a code that is no group of the dictionary', async () => {
+    expect((await lookup('J01FZ19')).drugClass).toBeUndefined();
+    expect((await lookup('J01FA')).drugClass).toBeUndefined();
   });
 });
 

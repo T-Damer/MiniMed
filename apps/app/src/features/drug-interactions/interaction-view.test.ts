@@ -21,6 +21,7 @@ import {
   pairView,
   printPairs,
   sideNote,
+  sideSourceState,
   splitQuotes,
 } from './interaction-view';
 
@@ -138,15 +139,52 @@ describe('pairView', () => {
     // Both drugs are in the same module: one offer, not one per drug.
     expect(pairOfferModules(view)).toEqual(['minimed.medications.instructions.test.ru']);
     expect(view.sides.some(hasReadableSide)).toBe(false);
-    // Nothing to read, nothing to offer for a pair the index has no sentence for.
+    // QA 0.6.60: a missing instruction is offered even when the index has no sentence for it, so a
+    // pair never reads as checked while a source is not on the device.
     const quiet = pairView(index, checkPair(index, ibuprofen, omeprazole), none, []);
-    expect(pairOfferModules(quiet)).toEqual([]);
+    expect(quiet.found).toBe(0);
+    expect(pairOfferModules(quiet)).toEqual(['minimed.medications.instructions.test.ru']);
+  });
+
+  it('says per drug whether its instruction is installed, to download or not in the sources', () => {
+    const missing = new Map<string, DocumentState>([
+      ['drug.rf.aaaa.instruction', 'missing'],
+      ['drug.rf.bbbb.instruction', 'missing'],
+    ]);
+    const view = pairView(index, checkPair(index, ibuprofen, omeprazole), missing, []);
+    expect(view.sides.map((side) => [side.from.label, sideSourceState(side)])).toEqual([
+      ['Ибупрофен', 'инструкция не установлена'],
+      ['Омепразол', 'нет инструкции в источниках приложения'],
+    ]);
+    expect(pairStatusText(view)).toBe(
+      'В доступных инструкциях упоминаний не найдено; не проверено — в источниках приложения нет инструкции: Омепразол; инструкция не установлена: Ибупрофен (по указателю приложения упоминаний нет)',
+    );
+    // The screen lists the drugs right under the line, so the line itself only says the check is partial.
+    expect(pairStatusText(view, true)).toBe(
+      'В доступных инструкциях упоминаний не найдено; проверено не полностью',
+    );
+    // Only a not-installed instruction is missing: the index answered for it, and the line says so.
+    const installedOnly: typeof view = {
+      ...view,
+      sides: view.sides.filter((side) => side.state === 'not-installed'),
+    };
+    expect(pairStatusText(installedOnly)).toBe(
+      'По указателю приложения упоминаний не найдено; инструкция не установлена: Ибупрофен',
+    );
+    expect(pairStatusText(installedOnly, true)).toBe(
+      'По указателю приложения упоминаний не найдено',
+    );
+    const installed = pairView(index, checkPair(index, ibuprofen, omeprazole), new Map(states), []);
+    expect(installed.sides.map(sideSourceState)).toEqual([
+      'инструкция установлена',
+      'нет инструкции в источниках приложения',
+    ]);
   });
 
   it('names a drug without an instruction once, in the status line, also when a mention is found', () => {
     const view = pairView(index, checkPair(index, ibuprofen, omeprazole), new Map(states), []);
     expect(pairStatusText(view)).toBe(
-      'В инструкциях упоминаний не найдено; в источниках приложения нет инструкции: Омепразол',
+      'В доступных инструкциях упоминаний не найдено; не проверено — в источниках приложения нет инструкции: Омепразол',
     );
   });
 

@@ -60,3 +60,42 @@ test('the extra classes of a combination drug show as one small line, without th
   expect(requested.some((url) => url.includes('secondary-classes'))).toBe(true);
   expect(requested.some((url) => url.includes('interaction-index'))).toBe(false);
 });
+
+// CLS3 (QA 0.6.60, item 13): a card the product holds no instruction of (Колдакт Флю Плюс) shows the
+// same line as the cold remedies that have one; the primary code is named, not bare; Цитрамон, whose
+// own class is already an analgesic, has the named code and no «также».
+const KOLDAKT_FLU =
+  'core.catalog.pointer.medication.esklp.mnn.парацетамол-фенилэфрин-хлорфенамин-8af2758c8b5d32bf';
+const KOLDAKT_FORCE =
+  'core.catalog.pointer.medication.esklp.mnn.парацетамол-фенилэфрин-хлорфенамин-аскорбиновая-кислота-768554af296d0a44';
+const CITRAMON =
+  'core.catalog.pointer.medication.esklp.mnn.ацетилсалициловая-кислота-кофеин-парацетамол-76e17c5912fffb40';
+
+test('the cold remedies of one component set show one line, and the primary code is named', async ({
+  page,
+}) => {
+  test.setTimeout(240_000);
+  await page.setViewportSize({ width: 375, height: 812 });
+  await mountBuiltApp(page, { skipLargeCompanionPacks: true, localStorage: PREFERENCES });
+  const classes = 'также: деконгестант (через фенилэфрин); антигистаминное (через хлорфенамин)';
+
+  await page.goto(pointerRoute(KOLDAKT_FLU));
+  const atc = page.getByTestId('drug-index-atc');
+  await expect(atc.getByTestId('drug-secondary-classes')).toHaveText(classes, { timeout: 60_000 });
+  // «N02BE51 · анилиды»: the code with the name of its level-4 group, one tap target.
+  await expect(atc.getByRole('button', { name: /Код АТХ N02BE51/u })).toContainText('анилиды', {
+    timeout: 30_000,
+  });
+  const box = await atc.boundingBox();
+  expect(box?.y ?? Number.POSITIVE_INFINITY).toBeLessThan(812 - 120);
+  if (SHOTS)
+    await page.screenshot({ path: `${SHOTS}/koldakt-flu-${PREFERENCES['minimed.theme.v1']}.png` });
+
+  await page.goto(pointerRoute(KOLDAKT_FORCE));
+  await expect(page.getByTestId('drug-secondary-classes')).toHaveText(classes, { timeout: 30_000 });
+
+  await page.goto(pointerRoute(CITRAMON));
+  await expect(page.getByTestId('drug-index-atc')).toContainText('N02BA71', { timeout: 30_000 });
+  await expect(page.getByTestId('drug-index-atc')).toContainText('салициловая кислота');
+  await expect(page.getByTestId('drug-secondary-classes')).toHaveCount(0);
+});

@@ -89,6 +89,19 @@ const cls2Keys: ReadonlySet<string> = new Set(
 );
 const isCls2 = (item: { readonly card: string; readonly classes: readonly string[] }): boolean =>
   cls2Keys.has(`${item.card.replace(/^esklp\.mnn\./u, '')}|${item.classes[0] ?? ''}`);
+/**
+ * The secondary classes of CLS3 (OD8): cards with no instruction in the product, on the component's own
+ * ATC group. Like CLS2 they came after the earlier records, which are measured without them.
+ */
+const cls3Keys: ReadonlySet<string> = new Set(
+  additions
+    .filter((item) => item.evidence.kind === 'component-atc')
+    .map((item) => `${item.card.replace(/^esklp\.mnn\./u, '')}|${item.classes[0] ?? ''}`),
+);
+/** Entries of the decisions after OD6, kept out of the earlier records. */
+const laterKeys: ReadonlySet<string> = new Set([...cls2Keys, ...cls3Keys]);
+const isLater = (item: { readonly card: string; readonly classes: readonly string[] }): boolean =>
+  laterKeys.has(`${item.card.replace(/^esklp\.mnn\./u, '')}|${item.classes[0] ?? ''}`);
 
 /**
  * A card's codes as the ATC4c record counts them: its own codes and the secondary classes the
@@ -99,7 +112,7 @@ const codesOf = (card: InteractionIndexAsset['cards'][number]): readonly string[
   ...card[1],
   ...(card[3] ?? [])
     .map((extra) => extra[0])
-    .filter((code) => code !== 'N05CB' && !cls2Keys.has(`${card[0]}|${code}`)),
+    .filter((code) => code !== 'N05CB' && !laterKeys.has(`${card[0]}|${code}`)),
 ];
 
 const cardIndex = (slug: string): number => {
@@ -507,10 +520,15 @@ describe('ATC4c: class additions (addClasses)', () => {
         const target = asset.targets.indexOf(`c:${code}`);
         if (target >= 0) expect(drugTargetSet(index, card).has(target), slug).toBe(true);
       }
-      // the instruction that is quoted is one of the card’s indexed documents
-      const document = asset.documents[addition.evidence.document];
-      expect(document, addition.evidence.document).toBeDefined();
-      expect(document?.c, addition.evidence.document).toContain(card);
+      // the instruction that is quoted is one of the card’s indexed documents; a class on the
+      // component's own ATC group (CLS3) is for a card that has none
+      if (addition.evidence.kind === 'quote') {
+        const document = asset.documents[addition.evidence.document];
+        expect(document, addition.evidence.document).toBeDefined();
+        expect(document?.c, addition.evidence.document).toContain(card);
+      } else {
+        expect(index.documentsOfCard.get(card) ?? [], addition.card).toEqual([]);
+      }
     }
   });
 
@@ -521,7 +539,7 @@ describe('ATC4c: class additions (addClasses)', () => {
     expect(asset.cards[cardIndex(slug)]?.[1]).toEqual(['R05X']);
     expect(
       (asset.cards[cardIndex(slug)]?.[3] ?? []).filter(
-        ([code]) => !cls2Keys.has(`${slug}|${code}`),
+        ([code]) => !laterKeys.has(`${slug}|${code}`),
       ),
     ).toEqual([['R05D', 'декстрометорфан', 'противокашлевое']]);
     expect(targetsOf(slug).has('c:R05D')).toBe(true);
@@ -544,11 +562,11 @@ describe('ATC4c: class additions (addClasses)', () => {
     // OD5 declared two cards; the phenobarbital cards were added later (OD6)
     expect((decision?.additions ?? []).map((item) => item.card).toSorted()).toEqual(
       additions
-        .filter((item) => !item.classes.includes('N05CB') && !isCls2(item))
+        .filter((item) => !item.classes.includes('N05CB') && !isLater(item))
         .map((item) => item.card)
         .toSorted(),
     );
-    const declared = new Set(additions.map((item) => item.card));
+    const declared = new Set(additions.filter((item) => !isLater(item)).map((item) => item.card));
     expect(decision?.notApplied?.length).toBeGreaterThanOrEqual(3);
     for (const item of decision?.notApplied ?? []) {
       expect(declared.has(item.card), item.card).toBe(false);
@@ -604,7 +622,7 @@ function reach(
 function withoutCls2(card: number): ReadonlySet<number> {
   const { primary, secondary } = drugTargets(index, card);
   const slug = asset.cards[card]?.[0] ?? '';
-  const kept = [...secondary].filter(([, hit]) => !cls2Keys.has(`${slug}|${hit.code}`));
+  const kept = [...secondary].filter(([, hit]) => !laterKeys.has(`${slug}|${hit.code}`));
   return new Set([...primary, ...kept.map(([target]) => target)]);
 }
 
@@ -620,8 +638,10 @@ describe('CLS1: secondary classes (OD6)', () => {
       expect(addition.via?.length, addition.card).toBeGreaterThan(3);
       expect(addition.label?.length, addition.card).toBeGreaterThan(3);
       expect(addition.reason.length, addition.card).toBeGreaterThan(40);
-      expect(addition.evidence.quote.length, addition.card).toBeGreaterThanOrEqual(20);
-      expect(addition.evidence.document.endsWith('.instruction'), addition.card).toBe(true);
+      if (addition.evidence.kind === 'quote') {
+        expect(addition.evidence.quote.length, addition.card).toBeGreaterThanOrEqual(20);
+        expect(addition.evidence.document.endsWith('.instruction'), addition.card).toBe(true);
+      }
     }
   });
 
@@ -674,7 +694,10 @@ describe('CLS1: secondary classes (OD6)', () => {
   });
 
   it('list the phenobarbital cards that were left out, none with a declaration', () => {
-    const declared = new Set(additions.map((item) => item.card));
+    // left out of the phenobarbital class (CLS3 gave some of these cards the class of another component)
+    const declared = new Set(
+      additions.filter((item) => item.classes.includes('N05CB')).map((item) => item.card),
+    );
     expect(od6?.notApplied.length).toBeGreaterThanOrEqual(3);
     for (const item of od6?.notApplied ?? []) {
       expect(declared.has(item.card), item.card).toBe(false);
@@ -769,8 +792,10 @@ describe('CLS2: component classes (OD7)', () => {
       expect(entry, `${record.card} ${record.classes[0]}`).toBeDefined();
       expect(entry?.via).toBe(record.via);
       expect(entry?.label).toBe(record.label);
-      expect(entry?.evidence.quote).toBe(record.evidence.quote);
-      expect(entry?.evidence.document).toBe(record.evidence.document);
+      expect(entry?.evidence).toMatchObject({
+        quote: record.evidence.quote,
+        document: record.evidence.document,
+      });
     }
   });
 
@@ -880,5 +905,70 @@ describe('CLS2: component classes (OD7)', () => {
     for (const slug of ['парацетамол', 'кофеин', 'кодеин-парацетамол']) {
       expect(asset.cards[cardIndex(slug)]?.[3], slug).toBeUndefined();
     }
+  });
+});
+
+describe('CLS3: component classes of cards with no instruction in the product (OD8)', () => {
+  const declared = additions.filter((item) => item.evidence.kind === 'component-atc');
+
+  it('are declared for the components of CLS2, in the same group and the same words', () => {
+    expect(declared.length).toBeGreaterThanOrEqual(20);
+    for (const entry of declared) {
+      expect(entry.role, entry.card).toBe('secondary');
+      const component = COMPONENT_CLASSES[entry.via ?? ''];
+      expect(component, `${entry.card}: ${entry.via}`).toBeDefined();
+      expect(entry.classes, entry.card).toEqual([component?.code]);
+      expect(entry.label, entry.card).toBe(component?.label);
+      const evidence = entry.evidence;
+      if (evidence.kind !== 'component-atc') throw new Error(entry.card);
+      expect(evidence.component, entry.card).toBe(entry.via);
+      expect(evidence.atcCode.startsWith(component?.code ?? '?'), entry.card).toBe(true);
+    }
+  });
+
+  it('are only for cards the product holds no instruction of, and never repeat the own class', () => {
+    for (const entry of declared) {
+      const slug = entry.card.replace(/^esklp\.mnn\./u, '');
+      const card = cardIndex(slug);
+      expect(index.documentsOfCard.get(card) ?? [], entry.card).toEqual([]);
+      const own = asset.cards[card]?.[1] ?? [];
+      const code = entry.classes[0] ?? '?';
+      expect(
+        own.some((item) => item.startsWith(code) || code.startsWith(item)),
+        entry.card,
+      ).toBe(false);
+      expect(
+        asset.cards[card]?.[3]?.some((extra) => extra[0] === code),
+        entry.card,
+      ).toBe(true);
+    }
+  });
+
+  it('give the card with Колдакт Флю Плюс the classes of its components, as Колдакт Форс has them', () => {
+    const flu = cardIndex('парацетамол-фенилэфрин-хлорфенамин');
+    const strong = cardIndex('парацетамол-фенилэфрин-хлорфенамин-аскорбиновая-кислота');
+    expect(asset.cards[flu]?.[3]).toEqual(asset.cards[strong]?.[3]);
+    expect(asset.cards[flu]?.[3]).toEqual([
+      ['R01BA', 'фенилэфрин', 'деконгестант'],
+      ['R06AB', 'хлорфенамин', 'антигистаминное'],
+    ]);
+  });
+
+  it('let the sentences of another instruction reach the card, marked as brought by the component', () => {
+    // «Колдакт + лизиноприл» (QA 0.6.60): the card has no instruction of its own, but lisinopril's
+    // names sympathomimetics, which phenylephrine is.
+    const item = (slug: string): DrugItem => ({
+      id: slug,
+      kind: 'drug',
+      card: cardIndex(slug),
+      label: slug,
+    });
+    const pair = checkPair(index, item('парацетамол-фенилэфрин-хлорфенамин'), item('лизиноприл'));
+    expect(pair.aReadsB.documentId).toBeNull();
+    expect(pair.bReadsA.documentId).not.toBeNull();
+    const via = pair.bReadsA.sentences.flatMap((sentence) =>
+      sentence.secondary ? [sentence.secondary.via] : [],
+    );
+    expect(via).toContain('фенилэфрин');
   });
 });

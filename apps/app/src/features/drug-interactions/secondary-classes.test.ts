@@ -108,3 +108,43 @@ describe('the committed file', () => {
     expect(line).toBe('также: барбитурат, снотворное (через фенобарбитал)');
   });
 });
+
+describe('every recorded card shows its line (QA 0.6.60)', () => {
+  const read = (path: string): unknown =>
+    JSON.parse(readFileSync(resolve(import.meta.dirname, path), 'utf8'));
+  const file = read('data/secondary-classes.json') as SecondaryClassAsset;
+  const catalog = parseSecondaryClassAsset(file);
+  const comparison = read('../drug-comparison/data/comparison-index.json') as {
+    cards: readonly { readonly s: string }[];
+  };
+  const screenCards = new Set(comparison.cards.map((card) => card.s));
+
+  it('has a card on the drug screen for each recorded slug: the screen finds its line by that slug', () => {
+    // The drug screen takes the slug from the card's `esklp.mnn.<slug>` id (the comparison index lists
+    // the same cards); a recorded slug the screen never produces would leave its line unseen.
+    const unseen = [...catalog.keys()].filter((slug) => !screenCards.has(slug));
+    expect(unseen).toEqual([]);
+  });
+
+  it('gives each recorded card a line that names every class and the component that brings it', () => {
+    for (const [slug, classes] of catalog) {
+      const line = secondaryClassLine(catalog.get(slug));
+      expect(line, slug).not.toBeNull();
+      for (const entry of classes) {
+        expect(line, `${slug} ${entry.code}`).toContain(entry.label);
+        expect(line, `${slug} ${entry.code}`).toContain(`через ${entry.via}`);
+      }
+      expect(line, slug).not.toMatch(/[A-Z]\d{2}/u);
+    }
+  });
+
+  it('shows the cold remedies of one component set alike: Колдакт Флю Плюс like Колдакт Форс', () => {
+    const line = (slug: string): string | null => secondaryClassLine(catalog.get(slug));
+    expect(line('парацетамол-фенилэфрин-хлорфенамин')).toBe(
+      'также: деконгестант (через фенилэфрин); антигистаминное (через хлорфенамин)',
+    );
+    expect(line('парацетамол-фенилэфрин-хлорфенамин-аскорбиновая-кислота')).toBe(
+      line('парацетамол-фенилэфрин-хлорфенамин'),
+    );
+  });
+});
