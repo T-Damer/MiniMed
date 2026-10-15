@@ -262,11 +262,59 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
-          "rules": [],
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score_pucai_total <= 9",
+              "verdict": {
+                "rangeId": "pucai-total-1",
+                "title": "Клиническая ремиссия по PUCAI",
+                "explanation": "Менее 10 баллов соответствует клинической ремиссии по градации Turner et al. 2007. Индекс не заменяет клиническое наблюдение и оценку других данных.",
+                "attentionLevel": "none",
+                "lowerBound": 0,
+                "upperBound": 9,
+                "sourceIds": ["pucai-turner-2007"]
+              }
+            },
+            {
+              "when": "score_pucai_total <= 34",
+              "verdict": {
+                "rangeId": "pucai-total-2",
+                "title": "Лёгкая активность по PUCAI",
+                "explanation": "10–34 балла соответствуют лёгкой активности язвенного колита по градации Turner et al. 2007.",
+                "attentionLevel": "low",
+                "lowerBound": 10,
+                "upperBound": 34,
+                "sourceIds": ["pucai-turner-2007"]
+              }
+            },
+            {
+              "when": "score_pucai_total <= 64",
+              "verdict": {
+                "rangeId": "pucai-total-3",
+                "title": "Умеренная активность по PUCAI",
+                "explanation": "35–64 балла соответствуют умеренной активности язвенного колита по градации Turner et al. 2007.",
+                "attentionLevel": "moderate",
+                "lowerBound": 35,
+                "upperBound": 64,
+                "sourceIds": ["pucai-turner-2007"]
+              }
+            },
+            {
+              "when": "score_pucai_total >= 65",
+              "verdict": {
+                "rangeId": "pucai-total-4",
+                "title": "Тяжёлая активность по PUCAI",
+                "explanation": "65–85 баллов соответствуют тяжёлой активности язвенного колита по градации Turner et al. 2007; нужна клиническая оценка срочности помощи.",
+                "attentionLevel": "high",
+                "lowerBound": 65,
+                "upperBound": 85,
+                "sourceIds": ["pucai-turner-2007"]
+              }
+            }
+          ],
           "missingContext": [],
-          "reason": "Для этого результата ещё не объявлены декларативные правила оценки; шкала и её пороги показаны только как справочная интерпретация.",
-          "sourceIds": ["pucai-turner-2007", "pucai-kr-391-3"]
+          "sourceIds": ["pucai-turner-2007"]
         },
         "observationMappings": [
           {
@@ -453,10 +501,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "reason": "Инструмент считает объём раствора ОРС; нормы для этого объёма нет. Степень обезвоживания оценивают отдельно.",
           "sourceIds": ["ors-who-2005", "ors-kr-pediatrics"]
         },
         "observationMappings": [
@@ -1429,11 +1477,47 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
-          "rules": [],
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score_vesikari_total <= 6",
+              "verdict": {
+                "rangeId": "vesikari-total-1",
+                "title": "Лёгкий гастроэнтерит (Vesikari <7)",
+                "explanation": "Сумма <7 баллов соответствует лёгкому течению по 20-балльной шкале Ruuska–Vesikari (1990).",
+                "attentionLevel": "low",
+                "lowerBound": 0,
+                "upperBound": 6,
+                "sourceIds": ["vesikari-ruuska-1990-interpretation"]
+              }
+            },
+            {
+              "when": "score_vesikari_total <= 10",
+              "verdict": {
+                "rangeId": "vesikari-total-2",
+                "title": "Умеренный гастроэнтерит (Vesikari 7–10)",
+                "explanation": "7–10 баллов соответствуют умеренному течению по 20-балльной шкале Ruuska–Vesikari (1990).",
+                "attentionLevel": "moderate",
+                "lowerBound": 7,
+                "upperBound": 10,
+                "sourceIds": ["vesikari-ruuska-1990-interpretation"]
+              }
+            },
+            {
+              "when": "score_vesikari_total >= 11",
+              "verdict": {
+                "rangeId": "vesikari-total-3",
+                "title": "Тяжёлый гастроэнтерит (Vesikari ≥11)",
+                "explanation": "≥11 баллов соответствуют тяжёлому течению по 20-балльной шкале Ruuska–Vesikari (1990).",
+                "attentionLevel": "high",
+                "lowerBound": 11,
+                "upperBound": 20,
+                "sourceIds": ["vesikari-ruuska-1990-interpretation"]
+              }
+            }
+          ],
           "missingContext": [],
-          "reason": "Для этого результата ещё не объявлены декларативные правила оценки; шкала и её пороги показаны только как справочная интерпретация.",
-          "sourceIds": ["vesikari-ruuska-1990", "vesikari-ruuska-1990-interpretation"]
+          "sourceIds": ["vesikari-ruuska-1990-interpretation"]
         },
         "observationMappings": [
           {
@@ -1662,11 +1746,71 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
-          "rules": [],
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score_partial_mayo_total <= 0",
+              "verdict": {
+                "rangeId": "partial-mayo-remission",
+                "title": "Клиническая ремиссия (partial Mayo 0)",
+                "explanation": "0 баллов: клиническая ремиссия по клиническим рекомендациям «Язвенный колит».",
+                "attentionLevel": "none",
+                "lowerBound": 0,
+                "upperBound": 0,
+                "sourceIds": ["partial-mayo-kr-193"]
+              }
+            },
+            {
+              "when": "score_partial_mayo_total <= 1",
+              "verdict": {
+                "rangeId": "partial-mayo-borderline",
+                "title": "Partial Mayo 1: ремиссия или лёгкая атака",
+                "explanation": "1 балл: клиническая ремиссия, если ректального кровотечения нет; при кровотечении — лёгкая атака (клинические рекомендации «Язвенный колит»).",
+                "attentionLevel": "low",
+                "lowerBound": 1,
+                "upperBound": 1,
+                "sourceIds": ["partial-mayo-kr-193"]
+              }
+            },
+            {
+              "when": "score_partial_mayo_total <= 2",
+              "verdict": {
+                "rangeId": "partial-mayo-mild",
+                "title": "Лёгкая атака (partial Mayo 2)",
+                "explanation": "2 балла: лёгкая атака язвенного колита по клиническим рекомендациям.",
+                "attentionLevel": "low",
+                "lowerBound": 2,
+                "upperBound": 2,
+                "sourceIds": ["partial-mayo-kr-193"]
+              }
+            },
+            {
+              "when": "score_partial_mayo_total <= 5",
+              "verdict": {
+                "rangeId": "partial-mayo-moderate",
+                "title": "Среднетяжёлая атака (partial Mayo 3–5)",
+                "explanation": "3–5 баллов: среднетяжёлая атака язвенного колита по клиническим рекомендациям.",
+                "attentionLevel": "moderate",
+                "lowerBound": 3,
+                "upperBound": 5,
+                "sourceIds": ["partial-mayo-kr-193"]
+              }
+            },
+            {
+              "when": "score_partial_mayo_total >= 6",
+              "verdict": {
+                "rangeId": "partial-mayo-severe",
+                "title": "Тяжёлая атака (partial Mayo 6–9)",
+                "explanation": "6 баллов и более: тяжёлая атака язвенного колита по клиническим рекомендациям.",
+                "attentionLevel": "high",
+                "lowerBound": 6,
+                "upperBound": 9,
+                "sourceIds": ["partial-mayo-kr-193"]
+              }
+            }
+          ],
           "missingContext": [],
-          "reason": "Для этого результата ещё не объявлены декларативные правила оценки; шкала и её пороги показаны только как справочная интерпретация.",
-          "sourceIds": ["partial-mayo-lewis-2008", "partial-mayo-kr-193"]
+          "sourceIds": ["partial-mayo-kr-193"]
         },
         "observationMappings": [
           {

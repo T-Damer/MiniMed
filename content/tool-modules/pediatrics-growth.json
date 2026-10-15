@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.pediatrics-growth.ru",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "title": "Педиатрия: антропометрия ВОЗ и артериальное давление",
   "schemaVersion": 2,
   "builtAt": "2026-09-02T00:00:00Z",
@@ -43,7 +43,10 @@
         "summary": "Один запуск рассчитывает все заполненные антропометрические показатели ребёнка: возраст, BMI, z-score и перцентиль по соответствующей возрасту и измерению таблице ВОЗ.",
         "ageScope": {
           "groups": ["neonates", "children"],
-          "maxAge": { "value": 19, "unit": "years" },
+          "maxAge": {
+            "value": 19,
+            "unit": "years"
+          },
           "basis": "Определение: «Дети от рождения до 60 месяцев по ВОЗ Child Growth Standards и от 5 до 19 лет по ВОЗ 2007 Growth Reference»."
         },
         "category": "anthropometry",
@@ -53,11 +56,11 @@
         "population": "Дети от рождения до 60 месяцев по ВОЗ Child Growth Standards и от 5 до 19 лет по ВОЗ 2007 Growth Reference; таблицы разделены по полу.",
         "limitations": [
           "Нужны точные дата рождения и дата измерения. Для детей до 5 лет возраст учитывается с точностью до дня, для детей старше 5 лет — с точностью до месяца.",
-          "Таблицы ВОЗ 0–5 применимы от рождения до 5 лет. Таблицы ВОЗ 5–19 применимы для роста и BMI с 5 до 19 лет, а для массы к возрасту — с 5 до 10 лет. Вне диапазона результат не экстраполируется.",
+          "Таблицы ВОЗ 0–5 применимы от рождения до 5 лет. Таблицы ВОЗ 5–19 применимы для роста и ИМТ с 5 до 19 лет, а для массы к возрасту — с 5 до 10 лет. Вне диапазона результат не экстраполируется.",
           "До 2 лет ВОЗ использует длину лёжа, с 2 лет — рост стоя. При явном выборе другого метода применяется поправка 0,7 см.",
-          "Масса к длине и масса к росту используют отдельные таблицы ВОЗ; окружность головы доступна с рождения, окружность плеча — с 3 месяцев. BMI рассчитывается только при наличии массы и валидной длины/роста.",
-          "Один результат не заменяет оценку траектории роста, условий измерения и клиническое решение; z-score и перцентиль описывают отдельные показатели, а не общий диагноз.",
-          "Нормы Fenton для недоношенных в этот срез не включены: актуальный машиночитаемый нормативный набор выдаётся правообладателем по запросу и не имеет публичной лицензии на встраивание.",
+          "Масса к длине и масса к росту используют отдельные таблицы ВОЗ; окружность головы доступна с рождения, окружность плеча — с 3 месяцев. ИМТ рассчитывается только при наличии массы и валидной длины/роста.",
+          "Один результат не заменяет оценку траектории роста, условий измерения и клиническое решение; отклонение от среднего и перцентиль описывают отдельные показатели, а не общий диагноз.",
+          "Таблицы Fenton для недоношенных детей (до 50 недель постконцептуального возраста) в этот расчёт не входят: они выдаются правообладателем по запросу и не имеют публичной лицензии на встраивание.",
           "Встроенные таблицы и алгоритм требуют отдельной проверки прав распространения: наличие официального репозитория ВОЗ и лицензии его программного кода не означает автоматического разрешения на любое распространение таблиц. AnthroCalc использован только как UX-референс; его код, данные и интерфейс не копируются."
         ],
         "inputs": [
@@ -66,7 +69,9 @@
             "label": "Дата рождения",
             "kind": "date",
             "required": true,
-            "patientBinding": { "kind": "dateOfBirth" }
+            "patientBinding": {
+              "kind": "dateOfBirth"
+            }
           },
           {
             "id": "measurement_date",
@@ -81,24 +86,41 @@
             "label": "Пол",
             "kind": "select",
             "options": [
-              { "value": "female", "label": "Девочка" },
-              { "value": "male", "label": "Мальчик" }
+              {
+                "value": "female",
+                "label": "Девочка"
+              },
+              {
+                "value": "male",
+                "label": "Мальчик"
+              }
             ],
             "required": true,
             "requiresInput": "date_of_birth",
-            "patientBinding": { "kind": "biologicalSex" }
+            "patientBinding": {
+              "kind": "biologicalSex"
+            }
           },
           {
             "id": "measure_position",
-            "label": "Метод измерения длины/роста",
+            "label": "Как измерены длина или рост",
             "kind": "select",
             "options": [
-              { "value": "auto", "label": "Авто по возрасту" },
-              { "value": "length", "label": "Длина лёжа" },
-              { "value": "height", "label": "Рост стоя" }
+              {
+                "value": "auto",
+                "label": "По возрасту: до 2 лет лёжа, с 2 лет стоя"
+              },
+              {
+                "value": "length",
+                "label": "Лёжа (длина)"
+              },
+              {
+                "value": "height",
+                "label": "Стоя (рост)"
+              }
             ],
             "required": true,
-            "labelTooltip": "ВОЗ: до 2 лет измеряют длину лёжа, с 2 лет — рост стоя. Если способ измерения не соответствует возрасту, применяется поправка 0,7 см.",
+            "labelTooltip": "Таблицы ВОЗ до 2 лет построены по длине лёжа, с 2 лет — по росту стоя. Если ребёнка измерили иначе, результат корректируется на 0,7 см.",
             "requiresInput": "date_of_birth"
           },
           {
@@ -152,7 +174,8 @@
               "metricId": "head-circumference",
               "unit": "см",
               "maxAgeDays": 3650
-            }
+            },
+            "labelTooltip": "Максимальная окружность головы над бровями и по затылку; в таблицах ВОЗ — от рождения до 5 лет."
           },
           {
             "id": "arm_circumference_cm",
@@ -169,7 +192,8 @@
               "metricId": "mid-upper-arm-circumference",
               "unit": "см",
               "maxAgeDays": 3650
-            }
+            },
+            "labelTooltip": "Измеряют на середине плеча. В таблицах ВОЗ окружность плеча есть с 3 месяцев до 5 лет."
           }
         ],
         "inputRequirements": [
@@ -222,15 +246,15 @@
           },
           {
             "id": "who0_hfa_z",
-            "label": "ВОЗ 0–5: длина / рост к возрасту, z-score",
-            "unit": "SD",
+            "label": "Длина/рост к возрасту (ВОЗ 0–5): отклонение от среднего",
+            "unit": "ст. откл.",
             "expression": "optional((present(standardized_length_height_cm) == 1) * (age_days >= 0) * (age_days <= 1826) == 1, whoLmsZ(\"who0-hfa\", biological_sex, age_days, standardized_length_height_cm))",
             "displayPrecision": 2,
             "isOutput": true
           },
           {
             "id": "who0_hfa_percentile",
-            "label": "ВОЗ 0–5: длина / рост к возрасту, перцентиль",
+            "label": "Длина/рост к возрасту (ВОЗ 0–5): перцентиль",
             "unit": "%",
             "expression": "optional(present(who0_hfa_z) == 1, whoPercentile(who0_hfa_z))",
             "displayPrecision": 1,
@@ -238,15 +262,15 @@
           },
           {
             "id": "who0_wfa_z",
-            "label": "ВОЗ 0–5: масса к возрасту, z-score",
-            "unit": "SD",
+            "label": "Масса к возрасту (ВОЗ 0–5): отклонение от среднего",
+            "unit": "ст. откл.",
             "expression": "optional((present(weight_kg) == 1) * (age_days >= 0) * (age_days <= 1826) == 1, whoLmsZ(\"who0-wfa\", biological_sex, age_days, weight_kg))",
             "displayPrecision": 2,
             "isOutput": true
           },
           {
             "id": "who0_wfa_percentile",
-            "label": "ВОЗ 0–5: масса к возрасту, перцентиль",
+            "label": "Масса к возрасту (ВОЗ 0–5): перцентиль",
             "unit": "%",
             "expression": "optional(present(who0_wfa_z) == 1, whoPercentile(who0_wfa_z))",
             "displayPrecision": 1,
@@ -254,15 +278,15 @@
           },
           {
             "id": "who0_wfl_z",
-            "label": "ВОЗ 0–5: масса к длине, z-score",
-            "unit": "SD",
+            "label": "Масса к длине (ВОЗ 0–5): отклонение от среднего",
+            "unit": "ст. откл.",
             "expression": "optional((present(weight_kg) == 1) * (present(standardized_length_height_cm) == 1) * (age_days >= 0) * (age_days <= 730) == 1, optional((standardized_length_height_cm >= 45) * (standardized_length_height_cm <= 110) == 1, whoLmsZ(\"who0-wfl\", biological_sex, standardized_length_height_cm, weight_kg)))",
             "displayPrecision": 2,
             "isOutput": true
           },
           {
             "id": "who0_wfl_percentile",
-            "label": "ВОЗ 0–5: масса к длине, перцентиль",
+            "label": "Масса к длине (ВОЗ 0–5): перцентиль",
             "unit": "%",
             "expression": "optional(present(who0_wfl_z) == 1, whoPercentile(who0_wfl_z))",
             "displayPrecision": 1,
@@ -270,15 +294,15 @@
           },
           {
             "id": "who0_wfh_z",
-            "label": "ВОЗ 0–5: масса к росту, z-score",
-            "unit": "SD",
+            "label": "Масса к росту (ВОЗ 0–5): отклонение от среднего",
+            "unit": "ст. откл.",
             "expression": "optional((present(weight_kg) == 1) * (present(standardized_length_height_cm) == 1) * (age_days >= 731) * (age_days <= 1826) == 1, optional((standardized_length_height_cm >= 65) * (standardized_length_height_cm <= 120) == 1, whoLmsZ(\"who0-wfh\", biological_sex, standardized_length_height_cm, weight_kg)))",
             "displayPrecision": 2,
             "isOutput": true
           },
           {
             "id": "who0_wfh_percentile",
-            "label": "ВОЗ 0–5: масса к росту, перцентиль",
+            "label": "Масса к росту (ВОЗ 0–5): перцентиль",
             "unit": "%",
             "expression": "optional(present(who0_wfh_z) == 1, whoPercentile(who0_wfh_z))",
             "displayPrecision": 1,
@@ -286,15 +310,15 @@
           },
           {
             "id": "who0_bmi_z",
-            "label": "ВОЗ 0–5: BMI к возрасту, z-score",
-            "unit": "SD",
+            "label": "ИМТ к возрасту (ВОЗ 0–5): отклонение от среднего",
+            "unit": "ст. откл.",
             "expression": "optional((present(bmi) == 1) * (age_days >= 0) * (age_days <= 1826) == 1, whoLmsZ(\"who0-bmi\", biological_sex, age_days, bmi))",
             "displayPrecision": 2,
             "isOutput": true
           },
           {
             "id": "who0_bmi_percentile",
-            "label": "ВОЗ 0–5: BMI к возрасту, перцентиль",
+            "label": "ИМТ к возрасту (ВОЗ 0–5): перцентиль",
             "unit": "%",
             "expression": "optional(present(who0_bmi_z) == 1, whoPercentile(who0_bmi_z))",
             "displayPrecision": 1,
@@ -302,15 +326,15 @@
           },
           {
             "id": "who0_hc_z",
-            "label": "ВОЗ 0–5: окружность головы к возрасту, z-score",
-            "unit": "SD",
+            "label": "Окружность головы к возрасту (ВОЗ 0–5): отклонение от среднего",
+            "unit": "ст. откл.",
             "expression": "optional((present(head_circumference_cm) == 1) * (age_days >= 0) * (age_days <= 1826) == 1, whoLmsZ(\"who0-hc\", biological_sex, age_days, head_circumference_cm))",
             "displayPrecision": 2,
             "isOutput": true
           },
           {
             "id": "who0_hc_percentile",
-            "label": "ВОЗ 0–5: окружность головы к возрасту, перцентиль",
+            "label": "Окружность головы к возрасту (ВОЗ 0–5): перцентиль",
             "unit": "%",
             "expression": "optional(present(who0_hc_z) == 1, whoPercentile(who0_hc_z))",
             "displayPrecision": 1,
@@ -318,15 +342,15 @@
           },
           {
             "id": "who0_muac_z",
-            "label": "ВОЗ 0–5: окружность плеча к возрасту, z-score",
-            "unit": "SD",
+            "label": "Окружность плеча к возрасту (ВОЗ 0–5): отклонение от среднего",
+            "unit": "ст. откл.",
             "expression": "optional((present(arm_circumference_cm) == 1) * (age_days >= 91) * (age_days <= 1826) == 1, whoLmsZ(\"who0-muac\", biological_sex, age_days, arm_circumference_cm))",
             "displayPrecision": 2,
             "isOutput": true
           },
           {
             "id": "who0_muac_percentile",
-            "label": "ВОЗ 0–5: окружность плеча к возрасту, перцентиль",
+            "label": "Окружность плеча к возрасту (ВОЗ 0–5): перцентиль",
             "unit": "%",
             "expression": "optional(present(who0_muac_z) == 1, whoPercentile(who0_muac_z))",
             "displayPrecision": 1,
@@ -334,15 +358,15 @@
           },
           {
             "id": "who5_hfa_z",
-            "label": "ВОЗ 5–19: рост к возрасту, z-score",
-            "unit": "SD",
+            "label": "Рост к возрасту (ВОЗ 5–19): отклонение от среднего",
+            "unit": "ст. откл.",
             "expression": "optional((present(standardized_length_height_cm) == 1) * (age_months >= 60) * (age_months < 229) == 1, whoLmsZ(\"who5-hfa\", biological_sex, age_months, standardized_length_height_cm))",
             "displayPrecision": 2,
             "isOutput": true
           },
           {
             "id": "who5_hfa_percentile",
-            "label": "ВОЗ 5–19: рост к возрасту, перцентиль",
+            "label": "Рост к возрасту (ВОЗ 5–19): перцентиль",
             "unit": "%",
             "expression": "optional(present(who5_hfa_z) == 1, whoPercentile(who5_hfa_z))",
             "displayPrecision": 1,
@@ -350,15 +374,15 @@
           },
           {
             "id": "who5_wfa_z",
-            "label": "ВОЗ 5–19: масса к возрасту, z-score",
-            "unit": "SD",
+            "label": "Масса к возрасту (ВОЗ 5–19): отклонение от среднего",
+            "unit": "ст. откл.",
             "expression": "optional((present(weight_kg) == 1) * (age_months >= 60) * (age_months < 121) == 1, whoLmsZ(\"who5-wfa\", biological_sex, age_months, weight_kg))",
             "displayPrecision": 2,
             "isOutput": true
           },
           {
             "id": "who5_wfa_percentile",
-            "label": "ВОЗ 5–19: масса к возрасту, перцентиль",
+            "label": "Масса к возрасту (ВОЗ 5–19): перцентиль",
             "unit": "%",
             "expression": "optional(present(who5_wfa_z) == 1, whoPercentile(who5_wfa_z))",
             "displayPrecision": 1,
@@ -366,15 +390,15 @@
           },
           {
             "id": "who5_bmi_z",
-            "label": "ВОЗ 5–19: BMI к возрасту, z-score",
-            "unit": "SD",
+            "label": "ИМТ к возрасту (ВОЗ 5–19): отклонение от среднего",
+            "unit": "ст. откл.",
             "expression": "optional((present(bmi) == 1) * (age_months >= 60) * (age_months < 229) == 1, whoLmsZ(\"who5-bmi\", biological_sex, age_months, bmi))",
             "displayPrecision": 2,
             "isOutput": true
           },
           {
             "id": "who5_bmi_percentile",
-            "label": "ВОЗ 5–19: BMI к возрасту, перцентиль",
+            "label": "ИМТ к возрасту (ВОЗ 5–19): перцентиль",
             "unit": "%",
             "expression": "optional(present(who5_bmi_z) == 1, whoPercentile(who5_bmi_z))",
             "displayPrecision": 1,
@@ -384,24 +408,34 @@
         "warnings": [
           {
             "code": "who-reference",
-            "message": "Показываются отдельные ВОЗ z-score и перцентили только для заполненных показателей в поддерживаемом диапазоне."
+            "message": "Показаны отдельные оценки по таблицам ВОЗ только для заполненных показателей в поддерживаемом возрасте: ВОЗ 0–5 лет и ВОЗ 5–19 лет."
           },
           {
             "code": "no-global-verdict",
-            "message": "Единого общего вывода «норма/не норма» для всех антропометрических показателей нет; интерпретируйте результат вместе с динамикой и клиническим контекстом."
+            "message": "Единого вывода «норма / не норма» для всех показателей нет: каждый оценён отдельно; интерпретируйте вместе с динамикой и клиническим контекстом."
           },
           {
             "code": "no-fenton",
-            "message": "Нормы Fenton для недоношенных в этом калькуляторе не рассчитываются."
+            "message": "Недоношенных детей до 50 недель постконцептуального возраста оценивают по таблицам Fenton — в этом расчёте их нет."
           }
         ],
-        "interpretations": [],
+        "interpretations": [
+          {
+            "when": "1",
+            "message": "Оценка дана по границам ВОЗ для каждого показателя отдельно. z — отклонение от среднего значения ВОЗ в стандартных отклонениях; Одно измерение не заменяет оценку динамики роста."
+          }
+        ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "ВОЗ z-score и перцентиль рассчитаны отдельно для каждого заполненного показателя; единого общего verdict для разных индикаторов нет.",
-          "sourceIds": ["who-cgs-0-5", "who-growth-reference-5-19"]
+          "reason": "Общего заключения «норма / не норма» для всех показателей нет: каждый показатель оценён отдельно по границам ВОЗ.",
+          "sourceIds": [
+            "who-cgs-0-5",
+            "who-growth-reference-5-19",
+            "who-training-course-2008",
+            "who-growth-reference-5-19-bmi"
+          ]
         },
         "observationMappings": [
           {
@@ -450,147 +484,153 @@
           {
             "outputId": "who0_hfa_z",
             "metricId": "who0.length-height.z-score",
-            "label": "ВОЗ 0–5: длина/рост к возрасту, z-score",
+            "label": "Длина/рост к возрасту (ВОЗ 0–5): отклонение от среднего",
             "unit": "SD",
             "method": "ВОЗ Child Growth Standards 0–5"
           },
           {
             "outputId": "who0_hfa_percentile",
             "metricId": "who0.length-height.percentile",
-            "label": "ВОЗ 0–5: длина/рост к возрасту, перцентиль",
+            "label": "Длина/рост к возрасту (ВОЗ 0–5): перцентиль",
             "unit": "%",
             "method": "ВОЗ Child Growth Standards 0–5"
           },
           {
             "outputId": "who0_wfa_z",
             "metricId": "who0.weight.z-score",
-            "label": "ВОЗ 0–5: масса к возрасту, z-score",
+            "label": "Масса к возрасту (ВОЗ 0–5): отклонение от среднего",
             "unit": "SD",
             "method": "ВОЗ Child Growth Standards 0–5"
           },
           {
             "outputId": "who0_wfa_percentile",
             "metricId": "who0.weight.percentile",
-            "label": "ВОЗ 0–5: масса к возрасту, перцентиль",
+            "label": "Масса к возрасту (ВОЗ 0–5): перцентиль",
             "unit": "%",
             "method": "ВОЗ Child Growth Standards 0–5"
           },
           {
             "outputId": "who0_wfl_z",
             "metricId": "who0.weight-length.z-score",
-            "label": "ВОЗ 0–5: масса к длине, z-score",
+            "label": "Масса к длине (ВОЗ 0–5): отклонение от среднего",
             "unit": "SD",
             "method": "ВОЗ Child Growth Standards 0–5"
           },
           {
             "outputId": "who0_wfl_percentile",
             "metricId": "who0.weight-length.percentile",
-            "label": "ВОЗ 0–5: масса к длине, перцентиль",
+            "label": "Масса к длине (ВОЗ 0–5): перцентиль",
             "unit": "%",
             "method": "ВОЗ Child Growth Standards 0–5"
           },
           {
             "outputId": "who0_wfh_z",
             "metricId": "who0.weight-height.z-score",
-            "label": "ВОЗ 0–5: масса к росту, z-score",
+            "label": "Масса к росту (ВОЗ 0–5): отклонение от среднего",
             "unit": "SD",
             "method": "ВОЗ Child Growth Standards 0–5"
           },
           {
             "outputId": "who0_wfh_percentile",
             "metricId": "who0.weight-height.percentile",
-            "label": "ВОЗ 0–5: масса к росту, перцентиль",
+            "label": "Масса к росту (ВОЗ 0–5): перцентиль",
             "unit": "%",
             "method": "ВОЗ Child Growth Standards 0–5"
           },
           {
             "outputId": "who0_bmi_z",
             "metricId": "who0.bmi.z-score",
-            "label": "ВОЗ 0–5: BMI к возрасту, z-score",
+            "label": "ИМТ к возрасту (ВОЗ 0–5): отклонение от среднего",
             "unit": "SD",
             "method": "ВОЗ Child Growth Standards 0–5"
           },
           {
             "outputId": "who0_bmi_percentile",
             "metricId": "who0.bmi.percentile",
-            "label": "ВОЗ 0–5: BMI к возрасту, перцентиль",
+            "label": "ИМТ к возрасту (ВОЗ 0–5): перцентиль",
             "unit": "%",
             "method": "ВОЗ Child Growth Standards 0–5"
           },
           {
             "outputId": "who0_hc_z",
             "metricId": "who0.head-circumference.z-score",
-            "label": "ВОЗ 0–5: окружность головы, z-score",
+            "label": "Окружность головы к возрасту (ВОЗ 0–5): отклонение от среднего",
             "unit": "SD",
             "method": "ВОЗ Child Growth Standards 0–5"
           },
           {
             "outputId": "who0_hc_percentile",
             "metricId": "who0.head-circumference.percentile",
-            "label": "ВОЗ 0–5: окружность головы, перцентиль",
+            "label": "Окружность головы к возрасту (ВОЗ 0–5): перцентиль",
             "unit": "%",
             "method": "ВОЗ Child Growth Standards 0–5"
           },
           {
             "outputId": "who0_muac_z",
             "metricId": "who0.mid-upper-arm-circumference.z-score",
-            "label": "ВОЗ 0–5: окружность плеча, z-score",
+            "label": "Окружность плеча к возрасту (ВОЗ 0–5): отклонение от среднего",
             "unit": "SD",
             "method": "ВОЗ Child Growth Standards 0–5"
           },
           {
             "outputId": "who0_muac_percentile",
             "metricId": "who0.mid-upper-arm-circumference.percentile",
-            "label": "ВОЗ 0–5: окружность плеча, перцентиль",
+            "label": "Окружность плеча к возрасту (ВОЗ 0–5): перцентиль",
             "unit": "%",
             "method": "ВОЗ Child Growth Standards 0–5"
           },
           {
             "outputId": "who5_hfa_z",
             "metricId": "who5.length-height.z-score",
-            "label": "ВОЗ 5–19: рост к возрасту, z-score",
+            "label": "Рост к возрасту (ВОЗ 5–19): отклонение от среднего",
             "unit": "SD",
             "method": "ВОЗ 2007 reference 5–19"
           },
           {
             "outputId": "who5_hfa_percentile",
             "metricId": "who5.length-height.percentile",
-            "label": "ВОЗ 5–19: рост к возрасту, перцентиль",
+            "label": "Рост к возрасту (ВОЗ 5–19): перцентиль",
             "unit": "%",
             "method": "ВОЗ 2007 reference 5–19"
           },
           {
             "outputId": "who5_wfa_z",
             "metricId": "who5.weight.z-score",
-            "label": "ВОЗ 5–19: масса к возрасту, z-score",
+            "label": "Масса к возрасту (ВОЗ 5–19): отклонение от среднего",
             "unit": "SD",
             "method": "ВОЗ 2007 reference 5–19"
           },
           {
             "outputId": "who5_wfa_percentile",
             "metricId": "who5.weight.percentile",
-            "label": "ВОЗ 5–19: масса к возрасту, перцентиль",
+            "label": "Масса к возрасту (ВОЗ 5–19): перцентиль",
             "unit": "%",
             "method": "ВОЗ 2007 reference 5–19"
           },
           {
             "outputId": "who5_bmi_z",
             "metricId": "who5.bmi.z-score",
-            "label": "ВОЗ 5–19: BMI к возрасту, z-score",
+            "label": "ИМТ к возрасту (ВОЗ 5–19): отклонение от среднего",
             "unit": "SD",
             "method": "ВОЗ 2007 reference 5–19"
           },
           {
             "outputId": "who5_bmi_percentile",
             "metricId": "who5.bmi.percentile",
-            "label": "ВОЗ 5–19: BMI к возрасту, перцентиль",
+            "label": "ИМТ к возрасту (ВОЗ 5–19): перцентиль",
             "unit": "%",
             "method": "ВОЗ 2007 reference 5–19"
           }
         ],
         "assertions": [
-          { "when": "age_days < 0", "error": "Дата измерения не может быть раньше даты рождения." },
-          { "when": "age_months >= 229", "error": "Калькулятор поддерживает детей младше 19 лет." },
+          {
+            "when": "age_days < 0",
+            "error": "Дата измерения не может быть раньше даты рождения."
+          },
+          {
+            "when": "age_months >= 229",
+            "error": "Калькулятор поддерживает детей младше 19 лет."
+          },
           {
             "when": "(measure_position == \"height\") * (age_days < 274) == 1",
             "error": "ВОЗ не использует измерение роста стоя до 9 месяцев; выберите длину лёжа или исправьте метод."
@@ -1577,6 +1617,342 @@
             "version": "repository raw tables",
             "url": "https://github.com/WorldHealthOrganization/anthroplus/tree/main/data-raw/growthstandards",
             "reviewedAt": "2026-09-02"
+          },
+          {
+            "title": "WHO child growth standards: training course on child growth assessment (module C, interpreting growth indicators)",
+            "publisher": "World Health Organization",
+            "version": "2008",
+            "url": "https://www.who.int/publications/i/item/9789241595070",
+            "reviewedAt": "2026-10-15"
+          },
+          {
+            "title": "ВОЗ: BMI-for-age (5–19 years) — границы избыточной массы, ожирения и худобы",
+            "publisher": "World Health Organization",
+            "version": "страница показателя",
+            "url": "https://www.who.int/tools/growth-reference-data-for-5to19-years/indicators/bmi-for-age",
+            "reviewedAt": "2026-10-15"
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_who0_hfa_z",
+            "valueId": "who0_hfa_z",
+            "minimum": -5,
+            "maximum": 5,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": -5,
+                "label": "Очень низкий",
+                "attentionLevel": "high"
+              },
+              {
+                "from": -3,
+                "label": "Низкий",
+                "attentionLevel": "moderate"
+              },
+              {
+                "from": -2,
+                "label": "Норма",
+                "attentionLevel": "none"
+              },
+              {
+                "from": 2,
+                "label": "Выше нормы",
+                "attentionLevel": "low"
+              }
+            ]
+          },
+          {
+            "id": "scale_who0_wfa_z",
+            "valueId": "who0_wfa_z",
+            "minimum": -5,
+            "maximum": 5,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": -5,
+                "label": "Очень низкая",
+                "attentionLevel": "high"
+              },
+              {
+                "from": -3,
+                "label": "Низкая",
+                "attentionLevel": "moderate"
+              },
+              {
+                "from": -2,
+                "label": "Норма",
+                "attentionLevel": "none"
+              },
+              {
+                "from": 2,
+                "label": "Выше нормы",
+                "attentionLevel": "low"
+              }
+            ]
+          },
+          {
+            "id": "scale_who0_wfl_z",
+            "valueId": "who0_wfl_z",
+            "minimum": -5,
+            "maximum": 5,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": -5,
+                "label": "Тяжёлое истощение",
+                "attentionLevel": "high"
+              },
+              {
+                "from": -3,
+                "label": "Истощение",
+                "attentionLevel": "moderate"
+              },
+              {
+                "from": -2,
+                "label": "Норма",
+                "attentionLevel": "none"
+              },
+              {
+                "from": 1,
+                "label": "Риск избытка",
+                "attentionLevel": "low"
+              },
+              {
+                "from": 2,
+                "label": "Избыток массы",
+                "attentionLevel": "moderate"
+              },
+              {
+                "from": 3,
+                "label": "Ожирение",
+                "attentionLevel": "high"
+              }
+            ]
+          },
+          {
+            "id": "scale_who0_wfh_z",
+            "valueId": "who0_wfh_z",
+            "minimum": -5,
+            "maximum": 5,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": -5,
+                "label": "Тяжёлое истощение",
+                "attentionLevel": "high"
+              },
+              {
+                "from": -3,
+                "label": "Истощение",
+                "attentionLevel": "moderate"
+              },
+              {
+                "from": -2,
+                "label": "Норма",
+                "attentionLevel": "none"
+              },
+              {
+                "from": 1,
+                "label": "Риск избытка",
+                "attentionLevel": "low"
+              },
+              {
+                "from": 2,
+                "label": "Избыток массы",
+                "attentionLevel": "moderate"
+              },
+              {
+                "from": 3,
+                "label": "Ожирение",
+                "attentionLevel": "high"
+              }
+            ]
+          },
+          {
+            "id": "scale_who0_bmi_z",
+            "valueId": "who0_bmi_z",
+            "minimum": -5,
+            "maximum": 5,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": -5,
+                "label": "Тяжёлое истощение",
+                "attentionLevel": "high"
+              },
+              {
+                "from": -3,
+                "label": "Истощение",
+                "attentionLevel": "moderate"
+              },
+              {
+                "from": -2,
+                "label": "Норма",
+                "attentionLevel": "none"
+              },
+              {
+                "from": 1,
+                "label": "Риск избытка",
+                "attentionLevel": "low"
+              },
+              {
+                "from": 2,
+                "label": "Избыток массы",
+                "attentionLevel": "moderate"
+              },
+              {
+                "from": 3,
+                "label": "Ожирение",
+                "attentionLevel": "high"
+              }
+            ]
+          },
+          {
+            "id": "scale_who0_hc_z",
+            "valueId": "who0_hc_z",
+            "minimum": -5,
+            "maximum": 5,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": -5,
+                "label": "Ниже нормы",
+                "attentionLevel": "moderate"
+              },
+              {
+                "from": -2,
+                "label": "Норма",
+                "attentionLevel": "none"
+              },
+              {
+                "from": 2,
+                "label": "Выше нормы",
+                "attentionLevel": "moderate"
+              }
+            ]
+          },
+          {
+            "id": "scale_who0_muac_z",
+            "valueId": "who0_muac_z",
+            "minimum": -5,
+            "maximum": 5,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": -5,
+                "label": "Очень низкая",
+                "attentionLevel": "high"
+              },
+              {
+                "from": -3,
+                "label": "Низкая",
+                "attentionLevel": "moderate"
+              },
+              {
+                "from": -2,
+                "label": "Норма",
+                "attentionLevel": "none"
+              },
+              {
+                "from": 2,
+                "label": "Выше нормы",
+                "attentionLevel": "low"
+              }
+            ]
+          },
+          {
+            "id": "scale_who5_hfa_z",
+            "valueId": "who5_hfa_z",
+            "minimum": -5,
+            "maximum": 5,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": -5,
+                "label": "Очень низкий",
+                "attentionLevel": "high"
+              },
+              {
+                "from": -3,
+                "label": "Низкий",
+                "attentionLevel": "moderate"
+              },
+              {
+                "from": -2,
+                "label": "Норма",
+                "attentionLevel": "none"
+              },
+              {
+                "from": 2,
+                "label": "Выше нормы",
+                "attentionLevel": "low"
+              }
+            ]
+          },
+          {
+            "id": "scale_who5_wfa_z",
+            "valueId": "who5_wfa_z",
+            "minimum": -5,
+            "maximum": 5,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": -5,
+                "label": "Очень низкая",
+                "attentionLevel": "high"
+              },
+              {
+                "from": -3,
+                "label": "Низкая",
+                "attentionLevel": "moderate"
+              },
+              {
+                "from": -2,
+                "label": "Норма",
+                "attentionLevel": "none"
+              },
+              {
+                "from": 2,
+                "label": "Выше нормы",
+                "attentionLevel": "low"
+              }
+            ]
+          },
+          {
+            "id": "scale_who5_bmi_z",
+            "valueId": "who5_bmi_z",
+            "minimum": -5,
+            "maximum": 5,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": -5,
+                "label": "Выраженная худоба",
+                "attentionLevel": "high"
+              },
+              {
+                "from": -3,
+                "label": "Худоба",
+                "attentionLevel": "moderate"
+              },
+              {
+                "from": -2,
+                "label": "Норма",
+                "attentionLevel": "none"
+              },
+              {
+                "from": 1,
+                "label": "Избыток массы",
+                "attentionLevel": "moderate"
+              },
+              {
+                "from": 2,
+                "label": "Ожирение",
+                "attentionLevel": "high"
+              }
+            ]
           }
         ]
       },
@@ -1664,6 +2040,22 @@
           "title": "ВОЗ anthroplus machine-readable growth standards 5–19",
           "url": "https://github.com/WorldHealthOrganization/anthroplus/tree/main/data-raw/growthstandards",
           "reviewedAt": "2026-09-02"
+        },
+        {
+          "id": "who-training-course-2008",
+          "kind": "guideline",
+          "relation": "interpretation",
+          "title": "WHO child growth standards: training course on child growth assessment (module C, interpreting growth indicators)",
+          "url": "https://www.who.int/publications/i/item/9789241595070",
+          "reviewedAt": "2026-10-15"
+        },
+        {
+          "id": "who-growth-reference-5-19-bmi",
+          "kind": "guideline",
+          "relation": "interpretation",
+          "title": "ВОЗ: BMI-for-age (5–19 years) — границы избыточной массы, ожирения и худобы",
+          "url": "https://www.who.int/tools/growth-reference-data-for-5to19-years/indicators/bmi-for-age",
+          "reviewedAt": "2026-10-15"
         }
       ]
     },
@@ -1692,8 +2084,14 @@
         "summary": "Определяет категорию усреднённого офисного САД/ДАД: до 13 лет по полу, полному возрасту и ближайшему табличному ростовому столбцу, с 13 лет — по фиксированным границам AAP.",
         "ageScope": {
           "groups": ["children"],
-          "minAge": { "value": 1, "unit": "years" },
-          "maxAge": { "value": 17, "unit": "years" },
+          "minAge": {
+            "value": 1,
+            "unit": "years"
+          },
+          "maxAge": {
+            "value": 17,
+            "unit": "years"
+          },
           "basis": "Определение: «Дети и подростки от 1 года до 17 лет включительно»; не для детей младше 1 года."
         },
         "category": "cardiology",
@@ -1713,7 +2111,9 @@
             "label": "Дата рождения",
             "kind": "date",
             "required": true,
-            "patientBinding": { "kind": "dateOfBirth" }
+            "patientBinding": {
+              "kind": "dateOfBirth"
+            }
           },
           {
             "id": "measurement_date",
@@ -1728,12 +2128,20 @@
             "label": "Пол",
             "kind": "select",
             "options": [
-              { "value": "female", "label": "Девочка" },
-              { "value": "male", "label": "Мальчик" }
+              {
+                "value": "female",
+                "label": "Девочка"
+              },
+              {
+                "value": "male",
+                "label": "Мальчик"
+              }
             ],
             "required": true,
             "requiresInput": "date_of_birth",
-            "patientBinding": { "kind": "biologicalSex" }
+            "patientBinding": {
+              "kind": "biologicalSex"
+            }
           },
           {
             "id": "height_cm",
@@ -1865,7 +2273,24 @@
             "message": "Результат относится к одному визиту. Диагноз требует подтверждения повторными аускультативными измерениями по клиническому руководству."
           }
         ],
-        "interpretations": [],
+        "interpretations": [
+          {
+            "when": "bp_category_code == \"stage2\"",
+            "message": "Артериальная гипертензия 2-й степени: категория измерения по наиболее высокой из категорий САД и ДАД (AAP 2017). Диагноз ставят только после повторных измерений."
+          },
+          {
+            "when": "bp_category_code == \"stage1\"",
+            "message": "Артериальная гипертензия 1-й степени: категория измерения по наиболее высокой из категорий САД и ДАД (AAP 2017). Диагноз ставят только после повторных измерений."
+          },
+          {
+            "when": "bp_category_code == \"elevated\"",
+            "message": "Повышенное артериальное давление: категория измерения по наиболее высокой из категорий САД и ДАД (AAP 2017). Повторите измерение."
+          },
+          {
+            "when": "bp_category_code == \"normal\"",
+            "message": "Нормальное артериальное давление: САД и ДАД ниже порогов этой возрастной группы (AAP 2017)."
+          }
+        ],
         "evaluation": {
           "status": "verdict",
           "rules": [

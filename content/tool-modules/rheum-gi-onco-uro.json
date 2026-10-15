@@ -1554,10 +1554,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "Для BASFI нет общепринятых пороговых значений; индекс оценивают в динамике у одного пациента.",
+          "reason": "Для BASFI нет общепринятых пороговых значений: индекс оценивают в динамике у одного пациента (0 — легко, 10 — невозможно).",
           "sourceIds": ["basfi-calin-1994"]
         },
         "observationMappings": [
@@ -3084,10 +3084,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "Для индекса повреждения нет пороговых групп; его оценивают в динамике и как сумму накопленного повреждения.",
+          "reason": "У индекса повреждения нет пороговых групп: он суммирует накопленное повреждение, и его сравнивают с прошлыми значениями.",
           "sourceIds": ["slicc-acr-damage-index-gladman-1996"]
         },
         "observationMappings": [
@@ -5929,10 +5929,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "Группы летальности Wiesner 2003 относятся к MELD без поправки на натрий; для MELD-Na они не переносятся, балл используют для ранжирования.",
+          "reason": "Группы летальности Wiesner 2003 даны для MELD без поправки на натрий и сюда не переносятся; балл используют для ранжирования в листе ожидания.",
           "sourceIds": ["meld-na-kamath-2001", "meld-na-kim-2008", "meld-na-kim-2021"]
         },
         "observationMappings": [
@@ -6162,10 +6162,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "Для MELD 3.0 в источнике нет групп риска с пороговыми значениями; балл используют для ранжирования.",
+          "reason": "В источнике нет групп риска по баллу MELD 3.0; балл используют для ранжирования в листе ожидания трансплантации.",
           "sourceIds": ["meld-3-kim-2021"]
         },
         "observationMappings": [
@@ -7807,10 +7807,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "Для объёма предстательной железы нет единого порога в этой формуле; объём интерпретируют по клинической ситуации.",
+          "reason": "Инструмент считает объём железы; единого порога объёма в формуле нет — объём оценивают вместе с симптомами и ПСА.",
           "sourceIds": [
             "prostate-volume-ellipsoid-terris-1991",
             "prostate-volume-ellipsoid-lee-2007"
@@ -8619,10 +8619,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "У дозы нет порогового заключения: целевую AUC и допустимую дозу определяет схема лечения.",
+          "reason": "Инструмент считает дозу; её допустимость определяют целевая AUC и схема лечения, порогового заключения нет.",
           "sourceIds": [
             "carboplatin-calvert-dose-calvert-1989",
             "carboplatin-calvert-dose-cockcroft-1976",

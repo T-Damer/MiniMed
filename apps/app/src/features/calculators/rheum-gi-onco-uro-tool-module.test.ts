@@ -185,7 +185,10 @@ describe('rheumatology, gastroenterology, oncology and urology tool module', () 
 
   it('declares every band as a verdict rule with the same wording as the interpretation', () => {
     for (const schema of SCHEMAS) {
-      if (schema.evaluation.status === 'unavailable') {
+      if (
+        schema.evaluation.status === 'unavailable' ||
+        schema.evaluation.status === 'not-applicable'
+      ) {
         expect(schema.interpretations, schema.id).toEqual([]);
         expect(schema.evaluation.reason, schema.id).toBeTruthy();
         continue;

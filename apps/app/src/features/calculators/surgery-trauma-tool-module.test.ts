@@ -157,7 +157,10 @@ describe('surgery, trauma and perioperative tool module', () => {
 
   it('declares every band as a verdict rule with the same wording as the interpretation', () => {
     for (const schema of SCHEMAS) {
-      if (schema.evaluation.status === 'unavailable') {
+      if (
+        schema.evaluation.status === 'unavailable' ||
+        schema.evaluation.status === 'not-applicable'
+      ) {
         expect(schema.interpretations, schema.id).toHaveLength(0);
         expect(schema.evaluation.reason, schema.id).toBeTruthy();
         continue;
@@ -274,7 +277,7 @@ describe('surgery, trauma and perioperative tool module', () => {
       );
     });
     it('declares no band: the result is a probability', () => {
-      expect(run(id, normal).status).toBe('unavailable');
+      expect(run(id, normal).status).toBe('not-applicable');
     });
   });
 
@@ -1564,7 +1567,7 @@ describe('surgery, trauma and perioperative tool module', () => {
       expect(out(result, 'possumMortality')).toBeCloseTo(6.598900949, 6);
       expect(out(result, 'pPossumMortality')).toBeCloseTo(1.816012462, 6);
       expect(out(result, 'possumMorbidity')).toBeCloseTo(35.66348543, 6);
-      expect(result.status).toBe('unavailable');
+      expect(result.status).toBe('not-applicable');
     });
     it('reaches the arithmetic maximum of 88 and 48', () => {
       const worst: Inputs = {
@@ -2225,7 +2228,7 @@ describe('surgery, trauma and perioperative tool module', () => {
         crystalloid2: 1050,
         glucose2: 2000,
       });
-      expect(result.status).toBe('unavailable');
+      expect(result.status).toBe('not-applicable');
     });
   });
 

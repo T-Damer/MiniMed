@@ -67,7 +67,10 @@ describe('feeding calculators of the pediatrics tool module', () => {
       }
       const definition = SCHEMAS.find((schema) => schema.id === record.id);
       expect(definition?.sources.every((source) => (source.page ?? '').length > 0)).toBe(true);
-      expect(definition?.evaluation.status).toBe('unavailable');
+      // The degrees of hypogalactia are bands from the textbook; the other five return volumes.
+      expect(definition?.evaluation.status).toBe(
+        record.id.endsWith('hypogalactia-degree') ? 'verdict' : 'not-applicable',
+      );
     }
   });
 

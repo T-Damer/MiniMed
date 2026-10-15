@@ -745,6 +745,6 @@ describe('MELD-Na (OPTN 2016 as in Kim 2021: +1.32·(137−Na) − 0.033·MELD·
     expect(schema.formulaDisplay).toContain('OPTN 2016');
     expect(schema.limitations.join(' ')).toContain('0,025');
     expect(schema.limitations.join(' ')).toContain('140');
-    expect(schema.evaluation.status).toBe('unavailable');
+    expect(schema.evaluation.status).toBe('not-applicable');
   });
 });

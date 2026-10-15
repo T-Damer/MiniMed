@@ -32,6 +32,8 @@ const assessments = records
 const NO_SCALE_BY_DESIGN: Readonly<Record<string, string>> = {
   'minimed.calculator.kerdo-index': 'a single-point band at 0 without a tolerance in the source',
   'minimed.calculator.covid19-severity-china': 'classes 1–3 are codes, not an ordered score',
+  'minimed.calculator.pediatric-blood-pressure-aap':
+    'a category code of one office measurement (normal … stage 2), not a score',
 };
 
 /** Scales whose grid has values that are not reachable results, so the cascade cannot be replayed on them. */

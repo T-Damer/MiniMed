@@ -48,7 +48,7 @@ describe('catalog.preview.json', () => {
     expect(
       result.data.modules.find((module) => module.id === 'minimed.tools.pediatrics-growth.ru'),
     ).toMatchObject({
-      version: '0.3.1',
+      version: '0.3.2',
       releaseState: 'preview',
       toolKinds: ['calculator'],
       toolCount: 2,

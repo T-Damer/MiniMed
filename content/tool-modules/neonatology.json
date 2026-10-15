@@ -119,10 +119,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "reason": "Инструмент считает скорость введения глюкозы; её целевое значение зависит от уровня глюкозы крови, возраста и причины гипогликемии, единого диапазона оценки нет.",
           "sourceIds": ["gir-bwh-2016", "gir-neonatology-222n"]
         },
         "observationMappings": [
@@ -343,25 +343,49 @@
           }
         ],
         "disclaimer": "Шкала — ориентировочный инструмент ранней оценки дыхательной работы, не заменяет объективную диагностику респираторной недостаточности и не определяет показания к конкретной терапии без клинической оценки.",
-        "evidenceNote": "Сумма 6 пунктов даёт диапазон 0–10; по стандартной интерпретации 0–4 обычно соответствует лёгкому/умеренно лёгкому дистрессу, 5–6 — умеренному, 7–10 — тяжёлому респираторному дистрессу и необходимости срочного пересмотра тактики респираторной поддержки.",
+        "evidenceNote": "Сумма 6 пунктов даёт диапазон 0–10. Градации — по AIIMS Protocols in Neonatology (newbornwhocc.org, глава «Approach to Respiratory Distress in the Newborn»): нет дистресса — 0, лёгкий — менее 3, умеренный — 4–6, тяжёлый — более 7; 3 и 7 баллов источник не распределяет. Другие руководства используют иные границы (например, 0–3 / 4–6 / 7 и более), поэтому результат оценивайте в динамике.",
         "interpretations": [
           {
             "minScore": 0,
-            "maxScore": 4,
-            "headline": "Лёгкий или умеренно лёгкий респираторный дистресс",
-            "message": "0–4 балла по принятой интерпретации обычно соответствуют лёгкому или умеренно лёгкому респираторному дистрессу. Оценивайте в динамике вместе с клинической картиной и не используйте как единственный критерий тактики."
+            "maxScore": 0,
+            "scaleId": "silverman-andersen-total",
+            "headline": "Признаков дыхательных нарушений по шкале нет",
+            "message": "0 баллов: респираторного дистресса по шкале Silverman–Andersen нет. Оценивайте в динамике."
           },
           {
-            "minScore": 5,
+            "minScore": 1,
+            "maxScore": 2,
+            "scaleId": "silverman-andersen-total",
+            "headline": "Лёгкий респираторный дистресс",
+            "message": "1–2 балла: лёгкий респираторный дистресс (AIIMS: «менее 3»). Оценивайте в динамике вместе с клинической картиной и SpO2."
+          },
+          {
+            "minScore": 3,
+            "maxScore": 3,
+            "scaleId": "silverman-andersen-total",
+            "headline": "3 балла: между лёгким и умеренным дистрессом",
+            "message": "В источнике лёгкий дистресс — менее 3 баллов, умеренный — 4–6; 3 балла в нём не отнесены ни к одной группе. Оценивайте в динамике."
+          },
+          {
+            "minScore": 4,
             "maxScore": 6,
+            "scaleId": "silverman-andersen-total",
             "headline": "Умеренный респираторный дистресс",
-            "message": "5–6 баллов соответствуют умеренному респираторному дистрессу по принятой интерпретации; требуется клиническая оценка и пересмотр тактики респираторной поддержки."
+            "message": "4–6 баллов: умеренный респираторный дистресс (AIIMS); по тому же источнику таким детям обычно нужна поддержка постоянным положительным давлением (CPAP)."
           },
           {
             "minScore": 7,
+            "maxScore": 7,
+            "scaleId": "silverman-andersen-total",
+            "headline": "7 баллов: между умеренным и тяжёлым дистрессом",
+            "message": "В источнике умеренный дистресс — 4–6 баллов, тяжёлый — более 7; 7 баллов в нём не отнесены ни к одной группе. Нужна срочная клиническая оценка."
+          },
+          {
+            "minScore": 8,
             "maxScore": 10,
+            "scaleId": "silverman-andersen-total",
             "headline": "Тяжёлый респираторный дистресс",
-            "message": "7–10 баллов соответствуют тяжёлому респираторному дистрессу и необходимости срочного пересмотра тактики респираторной поддержки по действующему протоколу."
+            "message": "8–10 баллов: тяжёлый респираторный дистресс (AIIMS: «более 7»); по тому же источнику таким детям может понадобиться интубация и ИВЛ. Нужна срочная клиническая оценка."
           }
         ],
         "license": {
@@ -391,31 +415,121 @@
             "bands": [
               {
                 "from": 0,
-                "label": "Лёгкий",
-                "attentionLevel": "low",
+                "label": "Нет",
+                "attentionLevel": "none",
                 "interpretation": 0
               },
               {
-                "from": 5,
-                "label": "Умеренный",
-                "attentionLevel": "moderate",
+                "from": 1,
+                "label": "Лёгкий",
+                "attentionLevel": "low",
                 "interpretation": 1
               },
               {
+                "from": 3,
+                "label": "3 балла",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 4,
+                "label": "Умеренный",
+                "attentionLevel": "moderate",
+                "interpretation": 3
+              },
+              {
                 "from": 7,
+                "label": "7 баллов",
+                "attentionLevel": "high",
+                "interpretation": 4
+              },
+              {
+                "from": 8,
                 "label": "Тяжёлый",
                 "attentionLevel": "high",
-                "interpretation": 2
+                "interpretation": 5
               }
             ]
           }
         ],
         "evaluation": {
-          "status": "unavailable",
-          "rules": [],
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score_silverman_andersen_total <= 0",
+              "verdict": {
+                "rangeId": "silverman-andersen-total-1",
+                "title": "Признаков дыхательных нарушений по шкале нет",
+                "explanation": "0 баллов: респираторного дистресса по шкале Silverman–Andersen нет. Оценивайте в динамике.",
+                "attentionLevel": "none",
+                "lowerBound": 0,
+                "upperBound": 0,
+                "sourceIds": ["silverman-andersen-newbornwhocc"]
+              }
+            },
+            {
+              "when": "score_silverman_andersen_total <= 2",
+              "verdict": {
+                "rangeId": "silverman-andersen-total-2",
+                "title": "Лёгкий респираторный дистресс",
+                "explanation": "1–2 балла: лёгкий респираторный дистресс (AIIMS: «менее 3»). Оценивайте в динамике вместе с клинической картиной и SpO2.",
+                "attentionLevel": "low",
+                "lowerBound": 1,
+                "upperBound": 2,
+                "sourceIds": ["silverman-andersen-newbornwhocc"]
+              }
+            },
+            {
+              "when": "score_silverman_andersen_total <= 3",
+              "verdict": {
+                "rangeId": "silverman-andersen-total-3",
+                "title": "3 балла: между лёгким и умеренным дистрессом",
+                "explanation": "В источнике лёгкий дистресс — менее 3 баллов, умеренный — 4–6; 3 балла в нём не отнесены ни к одной группе. Оценивайте в динамике.",
+                "attentionLevel": "moderate",
+                "lowerBound": 3,
+                "upperBound": 3,
+                "sourceIds": ["silverman-andersen-newbornwhocc"]
+              }
+            },
+            {
+              "when": "score_silverman_andersen_total <= 6",
+              "verdict": {
+                "rangeId": "silverman-andersen-total-4",
+                "title": "Умеренный респираторный дистресс",
+                "explanation": "4–6 баллов: умеренный респираторный дистресс (AIIMS); по тому же источнику таким детям обычно нужна поддержка постоянным положительным давлением (CPAP).",
+                "attentionLevel": "moderate",
+                "lowerBound": 4,
+                "upperBound": 6,
+                "sourceIds": ["silverman-andersen-newbornwhocc"]
+              }
+            },
+            {
+              "when": "score_silverman_andersen_total <= 7",
+              "verdict": {
+                "rangeId": "silverman-andersen-total-5",
+                "title": "7 баллов: между умеренным и тяжёлым дистрессом",
+                "explanation": "В источнике умеренный дистресс — 4–6 баллов, тяжёлый — более 7; 7 баллов в нём не отнесены ни к одной группе. Нужна срочная клиническая оценка.",
+                "attentionLevel": "high",
+                "lowerBound": 7,
+                "upperBound": 7,
+                "sourceIds": ["silverman-andersen-newbornwhocc"]
+              }
+            },
+            {
+              "when": "score_silverman_andersen_total >= 8",
+              "verdict": {
+                "rangeId": "silverman-andersen-total-6",
+                "title": "Тяжёлый респираторный дистресс",
+                "explanation": "8–10 баллов: тяжёлый респираторный дистресс (AIIMS: «более 7»); по тому же источнику таким детям может понадобиться интубация и ИВЛ. Нужна срочная клиническая оценка.",
+                "attentionLevel": "high",
+                "lowerBound": 8,
+                "upperBound": 10,
+                "sourceIds": ["silverman-andersen-newbornwhocc"]
+              }
+            }
+          ],
           "missingContext": [],
-          "reason": "Для этого результата ещё не объявлены декларативные правила оценки; шкала и её пороги показаны только как справочная интерпретация.",
-          "sourceIds": ["silverman-andersen-newbornwhocc", "silverman-andersen-222n"]
+          "sourceIds": ["silverman-andersen-newbornwhocc"]
         },
         "observationMappings": [
           {
@@ -491,7 +605,7 @@
           "basis": "Определение: шкала дыхательной недостаточности «у новорождённых», персонал неонатальных отделений."
         },
         "clinical": true,
-        "formulaDisplay": "Сумма значений по 5 пунктам (0–2), итоговый балл 0–10; по источнику: 0–3 — лёгкий, 4–7 — умеренный, 8–10 — тяжёлый респираторный дистресс.",
+        "formulaDisplay": "Сумма значений по 5 пунктам (0–2), итоговый балл 0–10; по источнику AIIMS (2019): менее 5 — лёгкий, 5–7 — умеренный, более 7 (8–10) — тяжёлый респираторный дистресс.",
         "population": "Новорожденные в раннем постнатальном периоде/неонатальной практике; применяется для последовательного мониторинга, включая доношенных и недоношенных детей при признаках респираторного дистресса.",
         "limitations": [
           "Не заменяет инструментальную диагностику (газовый анализ, пульсоксиметрию), рентген и клиническое решение по поддержке дыхания.",
@@ -623,18 +737,21 @@
           {
             "minScore": 0,
             "maxScore": 4,
+            "scaleId": "downes-vidyasagar-total",
             "headline": "Лёгкий респираторный дистресс",
             "message": "Менее 5 баллов по принятой интерпретации соответствует лёгкому респираторному дистрессу. Оценивайте в динамике вместе с клинической картиной и SpO2."
           },
           {
             "minScore": 5,
             "maxScore": 7,
+            "scaleId": "downes-vidyasagar-total",
             "headline": "Умеренный респираторный дистресс",
             "message": "5–7 баллов соответствуют умеренному респираторному дистрессу по принятой интерпретации; требуется клиническая оценка и пересмотр тактики респираторной поддержки."
           },
           {
             "minScore": 8,
             "maxScore": 10,
+            "scaleId": "downes-vidyasagar-total",
             "headline": "Тяжёлый респираторный дистресс",
             "message": "Более 7 баллов соответствует тяжёлому или опасному уровню дистресса и риску респираторной недостаточности; нужен срочный пересмотр тактики по действующему протоколу."
           }
@@ -686,14 +803,47 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
-          "rules": [],
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score_downes_vidyasagar_total <= 4",
+              "verdict": {
+                "rangeId": "downes-vidyasagar-total-1",
+                "title": "Лёгкий респираторный дистресс",
+                "explanation": "Менее 5 баллов по принятой интерпретации соответствует лёгкому респираторному дистрессу. Оценивайте в динамике вместе с клинической картиной и SpO2.",
+                "attentionLevel": "low",
+                "lowerBound": 0,
+                "upperBound": 4,
+                "sourceIds": ["downes-vidyasagar-aiims-2019"]
+              }
+            },
+            {
+              "when": "score_downes_vidyasagar_total <= 7",
+              "verdict": {
+                "rangeId": "downes-vidyasagar-total-2",
+                "title": "Умеренный респираторный дистресс",
+                "explanation": "5–7 баллов соответствуют умеренному респираторному дистрессу по принятой интерпретации; требуется клиническая оценка и пересмотр тактики респираторной поддержки.",
+                "attentionLevel": "moderate",
+                "lowerBound": 5,
+                "upperBound": 7,
+                "sourceIds": ["downes-vidyasagar-aiims-2019"]
+              }
+            },
+            {
+              "when": "score_downes_vidyasagar_total >= 8",
+              "verdict": {
+                "rangeId": "downes-vidyasagar-total-3",
+                "title": "Тяжёлый респираторный дистресс",
+                "explanation": "Более 7 баллов соответствует тяжёлому или опасному уровню дистресса и риску респираторной недостаточности; нужен срочный пересмотр тактики по действующему протоколу.",
+                "attentionLevel": "high",
+                "lowerBound": 8,
+                "upperBound": 10,
+                "sourceIds": ["downes-vidyasagar-aiims-2019"]
+              }
+            }
+          ],
           "missingContext": [],
-          "reason": "Для этого результата ещё не объявлены декларативные правила оценки; шкала и её пороги показаны только как справочная интерпретация.",
-          "sourceIds": [
-            "downes-vidyasagar-aiims-2019",
-            "downes-vidyasagar-neonatology-clinical-222n"
-          ]
+          "sourceIds": ["downes-vidyasagar-aiims-2019"]
         },
         "observationMappings": [
           {
@@ -760,7 +910,10 @@
         "summary": "Рассчитывается процентная потеря от массы при рождении и выделяются пороговые диапазоны для дальнейшей оценки.",
         "ageScope": {
           "groups": ["neonates"],
-          "maxAge": { "value": 30, "unit": "days" },
+          "maxAge": {
+            "value": 30,
+            "unit": "days"
+          },
           "basis": "Определение: «Доношенные новорождённые»; ввод возраста жизни 0–30 дней."
         },
         "category": "neonatology",
@@ -1867,24 +2020,28 @@
           {
             "minScore": 0,
             "maxScore": 1,
+            "scaleId": "nips-total",
             "headline": "Признаков боли по NIPS не выявлено",
-            "message": "0–1 балл: признаков боли по NIPS обычно не требуется, продолжайте рутинное наблюдение и локальную оценку состояния."
+            "message": "0–1 балл: признаков боли по NIPS нет; продолжайте рутинное наблюдение и оценку состояния по локальному протоколу."
           },
           {
             "minScore": 2,
             "maxScore": 2,
+            "scaleId": "nips-total",
             "headline": "Лёгкая боль по NIPS",
             "message": "2 балла: лёгкая острая болезненная реакция по NIPS; оцените необходимость немедленной анальгезии или укороченного вмешательства согласно протоколу."
           },
           {
             "minScore": 3,
             "maxScore": 4,
+            "scaleId": "nips-total",
             "headline": "Умеренная боль по NIPS",
             "message": "3–4 балла: умеренная боль по NIPS. Требуется повторная оценка и коррекция обезболивания согласно локальному протоколу."
           },
           {
             "minScore": 5,
             "maxScore": 7,
+            "scaleId": "nips-total",
             "headline": "Выраженная боль по NIPS",
             "message": "5–7 баллов: выраженная боль по NIPS; показано срочное клиническое решение по локальному протоколу ведения боли."
           }
@@ -1954,11 +2111,59 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
-          "rules": [],
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score_nips_total <= 1",
+              "verdict": {
+                "rangeId": "nips-total-1",
+                "title": "Признаков боли по NIPS не выявлено",
+                "explanation": "0–1 балл: признаков боли по NIPS нет; продолжайте рутинное наблюдение и оценку состояния по локальному протоколу.",
+                "attentionLevel": "none",
+                "lowerBound": 0,
+                "upperBound": 1,
+                "sourceIds": ["nips-ncbi-table"]
+              }
+            },
+            {
+              "when": "score_nips_total <= 2",
+              "verdict": {
+                "rangeId": "nips-total-2",
+                "title": "Лёгкая боль по NIPS",
+                "explanation": "2 балла: лёгкая острая болезненная реакция по NIPS; оцените необходимость немедленной анальгезии или укороченного вмешательства согласно протоколу.",
+                "attentionLevel": "low",
+                "lowerBound": 2,
+                "upperBound": 2,
+                "sourceIds": ["nips-ncbi-table"]
+              }
+            },
+            {
+              "when": "score_nips_total <= 4",
+              "verdict": {
+                "rangeId": "nips-total-3",
+                "title": "Умеренная боль по NIPS",
+                "explanation": "3–4 балла: умеренная боль по NIPS. Требуется повторная оценка и коррекция обезболивания согласно локальному протоколу.",
+                "attentionLevel": "moderate",
+                "lowerBound": 3,
+                "upperBound": 4,
+                "sourceIds": ["nips-ncbi-table"]
+              }
+            },
+            {
+              "when": "score_nips_total >= 5",
+              "verdict": {
+                "rangeId": "nips-total-4",
+                "title": "Выраженная боль по NIPS",
+                "explanation": "5–7 баллов: выраженная боль по NIPS; показано срочное клиническое решение по локальному протоколу ведения боли.",
+                "attentionLevel": "high",
+                "lowerBound": 5,
+                "upperBound": 7,
+                "sourceIds": ["nips-ncbi-table"]
+              }
+            }
+          ],
           "missingContext": [],
-          "reason": "Для этого результата ещё не объявлены декларативные правила оценки; шкала и её пороги показаны только как справочная интерпретация.",
-          "sourceIds": ["nips-ncbi-table", "nips-sudact", "nips-lawrence-1993"]
+          "sourceIds": ["nips-ncbi-table"]
         },
         "observationMappings": [
           {

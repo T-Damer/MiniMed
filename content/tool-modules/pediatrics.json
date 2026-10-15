@@ -45,8 +45,14 @@
         "audience": "Дети от 2 месяцев до 7 лет и другие невербальные пациенты; заполняет медицинский персонал при наблюдении",
         "ageScope": {
           "groups": ["children"],
-          "minAge": { "value": 2, "unit": "months" },
-          "maxAge": { "value": 7, "unit": "years" },
+          "minAge": {
+            "value": 2,
+            "unit": "months"
+          },
+          "maxAge": {
+            "value": 7,
+            "unit": "years"
+          },
           "basis": "Определение: «Дети от 2 месяцев до 7 лет и другие невербальные пациенты»; другие невербальные пациенты возрастом не ограничены."
         },
         "population": "Дети 2 месяца — 7 лет в послеоперационном периоде и при процедурной боли; применяется как наблюдательный инструмент у невербальных или довербальных пациентов.",
@@ -175,7 +181,7 @@
           }
         ],
         "disclaimer": "FLACC — поведенческий инструмент оценки боли, а не самостоятельный диагноз. Интерпретацию и тактику анальгезии определяет лечащий специалист с учётом клинического контекста.",
-        "evidenceNote": "Пять категорий (лицо, ноги, активность, плач, успокаиваемость) оцениваются по 0–2 балла; сумма 0–10, где более высокий балл отражает большее поведенческое выражение дискомфорта и боли (Merkel et al., 1997). Исходная публикация не задаёт пороговые зоны «лёгкая/умеренная/тяжёлая» боль.",
+        "evidenceNote": "Пять категорий (лицо, ноги, активность, плач, успокаиваемость) оцениваются по 0–2 балла; сумма 0–10, где более высокий балл отражает большее поведенческое выражение дискомфорта и боли (Merkel et al., 1997). В статье 1997 г. зон боли нет: градации 0 / 1–3 / 4–6 / 7–10 приведены на бланке шкалы с атрибуцией авторов. Балл не отличает боль от других причин дистресса.",
         "license": {
           "kind": "third-party-attributed",
           "notice": "Шкала FLACC описана Merkel S.I. et al. (Pediatric Nursing, 1997); MiniMed использует формулировки источника без изменения методики.",
@@ -190,15 +196,88 @@
             "maximum": 10,
             "step": 1,
             "layout": "proportional",
-            "bands": []
+            "bands": [
+              {
+                "from": 0,
+                "label": "Комфорт",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "label": "Лёгкий дискомфорт",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 4,
+                "label": "Умеренная боль",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 7,
+                "label": "Сильная боль",
+                "attentionLevel": "high",
+                "interpretation": 3
+              }
+            ]
           }
         ],
         "evaluation": {
-          "status": "unavailable",
-          "rules": [],
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score_flacc_total <= 0",
+              "verdict": {
+                "rangeId": "flacc-total-1",
+                "title": "Ребёнок расслаблен и спокоен",
+                "explanation": "0 баллов: расслаблен и чувствует себя комфортно (градации бланка авторов шкалы).",
+                "attentionLevel": "none",
+                "lowerBound": 0,
+                "upperBound": 0,
+                "sourceIds": ["flacc-scoring-form-bands"]
+              }
+            },
+            {
+              "when": "score_flacc_total <= 3",
+              "verdict": {
+                "rangeId": "flacc-total-2",
+                "title": "Лёгкий дискомфорт",
+                "explanation": "1–3 балла: лёгкий дискомфорт (градации бланка авторов шкалы). Оцените причину и повторите оценку.",
+                "attentionLevel": "low",
+                "lowerBound": 1,
+                "upperBound": 3,
+                "sourceIds": ["flacc-scoring-form-bands"]
+              }
+            },
+            {
+              "when": "score_flacc_total <= 6",
+              "verdict": {
+                "rangeId": "flacc-total-3",
+                "title": "Умеренная боль",
+                "explanation": "4–6 баллов: умеренная боль (градации бланка авторов шкалы). Нужна оценка причины и решение об обезболивании по протоколу.",
+                "attentionLevel": "moderate",
+                "lowerBound": 4,
+                "upperBound": 6,
+                "sourceIds": ["flacc-scoring-form-bands"]
+              }
+            },
+            {
+              "when": "score_flacc_total >= 7",
+              "verdict": {
+                "rangeId": "flacc-total-4",
+                "title": "Сильный дискомфорт или боль",
+                "explanation": "7–10 баллов: сильный дискомфорт или боль, либо и то и другое (градации бланка авторов шкалы). Нужна срочная клиническая оценка и обезболивание по протоколу.",
+                "attentionLevel": "high",
+                "lowerBound": 7,
+                "upperBound": 10,
+                "sourceIds": ["flacc-scoring-form-bands"]
+              }
+            }
+          ],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии опросника.",
-          "sourceIds": ["flacc-merkel-1997", "flacc-voepel-lewis-2003"]
+          "sourceIds": ["flacc-scoring-form-bands"]
         },
         "observationMappings": [
           {
@@ -207,6 +286,36 @@
             "unit": "баллы",
             "scaleId": "flacc-total",
             "method": "assessment:minimed.assessment.flacc-pain-scale"
+          }
+        ],
+        "interpretations": [
+          {
+            "minScore": 0,
+            "maxScore": 0,
+            "scaleId": "flacc-total",
+            "headline": "Ребёнок расслаблен и спокоен",
+            "message": "0 баллов: расслаблен и чувствует себя комфортно (градации бланка авторов шкалы)."
+          },
+          {
+            "minScore": 1,
+            "maxScore": 3,
+            "scaleId": "flacc-total",
+            "headline": "Лёгкий дискомфорт",
+            "message": "1–3 балла: лёгкий дискомфорт (градации бланка авторов шкалы). Оцените причину и повторите оценку."
+          },
+          {
+            "minScore": 4,
+            "maxScore": 6,
+            "scaleId": "flacc-total",
+            "headline": "Умеренная боль",
+            "message": "4–6 баллов: умеренная боль (градации бланка авторов шкалы). Нужна оценка причины и решение об обезболивании по протоколу."
+          },
+          {
+            "minScore": 7,
+            "maxScore": 10,
+            "scaleId": "flacc-total",
+            "headline": "Сильный дискомфорт или боль",
+            "message": "7–10 баллов: сильный дискомфорт или боль, либо и то и другое (градации бланка авторов шкалы). Нужна срочная клиническая оценка и обезболивание по протоколу."
           }
         ]
       },
@@ -226,6 +335,14 @@
           "title": "Clinical validation of FLACC: preverbal patient pain scale",
           "url": "https://pubmed.ncbi.nlm.nih.gov/12723828/",
           "reviewedAt": "2026-08-17"
+        },
+        {
+          "id": "flacc-scoring-form-bands",
+          "kind": "guideline",
+          "relation": "interpretation",
+          "title": "FLACC Behavioural Pain Assessment Scale: бланк с градациями суммарного балла (Merkel S. et al., 1997, Pediatric Nursing 23(3):293–297)",
+          "url": "https://media.childrenshealthireland.ie/documents/Pain-FLACC-Behavioural-Pain-Assessment-Scale-.pdf",
+          "reviewedAt": "2026-10-15"
         }
       ]
     },
@@ -265,7 +382,10 @@
         "summary": "Корригированный возраст = хронологический возраст (нед.) − (40 − гестационный возраст при рождении в нед.).",
         "ageScope": {
           "groups": ["neonates", "children"],
-          "maxAge": { "value": 3, "unit": "years" },
+          "maxAge": {
+            "value": 3,
+            "unit": "years"
+          },
           "basis": "Определение: «Недоношенные дети»; ввод хронологического возраста 0–156 нед."
         },
         "category": "neonatology",
@@ -353,10 +473,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "reason": "Инструмент пересчитывает возраст недоношенного ребёнка; границ нормы у результата нет — по корригированному возрасту оценивают развитие, рост и питание.",
           "sourceIds": ["corrected-age-aap-healthychildren", "corrected-age-aap-evidentiary-review"]
         },
         "observationMappings": [
@@ -412,7 +532,10 @@
         "summary": "Расчёт частоты, объёма и калорийности кормлений с печатным рационом и календарём прикорма.",
         "ageScope": {
           "groups": ["neonates", "children"],
-          "maxAge": { "value": 35, "unit": "months" },
+          "maxAge": {
+            "value": 35,
+            "unit": "months"
+          },
           "basis": "Определение: «Дети от рождения до 35,9 месяца»."
         },
         "category": "pediatrics",
@@ -436,7 +559,10 @@
             "maximum": 35.9,
             "inputStep": 0.1,
             "required": true,
-            "patientBinding": { "kind": "ageAtEvent", "valueMultiplier": 12 }
+            "patientBinding": {
+              "kind": "ageAtEvent",
+              "valueMultiplier": 12
+            }
           },
           {
             "id": "weightKg",
@@ -460,9 +586,18 @@
             "kind": "select",
             "required": true,
             "options": [
-              { "value": "breast", "label": "Грудное" },
-              { "value": "mixed", "label": "Смешанное" },
-              { "value": "formula", "label": "Искусственное" }
+              {
+                "value": "breast",
+                "label": "Грудное"
+              },
+              {
+                "value": "mixed",
+                "label": "Смешанное"
+              },
+              {
+                "value": "formula",
+                "label": "Искусственное"
+              }
             ]
           },
           {
@@ -471,9 +606,18 @@
             "kind": "select",
             "required": true,
             "options": [
-              { "value": "not-started", "label": "Ещё не начат" },
-              { "value": "starting", "label": "Начинаем введение" },
-              { "value": "established", "label": "Уже введён" }
+              {
+                "value": "not-started",
+                "label": "Ещё не начат"
+              },
+              {
+                "value": "starting",
+                "label": "Начинаем введение"
+              },
+              {
+                "value": "established",
+                "label": "Уже введён"
+              }
             ]
           },
           {
@@ -523,12 +667,30 @@
             "kind": "select",
             "required": true,
             "options": [
-              { "value": "none", "label": "Нет исключений" },
-              { "value": "milk", "label": "Белок коровьего молока / молочные продукты" },
-              { "value": "gluten", "label": "Пшеница / глютен" },
-              { "value": "egg", "label": "Яйцо" },
-              { "value": "fish", "label": "Рыба" },
-              { "value": "other", "label": "Другое" }
+              {
+                "value": "none",
+                "label": "Нет исключений"
+              },
+              {
+                "value": "milk",
+                "label": "Белок коровьего молока / молочные продукты"
+              },
+              {
+                "value": "gluten",
+                "label": "Пшеница / глютен"
+              },
+              {
+                "value": "egg",
+                "label": "Яйцо"
+              },
+              {
+                "value": "fish",
+                "label": "Рыба"
+              },
+              {
+                "value": "other",
+                "label": "Другое"
+              }
             ]
           },
           {
@@ -1671,10 +1833,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "Источники приводят формулы и ориентиры объёма, а не диапазон нормы с вердиктом; решение о назначенном объёме принимает врач по прибавкам массы и состоянию ребёнка.",
+          "reason": "Источники приводят формулы и ориентиры объёма питания, а не диапазон нормы; объём назначает врач по прибавке массы, диурезу и состоянию ребёнка.",
           "sourceIds": [
             "newborn-volume-poch2014",
             "newborn-volume-poch2021",
@@ -2097,10 +2259,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "Источники приводят формулы и ориентиры объёма, а не диапазон нормы с вердиктом; решение о назначенном объёме принимает врач по прибавкам массы и состоянию ребёнка.",
+          "reason": "Источники приводят формулы и ориентиры объёма питания, а не диапазон нормы; объём назначает врач по прибавке массы, диурезу и состоянию ребёнка.",
           "sourceIds": [
             "infant-volume-programme",
             "infant-volume-poch2014",
@@ -2447,10 +2609,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "Источники приводят формулы и ориентиры объёма, а не диапазон нормы с вердиктом; решение о назначенном объёме принимает врач по прибавкам массы и состоянию ребёнка.",
+          "reason": "Источники приводят формулы и ориентиры объёма питания, а не диапазон нормы; объём назначает врач по прибавке массы, диурезу и состоянию ребёнка.",
           "sourceIds": [
             "child-over-one-poch2021",
             "child-over-one-poch2014",
@@ -2719,10 +2881,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "Источники приводят формулы и ориентиры объёма, а не диапазон нормы с вердиктом; решение о назначенном объёме принимает врач по прибавкам массы и состоянию ребёнка.",
+          "reason": "Источники приводят формулы и ориентиры объёма питания, а не диапазон нормы; объём назначает врач по прибавке массы, диурезу и состоянию ребёнка.",
           "sourceIds": ["juice-poch2014", "juice-programme"]
         },
         "observationMappings": [
@@ -2939,11 +3101,71 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
-          "rules": [],
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "degree == 0",
+              "verdict": {
+                "rangeId": "hypogalactia-1",
+                "title": "Дефицита молока нет",
+                "explanation": "Дефицита молока по контрольным кормлениям нет.",
+                "attentionLevel": "none",
+                "lowerBound": 0,
+                "upperBound": 0,
+                "sourceIds": ["hypogalactia-poch2014"]
+              }
+            },
+            {
+              "when": "degree == 1",
+              "verdict": {
+                "rangeId": "hypogalactia-2",
+                "title": "Гипогалактия I степени",
+                "explanation": "Гипогалактия I степени: дефицит до 25 % необходимого объёма (Почивалов, 2014; конспект PITANIE).",
+                "attentionLevel": "low",
+                "lowerBound": 1,
+                "upperBound": 1,
+                "sourceIds": ["hypogalactia-poch2014"]
+              }
+            },
+            {
+              "when": "degree == 2",
+              "verdict": {
+                "rangeId": "hypogalactia-3",
+                "title": "Гипогалактия II степени",
+                "explanation": "Гипогалактия II степени: дефицит 25–50 % необходимого объёма (Почивалов, 2014; конспект PITANIE).",
+                "attentionLevel": "moderate",
+                "lowerBound": 2,
+                "upperBound": 2,
+                "sourceIds": ["hypogalactia-poch2014"]
+              }
+            },
+            {
+              "when": "degree == 3",
+              "verdict": {
+                "rangeId": "hypogalactia-4",
+                "title": "Гипогалактия III степени",
+                "explanation": "Гипогалактия III степени: дефицит 50–75 % необходимого объёма (Почивалов, 2014; конспект PITANIE).",
+                "attentionLevel": "high",
+                "lowerBound": 3,
+                "upperBound": 3,
+                "sourceIds": ["hypogalactia-poch2014"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "hypogalactia-5",
+                "title": "Гипогалактия IV степени",
+                "explanation": "Гипогалактия IV степени: дефицит более 75 % необходимого объёма (Почивалов, 2014; конспект PITANIE).",
+                "attentionLevel": "urgent",
+                "lowerBound": 4,
+                "sourceIds": ["hypogalactia-poch2014"],
+                "upperBound": 4
+              }
+            }
+          ],
           "missingContext": [],
-          "reason": "Источники приводят формулы и ориентиры объёма, а не диапазон нормы с вердиктом; решение о назначенном объёме принимает врач по прибавкам массы и состоянию ребёнка.",
-          "sourceIds": ["hypogalactia-poch2014", "hypogalactia-pitanie", "hypogalactia-programme"]
+          "sourceIds": ["hypogalactia-poch2014"]
         },
         "observationMappings": [
           {
@@ -3244,10 +3466,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "Источники приводят формулы и ориентиры объёма, а не диапазон нормы с вердиктом; решение о назначенном объёме принимает врач по прибавкам массы и состоянию ребёнка.",
+          "reason": "Инструмент считает целевые энергию и белок при недостаточности питания; нормы здорового ребёнка показаны для сравнения, оценки «норма / не норма» нет.",
           "sourceIds": ["undernutrition-programme-72", "undernutrition-programme-73"]
         },
         "observationMappings": [

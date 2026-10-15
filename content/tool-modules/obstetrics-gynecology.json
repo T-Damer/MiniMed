@@ -419,10 +419,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "reason": "Срок по КТР — оценка возраста плода по размеру; границ нормы у результата нет.",
           "sourceIds": ["obstetric-ga-crl-1975"]
         },
         "observationMappings": [
@@ -656,10 +656,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "reason": "Срок по фетометрии — оценка возраста плода по размерам; границ нормы у результата нет.",
           "sourceIds": ["obstetric-ga-biometry-hadlock-1984"]
         },
         "observationMappings": [
@@ -727,7 +727,10 @@
             "kind": "date",
             "required": true,
             "step": 0,
-            "patientBinding": { "kind": "profileContext", "contextKey": "lastMenstrualPeriod" }
+            "patientBinding": {
+              "kind": "profileContext",
+              "contextKey": "lastMenstrualPeriod"
+            }
           }
         ],
         "steps": [
@@ -750,7 +753,10 @@
             "isOutput": true,
             "valueKind": "date",
             "stepRequired": 0,
-            "patientBinding": { "kind": "profileContext", "contextKey": "estimatedDueDate" }
+            "patientBinding": {
+              "kind": "profileContext",
+              "contextKey": "estimatedDueDate"
+            }
           },
           {
             "id": "gaToDateRaw",
@@ -877,7 +883,10 @@
             "kind": "date",
             "required": true,
             "step": 0,
-            "patientBinding": { "kind": "profileContext", "contextKey": "gestationalAgeDate" }
+            "patientBinding": {
+              "kind": "profileContext",
+              "contextKey": "gestationalAgeDate"
+            }
           },
           {
             "id": "gaWeeksAtExam",
@@ -889,7 +898,10 @@
             "integer": true,
             "required": true,
             "step": 0,
-            "patientBinding": { "kind": "profileContext", "contextKey": "gestationalAgeWeeks" }
+            "patientBinding": {
+              "kind": "profileContext",
+              "contextKey": "gestationalAgeWeeks"
+            }
           },
           {
             "id": "gaDaysAtExam",
@@ -901,7 +913,10 @@
             "integer": true,
             "required": true,
             "step": 0,
-            "patientBinding": { "kind": "profileContext", "contextKey": "gestationalAgeDays" }
+            "patientBinding": {
+              "kind": "profileContext",
+              "contextKey": "gestationalAgeDays"
+            }
           }
         ],
         "steps": [
@@ -934,7 +949,10 @@
             "isOutput": true,
             "valueKind": "date",
             "stepRequired": 0,
-            "patientBinding": { "kind": "profileContext", "contextKey": "estimatedDueDate" }
+            "patientBinding": {
+              "kind": "profileContext",
+              "contextKey": "estimatedDueDate"
+            }
           },
           {
             "id": "gaToDateRaw",
@@ -1064,7 +1082,10 @@
             "kind": "date",
             "required": true,
             "step": 0,
-            "patientBinding": { "kind": "profileContext", "contextKey": "conceptionDate" }
+            "patientBinding": {
+              "kind": "profileContext",
+              "contextKey": "conceptionDate"
+            }
           }
         ],
         "steps": [
@@ -1087,7 +1108,10 @@
             "isOutput": true,
             "valueKind": "date",
             "stepRequired": 0,
-            "patientBinding": { "kind": "profileContext", "contextKey": "estimatedDueDate" }
+            "patientBinding": {
+              "kind": "profileContext",
+              "contextKey": "estimatedDueDate"
+            }
           },
           {
             "id": "gaToDateRaw",
@@ -1210,7 +1234,10 @@
             "kind": "date",
             "required": true,
             "step": 0,
-            "patientBinding": { "kind": "profileContext", "contextKey": "quickeningDate" }
+            "patientBinding": {
+              "kind": "profileContext",
+              "contextKey": "quickeningDate"
+            }
           },
           {
             "id": "parity",
@@ -1228,7 +1255,10 @@
             ],
             "required": true,
             "step": 0,
-            "patientBinding": { "kind": "profileContext", "contextKey": "parity" }
+            "patientBinding": {
+              "kind": "profileContext",
+              "contextKey": "parity"
+            }
           }
         ],
         "steps": [
@@ -1261,7 +1291,10 @@
             "isOutput": true,
             "valueKind": "date",
             "stepRequired": 0,
-            "patientBinding": { "kind": "profileContext", "contextKey": "estimatedDueDate" }
+            "patientBinding": {
+              "kind": "profileContext",
+              "contextKey": "estimatedDueDate"
+            }
           },
           {
             "id": "gaToDateRaw",
@@ -1386,7 +1419,10 @@
             "kind": "date",
             "required": true,
             "step": 0,
-            "patientBinding": { "kind": "profileContext", "contextKey": "gestationalAgeDate" }
+            "patientBinding": {
+              "kind": "profileContext",
+              "contextKey": "gestationalAgeDate"
+            }
           },
           {
             "id": "gaWeeksGiven",
@@ -1398,7 +1434,10 @@
             "integer": true,
             "required": true,
             "step": 0,
-            "patientBinding": { "kind": "profileContext", "contextKey": "gestationalAgeWeeks" }
+            "patientBinding": {
+              "kind": "profileContext",
+              "contextKey": "gestationalAgeWeeks"
+            }
           },
           {
             "id": "gaDaysGiven",
@@ -1410,7 +1449,10 @@
             "integer": true,
             "required": true,
             "step": 0,
-            "patientBinding": { "kind": "profileContext", "contextKey": "gestationalAgeDays" }
+            "patientBinding": {
+              "kind": "profileContext",
+              "contextKey": "gestationalAgeDays"
+            }
           }
         ],
         "steps": [
@@ -1443,7 +1485,10 @@
             "isOutput": true,
             "valueKind": "date",
             "stepRequired": 0,
-            "patientBinding": { "kind": "profileContext", "contextKey": "estimatedDueDate" }
+            "patientBinding": {
+              "kind": "profileContext",
+              "contextKey": "estimatedDueDate"
+            }
           },
           {
             "id": "gaToDateRaw",
@@ -1571,7 +1616,10 @@
             "kind": "date",
             "required": true,
             "step": 0,
-            "patientBinding": { "kind": "profileContext", "contextKey": "estimatedDueDate" }
+            "patientBinding": {
+              "kind": "profileContext",
+              "contextKey": "estimatedDueDate"
+            }
           },
           {
             "id": "asOfDate",
@@ -1725,7 +1773,10 @@
             "kind": "date",
             "required": true,
             "step": 0,
-            "patientBinding": { "kind": "profileContext", "contextKey": "estimatedDueDate" }
+            "patientBinding": {
+              "kind": "profileContext",
+              "contextKey": "estimatedDueDate"
+            }
           },
           {
             "id": "pregnancyType",
@@ -1909,7 +1960,8 @@
         "population": "Беременность 20–42 недели при наличии показателей допплерометрии в протоколе УЗИ.",
         "limitations": [
           "Калькулятор считает индексы, но не определяет норму: пороги зависят от срока, методики и референсных таблиц учреждения.",
-          "Процентиль массы вводится из протокола УЗИ и не рассчитывается без полного набора биометрии и выбранного стандарта."
+          "Процентиль массы вводится из протокола УЗИ и не рассчитывается без полного набора биометрии и выбранного стандарта.",
+          "Оценка даётся только по перцентилю массы из протокола (ISUOG 2020): допплеровские индексы (ЦПС, ПИ маточных артерий) сравнивают с перцентильными таблицами для срока, которых в инструменте нет."
         ],
         "inputs": [
           {
@@ -2049,7 +2101,20 @@
             "message": "Индексы нельзя интерпретировать без срока беременности и референсных таблиц, принятых в конкретном учреждении."
           }
         ],
-        "interpretations": [],
+        "interpretations": [
+          {
+            "when": "reportedEfwPercentile < 3",
+            "message": "Масса плода из протокола ниже 3-го перцентиля. По ISUOG (2020) такая масса сама по себе — критерий задержки роста плода (ЗРП) на любом сроке; нужна оценка допплерометрии и тактика по протоколу."
+          },
+          {
+            "when": "cond(reportedEfwPercentile >= 3, cond(reportedEfwPercentile < 10, 1, 0), 0)",
+            "message": "Масса плода из протокола ниже 10-го перцентиля: плод мал для срока (SGA) по ISUOG (2020). Это ещё не ЗРП — оцените допплерометрию и динамику роста."
+          },
+          {
+            "when": "reportedEfwPercentile >= 10",
+            "message": "Масса плода из протокола не ниже 10-го перцентиля — это не SGA по массе. ЗРП при этом возможна, если допплерометрия или динамика роста патологичны."
+          }
+        ],
         "assertions": [],
         "sources": [
           {
@@ -2058,14 +2123,57 @@
             "version": "2020",
             "url": "https://www.isuog.org/clinical-resources/isuog-guidelines.html",
             "reviewedAt": "2026-08-14"
+          },
+          {
+            "title": "ISUOG Practice Guidelines: diagnosis and management of small-for-gestational-age fetus and fetal growth restriction",
+            "publisher": "Ultrasound in Obstetrics & Gynecology",
+            "version": "Lees et al., 2020; 56(2):298–312",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/32738107/",
+            "reviewedAt": "2026-10-15"
           }
         ],
         "evaluation": {
-          "status": "unavailable",
-          "rules": [],
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "reportedEfwPercentile < 3",
+              "verdict": {
+                "rangeId": "efw-percentile-1",
+                "title": "Масса плода ниже 3-го перцентиля",
+                "explanation": "Масса плода из протокола ниже 3-го перцентиля. По ISUOG (2020) такая масса сама по себе — критерий задержки роста плода (ЗРП) на любом сроке; нужна оценка допплерометрии и тактика по протоколу.",
+                "attentionLevel": "high",
+                "upperBound": 3,
+                "upperInclusive": false,
+                "sourceIds": ["obstetric-fetal-growth-sga-fgr-isuog-2020"]
+              }
+            },
+            {
+              "when": "cond(reportedEfwPercentile >= 3, cond(reportedEfwPercentile < 10, 1, 0), 0)",
+              "verdict": {
+                "rangeId": "efw-percentile-2",
+                "title": "Масса плода ниже 10-го перцентиля",
+                "explanation": "Масса плода из протокола ниже 10-го перцентиля: плод мал для срока (SGA) по ISUOG (2020). Это ещё не ЗРП — оцените допплерометрию и динамику роста.",
+                "attentionLevel": "moderate",
+                "lowerBound": 3,
+                "upperBound": 10,
+                "upperInclusive": false,
+                "sourceIds": ["obstetric-fetal-growth-sga-fgr-isuog-2020"]
+              }
+            },
+            {
+              "when": "reportedEfwPercentile >= 10",
+              "verdict": {
+                "rangeId": "efw-percentile-3",
+                "title": "Масса плода не ниже 10-го перцентиля",
+                "explanation": "Масса плода из протокола не ниже 10-го перцентиля — это не SGA по массе. ЗРП при этом возможна, если допплерометрия или динамика роста патологичны.",
+                "attentionLevel": "none",
+                "lowerBound": 10,
+                "sourceIds": ["obstetric-fetal-growth-sga-fgr-isuog-2020"]
+              }
+            }
+          ],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
-          "sourceIds": ["obstetric-fetal-growth-doppler-2020"]
+          "sourceIds": ["obstetric-fetal-growth-sga-fgr-isuog-2020"]
         },
         "observationMappings": [
           {
@@ -2096,6 +2204,35 @@
             "stepId": "reportedEfwPercentile",
             "method": "calculator:obstetric-fetal-growth-doppler"
           }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_reportedEfwPercentile",
+            "valueId": "reportedEfwPercentile",
+            "minimum": 0,
+            "maximum": 100,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Ниже 3-го",
+                "attentionLevel": "high",
+                "interpretation": 0
+              },
+              {
+                "from": 3,
+                "label": "3–10-й",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 10,
+                "label": "10-й и выше",
+                "attentionLevel": "none",
+                "interpretation": 2
+              }
+            ]
+          }
         ]
       },
       "sources": [
@@ -2106,6 +2243,14 @@
           "title": "ISUOG Practice Guidelines: use of Doppler velocimetry in obstetrics",
           "url": "https://www.isuog.org/clinical-resources/isuog-guidelines.html",
           "reviewedAt": "2026-08-14"
+        },
+        {
+          "id": "obstetric-fetal-growth-sga-fgr-isuog-2020",
+          "kind": "guideline",
+          "relation": "interpretation",
+          "title": "ISUOG Practice Guidelines: diagnosis and management of small-for-gestational-age fetus and fetal growth restriction",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32738107/",
+          "reviewedAt": "2026-10-15"
         }
       ]
     },
@@ -2289,10 +2434,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "reason": "Результат — модельная масса при рождении, а не перцентиль; границ нормы у неё нет.",
           "sourceIds": ["obstetric-efw-maternal-anthropometry-2021"]
         },
         "observationMappings": [
@@ -2430,10 +2575,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "reason": "Результат — приблизительная масса плода, а не перцентиль; границ нормы у неё нет.",
           "sourceIds": ["obstetric-efw-rudakov-source-1", "obstetric-efw-rudakov-2021"]
         },
         "observationMappings": [
@@ -2489,8 +2634,14 @@
         "summary": "Прогностическая модель MFMU для оценки вероятности VBAC по данным первого дородового визита.",
         "ageScope": {
           "groups": ["adults"],
-          "minAge": { "value": 18, "unit": "years" },
-          "maxAge": { "value": 50, "unit": "years" },
+          "minAge": {
+            "value": 18,
+            "unit": "years"
+          },
+          "maxAge": {
+            "value": 50,
+            "unit": "years"
+          },
           "basis": "Определение: «Кандидаты на TOLAC»; ввод возраста 18–50 лет."
         },
         "category": "obstetrics",
@@ -2698,10 +2849,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "reason": "Результат — расчётная вероятность успешных родов после кесарева сечения для консультирования; модель не задаёт границ «подходит / не подходит».",
           "sourceIds": ["obstetric-vbac-antepartum-grobman-2007"]
         },
         "observationMappings": [
@@ -2749,8 +2900,14 @@
         "summary": "Модель MFMU с данными, доступными при поступлении в родильный стационар.",
         "ageScope": {
           "groups": ["adults"],
-          "minAge": { "value": 18, "unit": "years" },
-          "maxAge": { "value": 50, "unit": "years" },
+          "minAge": {
+            "value": 18,
+            "unit": "years"
+          },
+          "maxAge": {
+            "value": 50,
+            "unit": "years"
+          },
           "basis": "Определение: «Кандидаты на TOLAC»; ввод возраста 18–50 лет."
         },
         "category": "obstetrics",
@@ -3052,10 +3209,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "reason": "Результат — расчётная вероятность успешных родов после кесарева сечения для консультирования; модель не задаёт границ «подходит / не подходит».",
           "sourceIds": ["obstetric-vbac-admission-grobman-2009"]
         },
         "observationMappings": [
@@ -3103,8 +3260,14 @@
         "summary": "Пятилетний и оставшийся до 90 лет риск инвазивного рака по модели NCI BCRAT.",
         "ageScope": {
           "groups": ["adults"],
-          "minAge": { "value": 20, "unit": "years" },
-          "maxAge": { "value": 89, "unit": "years" },
+          "minAge": {
+            "value": 20,
+            "unit": "years"
+          },
+          "maxAge": {
+            "value": 89,
+            "unit": "years"
+          },
           "basis": "Определение: «Женщины 20–89 лет»."
         },
         "category": "gynecology",
@@ -3113,7 +3276,8 @@
         "population": "Женщины 20–89 лет без ранее диагностированного инвазивного рака или DCIS.",
         "limitations": [
           "Модель разработана на американских популяционных данных и не заменяет оценку наследственных синдромов (BRCA, BRCAPRO, Tyrer–Cuzick).",
-          "Результат нельзя сравнивать напрямую с популяциями, для которых базовые частоты и валидность модели отличаются."
+          "Результат нельзя сравнивать напрямую с популяциями, для которых базовые частоты и валидность модели отличаются.",
+          "Порог 1,66 % относится к риску за 5 лет; для риска до 90 лет границ в источнике нет."
         ],
         "inputs": [
           {
@@ -3293,17 +3457,18 @@
             "message": "Это справочная оценка по NCI BCRAT/Gail; она не заменяет онкогенетическую консультацию и индивидуальный план скрининга."
           }
         ],
-        "interpretations": [],
+        "interpretations": [
+          {
+            "when": "fiveYearRisk < 1.66",
+            "message": "5-летний риск ниже 1,66 % — ниже порога повышенного риска, по которому женщин включали в исследование профилактики тамоксифеном NSABP P-1. Это оценка по популяционной модели, а не индивидуальный прогноз."
+          },
+          {
+            "when": "fiveYearRisk >= 1.66",
+            "message": "5-летний риск 1,66 % и выше — порог повышенного риска, по которому женщин включали в исследование NSABP P-1 (Fisher, 1998). Это не диагноз: о наблюдении и профилактике решает онколог или маммолог."
+          }
+        ],
         "assertions": [],
         "scoreScales": [
-          {
-            "id": "scale_fiveYearRisk",
-            "valueId": "fiveYearRisk",
-            "minimum": 0,
-            "maximum": 20,
-            "layout": "proportional",
-            "bands": []
-          },
           {
             "id": "scale_lifetimeRisk",
             "valueId": "lifetimeRisk",
@@ -3311,6 +3476,27 @@
             "maximum": 100,
             "layout": "proportional",
             "bands": []
+          },
+          {
+            "id": "scale_fiveYearRisk",
+            "valueId": "fiveYearRisk",
+            "minimum": 0,
+            "maximum": 20,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Ниже 1,66 %",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1.66,
+                "label": "1,66 % и выше",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              }
+            ]
           }
         ],
         "sources": [
@@ -3327,17 +3513,44 @@
             "version": "R package 2.0",
             "url": "https://dceg.cancer.gov/tools/risk-assessment/bcra",
             "reviewedAt": "2026-08-14"
+          },
+          {
+            "title": "Tamoxifen for prevention of breast cancer: report of the National Surgical Adjuvant Breast and Bowel Project P-1 Study",
+            "publisher": "Journal of the National Cancer Institute",
+            "version": "Fisher et al., 1998",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/9747868/",
+            "reviewedAt": "2026-10-15"
           }
         ],
         "evaluation": {
-          "status": "unavailable",
-          "rules": [],
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "fiveYearRisk < 1.66",
+              "verdict": {
+                "rangeId": "bcrat-5y-1",
+                "title": "5-летний риск ниже порога повышенного риска",
+                "explanation": "5-летний риск ниже 1,66 % — ниже порога повышенного риска, по которому женщин включали в исследование профилактики тамоксифеном NSABP P-1. Это оценка по популяционной модели, а не индивидуальный прогноз.",
+                "attentionLevel": "none",
+                "upperBound": 1.66,
+                "upperInclusive": false,
+                "sourceIds": ["gynecology-breast-cancer-risk-nsabp-p1-1998"]
+              }
+            },
+            {
+              "when": "fiveYearRisk >= 1.66",
+              "verdict": {
+                "rangeId": "bcrat-5y-2",
+                "title": "5-летний риск достиг порога повышенного риска",
+                "explanation": "5-летний риск 1,66 % и выше — порог повышенного риска, по которому женщин включали в исследование NSABP P-1 (Fisher, 1998). Это не диагноз: о наблюдении и профилактике решает онколог или маммолог.",
+                "attentionLevel": "moderate",
+                "lowerBound": 1.66,
+                "sourceIds": ["gynecology-breast-cancer-risk-nsabp-p1-1998"]
+              }
+            }
+          ],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
-          "sourceIds": [
-            "gynecology-breast-cancer-risk-bcrat",
-            "gynecology-breast-cancer-risk-r-package-2-0"
-          ]
+          "sourceIds": ["gynecology-breast-cancer-risk-nsabp-p1-1998"]
         },
         "observationMappings": [
           {
@@ -3372,6 +3585,14 @@
           "title": "Breast Cancer Risk Assessment (BCRA)",
           "url": "https://dceg.cancer.gov/tools/risk-assessment/bcra",
           "reviewedAt": "2026-08-14"
+        },
+        {
+          "id": "gynecology-breast-cancer-risk-nsabp-p1-1998",
+          "kind": "literature",
+          "relation": "interpretation",
+          "title": "Tamoxifen for prevention of breast cancer: report of the National Surgical Adjuvant Breast and Bowel Project P-1 Study",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/9747868/",
+          "reviewedAt": "2026-10-15"
         }
       ]
     },
@@ -3399,8 +3620,14 @@
         "summary": "Справочная стратификация маршрута по общим сочетаниям ВПЧ, цитологии и анамнеза.",
         "ageScope": {
           "groups": ["adults"],
-          "minAge": { "value": 21, "unit": "years" },
-          "maxAge": { "value": 100, "unit": "years" },
+          "minAge": {
+            "value": 21,
+            "unit": "years"
+          },
+          "maxAge": {
+            "value": 100,
+            "unit": "years"
+          },
           "basis": "Определение: «Пациентки скринингового возраста»; ввод возраста 21–100 лет."
         },
         "category": "gynecology",
@@ -3836,11 +4063,11 @@
         ],
         "interpretations": [
           {
-            "minScore": 7,
-            "maxScore": 10,
+            "minScore": 0,
+            "maxScore": 3,
             "scaleId": "apgar-total",
-            "headline": "Показатели в пределах нормы",
-            "message": "7–10 баллов соответствуют удовлетворительной адаптации новорождённого. Оценка не заменяет полный клинический осмотр и стандартный протокол повторной оценки на 1-й и 5-й минутах."
+            "headline": "Значительное угнетение",
+            "message": "0–3 балла соответствуют выраженному угнетению состояния и обычно требуют немедленных реанимационных мероприятий по действующему протоколу."
           },
           {
             "minScore": 4,
@@ -3850,11 +4077,11 @@
             "message": "4–6 баллов указывают на умеренное угнетение и могут потребовать дополнительной помощи по действующему протоколу реанимации новорождённых."
           },
           {
-            "minScore": 0,
-            "maxScore": 3,
+            "minScore": 7,
+            "maxScore": 10,
             "scaleId": "apgar-total",
-            "headline": "Значительное угнетение",
-            "message": "0–3 балла соответствуют выраженному угнетению состояния и обычно требуют немедленных реанимационных мероприятий по действующему протоколу."
+            "headline": "Показатели в пределах нормы",
+            "message": "7–10 баллов соответствуют удовлетворительной адаптации новорождённого. Оценка не заменяет полный клинический осмотр и стандартный протокол повторной оценки на 1-й и 5-й минутах."
           }
         ],
         "disclaimer": "Шкала Апгар — инструмент быстрой клинической оценки, а не диагноз. Стандартный протокол предполагает оценку на 1-й и 5-й минутах жизни (при низких баллах — повторно на 10-й); эта карточка фиксирует один момент времени, для второй оценки создайте отдельную запись.",
@@ -3878,7 +4105,7 @@
                 "from": 0,
                 "label": "Значительное угнетение",
                 "attentionLevel": "urgent",
-                "interpretation": 2
+                "interpretation": 0
               },
               {
                 "from": 4,
@@ -3890,16 +4117,52 @@
                 "from": 7,
                 "label": "Норма",
                 "attentionLevel": "none",
-                "interpretation": 0
+                "interpretation": 2
               }
             ]
           }
         ],
         "evaluation": {
-          "status": "unavailable",
-          "rules": [],
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score_apgar_total <= 3",
+              "verdict": {
+                "rangeId": "apgar-total-1",
+                "title": "Значительное угнетение",
+                "explanation": "0–3 балла соответствуют выраженному угнетению состояния и обычно требуют немедленных реанимационных мероприятий по действующему протоколу.",
+                "attentionLevel": "urgent",
+                "lowerBound": 0,
+                "upperBound": 3,
+                "sourceIds": ["apgar-newborn-score-apgar-newborn-score"]
+              }
+            },
+            {
+              "when": "score_apgar_total <= 6",
+              "verdict": {
+                "rangeId": "apgar-total-2",
+                "title": "Умеренное угнетение адаптации",
+                "explanation": "4–6 баллов указывают на умеренное угнетение и могут потребовать дополнительной помощи по действующему протоколу реанимации новорождённых.",
+                "attentionLevel": "moderate",
+                "lowerBound": 4,
+                "upperBound": 6,
+                "sourceIds": ["apgar-newborn-score-apgar-newborn-score"]
+              }
+            },
+            {
+              "when": "score_apgar_total >= 7",
+              "verdict": {
+                "rangeId": "apgar-total-3",
+                "title": "Показатели в пределах нормы",
+                "explanation": "7–10 баллов соответствуют удовлетворительной адаптации новорождённого. Оценка не заменяет полный клинический осмотр и стандартный протокол повторной оценки на 1-й и 5-й минутах.",
+                "attentionLevel": "none",
+                "lowerBound": 7,
+                "upperBound": 10,
+                "sourceIds": ["apgar-newborn-score-apgar-newborn-score"]
+              }
+            }
+          ],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии опросника.",
           "sourceIds": ["apgar-newborn-score-apgar-newborn-score"]
         },
         "observationMappings": [
@@ -4282,10 +4545,34 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
-          "rules": [],
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score_epds_total < 8",
+              "verdict": {
+                "rangeId": "epds-below",
+                "title": "Результат ниже скринингового ориентира",
+                "explanation": "В инструкции В. В. Голубович (2003, с. 4) указан ориентир 8–9 баллов и выше. Результат ниже ориентира, но депрессию не исключает.",
+                "attentionLevel": "none",
+                "lowerBound": 0,
+                "upperBound": 7,
+                "sourceIds": ["epds-golubovich-2003"]
+              }
+            },
+            {
+              "when": "score_epds_total >= 8",
+              "verdict": {
+                "rangeId": "epds-screen-positive",
+                "title": "Достигнут нижний скрининговый ориентир",
+                "explanation": "В инструкции В. В. Голубович (2003, с. 4) указан ориентир 8–9 баллов и выше. Нужно клиническое интервью: EPDS — скрининговый, а не диагностический инструмент.",
+                "attentionLevel": "moderate",
+                "lowerBound": 8,
+                "upperBound": 30,
+                "sourceIds": ["epds-golubovich-2003"]
+              }
+            }
+          ],
           "missingContext": [],
-          "reason": "В инструкции указан скрининговый ориентир 8–9 баллов, а не однозначный диагностический порог. Для диагноза требуется клиническое интервью.",
           "sourceIds": ["epds-golubovich-2003"]
         },
         "observationMappings": [
@@ -4452,18 +4739,18 @@
         ],
         "interpretations": [
           {
-            "minScore": 8,
-            "maxScore": 36,
-            "scaleId": "fg-total",
-            "headline": "Результат соответствует критериям гирсутизма",
-            "message": "Порог 8 баллов и выше по модифицированной шкале Ферримана–Голлвея принят как критерий клинического гирсутизма в большинстве популяций. Оценивайте вместе с другими признаками при решении о дальнейшем обследовании."
-          },
-          {
             "minScore": 0,
             "maxScore": 7,
             "scaleId": "fg-total",
             "headline": "Признаков гирсутизма не выявлено",
             "message": "Результат ниже принятого порога 8 баллов для модифицированной шкалы Ферримана–Голлвея."
+          },
+          {
+            "minScore": 8,
+            "maxScore": 36,
+            "scaleId": "fg-total",
+            "headline": "Результат соответствует критериям гирсутизма",
+            "message": "Порог 8 баллов и выше по модифицированной шкале Ферримана–Голлвея принят как критерий клинического гирсутизма в большинстве популяций. Оценивайте вместе с другими признаками при решении о дальнейшем обследовании."
           }
         ],
         "disclaimer": "Шкала описывает только выраженность волосяного покрова по осмотру и не является диагнозом. Интерпретируйте вместе с менструальным анамнезом, другими признаками гиперандрогении и при необходимости — лабораторными и инструментальными данными.",
@@ -4487,22 +4774,46 @@
                 "from": 0,
                 "label": "Нет гирсутизма",
                 "attentionLevel": "none",
-                "interpretation": 1
+                "interpretation": 0
               },
               {
                 "from": 8,
                 "label": "Гирсутизм",
                 "attentionLevel": "moderate",
-                "interpretation": 0
+                "interpretation": 1
               }
             ]
           }
         ],
         "evaluation": {
-          "status": "unavailable",
-          "rules": [],
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score_fg_total <= 7",
+              "verdict": {
+                "rangeId": "fg-total-1",
+                "title": "Признаков гирсутизма не выявлено",
+                "explanation": "Результат ниже принятого порога 8 баллов для модифицированной шкалы Ферримана–Голлвея.",
+                "attentionLevel": "none",
+                "lowerBound": 0,
+                "upperBound": 7,
+                "sourceIds": ["ferriman-gallwey-hirsutism-ferriman-gallwey-hirsutism"]
+              }
+            },
+            {
+              "when": "score_fg_total >= 8",
+              "verdict": {
+                "rangeId": "fg-total-2",
+                "title": "Результат соответствует критериям гирсутизма",
+                "explanation": "Порог 8 баллов и выше по модифицированной шкале Ферримана–Голлвея принят как критерий клинического гирсутизма в большинстве популяций. Оценивайте вместе с другими признаками при решении о дальнейшем обследовании.",
+                "attentionLevel": "moderate",
+                "lowerBound": 8,
+                "upperBound": 36,
+                "sourceIds": ["ferriman-gallwey-hirsutism-ferriman-gallwey-hirsutism"]
+              }
+            }
+          ],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии опросника.",
           "sourceIds": ["ferriman-gallwey-hirsutism-ferriman-gallwey-hirsutism"]
         },
         "observationMappings": [
@@ -4598,18 +4909,18 @@
         ],
         "interpretations": [
           {
-            "minScore": 1,
-            "maxScore": 2,
-            "scaleId": "whooley-total",
-            "headline": "Положительный результат скрининга",
-            "message": "Положительный ответ хотя бы на один вопрос — повод для более подробного разговора о настроении и, при необходимости, использования развёрнутого инструмента или консультации специалиста."
-          },
-          {
             "minScore": 0,
             "maxScore": 0,
             "scaleId": "whooley-total",
             "headline": "Отрицательный результат скрининга",
             "message": "Отрицательные ответы на оба вопроса связаны с низкой вероятностью текущего депрессивного эпизода, но не исключают его полностью."
+          },
+          {
+            "minScore": 1,
+            "maxScore": 2,
+            "scaleId": "whooley-total",
+            "headline": "Положительный результат скрининга",
+            "message": "Положительный ответ хотя бы на один вопрос — повод для более подробного разговора о настроении и, при необходимости, использования развёрнутого инструмента или консультации специалиста."
           }
         ],
         "disclaimer": "Это сверхкороткий скрининг, а не диагноз. Положительный результат — повод для более подробного разговора и, при необходимости, развёрнутого инструмента (например, EPDS) или консультации специалиста.",
@@ -4633,22 +4944,46 @@
                 "from": 0,
                 "label": "Отрицательный",
                 "attentionLevel": "none",
-                "interpretation": 1
+                "interpretation": 0
               },
               {
                 "from": 1,
                 "label": "Положительный",
                 "attentionLevel": "moderate",
-                "interpretation": 0
+                "interpretation": 1
               }
             ]
           }
         ],
         "evaluation": {
-          "status": "unavailable",
-          "rules": [],
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score_whooley_total <= 0",
+              "verdict": {
+                "rangeId": "whooley-total-1",
+                "title": "Отрицательный результат скрининга",
+                "explanation": "Отрицательные ответы на оба вопроса связаны с низкой вероятностью текущего депрессивного эпизода, но не исключают его полностью.",
+                "attentionLevel": "none",
+                "lowerBound": 0,
+                "upperBound": 0,
+                "sourceIds": ["perinatal-mood-whooley-perinatal-mood-whooley"]
+              }
+            },
+            {
+              "when": "score_whooley_total >= 1",
+              "verdict": {
+                "rangeId": "whooley-total-2",
+                "title": "Положительный результат скрининга",
+                "explanation": "Положительный ответ хотя бы на один вопрос — повод для более подробного разговора о настроении и, при необходимости, использования развёрнутого инструмента или консультации специалиста.",
+                "attentionLevel": "moderate",
+                "lowerBound": 1,
+                "upperBound": 2,
+                "sourceIds": ["perinatal-mood-whooley-perinatal-mood-whooley"]
+              }
+            }
+          ],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии опросника.",
           "sourceIds": ["perinatal-mood-whooley-perinatal-mood-whooley"]
         },
         "observationMappings": [
