@@ -107,6 +107,7 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
 | 2026-10-09 | claude-opus (KD1) | strong build-time embedding model, small on-device query model (owner 10-09; roadmap 8a): switched 2026-10-11 (modules + app); continuing to improve (owner 10-11) | `tools/benchmarks/embedding_eval.py`, `tools/benchmarks/embedding_distill.py`, `tools/ingest/scripts/embed_modules.py`, `scripts/reframe-modules.ts`, `scripts/publish-query-model-mirror.sh`, `apps/app/src/features/semantic/**`, `packages/search-semantic/src/profile.ts`, `docs/research/embedding-distillation-*.md` |
+| 2026-10-15 | claude-opus (ICD11-SEC) | dedicated «МКБ-11» search section (own `SearchScope`, section list, downloads, history/preferences ids, «Все источники» sum, e2e) — owner decision 2026-10-15 | `apps/app/src/features/search/**` (scope/catalog/home), `packages/contracts` search types, `ScopedMedicalCore`, search e2e + benchmark lookup cases |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 
 ## Next (claimed, not started)
