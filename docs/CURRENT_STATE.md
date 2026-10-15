@@ -41,11 +41,13 @@ fixed, 3 partly, 1 not, 2 new low). Ordered next work:
    1 872 chunks); the app hides them meanwhile. Refresh `packages/test-fixtures` core-slice titles.
 8. **ЕСКЛП source**: the str1 modules were repaired from the published packs (source archive not on this
    machine); the next ЕСКЛП refresh rebuilds them from source with the fixed builder.
-9. **Owner decisions pending**: МКБ-11 search section (SRCH2 assessed ~10 files); pheniramine and the five
-   «противоаллергическое»-only cold remedies (CLS2, kept); the «Результат записан в защищённую
-   карточку» toast (kept); deleting the unreferenced branches
+9. **Owner decisions (2026-10-15)**: МКБ-11 gets its own search section (expected to come into use in Russia
+   soon) — in progress; pheniramine and the five «противоаллергическое» cold remedies keep the antihistamine
+   class (the component's own ATC R06AB backs it; rule: a secondary class needs the component's
+   classification or a clearly similar effect, not every listed effect); the «Результат записан в
+   защищённую карточку» toast stays; the first-pass dataset branches
    `datasets/grls-instructions-2026.10.15-8e814530e861-kd1` and
-   `datasets/manufacturer-instructions-2026.10.15-230904b5fadb`.
+   `datasets/manufacturer-instructions-2026.10.15-230904b5fadb` are kept.
 10. **Clinician review** of TOOLS-A/B sources flagged as weaker: APRI cut-offs (secondary source), GCS
     mild/moderate/severe attribution to NICE, ATLS classes from the class table, GIR, Doppler indices
     without GA percentiles, Silverman scores 3 and 7.
