@@ -4,6 +4,8 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.61] - 2026-10-15
+
 - The Android app carries the meaning-search model (KD1 query encoder, about 125 MB; the APK grows from
   81 MB to about 205 MB): meaning search works right after install with no download. Settings → «Поиск по
   смыслу» shows it as built in; onboarding, «Скачать всё» and the search offer no longer list it on
