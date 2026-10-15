@@ -38,8 +38,8 @@ function isContentsChunk(chunk: MedicalChunk): boolean {
 }
 
 /** Nothing but contents lines: a title that is one with no text of its own, or text of contents lines. */
-function isContentsSection(section: MedicalSection): boolean {
-  if (CONTENTS_TITLE.test(section.title.trim())) return true;
+function isContentsSection(section: MedicalSection, titled: boolean): boolean {
+  if (titled && CONTENTS_TITLE.test(section.title.trim())) return true;
   if (!section.chunks.every(isContentsChunk)) return false;
   return section.chunks.length > 0 || isContentsLine(section.title);
 }
@@ -67,7 +67,7 @@ interface Start {
   readonly offset: number;
 }
 
-function findStart(sections: readonly MedicalSection[]): Start | null {
+function findStart(sections: readonly MedicalSection[], titled: boolean): Start | null {
   let prelude = 0;
   for (let index = 0; index < Math.min(sections.length, MAX_PRELUDE_SECTIONS); index += 1) {
     const section = sections[index] as MedicalSection;
@@ -78,7 +78,7 @@ function findStart(sections: readonly MedicalSection[]): Start | null {
       const offset = headingOffset((section.chunks[headed] as MedicalChunk).originalText);
       if (offset !== null) return { section: index, chunk: headed, offset };
     }
-    if (isContentsSection(section)) return { section: index, chunk: 0, offset: 0 };
+    if (isContentsSection(section, titled)) return { section: index, chunk: 0, offset: 0 };
     prelude += section.title.length;
     for (const chunk of section.chunks) prelude += chunk.originalText.length;
     if (prelude > MAX_PRELUDE_CHARS) return null;
@@ -98,8 +98,21 @@ const NONE = (sections: readonly MedicalSection[]): PrintedContents => ({
   body: sections,
 });
 
-export function splitPrintedContents(sections: readonly MedicalSection[]): PrintedContents {
-  const start = findStart(sections);
+export interface SplitOptions {
+  /**
+   * A section called «Оглавление»/«Содержание» is contents even without leader dots. True for a
+   * guideline (its PDF flattened the contents to a title and numbered lines); false for a legal
+   * act, whose «Содержание» is a list of its own annexes — text, not a printed contents.
+   */
+  readonly titledContents?: boolean;
+}
+
+export function splitPrintedContents(
+  sections: readonly MedicalSection[],
+  options: SplitOptions = {},
+): PrintedContents {
+  const titled = options.titledContents ?? true;
+  const start = findStart(sections, titled);
   if (!start) return NONE(sections);
 
   // The first contents section: a title page may come before the contents in it, and text of the
@@ -136,7 +149,7 @@ export function splitPrintedContents(sections: readonly MedicalSection[]): Print
   let end = start.section + 1;
   if (after.length === 0) {
     const scanned = sections.slice(0, MAX_SCANNED_SECTIONS);
-    const flags = scanned.map(isContentsSection);
+    const flags = scanned.map((item) => isContentsSection(item, titled));
     // The first line of a wrapped contents entry is a title with no leader and no text of its own
     // («1. Краткая информация по заболеванию или состоянию (группе заболеваний или»): it belongs to
     // the contents when the line after it does.

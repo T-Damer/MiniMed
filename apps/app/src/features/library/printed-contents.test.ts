@@ -124,6 +124,26 @@ describe('printed contents', () => {
     expect(splitPrintedContents(plain)).toEqual({ sections: [], body: plain });
   });
 
+  it('keeps the own «Содержание» list of a legal act (annexes, no leaders) as text', () => {
+    const act = [
+      section(
+        'Приказ № 1122н',
+        '«Об утверждении национального календаря профилактических прививок»',
+      ),
+      section(
+        'Содержание',
+        '- Приложение № 1 — Национальный календарь\n- Приложение № 2 — Календарь по эпидемическим показаниям',
+      ),
+      section('Источник и редакция', 'Приказ Минздрава России от 6 декабря 2021 г. № 1122н.'),
+    ];
+    expect(splitPrintedContents(act, { titledContents: false })).toEqual({
+      sections: [],
+      body: act,
+    });
+    // The same shape in a guideline is its flattened printed contents.
+    expect(splitPrintedContents(act).sections.map((item) => item.title)).toEqual(['Содержание']);
+  });
+
   it('shows a contents line with one ellipsis for its leader dots', () => {
     expect(presentContentsLine(`Список сокращений ${DOTS} 4`)).toBe('Список сокращений … 4');
   });

@@ -784,11 +784,15 @@ test('toggles the document outline on desktop and highlights exact reader matche
   await expect(outline).toBeVisible();
   await page.screenshot({ path: '.omo/evidence/document-overlay/reader-768.png' });
   await page.setViewportSize({ width: 375, height: 812 });
-  await expect(outline).toBeVisible();
+  // The outline is a column on a desktop and a drawer on a phone (E2E2): a column left open does
+  // not turn into a drawer over the text when the window narrows; the toggle opens the drawer.
+  await expect(outline).not.toHaveClass(/document-overlay-outline--open/u);
+  await page.screenshot({ path: '.omo/evidence/document-overlay/reader-375-closed.png' });
+  await toggle.click();
+  await expect(outline).toHaveClass(/document-overlay-outline--open/u);
   await page.screenshot({ path: '.omo/evidence/document-overlay/reader-375.png' });
   await outline.getByRole('button', { name: 'Закрыть оглавление' }).click();
   await expect(outline).not.toHaveClass(/document-overlay-outline--open/u);
-  await page.screenshot({ path: '.omo/evidence/document-overlay/reader-375-closed.png' });
   await toggle.click();
   await expect(outline).toHaveClass(/document-overlay-outline--open/u);
   await outline.getByRole('button', { name: 'Закрыть оглавление' }).click();

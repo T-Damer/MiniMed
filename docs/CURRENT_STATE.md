@@ -118,8 +118,14 @@ From `docs/research/qa-release-0660-2026-10-15.md` items 2, 7, 9, 10, 14 (pill) 
   inside it. Source text is kept whole (a title-page chunk is cut into prefix and contents). The search card header and
   «Открыть полный документ» now open the reader at the found fragment's anchor (they dropped it); drugs keep their screen.
   Tests: unit, data test on the committed module, e2e `reader-printed-contents.spec.ts` (module installed from a file).
+- **Printed contents only for guidelines (E2E3).** A section called «Содержание» counts as printed contents without leader dots
+  only in a clinical recommendation (`splitPrintedContents(…, { titledContents })`, the reader passes
+  `isClinicalRecommendationSource`); a legal act's own «Содержание» (the annexes of the order 1122н) stays text, so the block no
+  longer pushes its text below the first 375×812 screen.
 - **Overflow and name breaks (item 10).** A long combined name was one unbreakable word. `SoftBreakText` (and
-  `HighlightedText`, so the reader titles) puts `<wbr>` after «+», «/», «-» between letters, text unchanged; the drug
+  `HighlightedText` for search snippets, and `QueryHighlightedText` only where `softBreaks` is set: the reader titles) puts
+  `<wbr>` after «+», «/», «-» between letters, text unchanged; running document text is never split (E2E3: «г/сут» was cut
+  into two text nodes, which a text-node highlight selection could not find); the drug
   suggestion lists, chosen items, the «Назначение» item title and the checker suggestion card use it. The candidate lists and
   their parents have `minmax(0, 1fr)` tracks, so a long row no longer widens the page and clips the header buttons.
 - **Update button (item 14).** The pill that floated over content above «Настройки» is a round button in the bar's own row,

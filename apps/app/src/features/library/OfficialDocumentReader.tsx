@@ -692,7 +692,9 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
   const splitSections = createMemo(() => {
     const document = props.document;
     if (!document) return { sections: [], body: [] } satisfies PrintedContents;
-    return splitPrintedContents(visibleReaderSections(document.sections, document.sourceType));
+    return splitPrintedContents(visibleReaderSections(document.sections, document.sourceType), {
+      titledContents: isClinicalRecommendationSource(document.sourceType),
+    });
   });
   const orderedSections = createMemo(() => splitSections().body);
   const printedContentsOpen = (): boolean => {

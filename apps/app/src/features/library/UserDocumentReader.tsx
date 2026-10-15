@@ -1213,6 +1213,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                     >
                       <QueryHighlightedText
                         text={current().title}
+                        softBreaks
                         query={findState().query}
                         exact={findState().mode === 'exact'}
                         fuzzy={findState().mode === 'similar'}

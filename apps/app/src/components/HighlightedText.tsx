@@ -82,7 +82,11 @@ export function QueryHighlightedText(props: {
   readonly unitId?: string | undefined;
   readonly activeStart?: number | undefined;
   readonly rangeOffset?: number | undefined;
+  /** Titles and names may break after «+», «/», «-»; running text stays one text node per run. */
+  readonly softBreaks?: boolean | undefined;
 }): JSX.Element {
+  const part = (text: string): JSX.Element =>
+    props.softBreaks ? <SoftBreakText text={text} /> : text;
   const rangeOffset = () => props.rangeOffset ?? 0;
   const ranges = () => {
     if (props.ranges !== undefined) {
@@ -97,7 +101,7 @@ export function QueryHighlightedText(props: {
   return (
     <For each={segments(props.text, ranges())}>
       {(segment) => {
-        if (!segment.highlighted) return <SoftBreakText text={segment.text} />;
+        if (!segment.highlighted) return part(segment.text);
         const start = segment.start ?? 0;
         return (
           <mark
@@ -110,7 +114,7 @@ export function QueryHighlightedText(props: {
             data-document-find-unit={props.unitId}
             data-document-find-start={start + rangeOffset()}
           >
-            <SoftBreakText text={segment.text} />
+            {part(segment.text)}
           </mark>
         );
       }}

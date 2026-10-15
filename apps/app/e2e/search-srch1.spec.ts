@@ -70,15 +70,29 @@ test('a class word inside a longer query shows the class card and a few of its d
   await expect(card).toHaveCount(0);
 });
 
-test('a disease, a drug and a code carry no class card', async ({ page }) => {
+test('a disease, a drug and an МКБ-10 code carry no class card', async ({ page }) => {
   test.setTimeout(240_000);
   await mount(page);
-  for (const query of ['пневмония', 'азитромицин', 'J01FA']) {
+  // «J05» is an ATC group and an МКБ-10 card at once: the diagnosis keeps the lead (CLS3).
+  for (const query of ['пневмония', 'азитромицин', 'J05']) {
     await page.getByTestId('search-input').fill(query);
     await page.getByTestId('search-submit').click();
     await expect(page.getByTestId('search-results')).toBeVisible({ timeout: 60_000 });
     await expect(page.getByTestId('drug-class-card')).toHaveCount(0);
   }
+});
+
+test('an ATC group code shows its own group card, not a class-word card', async ({ page }) => {
+  test.setTimeout(240_000);
+  await mount(page);
+  await page.getByTestId('search-input').fill('J01FA');
+  await page.getByTestId('search-submit').click();
+  const card = page.getByTestId('drug-class-card');
+  await expect(card).toBeVisible({ timeout: 60_000 });
+  // The group is the typed code itself (its НСИ name is the title); no other group is offered.
+  await expect(card).toContainText('Макролиды');
+  await expect(card.getByTestId('drug-class-group')).toHaveCount(1);
+  await expect(card.getByTestId('drug-class-group').first()).toContainText('J01FA');
 });
 
 test('the query is in the address and survives a reload', async ({ page }) => {
