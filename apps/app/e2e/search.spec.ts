@@ -403,6 +403,7 @@ for (const width of [375, 1280]) {
 
 const SECTION_NOUNS: Readonly<Record<string, readonly [string, string, string]>> = {
   'МКБ, симптомы и состояния': ['запись', 'записи', 'записей'],
+  'МКБ-11': ['запись', 'записи', 'записей'],
   'Клинические рекомендации': ['рекомендация', 'рекомендации', 'рекомендаций'],
   Препараты: ['действующее вещество', 'действующих вещества', 'действующих веществ'],
   'Нормативные документы': ['документ', 'документа', 'документов'],
@@ -412,9 +413,10 @@ const SECTION_NOUNS: Readonly<Record<string, readonly [string, string, string]>>
 
 /** Document sections are sized by the catalog manifest, whatever the core has mounted. */
 const MANIFEST_SECTIONS: Readonly<
-  Record<string, 'conditions' | 'guidelines' | 'medications' | 'legal'>
+  Record<string, 'conditions' | 'icd11' | 'guidelines' | 'medications' | 'legal'>
 > = {
   'МКБ, симптомы и состояния': 'conditions',
+  'МКБ-11': 'icd11',
   'Клинические рекомендации': 'guidelines',
   Препараты: 'medications',
   'Нормативные документы': 'legal',

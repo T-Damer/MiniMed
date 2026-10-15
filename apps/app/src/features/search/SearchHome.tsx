@@ -29,6 +29,7 @@ import { conversationSession } from '@/features/conversations/conversation-sessi
 import { DRUG_COMPARISON_TOOL } from '@/features/drug-comparison/drug-comparison-tool';
 import { DRUG_INTERACTION_TOOL } from '@/features/drug-interactions/drug-interaction-tool';
 import { SearchHistoryPanel } from '@/features/history/SearchHistoryPanel';
+import { ICD11_COLLECTION, icd11ChapterDocuments } from '@/features/icd11/icd11-document';
 import { preferReadableDocuments } from '@/features/library/document-display';
 import { prepareDocumentLinksWhenIdle } from '@/features/library/document-link-prewarm';
 import { ImagingViewerEntry } from '@/features/library/ImagingViewerEntry';
@@ -65,6 +66,7 @@ import {
 } from '@/features/search/ScopedMedicalCore';
 import { SearchCoreStatusNote } from '@/features/search/SearchCoreStatusNote';
 import { type HomeFeature, SearchHomeIntro } from '@/features/search/SearchHomeIntro';
+import { SearchIcd11Offer } from '@/features/search/SearchIcd11Offer';
 import { SearchNoResults } from '@/features/search/SearchNoResults';
 import { SearchQuickAccess } from '@/features/search/SearchQuickAccess';
 import { SearchResultModuleDownload } from '@/features/search/SearchResultModuleDownload';
@@ -219,6 +221,15 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       return pending.length ? [{ id: section.id, label: section.label, modules: pending }] : [];
     });
   });
+  /** The «МКБ-11» section with no pack installed: the size of the download instead of an empty list. */
+  const icd11Missing = createMemo(
+    () =>
+      scope() === 'icd11' &&
+      catalogQuery().trim() === '' &&
+      !catalogLoading() &&
+      !catalogError() &&
+      documents().every((entry) => !documentMatchesSearchScope(entry, 'icd11')),
+  );
   const catalogOnly = createMemo(() => {
     if (scope() === 'calculators' || scope() === 'assessments') return true;
     const group = sections()
@@ -267,12 +278,27 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       when={showSectionsOverview()}
       fallback={
         <div class="search-section-page">
+          <Show when={icd11Missing()}>
+            <SearchIcd11Offer
+              modules={downloadBlocks().get('icd11/')?.modules ?? []}
+              experimentalOff={
+                !experimentalModulesEnabled() &&
+                downloads
+                  .catalog()
+                  .modules.some(
+                    (module) =>
+                      module.collection === ICD11_COLLECTION && module.releaseState === 'preview',
+                  )
+              }
+              downloads={downloads}
+            />
+          </Show>
           <UnifiedSearchCatalog
             core={props.baseCore}
             scope={scope()}
             query={catalogQuery()}
             catalogOnly={catalogOnly()}
-            hideDocuments={scope() === 'diagnosis'}
+            hideDocuments={scope() === 'diagnosis' || icd11Missing()}
             documents={catalogDocuments()}
             tools={visibleTools()}
             ageFilter={toolAgeFilter()}
@@ -300,8 +326,13 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       ? { documents: visibleDocuments(), total: visibleDocuments().length, focused: false }
       : selectGraphNeighborhood(visibleDocuments(), { focusIds: new Set(resultDocumentIds()) }),
   );
+  // «МКБ-11» opens on the 28 chapters: a flat list of tens of thousands of codes helps no one.
   const catalogDocuments = createMemo(() =>
-    scope() === 'all' ? homeDocumentOrder(visibleDocuments()) : visibleDocuments(),
+    scope() === 'all'
+      ? homeDocumentOrder(visibleDocuments())
+      : scope() === 'icd11'
+        ? icd11ChapterDocuments(visibleDocuments())
+        : visibleDocuments(),
   );
   /** Library documents: they tell whether the MRI example is already in «Мои файлы». */
   const libraryDocuments = createUserLibraryDocuments();
@@ -964,7 +995,9 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           placeholder={
             scope() === 'diagnosis'
               ? 'Опишите случай: жалобы, анамнез, находки'
-              : 'Болезнь, код МКБ, препарат, фраза'
+              : scope() === 'icd11'
+                ? 'Код МКБ-11 или название'
+                : 'Болезнь, код МКБ, препарат, фраза'
           }
           modePicker={
             <div class="search-source-controls">

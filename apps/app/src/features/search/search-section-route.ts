@@ -1,7 +1,7 @@
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
 import { hashPath } from '@/features/search/search-query-route';
 
-const SECTION_ROUTE = /^#\/search\/section\/([a-z-]+)\/?$/u;
+const SECTION_ROUTE = /^#\/search\/section\/([a-z0-9-]+)\/?$/u;
 
 /** `#/search/section/<id>`: an open section of the search page, a place of its own in history. */
 export function searchSectionHash(scope: SearchScope): string {

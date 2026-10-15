@@ -1,4 +1,4 @@
-import type { SearchScope } from '@/features/search/ScopedMedicalCore';
+import { isSearchScope, type SearchScope } from '@/features/search/search-scopes';
 import {
   DEFAULT_TOOL_AGE_FILTER,
   isToolAgeFilter,
@@ -49,18 +49,6 @@ const DEFAULT_PREFERENCES: AppPreferences = {
   usefulFeaturesHidden: false,
   toolAgeFilter: DEFAULT_TOOL_AGE_FILTER,
 };
-
-const VALID_SCOPES = new Set<SearchScope>([
-  'diagnosis',
-  'guidelines',
-  'medications',
-  'legal',
-  'all',
-  'personal',
-  'conditions',
-  'calculators',
-  'assessments',
-]);
 
 function clampVolume(value: number): number {
   if (!Number.isFinite(value)) return DEFAULT_PREFERENCES.soundVolume;
@@ -131,10 +119,6 @@ function normalizePreferences(value: unknown): AppPreferences {
       ? candidate.toolAgeFilter
       : DEFAULT_PREFERENCES.toolAgeFilter,
   };
-}
-
-function isSearchScope(value: string): value is SearchScope {
-  return VALID_SCOPES.has(value as SearchScope);
 }
 
 function dispatchPreferencesChanged(preferences: AppPreferences): void {

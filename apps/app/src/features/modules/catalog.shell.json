@@ -42,6 +42,7 @@
   },
   "sectionDocumentCounts": {
     "conditions": 15904,
+    "icd11": 37052,
     "guidelines": 763,
     "medications": 3324,
     "legal": 31

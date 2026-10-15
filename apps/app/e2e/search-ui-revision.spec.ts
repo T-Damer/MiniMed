@@ -20,7 +20,7 @@ for (const width of [375, 1280]) {
     // «Клинический разбор» is a switch beside the picker, not one of the sources.
     await expect(
       page.locator('.search-section-menu__row .search-section-menu__option'),
-    ).toHaveCount(7);
+    ).toHaveCount(8);
     const menuSurface =
       width === 375 ? page.locator('.overlay-dialog--sheet') : page.locator('.search-section-menu');
     await expect

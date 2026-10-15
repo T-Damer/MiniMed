@@ -23,6 +23,39 @@ export function isIcd11DocumentId(documentId: string): boolean {
   return documentId.startsWith(ICD11_DOCUMENT_PREFIX);
 }
 
+const ICD11_TITLE_SUFFIX = /,\s*МКБ-11 \(ВОЗ\)$/u;
+/** A WHO code («BA41», «5A11», «XM85F8», «CA40.2Z») before the name; it always has a digit. */
+const ICD11_TITLE_CODE = /^(?=[0-9A-Z.&]*\d)[0-9A-Z][0-9A-Z.&]*\s+/u;
+
+/** The WHO code a card's title starts with («BA41.0»), or undefined for a block or a chapter. */
+export function icd11TitleCode(title: string): string | undefined {
+  return ICD11_TITLE_CODE.exec(title)?.[0].trim();
+}
+
+/** A card's own name: the title without the leading code and the «МКБ-11 (ВОЗ)» tail. */
+export function icd11BareTitle(title: string): string {
+  return title.replace(ICD11_TITLE_SUFFIX, '').replace(ICD11_TITLE_CODE, '').trim();
+}
+
+const ICD11_CHAPTER_TITLE = /^Глава (\d+|[VX])\. /u;
+
+/**
+ * The 28 chapters of the classification (26 numbered, «V» and «X»): the roots a reader browses
+ * from, in WHO order. Read from the title («Глава 11. …»), because the navigation list carries no
+ * class kind.
+ */
+export function icd11ChapterDocuments<
+  T extends Pick<MedicalDocumentSummary, 'title' | 'sourceType'>,
+>(documents: readonly T[]): readonly T[] {
+  const number = (document: T): number => {
+    const chapter = Number(ICD11_CHAPTER_TITLE.exec(document.title)?.[1]);
+    return Number.isFinite(chapter) ? chapter : Number.MAX_SAFE_INTEGER;
+  };
+  return documents
+    .filter((document) => isIcd11Document(document) && ICD11_CHAPTER_TITLE.test(document.title))
+    .toSorted((left, right) => number(left) - number(right));
+}
+
 export type Icd11CrosswalkRelation = 'closest' | 'mapped-into-this' | 'mapped-into-this-multiple';
 
 export interface Icd11CrosswalkLink {

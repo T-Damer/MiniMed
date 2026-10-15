@@ -10,7 +10,7 @@
 export const MAX_QUERY_IN_HASH = 300;
 
 const SEARCH_HASH = '#/search';
-const SEARCH_PATH = /^#\/search(?:\/[a-z-]+(?:\/[a-z-]+)?)?\/?$/u;
+const SEARCH_PATH = /^#\/search(?:\/[a-z0-9-]+(?:\/[a-z0-9-]+)?)?\/?$/u;
 
 /** The part of a hash before «?»: `#/search?q=x` → `#/search`. */
 export function hashPath(hash: string): string {

@@ -1357,8 +1357,9 @@ it('filters legacy full ICD documents by the same entity rules as source pointer
 describe('WHO ICD-11 reference documents', () => {
   const icd11 = document('who.icd11.mms.257068234', 'who_icd11_reference');
 
-  it('belong to the «Все» scope only, never to a clinical or ICD-10 section', () => {
+  it('belong to «Все» and the «МКБ-11» section only, never to a clinical or ICD-10 section', () => {
     expect(documentMatchesSearchScope(icd11, 'all')).toBe(true);
+    expect(documentMatchesSearchScope(icd11, 'icd11')).toBe(true);
     for (const scope of [
       'diagnosis',
       'guidelines',
@@ -1408,5 +1409,114 @@ describe('WHO ICD-11 reference documents', () => {
     await new ScopedMedicalCore(base.core, 'conditions').search(request());
 
     expect(base.search.mock.calls[0]?.[0].filters.documentIds).toEqual([mkb.id]);
+  });
+
+  it('keeps the «МКБ-11» section free of every other source', () => {
+    for (const sourceType of [
+      'rls_mkb_reference',
+      'clinical_recommendation',
+      'medical_reference',
+      'official_drug_instruction',
+    ]) {
+      expect(documentMatchesSearchScope(document('other', sourceType), 'icd11')).toBe(false);
+    }
+    expect(
+      documentMatchesSearchScope(
+        { ...document('rls.mkb.node.a00', 'core_catalog_pointer'), metadata: { mkbCode: 'A00' } },
+        'icd11',
+      ),
+    ).toBe(false);
+  });
+
+  it('searches only ICD-11 documents in its own section and keeps their groups', async () => {
+    const mkb = document('rls.mkb.node.a00', 'rls_mkb_reference');
+    const value: SearchResponse = {
+      ...response(),
+      groups: [searchGroup(icd11.id, [searchResult(icd11.id, 'Холера')], '1A00 Холера')],
+    };
+    const base = coreWithDocuments([icd11, mkb]);
+    base.search.mockResolvedValueOnce({ ok: true, value });
+
+    const result = await new ScopedMedicalCore(base.core, 'icd11').search(request());
+
+    expect(base.search.mock.calls[0]?.[0].filters.documentIds).toEqual([icd11.id]);
+    expect(result.ok && result.value.groups.map((group) => group.documentId)).toEqual([icd11.id]);
+  });
+
+  it('answers with nothing, not with the whole core, while the pack is not installed', async () => {
+    const mkb = document('rls.mkb.node.a00', 'rls_mkb_reference');
+    const base = coreWithDocuments([mkb]);
+
+    await new ScopedMedicalCore(base.core, 'icd11').search(request());
+
+    expect(base.search.mock.calls[0]?.[0].filters.documentIds).toEqual([
+      '__minimed_empty_search_scope__',
+    ]);
+  });
+
+  describe('lookup order in the «МКБ-11» section', () => {
+    const titled = (code: string, name: string): MedicalDocumentSummary => ({
+      ...document(`who.icd11.mms.${code}`, 'who_icd11_reference'),
+      title: `${code} ${name}, МКБ-11 (ВОЗ)`,
+    });
+    const ordered = async (query: string, documents: readonly MedicalDocumentSummary[]) => {
+      const base = coreWithDocuments(documents);
+      base.search.mockResolvedValueOnce({
+        ok: true,
+        value: {
+          ...response(),
+          // The core's own order: the sub-rubrics outrank the rubric the query names.
+          groups: documents.map((entry) =>
+            searchGroup(entry.id, [searchResult(entry.id, entry.title)], entry.title),
+          ),
+        },
+      });
+      const result = await new ScopedMedicalCore(base.core, 'icd11').search({
+        ...request(),
+        query,
+        analysisMode: 'lookup',
+      });
+      return result.ok ? result.value.groups.map((group) => group.title) : [];
+    };
+
+    it('puts the rubric named exactly as typed before its sub-rubrics', async () => {
+      const documents = [
+        titled('CA23.0', 'Аллергическая астма'),
+        titled('CA23.1', 'Неаллергическая астма'),
+        titled('CA23', 'Астма'),
+      ];
+      expect((await ordered('астма', documents))[0]).toBe('CA23 Астма, МКБ-11 (ВОЗ)');
+    });
+
+    it('puts the typed code before the rubric it is a sub-rubric of', async () => {
+      const documents = [
+        titled('BA41', 'Острый инфаркт миокарда'),
+        titled('BA41.Z', 'Острый инфаркт миокарда, неуточненный'),
+        titled('BA41.0', 'Острый инфаркт миокарда с подъемом сегмента ST'),
+      ];
+      expect((await ordered('ba41.0', documents))[0]).toMatch(/^BA41\.0 /u);
+    });
+
+    it('leaves the order of «Все источники» alone', async () => {
+      const documents = [titled('CA23.0', 'Аллергическая астма'), titled('CA23', 'Астма')];
+      const base = coreWithDocuments(documents);
+      base.search.mockResolvedValueOnce({
+        ok: true,
+        value: {
+          ...response(),
+          groups: documents.map((entry) =>
+            searchGroup(entry.id, [searchResult(entry.id, entry.title)], entry.title),
+          ),
+        },
+      });
+      const result = await new ScopedMedicalCore(base.core, 'all').search({
+        ...request(),
+        query: 'астма',
+        analysisMode: 'lookup',
+      });
+      expect(result.ok && result.value.groups[0]?.title).toBe(
+        'CA23.0 Аллергическая астма, МКБ-11 (ВОЗ)',
+      );
+    });
   });
 });

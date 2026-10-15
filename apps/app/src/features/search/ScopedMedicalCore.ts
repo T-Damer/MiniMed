@@ -31,8 +31,15 @@ import {
   searchSubjectText,
   tokenize,
 } from '@localmed/search-lexical';
-import { isIcd11Document, isIcd11DocumentId } from '@/features/icd11/icd11-document';
+import {
+  ICD11_SOURCE_TYPE,
+  icd11BareTitle,
+  icd11TitleCode,
+  isIcd11Document,
+  isIcd11DocumentId,
+} from '@/features/icd11/icd11-document';
 import { refineResponseHighlights } from '@/features/search/search-highlight';
+import type { SearchScope } from '@/features/search/search-scopes';
 import { RESULT_TYPE_VISUALS } from '@/features/search/searchResultKindVisuals';
 import {
   detectSourceNameIntent,
@@ -41,16 +48,7 @@ import {
   sourceCatalogOf,
 } from '@/features/search/source-names';
 
-export type SearchScope =
-  | 'diagnosis'
-  | 'guidelines'
-  | 'medications'
-  | 'legal'
-  | 'all'
-  | 'personal'
-  | 'conditions'
-  | 'calculators'
-  | 'assessments';
+export type { SearchScope };
 export type SearchAudience = 'children' | 'adults';
 export type SearchResultDocumentKind = NonNullable<SearchResultGroup['documentKind']>;
 export type SearchResultDocumentType = NonNullable<SearchResultGroup['documentType']>;
@@ -71,6 +69,7 @@ const EMPTY_SCOPE_DOCUMENT_ID = '__minimed_empty_search_scope__';
 
 const SOURCE_TYPES_BY_SCOPE: Readonly<Partial<Record<SearchScope, ReadonlySet<string>>>> = {
   conditions: new Set(['rls_mkb_reference', 'krasotaimedicina_reference']),
+  icd11: new Set([ICD11_SOURCE_TYPE]),
   calculators: new Set<string>(),
   assessments: new Set<string>(),
   guidelines: new Set([
@@ -94,8 +93,10 @@ export function documentMatchesSearchScope(
 ): boolean {
   if (scope === 'personal') return false;
   // WHO ICD-11 is an optional reference: ICD-10 stays the default coding system, so ICD-11 cards
-  // are searched only in «Все» (where they carry their own label), never in a clinical section.
-  if (isIcd11Document(document)) return scope === 'all';
+  // are searched only in «Все» (where they carry their own label) and in the «МКБ-11» section,
+  // never in a clinical section or in the ICD-10 one. The «МКБ-11» section holds nothing else.
+  if (isIcd11Document(document)) return scope === 'all' || scope === 'icd11';
+  if (scope === 'icd11') return false;
   if (scope === 'calculators') return searchResultDocumentKind(document) === 'calculator';
   if (scope === 'assessments') return searchResultDocumentKind(document) === 'assessment';
   // Questionnaires and calculators have sections of their own; a tool document whose source type is
@@ -662,11 +663,19 @@ export function preferClinicalRecommendationForCaseQueries(
 function strictLookupIdentityPriority(
   query: string,
   document: SearchDocumentDescriptor | undefined,
+  scope: SearchScope,
 ): number {
   if (!document) return 0;
   const subject = normalizeSurfaceText(searchSubjectText(query)).trim();
   if (!subject) return 0;
   if (normalizeSurfaceText(document.title).trim() === subject) return 2;
+  // In the «МКБ-11» section the typed code («BA41.0») leads the rubrics that only start with it, and
+  // a card named exactly as typed («Астма», not «CA23 Астма, МКБ-11 (ВОЗ)») leads its sub-rubrics.
+  if (scope === 'icd11' && isIcd11Document(document)) {
+    const code = icd11TitleCode(document.title);
+    if (code !== undefined && normalizeSurfaceText(code).trim() === subject) return 3;
+    if (normalizeSurfaceText(icd11BareTitle(document.title)).trim() === subject) return 2;
+  }
   const navigationAliases = document.metadata?.['navigationAliases'];
   if (
     Array.isArray(navigationAliases) &&
@@ -683,12 +692,13 @@ function preserveStrictIdentities(
   groups: readonly SearchResultGroup[],
   query: string,
   documents: ReadonlyMap<string, SearchDocumentDescriptor>,
+  scope: SearchScope,
 ): readonly SearchResultGroup[] {
   return groups
     .map((group, index) => ({
       group,
       index,
-      priority: strictLookupIdentityPriority(query, documents.get(group.documentId)),
+      priority: strictLookupIdentityPriority(query, documents.get(group.documentId), scope),
     }))
     .toSorted((left, right) => right.priority - left.priority || left.index - right.index)
     .map((entry) => entry.group);
@@ -942,7 +952,8 @@ export class ScopedMedicalCore implements MedicalCore {
     }
     if (!result.ok) return result;
     // Scopes without a source-type list (diagnosis) search the whole core: ICD-11 is dropped here.
-    const withoutIcd11 = this.scope === 'all' ? result.value : dropIcd11Groups(result.value);
+    const withoutIcd11 =
+      this.scope === 'all' || this.scope === 'icd11' ? result.value : dropIcd11Groups(result.value);
 
     const explicitMedicationResponse =
       this.scope === 'medications' ? keepExplicitMedicationMatches(withoutIcd11) : withoutIcd11;
@@ -968,7 +979,12 @@ export class ScopedMedicalCore implements MedicalCore {
         : requestedAudience
           ? preferClinicalRecommendationForCaseQueries(audienceRanked, request.query)
           : audienceRanked;
-    const strictIdentityRanked = preserveStrictIdentities(ranked, request.query, summaries);
+    const strictIdentityRanked = preserveStrictIdentities(
+      ranked,
+      request.query,
+      summaries,
+      this.scope,
+    );
     return {
       ok: true,
       value: {

@@ -1,5 +1,5 @@
 import type { SearchResponse } from '@localmed/contracts';
-import type { SearchScope } from '@/features/search/ScopedMedicalCore';
+import { isSearchScope, type SearchScope } from '@/features/search/search-scopes';
 import { clearSearchResultCache } from '@/state/search-result-cache';
 
 export interface SearchHistoryEntry {
@@ -27,27 +27,13 @@ const PREVIOUS_HISTORY_KEY = 'localmed.search-history.v3';
 const LEGACY_HISTORY_KEY = 'localmed.search-history.v2';
 const MAX_HISTORY = 40;
 
-function isScope(value: unknown): value is SearchScope {
-  return [
-    'diagnosis',
-    'guidelines',
-    'medications',
-    'legal',
-    'all',
-    'personal',
-    'conditions',
-    'calculators',
-    'assessments',
-  ].includes(String(value));
-}
-
 function isHistoryEntry(value: unknown): value is SearchHistoryEntry {
   if (!value || typeof value !== 'object') return false;
   const candidate = value as Partial<SearchHistoryEntry>;
   return (
     typeof candidate.id === 'string' &&
     typeof candidate.query === 'string' &&
-    isScope(candidate.scope) &&
+    isSearchScope(candidate.scope) &&
     (candidate.specialty === undefined || typeof candidate.specialty === 'string') &&
     typeof candidate.createdAt === 'string' &&
     typeof candidate.resultCount === 'number' &&

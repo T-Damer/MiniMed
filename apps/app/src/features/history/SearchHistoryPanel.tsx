@@ -30,6 +30,7 @@ const SCOPE_LABELS: Readonly<Record<SearchHistoryEntry['scope'], string>> = {
   all: 'Все источники',
   personal: 'Ваши данные',
   conditions: 'МКБ и состояния',
+  icd11: 'МКБ-11',
   calculators: 'Калькуляторы',
   assessments: 'Опросники',
 };

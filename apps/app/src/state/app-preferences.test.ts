@@ -186,6 +186,14 @@ describe('app-preferences', () => {
     expect(loadSearchScope()).toBe('personal');
   });
 
+  it('remembers the МКБ-11 section and drops a stored scope it does not know', () => {
+    setRememberSearchMode(true);
+    saveSearchScope('icd11');
+    expect(loadSearchScope()).toBe('icd11');
+    window.localStorage.setItem(SEARCH_SCOPE_KEY, 'icd12');
+    expect(loadSearchScope()).toBeNull();
+  });
+
   it('updates sound volume through the setter', () => {
     setSoundVolume(0.45);
     expect(getSoundVolume()).toBe(0.45);

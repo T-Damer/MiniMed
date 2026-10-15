@@ -1,0 +1,26 @@
+/* The «МКБ-11» section without its pack: the size of the download on the usual chip, one row. */
+.search-icd11-offer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  margin: var(--home-gap, 1rem) 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.9rem;
+  background: var(--theme-surface-raised);
+}
+
+.search-icd11-offer__icon {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--theme-text-muted);
+}
+
+.search-icd11-offer__text {
+  flex: 1 1 10rem;
+  margin: 0;
+  color: var(--theme-text);
+  font-size: 0.9375rem;
+}

@@ -42,7 +42,7 @@ fixed, 3 partly, 1 not, 2 new low). Ordered next work:
 8. **ЕСКЛП source**: the str1 modules were repaired from the published packs (source archive not on this
    machine); the next ЕСКЛП refresh rebuilds them from source with the fixed builder.
 9. **Owner decisions (2026-10-15)**: МКБ-11 gets its own search section (expected to come into use in Russia
-   soon) — in progress; pheniramine and the five «противоаллергическое» cold remedies keep the antihistamine
+   soon) — done (ICD11-SEC, «МКБ-11 search section» below); pheniramine and the five «противоаллергическое» cold remedies keep the antihistamine
    class (the component's own ATC R06AB backs it; rule: a secondary class needs the component's
    classification or a clearly similar effect, not every listed effect); the «Результат записан в
    защищённую карточку» toast stays; the first-pass dataset branches
@@ -51,6 +51,55 @@ fixed, 3 partly, 1 not, 2 new low). Ordered next work:
 10. **Clinician review** of TOOLS-A/B sources flagged as weaker: APRI cut-offs (secondary source), GCS
     mild/moderate/severe attribution to NICE, ATLS classes from the class table, GIR, Doppler indices
     without GA percentiles, Silverman scores 3 and 7.
+
+## МКБ-11 search section — 2026-10-15 (STATE ICD11-SEC)
+
+Owner decision 2026-10-15: МКБ-11 (expected to come into use in Russia soon) gets a search section of its own, next
+to «МКБ, симптомы и состояния». The module is `minimed.reference.icd11.ru` (collection `icd11`, preview, 45 МБ, 37 052
+entries: 35 664 rubrics, 1 360 blocks, 28 chapters; installable from its mirror since DL3).
+
+- **Scope.** `SearchScope` gains `icd11` (list in `features/search/search-scopes.ts`, import-free, shared by the type, the
+  saved history and the saved preferences, which had two hand-kept copies). `documentMatchesSearchScope`: an ICD-11 card
+  belongs to «Все источники» and `icd11` only, and `icd11` holds nothing else, so the ICD-10 section, the clinical
+  scopes and «Клинический разбор» stay free of it exactly as before (`ScopedMedicalCore` still drops ICD-11 groups from
+  scopes without a source-type list). `SOURCE_TYPES_BY_SCOPE.icd11` makes the section search only ICD-11 documents; with
+  no pack installed it searches nothing (the empty-scope sentinel), it never falls back to the whole core. Mode is
+  lexical, as for the other reference sections.
+- **Lookup order.** In this scope only, `preserveStrictIdentities` ranks a card whose WHO code is the typed text first
+  («BA41.0», any case) and then one named exactly as typed («астма» → CA23 «Астма», not the «Аллергическая астма»
+  sub-rubrics that outranked it); `icd11TitleCode` / `icd11BareTitle` read the card title (code + name + «, МКБ-11
+  (ВОЗ)»). Other scopes, «Все источники» included, keep the core's order. ICD-10 codes already reach their ICD-11 rubric
+  through the crosswalk text («I21» → BA41, «E11» → 5A11); the ICD-10 → ICD-11 panel on МКБ-10 cards (ICD11-MAP) is
+  unchanged.
+- **Home and picker.** `SEARCH_SECTIONS` lists «МКБ-11» (count noun «запись»: chapters, blocks and code cards are not
+  diseases or documents) right after «МКБ, симптомы и состояния»; the section picker, the home list and `#/search/section/icd11`
+  (the route regexes now accept digits in the id) work as for every section, so back is the same one history step
+  (NAV1). The placeholder reads «Код МКБ-11 или название» and the examples are `1A00`, `BA41`, «Холера».
+- **Count.** `catalog.shell.json` `sectionDocumentCounts.icd11` = 37 052 (`deriveSectionDocumentCounts`: the module's
+  preview count, as the pack lists no documents), so the number does not change when the pack is installed, and «Все
+  источники (N)» — the sum of the section counters of the catalog manifest plus the questionnaire and calculator cards —
+  includes it (it grew by 37 052). Regenerate with `bun run catalog:shell` when the module is republished.
+- **Download.** The pack lists no documents, so `searchSectionDownloadBlocks` offers it from the module entry
+  (`icd11/` and `all/`), when `isModuleReleased` (a preview pack needs the Experimental switch, on by default).
+  Not installed: the section opens on one row («МКБ-11 не скачана» + the usual download chip with the size, 45 МБ;
+  «Включите Experimental в настройках…» when the switch is off) instead of an empty library, and a query in it ends in
+  «Ничего не найдено» with the chip «Скачать: МКБ-11». Installed: the section opens on the 28 chapters (read from the
+  titles «Глава NN.»; the navigation list has no class kind), each opening the card with its children; a query lists
+  cards.
+- **History and preferences.** `localmed.search-history.v4` and the remembered scope accept `icd11`; a replay opens the
+  section. History label «МКБ-11».
+- **Tests.** Unit: scope membership and ordering (`ScopedMedicalCore.test.ts`), counts and the «Все источники» sum
+  (`searchCatalog.test.ts`), download blocks, route, history, preferences, title/chapter helpers. `bun run benchmark:icd11`
+  (`tools/benchmarks/icd11-queries.json`, `run-icd11-queries.ts`): 16 code, 13 word and 4 ICD-10-code lookups over the
+  released core plus the module (code or the rubric in the first 1–10 cards, expected codes chosen from the WHO
+  rubrics, not from the results), and 11 isolation checks (no other scope lists an ICD-11 card); 44/44. It needs the
+  local release file (`data/build/icd11-module/release`, read from the main checkout; decoded into a temporary
+  directory and removed) and skips without it. `bun run benchmark:all` unchanged (the core carries no ICD-11).
+  e2e `search-icd11-section.spec.ts` (home row and count, offer with size, «Все источники» = sum of the rows, search
+  without the pack, history scope, install → chapters → code/word lookups → card → back with the query, isolation);
+  `icd11-module-fixture.ts` now holds the module routing/install helpers `icd11-module.spec.ts` shares.
+- **Not done.** The exclusion/inclusion targets and postcoordination axes (see the ICD11 section); no semantic search
+  in this section (lexical only); the Android device was not tested.
 
 ## Module shelf: search after a full install (SQLITE_NOMEM) — 2026-10-15 (STATE MEM1)
 
@@ -3249,7 +3298,7 @@ exists (the 2024 plan was suspended), so nothing is translated by the app.
   `icd10-chapters.ts` (unit tests); e2e `icd10-to-icd11.spec.ts`.
 - Licence: WHO CC BY-ND 3.0 IGO for the classification; the mapping tables are shown unchanged under
   the owner's personal-use publication decision of 2026-10-06 (as the ICD-11 module).
-- Not done: a dedicated МКБ-11 search section and ICD-11 code lookup in search (STATE request).
+- A dedicated МКБ-11 search section and ICD-11 code lookup: done 2026-10-15 (ICD11-SEC).
 
 ## Search and reader polish — 2026-10-07 (STATE UX9)
 
@@ -5347,8 +5396,7 @@ official status (Минздрав suspended the transition 2024-02).
 - **Size reduction**: one «Рубрика МКБ-11» section per card (+ the crosswalk), hierarchy/children kept as metadata links only,
   crosswalk text without English ICD-10 titles (kept in metadata), compact source spans and per-document metadata
   (`rawSources` checksums in the release report). Remaining lever, not done: ancestor/child titles by id in the panel.
-- **Not done**: exclusion/inclusion link targets and postcoordination axes (in the raw cache, not carried), a dedicated ICD-11 search section and ICD-10 → ICD-11 links on the МКБ-10 cards (they would
-  need `SearchWorkspace`/`contracts`, owned by other tasks), a zstd-framed re-pack (gzip transport only).
+- **Not done**: exclusion/inclusion link targets and postcoordination axes (in the raw cache, not carried), a zstd-framed re-pack (gzip transport only); the dedicated ICD-11 search section and the ICD-10 → ICD-11 links on МКБ-10 cards were done later (ICD11-MAP, ICD11-SEC).
 - Tests: `tools/ingest/tests/test_icd11_prepare.py`, unit (`icd11-document`, `ScopedMedicalCore`,
   `homeDocumentOrder`, `overview-document-counts`), `apps/app/e2e/icd11-module.spec.ts` (installs the
   module from the local release bytes, skipped when they are absent).
@@ -6095,9 +6143,8 @@ Roadmap: the class row and item 22 (`docs/SEARCH_ROADMAP.md`); design `docs/SEAR
   `reference-report.json` (sha256 5b3e1a0e…; 6 warnings: the diet tables have no chunk source spans, as before).
 - **Version qualifier.** `resultQualifier` reads `documentVersionLabel()`: a recommendation's «459_2» shows as «ред. 2», `site-…` ids and hashes
   show nothing (`isMachineVersionLabel` is gone).
-- **МКБ-11 section** (request ICD11, 2026-10-06): assessed, not done. The ICD-10 → ICD-11 links already exist (ICD11-MAP); a dedicated search
-  section needs a new `SearchScope`, the section list (`searchCatalog.ts`, `SearchHome`, section downloads), `search-history`/`app-preferences`
-  ids, the module-installed gating and e2e — about ten files in code other agents are editing, plus a product decision on when it is shown.
+- **МКБ-11 section** (request ICD11, 2026-10-06): assessed as not small; done on the owner's decision of 2026-10-15
+  (ICD11-SEC, «МКБ-11 search section» above).
 
 ### «Лента»: opt-in news feed and site viewer — 2026-10-05 (STATE NEWS1, ADR-0024)
 

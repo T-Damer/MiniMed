@@ -12,6 +12,7 @@ const shell: ModuleCatalogShell = z
     coreModule: ContentModuleCatalogEntrySchema,
     sectionDocumentCounts: z.object({
       conditions: z.number().int().nonnegative(),
+      icd11: z.number().int().nonnegative(),
       guidelines: z.number().int().nonnegative(),
       medications: z.number().int().nonnegative(),
       legal: z.number().int().nonnegative(),

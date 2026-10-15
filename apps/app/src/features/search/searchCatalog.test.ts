@@ -292,3 +292,47 @@ describe('unified tool catalog', () => {
     expect(total([])).toBeGreaterThanOrEqual(15904 + 763 + 3324 + 31);
   });
 });
+
+describe('«МКБ-11» section', () => {
+  const icd11Card = {
+    id: 'who.icd11.mms.257068234',
+    title: '1A00 Холера, МКБ-11 (ВОЗ)',
+    shortTitle: null,
+    sourceType: 'who_icd11_reference',
+    status: 'active' as const,
+    specialties: [],
+    versionId: 'v1',
+    versionLabel: '1',
+    effectiveFrom: null,
+  };
+
+  it('stands right after the ICD-10 section, sized in entries by the catalog', () => {
+    const sections = searchCatalogSections([], [], { icd11: 37_052, conditions: 15_904 });
+    const ids = sections.map((section) => section.id);
+    expect(ids.indexOf('icd11')).toBe(ids.indexOf('conditions') + 1);
+    const icd11 = sections.find((section) => section.id === 'icd11');
+    expect(icd11?.count).toBe(37_052);
+    expect(icd11?.countNoun).toEqual(['запись', 'записи', 'записей']);
+  });
+
+  it('adds to «Все источники» whether or not the pack is installed', () => {
+    const counts = { conditions: 15_904, icd11: 37_052, guidelines: 763 };
+    const allOf = (documents: readonly (typeof icd11Card)[]) => {
+      const sections = searchCatalogSections(documents, [], counts);
+      const others = sections
+        .filter((section) => section.id !== 'all' && section.id !== 'diagnosis')
+        .reduce((sum, section) => sum + (section.count ?? 0), 0);
+      const all = sections.find((section) => section.id === 'all')?.count;
+      expect(all).toBe(others);
+      return all;
+    };
+    expect(allOf([])).toBe(allOf([icd11Card]));
+    expect(allOf([])).toBeGreaterThanOrEqual(15_904 + 37_052 + 763);
+  });
+
+  it('counts the installed cards when the catalog gives no size, and keeps them out of ICD-10', () => {
+    const sections = searchCatalogSections([icd11Card], []);
+    expect(sections.find((section) => section.id === 'icd11')?.count).toBe(1);
+    expect(sections.find((section) => section.id === 'conditions')?.count).toBe(0);
+  });
+});

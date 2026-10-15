@@ -75,6 +75,11 @@ describe('search history', () => {
     expect(replay?.detail).toEqual({ entry });
   });
 
+  it('keeps a search of the МКБ-11 section under its own scope', () => {
+    appendSearchHistory('BA41', 'icd11', 4);
+    expect(loadSearchHistory()[0]?.scope).toBe('icd11');
+  });
+
   it('keeps different subsections and tool searches', () => {
     appendSearchHistory('риск', 'calculators', 3, 'cardiology');
     appendSearchHistory('риск', 'calculators', 2, 'obstetrics');

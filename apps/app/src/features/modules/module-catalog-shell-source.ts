@@ -7,11 +7,17 @@ import type {
 export const BUNDLED_CORE_MODULE_ID = 'minimed.core.ru';
 
 /** Document sections of the search home whose counters come from the catalog, not from what is installed. */
-export type CatalogDocumentSectionId = 'conditions' | 'guidelines' | 'medications' | 'legal';
+export type CatalogDocumentSectionId =
+  | 'conditions'
+  | 'icd11'
+  | 'guidelines'
+  | 'medications'
+  | 'legal';
 
 /**
  * How many entities each document section names, whatever is installed: ICD-10 and disease
- * articles, current clinical recommendations, active substances (МНН), regulatory documents.
+ * articles, WHO ICD-11 entries, current clinical recommendations, active substances (МНН),
+ * regulatory documents.
  */
 export type SectionDocumentCounts = Readonly<Record<CatalogDocumentSectionId, number>>;
 
@@ -51,7 +57,8 @@ function sumDocuments(
  * Per-section document counts from the catalog's module membership, so a number does not change
  * when a pack is installed and the home never counts a document twice (pointer and real card).
  * A replaced clinical edition is not a current recommendation; the ЕСКЛП modules hold one document
- * per МНН; ICD-11 and the packaging reference are no part of «МКБ, симптомы и состояния».
+ * per МНН; ICD-11 (its own section, whose pack lists no documents: the module's preview count) and
+ * the packaging reference are no part of «МКБ, симптомы и состояния».
  */
 export function deriveSectionDocumentCounts(catalog: ContentModuleCatalog): SectionDocumentCounts {
   const { modules } = catalog;
@@ -59,6 +66,10 @@ export function deriveSectionDocumentCounts(catalog: ContentModuleCatalog): Sect
     conditions: sumDocuments(
       modules,
       (module) => module.kind === 'reference' && module.collection === 'conditions',
+    ),
+    icd11: sumDocuments(
+      modules,
+      (module) => module.kind === 'reference' && module.collection === 'icd11',
     ),
     guidelines: sumDocuments(
       modules,

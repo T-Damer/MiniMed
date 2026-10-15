@@ -5,6 +5,7 @@ import type {
 } from '@localmed/contracts';
 import { CALCULATOR_REGISTRY } from '@/features/calculators/calculator-registry';
 import { isUserCalculatorId } from '@/features/calculators/user-calculator/user-calculator-ids';
+import { ICD11_COLLECTION } from '@/features/icd11/icd11-document';
 import { medicationDocumentGroups } from '@/features/medications/medicationGroups';
 import { isModuleReleased } from '@/features/modules/local-packaged-modules';
 import {
@@ -89,6 +90,13 @@ export function searchSectionDownloadBlocks(
   for (const module of catalog.modules) {
     if (module.kind !== 'medication' || !isModuleReleased(module)) continue;
     add('medications', [`module:${module.id}`], module, false);
+    add('all', [], module, false);
+  }
+  // The ICD-11 pack lists no documents in the catalog (no core pointer targets it): its section is
+  // offered from the module entry itself, and «Все источники» offers it with the others.
+  for (const module of catalog.modules) {
+    if (module.collection !== ICD11_COLLECTION || !isModuleReleased(module)) continue;
+    add('icd11', [], module, false);
     add('all', [], module, false);
   }
   for (const document of documents) {

@@ -119,3 +119,36 @@ it('offers medication packs on a fresh core without document pointers', () => {
     expect(blocks.get(`medications/module:${module.id}`)?.modules).toContain(module);
   }
 });
+
+describe('МКБ-11 section downloads', () => {
+  const icd11 = MODULE_CATALOG.modules.find((module) => module.collection === 'icd11');
+
+  it('offers the pack from the module entry, in its section and in «Все источники»', () => {
+    if (!icd11) throw new Error('The catalog has no МКБ-11 module.');
+    const blocks = searchSectionDownloadBlocks([], [], MODULE_CATALOG);
+    expect(blocks.get('icd11/')?.modules.map((module) => module.id)).toEqual([icd11.id]);
+    expect(blocks.get('all/')?.modules).toContain(icd11);
+    // The pack lists no documents, so it is no part of a clinical section.
+    expect(blocks.get('conditions/')?.modules ?? []).not.toContain(icd11);
+  });
+
+  it('counts an installed card as local content of the section only', () => {
+    const card = {
+      ...document(),
+      id: 'who.icd11.mms.257068234',
+      sourceType: 'who_icd11_reference',
+      specialties: [],
+    };
+    const blocks = searchSectionDownloadBlocks([card], [], MODULE_CATALOG);
+    expect(blocks.get('icd11/')).toMatchObject({ local: true, unavailable: false });
+    expect(blocks.has('conditions/')).toBe(false);
+  });
+
+  it('offers nothing when no pack is in the catalog', () => {
+    const blocks = searchSectionDownloadBlocks([], [], {
+      ...MODULE_CATALOG,
+      modules: MODULE_CATALOG.modules.filter((module) => module.collection !== 'icd11'),
+    });
+    expect(blocks.has('icd11/')).toBe(false);
+  });
+});

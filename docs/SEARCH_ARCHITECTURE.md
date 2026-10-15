@@ -44,7 +44,7 @@ The UI never touches SQL. Every store implements the `MedicalStore` port
 |---|---|---|---|
 | `diagnosis` («Клинический разбор») | `auto` | `clinical` | yes |
 | `guidelines` | `auto` | `lookup` | no |
-| everything else (`all`, `medications`, `legal`, `conditions`, …) | `lexical` | `lookup` | no |
+| everything else (`all`, `medications`, `legal`, `conditions`, `icd11`, …) | `lexical` | `lookup` | no |
 
 `auto` adds semantic candidates only when the query model is downloaded and the mounted КР modules
 carry its profile (`KD1_PROFILE`); otherwise it is the same lexical search. `patient-notes.ts` also searches
@@ -52,7 +52,9 @@ with `mode: 'auto'`.
 
 `ScopedMedicalCore.ts` wraps the core per scope: `documentMatchesSearchScope` maps a scope to
 source types (`SOURCE_TYPES_BY_SCOPE`) and catalog pointers (`catalogFamily`), turns that into a
-`documentIds` filter, and post-filters result kinds. Personal notes and books are searched outside
+`documentIds` filter, and post-filters result kinds. The `icd11` scope («МКБ-11») holds only the WHO ICD-11 cards and
+is the only scope besides `all` that lists them; in it `preserveStrictIdentities` also puts the typed WHO code, then the
+card named exactly as typed, first (`icd11BareTitle` / `icd11TitleCode`). Personal notes and books are searched outside
 SQLite (see SEARCH.md, «Personal overlay»).
 
 ## 2. Query plan (`packages/search-lexical`)
@@ -423,6 +425,7 @@ Presentation, in the app only:
 | `bun run benchmark:atc` | ATC5: every full code of every card finds its card, agreed pairs show both codes, typing variants (case, spaces, look-alikes, Russian layout) give the same drugs, words and short codes never match; `ATC5_OFF=1` removes the directory from any `openRealCorpus` benchmark |
 | `bun run benchmark:srch1` (`srch1-queries.json`, built by `build-srch1-queries.ts` from the comparison index) | SRCH1: 315 trade names (the commonest 150 + an even sample + the QA's named brands) → the substance card first in «Все» and «Препараты», 150 INN names → their own card first, 15 homeopathy-prone words (no homeopathic card ahead of an ordinary one that names it), 16 nonsense strings → nothing, 19 controls → something; `MINIMED_CONTENT_DIR=<main checkout>/apps/app/public/content` in a worktree |
 | `bun run benchmark:class` (`class-queries.json`) | SRCH1: 52 class words (inflections, synonyms, abbreviations) × «Все» / «Препараты» → class card with the expected ATC groups, the drugs of the class lead (`atcMatch`), expected drugs listed; 11 negatives carry no class. SRCH2: 46 queries with a class word inside a longer query × 2 scopes → class card, right groups, leading drugs carry a code of the class, the documents below keep the plain order; 12 queries with a drug / singular word / no class word carry none |
+| `bun run benchmark:icd11` (`icd11-queries.json`, `run-icd11-queries.ts`; `probe-icd11.ts` prints top titles) | «МКБ-11» section: code, word and ICD-10-code lookups over the core + the local МКБ-11 module (expected rubric in the first 1–10 cards, every card an ICD-11 card) and isolation (no other scope lists an ICD-11 card); skips without the local release file |
 | `bun run benchmark:source-names` (`source-name-queries.json`) | source-name intent (read as expected, results inside the source, negatives stay plain) and the drug overview line; `--check` fails on any miss |
 | `tools/benchmarks/src/run-semantic-kr.ts` | Q1 over the embedded КР packs through MedicalCore: lexical / semantic / hybrid, `--grid` over fusion constants |
 

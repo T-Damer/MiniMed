@@ -1,0 +1,62 @@
+{
+  "description": "Lookups in the «МКБ-11» search section (ScopedMedicalCore('icd11') over the released core plus the МКБ-11 module). Expected codes are the WHO ICD-11 MMS 2026-01 rubrics a doctor means by the query; `top` is the rank (1 = first card) the code must reach.",
+  "codes": [
+    { "id": "code-cholera", "query": "1A00", "expect": "1A00", "top": 1 },
+    { "id": "code-ami", "query": "BA41", "expect": "BA41", "top": 1 },
+    { "id": "code-ami-lowercase", "query": "ba41", "expect": "BA41", "top": 1 },
+    { "id": "code-ami-st", "query": "BA41.0", "expect": "BA41.0", "top": 1 },
+    { "id": "code-t2dm", "query": "5A11", "expect": "5A11", "top": 1 },
+    { "id": "code-pneumonia", "query": "CA40", "expect": "CA40", "top": 1 },
+    { "id": "code-pneumonia-fungal", "query": "CA40.2", "expect": "CA40.2", "top": 1 },
+    { "id": "code-asthma", "query": "CA23", "expect": "CA23", "top": 1 },
+    { "id": "code-epilepsy-unspecified", "query": "8A6Z", "expect": "8A6Z", "top": 1 },
+    { "id": "code-depression", "query": "6A70", "expect": "6A70", "top": 1 },
+    { "id": "code-obesity", "query": "5B81", "expect": "5B81", "top": 1 },
+    { "id": "code-hypertension", "query": "BA00", "expect": "BA00", "top": 1 },
+    { "id": "code-covid", "query": "RA01", "expect": "RA01", "top": 1 },
+    { "id": "code-appendicitis", "query": "DB10", "expect": "DB10", "top": 1 },
+    { "id": "code-extension", "query": "XM85F8", "expect": "XM85F8", "top": 1 },
+    { "id": "code-with-word", "query": "1A00 холера", "expect": "1A00", "top": 1 }
+  ],
+  "words": [
+    { "id": "word-cholera", "query": "холера", "expect": "1A00", "top": 1 },
+    { "id": "word-asthma", "query": "астма", "expect": "CA23", "top": 1 },
+    { "id": "word-pneumonia", "query": "пневмония", "expect": "CA40", "top": 1 },
+    { "id": "word-obesity", "query": "ожирение", "expect": "5B81", "top": 1 },
+    { "id": "word-ami", "query": "острый инфаркт миокарда", "expect": "BA41", "top": 1 },
+    { "id": "word-ami-short", "query": "инфаркт миокарда", "expect": "BA41", "top": 10 },
+    { "id": "word-t2dm", "query": "сахарный диабет 2 типа", "expect": "5A11", "top": 1 },
+    { "id": "word-diabetes", "query": "диабет 2 типа", "expect": "5A11", "top": 1 },
+    {
+      "id": "word-status-epilepticus",
+      "query": "эпилептический статус",
+      "expect": "8A66",
+      "top": 1
+    },
+    { "id": "word-covid", "query": "COVID-19", "expect": "RA01", "top": 1 },
+    { "id": "word-appendicitis", "query": "острый аппендицит", "expect": "DB10.0", "top": 1 },
+    {
+      "id": "word-stroke",
+      "query": "церебральный ишемический инсульт",
+      "expect": "8B11",
+      "top": 3
+    },
+    {
+      "id": "word-depression-episode",
+      "query": "единичный эпизод депрессивного расстройства",
+      "expect": "6A70",
+      "top": 1
+    }
+  ],
+  "icd10": [
+    { "id": "icd10-ami", "query": "I21", "expect": "BA41", "top": 5 },
+    { "id": "icd10-t2dm", "query": "E11", "expect": "5A11", "top": 1 },
+    { "id": "icd10-pneumonia", "query": "J18", "expect": "CA40", "top": 3 },
+    { "id": "icd10-cholera", "query": "A00", "expect": "1A00", "top": 1 }
+  ],
+  "isolation": {
+    "query": "1A00 холера",
+    "scopesWithoutIcd11": ["conditions", "guidelines", "medications", "legal", "diagnosis"],
+    "icd10Query": "A00"
+  }
+}

@@ -52,6 +52,13 @@ export const SEARCH_SECTIONS: readonly {
     countNoun: ['запись', 'записи', 'записей'],
   },
   {
+    id: 'icd11',
+    label: 'МКБ-11',
+    icon: 'list-dashes',
+    // Chapters, blocks and code cards of the classification: not diseases, not documents.
+    countNoun: ['запись', 'записи', 'записей'],
+  },
+  {
     id: 'guidelines',
     label: 'Клинические рекомендации',
     icon: 'book-open',

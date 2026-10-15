@@ -175,6 +175,7 @@ const SearchInlineCalculatorWorkspace = lazy(async () => {
 
 const EXAMPLES_BY_SCOPE: Readonly<Record<SearchScope, readonly string[]>> = {
   conditions: ['J18', 'Головная боль', 'Отёк'],
+  icd11: ['1A00', 'BA41', 'Холера'],
   calculators: [],
   assessments: [],
   diagnosis: [
