@@ -54,6 +54,20 @@ describe('registryFacts', () => {
     expect(normalizeStrength('~')).toBeNull();
     expect(companyKey('ООО «Ромашка», Россия')).toBe(companyKey('Ромашка ООО россия'));
   });
+
+  it('never carries the registry placeholder «1.0» or «НЕ УКАЗАНО» into a strength (DOSE1)', () => {
+    // The raw strengths of QA 0.6.60 item 4, as an older module stored them.
+    expect(normalizeStrength('1.0325 мг+10 мг+20 мг')).toBe('325 мг + 10 мг + 20 мг');
+    expect(normalizeStrength('1.0 650 мг+10 мг+20 мг')).toBe('650 мг + 10 мг + 20 мг');
+    expect(normalizeStrength('1.0250 мг+65 мг+250 мг')).toBe('250 мг + 65 мг + 250 мг');
+    expect(normalizeStrength('1.01.42 мг+18.26 мг+20 мг/мл')).toBe('1,42 мг + 18,26 мг + 20 мг/мл');
+    expect(normalizeStrength('1.025 мг+1 мг+0.4 мг/мл')).toBe('25 мг + 1 мг + 0,4 мг/мл');
+    // A real 1 mg dosage keeps its quantity.
+    expect(normalizeStrength('1.0 мг')).toBe('1 мг');
+    expect(normalizeStrength('1.0~')).toBeNull();
+    expect(normalizeStrength('1.0 ~')).toBeNull();
+    expect(normalizeStrength('НЕ УКАЗАНО')).toBeNull();
+  });
 });
 
 const facts = registryFacts(

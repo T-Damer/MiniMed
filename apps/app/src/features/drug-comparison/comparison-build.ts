@@ -11,6 +11,7 @@ import {
   type InteractionCard,
   substanceKey,
 } from '@/features/drug-interactions/substance-names';
+import { dropPlaceholderQuantity, isUnstatedValue } from '@/features/search/registry-values';
 import {
   type AssetCard,
   type AssetDocument,
@@ -66,8 +67,8 @@ export interface ComparisonBuildCard extends InteractionCard {
 
 /** «1.0мг/мл» → «1 мг/мл», «0.5мг» → «0,5 мг»: the registry's spellings of one strength meet. */
 export function normalizeStrength(raw: string): string | null {
-  const text = raw.trim().toLocaleLowerCase('ru-RU');
-  if (text === '' || text === '~' || text === 'не указано') return null;
+  const text = dropPlaceholderQuantity(raw).toLocaleLowerCase('ru-RU');
+  if (isUnstatedValue(text)) return null;
   return text
     .replace(/(\d)\.0+(?!\d)/gu, '$1')
     .replace(/(\d)\.(\d)/gu, '$1,$2')

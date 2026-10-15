@@ -40,6 +40,28 @@ export {
   summaryDocumentId,
 };
 
+const CYRILLIC = /[А-Яа-яЁё]/u;
+
+/**
+ * The short title a document is shown under. A reference monograph of a drug (Allmed) keeps its
+ * Latin name in the short title («Theraflu») beside the Russian trade name in the title
+ * («Терафлю»); the Russian name is what the search result was called, so it is what opens.
+ */
+function readableShortTitle(
+  document: Pick<MedicalDocumentSummary, 'title' | 'shortTitle' | 'sourceType'>,
+): string | undefined {
+  const short = document.shortTitle ?? undefined;
+  if (
+    short !== undefined &&
+    document.sourceType === 'allmed_reference' &&
+    !CYRILLIC.test(short) &&
+    CYRILLIC.test(document.title)
+  ) {
+    return undefined;
+  }
+  return short;
+}
+
 export function displayDocumentTitle(
   document: Pick<MedicalDocumentSummary, 'title' | 'shortTitle' | 'sourceType' | 'metadata'>,
 ): string {
@@ -47,7 +69,7 @@ export function displayDocumentTitle(
     const inn = document.title.split('—')[0]?.trim();
     if (inn) return inn;
   }
-  const title = document.shortTitle ?? document.title;
+  const title = readableShortTitle(document) ?? document.title;
   const metadata = document.metadata;
   const code = metadata?.['mkbCode'];
   const path = metadata?.['classificationPath'];

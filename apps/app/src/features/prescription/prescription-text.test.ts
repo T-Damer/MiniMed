@@ -79,6 +79,31 @@ describe('the Rp line', () => {
       }),
     ).toBe('Таблетки амоксициллина 500 мг N 21');
   });
+
+  it('leaves out a dosage the registry does not state instead of printing its words', () => {
+    for (const strength of ['НЕ УКАЗАНО', '1.0~']) {
+      expect(
+        rpLine({
+          latinName: 'Amoxicillinum',
+          russianName: 'амоксициллин',
+          form: 'таблетки',
+          strength,
+          quantity: 21,
+          quantityKind: 'piece',
+        }),
+      ).toBe('Tab. Amoxicillini N 21');
+      expect(
+        rpLine({
+          latinName: null,
+          russianName: 'амоксициллин',
+          form: 'таблетки',
+          strength,
+          quantity: 21,
+          quantityKind: 'piece',
+        }),
+      ).toBe('Таблетки амоксициллина N 21');
+    }
+  });
 });
 
 describe('the sign', () => {

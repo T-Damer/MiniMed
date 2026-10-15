@@ -9,6 +9,7 @@ import { TextArea } from '@/components/TextArea';
 import { SafetyDownloadOffer } from '@/features/medication-safety/SafetyDownloadOffer';
 import { sourceLine } from '@/features/medication-safety/safety-view';
 import { displayDrugName } from '@/features/medications/drug-screen';
+import { isUnstatedValue } from '@/features/search/registry-values';
 import { buildOfficialDocumentHash } from '@/state/document-route';
 import { assumedGroup } from './dose-population';
 import { FragmentsDisclosure, RuleQuote, SafetySummary } from './PrescriptionFragments';
@@ -101,6 +102,9 @@ export function PrescriptionItemCard(props: {
   const documentId = (): string => analysis().documentId ?? '';
   const form = (): ItemAnalysis['forms'][number] | undefined =>
     analysis().forms.find((entry) => entry.form === analysis().form);
+  // A dosage the registry does not state is no choice to offer, and its words are never shown.
+  const statedStrengths = () =>
+    (form()?.strengths ?? []).filter((entry) => !isUnstatedValue(entry.strength));
   const rows = createMemo(() => intakeRows(analysis()));
   const quantity = createMemo(() => quantityText(analysis()));
   const safety = createMemo(() => {
@@ -190,9 +194,9 @@ export function PrescriptionItemCard(props: {
           </For>
         </ChoiceChipList>
       </Show>
-      <Show when={analysis().form !== null && (form()?.strengths.length ?? 0) > 1}>
+      <Show when={analysis().form !== null && statedStrengths().length > 1}>
         <ChoiceChipList label="Дозировка" class="prescription__chips">
-          <For each={form()?.strengths ?? []}>
+          <For each={statedStrengths()}>
             {(entry) => (
               <ChoiceChip
                 compact

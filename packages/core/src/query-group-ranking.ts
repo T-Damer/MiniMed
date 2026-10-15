@@ -458,13 +458,40 @@ export function collapseGroupsByTargetDocument(
   groups: readonly SearchResultGroup[],
   documentsById: ReadonlyMap<string, SearchDocumentDescriptor>,
 ): readonly SearchResultGroup[] {
+  const identities = groups.map((group) => resolvedGroupIdentity(group.documentId, documentsById));
+  // A reference monograph of the substance (an Allmed card) that carries the substance's own name
+  // is the same answer as the registry card of that substance, spelt «Амоксициллин» there and
+  // «АМОКСИЦИЛЛИН» here. A monograph of a trade name («Терафлю») is another answer and stays.
+  groups.forEach((group, index) => {
+    const substance = linkedSubstanceId(group.documentId, documentsById);
+    if (substance === undefined) return;
+    const title = normalizeSurfaceText(group.title).trim();
+    const sameSubstance = groups.some(
+      (other, otherIndex) =>
+        otherIndex !== index &&
+        identities[otherIndex] === substance &&
+        normalizeSurfaceText(other.title).trim() === title,
+    );
+    if (sameSubstance) identities[index] = substance;
+  });
   const seen = new Set<string>();
-  return groups.filter((group) => {
-    const identity = resolvedGroupIdentity(group.documentId, documentsById);
+  return groups.filter((_group, index) => {
+    const identity = identities[index] ?? '';
     if (seen.has(identity)) return false;
     seen.add(identity);
     return true;
   });
+}
+
+/** The ЕСКЛП substance card a reference monograph is linked to, when it declares one. */
+function linkedSubstanceId(
+  documentId: string,
+  documentsById: ReadonlyMap<string, SearchDocumentDescriptor>,
+): string | undefined {
+  const document = documentsById.get(documentId);
+  if (document?.sourceType !== 'allmed_reference') return undefined;
+  const substance = document.metadata?.['linkedMnnDocumentId'];
+  return typeof substance === 'string' && substance.trim() ? substance : undefined;
 }
 
 export function rankSearchGroupsByQuery(

@@ -29,6 +29,7 @@ import {
   manufacturingBasisTitle,
   manufacturingCountries,
 } from '@/features/medications/mfg-country';
+import { dropPlaceholderQuantity, isUnstatedValue } from '@/features/search/registry-values';
 
 type SourceRecord = Readonly<Record<string, unknown>>;
 
@@ -85,10 +86,14 @@ function sentenceCase(value: string): string {
   return text ? text.charAt(0).toLocaleUpperCase('ru-RU') + text.slice(1) : text;
 }
 
-/** «50.0 мг» → «50 мг»: the registry prints whole numbers with a decimal point. */
+/**
+ * «50.0 мг» → «50 мг»: the registry prints whole numbers with a decimal point. The placeholder
+ * quantity «1.0» an older module glued in front of a combination dosage («1.0 325 мг+10 мг»,
+ * «1.0325 мг+10 мг») is not part of it.
+ */
 export function displayStrength(strength: string): string {
-  return strength
-    .trim()
+  if (isUnstatedValue(strength)) return '';
+  return dropPlaceholderQuantity(strength)
     .replace(/(\d+)\.0+(?=\D|$)/gu, '$1')
     .replace(/\s+/gu, ' ');
 }
@@ -121,7 +126,10 @@ function presentationLabel(
   const form = presentation?.dosageForm.trim();
   // Reference summaries put a whole packaging paragraph into the form field.
   if (!presentation || !form || form.length > LONG_FORM_LENGTH || form.includes('\n')) return null;
-  const strength = presentation.strength ? displayStrength(presentation.strength) : null;
+  const strength =
+    presentation.strength && !isUnstatedValue(presentation.strength)
+      ? displayStrength(presentation.strength)
+      : null;
   const text = [sentenceCase(form.toLocaleLowerCase('ru-RU')), strength]
     .filter(Boolean)
     .join(' · ');

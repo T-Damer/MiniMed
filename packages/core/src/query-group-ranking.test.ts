@@ -831,6 +831,73 @@ describe('collapseGroupsByTargetDocument', () => {
 
     expect(collapseGroupsByTargetDocument(groups, documentsById)).toEqual(groups);
   });
+
+  describe('a reference monograph of the substance', () => {
+    const documentsById = new Map([
+      [
+        'core.catalog.pointer.medication.esklp.mnn.амоксициллин-39ac',
+        {
+          id: 'core.catalog.pointer.medication.esklp.mnn.амоксициллин-39ac',
+          sourceType: 'core_catalog_pointer',
+          metadata: { catalogFamily: 'medication', targetDocumentId: 'esklp.mnn.амоксициллин' },
+        },
+      ],
+      [
+        'drug.allmed.8',
+        {
+          id: 'drug.allmed.8',
+          sourceType: 'allmed_reference',
+          metadata: { linkedMnnDocumentId: 'esklp.mnn.амоксициллин' },
+        },
+      ],
+      [
+        'drug.allmed.1977',
+        {
+          id: 'drug.allmed.1977',
+          sourceType: 'allmed_reference',
+          metadata: { linkedMnnDocumentId: 'esklp.mnn.парацетамол-фенилэфрин-фенирамин' },
+        },
+      ],
+      [
+        'core.catalog.pointer.medication.esklp.mnn.парацетамол-фенилэфрин-фенирамин-1',
+        {
+          id: 'core.catalog.pointer.medication.esklp.mnn.парацетамол-фенилэфрин-фенирамин-1',
+          sourceType: 'core_catalog_pointer',
+          metadata: {
+            catalogFamily: 'medication',
+            targetDocumentId: 'esklp.mnn.парацетамол-фенилэфрин-фенирамин',
+          },
+        },
+      ],
+    ]);
+
+    it('is one result with the registry card of the same name, spelt in capitals there', () => {
+      const groups = [
+        group('core.catalog.pointer.medication.esklp.mnn.амоксициллин-39ac', 'АМОКСИЦИЛЛИН', 3),
+        group('drug.allmed.8', 'Амоксициллин', 2),
+      ];
+      expect(collapseGroupsByTargetDocument(groups, documentsById).map((g) => g.title)).toEqual([
+        'АМОКСИЦИЛЛИН',
+      ]);
+    });
+
+    it('keeps a trade-name monograph beside its substance', () => {
+      const groups = [
+        group(
+          'core.catalog.pointer.medication.esklp.mnn.парацетамол-фенилэфрин-фенирамин-1',
+          'ПАРАЦЕТАМОЛ+ФЕНИЛЭФРИН+ФЕНИРАМИН',
+          3,
+        ),
+        group('drug.allmed.1977', 'Терафлю', 2),
+      ];
+      expect(collapseGroupsByTargetDocument(groups, documentsById)).toEqual(groups);
+    });
+
+    it('keeps the monograph when the substance is not among the results', () => {
+      const groups = [group('drug.allmed.8', 'Амоксициллин', 2)];
+      expect(collapseGroupsByTargetDocument(groups, documentsById)).toEqual(groups);
+    });
+  });
 });
 
 it('ranks a verbatim source phrase above documents matching individual words in their titles', () => {

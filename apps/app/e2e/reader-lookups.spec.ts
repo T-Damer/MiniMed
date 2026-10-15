@@ -42,7 +42,7 @@ test('search source context uses the same inline medication lookup', async ({ pa
     .locator('.result-group')
     .filter({ has: page.getByText('АСКОРБИНОВАЯ КИСЛОТА+ПАРАЦЕТАМОЛ', { exact: true }) })
     .getByTestId('search-result')
-    .filter({ hasText: /Стандартизированное МНН/u })
+    .filter({ hasText: /Действующее вещество/u })
     .first();
   await result.waitFor({ timeout: 30_000 });
   await result.click();

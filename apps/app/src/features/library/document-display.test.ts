@@ -78,6 +78,38 @@ describe('document-display', () => {
     ).toBe('Цефтриаксон');
   });
 
+  it('opens a drug monograph under its Russian trade name, not the Latin short title', () => {
+    expect(
+      displayDocumentTitle({
+        title: 'Терафлю',
+        shortTitle: 'Theraflu',
+        sourceType: 'allmed_reference',
+      }),
+    ).toBe('Терафлю');
+    expect(
+      displayDocumentTitle({
+        title: 'Колдакт Флю Плюс',
+        shortTitle: 'Coldact Flu Plus',
+        sourceType: 'allmed_reference',
+      }),
+    ).toBe('Колдакт Флю Плюс');
+    // A monograph whose title is Latin keeps it; so does a short title written in Russian.
+    expect(
+      displayDocumentTitle({
+        title: 'Aspirin',
+        shortTitle: 'Aspirin',
+        sourceType: 'allmed_reference',
+      }),
+    ).toBe('Aspirin');
+    expect(
+      displayDocumentTitle({
+        title: 'Ибупрофен: справка',
+        shortTitle: 'Ибупрофен',
+        sourceType: 'allmed_reference',
+      }),
+    ).toBe('Ибупрофен');
+  });
+
   it('keeps clinical titles unchanged', () => {
     expect(
       displayDocumentTitle({

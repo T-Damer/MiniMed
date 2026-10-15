@@ -19,6 +19,7 @@ import {
   ROUTE_VAGINAL,
 } from '@localmed/contracts';
 
+import { isUnstatedValue } from '@/features/search/registry-values';
 import { pluralRu } from '@/i18n/labels';
 import type { UnitsPlan } from './dose-compute';
 import {
@@ -322,9 +323,13 @@ export function rpLine(input: RpInput): string {
       : input.quantityKind === 'ml'
         ? ` ${decimalText(Math.ceil(input.quantity))} ml`
         : ` N ${countText(Math.ceil(input.quantity))}`;
+  // A dosage the registry does not state is left out of the line, never printed as its words.
+  const stated = !isUnstatedValue(input.strength);
   if (input.latinName && abbreviation) {
-    return `${abbreviation} ${latinGenitive(input.latinName)} ${latinStrength(input.strength)}${count}`;
+    const head = [abbreviation, latinGenitive(input.latinName)];
+    return `${[...head, ...(stated ? [latinStrength(input.strength)] : [])].join(' ')}${count}`;
   }
   const formWord = input.form.charAt(0).toLocaleUpperCase('ru-RU') + input.form.slice(1);
-  return `${formWord} ${russianGenitive(input.russianName)} ${input.strength}${count.replace(' ml', ' мл')}`;
+  const head = [formWord, russianGenitive(input.russianName), ...(stated ? [input.strength] : [])];
+  return `${head.join(' ')}${count.replace(' ml', ' мл')}`;
 }

@@ -36,6 +36,56 @@ describe('presentResultSnippet', () => {
     expect(presented.text.slice(range?.start, range?.end)).toBe('Эпилепсия');
   });
 
+  describe('the generated registry text of a drug pointer (STATE DOSE1)', () => {
+    const TRADE_LINES =
+      '- ТН: Аспинат; форма/дозировка: ТАБЛЕТКИ (500 мг)\n' +
+      '- ТН: Аспинат С; форма/дозировка: ТАБЛЕТКИ ШИПУЧИЕ (НЕ УКАЗАНО)\n' +
+      '- ТН: Колдакт Хот Дринк; форма/дозировка: ПОРОШОК ДЛЯ ПРИГОТОВЛЕНИЯ РАСТВОРА ДЛЯ ПРИЕМА ВНУТРЬ (325 мг + 10 мг + 20 мг), ПОРОШОК ДЛЯ ПРИГОТОВЛЕНИЯ РАСТВОРА ДЛЯ ПРИЕМА ВНУТРЬ (НЕ УКАЗАНО)';
+
+    it('reads the trade-name lines as one list, without pipeline labels or НЕ УКАЗАНО', () => {
+      const presented = presentResultSnippet({
+        snippet: TRADE_LINES,
+        highlightedRanges: [rangeOf(TRADE_LINES, 'Аспинат')],
+        sectionPath: ['21.20.10.1 — ТАБЛЕТКИ — 500.0мг'],
+      });
+      expect(presented.text).toBe(
+        'Аспинат — Таблетки, 500 мг · Аспинат С — Таблетки шипучие · Колдакт Хот Дринк — Порошок для приготовления раствора для приема внутрь, 325 мг + 10 мг + 20 мг; Порошок для приготовления раствора для приема внутрь',
+      );
+      expect(presented.text).not.toMatch(/ТН:|форма\/дозировка|НЕ УКАЗАНО/u);
+      // The highlight on the trade name stays on the trade name.
+      expect(presented.text.slice(presented.ranges[0]?.start, presented.ranges[0]?.end)).toBe(
+        'Аспинат',
+      );
+    });
+
+    it('survives a line cut by the snippet window', () => {
+      const snippet =
+        '- ТН: Аспирин; форма/дозировка: ТАБЛЕТКИ (500 мг)\n- ТН: АЦЕТИЛСАЛИЦИЛОВАЯ КИ';
+      expect(
+        presentResultSnippet({ snippet, highlightedRanges: [], sectionPath: ['x'] }).text,
+      ).toBe('Аспирин — Таблетки, 500 мг · АЦЕТИЛСАЛИЦИЛОВАЯ КИ');
+    });
+
+    it('names the substance in a sentence instead of the catalogue identity line', () => {
+      const snippet =
+        'Стандартизированное МНН: АМЛОДИПИН+РОЗУВАСТАТИН.\n\nПолные данные находятся в скачиваемом модуле «minimed.medications.cardiovascular.ru» и не дублируются в ядре.';
+      expect(
+        presentResultSnippet({
+          snippet,
+          highlightedRanges: [],
+          sectionPath: ['Указатель препарата'],
+        }).text,
+      ).toBe('Действующее вещество: амлодипин + розувастатин.');
+    });
+
+    it('reads a combination drug dosage that an older module glued to the placeholder', () => {
+      const snippet = '- ТН: Колдакт Хот Дринк; форма/дозировка: ПОРОШОК (1.0325 мг+10 мг+20 мг)';
+      expect(
+        presentResultSnippet({ snippet, highlightedRanges: [], sectionPath: ['x'] }).text,
+      ).toBe('Колдакт Хот Дринк — Порошок, 325 мг+10 мг+20 мг');
+    });
+  });
+
   it('names specialties in words, not by their catalogue slugs', () => {
     const snippet =
       'МКБ-10: F32, F33. Специальности: psychiatry, addiction-medicine. Возраст: Взрослые.';
@@ -150,7 +200,7 @@ describe('a drug pointer’s «Указатель препарата»', () => {
       highlightedRanges: [],
     };
     expect(orderResultsForDisplay([index, code])).toEqual([index, code]);
-    expect(presentResultSnippet(index).text).toBe('Стандартизированное МНН: ПАРАЦЕТАМОЛ.');
+    expect(presentResultSnippet(index).text).toBe('Действующее вещество: парацетамол.');
   });
 });
 

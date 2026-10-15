@@ -167,14 +167,23 @@ describe('drug overview line', () => {
     ).toBe(true);
   });
 
-  it('moves the overview of a product record to the front instead of repeating it', async () => {
+  it('shows the substance once: the record that carries its name is one result with the pointer (DOSE1)', async () => {
     const response = await lookup('амоксициллин');
     expect(response.ok).toBe(true);
     if (!response.ok) return;
-    const card = response.value.groups.find((group) => group.documentId === 'allmed.amoxicillin');
-    expect(card?.results[0]?.sectionPath).toEqual(['Фармакологическое действие']);
-    const chunkIds = card?.results.map((result) => result.chunkId) ?? [];
+    // «АМОКСИЦИЛЛИН» (registry pointer) and «Амоксициллин» (the Allmed record of the same name) were
+    // two results with the same overview line; the pointer's group has it now.
+    expect(response.value.groups.map((group) => group.documentId)).not.toContain(
+      'allmed.amoxicillin',
+    );
+    const pointer = response.value.groups.find(
+      (group) => group.documentId === 'pointer.amoxicillin',
+    );
+    expect(pointer?.results[0]?.sectionPath).toEqual(['Фармакологическое действие']);
+    const chunkIds = pointer?.results.map((result) => result.chunkId) ?? [];
     expect(new Set(chunkIds).size).toBe(chunkIds.length);
+    // A record with another title («Амоксициллин ДС») is another answer and stays.
+    expect(response.value.groups.map((group) => group.documentId)).toContain('allmed.other');
   });
 
   it('keeps the passage a dose form asks for', async () => {

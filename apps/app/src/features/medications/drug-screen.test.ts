@@ -117,6 +117,13 @@ describe('displayStrength', () => {
     expect(displayStrength('100.0мг')).toBe('100мг');
     expect(displayStrength('2.5 мг')).toBe('2.5 мг');
     expect(displayStrength('10.05 мг')).toBe('10.05 мг');
+    // DOSE1: the placeholder quantity and the registry's «not stated» are not part of a dosage.
+    expect(displayStrength('1.0 325 мг+10 мг+20 мг')).toBe('325 мг+10 мг+20 мг');
+    expect(displayStrength('1.0325 мг+10 мг+20 мг')).toBe('325 мг+10 мг+20 мг');
+    expect(displayStrength('1.01.42 мг+18.26 мг+20 мг/мл')).toBe('1.42 мг+18.26 мг+20 мг/мл');
+    expect(displayStrength('1.0 мг')).toBe('1 мг');
+    expect(displayStrength('НЕ УКАЗАНО')).toBe('');
+    expect(displayStrength('1.0 ~')).toBe('');
   });
 });
 
