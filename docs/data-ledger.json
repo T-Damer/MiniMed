@@ -718,7 +718,7 @@
       ],
       "release": "branch datasets/esklp-2026-08-28-atc2",
       "rebuild": "decode output/module-zstd-2026-10-01/esklp-compacted into data/build/atc-fill/base; uv run --project tools/ingest python tools/ingest/scripts/build_atc_fill.py derive|apply --out data/build/atc-fill/out; bun scripts/reframe-modules.ts --marker atc2 --family esklp --module-id … --decoded-dir data/build/atc-fill/out/patched --out-dir output/module-zstd-esklp-atc2-2026-10-13",
-      "note": "14 ЕСКЛП modules with completed ATC codes (269 nodes) and flags (676 conflicts); only documents.metadata_json differs from output/module-zstd-2026-10-01/esklp-compacted, which stays as the previous release copy. Decoded copies, patched databases and the Allmed decode were deleted after verification. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
+      "note": "14 ЕСКЛП modules with completed ATC codes (269 nodes) and flags (676 conflicts); only documents.metadata_json differs from output/module-zstd-2026-10-01/esklp-compacted, which stays as the previous release copy. Decoded copies, patched databases and the Allmed decode were deleted after verification. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2). Superseded in the catalog on 2026-10-15 by output/module-zstd-esklp-str1-2026-10-15 (STATE DOSE1); kept as the previous release copy.",
       "bytes": 68574066,
       "modified": "2026-10-14"
     },
@@ -731,9 +731,24 @@
       ],
       "release": "branch datasets/esklp-2026-08-28-atc3",
       "rebuild": "decode output/module-zstd-2026-10-01/esklp-compacted into data/build/atc-fill/base; uv run --project tools/ingest python tools/ingest/scripts/build_atc_fill.py derive|apply --out data/build/atc-fill/out3 --data-root <main checkout>; bun scripts/reframe-modules.ts --marker atc3 --family esklp --module-id … --decoded-dir data/build/atc-fill/out3/patched --out-dir output/module-zstd-esklp-atc3-2026-10-14",
-      "note": "9 ЕСКЛП modules with atcConsensus on 26 nodes of 13 cards; only documents.metadata_json differs from output/module-zstd-esklp-atc2-2026-10-13, which stays as the previous release copy (the other five completed groups and antiparasitic are still served from their atc2/original tags). Decoded copies and patched databases were deleted after verification.",
+      "note": "9 ЕСКЛП modules with atcConsensus on 26 nodes of 13 cards; only documents.metadata_json differs from output/module-zstd-esklp-atc2-2026-10-13, which stays as the previous release copy (the other five completed groups and antiparasitic are still served from their atc2/original tags). Decoded copies and patched databases were deleted after verification. Superseded in the catalog on 2026-10-15 by output/module-zstd-esklp-str1-2026-10-15 (STATE DOSE1); kept as the previous release copy.",
       "bytes": 53834542,
       "modified": "2026-10-14"
+    },
+    {
+      "path": "output/module-zstd-esklp-str1-2026-10-15",
+      "class": "RELEASED",
+      "producer": "STATE DOSE1: tools/ingest/scripts/repair_esklp_strengths.py apply over the decoded published ЕСКЛП modules (atc3/atc2/original copies) and the non-compacted release-esklp build, then scripts/reframe-modules.ts --marker str1 --family esklp",
+      "consumers": [
+        "catalog.preview.json 15 ЕСКЛП group modules (tag esklp-2026-08-28-str1, version 2026-08-28.str1)",
+        "apps/app/e2e/module-install-timing.spec.ts",
+        "scripts/lib/published-esklp.ts (INT1/SAFE1 index builders find the published modules here by SHA-256)"
+      ],
+      "release": "branch datasets/esklp-2026-08-28-str1",
+      "rebuild": "decode the catalog's previous 15 ЕСКЛП artifacts (output/module-zstd-esklp-atc3-2026-10-14, output/module-zstd-esklp-atc2-2026-10-13, output/module-zstd-2026-10-01/esklp-compacted for antiparasitic) into data/build/esklp-str1/base; uv run --project tools/ingest python tools/ingest/scripts/repair_esklp_strengths.py apply --original data/build/release-esklp --published data/build/esklp-str1/base --work data/build/esklp-str1/work --out data/build/esklp-str1/out --report data/build/esklp-str1/report.json; bun scripts/reframe-modules.ts --marker str1 --family esklp --decoded-dir data/build/esklp-str1/out --out-dir output/module-zstd-esklp-str1-2026-10-15",
+      "note": "All 15 ЕСКЛП modules with the registry's «1.0» placeholder removed from dosages (1 839 cards, 20 602 chunks) and no literal «НЕ УКАЗАНО» in the card text; the ATC2/ATC3 fill is carried over. The atc3, atc2 and esklp-compacted copies stay as the previous release (rollback; older fixtures read esklp-compacted). The decoded base/work/out copies (about 1.9 GB) and the probe decodes were deleted after verification.",
+      "bytes": 68698171,
+      "modified": "2026-10-15"
     },
     {
       "path": "data/build/kd1",

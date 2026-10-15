@@ -1,6 +1,6 @@
 {
   "catalogVersion": "regulatory-zstd.2026.10.14",
-  "publishedAt": "2026-10-14T23:45:00Z",
+  "publishedAt": "2026-10-15T08:30:24Z",
   "coreModule": {
     "id": "minimed.core.ru",
     "version": "1.0.0-preview.8",

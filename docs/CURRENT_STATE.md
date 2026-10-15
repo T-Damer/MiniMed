@@ -1011,7 +1011,7 @@ a guideline module did not open after the network was cut (its lazy chunks `Docu
   cardiology section is checked as «N из N» offline, not a fixed 43.
 - **Specs that need `data/` skip with a reason.** `e2e/local-data.ts` (`missingLocalData`) is used by
   `core-identities`, `module-lifecycle` and `terminology`; `module-install-timing` points at the release copy of
-  the published ЕСКЛП edition (`output/module-zstd-esklp-atc3-2026-10-14`). Specs that read release copies
+  the published ЕСКЛП edition (`output/module-zstd-esklp-str1-2026-10-15`). Specs that read release copies
   from `output/` (clinical-module fixture, Allmed, severity) skip in a worktree, which has no local data:
   never link `data/` or `output/` into a worktree (AGENTS.md; a committed link once made a pull delete every
   release copy). Run them from the main checkout, or give the spec the main checkout's absolute paths
@@ -5580,6 +5580,67 @@ Branch-specific next steps (PR #180):
 - Not covered: the unclassified and Allmed packages have no group of their own (only the synthetic
   `none` group when installed substances lack a code); no search inside the tree. E2E:
   `apps/app/e2e/medication-atc-tree.spec.ts` (antiparasitic module, needs the local zstd copy).
+
+### ЕСКЛП dosages without the «1.0» placeholder, readable drug snippets — 2026-10-15 (STATE DOSE1, QA 0.6.60 items 4 and 12)
+
+QA found «1,0325 мг+10 мг+20 мг» on the card ПАРАЦЕТАМОЛ+ФЕНИЛЭФРИН+ФЕНИРАМИН while the product list said 325 мг (also
+«1,0650 мг», «1,0250 мг+65 мг+250 мг» Цитрамон, «1,01,42 мг+18,26 мг+20 мг/мл» Корвалол, «1,025 мг+1 мг+0,4 мг/мл»), the
+literal «НЕ УКАЗАНО», search snippets that were pipeline lines, one drug listed twice and a card titled «Theraflu».
+
+- **Cause.** The workbook prints a dosage in two cells, «Кол-во» and «Единица измерения дозировки». For a combination drug
+  the registry writes the placeholder «1.0» into the first and the whole dosage into the second («1.0» + «325 мг+10
+  мг+20 мг»); an unstated dosage is «1.0» + «~» or «НЕ УКАЗАНО». The builders glued the cells: node rows without a
+  space (`1.0325 мг+…`, `1.01.42 мг+…`, `1.0~`), trade-name rows with one (`1.0 325 мг+…`, `1.0 ~`).
+- **Builder.** `localmed_ingest/esklp_strength.py` is the one rule (`registry_strength`: a unit cell that is itself an
+  expression wins over the placeholder, an unstated unit leaves nothing; `repair_strength`/`has_glued_placeholder` read an
+  already glued string, glued ones only with evidence). `esklp_rows.parse_trade_rows` and `esklp_catalog._strength` call it
+  and a card's `strengths` no longer lists an unstated value. Tests (`test_esklp_strength.py`) run the raw cells of the
+  five QA cards through `parse_trade_rows`, `parse_smnn_rows` and the catalog.
+- **Scan, all 3 324 ЕСКЛП cards (15 modules).** Before: 1 765 cards carried a glued dosage in a node or trade-name string
+  (1 018 of them a composite dosage like the QA ones, 747 the «1.0~» placeholder), 1 564 showed it in their `strengths`
+  list, 1 372 listed «НЕ УКАЗАНО» there; 5 523 card-text chunks showed a glued dosage and 18 989 the literal «НЕ УКАЗАНО».
+  After: **0 / 0 / 0 / 0 / 0** (`repair_esklp_strengths.py scan`; a line the 3 200-character chunk limit cut in the middle of
+  «(НЕ УКАЗАНО)» is repaired as far as the chunk shows it). 1 839 cards were repaired (2 815 node and 9 938 trade-name
+  dosages), 20 602 chunks changed text.
+- **Modules.** The registry archive is not on this machine, so the 15 published modules are repaired by the same rule with
+  evidence (a glued node dosage `1.0<rest>` only when a trade name of the node holds `1.0 <rest>`; all 1 788 glued node
+  dosages had it): `tools/ingest/scripts/repair_esklp_strengths.py apply` rebuilds each module from the non-compacted
+  original, carries the published metadata over (the ATC2/ATC3 fill stays), repairs `documents.metadata_json` and the card
+  text, rebuilds the search text of the changed chunks the way the modules were indexed (`index_text`; the run refuses
+  unless it reproduces all 134 630 stored `normalized_text` values), and runs the same search compaction. It then compares
+  the result with the published module: only the metadata of repaired cards and the text of the touched chunks differ;
+  chunk ids, section ids, anchors, order and spans are the published ones. The registry's own klp rows
+  (`klpPositions[].strength`, «НЕ УКАЗАНО») and `normalizedFormsStrengths` are kept as provenance; a card's text writes an
+  unstated dosage like any other empty field («не указано в каталоге») and names a dosage once.
+- **Republished.** All 15 ЕСКЛП group modules as tag/branch `esklp-2026-08-28-str1` (`datasets/esklp-2026-08-28-str1`, 68.7 MB,
+  module version `2026-08-28.str1`), every artifact verified from the raw mirror (`verify-module-artifact.ts --url`);
+  `catalog.preview.json` (15 entries, `publishedAt` moved forward) and `catalog.shell.json` point at it. Local release
+  copy `output/module-zstd-esklp-str1-2026-10-15`; the `atc2`/`atc3`/original copies stay as the previous release. No GitHub
+  release was created. `reframe-modules.ts` now also replaces a `strN` marker.
+- **Indexes.** The drug-comparison index was rebuilt from the repaired modules (`CMP1_ESKLP_DIR`): only the `f` strengths of
+  1 765 cards changed, 1 619 glued dosages → 0 (the 10 «1,0…» left are real: «1,05 мг», «1,03 мг/г», document ids). The
+  interaction, safety and substance-fallback indexes read no dosages and are unchanged; the dose-rules index (`r`/`ps` rows)
+  keeps the registry literal «НЕ УКАЗАНО» as the key of a row (the prescription model selects by it), so the prescription
+  screen no longer offers it as a chip and the Rp line leaves it out.
+- **Core pointers.** The core's medication pointers (pinned to the released core) carry the same defects in section titles
+  and «форма/дозировка» lines. `pin_medication_pointers.py` repairs them on its copy (`esklp_strength_repair.repair_pointer_pack`,
+  per-card changes from `tools/ingest/scripts/esklp-strength-repairs-2026-08-28.json`): on the released core 2 815 section
+  titles are retitled (2 437 glued → 0, 1 025 «1.0~» → 0) and 2 961 chunks change («(НЕ УКАЗАНО)» 1 872 → 0). **No core was built or
+  released here**; the next `content:core:build` carries it. The released core is read correctly by the app until then.
+  `packages/test-fixtures/src/generated/core-slice.json` (a slice of the released core) still holds the old titles.
+- **App.** `features/search/registry-values.ts` reads a dosage the old modules still have: the placeholder quantity and the
+  registry's «не указано» are not part of it (drug screen `displayStrength`, reader section titles and registry lines, the
+  comparison index builder, prescription chips and Rp line). Search snippets of a drug pointer read «Аспинат — Таблетки,
+  500 мг · Аспирин — …» and «Действующее вещество: розувастатин.» (`presentResultSnippet`; names keep their highlights; the
+  source overlay keeps the catalogue wording). **One result per substance:** an Allmed monograph that carries the substance's
+  own name is collapsed into the registry card of that substance (`АМОКСИЦИЛЛИН` / `Амоксициллин`; a trade-name monograph
+  such as «Терафлю» stays; `collapseGroupsByTargetDocument`). **Russian title:** a monograph opens under its Russian trade
+  name, not the Latin short title (`displayDocumentTitle`: «Терафлю», «Колдакт Флю Плюс»).
+- **Checked.** vitest 18 011 passed (one test of the old duplicate behaviour rewritten), pytest `tools/ingest/tests` green,
+  `benchmark:all` within tolerance. The probe of the real corpus (core + ЕСКЛП/Allmed/instruction modules) shows one
+  «амоксициллин» result; the 15 modules open through the app's own parsers with clean dosages. **Not tested:** the browser UI
+  (snippets, chips), the e2e specs (`reader-lookups` now waits for «Действующее вещество»; `module-install-timing` and the
+  catalog test name the `-str1` copy), an install of the `-str1` modules from the mirror in a clean profile, a device.
 
 ### ATC completion for the ЕСКЛП cards — 2026-10-13 (STATE ATC2)
 

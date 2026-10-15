@@ -333,6 +333,11 @@ const PINNED_MEDICATION_IDS = resolve(
   root,
   'tools/ingest/scripts/released-medication-pointer-ids-2026-09-08.json',
 );
+// What the dosage repair (STATE DOSE1) did to each ЕСКЛП card: the pin applies it to the pointers.
+const STRENGTH_REPAIRS = resolve(
+  root,
+  'tools/ingest/scripts/esklp-strength-repairs-2026-08-28.json',
+);
 const CLINICAL_SOURCE_MANIFEST = resolve(
   root,
   'tools/ingest/scripts/released-clinical-source-databases-2026-07-27.json',
@@ -410,7 +415,12 @@ const stages = [
     name: 'medication-pointers-pinned',
     deps: [],
     async inputs() {
-      return { releasedCore: RELEASED_CORE, pinnedIds: PINNED_MEDICATION_IDS };
+      return {
+        releasedCore: RELEASED_CORE,
+        pinnedIds: PINNED_MEDICATION_IDS,
+        // DOSE1: the repairs of the pointers' dosage titles are part of the stage's identity.
+        strengthRepairs: STRENGTH_REPAIRS,
+      };
     },
     async outputs() {
       return [resolve(buildDir, 'core-medication-pointers-pinned.db')];
@@ -432,6 +442,8 @@ const stages = [
           'data/build/core-medication-pointers-pinned.db',
           '--report',
           'data/build/core-medication-pointers-pinned-report.json',
+          '--strength-repairs',
+          'tools/ingest/scripts/esklp-strength-repairs-2026-08-28.json',
         ],
         {
           label:
