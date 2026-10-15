@@ -12,6 +12,7 @@ import { PrescriptionItemCard } from './PrescriptionItemCard';
 import { PrescriptionPatientFacts } from './PrescriptionPatientFacts';
 import { createPrescriptionController } from './prescription-controller';
 import { RecipeDialog } from './RecipeDialog';
+import { recipeMissingText } from './recipe-missing';
 import '@/styles/prescription.css';
 
 /** The ЕСКЛП card of an open drug document: the card itself, or the card its instruction serves. */
@@ -48,7 +49,7 @@ function RecipeSheet(props: {
       open={props.open}
       text={controller.recipe()}
       onClose={props.onClose}
-      empty="Выберите форму и дозировку: текст рецепта появится здесь."
+      empty={recipeMissingText(controller.analyses())}
     >
       <PrescriptionPatientFacts
         patient={controller.draft().patient}

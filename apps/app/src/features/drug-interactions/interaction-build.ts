@@ -194,15 +194,11 @@ export function createInteractionBuilder(input: {
         const extracted = extractDocumentSpans(loaded, combined, {
           isLeaflet: document.kind === 'leaflet',
           ownKeys,
-          // A card is also a member of its secondary classes: a class word in its own warning
-          // sections describes itself there too.
-          ownAtcCodes: cardIndexes.flatMap((index) => {
-            const card = input.cards[index];
-            return [
-              ...(card?.atcCodes ?? []),
-              ...(card?.secondaryClasses ?? []).map((extra) => extra.code),
-            ];
-          }),
+          // Only the primary classes: a class word in a warning of the drug's own class is the
+          // drug describing itself («как и другие НПВП»). A secondary class is what one component
+          // brings, and «avoid other drugs that contain paracetamol or an antihistamine» in a cold
+          // remedy is a real warning for another antihistamine, so it is not suppressed (CLS2).
+          ownAtcCodes: cardIndexes.flatMap((index) => input.cards[index]?.atcCodes ?? []),
           ...(input.onSentence
             ? {
                 onSentence: (sentence) =>

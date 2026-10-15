@@ -6498,6 +6498,1794 @@
         "verdict": "better in every changed row: each added sentence is a statement about barbiturates or hypnotics that holds for a drug containing phenobarbital. Nothing got worse; the added quotes are marked «через фенобарбитал (барбитурат, снотворное)» so a doctor sees they come through the component."
       },
       "ui": "Interaction checker, prescription tool and drug comparison (they share InteractionPairs): a quote reached only through a secondary class shows a small italic «через фенобарбитал (барбитурат, снотворное)» beside the section label; print and share text carry the same words. The drug screen and the ATC sheet are DRUG-UI1’s; the secondary class is available as card element 4 of the interaction index (the screen reads ATC codes from the comparison index), so a «также: снотворное» line there needs that agent to decide where it reads it from."
+    },
+    {
+      "id": "OD7",
+      "decision": "CLS2: the component classes CLS1 listed but did not apply are declared as secondary classes where the product’s own instruction names the class: codeine → opioid (N02A), caffeine → psychostimulant (N06BC), phenylephrine and pseudoephedrine → decongestant (R01BA), paracetamol → analgesic (N02BE), chlorphenamine → antihistamine (R06AB). Pheniramine is declared the same way (R06AB): the same ATC subgroup and the same cold-remedy products, which would otherwise differ from the chlorphenamine ones for no reason.",
+      "owner": "owner decision 2026-10-14 (CLS1): «one drug can have many classes; its main use is primary, a component’s class is secondary and still matches interaction sentences, labelled secondary». CLS1 left these classes for a decision; CLS2 applies them under the same evidence rule.",
+      "evidenceRule": "The class must be one the interaction sentences name (the target `c:<code>` is in the index and a class word of `class-phrases.ts` stands for it), the component’s own ATC code is the declared group (N02AA59/R05DA04 → N02A, N06BC01 → N06BC, R01BA03/R01BA02 → R01BA, N02BE01 → N02BE, R06AB04/R06AB05 → R06AB), the class is not among the card’s own codes, and the card’s own instruction (verbatim quote, checked by the build) calls the component the class: «опиоидное средство», «психостимулятор» / «стимулирует нервную систему», «сосудосуживающее … уменьшает отек слизистой оболочки носа», «ненаркотический анальгетик» / «обезболивающее и жаропонижающее», «блокатор Н1-гистаминовых рецепторов» / «противоаллергическое». Not declared where the instruction denies the class (caffeine «практически не оказывает стимулирующего действия»), speaks of another action (caffeine as an analgesic adjuvant), says nothing about the component, or is only an amendment or OCR sheet.",
+      "change": {
+        "declarations": "45 secondary entries on 28 cards (7 + 45 = 52 entries in `addClasses`); one entry per card, component and class, each with a reason and a verbatim quote of the product’s own instruction.",
+        "ownClassSuppression": "CLS1 counted a secondary class as the card’s own class when it suppresses class mentions in the drug’s own warnings. For these components that hides real warnings («avoid other drugs that contain paracetamol or an antihistamine»), so only the primary classes suppress now (`interaction-build.ts`). The seven CLS1 cards are unchanged by this (no document differs).",
+        "secondaryClassesFile": "`data/secondary-classes.json` (6.9 kB, built with the index) for the drug screen: card slug → [[ATC group, component, label], …].",
+        "files": "atc-code-exceptions.json (+45 entries), interaction-index.json (rebuilt), secondary-classes.json (new), interaction-build.ts (own-class suppression), scripts/build-drug-interactions.ts, secondary-classes.ts, secondary-classes-load.ts"
+      },
+      "byComponent": {
+        "хлорфенамин": {
+          "class": "R06AB",
+          "label": "антигистаминное",
+          "cards": 4,
+          "documentPairsGained": 686,
+          "sentencePairsGained": 913
+        },
+        "фенилэфрин": {
+          "class": "R01BA",
+          "label": "деконгестант",
+          "cards": 12,
+          "documentPairsGained": 1404,
+          "sentencePairsGained": 1962
+        },
+        "кофеин": {
+          "class": "N06BC",
+          "label": "психостимулятор",
+          "cards": 9,
+          "documentPairsGained": 493,
+          "sentencePairsGained": 713
+        },
+        "парацетамол": {
+          "class": "N02BE",
+          "label": "анальгетик",
+          "cards": 9,
+          "documentPairsGained": 703,
+          "sentencePairsGained": 823
+        },
+        "фенирамин": {
+          "class": "R06AB",
+          "label": "антигистаминное",
+          "cards": 8,
+          "documentPairsGained": 1287,
+          "sentencePairsGained": 1800
+        },
+        "псевдоэфедрин": {
+          "class": "R01BA",
+          "label": "деконгестант",
+          "cards": 1,
+          "documentPairsGained": 120,
+          "sentencePairsGained": 154
+        },
+        "кодеин": {
+          "class": "N02A",
+          "label": "опиоид",
+          "cards": 2,
+          "documentPairsGained": 288,
+          "sentencePairsGained": 647
+        }
+      },
+      "additions": [
+        {
+          "card": "esklp.mnn.амброксол-гвайфенезин-фенилэфрин-хлорфенамин",
+          "role": "secondary",
+          "classes": [
+            "R06AB"
+          ],
+          "via": "хлорфенамин",
+          "label": "антигистаминное",
+          "products": "Колдакт® Бронхо, РиниКолд КОФКОМПЛЕКС®",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "componentAtc": "R06AB04, group R06AB «Замещенные алкиламины»",
+          "evidence": {
+            "document": "drug.rf.240535c8f55eca995933.instruction",
+            "section": "Показания к применению",
+            "quote": "Хлорфенамина малеат оказывает противоаллергическое действие: устраняет слезотечение, зуд в глазах и носу."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 136,
+            "documentsNamingTheClassAfter": 315,
+            "documentPairsGained": 179,
+            "sentencesBefore": 140,
+            "sentencesAfter": 373,
+            "sentencePairsGained": 233
+          }
+        },
+        {
+          "card": "esklp.mnn.амброксол-гвайфенезин-фенилэфрин-хлорфенамин",
+          "role": "secondary",
+          "classes": [
+            "R01BA"
+          ],
+          "via": "фенилэфрин",
+          "label": "деконгестант",
+          "products": "Колдакт® Бронхо, РиниКолд КОФКОМПЛЕКС®",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "componentAtc": "R01BA03, group R01BA «Симпатомиметики» (systemic nasal decongestants)",
+          "evidence": {
+            "document": "drug.rf.240535c8f55eca995933.instruction",
+            "section": "Показания к применению",
+            "quote": "Фенилэфрина гидрохлорид оказывает сосудосуживающее действие, уменьшает отечность и покраснение (гиперемию) слизистых оболочек верхних отделов дыхательных путей и придаточных пазух носа."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 136,
+            "documentsNamingTheClassAfter": 257,
+            "documentPairsGained": 121,
+            "sentencesBefore": 140,
+            "sentencesAfter": 304,
+            "sentencePairsGained": 164
+          }
+        },
+        {
+          "card": "esklp.mnn.аскорбиновая-кислота-кальция-глюконат-кофеин-парацетамол-рутозид",
+          "role": "secondary",
+          "classes": [
+            "N06BC"
+          ],
+          "via": "кофеин",
+          "label": "психостимулятор",
+          "products": "Пентафлуцин дневной",
+          "primaryCodes": [
+            "R05X"
+          ],
+          "componentAtc": "N06BC01, group N06BC «Производные ксантина»",
+          "evidence": {
+            "document": "drug.rf.56bc0736b790a376c01c.instruction",
+            "section": "Способ действия препарата",
+            "quote": "Кофеин стимулирует центральную нервную систему, что приводит к уменьшению усталости и сонливости, к повышению умственной и физической работоспособности."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 212,
+            "documentsNamingTheClassAfter": 269,
+            "documentPairsGained": 57,
+            "sentencesBefore": 266,
+            "sentencesAfter": 345,
+            "sentencePairsGained": 79
+          }
+        },
+        {
+          "card": "esklp.mnn.аскорбиновая-кислота-кальция-глюконат-кофеин-парацетамол-рутозид",
+          "role": "secondary",
+          "classes": [
+            "N02BE"
+          ],
+          "via": "парацетамол",
+          "label": "анальгетик",
+          "products": "Пентафлуцин дневной",
+          "primaryCodes": [
+            "R05X"
+          ],
+          "componentAtc": "N02BE01, group N02BE «Анилиды»",
+          "evidence": {
+            "document": "drug.rf.56bc0736b790a376c01c.instruction",
+            "section": "Способ действия препарата",
+            "quote": "Парацетамол оказывает жаропонижающее и обезболивающее действие, блокируя некоторые ферменты"
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 212,
+            "documentsNamingTheClassAfter": 292,
+            "documentPairsGained": 80,
+            "sentencesBefore": 266,
+            "sentencesAfter": 358,
+            "sentencePairsGained": 92
+          }
+        },
+        {
+          "card": "esklp.mnn.аскорбиновая-кислота-кальция-глюконат-лоратадин-парацетамол-римантадин-рутозид",
+          "role": "secondary",
+          "classes": [
+            "N02BE"
+          ],
+          "via": "парацетамол",
+          "label": "анальгетик",
+          "products": "Антигриппин-максимум, АнвиМакс®",
+          "primaryCodes": [
+            "R05X"
+          ],
+          "componentAtc": "N02BE01, group N02BE «Анилиды»",
+          "evidence": {
+            "document": "drug.rf.b8643898646d730bce44.instruction",
+            "section": "Показания к применению",
+            "quote": "Парацетамол обладает обезболивающим и жаропонижающим действием."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 138,
+            "documentsNamingTheClassAfter": 217,
+            "documentPairsGained": 79,
+            "sentencesBefore": 180,
+            "sentencesAfter": 272,
+            "sentencePairsGained": 92
+          }
+        },
+        {
+          "card": "esklp.mnn.аскорбиновая-кислота-кальция-глюконат-парацетамол-рутозид-фенилэфрин-и-аскорбиновая-кислота-кальция-глюконат-парацетамол-рутозид-фенилэфрин-фенирамин-набор",
+          "role": "secondary",
+          "classes": [
+            "R06AB"
+          ],
+          "via": "фенирамин",
+          "label": "антигистаминное",
+          "products": "Дуоколд®",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "componentAtc": "R06AB05, group R06AB «Замещенные алкиламины»",
+          "evidence": {
+            "document": "drug.rf.m1.182b42f4e7ef0baf6f32.instruction",
+            "section": "Показания к применению",
+            "quote": "Фенирамин является противоаллергическим средством, снижает чувство заложенности носа, чихание, слезотечение, зуд и покраснение глаз."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 256,
+            "documentsNamingTheClassAfter": 417,
+            "documentPairsGained": 161,
+            "sentencesBefore": 306,
+            "sentencesAfter": 532,
+            "sentencePairsGained": 226
+          }
+        },
+        {
+          "card": "esklp.mnn.аскорбиновая-кислота-кальция-глюконат-парацетамол-рутозид-фенилэфрин-и-аскорбиновая-кислота-кальция-глюконат-парацетамол-рутозид-фенилэфрин-фенирамин-набор",
+          "role": "secondary",
+          "classes": [
+            "R01BA"
+          ],
+          "via": "фенилэфрин",
+          "label": "деконгестант",
+          "products": "Дуоколд®",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "componentAtc": "R01BA03, group R01BA «Симпатомиметики» (systemic nasal decongestants)",
+          "evidence": {
+            "document": "drug.rf.m1.182b42f4e7ef0baf6f32.instruction",
+            "section": "Показания к применению",
+            "quote": "Фенилэфрин уменьшает отек слизистой оболочки полости носа, восстанавливает носовое дыхание."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 256,
+            "documentsNamingTheClassAfter": 371,
+            "documentPairsGained": 115,
+            "sentencesBefore": 306,
+            "sentencesAfter": 470,
+            "sentencePairsGained": 164
+          }
+        },
+        {
+          "card": "esklp.mnn.аскорбиновая-кислота-парацетамол-рутозид-фенилэфрин-янтарная-кислота",
+          "role": "secondary",
+          "classes": [
+            "N02BE"
+          ],
+          "via": "парацетамол",
+          "label": "анальгетик",
+          "products": "ИНФЛЮНЕТ®",
+          "primaryCodes": [
+            "R05X"
+          ],
+          "componentAtc": "N02BE01, group N02BE «Анилиды»",
+          "evidence": {
+            "document": "drug.rf.854f19cf48cfab9c23e9.instruction",
+            "section": "Фармакодинамика",
+            "quote": "Парацетамол Ненаркотический анальгетик, блокирует структурный фермент циклооксигеназу-1"
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 169,
+            "documentsNamingTheClassAfter": 250,
+            "documentPairsGained": 81,
+            "sentencesBefore": 209,
+            "sentencesAfter": 300,
+            "sentencePairsGained": 91
+          }
+        },
+        {
+          "card": "esklp.mnn.аскорбиновая-кислота-парацетамол-рутозид-фенилэфрин-янтарная-кислота",
+          "role": "secondary",
+          "classes": [
+            "R01BA"
+          ],
+          "via": "фенилэфрин",
+          "label": "деконгестант",
+          "products": "ИНФЛЮНЕТ®",
+          "primaryCodes": [
+            "R05X"
+          ],
+          "componentAtc": "R01BA03, group R01BA «Симпатомиметики» (systemic nasal decongestants)",
+          "evidence": {
+            "document": "drug.rf.854f19cf48cfab9c23e9.instruction",
+            "section": "Фармакодинамика",
+            "quote": "стимулирует постсинаптические альфа-адренорецепторы, обладает умеренным сосудосуживающим действием, уменьшает отек и гиперемию слизистой оболочки носа"
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 169,
+            "documentsNamingTheClassAfter": 297,
+            "documentPairsGained": 128,
+            "sentencesBefore": 209,
+            "sentencesAfter": 374,
+            "sentencePairsGained": 165
+          }
+        },
+        {
+          "card": "esklp.mnn.белладонны-листьев-экстракт-кофеин-парацетамол-теофиллин-фенобарбитал-цитизин-эфедрин",
+          "role": "secondary",
+          "classes": [
+            "N02BE"
+          ],
+          "via": "парацетамол",
+          "label": "анальгетик",
+          "products": "Теофедрин-Н®",
+          "primaryCodes": [
+            "R03DA54"
+          ],
+          "componentAtc": "N02BE01, group N02BE «Анилиды»",
+          "evidence": {
+            "document": "drug.rf.deacbe24a06a94abe0d5.instruction",
+            "section": "Фармакодинамика",
+            "quote": "За счет присутствия в составе препарата парацетамола Теофедрин-Н® обладает жаропонижающим и обезболивающим действием."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 742,
+            "documentsNamingTheClassAfter": 796,
+            "documentPairsGained": 54,
+            "sentencesBefore": 1074,
+            "sentencesAfter": 1166,
+            "sentencePairsGained": 92
+          }
+        },
+        {
+          "card": "esklp.mnn.бромгексина-гидрохлорид-кальция-глюконат-парацетамол-рутозид-аскорбиновая-кислота",
+          "role": "secondary",
+          "classes": [
+            "N02BE"
+          ],
+          "via": "парацетамол",
+          "label": "анальгетик",
+          "products": "Пентафлуцин-Бронхо",
+          "primaryCodes": [
+            "R05X"
+          ],
+          "componentAtc": "N02BE01, group N02BE «Анилиды»",
+          "evidence": {
+            "document": "drug.rf.dd4fc078b220bee3b783.instruction",
+            "section": "Фармакологические свойства",
+            "quote": "Парацетамол - ненаркотический анальгетик, блокирует фермент циклооксигеназу 1-го типа"
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 135,
+            "documentsNamingTheClassAfter": 217,
+            "documentPairsGained": 82,
+            "sentencesBefore": 178,
+            "sentencesAfter": 270,
+            "sentencePairsGained": 92
+          }
+        },
+        {
+          "card": "esklp.mnn.гвайфенезин-парацетамол-фенилэфрин",
+          "role": "secondary",
+          "classes": [
+            "R01BA"
+          ],
+          "via": "фенилэфрин",
+          "label": "деконгестант",
+          "products": "Ларивикс",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "componentAtc": "R01BA03, group R01BA «Симпатомиметики» (systemic nasal decongestants)",
+          "evidence": {
+            "document": "drug.rf.694e10eb3c71368681b0.instruction",
+            "section": "Показания к применению",
+            "quote": "Фенилэфрин представляет собой сосудосуживающее средство, которое устраняет отечность слизистой оболочки полости носа"
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 211,
+            "documentsNamingTheClassAfter": 328,
+            "documentPairsGained": 117,
+            "sentencesBefore": 256,
+            "sentencesAfter": 419,
+            "sentencePairsGained": 163
+          }
+        },
+        {
+          "card": "esklp.mnn.декстрометорфан-парацетамол-псевдоэфедрин-аскорбиновая-кислота",
+          "role": "secondary",
+          "classes": [
+            "N02BE"
+          ],
+          "via": "парацетамол",
+          "label": "анальгетик",
+          "products": "Каффетин® Колд",
+          "primaryCodes": [
+            "R05X"
+          ],
+          "componentAtc": "N02BE01, group N02BE «Анилиды»",
+          "evidence": {
+            "document": "drug.rf.9374e574b43f16da2090.instruction",
+            "section": "Показания к применению",
+            "quote": "Парацетамол обладает обезболивающим и жаропонижающим действием."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 188,
+            "documentsNamingTheClassAfter": 264,
+            "documentPairsGained": 76,
+            "sentencesBefore": 252,
+            "sentencesAfter": 339,
+            "sentencePairsGained": 87
+          }
+        },
+        {
+          "card": "esklp.mnn.декстрометорфан-парацетамол-псевдоэфедрин-аскорбиновая-кислота",
+          "role": "secondary",
+          "classes": [
+            "R01BA"
+          ],
+          "via": "псевдоэфедрин",
+          "label": "деконгестант",
+          "products": "Каффетин® Колд",
+          "primaryCodes": [
+            "R05X"
+          ],
+          "componentAtc": "R01BA02, group R01BA «Симпатомиметики» (systemic nasal decongestants)",
+          "evidence": {
+            "document": "drug.rf.9374e574b43f16da2090.instruction",
+            "section": "Показания к применению",
+            "quote": "Псевдоэфедрин уменьшает заложенность носа и улучшает проходимость дыхательных путей."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 188,
+            "documentsNamingTheClassAfter": 308,
+            "documentPairsGained": 120,
+            "sentencesBefore": 252,
+            "sentencesAfter": 406,
+            "sentencePairsGained": 154
+          }
+        },
+        {
+          "card": "esklp.mnn.дифенгидрамин-кальция-глюконат-парацетамол-рутозид-аскорбиновая-кислота",
+          "role": "secondary",
+          "classes": [
+            "N02BE"
+          ],
+          "via": "парацетамол",
+          "label": "анальгетик",
+          "products": "Пентафлуцин®",
+          "primaryCodes": [
+            "R05X"
+          ],
+          "componentAtc": "N02BE01, group N02BE «Анилиды»",
+          "evidence": {
+            "document": "drug.rf.01f8d37d071409c8fafd.instruction",
+            "section": "Фармакодинамика",
+            "quote": "Парацетамол - ненаркотический анальгетик, блокирует фермент циклооксигеназу 1 -го типа"
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 154,
+            "documentsNamingTheClassAfter": 236,
+            "documentPairsGained": 82,
+            "sentencesBefore": 193,
+            "sentencesAfter": 285,
+            "sentencePairsGained": 92
+          }
+        },
+        {
+          "card": "esklp.mnn.дротаверин-кофеин-напроксен-парацетамол-фенирамин",
+          "role": "secondary",
+          "classes": [
+            "R06AB"
+          ],
+          "via": "фенирамин",
+          "label": "антигистаминное",
+          "products": "Пенталгин®, СПАЗМАЛГОН® ЭФФЕКТ",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "componentAtc": "R06AB05, group R06AB «Замещенные алкиламины»",
+          "evidence": {
+            "document": "drug.rf.a538acf036678ea3eb92.instruction",
+            "section": "1. Что из себя представляет препарат СПАЗМАЛГОН® Э",
+            "quote": "Фенирамин – H1-гистаминовых рецепторов блокатор."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 279,
+            "documentsNamingTheClassAfter": 443,
+            "documentPairsGained": 164,
+            "sentencesBefore": 375,
+            "sentencesAfter": 601,
+            "sentencePairsGained": 226
+          }
+        },
+        {
+          "card": "esklp.mnn.ибупрофен-кофеин",
+          "role": "secondary",
+          "classes": [
+            "N06BC"
+          ],
+          "via": "кофеин",
+          "label": "психостимулятор",
+          "products": "Мигрениум® Нео",
+          "primaryCodes": [
+            "M01AE01"
+          ],
+          "componentAtc": "N06BC01, group N06BC «Производные ксантина»",
+          "evidence": {
+            "document": "drug.rf.f6959b624fb8d820b61d.instruction",
+            "section": "Показания к применению",
+            "quote": "Кофеин является стимулятором и обеспечивает более быстрое наступление и увеличение продолжительности обезболивающего действия"
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 634,
+            "documentsNamingTheClassAfter": 679,
+            "documentPairsGained": 45,
+            "sentencesBefore": 1211,
+            "sentencesAfter": 1284,
+            "sentencePairsGained": 73
+          }
+        },
+        {
+          "card": "esklp.mnn.кодеин-кофеин-метамизол-натрия-парацетамол-фенобарбитал",
+          "role": "secondary",
+          "classes": [
+            "N06BC"
+          ],
+          "via": "кофеин",
+          "label": "психостимулятор",
+          "products": "Седал-М®",
+          "primaryCodes": [
+            "N02BB72"
+          ],
+          "componentAtc": "N06BC01, group N06BC «Производные ксантина»",
+          "evidence": {
+            "document": "drug.rf.4803db68c77181561f14.instruction",
+            "section": "Фармакотерапевтическая группа",
+            "quote": "Анальгезирующее средство (анальгезирующее опиоидное средство + НПВП + анальгезирующее ненаркотическое средство + психостимулирующее средство + барбитурат)."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 643,
+            "documentsNamingTheClassAfter": 688,
+            "documentPairsGained": 45,
+            "sentencesBefore": 834,
+            "sentencesAfter": 910,
+            "sentencePairsGained": 76
+          }
+        },
+        {
+          "card": "esklp.mnn.кодеин-кофеин-метамизол-натрия-парацетамол-фенобарбитал",
+          "role": "secondary",
+          "classes": [
+            "N02A"
+          ],
+          "via": "кодеин",
+          "label": "опиоид",
+          "products": "Седал-М®",
+          "primaryCodes": [
+            "N02BB72"
+          ],
+          "componentAtc": "N02AA59 / R05DA04, group N02A «Опиоиды»",
+          "evidence": {
+            "document": "drug.rf.4803db68c77181561f14.instruction",
+            "section": "Фармакотерапевтическая группа",
+            "quote": "Анальгезирующее средство (анальгезирующее опиоидное средство + НПВП + анальгезирующее ненаркотическое средство + психостимулирующее средство + барбитурат)."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 643,
+            "documentsNamingTheClassAfter": 784,
+            "documentPairsGained": 141,
+            "sentencesBefore": 834,
+            "sentencesAfter": 1157,
+            "sentencePairsGained": 323
+          }
+        },
+        {
+          "card": "esklp.mnn.кодеин-кофеин-метамизол-натрия-фенобарбитал",
+          "role": "secondary",
+          "classes": [
+            "N06BC"
+          ],
+          "via": "кофеин",
+          "label": "психостимулятор",
+          "products": "Тетралганол®",
+          "primaryCodes": [
+            "N02BB72"
+          ],
+          "componentAtc": "N06BC01, group N06BC «Производные ксантина»",
+          "evidence": {
+            "document": "drug.rf.3461eebd8595b2bfb158.instruction",
+            "section": "Фармакодинамика",
+            "quote": "Кофеин Оказывает общетонизирующее действие на центральную нервную систему (ЦНС): уменьшает сонливость и чувство усталости, повышает умственную и физическую работоспособность"
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 585,
+            "documentsNamingTheClassAfter": 632,
+            "documentPairsGained": 47,
+            "sentencesBefore": 726,
+            "sentencesAfter": 804,
+            "sentencePairsGained": 78
+          }
+        },
+        {
+          "card": "esklp.mnn.кодеин-кофеин-метамизол-натрия-фенобарбитал",
+          "role": "secondary",
+          "classes": [
+            "N02A"
+          ],
+          "via": "кодеин",
+          "label": "опиоид",
+          "products": "Тетралганол®",
+          "primaryCodes": [
+            "N02BB72"
+          ],
+          "componentAtc": "N02AA59 / R05DA04, group N02A «Опиоиды»",
+          "evidence": {
+            "document": "drug.rf.3461eebd8595b2bfb158.instruction",
+            "section": "Фармакодинамика",
+            "quote": "Кодеин Анальгезирующее опиоидное средство из группы агонистов опиатных рецепторов, производное фенантрена."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 585,
+            "documentsNamingTheClassAfter": 732,
+            "documentPairsGained": 147,
+            "sentencesBefore": 726,
+            "sentencesAfter": 1050,
+            "sentencePairsGained": 324
+          }
+        },
+        {
+          "card": "esklp.mnn.кофеин-парацетамол",
+          "role": "secondary",
+          "classes": [
+            "N06BC"
+          ],
+          "via": "кофеин",
+          "label": "психостимулятор",
+          "products": "Страйк Плюс, Мигрениум®",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "componentAtc": "N06BC01, group N06BC «Производные ксантина»",
+          "evidence": {
+            "document": "drug.rf.2112e1ef38143af52123.instruction",
+            "section": "Фармакологические свойства",
+            "quote": "Также кофеин стимулирует психомоторные центры головного мозга, оказывает аналептическое действие"
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 246,
+            "documentsNamingTheClassAfter": 302,
+            "documentPairsGained": 56,
+            "sentencesBefore": 307,
+            "sentencesAfter": 385,
+            "sentencePairsGained": 78
+          }
+        },
+        {
+          "card": "esklp.mnn.кофеин-парацетамол-пропифеназон",
+          "role": "secondary",
+          "classes": [
+            "N06BC"
+          ],
+          "via": "кофеин",
+          "label": "психостимулятор",
+          "products": "ТЕМПАЛГИН® ТРИО, Каффетин® лайт, Сафистон®",
+          "primaryCodes": [
+            "N02BA51",
+            "N02BE51"
+          ],
+          "componentAtc": "N06BC01, group N06BC «Производные ксантина»",
+          "evidence": {
+            "document": "drug.rf.6f92b765b6c81facc076.instruction",
+            "section": "Фармакодинамика",
+            "quote": "а также психостимулятор кофеин."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 262,
+            "documentsNamingTheClassAfter": 314,
+            "documentPairsGained": 52,
+            "sentencesBefore": 326,
+            "sentencesAfter": 401,
+            "sentencePairsGained": 75
+          }
+        },
+        {
+          "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-фенирамин",
+          "role": "secondary",
+          "classes": [
+            "N06BC"
+          ],
+          "via": "кофеин",
+          "label": "психостимулятор",
+          "products": "Флюфайт",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "componentAtc": "N06BC01, group N06BC «Производные ксантина»",
+          "evidence": {
+            "document": "drug.rf.b361fc7cbad6803112a5.instruction",
+            "section": "Показания к применению",
+            "quote": "Кофеин стимулирует нервную систему, парацетамол оказывает жаропонижающее и обезболивающее действие, фенилэфрин сужает сосуды, что подавляет возникновение насморка, фенирамин оказывает противоаллергическое действие."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 291,
+            "documentsNamingTheClassAfter": 347,
+            "documentPairsGained": 56,
+            "sentencesBefore": 354,
+            "sentencesAfter": 432,
+            "sentencePairsGained": 78
+          }
+        },
+        {
+          "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-фенирамин",
+          "role": "secondary",
+          "classes": [
+            "R06AB"
+          ],
+          "via": "фенирамин",
+          "label": "антигистаминное",
+          "products": "Флюфайт",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "componentAtc": "R06AB05, group R06AB «Замещенные алкиламины»",
+          "evidence": {
+            "document": "drug.rf.b361fc7cbad6803112a5.instruction",
+            "section": "Показания к применению",
+            "quote": "Кофеин стимулирует нервную систему, парацетамол оказывает жаропонижающее и обезболивающее действие, фенилэфрин сужает сосуды, что подавляет возникновение насморка, фенирамин оказывает противоаллергическое действие."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 291,
+            "documentsNamingTheClassAfter": 450,
+            "documentPairsGained": 159,
+            "sentencesBefore": 354,
+            "sentencesAfter": 581,
+            "sentencePairsGained": 227
+          }
+        },
+        {
+          "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-фенирамин",
+          "role": "secondary",
+          "classes": [
+            "R01BA"
+          ],
+          "via": "фенилэфрин",
+          "label": "деконгестант",
+          "products": "Флюфайт",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "componentAtc": "R01BA03, group R01BA «Симпатомиметики» (systemic nasal decongestants)",
+          "evidence": {
+            "document": "drug.rf.b361fc7cbad6803112a5.instruction",
+            "section": "Показания к применению",
+            "quote": "Кофеин стимулирует нервную систему, парацетамол оказывает жаропонижающее и обезболивающее действие, фенилэфрин сужает сосуды, что подавляет возникновение насморка, фенирамин оказывает противоаллергическое действие."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 291,
+            "documentsNamingTheClassAfter": 405,
+            "documentPairsGained": 114,
+            "sentencesBefore": 354,
+            "sentencesAfter": 518,
+            "sentencePairsGained": 164
+          }
+        },
+        {
+          "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-фенирамин-аскорбиновая-кислота",
+          "role": "secondary",
+          "classes": [
+            "N06BC"
+          ],
+          "via": "кофеин",
+          "label": "психостимулятор",
+          "products": "Ринзасип® с витамином С",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "componentAtc": "N06BC01, group N06BC «Производные ксантина»",
+          "evidence": {
+            "document": "drug.rf.0dd99eb6c8ed844cc99c.instruction",
+            "section": "1. Что из себя представляет препарат Ринзасип® с в",
+            "quote": "Кофеин стимулирует нервную систему, парацетамол оказывает жаропонижающее и обезболивающее действие, фенилэфрин сужает сосуды, что подавляет возникновение насморка, фенирамин оказывает противоаллергическое действие"
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 330,
+            "documentsNamingTheClassAfter": 386,
+            "documentPairsGained": 56,
+            "sentencesBefore": 398,
+            "sentencesAfter": 476,
+            "sentencePairsGained": 78
+          }
+        },
+        {
+          "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-фенирамин-аскорбиновая-кислота",
+          "role": "secondary",
+          "classes": [
+            "R06AB"
+          ],
+          "via": "фенирамин",
+          "label": "антигистаминное",
+          "products": "Ринзасип® с витамином С",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "componentAtc": "R06AB05, group R06AB «Замещенные алкиламины»",
+          "evidence": {
+            "document": "drug.rf.0dd99eb6c8ed844cc99c.instruction",
+            "section": "Показания к применению",
+            "quote": "Фенирамин оказывает противоаллергическое действие: устраняет зуд глаз, носа и горла"
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 330,
+            "documentsNamingTheClassAfter": 483,
+            "documentPairsGained": 153,
+            "sentencesBefore": 398,
+            "sentencesAfter": 621,
+            "sentencePairsGained": 223
+          }
+        },
+        {
+          "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-фенирамин-аскорбиновая-кислота",
+          "role": "secondary",
+          "classes": [
+            "R01BA"
+          ],
+          "via": "фенилэфрин",
+          "label": "деконгестант",
+          "products": "Ринзасип® с витамином С",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "componentAtc": "R01BA03, group R01BA «Симпатомиметики» (systemic nasal decongestants)",
+          "evidence": {
+            "document": "drug.rf.0dd99eb6c8ed844cc99c.instruction",
+            "section": "Показания к применению",
+            "quote": "Фенилэфрин оказывает сосудосуживающее действие – уменьшает отек и гиперемию слизистых оболочек верхних отделов дыхательных путей и придаточных пазух."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 330,
+            "documentsNamingTheClassAfter": 441,
+            "documentPairsGained": 111,
+            "sentencesBefore": 398,
+            "sentencesAfter": 562,
+            "sentencePairsGained": 164
+          }
+        },
+        {
+          "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-фенирамин-и-парацетамол-фенилэфрин-фенирамин",
+          "role": "secondary",
+          "classes": [
+            "R06AB"
+          ],
+          "via": "фенирамин",
+          "label": "антигистаминное",
+          "products": "ДышеФЛЮ®",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "componentAtc": "R06AB05, group R06AB «Замещенные алкиламины»",
+          "evidence": {
+            "document": "drug.rf.2db557a03656d43c6e3c.instruction",
+            "section": "Показания к применению",
+            "quote": "Фенирамин оказывает противоаллергическое действие."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 291,
+            "documentsNamingTheClassAfter": 450,
+            "documentPairsGained": 159,
+            "sentencesBefore": 354,
+            "sentencesAfter": 581,
+            "sentencePairsGained": 227
+          }
+        },
+        {
+          "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-фенирамин-и-парацетамол-фенилэфрин-фенирамин",
+          "role": "secondary",
+          "classes": [
+            "R01BA"
+          ],
+          "via": "фенилэфрин",
+          "label": "деконгестант",
+          "products": "ДышеФЛЮ®",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "componentAtc": "R01BA03, group R01BA «Симпатомиметики» (systemic nasal decongestants)",
+          "evidence": {
+            "document": "drug.rf.2db557a03656d43c6e3c.instruction",
+            "section": "Показания к применению",
+            "quote": "Фенилэфрин уменьшает отек и покраснение (гиперемию) слизистых оболочек верхних дыхательных путей."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 291,
+            "documentsNamingTheClassAfter": 404,
+            "documentPairsGained": 113,
+            "sentencesBefore": 354,
+            "sentencesAfter": 517,
+            "sentencePairsGained": 163
+          }
+        },
+        {
+          "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-хлорфенамин",
+          "role": "secondary",
+          "classes": [
+            "R06AB"
+          ],
+          "via": "хлорфенамин",
+          "label": "антигистаминное",
+          "products": "РАНКОФ®, Флюфайт® Таб, КВАДРОФЛЮ®",
+          "primaryCodes": [
+            "R05X"
+          ],
+          "componentAtc": "R06AB04, group R06AB «Замещенные алкиламины»",
+          "evidence": {
+            "document": "drug.rf.1167f496b21bfa445861.instruction",
+            "section": "Фармакодинамика",
+            "quote": "Хлорфенамин Блокатор Н1-гистаминовых рецепторов."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 211,
+            "documentsNamingTheClassAfter": 392,
+            "documentPairsGained": 181,
+            "sentencesBefore": 263,
+            "sentencesAfter": 495,
+            "sentencePairsGained": 232
+          }
+        },
+        {
+          "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-хлорфенамин",
+          "role": "secondary",
+          "classes": [
+            "N02BE"
+          ],
+          "via": "парацетамол",
+          "label": "анальгетик",
+          "products": "РАНКОФ®, Флюфайт® Таб, КВАДРОФЛЮ®",
+          "primaryCodes": [
+            "R05X"
+          ],
+          "componentAtc": "N02BE01, group N02BE «Анилиды»",
+          "evidence": {
+            "document": "drug.rf.1167f496b21bfa445861.instruction",
+            "section": "Фармакодинамика",
+            "quote": "Парацетамол Ненаркотический анальгетик, обладает обезболивающим, жаропонижающим действием."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 211,
+            "documentsNamingTheClassAfter": 292,
+            "documentPairsGained": 81,
+            "sentencesBefore": 263,
+            "sentencesAfter": 355,
+            "sentencePairsGained": 92
+          }
+        },
+        {
+          "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-хлорфенамин",
+          "role": "secondary",
+          "classes": [
+            "R01BA"
+          ],
+          "via": "фенилэфрин",
+          "label": "деконгестант",
+          "products": "РАНКОФ®, Флюфайт® Таб, КВАДРОФЛЮ®",
+          "primaryCodes": [
+            "R05X"
+          ],
+          "componentAtc": "R01BA03, group R01BA «Симпатомиметики» (systemic nasal decongestants)",
+          "evidence": {
+            "document": "drug.rf.1167f496b21bfa445861.instruction",
+            "section": "Фармакодинамика",
+            "quote": "Фенилэфрин Сосудосуживающее, альфа-адреномиметическое средство, действие которого направлено на стимуляцию постсинаптических альфа-адренорецепторов, с умеренным сосудосуживающим действием."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 211,
+            "documentsNamingTheClassAfter": 338,
+            "documentPairsGained": 127,
+            "sentencesBefore": 263,
+            "sentencesAfter": 429,
+            "sentencePairsGained": 166
+          }
+        },
+        {
+          "card": "esklp.mnn.моксастин-кофеин",
+          "role": "secondary",
+          "classes": [
+            "N06BC"
+          ],
+          "via": "кофеин",
+          "label": "психостимулятор",
+          "products": "Авинорм Тревел®",
+          "primaryCodes": [
+            "A04AD"
+          ],
+          "componentAtc": "N06BC01, group N06BC «Производные ксантина»",
+          "evidence": {
+            "document": "drug.rf.9a4a095c2907f8a9db89.instruction",
+            "section": "Фармакодинамика",
+            "quote": "Кофеин является центральным психостимулятором, ингибитором фосфодиэстеразы"
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 46,
+            "documentsNamingTheClassAfter": 125,
+            "documentPairsGained": 79,
+            "sentencesBefore": 52,
+            "sentencesAfter": 150,
+            "sentencePairsGained": 98
+          }
+        },
+        {
+          "card": "esklp.mnn.парацетамол-аскорбиновая-кислота-кальция-глюконат-лоратадин-римантадин-рутозид",
+          "role": "secondary",
+          "classes": [
+            "N02BE"
+          ],
+          "via": "парацетамол",
+          "label": "анальгетик",
+          "products": "Антигриппин-максимум",
+          "primaryCodes": [
+            "R05X"
+          ],
+          "componentAtc": "N02BE01, group N02BE «Анилиды»",
+          "evidence": {
+            "document": "drug.rf.188092872c1e2d498723.instruction",
+            "section": "Фармакологические свойства",
+            "quote": "Парацетамол обладает обезболивающим и жаропонижающим действием."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 17,
+            "documentsNamingTheClassAfter": 105,
+            "documentPairsGained": 88,
+            "sentencesBefore": 20,
+            "sentencesAfter": 113,
+            "sentencePairsGained": 93
+          }
+        },
+        {
+          "card": "esklp.mnn.парацетамол-фенилэфрин-аскорбиновая-кислота",
+          "role": "secondary",
+          "classes": [
+            "R01BA"
+          ],
+          "via": "фенилэфрин",
+          "label": "деконгестант",
+          "products": "АджиКолд® Хотмикс, ДЕКОЛДАКС, Максиколд®",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "componentAtc": "R01BA03, group R01BA «Симпатомиметики» (systemic nasal decongestants)",
+          "evidence": {
+            "document": "drug.rf.b681e4dc355de682ca7f.instruction",
+            "section": "Фармакодинамика",
+            "quote": "Фенилэфрина гидрохлорид – симпатомиметическое средство, действие которого направлено на стимуляцию адренорецепторов (преимущественно α-адренорецепторов), что приводит к уменьшению отека слизистой оболочки носа и облегчению носового дыхания."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 251,
+            "documentsNamingTheClassAfter": 364,
+            "documentPairsGained": 113,
+            "sentencesBefore": 301,
+            "sentencesAfter": 463,
+            "sentencePairsGained": 162
+          }
+        },
+        {
+          "card": "esklp.mnn.парацетамол-фенилэфрин-фенирамин",
+          "role": "secondary",
+          "classes": [
+            "R06AB"
+          ],
+          "via": "фенирамин",
+          "label": "антигистаминное",
+          "products": "ТераФлю от гриппа и простуды Экстра, ТераФлю, Флюкомп®",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "componentAtc": "R06AB05, group R06AB «Замещенные алкиламины»",
+          "evidence": {
+            "document": "drug.rf.003fc44bf77ef0e3943a.instruction",
+            "section": "Фармакодинамика",
+            "quote": "Фенирамина малеат является противоаллергическим средством – блокатором Н1- гистаминовых рецепторов."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 211,
+            "documentsNamingTheClassAfter": 376,
+            "documentPairsGained": 165,
+            "sentencesBefore": 256,
+            "sentencesAfter": 484,
+            "sentencePairsGained": 228
+          }
+        },
+        {
+          "card": "esklp.mnn.парацетамол-фенилэфрин-фенирамин",
+          "role": "secondary",
+          "classes": [
+            "R01BA"
+          ],
+          "via": "фенилэфрин",
+          "label": "деконгестант",
+          "products": "ТераФлю от гриппа и простуды Экстра, ТераФлю, Флюкомп®",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "componentAtc": "R01BA03, group R01BA «Симпатомиметики» (systemic nasal decongestants)",
+          "evidence": {
+            "document": "drug.rf.003fc44bf77ef0e3943a.instruction",
+            "section": "Фармакодинамика",
+            "quote": "Фенилэфрина гидрохлорид – симпатомиметическое средство, при приеме внутрь оказывает умеренное сосудосуживающее действие (за счет стимуляции альфа1- адренорецепторов), уменьшает отек и гиперемию слизистой оболочки полости носа."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 211,
+            "documentsNamingTheClassAfter": 328,
+            "documentPairsGained": 117,
+            "sentencesBefore": 256,
+            "sentencesAfter": 418,
+            "sentencePairsGained": 162
+          }
+        },
+        {
+          "card": "esklp.mnn.парацетамол-фенилэфрин-фенирамин-аскорбиновая-кислота",
+          "role": "secondary",
+          "classes": [
+            "R06AB"
+          ],
+          "via": "фенирамин",
+          "label": "антигистаминное",
+          "products": "МАКСИОРВИН®, Стопгрипан форте, ГриппоФлю® от простуды и гриппа",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "componentAtc": "R06AB05, group R06AB «Замещенные алкиламины»",
+          "evidence": {
+            "document": "drug.rf.92c49e90e74045f47fd1.instruction",
+            "section": "Фармакодинамика",
+            "quote": "Фенирамин является противоаллергическим средством – блокатором Н1- гистаминовых рецепторов."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 251,
+            "documentsNamingTheClassAfter": 410,
+            "documentPairsGained": 159,
+            "sentencesBefore": 301,
+            "sentencesAfter": 525,
+            "sentencePairsGained": 224
+          }
+        },
+        {
+          "card": "esklp.mnn.парацетамол-фенилэфрин-фенирамин-аскорбиновая-кислота",
+          "role": "secondary",
+          "classes": [
+            "R01BA"
+          ],
+          "via": "фенилэфрин",
+          "label": "деконгестант",
+          "products": "МАКСИОРВИН®, Стопгрипан форте, ГриппоФлю® от простуды и гриппа",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "componentAtc": "R01BA03, group R01BA «Симпатомиметики» (systemic nasal decongestants)",
+          "evidence": {
+            "document": "drug.rf.92c49e90e74045f47fd1.instruction",
+            "section": "Фармакодинамика",
+            "quote": "Фенилэфрин – симпатомиметическое средство, при приеме внутрь оказывает умеренное сосудосуживающее действие (за счет стимуляции альфа1-адренорецепторов), уменьшает отек и гиперемию слизистой оболочки полости носа."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 251,
+            "documentsNamingTheClassAfter": 365,
+            "documentPairsGained": 114,
+            "sentencesBefore": 301,
+            "sentencesAfter": 463,
+            "sentencePairsGained": 162
+          }
+        },
+        {
+          "card": "esklp.mnn.парацетамол-фенилэфрин-хлорфенамин-аскорбиновая-кислота",
+          "role": "secondary",
+          "classes": [
+            "R06AB"
+          ],
+          "via": "хлорфенамин",
+          "label": "антигистаминное",
+          "products": "Колдакт® Форс, РАНКОФ® Флю",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "componentAtc": "R06AB04, group R06AB «Замещенные алкиламины»",
+          "evidence": {
+            "document": "drug.rf.9f76eac69de04185cb1a.instruction",
+            "section": "Фармакологические свойства",
+            "quote": "Хлорфенамина малеат – блокатор Н1-гистаминовых рецепторов – оказывает противоаллергическое действие"
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 252,
+            "documentsNamingTheClassAfter": 413,
+            "documentPairsGained": 161,
+            "sentencesBefore": 302,
+            "sentencesAfter": 528,
+            "sentencePairsGained": 226
+          }
+        },
+        {
+          "card": "esklp.mnn.парацетамол-фенилэфрин-хлорфенамин-аскорбиновая-кислота",
+          "role": "secondary",
+          "classes": [
+            "R01BA"
+          ],
+          "via": "фенилэфрин",
+          "label": "деконгестант",
+          "products": "Колдакт® Форс, РАНКОФ® Флю",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "componentAtc": "R01BA03, group R01BA «Симпатомиметики» (systemic nasal decongestants)",
+          "evidence": {
+            "document": "drug.rf.9f76eac69de04185cb1a.instruction",
+            "section": "Фармакологические свойства",
+            "quote": "Фенилэфрина гидрохлорид – альфа-адреномиметик – оказывает сосудосуживающее действие, уменьшает отечность и гиперемию слизистой оболочки носа и придаточных пазух."
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 252,
+            "documentsNamingTheClassAfter": 366,
+            "documentPairsGained": 114,
+            "sentencesBefore": 302,
+            "sentencesAfter": 465,
+            "sentencePairsGained": 163
+          }
+        },
+        {
+          "card": "esklp.mnn.парацетамол-фенирамин-аскорбиновая-кислота",
+          "role": "secondary",
+          "classes": [
+            "R06AB"
+          ],
+          "via": "фенирамин",
+          "label": "антигистаминное",
+          "products": "Флювикс детский, Сафистон Флю, Ринза® кидс",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "componentAtc": "R06AB05, group R06AB «Замещенные алкиламины»",
+          "evidence": {
+            "document": "drug.rf.7ea507d2bf9267f72cb9.instruction",
+            "section": "Фармакодинамика",
+            "quote": "Фенирамин – блокатор H1-гистаминовых рецепторов, снижает ринорею и слезотечение"
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 206,
+            "documentsNamingTheClassAfter": 373,
+            "documentPairsGained": 167,
+            "sentencesBefore": 254,
+            "sentencesAfter": 473,
+            "sentencePairsGained": 219
+          }
+        },
+        {
+          "card": "esklp.mnn.парацетамол-хлорфенамин-аскорбиновая-кислота",
+          "role": "secondary",
+          "classes": [
+            "R06AB"
+          ],
+          "via": "хлорфенамин",
+          "label": "антигистаминное",
+          "products": "Антигриппин, ФриКолд КИДС, ДезГриппин®",
+          "primaryCodes": [
+            "N02BE51"
+          ],
+          "componentAtc": "R06AB04, group R06AB «Замещенные алкиламины»",
+          "evidence": {
+            "document": "drug.rf.58db4c9619cbc1c1eca3.instruction",
+            "section": "Взаимодействие с другими лекарственными средствами",
+            "quote": "Ингибиторы моноаминоксидазы (МАО) нельзя принимать в сочетании с антигистаминными препаратами (например, хлорфенамина малеат)"
+          },
+          "effect": {
+            "documentsNamingTheClassBefore": 209,
+            "documentsNamingTheClassAfter": 374,
+            "documentPairsGained": 165,
+            "sentencesBefore": 257,
+            "sentencesAfter": 479,
+            "sentencePairsGained": 222
+          }
+        }
+      ],
+      "notApplied": [
+        {
+          "card": "esklp.mnn.кодеин-кофеин-метамизол-натрия-напроксен-фенобарбитал",
+          "component": "codeine",
+          "reason": "Пиралгин, Пентанов-Н (N02BB72): the only instruction in the modules is an amendment sheet (drug.rf.c7b3cfc9d56b105d18a0) with no text about codeine"
+        },
+        {
+          "card": "esklp.mnn.кодеин-кофеин-метамизол-натрия-напроксен-фенобарбитал",
+          "component": "caffeine",
+          "reason": "same amendment sheet, no text about caffeine"
+        },
+        {
+          "card": "esklp.mnn.кодеин-кофеин-парацетамол-пропифеназон",
+          "component": "codeine",
+          "reason": "Каффетин (N02BE51): the leaflet calls the product a combined analgesic and dispenses it under the rules for narcotic drugs, but never calls the codeine in it an opioid"
+        },
+        {
+          "card": "esklp.mnn.кодеин-кофеин-парацетамол-пропифеназон",
+          "component": "caffeine",
+          "reason": "Каффетин: the leaflet says caffeine strengthens the action of the other components, not that it stimulates"
+        },
+        {
+          "card": "esklp.mnn.ацетилсалициловая-кислота-кофеин-парацетамол",
+          "component": "caffeine",
+          "reason": "Цитрамон П, Сафистон Нео (N02BA71): the instruction says that in this combination caffeine in a small dose practically has no stimulating effect on the central nervous system"
+        },
+        {
+          "card": "esklp.mnn.ацетилсалициловая-кислота-кофеин-парацетамол-аскорбиновая-кислота",
+          "component": "caffeine",
+          "reason": "Цитрапак: same statement as Цитрамон"
+        },
+        {
+          "card": "esklp.mnn.белладонны-листьев-экстракт-кофеин-парацетамол-теофиллин-фенобарбитал-цитизин-эфедрин",
+          "component": "caffeine",
+          "reason": "Теофедрин-Н (R03DA54): no sentence names the action of caffeine"
+        },
+        {
+          "card": "esklp.mnn.бромизовал-кальция-глюконат-кофеин-папаверин-фенобарбитал",
+          "component": "caffeine",
+          "reason": "Паглюверин-2/-3 (N03AX): the instruction describes the caffeine-sodium benzoate as raising spinal reflex excitability and exciting the respiratory and vasomotor centres (an analeptic), not as a stimulant of the nervous system; the owner decides"
+        },
+        {
+          "card": "esklp.mnn.дротаверин-кофеин-напроксен-парацетамол-фенирамин",
+          "component": "caffeine",
+          "reason": "Пенталгин, Спазмалгон Эффект (N02BE51): the leaflets only warn against caffeine drinks and other CNS stimulants and say the effect of caffeine depends on the type of nervous system"
+        },
+        {
+          "card": "esklp.mnn.кофеин-напроксен-салициламид",
+          "component": "caffeine",
+          "reason": "Цефекон Н (N02BA55): the instruction in the modules is an OCR sheet without a statement about caffeine"
+        },
+        {
+          "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-фенирамин-и-парацетамол-фенилэфрин-фенирамин",
+          "component": "caffeine",
+          "reason": "ДышеФЛЮ (N02BE51): the leaflet speaks of caffeine only in the overdose symptoms"
+        },
+        {
+          "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-хлорфенамин",
+          "component": "caffeine",
+          "reason": "РАНКОФ, Флюфайт Таб, КВАДРОФЛЮ (R05X): the instruction calls caffeine an analgesic adjuvant that strengthens paracetamol, not a stimulant"
+        },
+        {
+          "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-хлорфенамин-и-парацетамол-фенилэфрин-хлорфенамин-набор",
+          "component": "caffeine",
+          "reason": "Колдакт Дэй Найт (N02BE51): the leaflet gives the analgesic, antipyretic and anti-allergic action to the product as a whole, nothing per component"
+        },
+        {
+          "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-хлорфенамин-и-парацетамол-фенилэфрин-хлорфенамин-набор",
+          "component": "phenylephrine",
+          "reason": "Колдакт Дэй Найт: same, no statement about phenylephrine"
+        },
+        {
+          "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-хлорфенамин-и-парацетамол-фенилэфрин-хлорфенамин-набор",
+          "component": "chlorphenamine",
+          "reason": "Колдакт Дэй Найт: same, no statement about chlorphenamine"
+        },
+        {
+          "card": "esklp.mnn.тропикамид-фенилэфрин",
+          "component": "phenylephrine",
+          "reason": "Фринакап Дуо, Феникамид софт, Аппамид Плюс (S01FA56): eye drops for dilating the pupil, where phenylephrine is a mydriatic sympathomimetic and the instruction does not call it a decongestant"
+        },
+        {
+          "card": "esklp.mnn.парацетамол-хлорфенамин",
+          "component": "chlorphenamine",
+          "reason": "Флюколдекс (N02BE51): the instruction in the modules is an OCR sheet without a statement about chlorphenamine"
+        },
+        {
+          "card": "esklp.mnn.аскорбиновая-кислота-кальция-карбонат-лоратадин-парацетамол-римантадин-рутозид",
+          "component": "paracetamol",
+          "reason": "АнГрикапс максима (R05X): the instruction in the modules is an OCR sheet without a statement about the action of paracetamol"
+        },
+        {
+          "card": "esklp.mnn.кодеин-парацетамол",
+          "component": "paracetamol",
+          "reason": "Кодеин+Парацетамол (N02AA59): already in N02A, which the word «анальгетики» covers (not declared)"
+        },
+        {
+          "card": "esklp.mnn.парацетамол-трамадол",
+          "component": "paracetamol",
+          "reason": "Рамлепса, Парацетамол+Трамадол Органика (N02AJ13): already in N02A, which the word «анальгетики» covers (not declared)"
+        }
+      ],
+      "forTheOwner": [
+        "Pheniramine was added beside chlorphenamine (not on CLS1’s list): 8 entries, same group R06AB. Delete the pheniramine entries to keep strictly to the list.",
+        "Caffeine is declared only where the instruction calls it a stimulant. The Citramon family (aspirin + paracetamol + caffeine) is left out because its own instruction says caffeine in that dose practically does not stimulate the nervous system; the owner may still want the psychostimulant class there.",
+        "«Противоаллергическое действие» is read as the antihistamine effect for five cold remedies whose instruction does not say «H1» or «антигистаминные» about the component (Колдакт Бронхо, Дуоколд, Флюфайт, Ринзасип с витамином С, ДышеФЛЮ); the other chlorphenamine and pheniramine entries name the H1 blockade or the antihistamines.",
+        "Other component classes of the same products were not asked for and are not declared: loratadine → antihistamine and rimantadine → antiviral (Антигриппин-максимум), guaifenesin and ambroxol → expectorant, dextromethorphan (done in ATC4c), ephedrine in Теофедрин-Н, metamizole and propyphenazone → analgesic where the card is not N02."
+      ],
+      "userScenarios": {
+        "method": "The ATC4c method: `checkPair` over the interaction index before (the committed index, 7 secondary entries) and after (rebuilt with the 45 CLS2 entries), the quoted sentences read from the installed ГРЛС instruction modules (`canonicalSectionText`, `spanDisplayText`). 15 combination products that gained a class × 46 common partner drugs = 690 pairs; the tool reads the best indexed instruction of each drug, as in the app. A gained sentence is «better» when it is a true statement about the class that holds for the product (a duplicate-therapy, CNS-depression, MAO-inhibitor or sympathomimetic warning), «neutral» when it is true of the class but about a member the product is not (a list of QT-prolonging antihistamines, buprenorphine against other opioids) or a long contraindication list; none was wrong for the product.",
+        "pairsChecked": 690,
+        "pairsChanged": 103,
+        "pairs": {
+          "better": 73,
+          "neutral-changed": 30,
+          "unchanged": 587,
+          "worse": 0
+        },
+        "sentencePairsGained": 131,
+        "sentencePairsLost": 0,
+        "uniqueSentencesGained": 35,
+        "uniqueSentencesNoise": 14,
+        "summary": {
+          "better": 73,
+          "neutral": 617,
+          "worse": 0
+        },
+        "rows": [
+          {
+            "a": "кофеин-парацетамол-фенилэфрин-хлорфенамин",
+            "b": "диазепам",
+            "situation": "cold remedy + benzodiazepine",
+            "before": 0,
+            "after": 1,
+            "gained": [
+              {
+                "from": "диазепам",
+                "via": "хлорфенамин (антигистаминное)",
+                "sentence": "Угнетающее действие диазепама на ЦНС усиливают все лекарственные средства, обладающие подобным действием: психотропные препараты, препараты для общей анестезии, снотворные, седативные препараты, противоэпилептические, антигистаминные препар"
+              }
+            ],
+            "verdict": "better"
+          },
+          {
+            "a": "кофеин-парацетамол-фенилэфрин-хлорфенамин",
+            "b": "кетотифен",
+            "situation": "cold remedy + antihistamine",
+            "before": 0,
+            "after": 1,
+            "gained": [
+              {
+                "from": "кетотифен",
+                "via": "хлорфенамин (антигистаминное)",
+                "sentence": "Одновременное применение кетотифена с другими антигистаминными препаратами может привести к взаимному усилению их эффектов."
+              }
+            ],
+            "verdict": "better"
+          },
+          {
+            "a": "кофеин-парацетамол-фенилэфрин-хлорфенамин",
+            "b": "лизиноприл",
+            "situation": "cold remedy + ACE inhibitor",
+            "before": 1,
+            "after": 2,
+            "gained": [
+              {
+                "from": "лизиноприл",
+                "via": "фенилэфрин (деконгестант)",
+                "sentence": "Альфа- и бета-адреномиметики Альфа- и бета-адреномиметики (симпатомиметики), такие как эпинефрин (адреналин), изопротеренол, добутамин, допамин, могут снижать антигипертензивный эффект лизиноприла."
+              }
+            ],
+            "verdict": "better"
+          },
+          {
+            "a": "кофеин-парацетамол-фенилэфрин-хлорфенамин",
+            "b": "амиодарон",
+            "situation": "cold remedy + antiarrhythmic",
+            "before": 0,
+            "after": 1,
+            "gained": [
+              {
+                "from": "амиодарон",
+                "via": "хлорфенамин (антигистаминное)",
+                "sentence": "- антигистаминные средства (мизоластин, астемизол, терфенадин);"
+              }
+            ],
+            "verdict": "neutral"
+          },
+          {
+            "a": "парацетамол-фенилэфрин-фенирамин",
+            "b": "налбуфин",
+            "situation": "cold remedy + opioid",
+            "before": 0,
+            "after": 1,
+            "gained": [
+              {
+                "from": "налбуфин",
+                "via": "фенирамин (антигистаминное)",
+                "sentence": "Усиливает угнетающее действие на центральную нервную систему и дыхание лекарственных средств для общей анестезии, снотворных, антигистаминных, анксиолитических, антипсихотических лекарственных средств, антидепрессантов, миорелаксантов."
+              }
+            ],
+            "verdict": "better"
+          },
+          {
+            "a": "парацетамол-фенилэфрин-фенирамин",
+            "b": "метилдопа",
+            "situation": "cold remedy + antihypertensive",
+            "before": 1,
+            "after": 2,
+            "gained": [
+              {
+                "from": "метилдопа",
+                "via": "фенилэфрин (деконгестант)",
+                "sentence": "Одновременное применение со следующими ЛС требует особой осторожности: Препараты, _ снижающие антигипертензивный эффект препарата Допегит®: • Симпатомиметики (усиливают прессорный эффект), • трициклические антидепрессанты, фенотиазины (в то"
+              }
+            ],
+            "verdict": "better"
+          },
+          {
+            "a": "парацетамол-фенилэфрин-фенирамин",
+            "b": "амитриптилин",
+            "situation": "cold remedy + tricyclic",
+            "before": 4,
+            "after": 6,
+            "gained": [
+              {
+                "from": "амитриптилин",
+                "via": "фенирамин (антигистаминное)",
+                "sentence": "При совместном применении с антигистаминными лекарственными средствами (клонидином) возможно усиление угнетающего действия на ЦНС; с лекарственными средствами, вызывающими экстрапирамидные реакции, – увеличение тяжести и частоты экстрапирам"
+              },
+              {
+                "from": "амитриптилин",
+                "via": "фенирамин (антигистаминное)",
+                "sentence": "Одновременный прием амитриптилина и препаратов, удлиняющих QT интервал (антиаритмиков (хинидин), антигистаминных препаратов (астемизол и терфенадин), некоторых нейролептиков (цизаприда, галофантрина и соталола, особенно, пимозида и сертиндо"
+              }
+            ],
+            "verdict": "better"
+          },
+          {
+            "a": "декстрометорфан-парацетамол-псевдоэфедрин-аскорбиновая-кислота",
+            "b": "дигоксин",
+            "situation": "cold remedy + glycoside",
+            "before": 0,
+            "after": 1,
+            "gained": [
+              {
+                "from": "дигоксин",
+                "via": "псевдоэфедрин (деконгестант)",
+                "sentence": "Одновременное применение дигоксина с симпатомиметиками повышает частоту возникновения желудочковых аритмий, поскольку оба лекарственных средства повышают эктопическую пейсмейкерную активность."
+              }
+            ],
+            "verdict": "better"
+          },
+          {
+            "a": "декстрометорфан-парацетамол-псевдоэфедрин-аскорбиновая-кислота",
+            "b": "леводопа-карбидопа",
+            "situation": "cold remedy + antiparkinsonian",
+            "before": 0,
+            "after": 2,
+            "gained": [
+              {
+                "from": "леводопа-карбидопа",
+                "via": "псевдоэфедрин (деконгестант)",
+                "sentence": "Сообщите лечащему врачу, если Вы принимаете: - препараты для снижения артериального давления (антигипертензивные препараты); - препараты для лечения депрессии (антидепрессанты); - препараты, применяемые для лечения серьезных аллергических р"
+              },
+              {
+                "from": "леводопа-карбидопа",
+                "via": "псевдоэфедрин (деконгестант)",
+                "sentence": "Симпатомиметики могут увеличивать выраженность побочных реакций со стороны сердечнососудистой системы, связанных с леводопой."
+              }
+            ],
+            "verdict": "better"
+          },
+          {
+            "a": "декстрометорфан-парацетамол-псевдоэфедрин-аскорбиновая-кислота",
+            "b": "трамадол",
+            "situation": "cold remedy + opioid",
+            "before": 0,
+            "after": 1,
+            "gained": [
+              {
+                "from": "трамадол",
+                "via": "парацетамол (анальгетик)",
+                "sentence": " Гиперчувствительность к трамадолу и/или другим компонентам препарата.  Острая интоксикация алкоголем, снотворными препаратами, анальгетиками, опиоидами или другими психотропными средствами.  Противопоказано совместное применение трамадо"
+              }
+            ],
+            "verdict": "neutral"
+          },
+          {
+            "a": "декстрометорфан-парацетамол-псевдоэфедрин-аскорбиновая-кислота",
+            "b": "ацетилсалициловая-кислота",
+            "situation": "cold remedy + NSAID",
+            "before": 0,
+            "after": 1,
+            "gained": [
+              {
+                "from": "ацетилсалициловая-кислота",
+                "via": "парацетамол (анальгетик)",
+                "sentence": "Поэтому пациенты, которым предстоит лечение тромболизисом, должны находиться под тщательным наблюдением на предмет признаков внешнего или внутреннего кровотечения; – Ингибиторы агрегации тромбоцитов, например, тиклопидин, клопидогрель: повы"
+              }
+            ],
+            "verdict": "neutral"
+          },
+          {
+            "a": "гвайфенезин-парацетамол-фенилэфрин",
+            "b": "эфедрин",
+            "situation": "cold remedy + sympathomimetic",
+            "before": 2,
+            "after": 3,
+            "gained": [
+              {
+                "from": "эфедрин",
+                "via": "фенилэфрин (деконгестант)",
+                "sentence": "Леводопа увеличивает риск возникновения аритмий (требует снижения дозы симпатомиметика)."
+              }
+            ],
+            "verdict": "neutral"
+          },
+          {
+            "a": "кодеин-кофеин-метамизол-натрия-фенобарбитал",
+            "b": "зопиклон",
+            "situation": "codeine analgesic + hypnotic",
+            "before": 10,
+            "after": 14,
+            "gained": [
+              {
+                "from": "зопиклон",
+                "via": "кодеин (опиоид)",
+                "sentence": "У лиц с алкогольной, наркотической или лекарственной зависимостью в анамнезе, пациентов, одновременно принимающих алкоголь (этанол) или другие психотропные вещества или препараты (повышенный риск развития зависимости или злоупотребления); у"
+              },
+              {
+                "from": "зопиклон",
+                "via": "кодеин (опиоид)",
+                "sentence": "При одновременном применении наркотических анальгетиков может происходить усиление эйфории, что ведет к увеличению психической зависимости."
+              },
+              {
+                "from": "зопиклон",
+                "via": "кодеин (опиоид)",
+                "sentence": "Необходимо уменьшить дозу и продолжительность одновременного применения бензодиазепинов и опиоидов (см. раздел «Особые указания»)."
+              },
+              {
+                "from": "зопиклон",
+                "via": "кодеин (опиоид)",
+                "sentence": "В связи с этими рисками одновременное применение опиоидов и бензодиазепинов возможно только у тех"
+              }
+            ],
+            "verdict": "better"
+          },
+          {
+            "a": "кодеин-кофеин-метамизол-натрия-фенобарбитал",
+            "b": "диазепам",
+            "situation": "codeine analgesic + benzodiazepine",
+            "before": 4,
+            "after": 5,
+            "gained": [
+              {
+                "from": "диазепам",
+                "via": "кодеин (опиоид)",
+                "sentence": "Наркотические анальгетики усиливают эйфорию, приводя к нарастанию психологической зависимости, а также усиливают угнетающее действие диазепама на центральную нервную систему."
+              }
+            ],
+            "verdict": "better"
+          },
+          {
+            "a": "кодеин-кофеин-метамизол-натрия-фенобарбитал",
+            "b": "налбуфин",
+            "situation": "codeine analgesic + opioid",
+            "before": 5,
+            "after": 7,
+            "gained": [
+              {
+                "from": "налбуфин",
+                "via": "кодеин (опиоид)",
+                "sentence": "Частично снижает анальгезирующий эффект и угнетение дыхания других опиоидных анальгетиков (не следует комбинировать с другими наркотическими анальгетиками из-за опасности ослабления анальгезии и возможности провоцирования синдрома «отмены» "
+              },
+              {
+                "from": "налбуфин",
+                "via": "кодеин (опиоид)",
+                "sentence": "Бупренорфин (в т.ч. предшествующая терапия) снижает эффект других опиоидных анальгетиков; на фоне применения низких доз агонистов мю- или каппа-опиоидных рецепторов может усиливать угнетение дыхания."
+              }
+            ],
+            "verdict": "better"
+          },
+          {
+            "a": "кодеин-кофеин-метамизол-натрия-парацетамол-фенобарбитал",
+            "b": "морфин",
+            "situation": "codeine analgesic + opioid",
+            "before": 6,
+            "after": 11,
+            "gained": [
+              {
+                "from": "морфин",
+                "via": "кодеин (опиоид)",
+                "sentence": "Бупренорфин (в т.ч. в предшествующей терапии) снижает анальгетический эффект других опиоидных анальгетиков; на фоне применения высоких доз агонистов и-опиоидных рецепторов снижается риск угнетения дыхания, а на фоне применения низких доз аг"
+              },
+              {
+                "from": "морфин",
+                "via": "кодеин (опиоид)",
+                "sentence": "Действие опиоидных анальгетиков, в свою очередь, можетдловийять на-эффек®)других соединений."
+              },
+              {
+                "from": "морфин",
+                "via": "кодеин (опиоид)",
+                "sentence": "Налоксон снижает эффект опиоидных анальгетиков, а также вызванные ими угнетение ЦНС, дыхания; могут потребоваться большие дозы для нивелирования эффектов бупренорфина, буторфанола, налбуфина и пентазоцина, которые были назначены для устране"
+              },
+              {
+                "from": "морфин",
+                "via": "кодеин (опиоид)",
+                "sentence": "Налтрексон ускоряет появление симптомов синдрома «отмены» на фоне наркотической зависимости (симптомы могут появиться уже через 5 минут после введения препарата, продолжаются в течение 48 часов, характеризуются стойкостью и трудностью их ус"
+              },
+              {
+                "from": "морфин",
+                "via": "кодеин (опиоид)",
+                "sentence": "При одновременном приеме с В-адреноблокаторами возможно усиление угнетающего действия на ЦНС, с допамином - уменьшение анальгезирующего действия морфина, с циметидином - усиление угнетения дыхания, с другими опиоидными анальгетиками - угнет"
+              }
+            ],
+            "verdict": "better"
+          },
+          {
+            "a": "ибупрофен-кофеин",
+            "b": "теофиллин",
+            "situation": "caffeine analgesic + xanthine",
+            "before": 3,
+            "after": 4,
+            "gained": [
+              {
+                "from": "теофиллин",
+                "via": "кофеин (психостимулятор)",
+                "sentence": "Токсичность теофиллина увеличивается при одновременном применении других препаратов ксантинового ряда."
+              }
+            ],
+            "verdict": "better"
+          },
+          {
+            "a": "кофеин-парацетамол-пропифеназон",
+            "b": "дифенгидрамин",
+            "situation": "caffeine analgesic + antihistamine",
+            "before": 0,
+            "after": 1,
+            "gained": [
+              {
+                "from": "дифенгидрамин",
+                "via": "кофеин (психостимулятор)",
+                "sentence": "Антагонистическое взаимодействие отмечается при сов- местном назначении с психостимуляторами."
+              }
+            ],
+            "verdict": "better"
+          },
+          {
+            "a": "моксастин-кофеин",
+            "b": "эфедрин",
+            "situation": "caffeine antiemetic + stimulant",
+            "before": 0,
+            "after": 1,
+            "gained": [
+              {
+                "from": "эфедрин",
+                "via": "кофеин (психостимулятор)",
+                "sentence": "Усиливает стимулирующее влияние на центральную нервную систему и риск возникновения токсических явлений ксантинов (в том числе аминофиллина, кофеина, дифиллина, окстрифиллина, теофиллина)."
+              }
+            ],
+            "verdict": "better"
+          },
+          {
+            "a": "кофеин-парацетамол-фенилэфрин-хлорфенамин",
+            "b": "варфарин",
+            "situation": "control: nothing changes",
+            "before": 4,
+            "after": 4,
+            "gained": [],
+            "verdict": "neutral"
+          },
+          {
+            "a": "парацетамол-фенилэфрин-фенирамин",
+            "b": "ципрофлоксацин",
+            "situation": "control: nothing changes",
+            "before": 0,
+            "after": 0,
+            "gained": [],
+            "verdict": "neutral"
+          },
+          {
+            "a": "кодеин-кофеин-метамизол-натрия-фенобарбитал",
+            "b": "ципрофлоксацин",
+            "situation": "control: nothing changes",
+            "before": 2,
+            "after": 2,
+            "gained": [],
+            "verdict": "neutral"
+          },
+          {
+            "a": "ибупрофен-кофеин",
+            "b": "варфарин",
+            "situation": "control: nothing changes",
+            "before": 5,
+            "after": 5,
+            "gained": [],
+            "verdict": "neutral"
+          }
+        ],
+        "top200": "The 200 most common single-substance drugs: pairs with a mention 2 578 of 19 900 before and after; the combination products are not among them.",
+        "ownClassFinding": "The first build counted a secondary class as the card’s own class for the suppression of class mentions in the drug’s own warnings (CLS1). That removed 10 sentence pairs here that are real warnings («Следует избегать совместного применения с другими лекарственными препаратами … содержащими парацетамол или антигистаминные средства» was lost for loratadine, cetirizine, ketotifen, promethazine; the contraindication «одновременное применение других парацетамолсодержащих лекарственных средств, ненаркотических анальгетиков, НПВП» was lost for paracetamol and acetylsalicylic acid): worse. Secondary classes no longer suppress; the seven CLS1 cards and their documents are unchanged by this (0 documents differ).",
+        "searching": "Main search is not affected: the class words and the interaction index feed the interaction and prescription tools only (SRCH1/SRCH2 read class codes through `drug-class-lookup.ts`, which does not use secondary classes).",
+        "reading": "Better: the drug screen of a combination product gets one small «также: …» line (opioid, psychostimulant, decongestant, analgesic, antihistamine through the component) from a few-kB file; the interaction checker, the prescription tool and the comparison mark a quote reached only through a secondary class «через <component> (<class>)».",
+        "comparing": "Not affected: the drug comparison has its own index with the ATC codes."
+      },
+      "ui": "The drug screen and the screen of a drug whose module is not installed show a small plain line «также: психостимулятор (через кофеин); деконгестант (через фенилэфрин)» under the code, read from `secondary-classes.json`. The ATC sheet explains one code and is not changed: a secondary class is not the card’s code."
     }
   ],
   "userPerspective": {

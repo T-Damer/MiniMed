@@ -173,6 +173,14 @@
   font-size: 0.8125rem;
 }
 
+/* «также: снотворное (через фенобарбитал)»: the extra classes a component brings, plain small text. */
+.drug-links__also {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
 .drug-links__list {
   display: inline;
   margin: 0;

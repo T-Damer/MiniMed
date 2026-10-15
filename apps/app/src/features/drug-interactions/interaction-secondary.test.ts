@@ -193,6 +193,70 @@ describe('what a secondary class reaches', () => {
   });
 });
 
+describe('the own-class suppression', () => {
+  const WARNING = 'Не применять одновременно со снотворными средствами.';
+
+  function warningDocument(): BuildInputDocument {
+    return {
+      ...instruction('drug.rf.dddddddd.instruction', 'Капли', 'ЛП-001', WARNING),
+      sections: [
+        {
+          id: 'section.00000000dddddddd',
+          type: 'contraindications',
+          title: 'Противопоказания',
+          chunks: () => [WARNING],
+        },
+      ],
+    };
+  }
+
+  function namedBy(primaryCodes: readonly string[], secondary: boolean): readonly string[] {
+    const builder = createInteractionBuilder({
+      cards: [
+        {
+          id: 'esklp.mnn.капли-с-фенобарбиталом',
+          name: 'КАПЛИ',
+          synonyms: [],
+          components: [],
+          atcCodes: primaryCodes,
+          ...(secondary
+            ? {
+                secondaryClasses: [
+                  { code: 'N05CB', via: 'фенобарбитал', label: 'барбитурат, снотворное' },
+                ],
+              }
+            : {}),
+          registrationKeys: ['ЛП-001'],
+        },
+      ],
+      atcNames: ATC_NAMES,
+      atcBasis: { version: 'test', publishDate: '2026-01-01' },
+      classAliases: [{ text: 'снотворные', codes: ['N05CA', 'N05CB', 'N05CF'], basis: 'test' }],
+    });
+    builder.addModule(
+      { id: 'minimed.medications.instructions.test.ru', version: 't', sha256: 'x' },
+      [warningDocument()],
+    );
+    const { asset } = builder.finish();
+    const built = createInteractionIndex(parseInteractionIndex(JSON.parse(JSON.stringify(asset))));
+    return (built.asset.documents['drug.rf.dddddddd.instruction']?.sp ?? []).flatMap((span) =>
+      span.slice(4).map((target) => built.asset.targets[target] ?? '?'),
+    );
+  }
+
+  it('drops a class word in the warnings of the drug’s own primary class', () => {
+    const targets = namedBy(['N05CB02'], false);
+    expect(targets).not.toContain('c:N05CB');
+    expect(targets).toContain('c:N05CA');
+  });
+
+  it('keeps it for a secondary class: «avoid other drugs that contain …» is a real warning (CLS2)', () => {
+    const targets = namedBy(['C01EX'], true);
+    expect(targets).toContain('c:N05CB');
+    expect(targets).toContain('c:N05CA');
+  });
+});
+
 describe('what the view says', () => {
   const sectionId = 'section.00000000cccccccc';
   const document: MedicalDocument = {

@@ -18,7 +18,9 @@
  * - `MINIMED_DATA_ROOT`: the checkout that holds the ignored `data/` and `output/` (the main one,
  *   when this runs in a worktree);
  * - the НСИ «АТХ» names (`apps/app/src/features/medications/atc-names.json`).
- * Output: `apps/app/src/features/drug-interactions/data/interaction-index.json` (a lazy chunk) and
+ * Output: `apps/app/src/features/drug-interactions/data/interaction-index.json` (a lazy chunk),
+ * `secondary-classes.json` beside it (CLS2: the secondary classes of the cards that have any, a few kB
+ * for the drug screen, which must not load the index for one line) and
  * `data/build/drug-interactions/report.json`. The index holds offsets into the instruction
  * sections, never the instruction text. Each decompressed module is deleted after it is read.
  */
@@ -26,7 +28,7 @@ import { Database } from 'bun:sqlite';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import {
   type AtcClassAddition,
   type AtcCodeException,
@@ -48,6 +50,7 @@ import {
 } from '../apps/app/src/features/drug-interactions/interaction-check';
 import { SPAN_FLAG_INTERACTIONS } from '../apps/app/src/features/drug-interactions/interaction-extract';
 import { createInteractionIndex } from '../apps/app/src/features/drug-interactions/interaction-index';
+import { secondaryClassAsset } from '../apps/app/src/features/drug-interactions/secondary-classes';
 import type { InteractionCard } from '../apps/app/src/features/drug-interactions/substance-names';
 import { normalizeRegistrationKey } from '../apps/app/src/features/medications/mfg-country';
 import {
@@ -419,6 +422,10 @@ function main(): void {
   const coverage = measureCoverage(asset, cards);
   mkdirSync(join(OUTPUT, '..'), { recursive: true });
   writeFileSync(OUTPUT, `${JSON.stringify(asset)}\n`);
+  writeFileSync(
+    join(dirname(OUTPUT), 'secondary-classes.json'),
+    `${JSON.stringify(secondaryClassAsset(asset.cards, asset.basis.atc))}\n`,
+  );
   mkdirSync(join(REPORT, '..'), { recursive: true });
   writeFileSync(REPORT, `${JSON.stringify({ ...report, coverage }, null, 2)}\n`);
   console.log(JSON.stringify(report.summary, null, 2));

@@ -360,7 +360,10 @@ and the class as the view says it (`label`, singular), and is written as the 4th
 wrong code is primary, a class that adds an effect of a component is secondary. A secondary class matches class sentences exactly like a code (`drugTargets` in `interaction-index.ts` keeps the two apart), a sentence
 that reaches the drug only through it is marked in the view («через фенобарбитал (барбитурат, снотворное)»), and the build refuses a secondary class the card's own codes already cover. Several entries per card are
 allowed, each with its own quote. Phenobarbital cards are declared with `N05CB` («Барбитураты в комбинации с другими средствами», the class the registry gives Валокордин) only where the product's own instruction calls
-the phenobarbital sedative or hypnotic or names a barbiturate; the other component classes found (codeine, caffeine, phenylephrine, paracetamol, chlorphenamine) are listed in the review note, not declared.
+the phenobarbital sedative or hypnotic or names a barbiturate. CLS2 declares the other component classes the same way (codeine → `N02A`, caffeine → `N06BC`, phenylephrine and pseudoephedrine → `R01BA`, paracetamol →
+`N02BE`, chlorphenamine and pheniramine → `R06AB`) where the card's own instruction calls the component the class (45 entries, the rest and the reasons in `notApplied` of OD7). A secondary class does not take part
+in the own-class suppression of class mentions in the drug's own warnings: «avoid other drugs that contain paracetamol or an antihistamine» in a cold remedy is a real warning for another antihistamine. The build also
+writes `data/secondary-classes.json` (card slug → `[ATC group, component, label]`, a few kB, a lazy chunk) from the same cards for the drug screen's «также: …» line, which must not load the interaction index.
 
 Judge every changed class membership against the product's own instruction (docs/research/atc-index-review-*.md has the method), declare
 the wrong ones as exceptions, rebuild, and update the review JSON that `atc-index.data.test.ts` reads. The index is an app asset

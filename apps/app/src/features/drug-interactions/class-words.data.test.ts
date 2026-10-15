@@ -9,6 +9,7 @@ import { describe, expect, it } from 'vitest';
 
 import { parseAtcClassAdditions, parseAtcCodeExceptions } from './atc-codes';
 import { CLASS_ALIASES, classPatterns, deriveClassPhrases } from './class-phrases';
+import { checkPair, type DrugItem } from './interaction-check';
 import {
   createInteractionIndex,
   drugTargetSet,
@@ -75,14 +76,30 @@ const review = read('docs/research/atc-index-review-2026-10-14.json') as {
 };
 const decisionWords = review.ownerDecisions.find((item) => item.id === 'OD4')?.words ?? [];
 
+/** The secondary classes of the later decision OD7 (CLS2): `slug|code`, kept out of the earlier records. */
+const od7Raw = review.ownerDecisions.find((item) => item.id === 'OD7') as unknown as
+  | {
+      readonly additions: readonly { readonly card: string; readonly classes: readonly string[] }[];
+    }
+  | undefined;
+const cls2Keys: ReadonlySet<string> = new Set(
+  (od7Raw?.additions ?? []).map(
+    (item) => `${item.card.replace(/^esklp\.mnn\./u, '')}|${item.classes[0] ?? ''}`,
+  ),
+);
+const isCls2 = (item: { readonly card: string; readonly classes: readonly string[] }): boolean =>
+  cls2Keys.has(`${item.card.replace(/^esklp\.mnn\./u, '')}|${item.classes[0] ?? ''}`);
+
 /**
  * A card's codes as the ATC4c record counts them: its own codes and the secondary classes the
- * ATC4c declarations bring (the two cards of OD5). The phenobarbital classes (N05CB, OD6, CLS1)
- * came later and are measured in their own record.
+ * ATC4c declarations bring (the two cards of OD5). The phenobarbital classes (N05CB, OD6, CLS1) and
+ * the component classes of CLS2 (OD7) came later and are measured in their own records.
  */
 const codesOf = (card: InteractionIndexAsset['cards'][number]): readonly string[] => [
   ...card[1],
-  ...(card[3] ?? []).map((extra) => extra[0]).filter((code) => code !== 'N05CB'),
+  ...(card[3] ?? [])
+    .map((extra) => extra[0])
+    .filter((code) => code !== 'N05CB' && !cls2Keys.has(`${card[0]}|${code}`)),
 ];
 
 const cardIndex = (slug: string): number => {
@@ -502,9 +519,11 @@ describe('ATC4c: class additions (addClasses)', () => {
     // owner 2026-10-14 (CLS1): the registry code R05X stays the card's code, the cough-suppressant
     // class is an additional one that dextromethorphan brings
     expect(asset.cards[cardIndex(slug)]?.[1]).toEqual(['R05X']);
-    expect(asset.cards[cardIndex(slug)]?.[3]).toEqual([
-      ['R05D', 'декстрометорфан', 'противокашлевое'],
-    ]);
+    expect(
+      (asset.cards[cardIndex(slug)]?.[3] ?? []).filter(
+        ([code]) => !cls2Keys.has(`${slug}|${code}`),
+      ),
+    ).toEqual([['R05D', 'декстрометорфан', 'противокашлевое']]);
     expect(targetsOf(slug).has('c:R05D')).toBe(true);
     // the expectorant instructions that say «не назначают одновременно с противокашлевыми»
     expect(phraseOf('противокашлевые')?.codes).toEqual(['R05D', 'R05F']);
@@ -525,7 +544,7 @@ describe('ATC4c: class additions (addClasses)', () => {
     // OD5 declared two cards; the phenobarbital cards were added later (OD6)
     expect((decision?.additions ?? []).map((item) => item.card).toSorted()).toEqual(
       additions
-        .filter((item) => !item.classes.includes('N05CB'))
+        .filter((item) => !item.classes.includes('N05CB') && !isCls2(item))
         .map((item) => item.card)
         .toSorted(),
     );
@@ -581,9 +600,18 @@ function reach(
   return { documents, sentences };
 }
 
+/** A card's targets before CLS2: its primary ones and the secondary classes of CLS1 and ATC4c. */
+function withoutCls2(card: number): ReadonlySet<number> {
+  const { primary, secondary } = drugTargets(index, card);
+  const slug = asset.cards[card]?.[0] ?? '';
+  const kept = [...secondary].filter(([, hit]) => !cls2Keys.has(`${slug}|${hit.code}`));
+  return new Set([...primary, ...kept.map(([target]) => target)]);
+}
+
 describe('CLS1: secondary classes (OD6)', () => {
   const secondary = additions.filter((addition) => addition.role === 'secondary');
   const phenobarbital = secondary.filter((addition) => addition.classes.includes('N05CB'));
+  // the entries of CLS2 follow the same rules; they are measured in their own describe below
 
   it('are declared with the component, the label, a reason and a quote of the instruction', () => {
     expect(secondary.length).toBe(additions.length);
@@ -637,7 +665,7 @@ describe('CLS1: secondary classes (OD6)', () => {
       expect(record.label).toBe(declared?.label);
       const card = cardIndex(record.card.replace(/^esklp\.mnn\./u, ''));
       const before = reach(card, drugTargets(index, card).primary);
-      const after = reach(card, drugTargetSet(index, card));
+      const after = reach(card, withoutCls2(card));
       expect(before.documents, record.card).toBe(record.effect.documentsNamingTheClassBefore);
       expect(after.documents, record.card).toBe(record.effect.documentsNamingTheClassAfter);
       expect(before.sentences, record.card).toBe(record.effect.sentencesBefore);
@@ -665,5 +693,192 @@ describe('CLS1: secondary classes (OD6)', () => {
     expect(drugTargets(index, spray).secondary.get(asset.targets.indexOf('c:R01AA'))?.via).toBe(
       'фенилэфрин',
     );
+  });
+});
+
+interface Od7Addition {
+  readonly card: string;
+  readonly role: string;
+  readonly classes: readonly string[];
+  readonly via: string;
+  readonly label: string;
+  readonly evidence: { readonly document: string; readonly quote: string };
+  readonly effect: {
+    readonly documentsNamingTheClassBefore: number;
+    readonly documentsNamingTheClassAfter: number;
+    readonly documentPairsGained: number;
+    readonly sentencesBefore: number;
+    readonly sentencesAfter: number;
+    readonly sentencePairsGained: number;
+  };
+}
+interface Od7 {
+  readonly additions: readonly Od7Addition[];
+  readonly notApplied: readonly { readonly card: string; readonly component: string }[];
+  readonly userScenarios: {
+    readonly pairsChecked: number;
+    readonly pairs: {
+      readonly better: number;
+      readonly 'neutral-changed': number;
+      readonly unchanged: number;
+      readonly worse: number;
+    };
+    readonly sentencePairsLost: number;
+    readonly rows: readonly {
+      readonly a: string;
+      readonly b: string;
+      readonly after: number;
+      readonly verdict: string;
+    }[];
+  };
+}
+const od7 = od7Raw as Od7 | undefined;
+
+/** The component of each CLS2 entry, the group it brings, how the view names it and the class word. */
+const COMPONENT_CLASSES: Readonly<
+  Record<string, { readonly code: string; readonly label: string; readonly word: string }>
+> = {
+  кодеин: { code: 'N02A', label: 'опиоид', word: 'опиоиды' },
+  кофеин: { code: 'N06BC', label: 'психостимулятор', word: 'психостимуляторы' },
+  фенилэфрин: { code: 'R01BA', label: 'деконгестант', word: 'деконгестанты' },
+  псевдоэфедрин: { code: 'R01BA', label: 'деконгестант', word: 'деконгестанты' },
+  парацетамол: { code: 'N02BE', label: 'анальгетик', word: 'анальгетики' },
+  хлорфенамин: { code: 'R06AB', label: 'антигистаминное', word: 'антигистаминные' },
+  фенирамин: { code: 'R06AB', label: 'антигистаминное', word: 'антигистаминные' },
+};
+/** The names the record uses for the components it left out of a card. */
+const RECORD_COMPONENT: Readonly<Record<string, string>> = {
+  codeine: 'кодеин',
+  caffeine: 'кофеин',
+  phenylephrine: 'фенилэфрин',
+  paracetamol: 'парацетамол',
+  chlorphenamine: 'хлорфенамин',
+};
+
+describe('CLS2: component classes (OD7)', () => {
+  const declared = additions.filter(isCls2);
+
+  it('are declared exactly as the record lists them', () => {
+    expect(od7?.additions.length).toBeGreaterThanOrEqual(40);
+    expect(declared).toHaveLength(od7?.additions.length ?? -1);
+    for (const record of od7?.additions ?? []) {
+      expect(record.role).toBe('secondary');
+      const entry = declared.find(
+        (item) => item.card === record.card && item.classes[0] === record.classes[0],
+      );
+      expect(entry, `${record.card} ${record.classes[0]}`).toBeDefined();
+      expect(entry?.via).toBe(record.via);
+      expect(entry?.label).toBe(record.label);
+      expect(entry?.evidence.quote).toBe(record.evidence.quote);
+      expect(entry?.evidence.document).toBe(record.evidence.document);
+    }
+  });
+
+  it('bring the group of the component, named as the view names it, and never a primary class', () => {
+    for (const entry of declared) {
+      expect(entry.role, entry.card).toBe('secondary');
+      expect(entry.classes, entry.card).toHaveLength(1);
+      const component = COMPONENT_CLASSES[entry.via ?? ''];
+      expect(component, `${entry.card}: ${entry.via}`).toBeDefined();
+      expect(entry.classes[0], entry.card).toBe(component?.code);
+      expect(entry.label, entry.card).toBe(component?.label);
+      // the card does not belong to the class by its own codes
+      const slug = entry.card.replace(/^esklp\.mnn\./u, '');
+      const own = asset.cards[cardIndex(slug)]?.[1] ?? [];
+      expect(
+        own.some((code) => code.startsWith(entry.classes[0] ?? '')),
+        entry.card,
+      ).toBe(false);
+    }
+  });
+
+  it('use classes that the interaction sentences name: a class word and a target of the index', () => {
+    for (const [via, component] of Object.entries(COMPONENT_CLASSES)) {
+      expect(covers(component.word, component.code), via).toBe(true);
+      const targets = asset.targets.filter(
+        (target) => target.startsWith('c:') && component.code.startsWith(target.slice(2)),
+      );
+      expect(targets.length, via).toBeGreaterThan(0);
+    }
+  });
+
+  it('put a cold remedy among the recipients of the class sentences, marked secondary', () => {
+    const slug = 'кофеин-парацетамол-фенилэфрин-хлорфенамин';
+    const card = cardIndex(slug);
+    expect(asset.cards[card]?.[1]).toEqual(['R05X']);
+    const { primary, secondary } = drugTargets(index, card);
+    for (const code of ['c:R01BA', 'c:R06', 'c:N02B']) {
+      const target = asset.targets.indexOf(code);
+      expect(target, code).toBeGreaterThanOrEqual(0);
+      expect(primary.has(target), code).toBe(false);
+      expect(secondary.has(target), code).toBe(true);
+    }
+    expect(secondary.get(asset.targets.indexOf('c:R06'))?.via).toBe('хлорфенамин');
+  });
+
+  it('agree with the record: the documents and sentences each class gained', () => {
+    for (const record of od7?.additions ?? []) {
+      const slug = record.card.replace(/^esklp\.mnn\./u, '');
+      const card = cardIndex(slug);
+      const { primary, secondary } = drugTargets(index, card);
+      const own = [...secondary]
+        .filter(([, hit]) => hit.code === record.classes[0])
+        .map(([target]) => target);
+      const before = reach(card, primary);
+      const after = reach(card, new Set([...primary, ...own]));
+      expect(before.documents, record.card).toBe(record.effect.documentsNamingTheClassBefore);
+      expect(after.documents, record.card).toBe(record.effect.documentsNamingTheClassAfter);
+      expect(before.sentences, record.card).toBe(record.effect.sentencesBefore);
+      expect(after.sentences, record.card).toBe(record.effect.sentencesAfter);
+      expect(record.effect.documentPairsGained, record.card).toBe(
+        after.documents - before.documents,
+      );
+      expect(record.effect.sentencePairsGained, record.card).toBe(
+        after.sentences - before.sentences,
+      );
+    }
+  });
+
+  it('list the candidates that were left out, none with a declaration for that class', () => {
+    expect(od7?.notApplied.length).toBeGreaterThanOrEqual(10);
+    for (const item of od7?.notApplied ?? []) {
+      const card = cardIndex(item.card.replace(/^esklp\.mnn\./u, ''));
+      const via = RECORD_COMPONENT[item.component] ?? '';
+      expect(COMPONENT_CLASSES[via], item.component).toBeDefined();
+      expect(
+        asset.cards[card]?.[3]?.some((extra) => extra[1] === via),
+        `${item.card} ${item.component}`,
+      ).toBeFalsy();
+      // every candidate has an instruction in the product
+      expect(index.documentsOfCard.get(card) ?? [], item.card).not.toEqual([]);
+    }
+  });
+
+  it('keep the user-perspective record in step with the index: nothing got worse', () => {
+    const scenarios = od7?.userScenarios;
+    expect(scenarios?.pairs.worse).toBe(0);
+    expect(scenarios?.sentencePairsLost).toBe(0);
+    expect(
+      (scenarios?.pairs.better ?? 0) +
+        (scenarios?.pairs['neutral-changed'] ?? 0) +
+        (scenarios?.pairs.unchanged ?? 0),
+    ).toBe(scenarios?.pairsChecked);
+    const item = (slug: string): DrugItem => ({
+      id: slug,
+      kind: 'drug',
+      card: cardIndex(slug),
+      label: slug,
+    });
+    expect(scenarios?.rows.length).toBeGreaterThanOrEqual(15);
+    for (const row of scenarios?.rows ?? []) {
+      expect(row.verdict, `${row.a} ${row.b}`).not.toBe('worse');
+      expect(checkPair(index, item(row.a), item(row.b)).found, `${row.a} ${row.b}`).toBe(row.after);
+    }
+  });
+
+  it('leave the single substances without a secondary class', () => {
+    for (const slug of ['парацетамол', 'кофеин', 'кодеин-парацетамол']) {
+      expect(asset.cards[cardIndex(slug)]?.[3], slug).toBeUndefined();
+    }
   });
 });

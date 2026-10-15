@@ -5558,17 +5558,35 @@ Review: [research/atc-index-review-2026-10-14.md](research/atc-index-review-2026
   may have **secondary classes**: `addClasses` entries get `role` (`primary`: replaces a wrong code and joins the card's codes; `secondary`: an additional class one component brings, kept apart from the codes, with `via` = the
   component and `label` = the class in the view). Several entries per card are allowed; each keeps its reason and a verbatim quote of the product's own instruction (the build still refuses a missing quote and a
   secondary class the card's own codes already cover). In the index a card is `[slug, codes, substances, [[class, component, label], …]]` (4th element only where present); secondary classes match class sentences
-  like codes (`drugTargets` splits primary and secondary targets; `drugTargetSet` is their union) and count as the card's own class for own-class suppression (0 documents changed). **Applied: phenobarbital,
+  like codes (`drugTargets` splits primary and secondary targets; `drugTargetSet` is their union) and (until CLS2) counted as the card's own class for own-class suppression (0 documents changed). **Applied: phenobarbital,
   `N05CB`** (the registry's own class for Валокордин) on five cards whose instruction calls the phenobarbital sedative or hypnotic or names a barbiturate: Корвалол family (`N05CM`, +287 document / +478 sentence
   pairs), Корвалол-Экстра (`C01EX`, +453 / +702), Тетралганол family (`N02BB72`, +366 / +650), Андипал (`N02BB52`, +400 / +660), Седал-М family (`N02BB72`, +351 / +649); the hypnotic and barbiturate
   sentences of other instructions now reach them (Корвалол + зопиклон 4 → 7, + амитриптилин 0 → 3, + морфин 2 → 4, + лизиноприл 0 → 1). The two ATC4c entries (Каффетин Колд `R05D`, Полидекса с фенилэфрином `R01AA`) became
   secondary by the same rule (a wrong code is primary, a component's effect is secondary): their pairs are unchanged. **UI:** a quote reached only through a secondary class shows a small italic
   «через фенобарбитал (барбитурат, снотворное)» beside the section label in the interaction checker, the prescription tool and the comparison (shared `InteractionPairs`), and in print/share text; no raw codes.
-  The drug screen / ATC sheet (DRUG-UI1) read ATC codes from the comparison index, so a «также: снотворное» line there is not done (Request in STATE). Not applied, for the owner: phenobarbital cards without an
+  The «также: …» line of the drug screen was done in CLS2 (below). Not applied, for the owner: phenobarbital cards without an
   instruction (Пентабуфен, Пенталгин Плюс, Тетралгин Н, Корвалол плюс Форте), with an instruction that does not call it sedative or hypnotic (Паглюверин, Теофедрин-Н, Пенталгин-Н/Пиралгин amendment only,
   single-substance Фенобарбитал); other component classes (codeine → opioid 4 of 11 cards with an instruction, caffeine → psychostimulant 19 of 33, phenylephrine/pseudoephedrine → decongestant 15 of 23, paracetamol →
   analgesic 14 of 15, chlorphenamine → antihistamine 6 of 13). Tests: `interaction-secondary.test.ts` (asset shape, split targets, marked sentences, view/print words), `atc-codes.test.ts` (roles, `via`/`label`,
   redundancy), `class-words.data.test.ts` («CLS1»: quotes and roles of the entries, Корвалол among the hypnotic recipients, the per-card counts of the record).
+- **Component classes as secondary classes, and the «также: …» line (STATE CLS2, answers the CLS1 and VIS2 requests to DRUG-UI1)**, in the review note («fourth part») and its JSON (`ownerDecisions` OD7).
+  The classes CLS1 listed and left open are declared as secondary classes where the card's own instruction names the class (the same quote rule, checked by the build): codeine → opioid `N02A` (2 cards), caffeine →
+  psychostimulant `N06BC` (9), phenylephrine and pseudoephedrine → decongestant `R01BA` (12 + 1), paracetamol → analgesic `N02BE` (9, the cold remedies coded `R05X` and Теофедрин-Н), chlorphenamine → antihistamine
+  `R06AB` (4); **pheniramine** → `R06AB` too (8; same subgroup and the same cold-remedy products, not on CLS1's list). 45 entries on 28 cards, 7 + 45 = 52 `addClasses`; each entry has its reason and a quote.
+  Left out with the reason on record (`notApplied`): the Цитрамон family (its instruction says caffeine in that dose practically does not stimulate), caffeine called only an analgesic adjuvant (РАНКОФ family),
+  eye drops with phenylephrine (mydriatic), amendment or OCR sheets, cards without text about the component, and cards the word «анальгетики» already covers through `N02A`. **Own-class suppression no longer
+  counts secondary classes:** the first build lost 10 sentence pairs that are real warnings («избегать совместного применения с другими лекарственными препаратами … содержащими парацетамол или антигистаминные
+  средства» for loratadine, cetirizine, promethazine; the paracetamol and NSAID contraindication list for paracetamol and aspirin), the scenario check found it; the seven CLS1 cards and their documents are
+  unchanged by the fix (0 documents differ). Index 2 127 806 → 2 130 548 bytes (the build before the change reproduced the committed file byte for byte); the top-200 pair coverage is unchanged (2 578 of 19 900).
+  **User-perspective check (ATC4c method, 15 changed cold-remedy and analgesic cards × 46 partner drugs = 690 pairs):** 103 pairs change, 131 sentence pairs gained, 0 lost; 73 pairs better (duplicate-antihistamine,
+  opioid + benzodiazepine / hypnotic, CNS-depression, sympathomimetic with antihypertensives / digoxin / levodopa, xanthine with theophylline), 30 neutral (true of the class but about another member, or a long
+  contraindication list), 0 worse, 587 unchanged; search and the comparison are not affected (class words feed the interaction and prescription tools only).
+  **Drug screen:** a small plain line «также: психостимулятор (через кофеин); деконгестант (через фенилэфрин)» (also «барбитурат, снотворное (через фенобарбитал)» for Корвалол) under the code, and on the screen of a
+  drug whose module is not installed. The build writes `data/secondary-classes.json` (6.9 kB, 32 cards) beside the index, a lazy chunk of its own (`secondary-classes.ts`, `secondary-classes-load.ts`,
+  `DrugSecondaryClasses.tsx`), so the 2.1 MB interaction index is not loaded for one line; the ATC sheet is unchanged (a secondary class is not the card's code). `DrugRecipeButton` words its empty recipe sheet through
+  `recipeMissingText(controller.analyses())` (VIS2 request). Tests: `class-words.data.test.ts` («CLS2»: record against declarations and index, classes named by words, per-entry document and sentence counts,
+  candidates left out, scenario rows against `checkPair`), `secondary-classes.test.ts` (asset, line, the committed file equals the index), `interaction-secondary.test.ts` (own-class suppression). Not tested: a physical
+  device, the dark theme of the new line, the Python suite; no clinician has signed the classes.
 - **Not done / not tested.** No clinician has signed the review (AI reviewer, product instruction texts as evidence); hits that did not change were
   not re-audited; the ATC4/ATC4b assets were tested by unit and data tests only (ATC4c ran four pairs in Chromium against the built app with the real instruction modules, before and after: counts match the code
   path; not on a physical device, not in the dark theme, the Python suite not run); no release was made.

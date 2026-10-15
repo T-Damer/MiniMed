@@ -1,5 +1,5 @@
 {
-  "$comment": "Declared corrections to the ATC codes the interaction index carries for a card, decided by the medical review in docs/research/atc-index-review-2026-10-14.json. «exceptions»: a code the card must NOT carry (card + code + reason + review). «addClasses»: a class the card belongs to for the class rules although its registry code puts it elsewhere (card + role + classes + reason + evidence quoted from the product's own instruction + review); the build refuses an addition whose quote is not in the instruction. «role»: `primary` replaces a wrong code (the class joins the card's codes); `secondary` is an additional class that one component brings (owner 2026-10-14: «one drug can have many classes»; Корвалол is a heart remedy first, the hypnotic class is secondary) — it stays apart from the codes, names the component (`via`) and the class (`label`, singular) the interaction view shows («через фенобарбитал (снотворное)»), and still matches class sentences. Both are applied at build time by selectAtcCodes; the index holds the result, nothing in the app branches on a drug id. The льна посевного семена / A06AC05 exception was removed by the owner on 2026-10-14 (see «ownerDecisions» in the review).",
+  "$comment": "Declared corrections to the ATC codes the interaction index carries for a card, decided by the medical review in docs/research/atc-index-review-2026-10-14.json. «exceptions»: a code the card must NOT carry (card + code + reason + review). «addClasses»: a class the card belongs to for the class rules although its registry code puts it elsewhere (card + role + classes + reason + evidence quoted from the product's own instruction + review); the build refuses an addition whose quote is not in the instruction. «role»: `primary` replaces a wrong code (the class joins the card's codes); `secondary` is an additional class that one component brings (owner 2026-10-14: «one drug can have many classes»; Корвалол is a heart remedy first, the hypnotic class is secondary) — it stays apart from the codes, names the component (`via`) and the class (`label`, singular) the interaction view shows («через фенобарбитал (снотворное)»), and still matches class sentences. Both are applied at build time by selectAtcCodes; the index holds the result, nothing in the app branches on a drug id. The льна посевного семена / A06AC05 exception was removed by the owner on 2026-10-14 (see «ownerDecisions» in the review). CLS2 (2026-10-15) added secondary classes for the components codeine (opioid), caffeine (psychostimulant), phenylephrine and pseudoephedrine (decongestant), paracetamol (analgesic), chlorphenamine and pheniramine (antihistamine) of combination products whose own instruction names the class; every entry quotes that instruction (OD7 in the review).",
   "exceptions": [
     {
       "card": "esklp.mnn.интерферон-альфа-2b-лоратадин",
@@ -118,6 +118,726 @@
         "document": "drug.rf.4803db68c77181561f14.instruction",
         "section": "Фармакотерапевтическая группа",
         "quote": "Анальгезирующее средство (анальгезирующее опиоидное средство + НПВП + анальгезирующее ненаркотическое средство + психостимулирующее средство + барбитурат)."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.амброксол-гвайфенезин-фенилэфрин-хлорфенамин",
+      "role": "secondary",
+      "classes": [
+        "R01BA"
+      ],
+      "via": "фенилэфрин",
+      "label": "деконгестант",
+      "reason": "Колдакт® Бронхо, РиниКолд КОФКОМПЛЕКС®: coded N02BE51. The product's own instruction describes the phenylephrine in it as a vasoconstrictor that relieves swelling of the nasal mucosa (a decongestant), so the sentences of other instructions that name decongestants / sympathomimetics apply to it. Secondary (CLS2): the class is brought by one component (фенилэфрин; its own ATC code R01BA03, group R01BA «Симпатомиметики» (systemic nasal decongestants)); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.240535c8f55eca995933.instruction",
+        "section": "Показания к применению",
+        "quote": "Фенилэфрина гидрохлорид оказывает сосудосуживающее действие, уменьшает отечность и покраснение (гиперемию) слизистых оболочек верхних отделов дыхательных путей и придаточных пазух носа."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.амброксол-гвайфенезин-фенилэфрин-хлорфенамин",
+      "role": "secondary",
+      "classes": [
+        "R06AB"
+      ],
+      "via": "хлорфенамин",
+      "label": "антигистаминное",
+      "reason": "Колдакт® Бронхо, РиниКолд КОФКОМПЛЕКС®: coded N02BE51. The product's own instruction gives the хлорфенамин in it an anti-allergic action (the antihistamine effect), so the sentences of other instructions that name antihistamines apply to it. Secondary (CLS2): the class is brought by one component (хлорфенамин; its own ATC code R06AB04, group R06AB «Замещенные алкиламины»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.240535c8f55eca995933.instruction",
+        "section": "Показания к применению",
+        "quote": "Хлорфенамина малеат оказывает противоаллергическое действие: устраняет слезотечение, зуд в глазах и носу."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.аскорбиновая-кислота-кальция-глюконат-кофеин-парацетамол-рутозид",
+      "role": "secondary",
+      "classes": [
+        "N06BC"
+      ],
+      "via": "кофеин",
+      "label": "психостимулятор",
+      "reason": "Пентафлуцин дневной: coded R05X. The product's own instruction describes the caffeine in it as a stimulant of the nervous system (a psychostimulant), so the sentences of other instructions that name psychostimulants / CNS stimulants apply to it. Secondary (CLS2): the class is brought by one component (кофеин; its own ATC code N06BC01, group N06BC «Производные ксантина»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.56bc0736b790a376c01c.instruction",
+        "section": "Способ действия препарата",
+        "quote": "Кофеин стимулирует центральную нервную систему, что приводит к уменьшению усталости и сонливости, к повышению умственной и физической работоспособности."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.аскорбиновая-кислота-кальция-глюконат-кофеин-парацетамол-рутозид",
+      "role": "secondary",
+      "classes": [
+        "N02BE"
+      ],
+      "via": "парацетамол",
+      "label": "анальгетик",
+      "reason": "Пентафлуцин дневной: coded R05X. The product's own instruction calls the paracetamol in it an analgesic (it relieves pain and fever), so the sentences of other instructions that name analgesics and antipyretics apply to it. Secondary (CLS2): the class is brought by one component (парацетамол; its own ATC code N02BE01, group N02BE «Анилиды»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.56bc0736b790a376c01c.instruction",
+        "section": "Способ действия препарата",
+        "quote": "Парацетамол оказывает жаропонижающее и обезболивающее действие, блокируя некоторые ферменты"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.аскорбиновая-кислота-кальция-глюконат-лоратадин-парацетамол-римантадин-рутозид",
+      "role": "secondary",
+      "classes": [
+        "N02BE"
+      ],
+      "via": "парацетамол",
+      "label": "анальгетик",
+      "reason": "Антигриппин-максимум, АнвиМакс®: coded R05X. The product's own instruction calls the paracetamol in it an analgesic (it relieves pain and fever), so the sentences of other instructions that name analgesics and antipyretics apply to it. Secondary (CLS2): the class is brought by one component (парацетамол; its own ATC code N02BE01, group N02BE «Анилиды»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.b8643898646d730bce44.instruction",
+        "section": "Показания к применению",
+        "quote": "Парацетамол обладает обезболивающим и жаропонижающим действием."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.аскорбиновая-кислота-кальция-глюконат-парацетамол-рутозид-фенилэфрин-и-аскорбиновая-кислота-кальция-глюконат-парацетамол-рутозид-фенилэфрин-фенирамин-набор",
+      "role": "secondary",
+      "classes": [
+        "R01BA"
+      ],
+      "via": "фенилэфрин",
+      "label": "деконгестант",
+      "reason": "Дуоколд®: coded N02BE51. The product's own instruction describes the phenylephrine in it as a vasoconstrictor that relieves swelling of the nasal mucosa (a decongestant), so the sentences of other instructions that name decongestants / sympathomimetics apply to it. Secondary (CLS2): the class is brought by one component (фенилэфрин; its own ATC code R01BA03, group R01BA «Симпатомиметики» (systemic nasal decongestants)); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.m1.182b42f4e7ef0baf6f32.instruction",
+        "section": "Показания к применению",
+        "quote": "Фенилэфрин уменьшает отек слизистой оболочки полости носа, восстанавливает носовое дыхание."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.аскорбиновая-кислота-кальция-глюконат-парацетамол-рутозид-фенилэфрин-и-аскорбиновая-кислота-кальция-глюконат-парацетамол-рутозид-фенилэфрин-фенирамин-набор",
+      "role": "secondary",
+      "classes": [
+        "R06AB"
+      ],
+      "via": "фенирамин",
+      "label": "антигистаминное",
+      "reason": "Дуоколд®: coded N02BE51. The product's own instruction gives the фенирамин in it an anti-allergic action (the antihistamine effect), so the sentences of other instructions that name antihistamines apply to it. Secondary (CLS2): the class is brought by one component (фенирамин; its own ATC code R06AB05, group R06AB «Замещенные алкиламины»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.m1.182b42f4e7ef0baf6f32.instruction",
+        "section": "Показания к применению",
+        "quote": "Фенирамин является противоаллергическим средством, снижает чувство заложенности носа, чихание, слезотечение, зуд и покраснение глаз."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.аскорбиновая-кислота-парацетамол-рутозид-фенилэфрин-янтарная-кислота",
+      "role": "secondary",
+      "classes": [
+        "R01BA"
+      ],
+      "via": "фенилэфрин",
+      "label": "деконгестант",
+      "reason": "ИНФЛЮНЕТ®: coded R05X. The product's own instruction describes the phenylephrine in it as a vasoconstrictor that relieves swelling of the nasal mucosa (a decongestant), so the sentences of other instructions that name decongestants / sympathomimetics apply to it. Secondary (CLS2): the class is brought by one component (фенилэфрин; its own ATC code R01BA03, group R01BA «Симпатомиметики» (systemic nasal decongestants)); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.854f19cf48cfab9c23e9.instruction",
+        "section": "Фармакодинамика",
+        "quote": "стимулирует постсинаптические альфа-адренорецепторы, обладает умеренным сосудосуживающим действием, уменьшает отек и гиперемию слизистой оболочки носа"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.аскорбиновая-кислота-парацетамол-рутозид-фенилэфрин-янтарная-кислота",
+      "role": "secondary",
+      "classes": [
+        "N02BE"
+      ],
+      "via": "парацетамол",
+      "label": "анальгетик",
+      "reason": "ИНФЛЮНЕТ®: coded R05X. The product's own instruction calls the paracetamol in it an analgesic (it relieves pain and fever), so the sentences of other instructions that name analgesics and antipyretics apply to it. Secondary (CLS2): the class is brought by one component (парацетамол; its own ATC code N02BE01, group N02BE «Анилиды»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.854f19cf48cfab9c23e9.instruction",
+        "section": "Фармакодинамика",
+        "quote": "Парацетамол Ненаркотический анальгетик, блокирует структурный фермент циклооксигеназу-1"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.белладонны-листьев-экстракт-кофеин-парацетамол-теофиллин-фенобарбитал-цитизин-эфедрин",
+      "role": "secondary",
+      "classes": [
+        "N02BE"
+      ],
+      "via": "парацетамол",
+      "label": "анальгетик",
+      "reason": "Теофедрин-Н®: coded R03DA54. The product's own instruction calls the paracetamol in it an analgesic (it relieves pain and fever), so the sentences of other instructions that name analgesics and antipyretics apply to it. Secondary (CLS2): the class is brought by one component (парацетамол; its own ATC code N02BE01, group N02BE «Анилиды»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.deacbe24a06a94abe0d5.instruction",
+        "section": "Фармакодинамика",
+        "quote": "За счет присутствия в составе препарата парацетамола Теофедрин-Н® обладает жаропонижающим и обезболивающим действием."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.бромгексина-гидрохлорид-кальция-глюконат-парацетамол-рутозид-аскорбиновая-кислота",
+      "role": "secondary",
+      "classes": [
+        "N02BE"
+      ],
+      "via": "парацетамол",
+      "label": "анальгетик",
+      "reason": "Пентафлуцин-Бронхо: coded R05X. The product's own instruction calls the paracetamol in it an analgesic (it relieves pain and fever), so the sentences of other instructions that name analgesics and antipyretics apply to it. Secondary (CLS2): the class is brought by one component (парацетамол; its own ATC code N02BE01, group N02BE «Анилиды»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.dd4fc078b220bee3b783.instruction",
+        "section": "Фармакологические свойства",
+        "quote": "Парацетамол - ненаркотический анальгетик, блокирует фермент циклооксигеназу 1-го типа"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.гвайфенезин-парацетамол-фенилэфрин",
+      "role": "secondary",
+      "classes": [
+        "R01BA"
+      ],
+      "via": "фенилэфрин",
+      "label": "деконгестант",
+      "reason": "Ларивикс: coded N02BE51. The product's own instruction describes the phenylephrine in it as a vasoconstrictor that relieves swelling of the nasal mucosa (a decongestant), so the sentences of other instructions that name decongestants / sympathomimetics apply to it. Secondary (CLS2): the class is brought by one component (фенилэфрин; its own ATC code R01BA03, group R01BA «Симпатомиметики» (systemic nasal decongestants)); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.694e10eb3c71368681b0.instruction",
+        "section": "Показания к применению",
+        "quote": "Фенилэфрин представляет собой сосудосуживающее средство, которое устраняет отечность слизистой оболочки полости носа"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.декстрометорфан-парацетамол-псевдоэфедрин-аскорбиновая-кислота",
+      "role": "secondary",
+      "classes": [
+        "R01BA"
+      ],
+      "via": "псевдоэфедрин",
+      "label": "деконгестант",
+      "reason": "Каффетин® Колд: coded R05X. The product's own instruction says the pseudoephedrine in it relieves nasal congestion (a decongestant), so the sentences of other instructions that name decongestants / sympathomimetics apply to it. Secondary (CLS2): the class is brought by one component (псевдоэфедрин; its own ATC code R01BA02, group R01BA «Симпатомиметики» (systemic nasal decongestants)); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.9374e574b43f16da2090.instruction",
+        "section": "Показания к применению",
+        "quote": "Псевдоэфедрин уменьшает заложенность носа и улучшает проходимость дыхательных путей."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.декстрометорфан-парацетамол-псевдоэфедрин-аскорбиновая-кислота",
+      "role": "secondary",
+      "classes": [
+        "N02BE"
+      ],
+      "via": "парацетамол",
+      "label": "анальгетик",
+      "reason": "Каффетин® Колд: coded R05X. The product's own instruction calls the paracetamol in it an analgesic (it relieves pain and fever), so the sentences of other instructions that name analgesics and antipyretics apply to it. Secondary (CLS2): the class is brought by one component (парацетамол; its own ATC code N02BE01, group N02BE «Анилиды»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.9374e574b43f16da2090.instruction",
+        "section": "Показания к применению",
+        "quote": "Парацетамол обладает обезболивающим и жаропонижающим действием."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.дифенгидрамин-кальция-глюконат-парацетамол-рутозид-аскорбиновая-кислота",
+      "role": "secondary",
+      "classes": [
+        "N02BE"
+      ],
+      "via": "парацетамол",
+      "label": "анальгетик",
+      "reason": "Пентафлуцин®: coded R05X. The product's own instruction calls the paracetamol in it an analgesic (it relieves pain and fever), so the sentences of other instructions that name analgesics and antipyretics apply to it. Secondary (CLS2): the class is brought by one component (парацетамол; its own ATC code N02BE01, group N02BE «Анилиды»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.01f8d37d071409c8fafd.instruction",
+        "section": "Фармакодинамика",
+        "quote": "Парацетамол - ненаркотический анальгетик, блокирует фермент циклооксигеназу 1 -го типа"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.дротаверин-кофеин-напроксен-парацетамол-фенирамин",
+      "role": "secondary",
+      "classes": [
+        "R06AB"
+      ],
+      "via": "фенирамин",
+      "label": "антигистаминное",
+      "reason": "Пенталгин®, СПАЗМАЛГОН® ЭФФЕКТ: coded N02BE51. The product's own instruction calls the фенирамин in it a blocker of H1-histamine receptors (an antihistamine), so the sentences of other instructions that name antihistamines apply to it. Secondary (CLS2): the class is brought by one component (фенирамин; its own ATC code R06AB05, group R06AB «Замещенные алкиламины»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.a538acf036678ea3eb92.instruction",
+        "section": "1. Что из себя представляет препарат СПАЗМАЛГОН® Э",
+        "quote": "Фенирамин – H1-гистаминовых рецепторов блокатор."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.ибупрофен-кофеин",
+      "role": "secondary",
+      "classes": [
+        "N06BC"
+      ],
+      "via": "кофеин",
+      "label": "психостимулятор",
+      "reason": "Мигрениум® Нео: coded M01AE01. The product's own instruction describes the caffeine in it as a stimulant of the nervous system (a psychostimulant), so the sentences of other instructions that name psychostimulants / CNS stimulants apply to it. Secondary (CLS2): the class is brought by one component (кофеин; its own ATC code N06BC01, group N06BC «Производные ксантина»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.f6959b624fb8d820b61d.instruction",
+        "section": "Показания к применению",
+        "quote": "Кофеин является стимулятором и обеспечивает более быстрое наступление и увеличение продолжительности обезболивающего действия"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.кодеин-кофеин-метамизол-натрия-парацетамол-фенобарбитал",
+      "role": "secondary",
+      "classes": [
+        "N02A"
+      ],
+      "via": "кодеин",
+      "label": "опиоид",
+      "reason": "Седал-М®: coded N02BB72. The product's own instruction calls the codeine in it an opioid, so the sentences of other instructions that name opioids (opioid analgesics, narcotic analgesics) apply to it. Secondary (CLS2): the class is brought by one component (кодеин; its own ATC code N02AA59 / R05DA04, group N02A «Опиоиды»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.4803db68c77181561f14.instruction",
+        "section": "Фармакотерапевтическая группа",
+        "quote": "Анальгезирующее средство (анальгезирующее опиоидное средство + НПВП + анальгезирующее ненаркотическое средство + психостимулирующее средство + барбитурат)."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.кодеин-кофеин-метамизол-натрия-парацетамол-фенобарбитал",
+      "role": "secondary",
+      "classes": [
+        "N06BC"
+      ],
+      "via": "кофеин",
+      "label": "психостимулятор",
+      "reason": "Седал-М®: coded N02BB72. The product's own instruction describes the caffeine in it as a stimulant of the nervous system (a psychostimulant), so the sentences of other instructions that name psychostimulants / CNS stimulants apply to it. Secondary (CLS2): the class is brought by one component (кофеин; its own ATC code N06BC01, group N06BC «Производные ксантина»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.4803db68c77181561f14.instruction",
+        "section": "Фармакотерапевтическая группа",
+        "quote": "Анальгезирующее средство (анальгезирующее опиоидное средство + НПВП + анальгезирующее ненаркотическое средство + психостимулирующее средство + барбитурат)."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.кодеин-кофеин-метамизол-натрия-фенобарбитал",
+      "role": "secondary",
+      "classes": [
+        "N02A"
+      ],
+      "via": "кодеин",
+      "label": "опиоид",
+      "reason": "Тетралганол®: coded N02BB72. The product's own instruction calls the codeine in it an opioid, so the sentences of other instructions that name opioids (opioid analgesics, narcotic analgesics) apply to it. Secondary (CLS2): the class is brought by one component (кодеин; its own ATC code N02AA59 / R05DA04, group N02A «Опиоиды»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.3461eebd8595b2bfb158.instruction",
+        "section": "Фармакодинамика",
+        "quote": "Кодеин Анальгезирующее опиоидное средство из группы агонистов опиатных рецепторов, производное фенантрена."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.кодеин-кофеин-метамизол-натрия-фенобарбитал",
+      "role": "secondary",
+      "classes": [
+        "N06BC"
+      ],
+      "via": "кофеин",
+      "label": "психостимулятор",
+      "reason": "Тетралганол®: coded N02BB72. The product's own instruction describes the caffeine in it as a stimulant of the nervous system (a psychostimulant), so the sentences of other instructions that name psychostimulants / CNS stimulants apply to it. Secondary (CLS2): the class is brought by one component (кофеин; its own ATC code N06BC01, group N06BC «Производные ксантина»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.3461eebd8595b2bfb158.instruction",
+        "section": "Фармакодинамика",
+        "quote": "Кофеин Оказывает общетонизирующее действие на центральную нервную систему (ЦНС): уменьшает сонливость и чувство усталости, повышает умственную и физическую работоспособность"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.кофеин-парацетамол",
+      "role": "secondary",
+      "classes": [
+        "N06BC"
+      ],
+      "via": "кофеин",
+      "label": "психостимулятор",
+      "reason": "Страйк Плюс, Мигрениум®: coded N02BE51. The product's own instruction describes the caffeine in it as a stimulant of the nervous system (a psychostimulant), so the sentences of other instructions that name psychostimulants / CNS stimulants apply to it. Secondary (CLS2): the class is brought by one component (кофеин; its own ATC code N06BC01, group N06BC «Производные ксантина»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.2112e1ef38143af52123.instruction",
+        "section": "Фармакологические свойства",
+        "quote": "Также кофеин стимулирует психомоторные центры головного мозга, оказывает аналептическое действие"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.кофеин-парацетамол-пропифеназон",
+      "role": "secondary",
+      "classes": [
+        "N06BC"
+      ],
+      "via": "кофеин",
+      "label": "психостимулятор",
+      "reason": "ТЕМПАЛГИН® ТРИО, Каффетин® лайт, Сафистон®: coded N02BA51, N02BE51. The product's own instruction describes the caffeine in it as a stimulant of the nervous system (a psychostimulant), so the sentences of other instructions that name psychostimulants / CNS stimulants apply to it. Secondary (CLS2): the class is brought by one component (кофеин; its own ATC code N06BC01, group N06BC «Производные ксантина»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.6f92b765b6c81facc076.instruction",
+        "section": "Фармакодинамика",
+        "quote": "а также психостимулятор кофеин."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-фенирамин",
+      "role": "secondary",
+      "classes": [
+        "N06BC"
+      ],
+      "via": "кофеин",
+      "label": "психостимулятор",
+      "reason": "Флюфайт: coded N02BE51. The product's own instruction describes the caffeine in it as a stimulant of the nervous system (a psychostimulant), so the sentences of other instructions that name psychostimulants / CNS stimulants apply to it. Secondary (CLS2): the class is brought by one component (кофеин; its own ATC code N06BC01, group N06BC «Производные ксантина»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.b361fc7cbad6803112a5.instruction",
+        "section": "Показания к применению",
+        "quote": "Кофеин стимулирует нервную систему, парацетамол оказывает жаропонижающее и обезболивающее действие, фенилэфрин сужает сосуды, что подавляет возникновение насморка, фенирамин оказывает противоаллергическое действие."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-фенирамин",
+      "role": "secondary",
+      "classes": [
+        "R01BA"
+      ],
+      "via": "фенилэфрин",
+      "label": "деконгестант",
+      "reason": "Флюфайт: coded N02BE51. The product's own instruction describes the phenylephrine in it as a vasoconstrictor that relieves swelling of the nasal mucosa (a decongestant), so the sentences of other instructions that name decongestants / sympathomimetics apply to it. Secondary (CLS2): the class is brought by one component (фенилэфрин; its own ATC code R01BA03, group R01BA «Симпатомиметики» (systemic nasal decongestants)); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.b361fc7cbad6803112a5.instruction",
+        "section": "Показания к применению",
+        "quote": "Кофеин стимулирует нервную систему, парацетамол оказывает жаропонижающее и обезболивающее действие, фенилэфрин сужает сосуды, что подавляет возникновение насморка, фенирамин оказывает противоаллергическое действие."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-фенирамин",
+      "role": "secondary",
+      "classes": [
+        "R06AB"
+      ],
+      "via": "фенирамин",
+      "label": "антигистаминное",
+      "reason": "Флюфайт: coded N02BE51. The product's own instruction gives the фенирамин in it an anti-allergic action (the antihistamine effect), so the sentences of other instructions that name antihistamines apply to it. Secondary (CLS2): the class is brought by one component (фенирамин; its own ATC code R06AB05, group R06AB «Замещенные алкиламины»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.b361fc7cbad6803112a5.instruction",
+        "section": "Показания к применению",
+        "quote": "Кофеин стимулирует нервную систему, парацетамол оказывает жаропонижающее и обезболивающее действие, фенилэфрин сужает сосуды, что подавляет возникновение насморка, фенирамин оказывает противоаллергическое действие."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-фенирамин-аскорбиновая-кислота",
+      "role": "secondary",
+      "classes": [
+        "N06BC"
+      ],
+      "via": "кофеин",
+      "label": "психостимулятор",
+      "reason": "Ринзасип® с витамином С: coded N02BE51. The product's own instruction describes the caffeine in it as a stimulant of the nervous system (a psychostimulant), so the sentences of other instructions that name psychostimulants / CNS stimulants apply to it. Secondary (CLS2): the class is brought by one component (кофеин; its own ATC code N06BC01, group N06BC «Производные ксантина»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.0dd99eb6c8ed844cc99c.instruction",
+        "section": "1. Что из себя представляет препарат Ринзасип® с в",
+        "quote": "Кофеин стимулирует нервную систему, парацетамол оказывает жаропонижающее и обезболивающее действие, фенилэфрин сужает сосуды, что подавляет возникновение насморка, фенирамин оказывает противоаллергическое действие"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-фенирамин-аскорбиновая-кислота",
+      "role": "secondary",
+      "classes": [
+        "R01BA"
+      ],
+      "via": "фенилэфрин",
+      "label": "деконгестант",
+      "reason": "Ринзасип® с витамином С: coded N02BE51. The product's own instruction describes the phenylephrine in it as a vasoconstrictor that relieves swelling of the nasal mucosa (a decongestant), so the sentences of other instructions that name decongestants / sympathomimetics apply to it. Secondary (CLS2): the class is brought by one component (фенилэфрин; its own ATC code R01BA03, group R01BA «Симпатомиметики» (systemic nasal decongestants)); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.0dd99eb6c8ed844cc99c.instruction",
+        "section": "Показания к применению",
+        "quote": "Фенилэфрин оказывает сосудосуживающее действие – уменьшает отек и гиперемию слизистых оболочек верхних отделов дыхательных путей и придаточных пазух."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-фенирамин-аскорбиновая-кислота",
+      "role": "secondary",
+      "classes": [
+        "R06AB"
+      ],
+      "via": "фенирамин",
+      "label": "антигистаминное",
+      "reason": "Ринзасип® с витамином С: coded N02BE51. The product's own instruction gives the фенирамин in it an anti-allergic action (the antihistamine effect), so the sentences of other instructions that name antihistamines apply to it. Secondary (CLS2): the class is brought by one component (фенирамин; its own ATC code R06AB05, group R06AB «Замещенные алкиламины»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.0dd99eb6c8ed844cc99c.instruction",
+        "section": "Показания к применению",
+        "quote": "Фенирамин оказывает противоаллергическое действие: устраняет зуд глаз, носа и горла"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-фенирамин-и-парацетамол-фенилэфрин-фенирамин",
+      "role": "secondary",
+      "classes": [
+        "R01BA"
+      ],
+      "via": "фенилэфрин",
+      "label": "деконгестант",
+      "reason": "ДышеФЛЮ®: coded N02BE51. The product's own instruction describes the phenylephrine in it as a vasoconstrictor that relieves swelling of the nasal mucosa (a decongestant), so the sentences of other instructions that name decongestants / sympathomimetics apply to it. Secondary (CLS2): the class is brought by one component (фенилэфрин; its own ATC code R01BA03, group R01BA «Симпатомиметики» (systemic nasal decongestants)); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.2db557a03656d43c6e3c.instruction",
+        "section": "Показания к применению",
+        "quote": "Фенилэфрин уменьшает отек и покраснение (гиперемию) слизистых оболочек верхних дыхательных путей."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-фенирамин-и-парацетамол-фенилэфрин-фенирамин",
+      "role": "secondary",
+      "classes": [
+        "R06AB"
+      ],
+      "via": "фенирамин",
+      "label": "антигистаминное",
+      "reason": "ДышеФЛЮ®: coded N02BE51. The product's own instruction gives the фенирамин in it an anti-allergic action (the antihistamine effect), so the sentences of other instructions that name antihistamines apply to it. Secondary (CLS2): the class is brought by one component (фенирамин; its own ATC code R06AB05, group R06AB «Замещенные алкиламины»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.2db557a03656d43c6e3c.instruction",
+        "section": "Показания к применению",
+        "quote": "Фенирамин оказывает противоаллергическое действие."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-хлорфенамин",
+      "role": "secondary",
+      "classes": [
+        "R01BA"
+      ],
+      "via": "фенилэфрин",
+      "label": "деконгестант",
+      "reason": "РАНКОФ®, Флюфайт® Таб, КВАДРОФЛЮ®: coded R05X. The product's own instruction describes the phenylephrine in it as a vasoconstrictor that relieves swelling of the nasal mucosa (a decongestant), so the sentences of other instructions that name decongestants / sympathomimetics apply to it. Secondary (CLS2): the class is brought by one component (фенилэфрин; its own ATC code R01BA03, group R01BA «Симпатомиметики» (systemic nasal decongestants)); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.1167f496b21bfa445861.instruction",
+        "section": "Фармакодинамика",
+        "quote": "Фенилэфрин Сосудосуживающее, альфа-адреномиметическое средство, действие которого направлено на стимуляцию постсинаптических альфа-адренорецепторов, с умеренным сосудосуживающим действием."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-хлорфенамин",
+      "role": "secondary",
+      "classes": [
+        "N02BE"
+      ],
+      "via": "парацетамол",
+      "label": "анальгетик",
+      "reason": "РАНКОФ®, Флюфайт® Таб, КВАДРОФЛЮ®: coded R05X. The product's own instruction calls the paracetamol in it an analgesic (it relieves pain and fever), so the sentences of other instructions that name analgesics and antipyretics apply to it. Secondary (CLS2): the class is brought by one component (парацетамол; its own ATC code N02BE01, group N02BE «Анилиды»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.1167f496b21bfa445861.instruction",
+        "section": "Фармакодинамика",
+        "quote": "Парацетамол Ненаркотический анальгетик, обладает обезболивающим, жаропонижающим действием."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.кофеин-парацетамол-фенилэфрин-хлорфенамин",
+      "role": "secondary",
+      "classes": [
+        "R06AB"
+      ],
+      "via": "хлорфенамин",
+      "label": "антигистаминное",
+      "reason": "РАНКОФ®, Флюфайт® Таб, КВАДРОФЛЮ®: coded R05X. The product's own instruction calls the хлорфенамин in it a blocker of H1-histamine receptors (an antihistamine), so the sentences of other instructions that name antihistamines apply to it. Secondary (CLS2): the class is brought by one component (хлорфенамин; its own ATC code R06AB04, group R06AB «Замещенные алкиламины»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.1167f496b21bfa445861.instruction",
+        "section": "Фармакодинамика",
+        "quote": "Хлорфенамин Блокатор Н1-гистаминовых рецепторов."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.моксастин-кофеин",
+      "role": "secondary",
+      "classes": [
+        "N06BC"
+      ],
+      "via": "кофеин",
+      "label": "психостимулятор",
+      "reason": "Авинорм Тревел®: coded A04AD. The product's own instruction describes the caffeine in it as a stimulant of the nervous system (a psychostimulant), so the sentences of other instructions that name psychostimulants / CNS stimulants apply to it. Secondary (CLS2): the class is brought by one component (кофеин; its own ATC code N06BC01, group N06BC «Производные ксантина»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.9a4a095c2907f8a9db89.instruction",
+        "section": "Фармакодинамика",
+        "quote": "Кофеин является центральным психостимулятором, ингибитором фосфодиэстеразы"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.парацетамол-аскорбиновая-кислота-кальция-глюконат-лоратадин-римантадин-рутозид",
+      "role": "secondary",
+      "classes": [
+        "N02BE"
+      ],
+      "via": "парацетамол",
+      "label": "анальгетик",
+      "reason": "Антигриппин-максимум: coded R05X. The product's own instruction calls the paracetamol in it an analgesic (it relieves pain and fever), so the sentences of other instructions that name analgesics and antipyretics apply to it. Secondary (CLS2): the class is brought by one component (парацетамол; its own ATC code N02BE01, group N02BE «Анилиды»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.188092872c1e2d498723.instruction",
+        "section": "Фармакологические свойства",
+        "quote": "Парацетамол обладает обезболивающим и жаропонижающим действием."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.парацетамол-фенилэфрин-аскорбиновая-кислота",
+      "role": "secondary",
+      "classes": [
+        "R01BA"
+      ],
+      "via": "фенилэфрин",
+      "label": "деконгестант",
+      "reason": "АджиКолд® Хотмикс, ДЕКОЛДАКС, Максиколд®: coded N02BE51. The product's own instruction describes the phenylephrine in it as a vasoconstrictor that relieves swelling of the nasal mucosa (a decongestant), so the sentences of other instructions that name decongestants / sympathomimetics apply to it. Secondary (CLS2): the class is brought by one component (фенилэфрин; its own ATC code R01BA03, group R01BA «Симпатомиметики» (systemic nasal decongestants)); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.b681e4dc355de682ca7f.instruction",
+        "section": "Фармакодинамика",
+        "quote": "Фенилэфрина гидрохлорид – симпатомиметическое средство, действие которого направлено на стимуляцию адренорецепторов (преимущественно α-адренорецепторов), что приводит к уменьшению отека слизистой оболочки носа и облегчению носового дыхания."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.парацетамол-фенилэфрин-фенирамин",
+      "role": "secondary",
+      "classes": [
+        "R01BA"
+      ],
+      "via": "фенилэфрин",
+      "label": "деконгестант",
+      "reason": "ТераФлю от гриппа и простуды Экстра, ТераФлю, Флюкомп®: coded N02BE51. The product's own instruction describes the phenylephrine in it as a vasoconstrictor that relieves swelling of the nasal mucosa (a decongestant), so the sentences of other instructions that name decongestants / sympathomimetics apply to it. Secondary (CLS2): the class is brought by one component (фенилэфрин; its own ATC code R01BA03, group R01BA «Симпатомиметики» (systemic nasal decongestants)); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.003fc44bf77ef0e3943a.instruction",
+        "section": "Фармакодинамика",
+        "quote": "Фенилэфрина гидрохлорид – симпатомиметическое средство, при приеме внутрь оказывает умеренное сосудосуживающее действие (за счет стимуляции альфа1- адренорецепторов), уменьшает отек и гиперемию слизистой оболочки полости носа."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.парацетамол-фенилэфрин-фенирамин",
+      "role": "secondary",
+      "classes": [
+        "R06AB"
+      ],
+      "via": "фенирамин",
+      "label": "антигистаминное",
+      "reason": "ТераФлю от гриппа и простуды Экстра, ТераФлю, Флюкомп®: coded N02BE51. The product's own instruction calls the фенирамин in it a blocker of H1-histamine receptors (an antihistamine), so the sentences of other instructions that name antihistamines apply to it. Secondary (CLS2): the class is brought by one component (фенирамин; its own ATC code R06AB05, group R06AB «Замещенные алкиламины»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.003fc44bf77ef0e3943a.instruction",
+        "section": "Фармакодинамика",
+        "quote": "Фенирамина малеат является противоаллергическим средством – блокатором Н1- гистаминовых рецепторов."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.парацетамол-фенилэфрин-фенирамин-аскорбиновая-кислота",
+      "role": "secondary",
+      "classes": [
+        "R01BA"
+      ],
+      "via": "фенилэфрин",
+      "label": "деконгестант",
+      "reason": "МАКСИОРВИН®, Стопгрипан форте, ГриппоФлю® от простуды и гриппа: coded N02BE51. The product's own instruction describes the phenylephrine in it as a vasoconstrictor that relieves swelling of the nasal mucosa (a decongestant), so the sentences of other instructions that name decongestants / sympathomimetics apply to it. Secondary (CLS2): the class is brought by one component (фенилэфрин; its own ATC code R01BA03, group R01BA «Симпатомиметики» (systemic nasal decongestants)); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.92c49e90e74045f47fd1.instruction",
+        "section": "Фармакодинамика",
+        "quote": "Фенилэфрин – симпатомиметическое средство, при приеме внутрь оказывает умеренное сосудосуживающее действие (за счет стимуляции альфа1-адренорецепторов), уменьшает отек и гиперемию слизистой оболочки полости носа."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.парацетамол-фенилэфрин-фенирамин-аскорбиновая-кислота",
+      "role": "secondary",
+      "classes": [
+        "R06AB"
+      ],
+      "via": "фенирамин",
+      "label": "антигистаминное",
+      "reason": "МАКСИОРВИН®, Стопгрипан форте, ГриппоФлю® от простуды и гриппа: coded N02BE51. The product's own instruction calls the фенирамин in it a blocker of H1-histamine receptors (an antihistamine), so the sentences of other instructions that name antihistamines apply to it. Secondary (CLS2): the class is brought by one component (фенирамин; its own ATC code R06AB05, group R06AB «Замещенные алкиламины»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.92c49e90e74045f47fd1.instruction",
+        "section": "Фармакодинамика",
+        "quote": "Фенирамин является противоаллергическим средством – блокатором Н1- гистаминовых рецепторов."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.парацетамол-фенилэфрин-хлорфенамин-аскорбиновая-кислота",
+      "role": "secondary",
+      "classes": [
+        "R01BA"
+      ],
+      "via": "фенилэфрин",
+      "label": "деконгестант",
+      "reason": "Колдакт® Форс, РАНКОФ® Флю: coded N02BE51. The product's own instruction describes the phenylephrine in it as a vasoconstrictor that relieves swelling of the nasal mucosa (a decongestant), so the sentences of other instructions that name decongestants / sympathomimetics apply to it. Secondary (CLS2): the class is brought by one component (фенилэфрин; its own ATC code R01BA03, group R01BA «Симпатомиметики» (systemic nasal decongestants)); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.9f76eac69de04185cb1a.instruction",
+        "section": "Фармакологические свойства",
+        "quote": "Фенилэфрина гидрохлорид – альфа-адреномиметик – оказывает сосудосуживающее действие, уменьшает отечность и гиперемию слизистой оболочки носа и придаточных пазух."
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.парацетамол-фенилэфрин-хлорфенамин-аскорбиновая-кислота",
+      "role": "secondary",
+      "classes": [
+        "R06AB"
+      ],
+      "via": "хлорфенамин",
+      "label": "антигистаминное",
+      "reason": "Колдакт® Форс, РАНКОФ® Флю: coded N02BE51. The product's own instruction calls the хлорфенамин in it a blocker of H1-histamine receptors (an antihistamine), so the sentences of other instructions that name antihistamines apply to it. Secondary (CLS2): the class is brought by one component (хлорфенамин; its own ATC code R06AB04, group R06AB «Замещенные алкиламины»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.9f76eac69de04185cb1a.instruction",
+        "section": "Фармакологические свойства",
+        "quote": "Хлорфенамина малеат – блокатор Н1-гистаминовых рецепторов – оказывает противоаллергическое действие"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.парацетамол-фенирамин-аскорбиновая-кислота",
+      "role": "secondary",
+      "classes": [
+        "R06AB"
+      ],
+      "via": "фенирамин",
+      "label": "антигистаминное",
+      "reason": "Флювикс детский, Сафистон Флю, Ринза® кидс: coded N02BE51. The product's own instruction calls the фенирамин in it a blocker of H1-histamine receptors (an antihistamine), so the sentences of other instructions that name antihistamines apply to it. Secondary (CLS2): the class is brought by one component (фенирамин; its own ATC code R06AB05, group R06AB «Замещенные алкиламины»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.7ea507d2bf9267f72cb9.instruction",
+        "section": "Фармакодинамика",
+        "quote": "Фенирамин – блокатор H1-гистаминовых рецепторов, снижает ринорею и слезотечение"
+      },
+      "review": "docs/research/atc-index-review-2026-10-14.json"
+    },
+    {
+      "card": "esklp.mnn.парацетамол-хлорфенамин-аскорбиновая-кислота",
+      "role": "secondary",
+      "classes": [
+        "R06AB"
+      ],
+      "via": "хлорфенамин",
+      "label": "антигистаминное",
+      "reason": "Антигриппин, ФриКолд КИДС, ДезГриппин®: coded N02BE51. The product's own instruction names the хлорфенамин in it among the antihistamines, so the sentences of other instructions that name antihistamines apply to it. Secondary (CLS2): the class is brought by one component (хлорфенамин; its own ATC code R06AB04, group R06AB «Замещенные алкиламины»); the registry code is not wrong.",
+      "evidence": {
+        "document": "drug.rf.58db4c9619cbc1c1eca3.instruction",
+        "section": "Взаимодействие с другими лекарственными средствами",
+        "quote": "Ингибиторы моноаминоксидазы (МАО) нельзя принимать в сочетании с антигистаминными препаратами (например, хлорфенамина малеат)"
       },
       "review": "docs/research/atc-index-review-2026-10-14.json"
     }

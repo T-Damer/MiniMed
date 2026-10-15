@@ -14,6 +14,8 @@ brief: the data is 90–99 % right, so the review covers only what the completed
 >
 > **Status 2026-10-14 (CLS1):** the owner then decided that one drug can have several classes: a primary one (its ATC codes) and secondary, additional ones that a component brings. The five phenobarbital
 > cards regain the hypnotic and barbiturate sentences as a secondary class, and the two ATC4c additions became secondary too (OD6 at the end, «Owner decisions 2026-10-14, third part»).
+>
+> **Status 2026-10-15 (CLS2):** the component classes CLS1 listed are declared as secondary classes where the product's own instruction names the class (codeine, caffeine, phenylephrine, pseudoephedrine, paracetamol, chlorphenamine, and pheniramine): 45 entries on 28 cards (OD7 at the end, «Owner decisions 2026-10-14, fourth part»). A secondary class no longer counts as the card's own class when own-class mentions are suppressed.
 
 ## Where ATC codes are used
 
@@ -371,3 +373,75 @@ secondary class is card element 4 of the interaction index, so a «также: �
 Cards that contain the component, are not in the class by code and have an instruction in the modules: codeine → opioid or antitussive (`N02A`, `R05DA`): 4 of 11; phenylephrine or pseudoephedrine → decongestant: 15 of 23;
 caffeine → psychostimulant (`N06BC`): 19 of 33; paracetamol → analgesic (`N02BE`): 14 of 15; chlorphenamine → antihistamine (`R06A`): 6 of 13. Codeine and caffeine are the two where the class sentences matter most.
 Each would need its own quote per product; the owner decides which to declare.
+
+## Owner decisions 2026-10-14, fourth part (CLS2, OD7)
+
+Machine-readable: `ownerDecisions` OD7 in [the JSON record](atc-index-review-2026-10-14.json) (every entry with its quote and counts, the cards left out with the reason, the scenario rows). The index was rebuilt
+(`bun scripts/build-drug-interactions.ts`; the build before the change reproduced the committed file byte for byte): 2 127 806 → 2 130 548 bytes, and the build now also writes
+`secondary-classes.json` (6.9 kB, 32 cards) for the drug screen.
+
+### What was applied
+
+CLS1 declared the phenobarbital classes and listed the other component classes for the owner («one drug can have many classes; the main use is primary, a component's class is secondary and still matches
+interaction sentences»). CLS2 applies them under CLS1's rule: the card's own instruction (a verbatim quote, checked by the build) calls the component the class; the class is one the interaction sentences name (a
+`c:` target is in the index and a class word stands for it); the declared group is the component's own ATC group; the card's own codes do not already cover it.
+
+| Component | Group (component's own ATC code) | View label | Class word | Entries | Document / sentence pairs gained |
+| --- | --- | --- | --- | ---: | ---: |
+| codeine | `N02A` (N02AA59, R05DA04) | опиоид | «опиоиды» | 2 | 288 / 647 |
+| caffeine | `N06BC` (N06BC01) | психостимулятор | «психостимуляторы» | 9 | 493 / 713 |
+| phenylephrine | `R01BA` (R01BA03) | деконгестант | «деконгестанты» | 12 | 1 404 / 1 962 |
+| pseudoephedrine | `R01BA` (R01BA02) | деконгестант | «деконгестанты» | 1 | 120 / 154 |
+| paracetamol | `N02BE` (N02BE01) | анальгетик | «анальгетики» | 9 | 703 / 823 |
+| chlorphenamine | `R06AB` (R06AB04) | антигистаминное | «антигистаминные» | 4 | 686 / 913 |
+| pheniramine | `R06AB` (R06AB05) | антигистаминное | «антигистаминные» | 8 | 1 287 / 1 800 |
+
+The pairs are per entry: documents (and sentences) of other drugs that name the class and now reach the card, summed over the entries (a card with three classes counts three times). The 45 entries are on 28
+cards: the cold remedies coded `R05X` or `N02BE51` (РАНКОФ, Флюфайт, ТераФлю, Колдакт, Ларивикс, Каффетин Колд, ИНФЛЮНЕТ, Дуоколд, Пентафлуцин …), the codeine analgesics Тетралганол and Седал-М, Мигрениум
+and Страйк Плюс, Темпалгин Трио, Авинорм Тревел and Теофедрин-Н. Седал-М is declared from its pharmacotherapeutic group («анальгезирующее опиоидное средство + НПВП + … + психостимулирующее средство +
+барбитурат»), the same line CLS1 used for its phenobarbital. Pheniramine is not on CLS1's list; it has the same ATC subgroup (R06AB) as chlorphenamine and the same cold-remedy products, so leaving it out would
+make ТераФлю differ from Колдакт for no reason (delete the eight entries to keep strictly to the list).
+
+### Not applied (reasons in `notApplied`)
+
+- caffeine in the Цитрамон family (Цитрамон П, Сафистон Нео, Цитрапак): the instruction itself says that in this combination caffeine in a small dose «практически не оказывает стимулирующего действия на центральную
+  нервную систему»; caffeine in РАНКОФ, Флюфайт Таб, КВАДРОФЛЮ (called an analgesic adjuvant), Каффетин (strengthens the other components), Паглюверин (an analeptic action), Пенталгин / Спазмалгон Эффект (a warning
+  about caffeine drinks only), ДышеФЛЮ (overdose only);
+- codeine in Каффетин (the leaflet dispenses it under the rules for narcotics but never calls codeine an opioid) and Пиралгин (an amendment sheet only);
+- phenylephrine in the eye drops with tropicamide (a mydriatic, not a nasal decongestant) and in Колдакт Дэй Найт (the leaflet gives the action to the product as a whole);
+- instructions that are OCR sheets without a statement about the component (Цефекон Н, Флюколдекс, АнГрикапс максима);
+- paracetamol in Кодеин+Парацетамол and Парацетамол+Трамадол: already in `N02A`, which the word «анальгетики» covers.
+
+«Противоаллергическое действие» is read as the antihistamine effect for five cold remedies whose instruction does not say «H1» or «антигистаминные» about the component (Колдакт Бронхо, Дуоколд, Флюфайт,
+Ринзасип с витамином С, ДышеФЛЮ); the other entries name the H1 blockade or the antihistamines.
+
+### A finding of the check: secondary classes must not suppress
+
+CLS1 let a secondary class count as the card's own class when a class word in the drug's own warnings is dropped as self-description («как и другие НПВП»). The first build of CLS2 lost 10 sentence pairs that are real
+warnings: «Следует избегать совместного применения с другими лекарственными препаратами … содержащими парацетамол или антигистаминные средства» (Антигриппин) was gone for loratadine, cetirizine, ketotifen and
+promethazine, and the contraindication «одновременное применение других парацетамолсодержащих лекарственных средств, ненаркотических анальгетиков, НПВП» (ИНФЛЮНЕТ) for paracetamol and acetylsalicylic acid. That was
+worse for the doctor, so only the primary classes suppress now (`interaction-build.ts`; a unit test keeps it). The seven CLS1 cards and their documents are identical before and after this fix.
+
+### User-perspective check (ATC4c method)
+
+15 combination cards that gained a class × 46 common partner drugs = 690 pairs, `checkPair` over the committed index (before) and the rebuilt one (after), sentences read from the installed ГРЛС modules.
+
+| Result | Pairs |
+| --- | ---: |
+| better (a true, relevant statement about the class gained) | 73 |
+| neutral, changed (true of the class but about another member, or a long list) | 30 |
+| worse | 0 |
+| unchanged | 587 |
+
+131 sentence pairs gained, 0 lost; 35 distinct sentences, of which 21 better and 14 neutral. Better: a cold remedy with an antihistamine now meets the antihistamine sentences of diazepam, morphine, nalbuphine,
+ketotifen, amitriptyline; one with phenylephrine meets «симпатомиметики снижают антигипертензивный эффект лизиноприла / метилдопы», digoxin and levodopa; the codeine analgesics meet zopiclone («одновременное
+применение опиоидов и бензодиазепинов»), diazepam, nalbuphine, morphine; the caffeine ones meet theophylline («другие препараты ксантинового ряда») and diphenhydramine («антагонизм с психостимуляторами»).
+Neutral: the QT-prolonging antihistamines named for amiodarone and amitriptyline (astemizole, terfenadine), buprenorphine and naloxone sentences read against morphine, a tramadol contraindication list, an aspirin
+interaction list. None is wrong for the product; they are what the same class word already shows for any drug of the class. Searching is not affected (class words feed the interaction and prescription tools only);
+the comparison tool has its own index.
+
+### What a doctor sees
+
+In the interaction checker, the prescription tool and the comparison a quote reached only through a secondary class carries the small italic «через кофеин (психостимулятор)» (CLS1). The drug screen, and the screen of
+a drug whose module is not installed, show one small plain line under the code: «также: психостимулятор (через кофеин); деконгестант (через фенилэфрин)». The line comes from `secondary-classes.json`, a lazy chunk
+of its own, so the 2.1 MB interaction index is not loaded for it. The ATC sheet is not changed: it explains one code, and a secondary class is not the card's code.

@@ -3,6 +3,7 @@ import { createResource, createSignal, For, type JSX, Show } from 'solid-js';
 import { loadComparisonIndex } from '@/features/drug-comparison/comparison-load';
 import { AtcCodeSheet, type AtcSheetFocus } from '@/features/medications/AtcCodeSheet';
 import { DrugAtcChip } from '@/features/medications/DrugQuickLinks';
+import { DrugSecondaryClasses } from '@/features/medications/DrugSecondaryClasses';
 import { type DrugAtcCode, drugAtcCodesFromIndexCard } from '@/features/medications/drug-screen';
 
 import '@/features/medications/drug-screen.css';
@@ -50,6 +51,7 @@ export function DrugIndexAtc(props: { readonly slug: string }): JSX.Element {
             </For>
           </ul>
         </div>
+        <DrugSecondaryClasses slug={props.slug} />
       </nav>
       <AtcCodeSheet code={atc()} focus={focus()} open={open()} onClose={() => setOpen(false)} />
     </Show>

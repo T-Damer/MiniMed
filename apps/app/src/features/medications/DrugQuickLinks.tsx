@@ -1,6 +1,7 @@
 import { createSignal, For, type JSX, Show } from 'solid-js';
 
 import { AtcCodeSheet, type AtcSheetFocus } from '@/features/medications/AtcCodeSheet';
+import { DrugSecondaryClasses } from '@/features/medications/DrugSecondaryClasses';
 import {
   DRUG_ACCORDION_VISIBLE,
   type DrugAtcCode,
@@ -139,8 +140,9 @@ function metaLinks(links: DrugQuickLinksModel): readonly MetaLink[] {
 
 /**
  * Right under the header, in two lines of plain text links: what the drug is (active substance,
- * pharmacological group, ATC code) and its other trade names with their manufacturing country.
- * Only what the data supports is drawn; the comparison starts from the header's «⋯» menu.
+ * pharmacological group, ATC code, and for a combination product one small «также: …» line with
+ * the extra classes its components bring) and its other trade names with their manufacturing
+ * country. Only what the data supports is drawn; the comparison starts from the header's «⋯» menu.
  */
 export function DrugQuickLinks(props: {
   readonly links: DrugQuickLinksModel;
@@ -201,6 +203,7 @@ export function DrugQuickLinks(props: {
                 </>
               )}
             </FoldedLinks>
+            <DrugSecondaryClasses slug={props.links.compare?.slug} />
           </section>
         </Show>
         <Show when={props.links.related.length > 0}>
