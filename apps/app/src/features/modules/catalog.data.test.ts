@@ -33,13 +33,7 @@ function atMost(left: string, right: string): boolean {
 }
 
 /** Modules the catalog lists for the next app release (their reader code is in the same unreleased range). */
-const PENDING_RELEASE_MODULES: ReadonlyMap<string, string> = new Map([
-  // The sharded photo pack needs the per-artifact IndexedDB rows of 0.6.60.
-  ['minimed.medications.packaging-images.ru', '0.6.60'],
-  // 0.6.60 bundles only the light regulatory pack (323-ФЗ + cards that offer this module); 0.6.59
-  // still bundles all 31 documents and does not know the `regulatory-…` zstd mirror URL.
-  ['minimed.regulatory.pediatrics.ru', '0.6.60'],
-]);
+const PENDING_RELEASE_MODULES: ReadonlyMap<string, string> = new Map<string, string>([]);
 
 describe('module catalog structure', () => {
   const modules = catalog.modules;

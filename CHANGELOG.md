@@ -4,6 +4,35 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.60] - 2026-10-15
+
+- First launch asks what to download instead of starting on its own; «Скачать всё» (recommended) takes every
+  section except the packaging photos. Downloads can be paused and resumed, also across a restart; a full
+  «Скачать всё» of ~840 sections now finishes without failed items, and the МКБ-11 section downloads again.
+- Search with every section installed no longer fails after a restart (small sections now live in the
+  device storage with a shared cache instead of the 2 GB in-memory limit). Errors read as one calm line
+  with a retry, never as raw database text.
+- Drug search: brand names find their drug («Аспирин»), a class word lists the class first, then its
+  drugs («макролиды», also inside a longer query: «статины при беременности»), an ATC code finds its group
+  («J05AX»); the code shows its meaning level by level, and ATC codes in documents are links. The registry
+  and the agreed ATC code are shown together where they differ.
+- Drug page: the instruction text starts on the first screen; plain text links instead of chips;
+  compare and share in the header menu; combination drugs name their extra classes («также:
+  психостимулятор (через кофеин)»). Dosages of combination drugs no longer show a stray «1,0»
+  («325 мг+10 мг+20 мг»), and «НЕ УКАЗАНО» is gone from cards and search results.
+- Interaction check: reviewed class rules with completed ATC codes; combination drugs warn through their
+  components (antihistamine + diazepam, decongestant + lisinopril, codeine + benzodiazepines); each drug
+  says whether its instruction is installed, and a partial check says so.
+- Every calculator and questionnaire ends with a verdict citing its source, says what it still needs (QTc),
+  or shows only the number where no published bands exist (doses, volumes). Inputs accept every normal
+  value; «8 баллов», «2 балла»; the EPDS item-10 answer is an alert; GCS wording corrected.
+- Typed text is never lost: notes, visit diagnoses, patient forms, official forms, «Назначение» and the
+  user calculator editor keep the last keystrokes through a reload or a crash.
+- Back returns where you came from with its state; sheets and previews close with back; tabs share one
+  history.
+- Documents open on their text: compact meta line, the reader jumps to the found fragment, a printed table
+  of contents of an old guideline is folded away. Higher contrast, larger tap targets, no words broken
+  mid-line, horizontal strips with arrows.
 - Laws and orders: the app keeps the main law 323-ФЗ («Об основах охраны здоровья граждан») in full text
   and a card for every other act (number, title, edition, headings), so each act is still found offline.
   The full texts of the other 29 acts are the downloadable section «Нормативные документы РФ: педиатрия»
