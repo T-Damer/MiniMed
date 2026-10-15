@@ -917,7 +917,7 @@
       ],
       "release": "branch datasets/grls-instructions-2026.10.15-36a501e7f136-kd1 (15 .db.zst)",
       "rebuild": "gh/git checkout of the branch; or the commands above over data/intermediate/grls-contents-lists and the old workspaces",
-      "note": "Local copy of the LEAF1 instruction modules (222.5 MB); the OCR1 copy output/module-zstd-grls-ocr1-kd1-2026-10-14 stays as the rollback one. The first-pass branch datasets/grls-instructions-2026.10.15-8e814530e861-kd1 on the mirror is unreferenced (the text after a cut contents list shared a chunk with it; fixed before this release).",
+      "note": "Local copy of the LEAF1 instruction modules (222.5 MB); the OCR1 copy output/module-zstd-grls-ocr1-kd1-2026-10-14 stays as the rollback one. The superseded first-pass branch datasets/grls-instructions-2026.10.15-8e814530e861-kd1 was deleted on 2026-10-15.",
       "bytes": 222521672,
       "modified": "2026-10-14"
     }

@@ -45,9 +45,10 @@ fixed, 3 partly, 1 not, 2 new low). Ordered next work:
    soon) — done (ICD11-SEC, «МКБ-11 search section» below); pheniramine and the five «противоаллергическое» cold remedies keep the antihistamine
    class (the component's own ATC R06AB backs it; rule: a secondary class needs the component's
    classification or a clearly similar effect, not every listed effect); the «Результат записан в
-   защищённую карточку» toast stays; the first-pass dataset branches
+   защищённую карточку» toast stays; the superseded first-pass dataset branches
    `datasets/grls-instructions-2026.10.15-8e814530e861-kd1` and
-   `datasets/manufacturer-instructions-2026.10.15-230904b5fadb` are kept.
+   `datasets/manufacturer-instructions-2026.10.15-230904b5fadb` were deleted (owner, 2026-10-15; superseded
+   by the `…36a501e7f136-kd1` and `…4054ceb93a8a` builds).
 10. **Clinician review** of TOOLS-A/B sources flagged as weaker: APRI cut-offs (secondary source), GCS
     mild/moderate/severe attribution to NICE, ATLS classes from the class table, GIR, Doppler indices
     without GA percentiles, Silverman scores 3 and 7.
