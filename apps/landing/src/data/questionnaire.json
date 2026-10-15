@@ -51,18 +51,18 @@
   ],
   "interpretations": [
     {
-      "minScore": 1,
-      "maxScore": 2,
-      "scaleId": "whooley-total",
-      "headline": "Положительный результат скрининга",
-      "message": "Положительный ответ хотя бы на один вопрос — повод для более подробного разговора о настроении и, при необходимости, использования развёрнутого инструмента или консультации специалиста."
-    },
-    {
       "minScore": 0,
       "maxScore": 0,
       "scaleId": "whooley-total",
       "headline": "Отрицательный результат скрининга",
       "message": "Отрицательные ответы на оба вопроса связаны с низкой вероятностью текущего депрессивного эпизода, но не исключают его полностью."
+    },
+    {
+      "minScore": 1,
+      "maxScore": 2,
+      "scaleId": "whooley-total",
+      "headline": "Положительный результат скрининга",
+      "message": "Положительный ответ хотя бы на один вопрос — повод для более подробного разговора о настроении и, при необходимости, использования развёрнутого инструмента или консультации специалиста."
     }
   ],
   "disclaimer": "Это сверхкороткий скрининг, а не диагноз. Положительный результат — повод для более подробного разговора и, при необходимости, развёрнутого инструмента (например, EPDS) или консультации специалиста.",
@@ -86,22 +86,46 @@
           "from": 0,
           "label": "Отрицательный",
           "attentionLevel": "none",
-          "interpretation": 1
+          "interpretation": 0
         },
         {
           "from": 1,
           "label": "Положительный",
           "attentionLevel": "moderate",
-          "interpretation": 0
+          "interpretation": 1
         }
       ]
     }
   ],
   "evaluation": {
-    "status": "unavailable",
-    "rules": [],
+    "status": "verdict",
+    "rules": [
+      {
+        "when": "score_whooley_total <= 0",
+        "verdict": {
+          "rangeId": "whooley-total-1",
+          "title": "Отрицательный результат скрининга",
+          "explanation": "Отрицательные ответы на оба вопроса связаны с низкой вероятностью текущего депрессивного эпизода, но не исключают его полностью.",
+          "attentionLevel": "none",
+          "lowerBound": 0,
+          "upperBound": 0,
+          "sourceIds": ["perinatal-mood-whooley-perinatal-mood-whooley"]
+        }
+      },
+      {
+        "when": "score_whooley_total >= 1",
+        "verdict": {
+          "rangeId": "whooley-total-2",
+          "title": "Положительный результат скрининга",
+          "explanation": "Положительный ответ хотя бы на один вопрос — повод для более подробного разговора о настроении и, при необходимости, использования развёрнутого инструмента или консультации специалиста.",
+          "attentionLevel": "moderate",
+          "lowerBound": 1,
+          "upperBound": 2,
+          "sourceIds": ["perinatal-mood-whooley-perinatal-mood-whooley"]
+        }
+      }
+    ],
     "missingContext": [],
-    "reason": "Проверенный референсный диапазон не заявлен в текущей версии опросника.",
     "sourceIds": ["perinatal-mood-whooley-perinatal-mood-whooley"]
   },
   "observationMappings": [
