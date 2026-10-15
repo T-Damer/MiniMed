@@ -7,7 +7,8 @@ import { join, resolve } from 'node:path';
 {
   const root = await mkdtemp(join(tmpdir(), 'minimed-secret-scan-'));
   const scanner = resolve(import.meta.dirname, 'no-secrets.mjs');
-  const secret = ['sk', 'x'.repeat(28)].join('-');
+  // Real keys mix case and digits; a lowercase slug such as `sk-score2-coefficients-2022` is not a key.
+  const secret = ['sk', 'aB3'.repeat(10)].join('-');
   const scan = () => spawnSync(process.execPath, [scanner, root], { encoding: 'utf8' });
   try {
     execFileSync('git', ['init', '-q', root]);
@@ -18,6 +19,10 @@ import { join, resolve } from 'node:path';
     await writeFile(join(root, 'deleted.js'), secret);
     execFileSync('git', ['add', 'deleted.js'], { cwd: root });
     await rm(join(root, 'deleted.js'));
+    await writeFile(
+      join(root, 'slug.js'),
+      `const id = '${['sk', 'score2', 'coefficients', '2022'].join('-')}';`,
+    );
     assert.equal(scan().status, 0);
     await writeFile(join(root, 'source.js'), secret);
     const untracked = scan();
