@@ -20,6 +20,36 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Next after 0.6.60 (ordered) — 2026-10-15
+
+Release 0.6.60 shipped after two QA passes (docs/research/qa-release-0660-2026-10-15.md; re-check: 11 of 15
+fixed, 3 partly, 1 not, 2 new low). Ordered next work:
+
+1. **Device check of the module shelf (MEM1)** on a phone / Android WebView: ~800 OPFS handles in one pool,
+   memory, first-start migration time (7–10 s for 774 modules on desktop), startup-to-searchable after a
+   full install (13–17 s on a loaded desktop; a cold query took 9–10 s).
+2. **Drug search leftovers (QA 12)**: «МНН записи: …, ~.» still on cards/snippets; «АМОКСИЦИЛЛИН» and
+   «Амоксициллин» still two cards; «статины при беременности» lists «Острый промиелоцитарный лейкоз».
+3. **Drug screen class line (QA 13)**: primary class shows the long registry phrase + code, not
+   «N02BE51 · анилиды» on cards that have a pharmacological-group link; Цитрамон has no «также:» (by
+   decision, owner may override).
+4. **Downloads**: «Скачать всё · 3,1 МБ» stays offered after everything is installed and queues nothing;
+   «передач: 4 из 3»; the downloads page fetches the sqlite wasm ~30× in 12 s.
+5. **Interaction checker**: no suggestions and no loading line for 14–30 s while its index loads.
+6. **Drug card**: mixed decimal separators («0.58 мг» vs «0,58 мг») in «Доступные дозировки».
+7. **Core rebuild** (`content:core:build`) to pick up DOSE1's pointer repair (2 815 titles, «(НЕ УКАЗАНО)» in
+   1 872 chunks); the app hides them meanwhile. Refresh `packages/test-fixtures` core-slice titles.
+8. **ЕСКЛП source**: the str1 modules were repaired from the published packs (source archive not on this
+   machine); the next ЕСКЛП refresh rebuilds them from source with the fixed builder.
+9. **Owner decisions pending**: МКБ-11 search section (SRCH2 assessed ~10 files); pheniramine and the five
+   «противоаллергическое»-only cold remedies (CLS2, kept); the «Результат записан в защищённую
+   карточку» toast (kept); deleting the unreferenced branches
+   `datasets/grls-instructions-2026.10.15-8e814530e861-kd1` and
+   `datasets/manufacturer-instructions-2026.10.15-230904b5fadb`.
+10. **Clinician review** of TOOLS-A/B sources flagged as weaker: APRI cut-offs (secondary source), GCS
+    mild/moderate/severe attribution to NICE, ATLS classes from the class table, GIR, Doppler indices
+    without GA percentiles, Silverman scores 3 and 7.
+
 ## Module shelf: search after a full install (SQLITE_NOMEM) — 2026-10-15 (STATE MEM1)
 
 QA before 0.6.60 ([qa-release-0660-2026-10-15](research/qa-release-0660-2026-10-15.md) item 1): after «Скачать всё»
