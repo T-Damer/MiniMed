@@ -232,6 +232,11 @@ export function pairStatusText(view: PairView, listed = false): string {
             : '';
     return `${base}${pending}${noInstruction}`;
   }
+  // A failed read is no «nothing found»: the check is partial until the instruction can be read.
+  const unreadableNames = namesInState(view, 'unreadable');
+  if (unreadableNames !== '') {
+    return `Упоминаний в прочитанных инструкциях не найдено; не удалось прочитать: ${unreadableNames}`;
+  }
   if (unchecked !== '') {
     return listed
       ? 'В доступных инструкциях упоминаний не найдено; проверено не полностью'
@@ -257,6 +262,8 @@ export function sideSourceState(side: SideView): string {
       return 'читаем инструкцию…';
     case 'not-installed':
       return 'инструкция не установлена';
+    case 'unreadable':
+      return 'не удалось прочитать инструкцию';
     case 'no-instruction':
       return 'нет инструкции в источниках приложения';
     case 'substance':
