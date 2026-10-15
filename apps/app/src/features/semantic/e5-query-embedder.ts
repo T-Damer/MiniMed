@@ -1,11 +1,13 @@
 import { KD1_FUSION, KD1_PROFILE, NeuralQueryEmbedder } from '@localmed/search-semantic';
 import type { E5EmbedMessage, E5WorkerOutMessage } from './e5.worker';
-import { isE5ModelInstalled } from './e5-model-cache';
+import { discardDownloadedE5Model, isDownloadedE5ModelInstalled } from './e5-model-cache';
+import { resolveE5ModelSource } from './e5-model-source';
 
 /**
- * The on-device e5-small query embedder handed to MedicalCore. Until the model is downloaded,
- * `embedQuery` rejects and the core reports `semantic-error:semantic-model-not-installed` with
- * complete lexical results (ADR 0008 fallback).
+ * The on-device query embedder handed to MedicalCore. The model is loaded lazily, by the worker, on
+ * the first query that needs it: from the APK's bundled copy on Android, from the downloaded copy
+ * elsewhere. Until the downloaded model exists, `embedQuery` rejects and the core reports
+ * `semantic-error:semantic-model-not-installed` with complete lexical results (ADR 0008 fallback).
  */
 let worker: Worker | null = null;
 let requestCounter = 0;
@@ -46,18 +48,35 @@ export function resetE5QueryEmbedder(): void {
   pending.clear();
 }
 
+let downloadedCopyDiscarded = false;
+
+/** Once the bundled model has answered, an older downloaded copy (≈130 MB) is no longer needed. */
+function discardDownloadedCopyOnce(): void {
+  if (downloadedCopyDiscarded) return;
+  downloadedCopyDiscarded = true;
+  discardDownloadedE5Model().catch((cause: unknown) => {
+    downloadedCopyDiscarded = false;
+    console.warn('Загруженная копия модели поиска по смыслу не удалена.', cause);
+  });
+}
+
 async function encode(text: string): Promise<Float32Array> {
-  installed ??= await isE5ModelInstalled();
-  if (!installed) {
-    installed = null;
-    throw new Error('semantic-model-not-installed');
+  const source = await resolveE5ModelSource();
+  if (source.kind === 'download') {
+    installed ??= await isDownloadedE5ModelInstalled();
+    if (!installed) {
+      installed = null;
+      throw new Error('semantic-model-not-installed');
+    }
   }
   const requestId = ++requestCounter;
-  return new Promise<Float32Array>((resolve, reject) => {
+  const values = await new Promise<Float32Array>((resolve, reject) => {
     pending.set(requestId, { resolve, reject });
-    const message: E5EmbedMessage = { type: 'embed', requestId, text };
+    const message: E5EmbedMessage = { type: 'embed', requestId, text, source };
     embeddingWorker().postMessage(message);
   });
+  if (source.kind === 'bundled') discardDownloadedCopyOnce();
+  return values;
 }
 
 export const E5_QUERY_EMBEDDER = new NeuralQueryEmbedder(KD1_PROFILE, encode, KD1_FUSION);

@@ -18,6 +18,7 @@ import {
   validStored,
   withStore,
 } from './e5-model-cache';
+import { resolveE5ModelSource } from './e5-model-source';
 
 const listeners = new Set<() => void>();
 
@@ -37,9 +38,13 @@ async function sha256Hex(bytes: Uint8Array): Promise<string> {
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
-/** Downloads the missing files through the shared queue; each file is stored only once verified. */
-export function installE5Model(signal?: AbortSignal): Promise<void> {
-  return getDownloadQueue()
+/**
+ * Downloads the missing files through the shared queue; each file is stored only once verified.
+ * A build that bundles the model (Android) has nothing to download: resolves without queueing.
+ */
+export async function installE5Model(signal?: AbortSignal): Promise<void> {
+  if ((await resolveE5ModelSource()).kind === 'bundled') return;
+  await getDownloadQueue()
     .run(
       {
         id: E5_DOWNLOAD_ID,

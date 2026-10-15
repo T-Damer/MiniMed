@@ -1,5 +1,6 @@
 import { env, type FeatureExtractionPipeline, pipeline } from '@huggingface/transformers';
 import { E5_MODEL_ID, E5_MODEL_REVISION, pinnedE5File } from './e5-model';
+import { readBundledE5ModelFile } from './e5-model-bundled';
 import { readE5ModelFile } from './e5-model-cache';
 
 /** Query text in, float embedding out. Query text never leaves this worker or reaches a log. */
@@ -7,20 +8,36 @@ export interface E5EmbedMessage {
   readonly type: 'embed';
   readonly requestId: number;
   readonly text: string;
+  /** Resolved on the main thread: the bundled copy (absolute base URL) or the downloaded one. */
+  readonly source: E5WorkerModelSource;
 }
+
+export type E5WorkerModelSource =
+  | { readonly kind: 'bundled'; readonly baseUrl: string }
+  | { readonly kind: 'download' };
 
 export type E5WorkerOutMessage =
   | { readonly type: 'embedding'; readonly requestId: number; readonly values: Float32Array }
   | { readonly type: 'embed-error'; readonly requestId: number; readonly message: string };
 
 env.allowLocalModels = false;
-// Every model file comes from the verified local cache; a missing file is an error, not a download.
+let source: E5WorkerModelSource = { kind: 'download' };
+
+// Every model file comes from the APK's bundled copy or the verified local cache; a missing file
+// is an error, not a download.
 env.fetch = async (input) => {
   const url = String(input instanceof Request ? input.url : input);
   const file = pinnedE5File(url);
   if (!file) throw new Error('Unsupported semantic model request.');
-  const data = await readE5ModelFile(file.path);
-  if (!data) throw new Error('semantic-model-not-installed');
+  const data =
+    source.kind === 'bundled'
+      ? await readBundledE5ModelFile(source.baseUrl, file.path)
+      : await readE5ModelFile(file.path);
+  if (!data) {
+    throw new Error(
+      source.kind === 'bundled' ? 'semantic-bundled-model-missing' : 'semantic-model-not-installed',
+    );
+  }
   return new Response(data, {
     status: 200,
     headers: { 'content-length': String(data.size) },
@@ -49,6 +66,7 @@ function loadExtractor(): Promise<FeatureExtractionPipeline> {
 scope.onmessage = (event) => {
   const message = event.data;
   if (message.type !== 'embed') return;
+  source = message.source;
   void (async () => {
     try {
       const output = await (await loadExtractor())(message.text, {

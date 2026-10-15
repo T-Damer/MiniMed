@@ -60,7 +60,48 @@ and fallback behavior. It is **not** evidence of medical semantic understanding.
 | Query text | `query: ` + the user's original wording |
 | Pooling | passages: Giga mean, L2, projection, L2; queries: mean, L2; then the int8 quantisation above |
 | Packs | the 774 single-КР modules (96 095 chunks, tag `clinical-kd1-2026.10.11`) and the indication sections of the 15 ГРЛС instruction modules + Allmed (14 116 chunks, tags `…-kd1`) |
-| Download | optional, Settings → «Поиск по смыслу», 130 MB (the ONNX graph in two verified parts, joined and checked again before it is stored); files of an earlier model revision are deleted on install |
+| Download | **Android: bundled in the APK** (owner 2026-10-15, below), no download. Web / iOS: optional, Settings → «Поиск по смыслу», 130 MB (the ONNX graph in two verified parts, joined and checked again before it is stored); files of an earlier model revision are deleted on install |
+
+### Bundled in the Android APK (owner decision 2026-10-15)
+
+«Under 300 MB apps are fine»: the Android build carries the query model, so meaning search works right
+after install. Nothing is committed to `main` (blobs stay under 100 MB); the model enters the APK at
+build time.
+
+- **Build**: `bun run native:sync:android` (= `cap sync android`, then
+  `bun scripts/fetch-query-model.ts --stage android`) downloads the pinned files from the
+  `datasets/kd1-query-encoder-2026.10.11.2` mirror into a gitignored cache (`.cache/localmed/query-model`
+  of the main checkout, shared by worktrees; `MINIMED_QUERY_MODEL_CACHE` overrides), checks every part and
+  every joined file against the size and SHA-256 pinned in `apps/app/src/features/semantic/e5-model.ts`
+  (the only copy of the checksums; a mismatch exits non-zero and writes nothing), joins the ONNX parts, and
+  copies the verified files plus a `manifest.json` into
+  `android/app/src/main/assets/public/models/kd1-query-encoder/` (gitignored). `android-release.yml` and
+  `android-build.yml` run the same command and cache the directory by the hash of `e5-model.ts`;
+  `scripts/fetch-query-model.ts --check-apk <apk>` fails the job when the finished APK lacks a model file or
+  carries a wrong size. `build.gradle` stores `*.onnx` uncompressed (`androidResources.noCompress`); the JSON
+  files compress (the tokenizer is 17 MB). Expected APK: 81 MB (0.6.60) + 119 MB graph + a few MB of
+  compressed tokenizer, about 205 MB.
+- **Runtime**: `e5-model-source.ts` picks the source with `Capacitor.getPlatform() === 'android'` plus a
+  manifest probe (`<app>/models/kd1-query-encoder/manifest.json` must name the pinned revision and
+  checksums). A bundled model counts as installed (`isE5ModelInstalled()`), so the plan of «Скачать всё», the
+  onboarding offer, the `model-missing` offer in search and the download queue never list it on a build
+  that carries it; `installE5Model()` does nothing there and a leftover `semantic-model` task of an older
+  version is dropped by the restorer. A developer build synced without the model (probe fails) falls back
+  to the optional download instead of silently searching without meaning. Settings → «Поиск по смыслу»
+  reads «Встроено в приложение», with no download, cancel or delete.
+- **Loading** stays lazy: the worker is created, and the files are read through the app's own web server
+  (`https://localhost/models/…`, streamed from the APK; the 119 MB graph becomes one Blob like the
+  IndexedDB copy did), on the first query that needs a vector. Nothing is read at start-up.
+- **Trust**: the build verifies every SHA-256; at run time the app checks the manifest and the file sizes
+  only. Re-hashing 119 MB on a phone at every cold start would cost time and a second 119 MB buffer, and the
+  bytes are part of the signed APK (Android refuses an APK altered after signing), so the build-time check
+  is the chain of trust.
+- **Cleanup**: after the first query answered by the bundled model, the IndexedDB database of the earlier
+  download (`minimed-semantic-model-v1`, about 130 MB) is deleted (`discardDownloadedE5Model`; skipped when
+  the database does not exist; a failure is logged and retried on the next query).
+- **Web (GitHub Pages) and iOS** keep the optional download exactly as before; the Pages deploy carries no
+  model. iOS is left alone on purpose: Capacitor's iOS scheme handler is not verified to stream a 119 MB
+  asset without loading it whole, and `ios-build.yml` is a simulator smoke build.
 
 Build: `uv run tools/ingest/scripts/embed_modules.py --projection data/build/kd1/giga480m-projection-384.npy
 --family clinical|medications …` (≈ 1 h for the КР on an M2 Max, batch 16 — larger Metal command

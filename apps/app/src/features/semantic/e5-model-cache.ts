@@ -82,7 +82,20 @@ export async function readE5ModelFile(path: string): Promise<Blob | null> {
   return validStored(file, stored) && stored ? stored.data : null;
 }
 
-export async function isE5ModelInstalled(): Promise<boolean> {
+/**
+ * Deletes the whole downloaded copy (≈130 MB) once the bundled model has answered a query. Nothing
+ * is created or opened when the database does not exist; resolves true when it was deleted.
+ */
+export async function discardDownloadedE5Model(): Promise<boolean> {
+  if (typeof indexedDB === 'undefined' || typeof indexedDB.databases !== 'function') return false;
+  const known = await indexedDB.databases();
+  if (!known.some((database) => database.name === DATABASE_NAME)) return false;
+  await requestResult(indexedDB.deleteDatabase(DATABASE_NAME));
+  return true;
+}
+
+/** Whether every pinned file of the downloaded copy is stored and verified (not the bundled one). */
+export async function isDownloadedE5ModelInstalled(): Promise<boolean> {
   if (typeof indexedDB === 'undefined') return false;
   for (const file of E5_MODEL_FILES) {
     if (!validStored(file, await storedFile(file))) return false;

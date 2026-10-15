@@ -53,6 +53,23 @@ fixed, 3 partly, 1 not, 2 new low). Ordered next work:
     mild/moderate/severe attribution to NICE, ATLS classes from the class table, GIR, Doppler indices
     without GA percentiles, Silverman scores 3 and 7.
 
+## Query model bundled in the Android APK — 2026-10-15 (STATE QM-BUNDLE)
+
+Owner decision 2026-10-15 («under 300 Mb apps are fine»): meaning search needs no download on Android. The build
+step `bun scripts/fetch-query-model.ts --stage android` (part of `native:sync:android`, `android-release.yml`,
+`android-build.yml`) fetches the pinned KD1 query model from its mirror branch into a gitignored cache, checks
+every SHA-256 from `e5-model.ts`, joins the ONNX parts and stages the files in the APK's web assets
+(`models/kd1-query-encoder/`, `*.onnx` stored uncompressed). The app decides at run time (`e5-model-source.ts`:
+Android and a manifest matching the pinned revision): a bundled model counts as installed, so Settings reads
+«Встроено в приложение» and «Скачать всё», onboarding, the queue restorer and the `model-missing` offer skip it;
+a leftover IndexedDB copy is deleted after the first bundled query. Web and iOS keep the optional download; a
+developer build synced without the model falls back to it. Trust, loading, cleanup and what is not measured
+(phone cold-start latency and memory): `docs/SEMANTIC_RETRIEVAL.md` «Bundled in the Android APK». Tests:
+`e5-model-source.test.ts` (platform switch), `semantic-settings-view.test.ts` (Settings, native vs web),
+`apps/app/src/scripts/fetch-query-model.test.ts` (join, checksum mismatch fails the build, cache reuse,
+staging, APK check). Not yet built into an APK: this machine has no Android SDK, so the first real build is the
+next `release:` workflow run (its `--check-apk` step fails the release if the model is missing); not tried on a phone.
+
 ## МКБ-11 search section — 2026-10-15 (STATE ICD11-SEC)
 
 Owner decision 2026-10-15: МКБ-11 (expected to come into use in Russia soon) gets a search section of its own, next

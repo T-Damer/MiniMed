@@ -29,7 +29,7 @@ import { sectionManifest } from '@/features/sections/section-manifest';
 import { buildSections, installState, sectionModules } from '@/features/sections/section-model';
 import { useModuleInstaller } from '@/features/sections/use-module-installer';
 import { E5_DOWNLOAD_ID } from '@/features/semantic/e5-model';
-import { isE5ModelInstalled } from '@/features/semantic/e5-model-cache';
+import { isE5ModelInstalled } from '@/features/semantic/e5-model-source';
 import { subscribeE5Model } from '@/features/semantic/e5-model-store';
 import type { SettingsPageId } from '@/features/settings/settings-pages';
 import {

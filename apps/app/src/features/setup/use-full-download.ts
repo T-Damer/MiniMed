@@ -32,7 +32,8 @@ export function useFullDownload(
   enabled: Accessor<boolean>,
 ): FullDownload {
   const installer = useModuleInstaller(onContentChanged, 'Не удалось скачать наборы.', enabled);
-  const [modelInstalled, setModelInstalled] = createSignal(false);
+  // Unknown until read: a build that bundles the model (Android) must not flash its size in the plan.
+  const [modelInstalled, setModelInstalled] = createSignal<boolean | undefined>();
   const pause = useDownloadsPause();
   const [failedTaskIds, setFailedTaskIds] = createSignal<ReadonlySet<string>>(new Set());
 
@@ -60,24 +61,26 @@ export function useFullDownload(
       unsubscribe();
       clearTimeout(timer);
     });
-    void import('@/features/semantic/e5-model-cache')
+    void import('@/features/semantic/e5-model-source')
       .then(({ isE5ModelInstalled }) => isE5ModelInstalled())
       .then(setModelInstalled)
       .catch((cause: unknown) => {
         console.warn('Состояние модели поиска по смыслу не прочитано.', cause);
+        setModelInstalled(false);
       });
   });
 
   const plan = createMemo<FullDownloadPlan | undefined>(() => {
     const snapshot = installer.snapshot();
-    if (!snapshot) return undefined;
+    const modelReady = modelInstalled();
+    if (!snapshot || modelReady === undefined) return undefined;
     return fullDownloadPlan({
       catalog: snapshot.catalog,
       released: isModuleReleased,
       installed: snapshot.isInstalled,
       failed: (module) => failedTaskIds().has(`module:${module.id}@${module.version}`),
       coreInstalled: coreInstalled(),
-      modelInstalled: modelInstalled(),
+      modelInstalled: modelReady,
       modelBytes: E5_MODEL_TOTAL_BYTES,
     });
   });

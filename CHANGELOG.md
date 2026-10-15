@@ -4,6 +4,12 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+- The Android app carries the meaning-search model (KD1 query encoder, about 125 MB; the APK grows from
+  81 MB to about 205 MB): meaning search works right after install with no download. Settings → «Поиск по
+  смыслу» shows it as built in; onboarding, «Скачать всё» and the search offer no longer list it on
+  Android. The browser and iOS keep the optional download. `bun run native:sync:android` fetches the model
+  and checks its SHA-256; it is never committed.
+
 ## [0.6.60] - 2026-10-15
 
 - First launch asks what to download instead of starting on its own; «Скачать всё» (recommended) takes every

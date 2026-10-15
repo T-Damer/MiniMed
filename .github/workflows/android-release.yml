@@ -58,6 +58,13 @@ jobs:
           yes | sdkmanager --licenses >/dev/null || true
           sdkmanager "platform-tools" "platforms;android-36" "build-tools;${BUILD_TOOLS_VERSION}"
 
+      - name: Cache the bundled query model
+        uses: actions/cache@v6
+        with:
+          path: .cache/localmed/query-model
+          # The key follows the pinned revision and checksums; the fetch script re-verifies them anyway.
+          key: query-model-${{ hashFiles('apps/app/src/features/semantic/e5-model.ts') }}
+
       - name: Install and verify release tree
         run: |
           bun install --frozen-lockfile
@@ -68,6 +75,7 @@ jobs:
           bun run benchmark:queries:contracts
           bun run benchmark:regulatory --database=apps/app/public/content/regulatory.db --report=playwright/regulatory-release-benchmark.json
           bun run build:app
+          # cap sync, then the KD1 query model (136 MB, SHA-256 checked) into the web assets.
           bun run native:sync:android
 
       - name: Restore the prerelease signing key
@@ -121,6 +129,8 @@ jobs:
             return "$status"
           }
           unzip_apk -l "$apk" | tee release-output/APK-CONTENTS.txt
+          # The meaning-search model ships inside the APK (owner decision 2026-10-15).
+          bun scripts/fetch-query-model.ts --check-apk "$apk"
           embedded_path="$(awk '$(NF) ~ /(^|\/)core\.db$/ { print $NF; exit }' release-output/APK-CONTENTS.txt)"
           if [ -n "$embedded_path" ]; then
             echo "APK must download core.db at first launch" >&2
@@ -263,7 +273,7 @@ jobs:
           Boundaries:
           - SQL/content-pack schema remains version 2; source identifiers and anchors are preserved;
           - unreviewed content and experimental tools are not clinically qualified;
-          - private source libraries, patient data and model weights are not bundled;
+          - private source libraries and patient data are not bundled; the meaning-search query model (open weights) is;
           - production signing and physical-device qualification remain outstanding.
           EOF
           )

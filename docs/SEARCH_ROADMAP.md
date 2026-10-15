@@ -258,5 +258,6 @@ hit@5 0.444 (rush 0.581, thoughtful 0.261), and with S3 0.278 / 0.574 (0.774, 0.
 
 ## Open owner decisions
 
-- e5 query model (129 MB): recommended as an onboarding checkbox, on by default, downloaded with the
-  first section; bundling it in the APK (+~125 MB) is the alternative.
+- ~~e5 query model (129 MB): onboarding checkbox, or bundled in the APK~~ — **resolved (owner, 2026-10-15):
+  bundled in the Android APK** (KD1 query model, about +125 MB, «under 300 MB is fine»); web and iOS keep
+  the optional download. See `docs/SEMANTIC_RETRIEVAL.md` «Bundled in the Android APK».

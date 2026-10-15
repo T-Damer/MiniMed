@@ -22,12 +22,12 @@
     "build": "bun ../../scripts/restore-core.mjs && tsc -p tsconfig.json && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json",
-    "cap:sync": "cap sync",
+    "cap:sync": "cap sync && bun ../../scripts/fetch-query-model.ts --stage android",
     "cap:add:android": "cap add android",
     "cap:add:ios": "cap add ios",
     "cap:open:android": "cap open android",
     "cap:open:ios": "cap open ios",
-    "cap:sync:android": "cap sync android",
+    "cap:sync:android": "cap sync android && bun ../../scripts/fetch-query-model.ts --stage android",
     "cap:sync:ios": "cap sync ios"
   },
   "dependencies": {

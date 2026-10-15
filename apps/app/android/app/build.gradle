@@ -70,6 +70,12 @@ android {
             useLegacyPackaging true
         }
     }
+    androidResources {
+        // The bundled meaning-search model (scripts/fetch-query-model.ts, 119 MB of int8 weights)
+        // is stored as it is: quantised weights barely compress, and the WebView streams the file
+        // straight from the APK instead of inflating it on every cold read. JSON stays compressed.
+        noCompress 'onnx'
+    }
     if (!storageSmoke) {
         externalNativeBuild {
             cmake {

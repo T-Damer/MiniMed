@@ -32,6 +32,12 @@ jobs:
       - uses: android-actions/setup-android@v4
         with:
           packages: ''
+      - name: Cache the bundled query model
+        uses: actions/cache@v6
+        with:
+          path: .cache/localmed/query-model
+          # The key follows the pinned revision and checksums; the fetch script re-verifies them anyway.
+          key: query-model-${{ hashFiles('apps/app/src/features/semantic/e5-model.ts') }}
       - name: Build and validate application assets
         run: |
           env -i PATH="$PATH" HOME="$HOME" CI=1 bun install --frozen-lockfile
@@ -41,6 +47,8 @@ jobs:
       - name: Complete ARM64 APK with inference and bundled SQLite
         working-directory: apps/app/android
         run: env -i PATH="$PATH" HOME="$HOME" JAVA_HOME="$JAVA_HOME" ANDROID_HOME="$ANDROID_HOME" CI=1 ./gradlew --no-daemon assembleDebug
+      - name: Verify that the APK carries the query model
+        run: env -i PATH="$PATH" HOME="$HOME" CI=1 bun scripts/fetch-query-model.ts --check-apk apps/app/android/app/build/outputs/apk/debug/app-debug.apk
       - name: Retain verified complete APK and exact source
         run: |
           mkdir -p /tmp/native-apk

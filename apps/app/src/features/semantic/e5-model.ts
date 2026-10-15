@@ -8,6 +8,11 @@
  * answers those requests from the verified local copy and never fetches. The files themselves are
  * downloaded from the `datasets/<tag>` mirror branch, where the ONNX graph is split in two parts
  * because a plain git blob must stay under 100 MB.
+ *
+ * The Android build bundles the same files (owner decision 2026-10-15): `scripts/fetch-query-model.ts`
+ * downloads them from the mirror, checks every size and SHA-256 below, joins the parts and stages
+ * them in the web assets of the APK under `E5_BUNDLED_DIR`. This module must stay free of runtime
+ * imports: the build script reads it as the single source of truth for the checksums.
  */
 export const E5_MODEL_ID = 'minimed/kd1-query-encoder';
 export const E5_MODEL_REVISION = 'kd1-query-encoder-2026.10.11.2';
@@ -92,4 +97,42 @@ export function pinnedE5File(url: string): E5ModelFile | null {
     return E5_MODEL_FILES.find((file) => file.path === path) ?? null;
   }
   return null;
+}
+
+/** Directory of the bundled copy in the web assets of the Android APK (relative to the app root). */
+export const E5_BUNDLED_DIR = 'models/kd1-query-encoder';
+/** Written last by the staging script; its presence proves a complete, verified copy. */
+export const E5_BUNDLED_MANIFEST = 'manifest.json';
+
+export interface E5BundledManifest {
+  readonly revision: string;
+  readonly files: readonly {
+    readonly path: string;
+    readonly sizeBytes: number;
+    readonly sha256: string;
+  }[];
+}
+
+/** The manifest the staging script writes next to the bundled files. */
+export function e5BundledManifest(): E5BundledManifest {
+  return {
+    revision: E5_MODEL_REVISION,
+    files: E5_MODEL_FILES.map(({ path, sizeBytes, sha256 }) => ({ path, sizeBytes, sha256 })),
+  };
+}
+
+/** True when a parsed manifest describes exactly the pinned revision, files, sizes and checksums. */
+export function isPinnedE5BundledManifest(value: unknown): boolean {
+  if (typeof value !== 'object' || value === null) return false;
+  const { revision, files } = value as { revision?: unknown; files?: unknown };
+  if (revision !== E5_MODEL_REVISION || !Array.isArray(files)) return false;
+  if (files.length !== E5_MODEL_FILES.length) return false;
+  return E5_MODEL_FILES.every((pinned, index) => {
+    const entry = files[index] as { path?: unknown; sizeBytes?: unknown; sha256?: unknown } | null;
+    return (
+      entry?.path === pinned.path &&
+      entry.sizeBytes === pinned.sizeBytes &&
+      entry.sha256 === pinned.sha256
+    );
+  });
 }

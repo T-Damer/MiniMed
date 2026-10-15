@@ -67,11 +67,14 @@ export async function restoreDownloadIntents(): Promise<void> {
         restore = () => asr.activateAsrModel(recipe.id);
       }
     } else if (recipe.kind === 'semantic-model') {
-      const [model, store] = await Promise.all([
+      const [model, store, source] = await Promise.all([
         import('@/features/semantic/e5-model'),
         import('@/features/semantic/e5-model-store'),
+        import('@/features/semantic/e5-model-source'),
       ]);
+      // A build that bundles the model never downloads it: a task left by an earlier version is dropped.
       if (
+        (await source.resolveE5ModelSource()).kind === 'download' &&
         task.id === model.E5_DOWNLOAD_ID &&
         recipe.id === task.id &&
         recipe.version === model.E5_MODEL_REVISION

@@ -5,14 +5,16 @@ import { FeatureCard } from '@/components/FeatureCard';
 import { downloadTaskFraction, isDownloadActive } from '@/features/downloads/download-queue';
 import { getDownloadQueue } from '@/features/downloads/download-service';
 import { E5_DOWNLOAD_ID, E5_MODEL_TOTAL_BYTES } from './e5-model';
-import { isE5ModelInstalled } from './e5-model-cache';
+import { isE5ModelInstalled, resolveE5ModelSource } from './e5-model-source';
 import { installE5Model, removeE5Model, subscribeE5Model } from './e5-model-store';
 import { resetE5QueryEmbedder } from './e5-query-embedder';
+import { type SemanticSettingsState, semanticSettingsView } from './semantic-settings-view';
 
 const SIZE_LABEL = `${Math.round(E5_MODEL_TOTAL_BYTES / 1024 / 1024)} МБ`;
 
 export function SemanticSearchSettings(): JSX.Element {
   const queue = getDownloadQueue();
+  const [source, setSource] = createSignal<SemanticSettingsState['source']>('checking');
   const [installed, setInstalled] = createSignal(false);
   const [task, setTask] = createSignal(queue.get(E5_DOWNLOAD_ID));
   const [removing, setRemoving] = createSignal(false);
@@ -23,12 +25,17 @@ export function SemanticSearchSettings(): JSX.Element {
     return Boolean(current && isDownloadActive(current));
   };
   const sync = (): void => {
-    void isE5ModelInstalled().then(
-      (value) => {
-        if (!disposed) setInstalled(value);
+    void Promise.all([resolveE5ModelSource(), isE5ModelInstalled()]).then(
+      ([resolved, value]) => {
+        if (disposed) return;
+        setInstalled(value);
+        setSource(resolved.kind);
       },
       () => {
-        if (!disposed) setError('Не удалось прочитать состояние модели.');
+        if (disposed) return;
+        // Controls must not stay hidden behind «Проверяем…» when the state cannot be read.
+        setSource('download');
+        setError('Не удалось прочитать состояние модели.');
       },
     );
   };
@@ -79,15 +86,15 @@ export function SemanticSearchSettings(): JSX.Element {
     const current = task();
     return current ? (downloadTaskFraction(current) ?? 0) : 0;
   };
-  const statusLabel = (): string => {
-    if (removing()) return 'Удаляем…';
-    if (downloading()) {
-      const current = task();
-      if (current?.state === 'verifying') return 'Проверяем файлы…';
-      if (current?.state === 'queued') return 'В очереди';
-      return `Скачивается · ${Math.floor(progress() * 100)}%`;
-    }
-    return installed() ? 'Готово к работе' : `Не скачано · ${SIZE_LABEL}`;
+  const view = () => {
+    const current = task();
+    return semanticSettingsView({
+      source: source(),
+      installed: installed(),
+      removing: removing(),
+      sizeLabel: SIZE_LABEL,
+      ...(downloading() && current ? { task: { state: current.state, fraction: progress() } } : {}),
+    });
   };
 
   return (
@@ -97,15 +104,13 @@ export function SemanticSearchSettings(): JSX.Element {
       icon="brain"
       title="Поиск по смыслу"
       summary="Находит клинические рекомендации по жалобам и симптомам своими словами, а препараты — по тому, от чего они («таблетки от головы»). Запрос обрабатывается на устройстве."
-      status={statusLabel()}
-      tone={
-        error() ? 'error' : downloading() || removing() ? 'working' : installed() ? 'ready' : 'idle'
-      }
+      status={view().status}
+      tone={error() ? 'error' : view().tone}
       {...(downloading() ? { progress: progress() || null } : {})}
       {...(error() ? { error: error() } : {})}
       actions={
         <>
-          <Show when={!installed() && !downloading()}>
+          <Show when={view().actions.install}>
             <Button
               type="button"
               variant="primary"
@@ -115,12 +120,12 @@ export function SemanticSearchSettings(): JSX.Element {
               Скачать
             </Button>
           </Show>
-          <Show when={downloading()}>
+          <Show when={view().actions.cancel}>
             <Button type="button" variant="quiet" disabled={!task()?.canCancel} onClick={cancel}>
               Отменить
             </Button>
           </Show>
-          <Show when={installed() && !downloading()}>
+          <Show when={view().actions.remove}>
             <Button
               type="button"
               variant="quiet"

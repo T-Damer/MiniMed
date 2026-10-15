@@ -88,7 +88,7 @@ export function invalidateSemanticState(): void {
 }
 
 function semanticModelInstalled(): Promise<boolean> {
-  semanticState ??= import('@/features/semantic/e5-model-cache')
+  semanticState ??= import('@/features/semantic/e5-model-source')
     .then((cache) => cache.isE5ModelInstalled())
     .catch((cause: unknown) => {
       console.warn('The semantic model state could not be read for the search cache.', cause);
