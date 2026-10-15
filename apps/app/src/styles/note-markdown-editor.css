@@ -764,7 +764,7 @@ body:has(.note-markdown-editor--fullscreen) {
 .note-markdown-wysiwyg__surface--empty::before {
   position: absolute;
   inset: 0.65rem 0.875rem auto;
-  color: var(--theme-text-faint, var(--theme-text-muted));
+  color: var(--theme-placeholder);
   content: attr(data-placeholder);
   pointer-events: none;
 }

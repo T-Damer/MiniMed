@@ -9,9 +9,9 @@ import {
   Show,
   untrack,
 } from 'solid-js';
-
 import { AppGlyph } from '@/components/AppGlyph';
 import { SearchField } from '@/components/SearchField';
+import { SoftBreakText } from '@/components/SoftBreakText';
 import { AtcMatchBadge } from '@/features/medications/AtcMatchBadge';
 import { DrugCatalogOffer } from './DrugCatalogOffer';
 import { type DrugCandidate, findDrugCandidates } from './drug-candidates';
@@ -125,7 +125,11 @@ export function DrugSlot(props: {
                   >
                     <AppGlyph name={props.taken(id) ? 'check' : 'plus'} />
                     <span class="drug-interactions__candidate-name">
-                      {suggestion.kind === 'alcohol' ? 'Алкоголь' : suggestion.candidate.label}
+                      {suggestion.kind === 'alcohol' ? (
+                        'Алкоголь'
+                      ) : (
+                        <SoftBreakText text={suggestion.candidate.label} />
+                      )}
                     </span>
                     <Show when={suggestion.kind === 'alcohol'}>
                       <span class="drug-interactions__candidate-note">не препарат</span>

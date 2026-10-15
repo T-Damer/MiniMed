@@ -37,7 +37,7 @@
 }
 
 .ui-text-field__input::placeholder {
-  color: var(--theme-text-faint);
+  color: var(--theme-placeholder);
 }
 
 .ui-text-field__input:focus-visible {

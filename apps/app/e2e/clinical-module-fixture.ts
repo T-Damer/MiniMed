@@ -20,21 +20,44 @@ export const CLINICAL_DOCUMENT_ROUTE = `${E2E_ASSET_ORIGIN}/#/modules/documents/
   'kr.rf.1006_1',
 ).toString('base64url')}`;
 
+/** A clinical recommendation the fixture can serve: its module, core pointer and document id. */
+export interface ClinicalTarget {
+  readonly moduleId: string;
+  readonly pointerId: string;
+  readonly documentId: string;
+}
+
+export const DEFAULT_CLINICAL_TARGET: ClinicalTarget = {
+  moduleId: MODULE_ID,
+  pointerId: CLINICAL_POINTER_ID,
+  documentId: 'kr.rf.1006_1',
+};
+
+/** «Пневмония у детей»: its PDF starts with a printed table of contents. */
+export const PNEUMONIA_CHILDREN_TARGET: ClinicalTarget = {
+  moduleId: 'minimed.clinical.recommendation.714_2',
+  pointerId: 'core.catalog.pointer.clinical.kr.rf.714_2-bdda529a738d527d',
+  documentId: 'kr.rf.714_2',
+};
+
 /**
  * Serves the published bytes of one clinical-recommendation module («Острая ишемия конечностей»)
  * to the app, so reader tests have a full document now that the core holds only pointers (0.6.47).
  * Call before `mountBuiltApp`; skips the test when the local release copy is absent.
  */
-export async function routeClinicalModule(page: Page): Promise<void> {
+export async function routeClinicalModule(
+  page: Page,
+  target: ClinicalTarget = DEFAULT_CLINICAL_TARGET,
+): Promise<void> {
   const catalog = ContentModuleCatalogSchema.parse(
     JSON.parse(
       await readFile(resolve(ROOT, 'apps/app/src/features/modules/catalog.preview.json'), 'utf8'),
     ),
   );
   const artifact = catalog.modules
-    .find((module) => module.id === MODULE_ID)
+    .find((module) => module.id === target.moduleId)
     ?.artifacts.find((item) => item.kind === 'index');
-  if (!artifact?.url) throw new Error(`Missing ${MODULE_ID} artifact`);
+  if (!artifact?.url) throw new Error(`Missing ${target.moduleId} artifact`);
   const fileName = new URL(artifact.url).pathname.split('/').at(-1) ?? '';
   const localPath =
     PUBLISHED_DIRECTORIES.map((directory) => resolve(DATA_ROOT, directory, fileName)).find((path) =>
@@ -50,10 +73,16 @@ export async function routeClinicalModule(page: Page): Promise<void> {
 }
 
 /** Installs the routed module from its core pointer and waits for the full document to open. */
-export async function installClinicalModule(page: Page): Promise<void> {
+export async function installClinicalModule(
+  page: Page,
+  target: ClinicalTarget = DEFAULT_CLINICAL_TARGET,
+): Promise<void> {
   await page.goto(
-    `${E2E_ASSET_ORIGIN}/#/modules/documents/d/${Buffer.from(CLINICAL_POINTER_ID).toString('base64url')}`,
+    `${E2E_ASSET_ORIGIN}/#/modules/documents/d/${Buffer.from(target.pointerId).toString('base64url')}`,
   );
   await page.locator('.document-module-pointer__action').click();
-  await expect(page).toHaveURL(CLINICAL_DOCUMENT_ROUTE, { timeout: 90_000 });
+  await expect(page).toHaveURL(
+    `${E2E_ASSET_ORIGIN}/#/modules/documents/d/${Buffer.from(target.documentId).toString('base64url')}`,
+    { timeout: 90_000 },
+  );
 }

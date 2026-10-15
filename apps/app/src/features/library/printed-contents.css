@@ -1,0 +1,18 @@
+.printed-contents {
+  margin: 0 0 12px;
+}
+
+.printed-contents__list {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.printed-contents__line {
+  color: var(--theme-text-muted, #524d43);
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}

@@ -41,6 +41,25 @@ function phrasePattern(value: string): string {
     .join('\\s+');
 }
 
+/** A bare capital abbreviation («SDS», «ИМТ», «СКФ»): one token of capitals and digits. */
+function isAbbreviation(value: string): boolean {
+  return /^[\p{Lu}\p{N}-]{2,8}$/u.test(value) && /\p{Lu}/u.test(value);
+}
+
+/** The text before the match ends with a number («+1 SDS», «−2 SDS», «5 ЕД»). */
+const NUMBER_BEFORE = /(?:^|[^\p{L}\p{N}])[+\-−–]?\d+(?:[.,]\d+)?\s*$/u;
+
+/**
+ * An abbreviation right after a number is a unit or a measure there («+1 SDS» is a standard
+ * deviation score), not the name of a tool that happens to use the same letters (the Zung scale
+ * abbreviates to SDS too), so it is left as plain text.
+ */
+function isUnitUse(text: string, start: number, linkedText: string): boolean {
+  return (
+    isAbbreviation(linkedText) && NUMBER_BEFORE.test(text.slice(Math.max(0, start - 12), start))
+  );
+}
+
 function targetKey(definition: ToolLinkDefinition<string>): string {
   return `${definition.kind}\u0000${definition.id}\u0000${definition.slug}`;
 }
@@ -108,6 +127,7 @@ export function createToolLinkMatcher<Kind extends string>(
         const start = match.index + prefix.length;
         const end = start + linkedText.length;
         if (start < cursor) continue;
+        if (isUnitUse(text, start, linkedText)) continue;
         if (start > cursor) segments.push({ kind: 'text', value: text.slice(cursor, start) });
         segments.push({
           kind: phrase.definition.kind,

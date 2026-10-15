@@ -1,6 +1,7 @@
 import type { TextRange } from '@localmed/contracts';
 import { For, type JSX } from 'solid-js';
 import '@/components/HighlightedText.css';
+import { SoftBreakText } from '@/components/SoftBreakText';
 
 import {
   exactQueryRanges,
@@ -60,9 +61,11 @@ export function HighlightedText(props: HighlightedTextProps): JSX.Element {
     <For each={segments(props.text, props.ranges)}>
       {(segment) =>
         segment.highlighted ? (
-          <mark class="highlighted-text__match">{segment.text}</mark>
+          <mark class="highlighted-text__match">
+            <SoftBreakText text={segment.text} />
+          </mark>
         ) : (
-          segment.text
+          <SoftBreakText text={segment.text} />
         )
       }
     </For>
@@ -94,7 +97,7 @@ export function QueryHighlightedText(props: {
   return (
     <For each={segments(props.text, ranges())}>
       {(segment) => {
-        if (!segment.highlighted) return segment.text;
+        if (!segment.highlighted) return <SoftBreakText text={segment.text} />;
         const start = segment.start ?? 0;
         return (
           <mark
@@ -107,7 +110,7 @@ export function QueryHighlightedText(props: {
             data-document-find-unit={props.unitId}
             data-document-find-start={start + rangeOffset()}
           >
-            {segment.text}
+            <SoftBreakText text={segment.text} />
           </mark>
         );
       }}

@@ -100,24 +100,6 @@ export function AppBottomNav(props: {
                   <ContentDownloadNavIndicator />
                 </Suspense>
               </Show>
-              <Show when={item.id === 'settings' && updateHintVisible()}>
-                <button
-                  type="button"
-                  class="app-update-nav-hint"
-                  data-testid="app-update-nav-hint"
-                  aria-label="Доступно обновление приложения. Открыть настройки обновления"
-                  onPointerDown={(event) => event.stopPropagation()}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    const version = props.appUpdateVersion();
-                    if (version) setIgnoredAppUpdates(ignoreAppUpdate(version));
-                    props.onOpenAppUpdate();
-                  }}
-                >
-                  <AppGlyph name="refresh" class="app-update-nav-hint__icon" />
-                  <span class="app-update-nav-hint__label">Обновление</span>
-                </button>
-              </Show>
               <button
                 class="app-nav-button"
                 data-tour={`nav-${item.id}`}
@@ -166,6 +148,24 @@ export function AppBottomNav(props: {
           );
         }}
       </For>
+      <Show when={updateHintVisible()}>
+        <button
+          type="button"
+          class="app-update-nav-hint"
+          data-testid="app-update-nav-hint"
+          aria-label="Доступно обновление приложения. Открыть настройки обновления"
+          title="Доступно обновление приложения"
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={(event) => {
+            event.stopPropagation();
+            const version = props.appUpdateVersion();
+            if (version) setIgnoredAppUpdates(ignoreAppUpdate(version));
+            props.onOpenAppUpdate();
+          }}
+        >
+          <AppGlyph name="refresh" class="app-update-nav-hint__icon" />
+        </button>
+      </Show>
     </nav>
   );
 }

@@ -9,9 +9,9 @@ import {
   Show,
   untrack,
 } from 'solid-js';
-
 import { AppGlyph } from '@/components/AppGlyph';
 import { SearchField } from '@/components/SearchField';
+import { SoftBreakText } from '@/components/SoftBreakText';
 import { DrugCatalogOffer } from '@/features/drug-interactions/DrugCatalogOffer';
 import { AtcMatchBadge } from '@/features/medications/AtcMatchBadge';
 import { type DoseCandidate, findDoseCandidates } from './dose-candidates';
@@ -100,7 +100,9 @@ export function PrescriptionDrugSlot(props: {
                   }}
                 >
                   <AppGlyph name={props.taken(candidate.slug) ? 'check' : 'plus'} />
-                  <span class="prescription__candidate-name">{candidate.label}</span>
+                  <span class="prescription__candidate-name">
+                    <SoftBreakText text={candidate.label} />
+                  </span>
                   <Show when={candidate.atc}>{(match) => <AtcMatchBadge match={match()} />}</Show>
                 </button>
               </li>

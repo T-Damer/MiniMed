@@ -1,5 +1,6 @@
 .prescription {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.85rem;
   min-height: 100%;
   padding-bottom: calc(var(--theme-bottom-nav-clearance, 5rem) + 1rem);
@@ -46,7 +47,7 @@
 
 /* An example or a card value in a field is a hint, never ink: it must not read as typed. */
 .prescription__fact-input::placeholder {
-  color: color-mix(in srgb, var(--theme-text) 48%, var(--theme-surface-raised));
+  color: var(--theme-placeholder);
   font-style: italic;
 }
 
@@ -56,6 +57,7 @@
 
 .prescription__slot {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.5rem;
   animation: prescription-enter var(--motion-base, 180ms) var(--motion-ease-out, ease-out) both;
 }
@@ -73,6 +75,7 @@
 
 .prescription__candidates {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.2rem;
   margin: 0;
   padding: 0.3rem;
@@ -85,6 +88,7 @@
 
 .prescription__candidate-row {
   display: block;
+  min-width: 0;
 }
 
 .prescription__candidate {
@@ -120,6 +124,7 @@
 .prescription__candidate-name {
   min-width: 0;
   flex: 1 1 auto;
+  overflow-wrap: break-word;
 }
 
 .prescription__nothing {
@@ -143,6 +148,7 @@
 
 .prescription__item {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.7rem;
   padding: 0.85rem;
   animation: prescription-enter var(--motion-base, 180ms) var(--motion-ease-out, ease-out) both;

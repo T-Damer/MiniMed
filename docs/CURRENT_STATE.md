@@ -47,6 +47,39 @@ Detailed history, moved verbatim on 2026-09-24:
   combinations, more registrations first). A stub card no longer leads a group query; a substance code keeps the exact drug first. Tests: `atc-query.test.ts`,
   `srch1.test.ts`, `atc-drug-search.test.ts`, `drug-class-lookup.test.ts`, e2e `atc-search.spec.ts`. Not measured on a phone.
 
+## QA 0.6.60 UI fixes: age restore, term links, printed contents, name breaks, update button — 2026-10-15 (STATE UI-FIX1)
+
+From `docs/research/qa-release-0660-2026-10-15.md` items 2, 7, 9, 10, 14 (pill) and 15 (placeholder).
+
+- **Prescription age (item 2).** The draft stores what was typed (`patient.ageInput`: «5», «8 мес») next to the derived
+  `ageDays`; the field shows it again after a reload while it still means `ageDays` (`restoredAgeText`,
+  `features/prescription/prescription-age.ts`), the dose bands keep reading `ageDays`. `ageText` no longer floors:
+  5 × 365.25 = 1826 days read «4 года», 8 months «7 мес.»; it counts with a one-day margin (never «4 года» on the fifth
+  birthday, leap years included), and the printed recipe line uses it too. Tests: `prescription-age.test.ts` (ages 0–18, months,
+  birth dates over leap and common years), e2e `prescription-facts.spec.ts` (reload after each typed age).
+- **Ambiguous term links (item 7).** `createToolLinkMatcher` leaves an abbreviation right after a number as text («+1 SDS» is a
+  standard deviation score, not the Zung scale); any all-capitals abbreviation, not only SDS. Search: an abbreviation before the
+  dash of a document's short title («ИМТ — взрослые и дети») is an exact short-title identity (`QueryDocumentIndex`), so «ИМТ»
+  puts the BMI reference first (before P07.1/R63.4); `benchmark:all` within tolerance.
+- **Printed contents (item 9).** A guideline PDF's own contents («Оглавление … Список сокращений ……… 4») became the first 29
+  «sections» of the older PDF-derived modules (e.g. «Педиатрия: дыхание и аллергология», 632 of 723 July builds; the current
+  KD1/JSON modules have none). `splitPrintedContents` (`features/library/printed-contents.ts`) splits the leading run (dot leaders,
+  an «Оглавление» heading, a section called «Оглавление», after a short title page) off the reader's sections; the reader shows
+  it as one collapsed block «Оглавление печатной версии» (`PrintedContentsBlock`) above the text, open when the opened place is
+  inside it. Source text is kept whole (a title-page chunk is cut into prefix and contents). The search card header and
+  «Открыть полный документ» now open the reader at the found fragment's anchor (they dropped it); drugs keep their screen.
+  Tests: unit, data test on the committed module, e2e `reader-printed-contents.spec.ts` (module installed from a file).
+- **Overflow and name breaks (item 10).** A long combined name was one unbreakable word. `SoftBreakText` (and
+  `HighlightedText`, so the reader titles) puts `<wbr>` after «+», «/», «-» between letters, text unchanged; the drug
+  suggestion lists, chosen items, the «Назначение» item title and the checker suggestion card use it. The candidate lists and
+  their parents have `minmax(0, 1fr)` tracks, so a long row no longer widens the page and clips the header buttons.
+- **Update button (item 14).** The pill that floated over content above «Настройки» is a round button in the bar's own row,
+  left of it; a bar that fills the width (`html[data-nav-crowded='1']`, set by `watchNavCrowding`) puts it above the bar's left end,
+  as the scroll-to-top tool stands above its right end.
+- **Placeholders (item 15).** One token `--theme-placeholder` (light and dark) for every input, textarea and editor hint; the
+  fields used `--theme-text-faint`, which VIS1 darkened to near ink.
+- **Not done:** the PCE calculator page overflow (TOOLFIX1); the toast «Доступно обновление» (separate notification).
+
 ## Result interpretations, part B — 2026-10-15 (STATE TOOLS-B)
 
 The other nine tool modules (gastroenterology, neonatology, neurology-rehab, obstetrics-gynecology, pediatrics,

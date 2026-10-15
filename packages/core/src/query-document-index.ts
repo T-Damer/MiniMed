@@ -31,6 +31,9 @@ export class QueryDocumentIndex {
       this.addIdentity(document.title, document.id, this.titles);
       if (document.shortTitle) {
         this.addIdentity(document.shortTitle, document.id, this.shortTitles);
+        // «ИМТ — взрослые и дети»: the abbreviation before the dash names the document too.
+        const abbreviation = leadingAbbreviation(document.shortTitle);
+        if (abbreviation) this.addIdentity(abbreviation, document.id, this.shortTitles);
       }
       for (const key of ['declaredAliases', 'navigationAliases'] as const) {
         const names = document.metadata[key];
@@ -145,6 +148,13 @@ export class QueryDocumentIndex {
     }
     ids.add(documentId);
   }
+}
+
+/** A short title written as «ИМТ — …» / «СКФ: …» starts with an abbreviation of capitals only. */
+const LEADING_ABBREVIATION = /^([\p{Lu}][\p{Lu}\p{N}-]{1,7})\s*(?:[—–:]|\s-\s)\s*\S/u;
+
+function leadingAbbreviation(shortTitle: string): string | undefined {
+  return LEADING_ABBREVIATION.exec(shortTitle.trim())?.[1];
 }
 
 const ICD_CODE = /^[A-Z]\d{2}(?:\.\d{1,2})?$/u;

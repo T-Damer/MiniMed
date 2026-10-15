@@ -18,6 +18,8 @@ export function watchNavCrowding(nav: HTMLElement): () => void {
   const update = (): void => {
     const crowded = !navLeavesRoomForTools(nav.getBoundingClientRect().right, window.innerWidth);
     root.style.setProperty('--nav-crowded', crowded ? '1' : '0');
+    // The same answer for selectors that switch a layout (the update button beside or above the bar).
+    root.dataset['navCrowded'] = crowded ? '1' : '0';
   };
   const observer = new ResizeObserver(update);
   observer.observe(nav);
@@ -27,5 +29,6 @@ export function watchNavCrowding(nav: HTMLElement): () => void {
     observer.disconnect();
     window.removeEventListener('resize', update);
     root.style.removeProperty('--nav-crowded');
+    delete root.dataset['navCrowded'];
   };
 }

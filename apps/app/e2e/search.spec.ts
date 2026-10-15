@@ -1220,11 +1220,12 @@ test('opens settings from the update hint above «Настройки» without a
     window.dispatchEvent(new CustomEvent('minimed:app-update-ready', { detail: { worker } }));
   });
 
-  // The search header carries no update pill any more; the hint sits above the settings tab.
+  // The search header carries no update pill; the hint is a round button in the navigation's row,
+  // beside the bar (UI-FIX1: it no longer floats over the page).
   await expect(page.locator('.search-mode-tools').getByText('Обновление')).toHaveCount(0);
   const update = page.getByTestId('app-update-nav-hint');
   await expect(update).toBeVisible();
-  await expect(update).toHaveText(/Обновление/u);
+  await expect(update).toHaveAccessibleName(/Доступно обновление приложения/u);
   await update.click();
   await expect(page.getByRole('heading', { name: 'Обновление приложения' })).toBeVisible();
   await expect(page.getByTestId('app-update-nav-hint')).toHaveCount(0);

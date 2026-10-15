@@ -22,7 +22,8 @@ export function SearchResultGroupCard(props: {
   readonly action: JSX.Element;
   /** Tells this card from another of the same title (publisher, edition); unset on a unique card. */
   readonly qualifier?: string | undefined;
-  readonly onOpenDocument: (documentId: string) => void;
+  /** `anchor` is the place of the best match: the reader opens there, not at the top. */
+  readonly onOpenDocument: (documentId: string, anchor?: string | null) => void;
   readonly onOpenResult: (result: SearchResult) => void;
 }): JSX.Element {
   // Resolved once: the first line of the header gives up room to the action only when it shows.
@@ -56,13 +57,19 @@ export function SearchResultGroupCard(props: {
       onOpen={() => props.onOpenResult(result)}
     />
   );
+  // A drug opens on its own screen and a catalogue pointer holds no text of the document (its
+  // anchors are the pointer's); every other document opens at the fragment that was found.
+  const openingAnchor = (): string | null =>
+    props.group.documentKind === 'medication' || props.group.contentKind === 'pointer'
+      ? null
+      : (results()[0]?.anchor ?? null);
   const moreCount = () => results().length - 1;
   return (
     <section class="result-group" data-document-id={props.group.documentId}>
       <button
         type="button"
         class="result-group-header"
-        onClick={() => props.onOpenDocument(props.group.documentId)}
+        onClick={() => props.onOpenDocument(props.group.documentId, openingAnchor())}
       >
         <span class="result-group-header__index" aria-hidden="true">
           {String(props.index + 1).padStart(2, '0')}

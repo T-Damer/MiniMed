@@ -63,4 +63,18 @@ describe('tool link matcher', () => {
     expect(matcher.ambiguousPhrases).toEqual(['общая шкала']);
     expect(matcher.segment('Общая шкала')).toEqual([{ kind: 'text', value: 'Общая шкала' }]);
   });
+
+  it('leaves an abbreviation that follows a number as a unit, not a link', () => {
+    const matcher = createToolLinkMatcher([
+      { id: 'zung', kind: 'assessment' as const, slug: 'zung', phrases: ['SDS'] },
+    ]);
+
+    for (const text of ['выше +1 SDS', 'ниже −2 SDS', 'от 1,5 SDS до 2 SDS']) {
+      expect(matcher.segment(text), text).toEqual([{ kind: 'text', value: text }]);
+    }
+    expect(
+      matcher.segment('Шкала SDS заполняется сам').filter((s) => s.kind !== 'text'),
+    ).toHaveLength(1);
+    expect(matcher.segment('SDS 52 балла').filter((s) => s.kind !== 'text')).toHaveLength(1);
+  });
 });

@@ -1752,7 +1752,11 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                         type="button"
                         onClick={() => {
                           closeContext();
-                          openDocumentInArchive(resolved().document.id);
+                          openDocumentInArchive(
+                            resolved().document.id,
+                            resolved().chunks.find((chunk) => chunk.id === resolved().focusChunkId)
+                              ?.anchor ?? null,
+                          );
                         }}
                       >
                         Открыть полный документ

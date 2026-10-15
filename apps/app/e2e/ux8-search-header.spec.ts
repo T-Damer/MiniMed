@@ -16,7 +16,7 @@ async function announceUpdate(page: Page): Promise<void> {
 
 for (const width of [360, 390, 1280]) {
   for (const colorScheme of ['light', 'dark'] as const) {
-    test(`the search header keeps every button inside the row and the update hint above «Настройки» at ${width}px, ${colorScheme}`, async ({
+    test(`the search header keeps every button inside the row and the update hint beside the bar at ${width}px, ${colorScheme}`, async ({
       page,
     }, testInfo) => {
       await page.setViewportSize({ width, height: 844 });
@@ -28,6 +28,13 @@ for (const width of [360, 390, 1280]) {
       const hint = await page.getByTestId('app-update-nav-hint').boundingBox();
       expect(hint).not.toBeNull();
       expect((hint?.x ?? 0) + (hint?.width ?? 0)).toBeLessThanOrEqual(width);
+      expect(hint?.x ?? -1).toBeGreaterThanOrEqual(0);
+      // UI-FIX1: the hint stands beside the bar (or above its left end), never on top of it.
+      const nav = await page.locator('.app-bottom-nav').boundingBox();
+      expect(nav).not.toBeNull();
+      const beside = (hint?.x ?? 0) + (hint?.width ?? 0) <= (nav?.x ?? 0) + 1;
+      const above = (hint?.y ?? 0) + (hint?.height ?? 0) <= (nav?.y ?? 0) + 1;
+      expect(beside || above).toBe(true);
 
       const geometry = await page.evaluate(() => {
         const row = document.querySelector('.search-mode-tools');

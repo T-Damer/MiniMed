@@ -1,6 +1,6 @@
 import { For, type JSX } from 'solid-js';
-
 import { AppGlyph } from '@/components/AppGlyph';
+import { SoftBreakText } from '@/components/SoftBreakText';
 import { notesDrugInteractionsPath } from '@/features/notes/notes-routing';
 import '@/styles/interaction-suggestion.css';
 
@@ -26,7 +26,9 @@ export function InteractionSuggestionCard(props: {
             {(name, position) => (
               <>
                 {position() > 0 ? ', ' : ''}
-                <span class="interaction-suggestion__name">{name}</span>
+                <span class="interaction-suggestion__name">
+                  <SoftBreakText text={name} />
+                </span>
               </>
             )}
           </For>

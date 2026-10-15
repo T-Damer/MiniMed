@@ -38,8 +38,17 @@ function typedAge(patient: PatientStateFacts): TypedAge | null {
   return { days: patient.ageDays, kind: 'exact', text: ageText(patient.ageDays) };
 }
 
+const AGE_YEAR_DAYS = 365.25;
+const AGE_MONTH_DAYS = AGE_YEAR_DAYS / 12;
+
+/**
+ * «5 лет», «8 мес.», «12 дн.» for an age in days. The days of a whole number of years or months are
+ * rounded (`Math.round(5 * 365.25)` = 1826, `8 * 30.4375` = 243.5 → 244) and a birth date gives a day
+ * less in a span without a leap day, so the count is taken a little generously: never «4 года» for
+ * a patient whose fifth birthday is today.
+ */
 export function ageText(ageDays: number): string {
-  const years = Math.floor(ageDays / 365.25);
+  const years = Math.floor((ageDays + 1.5) / AGE_YEAR_DAYS);
   if (years >= 2) {
     const tail = years % 100;
     const last = years % 10;
@@ -53,7 +62,7 @@ export function ageText(ageDays: number): string {
             : 'лет';
     return `${years} ${word}`;
   }
-  const months = Math.floor(ageDays / 30.44);
+  const months = Math.floor((ageDays + 0.5) / AGE_MONTH_DAYS);
   return months >= 1 ? `${months} мес.` : `${ageDays} дн.`;
 }
 

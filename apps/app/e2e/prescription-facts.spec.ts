@@ -65,3 +65,20 @@ test('the recipe sheet names what is missing and keeps its tools in view', async
   await expect(dialog.getByRole('button', { name: 'Поделиться' })).toBeDisabled();
   await expect(dialog.getByRole('button', { name: 'Печать' })).toBeDisabled();
 });
+
+// UI-FIX1 (QA 0.6.60): the age typed in «Назначение» comes back as typed after a reload: «5» was
+// shown again as «4 года» and «9» as «8 лет» (the days of 5 x 365.25 years floor to 4 years).
+test('the typed age is shown again after a reload, for every age of a child', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+  await page.goto(`${E2E_ASSET_ORIGIN}/#/notes/prescription`);
+  const age = page.getByTestId('prescription-age');
+  await expect(age).toBeVisible();
+
+  for (const typed of ['5', '9', '8 мес', '13', '17']) {
+    await age.fill(typed);
+    // The draft is written at every keystroke: a reload at once must find it.
+    await page.reload();
+    await expect(page.getByTestId('prescription-age')).toHaveValue(typed);
+  }
+});

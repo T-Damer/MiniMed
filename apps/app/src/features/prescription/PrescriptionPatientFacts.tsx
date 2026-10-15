@@ -5,23 +5,13 @@ import { ChoiceChip, ChoiceChipList } from '@/components/ChoiceChip';
 import { createDebouncer } from '@/components/debounced-value';
 import { SegmentedControl } from '@/components/SegmentedControl';
 import { TextField } from '@/components/TextField';
-import { parseTypedAge } from '@/features/medication-safety/age-limits';
+import { agePatchOf, restoredAgeText } from './prescription-age';
 import type { PatientCardFacts } from './prescription-facts';
 import { ageText } from './prescription-safety';
 import '@/styles/prescription.css';
 
 const INPUT_DEBOUNCE_MS = 300;
 const YEAR_DAYS = 365.25;
-
-/** «6 лет», «8 мес», «3 года» or a bare number of years → days; null when it is not an age. */
-export function parseAgeInput(text: string): number | null {
-  const clean = text.trim().replace(',', '.');
-  if (clean === '') return null;
-  const typed = parseTypedAge(clean);
-  if (typed !== null) return typed;
-  const years = Number(clean);
-  return Number.isFinite(years) && years > 0 && years <= 120 ? Math.round(years * YEAR_DAYS) : null;
-}
 
 export function parseWeightInput(text: string): number | null {
   const value = Number(text.trim().replace(',', '.'));
@@ -47,10 +37,7 @@ export function PrescriptionPatientFacts(props: {
   const [age, setAge] = createSignal('');
   const [weight, setWeight] = createSignal('');
   const [height, setHeight] = createSignal('');
-  const agePatch = (text: string): Partial<PrescriptionPatient> => {
-    const days = parseAgeInput(text);
-    return { ageDays: days, ...(days === null ? {} : { group: null }) };
-  };
+  const agePatch = agePatchOf;
   const weightPatch = (text: string): Partial<PrescriptionPatient> => ({
     weightKg: parseWeightInput(text),
   });
@@ -75,7 +62,7 @@ export function PrescriptionPatientFacts(props: {
     on(
       () => props.patient,
       (patient) => {
-        if (age() === '' && patient.ageDays !== null) setAge(ageText(patient.ageDays));
+        if (age() === '' && patient.ageDays !== null) setAge(restoredAgeText(patient));
         if (weight() === '' && patient.weightKg !== null) setWeight(String(patient.weightKg));
         if (height() === '' && patient.heightCm !== null) setHeight(String(patient.heightCm));
       },

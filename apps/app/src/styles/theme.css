@@ -31,6 +31,8 @@
   /* Secondary text: at least 4.5:1 on every paper surface (the darkest, the ATC row, included). */
   --theme-text-muted: #524d43;
   --theme-text-faint: #58534a;
+  /* A field's hint (placeholder): visibly lighter than typed ink on every field surface. */
+  --theme-placeholder: #867d6b;
   --theme-accent: #405b4e;
   /* Accent-coloured text (codes, links on tinted chips); `--theme-accent` itself stays the fill. */
   --theme-accent-text: #34503f;

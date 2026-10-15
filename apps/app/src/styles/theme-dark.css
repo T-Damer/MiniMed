@@ -11,6 +11,7 @@
     --theme-text: #eee5d4;
     --theme-text-muted: #c8bca8;
     --theme-text-faint: #b5a88f;
+    --theme-placeholder: #9a8f7c;
     --theme-accent: #8fb59a;
     --theme-accent-text: #8fb59a;
     --theme-desk-text-muted: var(--theme-text-muted);

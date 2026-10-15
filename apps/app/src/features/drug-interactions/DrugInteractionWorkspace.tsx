@@ -8,10 +8,10 @@ import {
   type JSX,
   Show,
 } from 'solid-js';
-
 import { AppGlyph } from '@/components/AppGlyph';
 import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
+import { SoftBreakText } from '@/components/SoftBreakText';
 import { Heading } from '@/components/Text';
 import { MAX_COMPARED_NAMES } from '@/features/drug-comparison/comparison-query';
 import { notesDrugComparisonPath, notesDrugInteractionsPath } from '@/features/notes/notes-routing';
@@ -198,7 +198,11 @@ export function DrugInteractionWorkspace(props: {
                   <span class="drug-interactions__item-text">
                     <Show
                       when={item.kind === 'drug'}
-                      fallback={<span class="drug-interactions__item-name">{item.label}</span>}
+                      fallback={
+                        <span class="drug-interactions__item-name">
+                          <SoftBreakText text={item.label} />
+                        </span>
+                      }
                     >
                       <a
                         class="drug-interactions__item-name drug-interactions__item-link"
@@ -209,7 +213,7 @@ export function DrugInteractionWorkspace(props: {
                           openDocumentOverlay(`esklp.mnn.${item.id}`, null, { title: item.label });
                         }}
                       >
-                        {item.label}
+                        <SoftBreakText text={item.label} />
                       </a>
                     </Show>
                     <Show when={item.typed}>

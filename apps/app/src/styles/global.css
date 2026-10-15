@@ -767,7 +767,7 @@ main {
 }
 
 .query-sheet textarea::placeholder {
-  color: #8f8778;
+  color: var(--theme-placeholder);
   font-style: italic;
 }
 

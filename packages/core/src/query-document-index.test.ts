@@ -44,6 +44,29 @@ describe('QueryDocumentIndex', () => {
     expect([...index.exactAliasIds('D32.0')].toSorted()).toEqual(['broad-alias', 'exact-title']);
   });
 
+  it('treats the abbreviation before the dash of a short title as its exact name', () => {
+    const index = new QueryDocumentIndex([
+      {
+        id: 'reference.who.bmi-classification',
+        title: 'Индекс массы тела у взрослых и детей — классификация ВОЗ',
+        shortTitle: 'ИМТ — взрослые и дети',
+        sourceType: 'medical_reference',
+        metadata: {},
+      },
+      {
+        id: 'plain',
+        title: 'Диета при ожирении',
+        shortTitle: 'Диета — ожирение',
+        sourceType: 'medical_reference',
+        metadata: {},
+      },
+    ]);
+
+    expect([...index.exactShortTitleIds('ИМТ')]).toEqual(['reference.who.bmi-classification']);
+    // A word that is not written in capitals is no abbreviation.
+    expect([...index.exactShortTitleIds('Диета')]).toEqual([]);
+  });
+
   it('finds the МКБ-10 card of a typed code, not a longer code or a mention (S1)', () => {
     const card = (id: string, code: string, title: string) => ({
       id,

@@ -328,7 +328,7 @@
 
 .notes-route-heading__breadcrumb-editor:empty::before {
   content: attr(data-placeholder);
-  color: var(--theme-text-muted);
+  color: var(--theme-placeholder);
 }
 
 .notes-route-heading__breadcrumb-editor:focus-visible {
@@ -471,7 +471,7 @@
 }
 
 .patient-note-form__categories-input::placeholder {
-  color: var(--theme-text-faint);
+  color: var(--theme-placeholder);
 }
 
 .patient-note-form__categories-input:disabled {

@@ -1,10 +1,10 @@
 import type { MedicalDocument, PrescriptionItem } from '@localmed/contracts';
 import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
-
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { ChoiceChip, ChoiceChipList } from '@/components/ChoiceChip';
 import { Disclosure } from '@/components/Disclosure';
+import { SoftBreakText } from '@/components/SoftBreakText';
 import { TextArea } from '@/components/TextArea';
 import { SafetyDownloadOffer } from '@/features/medication-safety/SafetyDownloadOffer';
 import { sourceLine } from '@/features/medication-safety/safety-view';
@@ -149,7 +149,9 @@ export function PrescriptionItemCard(props: {
     <article class="prescription__item paper-card" data-testid="prescription-item">
       <header class="prescription__item-header">
         <AppGlyph name="pill" class="prescription__item-icon" />
-        <h3 class="prescription__item-title">{displayDrugName(props.item.label)}</h3>
+        <h3 class="prescription__item-title">
+          <SoftBreakText text={displayDrugName(props.item.label)} />
+        </h3>
         <Show when={props.onRemove}>
           {(remove) => (
             <Button

@@ -88,8 +88,8 @@
 }
 
 .archive-search__input::placeholder {
-  color: var(--ink-faint);
-  opacity: 0.85;
+  color: var(--theme-placeholder);
+  opacity: 1;
 }
 
 .archive-search__input::-webkit-search-cancel-button {

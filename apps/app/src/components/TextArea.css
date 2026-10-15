@@ -39,7 +39,7 @@
 }
 
 .ui-text-area__control::placeholder {
-  color: var(--theme-text-faint);
+  color: var(--theme-placeholder);
 }
 
 .ui-text-area__control:focus-visible {

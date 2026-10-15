@@ -70,6 +70,8 @@ import {
 import { documentEditionValue } from '@/features/library/document-version-label';
 import { earlierEditionDocumentIds } from '@/features/library/edition-predecessors';
 import { isClinicalRecommendationSource } from '@/features/library/numbered-heading-sections';
+import { PrintedContentsBlock } from '@/features/library/PrintedContentsBlock';
+import { type PrintedContents, splitPrintedContents } from '@/features/library/printed-contents';
 import { ReaderHero } from '@/features/library/ReaderHero';
 import { ReaderSectionPath } from '@/features/library/ReaderSectionPath';
 import { RlsMedicationPackagingPanel } from '@/features/library/RlsMedicationPackagingPanel';
@@ -686,11 +688,21 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
   let flashTimeout: number | undefined;
   let flashedHeading: HTMLElement | null = null;
 
-  const orderedSections = createMemo(() => {
+  // The contents the PDF printed at its start are shown collapsed, not as the first sections.
+  const splitSections = createMemo(() => {
     const document = props.document;
-    if (!document) return [];
-    return visibleReaderSections(document.sections, document.sourceType);
+    if (!document) return { sections: [], body: [] } satisfies PrintedContents;
+    return splitPrintedContents(visibleReaderSections(document.sections, document.sourceType));
   });
+  const orderedSections = createMemo(() => splitSections().body);
+  const printedContentsOpen = (): boolean => {
+    const anchor = props.initialAnchor;
+    if (!anchor) return false;
+    return splitSections().sections.some(
+      (section) =>
+        section.anchor === anchor || section.chunks.some((chunk) => chunk.anchor === anchor),
+    );
+  };
 
   // The place this history entry was left at (back, forward, reload): read once, when the reader
   // is made for the entry. It only counts while the document still has that section.
@@ -1750,6 +1762,13 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                 </Show>
 
                 <ReaderSectionPath />
+
+                <Show when={splitSections().sections.length > 0}>
+                  <PrintedContentsBlock
+                    sections={splitSections().sections}
+                    defaultOpen={printedContentsOpen()}
+                  />
+                </Show>
 
                 <For each={visibleSectionTree()}>
                   {(node) => {

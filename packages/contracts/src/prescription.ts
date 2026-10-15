@@ -33,6 +33,8 @@ export const prescriptionItemSchema = z
 export const prescriptionPatientSchema = z
   .object({
     ageDays: optionalNumber,
+    /** The age as the doctor typed it («5», «8 мес»): shown again after a reload, `ageDays` is derived from it. */
+    ageInput: z.string().max(40).nullable().optional(),
     group: z.union([z.literal('adult'), z.literal('child')]).nullable(),
     weightKg: optionalNumber,
     heightCm: optionalNumber,

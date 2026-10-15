@@ -253,3 +253,12 @@ h6,
 .app-nav-badge {
   font-size: 0.6875rem;
 }
+
+/* ---- Hints in fields are never ink -------------------------------------------------------- */
+
+/* One colour for every placeholder, whatever the surface tokens around it were remapped to. */
+input::placeholder,
+textarea::placeholder {
+  color: var(--theme-placeholder);
+  opacity: 1;
+}

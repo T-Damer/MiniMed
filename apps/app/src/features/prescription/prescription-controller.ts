@@ -50,6 +50,7 @@ import {
   type PrescriptionItem,
 } from './prescription-model';
 import { FORM_107_ID, type PrescribedLine, recipeDate, recipeText } from './prescription-output';
+import { ageText } from './prescription-safety';
 
 /**
  * A patient's draft reaches the vault once typing has paused for this long. Every change is sealed
@@ -357,7 +358,7 @@ export function createPrescriptionController(
   const recipe = createMemo(() => {
     const patient = facts();
     const parts: string[] = [];
-    if (patient.ageDays !== undefined) parts.push(ageLabel(patient.ageDays));
+    if (patient.ageDays !== undefined) parts.push(ageText(patient.ageDays));
     if (patient.weightKg !== undefined)
       parts.push(`${String(patient.weightKg).replace('.', ',')} кг`);
     return recipeText(
@@ -470,19 +471,4 @@ function analysesLabel(
   if (analysis?.form) parts.push(analysis.form);
   if (analysis?.strength) parts.push(analysis.strength);
   return parts.join(', ');
-}
-
-function ageLabel(ageDays: number): string {
-  const years = Math.floor(ageDays / 365.25);
-  if (years >= 2) return `${years} ${yearsWord(years)}`;
-  const months = Math.floor(ageDays / 30.44);
-  if (months >= 1) return `${months} мес.`;
-  return `${ageDays} дн.`;
-}
-
-function yearsWord(years: number): string {
-  const tail = years % 100;
-  if (tail >= 11 && tail <= 14) return 'лет';
-  const last = years % 10;
-  return last === 1 ? 'год' : last >= 2 && last <= 4 ? 'года' : 'лет';
 }
