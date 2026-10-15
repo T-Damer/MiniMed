@@ -44,6 +44,9 @@ missing bands, `unavailable`, and an informational list of `not-applicable` / `m
   prints the verdict title or «—», never the raw status word.
 - Modules rebuilt as core-clinical preview.6, emergency preview.5, intensive-care preview.4, metabolic-lab preview.4 (old
   files kept); the landing calculator copy follows core-clinical. **Needs publishing** with the 0.6.60 release.
+- **Rebuilding a tool module** (`bun run tools:module:rebuild -- <group>... | --all`, `scripts/rebuild-tool-module.ts`): after
+  editing `content/tool-modules/<group>.json` and bumping its `version`, it builds the pack with `medbase build-tool-module`, rewrites
+  the catalog.preview entry (version, digest, sizes, artifact sha256) and re-derives `tools` and the shell via `buildToolCatalog.ts`.
 
 ## e2e sweep before 0.6.60 — 2026-10-15 (STATE E2E1)
 

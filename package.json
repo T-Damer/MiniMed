@@ -105,6 +105,7 @@
     "content:knowledge:approve": "uv run --project tools/ingest medbase knowledge-approve",
     "content:knowledge:lint": "uv run --project tools/ingest medbase knowledge-lint",
     "content:lint:calculator": "bun scripts/lint-calculator-schema.ts",
+    "tools:module:rebuild": "bun scripts/rebuild-tool-module.ts",
     "content:lint": "uv run --project tools/ingest medbase lint --input content/fixtures",
     "content:build": "bun run content:compile && bun run content:publish",
     "content:lint:regulatory": "uv run --project tools/ingest medbase lint --input content/regulatory-rf-pilot",
