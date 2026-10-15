@@ -387,8 +387,26 @@ function countsTowardSection(document: MedicalDocumentSummary, sectionId: Search
  * `catalogCounts` are the sections' document counts from the catalog manifest. A section's counter
  * names an entity (recommendations, active substances) and must not depend on which packs are
  * mounted in the core, so it takes the manifest's number; without it the mounted documents count.
+ * The counter of «Все источники» is the sum of the others (see below).
  */
 export function searchCatalogSections(
+  documents: readonly MedicalDocumentSummary[],
+  tools: readonly SearchCatalogTool[],
+  catalogCounts?: Readonly<Partial<Record<SearchScope, number>>>,
+): readonly SearchCatalogSection[] {
+  const sections = searchCatalogSectionRows(documents, tools, catalogCounts);
+  if (!catalogCounts) return sections;
+  // «Все источники (N)» has one meaning: everything the sections below it list (the catalog's
+  // counts of its document sections plus the questionnaire and calculator cards). It never
+  // follows what happens to be mounted, so a core that could not read an installed pack (257) and a
+  // core with every pack (25 019) show the same number as the home screen's sections add up to.
+  const total = sections
+    .filter((section) => section.id !== 'all' && section.id !== 'diagnosis')
+    .reduce((sum, section) => sum + (section.count ?? 0), 0);
+  return sections.map((section) => (section.id === 'all' ? { ...section, count: total } : section));
+}
+
+function searchCatalogSectionRows(
   documents: readonly MedicalDocumentSummary[],
   tools: readonly SearchCatalogTool[],
   catalogCounts?: Readonly<Partial<Record<SearchScope, number>>>,

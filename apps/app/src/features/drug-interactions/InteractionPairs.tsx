@@ -323,9 +323,14 @@ export function InteractionPairsPanel(props: {
       setDocuments((current) => new Map(current).set(id, 'loading'));
       void core.getDocument(id).then((result) => {
         if (generation !== requested) return;
-        setDocuments((current) =>
-          new Map(current).set(id, result.ok ? { document: result.value } : 'missing'),
-        );
+        // Only «not found» means the instruction is not on the device; any other failure is a
+        // read that did not work, and is worded as such.
+        const state: DocumentState = result.ok
+          ? { document: result.value }
+          : result.error.code === 'CONTENT_NOT_FOUND'
+            ? 'missing'
+            : 'unreadable';
+        setDocuments((current) => new Map(current).set(id, state));
       });
     }
   });

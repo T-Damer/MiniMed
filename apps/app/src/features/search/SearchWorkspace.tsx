@@ -33,6 +33,7 @@ import { DocumentText } from '@/components/DocumentText';
 import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
 import { QueryEmptyState } from '@/components/QueryEmptyState';
 import { ScrollStripArrows } from '@/components/ScrollStripArrows';
+import { isCoreReadFailure } from '@/composition/calm-core-errors';
 import { saveCalculatorLaunchDraft } from '@/features/calculators/calculator-launch-draft';
 import {
   CALCULATOR_PACKS_EVENT,
@@ -102,6 +103,7 @@ import {
   sourceContextKicker,
 } from '@/features/search/search-result-presentation';
 import { SemanticModelOffer } from '@/features/semantic/SemanticModelOffer';
+import '@/features/search/search-error.css';
 import '@/features/search/search-refresh.css';
 import { createLingeringFlag } from '@/features/search/search-skeleton';
 import { sourceCatalogOf } from '@/features/search/source-names';
@@ -1547,8 +1549,23 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             {(emptyResults) => emptyResults()(searchableQuery(query()))}
           </Show>
         </Show>
-        <Show when={error() && error() !== SEARCH_QUERY_EMPTY_ERROR}>
-          {(message) => <div class="error-card">{message()}</div>}
+        <Show when={error() !== SEARCH_QUERY_EMPTY_ERROR ? error() : undefined}>
+          {(message) => (
+            <div class="error-card search-error" role="alert" data-testid="search-error">
+              <span class="search-error__text">{message()}</span>
+              <Show when={isCoreReadFailure(message())}>
+                <Button
+                  type="button"
+                  variant="icon"
+                  class="search-error__retry"
+                  data-testid="search-error-retry"
+                  aria-label="Повторить поиск"
+                  icon={<AppGlyph name="refresh" class="search-error__icon" />}
+                  onClick={() => void runSearch(query(), false, { apply: true })}
+                />
+              </Show>
+            </div>
+          )}
         </Show>
 
         <div class="search-results-slot">

@@ -20,6 +20,55 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Module shelf: search after a full install (SQLITE_NOMEM) — 2026-10-15 (STATE MEM1)
+
+QA before 0.6.60 ([qa-release-0660-2026-10-15](research/qa-release-0660-2026-10-15.md) item 1): after «Скачать всё»
+(840 modules) search worked until the first reload, then every search failed with `SQLITE_NOMEM`.
+
+- **Cause.** Every module index ≤ 32 MiB (all 774 clinical recommendations, 1.65 GB decoded, plus tools and small
+  references) was `sqlite3_deserialize`d whole into the wasm heap of the **main thread**, which sqlite-wasm caps at
+  2 GB (`maximum: 32768` pages). The images alone filled it; page caches and sort buffers of the first searches did
+  the rest. Only modules > 32 MiB (ЕСКЛП, ГРЛС) were in OPFS, one worker per module. A ~210-module profile (≈0.5 GB)
+  fit, which is why it survived.
+- **Fix — the module shelf** (`apps/app/src/composition/module-shelf*.ts`): a small module is a file of **one** SAH pool
+  (`minimed-shelf`) owned by **one** worker (`module-shelf.worker.ts`), with a SQLite connection per file. Install
+  (`BrowserModuleBackend.activate`) writes the image to the shelf (row `indexStorage: 'shelf'`, no bytes in
+  IndexedDB); a row that still holds bytes (older install) is written to the shelf when it is mounted and its bytes
+  dropped. `ShelfModuleStore` is a plain `MedicalStore`, so `MultiMedicalStore` and the core are unchanged. Calls made
+  in one turn travel as one message (a search asks every module); `getHealth` and the whole-pack listings are asked
+  once per open file. Page cache: `shelfCacheKiB` shares a budget (256 MiB, scaled by `navigator.deviceMemory`: 96 MiB
+  at 2 GB, 384 MiB from 8 GB) between the connections, floor 256 KiB each; lookaside off. Orphan files are swept with
+  the module pools (`sweepOrphanedModulePools`, under the staging lock). Where no Worker/OPFS exists, or the shelf
+  fails to start or store a file, modules stay in memory (IndexedDB bytes) as before. Large modules keep their own
+  pool and worker (31 workers with the full set; moving them onto the shelf is the next step if a phone needs it).
+- **Measured** (`e2e/many-modules-reload.spec.ts`, persistent Chromium profile, real KD1 modules from
+  `output/module-zstd-kd1-2026-10-11`, 20 queries after a reload; Playwright's default incognito contexts make OPFS
+  reads ~10× slower, so latency is never measured there):
+
+  | modules | storage | startup (reload→editable) | first search | median search | failed searches | browser RSS start → end |
+  |---|---|---|---|---|---|---|
+  | 200 | in memory (before) | 1.8 s | 2.2 s | 0.30 s | 0 | 1.8 → 2.8 GB |
+  | 200 | shelf | 1.5–1.8 s | 2.2 s | 0.31–0.34 s | 0 | 1.4 → 2.2 GB |
+  | 774 | in memory (before) | 2.7 s | 3.1 s | — | **19 of 20** (`SQLITE_NOMEM`) | 3.1 → 3.9 GB |
+  | 774 | shelf | 2.1–2.6 s | 3.2–4.2 s | 0.8–1.1 s (load-noisy) | 0 | 1.5 → 3.1 GB |
+
+  Shelf worker wasm heap at 774 modules: 133 MB open, 275 MB after 20 different queries, bounded by the cache budget
+  (an unbounded 4 MB cache per connection reached 571 MB and was still growing). First start after the update moves
+  the old rows onto the shelf: 3.3 s (200 modules), 7–10 s (774), once. The remaining RSS growth is the rest of the
+  app (main-thread JS heap 310 MB with no module, 550 MB with 774: ≈0.3 MB per module of listings and results).
+- **Errors.** `withCalmCoreErrors` (`composition/calm-core-errors.ts`, applied in `createBrowserCore`) turns every
+  failed result with a storage code (`DATABASE_UNAVAILABLE`, `FTS5_UNAVAILABLE`, `UNKNOWN`) into one calm Russian line
+  (the engine's text moves to `details.raw`); the search error card offers a retry icon (`search-error__retry`).
+  The interaction checker separates `DocumentState` `missing` (core said not found → «Инструкция не установлена», the
+  download offer) from `unreadable` (any other failure → «установленную инструкцию сейчас не удалось прочитать»,
+  no offer). The drug comparison, safety card and prescription still read any failed `getDocument` as «не установлена»
+  (not changed: CLS3/DOSE1 areas).
+- **«Все источники (N)»** has one meaning: the sum of the other counters of the search-section picker (catalog
+  manifest counts of МКБ, рекомендации, препараты, нормативные документы plus the questionnaire and calculator cards),
+  independent of what is mounted (`searchCatalogSections`). It was the mounted-document count: 20 308 / 25 019 / 257.
+- **Not tested:** a phone / Android WebView (SAH handle limits with ~800 files, memory), Safari, the full 840-module
+  install through the UI (modules were seeded into IndexedDB), multi-tab.
+
 ## Class lines, per-drug instruction state, ATC group card — 2026-10-15 (STATE CLS3, QA 0.6.60 items 13 and 12 «J05AX»)
 
 - **Why Колдакт had no «также:» line.** Not the screen: `secondary-classes.json` is read by the card slug the screen derives from the card id, and

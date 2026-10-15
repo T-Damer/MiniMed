@@ -393,9 +393,15 @@ Presentation, in the app only:
 - **Core** (`core.db`, bundled/downloaded): pointers for medications, КР and legal documents,
   identities, aliases, terminology. Pointer results offer the exact module download (SEARCH.md,
   «Core-only pointers»).
-- **Modules** (`browser-module-runtime.ts` `loadInstalledModuleMounts`): each installed module is an
-  OPFS SQLite file mounted with `searchWeight: 1`. One worker owns the OPFS pool
-  (`worker-opfs-medical-store.ts`); search goes through that owner.
+- **Modules** (`browser-module-runtime.ts` `loadInstalledModuleMounts`): each installed module is mounted with
+  `searchWeight: 1`. A **small** module (≤ 32 MiB: clinical recommendations, tools, small references) is a file of the
+  one SAH pool `minimed-shelf`, opened as one connection by one worker (`composition/module-shelf*.ts`, MEM1); a
+  **large** module (ЕСКЛП, ГРЛС) is a pool and a worker of its own (`worker-opfs-medical-store.ts`). Either way one
+  worker owns each pool and search goes through that owner. No module image sits in the main thread's wasm heap (2 GB
+  cap): the shelf's memory is connections plus a page-cache budget shared by all of them (`shelfCacheKiB`), so it grows
+  with the number of modules, not with their size. Calls to the shelf of one event-loop turn are one message; `getHealth`
+  and whole-pack listings are asked once per open file. Without Worker/OPFS (or if the shelf cannot start) a small module
+  stays an in-memory `SqliteMedicalStore` from its IndexedDB bytes. Measurements: `docs/CURRENT_STATE.md` «Module shelf».
 - КР editions: superseded editions are filtered from search; the reader links old/new editions
   (`clinical-editions.ts`).
 

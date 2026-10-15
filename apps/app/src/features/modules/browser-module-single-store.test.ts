@@ -6,6 +6,8 @@ import {
   type SqliteIntegrityReport,
 } from '@localmed/storage-sqlite';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { resetModuleShelfForTests } from '@/composition/module-shelf';
+import { shelfFileName, shelfFileVersionKey } from '@/composition/module-shelf-names';
 import {
   BrowserModuleBackend,
   BrowserModuleValidator,
@@ -49,7 +51,24 @@ interface OpenRequest {
   readonly encoded?: { readonly bytes: Uint8Array; readonly decodedSizeBytes: number };
 }
 
+/** A message of the module shelf worker; the per-module pack worker's messages never carry `file`. */
+interface ShelfMessage {
+  readonly id: number;
+  readonly type: 'init' | 'open' | 'put' | 'read' | 'batch' | 'close' | 'sweep';
+  readonly file?: string;
+  readonly byteLength?: number;
+  readonly bytes?: Uint8Array;
+  readonly cacheSizeKiB?: number;
+  readonly calls?: readonly { readonly file: string; readonly method: string }[];
+  readonly referencedVersionKeys?: readonly string[];
+}
+
 interface World {
+  /** Files of the module shelf (name to image) and the ones a connection is open on. */
+  readonly shelfFiles: Map<string, Uint8Array>;
+  readonly shelfOpen: Set<string>;
+  readonly shelfMessages: ShelfMessage[];
+  failShelf: boolean;
   readonly rows: Map<string, Row>;
   readonly active: Map<string, { moduleId: string; version: string }>;
   readonly opens: OpenRequest[];
@@ -64,8 +83,66 @@ function request<T>(result: T): IDBRequest<T> {
   return value as unknown as IDBRequest<T>;
 }
 
+function isShelfMessage(message: object): boolean {
+  if (!('type' in message)) return false;
+  return (
+    ['init', 'put', 'read', 'batch', 'close', 'sweep'].includes(String(message.type)) ||
+    (message.type === 'open' && 'file' in message)
+  );
+}
+
+function answerShelf(world: World, message: ShelfMessage): Record<string, unknown> {
+  world.shelfMessages.push(message);
+  if (world.failShelf && message.type !== 'init') {
+    return { id: message.id, error: 'The module shelf failed.' };
+  }
+  const file = message.file ?? '';
+  switch (message.type) {
+    case 'open':
+      if (message.bytes) world.shelfFiles.set(file, message.bytes);
+      else if (!world.shelfFiles.has(file)) {
+        return { id: message.id, error: `Installed pack ${file} is missing from OPFS.` };
+      }
+      world.shelfOpen.add(file);
+      return { id: message.id, result: undefined };
+    case 'put':
+      world.shelfFiles.set(file, message.bytes ?? new Uint8Array());
+      return { id: message.id, result: undefined };
+    case 'read':
+      return { id: message.id, result: world.shelfFiles.get(file) ?? null };
+    case 'close':
+      world.shelfOpen.delete(file);
+      return { id: message.id, result: undefined };
+    case 'batch':
+      return {
+        id: message.id,
+        result: (message.calls ?? []).map((call) => ({
+          value: call.method === 'getHealth' || call.method === 'initialize' ? HEALTH : undefined,
+        })),
+      };
+    case 'sweep': {
+      const referenced = new Set(message.referencedVersionKeys);
+      let removed = 0;
+      for (const name of [...world.shelfFiles.keys()]) {
+        const key = shelfFileVersionKey(name);
+        if (key !== null && !referenced.has(key) && !world.shelfOpen.has(name)) {
+          world.shelfFiles.delete(name);
+          removed += 1;
+        }
+      }
+      return { id: message.id, result: removed };
+    }
+    default:
+      return { id: message.id, result: undefined };
+  }
+}
+
 function installWorld(): World {
   const world: World = {
+    shelfFiles: new Map(),
+    shelfOpen: new Set(),
+    shelfMessages: [],
+    failShelf: false,
     rows: new Map(),
     active: new Map(),
     opens: [],
@@ -148,6 +225,12 @@ function installWorld(): World {
       this.terminate = vi.fn();
       this.postMessage = (message) => {
         queueMicrotask(() => {
+          if ('type' in message && isShelfMessage(message)) {
+            this.onmessage?.({
+              data: answerShelf(world, message as unknown as ShelfMessage),
+            } as MessageEvent);
+            return;
+          }
           if ('type' in message && message.type === 'open') {
             world.opens.push(message);
             if (world.failOpen) {
@@ -293,9 +376,11 @@ function framedArchive(): Uint8Array {
 
 let world: World;
 beforeEach(() => {
+  resetModuleShelfForTests();
   world = installWorld();
 });
 afterEach(() => {
+  resetModuleShelfForTests();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
@@ -405,7 +490,32 @@ describe('single store for large module indexes', () => {
     expect(await backend.readIndexBytes('minimed.esklp.a', '1.0.0')).toBeNull();
   });
 
-  it('keeps a small index in IndexedDB and out of OPFS', async () => {
+  it('puts a small index on the module shelf: no bytes in IndexedDB, no pool of its own', async () => {
+    const backend = new BrowserModuleBackend();
+    const module = moduleEntry('minimed.small');
+    const artifact = {
+      ...(module.artifacts[0] as ContentModuleCatalogEntry['artifacts'][number]),
+      compression: 'none' as const,
+      sha256: SHA,
+    };
+    const staged = await backend.stage(module, artifact, new Uint8Array([1, 2, 3]));
+    await backend.activate(module, [staged]);
+    const file = shelfFileName('minimed.small@1.0.0', SHA);
+    expect(world.rows.get('minimed.small@1.0.0')).toMatchObject({
+      indexStorage: 'shelf',
+      indexSizeBytes: 3,
+    });
+    expect(world.rows.get('minimed.small@1.0.0')?.['bytes']).toBeUndefined();
+    expect(world.shelfFiles.get(file)).toEqual(new Uint8Array([1, 2, 3]));
+    expect(world.pools.size).toBe(0);
+    expect(await backend.readIndexBytes('minimed.small', '1.0.0')).toEqual(
+      new Uint8Array([1, 2, 3]),
+    );
+  });
+
+  it('keeps a small index in IndexedDB when the shelf cannot store it', async () => {
+    world.failShelf = true;
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     const backend = new BrowserModuleBackend();
     const module = moduleEntry('minimed.small');
     const artifact = {
@@ -416,10 +526,97 @@ describe('single store for large module indexes', () => {
     const staged = await backend.stage(module, artifact, new Uint8Array([1, 2, 3]));
     await backend.activate(module, [staged]);
     expect(world.rows.get('minimed.small@1.0.0')?.['bytes']).toBeInstanceOf(Blob);
-    expect(world.pools.size).toBe(0);
+    expect(world.rows.get('minimed.small@1.0.0')?.['indexStorage']).toBeUndefined();
     expect(await backend.readIndexBytes('minimed.small', '1.0.0')).toEqual(
       new Uint8Array([1, 2, 3]),
     );
+    expect(warn).toHaveBeenCalled();
+  });
+});
+
+describe('module shelf', () => {
+  const file = shelfFileName('minimed.small@1.0.0', SHA);
+
+  it('mounts a small module that sits in IndexedDB by writing it to the shelf, then drops the bytes', async () => {
+    seed(world, row('minimed.small', '1.0.0', { bytes: new Uint8Array([4, 5, 6]).buffer }));
+    world.active.set('minimed.small', { moduleId: 'minimed.small', version: '1.0.0' });
+
+    const mounts = await loadInstalledModuleMounts();
+    expect(mounts).toHaveLength(1);
+    const open = world.shelfMessages.find((message) => message.type === 'open');
+    expect(open).toMatchObject({ file, byteLength: 3 });
+    expect(open?.bytes).toEqual(new Uint8Array([4, 5, 6]));
+    // The page cache of a module is its share of the shelf budget, not a fixed 2 MiB.
+    expect(open?.cacheSizeKiB).toBeLessThan(0);
+    expect(world.rows.get('minimed.small@1.0.0')?.['bytes']).toBeUndefined();
+    expect(world.rows.get('minimed.small@1.0.0')).toMatchObject({
+      indexStorage: 'shelf',
+      indexSizeBytes: 3,
+    });
+    await Promise.all(mounts.map((mount) => mount.store.close()));
+  });
+
+  it('mounts a module that is on the shelf by opening the file, without a payload', async () => {
+    seed(world, row('minimed.small', '1.0.0', { indexStorage: 'shelf', indexSizeBytes: 3 }));
+    world.active.set('minimed.small', { moduleId: 'minimed.small', version: '1.0.0' });
+    world.shelfFiles.set(file, new Uint8Array([1, 2, 3]));
+
+    const mounts = await loadInstalledModuleMounts();
+    expect(mounts).toHaveLength(1);
+    const open = world.shelfMessages.find((message) => message.type === 'open');
+    expect(open?.bytes).toBeUndefined();
+    expect(open?.byteLength).toBe(3);
+    // One worker holds the whole library: opening a module starts no worker of its own.
+    expect(Worker).toHaveBeenCalledOnce();
+    await Promise.all(mounts.map((mount) => mount.store.close()));
+  });
+
+  it('does not mount a shelf module whose file has vanished, and keeps its row', async () => {
+    seed(world, row('minimed.small', '1.0.0', { indexStorage: 'shelf', indexSizeBytes: 3 }));
+    world.active.set('minimed.small', { moduleId: 'minimed.small', version: '1.0.0' });
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    expect(await loadInstalledModuleMounts()).toHaveLength(0);
+    expect(world.rows.has('minimed.small@1.0.0')).toBe(true);
+    expect(warn).toHaveBeenCalled();
+  });
+
+  it('serves many mounted modules from one worker', async () => {
+    for (let index = 0; index < 40; index += 1) {
+      const id = `minimed.small.${index}`;
+      seed(world, row(id, '1.0.0', { indexStorage: 'shelf', indexSizeBytes: 3 }));
+      world.active.set(id, { moduleId: id, version: '1.0.0' });
+      world.shelfFiles.set(shelfFileName(`${id}@1.0.0`, SHA), new Uint8Array([1, 2, 3]));
+    }
+    const mounts = await loadInstalledModuleMounts();
+    expect(mounts).toHaveLength(40);
+    expect(Worker).toHaveBeenCalledOnce();
+    await Promise.all(mounts.map((mount) => mount.store.close()));
+  });
+
+  it('sweeps the files of removed versions and keeps referenced and open ones', async () => {
+    const keep = shelfFileName('minimed.keep@1.0.0', SHA);
+    const rollback = shelfFileName('minimed.keep@0.9.0', SHA);
+    const orphan = shelfFileName('minimed.gone@1.0.0', SHA);
+    seed(
+      world,
+      row('minimed.keep', '1.0.0', { indexStorage: 'shelf', indexSizeBytes: 3 }),
+      row('minimed.keep', '0.9.0', { indexStorage: 'shelf', indexSizeBytes: 3 }),
+    );
+    world.active.set('minimed.keep', { moduleId: 'minimed.keep', version: '1.0.0' });
+    for (const name of [keep, rollback, orphan]) world.shelfFiles.set(name, new Uint8Array(3));
+
+    const mounts = await loadInstalledModuleMounts();
+    await sweepOrphanedModulePools();
+    expect([...world.shelfFiles.keys()].sort()).toEqual([keep, rollback].sort());
+    world.shelfFiles.set(orphan, new Uint8Array(3));
+    world.shelfOpen.add(orphan);
+    await sweepOrphanedModulePools();
+    expect(world.shelfFiles.has(orphan)).toBe(true);
+    world.shelfOpen.delete(orphan);
+    await sweepOrphanedModulePools();
+    expect(world.shelfFiles.has(orphan)).toBe(false);
+    await Promise.all(mounts.map((mount) => mount.store.close()));
   });
 });
 

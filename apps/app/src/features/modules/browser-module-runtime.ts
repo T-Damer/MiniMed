@@ -21,6 +21,12 @@ import {
   WebStorageInstalledModuleRegistryPersistence,
 } from '@localmed/storage';
 import { SQLITE_WASM_DESERIALIZE_MAX_BYTES, SqliteMedicalStore } from '@localmed/storage-sqlite';
+import { getModuleShelf, type ShelfModuleStore } from '@/composition/module-shelf';
+import {
+  shelfCacheBudgetKiB,
+  shelfCacheKiB,
+  shelfFileName,
+} from '@/composition/module-shelf-names';
 import { WorkerOpfsMedicalStore } from '@/composition/worker-opfs-medical-store';
 import {
   getAssessmentCatalog,
@@ -83,6 +89,7 @@ import {
   moduleVersionKey,
   removeModulePoolWhenFree,
   sweepModulePools,
+  whenNoModuleStaging,
 } from '@/features/modules/module-opfs-pools';
 import { commitRegistryAndArtifactMutation } from '@/features/modules/module-registry-transaction';
 import { searchIndexIsConsistent } from '@/features/modules/module-search-index';
@@ -117,12 +124,14 @@ interface StoredModuleVersion {
   readonly moduleId: string;
   readonly version: string;
   /**
-   * The index of a small module. Absent once a large index lives only in OPFS (`indexStorage`):
-   * rows written before the single-store change still carry the bytes next to an OPFS copy and are
-   * migrated by dropping them (see `dropRedundantIndexBytes`).
+   * The index of a small module that is not on the shelf yet (written by an app without one, or
+   * where the shelf cannot run). Absent once the index lives only in OPFS (`indexStorage`): a large
+   * index in a pool of its own (`opfs`), a small one as a file of the module shelf (`shelf`).
+   * Rows that still carry bytes next to an OPFS copy are migrated by dropping them (see
+   * `dropRedundantIndexBytes`, `moveIndexBytesToShelf`).
    */
   readonly bytes?: ArrayBuffer | Blob;
-  readonly indexStorage?: 'opfs';
+  readonly indexStorage?: 'opfs' | 'shelf';
   readonly indexSizeBytes?: number;
   readonly indexSha256?: string;
   /** Rows written before the per-artifact store keep the ZIP bytes here. */
@@ -210,10 +219,18 @@ const versionKey = moduleVersionKey;
 interface InstalledOpfsIndex {
   readonly opfsBytes: number;
 }
-type ModuleIndexSource = ModuleIndexPayload | InstalledOpfsIndex;
+/** An index that already is a file of the module shelf, identified by its decoded size. */
+interface InstalledShelfIndex {
+  readonly shelfBytes: number;
+}
+type ModuleIndexSource = ModuleIndexPayload | InstalledOpfsIndex | InstalledShelfIndex;
 
 function isInstalledOpfsIndex(source: ModuleIndexSource): source is InstalledOpfsIndex {
   return typeof source === 'object' && source !== null && 'opfsBytes' in source;
+}
+
+function isInstalledShelfIndex(source: ModuleIndexSource): source is InstalledShelfIndex {
+  return typeof source === 'object' && source !== null && 'shelfBytes' in source;
 }
 
 /** Large indexes live in OPFS only; small ones stay in IndexedDB and are opened in memory. */
@@ -226,13 +243,21 @@ function storedIndexSource(stored: StoredModuleVersion): ModuleIndexSource | nul
   if (stored.indexStorage === 'opfs' && stored.indexSizeBytes !== undefined) {
     return { opfsBytes: stored.indexSizeBytes };
   }
+  if (stored.indexStorage === 'shelf' && stored.indexSizeBytes !== undefined) {
+    return { shelfBytes: stored.indexSizeBytes };
+  }
   return null;
+}
+
+/** The module shelf file of a stored version. */
+function shelfFileOf(stored: Pick<StoredModuleVersion, 'moduleId' | 'version' | 'indexSha256'>) {
+  return shelfFileName(versionKey(stored.moduleId, stored.version), stored.indexSha256);
 }
 
 async function openModuleStore(
   moduleId: string,
   version: string,
-  source: ModuleIndexSource,
+  source: ModuleIndexPayload | InstalledOpfsIndex,
   indexSha256?: string,
 ): Promise<SqliteMedicalStore | WorkerOpfsMedicalStore> {
   if (!isInstalledOpfsIndex(source) && !isLargeIndex(moduleIndexSize(source))) {
@@ -264,6 +289,52 @@ async function openModuleStore(
   } finally {
     URL.revokeObjectURL(url);
   }
+}
+
+/** What a mount holds, and whether its index bytes were moved to the shelf by opening it. */
+interface MountedModuleStore {
+  readonly store: SqliteMedicalStore | WorkerOpfsMedicalStore | ShelfModuleStore;
+  readonly movedToShelf: boolean;
+}
+
+/**
+ * Opens an installed module for the search core. A small module is a file of the module shelf
+ * (a connection in the shelf worker); only where the shelf cannot run does it still deserialize
+ * into the main thread's wasm heap, which holds ~800 clinical modules at most.
+ */
+async function openMountedModuleStore(
+  stored: StoredModuleVersion,
+  source: ModuleIndexSource,
+  cacheSizeKiB: number,
+): Promise<MountedModuleStore> {
+  if (isInstalledShelfIndex(source)) {
+    const shelf = getModuleShelf();
+    if (!shelf) throw new Error('Module index is on the shelf, which cannot start here.');
+    return {
+      store: await shelf.open(shelfFileOf(stored), source.shelfBytes, { cacheSizeKiB }),
+      movedToShelf: false,
+    };
+  }
+  if (!isInstalledOpfsIndex(source) && !isLargeIndex(moduleIndexSize(source))) {
+    const shelf = getModuleShelf();
+    if (shelf) {
+      // An index installed without a shelf: write it into the pool as it is mounted, then the
+      // caller drops the IndexedDB copy.
+      try {
+        const bytes = await moduleIndexBytes(source);
+        return {
+          store: await shelf.open(shelfFileOf(stored), bytes.byteLength, { bytes, cacheSizeKiB }),
+          movedToShelf: true,
+        };
+      } catch (cause) {
+        console.warn(`Unable to put ${stored.moduleId} on the shelf; keeping it in memory.`, cause);
+      }
+    }
+  }
+  return {
+    store: await openModuleStore(stored.moduleId, stored.version, source, stored.indexSha256),
+    movedToShelf: false,
+  };
 }
 
 async function readActivePointers(database: IDBDatabase): Promise<readonly ActiveModulePointer[]> {
@@ -318,6 +389,25 @@ async function dropRedundantIndexBytes(database: IDBDatabase, key: string): Prom
 }
 
 /**
+ * The index of a small module now is a file of the shelf: the IndexedDB row keeps only its metadata.
+ * Rewritten in one transaction, and only if the row still holds the bytes of that index.
+ */
+async function moveIndexBytesToShelf(database: IDBDatabase, key: string): Promise<boolean> {
+  const transaction = database.transaction(VERSIONS_STORE, 'readwrite');
+  const store = transaction.objectStore(VERSIONS_STORE);
+  const row = await requestResult(store.get(key) as IDBRequest<StoredModuleVersion | undefined>);
+  if (!row?.bytes) {
+    transaction.abort();
+    await transactionDone(transaction).catch(() => undefined);
+    return false;
+  }
+  const { bytes, ...metadata } = row;
+  store.put({ ...metadata, indexStorage: 'shelf', indexSizeBytes: moduleIndexSize(bytes) });
+  await transactionDone(transaction);
+  return true;
+}
+
+/**
  * Pool names the stored versions refer to. Row keys are enough: a pool is named after its
  * `moduleId@version`, optionally followed by the index checksum.
  */
@@ -333,18 +423,34 @@ function poolBelongsToVersion(pool: string, prefix: string): boolean {
 export async function sweepOrphanedModulePools(): Promise<ModulePoolSweep | null> {
   if (!('indexedDB' in globalThis)) return null;
   const database = await openDatabase();
-  let prefixes: readonly string[];
+  let versionKeys: readonly string[];
   try {
-    prefixes = referencedPoolPrefixes(await readVersionKeys(database));
+    versionKeys = await readVersionKeys(database);
   } finally {
     database.close();
   }
+  const prefixes = referencedPoolPrefixes(versionKeys);
   const referenced = new Set(
     (await listModulePools()).filter((pool) =>
       prefixes.some((prefix) => poolBelongsToVersion(pool, prefix)),
     ),
   );
-  return sweepModulePools(referenced);
+  const sweep = await sweepModulePools(referenced);
+  await sweepModuleShelf(versionKeys).catch((cause: unknown) => {
+    console.warn('Unable to sweep orphaned module shelf files.', cause);
+  });
+  return sweep;
+}
+
+/**
+ * Deletes shelf files of module versions no stored row refers to. Only a shelf that is already
+ * running is asked (a page that never mounted a module has nothing to sweep, and starting a worker
+ * for it would hold the pool lock for nothing); files an open connection uses stay.
+ */
+async function sweepModuleShelf(versionKeys: readonly string[]): Promise<void> {
+  const shelf = getModuleShelf();
+  if (!shelf?.running) return;
+  await whenNoModuleStaging(() => shelf.sweep(versionKeys));
 }
 
 /**
@@ -638,8 +744,26 @@ export class BrowserModuleBackend implements ContentModuleArtifactBackend {
       .filter((artifact): artifact is StoredModuleArtifact => artifact !== null);
     // A module from a file has no remote catalog entry: keep its descriptor before it can be active.
     if (hasLocalModuleArtifacts(module)) await saveLocalModuleEntry(module);
-    const database = await openDatabase();
+    // A small index goes onto the module shelf now, so it never sits in memory or in IndexedDB.
+    // The staging lock keeps a sweep from taking the file before the row that names it exists.
+    let releaseShelfStaging: (() => void) | undefined;
+    let onShelf = false;
+    const shelf = !largeIndex && staged.bytes ? getModuleShelf() : undefined;
+    if (shelf && staged.bytes) {
+      releaseShelfStaging = await holdModuleStagingLock();
+      try {
+        await shelf.put(
+          shelfFileName(versionKey(module.id, module.version), indexSha256 ?? undefined),
+          staged.bytes,
+        );
+        onShelf = true;
+      } catch (cause) {
+        console.warn(`Unable to put ${module.id} on the shelf; storing it in IndexedDB.`, cause);
+      }
+    }
+    let database: IDBDatabase | undefined;
     try {
+      database = await openDatabase();
       const previousTransaction = database.transaction(ACTIVE_STORE, 'readonly');
       const previous = await requestResult(
         previousTransaction.objectStore(ACTIVE_STORE).get(module.id) as IDBRequest<
@@ -657,9 +781,11 @@ export class BrowserModuleBackend implements ContentModuleArtifactBackend {
         ...(module.definitionReference ? { definitionReference: module.definitionReference } : {}),
         moduleId: module.id,
         version: module.version,
-        ...(largeIndex || !staged.bytes
-          ? { indexStorage: 'opfs' as const, indexSizeBytes: decodedSize }
-          : { bytes: moduleIndexBlob(staged.bytes) }),
+        ...(onShelf
+          ? { indexStorage: 'shelf' as const, indexSizeBytes: decodedSize }
+          : largeIndex || !staged.bytes
+            ? { indexStorage: 'opfs' as const, indexSizeBytes: decodedSize }
+            : { bytes: moduleIndexBlob(staged.bytes) }),
         ...(indexSha256 ? { indexSha256 } : {}),
         ...(sourceAssets.length > 0
           ? { sourceAssetIds: sourceAssets.map((artifact) => artifact.artifactId) }
@@ -688,7 +814,8 @@ export class BrowserModuleBackend implements ContentModuleArtifactBackend {
         token: JSON.stringify(previous ?? null),
       };
     } finally {
-      database.close();
+      database?.close();
+      releaseShelfStaging?.();
     }
   }
 
@@ -738,15 +865,22 @@ export class BrowserModuleBackend implements ContentModuleArtifactBackend {
     }
   }
 
-  /** The in-memory index of a small module; null for a missing version or an OPFS-only index. */
+  /**
+   * The index of a small module as bytes (a copy, for a reader that opens it in memory for a
+   * moment); null for a missing version or a large index that lives in a pool of its own.
+   */
   public async readIndexBytes(moduleId: string, version: string): Promise<Uint8Array | null> {
     const database = await openDatabase();
+    let stored: StoredModuleVersion | null;
     try {
-      const stored = await readVersion(database, moduleId, version);
-      return stored?.bytes ? await moduleIndexBytes(stored.bytes) : null;
+      stored = await readVersion(database, moduleId, version);
     } finally {
       database.close();
     }
+    if (!stored) return null;
+    if (stored.bytes) return moduleIndexBytes(stored.bytes);
+    if (stored.indexStorage !== 'shelf') return null;
+    return (await getModuleShelf()?.read(shelfFileOf(stored))) ?? null;
   }
 
   public async remove(moduleId: string): Promise<void> {
@@ -1663,6 +1797,12 @@ export async function loadInstalledModuleMounts(): Promise<readonly MedicalStore
   const database = await openDatabase();
   try {
     const pointers = await readActivePointers(database);
+    const cacheSizeKiB = shelfCacheKiB(
+      pointers.length,
+      shelfCacheBudgetKiB(
+        (globalThis.navigator as { deviceMemory?: number } | undefined)?.deviceMemory,
+      ),
+    );
     const mounts: MedicalStoreMount[] = [];
     for (const pointer of pointers) {
       const stored = await readVersion(database, pointer.moduleId, pointer.version);
@@ -1673,12 +1813,7 @@ export async function loadInstalledModuleMounts(): Promise<readonly MedicalStore
         continue;
       }
       try {
-        const store = await openModuleStore(
-          pointer.moduleId,
-          pointer.version,
-          source,
-          stored.indexSha256,
-        );
+        const { store, movedToShelf } = await openMountedModuleStore(stored, source, cacheSizeKiB);
         if (stored.definitionReference) {
           await store.initialize();
           try {
@@ -1703,7 +1838,12 @@ export async function loadInstalledModuleMounts(): Promise<readonly MedicalStore
             ? { definitionReference: stored.definitionReference }
             : {}),
         });
-        if (stored.bytes && isLargeIndex(moduleIndexSize(stored.bytes))) {
+        if (movedToShelf) {
+          // Installed before the shelf: the file just written is the module now.
+          await moveIndexBytesToShelf(database, stored.key).catch((cause: unknown) => {
+            console.warn(`Unable to drop the IndexedDB copy of ${pointer.moduleId}.`, cause);
+          });
+        } else if (stored.bytes && isLargeIndex(moduleIndexSize(stored.bytes))) {
           // Installed before the single-store change: the OPFS copy just opened is the module now.
           await dropRedundantIndexBytes(database, stored.key).catch((cause: unknown) => {
             console.warn(`Unable to drop the duplicate index of ${pointer.moduleId}.`, cause);

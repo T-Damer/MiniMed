@@ -130,6 +130,25 @@ describe('pairView', () => {
     );
   });
 
+  it('says an installed instruction could not be read, never that it is still to be downloaded', () => {
+    const failed = new Map<string, DocumentState>([
+      ['drug.rf.aaaa.instruction', 'unreadable'],
+      ['drug.rf.bbbb.instruction', 'unreadable'],
+    ]);
+    const view = pairView(index, checkPair(index, warfarin, ibuprofen), failed, []);
+    expect(view.sides.map((side) => side.state)).toEqual(['unreadable', 'unreadable']);
+    const text = pairStatusText(view);
+    expect(text).toBe(
+      'В инструкциях 2 предложения об этом сочетании — установленную инструкцию сейчас не удалось прочитать',
+    );
+    expect(text).not.toContain('скачивания');
+    expect(sideNote(view.sides[0] as NonNullable<(typeof view.sides)[0]>)).toBe(
+      'Не удалось прочитать установленную инструкцию.',
+    );
+    // No download is offered for a module that is installed.
+    expect(pairOfferModules(view)).toEqual([]);
+  });
+
   it('offers one download in the pair for the instructions it could quote, and shows no block for them', () => {
     const none = new Map<string, DocumentState>([
       ['drug.rf.aaaa.instruction', 'missing'],

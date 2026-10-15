@@ -1,0 +1,23 @@
+/* A search that failed to read its database: one calm line and a retry, on the card's own row. */
+.search-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.search-error__text {
+  min-width: 0;
+}
+
+.search-error__retry {
+  flex: none;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  border-radius: 999px;
+}
+
+.search-error__icon {
+  width: 1rem;
+  height: 1rem;
+}

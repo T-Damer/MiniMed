@@ -143,6 +143,22 @@ export async function sweepModulePools(
 }
 
 /**
+ * Runs `task` while no installation holds the staging lock (a freshly written index has no stored
+ * row yet), or reports `deferred` when one does. Where Web Locks are missing the task just runs.
+ */
+export async function whenNoModuleStaging<T>(
+  task: () => Promise<T>,
+  environment: ModulePoolEnvironment | null = browserEnvironment(),
+): Promise<{ readonly deferred: false; readonly value: T } | { readonly deferred: true }> {
+  if (!environment) return { deferred: false, value: await task() };
+  return environment.locks.request(
+    MODULE_STAGING_LOCK,
+    { mode: 'exclusive', ifAvailable: true },
+    async (lock) => (lock ? { deferred: false as const, value: await task() } : { deferred: true }),
+  );
+}
+
+/**
  * Holds the shared staging lock until the returned function is called. Installations take it when
  * they put an index into OPFS, so a concurrent sweep cannot mistake it for an orphan.
  */

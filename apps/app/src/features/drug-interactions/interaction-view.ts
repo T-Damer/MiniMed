@@ -20,14 +20,29 @@ import { type Quote, resolveQuotes, sentenceSectionLabel } from './interaction-q
 import { type PairSeverity, pairSeverity, type SeverityLookup } from './interaction-severity';
 import { highlightPatterns, highlightSegments } from './mention-highlight';
 
-export type DocumentState = 'loading' | 'missing' | { readonly document: MedicalDocument };
+/**
+ * `missing`: the core answered that the document is not there (its module is not installed).
+ * `unreadable`: the core could not read it (a storage failure); the module may well be installed.
+ */
+export type DocumentState =
+  | 'loading'
+  | 'missing'
+  | 'unreadable'
+  | { readonly document: MedicalDocument };
 
 /**
  * `ready`: the instruction is installed and read. `not-installed`: the index knows the instruction
- * but its module is not installed. `no-instruction`: no instruction of this drug is in the index.
- * `substance`: alcohol has no instruction to read.
+ * but its module is not installed. `unreadable`: the instruction is installed (or may be) and the
+ * core failed to read it; never worded as a missing download. `no-instruction`: no instruction of
+ * this drug is in the index. `substance`: alcohol has no instruction to read.
  */
-export type SideState = 'ready' | 'loading' | 'not-installed' | 'no-instruction' | 'substance';
+export type SideState =
+  | 'ready'
+  | 'loading'
+  | 'not-installed'
+  | 'unreadable'
+  | 'no-instruction'
+  | 'substance';
 
 export interface SideView {
   readonly from: DrugItem;
@@ -89,6 +104,7 @@ function sideView(
   const loaded = documents.get(documentId);
   if (loaded === undefined || loaded === 'loading') return { ...known, state: 'loading' };
   if (loaded === 'missing') return { ...known, state: 'not-installed' };
+  if (loaded === 'unreadable') return { ...known, state: 'unreadable' };
   const patterns = highlightPatterns(index, itemTargets(index, to), phrases);
   const resolved = resolveQuotes(loaded.document, check.sentences, (text) =>
     highlightSegments(text, patterns),
@@ -199,12 +215,22 @@ export function pairStatusText(view: PairView, listed = false): string {
   const notInstalled = namesInState(view, 'not-installed');
   if (view.status === 'found') {
     const waiting = view.sides.some((side) => side.state === 'not-installed' && side.count > 0);
+    const unreadable = view.sides.some((side) => side.state === 'unreadable');
     const shown = view.sides.reduce((total, side) => total + side.quotes.length, 0);
     const base = `В инструкциях ${view.found} ${pluralSentence(view.found)} об этом сочетании`;
     const noInstruction =
       unchecked === '' || listed ? '' : `; в источниках приложения нет инструкции: ${unchecked}`;
     // The index knows the sentences before their instructions are installed: say when they appear.
-    return `${base}${waiting && shown === 0 ? ' — они появятся после скачивания инструкций' : ''}${noInstruction}`;
+    // An instruction the core failed to read is not a download to wait for.
+    const pending =
+      shown > 0
+        ? ''
+        : unreadable
+          ? ' — установленную инструкцию сейчас не удалось прочитать'
+          : waiting
+            ? ' — они появятся после скачивания инструкций'
+            : '';
+    return `${base}${pending}${noInstruction}`;
   }
   if (unchecked !== '') {
     return listed
@@ -277,6 +303,7 @@ export function sideSourceLine(side: SideView): string {
  */
 export function sideNote(side: SideView): string | null {
   if (side.state === 'not-installed') return 'Инструкция не установлена.';
+  if (side.state === 'unreadable') return 'Не удалось прочитать установленную инструкцию.';
   if (side.state === 'no-instruction') {
     return `Нет инструкции в источниках приложения: «${side.from.label}».`;
   }

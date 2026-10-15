@@ -260,4 +260,35 @@ describe('unified tool catalog', () => {
       expect(sections.find((section) => section.id === 'legal')?.count).toBe(0);
     }
   });
+
+  it('counts «Все источники» as the sum of the other counters, whatever is mounted', () => {
+    const base = {
+      shortTitle: null,
+      status: 'active' as const,
+      specialties: ['pediatrics'],
+      versionId: 'v1',
+      versionLabel: '1',
+      effectiveFrom: null,
+    };
+    const document = {
+      ...base,
+      id: 'esklp.1',
+      title: 'МНН',
+      sourceType: 'official_registry_summary',
+    };
+    const counts = { conditions: 15904, guidelines: 763, medications: 3324, legal: 31 };
+    const tools = searchCatalogTools();
+    const total = (documents: readonly (typeof document)[]) => {
+      const sections = searchCatalogSections(documents, tools, counts);
+      const others = sections
+        .filter((section) => section.id !== 'all' && section.id !== 'diagnosis')
+        .reduce((sum, section) => sum + (section.count ?? 0), 0);
+      const all = sections.find((section) => section.id === 'all')?.count;
+      expect(all).toBe(others);
+      return all;
+    };
+    // A core that read nothing and one that holds every pack agree.
+    expect(total([])).toBe(total([document, { ...document, id: 'esklp.2' }]));
+    expect(total([])).toBeGreaterThanOrEqual(15904 + 763 + 3324 + 31);
+  });
 });

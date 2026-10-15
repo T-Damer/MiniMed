@@ -62,6 +62,9 @@ type SahPool = Awaited<ReturnType<Sqlite3Static['installOpfsSAHPoolVfs']>>;
 export const SQLITE_WASM_DESERIALIZE_MAX_BYTES = 32 * 1024 * 1024;
 const SQLITE_WASM_INITIAL_MEMORY_BYTES = 64 * 1024 * 1024;
 const SQLITE_OPFS_CACHE_SIZE_KIB = -2000;
+/** Free file slots a pool keeps beyond its files: an import needs one, and a journal takes one. */
+const OPFS_POOL_SPARE_SLOTS = 2;
+const OPFS_POOL_GROWTH_STEP = 8;
 
 let sqliteModulePromise: Promise<Sqlite3Static> | undefined;
 const sahPoolPromises = new Map<string, Promise<SahPool>>();
@@ -75,8 +78,19 @@ async function getSqliteModule(): Promise<Sqlite3Static> {
   return sqliteModulePromise;
 }
 
-function applyOpfsRuntimePragmas(database: Database): void {
-  database.exec(`PRAGMA cache_size = ${SQLITE_OPFS_CACHE_SIZE_KIB}`);
+function applyOpfsRuntimePragmas(database: Database, cacheSizeKiB: number): void {
+  database.exec(`PRAGMA cache_size = ${cacheSizeKiB}`);
+}
+
+/**
+ * An import writes into a free file slot of the pool. A pool made for one database has its six; a
+ * pool that holds a whole library of module files grows by a step whenever fewer than the spare
+ * slots are free, so installing the 800th file costs the same as the first.
+ */
+async function ensureFreePoolSlots(pool: SahPool, growthStep: number): Promise<void> {
+  const free = pool.getCapacity() - pool.getFileCount();
+  if (free >= OPFS_POOL_SPARE_SLOTS) return;
+  await pool.addCapacity(Math.max(growthStep, OPFS_POOL_SPARE_SLOTS - free));
 }
 
 async function getSahPool(sqlite: Sqlite3Static, poolName: string): Promise<SahPool> {
@@ -94,6 +108,34 @@ async function getSahPool(sqlite: Sqlite3Static, poolName: string): Promise<SahP
     sahPoolPromises.delete(poolName);
     throw cause;
   }
+}
+
+/** Size of this thread's sqlite wasm heap, which only ever grows: the memory SQLite has needed. */
+export async function sqliteWasmHeapBytes(): Promise<number> {
+  return (await getSqliteModule()).wasm.heap8u().byteLength;
+}
+
+/** Files of an OPFS pool, as the names the pool knows them by (`/<database>`). */
+export async function listOpfsPoolFiles(poolName: string): Promise<readonly string[]> {
+  const pool = await getSahPool(await getSqliteModule(), poolName);
+  return pool.getFileNames();
+}
+
+/** Deletes files of an OPFS pool that no open connection uses; returns how many were removed. */
+export async function unlinkOpfsPoolFiles(
+  poolName: string,
+  names: readonly string[],
+): Promise<number> {
+  const pool = await getSahPool(await getSqliteModule(), poolName);
+  let removed = 0;
+  for (const name of names) if (pool.unlink(name)) removed += 1;
+  return removed;
+}
+
+/** The bytes of one pool file (a copy), for a reader that needs the whole database in memory. */
+export async function readOpfsPoolFile(poolName: string, name: string): Promise<Uint8Array | null> {
+  const pool = await getSahPool(await getSqliteModule(), poolName);
+  return pool.getFileNames().includes(name) ? await pool.exportFile(name) : null;
 }
 
 interface StoreHealthHints {
@@ -634,6 +676,19 @@ const ROWID_BOUND_MAX_DOCUMENTS = 64;
 export interface OpfsOpenOptions {
   readonly fetchTimeoutMs?: number;
   readonly poolName?: string;
+  /**
+   * SQLite page cache of this connection, in KiB (a negative `PRAGMA cache_size`). A pool that
+   * serves hundreds of connections gives each a small one, so the memory of the whole library
+   * stays bounded by the number of files, not by how much of each was read.
+   */
+  readonly cacheSizeKiB?: number;
+  /** Slots added at once when the pool has no free one left (default 8). */
+  readonly poolGrowthStep?: number;
+  /**
+   * Gives up SQLite's per-connection lookaside buffer (about 75 KB of heap each). With hundreds
+   * of connections in one heap that is tens of megabytes for no measurable difference in speed.
+   */
+  readonly disableLookaside?: boolean;
   readonly beforeImport?: () => Promise<void>;
   readonly onImportProgress?: (loaded: number, total: number) => void;
   /** Called once the file is written, before the new database is opened and checked. */
@@ -737,7 +792,16 @@ export class SqliteMedicalStore implements MedicalStore {
     const open = (installation: StoreHealthHints['installation']): SqliteMedicalStore => {
       const database = new pool.OpfsSAHPoolDb(vfsName);
       try {
-        applyOpfsRuntimePragmas(database);
+        if (options.disableLookaside && database.pointer) {
+          sqlite.capi.sqlite3_db_config(
+            database.pointer,
+            sqlite.capi.SQLITE_DBCONFIG_LOOKASIDE,
+            0,
+            0,
+            0,
+          );
+        }
+        applyOpfsRuntimePragmas(database, options.cacheSizeKiB ?? SQLITE_OPFS_CACHE_SIZE_KIB);
         readPackSchemaVersion(database);
       } catch (cause) {
         database.close();
@@ -761,6 +825,7 @@ export class SqliteMedicalStore implements MedicalStore {
     }
     if (source.kind === 'installed') throw new OpfsPackMissingError(databaseName);
     await options.beforeImport?.();
+    await ensureFreePoolSlots(pool, options.poolGrowthStep ?? OPFS_POOL_GROWTH_STEP);
     if (source.kind === 'url') {
       await importOpfsPack(
         pool,

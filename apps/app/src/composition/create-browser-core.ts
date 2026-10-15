@@ -8,6 +8,7 @@ import {
   SqliteMedicalStore,
 } from '@localmed/storage-sqlite';
 import { readBoundedResponse } from '@/composition/bounded-response';
+import { withCalmCoreErrors } from '@/composition/calm-core-errors';
 import { ANDROID_CORE_DOWNLOAD } from '@/composition/core-download';
 import { createRegisteredExternalMedicalCore } from '@/composition/external-medical-core';
 import { WorkerOpfsMedicalStore } from '@/composition/worker-opfs-medical-store';
@@ -587,7 +588,15 @@ async function createPackagedCompanionStores(
   return companions;
 }
 
+/**
+ * The search core of the page. Every failed result of a storage fault reads as one calm message
+ * (`withCalmCoreErrors`), so no screen can show the storage engine's own words.
+ */
 export async function createBrowserCore(downloadUi?: CoreDownloadUi) {
+  return withCalmCoreErrors(await openBrowserCore(downloadUi));
+}
+
+async function openBrowserCore(downloadUi?: CoreDownloadUi) {
   try {
     const externalCore = await createRegisteredExternalMedicalCore();
     if (externalCore) return externalCore;
