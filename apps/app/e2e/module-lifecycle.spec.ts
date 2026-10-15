@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { expect, type Locator, type Page, test } from '@playwright/test';
 
-import { missingLocalData } from './local-data';
+import { LOCAL_DATA_ROOT, missingLocalData } from './local-data';
 import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
 
 // The catalog and the regulatory pack are local builds under data/.
@@ -13,7 +13,6 @@ const MISSING_DATA = missingLocalData(
 );
 test.skip(MISSING_DATA !== undefined, MISSING_DATA);
 
-const ROOT = resolve(import.meta.dirname, '../../..');
 const CATALOG_URL =
   'https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/src/features/modules/catalog.preview.json';
 const MODULE_URL = 'https://localmed-datasets.example.com/regulatory-e2e.db';
@@ -65,8 +64,8 @@ test('installs a regulatory dataset, searches it live, and removes it without re
 }) => {
   test.setTimeout(240_000);
   const [catalog, database] = await Promise.all([
-    readFile(resolve(ROOT, 'data/build/e2e-regulatory-catalog.json'), 'utf8'),
-    readFile(resolve(ROOT, 'data/build/rf-regulatory-pilot.db')),
+    readFile(resolve(LOCAL_DATA_ROOT, 'data/build/e2e-regulatory-catalog.json'), 'utf8'),
+    readFile(resolve(LOCAL_DATA_ROOT, 'data/build/rf-regulatory-pilot.db')),
   ]);
   const catalogBody = currentCatalog(catalog, database);
 
@@ -150,8 +149,8 @@ test('shows the real download state and resumes automatically when the network r
   context,
 }) => {
   const [catalog, database] = await Promise.all([
-    readFile(resolve(ROOT, 'data/build/e2e-regulatory-catalog.json'), 'utf8'),
-    readFile(resolve(ROOT, 'data/build/rf-regulatory-pilot.db')),
+    readFile(resolve(LOCAL_DATA_ROOT, 'data/build/e2e-regulatory-catalog.json'), 'utf8'),
+    readFile(resolve(LOCAL_DATA_ROOT, 'data/build/rf-regulatory-pilot.db')),
   ]);
   const catalogBody = currentCatalog(catalog, database);
 

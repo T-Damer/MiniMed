@@ -2,11 +2,11 @@ import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { expect, test } from '@playwright/test';
+import { LOCAL_DATA_ROOT } from './local-data';
 import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
 
-const ROOT = resolve(import.meta.dirname, '../../..');
 // The local release copies stay in the main checkout; an agent worktree (`<main>/.claude/worktrees/…`) reads them there.
-const DATA_ROOT = existsSync(resolve(ROOT, 'output')) ? ROOT : resolve(ROOT, '../../..');
+const DATA_ROOT = LOCAL_DATA_ROOT;
 // Local copy of the published zstd index (docs/data-ledger.json keeps it as the release copy).
 const PUBLISHED_DIRECTORY = resolve(DATA_ROOT, 'output/module-zstd-2026-10-01/esklp-compacted');
 const GROUP = process.env['UX4_GROUP'] ?? 'antiparasitic';

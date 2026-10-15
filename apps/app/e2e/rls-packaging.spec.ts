@@ -10,6 +10,7 @@ import {
 } from '@localmed/app/e2e/mount-built-app';
 import { ContentModuleCatalogSchema } from '@localmed/contracts';
 import { expect, test } from '@playwright/test';
+import { LOCAL_DATA_ROOT } from './local-data';
 
 test.describe.configure({ mode: 'default' });
 
@@ -142,9 +143,12 @@ test('installs a verified packaging target and reads it offline after reloading 
   const member = module?.documents.find((entry) => entry.documentId === TARGET);
   if (!artifact?.url || !member) throw new Error('Missing exact RLS packaging catalog member');
   const fileName = new URL(artifact.url).pathname.split('/').at(-1) ?? '';
-  const localPath = resolve(ROOT, 'data/build/rls-mkb-module/release', fileName);
+  const localPath = resolve(LOCAL_DATA_ROOT, 'data/build/rls-mkb-module/release', fileName);
   test.skip(!existsSync(localPath), 'RLS packaging release file is local-only.');
-  const databasePath = resolve(ROOT, 'data/build/rls-mkb-module/minimed.rls.packaging.db');
+  const databasePath = resolve(
+    LOCAL_DATA_ROOT,
+    'data/build/rls-mkb-module/minimed.rls.packaging.db',
+  );
   test.skip(!existsSync(databasePath), 'Decoded RLS packaging fixture is local-only.');
   const sourceAnchor = execFileSync(
     'sqlite3',

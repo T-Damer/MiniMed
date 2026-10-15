@@ -80,10 +80,10 @@ export function EcgPhotoCaliper(props: { readonly onExit?: () => void }): JSX.El
     setOpen(false);
     props.onExit?.();
   };
+  // The numbers open as a layer over the editor (never instead of it: swapping one history layer
+  // for another left a dead entry, and closing the numbers stepped past the editor).
   const closeNumeric = (): void => {
     setNumericOpen(false);
-    // Back to the editor the numbers came from (or the one the user opened them beside).
-    if (props.onExit) setOpen(true);
   };
   const blockedHint = (): string | undefined => {
     const step = editor.step();
@@ -134,7 +134,6 @@ export function EcgPhotoCaliper(props: { readonly onExit?: () => void }): JSX.El
                       class="ecg-picker__option ecg-picker__option--stretch"
                       type="button"
                       onClick={() => {
-                        setOpen(false);
                         setNumericOpen(true);
                       }}
                     >
@@ -215,7 +214,6 @@ export function EcgPhotoCaliper(props: { readonly onExit?: () => void }): JSX.El
             <EcgEditorReport
               editor={editor}
               onOpenNumeric={() => {
-                setOpen(false);
                 setNumericOpen(true);
               }}
             />

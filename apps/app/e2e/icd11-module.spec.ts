@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 import { ContentModuleCatalogSchema } from '@localmed/contracts';
 import { expect, type Locator, type Page, test } from '@playwright/test';
 
+import { LOCAL_DATA_ROOT } from './local-data';
 import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
 import { selectSearchSection } from './select-search-section';
 
@@ -29,7 +30,7 @@ async function routeIcd11Module(page: Page): Promise<void> {
   const artifact = catalog.modules.find((entry) => entry.id === MODULE_ID)?.artifacts[0];
   if (!artifact?.url) throw new Error('The ICD-11 module is not in the catalog preview');
   const fileName = new URL(artifact.url).pathname.split('/').at(-1) ?? '';
-  const localPath = resolve(ROOT, RELEASE_DIRECTORY, fileName);
+  const localPath = resolve(LOCAL_DATA_ROOT, RELEASE_DIRECTORY, fileName);
   test.skip(!existsSync(localPath), `The ICD-11 release file ${fileName} is local-only.`);
   const bytes = await readFile(localPath);
   expect(`sha256:${createHash('sha256').update(bytes).digest('hex')}`).toBe(artifact.sha256);

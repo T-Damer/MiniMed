@@ -1,10 +1,10 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { expect, type Page, test } from '@playwright/test';
-import { missingLocalData } from './local-data';
+import { LOCAL_DATA_ROOT, missingLocalData } from './local-data';
 import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
 
-const fixtures = resolve(import.meta.dirname, '../../../data/build/terminology-e2e');
+const fixtures = resolve(LOCAL_DATA_ROOT, 'data/build/terminology-e2e');
 const MISSING_DATA = missingLocalData(
   ...['discovery.db', 'discovery-report.json', 'installed.db', 'installed-report.json'].map(
     (name) => `data/build/terminology-e2e/${name}`,

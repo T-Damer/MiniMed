@@ -27,15 +27,26 @@ for (const width of [375, 1280]) {
     const colours = await page.evaluate(() => {
       const root = document.getElementById('root') as HTMLElement;
       const rendered = getComputedStyle(document.documentElement).backgroundColor;
+      const probe = document.createElement('div');
+      probe.style.background = 'var(--theme-background)';
+      document.body.append(probe);
+      const desk = getComputedStyle(probe).backgroundColor;
+      probe.remove();
       const parked = document.createDocumentFragment();
       while (root.firstChild) parked.append(root.firstChild);
       const html = getComputedStyle(document.documentElement).backgroundColor;
       const body = getComputedStyle(document.body).backgroundColor;
       root.append(parked);
-      return { rendered, html, body };
+      return { rendered, html, body, desk };
     });
     // Once rendered, the desk owns the canvas again (overscroll keeps the desk colour).
-    expect(colours).toEqual({ rendered: 'rgb(119, 114, 102)', html: SPLASH, body: SPLASH });
+    expect(colours).toEqual({
+      rendered: colours.desk,
+      html: SPLASH,
+      body: SPLASH,
+      desk: colours.desk,
+    });
+    expect(colours.desk).not.toBe(SPLASH);
 
     await expect
       .poll(() =>

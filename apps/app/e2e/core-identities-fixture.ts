@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { promisify } from 'node:util';
+import { LOCAL_DATA_ROOT } from '@localmed/app/e2e/local-data';
 import { E2E_ASSET_ORIGIN } from '@localmed/app/e2e/mount-built-app';
 import { ContentModuleCatalogEntrySchema } from '@localmed/contracts';
 import type { Page } from '@playwright/test';
@@ -114,7 +115,15 @@ export async function prepareCoreIdentityFixture() {
   };
   await run(
     'uv',
-    ['run', '--project', resolve(ROOT, 'tools/ingest'), 'python', script, ROOT, DIRECTORY],
+    [
+      'run',
+      '--project',
+      resolve(ROOT, 'tools/ingest'),
+      'python',
+      script,
+      LOCAL_DATA_ROOT,
+      DIRECTORY,
+    ],
     { env: environment },
   );
   const database = await readFile(resolve(DIRECTORY, 'reference.db'));
@@ -173,6 +182,11 @@ export async function prepareCoreIdentityFixture() {
   delete documentBase['documentTable'];
   const documentModule = ContentModuleCatalogEntrySchema.parse({
     ...documentBase,
+    // The published entry needs the app release that ships it (0.6.60); the fixture runs on any build.
+    compatibility: {
+      ...(documentBase['compatibility'] as Record<string, unknown>),
+      minAppVersion: '0.6.41',
+    },
     sourceSetDigest: documentHash,
     sizes: {
       downloadBytes: documentDatabase.length,

@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { ContentModuleCatalogSchema } from '@localmed/contracts';
 import { expect, type Page, test } from '@playwright/test';
+import { LOCAL_DATA_ROOT } from './local-data';
 import { E2E_ASSET_ORIGIN } from './mount-built-app';
 
 /**
@@ -13,7 +14,7 @@ import { E2E_ASSET_ORIGIN } from './mount-built-app';
  */
 const ROOT = resolve(import.meta.dirname, '../../..');
 // The local release copies stay in the main checkout; an agent worktree (`<main>/.claude/worktrees/…`) reads them there.
-const DATA_ROOT = existsSync(resolve(ROOT, 'output')) ? ROOT : resolve(ROOT, '../../..');
+const DATA_ROOT = LOCAL_DATA_ROOT;
 export const MEDICATION_MODULE_ID = 'minimed.medications.antiparasitic.ru';
 const PUBLISHED_DIRECTORY = 'output/module-zstd-2026-10-01/esklp-compacted';
 const POINTER = 'core.catalog.pointer.medication.esklp.mnn.албендазол-062d3e89c1c0b8dd';

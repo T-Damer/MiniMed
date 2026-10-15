@@ -26,6 +26,8 @@ for (const width of [375, 1280]) {
     await panel.getByRole('button', { name: 'Создать коллекцию' }).click();
     await expect(panel.getByRole('checkbox', { name: /Противопаразитарные/u })).toBeChecked();
     await page.keyboard.press('Escape');
+    // The panel is a history layer: closing it is a history step, which must settle before a reload.
+    await expect(panel).toHaveCount(0);
 
     // The saved card is stored by its stable document id, not its place in the catalog.
     const stored = await page.evaluate(() =>

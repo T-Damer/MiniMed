@@ -123,13 +123,15 @@ export function UserCalculatorsPage(props: {
   };
 
   const importFile = (file: File): void => {
-    setImportOpen(false);
+    // The dialog is a history layer: it closes after the editor is open (navigate, then close), so
+    // its deferred step back never lands on the editor's entry.
     void importUserCalculator(file)
       .then((created) => {
         props.onMessage(`Калькулятор «${created.title}» импортирован.`);
         props.onEdit(created.id);
       })
-      .catch((cause: unknown) => report(cause, 'Не удалось импортировать калькулятор.'));
+      .catch((cause: unknown) => report(cause, 'Не удалось импортировать калькулятор.'))
+      .finally(() => setImportOpen(false));
   };
 
   const confirmDelete = (): void => {

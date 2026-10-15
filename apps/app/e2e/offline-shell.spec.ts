@@ -253,12 +253,21 @@ test.describe('a lazy screen that cannot load', () => {
     });
     // Once search is usable the app warms every tab's code in the background; the screen under test
     // must not slip in before the connection goes, so its code never arrives while online either.
-    await page.route('**/assets/CalculatorsView-*.js', (route) =>
-      route.abort('internetdisconnected'),
-    );
+    // The request is held until the connection is gone and fails then: a warm-up that fails while
+    // still online is a missing chunk, and the app (rightly) reloads once onto the current build,
+    // which would be a second page load.
+    let goOffline: () => void = () => undefined;
+    const offline = new Promise<void>((resolve) => {
+      goOffline = resolve;
+    });
+    await page.route('**/assets/CalculatorsView-*.js', async (route) => {
+      await offline;
+      await route.abort('internetdisconnected');
+    });
     // The core finishes its download first: going offline mid-download would show the core error.
     await mountBuiltApp(page, { waitForCore: true });
     await context.setOffline(true);
+    goOffline();
     await openCalculators(page);
 
     await expect(page.getByTestId('lazy-load-error')).toBeVisible({ timeout: 60_000 });

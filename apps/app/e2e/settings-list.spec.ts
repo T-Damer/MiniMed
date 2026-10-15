@@ -37,7 +37,7 @@ test.describe('settings list on a phone', () => {
     await expect(page.getByRole('switch', { name: 'Отдельные вкладки разделов' })).toBeVisible();
 
     // The arrow in the page and the browser back both lead to the list.
-    await page.getByRole('button', { name: 'К настройкам' }).click();
+    await page.getByRole('button', { name: 'Назад', exact: true }).click();
     await expect(page).toHaveURL(/#\/settings$/u);
     await expect(page.getByRole('link', { name: /^Внешний вид/u })).toBeVisible();
     await openSettingsPage(page, 'Функции ИИ');
@@ -67,7 +67,7 @@ test.describe('settings list on a phone', () => {
     );
     await organization.fill('Поликлиника № 1');
     await organization.blur();
-    await page.getByRole('button', { name: 'К настройкам' }).click();
+    await page.getByRole('button', { name: 'Назад', exact: true }).click();
     await expect(page.getByTestId('settings-status-clinician')).toHaveText('Заполнено 1 из 5');
 
     // A waiting app update turns the first row into a call to action.
@@ -155,7 +155,7 @@ test.describe('settings master–detail on a wide screen', () => {
       'page',
     );
     // The list is the way back here: no arrow on a first-level page.
-    await expect(page.getByRole('button', { name: 'К настройкам' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Назад', exact: true })).toHaveCount(0);
     await expect(page.getByRole('heading', { name: 'Настройки', exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Внешний вид', exact: true })).toBeVisible();
     expect(

@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { ContentModuleCatalogSchema } from '@localmed/contracts';
 import { expect, test } from '@playwright/test';
+import { LOCAL_DATA_ROOT } from './local-data';
 import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
 
 const ROOT = resolve(import.meta.dirname, '../../..');
@@ -73,7 +74,7 @@ for (const module of MODULES) {
       ?.artifacts.find((item) => item.kind === 'index');
     if (!artifact?.url) throw new Error(`Missing ${module.officialId} artifact`);
     const fileName = new URL(artifact.url).pathname.split('/').at(-1) ?? '';
-    const localPath = resolve(ROOT, REBUILT_DIRECTORY, fileName);
+    const localPath = resolve(LOCAL_DATA_ROOT, REBUILT_DIRECTORY, fileName);
     test.skip(!existsSync(localPath), `The rebuilt module file ${fileName} is local-only.`);
     const bytes = await readFile(localPath);
     expect(`sha256:${createHash('sha256').update(bytes).digest('hex')}`).toBe(artifact.sha256);

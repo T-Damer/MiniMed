@@ -318,9 +318,8 @@
   background: var(--theme-surface-muted);
   font-size: 0.8125rem;
   font-weight: 650;
-  letter-spacing: 0.02em;
+  /* 13 px capitals do not fit the one-column «Взрослые» group (the label spilled past the table). */
   text-align: center;
-  text-transform: uppercase;
 }
 
 .vax-chart__age {

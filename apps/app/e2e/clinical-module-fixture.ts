@@ -4,11 +4,12 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { ContentModuleCatalogSchema } from '@localmed/contracts';
 import { expect, type Page, test } from '@playwright/test';
+import { LOCAL_DATA_ROOT } from './local-data';
 import { E2E_ASSET_ORIGIN } from './mount-built-app';
 
 const ROOT = resolve(import.meta.dirname, '../../..');
 // The local release copies stay in the main checkout; an agent worktree (`<main>/.claude/worktrees/…`) reads them there.
-const DATA_ROOT = existsSync(resolve(ROOT, 'output')) ? ROOT : resolve(ROOT, '../../..');
+const DATA_ROOT = LOCAL_DATA_ROOT;
 // Local copy of the published zstd indexes (docs/data-ledger.json keeps it as the release copy):
 // every КР module since the KD1 republish of 2026-10-11.
 const PUBLISHED_DIRECTORIES = ['output/module-zstd-kd1-2026-10-11'];

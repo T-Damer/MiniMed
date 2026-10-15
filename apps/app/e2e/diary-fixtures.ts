@@ -8,6 +8,7 @@ import {
   parseDiaryInvitation,
 } from '../src/features/diary/diary-model';
 import { E2E_ASSET_ORIGIN } from './mount-built-app';
+import { openPatientList } from './patient-list';
 
 export const DIARY_PAGE = `${E2E_ASSET_ORIGIN}/diary/`;
 
@@ -152,7 +153,7 @@ export async function createDoctorCard(page: Page, name: string, first: boolean)
     await page.getByRole('button', { name: 'Добавить', exact: true }).click();
     await page.getByRole('menuitem', { name: 'Карточка пациента', exact: true }).press('Enter');
   } else {
-    await page.getByRole('button', { name: 'Пациенты', exact: true }).click();
+    await openPatientList(page);
     await page.getByRole('button', { name: 'Новый пациент', exact: true }).click();
   }
   await page.getByLabel('Имя или псевдоним').fill(name);

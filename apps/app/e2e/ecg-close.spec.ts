@@ -6,6 +6,11 @@ test('closing the ECG editor returns to where the user came from, not to a tool 
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+  // The editor opens from a place the user was at: closing it is one history step back to that place.
+  await page.evaluate(() => {
+    window.location.hash = '#/notes';
+  });
+  await expect(page.getByRole('heading', { name: 'Заметки', exact: true })).toBeVisible();
   await page.evaluate(() => {
     window.location.hash = '#/calculators/ecg-photo-caliper';
   });
@@ -14,11 +19,8 @@ test('closing the ECG editor returns to where the user came from, not to a tool 
 
   await editor.getByRole('button', { name: 'Закрыть' }).click();
   await expect(editor).toHaveCount(0);
-  await expect(page).toHaveURL(/#\/search$/u);
-  await expect(page.getByTestId('search-input')).toBeVisible();
-  // No description page is left behind in history.
-  await page.goBack();
-  await expect(page).not.toHaveURL(/ecg-photo-caliper/u);
+  await expect(page).toHaveURL(/#\/notes$/u);
+  await expect(page.getByRole('heading', { name: 'Заметки', exact: true })).toBeVisible();
 
   // The tool opens again from its entry points.
   await page.evaluate(() => {

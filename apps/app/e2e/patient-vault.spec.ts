@@ -1,6 +1,7 @@
 import { expect, type Page, test } from '@playwright/test';
 
 import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
+import { openPatientList, patientCard } from './patient-list';
 
 async function selectPatient(page: Page, name: string): Promise<void> {
   await page.getByRole('button', { name: /^Выбрать (другого )?пациента$/u }).click();
@@ -18,24 +19,28 @@ test('patient list has a safe sticky header, local search, and grouped actions',
   await page.getByRole('button', { name: 'Заметки', exact: true }).click();
   await page.getByRole('button', { name: 'Добавить', exact: true }).click();
   await page.getByRole('menuitem', { name: 'Карточка пациента', exact: true }).press('Enter');
+  // «Отмена» steps back to where the form was opened from: the notes, not the (empty) list.
   await page.getByRole('button', { name: 'Отмена', exact: true }).click();
+  await expect(page).toHaveURL(/#\/notes$/u);
+  await page.getByRole('button', { name: /^Пациенты/u }).click();
   await expect(page.locator('.patient-workspace__empty')).toContainText('Карточек пока нет.');
   await expect(page.locator('.patient-workspace__empty-icon')).toBeVisible();
   await page.getByRole('button', { name: 'Новый пациент', exact: true }).click();
   await page.getByLabel('Имя или псевдоним').fill('Пациент для поиска');
   await page.getByRole('button', { name: 'Создать карточку', exact: true }).click();
-  await page.getByRole('button', { name: 'Пациенты', exact: true }).click();
+  // The card took the form's place, so back from it is the list the form was opened from.
+  await page.getByRole('button', { name: 'Назад', exact: true }).click();
 
   const search = page.locator('#patient-workspace-search');
-  const patientCard = page.getByRole('button', { name: /^Пациент для поиска/u });
+  const listedPatient = page.getByRole('button', { name: /^Пациент для поиска/u });
   const header = page.locator('.patient-workspace__search-chrome');
   await expect(search).toBeVisible();
-  await expect(patientCard).toBeVisible();
+  await expect(listedPatient).toBeVisible();
   await expect(page.getByRole('button', { name: 'Назад к заметкам', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Где хранятся карточки' })).toBeVisible();
   await expect(page.locator('.patient-workspace')).not.toHaveClass(/page-grain/u);
   await search.fill('для поиска');
-  await expect(patientCard).toHaveCount(1);
+  await expect(listedPatient).toHaveCount(1);
   await search.fill('неизвестный пациент');
   await expect(page.getByText('По запросу ничего не найдено.')).toBeVisible();
 
@@ -177,8 +182,10 @@ test('creates a protected patient profile and opens longitudinal dynamics', asyn
     .locator('.app-bottom-nav')
     .getByRole('button', { name: 'Заметки', exact: true })
     .click();
-  await page.getByRole('button', { name: 'Пациенты', exact: true }).click();
-  await page.getByRole('button', { name: /^Пациент динамики/u }).click();
+  // A tab tap returns to the place the tab was left at: the card the calculator result went to.
+  await expect(page.getByRole('heading', { name: 'Пациент динамики' })).toBeVisible();
+  await openPatientList(page);
+  await patientCard(page, 'Пациент динамики').click();
   const calculatorEvent = page.locator('.patient-workspace__event').filter({
     hasText: 'Площадь поверхности тела — Mosteller',
   });
@@ -242,22 +249,22 @@ test('creates a protected patient profile and opens longitudinal dynamics', asyn
   // Creating another profile must append to the patient snapshot, not replace the first
   // patient's profile and measurements.
   await page.getByRole('button', { name: 'К карточке пациента', exact: true }).click();
-  await page.getByRole('button', { name: 'Пациенты', exact: true }).click();
+  await openPatientList(page);
   await page.getByRole('button', { name: 'Новый пациент' }).click();
   await page.getByLabel('Имя или псевдоним').fill('Второй пациент');
   await page.getByRole('button', { name: 'Создать карточку' }).click();
   await expect(page.getByRole('heading', { name: 'Второй пациент' })).toBeVisible();
-  await page.getByRole('button', { name: 'Пациенты', exact: true }).click();
-  await expect(page.getByRole('button', { name: /^Пациент динамики/u })).toBeVisible();
-  await expect(page.getByRole('button', { name: /^Второй пациент/u })).toBeVisible();
-  await expect(page.getByRole('button', { name: /^Пациент динамики/u })).toContainText('20 кг');
+  await page.getByRole('button', { name: 'Назад', exact: true }).click();
+  await expect(patientCard(page, 'Пациент динамики')).toBeVisible();
+  await expect(patientCard(page, 'Второй пациент')).toBeVisible();
+  await expect(patientCard(page, 'Пациент динамики')).toContainText('20 кг');
 
   const localStorageValues = await page.evaluate(() => Object.values(localStorage));
   expect(localStorageValues.some((value) => value.includes('Пациент динамики'))).toBe(false);
 
   // Locking from the patient workspace is the production curtain emitter. The mounted calculator
   // must drop its selected patient and transient result before the curtain can clear.
-  await page.getByRole('button', { name: /^Пациент динамики/u }).click();
+  await patientCard(page, 'Пациент динамики').click();
   await page.getByRole('button', { name: 'Действия с карточкой', exact: true }).click();
   await page.getByRole('menuitem', { name: 'Заблокировать', exact: true }).click();
   // The browser key opens the vault again at once, as the Keystore key does on a phone; the lock
@@ -364,8 +371,8 @@ test('repeats an assessment for the same protected patient', async ({ page }) =>
   await completeAssessment('0', 0);
 
   await page.getByRole('button', { name: 'Заметки', exact: true }).click();
-  await page.getByRole('button', { name: 'Пациенты', exact: true }).click();
-  await page.getByRole('button', { name: /^Пациент повторной оценки/u }).click();
+  await openPatientList(page);
+  await patientCard(page, 'Пациент повторной оценки').click();
   const assessmentEvents = page.locator('.patient-workspace__event').filter({
     hasText: 'Скрининг настроения Whooley (2 вопроса)',
   });

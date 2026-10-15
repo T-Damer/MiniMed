@@ -659,8 +659,8 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
       userQuestionnaires().find((item) => item.file.id === fileId)?.file.title ?? 'Опросник';
     setPendingDeletion({ kind: 'questionnaire', id: fileId, title });
   };
-  const importUserQuestionnaireFile = (file: File): void => {
-    void importUserQuestionnaire(file)
+  const importUserQuestionnaireFile = (file: File): Promise<void> =>
+    importUserQuestionnaire(file)
       .then((stored) => {
         setUserQuestionnaires((items) => [stored, ...items]);
         setLoadedUserQuestionnaire(stored);
@@ -670,7 +670,6 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
       .catch((cause: unknown) => {
         setMessage(cause instanceof Error ? cause.message : 'Не удалось импортировать опросник.');
       });
-  };
 
   return (
     <section class="assessments-page page-surface page-grain" aria-label="Тесты и опросники">

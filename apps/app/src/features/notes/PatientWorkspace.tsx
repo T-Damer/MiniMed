@@ -1093,7 +1093,7 @@ function PatientDetail(props: {
         navigation={
           <NavBack
             class="knowledge-back-button"
-            aria-label="Пациенты"
+            aria-label="Назад"
             onClick={() => navigateBack(notesPatientsPath())}
           />
         }

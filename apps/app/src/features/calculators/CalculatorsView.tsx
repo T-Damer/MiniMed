@@ -117,7 +117,7 @@ import { ToolAgeBadge } from '@/features/tools/ToolAgeBadge';
 import { ToolAgeFilterBar } from '@/features/tools/ToolAgeFilterBar';
 import { filterByAge, type ToolAgeFilter } from '@/features/tools/tool-age-filter';
 import { createToolAgeFilter } from '@/features/tools/tool-age-filter-state';
-import { navigateBack } from '@/state/app-back';
+import { navigateBack, visitRoute } from '@/state/app-back';
 import {
   getExperimentalModulesEnabled,
   getSplitNavigation,
@@ -1572,7 +1572,7 @@ export function CalculatorsView(): JSX.Element {
   );
   const openUserCalculator = (model: UserCalculator): void => {
     setActiveRecord(undefined);
-    window.location.hash = `#/calculators/${encodeURIComponent(model.id)}`;
+    visitRoute(`#/calculators/${encodeURIComponent(model.id)}`);
   };
   const showMyCalculatorsCard = (): boolean => {
     const needle = query().trim().toLocaleLowerCase('ru-RU');
@@ -2074,7 +2074,8 @@ export function CalculatorsView(): JSX.Element {
                             title="Изменить калькулятор"
                             icon={<AppGlyph name="edit" />}
                             onClick={() => {
-                              window.location.hash = userCalculatorEditPath(definition().slug);
+                              // calculator ⇄ editor is a round trip, not a pile of entries
+                              visitRoute(userCalculatorEditPath(definition().slug));
                             }}
                           />
                         </Show>

@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { expect, type Page, test } from '@playwright/test';
+import { LOCAL_DATA_ROOT } from './local-data';
 import {
   installMedicationModule,
   MEDICATION_MODULE_ID,
@@ -14,11 +15,7 @@ import { E2E_ASSET_ORIGIN, mountBuiltApp, waitForSearchReady } from './mount-bui
  * (the local release copy of `datasets/allmed-images-…`) and the drug from the Allmed module, both
  * served from local copies; the spec skips when a copy is absent.
  */
-const CHECKOUT = resolve(import.meta.dirname, '../../..');
 // An agent worktree lives under `<main checkout>/.claude/worktrees/`; the release copies stay in the main one.
-const LOCAL_DATA_ROOT = existsSync(resolve(CHECKOUT, 'output'))
-  ? CHECKOUT
-  : resolve(CHECKOUT, '../../..');
 const IMAGES_DIRECTORY = resolve(LOCAL_DATA_ROOT, 'output/allmed-images-2026.10.13-c8e85a688094');
 const ALLMED_FILE = resolve(
   LOCAL_DATA_ROOT,
@@ -32,6 +29,20 @@ async function routeLocalFiles(page: Page): Promise<void> {
     !existsSync(IMAGES_DIRECTORY) || !existsSync(ALLMED_FILE),
     'The Allmed module and photo pack release copies are local-only.',
   );
+  // The catalog is compiled into a chunk of the built app and lists the photo pack for 0.6.60, the
+  // release that ships it; this build is older, so the pack's minimum is lowered there.
+  const packId = 'minimed.medications.packaging-images.ru';
+  const minimum = new RegExp(
+    `("id":"${packId.replaceAll('.', '\\.')}".*?"minAppVersion":)"[^"]+"`,
+    'su',
+  );
+  await page.route(/\/assets\/module-catalog-[^/]+\.js$/u, async (route) => {
+    const response = await route.fetch();
+    const body = await response.text();
+    if (!body.includes(`"id":"${packId}"`)) return route.fulfill({ response, body });
+    if (!minimum.test(body)) throw new Error('The photo pack has no minimum version to lower.');
+    return route.fulfill({ response, body: body.replace(minimum, '$1"0.0.1"') });
+  });
   await page.route(
     (url) => /minimed\.medications\.packaging-images\.ru\./u.test(url.pathname),
     async (route) => {

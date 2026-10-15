@@ -150,7 +150,7 @@ export function AssessmentResultPage(props: {
       <Page
         class="assessment-page-header assessment-result-page__header"
         navigation={
-          <NavBack class="knowledge-back-button" aria-label="К тесту" onClick={props.onBack} />
+          <NavBack class="knowledge-back-button" aria-label="Назад" onClick={props.onBack} />
         }
         icon={<AppGlyph name="list-checks" class="page__icon-glyph" />}
         title={

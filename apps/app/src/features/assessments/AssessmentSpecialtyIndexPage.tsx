@@ -69,7 +69,8 @@ export function AssessmentSpecialtyIndexPage(props: {
   readonly onExportUserQuestionnaire: (fileId: string) => void;
   readonly onDuplicateUserQuestionnaire: (fileId: string) => void;
   readonly onDeleteUserQuestionnaire: (fileId: string) => void;
-  readonly onImportUserQuestionnaire: (file: File) => void;
+  /** Resolves once the import is done and the editor is open (or it failed). */
+  readonly onImportUserQuestionnaire: (file: File) => Promise<void>;
   readonly onOpenRecord: (
     definition: ReturnType<typeof searchAssessments>[number],
     record: AssessmentRecord,
@@ -267,8 +268,8 @@ export function AssessmentSpecialtyIndexPage(props: {
               accept=".json,.minimed-questionnaire,application/vnd.minimed.questionnaire+json,application/json"
               title="Файл опросника MiniMed"
               onFile={(file) => {
-                setImportOpen(false);
-                props.onImportUserQuestionnaire(file);
+                // Navigate, then close: the dialog is a history layer (see history-layer.ts).
+                void props.onImportUserQuestionnaire(file).finally(() => setImportOpen(false));
               }}
             />
             <div class="assessment-import-dialog__format">

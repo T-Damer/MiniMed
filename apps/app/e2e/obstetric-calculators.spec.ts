@@ -1,6 +1,7 @@
 import { expect, type Page, test } from '@playwright/test';
 
 import { mountBuiltApp } from './mount-built-app';
+import { openPatientList, patientCard } from './patient-list';
 
 test('calculates an EDD by LMP and writes the result to a patient note', async ({ page }) => {
   await mountBuiltApp(page, { persistentOrigin: true });
@@ -190,8 +191,8 @@ test('a patient fills the feeding plan and keeps the last period and the due dat
   await expect(page.getByTestId('calculator-result')).toHaveCount(0);
 
   await page.getByRole('button', { name: 'Заметки', exact: true }).click();
-  await page.getByRole('button', { name: 'Пациенты', exact: true }).click();
-  await page.getByRole('button', { name: /^Пациент ПДР/u }).click();
+  await openPatientList(page);
+  await patientCard(page, 'Пациент ПДР').click();
   await expect(
     page.locator('.patient-workspace__event').filter({ hasText: '5 февраля 2027 г.' }),
   ).toBeVisible();

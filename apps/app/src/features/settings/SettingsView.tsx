@@ -110,7 +110,7 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
         description={page.description}
         showBack={!wide()}
         backHash={SETTINGS_ROOT_HASH}
-        backLabel="К настройкам"
+        backLabel="Назад"
         headingLevel={pageHeading()}
         {...(testId ? { testId } : {})}
         {...(help ? { help: help() } : {})}

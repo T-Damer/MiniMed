@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { ContentModuleCatalogSchema } from '@localmed/contracts';
 import { expect, test } from '@playwright/test';
+import { LOCAL_DATA_ROOT } from './local-data';
 import { E2E_ASSET_ORIGIN, mountBuiltApp, waitForSearchEditable } from './mount-built-app';
 
 const ROOT = resolve(import.meta.dirname, '../../..');
@@ -16,9 +17,9 @@ const PUBLISHED_ARTIFACT_DIRECTORIES = [
 ];
 
 function publishedArtifactPath(fileName: string): string | undefined {
-  return PUBLISHED_ARTIFACT_DIRECTORIES.map((directory) => resolve(ROOT, directory, fileName)).find(
-    (path) => existsSync(path),
-  );
+  return PUBLISHED_ARTIFACT_DIRECTORIES.map((directory) =>
+    resolve(LOCAL_DATA_ROOT, directory, fileName),
+  ).find((path) => existsSync(path));
 }
 const POINTER = 'core.catalog.pointer.clinical.kr.rf.1006_1-1151be108d81d0ac';
 const TARGET = 'kr.rf.1006_1';
@@ -147,7 +148,7 @@ test('installs a zstd module index through the decode worker', async ({ page }) 
     throw new Error('The MKB module is not published as zstd.');
   }
   const fileName = new URL(artifact.url).pathname.split('/').at(-1) ?? '';
-  const localPath = resolve(ROOT, 'data/build/rls-mkb-module/release', fileName);
+  const localPath = resolve(LOCAL_DATA_ROOT, 'data/build/rls-mkb-module/release', fileName);
   test.skip(!existsSync(localPath), 'The MKB zstd release file is local-only.');
   const bytes = await readFile(localPath);
   expect(`sha256:${createHash('sha256').update(bytes).digest('hex')}`).toBe(artifact.sha256);
