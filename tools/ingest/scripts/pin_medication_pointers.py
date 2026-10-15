@@ -31,7 +31,13 @@ Usage:
         --source apps/app/public/content/core.db \
         --pinned-ids tools/ingest/scripts/released-medication-pointer-ids-2026-09-08.json \
         --output data/build/core-medication-pointers-pinned.db \
-        --report data/build/core-medication-pointers-pinned-report.json
+        --report data/build/core-medication-pointers-pinned-report.json \
+        [--strength-repairs data/build/esklp-str1/strength-repairs.json]
+
+DOSE1: the registry's «1.0» placeholder glued to a dosage (section titles «… — 1.0325 мг+10 мг+20 мг»)
+and the «(НЕ УКАЗАНО)» tails are repaired on the copy; `--strength-repairs` (from
+`repair_esklp_strengths.py repairs`) names the old and new spelling per card so every title is
+repaired by evidence, the pointer's own text is the evidence without it.
 """
 
 from __future__ import annotations
@@ -42,6 +48,7 @@ import json
 import sqlite3
 from pathlib import Path
 
+from localmed_ingest.esklp_strength_repair import repair_pointer_pack
 from localmed_ingest.sqlite_builder import schema_sql, secondary_indexes_sql
 from localmed_ingest.sqlite_composer import _rebuild_chunks_fts, _source_set_digest
 
@@ -52,7 +59,12 @@ def _sha256_file(path: Path) -> str:
     return f"sha256:{digest.hexdigest()}"
 
 
-def pin_medication_pointers(source: Path, pinned_ids_path: Path, output: Path) -> dict[str, object]:
+def pin_medication_pointers(
+    source: Path,
+    pinned_ids_path: Path,
+    output: Path,
+    strength_repairs: Path | None = None,
+) -> dict[str, object]:
     source = source.resolve()
     output = output.resolve()
     if source == output:
@@ -154,6 +166,13 @@ def pin_medication_pointers(source: Path, pinned_ids_path: Path, output: Path) -
 
         for statement in secondary_indexes_sql():
             connection.execute(statement)
+        # DOSE1: the released pointers carry the registry's «1.0» placeholder in section titles
+        # («… — 1.0325 мг+10 мг+20 мг») and «(НЕ УКАЗАНО)» tails; the pin repairs them on the copy.
+        known_repairs = (
+            json.loads(strength_repairs.read_text(encoding="utf-8")) if strength_repairs else None
+        )
+        repairs = repair_pointer_pack(connection, known_repairs)
+        connection.commit()
         _rebuild_chunks_fts(connection)
         digest = _source_set_digest(connection)
         connection.execute(
@@ -187,6 +206,7 @@ def pin_medication_pointers(source: Path, pinned_ids_path: Path, output: Path) -
         "documentsRemaining": documents_remaining,
         "chunksRemaining": chunks_remaining,
         "aliasesRemaining": aliases_remaining,
+        "strengthRepair": repairs,
         "outputChecksum": _sha256_file(output),
         "sqliteIntegrity": "ok",
         "foreignKeyViolations": 0,
@@ -199,8 +219,15 @@ def main() -> None:
     parser.add_argument("--pinned-ids", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--report", type=Path, required=True)
+    parser.add_argument(
+        "--strength-repairs",
+        type=Path,
+        help="strength-repairs.json of repair_esklp_strengths.py (card id -> old -> new dosage)",
+    )
     args = parser.parse_args()
-    report = pin_medication_pointers(args.source, args.pinned_ids, args.output)
+    report = pin_medication_pointers(
+        args.source, args.pinned_ids, args.output, args.strength_repairs
+    )
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"

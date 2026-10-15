@@ -88,6 +88,11 @@ ignore = ["RUF001"]
 "tests/test_grls_ocr_*.py" = ["RUF002", "RUF003"]
 "tests/test_grls_document_kind.py" = ["RUF002", "RUF003"]
 
+# DOSE1: registry dosages, ЕСКЛП and СМНН are quoted in Cyrillic in docstrings, comments and fixtures.
+"src/localmed_ingest/esklp_strength*.py" = ["RUF002", "RUF003"]
+"tests/test_esklp_strength*.py" = ["E501", "RUF002", "RUF003"]
+"tests/test_esklp_pointer_repair.py" = ["E501", "RUF002", "RUF003"]
+
 [tool.pyright]
 pythonVersion = "3.12"
 typeCheckingMode = "strict"

@@ -26,6 +26,11 @@
  * from the `atc2` modules, only the nine groups that hold a consensus node (`--module-id`):
  * the tag `esklp-2026-08-28-atc2` becomes `esklp-2026-08-28-atc3`, the version `…atc2` `…atc3`.
  *
+ * The dosage repair (STR1, `tools/ingest/scripts/repair_esklp_strengths.py`) rewrites the dosages in
+ * the card text and the metadata of the ЕСКЛП cards of all 15 groups: `--marker str1 --family esklp`
+ * moves every tag (`…-atc2`, `…-atc3`, the original) to `esklp-2026-08-28-str1`, the versions to
+ * `2026-08-28.str1`.
+ *
  * Only `embedding_profiles`/`chunk_embeddings` differ from the published modules, so the source
  * set, document table and artifact ids stay; the module version's embedding suffix becomes
  * `.<marker>` and the artifact gets its new URL, checksums and sizes. Every archive is decoded again
@@ -72,10 +77,10 @@ const outDir = values['out-dir'];
 const tag = values.tag;
 const marker = values.marker;
 /**
- * Markers of earlier and current vector profiles and of earlier ATC fills (`atc2`, `atc3`),
- * replaced rather than stacked: `esklp-2026-08-28-atc2` + marker `atc3` is `esklp-2026-08-28-atc3`.
+ * Markers of earlier and current vector profiles, of earlier ATC fills (`atc2`, `atc3`) and of
+ * dosage repairs (`str1`), replaced rather than stacked: `esklp-2026-08-28-atc2` + marker `atc3` is `esklp-2026-08-28-atc3`.
  */
-const EMBEDDING_MARKER = /[-.](?:e5|kd1|atc\d+)$/u;
+const EMBEDDING_MARKER = /[-.](?:e5|kd1|atc\d+|str\d+)$/u;
 if (
   !marker ||
   !/^[a-z0-9]+$/u.test(marker) ||

@@ -13,6 +13,7 @@ from zipfile import BadZipFile, ZipFile
 from pydantic import BaseModel, Field
 
 from .catalog_module_builder import CamelModel, LedgerModule
+from .esklp_strength import is_unstated, registry_strength
 from .esklp_xlsx import read_esklp_xlsx
 from .medication_catalog import (  # pyright: ignore[reportPrivateUsage]
     _assign_modules,  # pyright: ignore[reportPrivateUsage]
@@ -130,15 +131,7 @@ def _number(value: object | None) -> int | float | str | None:
 
 
 def _strength(value: object | None, unit: object | None) -> str | None:
-    strength = _clean(value)
-    strength_unit = _clean(unit)
-    if strength is None:
-        return None
-    if strength_unit is None:
-        return strength
-    normalized_strength = re.sub(r"\s+", "", strength).casefold()
-    normalized_unit = re.sub(r"\s+", "", strength_unit).casefold()
-    return strength if normalized_strength.endswith(normalized_unit) else strength + strength_unit
+    return registry_strength(value, unit)
 
 
 def _package_name(value: object | None) -> str | None:
@@ -645,11 +638,13 @@ def build_esklp_coverage_ledger(
             ]
         )
         strengths = _unique(
-            [
+            value
+            for value in (
                 *(node.strength or "" for node in nodes),
                 *(trade.strength or "" for node in nodes for trade in node.trade_names),
                 *(position.strength or "" for node in nodes for position in node.klp_positions),
-            ]
+            )
+            if not is_unstated(value)
         )
         atc_codes = _unique(node.atc_code or "" for node in nodes)
         matching_rules, primary_rule = _assign_modules(

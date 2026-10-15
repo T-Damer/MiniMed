@@ -265,6 +265,48 @@ Current intents are:
 
 The intent engine is profile-driven: another project can reuse `classifyIntent` with engineering entities, signals, and refinements while keeping the same offline storage/search architecture.
 
+## Dosage repair (STR1)
+
+The ЕСКЛП workbooks print a dosage in two cells, «Кол-во» and «Единица измерения дозировки». For a single substance
+they are «500.0» and «мг»; for a combination drug the registry writes the placeholder «1.0» into the first and the whole
+dosage into the second («1.0» + «325 мг+10 мг+20 мг»), and for a dosage it does not state «1.0» + «~» or «НЕ УКАЗАНО».
+The first builders glued the cells (`1.0325 мг+10 мг+20 мг`, `1.0 650 мг`, `1.01.42 мг+18.26 мг+20 мг/мл`, `1.0~`).
+`localmed_ingest/esklp_strength.py` is the one rule now (`registry_strength`: the unit cell that is itself an expression
+wins over the placeholder, an unstated unit leaves nothing); `esklp_rows.parse_trade_rows` and `esklp_catalog._strength`
+call it, and `strengths` of a card no longer lists an unstated value. The registry's own klp rows and normalized form
+strings are kept as they are (provenance); the app and the text builders read an unstated dosage as absent.
+
+The released modules were built from an archive that is no longer on this machine, so they are repaired by the same
+rule, with evidence: a glued node dosage «1.0<rest>» is repaired only when a trade name of the node holds «1.0 <rest>».
+Chunk ids, section ids, anchors and order do not change.
+
+```bash
+cd tools/ingest
+# decode the catalog's 15 ЕСКЛП modules into DIR/base (atc3 / atc2 / original copies in output/), then:
+uv run python scripts/repair_esklp_strengths.py scan  --dir DIR/base          # cards/chunks that show the glue
+uv run python scripts/repair_esklp_strengths.py apply --original <main>/data/build/release-esklp \
+  --published DIR/base --work DIR/work --out DIR/out --report DIR/report.json  # ~25 min, one module at a time
+uv run python scripts/repair_esklp_strengths.py repairs --published DIR/base --out scripts/esklp-strength-repairs-2026-08-28.json
+cd ../.. && bun scripts/reframe-modules.ts --marker str1 --family esklp --decoded-dir DIR/out \
+  --out-dir output/module-zstd-esklp-str1-<date> --published-at <UTC now> --write-catalog
+scripts/publish-module-zstd-mirror.sh --family esklp --tag esklp-2026-08-28-str1 --source-dir output/…/esklp-2026-08-28-str1 --create
+MINIMED_DATA_ROOT=<main> CMP1_ESKLP_DIR=DIR/out bun scripts/build-drug-comparison.ts   # strengths of the comparison index
+```
+
+`apply` starts from the non-compacted original build (`data/build/release-esklp`), carries the published
+`documents.metadata_json` over (so the ATC fill stays), repairs the metadata and the card text
+(`esklp_strength_repair.py`), rebuilds the search text of the changed chunks the way the released modules were indexed
+(`index_text`; it refuses to run unless this reproduces `normalized_text` of every chunk of the original) and runs the
+same search compaction that produced the published modules. It then compares the result with the published module: only
+`documents.metadata_json` of repaired cards and the text of the touched chunks may differ. A card's text writes an
+unstated dosage as «не указано в каталоге» like any other empty field; a list names a dosage once.
+
+The core's medication pointers are pinned to the released core (`pin_medication_pointers.py`); the pin repairs their
+section titles («… — 1.0325 мг+10 мг+20 мг») and «(НЕ УКАЗАНО)» tails on the copy, by the per-card changes of
+`scripts/esklp-strength-repairs-2026-08-28.json` where it has them and by the pointer's own text otherwise. A core built
+after this change carries them; the released core does not, and the app reads the old spelling correctly anyway
+(`features/search/registry-values.ts`).
+
 ## ATC code completion (ATC2)
 
 ЕСКЛП gives every СМНН node an `atcCode`; `~` means none and a five-character code is a group stub. A deterministic

@@ -4,6 +4,7 @@ import re
 
 from pydantic import Field
 
+from .esklp_strength import registry_strength
 from .models import CamelModel
 
 _SPACE_PATTERN = re.compile(r"\s+")
@@ -312,7 +313,7 @@ def parse_trade_rows(rows: list[list[str]]) -> list[TradeSourceRow]:
                     row, 3, source="TN", row_number=row_number, field="standardizedInn"
                 ),
                 dosage_form=_clean(_cell(row, 4)),
-                strength=_combine(_cell(row, 5), _cell(row, 6)),
+                strength=registry_strength(_cell(row, 5), _cell(row, 6), separator=" "),
                 unit=_clean(_cell(row, 9)),
                 normalized_inns=_split(_cell(row, 10)),
                 normalized_forms_strengths=_split(_cell(row, 11)),
