@@ -469,7 +469,7 @@ describe('MPM II at admission against Lemeshow 1993 Table (as reproduced)', () =
   });
 
   it('keeps the model without threshold bands (the authors define none)', () => {
-    expect(schemaOf('mpm-ii-admission').evaluation.status).toBe('unavailable');
+    expect(schemaOf('mpm-ii-admission').evaluation.status).toBe('not-applicable');
   });
 });
 

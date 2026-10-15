@@ -114,7 +114,7 @@ describe('intensive care tool module', () => {
           schema.id,
         ).toEqual(schema.interpretations.map((interpretation) => interpretation.message));
       } else {
-        expect(schema.evaluation.status, schema.id).toBe('unavailable');
+        expect(schema.evaluation.status, schema.id).toBe('not-applicable');
         expect(schema.evaluation.reason, schema.id).toBeTruthy();
       }
     }

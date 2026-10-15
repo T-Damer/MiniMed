@@ -38,6 +38,14 @@ describe('the evaluation note of a result page', () => {
     expect(evaluationNotice(evaluation({ status: 'missing-context' }))).toBeUndefined();
   });
 
+  it('says nothing for a result declared not applicable', () => {
+    expect(
+      evaluationNotice(
+        evaluation({ status: 'not-applicable', reason: 'Результат — расчётный объём жидкости.' }),
+      ),
+    ).toBeUndefined();
+  });
+
   it('says nothing when the schema declared no evaluation rules', () => {
     expect(
       evaluationNotice(

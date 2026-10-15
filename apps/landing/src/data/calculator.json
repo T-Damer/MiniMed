@@ -102,10 +102,10 @@
     }
   ],
   "evaluation": {
-    "status": "unavailable",
+    "status": "not-applicable",
     "rules": [],
     "missingContext": [],
-    "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+    "reason": "Площадь поверхности тела — расчётная величина без границ нормы.",
     "sourceIds": ["body-surface-area-mosteller-mosteller-1987"]
   },
   "observationMappings": [

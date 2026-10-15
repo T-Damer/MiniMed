@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.core-clinical.ru",
-  "version": "0.1.0-preview.5",
+  "version": "0.1.0-preview.6",
   "title": "Базовые клинические расчёты",
   "schemaVersion": 2,
   "builtAt": "2026-08-18T00:00:00Z",
@@ -153,10 +153,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "reason": "Клиренс креатинина используют для подбора дозы по инструкции препарата, категорий результата нет: категории G по KDIGO относятся к СКФ.",
           "sourceIds": ["cockcroft-gault-creatinine-clearance-cockcroft-gault-1976"]
         },
         "observationMappings": [
@@ -213,7 +213,8 @@
         "limitations": [
           "Диуретики, ХБП, контраст, обструкция и сепсис меняют интерпретацию.",
           "Один индекс не устанавливает причину острого повреждения почек.",
-          "Единицы натрия и креатинина должны быть одинаковыми в соответствующих парах."
+          "Единицы натрия и креатинина должны быть одинаковыми в соответствующих парах.",
+          "Пороги из исходной работы Espinel (1976): менее 1% и более 3%; в учебниках для острого канальцевого некроза чаще указывают более 2%, при диуретиках надёжнее FeUrea."
         ],
         "inputs": [
           {
@@ -261,6 +262,20 @@
             "isOutput": true
           }
         ],
+        "interpretations": [
+          {
+            "when": "fena < 1",
+            "message": "FENa менее 1%: вероятна преренальная азотемия (Espinel, 1976). Диуретики и ХБП могут исказить результат."
+          },
+          {
+            "when": "fena <= 3",
+            "message": "FENa 1–3%: промежуточная зона, по одному индексу преренальную азотемию и острый канальцевый некроз не различить."
+          },
+          {
+            "when": "1",
+            "message": "FENa более 3%: типично для острого канальцевого некроза (Espinel, 1976); учтите диуретики и клинический контекст."
+          }
+        ],
         "warnings": [
           {
             "code": "context",
@@ -274,14 +289,61 @@
             "version": "Clinical context review",
             "url": "https://pubmed.ncbi.nlm.nih.gov/28008340/",
             "reviewedAt": "2026-08-15"
+          },
+          {
+            "title": "Espinel CH. The FENa test. Use in the differential diagnosis of acute renal failure",
+            "publisher": "JAMA",
+            "version": "1976",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/947239/",
+            "page": "236(6):579-581",
+            "reviewedAt": "2026-10-15"
           }
         ],
         "evaluation": {
-          "status": "unavailable",
-          "rules": [],
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "fena < 1",
+              "verdict": {
+                "rangeId": "fena-prerenal",
+                "title": "FENa менее 1%",
+                "explanation": "FENa менее 1%: вероятна преренальная азотемия (Espinel, 1976). Диуретики и ХБП могут исказить результат.",
+                "attentionLevel": "low",
+                "upperBound": 1,
+                "upperInclusive": false,
+                "sourceIds": ["fractional-excretion-sodium-espinel-1976"]
+              }
+            },
+            {
+              "when": "fena <= 3",
+              "verdict": {
+                "rangeId": "fena-intermediate",
+                "title": "FENa 1–3%",
+                "explanation": "FENa 1–3%: промежуточная зона, по одному индексу преренальную азотемию и острый канальцевый некроз не различить.",
+                "attentionLevel": "moderate",
+                "lowerBound": 1,
+                "upperBound": 3,
+                "sourceIds": ["fractional-excretion-sodium-espinel-1976"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "fena-atn",
+                "title": "FENa более 3%",
+                "explanation": "FENa более 3%: типично для острого канальцевого некроза (Espinel, 1976); учтите диуретики и клинический контекст.",
+                "attentionLevel": "high",
+                "lowerBound": 3,
+                "lowerInclusive": false,
+                "sourceIds": ["fractional-excretion-sodium-espinel-1976"]
+              }
+            }
+          ],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
-          "sourceIds": ["fractional-excretion-sodium-fena-context"]
+          "sourceIds": [
+            "fractional-excretion-sodium-espinel-1976",
+            "fractional-excretion-sodium-fena-context"
+          ]
         },
         "observationMappings": [
           {
@@ -290,6 +352,35 @@
             "unit": "%",
             "stepId": "fena",
             "method": "calculator:minimed.calculator.fractional-excretion-sodium"
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_fena",
+            "valueId": "fena",
+            "minimum": 0,
+            "maximum": 5,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Преренальная",
+                "attentionLevel": "low",
+                "interpretation": 0
+              },
+              {
+                "from": 1,
+                "label": "Промежуточная",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 3,
+                "label": "Канальцевый некроз",
+                "attentionLevel": "high",
+                "interpretation": 2
+              }
+            ]
           }
         ]
       },
@@ -301,6 +392,14 @@
           "title": "Fractional excretion of sodium in hepatorenal syndrome",
           "url": "https://pubmed.ncbi.nlm.nih.gov/28008340/",
           "reviewedAt": "2026-08-15"
+        },
+        {
+          "id": "fractional-excretion-sodium-espinel-1976",
+          "kind": "literature",
+          "relation": "interpretation",
+          "title": "Espinel CH. The FENa test. Use in the differential diagnosis of acute renal failure",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/947239/",
+          "reviewedAt": "2026-10-15"
         }
       ]
     },
@@ -337,7 +436,8 @@
         "limitations": [
           "Не заменяет клиническую оценку острого повреждения почек.",
           "Диуретики, питание, катаболизм и ХБП влияют на результат.",
-          "Единицы мочевины и креатинина должны быть одинаковыми в соответствующих парах."
+          "Единицы мочевины и креатинина должны быть одинаковыми в соответствующих парах.",
+          "Порог 35% получен в исследовании Carvounis (2002) при дифференциации преренальной азотемии и острого канальцевого некроза; в других работах предложены иные значения (например 40%)."
         ],
         "inputs": [
           {
@@ -383,6 +483,16 @@
             "isOutput": true
           }
         ],
+        "interpretations": [
+          {
+            "when": "feurea <= 35",
+            "message": "FeUrea 35% и менее: вероятна преренальная азотемия, в том числе на фоне диуретиков (Carvounis, 2002)."
+          },
+          {
+            "when": "1",
+            "message": "FeUrea более 35%: преренальная азотемия менее вероятна; в группе острого канальцевого некроза среднее значение составило 58,6% (Carvounis, 2002)."
+          }
+        ],
         "warnings": [
           {
             "code": "context",
@@ -396,14 +506,48 @@
             "version": "Clinical reference",
             "url": "https://www.kidney.org/atoz/content/acutekidneyinjury",
             "reviewedAt": "2026-08-15"
+          },
+          {
+            "title": "Carvounis CP, Nisar S, Guro-Razuman S. Significance of the fractional excretion of urea in the differential diagnosis of acute renal failure",
+            "publisher": "Kidney International",
+            "version": "2002",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/12427149/",
+            "page": "62(6):2223-2229",
+            "reviewedAt": "2026-10-15"
           }
         ],
         "evaluation": {
-          "status": "unavailable",
-          "rules": [],
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "feurea <= 35",
+              "verdict": {
+                "rangeId": "feurea-prerenal",
+                "title": "FeUrea 35% и менее",
+                "explanation": "FeUrea 35% и менее: вероятна преренальная азотемия, в том числе на фоне диуретиков (Carvounis, 2002).",
+                "attentionLevel": "low",
+                "upperBound": 35,
+                "sourceIds": ["fractional-excretion-urea-carvounis-2002"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "feurea-higher",
+                "title": "FeUrea более 35%",
+                "explanation": "FeUrea более 35%: преренальная азотемия менее вероятна; в группе острого канальцевого некроза среднее значение составило 58,6% (Carvounis, 2002).",
+                "attentionLevel": "moderate",
+                "lowerBound": 35,
+                "lowerInclusive": false,
+                "sourceIds": ["fractional-excretion-urea-carvounis-2002"]
+              }
+            }
+          ],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
-          "sourceIds": ["fractional-excretion-urea-feurea-aki"]
+          "sourceIds": [
+            "fractional-excretion-urea-carvounis-2002",
+            "fractional-excretion-urea-feurea-aki"
+          ]
         },
         "observationMappings": [
           {
@@ -412,6 +556,29 @@
             "unit": "%",
             "stepId": "feurea",
             "method": "calculator:minimed.calculator.fractional-excretion-urea"
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_feurea",
+            "valueId": "feurea",
+            "minimum": 0,
+            "maximum": 100,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Преренальная",
+                "attentionLevel": "low",
+                "interpretation": 0
+              },
+              {
+                "from": 35,
+                "label": "Менее вероятна",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              }
+            ]
           }
         ]
       },
@@ -423,6 +590,14 @@
           "title": "Acute kidney injury clinical reference",
           "url": "https://www.kidney.org/atoz/content/acutekidneyinjury",
           "reviewedAt": "2026-08-15"
+        },
+        {
+          "id": "fractional-excretion-urea-carvounis-2002",
+          "kind": "literature",
+          "relation": "interpretation",
+          "title": "Carvounis CP, Nisar S, Guro-Razuman S. Significance of the fractional excretion of urea in the differential diagnosis of acute renal failure",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/12427149/",
+          "reviewedAt": "2026-10-15"
         }
       ]
     },
@@ -459,7 +634,8 @@
         "limitations": [
           "Оценка зависит от точности измерения и полноты сбора мочи.",
           "Порог олигурии зависит от возраста, состояния и протокола.",
-          "Результат не заменяет оценку перфузии и функции почек."
+          "Результат не заменяет оценку перфузии и функции почек.",
+          "Критерии KDIGO заданы длительностью сниженного диуреза; средний диурез за период наблюдения не доказывает, что он был сниженным всё это время. У новорождённых применяют модифицированные критерии, здесь они не используются."
         ],
         "inputs": [
           {
@@ -506,6 +682,32 @@
             "isOutput": true
           }
         ],
+        "interpretations": [
+          {
+            "when": "(urineOutput == 0) * (hours >= 12)",
+            "message": "Анурия в течение 12 часов и более соответствует 3 стадии острого повреждения почек по критерию диуреза KDIGO."
+          },
+          {
+            "when": "(urineOutput < 0.3) * (hours >= 24)",
+            "message": "Диурез менее 0,3 мл/кг/ч в течение 24 часов и более соответствует 3 стадии острого повреждения почек по критерию диуреза KDIGO."
+          },
+          {
+            "when": "(urineOutput < 0.5) * (hours >= 12)",
+            "message": "Диурез менее 0,5 мл/кг/ч в течение 12 часов и более соответствует 2 стадии острого повреждения почек по критерию диуреза KDIGO."
+          },
+          {
+            "when": "(urineOutput < 0.5) * (hours >= 6)",
+            "message": "Диурез менее 0,5 мл/кг/ч в течение 6–12 часов соответствует 1 стадии острого повреждения почек по критерию диуреза KDIGO."
+          },
+          {
+            "when": "urineOutput < 0.5",
+            "message": "Диурез ниже 0,5 мл/кг/ч, но период наблюдения меньше 6 часов: критерий диуреза KDIGO ещё не набран, продолжайте измерение."
+          },
+          {
+            "when": "1",
+            "message": "Диурез не ниже 0,5 мл/кг/ч: критерий олигурии KDIGO не выполнен."
+          }
+        ],
         "warnings": [
           {
             "code": "clinical-threshold",
@@ -522,10 +724,71 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
-          "rules": [],
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "(urineOutput == 0) * (hours >= 12)",
+              "verdict": {
+                "rangeId": "kdigo-stage3-anuria",
+                "title": "Анурия 12 ч и более: ОПП 3 стадии",
+                "explanation": "Анурия в течение 12 часов и более соответствует 3 стадии острого повреждения почек по критерию диуреза KDIGO.",
+                "attentionLevel": "urgent",
+                "sourceIds": ["pediatric-urine-output-kdigo-aki-urine-output"]
+              }
+            },
+            {
+              "when": "(urineOutput < 0.3) * (hours >= 24)",
+              "verdict": {
+                "rangeId": "kdigo-stage3",
+                "title": "Диурез менее 0,3 мл/кг/ч 24 ч и более: ОПП 3 стадии",
+                "explanation": "Диурез менее 0,3 мл/кг/ч в течение 24 часов и более соответствует 3 стадии острого повреждения почек по критерию диуреза KDIGO.",
+                "attentionLevel": "urgent",
+                "sourceIds": ["pediatric-urine-output-kdigo-aki-urine-output"]
+              }
+            },
+            {
+              "when": "(urineOutput < 0.5) * (hours >= 12)",
+              "verdict": {
+                "rangeId": "kdigo-stage2",
+                "title": "Диурез менее 0,5 мл/кг/ч 12 ч и более: ОПП 2 стадии",
+                "explanation": "Диурез менее 0,5 мл/кг/ч в течение 12 часов и более соответствует 2 стадии острого повреждения почек по критерию диуреза KDIGO.",
+                "attentionLevel": "high",
+                "sourceIds": ["pediatric-urine-output-kdigo-aki-urine-output"]
+              }
+            },
+            {
+              "when": "(urineOutput < 0.5) * (hours >= 6)",
+              "verdict": {
+                "rangeId": "kdigo-stage1",
+                "title": "Диурез менее 0,5 мл/кг/ч 6–12 ч: ОПП 1 стадии",
+                "explanation": "Диурез менее 0,5 мл/кг/ч в течение 6–12 часов соответствует 1 стадии острого повреждения почек по критерию диуреза KDIGO.",
+                "attentionLevel": "moderate",
+                "sourceIds": ["pediatric-urine-output-kdigo-aki-urine-output"]
+              }
+            },
+            {
+              "when": "urineOutput < 0.5",
+              "verdict": {
+                "rangeId": "kdigo-short",
+                "title": "Диурез менее 0,5 мл/кг/ч, наблюдение менее 6 ч",
+                "explanation": "Диурез ниже 0,5 мл/кг/ч, но период наблюдения меньше 6 часов: критерий диуреза KDIGO ещё не набран, продолжайте измерение.",
+                "attentionLevel": "low",
+                "sourceIds": ["pediatric-urine-output-kdigo-aki-urine-output"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "kdigo-none",
+                "title": "Диурез не ниже 0,5 мл/кг/ч",
+                "explanation": "Диурез не ниже 0,5 мл/кг/ч: критерий олигурии KDIGO не выполнен.",
+                "attentionLevel": "none",
+                "lowerBound": 0.5,
+                "sourceIds": ["pediatric-urine-output-kdigo-aki-urine-output"]
+              }
+            }
+          ],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
           "sourceIds": ["pediatric-urine-output-kdigo-aki-urine-output"]
         },
         "observationMappings": [
@@ -655,10 +918,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "reason": "Граница нормы анионной разницы зависит от анализатора и метода измерения, единых порогов нет.",
           "sourceIds": ["anion-gap-albumin-corrected-anion-gap-albumin-2002"]
         },
         "observationMappings": [
@@ -769,6 +1032,16 @@
             "isOutput": true
           }
         ],
+        "interpretations": [
+          {
+            "when": "correctedSodium < 135",
+            "message": "Скорректированный натрий ниже 135 ммоль/л: гипонатриемия сохраняется и после поправки на гипергликемию (ESE/ESICM/ERA-EDTA, 2014)."
+          },
+          {
+            "when": "1",
+            "message": "Скорректированный натрий 135 ммоль/л и выше: гипонатриемии после поправки на гипергликемию нет."
+          }
+        ],
         "warnings": [
           {
             "code": "coefficient",
@@ -782,14 +1055,48 @@
             "version": "Hillier 1999",
             "url": "https://pubmed.ncbi.nlm.nih.gov/10225241/",
             "reviewedAt": "2026-08-15"
+          },
+          {
+            "title": "Spasovski G, Vanholder R, Allolio B, et al. Clinical practice guideline on diagnosis and treatment of hyponatraemia (ESE, ESICM, ERA-EDTA)",
+            "publisher": "Intensive Care Medicine",
+            "version": "2014",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/24562549/",
+            "page": "40(3):320-331",
+            "reviewedAt": "2026-10-15"
           }
         ],
         "evaluation": {
-          "status": "unavailable",
-          "rules": [],
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "correctedSodium < 135",
+              "verdict": {
+                "rangeId": "corrected-hyponatraemia",
+                "title": "Гипонатриемия по скорректированному натрию",
+                "explanation": "Скорректированный натрий ниже 135 ммоль/л: гипонатриемия сохраняется и после поправки на гипергликемию (ESE/ESICM/ERA-EDTA, 2014).",
+                "attentionLevel": "moderate",
+                "upperBound": 135,
+                "upperInclusive": false,
+                "sourceIds": ["corrected-sodium-hyperglycemia-ese-hyponatraemia-2014"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "corrected-normal",
+                "title": "Скорректированный натрий не ниже 135",
+                "explanation": "Скорректированный натрий 135 ммоль/л и выше: гипонатриемии после поправки на гипергликемию нет.",
+                "attentionLevel": "none",
+                "lowerBound": 135,
+                "sourceIds": ["corrected-sodium-hyperglycemia-ese-hyponatraemia-2014"]
+              }
+            }
+          ],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
-          "sourceIds": ["corrected-sodium-hyperglycemia-hillier-sodium-1999"]
+          "sourceIds": [
+            "corrected-sodium-hyperglycemia-ese-hyponatraemia-2014",
+            "corrected-sodium-hyperglycemia-hillier-sodium-1999"
+          ]
         },
         "observationMappings": [
           {
@@ -798,6 +1105,29 @@
             "unit": "ммоль/л",
             "stepId": "correctedSodium",
             "method": "calculator:minimed.calculator.corrected-sodium-hyperglycemia"
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_correctedSodium",
+            "valueId": "correctedSodium",
+            "minimum": 110,
+            "maximum": 160,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 110,
+                "label": "Гипонатриемия",
+                "attentionLevel": "moderate",
+                "interpretation": 0
+              },
+              {
+                "from": 135,
+                "label": "Не ниже 135",
+                "attentionLevel": "none",
+                "interpretation": 1
+              }
+            ]
           }
         ]
       },
@@ -809,6 +1139,14 @@
           "title": "Hyponatremia: evaluating the correction factor for hyperglycemia",
           "url": "https://pubmed.ncbi.nlm.nih.gov/10225241/",
           "reviewedAt": "2026-08-15"
+        },
+        {
+          "id": "corrected-sodium-hyperglycemia-ese-hyponatraemia-2014",
+          "kind": "guideline",
+          "relation": "interpretation",
+          "title": "Spasovski G, Vanholder R, Allolio B, et al. Clinical practice guideline on diagnosis and treatment of hyponatraemia (ESE, ESICM, ERA-EDTA)",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/24562549/",
+          "reviewedAt": "2026-10-15"
         }
       ]
     },
@@ -845,7 +1183,8 @@
         "limitations": [
           "Единицы глюкозы и BUN должны быть мг/дл.",
           "Эффективная осмолярность исключает вклад мочевины и отражает тоничность приблизительно.",
-          "При необычных осмотически активных веществах формула неполна."
+          "При необычных осмотически активных веществах формула неполна.",
+          "Порог 320 мОсм/кг — критерий ADA 2004 для гиперосмолярного гипергликемического состояния; в консенсусе 2024 года для него указан порог 300 мОсм/кг. Здесь использован порог, на котором построен инструмент."
         ],
         "inputs": [
           {
@@ -894,6 +1233,16 @@
             "isOutput": true
           }
         ],
+        "interpretations": [
+          {
+            "when": "effectiveOsmolality > 320",
+            "message": "Эффективная осмолярность выше 320 мОсм/кг: осмолярный критерий гиперосмолярного гипергликемического состояния (ADA, 2004)."
+          },
+          {
+            "when": "1",
+            "message": "Эффективная осмолярность не выше 320 мОсм/кг: осмолярный критерий гиперосмолярного гипергликемического состояния (ADA, 2004) не выполнен."
+          }
+        ],
         "warnings": [
           {
             "code": "tonicity",
@@ -910,10 +1259,33 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
-          "rules": [],
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "effectiveOsmolality > 320",
+              "verdict": {
+                "rangeId": "osm-hhs",
+                "title": "Эффективная осмолярность выше 320",
+                "explanation": "Эффективная осмолярность выше 320 мОсм/кг: осмолярный критерий гиперосмолярного гипергликемического состояния (ADA, 2004).",
+                "attentionLevel": "high",
+                "lowerBound": 320,
+                "lowerInclusive": false,
+                "sourceIds": ["effective-plasma-osmolality-osmolality-diabetes-reference"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "osm-below",
+                "title": "Эффективная осмолярность 320 и ниже",
+                "explanation": "Эффективная осмолярность не выше 320 мОсм/кг: осмолярный критерий гиперосмолярного гипергликемического состояния (ADA, 2004) не выполнен.",
+                "attentionLevel": "none",
+                "upperBound": 320,
+                "sourceIds": ["effective-plasma-osmolality-osmolality-diabetes-reference"]
+              }
+            }
+          ],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
           "sourceIds": ["effective-plasma-osmolality-osmolality-diabetes-reference"]
         },
         "observationMappings": [
@@ -930,6 +1302,29 @@
             "unit": "мОсм/кг",
             "stepId": "calculatedOsmolality",
             "method": "calculator:minimed.calculator.effective-osmolality"
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_effectiveOsmolality",
+            "valueId": "effectiveOsmolality",
+            "minimum": 250,
+            "maximum": 400,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 250,
+                "label": "Критерий не выполнен",
+                "attentionLevel": "none",
+                "interpretation": 1
+              },
+              {
+                "from": 320,
+                "label": "Выше 320",
+                "attentionLevel": "high",
+                "interpretation": 0
+              }
+            ]
           }
         ]
       },
@@ -976,7 +1371,8 @@
         "population": "Пациенты с метаболическим ацидозом и измеренным бикарбонатом.",
         "limitations": [
           "Формула не подтверждает тип расстройства без анализа pH, PaCO₂ и клинических данных.",
-          "При смешанных нарушениях ожидаемый диапазон может не описывать реальную компенсацию."
+          "При смешанных нарушениях ожидаемый диапазон может не описывать реальную компенсацию.",
+          "Диапазон ±2 мм рт. ст. по Albert, Dell и Winters (1967) относится к устойчивому метаболическому ацидозу: при остром развитии компенсация ещё не завершена."
         ],
         "inputs": [
           {
@@ -987,6 +1383,17 @@
             "minimum": 1,
             "maximum": 50,
             "required": true
+          },
+          {
+            "id": "measuredPco2",
+            "label": "Измеренный PaCO₂",
+            "unit": "мм рт. ст.",
+            "kind": "number",
+            "minimum": 5,
+            "maximum": 150,
+            "required": false,
+            "inputStep": 1,
+            "labelTooltip": "Необязательно. Введите результат газового анализа, чтобы сравнить его с ожидаемым диапазоном."
           }
         ],
         "steps": [
@@ -1015,6 +1422,20 @@
             "isOutput": true
           }
         ],
+        "interpretations": [
+          {
+            "when": "cond(present(measuredPco2) == 1, cond(measuredPco2 < lowerRange, 1, 0), 0)",
+            "message": "Измеренный PaCO₂ ниже ожидаемого диапазона: помимо метаболического ацидоза вероятен респираторный алкалоз."
+          },
+          {
+            "when": "cond(present(measuredPco2) == 1, cond(measuredPco2 > upperRange, 1, 0), 0)",
+            "message": "Измеренный PaCO₂ выше ожидаемого диапазона: компенсация недостаточна, вероятен сопутствующий респираторный ацидоз."
+          },
+          {
+            "when": "present(measuredPco2) == 1",
+            "message": "Измеренный PaCO₂ в ожидаемом диапазоне: респираторная компенсация соответствует метаболическому ацидозу."
+          }
+        ],
         "warnings": [
           {
             "code": "blood-gas",
@@ -1028,14 +1449,55 @@
             "version": "Metabolic acidosis physiology",
             "url": "https://pubmed.ncbi.nlm.nih.gov/14007617/",
             "reviewedAt": "2026-08-15"
+          },
+          {
+            "title": "Albert MS, Dell RB, Winters RW. Quantitative displacement of acid-base equilibrium in metabolic acidosis",
+            "publisher": "Annals of Internal Medicine",
+            "version": "1967",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/6016545/",
+            "page": "66(2):312-322",
+            "reviewedAt": "2026-10-15"
           }
         ],
         "evaluation": {
-          "status": "unavailable",
-          "rules": [],
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "cond(present(measuredPco2) == 1, cond(measuredPco2 < lowerRange, 1, 0), 0)",
+              "verdict": {
+                "rangeId": "winter-below",
+                "title": "PaCO₂ ниже ожидаемого",
+                "explanation": "Измеренный PaCO₂ ниже ожидаемого диапазона: помимо метаболического ацидоза вероятен респираторный алкалоз.",
+                "attentionLevel": "moderate",
+                "sourceIds": ["winter-formula-albert-1967"]
+              }
+            },
+            {
+              "when": "cond(present(measuredPco2) == 1, cond(measuredPco2 > upperRange, 1, 0), 0)",
+              "verdict": {
+                "rangeId": "winter-above",
+                "title": "PaCO₂ выше ожидаемого",
+                "explanation": "Измеренный PaCO₂ выше ожидаемого диапазона: компенсация недостаточна, вероятен сопутствующий респираторный ацидоз.",
+                "attentionLevel": "high",
+                "sourceIds": ["winter-formula-albert-1967"]
+              }
+            },
+            {
+              "when": "present(measuredPco2) == 1",
+              "verdict": {
+                "rangeId": "winter-within",
+                "title": "PaCO₂ в ожидаемом диапазоне",
+                "explanation": "Измеренный PaCO₂ в ожидаемом диапазоне: респираторная компенсация соответствует метаболическому ацидозу.",
+                "attentionLevel": "none",
+                "sourceIds": ["winter-formula-albert-1967"]
+              }
+            }
+          ],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
-          "sourceIds": ["winters-formula-metabolic-acidosis-winters-acid-base"]
+          "sourceIds": [
+            "winter-formula-albert-1967",
+            "winters-formula-metabolic-acidosis-winters-acid-base"
+          ]
         },
         "observationMappings": [
           {
@@ -1069,6 +1531,14 @@
           "title": "Clinical physiology of metabolic acidosis",
           "url": "https://pubmed.ncbi.nlm.nih.gov/14007617/",
           "reviewedAt": "2026-08-15"
+        },
+        {
+          "id": "winter-formula-albert-1967",
+          "kind": "literature",
+          "relation": "interpretation",
+          "title": "Albert MS, Dell RB, Winters RW. Quantitative displacement of acid-base equilibrium in metabolic acidosis",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/6016545/",
+          "reviewedAt": "2026-10-15"
         }
       ]
     },
@@ -1106,7 +1576,8 @@
         "limitations": [
           "Индекс не заменяет эластографию, визуализацию или консультацию гепатолога.",
           "Возраст и острое воспаление могут существенно влиять на результат.",
-          "Пороговые значения зависят от популяции и клинической задачи."
+          "Пороговые значения зависят от популяции и клинической задачи.",
+          "Пороги 1,45 и 3,25 получены у пациентов с ко-инфекцией ВИЧ/ВГС; в других популяциях (например при НАЖБП) применяют иные пороги, здесь они не используются."
         ],
         "inputs": [
           {
@@ -1159,6 +1630,20 @@
             "isOutput": true
           }
         ],
+        "interpretations": [
+          {
+            "when": "fib4 < 1.45",
+            "message": "FIB-4 менее 1,45: выраженный фиброз (Ishak 4–6) маловероятен (Sterling, 2006)."
+          },
+          {
+            "when": "fib4 <= 3.25",
+            "message": "FIB-4 1,45–3,25: промежуточная зона, индекс не позволяет ни исключить, ни подтвердить выраженный фиброз; нужны другие методы оценки."
+          },
+          {
+            "when": "1",
+            "message": "FIB-4 более 3,25: выраженный фиброз (Ishak 4–6) вероятен (Sterling, 2006); подтвердите эластографией или иным методом."
+          }
+        ],
         "warnings": [
           {
             "code": "not-diagnosis",
@@ -1175,10 +1660,46 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
-          "rules": [],
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "fib4 < 1.45",
+              "verdict": {
+                "rangeId": "fib4-low",
+                "title": "FIB-4 менее 1,45",
+                "explanation": "FIB-4 менее 1,45: выраженный фиброз (Ishak 4–6) маловероятен (Sterling, 2006).",
+                "attentionLevel": "none",
+                "upperBound": 1.45,
+                "upperInclusive": false,
+                "sourceIds": ["fib-4-liver-fibrosis-index-fib4-sterling-2006"]
+              }
+            },
+            {
+              "when": "fib4 <= 3.25",
+              "verdict": {
+                "rangeId": "fib4-intermediate",
+                "title": "FIB-4 1,45–3,25",
+                "explanation": "FIB-4 1,45–3,25: промежуточная зона, индекс не позволяет ни исключить, ни подтвердить выраженный фиброз; нужны другие методы оценки.",
+                "attentionLevel": "moderate",
+                "lowerBound": 1.45,
+                "upperBound": 3.25,
+                "sourceIds": ["fib-4-liver-fibrosis-index-fib4-sterling-2006"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "fib4-high",
+                "title": "FIB-4 более 3,25",
+                "explanation": "FIB-4 более 3,25: выраженный фиброз (Ishak 4–6) вероятен (Sterling, 2006); подтвердите эластографией или иным методом.",
+                "attentionLevel": "high",
+                "lowerBound": 3.25,
+                "lowerInclusive": false,
+                "sourceIds": ["fib-4-liver-fibrosis-index-fib4-sterling-2006"]
+              }
+            }
+          ],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
           "sourceIds": ["fib-4-liver-fibrosis-index-fib4-sterling-2006"]
         },
         "observationMappings": [
@@ -1188,6 +1709,35 @@
             "unit": "балла",
             "stepId": "fib4",
             "method": "calculator:minimed.calculator.fib-4"
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_fib4",
+            "valueId": "fib4",
+            "minimum": 0,
+            "maximum": 5,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Маловероятен",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 1.45,
+                "label": "Промежуточная зона",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 3.25,
+                "label": "Вероятен",
+                "attentionLevel": "high",
+                "interpretation": 2
+              }
+            ]
           }
         ]
       },
@@ -1235,7 +1785,8 @@
         "limitations": [
           "Индекс не заменяет эластографию, визуализацию или консультацию гепатолога.",
           "Верхняя граница нормы зависит от лаборатории.",
-          "Острое воспаление и тромбоцитопения другой причины искажают результат."
+          "Острое воспаление и тромбоцитопения другой причины искажают результат.",
+          "Пороги Wai (2003) получены у пациентов с хроническим гепатитом C; для других заболеваний печени применимость отличается."
         ],
         "inputs": [
           {
@@ -1276,6 +1827,24 @@
             "isOutput": true
           }
         ],
+        "interpretations": [
+          {
+            "when": "apri <= 0.5",
+            "message": "APRI 0,5 и менее: значимый фиброз (Ishak 3 и более) маловероятен, цирроз маловероятен (Wai, 2003)."
+          },
+          {
+            "when": "apri <= 1.5",
+            "message": "APRI 0,5–1,5: промежуточная зона для значимого фиброза; цирроз маловероятен при APRI до 1,0 (Wai, 2003)."
+          },
+          {
+            "when": "apri <= 2",
+            "message": "APRI 1,5–2,0: значимый фиброз вероятен; для цирроза промежуточная зона (Wai, 2003)."
+          },
+          {
+            "when": "1",
+            "message": "APRI более 2,0: значимый фиброз и цирроз вероятны (Wai, 2003); подтвердите эластографией или иным методом."
+          }
+        ],
         "warnings": [
           {
             "code": "not-diagnosis",
@@ -1292,10 +1861,59 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
-          "rules": [],
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "apri <= 0.5",
+              "verdict": {
+                "rangeId": "apri-low",
+                "title": "APRI 0,5 и менее",
+                "explanation": "APRI 0,5 и менее: значимый фиброз (Ishak 3 и более) маловероятен, цирроз маловероятен (Wai, 2003).",
+                "attentionLevel": "none",
+                "upperBound": 0.5,
+                "sourceIds": ["apri-liver-fibrosis-index-apri-wai-2003"]
+              }
+            },
+            {
+              "when": "apri <= 1.5",
+              "verdict": {
+                "rangeId": "apri-intermediate",
+                "title": "APRI 0,5–1,5",
+                "explanation": "APRI 0,5–1,5: промежуточная зона для значимого фиброза; цирроз маловероятен при APRI до 1,0 (Wai, 2003).",
+                "attentionLevel": "low",
+                "lowerBound": 0.5,
+                "upperBound": 1.5,
+                "lowerInclusive": false,
+                "sourceIds": ["apri-liver-fibrosis-index-apri-wai-2003"]
+              }
+            },
+            {
+              "when": "apri <= 2",
+              "verdict": {
+                "rangeId": "apri-significant",
+                "title": "APRI 1,5–2,0",
+                "explanation": "APRI 1,5–2,0: значимый фиброз вероятен; для цирроза промежуточная зона (Wai, 2003).",
+                "attentionLevel": "moderate",
+                "lowerBound": 1.5,
+                "upperBound": 2,
+                "lowerInclusive": false,
+                "sourceIds": ["apri-liver-fibrosis-index-apri-wai-2003"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "apri-high",
+                "title": "APRI более 2,0",
+                "explanation": "APRI более 2,0: значимый фиброз и цирроз вероятны (Wai, 2003); подтвердите эластографией или иным методом.",
+                "attentionLevel": "high",
+                "lowerBound": 2,
+                "lowerInclusive": false,
+                "sourceIds": ["apri-liver-fibrosis-index-apri-wai-2003"]
+              }
+            }
+          ],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
           "sourceIds": ["apri-liver-fibrosis-index-apri-wai-2003"]
         },
         "observationMappings": [
@@ -1305,6 +1923,41 @@
             "unit": "балла",
             "stepId": "apri",
             "method": "calculator:minimed.calculator.apri"
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_apri",
+            "valueId": "apri",
+            "minimum": 0,
+            "maximum": 3,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Маловероятен",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 0.5,
+                "label": "Промежуточная зона",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 1.5,
+                "label": "Значимый фиброз",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 2,
+                "label": "Цирроз вероятен",
+                "attentionLevel": "high",
+                "interpretation": 3
+              }
+            ]
           }
         ]
       },
@@ -1352,7 +2005,8 @@
         "limitations": [
           "Единицы должны соответствовать указанным в форме.",
           "Степень риска инфекции зависит от глубины и длительности нейтропении и клинического состояния.",
-          "При расхождении с абсолютными значениями лаборатории проверьте исходный анализ."
+          "При расхождении с абсолютными значениями лаборатории проверьте исходный анализ.",
+          "Степень 1 по CTCAE (от нижней границы нормы до 1,5×10⁹/л) зависит от референсного интервала лаборатории и возраста, поэтому отдельно не выделена."
         ],
         "inputs": [
           {
@@ -1393,6 +2047,24 @@
             "isOutput": true
           }
         ],
+        "interpretations": [
+          {
+            "when": "anc >= 1.5",
+            "message": "ANC 1,5×10⁹/л и выше: нейтропении по порогам CTCAE нет."
+          },
+          {
+            "when": "anc >= 1",
+            "message": "ANC 1,0–1,5×10⁹/л: нейтропения 2 степени по CTCAE."
+          },
+          {
+            "when": "anc >= 0.5",
+            "message": "ANC 0,5–1,0×10⁹/л: нейтропения 3 степени по CTCAE."
+          },
+          {
+            "when": "anc < 0.5",
+            "message": "ANC менее 0,5×10⁹/л: нейтропения 4 степени по CTCAE; риск тяжёлой инфекции высокий."
+          }
+        ],
         "warnings": [
           {
             "code": "infection-risk",
@@ -1406,14 +2078,73 @@
             "version": "Clinical reference",
             "url": "https://www.hematology.org/education/patients/anemia/neutropenia",
             "reviewedAt": "2026-08-15"
+          },
+          {
+            "title": "Common Terminology Criteria for Adverse Events (CTCAE) v5.0: Neutrophil count decreased",
+            "publisher": "National Cancer Institute",
+            "version": "5.0 (2017)",
+            "url": "https://ctep.cancer.gov/protocoldevelopment/electronic_applications/ctc.htm",
+            "reviewedAt": "2026-10-15"
           }
         ],
         "evaluation": {
-          "status": "unavailable",
-          "rules": [],
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "anc >= 1.5",
+              "verdict": {
+                "rangeId": "anc-normal",
+                "title": "ANC 1,5 и выше",
+                "explanation": "ANC 1,5×10⁹/л и выше: нейтропении по порогам CTCAE нет.",
+                "attentionLevel": "none",
+                "lowerBound": 1.5,
+                "sourceIds": ["absolute-neutrophil-count-ctcae-v5"]
+              }
+            },
+            {
+              "when": "anc >= 1",
+              "verdict": {
+                "rangeId": "anc-grade2",
+                "title": "Нейтропения 2 степени",
+                "explanation": "ANC 1,0–1,5×10⁹/л: нейтропения 2 степени по CTCAE.",
+                "attentionLevel": "moderate",
+                "lowerBound": 1,
+                "upperBound": 1.5,
+                "upperInclusive": false,
+                "sourceIds": ["absolute-neutrophil-count-ctcae-v5"]
+              }
+            },
+            {
+              "when": "anc >= 0.5",
+              "verdict": {
+                "rangeId": "anc-grade3",
+                "title": "Нейтропения 3 степени",
+                "explanation": "ANC 0,5–1,0×10⁹/л: нейтропения 3 степени по CTCAE.",
+                "attentionLevel": "high",
+                "lowerBound": 0.5,
+                "upperBound": 1,
+                "upperInclusive": false,
+                "sourceIds": ["absolute-neutrophil-count-ctcae-v5"]
+              }
+            },
+            {
+              "when": "anc < 0.5",
+              "verdict": {
+                "rangeId": "anc-grade4",
+                "title": "Нейтропения 4 степени",
+                "explanation": "ANC менее 0,5×10⁹/л: нейтропения 4 степени по CTCAE; риск тяжёлой инфекции высокий.",
+                "attentionLevel": "urgent",
+                "upperBound": 0.5,
+                "upperInclusive": false,
+                "sourceIds": ["absolute-neutrophil-count-ctcae-v5"]
+              }
+            }
+          ],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
-          "sourceIds": ["absolute-neutrophil-count-anc-hematology-reference"]
+          "sourceIds": [
+            "absolute-neutrophil-count-ctcae-v5",
+            "absolute-neutrophil-count-anc-hematology-reference"
+          ]
         },
         "observationMappings": [
           {
@@ -1422,6 +2153,41 @@
             "unit": "10⁹/л",
             "stepId": "anc",
             "method": "calculator:minimed.calculator.absolute-neutrophil-count"
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_anc",
+            "valueId": "anc",
+            "minimum": 0,
+            "maximum": 3,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "4 степень",
+                "attentionLevel": "urgent",
+                "interpretation": 3
+              },
+              {
+                "from": 0.5,
+                "label": "3 степень",
+                "attentionLevel": "high",
+                "interpretation": 2
+              },
+              {
+                "from": 1,
+                "label": "2 степень",
+                "attentionLevel": "moderate",
+                "interpretation": 1
+              },
+              {
+                "from": 1.5,
+                "label": "Нет нейтропении",
+                "attentionLevel": "none",
+                "interpretation": 0
+              }
+            ]
           }
         ]
       },
@@ -1433,6 +2199,14 @@
           "title": "Neutropenia: evaluation and management",
           "url": "https://www.hematology.org/education/patients/anemia/neutropenia",
           "reviewedAt": "2026-08-15"
+        },
+        {
+          "id": "absolute-neutrophil-count-ctcae-v5",
+          "kind": "guideline",
+          "relation": "interpretation",
+          "title": "Common Terminology Criteria for Adverse Events (CTCAE) v5.0: Neutrophil count decreased",
+          "url": "https://ctep.cancer.gov/protocoldevelopment/electronic_applications/ctc.htm",
+          "reviewedAt": "2026-10-15"
         }
       ]
     },
@@ -1691,10 +2465,11 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "missing-context",
           "rules": [],
-          "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "missingContext": [
+            "Пол и возраст пациента: порог удлинения QTc различается для мужчин и женщин."
+          ],
           "sourceIds": ["qtc-bazett-fridericia-qtc-correction-2015"]
         },
         "observationMappings": [
@@ -1759,7 +2534,8 @@
         "limitations": [
           "Шкала не заменяет оценку типа ФП, клапанных заболеваний, противопоказаний и предпочтений пациента.",
           "Не превращайте балл автоматически в назначение или отмену антикоагуляции.",
-          "Используйте актуальную клиническую рекомендацию по ФП."
+          "Используйте актуальную клиническую рекомендацию по ФП.",
+          "Тактика по порогам ESC 2020, учитывающим пол (женский пол — модификатор риска); в ESC 2024 используется шкала CHA₂DS₂-VA без пола. Не применяется при механических клапанах и умеренном или тяжёлом митральном стенозе."
         ],
         "inputs": [
           {
@@ -1879,6 +2655,28 @@
             "expression": "heartFailure + hypertension + cond(ageYears >= 75, 2, cond(ageYears >= 65, 1, 0)) + diabetes + strokeTia * 2 + vascularDisease + femaleSex",
             "displayPrecision": 0,
             "isOutput": true
+          },
+          {
+            "id": "scoreWithoutSex",
+            "label": "Балл без учёта пола",
+            "unit": "балла",
+            "expression": "score - femaleSex",
+            "displayPrecision": 0,
+            "isOutput": false
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "scoreWithoutSex >= 2",
+            "message": "Балл 2 и более у мужчин или 3 и более у женщин: пероральные антикоагулянты рекомендованы для профилактики инсульта (ESC, 2020)."
+          },
+          {
+            "when": "scoreWithoutSex == 1",
+            "message": "Балл 1 у мужчин или 2 у женщин: следует рассмотреть пероральный антикоагулянт с учётом индивидуальных особенностей (ESC, 2020)."
+          },
+          {
+            "when": "1",
+            "message": "Балл 0 у мужчин или 1 у женщин: низкий риск, антитромботическое лечение для профилактики инсульта обычно не требуется (ESC, 2020)."
           }
         ],
         "warnings": [
@@ -1905,14 +2703,55 @@
             "version": "2012",
             "url": "https://pubmed.ncbi.nlm.nih.gov/23018151/",
             "reviewedAt": "2026-08-15"
+          },
+          {
+            "title": "Hindricks G, Potpara T, Dagres N, et al. 2020 ESC Guidelines for the diagnosis and management of atrial fibrillation",
+            "publisher": "European Heart Journal",
+            "version": "2021",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/32860505/",
+            "page": "42(5):373-498",
+            "reviewedAt": "2026-10-15"
           }
         ],
         "evaluation": {
-          "status": "unavailable",
-          "rules": [],
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "scoreWithoutSex >= 2",
+              "verdict": {
+                "rangeId": "cha2ds2-anticoagulant",
+                "title": "Антикоагулянт рекомендован",
+                "explanation": "Балл 2 и более у мужчин или 3 и более у женщин: пероральные антикоагулянты рекомендованы для профилактики инсульта (ESC, 2020).",
+                "attentionLevel": "high",
+                "sourceIds": ["cha2ds2-vasc-stroke-risk-esc-af-2020"]
+              }
+            },
+            {
+              "when": "scoreWithoutSex == 1",
+              "verdict": {
+                "rangeId": "cha2ds2-consider",
+                "title": "Рассмотреть антикоагулянт",
+                "explanation": "Балл 1 у мужчин или 2 у женщин: следует рассмотреть пероральный антикоагулянт с учётом индивидуальных особенностей (ESC, 2020).",
+                "attentionLevel": "moderate",
+                "sourceIds": ["cha2ds2-vasc-stroke-risk-esc-af-2020"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "cha2ds2-low",
+                "title": "Низкий риск инсульта",
+                "explanation": "Балл 0 у мужчин или 1 у женщин: низкий риск, антитромботическое лечение для профилактики инсульта обычно не требуется (ESC, 2020).",
+                "attentionLevel": "none",
+                "sourceIds": ["cha2ds2-vasc-stroke-risk-esc-af-2020"]
+              }
+            }
+          ],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
-          "sourceIds": ["cha2ds2-vasc-stroke-risk-cha2ds2-vasc-validation"]
+          "sourceIds": [
+            "cha2ds2-vasc-stroke-risk-esc-af-2020",
+            "cha2ds2-vasc-stroke-risk-cha2ds2-vasc-validation"
+          ]
         },
         "observationMappings": [
           {
@@ -1932,6 +2771,14 @@
           "title": "The CHA2DS2-VASc score identifies those patients with atrial fibrillation",
           "url": "https://pubmed.ncbi.nlm.nih.gov/23018151/",
           "reviewedAt": "2026-08-15"
+        },
+        {
+          "id": "cha2ds2-vasc-stroke-risk-esc-af-2020",
+          "kind": "guideline",
+          "relation": "interpretation",
+          "title": "Hindricks G, Potpara T, Dagres N, et al. 2020 ESC Guidelines for the diagnosis and management of atrial fibrillation",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32860505/",
+          "reviewedAt": "2026-10-15"
         }
       ]
     },
@@ -2110,6 +2957,16 @@
             "isOutput": true
           }
         ],
+        "interpretations": [
+          {
+            "when": "score >= 3",
+            "message": "3 балла и более: высокий риск кровотечения. Устраните модифицируемые факторы и наблюдайте чаще; это не повод отказывать в антикоагуляции (Pisters, 2010; ESC, 2020)."
+          },
+          {
+            "when": "1",
+            "message": "0–2 балла: риск кровотечения не высокий; модифицируемые факторы всё равно стоит корректировать (Pisters, 2010)."
+          }
+        ],
         "warnings": [
           {
             "code": "modifiable-risk",
@@ -2124,7 +2981,20 @@
             "maximum": 9,
             "step": 1,
             "layout": "proportional",
-            "bands": []
+            "bands": [
+              {
+                "from": 0,
+                "label": "Не высокий",
+                "attentionLevel": "none",
+                "interpretation": 1
+              },
+              {
+                "from": 3,
+                "label": "Высокий",
+                "attentionLevel": "high",
+                "interpretation": 0
+              }
+            ]
           }
         ],
         "sources": [
@@ -2134,14 +3004,51 @@
             "version": "Pisters 2010",
             "url": "https://pubmed.ncbi.nlm.nih.gov/20299623/",
             "reviewedAt": "2026-08-15"
+          },
+          {
+            "title": "Hindricks G, Potpara T, Dagres N, et al. 2020 ESC Guidelines for the diagnosis and management of atrial fibrillation",
+            "publisher": "European Heart Journal",
+            "version": "2021",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/32860505/",
+            "page": "42(5):373-498",
+            "reviewedAt": "2026-10-15"
           }
         ],
         "evaluation": {
-          "status": "unavailable",
-          "rules": [],
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score >= 3",
+              "verdict": {
+                "rangeId": "has-bled-high",
+                "title": "Высокий риск кровотечения",
+                "explanation": "3 балла и более: высокий риск кровотечения. Устраните модифицируемые факторы и наблюдайте чаще; это не повод отказывать в антикоагуляции (Pisters, 2010; ESC, 2020).",
+                "attentionLevel": "high",
+                "lowerBound": 3,
+                "sourceIds": [
+                  "has-bled-bleeding-risk-has-bled-pisters-2010",
+                  "has-bled-bleeding-risk-esc-af-2020"
+                ]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "has-bled-not-high",
+                "title": "Риск кровотечения не высокий",
+                "explanation": "0–2 балла: риск кровотечения не высокий; модифицируемые факторы всё равно стоит корректировать (Pisters, 2010).",
+                "attentionLevel": "none",
+                "upperBound": 3,
+                "upperInclusive": false,
+                "sourceIds": ["has-bled-bleeding-risk-has-bled-pisters-2010"]
+              }
+            }
+          ],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
-          "sourceIds": ["has-bled-bleeding-risk-has-bled-pisters-2010"]
+          "sourceIds": [
+            "has-bled-bleeding-risk-has-bled-pisters-2010",
+            "has-bled-bleeding-risk-esc-af-2020"
+          ]
         },
         "observationMappings": [
           {
@@ -2161,6 +3068,14 @@
           "title": "A novel user-friendly score (HAS-BLED) to assess 1-year risk of major bleeding",
           "url": "https://pubmed.ncbi.nlm.nih.gov/20299623/",
           "reviewedAt": "2026-08-15"
+        },
+        {
+          "id": "has-bled-bleeding-risk-esc-af-2020",
+          "kind": "guideline",
+          "relation": "interpretation",
+          "title": "Hindricks G, Potpara T, Dagres N, et al. 2020 ESC Guidelines for the diagnosis and management of atrial fibrillation",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32860505/",
+          "reviewedAt": "2026-10-15"
         }
       ]
     },
@@ -2555,10 +3470,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "reason": "Результат — расчётный объём жидкости, а не показатель с нормой.",
           "sourceIds": ["parkland-burn-resuscitation-parkland-burns-reference"]
         },
         "observationMappings": [
@@ -2721,10 +3636,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "reason": "Площадь поверхности тела — расчётная величина без границ нормы.",
           "sourceIds": ["body-surface-area-mosteller-mosteller-1987"]
         },
         "observationMappings": [
@@ -2934,6 +3849,14 @@
             "isOutput": true,
             "valueKind": "number",
             "stepRequired": 0
+          },
+          {
+            "id": "egfrRounded",
+            "label": "СКФ для категории",
+            "unit": "мл/мин/1,73 м²",
+            "expression": "round(egfr)",
+            "displayPrecision": 0,
+            "isOutput": false
           }
         ],
         "warnings": [
@@ -2950,7 +3873,32 @@
             "message": "Оценка ненадёжна при быстро меняющемся креатинине, острой почечной недостаточности и состояниях с нетипичной мышечной массой."
           }
         ],
-        "interpretations": [],
+        "interpretations": [
+          {
+            "when": "egfrRounded >= 90",
+            "message": "G1: СКФ 90 и более — высокая или оптимальная."
+          },
+          {
+            "when": "egfrRounded >= 60",
+            "message": "G2: СКФ 60–89 — незначительно снижена."
+          },
+          {
+            "when": "egfrRounded >= 45",
+            "message": "G3a: СКФ 45–59 — умеренно снижена."
+          },
+          {
+            "when": "egfrRounded >= 30",
+            "message": "G3b: СКФ 30–44 — существенно снижена."
+          },
+          {
+            "when": "egfrRounded >= 15",
+            "message": "G4: СКФ 15–29 — резко снижена."
+          },
+          {
+            "when": "1",
+            "message": "G5: СКФ менее 15 — терминальная почечная недостаточность."
+          }
+        ],
         "assertions": [
           {
             "when": "scrMgDl > 30",
@@ -2971,16 +3919,99 @@
             "version": "2021 creatinine equation",
             "url": "https://www.kidney.org/professionals/ckd-epi-creatinine-equation-2021",
             "reviewedAt": "2026-08-03"
+          },
+          {
+            "title": "KDIGO 2012 Clinical Practice Guideline for the Evaluation and Management of Chronic Kidney Disease",
+            "publisher": "Kidney International Supplements",
+            "version": "2013",
+            "url": "https://kdigo.org/wp-content/uploads/2017/02/KDIGO_2012_CKD_GL.pdf",
+            "page": "3(1):1-150",
+            "reviewedAt": "2026-10-15"
           }
         ],
         "evaluation": {
-          "status": "unavailable",
-          "rules": [],
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "egfrRounded >= 90",
+              "verdict": {
+                "rangeId": "g1",
+                "title": "G1",
+                "explanation": "G1: СКФ 90 и более — высокая или оптимальная.",
+                "attentionLevel": "none",
+                "lowerBound": 90,
+                "sourceIds": ["adult-egfr-ckd-epi-2021-kdigo-ckd-2013"]
+              }
+            },
+            {
+              "when": "egfrRounded >= 60",
+              "verdict": {
+                "rangeId": "g2",
+                "title": "G2",
+                "explanation": "G2: СКФ 60–89 — незначительно снижена.",
+                "attentionLevel": "low",
+                "lowerBound": 60,
+                "upperBound": 90,
+                "upperInclusive": false,
+                "sourceIds": ["adult-egfr-ckd-epi-2021-kdigo-ckd-2013"]
+              }
+            },
+            {
+              "when": "egfrRounded >= 45",
+              "verdict": {
+                "rangeId": "g3a",
+                "title": "G3a",
+                "explanation": "G3a: СКФ 45–59 — умеренно снижена.",
+                "attentionLevel": "moderate",
+                "lowerBound": 45,
+                "upperBound": 60,
+                "upperInclusive": false,
+                "sourceIds": ["adult-egfr-ckd-epi-2021-kdigo-ckd-2013"]
+              }
+            },
+            {
+              "when": "egfrRounded >= 30",
+              "verdict": {
+                "rangeId": "g3b",
+                "title": "G3b",
+                "explanation": "G3b: СКФ 30–44 — существенно снижена.",
+                "attentionLevel": "moderate",
+                "lowerBound": 30,
+                "upperBound": 45,
+                "upperInclusive": false,
+                "sourceIds": ["adult-egfr-ckd-epi-2021-kdigo-ckd-2013"]
+              }
+            },
+            {
+              "when": "egfrRounded >= 15",
+              "verdict": {
+                "rangeId": "g4",
+                "title": "G4",
+                "explanation": "G4: СКФ 15–29 — резко снижена.",
+                "attentionLevel": "high",
+                "lowerBound": 15,
+                "upperBound": 30,
+                "upperInclusive": false,
+                "sourceIds": ["adult-egfr-ckd-epi-2021-kdigo-ckd-2013"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "g5",
+                "title": "G5",
+                "explanation": "G5: СКФ менее 15 — терминальная почечная недостаточность.",
+                "attentionLevel": "urgent",
+                "upperBound": 15,
+                "upperInclusive": false,
+                "sourceIds": ["adult-egfr-ckd-epi-2021-kdigo-ckd-2013"]
+              }
+            }
+          ],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
           "sourceIds": [
-            "adult-egfr-ckd-epi-2021-ckd-epi-2021",
-            "adult-egfr-ckd-epi-2021-2021-creatinine-equation"
+            "adult-egfr-ckd-epi-2021-kdigo-ckd-2013",
+            "adult-egfr-ckd-epi-2021-ckd-epi-2021"
           ]
         },
         "observationMappings": [
@@ -2990,6 +4021,53 @@
             "unit": "мл/мин/1,73 м²",
             "stepId": "egfr",
             "method": "calculator:adult-egfr-ckd-epi-2021"
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_egfrRounded",
+            "valueId": "egfrRounded",
+            "minimum": 0,
+            "maximum": 120,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "G5",
+                "attentionLevel": "urgent",
+                "interpretation": 5
+              },
+              {
+                "from": 15,
+                "label": "G4",
+                "attentionLevel": "high",
+                "interpretation": 4
+              },
+              {
+                "from": 30,
+                "label": "G3b",
+                "attentionLevel": "moderate",
+                "interpretation": 3
+              },
+              {
+                "from": 45,
+                "label": "G3a",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 60,
+                "label": "G2",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 90,
+                "label": "G1",
+                "attentionLevel": "none",
+                "interpretation": 0
+              }
+            ]
           }
         ]
       },
@@ -3009,6 +4087,14 @@
           "title": "CKD-EPI Creatinine Equation (2021)",
           "url": "https://www.kidney.org/professionals/ckd-epi-creatinine-equation-2021",
           "reviewedAt": "2026-08-03"
+        },
+        {
+          "id": "adult-egfr-ckd-epi-2021-kdigo-ckd-2013",
+          "kind": "guideline",
+          "relation": "interpretation",
+          "title": "KDIGO 2012 Clinical Practice Guideline for the Evaluation and Management of Chronic Kidney Disease",
+          "url": "https://kdigo.org/wp-content/uploads/2017/02/KDIGO_2012_CKD_GL.pdf",
+          "reviewedAt": "2026-10-15"
         }
       ]
     },
@@ -3047,7 +4133,8 @@
         "limitations": [
           "Ограниченная точность при нормальной или высокой СКФ.",
           "Предполагает стандартизованное ферментативное измерение креатинина.",
-          "Не применяется автоматически у младенцев до года и пациентов старше 16 лет."
+          "Не применяется автоматически у младенцев до года и пациентов старше 16 лет.",
+          "Категории G (KDIGO) применяют к детям старше 2 лет; для детей до 2 лет результат сравнивают с возрастной нормой."
         ],
         "inputs": [
           {
@@ -3135,6 +4222,14 @@
             "isOutput": true,
             "valueKind": "number",
             "stepRequired": 0
+          },
+          {
+            "id": "egfrRounded",
+            "label": "СКФ для категории",
+            "unit": "мл/мин/1,73 м²",
+            "expression": "round(egfr)",
+            "displayPrecision": 0,
+            "isOutput": false
           }
         ],
         "warnings": [
@@ -3147,7 +4242,36 @@
             "message": "Исходная CKiD-формула основана на стандартизованном ферментативном измерении креатинина."
           }
         ],
-        "interpretations": [],
+        "interpretations": [
+          {
+            "when": "ageYears < 2",
+            "message": "Категории G по KDIGO применяют к детям старше 2 лет: у более младших СКФ физиологически ниже, результат сравнивают с возрастной нормой."
+          },
+          {
+            "when": "egfrRounded >= 90",
+            "message": "G1: СКФ 90 и более — высокая или оптимальная."
+          },
+          {
+            "when": "egfrRounded >= 60",
+            "message": "G2: СКФ 60–89 — незначительно снижена."
+          },
+          {
+            "when": "egfrRounded >= 45",
+            "message": "G3a: СКФ 45–59 — умеренно снижена."
+          },
+          {
+            "when": "egfrRounded >= 30",
+            "message": "G3b: СКФ 30–44 — существенно снижена."
+          },
+          {
+            "when": "egfrRounded >= 15",
+            "message": "G4: СКФ 15–29 — резко снижена."
+          },
+          {
+            "when": "1",
+            "message": "G5: СКФ менее 15 — терминальная почечная недостаточность."
+          }
+        ],
         "assertions": [
           {
             "when": "scrMgDl > 20",
@@ -3161,14 +4285,110 @@
             "version": "Bedside CKiD 2009",
             "url": "https://pubmed.ncbi.nlm.nih.gov/19158356/",
             "reviewedAt": "2026-08-03"
+          },
+          {
+            "title": "KDIGO 2012 Clinical Practice Guideline for the Evaluation and Management of Chronic Kidney Disease",
+            "publisher": "Kidney International Supplements",
+            "version": "2013",
+            "url": "https://kdigo.org/wp-content/uploads/2017/02/KDIGO_2012_CKD_GL.pdf",
+            "page": "3(1):1-150",
+            "reviewedAt": "2026-10-15"
           }
         ],
         "evaluation": {
-          "status": "unavailable",
-          "rules": [],
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "ageYears < 2",
+              "verdict": {
+                "rangeId": "under-two",
+                "title": "До 2 лет категории G не применяются",
+                "explanation": "Категории G по KDIGO применяют к детям старше 2 лет: у более младших СКФ физиологически ниже, результат сравнивают с возрастной нормой.",
+                "attentionLevel": "none",
+                "sourceIds": ["pediatric-egfr-schwartz-2009-kdigo-ckd-2013"]
+              }
+            },
+            {
+              "when": "egfrRounded >= 90",
+              "verdict": {
+                "rangeId": "g1",
+                "title": "G1",
+                "explanation": "G1: СКФ 90 и более — высокая или оптимальная.",
+                "attentionLevel": "none",
+                "lowerBound": 90,
+                "sourceIds": ["pediatric-egfr-schwartz-2009-kdigo-ckd-2013"]
+              }
+            },
+            {
+              "when": "egfrRounded >= 60",
+              "verdict": {
+                "rangeId": "g2",
+                "title": "G2",
+                "explanation": "G2: СКФ 60–89 — незначительно снижена.",
+                "attentionLevel": "low",
+                "lowerBound": 60,
+                "upperBound": 90,
+                "upperInclusive": false,
+                "sourceIds": ["pediatric-egfr-schwartz-2009-kdigo-ckd-2013"]
+              }
+            },
+            {
+              "when": "egfrRounded >= 45",
+              "verdict": {
+                "rangeId": "g3a",
+                "title": "G3a",
+                "explanation": "G3a: СКФ 45–59 — умеренно снижена.",
+                "attentionLevel": "moderate",
+                "lowerBound": 45,
+                "upperBound": 60,
+                "upperInclusive": false,
+                "sourceIds": ["pediatric-egfr-schwartz-2009-kdigo-ckd-2013"]
+              }
+            },
+            {
+              "when": "egfrRounded >= 30",
+              "verdict": {
+                "rangeId": "g3b",
+                "title": "G3b",
+                "explanation": "G3b: СКФ 30–44 — существенно снижена.",
+                "attentionLevel": "moderate",
+                "lowerBound": 30,
+                "upperBound": 45,
+                "upperInclusive": false,
+                "sourceIds": ["pediatric-egfr-schwartz-2009-kdigo-ckd-2013"]
+              }
+            },
+            {
+              "when": "egfrRounded >= 15",
+              "verdict": {
+                "rangeId": "g4",
+                "title": "G4",
+                "explanation": "G4: СКФ 15–29 — резко снижена.",
+                "attentionLevel": "high",
+                "lowerBound": 15,
+                "upperBound": 30,
+                "upperInclusive": false,
+                "sourceIds": ["pediatric-egfr-schwartz-2009-kdigo-ckd-2013"]
+              }
+            },
+            {
+              "when": "1",
+              "verdict": {
+                "rangeId": "g5",
+                "title": "G5",
+                "explanation": "G5: СКФ менее 15 — терминальная почечная недостаточность.",
+                "attentionLevel": "urgent",
+                "upperBound": 15,
+                "upperInclusive": false,
+                "sourceIds": ["pediatric-egfr-schwartz-2009-kdigo-ckd-2013"]
+              }
+            }
+          ],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
-          "sourceIds": ["pediatric-egfr-schwartz-2009-bedside-ckid-2009"]
+          "sourceIds": [
+            "pediatric-egfr-schwartz-2009-kdigo-ckd-2013",
+            "pediatric-egfr-schwartz-2009-bedside-ckid-2009"
+          ]
         },
         "observationMappings": [
           {
@@ -3177,6 +4397,53 @@
             "unit": "мл/мин/1,73 м²",
             "stepId": "egfr",
             "method": "calculator:pediatric-egfr-schwartz-2009"
+          }
+        ],
+        "scoreScales": [
+          {
+            "id": "scale_egfrRounded",
+            "valueId": "egfrRounded",
+            "minimum": 0,
+            "maximum": 120,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "G5",
+                "attentionLevel": "urgent",
+                "interpretation": 6
+              },
+              {
+                "from": 15,
+                "label": "G4",
+                "attentionLevel": "high",
+                "interpretation": 5
+              },
+              {
+                "from": 30,
+                "label": "G3b",
+                "attentionLevel": "moderate",
+                "interpretation": 4
+              },
+              {
+                "from": 45,
+                "label": "G3a",
+                "attentionLevel": "moderate",
+                "interpretation": 3
+              },
+              {
+                "from": 60,
+                "label": "G2",
+                "attentionLevel": "low",
+                "interpretation": 2
+              },
+              {
+                "from": 90,
+                "label": "G1",
+                "attentionLevel": "none",
+                "interpretation": 1
+              }
+            ]
           }
         ]
       },
@@ -3188,6 +4455,14 @@
           "title": "New equations to estimate GFR in children with CKD",
           "url": "https://pubmed.ncbi.nlm.nih.gov/19158356/",
           "reviewedAt": "2026-08-03"
+        },
+        {
+          "id": "pediatric-egfr-schwartz-2009-kdigo-ckd-2013",
+          "kind": "guideline",
+          "relation": "interpretation",
+          "title": "KDIGO 2012 Clinical Practice Guideline for the Evaluation and Management of Chronic Kidney Disease",
+          "url": "https://kdigo.org/wp-content/uploads/2017/02/KDIGO_2012_CKD_GL.pdf",
+          "reviewedAt": "2026-10-15"
         }
       ]
     },
@@ -3332,10 +4607,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "reason": "Результат — расчётный объём жидкости, а не показатель с нормой.",
           "sourceIds": ["pediatric-maintenance-fluids-holliday-segar-1957"]
         },
         "observationMappings": [

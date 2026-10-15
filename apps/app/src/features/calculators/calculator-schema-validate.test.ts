@@ -5,6 +5,19 @@ import { calculatorSchemaFromModules } from '@/features/calculators/tool-module-
 import { UNIT_CONVERSION_SCHEMA } from '@/features/calculators/unit-conversion-schema';
 
 const ADULT_EGFR_CKD_EPI_2021_SCHEMA = calculatorSchemaFromModules('adult-egfr-ckd-epi-2021');
+// The step tests replace the steps, so the rules that read the original steps are dropped too.
+const SCHEMA_WITHOUT_RESULT_RULES = {
+  ...ADULT_EGFR_CKD_EPI_2021_SCHEMA,
+  interpretations: [],
+  scoreScales: [],
+  evaluation: {
+    status: 'not-applicable' as const,
+    rules: [],
+    missingContext: [],
+    reason: 'Тестовая схема без оценки.',
+    sourceIds: [],
+  },
+};
 
 describe('validateCalculatorSchema', () => {
   it('accepts the migrated CKD-EPI schema', () => {
@@ -21,7 +34,7 @@ describe('validateCalculatorSchema', () => {
 
   it('rejects a step expression referencing an unknown variable', () => {
     const candidate = {
-      ...ADULT_EGFR_CKD_EPI_2021_SCHEMA,
+      ...SCHEMA_WITHOUT_RESULT_RULES,
       steps: [
         {
           id: 'broken',
@@ -40,7 +53,7 @@ describe('validateCalculatorSchema', () => {
 
   it('rejects a step referencing a later step (no forward references)', () => {
     const candidate = {
-      ...ADULT_EGFR_CKD_EPI_2021_SCHEMA,
+      ...SCHEMA_WITHOUT_RESULT_RULES,
       steps: [
         {
           id: 'a',
@@ -79,7 +92,7 @@ describe('validateCalculatorSchema', () => {
 
   it('rejects malformed expression syntax with a clear per-step error', () => {
     const candidate = {
-      ...ADULT_EGFR_CKD_EPI_2021_SCHEMA,
+      ...SCHEMA_WITHOUT_RESULT_RULES,
       steps: [
         {
           id: 'broken',

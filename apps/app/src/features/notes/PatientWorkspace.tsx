@@ -1629,9 +1629,7 @@ function DynamicsView(props: {
                           {observation.value} {observation.unit}
                         </td>
                         <td class="patient-dynamics__table-cell">
-                          {observation.evaluation?.verdict?.title ??
-                            observation.evaluation?.status ??
-                            '—'}
+                          {observation.evaluation?.verdict?.title ?? '—'}
                         </td>
                       </tr>
                     )}

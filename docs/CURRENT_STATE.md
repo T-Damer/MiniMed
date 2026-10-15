@@ -20,6 +20,31 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Result interpretations, part A — 2026-10-15 (STATE TOOLS-A)
+
+Five tool modules (core-clinical, emergency, intensive-care, medication-dosing, metabolic-lab; the other eleven are
+TOOLS-B) no longer have an `unavailable` evaluation. `bun scripts/audit-tool-interpretations.ts` now prints three groups:
+missing bands, `unavailable`, and an informational list of `not-applicable` / `missing-context` with the declared reason
+(`--strict` exits 1 while either of the first two is not empty).
+
+- **15 verdicts with cited bands** (each band: a rule in `evaluation`, an `interpretations` line with the same wording, a
+  `scoreScales` track where the cascade is one number): CKD-EPI 2021 and bedside CKiD (KDIGO G1–G5; CKiD says nothing for
+  under 2 years), FENa (Espinel 1976: <1 %, 1–3 %, >3 %), FeUrea (Carvounis 2002: ≤35 %), urine output by weight (KDIGO
+  criteria with the observation time), corrected sodium (<135, ESE/ESICM/ERA-EDTA 2014), effective osmolality (>320, ADA 2004),
+  Winter (new optional input «Измеренный PaCO₂» → below / within / above the expected range, Albert 1967), FIB-4 (Sterling
+  1.45 / 3.25), APRI (Wai 0.5 / 1.5 / 2.0), ANC (CTCAE v5 grades), CHA₂DS₂-VASc (ESC 2020, sex-specific via the new step
+  `scoreWithoutSex`), HAS-BLED (≥3), GCS and Alvarado (their existing bands as verdict rules).
+- **When two sources differ the tool's own source is kept and the other is named in `limitations`**: FIB-4 (NAFLD 1.3/2.67),
+  FENa (textbook >2 %), effective osmolality (consensus 2024: ≥300), CHA₂DS₂-VA of ESC 2024.
+- **Declared, nothing shown:** `not-applicable` — Cockcroft–Gault, anion gap (analyser-dependent limit), Parkland,
+  Mosteller, Holliday–Segar, SAPS II, MPM II ×2, BMR, albumin-corrected calcium, atherogenic coefficient (+ the 9 that already
+  were); `missing-context` — QTc (sex-specific limit, not verified against the AHA statement) and calculated free
+  testosterone (age and laboratory interval).
+- **UI:** `evaluationNotice` no longer shows a `not-applicable` reason on an assessment result; the patient dynamics table
+  prints the verdict title or «—», never the raw status word.
+- Modules rebuilt as core-clinical preview.6, emergency preview.5, intensive-care preview.4, metabolic-lab preview.4 (old
+  files kept); the landing calculator copy follows core-clinical. **Needs publishing** with the 0.6.60 release.
+
 ## e2e sweep before 0.6.60 — 2026-10-15 (STATE E2E1)
 
 The whole Playwright suite (single worker, `E2E_PORT=4791`, `bun run build:app` first) after the NAV1, DL1, VIS1/2,
@@ -5083,7 +5108,8 @@ Calculators, assessments, comparison, interactions, «Назначение», AT
   result no longer carries «Оценка недоступна». The disclaimer sits behind the header «?».
   Tools without `interpretations` (65 calculators, 5 assessments) and with `evaluation: unavailable` (55
   calculators, 18 assessments) are listed by `bun scripts/audit-tool-interpretations.ts` (reads
-  `content/tool-modules/*.json`). Fixing them is a content task (new module versions), not UI.
+  `content/tool-modules/*.json`). Fixing them is a content task (new module versions), not UI
+  (five modules done by TOOLS-A, 2026-10-15: see «Result interpretations, part A»).
 - **Result actions** of calculators and assessments are icon buttons with names («Распечатать», «Поделиться»,
   «Записать»); «Удалить» is a quiet, danger-tinted icon apart from the others. The calculator header has a «?»
   («Информация»: summary, population, limits, sources) instead of a one-item action menu.

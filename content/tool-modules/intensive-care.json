@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.intensive-care.ru",
-  "version": "0.1.0-preview.3",
+  "version": "0.1.0-preview.4",
   "title": "Интенсивная терапия и сепсис: шкалы и расчёты",
   "schemaVersion": 2,
   "builtAt": "2026-10-13T00:00:00Z",
@@ -2586,10 +2586,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "Авторы шкалы не задают пороговых категорий: результат — балл и расчётная вероятность госпитальной смерти.",
+          "reason": "Авторы шкалы не задают категорий: результат — балл и расчётная вероятность госпитальной смерти.",
           "sourceIds": ["saps-ii-legall1993"]
         },
         "observationMappings": [
@@ -3363,10 +3363,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "Авторы модели не задают пороговых категорий: результат — расчётная вероятность госпитальной смерти.",
+          "reason": "Авторы модели не задают категорий: результат — расчётная вероятность госпитальной смерти.",
           "sourceIds": ["mpm-ii-admission-lemeshow1993"]
         },
         "observationMappings": [
@@ -3737,10 +3737,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "Авторы модели не задают пороговых категорий: результат — расчётная вероятность госпитальной смерти.",
+          "reason": "Авторы модели не задают категорий: результат — расчётная вероятность госпитальной смерти.",
           "sourceIds": ["mpm-ii-24-48-72-lemeshow1993", "mpm-ii-24-48-72-lemeshow1994"]
         },
         "observationMappings": [

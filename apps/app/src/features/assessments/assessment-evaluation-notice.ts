@@ -6,10 +6,11 @@ export interface EvaluationNotice {
 }
 
 /**
- * What the declared evaluation tells the reader on a result page. Only a verdict, a context the
- * reader can still supply, or a declared reason why the result does not apply is shown. A tool
- * schema that never declared evaluation rules says nothing: the score and its interpretation stand
- * alone, and no note about what the schema lacks (a pipeline detail) reaches the screen.
+ * What the declared evaluation tells the reader on a result page. Only a verdict or a context the
+ * reader can still supply is shown. A result declared `not-applicable` (a dose, a volume, a
+ * conversion) and a tool schema that never declared evaluation rules say nothing: the number and
+ * its interpretation stand alone, and no note about what the schema lacks (a pipeline detail)
+ * reaches the screen.
  */
 export function evaluationNotice(
   evaluation: AssessmentEvaluation | undefined,
@@ -23,9 +24,6 @@ export function evaluationNotice(
   if (evaluation.status === 'missing-context') {
     const text = evaluation.missingContext.join(' ').trim();
     return text ? { title: 'Не хватает данных для оценки', text } : undefined;
-  }
-  if (evaluation.status === 'not-applicable' && evaluation.reason) {
-    return { title: 'Оценка не применяется', text: evaluation.reason };
   }
   return undefined;
 }

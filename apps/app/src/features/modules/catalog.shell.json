@@ -1515,7 +1515,8 @@
           "limitations": [
             "Диуретики, ХБП, контраст, обструкция и сепсис меняют интерпретацию.",
             "Один индекс не устанавливает причину острого повреждения почек.",
-            "Единицы натрия и креатинина должны быть одинаковыми в соответствующих парах."
+            "Единицы натрия и креатинина должны быть одинаковыми в соответствующих парах.",
+            "Пороги из исходной работы Espinel (1976): менее 1% и более 3%; в учебниках для острого канальцевого некроза чаще указывают более 2%, при диуретиках надёжнее FeUrea."
           ],
           "inputs": [
             {
@@ -1564,6 +1565,14 @@
               "version": "Clinical context review",
               "url": "https://pubmed.ncbi.nlm.nih.gov/28008340/",
               "reviewedAt": "2026-08-15"
+            },
+            {
+              "title": "Espinel CH. The FENa test. Use in the differential diagnosis of acute renal failure",
+              "publisher": "JAMA",
+              "version": "1976",
+              "url": "https://pubmed.ncbi.nlm.nih.gov/947239/",
+              "page": "236(6):579-581",
+              "reviewedAt": "2026-10-15"
             }
           ]
         }
@@ -1599,7 +1608,8 @@
           "limitations": [
             "Не заменяет клиническую оценку острого повреждения почек.",
             "Диуретики, питание, катаболизм и ХБП влияют на результат.",
-            "Единицы мочевины и креатинина должны быть одинаковыми в соответствующих парах."
+            "Единицы мочевины и креатинина должны быть одинаковыми в соответствующих парах.",
+            "Порог 35% получен в исследовании Carvounis (2002) при дифференциации преренальной азотемии и острого канальцевого некроза; в других работах предложены иные значения (например 40%)."
           ],
           "inputs": [
             {
@@ -1646,6 +1656,14 @@
               "version": "Clinical reference",
               "url": "https://www.kidney.org/atoz/content/acutekidneyinjury",
               "reviewedAt": "2026-08-15"
+            },
+            {
+              "title": "Carvounis CP, Nisar S, Guro-Razuman S. Significance of the fractional excretion of urea in the differential diagnosis of acute renal failure",
+              "publisher": "Kidney International",
+              "version": "2002",
+              "url": "https://pubmed.ncbi.nlm.nih.gov/12427149/",
+              "page": "62(6):2223-2229",
+              "reviewedAt": "2026-10-15"
             }
           ]
         }
@@ -1681,7 +1699,8 @@
           "limitations": [
             "Оценка зависит от точности измерения и полноты сбора мочи.",
             "Порог олигурии зависит от возраста, состояния и протокола.",
-            "Результат не заменяет оценку перфузии и функции почек."
+            "Результат не заменяет оценку перфузии и функции почек.",
+            "Критерии KDIGO заданы длительностью сниженного диуреза; средний диурез за период наблюдения не доказывает, что он был сниженным всё это время. У новорождённых применяют модифицированные критерии, здесь они не используются."
           ],
           "inputs": [
             {
@@ -1896,6 +1915,14 @@
               "version": "Hillier 1999",
               "url": "https://pubmed.ncbi.nlm.nih.gov/10225241/",
               "reviewedAt": "2026-08-15"
+            },
+            {
+              "title": "Spasovski G, Vanholder R, Allolio B, et al. Clinical practice guideline on diagnosis and treatment of hyponatraemia (ESE, ESICM, ERA-EDTA)",
+              "publisher": "Intensive Care Medicine",
+              "version": "2014",
+              "url": "https://pubmed.ncbi.nlm.nih.gov/24562549/",
+              "page": "40(3):320-331",
+              "reviewedAt": "2026-10-15"
             }
           ]
         }
@@ -1931,7 +1958,8 @@
           "limitations": [
             "Единицы глюкозы и BUN должны быть мг/дл.",
             "Эффективная осмолярность исключает вклад мочевины и отражает тоничность приблизительно.",
-            "При необычных осмотически активных веществах формула неполна."
+            "При необычных осмотически активных веществах формула неполна.",
+            "Порог 320 мОсм/кг — критерий ADA 2004 для гиперосмолярного гипергликемического состояния; в консенсусе 2024 года для него указан порог 300 мОсм/кг. Здесь использован порог, на котором построен инструмент."
           ],
           "inputs": [
             {
@@ -2006,7 +2034,8 @@
           "population": "Пациенты с метаболическим ацидозом и измеренным бикарбонатом.",
           "limitations": [
             "Формула не подтверждает тип расстройства без анализа pH, PaCO₂ и клинических данных.",
-            "При смешанных нарушениях ожидаемый диапазон может не описывать реальную компенсацию."
+            "При смешанных нарушениях ожидаемый диапазон может не описывать реальную компенсацию.",
+            "Диапазон ±2 мм рт. ст. по Albert, Dell и Winters (1967) относится к устойчивому метаболическому ацидозу: при остром развитии компенсация ещё не завершена."
           ],
           "inputs": [
             {
@@ -2018,6 +2047,18 @@
               "maximum": 50,
               "required": true,
               "step": 0
+            },
+            {
+              "id": "measuredPco2",
+              "label": "Измеренный PaCO₂",
+              "labelTooltip": "Необязательно. Введите результат газового анализа, чтобы сравнить его с ожидаемым диапазоном.",
+              "unit": "мм рт. ст.",
+              "kind": "number",
+              "minimum": 5,
+              "maximum": 150,
+              "inputStep": 1,
+              "required": false,
+              "step": 0
             }
           ],
           "sources": [
@@ -2027,6 +2068,14 @@
               "version": "Metabolic acidosis physiology",
               "url": "https://pubmed.ncbi.nlm.nih.gov/14007617/",
               "reviewedAt": "2026-08-15"
+            },
+            {
+              "title": "Albert MS, Dell RB, Winters RW. Quantitative displacement of acid-base equilibrium in metabolic acidosis",
+              "publisher": "Annals of Internal Medicine",
+              "version": "1967",
+              "url": "https://pubmed.ncbi.nlm.nih.gov/6016545/",
+              "page": "66(2):312-322",
+              "reviewedAt": "2026-10-15"
             }
           ]
         }
@@ -2066,7 +2115,8 @@
           "limitations": [
             "Индекс не заменяет эластографию, визуализацию или консультацию гепатолога.",
             "Возраст и острое воспаление могут существенно влиять на результат.",
-            "Пороговые значения зависят от популяции и клинической задачи."
+            "Пороговые значения зависят от популяции и клинической задачи.",
+            "Пороги 1,45 и 3,25 получены у пациентов с ко-инфекцией ВИЧ/ВГС; в других популяциях (например при НАЖБП) применяют иные пороги, здесь они не используются."
           ],
           "inputs": [
             {
@@ -2155,7 +2205,8 @@
           "limitations": [
             "Индекс не заменяет эластографию, визуализацию или консультацию гепатолога.",
             "Верхняя граница нормы зависит от лаборатории.",
-            "Острое воспаление и тромбоцитопения другой причины искажают результат."
+            "Острое воспаление и тромбоцитопения другой причины искажают результат.",
+            "Пороги Wai (2003) получены у пациентов с хроническим гепатитом C; для других заболеваний печени применимость отличается."
           ],
           "inputs": [
             {
@@ -2231,7 +2282,8 @@
           "limitations": [
             "Единицы должны соответствовать указанным в форме.",
             "Степень риска инфекции зависит от глубины и длительности нейтропении и клинического состояния.",
-            "При расхождении с абсолютными значениями лаборатории проверьте исходный анализ."
+            "При расхождении с абсолютными значениями лаборатории проверьте исходный анализ.",
+            "Степень 1 по CTCAE (от нижней границы нормы до 1,5×10⁹/л) зависит от референсного интервала лаборатории и возраста, поэтому отдельно не выделена."
           ],
           "inputs": [
             {
@@ -2272,6 +2324,13 @@
               "version": "Clinical reference",
               "url": "https://www.hematology.org/education/patients/anemia/neutropenia",
               "reviewedAt": "2026-08-15"
+            },
+            {
+              "title": "Common Terminology Criteria for Adverse Events (CTCAE) v5.0: Neutrophil count decreased",
+              "publisher": "National Cancer Institute",
+              "version": "5.0 (2017)",
+              "url": "https://ctep.cancer.gov/protocoldevelopment/electronic_applications/ctc.htm",
+              "reviewedAt": "2026-10-15"
             }
           ]
         }
@@ -2443,7 +2502,8 @@
           "limitations": [
             "Шкала не заменяет оценку типа ФП, клапанных заболеваний, противопоказаний и предпочтений пациента.",
             "Не превращайте балл автоматически в назначение или отмену антикоагуляции.",
-            "Используйте актуальную клиническую рекомендацию по ФП."
+            "Используйте актуальную клиническую рекомендацию по ФП.",
+            "Тактика по порогам ESC 2020, учитывающим пол (женский пол — модификатор риска); в ESC 2024 используется шкала CHA₂DS₂-VA без пола. Не применяется при механических клапанах и умеренном или тяжёлом митральном стенозе."
           ],
           "inputs": [
             {
@@ -2569,6 +2629,14 @@
               "version": "2012",
               "url": "https://pubmed.ncbi.nlm.nih.gov/23018151/",
               "reviewedAt": "2026-08-15"
+            },
+            {
+              "title": "Hindricks G, Potpara T, Dagres N, et al. 2020 ESC Guidelines for the diagnosis and management of atrial fibrillation",
+              "publisher": "European Heart Journal",
+              "version": "2021",
+              "url": "https://pubmed.ncbi.nlm.nih.gov/32860505/",
+              "page": "42(5):373-498",
+              "reviewedAt": "2026-10-15"
             }
           ]
         }
@@ -2751,6 +2819,14 @@
               "version": "Pisters 2010",
               "url": "https://pubmed.ncbi.nlm.nih.gov/20299623/",
               "reviewedAt": "2026-08-15"
+            },
+            {
+              "title": "Hindricks G, Potpara T, Dagres N, et al. 2020 ESC Guidelines for the diagnosis and management of atrial fibrillation",
+              "publisher": "European Heart Journal",
+              "version": "2021",
+              "url": "https://pubmed.ncbi.nlm.nih.gov/32860505/",
+              "page": "42(5):373-498",
+              "reviewedAt": "2026-10-15"
             }
           ]
         }
@@ -3176,6 +3252,14 @@
               "version": "2021 creatinine equation",
               "url": "https://www.kidney.org/professionals/ckd-epi-creatinine-equation-2021",
               "reviewedAt": "2026-08-03"
+            },
+            {
+              "title": "KDIGO 2012 Clinical Practice Guideline for the Evaluation and Management of Chronic Kidney Disease",
+              "publisher": "Kidney International Supplements",
+              "version": "2013",
+              "url": "https://kdigo.org/wp-content/uploads/2017/02/KDIGO_2012_CKD_GL.pdf",
+              "page": "3(1):1-150",
+              "reviewedAt": "2026-10-15"
             }
           ]
         }
@@ -3219,7 +3303,8 @@
           "limitations": [
             "Ограниченная точность при нормальной или высокой СКФ.",
             "Предполагает стандартизованное ферментативное измерение креатинина.",
-            "Не применяется автоматически у младенцев до года и пациентов старше 16 лет."
+            "Не применяется автоматически у младенцев до года и пациентов старше 16 лет.",
+            "Категории G (KDIGO) применяют к детям старше 2 лет; для детей до 2 лет результат сравнивают с возрастной нормой."
           ],
           "inputs": [
             {
@@ -3284,6 +3369,14 @@
               "version": "Bedside CKiD 2009",
               "url": "https://pubmed.ncbi.nlm.nih.gov/19158356/",
               "reviewedAt": "2026-08-03"
+            },
+            {
+              "title": "KDIGO 2012 Clinical Practice Guideline for the Evaluation and Management of Chronic Kidney Disease",
+              "publisher": "Kidney International Supplements",
+              "version": "2013",
+              "url": "https://kdigo.org/wp-content/uploads/2017/02/KDIGO_2012_CKD_GL.pdf",
+              "page": "3(1):1-150",
+              "reviewedAt": "2026-10-15"
             }
           ]
         }

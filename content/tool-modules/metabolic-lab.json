@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.metabolic-lab.ru",
-  "version": "0.1.0-preview.3",
+  "version": "0.1.0-preview.4",
   "title": "Почки, эндокринология и лабораторные формулы: расчёты",
   "schemaVersion": 2,
   "builtAt": "2026-10-13T00:00:00Z",
@@ -5032,7 +5032,7 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
           "reason": "Для основного обмена нет референсного диапазона: результат сравнивают с индивидуальной потребностью.",
@@ -5541,10 +5541,11 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "missing-context",
           "rules": [],
-          "missingContext": [],
-          "reason": "Референсные интервалы расчётного свободного тестостерона зависят от лаборатории и популяции и не заданы в этой версии.",
+          "missingContext": [
+            "Возраст пациента и референсный интервал лаборатории для расчётного свободного тестостерона."
+          ],
           "sourceIds": [
             "free-bioavailable-testosterone-vermeulen-1999",
             "free-bioavailable-testosterone-issam-calculator"
@@ -6012,7 +6013,7 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
           "reason": "Референсные пределы общего кальция зависят от лаборатории.",
@@ -6450,10 +6451,10 @@
           }
         ],
         "evaluation": {
-          "status": "unavailable",
+          "status": "not-applicable",
           "rules": [],
           "missingContext": [],
-          "reason": "В российских клинических рекомендациях по нарушениям липидного обмена порог коэффициента атерогенности не задан, поэтому вывод по нему не формируется.",
+          "reason": "В российских клинических рекомендациях по нарушениям липидного обмена порог коэффициента атерогенности не задан.",
           "sourceIds": ["atherogenic-coefficient-millan-2009"]
         },
         "observationMappings": [
