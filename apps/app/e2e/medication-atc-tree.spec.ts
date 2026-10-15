@@ -8,7 +8,7 @@ import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
 // The local release copies stay in the main checkout; an agent worktree (`<main>/.claude/worktrees/…`) reads them there.
 const DATA_ROOT = LOCAL_DATA_ROOT;
 // Local copy of the published zstd index (docs/data-ledger.json keeps it as the release copy).
-const PUBLISHED_DIRECTORY = resolve(DATA_ROOT, 'output/module-zstd-2026-10-01/esklp-compacted');
+const PUBLISHED_DIRECTORY = resolve(DATA_ROOT, 'output/module-zstd-esklp-str1-2026-10-15/esklp-2026-08-28-str1');
 const GROUP = process.env['UX4_GROUP'] ?? 'antiparasitic';
 const GROUP_FILE = `minimed.medications.${GROUP}.ru.db.zst`;
 const GROUP_CODES: Readonly<Record<string, string>> = {

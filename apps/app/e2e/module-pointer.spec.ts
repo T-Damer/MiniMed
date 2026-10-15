@@ -12,7 +12,7 @@ const ROOT = resolve(import.meta.dirname, '../../..');
 // copies); the tests serve exactly those bytes instead of the network mirror.
 const PUBLISHED_ARTIFACT_DIRECTORIES = [
   'output/module-zstd-kd1-2026-10-11',
-  'output/module-zstd-2026-10-01/esklp-compacted',
+  'output/module-zstd-esklp-str1-2026-10-15/esklp-2026-08-28-str1',
   'data/build/official-clinical-2026-10-02/zst',
 ];
 

@@ -16,7 +16,7 @@ const ROOT = resolve(import.meta.dirname, '../../..');
 // The local release copies stay in the main checkout; an agent worktree (`<main>/.claude/worktrees/…`) reads them there.
 const DATA_ROOT = LOCAL_DATA_ROOT;
 export const MEDICATION_MODULE_ID = 'minimed.medications.antiparasitic.ru';
-const PUBLISHED_DIRECTORY = 'output/module-zstd-2026-10-01/esklp-compacted';
+const PUBLISHED_DIRECTORY = 'output/module-zstd-esklp-str1-2026-10-15/esklp-2026-08-28-str1';
 const POINTER = 'core.catalog.pointer.medication.esklp.mnn.албендазол-062d3e89c1c0b8dd';
 export const INSTRUCTION_MODULE_ID = 'minimed.medications.instructions.antiparasitic.ru';
 // The ГРЛС instruction modules as republished by LEAF1 (2026-10-15); the catalog pins their hashes.
