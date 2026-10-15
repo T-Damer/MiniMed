@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import {
+  getDownloadQueue,
+  resetDownloadQueueForTests,
+} from '@/features/downloads/download-service';
 import { downloadWithRetry, isTransientDownloadError } from '@/features/network/download-retry';
 import {
   installIndexedDbDouble,
@@ -216,5 +220,84 @@ describe('downloadWithRetry', () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     vi.unstubAllGlobals();
+  });
+});
+
+describe('pausing a module download', () => {
+  it('stops the transfer without failing it and continues from the bytes already received', async () => {
+    const store = new Map<string, PartialDownloadRecordDouble>();
+    installIndexedDbDouble(store);
+    const queue = getDownloadQueue();
+    const jobId = 'module:pause-test@1';
+    queue.observe(
+      { id: jobId, kind: 'module', title: 'Набор', totalBytes: 4 },
+      { state: 'queued' },
+      {},
+    );
+
+    // The first response delivers two bytes and then stalls until the request is aborted.
+    const fetchMock = vi
+      .fn<(url: string, init?: RequestInit) => Promise<Response>>()
+      .mockImplementationOnce(async (_url, init) => {
+        let delivered = false;
+        const body = new ReadableStream<Uint8Array>({
+          pull(controller) {
+            if (!delivered) {
+              delivered = true;
+              controller.enqueue(new Uint8Array([1, 2]));
+              return new Promise<void>((_resolve, reject) => {
+                init?.signal?.addEventListener('abort', () =>
+                  reject(new DOMException('Download aborted.', 'AbortError')),
+                );
+              });
+            }
+            return undefined;
+          },
+        });
+        return new Response(body, { status: 200, headers: { 'content-length': '4' } });
+      })
+      .mockResolvedValueOnce(
+        new Response(new Uint8Array([3, 4]), {
+          status: 206,
+          headers: { 'content-range': 'bytes 2-3/4', 'content-length': '2' },
+        }),
+      );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const download = downloadWithRetry({
+      jobId,
+      url: 'https://example.com/module.sqlite',
+      cacheKey: 'sha256:pause-test',
+      expectedBytes: 4,
+      retryDelaysMs: NO_DELAYS,
+    });
+    let settled = false;
+    void download.then(
+      () => {
+        settled = true;
+      },
+      () => {
+        settled = true;
+      },
+    );
+    await vi.waitFor(() => expect(queue.get(jobId)?.state).toBe('downloading'));
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    queue.setPaused(true);
+    await vi.waitFor(() => expect(queue.get(jobId)?.state).toBe('paused'));
+    await vi.waitFor(() => expect(store.get('sha256:pause-test')?.data.size).toBe(2));
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    expect(settled).toBe(false); // still pending, not failed
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    queue.setPaused(false);
+    const bytes = await download;
+    expect([...bytes]).toEqual([1, 2, 3, 4]);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(rangeHeaderOfCall(fetchMock.mock.calls, 1)).toBe('bytes=2-');
+    expect(store.has('sha256:pause-test')).toBe(false);
+    vi.unstubAllGlobals();
+    await resetDownloadQueueForTests();
   });
 });

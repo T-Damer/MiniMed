@@ -48,7 +48,9 @@ function resolveButtonHaptic(button: HTMLButtonElement): HapticStrength {
   if (explicit === 'heavy' || button.matches(DELETE_SELECTOR)) return 'heavy';
   if (
     explicit === 'medium' ||
-    button.matches('.app-nav-button, .search-button, .content-download-nav__pie')
+    button.matches(
+      '.app-nav-button, .search-button, .content-download-nav__pie, .content-download-nav__toggle',
+    )
   ) {
     return 'medium';
   }

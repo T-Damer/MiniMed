@@ -3,6 +3,7 @@ import { createEffect, createMemo, createSignal, type JSX, onCleanup, Show } fro
 import { AppGlyph } from '@/components/AppGlyph';
 import { ChoiceChip } from '@/components/ChoiceChip';
 import { DownloadProgressMark } from '@/components/DownloadProgressMark';
+import { useDownloadsPause } from '@/features/downloads/use-downloads-pause';
 import {
   contentDownloadPhase,
   downloadPercent,
@@ -31,6 +32,7 @@ export function SearchDownloadChip(props: {
    */
   readonly compact?: boolean | undefined;
 }): JSX.Element {
+  const pause = useDownloadsPause();
   const installed = createMemo(() => props.downloads.installedIds(props.modules));
   const pending = createMemo(() => props.modules.filter((module) => !installed().has(module.id)));
   const tasks = createMemo(() =>
@@ -85,13 +87,20 @@ export function SearchDownloadChip(props: {
       : undefined;
   };
   /** What the chip shows now; a change of it swaps the text with a short fade. */
-  const status = () => (done() ? 'done' : (phase() ?? (failed() ? 'failed' : 'idle')));
+  const status = () =>
+    done()
+      ? 'done'
+      : phase() !== null && pause.paused()
+        ? 'paused'
+        : (phase() ?? (failed() ? 'failed' : 'idle'));
   const label = () => {
     switch (status()) {
       case 'done':
         return 'Готово';
       case 'queued':
         return 'В очереди';
+      case 'paused':
+        return 'На паузе';
       case 'installing':
         return 'Устанавливаем…';
       case 'downloading': {
@@ -132,7 +141,11 @@ export function SearchDownloadChip(props: {
           .filter(Boolean)
           .join(' · ');
   const markState = () =>
-    status() === 'done' ? 'done' : status() === 'queued' ? 'queued' : 'running';
+    status() === 'done'
+      ? 'done'
+      : status() === 'queued' || status() === 'paused'
+        ? 'queued'
+        : 'running';
   return (
     <Show when={props.downloads.ready() && (pending().length > 0 || done())}>
       <ChoiceChip

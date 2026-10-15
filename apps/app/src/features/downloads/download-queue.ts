@@ -19,7 +19,9 @@ export type DownloadPhase =
   | 'failed'
   | 'cancelling'
   | 'cancelled'
-  | 'interrupted';
+  | 'interrupted'
+  /** Held by the person: nothing moves, the bytes already received are kept for «Продолжить». */
+  | 'paused';
 
 export interface DownloadResume {
   readonly kind: 'reference-images' | 'ecg-package' | 'ocr-language-pack' | 'speech';
@@ -80,6 +82,8 @@ interface Transfer {
   readonly start: () => void;
   readonly requiresNetwork: boolean;
   readonly abort: () => void;
+  /** Stops a running attempt without failing its job; the transfer waits for «Продолжить». */
+  interrupt?: () => void;
 }
 interface Persistence {
   load(): string | null;
@@ -106,7 +110,10 @@ const PHASES = new Set<DownloadPhase>([
   'verifying',
   'installing',
   'cancelling',
+  'paused',
 ]);
+/** Only module downloads can be paused: they are the long, resumable, multi-file transfers. */
+const PAUSABLE_KINDS = new Set<DownloadKind>(['module']);
 const MAX_HISTORY = 100;
 const MAX_RESTORED_TASKS = 2_000;
 const isAbort = (cause: unknown): boolean => cause instanceof Error && cause.name === 'AbortError';
@@ -175,6 +182,7 @@ export class DownloadQueue {
   private readonly active = new Set<Transfer>();
   private readonly activeKeys = new Set<string>();
   private online = true;
+  private paused = false;
   private persistenceError: string | null = null;
   private lastSaved = 0;
 
@@ -209,6 +217,49 @@ export class DownloadQueue {
   public isOnline(): boolean {
     return this.online;
   }
+  /** Pause holds every module download; the choice survives a reload (it is part of the journal). */
+  public isPaused(): boolean {
+    return this.paused;
+  }
+  /** At least one module download exists that a pause would hold, or the queue is already paused. */
+  public canPause(): boolean {
+    return this.paused || this.hasHoldableWork();
+  }
+  public setPaused(value: boolean): void {
+    if (this.paused === value) return;
+    this.paused = value;
+    if (value) {
+      for (const transfer of this.active) {
+        if (this.isHeld(transfer.jobId)) transfer.interrupt?.();
+      }
+    }
+    for (const entry of this.entries.values()) {
+      if (!PAUSABLE_KINDS.has(entry.view.kind)) continue;
+      if (value) {
+        if (entry.view.state === 'queued' || entry.view.state === 'downloading')
+          this.update(entry, { state: 'paused', retryAt: null }, false);
+      } else if (entry.view.state === 'paused') {
+        this.update(entry, { state: 'queued', retryAt: null }, false);
+      }
+    }
+    if (!value) {
+      this.drain();
+      for (const entry of this.entries.values()) this.refreshTransferPhase(entry.view.id);
+    }
+    this.emit(true);
+  }
+  /** A module download that is not finished: waiting, moving, paused or cut by a reload. */
+  private hasHoldableWork(): boolean {
+    return [...this.entries.values()].some(
+      (entry) =>
+        PAUSABLE_KINDS.has(entry.view.kind) &&
+        !['completed', 'cancelled', 'failed'].includes(entry.view.state),
+    );
+  }
+  private isHeld(jobId: string): boolean {
+    const entry = this.entries.get(jobId);
+    return this.paused && entry !== undefined && PAUSABLE_KINDS.has(entry.view.kind);
+  }
 
   private create(descriptor: DownloadDescriptor, controls: Controls): Entry {
     const title = downloadDisplayTitle(descriptor.title);
@@ -237,7 +288,15 @@ export class DownloadQueue {
     return entry;
   }
   private update(entry: Entry, patch: Partial<DownloadTask>, durable = true): void {
-    entry.view = { ...entry.view, ...patch, updatedAt: Date.now() };
+    const next = { ...entry.view, ...patch, updatedAt: Date.now() };
+    // A held module download shows «на паузе» whatever its owner reports while it waits.
+    if (
+      this.paused &&
+      PAUSABLE_KINDS.has(next.kind) &&
+      (next.state === 'queued' || next.state === 'downloading')
+    )
+      next.state = 'paused';
+    entry.view = next;
     this.emit(durable);
   }
 
@@ -370,7 +429,8 @@ export class DownloadQueue {
     jobId: string,
     key: string,
     signal: AbortSignal,
-    operation: () => Promise<T>,
+    /** `attempt` is aborted by a pause: a pausable operation passes it on to its transport. */
+    operation: (attempt: AbortSignal) => Promise<T>,
     requiresNetwork = true,
   ): Promise<T> {
     if (signal.aborted) return Promise.reject(abortError());
@@ -393,18 +453,41 @@ export class DownloadQueue {
           this.active.add(transfer);
           this.activeKeys.add(key);
           this.refreshTransferPhase(jobId);
+          const attempt = new AbortController();
+          const forward = (): void => attempt.abort();
+          signal.addEventListener('abort', forward, { once: true });
+          let interrupted = false;
+          transfer.interrupt = () => {
+            interrupted = true;
+            attempt.abort();
+          };
           void Promise.resolve()
             .then(() => {
               signal.throwIfAborted();
-              return operation();
+              return operation(attempt.signal);
             })
-            .then(resolve, reject)
-            .finally(() => {
+            .then(
+              (value) => ({ ok: true as const, value }),
+              (error: unknown) => ({ ok: false as const, error }),
+            )
+            .then((outcome) => {
               this.active.delete(transfer);
               this.activeKeys.delete(key);
+              signal.removeEventListener('abort', forward);
+              delete transfer.interrupt;
+              if (interrupted && !outcome.ok && !signal.aborted) {
+                // Paused, not failed: the transport kept its partial bytes. Wait at the head of the
+                // line; «Продолжить» starts the same operation again, which resumes from them.
+                this.waiting.unshift(transfer);
+                this.refreshTransferPhase(jobId);
+                this.drain();
+                return;
+              }
               signal.removeEventListener('abort', transfer.abort);
               this.refreshTransferPhase(jobId);
               this.drain();
+              if (outcome.ok) resolve(outcome.value);
+              else reject(outcome.error);
             });
         },
       };
@@ -417,7 +500,10 @@ export class DownloadQueue {
   private drain(): void {
     while (this.active.size < this.limit) {
       const index = this.waiting.findIndex(
-        (item) => (!item.requiresNetwork || this.online) && !this.activeKeys.has(item.key),
+        (item) =>
+          (!item.requiresNetwork || this.online) &&
+          !this.activeKeys.has(item.key) &&
+          !this.isHeld(item.jobId),
       );
       if (index < 0) return;
       const [next] = this.waiting.splice(index, 1);
@@ -550,6 +636,9 @@ export class DownloadQueue {
       });
   }
   private emit(durable: boolean): void {
+    // A pause holds module downloads. With none left to hold (all done, failed or cancelled) it
+    // ends by itself, so the next download the person starts is not silently held.
+    if (this.paused && !this.hasHoldableWork()) this.paused = false;
     const history = [...this.entries.entries()].filter(
       ([, entry]) =>
         TERMINAL.has(entry.view.state) &&
@@ -561,7 +650,9 @@ export class DownloadQueue {
       this.entries.delete(id);
     if (this.persistence && (durable || Date.now() - this.lastSaved >= 1_000)) {
       try {
-        this.persistence.save(JSON.stringify({ version: 1, tasks: this.list() }));
+        this.persistence.save(
+          JSON.stringify({ version: 1, paused: this.paused, tasks: this.list() }),
+        );
         this.lastSaved = Date.now();
         this.persistenceError = null;
       } catch {
@@ -586,6 +677,7 @@ export class DownloadQueue {
         !Array.isArray(value.tasks)
       )
         throw new Error('Invalid journal.');
+      this.paused = 'paused' in value && value.paused === true;
       for (const item of value.tasks.slice(0, MAX_RESTORED_TASKS)) {
         if (
           !item ||

@@ -34,6 +34,7 @@ const PHASE_LABELS: Readonly<Record<DownloadPhase, string>> = {
   cancelling: 'Останавливаем',
   cancelled: 'Отменено',
   interrupted: 'Прервано перезапуском',
+  paused: 'На паузе',
 };
 
 const RUNNING_PHASES = new Set<DownloadPhase>(['downloading', 'verifying', 'installing']);
@@ -61,12 +62,14 @@ function hint(task: DownloadTask): string | undefined {
     return 'Начнётся, когда освободится одна из трёх передач и будет сеть.';
   if (task.state === 'retrying') return 'Повтор запустится автоматически.';
   if (task.state === 'installing') return 'Этот этап нельзя прервать.';
+  if (task.state === 'paused') return 'Скачанная часть сохранена.';
   if (task.state === 'interrupted') return 'Продолжить можно после сверки с текущим каталогом.';
   return undefined;
 }
 
 function settledGlyph(state: DownloadPhase): AppGlyphName {
   if (state === 'completed') return 'check';
+  if (state === 'paused') return 'pause';
   if (state === 'interrupted') return 'arrow-counter-clockwise';
   return 'close';
 }

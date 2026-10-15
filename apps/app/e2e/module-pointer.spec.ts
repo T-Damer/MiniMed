@@ -148,7 +148,8 @@ test('installs a zstd module index through the decode worker', async ({ page }) 
     throw new Error('The MKB module is not published as zstd.');
   }
   const fileName = new URL(artifact.url).pathname.split('/').at(-1) ?? '';
-  const localPath = resolve(LOCAL_DATA_ROOT, 'data/build/rls-mkb-module/release', fileName);
+  // The released file (sha256-verified against the catalog below) is kept in `output/release-*`.
+  const localPath = resolve(LOCAL_DATA_ROOT, 'output/release-rls-mkb-2026.9.30', fileName);
   test.skip(!existsSync(localPath), 'The MKB zstd release file is local-only.');
   const bytes = await readFile(localPath);
   expect(`sha256:${createHash('sha256').update(bytes).digest('hex')}`).toBe(artifact.sha256);

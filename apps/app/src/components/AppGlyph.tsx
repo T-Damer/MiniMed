@@ -88,8 +88,10 @@ import notchesBold from '@phosphor-icons/core/assets/bold/notches-bold.svg?raw';
 import noteBold from '@phosphor-icons/core/assets/bold/note-bold.svg?raw';
 import notepadBold from '@phosphor-icons/core/assets/bold/notepad-bold.svg?raw';
 import paletteBold from '@phosphor-icons/core/assets/bold/palette-bold.svg?raw';
+import pauseBold from '@phosphor-icons/core/assets/bold/pause-bold.svg?raw';
 import pencilSimpleBold from '@phosphor-icons/core/assets/bold/pencil-simple-bold.svg?raw';
 import pillBold from '@phosphor-icons/core/assets/bold/pill-bold.svg?raw';
+import playBold from '@phosphor-icons/core/assets/bold/play-bold.svg?raw';
 import plusBold from '@phosphor-icons/core/assets/bold/plus-bold.svg?raw';
 import prescriptionBold from '@phosphor-icons/core/assets/bold/prescription-bold.svg?raw';
 import printerBold from '@phosphor-icons/core/assets/bold/printer-bold.svg?raw';
@@ -200,6 +202,8 @@ export type AppGlyphName =
   | 'image'
   | 'info'
   | 'clock'
+  | 'pause'
+  | 'play'
   | 'microphone'
   | 'microscope'
   | 'text-aa'
@@ -342,6 +346,8 @@ const glyphBodies: Record<AppGlyphName, string> = {
   image: svgBody(imageSquareBold),
   info: svgBody(infoBold),
   clock: svgBody(clockBold),
+  pause: svgBody(pauseBold),
+  play: svgBody(playBold),
   microphone: svgBody(microphoneBold),
   microscope: svgBody(microscopeBold),
   'text-h-two': svgBody(textHTwoBold),

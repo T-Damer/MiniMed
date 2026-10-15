@@ -7,6 +7,7 @@ import {
   type DownloadProgressMarkState,
 } from '@/components/DownloadProgressMark';
 import { SegmentedControl } from '@/components/SegmentedControl';
+import { DownloadsPauseButton } from '@/features/downloads/DownloadsPauseButton';
 import { DownloadTaskRow, formatDownloadBytes } from '@/features/downloads/DownloadTaskRow';
 import {
   aggregateDownloadFraction,
@@ -15,11 +16,13 @@ import {
   isDownloadActive,
 } from '@/features/downloads/download-queue';
 import { getDownloadQueue } from '@/features/downloads/download-service';
+import { useDownloadsPause } from '@/features/downloads/use-downloads-pause';
 import { pluralRu } from '@/i18n/labels';
 
 const RUNNING = new Set<DownloadPhase>(['downloading', 'verifying', 'installing', 'cancelling']);
 const WAITING = new Set<DownloadPhase>(['queued', 'retrying']);
 const ATTENTION = new Set<DownloadPhase>(['failed', 'interrupted']);
+const PAUSED = new Set<DownloadPhase>(['paused']);
 
 function downloadSummary(active: number, queued: number, attention: number): string {
   const parts: string[] = [];
@@ -38,6 +41,7 @@ export function ContentDownloadStatus(props: { readonly compact?: boolean } = {}
   const [online, setOnline] = createSignal(queue.isOnline());
   const [storageError, setStorageError] = createSignal(queue.getStorageError());
   const [error, setError] = createSignal('');
+  const pause = useDownloadsPause();
   const [filter, setFilter] = createSignal<'active' | 'all'>('active');
   const update = (): void => {
     setTasks(queue.list());
@@ -49,29 +53,33 @@ export function ContentDownloadStatus(props: { readonly compact?: boolean } = {}
     onCleanup(queue.subscribe(update));
   });
   const attention = () => tasks().filter((task) => ATTENTION.has(task.state));
-  const fraction = () => aggregateDownloadFraction([...running(), ...waiting()]);
+  const fraction = () => aggregateDownloadFraction([...running(), ...held(), ...waiting()]);
   const running = () => tasks().filter((task) => RUNNING.has(task.state));
   const waiting = () => tasks().filter((task) => WAITING.has(task.state));
+  const held = () => tasks().filter((task) => PAUSED.has(task.state));
   /** Attention first, then work in progress, then the queue; newest first inside each group. */
   const groups = () =>
     [
       { label: 'Требуют внимания', tasks: attention() },
       { label: 'Скачиваются', tasks: running() },
+      { label: 'На паузе', tasks: held() },
       { label: 'В очереди', tasks: waiting() },
     ]
       .map((group) => ({ ...group, tasks: [...group.tasks].reverse() }))
       .filter((group) => group.tasks.length > 0);
-  const current = () => [...attention(), ...running(), ...waiting()];
+  const current = () => [...attention(), ...running(), ...held(), ...waiting()];
   const finished = () =>
     [...tasks()].reverse().filter((task) => !isDownloadActive(task) && !ATTENTION.has(task.state));
   const canCancelAny = () => tasks().some((task) => task.canCancel);
   const overviewMark = (): DownloadProgressMarkState | undefined => {
     if (running().length > 0) return 'running';
+    if (held().length > 0) return undefined;
     if (waiting().length > 0) return 'queued';
     return undefined;
   };
   const overviewTitle = (): string => {
     if (running().length > 0) return 'Идёт загрузка';
+    if (held().length > 0) return 'Загрузки на паузе';
     if (waiting().length > 0) return online() ? 'Ожидают своей очереди' : 'Ждём сеть';
     if (attention().length > 0) return 'Нужна повторная попытка';
     return 'Все загрузки завершены';
@@ -79,10 +87,11 @@ export function ContentDownloadStatus(props: { readonly compact?: boolean } = {}
   const overviewMeta = (): string => {
     const parts: string[] = [];
     if (running().length > 0) parts.push(`передач: ${running().length} из 3`);
+    if (held().length > 0) parts.push(`на паузе: ${held().length}`);
     if (waiting().length > 0) parts.push(`в очереди: ${waiting().length}`);
     if (attention().length > 0) parts.push(`с ошибкой: ${attention().length}`);
     // Failed work is not transferring; only running and waiting items make up the remaining volume.
-    const withSize = [...running(), ...waiting()].filter((task) => task.totalBytes);
+    const withSize = [...running(), ...held(), ...waiting()].filter((task) => task.totalBytes);
     if (withSize.length > 0) {
       const done = withSize.reduce((sum, task) => sum + task.downloadedBytes, 0);
       const total = withSize.reduce((sum, task) => sum + (task.totalBytes ?? 0), 0);
@@ -127,7 +136,9 @@ export function ContentDownloadStatus(props: { readonly compact?: boolean } = {}
                   when={overviewMark()}
                   fallback={
                     <AppGlyph
-                      name={attention().length > 0 ? 'close' : 'check'}
+                      name={
+                        attention().length > 0 ? 'close' : held().length > 0 ? 'pause' : 'check'
+                      }
                       class="downloads-overview__glyph"
                     />
                   }
@@ -145,6 +156,9 @@ export function ContentDownloadStatus(props: { readonly compact?: boolean } = {}
                 <h2 class="downloads-overview__title">{overviewTitle()}</h2>
                 <p class="downloads-overview__meta">{overviewMeta()}</p>
               </div>
+              <Show when={pause.available()}>
+                <DownloadsPauseButton pause={pause} class="downloads-overview__pause" />
+              </Show>
               <Show when={attention().some((task) => task.canRetry) || canCancelAny()}>
                 <div class="downloads-overview__actions">
                   <Show when={attention().some((task) => task.canRetry)}>

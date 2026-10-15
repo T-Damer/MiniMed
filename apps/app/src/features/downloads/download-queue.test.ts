@@ -377,3 +377,145 @@ describe('shared download ownership', () => {
     });
   });
 });
+
+describe('pause and resume of module downloads', () => {
+  /** A transport that streams until aborted, then keeps its "partial bytes" like the real one. */
+  function streamingTransport(partial: { bytes: number }) {
+    const starts: number[] = [];
+    let finish!: () => void;
+    const finished = new Promise<void>((resolve) => {
+      finish = resolve;
+    });
+    const transport = async (attempt: AbortSignal): Promise<string> => {
+      starts.push(partial.bytes);
+      await new Promise<void>((resolve, reject) => {
+        const abort = (): void => {
+          partial.bytes += 40; // flushed before the abort is reported, as downloadWithResume does
+          reject(new DOMException('Download aborted.', 'AbortError'));
+        };
+        if (attempt.aborted) abort();
+        attempt.addEventListener('abort', abort, { once: true });
+        void finished.then(resolve);
+      });
+      return 'bytes';
+    };
+    return { starts, transport, finish };
+  }
+
+  it('interrupts a running module transfer without failing it, then resumes it from its partial bytes', async () => {
+    const queue = new DownloadQueue(3);
+    const partial = { bytes: 0 };
+    const { starts, transport, finish } = streamingTransport(partial);
+    const job = queue.run(descriptor('m'), (ctx) =>
+      queue.transfer(ctx.id, 'm', ctx.signal, transport),
+    );
+    await flush();
+    expect(queue.get('m')?.state).toBe('downloading');
+    queue.setPaused(true);
+    await flush();
+    expect(queue.isPaused()).toBe(true);
+    expect(queue.get('m')).toMatchObject({ state: 'paused', canCancel: true });
+    expect(queue.activeTransfers).toBe(0);
+    expect(starts).toEqual([0]);
+    queue.setPaused(false);
+    await flush();
+    expect(starts).toEqual([0, 40]); // the second attempt starts from what the first one kept
+    expect(queue.get('m')?.state).toBe('downloading');
+    finish();
+    await expect(job).resolves.toBe('bytes');
+    expect(queue.get('m')?.state).toBe('completed');
+  });
+
+  it('does not start waiting module transfers while paused, and starts them on resume', async () => {
+    const queue = new DownloadQueue(3);
+    const first = gate();
+    const running = queue.run(descriptor('first'), (ctx) =>
+      queue.transfer(ctx.id, 'first', ctx.signal, () => first.promise),
+    );
+    await flush();
+    queue.setPaused(true);
+    const start = vi.fn(async () => 'ok');
+    const job = queue.run(descriptor('late'), (ctx) =>
+      queue.transfer(ctx.id, 'late', ctx.signal, start),
+    );
+    await flush();
+    expect(start).not.toHaveBeenCalled();
+    expect(queue.get('late')?.state).toBe('paused');
+    queue.setPaused(false);
+    await flush();
+    await expect(job).resolves.toBe('ok');
+    expect(start).toHaveBeenCalledOnce();
+    first.resolve();
+    await flush();
+    await running.catch(() => undefined);
+  });
+
+  it('holds only module downloads', async () => {
+    const queue = new DownloadQueue(3);
+    const module = gate();
+    const moduleJob = queue.run(descriptor('mod'), (ctx) =>
+      queue.transfer(ctx.id, 'mod', ctx.signal, () => module.promise),
+    );
+    await flush();
+    queue.setPaused(true);
+    const image = vi.fn(async () => 'image');
+    await queue.run(descriptor('img', 'images'), (ctx) =>
+      queue.transfer(ctx.id, 'img', ctx.signal, image),
+    );
+    expect(image).toHaveBeenCalledOnce();
+    expect(queue.get('img')?.state).toBe('completed');
+    queue.setPaused(false);
+    module.resolve();
+    await moduleJob;
+  });
+
+  it('lets a paused download be cancelled', async () => {
+    const queue = new DownloadQueue(3);
+    const { transport } = streamingTransport({ bytes: 0 });
+    const job = queue.run(descriptor('m'), (ctx) =>
+      queue.transfer(ctx.id, 'm', ctx.signal, transport),
+    );
+    const rejected = expect(job).rejects.toMatchObject({ name: 'AbortError' });
+    await flush();
+    queue.setPaused(true);
+    await flush();
+    await queue.cancel('m');
+    await rejected;
+    expect(queue.get('m')?.state).toBe('cancelled');
+    expect(queue.isPaused()).toBe(false); // nothing is left to hold
+  });
+
+  it('remembers the pause across a reload and keeps reporting it for unfinished module work', () => {
+    let journal: string | null = null;
+    const persistence = {
+      load: () => journal,
+      save: (value: string) => {
+        journal = value;
+      },
+    };
+    const queue = new DownloadQueue(3, persistence);
+    queue.observe(descriptor('m'), { state: 'downloading', downloadedBytes: 10 }, {});
+    queue.setPaused(true);
+    expect(JSON.parse(journal ?? '{}')).toMatchObject({ version: 1, paused: true });
+
+    const reloaded = new DownloadQueue(3, persistence);
+    expect(reloaded.isPaused()).toBe(true);
+    expect(reloaded.get('m')?.state).toBe('interrupted');
+    expect(reloaded.canPause()).toBe(true);
+    // The owner picks the download up again: it is held, not started.
+    reloaded.observe(descriptor('m'), { state: 'queued' }, {});
+    expect(reloaded.get('m')?.state).toBe('paused');
+    reloaded.setPaused(false);
+    expect(reloaded.get('m')?.state).toBe('queued');
+  });
+
+  it('ends a pause that no module download is left to hold', () => {
+    const queue = new DownloadQueue(3);
+    queue.observe(descriptor('m'), { state: 'downloading' }, {});
+    queue.setPaused(true);
+    expect(queue.isPaused()).toBe(true);
+    queue.observe(descriptor('m'), { state: 'completed' }, {});
+    expect(queue.isPaused()).toBe(false);
+    expect(queue.canPause()).toBe(false);
+  });
+});

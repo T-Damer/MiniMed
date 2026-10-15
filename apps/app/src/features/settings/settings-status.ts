@@ -71,11 +71,13 @@ const RUNNING_PHASES: ReadonlySet<DownloadPhase> = new Set([
 ]);
 const WAITING_PHASES: ReadonlySet<DownloadPhase> = new Set(['queued', 'retrying']);
 const ATTENTION_PHASES: ReadonlySet<DownloadPhase> = new Set(['failed', 'interrupted']);
+const PAUSED_PHASES: ReadonlySet<DownloadPhase> = new Set(['paused']);
 
 export interface DownloadQueueCounts {
   readonly active: number;
   readonly queued: number;
   readonly attention: number;
+  readonly paused: number;
 }
 
 /** The same grouping the download manager shows: running, waiting and needing a retry. */
@@ -86,6 +88,7 @@ export function downloadQueueCounts(
     active: tasks.filter((task) => RUNNING_PHASES.has(task.state)).length,
     queued: tasks.filter((task) => WAITING_PHASES.has(task.state)).length,
     attention: tasks.filter((task) => ATTENTION_PHASES.has(task.state)).length,
+    paused: tasks.filter((task) => PAUSED_PHASES.has(task.state)).length,
   };
 }
 
@@ -95,6 +98,8 @@ export interface DownloadsStatusInput {
   readonly queued: number;
   /** Failed or interrupted transfers waiting for a retry. */
   readonly attention: number;
+  /** Downloads held by «Пауза». */
+  readonly paused?: number;
   /** Sections whose every package is installed; undefined until the release catalog is loaded. */
   readonly installedSections: number | undefined;
   /** Bytes of the installed packages; undefined until the release catalog is loaded. */
@@ -111,6 +116,7 @@ export function downloadsStatus(input: DownloadsStatusInput): SettingsStatus {
     };
   }
   if (input.queued > 0) return { label: `В очереди · ${input.queued}`, tone: 'working' };
+  if ((input.paused ?? 0) > 0) return { label: `На паузе · ${input.paused}`, tone: 'neutral' };
   if (input.attention > 0) {
     return {
       label: `${input.attention} ${pluralRu(input.attention, 'требует', 'требуют', 'требуют')} внимания`,

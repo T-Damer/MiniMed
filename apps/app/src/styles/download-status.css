@@ -60,6 +60,41 @@
   top: 0.125rem;
   right: 0.125rem;
   z-index: calc(var(--z-raised-3) + 1);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Pause / resume: a round badge of the pie's size beside it. */
+.content-download-nav__toggle {
+  position: relative;
+  display: grid;
+  width: 1rem;
+  height: 1rem;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgb(61 50 27 / 55%);
+  border-radius: 50%;
+  color: var(--theme-floating-text, #f6eedb);
+  background-color: #3a3933;
+  box-shadow: 0 0.125rem 0.4375rem rgb(25 22 18 / 28%);
+  cursor: pointer;
+}
+
+/* The hit area reaches up and to the left, away from the pie's own. */
+.content-download-nav__toggle::after {
+  position: absolute;
+  top: -1.75rem;
+  left: -1.75rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  content: "";
+}
+
+.app-glyph.content-download-nav__toggle-glyph {
+  width: 0.5625rem;
+  height: 0.5625rem;
+  animation: downloads-pause-glyph-in var(--motion-fast, 120ms) var(--motion-ease-out, ease-out);
 }
 
 .content-download-nav__pie {
@@ -81,7 +116,7 @@
   color: var(--theme-floating-text);
 }
 
-.content-download-nav__glyph {
+.app-glyph.content-download-nav__glyph {
   width: 80%;
   height: 80%;
 }
@@ -95,7 +130,7 @@
 /* Downloads page: one overview card, then grouped task lists; no card inside a scrolling card. */
 .downloads-overview {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 0.75rem 1rem;
   padding: 1rem 1.1rem;
@@ -148,6 +183,19 @@
   font-size: 0.875rem;
   font-variant-numeric: tabular-nums;
   line-height: 1.4;
+}
+
+.downloads-pause__glyph {
+  width: 1.25rem;
+  height: 1.25rem;
+  animation: downloads-pause-glyph-in var(--motion-fast, 120ms) var(--motion-ease-out, ease-out);
+}
+
+@keyframes downloads-pause-glyph-in {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
 }
 
 .downloads-overview__actions {

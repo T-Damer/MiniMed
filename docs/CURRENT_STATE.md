@@ -61,11 +61,10 @@ neutral («Назад», aria-label too):
   indicator;
 - the assessment result (was «К тесту») — results open from the records list as well.
 
-**Still skipped (11) and why:** `dev-server-smoke` (needs a dev server), `ecg-photo-benchmark` and `ecg-success-path`
+**Still skipped (10) and why** (`module-pointer` «zstd MKB» runs since DL2): `dev-server-smoke` (needs a dev server), `ecg-photo-benchmark` and `ecg-success-path`
 (need an external ECG folder / file), `grls-instruction-modules` (`GI1_MIRROR_E2E=1`, downloads from the mirror),
 `ios-layout` (WebKit behaviour), `live-prototype` (`MINIMED_LIVE_URL`), `local-model-smoke` (scheduled workflow),
-`pdf-viewer-perf` (`PDF_PERF=1`), `module-pointer` «zstd MKB» (`data/build/rls-mkb-module/release` holds the RLS packaging
-files, not the `minimed.mkb.ru` zstd the catalog names), `search.spec` ×2 (the 500 MB medication companion pack is not in
+`pdf-viewer-perf` (`PDF_PERF=1`), `search.spec` ×2 (the 500 MB medication companion pack is not in
 this build's `dist/content`; copying it into a worktree is not allowed). Not run at all: `webkit-ios` project, native/device
 checks.
 
@@ -236,6 +235,34 @@ above it small and calm. Measured on «Вермокс» with the ГРЛС instru
   (`ComparisonSources`) and of the recipe card, in small text.
 - Not changed: the stored module text (the identifier lines are hidden at display, not rewritten —
   a module rebuild would drop them), the other document readers (DOC-UI1).
+## Pause and resume for module downloads — 2026-10-15 (STATE DL2)
+
+- One switch for the module download queue: an icon button (`DownloadsPauseButton`, aria-label «Приостановить загрузки» /
+  «Продолжить загрузки») in the Settings → Загрузки overview card and a badge beside the download ring on the settings
+  tab (`content-download-nav__toggle`). The glyph is a new node per state with a 120 ms fade-in; nothing blocks input.
+- `DownloadQueue.setPaused()` (state `paused` in `DownloadPhase`, only for kind `module`): running module transfers get
+  an attempt-level abort (`transfer(…, (attempt) => …)` now hands the operation its own signal; `retryTransfer` passes it
+  to the transport), the aborted transfer is re-queued at the head instead of failing, waiting ones are not admitted
+  (`drain` skips held jobs), and task views read `paused` whatever the installer still reports. The transport already
+  keeps partial bytes (`downloadWithResume` flushes before it rethrows an abort), so «Продолжить» re-runs the same
+  operation and continues with a `Range` request: finished bytes are not fetched again. Verifying/installing are never
+  interrupted.
+- Persistence: the journal `minimed.download-queue.v1` carries `paused`; after a reload unfinished module tasks are
+  restored as `interrupted`, the runtime re-attaches them (pending installs) and they show «На паузе» without a request.
+  A pause with no unfinished module download left ends by itself, so the next download is not silently held. Other kinds
+  (core, images, models, ECG, OCR, speech, APK) are not paused. Download offers show «На паузе»
+  (`ModuleDownloadPhase` `paused`, search chip too); Settings row status «На паузе · N».
+- Tests: `download-queue.test.ts` (interrupt/resume with partial bytes, held admission, only modules, cancel while
+  paused, persisted pause, auto-end), `download-retry.test.ts` (real `downloadWithResume`: pause mid-stream, `Range`
+  continuation), `module-download-view`, `settings-status`; e2e `download-pause.spec.ts` (pause, reload, still paused with
+  no request, resume, installed). Android native transfers: pause aborts the native task like a cancel; resuming
+  restarts the same id. Not tested on a device.
+- «Module-pointer zstd MKB release copy missing» was a stale spec path, not a missing file: the released
+  `minimed.reference.rls-mkb.2026.9.30.db.zst` (sha256 779540a8…, equals the catalog) is kept in
+  `output/release-rls-mkb-2026.9.30/` (ledger entry exists); `e2e/module-pointer.spec.ts` looked in
+  `data/build/rls-mkb-module/release`, which holds only the 2026.9.28 files. The spec now reads the release copy and
+  passes.
+
 ## Downloads and modules — 2026-10-14 (STATE DL1)
 
 Source: the «Downloads and modules» findings of [qa-haiku-2026-10-14](research/qa-haiku-2026-10-14.md)

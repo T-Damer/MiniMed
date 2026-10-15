@@ -98,6 +98,19 @@ describe('module download view', () => {
     expect(moduleDownloadView(input({ queueTasks: [queueTask('retrying')] })).phase).toBe('queued');
   });
 
+  it('reports a held download as paused whatever the runtime still says', () => {
+    const view = moduleDownloadView(
+      input({
+        queueTasks: [queueTask('paused', 30)],
+        runtimeTasks: [runtimeTask('downloading', 30)],
+      }),
+    );
+    expect(view.phase).toBe('paused');
+    expect(moduleDownloadStatusLabel(view)).toBe('На паузе');
+    // The offer must not start a second download of a module that is only held.
+    expect(isModuleDownloadBusy(view)).toBe(true);
+  });
+
   it('never claims a finished download is still queued', () => {
     for (const state of ['completed', 'cancelled'] as const) {
       expect(moduleDownloadView(input({ queueTasks: [queueTask(state)] })).phase).toBe('idle');

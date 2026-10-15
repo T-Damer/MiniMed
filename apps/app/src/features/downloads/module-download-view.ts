@@ -18,6 +18,8 @@ export type ModuleDownloadPhase =
   /** Cut by a reload (or kept as a durable intent) and being picked up again by the runtime. */
   | 'resuming'
   | 'downloading'
+  /** Held by «Пауза»: the bytes received are kept and «Продолжить» resumes from them. */
+  | 'paused'
   /** After the last byte: checksum, decoding, commit. */
   | 'installing'
   /** A download that ended with an error; offer a retry. */
@@ -97,6 +99,8 @@ function fromQueue(task: DownloadTask): ModuleDownloadView {
       const fraction = downloadTaskFraction(task);
       return { phase: 'downloading', fraction, percent: percentOf(fraction, true) };
     }
+    case 'paused':
+      return { phase: 'paused', fraction: downloadTaskFraction(task), percent: null };
     case 'interrupted':
       // A reload cut the transfer; the module runtime resumes it as soon as it is loaded.
       return { phase: 'resuming', fraction: null, percent: null };
@@ -116,12 +120,15 @@ function queueTaskFor(moduleId: string, tasks: readonly DownloadTask[]): Downloa
 export function moduleDownloadView(input: ModuleDownloadInput): ModuleDownloadView {
   if (input.installed) return { phase: 'installed', fraction: 1, percent: null };
 
+  // «Пауза» wins over what the runtime still reports for a transfer it is waiting on.
+  const queueTask = queueTaskFor(input.moduleId, input.queueTasks);
+  if (queueTask?.state === 'paused') return fromQueue(queueTask);
+
   const runtimeTask = input.runtimeTasks.findLast(
     (task) => task.moduleId === input.moduleId && !RUNTIME_FINISHED.has(task.state),
   );
   if (runtimeTask) return fromRuntime(runtimeTask);
 
-  const queueTask = queueTaskFor(input.moduleId, input.queueTasks);
   if (queueTask) {
     const view = fromQueue(queueTask);
     if (view.phase !== 'idle') {
@@ -149,11 +156,12 @@ export function isModuleDownloadBusy(view: ModuleDownloadView): boolean {
     view.phase === 'connecting' ||
     view.phase === 'resuming' ||
     view.phase === 'downloading' ||
+    view.phase === 'paused' ||
     view.phase === 'installing'
   );
 }
 
-/** «В очереди», «Подключаемся…», «Продолжаем…», «Скачиваем · 30 %», «Устанавливаем…»; empty otherwise. */
+/** «В очереди», «Подключаемся…», «Продолжаем…», «Скачиваем · 30 %», «На паузе», «Устанавливаем…»; empty otherwise. */
 export function moduleDownloadStatusLabel(view: ModuleDownloadView): string {
   switch (view.phase) {
     case 'queued':
@@ -164,6 +172,8 @@ export function moduleDownloadStatusLabel(view: ModuleDownloadView): string {
       return 'Продолжаем…';
     case 'downloading':
       return view.percent === null ? 'Скачиваем…' : `Скачиваем · ${String(view.percent)} %`;
+    case 'paused':
+      return 'На паузе';
     case 'installing':
       return 'Устанавливаем…';
     default:

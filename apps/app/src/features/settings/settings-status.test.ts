@@ -105,6 +105,14 @@ describe('settings statuses', () => {
     );
   });
 
+  it('says paused downloads are paused instead of waiting', () => {
+    const done = { installedSections: 3, installedBytes: GIB };
+    expect(downloadsStatus({ active: 0, queued: 0, attention: 0, paused: 4, ...done })).toEqual({
+      label: 'На паузе · 4',
+      tone: 'neutral',
+    });
+  });
+
   it('summarises the three AI features', () => {
     expect(aiStatus(['missing', 'missing', 'missing'])).toEqual({
       label: 'Не скачано',
@@ -166,11 +174,12 @@ describe('settings statuses', () => {
         { state: 'verifying' },
         { state: 'queued' },
         { state: 'retrying' },
+        { state: 'paused' },
         { state: 'failed' },
         { state: 'completed' },
         { state: 'cancelled' },
       ]),
-    ).toEqual({ active: 2, queued: 2, attention: 1 });
+    ).toEqual({ active: 2, queued: 2, attention: 1, paused: 1 });
   });
 
   it('maps each AI feature onto a readiness', () => {

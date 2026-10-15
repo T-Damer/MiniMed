@@ -165,10 +165,11 @@ async function retryTransfer<T>(
         jobId,
         `${options.cacheKey}:${options.url}`,
         signal,
-        () =>
+        (attempt) =>
           transfer({
             ...downloadOptions,
-            signal,
+            // The queue aborts `attempt` to pause: the partial bytes stay, «Продолжить» resumes.
+            signal: attempt,
             onProgress: (progress) => {
               if (trackProgress)
                 getDownloadQueue().progress(jobId, progress.downloadedBytes, progress.totalBytes);

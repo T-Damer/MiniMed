@@ -120,7 +120,11 @@ export function ModuleDownloadOffer(props: ModuleDownloadOfferProps): JSX.Elemen
                     }
                   >
                     <DownloadProgressMark
-                      state={view().phase === 'queued' ? 'queued' : 'running'}
+                      state={
+                        view().phase === 'queued' || view().phase === 'paused'
+                          ? 'queued'
+                          : 'running'
+                      }
                       progress={view().fraction}
                       busy={view().fraction === null}
                     />

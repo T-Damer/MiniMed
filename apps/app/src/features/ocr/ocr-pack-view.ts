@@ -58,6 +58,7 @@ export function ocrPackView(input: {
   const fraction = downloadTaskFraction(task);
   switch (task.state) {
     case 'queued':
+    case 'paused': // Only module downloads are paused; an OCR pack waits like a queued one.
       return {
         kind: 'queued',
         fraction: null,

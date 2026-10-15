@@ -1,12 +1,14 @@
-import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import { createSignal, type JSX, Match, onCleanup, onMount, Show, Switch } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
 import { aggregateDownloadFraction, isDownloadActive } from '@/features/downloads/download-queue';
 import { getDownloadQueue } from '@/features/downloads/download-service';
+import { useDownloadsPause } from '@/features/downloads/use-downloads-pause';
 import { downloadNavPieBackground } from '@/features/modules/content-download-progress';
 import { SETTINGS_DOWNLOADS_HASH } from '@/features/settings/settings-routing';
 
 export function ContentDownloadNavIndicator(): JSX.Element {
   const queue = getDownloadQueue();
+  const pause = useDownloadsPause();
   const [tasks, setTasks] = createSignal(queue.list());
   onMount(() => {
     setTasks(queue.list());
@@ -23,11 +25,34 @@ export function ContentDownloadNavIndicator(): JSX.Element {
       (task) =>
         task.state === 'downloading' || task.state === 'verifying' || task.state === 'installing',
     );
+  const held = () => pause.paused() && active().some((task) => task.state === 'paused');
   const label = () =>
-    `Загрузки: ${active().length}${waiting() ? ', в очереди' : progress() === null ? '' : `, ${Math.floor((progress() ?? 0) * 100)}%`}${attention() ? '. Есть прерванные задания' : ''}. Открыть загрузки`;
+    `Загрузки: ${active().length}${held() ? ', на паузе' : waiting() ? ', в очереди' : progress() === null ? '' : `, ${Math.floor((progress() ?? 0) * 100)}%`}${attention() ? '. Есть прерванные задания' : ''}. Открыть загрузки`;
   return (
     <Show when={active().length > 0 || attention()}>
       <div class="content-download-nav">
+        <Show when={pause.available()}>
+          <button
+            type="button"
+            class="content-download-nav__toggle"
+            data-testid="content-download-nav-toggle"
+            title={pause.paused() ? 'Продолжить загрузки' : 'Приостановить загрузки'}
+            aria-label={pause.paused() ? 'Продолжить загрузки' : 'Приостановить загрузки'}
+            onClick={(event) => {
+              event.stopPropagation();
+              pause.toggle();
+            }}
+          >
+            <Switch>
+              <Match when={pause.paused()}>
+                <AppGlyph name="play" class="content-download-nav__toggle-glyph" />
+              </Match>
+              <Match when={!pause.paused()}>
+                <AppGlyph name="pause" class="content-download-nav__toggle-glyph" />
+              </Match>
+            </Switch>
+          </button>
+        </Show>
         <button
           type="button"
           class="content-download-nav__pie"
@@ -48,7 +73,7 @@ export function ContentDownloadNavIndicator(): JSX.Element {
           }}
         >
           <Show when={waiting()}>
-            <AppGlyph name="clock" class="content-download-nav__glyph" />
+            <AppGlyph name={held() ? 'pause' : 'clock'} class="content-download-nav__glyph" />
           </Show>
         </button>
       </div>
