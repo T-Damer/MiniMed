@@ -26,6 +26,7 @@ import type {
 } from '@/features/calculators/clinical-calculations';
 import { unitForNumber, unitForQuantity } from '@/features/calculators/countable-unit';
 import { buildScoreScaleSpec, type ScoreScaleSpec } from '@/features/calculators/score-scale';
+import { formatDecimal } from '@/i18n/format-number';
 
 export interface CalculatorSchemaNumberOutput {
   readonly kind: 'number';
@@ -315,7 +316,7 @@ function formatNumberOutputText(output: CalculatorSchemaNumberOutput): string {
   const rounded =
     output.displayPrecision === 0
       ? String(Math.round(output.value))
-      : output.value.toFixed(output.displayPrecision);
+      : formatDecimal(output.value, output.displayPrecision);
   return output.unit
     ? `${rounded} ${unitForQuantity(output.value, output.displayPrecision, output.unit)}`
     : rounded;

@@ -468,6 +468,7 @@ export function Onboarding(props: OnboardingProps): JSX.Element {
                 <OnboardingIntro
                   phase={introPhase()}
                   coreReady={props.coreReady}
+                  coreDownloading={props.coreDownloading}
                   awaitingChoice={props.coreDeferred && !props.coreDownloading}
                   chosen={chosen()}
                   fullSize={fullSize()}

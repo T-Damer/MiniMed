@@ -12,7 +12,7 @@ import {
   onMount,
 } from 'solid-js';
 import { toast } from 'solid-sonner';
-
+import { useDownloadsPause } from '@/features/downloads/use-downloads-pause';
 import type { BrowserContentModuleRuntime } from '@/features/modules/browser-module-runtime';
 import {
   contentModuleNeedsInstall,
@@ -40,6 +40,8 @@ export interface ModuleInstallerSnapshot {
   readonly installedIds: ReadonlySet<string>;
   /** Download tasks of the module runtime, finished ones included. */
   readonly tasks: readonly ContentModuleDownloadTask[];
+  /** The module downloads are held by «Пауза»: queued and running tasks wait for «Продолжить». */
+  readonly paused: boolean;
 }
 
 export interface ModuleInstaller {
@@ -79,6 +81,7 @@ export function useModuleInstaller(
   const [starting, setStarting] = createSignal(0);
   const [problem, setProblem] = createSignal(false);
   const [removing, setRemoving] = createSignal(0);
+  const pause = useDownloadsPause();
 
   let loading = false;
   let disposed = false;
@@ -127,6 +130,7 @@ export function useModuleInstaller(
           catalog.modules.filter((module) => isInstalled(module)).map((module) => module.id),
         ),
         tasks: active.listTasks(),
+        paused: pause.paused(),
       } satisfies ModuleInstallerSnapshot,
     };
   });

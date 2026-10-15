@@ -8,7 +8,8 @@ import {
 } from '@/components/DownloadProgressMark';
 import { SegmentedControl } from '@/components/SegmentedControl';
 import { DownloadsPauseButton } from '@/features/downloads/DownloadsPauseButton';
-import { DownloadTaskRow, formatDownloadBytes } from '@/features/downloads/DownloadTaskRow';
+import { DownloadTaskList } from '@/features/downloads/DownloadTaskList';
+import { formatDownloadBytes } from '@/features/downloads/DownloadTaskRow';
 import {
   aggregateDownloadFraction,
   type DownloadPhase,
@@ -23,6 +24,7 @@ const RUNNING = new Set<DownloadPhase>(['downloading', 'verifying', 'installing'
 const WAITING = new Set<DownloadPhase>(['queued', 'retrying']);
 const ATTENTION = new Set<DownloadPhase>(['failed', 'interrupted']);
 const PAUSED = new Set<DownloadPhase>(['paused']);
+const REFRESH_INTERVAL_MS = 250;
 
 function downloadSummary(active: number, queued: number, attention: number): string {
   const parts: string[] = [];
@@ -48,9 +50,24 @@ export function ContentDownloadStatus(props: { readonly compact?: boolean } = {}
     setOnline(queue.isOnline());
     setStorageError(queue.getStorageError());
   };
+  // The queue emits on every progress tick and holds up to ~840 entries after «Скачать всё»: the
+  // page follows it at most four times a second (trailing), so a big queue never competes with taps.
+  let refreshTimer: ReturnType<typeof setTimeout> | undefined;
+  let lastRefresh = 0;
+  const scheduleUpdate = (): void => {
+    if (refreshTimer !== undefined) return;
+    const wait = Math.max(0, REFRESH_INTERVAL_MS - (Date.now() - lastRefresh));
+    refreshTimer = setTimeout(() => {
+      refreshTimer = undefined;
+      lastRefresh = Date.now();
+      update();
+    }, wait);
+  };
   onMount(() => {
     update();
-    onCleanup(queue.subscribe(update));
+    lastRefresh = Date.now();
+    onCleanup(queue.subscribe(scheduleUpdate));
+    onCleanup(() => clearTimeout(refreshTimer));
   });
   const attention = () => tasks().filter((task) => ATTENTION.has(task.state));
   const fraction = () => aggregateDownloadFraction([...running(), ...held(), ...waiting()]);
@@ -65,7 +82,15 @@ export function ContentDownloadStatus(props: { readonly compact?: boolean } = {}
       { label: 'На паузе', tasks: held() },
       { label: 'В очереди', tasks: waiting() },
     ]
-      .map((group) => ({ ...group, tasks: [...group.tasks].reverse() }))
+      // Newest first where the newest matters (errors, what is running); the waiting line keeps
+      // its order so the first row is the next to start.
+      .map((group) => ({
+        ...group,
+        tasks:
+          group.label === 'На паузе' || group.label === 'В очереди'
+            ? group.tasks
+            : [...group.tasks].reverse(),
+      }))
       .filter((group) => group.tasks.length > 0);
   const current = () => [...attention(), ...running(), ...held(), ...waiting()];
   const finished = () =>
@@ -215,11 +240,12 @@ export function ContentDownloadStatus(props: { readonly compact?: boolean } = {}
                   when={finished().length > 0}
                   fallback={<p class="downloads-empty">История пуста.</p>}
                 >
-                  <ul class="downloads-group__list paper-card">
-                    <For each={finished()}>
-                      {(task) => <DownloadTaskRow task={task} onCancel={cancel} onRetry={retry} />}
-                    </For>
-                  </ul>
+                  <DownloadTaskList
+                    tasks={finished()}
+                    onCancel={cancel}
+                    onRetry={retry}
+                    limit={20}
+                  />
                 </Show>
               }
             >
@@ -238,13 +264,7 @@ export function ContentDownloadStatus(props: { readonly compact?: boolean } = {}
                         {group.label}
                         <span class="downloads-group__count">{group.tasks.length}</span>
                       </h3>
-                      <ul class="downloads-group__list paper-card">
-                        <For each={group.tasks}>
-                          {(task) => (
-                            <DownloadTaskRow task={task} onCancel={cancel} onRetry={retry} />
-                          )}
-                        </For>
-                      </ul>
+                      <DownloadTaskList tasks={group.tasks} onCancel={cancel} onRetry={retry} />
                     </section>
                   )}
                 </For>

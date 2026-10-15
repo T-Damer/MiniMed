@@ -17,6 +17,7 @@ import {
 } from '@/features/calculators/ecg-package';
 import { downloadTaskFraction, isDownloadActive } from '@/features/downloads/download-queue';
 import { getDownloadQueue } from '@/features/downloads/download-service';
+import { formatDecimal } from '@/i18n/format-number';
 import '@/styles/ecg-editor-flow.css';
 
 export function EcgModelSettings(): JSX.Element {
@@ -25,7 +26,10 @@ export function EcgModelSettings(): JSX.Element {
   const outdated = () => status().state === 'outdated';
   const hasFiles = () => status().state !== 'missing';
   const updateMegabytes = () =>
-    (status().updates.reduce((sum, item) => sum + item.downloadBytes, 0) / 1024 / 1024).toFixed(1);
+    formatDecimal(
+      status().updates.reduce((sum, item) => sum + item.downloadBytes, 0) / 1024 / 1024,
+      1,
+    );
   const queue = getDownloadQueue();
   const [task, setTask] = createSignal(queue.get(ECG_DOWNLOAD_ID));
   const [removing, setRemoving] = createSignal(false);
@@ -91,9 +95,10 @@ export function EcgModelSettings(): JSX.Element {
     }
   };
   const sizeLabel = (): string =>
-    `${(ECG_PACKAGE_COMPONENTS.reduce((sum, item) => sum + item.downloadBytes, 0) / 1024 / 1024)
-      .toFixed(1)
-      .replace('.', ',')} МБ`;
+    `${formatDecimal(
+      ECG_PACKAGE_COMPONENTS.reduce((sum, item) => sum + item.downloadBytes, 0) / 1024 / 1024,
+      1,
+    )} МБ`;
   const statusLabel = (): string => {
     const current = task();
     if (busy() === 'remove') return 'Удаляем…';
@@ -104,7 +109,7 @@ export function EcgModelSettings(): JSX.Element {
       return `Скачивается · ${Math.floor(progress() * 100)}%`;
     }
     if (installed()) return 'Готово к работе';
-    if (outdated()) return `Доступно обновление · ${updateMegabytes().replace('.', ',')} МБ`;
+    if (outdated()) return `Доступно обновление · ${updateMegabytes()} МБ`;
     if (hasFiles()) return 'Скачано не полностью';
     return `Не скачано · ${sizeLabel()}`;
   };

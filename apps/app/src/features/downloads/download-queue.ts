@@ -24,7 +24,12 @@ export type DownloadPhase =
   | 'paused';
 
 export interface DownloadResume {
-  readonly kind: 'reference-images' | 'ecg-package' | 'ocr-language-pack' | 'speech';
+  readonly kind:
+    | 'reference-images'
+    | 'ecg-package'
+    | 'ocr-language-pack'
+    | 'speech'
+    | 'semantic-model';
   readonly id: string;
   readonly version: string;
 }
@@ -692,9 +697,13 @@ export class DownloadQueue {
         const safeResume: DownloadResume | undefined =
           resume &&
           typeof resume === 'object' &&
-          ['reference-images', 'ecg-package', 'ocr-language-pack', 'speech'].includes(
-            resume.kind,
-          ) &&
+          [
+            'reference-images',
+            'ecg-package',
+            'ocr-language-pack',
+            'speech',
+            'semantic-model',
+          ].includes(resume.kind) &&
           safeText(resume.id, 256) &&
           safeText(resume.version, 200)
             ? { kind: resume.kind, id: resume.id, version: resume.version }

@@ -4,6 +4,7 @@ import { invalidateSemanticState } from '@/state/search-data-version';
 import {
   E5_DOWNLOAD_ID,
   E5_MODEL_FILES,
+  E5_MODEL_REVISION,
   E5_MODEL_TOTAL_BYTES,
   type E5ModelPart,
   e5FileUrl,
@@ -45,6 +46,8 @@ export function installE5Model(signal?: AbortSignal): Promise<void> {
         kind: 'model',
         title: 'Поиск по смыслу',
         totalBytes: E5_MODEL_TOTAL_BYTES,
+        // A reload cuts the transfer; the restorer starts it again from the kept partial bytes.
+        resume: { kind: 'semantic-model', id: E5_DOWNLOAD_ID, version: E5_MODEL_REVISION },
       },
       async (context) => {
         // Files of a previous model revision are never read again.

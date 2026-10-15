@@ -180,7 +180,7 @@ describe('recommendation-categories', () => {
 
   it('distinguishes queued cards from the actively downloading card', () => {
     const modules = [module('a'), module('b')];
-    const task = (moduleId: string, state: 'queued' | 'downloading') => ({
+    const task = (moduleId: string, state: 'queued' | 'downloading' | 'installing') => ({
       id: `task-${moduleId}`,
       moduleId,
       version: '1.0.0',
@@ -196,6 +196,14 @@ describe('recommendation-categories', () => {
     expect(moduleGroupTaskState(modules, [task('a', 'queued'), task('b', 'downloading')])).toBe(
       'active',
     );
+    // The queue-wide pause turns a group that is waiting or downloading into «paused»; a group
+    // with nothing in flight stays idle, and one already installing keeps working.
+    expect(moduleGroupTaskState(modules, [task('a', 'queued')], true)).toBe('paused');
+    expect(
+      moduleGroupTaskState(modules, [task('a', 'queued'), task('b', 'downloading')], true),
+    ).toBe('paused');
+    expect(moduleGroupTaskState(modules, [], true)).toBeNull();
+    expect(moduleGroupTaskState(modules, [task('a', 'installing')], true)).toBe('active');
   });
 
   it('does not show a shared category as fully loaded while overlapping modules download', () => {

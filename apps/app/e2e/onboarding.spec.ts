@@ -194,6 +194,43 @@ for (const viewport of [
   });
 }
 
+test('«Далее» without a download choice does not claim a download, and the first step has no dead «Назад»', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const core = await holdCore(page);
+  await page.goto(`${ORIGIN}/#/search`, { waitUntil: 'domcontentloaded' });
+  const intro = page.getByRole('dialog', { name: 'Добро пожаловать в MiniMed' });
+  await expect(page.getByText('Привет', { exact: true })).toBeVisible({ timeout: 30_000 });
+  await intro.getByRole('button', { name: 'Далее', exact: true }).click();
+  await expect(intro.getByRole('heading', { name: 'Добро пожаловать в MiniMed' })).toBeVisible();
+  await intro.getByRole('button', { name: 'Далее', exact: true }).click();
+  // While the app still checks what is installed, and once the choice is on offer: never «в фоне».
+  const lead = intro.locator('.onboarding-intro__lead');
+  const seen = new Set<string>();
+  await expect
+    .poll(
+      async () => {
+        const text = (await lead.textContent())?.trim() ?? '';
+        if (text) seen.add(text);
+        return text;
+      },
+      { timeout: 60_000, intervals: [100] },
+    )
+    .toBe('Что скачать сейчас?');
+  expect([...seen].filter((text) => /Скачиваем в фоне/u.test(text))).toEqual([]);
+
+  // «Далее» without choosing: the tour begins and nothing is fetched.
+  await intro.getByRole('button', { name: 'Далее', exact: true }).click();
+  await expect(page.locator('.onboarding-hint__counter')).toContainText('2 / 8');
+  await expect(page.locator('.onboarding-hint__back')).toBeHidden();
+  await expect(page.locator('.onboarding-hint__back')).toBeDisabled();
+  await page.waitForTimeout(1_000);
+  expect(core.downloads()).toBe(0);
+  await page.locator('.onboarding-hint__next').click();
+  await expect(page.locator('.onboarding-hint__back')).toBeVisible();
+});
+
 test('Escape skips the tour from the intro and the keyboard moves between steps', async ({
   page,
 }) => {

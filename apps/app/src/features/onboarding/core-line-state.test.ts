@@ -33,7 +33,7 @@ describe('coreLineState', () => {
   it('counts bytes when the total is unknown', () => {
     const state = coreLineState({ ...base, progress: { loaded: 5 * 1024 * 1024, total: 0 } });
     expect(state.fraction).toBeUndefined();
-    expect(state.label).toBe('5.0 МБ');
+    expect(state.label).toBe('5,0 МБ');
   });
 
   it('names verification and installation instead of showing 100 %', () => {

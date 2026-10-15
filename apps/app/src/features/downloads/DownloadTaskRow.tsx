@@ -10,6 +10,7 @@ import {
   downloadTaskFraction,
 } from '@/features/downloads/download-queue';
 import { formatCount } from '@/i18n/format-count';
+import { formatByteSize } from '@/i18n/format-number';
 
 const KIND_LABELS: Readonly<Record<DownloadKind, string>> = {
   core: 'Основная база',
@@ -39,10 +40,9 @@ const PHASE_LABELS: Readonly<Record<DownloadPhase, string>> = {
 
 const RUNNING_PHASES = new Set<DownloadPhase>(['downloading', 'verifying', 'installing']);
 
+/** The same size format as every other label of the app («1,4 МБ из 1,1 ГБ»). */
 export function formatDownloadBytes(value: number): string {
-  if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(2)} ГБ`;
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)} МБ`;
-  return `${Math.max(1, Math.round(value / 1_000))} КБ`;
+  return formatByteSize(value);
 }
 
 function transferText(task: DownloadTask): string | undefined {

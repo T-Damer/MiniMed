@@ -34,6 +34,7 @@ function state(overrides: Partial<DrugDownloadState> = {}): DrugDownloadState {
     },
     installedIds: new Set(),
     tasks: [],
+    paused: false,
     ...overrides,
   };
 }

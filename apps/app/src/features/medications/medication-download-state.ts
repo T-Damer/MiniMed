@@ -16,6 +16,7 @@ export function medicationDownloadLabel(input: {
   if (input.failed) return 'Список пакетов не загрузился';
   if (!state) return 'Считаем размер…';
   if (state.modules.length === 0) return 'Пока недоступно';
+  if (input.active && state.paused) return 'Загрузка препаратов на паузе';
   if (input.active) {
     const fraction = state.progress.byteProgress;
     return fraction === null

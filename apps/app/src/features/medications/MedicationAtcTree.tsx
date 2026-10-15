@@ -106,7 +106,7 @@ export function MedicationAtcTree(props: {
   const Action = (actionProps: { readonly moduleId: string | null }): JSX.Element => {
     const item = () => packageOf(actionProps.moduleId);
     return (
-      <Show when={['missing', 'queued', 'downloading'].includes(item().status)}>
+      <Show when={['missing', 'queued', 'downloading', 'paused'].includes(item().status)}>
         <Button
           class="atc-group__action"
           variant="secondary"
@@ -116,7 +116,9 @@ export function MedicationAtcTree(props: {
               when={item().status === 'missing'}
               fallback={
                 <DownloadProgressMark
-                  state={item().status === 'queued' ? 'queued' : 'running'}
+                  state={
+                    item().status === 'queued' || item().status === 'paused' ? 'queued' : 'running'
+                  }
                   progress={item().progress}
                 />
               }

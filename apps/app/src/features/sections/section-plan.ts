@@ -24,7 +24,7 @@ export interface SectionStatus {
   /** Only what is not installed yet: an installed part is never counted again. */
   readonly plan: DrugDownloadPlan;
   readonly install: SectionInstallState;
-  readonly queue: 'queued' | 'active' | null;
+  readonly queue: 'queued' | 'active' | 'paused' | null;
   readonly progress: RecommendationCategoryDownloadProgress;
 }
 
@@ -33,6 +33,8 @@ export function sectionStatus(
   skipped: ReadonlySet<string>,
   isInstalled: (module: ContentModuleCatalogEntry) => boolean,
   tasks: readonly ContentModuleDownloadTask[],
+  /** The module downloads are held by «Пауза». */
+  paused = false,
 ): SectionStatus {
   const modules = sectionModules(section, skipped);
   const installedIds = new Set(modules.filter(isInstalled).map((module) => module.id));
@@ -41,7 +43,7 @@ export function sectionStatus(
     modules,
     plan: moduleDownloadPlan(modules, isInstalled),
     install: installState(modules, isInstalled),
-    queue: moduleGroupTaskState(queued, tasks),
+    queue: moduleGroupTaskState(queued, tasks, paused),
     progress: moduleGroupDownloadProgress(queued, installedIds, tasks),
   };
 }

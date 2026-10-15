@@ -19,7 +19,9 @@ export type AtcGroupPackageStatus =
   | 'installed'
   | 'missing'
   | 'queued'
-  | 'downloading';
+  | 'downloading'
+  /** Held by «Пауза»; the bytes received are kept. */
+  | 'paused';
 
 export interface AtcGroupPackage {
   readonly status: AtcGroupPackageStatus;
@@ -39,11 +41,11 @@ export function atcGroupPackage(
   if (!module) return { status: 'unavailable', module: undefined, bytes: null, progress: null };
   const bytes = module.sizes.downloadBytes;
   if (state.installedIds.has(moduleId)) return { status: 'installed', module, bytes, progress: 1 };
-  const task = moduleGroupTaskState([module], state.tasks);
+  const task = moduleGroupTaskState([module], state.tasks, state.paused);
   if (task === null) return { status: 'missing', module, bytes, progress: null };
   const progress = moduleGroupDownloadProgress([module], state.installedIds, state.tasks);
   return {
-    status: task === 'queued' ? 'queued' : 'downloading',
+    status: task === 'paused' ? 'paused' : task === 'queued' ? 'queued' : 'downloading',
     module,
     bytes,
     progress: progress.byteProgress,
@@ -55,6 +57,8 @@ export function atcGroupActionLabel(item: AtcGroupPackage, failed: boolean): str
   switch (item.status) {
     case 'queued':
       return 'В очереди';
+    case 'paused':
+      return 'На паузе';
     case 'downloading':
       return item.progress === null
         ? 'Скачиваем…'
@@ -85,6 +89,8 @@ export function atcGroupRowMeta(
       return item.bytes === null ? 'не скачано' : `не скачано · ${formatModuleBytes(item.bytes)}`;
     case 'queued':
       return 'в очереди';
+    case 'paused':
+      return 'на паузе';
     case 'downloading':
       return item.progress === null
         ? 'скачивается…'
@@ -103,6 +109,7 @@ export function atcDownloadAllLabel(
   failed: boolean,
 ): string {
   if (!state || state.modules.length === 0 || state.plan.complete) return '';
+  if (active && state.paused) return 'На паузе';
   if (active) {
     const fraction = state.progress.byteProgress;
     return fraction === null ? 'Скачиваем…' : `Скачиваем · ${String(Math.floor(fraction * 100))} %`;

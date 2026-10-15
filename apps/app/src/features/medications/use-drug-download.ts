@@ -24,6 +24,8 @@ export interface DrugDownloadState {
   readonly installedIds: ReadonlySet<string>;
   /** Download tasks of the module runtime, finished ones included. */
   readonly tasks: readonly ContentModuleDownloadTask[];
+  /** The module downloads are held by «Пауза». */
+  readonly paused: boolean;
 }
 
 export interface DrugDownload {
@@ -59,6 +61,7 @@ export function useDrugDownload(onContentChanged: () => Promise<void>): DrugDown
       totalBytes: totalDownloadBytes(modules),
       installedIds,
       tasks: snapshot.tasks,
+      paused: snapshot.paused,
     };
   });
 

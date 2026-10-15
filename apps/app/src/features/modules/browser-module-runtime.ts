@@ -60,6 +60,7 @@ import {
   localPackagedModulesToInstall,
 } from '@/features/modules/local-packaged-modules';
 import { BUNDLED_CORE_MODULE } from '@/features/modules/module-catalog-shell';
+import { describeModuleFailure } from '@/features/modules/module-failure-message';
 import {
   assertBundleCanInstall,
   describeModuleImportFailure,
@@ -104,6 +105,8 @@ const SOURCE_ASSETS_STORE = 'source-assets';
 const CORE_MODULE_ID = 'minimed.core.ru';
 const MODULE_RETRY_DELAYS_MS = [1_000, 2_500, 5_000] as const;
 const MODULE_REQUEUE_DELAY_MS = 15_000;
+/** A module that keeps failing for a transient reason stops being re-queued by itself after this many tries. */
+const MODULE_REQUEUE_LIMIT = 5;
 const MODULE_OPFS_FETCH_TIMEOUT_MS = 180_000;
 
 type ModuleArtifact = ContentModuleCatalogEntry['artifacts'][number];
@@ -938,6 +941,8 @@ export class BrowserContentModuleRuntime {
   private readonly backend = new BrowserModuleBackend();
   private readonly installer: ForegroundContentModuleInstaller;
   private readonly retryTimers = new Map<string, number>();
+  /** Automatic re-queues of a failed module since it last installed or was cancelled. */
+  private readonly retryCounts = new Map<string, number>();
   private readonly recoveredInstallListeners = new Set<(task: ContentModuleDownloadTask) => void>();
   private readonly assessmentDependencyScans = new Map<string, Promise<void>>();
   private readonly assessmentDependencyGenerations = new Map<string, number>();
@@ -1027,12 +1032,7 @@ export class BrowserContentModuleRuntime {
           state: this.isRetryScheduled(task) ? 'retrying' : task.state,
           downloadedBytes: task.downloadedBytes,
           totalBytes: task.totalBytes,
-          errorMessage:
-            task.state === 'failed'
-              ? task.errorMessage?.includes('conflicting source-set digest')
-                ? 'Содержимое набора изменилось без новой версии. Обновите приложение: повторная загрузка этой версии не поможет.'
-                : 'Набор не установлен: загрузка или проверка не завершена.'
-              : null,
+          errorMessage: task.state === 'failed' ? describeModuleFailure(task.errorMessage) : null,
         },
         {
           cancel: async () => {
@@ -1210,22 +1210,37 @@ export class BrowserContentModuleRuntime {
     );
   }
 
-  private clearRetry(moduleId: string, version: string): void {
+  /** Cancels a waiting automatic re-queue; the count of tries is kept (the install is one of them). */
+  private clearRetryTimer(moduleId: string, version: string): void {
     const key = this.retryKey(moduleId, version);
     const timer = this.retryTimers.get(key);
     if (timer !== undefined) window.clearTimeout(timer);
     this.retryTimers.delete(key);
   }
 
+  /** The module installed or was cancelled: its automatic re-queues start counting from zero. */
+  private clearRetry(moduleId: string, version: string): void {
+    this.retryCounts.delete(this.retryKey(moduleId, version));
+    this.clearRetryTimer(moduleId, version);
+  }
+
   private scheduleRetry(task: ContentModuleDownloadTask): void {
     const key = this.retryKey(task.moduleId, task.version);
     if (this.retryTimers.has(key)) return;
+    const attempts = this.retryCounts.get(key) ?? 0;
+    if (attempts >= MODULE_REQUEUE_LIMIT) {
+      // It stays failed with «Повторить»; the person decides, the queue does not loop.
+      this.retryCounts.delete(key);
+      discardPendingModuleInstall(task.moduleId, task.version);
+      return;
+    }
     const timer = window.setTimeout(() => {
       this.retryTimers.delete(key);
       if (navigator.onLine === false) {
         this.scheduleRetry(task);
         return;
       }
+      this.retryCounts.set(key, attempts + 1);
       const module = this.catalog.modules.find(
         (candidate) => candidate.id === task.moduleId && candidate.version === task.version,
       );
@@ -1471,7 +1486,7 @@ export class BrowserContentModuleRuntime {
       throw new Error(`Набор ${module.id}@${module.version} пока недоступен для скачивания.`);
     }
     module = current;
-    this.clearRetry(module.id, module.version);
+    this.clearRetryTimer(module.id, module.version);
     const includeSourceAssets = module.artifacts.some(
       (artifact) => artifact.kind === 'source-assets',
     );
@@ -1525,6 +1540,8 @@ export class BrowserContentModuleRuntime {
       (candidate) => candidate.id === task.moduleId && candidate.version === task.version,
     );
     if (!module) throw new Error(`Набор ${task.moduleId}@${task.version} отсутствует в каталоге.`);
+    // A tap on «Повторить» starts the automatic re-queues over.
+    this.clearRetry(module.id, module.version);
     return this.install(module);
   }
 

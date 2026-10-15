@@ -658,6 +658,11 @@
   gap: 0.5rem;
 }
 
+/* Nothing to go back to on the first step: keep the footer's layout, show no dead button. */
+.onboarding-hint__back:disabled {
+  visibility: hidden;
+}
+
 .onboarding-hint__next {
   min-width: 7.5rem;
   margin-left: auto;

@@ -420,3 +420,9 @@
     padding: 0.7rem 0.75rem;
   }
 }
+
+.downloads-group__more {
+  display: grid;
+  justify-items: center;
+  padding: 0.25rem 0.9rem 0.5rem;
+}

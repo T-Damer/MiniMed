@@ -20,7 +20,7 @@ export function FullDownloadOffer(props: {
     () => true,
     () => true,
   );
-  const label = () => fullDownloadLabel(download.plan(), download.active());
+  const label = () => fullDownloadLabel(download.plan(), download.active(), download.paused());
   const complete = () => {
     const plan = download.plan();
     return plan !== undefined && plan.pending.length === 0 && plan.modelBytes === 0;
@@ -34,7 +34,12 @@ export function FullDownloadOffer(props: {
           disabled={download.plan() === undefined || download.active()}
           icon={
             <Show when={download.active()} fallback={<AppGlyph name="download" />}>
-              <DownloadProgressMark state="running" progress={null} />
+              <Show
+                when={download.paused()}
+                fallback={<DownloadProgressMark state="running" progress={null} />}
+              >
+                <AppGlyph name="pause" />
+              </Show>
             </Show>
           }
           onClick={() => void download.start()}

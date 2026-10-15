@@ -50,6 +50,7 @@ function state(
     },
     installedIds,
     tasks,
+    paused: false,
   };
 }
 

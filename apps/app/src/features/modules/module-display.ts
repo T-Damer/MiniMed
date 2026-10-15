@@ -1,6 +1,7 @@
 import type { ContentModuleCatalogEntry, ContentModuleDownloadTask } from '@localmed/contracts';
 
 import { listedModuleDocumentCount } from '@/features/modules/module-catalog-shell-source';
+import { formatByteSize } from '@/i18n/format-number';
 import { documentCountLabel } from '@/i18n/labels';
 
 export const MODULE_RELEASE_LABELS: Readonly<
@@ -24,11 +25,7 @@ export const MODULE_TASK_LABELS: Readonly<Record<ContentModuleDownloadTask['stat
 
 export function formatModuleBytes(value: number | null): string {
   if (value === null) return 'размер пока не указан';
-  if (value < 1024 * 1024) return `${Math.max(1, Math.round(value / 1024))} КБ`;
-  if (value >= 1024 * 1024 * 1024) {
-    return `${(value / 1024 / 1024 / 1024).toFixed(1).replace('.', ',')} ГБ`;
-  }
-  return `${(value / 1024 / 1024).toFixed(value >= 10 * 1024 * 1024 ? 0 : 1)} МБ`;
+  return formatByteSize(value);
 }
 
 export type ModuleCollectionSubtitleVariant = 'default' | 'core';

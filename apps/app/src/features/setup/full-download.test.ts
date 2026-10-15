@@ -127,4 +127,43 @@ describe('fullDownloadLabel', () => {
     });
     expect(fullDownloadLabel(done, false)).toBe('Всё скачано');
   });
+
+  it('says «На паузе» while the queue is held, not «Скачиваем…»', () => {
+    const plan = fullDownloadPlan(base);
+    expect(fullDownloadLabel(plan, true, true)).toBe('На паузе');
+    expect(fullDownloadLabel(plan, true, false)).toBe('Скачиваем…');
+    // A pause does not change the label of an offer that is not downloading at all.
+    expect(fullDownloadLabel(plan, false, true)).toMatch(/^Скачать всё/u);
+  });
+
+  it('does not keep offering a module that keeps failing', () => {
+    const afterwards = fullDownloadPlan({
+      ...base,
+      coreInstalled: true,
+      modelInstalled: true,
+      installed: (module) => module.id !== 'tool.a',
+      failed: (module) => module.id === 'tool.a',
+    });
+    expect(afterwards.pending).toEqual([]);
+    expect(afterwards.failed.map((module) => module.id)).toEqual(['tool.a']);
+    expect(afterwards.moduleBytes).toBe(0);
+    expect(fullDownloadLabel(afterwards, false)).toBe('Есть ошибки загрузки');
+  });
+
+  it('keeps the other modules on offer when one has failed', () => {
+    const plan = fullDownloadPlan({
+      ...base,
+      coreInstalled: true,
+      modelInstalled: true,
+      failed: (module) => module.id === 'tool.a',
+    });
+    expect(plan.pending.map((module) => module.id)).toEqual([
+      'kr.1',
+      'kr.2',
+      'med.a',
+      'regulatory.a',
+    ]);
+    expect(plan.failed.map((module) => module.id)).toEqual(['tool.a']);
+    expect(plan.moduleBytes).toBe(135 * MIB);
+  });
 });

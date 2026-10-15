@@ -38,6 +38,17 @@ describe('isTransientDownloadError', () => {
     expect(isTransientDownloadError(new Error('Ошибка из-за нестабильной сети.'))).toBe(true);
   });
 
+  it('retries a stored file that could not be read, by name or by the installer message', () => {
+    expect(isTransientDownloadError(new DOMException('gone', 'NotReadableError'))).toBe(true);
+    expect(
+      isTransientDownloadError(
+        new Error(
+          'The requested file could not be read, typically due to permission problems that have occurred after a reference to a file was acquired.',
+        ),
+      ),
+    ).toBe(true);
+  });
+
   it('never retries an abort or a permanent failure', () => {
     expect(isTransientDownloadError(new DOMException('Download aborted.', 'AbortError'))).toBe(
       false,

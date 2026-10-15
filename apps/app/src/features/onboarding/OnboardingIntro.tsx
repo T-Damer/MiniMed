@@ -42,6 +42,8 @@ function introArrow(
 export function OnboardingIntro(props: {
   readonly phase: IntroPhase;
   readonly coreReady: boolean;
+  /** The main database is being fetched right now. */
+  readonly coreDownloading: boolean;
   /** The main database waits for the person to choose what to download. */
   readonly awaitingChoice: boolean;
   /** The choice made so far; `undefined` while nothing is chosen. */
@@ -58,8 +60,13 @@ export function OnboardingIntro(props: {
 
   const coreVisible = () => props.phase === 'core';
   const choosing = () => props.awaitingChoice && props.chosen === undefined;
+  // The arrow points at the progress line: only once there is a download to show on it.
   const arrowWanted = () =>
-    coreVisible() && !props.coreReady && !choosing() && props.chosen !== 'later';
+    coreVisible() &&
+    !props.coreReady &&
+    !choosing() &&
+    props.chosen !== 'later' &&
+    (props.coreDownloading || props.chosen !== undefined);
 
   const placeArrow = (): void => {
     if (!coreText || !arrowWanted()) {
@@ -96,11 +103,19 @@ export function OnboardingIntro(props: {
     if (props.chosen === 'later') {
       return 'Хорошо, скачаете позже: кнопка будет в поиске и внизу экрана';
     }
-    return `Скачиваем в фоне — прогресс внизу. Остановить можно в «Настройки → Загрузки»`;
+    // Say what is true: until the person chooses (or the app resumed an earlier download) nothing
+    // is being fetched, and the choice itself appears once the app knows the base is missing.
+    if (props.coreDownloading || props.chosen !== undefined) {
+      return `Скачиваем в фоне — прогресс внизу. Остановить можно в «Настройки → Загрузки»`;
+    }
+    return 'Проверяем, что уже есть на устройстве…';
   };
   const nextHint = (): string => {
     if (props.coreReady) return 'Нажмите «Далее» — покажем, что умеет приложение';
     if (choosing()) return 'Нажмите «Далее», чтобы ничего не скачивать сейчас';
+    if (!props.coreDownloading && props.chosen === undefined) {
+      return 'Нажмите «Далее», чтобы продолжить знакомство';
+    }
     return 'Нажмите «Далее», чтобы продолжить знакомство, пока идёт загрузка';
   };
   const footerShown = () => props.phase !== 'wait';

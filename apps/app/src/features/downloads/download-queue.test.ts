@@ -271,6 +271,30 @@ describe('shared download ownership', () => {
     expect(JSON.stringify(queue.list())).not.toContain('secret');
   });
 
+  it('keeps the recipe of the meaning-search model, so a reload can restart it', () => {
+    const journal = JSON.stringify({
+      version: 1,
+      tasks: [
+        {
+          ...descriptor('model:minimed/kd1-query-encoder@rev', 'model'),
+          state: 'downloading',
+          downloadedBytes: 40,
+          totalBytes: 100,
+          resume: {
+            kind: 'semantic-model',
+            id: 'model:minimed/kd1-query-encoder@rev',
+            version: 'rev',
+          },
+        },
+      ],
+    });
+    const queue = new DownloadQueue(3, { load: () => journal, save: vi.fn() });
+    expect(queue.get('model:minimed/kd1-query-encoder@rev')).toMatchObject({
+      state: 'interrupted',
+      resume: { kind: 'semantic-model', version: 'rev' },
+    });
+  });
+
   it('retains installed data when queue storage is corrupt or unavailable', async () => {
     const queue = new DownloadQueue(3, {
       load: () => '{broken',

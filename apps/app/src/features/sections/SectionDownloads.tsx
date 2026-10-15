@@ -143,6 +143,7 @@ function SectionItem(props: {
     const { queue, progress } = status();
     if (queue === null) return '';
     const fraction = progress.byteProgress;
+    if (queue === 'paused') return 'на паузе';
     if (queue === 'queued') return 'в очереди';
     return fraction === null ? 'скачивается…' : `скачивается · ${Math.floor(fraction * 100)} %`;
   };
@@ -187,7 +188,9 @@ function SectionItem(props: {
           <span class="section-downloads__queue" role="status">
             <DownloadProgressMark
               class="section-downloads__mark"
-              state={status().queue === 'queued' ? 'queued' : 'running'}
+              state={
+                status().queue === 'queued' || status().queue === 'paused' ? 'queued' : 'running'
+              }
               progress={status().progress.byteProgress}
             />
             <span class="section-downloads__queue-text">{queueText()}</span>

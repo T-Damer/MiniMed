@@ -39,6 +39,8 @@ const TRANSIENT_MESSAGE_MARKERS = [
   'http 504',
   // A truncated transfer keeps its partial bytes, so the next attempt resumes instead of restarting.
   'размер файла не совпал',
+  // The browser's message for a Blob whose file is gone (NotReadableError), as the installer reports it.
+  'requested file could not be read',
 ] as const;
 
 /**
@@ -49,6 +51,9 @@ export function isTransientDownloadError(cause: unknown): boolean {
   if (cause instanceof DOMException && cause.name === 'AbortError') return false;
   if (cause instanceof Error && cause.name === 'AbortError') return false;
   if (!(cause instanceof Error)) return false;
+  // A stored partial whose file vanished is dropped by the transport; a read that still fails
+  // (storage under pressure) works on the next attempt, which starts from clean bytes.
+  if (cause.name === 'NotReadableError') return true;
   if ('code' in cause && cause.code === 'NATIVE_DOWNLOAD_BUSY') return true;
   const normalized = cause.message.toLowerCase();
   return TRANSIENT_MESSAGE_MARKERS.some((marker) => normalized.includes(marker));

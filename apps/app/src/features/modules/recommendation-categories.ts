@@ -86,18 +86,27 @@ const TERMINAL_TASK_STATES = new Set<ContentModuleDownloadTask['state']>([
   'cancelled',
 ]);
 
-export type ModuleGroupTaskState = 'queued' | 'active' | null;
+export type ModuleGroupTaskState = 'queued' | 'active' | 'paused' | null;
 
+/**
+ * Whether a group of modules is waiting, working, held or idle. `paused` is the queue-wide hold of
+ * the module downloads: a group that would be queued or downloading reads «paused» instead.
+ */
 export function moduleGroupTaskState(
   modules: readonly ContentModuleCatalogEntry[],
   tasks: readonly ContentModuleDownloadTask[],
+  paused = false,
 ): ModuleGroupTaskState {
   const moduleIds = new Set(modules.map((module) => module.id));
   const states = tasks
     .filter((task) => moduleIds.has(task.moduleId) && !TERMINAL_TASK_STATES.has(task.state))
     .map((task) => task.state);
+  if (states.length === 0) return null;
+  if (paused && states.every((state) => state === 'queued' || state === 'downloading')) {
+    return 'paused';
+  }
   if (states.some((state) => state !== 'queued')) return 'active';
-  return states.includes('queued') ? 'queued' : null;
+  return 'queued';
 }
 
 export interface RecommendationCategoryDownloadProgress {

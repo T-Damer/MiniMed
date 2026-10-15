@@ -170,6 +170,16 @@ describe('resolveContentModuleArtifactUrl', () => {
     );
   });
 
+  it('serves the gzip МКБ-11 module from its dataset branch, not from a main path that has no copy', () => {
+    expect(
+      resolveContentModuleArtifactUrl(
+        'https://github.com/T-Damer/MiniMed/releases/download/reference-icd11-2026.10.6/minimed.reference.icd11.2026.10.6.db.gz',
+      ),
+    ).toBe(
+      'https://raw.githubusercontent.com/T-Damer/MiniMed/datasets/reference-icd11-2026.10.6/modules/minimed.reference.icd11.2026.10.6.db.gz',
+    );
+  });
+
   it('serves the ГРЛС instruction and Allmed modules from their dataset branches', () => {
     expect(
       resolveContentModuleArtifactUrl(

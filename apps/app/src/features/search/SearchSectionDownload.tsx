@@ -1,6 +1,7 @@
 import { createMemo, type JSX, Show } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
 import { DownloadProgressMark } from '@/components/DownloadProgressMark';
+import { useDownloadsPause } from '@/features/downloads/use-downloads-pause';
 import { formatModuleBytes } from '@/features/modules/module-display';
 import { moduleGroupDownloadProgress } from '@/features/modules/recommendation-categories';
 import type { SearchDownloadBlock } from '@/features/search/searchSectionDownloads';
@@ -13,6 +14,7 @@ export function SearchSectionDownload(props: {
   readonly noDownload?: boolean;
   readonly loading?: boolean;
 }): JSX.Element {
+  const downloadsPause = useDownloadsPause();
   const installed = createMemo(() => props.downloads.installedIds(props.block.modules));
   const tasks = createMemo(() =>
     props.downloads
@@ -44,6 +46,12 @@ export function SearchSectionDownload(props: {
       return props.downloads.error() ? 'Не удалось проверить' : 'Проверяем пакеты…';
     if (active() && complete()) return 'Подключаем…';
     if (active()) {
+      // The queue-wide hold of the module downloads reads the same on every surface.
+      if (
+        downloadsPause.paused() &&
+        tasks().every((task) => task.state === 'queued' || task.state === 'downloading')
+      )
+        return 'На паузе';
       if (tasks().some((task) => task.state === 'downloading'))
         return progress().byteProgress === null
           ? 'Загрузка…'

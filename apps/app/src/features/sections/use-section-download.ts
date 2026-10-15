@@ -79,6 +79,7 @@ export function useSectionDownload(onContentChanged: () => Promise<void>): Secti
       skipped(),
       snapshot?.isInstalled ?? (() => false),
       snapshot?.tasks ?? [],
+      snapshot?.paused ?? false,
     );
   };
 

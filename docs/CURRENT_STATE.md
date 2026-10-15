@@ -118,6 +118,70 @@ core-clinical 0.1.0-preview.7, emergency 0.1.0-preview.6, obstetrics-gynecology 
 - **Not done / open:** the «Обновление» pill belongs to UI-FIX1. Plausibility notes exist only for creatinine; other tools
   can add `when` warnings the same way. The EPDS ≥13 level (Cox 1987) is deliberately not added: the module cites only the
   Golubovich 8–9 guideline.
+## Downloads after the QA pass: «Скачать всё» failures, МКБ-11, pause labels, long queue — 2026-10-15 (STATE DL3)
+
+From `docs/research/qa-release-0660-2026-10-15.md` items 5, 6 and the download parts of 15.
+
+- **Why 31 modules ended «Набор не установлен» (item 5): the pause is not the cause.** Reproduced in headless Chromium (an
+  ephemeral profile, like the tester's) on the built app with the real catalog: «Скачать всё», **with or without** a
+  pause/reload, fails from about the 665th of 799 modules (≈1.5 GB of decoded indexes in; the calculator packs and the last КР
+  are at the tail of the catalog) with the browser's `NotReadableError` («The requested file could not be read…»; 390 failures
+  in one no-pause run). The throw is the last step of `downloadWithResume`: it wrote the received bytes to IndexedDB as ever
+  larger `Blob`s every 256 KB (a quadratic pile of Blobs and rows to delete), **deleted the row first and read the Blob after**,
+  and the browser had lost the file behind a Blob it had handed to IndexedDB. Small modules (most of them) were hit as much
+  as big ones. The pause logic itself holds: `module-queue-reload.test.ts` runs the real module runtime, download queue,
+  resumable transport, pending-install list and installer over a reload (new module graph, same storage) — the queue stays
+  paused, no byte is requested, «Продолжить» resumes the cut transfers with `Range` and every module installs with no failure,
+  also when modules are cut in the middle of their check.
+- **Fix** (`features/network/resumable-download.ts`): a file below 4 MiB is kept in memory only and never wrapped in a Blob
+  (`FLUSH_BYTES` 256 KB → 4 MiB; the partial is also written at once on an abort, so a pause still keeps its bytes); the
+  finished file is read before its row is deleted; a stored partial is verified readable (first and last byte) before a `Range`
+  request builds on it; a `NotReadableError` anywhere drops the partial and fetches from the first byte, once; a partial the
+  device is too full to store no longer fails the download (it goes on in memory). `download-retry.ts` treats `NotReadableError`
+  (and the installer's message for it) as transient; the module runtime's automatic re-queue of a transient failure is bounded
+  to 5 tries (`MODULE_REQUEUE_LIMIT`; «Повторить» starts over). The installer now reports a browser storage error with its name
+  (`QuotaExceededError: …`), and `module-failure-message.ts` turns it into «Не хватает места на устройстве…» (a 404 into «Файла
+  набора пока нет на сервере…») instead of one line for every cause.
+- **Measured after the fix.** Same build, same 799 modules, 3 concurrent transfers: a normal (persistent) profile installs
+  all of them with zero failures — also through pause → reload → resume at 100 modules (`PAUSE_AT=100`, see the run notes in
+  the commit). The ephemeral profile now fails only from about the 760th module (≈1.9 GB decoded + the 130 MB model) with
+  `QuotaExceededError` on `versions`/`active`: that profile's IndexedDB quota is smaller than the whole library. It is a
+  property of the headless test profile, and the message above now says so; a phone with free storage does not hit it.
+- **Tests.** Unit: `resumable-download.test.ts` (unreadable partial, unreadable finished file, one restart only, small file
+  never in a Blob, full device), `download-retry.test.ts`, `module-failure-message.test.ts`, `module-queue-reload.test.ts`; e2e
+  `download-pause-queue.spec.ts` (8 real calculator packs, the pending list and the paused journal as a reload leaves them, hero
+  «На паузе», no request while paused, resume finishes all, no error row).
+- **«Поиск по смыслу» after a reload.** Its task (kind `model`) had no restore recipe, so it stayed «Прервано перезапуском».
+  `DownloadResume` has a new kind `semantic-model`; `restore-downloads.ts` revalidates it against `E5_DOWNLOAD_ID`/`E5_MODEL_REVISION`
+  and starts `installE5Model()` again (kept partial bytes, `Range`). Unit in `download-queue.test.ts`; e2e `download-model-resume.spec.ts`.
+- **«На паузе» everywhere.** The hero of Settings → Загрузки (`fullDownloadLabel(plan, active, paused)`) says «На паузе» with a
+  pause glyph instead of «Скачиваем…» and a spinner. Section rows, the ATC group rows and the «Препараты» button, the section cards
+  and the open section of the knowledge base and the search section block read the queue-wide hold through
+  `moduleGroupTaskState(modules, tasks, paused)` (new `paused` result) and `ModuleInstallerSnapshot.paused`.
+- **МКБ-11 module 404 (item 6).** The module was released only as the GitHub release asset `reference-icd11-2026.10.6`; a
+  release asset has no CORS, so `artifact-url.ts` fell through to `…/main/apps/app/public/content/modules/<file>`, which does not
+  exist. The local release copy (`data/build/icd11-module/release/`, 47 662 744 B, sha256 194b8953…) equals the catalog entry; it is
+  now a plain git blob on the new mirror branch `datasets/reference-icd11-2026.10.6` (`modules/`), and `artifact-url.ts` maps
+  `reference-icd11-*` `.db.gz` there (`scripts/publish-module-zstd-mirror.sh --family reference`, a step in `docs/RELEASES.md`);
+  `bun scripts/verify-module-artifact.ts` against the raw URL: sha and decoded size match, `ok`. Every other catalog URL was
+  resolved and probed: this was the only 404 (the Pages-mirrored terminology/КрасотаИМедицина/РЛС-МКБ files exist only on the
+  deployed site). The catalog entry is unchanged.
+- **A module that keeps failing no longer keeps «Скачать всё · 49 МБ» alive.** `fullDownloadPlan` takes `failed(module)` (the
+  queue's failed `module:<id>@<version>` task, read in `use-full-download.ts`, throttled): failed modules leave `pending`
+  and the byte total; with nothing else left the offer is gone and the overview card offers «Повторить ошибки».
+- **Onboarding (item 15).** Before the app knows whether the base is missing, the download scene said «Скачиваем в фоне» although
+  nothing had started (it flipped to «Что скачать сейчас?» ~4 s later): it now says «Проверяем, что уже есть на устройстве…» until a
+  download runs or a choice is made (`OnboardingIntro` gets `coreDownloading`; the arrow waits for a real download). The disabled
+  «Назад» of the first tour step is hidden (`visibility: hidden`, layout kept). e2e `onboarding.spec.ts`.
+- **One Russian number format.** `i18n/format-number.ts`: `formatDecimal` (comma, real minus, no «−0,0»), `formatPercentValue`,
+  `formatByteSize` (КБ/МБ/ГБ). Used by the downloads page rows («1,4 МБ из 1,1 ГБ»; was 1.4 МБ / 1.14 ГБ), the module/file/note sizes,
+  the ECG package size and the number outputs of calculator schemas (`calculator-schema-engine.ts`, was `toFixed` with a point).
+- **Long queue.** The downloads page drew every row (~700 after «Скачать всё»). `DownloadTaskList` shows the first 6 rows of a group
+  (20 of the history) and one «Показать все · N»; the waiting line keeps its order (next to start first); the page follows the queue
+  at most 4 times a second. e2e `downloads-long-queue.spec.ts`.
+- Not done: the `-0.7 %` of the report was not located beyond the calculator outputs above; Android native transfers and a
+  physical device are untested; the ephemeral-profile quota limit is not worked around (a storage-pressure pre-check before
+  «Скачать всё» would be the next step).
 
 ## Result interpretations, part B — 2026-10-15 (STATE TOOLS-B)
 

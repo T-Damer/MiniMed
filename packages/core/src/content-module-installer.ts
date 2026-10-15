@@ -522,7 +522,13 @@ export class ForegroundContentModuleInstaller {
       }
       return this.setTask(task.id, {
         state: 'failed',
-        errorMessage: cause instanceof Error ? cause.message : 'Module installation failed.',
+        // A browser storage error says what happened only by its name (QuotaExceededError, NotReadableError).
+        errorMessage:
+          cause instanceof DOMException
+            ? `${cause.name}: ${cause.message}`
+            : cause instanceof Error
+              ? cause.message
+              : 'Module installation failed.',
       });
     } finally {
       indexBytes = undefined;

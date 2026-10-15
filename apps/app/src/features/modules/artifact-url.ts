@@ -20,6 +20,12 @@ const PACKAGING_IMAGES_MIRROR_FILE_PREFIX = 'minimed.medications.packaging-image
 const REGULATORY_MIRROR_TAG_PREFIX = 'regulatory-';
 const REGULATORY_MIRROR_FILE_PREFIX = 'minimed.regulatory.';
 
+/**
+ * The optional МКБ-11 reference module (47.7 MB gzip): tag `reference-icd11-<version>`, a plain git
+ * blob on the branch `datasets/<tag>` (scripts/publish-module-zstd-mirror.sh --family reference).
+ */
+const ICD11_MIRROR_TAG_PREFIX = 'reference-icd11-';
+
 const RAW_GITHUB_MODULE_BASE =
   'https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules';
 export function usesLocalModuleArtifacts(): boolean {
@@ -94,6 +100,13 @@ export function resolveContentModuleArtifactUrl(url: string): string {
       ) {
         // The regulatory full-text module (about 3 MB compressed): a plain git blob on its
         // dataset branch. Earlier gzip releases keep resolving to the committed main copy below.
+        return `https://raw.githubusercontent.com/${owner}/${repo}/datasets/${releaseTag}/modules/${fileName}`;
+      }
+      if (
+        releaseTag.startsWith(ICD11_MIRROR_TAG_PREFIX) &&
+        fileName.startsWith('minimed.reference.icd11.') &&
+        fileName.endsWith('.db.gz')
+      ) {
         return `https://raw.githubusercontent.com/${owner}/${repo}/datasets/${releaseTag}/modules/${fileName}`;
       }
       if (

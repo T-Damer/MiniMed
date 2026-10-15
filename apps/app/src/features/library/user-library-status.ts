@@ -1,10 +1,10 @@
+import { formatByteSize } from '@/i18n/format-number';
 import type { UserLibraryDocument } from '@/state/user-library';
 import { userLibraryFileExtension } from '@/state/user-library-capabilities';
 
 export function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} Б`;
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} КБ`;
-  return `${(bytes / 1024 / 1024).toFixed(bytes >= 10 * 1024 * 1024 ? 0 : 1)} МБ`;
+  return formatByteSize(bytes);
 }
 
 const DATE_FORMAT = new Intl.DateTimeFormat('ru-RU', {

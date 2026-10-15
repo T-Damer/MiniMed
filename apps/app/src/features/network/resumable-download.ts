@@ -2,7 +2,13 @@ const DATABASE_NAME = 'minimed-resumable-downloads-v1';
 const DATABASE_VERSION = 1;
 const STORE_NAME = 'partials';
 
-const FLUSH_BYTES = 256 * 1024;
+/**
+ * Received bytes are written to IndexedDB every this many bytes, so a page that dies mid-download
+ * loses at most this much. A small file never reaches it and is kept in memory only: every write
+ * rewrites a Blob that covers everything received so far, and Chrome has been seen to lose the file
+ * behind such a Blob («The requested file could not be read») after some hundreds of them.
+ */
+const FLUSH_BYTES = 4 * 1024 * 1024;
 
 export interface ResumableDownloadProgress {
   readonly downloadedBytes: number;
@@ -16,6 +22,8 @@ export interface ResumableDownloadOptions {
   readonly expectedBytes?: number | null;
   readonly signal?: AbortSignal;
   readonly onProgress?: (progress: ResumableDownloadProgress) => void;
+  /** Bytes between writes of the partial to IndexedDB; the default suits every real module. */
+  readonly flushBytes?: number;
 }
 
 interface PartialDownloadRecord {
@@ -124,6 +132,42 @@ function parseTotalBytes(
   return fallback;
 }
 
+/**
+ * Chrome reports a Blob whose backing file is gone (an IndexedDB row replaced or removed while a
+ * handle to it was still held, a profile cleaned under the page) as NotReadableError, typically on
+ * the first read after a reload or a pause. Bytes that cannot be read are not a partial download.
+ */
+export function isUnreadableBlobError(cause: unknown): boolean {
+  return (
+    typeof cause === 'object' &&
+    cause !== null &&
+    'name' in cause &&
+    cause.name === 'NotReadableError'
+  );
+}
+
+function isQuotaError(cause: unknown): boolean {
+  return (
+    typeof cause === 'object' &&
+    cause !== null &&
+    'name' in cause &&
+    cause.name === 'QuotaExceededError'
+  );
+}
+
+/** Reads the first and the last byte: enough to find a stored partial whose file is gone. */
+async function isReadable(blob: Blob): Promise<boolean> {
+  if (blob.size === 0) return true;
+  try {
+    await blob.slice(0, 1).arrayBuffer();
+    await blob.slice(blob.size - 1).arrayBuffer();
+    return true;
+  } catch (cause) {
+    if (isUnreadableBlobError(cause)) return false;
+    throw cause;
+  }
+}
+
 function throwIfAborted(signal: AbortSignal | undefined): void {
   if (signal?.aborted) throw new DOMException('Download aborted.', 'AbortError');
 }
@@ -133,15 +177,39 @@ async function blobToUint8Array(blob: Blob): Promise<Uint8Array> {
   return new Uint8Array(buffer);
 }
 
-export async function downloadWithResume(options: ResumableDownloadOptions): Promise<Uint8Array> {
-  const { url, cacheKey, expectedBytes = null, signal, onProgress } = options;
+export function downloadWithResume(options: ResumableDownloadOptions): Promise<Uint8Array> {
+  return downloadWithResumeOnce(options, true);
+}
+
+/**
+ * `mayRestart`: the partial bytes turned out to be unreadable, so they are dropped and the file is
+ * fetched again from the first byte, once. A download never fails because of a damaged partial.
+ */
+async function downloadWithResumeOnce(
+  options: ResumableDownloadOptions,
+  mayRestart: boolean,
+): Promise<Uint8Array> {
+  const {
+    url,
+    cacheKey,
+    expectedBytes = null,
+    signal,
+    onProgress,
+    flushBytes = FLUSH_BYTES,
+  } = options;
   throwIfAborted(signal);
 
-  const existing = await readPartial(cacheKey);
+  let existing = await readPartial(cacheKey);
+  if (existing && !(await isReadable(existing.data))) {
+    await deletePartial(cacheKey);
+    existing = null;
+  }
   let downloadedBytes = existing?.url === url ? existing.data.size : 0;
   let totalBytes = existing?.url === url ? existing.totalBytes : expectedBytes;
   let pendingParts: BlobPart[] = existing?.url === url ? [existing.data] : [];
   let bytesSinceFlush = 0;
+  // A full device refuses the partial: the download goes on in memory, without a resume point.
+  let storePartials = true;
 
   const reportProgress = (): void => {
     onProgress?.({ downloadedBytes, totalBytes });
@@ -224,34 +292,70 @@ export async function downloadWithResume(options: ResumableDownloadOptions): Pro
       downloadedBytes += result.value.byteLength;
       bytesSinceFlush += result.value.byteLength;
       reportProgress();
-      if (bytesSinceFlush >= FLUSH_BYTES) await flushPartial();
+      if (storePartials && bytesSinceFlush >= flushBytes) {
+        try {
+          await flushPartial();
+        } catch (flushCause) {
+          if (!isQuotaError(flushCause)) throw flushCause;
+          storePartials = false;
+        }
+      }
     }
   } catch (cause) {
+    if (isUnreadableBlobError(cause)) {
+      // Writing the partial back read a part whose file is gone. Start clean, once.
+      await deletePartial(cacheKey);
+      if (mayRestart && !signal?.aborted) return downloadWithResumeOnce(options, false);
+      throw cause;
+    }
     // Persist before rethrowing, and wait for the write: an automatic retry reads this record
     // immediately, so a fire-and-forget flush would race it and restart from zero.
     try {
       await flushPartial();
-    } catch {
+    } catch (flushCause) {
+      if (isUnreadableBlobError(flushCause)) await deletePartial(cacheKey);
       // Reporting the storage failure would bury the transfer failure that actually stopped us.
     }
     throw cause;
   }
 
-  const data = new Blob(pendingParts);
-  if (expectedBytes !== null && data.size !== expectedBytes) {
+  if (expectedBytes !== null && downloadedBytes !== expectedBytes) {
     await writePartial({
       key: cacheKey,
       url,
       totalBytes,
-      data,
+      data: new Blob(pendingParts),
       updatedAt: new Date().toISOString(),
     });
-    throw new Error(`Размер файла не совпал: ${data.size} != ${expectedBytes}.`);
+    throw new Error(`Размер файла не совпал: ${downloadedBytes} != ${expectedBytes}.`);
   }
 
+  // A file that was never written to IndexedDB is plain memory: no Blob is built for it at all.
+  // Otherwise read first and delete after: the stored row's file backs part of what is read.
+  let bytes: Uint8Array;
+  try {
+    bytes = pendingParts.every((part) => part instanceof Uint8Array)
+      ? concatenateChunks(pendingParts as Uint8Array[], downloadedBytes)
+      : await blobToUint8Array(new Blob(pendingParts));
+  } catch (cause) {
+    if (!isUnreadableBlobError(cause)) throw cause;
+    await deletePartial(cacheKey);
+    if (mayRestart && !signal?.aborted) return downloadWithResumeOnce(options, false);
+    throw cause;
+  }
   await deletePartial(cacheKey);
-  onProgress?.({ downloadedBytes: data.size, totalBytes: totalBytes ?? data.size });
-  return blobToUint8Array(data);
+  onProgress?.({ downloadedBytes, totalBytes: totalBytes ?? downloadedBytes });
+  return bytes;
+}
+
+function concatenateChunks(chunks: readonly Uint8Array[], total: number): Uint8Array {
+  const bytes = new Uint8Array(total);
+  let cursor = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, cursor);
+    cursor += chunk.byteLength;
+  }
+  return bytes;
 }
 
 async function readResponse(

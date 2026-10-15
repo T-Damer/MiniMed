@@ -66,7 +66,7 @@ describe('userLibraryStatusParts', () => {
 describe('formatters', () => {
   it('formats sizes and extensions', () => {
     expect(formatFileSize(512)).toBe('512 Б');
-    expect(formatFileSize(5.4 * 1024 * 1024)).toBe('5.4 МБ');
+    expect(formatFileSize(5.4 * 1024 * 1024)).toBe('5,4 МБ');
     expect(userLibraryFormatLabel('Scan.NII.GZ')).toBe('NII.GZ');
     expect(userLibraryFormatLabel('README')).toBe('');
   });

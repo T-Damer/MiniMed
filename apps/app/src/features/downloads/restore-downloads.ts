@@ -66,6 +66,18 @@ export async function restoreDownloadIntents(): Promise<void> {
       ) {
         restore = () => asr.activateAsrModel(recipe.id);
       }
+    } else if (recipe.kind === 'semantic-model') {
+      const [model, store] = await Promise.all([
+        import('@/features/semantic/e5-model'),
+        import('@/features/semantic/e5-model-store'),
+      ]);
+      if (
+        task.id === model.E5_DOWNLOAD_ID &&
+        recipe.id === task.id &&
+        recipe.version === model.E5_MODEL_REVISION
+      ) {
+        restore = () => store.installE5Model();
+      }
     }
     if (!restore) {
       queue.rejectRestoration(task.id);

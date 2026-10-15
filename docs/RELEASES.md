@@ -163,6 +163,13 @@ regulatory-<version> --create` (branch `datasets/regulatory-<version>`, file und
 catalog with `bun scripts/verify-module-artifact.ts --url <raw mirror URL>`; the app bundles only 323-ФЗ and a card per
 act ([REGULATORY_PACK.md](REGULATORY_PACK.md)).
 
+An optional reference module that was released as a plain GitHub release asset (the МКБ-11 pack, 47.7 MB gzip, tag
+`reference-icd11-<version>`) is mirrored with `scripts/publish-module-zstd-mirror.sh --family reference --tag
+reference-icd11-<version> --source-dir DIR --create` (branch `datasets/<tag>`, file under `modules/`, gzip allowed) and
+checked with `bun scripts/verify-module-artifact.ts --module-id <id> --url <raw mirror URL>`. A release asset has no
+CORS, so without this mirror (and its rule in `artifact-url.ts`) the catalog URL falls through to a `main` path that does
+not exist and «Скачать всё» ends with a 404 for that module.
+
 An incremental clinical snapshot (new КР editions after a registry refresh) is published with
 `scripts/publish-module-zstd-mirror.sh --family clinical --tag <new snapshot id> --source-dir DIR --create`,
 which starts the branch `datasets/<tag>` without touching any existing branch, then

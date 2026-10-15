@@ -2,7 +2,7 @@
 # Adds repacked `.db.zst` module indexes to a dataset mirror branch WITHOUT touching what is there
 # (older app versions keep reading the `.db` files). Run it only after the owner agreed to publish.
 #
-#   scripts/publish-module-zstd-mirror.sh --family esklp|clinical|packaging-images|regulatory --tag <release tag> \
+#   scripts/publish-module-zstd-mirror.sh --family esklp|clinical|packaging-images|regulatory|reference --tag <release tag> \
 #     --source-dir <repack out dir> [--create] [--dry-run]
 #
 # `--create` starts the branch `datasets/<tag>` (an orphan commit with a README) when it does not
@@ -12,6 +12,8 @@
 # Layout on the branch `datasets/<tag>` (what artifact-url.ts resolves):
 #   esklp:    modules/<file>.db.zst
 #   regulatory: modules/<file>.db.zst (tag regulatory-<version>; the full-text module of the acts)
+#   reference: modules/<file>.db.gz (tag reference-<name>-<version>; an optional reference module released as gzip,
+#     e.g. reference-icd11-2026.10.6; the release asset has no CORS, so the browser reads this branch instead)
 #   clinical: apps/app/public/content/clinical/<file>.db.zst
 #   packaging-images: modules/minimed.medications.packaging-images.ru.{db,source-assets-<x>.zip}
 #     (the Allmed photo pack: an index and 16 ZIP shards of 15-22 MB each; the pack builder's
@@ -43,11 +45,14 @@ case "$FAMILY" in
   clinical) TARGET="apps/app/public/content/clinical" ;;
   packaging-images) TARGET="modules" ;;
   regulatory) TARGET="modules" ;;
-  *) echo "family must be esklp, clinical, packaging-images or regulatory" >&2; exit 2 ;;
+  reference) TARGET="modules" ;;
+  *) echo "family must be esklp, clinical, packaging-images, regulatory or reference" >&2; exit 2 ;;
 esac
 
 if [[ "$FAMILY" == "packaging-images" ]]; then
   FILE_PATTERN='minimed.medications.packaging-images.ru.*'
+elif [[ "$FAMILY" == "reference" ]]; then
+  FILE_PATTERN='*.db.gz'
 else
   FILE_PATTERN='*.db.zst'
 fi
@@ -75,7 +80,7 @@ fi
 mkdir -p "$WORKDIR/$TARGET"
 find "$SOURCE_DIR" -maxdepth 1 -type f -name "$FILE_PATTERN" -exec cp -f {} "$WORKDIR/$TARGET"/ \;
 # The branch tracks `*.db` in LFS only; the published files must stay plain blobs.
-for probe in probe.db.zst probe.db probe.zip; do
+for probe in probe.db.zst probe.db.gz probe.db probe.zip; do
   if git -C "$WORKDIR" check-attr filter -- "$TARGET/$probe" | grep -q 'lfs'; then
     echo "refusing: $probe would be stored in LFS on $BRANCH" >&2
     exit 1

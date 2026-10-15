@@ -53,6 +53,7 @@ import {
 import { isNotesFullscreenRoute, withNotesFullscreen } from '@/features/notes/notes-routing';
 import { VoiceRecordingButton } from '@/features/notes/VoiceRecordingButton';
 import { PrintManager } from '@/features/printing/print-manager';
+import { formatByteSize } from '@/i18n/format-number';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import { parseDocumentReadRoute } from '@/state/document-route';
 import '@/styles/note-markdown-editor.css';
@@ -187,8 +188,7 @@ const FILE_BLOCK_GLYPHS: Record<EditorFileAttachment['kind'], AppGlyphName> = {
 
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} Б`;
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} КБ`;
-  return `${(bytes / 1024 / 1024).toFixed(bytes >= 10 * 1024 * 1024 ? 0 : 1)} МБ`;
+  return formatByteSize(bytes);
 }
 
 interface TocEntry {
