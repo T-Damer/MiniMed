@@ -154,8 +154,12 @@ test('the fullscreen note toolbar scrolls with arrows, not a scrollbar', async (
   await page.getByRole('menuitem', { name: 'Обычная заметка', exact: true }).press('Enter');
   await page.getByLabel('Название заметки').fill('Панель');
   await page.getByRole('button', { name: 'Создать', exact: true }).click();
-  // The toolbar scrolls sideways only on a phone-width screen.
+  // The editor is up on a desktop-width screen, with its outline column open; the toolbar scrolls
+  // sideways only on a phone-width screen, and narrowing the window must not raise the outline
+  // as a drawer over the editor.
+  await expect(page.locator('.note-markdown-editor__toolbar--fullscreen')).toBeVisible();
   await page.setViewportSize({ width: 375, height: 812 });
+  await expect(page.locator('.document-overlay-outline-backdrop--open')).toHaveCount(0);
   const next = page.getByRole('button', { name: 'Прокрутить инструменты вправо' });
   await expect(next).toBeVisible();
   await next.click();

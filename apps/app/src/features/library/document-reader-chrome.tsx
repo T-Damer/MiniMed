@@ -259,6 +259,10 @@ export function useDocumentReaderChrome(
     const layoutQuery = window.matchMedia(DESKTOP_READER_LAYOUT_QUERY);
     const syncLayout = (): void => {
       setDesktopLayout(layoutQuery.matches);
+      // The outline is a column on a desktop and a drawer on a phone. It opens with the column
+      // (as on mount); a column left "open" must not turn into a drawer over the text when the
+      // window narrows or the device turns.
+      setOutlineOpen(layoutQuery.matches);
     };
     layoutQuery.addEventListener('change', syncLayout);
     const closeOnEscape = (event: KeyboardEvent): void => {

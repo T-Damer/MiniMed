@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { mountBuiltApp } from './mount-built-app';
+import { CORE_READY_TIMEOUT_MS, mountBuiltApp } from './mount-built-app';
 
 for (const width of [375, 1280]) {
   test(`the graph opens on a bounded neighbourhood and expands on request at ${width}px`, async ({
@@ -10,7 +10,9 @@ for (const width of [375, 1280]) {
     await page.evaluate(() => {
       window.location.hash = '#/modules/documents/core-library';
     });
-    await expect(page.locator('.document-library-card').first()).toBeVisible({ timeout: 30000 });
+    await expect(page.locator('.document-library-card').first()).toBeVisible({
+      timeout: CORE_READY_TIMEOUT_MS,
+    });
     await page.getByRole('button', { name: 'Карта связей', exact: true }).click();
 
     const card = page.locator('.knowledge-graph-card');
@@ -44,6 +46,8 @@ test('the graph entry points follow the experimental setting', async ({ page }) 
   await page.evaluate(() => {
     window.location.hash = '#/modules/documents/core-library';
   });
-  await expect(page.locator('.document-library-card').first()).toBeVisible({ timeout: 30000 });
+  await expect(page.locator('.document-library-card').first()).toBeVisible({
+    timeout: CORE_READY_TIMEOUT_MS,
+  });
   await expect(page.getByRole('button', { name: 'Карта связей', exact: true })).toHaveCount(0);
 });

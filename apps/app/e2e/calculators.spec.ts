@@ -61,13 +61,14 @@ test('offers and installs the pediatric growth pack from the calculator catalog'
   await expect(submit).toBeEnabled();
 
   const tooltipButton = page.getByRole('button', {
-    name: 'Подсказка: Метод измерения длины/роста',
+    name: 'Подсказка: Как измерены длина или рост',
   });
   await tooltipButton.click();
   await page.getByLabel('Дата рождения').click();
   await expect(page.getByRole('tooltip')).toBeHidden();
   await tooltipButton.click();
   await expect(page.getByRole('tooltip')).toContainText('до 2 лет');
+  await expect(page.getByRole('tooltip')).toContainText('0,7 см');
   await expect(page.getByLabel('Масса тела, г')).toBeVisible();
 });
 

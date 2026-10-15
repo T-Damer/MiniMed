@@ -1,5 +1,6 @@
 import { expect, type Page, test } from '@playwright/test';
 
+import { waitForHistoryLayersClosed } from './history-layers';
 import { mountBuiltApp } from './mount-built-app';
 import { openPatientList, patientCard } from './patient-list';
 
@@ -118,10 +119,11 @@ async function openCalculator(page: Page, slug: string): Promise<void> {
 
 async function selectPatient(page: Page, name: string): Promise<void> {
   await page.getByRole('button', { name: /^Выбрать (другого )?пациента$/u }).click();
-  await page
-    .getByRole('dialog', { name: 'Пациент', exact: true })
-    .getByRole('button', { name: new RegExp(`^${name}`, 'u') })
-    .click();
+  const picker = page.getByRole('dialog', { name: 'Пациент', exact: true });
+  await picker.getByRole('button', { name: new RegExp(`^${name}`, 'u') }).click();
+  // The next step of the spec sets the address: the picker's history entry must be off by then.
+  await expect(picker).toBeHidden();
+  await waitForHistoryLayersClosed(page);
 }
 
 test('the due-date calculators and the feeding plan offer the patient row again', async ({
